@@ -1,0 +1,48 @@
+#test comment
+skim.photon.eta = 2
+skim.photon.et = 10
+skim.photon.sigmaIEtaIEta_2012 = 0.01
+
+skim.electron.eta = 1
+
+skim.zboson.mass = 20
+
+skim.jet.pt = 40
+
+skim.track.highPurity = 0
+
+correction.photon.eta = 2
+correction.photon.et = 10
+correction.photon.sigmaIEtaIEta_2012 = 0.01
+
+correction.electron.eta = 1
+
+correction.zboson.mass = 20
+
+correction.jet.pt = 40
+
+correction.track.highPurity = 0
+
+histogram.photon.eta = 2
+histogram.photon.et = 10
+histogram.photon.sigmaIEtaIEta_2012 = 0.01
+
+histogram.electron.eta = 1
+
+histogram.zboson.mass = 20
+
+histogram.jet.pt = 40
+
+histogram.track.highPurity = 0
+
+plotting.photon.eta = 2
+plotting.photon.et = 10
+plotting.photon.sigmaIEtaIEta_2012 = 0.01
+
+plotting.electron.eta = 1
+
+plotting.zboson.mass = 20
+
+plotting.jet.pt = 40
+
+plotting.track.highPurity = 0

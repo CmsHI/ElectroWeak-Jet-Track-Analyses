@@ -1,0 +1,23 @@
+# text output or external binary names
+*.out
+*.log
+*.bin
+*.exe
+
+# output data
+*.root
+
+# ROOT offal
+*_C.d
+*.so
+
+# plots
+*.gif
+*.eps
+*.pdf
+*.png
+*_plot.C
+
+# emacs backups
+*~
+*\#

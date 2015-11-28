@@ -4,9 +4,6 @@
 // from TTree EventTree/Event data
 // found on file: ../../HiForest2015/Pyquen_Unquenched_AllQCDPhoton30_PhotonFilter20GeV_eta24_TuneZ2_PbPb_5020GeV_0.root
 //////////////////////////////////////////////////////////
-#include <iostream>
-#include <TROOT.h>
-#include <TChain.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
@@ -687,7 +684,7 @@ public :
 };
 
 
-void setupPhotonTree(TTree *t,ggHiNtuplizer &tggHiNtuplizer,bool doCheck = 1)
+void setupPhotonTree(TTree *t,ggHiNtuplizer &tggHiNtuplizer)
 {
   // Set branch addresses and branch pointers
   t->SetBranchAddress("run", &tggHiNtuplizer.run, &tggHiNtuplizer.b_run);
