@@ -1,48 +1,59 @@
 #test comment
+### Skim step
 skim.photon.eta = 2
 skim.photon.et = 10
 skim.photon.sigmaIEtaIEta_2012 = 0.01
-
-skim.electron.eta = 1
-
+skim.photon.nPhotons = 10
+#
+skim.electron.pt = 13
+#
 skim.zboson.mass = 20
-
+skim.zboson.nTracks = 11
+#
 skim.jet.pt = 40
-
+#
 skim.track.highPurity = 0
-
-correction.photon.eta = 2
-correction.photon.et = 10
-correction.photon.sigmaIEtaIEta_2012 = 0.01
-
-correction.electron.eta = 1
-
-correction.zboson.mass = 20
-
-correction.jet.pt = 40
-
-correction.track.highPurity = 0
-
+#
+### Other Steps
+correction.photon.eta = 3
+correction.photon.et = 15
+correction.photon.sigmaIEtaIEta_2012 = 0.0111
+correction.photon.nPhotons = 18
+#
+correction.electron.pt = 9
+#
+correction.zboson.mass = 9.8
+correction.zboson.nTracks = 7
+#
+correction.jet.pt = 25.7
+#
+correction.track.highPurity = 1
+#
 histogram.photon.eta = 2
 histogram.photon.et = 10
 histogram.photon.sigmaIEtaIEta_2012 = 0.01
-
-histogram.electron.eta = 1
-
+histogram.photon.nPhotons = 10
+#
+histogram.electron.pt = 13
+#
 histogram.zboson.mass = 20
-
+histogram.zboson.nTracks = 11
+#
 histogram.jet.pt = 40
-
+#
 histogram.track.highPurity = 0
-
+#
 plotting.photon.eta = 2
 plotting.photon.et = 10
 plotting.photon.sigmaIEtaIEta_2012 = 0.01
-
-plotting.electron.eta = 1
-
+plotting.photon.nPhotons = 10
+#
+plotting.electron.pt = 13
+#
 plotting.zboson.mass = 20
-
+plotting.zboson.nTracks = 11
+#
 plotting.jet.pt = 40
-
+#
 plotting.track.highPurity = 0
+#

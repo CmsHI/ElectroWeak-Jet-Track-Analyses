@@ -3,46 +3,94 @@
 #include <sstream>
 #include <string>
 
+#include "PhotonCuts.h"
+#include "ElectronCuts.h"
+#include "ZBosonCuts.h"
+#include "JetCuts.h"
+#include "TrackCuts.h"
+
 #ifndef CUTCONFIGURATION
 #define CUTCONFIGURATION
 
-struct PhotonCuts{
-  double eta;
-  double et;
-  double sigmaIEtaIEta_2012;
-};
+namespace CUTS {
+  struct ObjectCuts{
+    float *f;
+    int *i;
+    bool *b;
+  };
 
-struct ElectronCuts{
-  double eta;
-};
+  enum OBJECT{
+    kPHOTON,
+    kELECTRON,
+    kZBOSON,
+    kJET,
+    kTRACK,
+    kN_OBJECTS
+  };
 
-struct ZBosonCuts{
-  double mass;
-};
+  const int SUMMARY_INFO_I[kN_OBJECTS] = {PHO::kN_I_CUTS,
+					  ELE::kN_I_CUTS,
+					  ZBO::kN_I_CUTS,
+					  JET::kN_I_CUTS,
+					  TRK::kN_I_CUTS};
+  const std::string *SUMMARY_INFO_I_LABELS[kN_OBJECTS] = {PHO::I_CUTS_LABELS,
+							  ELE::I_CUTS_LABELS,
+							  ZBO::I_CUTS_LABELS,
+							  JET::I_CUTS_LABELS,
+							  TRK::I_CUTS_LABELS};
 
-struct JetCuts{
-  double pt;
-};
+  const int SUMMARY_INFO_F[kN_OBJECTS] = {PHO::kN_F_CUTS,
+					  ELE::kN_F_CUTS,
+					  ZBO::kN_F_CUTS,
+					  JET::kN_F_CUTS,
+					  TRK::kN_F_CUTS};
+  const std::string *SUMMARY_INFO_F_LABELS[kN_OBJECTS] = {PHO::F_CUTS_LABELS,
+							  ELE::F_CUTS_LABELS,
+							  ZBO::F_CUTS_LABELS,
+							  JET::F_CUTS_LABELS,
+							  TRK::F_CUTS_LABELS};
 
-struct TrackCuts{
-  bool highPurity;
-};
+  const int SUMMARY_INFO_B[kN_OBJECTS] = {PHO::kN_B_CUTS,
+					  ELE::kN_B_CUTS,
+					  ZBO::kN_B_CUTS,
+					  JET::kN_B_CUTS,
+					  TRK::kN_B_CUTS};
+  const std::string *SUMMARY_INFO_B_LABELS[kN_OBJECTS] = {PHO::B_CUTS_LABELS,
+							  ELE::B_CUTS_LABELS,
+							  ZBO::B_CUTS_LABELS,
+							  JET::B_CUTS_LABELS,
+							  TRK::B_CUTS_LABELS};
 
-struct ProcessCuts{
-  PhotonCuts photon;
-  ElectronCuts electron;
-  ZBosonCuts zboson;
-  JetCuts jet;
-  TrackCuts track;
+
+  std::string OBJECT_LABELS[kN_OBJECTS] = {"photon",
+					   "electron",
+					   "zboson",
+					   "jet",
+					   "track"
+  };
+
+  struct ProcessCuts{
+    ObjectCuts obj[kN_OBJECTS];
+  };
+
+  enum PROCESS{
+    kSKIM,
+    kCORRECTION,
+    kHISTOGRAM,
+    kPLOTTING,
+    kN_PROCESSES // must come last in enum
+  };
+
+  std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
+					      "correction",
+					      "histogram",
+					      "plotting"
+  };
 };
 
 struct CutConfiguration{
-  ProcessCuts skim;
-  ProcessCuts correction;
-  ProcessCuts histogram;
-  ProcessCuts plotting;
+  CUTS::ProcessCuts proc[CUTS::kN_PROCESSES];
 };
-
 
 class CutConfigurationsParser{
 public:
@@ -52,100 +100,53 @@ public:
 
 CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 {
+  using namespace CUTS;
+
   CutConfiguration config;
+  for(int i = 0 ; i < kN_PROCESSES; ++i){
+    for(int j = 0; j < kN_OBJECTS; ++j){
+      config.proc[i].obj[j].i = (int*) calloc( SUMMARY_INFO_I[j], sizeof(int));
+      config.proc[i].obj[j].f = (float*) calloc( SUMMARY_INFO_F[j], sizeof(float));
+      config.proc[i].obj[j].b = (bool*) calloc( SUMMARY_INFO_B[j], sizeof(bool));
+    }
+  }
 
   std::ifstream fin(inFile);
   std::string line;
   while (getline(fin, line)) {
     std::istringstream sin(line.substr(line.find("=") + 1));
     if (line.find("#") != std::string::npos) continue; //allow # comments
-    if (line.find("skim") != std::string::npos){
-      if(line.find("photon") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.skim.photon.eta;
-	else if(line.find("et") != std::string::npos)
-	  sin >> config.skim.photon.et;
-	else if(line.find("sigmaIEtaIEta_2012") != std::string::npos)
-	  sin >> config.skim.photon.sigmaIEtaIEta_2012;
-      } else if (line.find("electron") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.skim.electron.eta;
-      } else if (line.find("zboson") != std::string::npos){
-	if(line.find("mass") != std::string::npos)
-	  sin >> config.skim.zboson.mass;
-      } else if (line.find("jet") != std::string::npos){
-	if(line.find("pt") != std::string::npos)
-	  sin >> config.skim.jet.pt;
-      } else if (line.find("track") != std::string::npos){
-	if(line.find("highPurity") != std::string::npos)
-	  sin >> config.skim.track.highPurity;
+    PROCESS proc = kN_PROCESSES;
+    for(int i = 0; i < kN_PROCESSES; ++i){
+      if (line.find(PROCESS_LABELS[i]) != std::string::npos)
+	proc = (PROCESS)i;
+    }
+    OBJECT obj = kN_OBJECTS;
+    for(int i = 0; i < kN_OBJECTS; ++i){
+      if(line.find(OBJECT_LABELS[i]) != std::string::npos)
+      {
+	obj = (OBJECT)i;
+
+	for(int j = 0; j < SUMMARY_INFO_I[obj]; ++j)
+	{
+	  if(line.find(SUMMARY_INFO_I_LABELS[obj][j]) != std::string::npos)
+	    sin >> config.proc[proc].obj[obj].i[j];
+	}
+	for(int j = 0; j < SUMMARY_INFO_F[obj]; ++j)
+	{
+	  if(line.find(SUMMARY_INFO_F_LABELS[obj][j]) != std::string::npos)
+	    sin >> config.proc[proc].obj[obj].f[j];
+	}
+	for(int j = 0; j < SUMMARY_INFO_B[obj]; ++j)
+	{
+	  if(line.find(SUMMARY_INFO_B_LABELS[obj][j]) != std::string::npos)
+	    sin >> config.proc[proc].obj[obj].b[j];
+	}
       }
     }
-    else if (line.find("correction") != std::string::npos){
-      if(line.find("photon") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.correction.photon.eta;
-	else if(line.find("et") != std::string::npos)
-	  sin >> config.correction.photon.et;
-	else if(line.find("sigmaIEtaIEta_2012") != std::string::npos)
-	  sin >> config.correction.photon.sigmaIEtaIEta_2012;
-      } else if (line.find("electron") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.correction.electron.eta;
-      } else if (line.find("zboson") != std::string::npos){
-	if(line.find("mass") != std::string::npos)
-	  sin >> config.correction.zboson.mass;
-      } else if (line.find("jet") != std::string::npos){
-	if(line.find("pt") != std::string::npos)
-	  sin >> config.correction.jet.pt;
-      } else if (line.find("track") != std::string::npos){
-	if(line.find("highPurity") != std::string::npos)
-	  sin >> config.correction.track.highPurity;
-      }
-    }
-    else if (line.find("histogram") != std::string::npos){
-      if(line.find("photon") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.histogram.photon.eta;
-	else if(line.find("et") != std::string::npos)
-	  sin >> config.histogram.photon.et;
-	else if(line.find("sigmaIEtaIEta_2012") != std::string::npos)
-	  sin >> config.histogram.photon.sigmaIEtaIEta_2012;
-      } else if (line.find("electron") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.histogram.electron.eta;
-      } else if (line.find("zboson") != std::string::npos){
-	if(line.find("mass") != std::string::npos)
-	  sin >> config.histogram.zboson.mass;
-      } else if (line.find("jet") != std::string::npos){
-	if(line.find("pt") != std::string::npos)
-	  sin >> config.histogram.jet.pt;
-      } else if (line.find("track") != std::string::npos){
-	if(line.find("highPurity") != std::string::npos)
-	  sin >> config.histogram.track.highPurity;
-      }
-    }
-    else if (line.find("plotting") != std::string::npos){
-      if(line.find("photon") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.plotting.photon.eta;
-	else if(line.find("et") != std::string::npos)
-	  sin >> config.plotting.photon.et;
-	else if(line.find("sigmaIEtaIEta_2012") != std::string::npos)
-	  sin >> config.plotting.photon.sigmaIEtaIEta_2012;
-      } else if (line.find("electron") != std::string::npos){
-	if(line.find("eta") != std::string::npos)
-	  sin >> config.plotting.electron.eta;
-      } else if (line.find("zboson") != std::string::npos){
-	if(line.find("mass") != std::string::npos)
-	  sin >> config.plotting.zboson.mass;
-      } else if (line.find("jet") != std::string::npos){
-	if(line.find("pt") != std::string::npos)
-	  sin >> config.plotting.jet.pt;
-      } else if (line.find("track") != std::string::npos){
-	if(line.find("highPurity") != std::string::npos)
-	  sin >> config.plotting.track.highPurity;
-      }
+    if (proc == kN_PROCESSES || obj == kN_OBJECTS) {
+      std::cout << "Invalid line in configuration." << std::endl;
+      return config;
     }
   }
   return config;
