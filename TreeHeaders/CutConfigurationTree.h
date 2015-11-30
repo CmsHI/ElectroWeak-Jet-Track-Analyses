@@ -1,3 +1,6 @@
+#ifndef CUTCONFIGURATIONTREE
+#define CUTCONFIGURATIONTREE
+
 #include <TTree.h>
 #include <TFile.h>
 #include <TBranch.h>
@@ -35,3 +38,5 @@ TTree* setupConfigurationTreeForWriting(CutConfiguration config)
   t->Fill();
   return t;
 }
+
+#endif

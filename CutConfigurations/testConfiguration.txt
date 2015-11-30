@@ -1,4 +1,3 @@
-#test comment
 ### Skim step
 skim.photon.eta = 2
 skim.photon.et = 10

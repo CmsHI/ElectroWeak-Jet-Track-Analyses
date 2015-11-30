@@ -9,6 +9,8 @@ void ggHiNtuplizerSkim(const TString configFile/*, const TString inputHiForest, 
 {
   CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
 
+  std::cout << config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et] << std::endl;
+
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   TFile *outFile = TFile::Open("outfile.root","RECREATE");

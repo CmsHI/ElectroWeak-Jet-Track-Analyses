@@ -1,3 +1,6 @@
+#ifndef CUTCONFIGURATION
+#define CUTCONFIGURATION
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -8,9 +11,6 @@
 #include "ZBosonCuts.h"
 #include "JetCuts.h"
 #include "TrackCuts.h"
-
-#ifndef CUTCONFIGURATION
-#define CUTCONFIGURATION
 
 namespace CUTS {
   struct ObjectCuts{
@@ -112,14 +112,24 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
   }
 
   std::ifstream fin(inFile);
+  if ( (fin.rdstate() & std::ifstream::failbit ) != 0 ) {
+    std::cout << "I/O Error opening configuration file." << std::endl;
+    return config;
+  }
   std::string line;
+  unsigned int lineCounter = 0;
   while (getline(fin, line)) {
-    std::istringstream sin(line.substr(line.find("=") + 1));
+    lineCounter++;
     if (line.find("#") != std::string::npos) continue; //allow # comments
+    if (line.find("=") == std::string::npos) continue; //skip all lines without an =
+    std::istringstream sin(line.substr(line.find("=") + 1));
+    bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){
-      if (line.find(PROCESS_LABELS[i]) != std::string::npos)
+      if (line.find(PROCESS_LABELS[i]) != std::string::npos) {
 	proc = (PROCESS)i;
+	break;
+      }
     }
     OBJECT obj = kN_OBJECTS;
     for(int i = 0; i < kN_OBJECTS; ++i){
@@ -129,23 +139,35 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 
 	for(int j = 0; j < SUMMARY_INFO_I[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_I_LABELS[obj][j]) != std::string::npos)
+	  if(line.find(SUMMARY_INFO_I_LABELS[obj][j]) != std::string::npos) {
 	    sin >> config.proc[proc].obj[obj].i[j];
+	    success = true;
+	    break;
+	  }
 	}
 	for(int j = 0; j < SUMMARY_INFO_F[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_F_LABELS[obj][j]) != std::string::npos)
+	  if(line.find(SUMMARY_INFO_F_LABELS[obj][j]) != std::string::npos) {
 	    sin >> config.proc[proc].obj[obj].f[j];
+	    success = true;
+	    break;
+	  }
 	}
 	for(int j = 0; j < SUMMARY_INFO_B[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_B_LABELS[obj][j]) != std::string::npos)
+	  if(line.find(SUMMARY_INFO_B_LABELS[obj][j]) != std::string::npos) {
 	    sin >> config.proc[proc].obj[obj].b[j];
+	    success = true;
+	    break;
+	  }
 	}
+	break;
       }
     }
-    if (proc == kN_PROCESSES || obj == kN_OBJECTS) {
-      std::cout << "Invalid line in configuration." << std::endl;
+    if (!success) {
+      std::cout << "Malformed line in configuration." << std::endl;
+      std::cout << "Line #" << lineCounter << " : " << std::endl;
+      std::cout << line << std::endl;
       return config;
     }
   }
