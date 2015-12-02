@@ -19,6 +19,7 @@ public:
   Int_t          nPho;
   std::vector<float>  phoE;
   std::vector<float>  phoEt;
+  std::vector<float>  phoEtCorrected; //only present after correction step.
   std::vector<float>  phoEta;
   std::vector<float>  phoPhi;
   std::vector<float>  phoSCE;
@@ -191,6 +192,164 @@ public:
   std::vector<float> towerVsSubIso4;
   std::vector<float> towerVsSubIso5;
 
+  std::vector<float> *p_phoE = 0;
+  std::vector<float> *p_phoEt = 0;
+  std::vector<float> *p_phoEtCorrected = 0;
+  std::vector<float> *p_phoEta = 0;
+  std::vector<float> *p_phoPhi = 0;
+  std::vector<float> *p_phoSCE = 0;
+  std::vector<float> *p_phoSCRawE = 0;
+  std::vector<float> *p_phoESEn = 0;
+  std::vector<float> *p_phoSCEta = 0;
+  std::vector<float> *p_phoSCPhi = 0;
+  std::vector<float> *p_phoSCEtaWidth = 0;
+  std::vector<float> *p_phoSCPhiWidth = 0;
+  std::vector<float> *p_phoSCBrem = 0;
+  std::vector<int> *p_phohasPixelSeed = 0;
+  std::vector<float> *p_phoR9 = 0;
+  std::vector<float> *p_phoHoverE = 0;
+  std::vector<float> *p_phoSigmaIEtaIEta = 0;
+  std::vector<float> *p_phoE1x3 = 0;
+  std::vector<float> *p_phoE2x2 = 0;
+  std::vector<float> *p_phoE3x3 = 0;
+  std::vector<float> *p_phoE2x5Max = 0;
+  std::vector<float> *p_phoE1x5 = 0;
+  std::vector<float> *p_phoE2x5 = 0;
+  std::vector<float> *p_phoE5x5 = 0;
+  std::vector<float> *p_phoMaxEnergyXtal = 0;
+  std::vector<float> *p_phoSigmaEtaEta = 0;
+  std::vector<float> *p_phoR1x5 = 0;
+  std::vector<float> *p_phoR2x5 = 0;
+  std::vector<float> *p_phoESEffSigmaRR = 0;
+  std::vector<float> *p_phoSigmaIEtaIEta_2012 = 0;
+  std::vector<float> *p_phoSigmaIEtaIPhi_2012 = 0;
+  std::vector<float> *p_phoSigmaIPhiIPhi_2012 = 0;
+  std::vector<float> *p_phoE1x3_2012 = 0;
+  std::vector<float> *p_phoE2x2_2012 = 0;
+  std::vector<float> *p_phoE3x3_2012 = 0;
+  std::vector<float> *p_phoE2x5Max_2012 = 0;
+  std::vector<float> *p_phoE5x5_2012 = 0;
+  std::vector<float> *p_phoBC1E = 0;
+  std::vector<float> *p_phoBC1Eta = 0;
+  std::vector<float> *p_phoBC2E = 0;
+  std::vector<float> *p_phoBC2Eta = 0;
+  std::vector<float> *p_pho_ecalClusterIsoR2 = 0;
+  std::vector<float> *p_pho_ecalClusterIsoR3 = 0;
+  std::vector<float> *p_pho_ecalClusterIsoR4 = 0;
+  std::vector<float> *p_pho_ecalClusterIsoR5 = 0;
+  std::vector<float> *p_pho_hcalRechitIsoR1 = 0;
+  std::vector<float> *p_pho_hcalRechitIsoR2 = 0;
+  std::vector<float> *p_pho_hcalRechitIsoR3 = 0;
+  std::vector<float> *p_pho_hcalRechitIsoR4 = 0;
+  std::vector<float> *p_pho_hcalRechitIsoR5 = 0;
+  std::vector<float> *p_pho_trackIsoR1PtCut20 = 0;
+  std::vector<float> *p_pho_trackIsoR2PtCut20 = 0;
+  std::vector<float> *p_pho_trackIsoR3PtCut20 = 0;
+  std::vector<float> *p_pho_trackIsoR4PtCut20 = 0;
+  std::vector<float> *p_pho_trackIsoR5PtCut20 = 0;
+  std::vector<float> *p_pho_swissCrx = 0;
+  std::vector<float> *p_pho_seedTime = 0;
+  std::vector<float> *p_pfcIso1 = 0;
+  std::vector<float> *p_pfcIso2 = 0;
+  std::vector<float> *p_pfcIso3 = 0;
+  std::vector<float> *p_pfcIso4 = 0;
+  std::vector<float> *p_pfcIso5 = 0;
+  std::vector<float> *p_pfpIso1 = 0;
+  std::vector<float> *p_pfpIso2 = 0;
+  std::vector<float> *p_pfpIso3 = 0;
+  std::vector<float> *p_pfpIso4 = 0;
+  std::vector<float> *p_pfpIso5 = 0;
+  std::vector<float> *p_pfnIso1 = 0;
+  std::vector<float> *p_pfnIso2 = 0;
+  std::vector<float> *p_pfnIso3 = 0;
+  std::vector<float> *p_pfnIso4 = 0;
+  std::vector<float> *p_pfnIso5 = 0;
+  std::vector<float> *p_pfsumIso1 = 0;
+  std::vector<float> *p_pfsumIso2 = 0;
+  std::vector<float> *p_pfsumIso3 = 0;
+  std::vector<float> *p_pfsumIso4 = 0;
+  std::vector<float> *p_pfsumIso5 = 0;
+  std::vector<float> *p_pfcVsIso1 = 0;
+  std::vector<float> *p_pfcVsIso2 = 0;
+  std::vector<float> *p_pfcVsIso3 = 0;
+  std::vector<float> *p_pfcVsIso4 = 0;
+  std::vector<float> *p_pfcVsIso5 = 0;
+  std::vector<float> *p_pfcVsIso1th1 = 0;
+  std::vector<float> *p_pfcVsIso2th1 = 0;
+  std::vector<float> *p_pfcVsIso3th1 = 0;
+  std::vector<float> *p_pfcVsIso4th1 = 0;
+  std::vector<float> *p_pfcVsIso5th1 = 0;
+  std::vector<float> *p_pfcVsIso1th2 = 0;
+  std::vector<float> *p_pfcVsIso2th2 = 0;
+  std::vector<float> *p_pfcVsIso3th2 = 0;
+  std::vector<float> *p_pfcVsIso4th2 = 0;
+  std::vector<float> *p_pfcVsIso5th2 = 0;
+  std::vector<float> *p_pfnVsIso1 = 0;
+  std::vector<float> *p_pfnVsIso2 = 0;
+  std::vector<float> *p_pfnVsIso3 = 0;
+  std::vector<float> *p_pfnVsIso4 = 0;
+  std::vector<float> *p_pfnVsIso5 = 0;
+  std::vector<float> *p_pfnVsIso1th1 = 0;
+  std::vector<float> *p_pfnVsIso2th1 = 0;
+  std::vector<float> *p_pfnVsIso3th1 = 0;
+  std::vector<float> *p_pfnVsIso4th1 = 0;
+  std::vector<float> *p_pfnVsIso5th1 = 0;
+  std::vector<float> *p_pfnVsIso1th2 = 0;
+  std::vector<float> *p_pfnVsIso2th2 = 0;
+  std::vector<float> *p_pfnVsIso3th2 = 0;
+  std::vector<float> *p_pfnVsIso4th2 = 0;
+  std::vector<float> *p_pfnVsIso5th2 = 0;
+  std::vector<float> *p_pfpVsIso1 = 0;
+  std::vector<float> *p_pfpVsIso2 = 0;
+  std::vector<float> *p_pfpVsIso3 = 0;
+  std::vector<float> *p_pfpVsIso4 = 0;
+  std::vector<float> *p_pfpVsIso5 = 0;
+  std::vector<float> *p_pfpVsIso1th1 = 0;
+  std::vector<float> *p_pfpVsIso2th1 = 0;
+  std::vector<float> *p_pfpVsIso3th1 = 0;
+  std::vector<float> *p_pfpVsIso4th1 = 0;
+  std::vector<float> *p_pfpVsIso5th1 = 0;
+  std::vector<float> *p_pfpVsIso1th2 = 0;
+  std::vector<float> *p_pfpVsIso2th2 = 0;
+  std::vector<float> *p_pfpVsIso3th2 = 0;
+  std::vector<float> *p_pfpVsIso4th2 = 0;
+  std::vector<float> *p_pfpVsIso5th2 = 0;
+  std::vector<float> *p_pfsumVsIso1 = 0;
+  std::vector<float> *p_pfsumVsIso2 = 0;
+  std::vector<float> *p_pfsumVsIso3 = 0;
+  std::vector<float> *p_pfsumVsIso4 = 0;
+  std::vector<float> *p_pfsumVsIso5 = 0;
+  std::vector<float> *p_pfsumVsIso1th1 = 0;
+  std::vector<float> *p_pfsumVsIso2th1 = 0;
+  std::vector<float> *p_pfsumVsIso3th1 = 0;
+  std::vector<float> *p_pfsumVsIso4th1 = 0;
+  std::vector<float> *p_pfsumVsIso5th1 = 0;
+  std::vector<float> *p_pfsumVsIso1th2 = 0;
+  std::vector<float> *p_pfsumVsIso2th2 = 0;
+  std::vector<float> *p_pfsumVsIso3th2 = 0;
+  std::vector<float> *p_pfsumVsIso4th2 = 0;
+  std::vector<float> *p_pfsumVsIso5th2 = 0;
+  std::vector<float> *p_pfVsSubIso1 = 0;
+  std::vector<float> *p_pfVsSubIso2 = 0;
+  std::vector<float> *p_pfVsSubIso3 = 0;
+  std::vector<float> *p_pfVsSubIso4 = 0;
+  std::vector<float> *p_pfVsSubIso5 = 0;
+  std::vector<float> *p_towerIso1 = 0;
+  std::vector<float> *p_towerIso2 = 0;
+  std::vector<float> *p_towerIso3 = 0;
+  std::vector<float> *p_towerIso4 = 0;
+  std::vector<float> *p_towerIso5 = 0;
+  std::vector<float> *p_towerVsIso1 = 0;
+  std::vector<float> *p_towerVsIso2 = 0;
+  std::vector<float> *p_towerVsIso3 = 0;
+  std::vector<float> *p_towerVsIso4 = 0;
+  std::vector<float> *p_towerVsIso5 = 0;
+  std::vector<float> *p_towerVsSubIso1 = 0;
+  std::vector<float> *p_towerVsSubIso2 = 0;
+  std::vector<float> *p_towerVsSubIso3 = 0;
+  std::vector<float> *p_towerVsSubIso4 = 0;
+  std::vector<float> *p_towerVsSubIso5 = 0;
+
   void reset(){
 
     run=0;
@@ -203,6 +362,7 @@ public:
 
     phoE.clear();
     phoEt.clear();
+    phoEtCorrected.clear();
     phoEta.clear();
     phoPhi.clear();
     phoSCE.clear();
@@ -380,6 +540,7 @@ public:
     tree_->Branch("nPho",                  &nPho);
     tree_->Branch("phoE",                  &phoE);
     tree_->Branch("phoEt",                 &phoEt);
+    tree_->Branch("phoEtCorrected",        &phoEtCorrected);
     tree_->Branch("phoEta",                &phoEta);
     tree_->Branch("phoPhi",                &phoPhi);
     tree_->Branch("phoSCE",                &phoSCE);
@@ -555,6 +716,356 @@ public:
 	tree_->Branch("towerVsSubIso5",&towerVsSubIso5);
       }
     }
+  }
+
+  void setupTreeBranchesForReading(TTree * tree_)
+  {
+    tree_->SetBranchAddress("run",    &run);
+    tree_->SetBranchAddress("event",  &event);
+    tree_->SetBranchAddress("lumis",  &lumis);
+    tree_->SetBranchAddress("HBHENoiseFilterResult", &HBHENoiseFilterResult);
+    tree_->SetBranchAddress("pcollisionEventSelection", &pcollisionEventSelection);
+
+    tree_->SetBranchAddress("nPho",                  &nPho);
+    tree_->SetBranchAddress("phoE",                  &p_phoE);
+    tree_->SetBranchAddress("phoEt",                 &p_phoEt);
+    tree_->SetBranchAddress("phoEtCorrected",        &p_phoEtCorrected);
+    tree_->SetBranchAddress("phoEta",                &p_phoEta);
+    tree_->SetBranchAddress("phoPhi",                &p_phoPhi);
+    tree_->SetBranchAddress("phoSCE",                &p_phoSCE);
+    tree_->SetBranchAddress("phoSCRawE",             &p_phoSCRawE);
+    tree_->SetBranchAddress("phoESEn",               &p_phoESEn);
+    tree_->SetBranchAddress("phoSCEta",              &p_phoSCEta);
+    tree_->SetBranchAddress("phoSCPhi",              &p_phoSCPhi);
+    tree_->SetBranchAddress("phoSCEtaWidth",         &p_phoSCEtaWidth);
+    tree_->SetBranchAddress("phoSCPhiWidth",         &p_phoSCPhiWidth);
+    tree_->SetBranchAddress("phoSCBrem",             &p_phoSCBrem);
+    tree_->SetBranchAddress("phohasPixelSeed",       &p_phohasPixelSeed);
+// tree_->SetBranchAddress("phoEleVeto",            &p_phoEleVeto);        // TODO: not available in reco::
+    tree_->SetBranchAddress("phoR9",                 &p_phoR9);
+    tree_->SetBranchAddress("phoHoverE",             &p_phoHoverE);
+    tree_->SetBranchAddress("phoSigmaIEtaIEta",      &p_phoSigmaIEtaIEta);
+// tree_->SetBranchAddress("phoSigmaIEtaIPhi",      &p_phoSigmaIEtaIPhi);  // TODO: not available in reco::
+// tree_->SetBranchAddress("phoSigmaIPhiIPhi",      &p_phoSigmaIPhiIPhi);  // TODO: not available in reco::
+    tree_->SetBranchAddress("phoE1x3",               &p_phoE1x3);
+    tree_->SetBranchAddress("phoE2x2",               &p_phoE2x2);
+    tree_->SetBranchAddress("phoE3x3",               &p_phoE3x3);
+    tree_->SetBranchAddress("phoE2x5Max",            &p_phoE2x5Max);
+    tree_->SetBranchAddress("phoE1x5",               &p_phoE1x5);
+    tree_->SetBranchAddress("phoE2x5",               &p_phoE2x5);
+    tree_->SetBranchAddress("phoE5x5",               &p_phoE5x5);
+    tree_->SetBranchAddress("phoMaxEnergyXtal",      &p_phoMaxEnergyXtal);
+    tree_->SetBranchAddress("phoSigmaEtaEta",        &p_phoSigmaEtaEta);
+    tree_->SetBranchAddress("phoR1x5",               &p_phoR1x5);
+    tree_->SetBranchAddress("phoR2x5",               &p_phoR2x5);
+    tree_->SetBranchAddress("phoESEffSigmaRR",       &p_phoESEffSigmaRR);
+    tree_->SetBranchAddress("phoSigmaIEtaIEta_2012", &p_phoSigmaIEtaIEta_2012);
+    tree_->SetBranchAddress("phoSigmaIEtaIPhi_2012", &p_phoSigmaIEtaIPhi_2012);
+    tree_->SetBranchAddress("phoSigmaIPhiIPhi_2012", &p_phoSigmaIPhiIPhi_2012);
+    tree_->SetBranchAddress("phoE1x3_2012",          &p_phoE1x3_2012);
+    tree_->SetBranchAddress("phoE2x2_2012",          &p_phoE2x2_2012);
+    tree_->SetBranchAddress("phoE3x3_2012",          &p_phoE3x3_2012);
+    tree_->SetBranchAddress("phoE2x5Max_2012",       &p_phoE2x5Max_2012);
+    tree_->SetBranchAddress("phoE5x5_2012",          &p_phoE5x5_2012);
+    tree_->SetBranchAddress("phoBC1E",               &p_phoBC1E);
+    tree_->SetBranchAddress("phoBC1Eta",             &p_phoBC1Eta);
+    tree_->SetBranchAddress("phoBC2E",               &p_phoBC2E);
+    tree_->SetBranchAddress("phoBC2Eta",             &p_phoBC2Eta);
+    tree_->SetBranchAddress("pho_ecalClusterIsoR2", &p_pho_ecalClusterIsoR2);
+    tree_->SetBranchAddress("pho_ecalClusterIsoR3", &p_pho_ecalClusterIsoR3);
+    tree_->SetBranchAddress("pho_ecalClusterIsoR4", &p_pho_ecalClusterIsoR4);
+    tree_->SetBranchAddress("pho_ecalClusterIsoR5", &p_pho_ecalClusterIsoR5);
+    tree_->SetBranchAddress("pho_hcalRechitIsoR1", &p_pho_hcalRechitIsoR1);
+    tree_->SetBranchAddress("pho_hcalRechitIsoR2", &p_pho_hcalRechitIsoR2);
+    tree_->SetBranchAddress("pho_hcalRechitIsoR3", &p_pho_hcalRechitIsoR3);
+    tree_->SetBranchAddress("pho_hcalRechitIsoR4", &p_pho_hcalRechitIsoR4);
+    tree_->SetBranchAddress("pho_hcalRechitIsoR5", &p_pho_hcalRechitIsoR5);
+    tree_->SetBranchAddress("pho_trackIsoR1PtCut20", &p_pho_trackIsoR1PtCut20);
+    tree_->SetBranchAddress("pho_trackIsoR2PtCut20", &p_pho_trackIsoR2PtCut20);
+    tree_->SetBranchAddress("pho_trackIsoR3PtCut20", &p_pho_trackIsoR3PtCut20);
+    tree_->SetBranchAddress("pho_trackIsoR4PtCut20", &p_pho_trackIsoR4PtCut20);
+    tree_->SetBranchAddress("pho_trackIsoR5PtCut20", &p_pho_trackIsoR5PtCut20);
+    tree_->SetBranchAddress("pho_swissCrx", &p_pho_swissCrx);
+    tree_->SetBranchAddress("pho_seedTime", &p_pho_seedTime);
+
+    //if(doPfIso_)
+    {
+      tree_->SetBranchAddress("pfcIso1",&p_pfcIso1);
+      tree_->SetBranchAddress("pfcIso2",&p_pfcIso2);
+      tree_->SetBranchAddress("pfcIso3",&p_pfcIso3);
+      tree_->SetBranchAddress("pfcIso4",&p_pfcIso4);
+      tree_->SetBranchAddress("pfcIso5",&p_pfcIso5);
+
+      tree_->SetBranchAddress("pfpIso1",&p_pfpIso1);
+      tree_->SetBranchAddress("pfpIso2",&p_pfpIso2);
+      tree_->SetBranchAddress("pfpIso3",&p_pfpIso3);
+      tree_->SetBranchAddress("pfpIso4",&p_pfpIso4);
+      tree_->SetBranchAddress("pfpIso5",&p_pfpIso5);
+
+      tree_->SetBranchAddress("pfnIso1",&p_pfnIso1);
+      tree_->SetBranchAddress("pfnIso2",&p_pfnIso2);
+      tree_->SetBranchAddress("pfnIso3",&p_pfnIso3);
+      tree_->SetBranchAddress("pfnIso4",&p_pfnIso4);
+      tree_->SetBranchAddress("pfnIso5",&p_pfnIso5);
+
+      // tree_->SetBranchAddress("pfsumIso1",&p_pfsumIso1);
+      // tree_->SetBranchAddress("pfsumIso2",&p_pfsumIso2);
+      // tree_->SetBranchAddress("pfsumIso3",&p_pfsumIso3);
+      // tree_->SetBranchAddress("pfsumIso4",&p_pfsumIso4);
+      // tree_->SetBranchAddress("pfsumIso5",&p_pfsumIso5);
+
+      //if(doVsIso_)
+      {
+	tree_->SetBranchAddress("pfcVsIso1",&p_pfcVsIso1);
+	tree_->SetBranchAddress("pfcVsIso2",&p_pfcVsIso2);
+	tree_->SetBranchAddress("pfcVsIso3",&p_pfcVsIso3);
+	tree_->SetBranchAddress("pfcVsIso4",&p_pfcVsIso4);
+	tree_->SetBranchAddress("pfcVsIso5",&p_pfcVsIso5);
+	tree_->SetBranchAddress("pfcVsIso1th1",&p_pfcVsIso1th1);
+	tree_->SetBranchAddress("pfcVsIso2th1",&p_pfcVsIso2th1);
+	tree_->SetBranchAddress("pfcVsIso3th1",&p_pfcVsIso3th1);
+	tree_->SetBranchAddress("pfcVsIso4th1",&p_pfcVsIso4th1);
+	tree_->SetBranchAddress("pfcVsIso5th1",&p_pfcVsIso5th1);
+	tree_->SetBranchAddress("pfcVsIso1th2",&p_pfcVsIso1th2);
+	tree_->SetBranchAddress("pfcVsIso2th2",&p_pfcVsIso2th2);
+	tree_->SetBranchAddress("pfcVsIso3th2",&p_pfcVsIso3th2);
+	tree_->SetBranchAddress("pfcVsIso4th2",&p_pfcVsIso4th2);
+	tree_->SetBranchAddress("pfcVsIso5th2",&p_pfcVsIso5th2);
+
+	tree_->SetBranchAddress("pfnVsIso1",&p_pfnVsIso1);
+	tree_->SetBranchAddress("pfnVsIso2",&p_pfnVsIso2);
+	tree_->SetBranchAddress("pfnVsIso3",&p_pfnVsIso3);
+	tree_->SetBranchAddress("pfnVsIso4",&p_pfnVsIso4);
+	tree_->SetBranchAddress("pfnVsIso5",&p_pfnVsIso5);
+	tree_->SetBranchAddress("pfnVsIso1th1",&p_pfnVsIso1th1);
+	tree_->SetBranchAddress("pfnVsIso2th1",&p_pfnVsIso2th1);
+	tree_->SetBranchAddress("pfnVsIso3th1",&p_pfnVsIso3th1);
+	tree_->SetBranchAddress("pfnVsIso4th1",&p_pfnVsIso4th1);
+	tree_->SetBranchAddress("pfnVsIso5th1",&p_pfnVsIso5th1);
+	tree_->SetBranchAddress("pfnVsIso1th2",&p_pfnVsIso1th2);
+	tree_->SetBranchAddress("pfnVsIso2th2",&p_pfnVsIso2th2);
+	tree_->SetBranchAddress("pfnVsIso3th2",&p_pfnVsIso3th2);
+	tree_->SetBranchAddress("pfnVsIso4th2",&p_pfnVsIso4th2);
+	tree_->SetBranchAddress("pfnVsIso5th2",&p_pfnVsIso5th2);
+
+	tree_->SetBranchAddress("pfpVsIso1",&p_pfpVsIso1);
+	tree_->SetBranchAddress("pfpVsIso2",&p_pfpVsIso2);
+	tree_->SetBranchAddress("pfpVsIso3",&p_pfpVsIso3);
+	tree_->SetBranchAddress("pfpVsIso4",&p_pfpVsIso4);
+	tree_->SetBranchAddress("pfpVsIso5",&p_pfpVsIso5);
+	tree_->SetBranchAddress("pfpVsIso1th1",&p_pfpVsIso1th1);
+	tree_->SetBranchAddress("pfpVsIso2th1",&p_pfpVsIso2th1);
+	tree_->SetBranchAddress("pfpVsIso3th1",&p_pfpVsIso3th1);
+	tree_->SetBranchAddress("pfpVsIso4th1",&p_pfpVsIso4th1);
+	tree_->SetBranchAddress("pfpVsIso5th1",&p_pfpVsIso5th1);
+	tree_->SetBranchAddress("pfpVsIso1th2",&p_pfpVsIso1th2);
+	tree_->SetBranchAddress("pfpVsIso2th2",&p_pfpVsIso2th2);
+	tree_->SetBranchAddress("pfpVsIso3th2",&p_pfpVsIso3th2);
+	tree_->SetBranchAddress("pfpVsIso4th2",&p_pfpVsIso4th2);
+	tree_->SetBranchAddress("pfpVsIso5th2",&p_pfpVsIso5th2);
+
+	// tree_->SetBranchAddress("pfsumVsIso1",&p_pfsumVsIso1);
+	// tree_->SetBranchAddress("pfsumVsIso2",&p_pfsumVsIso2);
+	// tree_->SetBranchAddress("pfsumVsIso3",&p_pfsumVsIso3);
+	// tree_->SetBranchAddress("pfsumVsIso4",&p_pfsumVsIso4);
+	// tree_->SetBranchAddress("pfsumVsIso5",&p_pfsumVsIso5);
+	// tree_->SetBranchAddress("pfsumVsIso1th1",&p_pfsumVsIso1th1);
+	// tree_->SetBranchAddress("pfsumVsIso2th1",&p_pfsumVsIso2th1);
+	// tree_->SetBranchAddress("pfsumVsIso3th1",&p_pfsumVsIso3th1);
+	// tree_->SetBranchAddress("pfsumVsIso4th1",&p_pfsumVsIso4th1);
+	// tree_->SetBranchAddress("pfsumVsIso5th1",&p_pfsumVsIso5th1);
+	// tree_->SetBranchAddress("pfsumVsIso1th2",&p_pfsumVsIso1th2);
+	// tree_->SetBranchAddress("pfsumVsIso2th2",&p_pfsumVsIso2th2);
+	// tree_->SetBranchAddress("pfsumVsIso3th2",&p_pfsumVsIso3th2);
+	// tree_->SetBranchAddress("pfsumVsIso4th2",&p_pfsumVsIso4th2);
+	// tree_->SetBranchAddress("pfsumVsIso5th2",&p_pfsumVsIso5th2);
+
+
+	// tree_->SetBranchAddress("pfVsSubIso1",&p_pfVsSubIso1);
+	// tree_->SetBranchAddress("pfVsSubIso2",&p_pfVsSubIso2);
+	// tree_->SetBranchAddress("pfVsSubIso3",&p_pfVsSubIso3);
+	// tree_->SetBranchAddress("pfVsSubIso4",&p_pfVsSubIso4);
+	// tree_->SetBranchAddress("pfVsSubIso5",&p_pfVsSubIso5);
+
+
+	tree_->SetBranchAddress("towerIso1",&p_towerIso1);
+	tree_->SetBranchAddress("towerIso2",&p_towerIso2);
+	tree_->SetBranchAddress("towerIso3",&p_towerIso3);
+	tree_->SetBranchAddress("towerIso4",&p_towerIso4);
+	tree_->SetBranchAddress("towerIso5",&p_towerIso5);
+	tree_->SetBranchAddress("towerVsIso1",&p_towerVsIso1);
+	tree_->SetBranchAddress("towerVsIso2",&p_towerVsIso2);
+	tree_->SetBranchAddress("towerVsIso3",&p_towerVsIso3);
+	tree_->SetBranchAddress("towerVsIso4",&p_towerVsIso4);
+	tree_->SetBranchAddress("towerVsIso5",&p_towerVsIso5);
+	tree_->SetBranchAddress("towerVsSubIso1",&p_towerVsSubIso1);
+	tree_->SetBranchAddress("towerVsSubIso2",&p_towerVsSubIso2);
+	tree_->SetBranchAddress("towerVsSubIso3",&p_towerVsSubIso3);
+	tree_->SetBranchAddress("towerVsSubIso4",&p_towerVsSubIso4);
+	tree_->SetBranchAddress("towerVsSubIso5",&p_towerVsSubIso5);
+      }
+    }
+  }
+
+  void resolvePointers()
+  {
+    phoE = *p_phoE;
+    phoEt = *p_phoEt;
+    phoEtCorrected = *p_phoEtCorrected;
+    phoEta = *p_phoEta;
+    phoPhi = *p_phoPhi;
+    phoSCE = *p_phoSCE;
+    phoSCRawE = *p_phoSCRawE;
+    phoESEn = *p_phoESEn;
+    phoSCEta = *p_phoSCEta;
+    phoSCPhi = *p_phoSCPhi;
+    phoSCEtaWidth = *p_phoSCEtaWidth;
+    phoSCPhiWidth = *p_phoSCPhiWidth;
+    phoSCBrem = *p_phoSCBrem;
+    phohasPixelSeed = *p_phohasPixelSeed;
+    phoR9 = *p_phoR9;
+    phoHoverE = *p_phoHoverE;
+    phoSigmaIEtaIEta = *p_phoSigmaIEtaIEta;
+    phoE1x3 = *p_phoE1x3;
+    phoE2x2 = *p_phoE2x2;
+    phoE3x3 = *p_phoE3x3;
+    phoE2x5Max = *p_phoE2x5Max;
+    phoE1x5 = *p_phoE1x5;
+    phoE2x5 = *p_phoE2x5;
+    phoE5x5 = *p_phoE5x5;
+    phoMaxEnergyXtal = *p_phoMaxEnergyXtal;
+    phoSigmaEtaEta = *p_phoSigmaEtaEta;
+    phoR1x5 = *p_phoR1x5;
+    phoR2x5 = *p_phoR2x5;
+    phoESEffSigmaRR = *p_phoESEffSigmaRR;
+    phoSigmaIEtaIEta_2012 = *p_phoSigmaIEtaIEta_2012;
+    phoSigmaIEtaIPhi_2012 = *p_phoSigmaIEtaIPhi_2012;
+    phoSigmaIPhiIPhi_2012 = *p_phoSigmaIPhiIPhi_2012;
+    phoE1x3_2012 = *p_phoE1x3_2012;
+    phoE2x2_2012 = *p_phoE2x2_2012;
+    phoE3x3_2012 = *p_phoE3x3_2012;
+    phoE2x5Max_2012 = *p_phoE2x5Max_2012;
+    phoE5x5_2012 = *p_phoE5x5_2012;
+    phoBC1E = *p_phoBC1E;
+    phoBC1Eta = *p_phoBC1Eta;
+    phoBC2E = *p_phoBC2E;
+    phoBC2Eta = *p_phoBC2Eta;
+    pho_ecalClusterIsoR2 = *p_pho_ecalClusterIsoR2;
+    pho_ecalClusterIsoR3 = *p_pho_ecalClusterIsoR3;
+    pho_ecalClusterIsoR4 = *p_pho_ecalClusterIsoR4;
+    pho_ecalClusterIsoR5 = *p_pho_ecalClusterIsoR5;
+    pho_hcalRechitIsoR1 = *p_pho_hcalRechitIsoR1;
+    pho_hcalRechitIsoR2 = *p_pho_hcalRechitIsoR2;
+    pho_hcalRechitIsoR3 = *p_pho_hcalRechitIsoR3;
+    pho_hcalRechitIsoR4 = *p_pho_hcalRechitIsoR4;
+    pho_hcalRechitIsoR5 = *p_pho_hcalRechitIsoR5;
+    pho_trackIsoR1PtCut20 = *p_pho_trackIsoR1PtCut20;
+    pho_trackIsoR2PtCut20 = *p_pho_trackIsoR2PtCut20;
+    pho_trackIsoR3PtCut20 = *p_pho_trackIsoR3PtCut20;
+    pho_trackIsoR4PtCut20 = *p_pho_trackIsoR4PtCut20;
+    pho_trackIsoR5PtCut20 = *p_pho_trackIsoR5PtCut20;
+    pho_swissCrx = *p_pho_swissCrx;
+    pho_seedTime = *p_pho_seedTime;
+    pfcIso1 = *p_pfcIso1;
+    pfcIso2 = *p_pfcIso2;
+    pfcIso3 = *p_pfcIso3;
+    pfcIso4 = *p_pfcIso4;
+    pfcIso5 = *p_pfcIso5;
+    pfpIso1 = *p_pfpIso1;
+    pfpIso2 = *p_pfpIso2;
+    pfpIso3 = *p_pfpIso3;
+    pfpIso4 = *p_pfpIso4;
+    pfpIso5 = *p_pfpIso5;
+    pfnIso1 = *p_pfnIso1;
+    pfnIso2 = *p_pfnIso2;
+    pfnIso3 = *p_pfnIso3;
+    pfnIso4 = *p_pfnIso4;
+    pfnIso5 = *p_pfnIso5;
+    /* pfsumIso1 = *p_pfsumIso1; */
+    /* pfsumIso2 = *p_pfsumIso2; */
+    /* pfsumIso3 = *p_pfsumIso3; */
+    /* pfsumIso4 = *p_pfsumIso4; */
+    /* pfsumIso5 = *p_pfsumIso5; */
+    pfcVsIso1 = *p_pfcVsIso1;
+    pfcVsIso2 = *p_pfcVsIso2;
+    pfcVsIso3 = *p_pfcVsIso3;
+    pfcVsIso4 = *p_pfcVsIso4;
+    pfcVsIso5 = *p_pfcVsIso5;
+    pfcVsIso1th1 = *p_pfcVsIso1th1;
+    pfcVsIso2th1 = *p_pfcVsIso2th1;
+    pfcVsIso3th1 = *p_pfcVsIso3th1;
+    pfcVsIso4th1 = *p_pfcVsIso4th1;
+    pfcVsIso5th1 = *p_pfcVsIso5th1;
+    pfcVsIso1th2 = *p_pfcVsIso1th2;
+    pfcVsIso2th2 = *p_pfcVsIso2th2;
+    pfcVsIso3th2 = *p_pfcVsIso3th2;
+    pfcVsIso4th2 = *p_pfcVsIso4th2;
+    pfcVsIso5th2 = *p_pfcVsIso5th2;
+    pfnVsIso1 = *p_pfnVsIso1;
+    pfnVsIso2 = *p_pfnVsIso2;
+    pfnVsIso3 = *p_pfnVsIso3;
+    pfnVsIso4 = *p_pfnVsIso4;
+    pfnVsIso5 = *p_pfnVsIso5;
+    pfnVsIso1th1 = *p_pfnVsIso1th1;
+    pfnVsIso2th1 = *p_pfnVsIso2th1;
+    pfnVsIso3th1 = *p_pfnVsIso3th1;
+    pfnVsIso4th1 = *p_pfnVsIso4th1;
+    pfnVsIso5th1 = *p_pfnVsIso5th1;
+    pfnVsIso1th2 = *p_pfnVsIso1th2;
+    pfnVsIso2th2 = *p_pfnVsIso2th2;
+    pfnVsIso3th2 = *p_pfnVsIso3th2;
+    pfnVsIso4th2 = *p_pfnVsIso4th2;
+    pfnVsIso5th2 = *p_pfnVsIso5th2;
+    pfpVsIso1 = *p_pfpVsIso1;
+    pfpVsIso2 = *p_pfpVsIso2;
+    pfpVsIso3 = *p_pfpVsIso3;
+    pfpVsIso4 = *p_pfpVsIso4;
+    pfpVsIso5 = *p_pfpVsIso5;
+    pfpVsIso1th1 = *p_pfpVsIso1th1;
+    pfpVsIso2th1 = *p_pfpVsIso2th1;
+    pfpVsIso3th1 = *p_pfpVsIso3th1;
+    pfpVsIso4th1 = *p_pfpVsIso4th1;
+    pfpVsIso5th1 = *p_pfpVsIso5th1;
+    pfpVsIso1th2 = *p_pfpVsIso1th2;
+    pfpVsIso2th2 = *p_pfpVsIso2th2;
+    pfpVsIso3th2 = *p_pfpVsIso3th2;
+    pfpVsIso4th2 = *p_pfpVsIso4th2;
+    pfpVsIso5th2 = *p_pfpVsIso5th2;
+    /* pfsumVsIso1 = *p_pfsumVsIso1; */
+    /* pfsumVsIso2 = *p_pfsumVsIso2; */
+    /* pfsumVsIso3 = *p_pfsumVsIso3; */
+    /* pfsumVsIso4 = *p_pfsumVsIso4; */
+    /* pfsumVsIso5 = *p_pfsumVsIso5; */
+    /* pfsumVsIso1th1 = *p_pfsumVsIso1th1; */
+    /* pfsumVsIso2th1 = *p_pfsumVsIso2th1; */
+    /* pfsumVsIso3th1 = *p_pfsumVsIso3th1; */
+    /* pfsumVsIso4th1 = *p_pfsumVsIso4th1; */
+    /* pfsumVsIso5th1 = *p_pfsumVsIso5th1; */
+    /* pfsumVsIso1th2 = *p_pfsumVsIso1th2; */
+    /* pfsumVsIso2th2 = *p_pfsumVsIso2th2; */
+    /* pfsumVsIso3th2 = *p_pfsumVsIso3th2; */
+    /* pfsumVsIso4th2 = *p_pfsumVsIso4th2; */
+    /* pfsumVsIso5th2 = *p_pfsumVsIso5th2; */
+    /* pfVsSubIso1 = *p_pfVsSubIso1; */
+    /* pfVsSubIso2 = *p_pfVsSubIso2; */
+    /* pfVsSubIso3 = *p_pfVsSubIso3; */
+    /* pfVsSubIso4 = *p_pfVsSubIso4; */
+    /* pfVsSubIso5 = *p_pfVsSubIso5; */
+    towerIso1 = *p_towerIso1;
+    towerIso2 = *p_towerIso2;
+    towerIso3 = *p_towerIso3;
+    towerIso4 = *p_towerIso4;
+    towerIso5 = *p_towerIso5;
+    towerVsIso1 = *p_towerVsIso1;
+    towerVsIso2 = *p_towerVsIso2;
+    towerVsIso3 = *p_towerVsIso3;
+    towerVsIso4 = *p_towerVsIso4;
+    towerVsIso5 = *p_towerVsIso5;
+    towerVsSubIso1 = *p_towerVsSubIso1;
+    towerVsSubIso2 = *p_towerVsSubIso2;
+    towerVsSubIso3 = *p_towerVsSubIso3;
+    towerVsSubIso4 = *p_towerVsSubIso4;
+    towerVsSubIso5 = *p_towerVsSubIso5;
   }
 };
 #endif
