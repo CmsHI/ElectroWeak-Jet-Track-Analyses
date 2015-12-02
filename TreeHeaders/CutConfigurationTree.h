@@ -30,7 +30,7 @@ TTree* setupConfigurationTreeForWriting(CutConfiguration config)
 	std::string branchname = (CUTS::PROCESS_LABELS[i] + "." +
 				  CUTS::OBJECT_LABELS[j] + "." +
 				  CUTS::SUMMARY_INFO_B_LABELS[j][k]);
-	t->Branch(branchname.c_str(),&config.proc[i].obj[j].b[k],(branchname + "/B").c_str());
+	t->Branch(branchname.c_str(),&config.proc[i].obj[j].b[k],(branchname + "/O").c_str());
       }
     }
   }
