@@ -11,17 +11,17 @@ namespace CUTS{
     };
 
     enum I_CUTS{
+      k_highPurity,
       kN_I_CUTS
     };
 
-    std::string I_CUTS_LABELS[kN_I_CUTS] = {};
+    std::string I_CUTS_LABELS[kN_I_CUTS] = {"highPurity"};
 
-    enum B_CUTS{
-      k_highPurity,
-      kN_B_CUTS
+    enum S_CUTS{
+      kN_S_CUTS
     };
 
-    std::string B_CUTS_LABELS[kN_B_CUTS] = {"highPurity"};
+    std::string S_CUTS_LABELS[kN_S_CUTS] = {};
 
   };
 };

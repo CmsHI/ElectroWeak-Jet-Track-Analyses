@@ -17,11 +17,12 @@ namespace CUTS {
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {};
 
-    enum B_CUTS{
-      kN_B_CUTS
+    enum S_CUTS{
+      k_jetCollection,
+      kN_S_CUTS
     };
 
-    std::string B_CUTS_LABELS[kN_B_CUTS] = {};
+    std::string S_CUTS_LABELS[kN_S_CUTS] = {"jetCollection"};
 
   };
 };

@@ -10,6 +10,7 @@ skim.zboson.mass = 20
 skim.zboson.nTracks = 11
 #
 skim.jet.pt = 40
+skim.jet.jetCollection = akPu4PFJetAnalyzer
 #
 skim.track.highPurity = 0
 #

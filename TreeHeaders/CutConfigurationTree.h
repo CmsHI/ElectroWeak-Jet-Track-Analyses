@@ -26,11 +26,11 @@ TTree* setupConfigurationTreeForWriting(CutConfiguration config)
 				  CUTS::SUMMARY_INFO_F_LABELS[j][k]);
 	t->Branch(branchname.c_str(),&config.proc[i].obj[j].f[k],(branchname + "/F").c_str());
       }
-      for(int k = 0; k < CUTS::SUMMARY_INFO_B[j]; ++k){
+      for(int k = 0; k < CUTS::SUMMARY_INFO_S[j]; ++k){
 	std::string branchname = (CUTS::PROCESS_LABELS[i] + "." +
 				  CUTS::OBJECT_LABELS[j] + "." +
-				  CUTS::SUMMARY_INFO_B_LABELS[j][k]);
-	t->Branch(branchname.c_str(),&config.proc[i].obj[j].b[k],(branchname + "/O").c_str());
+				  CUTS::SUMMARY_INFO_S_LABELS[j][k]);
+	t->Branch(branchname.c_str(),config.proc[i].obj[j].c[k],(branchname + "/C").c_str());
       }
     }
   }

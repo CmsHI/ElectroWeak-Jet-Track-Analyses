@@ -10,11 +10,10 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
   CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
-  //std::cout << config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et] << std::endl;
+  std::string jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
 
   TFile *inHiForest = TFile::Open(inputHiForest);
-  // should figure out how to set via cut. String cuts suck :(
-  TTree *inTree = (TTree*)inHiForest->Get("akPu4PFJetAnalyzer/t");
+  TTree *inTree = (TTree*)inHiForest->Get(jetCollection+"/t");
   Jets inJets;
   inJets.setupTreeForReading(inTree);
 
