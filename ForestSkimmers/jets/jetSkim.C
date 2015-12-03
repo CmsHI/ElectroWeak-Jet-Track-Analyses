@@ -11,9 +11,10 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   std::string jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+  //std::cout << jetCollection << std::endl;
 
   TFile *inHiForest = TFile::Open(inputHiForest);
-  TTree *inTree = (TTree*)inHiForest->Get(jetCollection+"/t");
+  TTree *inTree = (TTree*)inHiForest->Get((jetCollection+"/t").c_str());
   Jets inJets;
   inJets.setupTreeForReading(inTree);
 
