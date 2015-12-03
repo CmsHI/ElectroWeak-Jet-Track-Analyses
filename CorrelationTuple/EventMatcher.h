@@ -19,12 +19,12 @@ public:
     /*
      * entry : entry number of the corresponding event in the TTree.
      */
-    bool addEvent(long long run, long long lumi, long long event, long long entry){
+    bool addEvent(unsigned int run, unsigned int lumi, unsigned long long event, unsigned long long entry){
         std::pair<Key, long long> pair({run, lumi, event}, entry);
         return map_.insert(pair).second;
     }
 
-    bool removeEvent(long long run, long long lumi, long long event){
+    bool removeEvent(unsigned int run, unsigned int lumi, unsigned long long event){
         const Key key = {run, lumi, event};
 
         // For the key-based version (2), the function returns the number of elements erased, which in map containers is at most 1.
@@ -33,7 +33,7 @@ public:
         return (numRemoved == 1) ? true : false;
     }
 
-    long long getEntry(long long run, long long lumi, long long event) {
+    long long getEntry(unsigned int run, unsigned int lumi, unsigned long long event) {
         Key key = {run, lumi, event};
         iterator_map iterator = map_.find(key);
 
@@ -44,13 +44,15 @@ public:
         }
     }
 
-    bool containsEvent(long long run, long long lumi, long long event) {
+    bool containsEvent(unsigned int run, unsigned int lumi, unsigned long long event) {
         return (getEntry(run, lumi, event) == -1) ? false : true;
     }
 
 private:
 
-    struct Key {long long run, lumi, event;
+    struct Key {
+      unsigned int run, lumi;
+      unsigned long long event;
 
         /*
          * comparison order : run, lumi, event
@@ -70,8 +72,8 @@ private:
     };
 
 
-    std::map<Key, long long> map_;
-    typedef std::map<Key, long long>::const_iterator iterator_map;
+    std::map<Key, unsigned long long> map_;
+    typedef std::map<Key, unsigned long long>::const_iterator iterator_map;
 };
 
 #endif /* EVENTMATCHER_H_ */
