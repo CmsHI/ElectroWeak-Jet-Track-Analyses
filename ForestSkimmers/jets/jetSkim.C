@@ -4,13 +4,19 @@
 #include "../../CutConfigurations/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/SetupJetTree.h"
+#include "../../TreeHeaders/ggHiNtuplizerTree.h"
 
 void jetSkim(const TString configFile, const TString inputHiForest, const TString outputSkimFile)
 {
+  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
+
   CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   std::string jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+  bool requirePhotonInEvent = (bool)config.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_requirePhotonInEvent];
+  Float_t photonEtCut = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
+
   //std::cout << jetCollection << std::endl;
 
   TFile *inHiForest = TFile::Open(inputHiForest);
@@ -18,22 +24,28 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
   Jets inJets;
   inJets.setupTreeForReading(inTree);
 
+  TTree *inPhoTree = (TTree*)inHiForest->Get("ggHiNtuplizer/EventTree");
+  ggHiNtuplizer pho;
+  if(requirePhotonInEvent)
+    setupPhotonTree(inPhoTree, pho);
+
   TTree *skimTree = (TTree*)inHiForest->Get("skimanalysis/HltTree");
   Int_t HBHENoiseFilterResult;
   Int_t pcollisionEventSelection;
   skimTree->SetBranchAddress("HBHENoiseFilterResult",&HBHENoiseFilterResult);
   skimTree->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
 
-  TTree *evtTree = (TTree*)inHiForest->Get("hiEvtAnalyzer/HiTree");
-  ULong64_t event;
-  unsigned run;
-  unsigned lumi;
-  int hiBin;
-  evtTree->SetBranchAddress("evt",&event);
-  evtTree->SetBranchAddress("run",&run);
-  evtTree->SetBranchAddress("lumi",&lumi);
-  evtTree->SetBranchAddress("hiBin",&hiBin);
+  // TTree *evtTree = (TTree*)inHiForest->Get("hiEvtAnalyzer/HiTree");
+  // ULong64_t event;
+  // unsigned run;
+  // unsigned lumi;
+  // int hiBin;
+  // evtTree->SetBranchAddress("evt",&event);
+  // evtTree->SetBranchAddress("run",&run);
+  // evtTree->SetBranchAddress("lumi",&lumi);
+  // evtTree->SetBranchAddress("hiBin",&hiBin);
 
+  outFile->cd();
   Jets outJets;
   TTree *outTree = new TTree("jetSkimTree","jetSkimTree");
   outJets.setupTreeForWriting(outTree);
@@ -41,14 +53,32 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
   Long64_t nentries = inTree->GetEntries();
   for(int ientries = 0; ientries < nentries; ++ientries)
   {
+    if(requirePhotonInEvent){
+      inPhoTree->GetEntry(ientries);
+      if(pho.nPho < 1) continue;
+      Float_t maxPho =-1;
+      for(int i = 0; i < pho.nPho; ++i)
+      {
+	if(maxPho < pho.phoEt->at(i))
+	  maxPho = pho.phoEt->at(i);
+      }
+      if(maxPho < photonEtCut) continue;
+    }
+
     inTree->GetEntry(ientries);
     skimTree->GetEntry(ientries);
-    evtTree->GetEntry(ientries);
+    // evtTree->GetEntry(ientries);
 
-    outJets.event = event;
-    outJets.run = run;
-    outJets.lumi = lumi;
-    outJets.hiBin = hiBin;
+    // outJets.event = event;
+    // outJets.run = run;
+    // outJets.lumi = lumi;
+    // outJets.hiBin = hiBin;
+    {
+      inPhoTree->GetEntry(ientries);
+      outJets.event = pho.event;
+      outJets.run = pho.run;
+      outJets.lumi = pho.lumis;
+    }
     outJets.HBHENoiseFilterResult = HBHENoiseFilterResult;
     outJets.pcollisionEventSelection = pcollisionEventSelection;
 
@@ -131,7 +161,7 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
     outTree->Fill();
   }
 
-  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
+  outFile->cd();
   configTree->Write();
   outTree->Write();
   outFile->Close();

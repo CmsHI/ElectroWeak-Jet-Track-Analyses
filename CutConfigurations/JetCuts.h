@@ -12,10 +12,13 @@ namespace CUTS {
     };
 
     enum I_CUTS{
+      k_requirePhotonInEvent,
       kN_I_CUTS
     };
 
-    std::string I_CUTS_LABELS[kN_I_CUTS] = {};
+    std::string I_CUTS_LABELS[kN_I_CUTS] = {
+      "requirePhotonInEvent"
+    };
 
     enum S_CUTS{
       k_jetCollection,

@@ -8,10 +8,12 @@
 
 void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, const TString outputSkimFile)
 {
+  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
+
   CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
-  //std::cout << config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et] << std::endl;
+  Float_t photonEtCut = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
 
   TFile *inHiForest = TFile::Open(inputHiForest);
   TTree *inTree = (TTree*)inHiForest->Get("ggHiNtuplizer/EventTree");
@@ -24,6 +26,17 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
   skimTree->SetBranchAddress("HBHENoiseFilterResult",&HBHENoiseFilterResult);
   skimTree->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
 
+  // TTree *evtTree = (TTree*)inHiForest->Get("hiEvtAnalyzer/HiTree");
+  // ULong64_t event;
+  // unsigned run;
+  // unsigned lumi;
+  // int hiBin;
+  // evtTree->SetBranchAddress("evt",&event);
+  // evtTree->SetBranchAddress("run",&run);
+  // evtTree->SetBranchAddress("lumi",&lumi);
+  // evtTree->SetBranchAddress("hiBin",&hiBin);
+
+  outFile->cd();
   PhotonSkim phoSkim;
   TTree *outTree = new TTree("photonSkimTree","photonSkimTree");
   phoSkim.setupTreeBranchesForWriting(outTree);
@@ -34,12 +47,26 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
     inTree->GetEntry(ientries);
     skimTree->GetEntry(ientries);
 
+    if(pho.nPho < 1) continue;
+    Float_t maxPho =-1;
+    for(int i = 0; i < pho.nPho; ++i)
+    {
+      if(maxPho < pho.phoEt->at(i))
+	maxPho = pho.phoEt->at(i);
+    }
+    if(maxPho < photonEtCut) continue;
+
     phoSkim.reset();
 
-    //
+    // evetTree->GetEntry(ientries);
+    // phoSkim.run = run;
+    // phoSkim.lumis = lumi;
+    // phoSkim.event = event;
+    //phoSkim.hiBin = hiBin;
     phoSkim.run = pho.run;
     phoSkim.event = pho.event;
     phoSkim.lumis = pho.lumis;
+
     phoSkim.HBHENoiseFilterResult = HBHENoiseFilterResult;
     phoSkim.pcollisionEventSelection = pcollisionEventSelection;
 
@@ -126,54 +153,54 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
     //phoSkim.pfsumIso4 = * pho.pfsumIso4;
     //phoSkim.pfsumIso5 = * pho.pfsumIso5;
 
-    phoSkim.pfcVsIso1 = * pho.pfcVsIso1;
-    phoSkim.pfcVsIso2 = * pho.pfcVsIso2;
-    phoSkim.pfcVsIso3 = * pho.pfcVsIso3;
-    phoSkim.pfcVsIso4 = * pho.pfcVsIso4;
-    phoSkim.pfcVsIso5 = * pho.pfcVsIso5;
-    phoSkim.pfcVsIso1th1 = * pho.pfcVsIso1th1;
-    phoSkim.pfcVsIso2th1 = * pho.pfcVsIso2th1;
-    phoSkim.pfcVsIso3th1 = * pho.pfcVsIso3th1;
-    phoSkim.pfcVsIso4th1 = * pho.pfcVsIso4th1;
-    phoSkim.pfcVsIso5th1 = * pho.pfcVsIso5th1;
-    phoSkim.pfcVsIso1th2 = * pho.pfcVsIso1th2;
-    phoSkim.pfcVsIso2th2 = * pho.pfcVsIso2th2;
-    phoSkim.pfcVsIso3th2 = * pho.pfcVsIso3th2;
-    phoSkim.pfcVsIso4th2 = * pho.pfcVsIso4th2;
-    phoSkim.pfcVsIso5th2 = * pho.pfcVsIso5th2;
+    // phoSkim.pfcVsIso1 = * pho.pfcVsIso1;
+    // phoSkim.pfcVsIso2 = * pho.pfcVsIso2;
+    // phoSkim.pfcVsIso3 = * pho.pfcVsIso3;
+    // phoSkim.pfcVsIso4 = * pho.pfcVsIso4;
+    // phoSkim.pfcVsIso5 = * pho.pfcVsIso5;
+    // phoSkim.pfcVsIso1th1 = * pho.pfcVsIso1th1;
+    // phoSkim.pfcVsIso2th1 = * pho.pfcVsIso2th1;
+    // phoSkim.pfcVsIso3th1 = * pho.pfcVsIso3th1;
+    // phoSkim.pfcVsIso4th1 = * pho.pfcVsIso4th1;
+    // phoSkim.pfcVsIso5th1 = * pho.pfcVsIso5th1;
+    // phoSkim.pfcVsIso1th2 = * pho.pfcVsIso1th2;
+    // phoSkim.pfcVsIso2th2 = * pho.pfcVsIso2th2;
+    // phoSkim.pfcVsIso3th2 = * pho.pfcVsIso3th2;
+    // phoSkim.pfcVsIso4th2 = * pho.pfcVsIso4th2;
+    // phoSkim.pfcVsIso5th2 = * pho.pfcVsIso5th2;
 
-    phoSkim.pfnVsIso1 = * pho.pfnVsIso1;
-    phoSkim.pfnVsIso2 = * pho.pfnVsIso2;
-    phoSkim.pfnVsIso3 = * pho.pfnVsIso3;
-    phoSkim.pfnVsIso4 = * pho.pfnVsIso4;
-    phoSkim.pfnVsIso5 = * pho.pfnVsIso5;
-    phoSkim.pfnVsIso1th1 = * pho.pfnVsIso1th1;
-    phoSkim.pfnVsIso2th1 = * pho.pfnVsIso2th1;
-    phoSkim.pfnVsIso3th1 = * pho.pfnVsIso3th1;
-    phoSkim.pfnVsIso4th1 = * pho.pfnVsIso4th1;
-    phoSkim.pfnVsIso5th1 = * pho.pfnVsIso5th1;
-    phoSkim.pfnVsIso1th2 = * pho.pfnVsIso1th2;
-    phoSkim.pfnVsIso2th2 = * pho.pfnVsIso2th2;
-    phoSkim.pfnVsIso3th2 = * pho.pfnVsIso3th2;
-    phoSkim.pfnVsIso4th2 = * pho.pfnVsIso4th2;
-    phoSkim.pfnVsIso5th2 = * pho.pfnVsIso5th2;
+    // phoSkim.pfnVsIso1 = * pho.pfnVsIso1;
+    // phoSkim.pfnVsIso2 = * pho.pfnVsIso2;
+    // phoSkim.pfnVsIso3 = * pho.pfnVsIso3;
+    // phoSkim.pfnVsIso4 = * pho.pfnVsIso4;
+    // phoSkim.pfnVsIso5 = * pho.pfnVsIso5;
+    // phoSkim.pfnVsIso1th1 = * pho.pfnVsIso1th1;
+    // phoSkim.pfnVsIso2th1 = * pho.pfnVsIso2th1;
+    // phoSkim.pfnVsIso3th1 = * pho.pfnVsIso3th1;
+    // phoSkim.pfnVsIso4th1 = * pho.pfnVsIso4th1;
+    // phoSkim.pfnVsIso5th1 = * pho.pfnVsIso5th1;
+    // phoSkim.pfnVsIso1th2 = * pho.pfnVsIso1th2;
+    // phoSkim.pfnVsIso2th2 = * pho.pfnVsIso2th2;
+    // phoSkim.pfnVsIso3th2 = * pho.pfnVsIso3th2;
+    // phoSkim.pfnVsIso4th2 = * pho.pfnVsIso4th2;
+    // phoSkim.pfnVsIso5th2 = * pho.pfnVsIso5th2;
 
 
-    phoSkim.pfpVsIso1 = * pho.pfpVsIso1;
-    phoSkim.pfpVsIso2 = * pho.pfpVsIso2;
-    phoSkim.pfpVsIso3 = * pho.pfpVsIso3;
-    phoSkim.pfpVsIso4 = * pho.pfpVsIso4;
-    phoSkim.pfpVsIso5 = * pho.pfpVsIso5;
-    phoSkim.pfpVsIso1th1 = * pho.pfpVsIso1th1;
-    phoSkim.pfpVsIso2th1 = * pho.pfpVsIso2th1;
-    phoSkim.pfpVsIso3th1 = * pho.pfpVsIso3th1;
-    phoSkim.pfpVsIso4th1 = * pho.pfpVsIso4th1;
-    phoSkim.pfpVsIso5th1 = * pho.pfpVsIso5th1;
-    phoSkim.pfpVsIso1th2 = * pho.pfpVsIso1th2;
-    phoSkim.pfpVsIso2th2 = * pho.pfpVsIso2th2;
-    phoSkim.pfpVsIso3th2 = * pho.pfpVsIso3th2;
-    phoSkim.pfpVsIso4th2 = * pho.pfpVsIso4th2;
-    phoSkim.pfpVsIso5th2 = * pho.pfpVsIso5th2;
+    // phoSkim.pfpVsIso1 = * pho.pfpVsIso1;
+    // phoSkim.pfpVsIso2 = * pho.pfpVsIso2;
+    // phoSkim.pfpVsIso3 = * pho.pfpVsIso3;
+    // phoSkim.pfpVsIso4 = * pho.pfpVsIso4;
+    // phoSkim.pfpVsIso5 = * pho.pfpVsIso5;
+    // phoSkim.pfpVsIso1th1 = * pho.pfpVsIso1th1;
+    // phoSkim.pfpVsIso2th1 = * pho.pfpVsIso2th1;
+    // phoSkim.pfpVsIso3th1 = * pho.pfpVsIso3th1;
+    // phoSkim.pfpVsIso4th1 = * pho.pfpVsIso4th1;
+    // phoSkim.pfpVsIso5th1 = * pho.pfpVsIso5th1;
+    // phoSkim.pfpVsIso1th2 = * pho.pfpVsIso1th2;
+    // phoSkim.pfpVsIso2th2 = * pho.pfpVsIso2th2;
+    // phoSkim.pfpVsIso3th2 = * pho.pfpVsIso3th2;
+    // phoSkim.pfpVsIso4th2 = * pho.pfpVsIso4th2;
+    // phoSkim.pfpVsIso5th2 = * pho.pfpVsIso5th2;
 
     //phoSkim.pfsumVsIso1 = * pho.pfsumVsIso1;
     //phoSkim.pfsumVsIso2 = * pho.pfsumVsIso2;
@@ -198,26 +225,26 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
     // phoSkim.pfVsSubIso4 = * pho.pfVsSubIso4;
     // phoSkim.pfVsSubIso5 = * pho.pfVsSubIso5;
 
-    phoSkim.towerIso1 = * pho.towerIso1;
-    phoSkim.towerIso2 = * pho.towerIso2;
-    phoSkim.towerIso3 = * pho.towerIso3;
-    phoSkim.towerIso4 = * pho.towerIso4;
-    phoSkim.towerIso5 = * pho.towerIso5;
-    phoSkim.towerVsIso1 = * pho.towerVsIso1;
-    phoSkim.towerVsIso2 = * pho.towerVsIso2;
-    phoSkim.towerVsIso3 = * pho.towerVsIso3;
-    phoSkim.towerVsIso4 = * pho.towerVsIso4;
-    phoSkim.towerVsIso5 = * pho.towerVsIso5;
-    phoSkim.towerVsSubIso1 = * pho.towerVsSubIso1;
-    phoSkim.towerVsSubIso2 = * pho.towerVsSubIso2;
-    phoSkim.towerVsSubIso3 = * pho.towerVsSubIso3;
-    phoSkim.towerVsSubIso4 = * pho.towerVsSubIso4;
-    phoSkim.towerVsSubIso5 = * pho.towerVsSubIso5;
+    // phoSkim.towerIso1 = * pho.towerIso1;
+    // phoSkim.towerIso2 = * pho.towerIso2;
+    // phoSkim.towerIso3 = * pho.towerIso3;
+    // phoSkim.towerIso4 = * pho.towerIso4;
+    // phoSkim.towerIso5 = * pho.towerIso5;
+    // phoSkim.towerVsIso1 = * pho.towerVsIso1;
+    // phoSkim.towerVsIso2 = * pho.towerVsIso2;
+    // phoSkim.towerVsIso3 = * pho.towerVsIso3;
+    // phoSkim.towerVsIso4 = * pho.towerVsIso4;
+    // phoSkim.towerVsIso5 = * pho.towerVsIso5;
+    // phoSkim.towerVsSubIso1 = * pho.towerVsSubIso1;
+    // phoSkim.towerVsSubIso2 = * pho.towerVsSubIso2;
+    // phoSkim.towerVsSubIso3 = * pho.towerVsSubIso3;
+    // phoSkim.towerVsSubIso4 = * pho.towerVsSubIso4;
+    // phoSkim.towerVsSubIso5 = * pho.towerVsSubIso5;
 
     outTree->Fill();
   }
 
-  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
+  outFile->cd();
   configTree->Write();
   outTree->Write();
   outFile->Close();

@@ -12,6 +12,7 @@ public:
   ULong64_t       event;
   UInt_t          lumis;
 
+  Int_t hiBin;
   Int_t HBHENoiseFilterResult;
   Int_t pcollisionEventSelection;
 
