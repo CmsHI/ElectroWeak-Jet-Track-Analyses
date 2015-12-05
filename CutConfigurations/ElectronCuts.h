@@ -12,10 +12,11 @@ namespace CUTS {
     };
 
     enum I_CUTS{
+      k_nEle,
       kN_I_CUTS
     };
 
-    std::string I_CUTS_LABELS[kN_I_CUTS] = {};
+    std::string I_CUTS_LABELS[kN_I_CUTS] = {"nEle"};
 
     enum S_CUTS{
       kN_S_CUTS

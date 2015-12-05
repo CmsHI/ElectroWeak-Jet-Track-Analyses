@@ -94,6 +94,7 @@ namespace CUTS {
 
 struct CutConfiguration{
   CUTS::ProcessCuts proc[CUTS::kN_PROCESSES];
+  bool isValid;
 };
 
 class CutConfigurationsParser{
@@ -119,6 +120,7 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
   std::ifstream fin(inFile);
   if ( (fin.rdstate() & std::ifstream::failbit ) != 0 ) {
     std::cout << "I/O Error opening configuration file." << std::endl;
+    config.isValid = false;
     return config;
   }
   std::string line;
@@ -182,9 +184,11 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
       std::cout << "Malformed line in configuration." << std::endl;
       std::cout << "Line #" << lineCounter << " : " << std::endl;
       std::cout << line << std::endl;
+      config.isValid = false;
       return config;
     }
   }
+  config.isValid = true;
   return config;
 }
 
