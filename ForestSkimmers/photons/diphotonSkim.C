@@ -17,7 +17,7 @@
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
-void diphotonSkim(const char* configFile, const char* inputFile, const char* outputFile = "out_diphotonSkim.root");
+void diphotonSkim(const char* configFile, const char* inputFile, const char* outputFile = "diphotonSkim.root");
 
 void diphotonSkim(const char* configFile, const char* inputFile, const char* outputFile)
 {
@@ -52,8 +52,8 @@ void diphotonSkim(const char* configFile, const char* inputFile, const char* out
            cut_nEle = config.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
        }
        else {
-           cut_nPho = 1;
-           cut_nEle = 0;
+           cut_nPho = 2;
+           cut_nEle = 2;
        }
 
        std::cout<<"cut_nPho = "<<cut_nPho<<std::endl;
@@ -108,7 +108,7 @@ void diphotonSkim(const char* configFile, const char* inputFile, const char* out
        std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
        std::cout << "outputTreeHLT->GetEntries()           = " << outputTreeHLT->GetEntries() << std::endl;
        std::cout << "outputTreeggHiNtuplizer->GetEntries() = " << outputTreeggHiNtuplizer->GetEntries() << std::endl;
-       std::cout << "diPhotonTree->GetEntries()          = " << diPhotonTree->GetEntries() << std::endl;
+       std::cout << "diPhotonTree->GetEntries()            = " << diPhotonTree->GetEntries() << std::endl;
 
        // overwrite existing trees
        outputTreeHLT->Write("", TObject::kOverwrite);

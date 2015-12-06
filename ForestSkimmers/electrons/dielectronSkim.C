@@ -17,7 +17,7 @@
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
-void dielectronSkim(const char* configFile, const char* inputFile, const char* outputFile = "out_dielectronSkim.root");
+void dielectronSkim(const char* configFile, const char* inputFile, const char* outputFile = "dielectronSkim.root");
 
 void dielectronSkim(const char* configFile, const char* inputFile, const char* outputFile)
 {
