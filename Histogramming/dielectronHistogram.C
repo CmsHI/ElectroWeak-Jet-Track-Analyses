@@ -3,15 +3,13 @@
 #include <TCanvas.h>
 #include <TCut.h>
 #include <TH1D.h>
-#include <TH2D.h>
-#include <TLegend.h>
 
 #include <iostream>
 
 #include "../CutConfigurations/CutConfigurationsParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 
-void dielectronHistogram(const char* configFile, const char* inputFile = "dielectronSkim.root", const char* outputFile = "dielectronHistogram.root", const char* sampleName = "");
+void dielectronHistogram(const char* configFile, const char* inputFile, const char* outputFile = "dielectronHistogram.root", const char* sampleName = "");
 
 void dielectronHistogram(const char* configFile, const char* inputFile, const char* outputFile, const char* sampleName)
 {
@@ -133,7 +131,7 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
     float bins_eta_gt[nBins_eta] = {-1,      -1, 1.4791, 1.4791};    // All ECAL, Barrel, Endcap1, Endcap2
     float bins_eta_lt[nBins_eta] = {2.4, 1.4791,    2.4, 2};
 
-    std::string histNames_e1e2_M    [nBins_pt][nBins_eta];
+    std::string histNames_e1e2_M[nBins_pt][nBins_eta];
 
     int numEntries[nBins_pt][nBins_eta];
 
@@ -253,7 +251,6 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
 
             c->SetName(Form("cnv_%s_final",histNames_e1e2_M[i][j].c_str()));
             c->cd();
-            //            t_diele->Draw(Form("vSum_M >> %s", h1D_e1e2_M_final[i][j]->GetName()), selection.GetTitle());
             h1D_e1e2_M_final[i][j] = (TH1D*)h1D_e1e2_M[i][j]->Clone(Form("%s_final", h1D_e1e2_M[i][j]->GetName()));
             h1D_e1e2_M_final[i][j]->SetAxisRange(final_xMin,final_xMax);
             h1D_e1e2_M_final[i][j]->Draw("e");
@@ -290,10 +287,6 @@ int main(int argc, char** argv)
     }
     else if (argc == 3) {
         dielectronHistogram(argv[1], argv[2]);
-        return 0;
-    }
-    else if (argc == 2) {
-        dielectronHistogram(argv[1]);
         return 0;
     }
     else {

@@ -13,6 +13,13 @@ namespace CUTS {
       k_puritySignalShift,
       k_purityBackgroundShift,
       k_puritySieieHistMax,
+      k_phoSigmaIEtaIEta_spike,
+//      k_phoSigmaIPhiIPhi_spike,   // not available yet
+      k_phoHoverE,
+      k_pho_ecalClusterIsoR4,
+      k_pho_hcalRechitIsoR4,
+      k_pho_trackIsoR4PtCut20,
+      k_phoSigmaIEtaIEta,
       kN_F_CUTS
     };
 
@@ -25,27 +32,38 @@ namespace CUTS {
       "puritySieieThreshold",
       "puritySignalShift",
       "purityBackgroundShift",
-      "puritySieieHistMax"
+      "puritySieieHistMax",
+      "phoSigmaIEtaIEta_spike",
+//      "phoSigmaIPhiIPhi_spike",   // not available yet
+      "phoHoverE",
+      "pho_ecalClusterIsoR4",
+      "pho_hcalRechitIsoR4",
+      "pho_trackIsoR4PtCut20",
+      "phoSigmaIEtaIEta",
     };
 
     enum I_CUTS{
       k_nPhotons,
       k_puritySieieBins,
+      k_matched_eleIndex,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "nPhotons",
-      "puritySieieBins"
+      "puritySieieBins",
+      "matched_eleIndex"
     };
 
     enum S_CUTS{
       k_monteCarloWeightLabel,
+      k_trigger_diphoton,
       kN_S_CUTS
     };
 
     std::string S_CUTS_LABELS[kN_S_CUTS] = {
-      "monteCarloWeightLabel"
+      "monteCarloWeightLabel",
+      "trigger_diphoton"
     };
 
   };
