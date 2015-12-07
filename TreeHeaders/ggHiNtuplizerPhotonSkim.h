@@ -6,14 +6,13 @@
 
 class PhotonSkim{
 public:
-  PhotonSkim(bool mc){montecarlo = mc};
+  PhotonSkim(bool mc){montecarlo = mc;};
   ~PhotonSkim(){};
   bool montecarlo;
 
   UInt_t          run;
   ULong64_t       event;
   UInt_t          lumis;
-  Int_t           hiBin;
 
   Int_t hiBin;
   Int_t HBHENoiseFilterResult;

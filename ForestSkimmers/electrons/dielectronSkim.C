@@ -12,7 +12,7 @@
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/dielectronTree.h"
-#include "../../CutConfigurations/CutConfigurationsParser.h"
+#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
