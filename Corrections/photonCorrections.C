@@ -1,7 +1,7 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
-#include "../CutConfigurations/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 
@@ -11,15 +11,16 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   //std::cout << config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et] << std::endl;
+  bool montecarlo = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_MonteCarlo];
 
   TFile *inSkimFile = TFile::Open(inputSkimFile);
   TTree *inTree = (TTree*)inSkimFile->Get("photonSkimTree");
-  PhotonSkim inPho;
-  inPho.setupTreeBranchesForReading(inTree);
+  PhotonSkim inPho(montecarlo);
+  inPho.setupTreeForReading(inTree);
 
-  PhotonSkim outPho;
+  PhotonSkim outPho(montecarlo);
   TTree *outTree = new TTree("photonSkimTree","photonSkimTree");
-  outPho.setupTreeBranchesForWriting(outTree);
+  outPho.setupTreeForWriting(outTree);
 
   Long64_t nentries = inTree->GetEntries();
   for(int ientries = 0; ientries < nentries; ++ientries)

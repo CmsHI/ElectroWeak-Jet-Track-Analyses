@@ -1,9 +1,12 @@
+#ifndef PhotonPurity_h
+#define PhotonPurity_h
+
 #include <TH1.h>
 #include <TNtuple.h>
 #include <TCut.h>
 #include <TF1.h>
 #include <string>
-#include "../CutConfigurations/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationsParser.h"
 
 class PhotonPurity {
 public:
@@ -108,7 +111,8 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
   Float_t backgroundShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
   const Int_t nSIGMABINS = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
   const Float_t maxSIGMA = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieHistMax];
-  const std::string mcWeightLabel = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
+  const std::string mcWeightLabel_s = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
+  TCut mcWeightLabel = mcWeightLabel_s.c_str();
 
   TH1D* hCand = new TH1D("cand","",nSIGMABINS,0,maxSIGMA);
   TH1D* hBkg = (TH1D*)hCand->Clone("bkg");
@@ -121,7 +125,7 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
 
   dataTree->Project(hCand->GetName(), "sigmaIetaIeta", dataCandidateCut, "");
   dataTree->Project(hBkg->GetName(), "sigmaIetaIeta"+bkgshift, sidebandCut, "");
-  mcTree->Project(hSig->GetName(), "sigmaIetaIeta"+sigshift, mcweightLabel*mcSignalCut, "");
+  mcTree->Project(hSig->GetName(), "sigmaIetaIeta"+sigshift, mcWeightLabel*mcSignalCut, "");
 
   PhotonPurity fitr = doFit(config, hSig, hBkg, hCand);
 
@@ -133,3 +137,5 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
 
   return fitr;
 }
+
+#endif

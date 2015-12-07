@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "../CutConfigurations/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 
 void diphotonHistogram(const char* configFile, const char* inputFile, const char* outputFile = "diphotonHistogram.root", const char* sampleName = "");

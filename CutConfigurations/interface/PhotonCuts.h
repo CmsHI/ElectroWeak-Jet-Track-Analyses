@@ -46,6 +46,7 @@ namespace CUTS {
       k_nPhotons,
       k_puritySieieBins,
       k_matched_eleIndex,
+      k_MonteCarlo,
       kN_I_CUTS
     };
 
@@ -53,6 +54,7 @@ namespace CUTS {
       "nPhotons",
       "puritySieieBins",
       "matched_eleIndex"
+      "MonteCarlo"
     };
 
     enum S_CUTS{

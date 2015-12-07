@@ -2,7 +2,7 @@
 #include <TString.h>
 #include <iostream>
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
-#include "../../CutConfigurations/CutConfigurationsParser.h"
+#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 
@@ -14,6 +14,7 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   Float_t photonEtCut = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
+  bool montecarlo = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_MonteCarlo];
 
   TFile *inHiForest = TFile::Open(inputHiForest);
   TTree *inTree = (TTree*)inHiForest->Get("ggHiNtuplizer/EventTree");
@@ -37,9 +38,9 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
   // evtTree->SetBranchAddress("hiBin",&hiBin);
 
   outFile->cd();
-  PhotonSkim phoSkim;
+  PhotonSkim phoSkim(montecarlo);
   TTree *outTree = new TTree("photonSkimTree","photonSkimTree");
-  phoSkim.setupTreeBranchesForWriting(outTree);
+  phoSkim.setupTreeForWriting(outTree);
 
   Long64_t nentries = inTree->GetEntries();
   for(int ientries = 0; ientries < nentries; ++ientries)

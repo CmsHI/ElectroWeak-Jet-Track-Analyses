@@ -1,7 +1,7 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
-#include "../../CutConfigurations/CutConfigurationsParser.h"
+#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/SetupJetTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"

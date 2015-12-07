@@ -6,15 +6,45 @@
 
 class PhotonSkim{
 public:
-  PhotonSkim(){};
+  PhotonSkim(bool mc){montecarlo = mc};
   ~PhotonSkim(){};
+  bool montecarlo;
+
   UInt_t          run;
   ULong64_t       event;
   UInt_t          lumis;
+  Int_t           hiBin;
 
   Int_t hiBin;
   Int_t HBHENoiseFilterResult;
   Int_t pcollisionEventSelection;
+
+  // mc stuff
+  Int_t           nMC;
+  std::vector<int>     mcPID;
+  std::vector<int>     mcStatus;
+  std::vector<float>   mcVtx_x;
+  std::vector<float>   mcVtx_y;
+  std::vector<float>   mcVtx_z;
+  std::vector<float>   mcPt;
+  std::vector<float>   mcEta;
+  std::vector<float>   mcPhi;
+  std::vector<float>   mcE;
+  std::vector<float>   mcEt;
+  std::vector<float>   mcMass;
+  std::vector<int>     mcParentage;
+  std::vector<int>     mcMomPID;
+  std::vector<float>   mcMomPt;
+  std::vector<float>   mcMomEta;
+  std::vector<float>   mcMomPhi;
+  std::vector<float>   mcMomMass;
+  std::vector<int>     mcGMomPID;
+  std::vector<int>     mcIndex;
+  std::vector<float>   mcCalIsoDR03;
+  std::vector<float>   mcCalIsoDR04;
+  std::vector<float>   mcTrkIsoDR03;
+  std::vector<float>   mcTrkIsoDR04;
+  std::vector<int>     pho_genMatchedIndex;
 
   // reco::Photon
   Int_t          nPho;
@@ -193,6 +223,31 @@ public:
   std::vector<float> towerVsSubIso4;
   std::vector<float> towerVsSubIso5;
 
+  std::vector<int>     *p_mcPID;
+  std::vector<int>     *p_mcStatus;
+  std::vector<float>   *p_mcVtx_x;
+  std::vector<float>   *p_mcVtx_y;
+  std::vector<float>   *p_mcVtx_z;
+  std::vector<float>   *p_mcPt;
+  std::vector<float>   *p_mcEta;
+  std::vector<float>   *p_mcPhi;
+  std::vector<float>   *p_mcE;
+  std::vector<float>   *p_mcEt;
+  std::vector<float>   *p_mcMass;
+  std::vector<int>     *p_mcParentage;
+  std::vector<int>     *p_mcMomPID;
+  std::vector<float>   *p_mcMomPt;
+  std::vector<float>   *p_mcMomEta;
+  std::vector<float>   *p_mcMomPhi;
+  std::vector<float>   *p_mcMomMass;
+  std::vector<int>     *p_mcGMomPID;
+  std::vector<int>     *p_mcIndex;
+  std::vector<float>   *p_mcCalIsoDR03;
+  std::vector<float>   *p_mcCalIsoDR04;
+  std::vector<float>   *p_mcTrkIsoDR03;
+  std::vector<float>   *p_mcTrkIsoDR04;
+  std::vector<int>     *p_pho_genMatchedIndex;
+
   std::vector<float> *p_phoE = 0;
   std::vector<float> *p_phoEt = 0;
   std::vector<float> *p_phoEtCorrected = 0;
@@ -356,8 +411,35 @@ public:
     run=0;
     event=0;
     lumis=0;
+    hiBin = -1;
     HBHENoiseFilterResult=-1;
     pcollisionEventSelection=-1;
+
+    nMC = -1;
+    mcPID.clear();
+    mcStatus.clear();
+    mcVtx_x.clear();
+    mcVtx_y.clear();
+    mcVtx_z.clear();
+    mcPt.clear();
+    mcEta.clear();
+    mcPhi.clear();
+    mcE.clear();
+    mcEt.clear();
+    mcMass.clear();
+    mcParentage.clear();
+    mcMomPID.clear();
+    mcMomPt.clear();
+    mcMomEta.clear();
+    mcMomPhi.clear();
+    mcMomMass.clear();
+    mcGMomPID.clear();
+    mcIndex.clear();
+    mcCalIsoDR03.clear();
+    mcCalIsoDR04.clear();
+    mcTrkIsoDR03.clear();
+    mcTrkIsoDR04.clear();
+    pho_genMatchedIndex.clear();
 
     nPho=-1;
 
@@ -530,13 +612,42 @@ public:
     towerVsSubIso5.clear();
   };
 
-  void setupTreeBranchesForWriting(TTree * tree_)
+  void setupTreeForWriting(TTree * tree_)
   {
     tree_->Branch("run",    &run, "run/i");
     tree_->Branch("event",  &event, "event/l");
     tree_->Branch("lumis",  &lumis, "lumi/i");
+    tree_->Branch("hiBin",  &hiBin, "hiBin/I");
     tree_->Branch("HBHENoiseFilterResult", &HBHENoiseFilterResult);
     tree_->Branch("pcollisionEventSelection", &pcollisionEventSelection);
+
+    if(montecarlo){
+      tree_->Branch("nMC",&nMC);
+      tree_->Branch("mcPID",&mcPID);
+      tree_->Branch("mcStatus",&mcStatus);
+      tree_->Branch("mcVtx_x",&mcVtx_x);
+      tree_->Branch("mcVtx_y",&mcVtx_y);
+      tree_->Branch("mcVtx_z",&mcVtx_z);
+      tree_->Branch("mcPt",&mcPt);
+      tree_->Branch("mcEta",&mcEta);
+      tree_->Branch("mcPhi",&mcPhi);
+      tree_->Branch("mcE",&mcE);
+      tree_->Branch("mcEt",&mcEt);
+      tree_->Branch("mcMass",&mcMass);
+      tree_->Branch("mcParentage",&mcParentage);
+      tree_->Branch("mcMomPID",&mcMomPID);
+      tree_->Branch("mcMomPt",&mcMomPt);
+      tree_->Branch("mcMomEta",&mcMomEta);
+      tree_->Branch("mcMomPhi",&mcMomPhi);
+      tree_->Branch("mcMomMass",&mcMomMass);
+      tree_->Branch("mcGMomPID",&mcGMomPID);
+      tree_->Branch("mcIndex",&mcIndex);
+      tree_->Branch("mcCalIsoDR03",&mcCalIsoDR03);
+      tree_->Branch("mcCalIsoDR04",&mcCalIsoDR04);
+      tree_->Branch("mcTrkIsoDR03",&mcTrkIsoDR03);
+      tree_->Branch("mcTrkIsoDR04",&mcTrkIsoDR04);
+      tree_->Branch("pho_genMatchedIndex",&pho_genMatchedIndex);
+    }
 
     tree_->Branch("nPho",                  &nPho);
     tree_->Branch("phoE",                  &phoE);
@@ -719,13 +830,42 @@ public:
     }
   }
 
-  void setupTreeBranchesForReading(TTree * tree_)
+  void setupTreeForReading(TTree * tree_)
   {
     tree_->SetBranchAddress("run",    &run);
     tree_->SetBranchAddress("event",  &event);
     tree_->SetBranchAddress("lumis",  &lumis);
+    tree_->SetBranchAddress("hiBin",  &hiBin);
     tree_->SetBranchAddress("HBHENoiseFilterResult", &HBHENoiseFilterResult);
     tree_->SetBranchAddress("pcollisionEventSelection", &pcollisionEventSelection);
+
+    if(montecarlo){
+      tree_->SetBranchAddress("nMC",&nMC);
+      tree_->SetBranchAddress("mcPID",&p_mcPID);
+      tree_->SetBranchAddress("mcStatus",&p_mcStatus);
+      tree_->SetBranchAddress("mcVtx_x",&p_mcVtx_x);
+      tree_->SetBranchAddress("mcVtx_y",&p_mcVtx_y);
+      tree_->SetBranchAddress("mcVtx_z",&p_mcVtx_z);
+      tree_->SetBranchAddress("mcPt",&p_mcPt);
+      tree_->SetBranchAddress("mcEta",&p_mcEta);
+      tree_->SetBranchAddress("mcPhi",&p_mcPhi);
+      tree_->SetBranchAddress("mcE",&p_mcE);
+      tree_->SetBranchAddress("mcEt",&p_mcEt);
+      tree_->SetBranchAddress("mcMass",&p_mcMass);
+      tree_->SetBranchAddress("mcParentage",&p_mcParentage);
+      tree_->SetBranchAddress("mcMomPID",&p_mcMomPID);
+      tree_->SetBranchAddress("mcMomPt",&p_mcMomPt);
+      tree_->SetBranchAddress("mcMomEta",&p_mcMomEta);
+      tree_->SetBranchAddress("mcMomPhi",&p_mcMomPhi);
+      tree_->SetBranchAddress("mcMomMass",&p_mcMomMass);
+      tree_->SetBranchAddress("mcGMomPID",&p_mcGMomPID);
+      tree_->SetBranchAddress("mcIndex",&p_mcIndex);
+      tree_->SetBranchAddress("mcCalIsoDR03",&p_mcCalIsoDR03);
+      tree_->SetBranchAddress("mcCalIsoDR04",&p_mcCalIsoDR04);
+      tree_->SetBranchAddress("mcTrkIsoDR03",&p_mcTrkIsoDR03);
+      tree_->SetBranchAddress("mcTrkIsoDR04",&p_mcTrkIsoDR04);
+      tree_->SetBranchAddress("pho_genMatchedIndex",&p_pho_genMatchedIndex);
+    }
 
     tree_->SetBranchAddress("nPho",                  &nPho);
     tree_->SetBranchAddress("phoE",                  &p_phoE);
@@ -910,6 +1050,33 @@ public:
 
   void resolvePointers()
   {
+    if(montecarlo){
+      mcPID = *p_mcPID;
+      mcStatus = *p_mcStatus;
+      mcVtx_x = *p_mcVtx_x;
+      mcVtx_y = *p_mcVtx_y;
+      mcVtx_z = *p_mcVtx_z;
+      mcPt = *p_mcPt;
+      mcEta = *p_mcEta;
+      mcPhi = *p_mcPhi;
+      mcE = *p_mcE;
+      mcEt = *p_mcEt;
+      mcMass = *p_mcMass;
+      mcParentage = *p_mcParentage;
+      mcMomPID = *p_mcMomPID;
+      mcMomPt = *p_mcMomPt;
+      mcMomEta = *p_mcMomEta;
+      mcMomPhi = *p_mcMomPhi;
+      mcMomMass = *p_mcMomMass;
+      mcGMomPID = *p_mcGMomPID;
+      mcIndex = *p_mcIndex;
+      mcCalIsoDR03 = *p_mcCalIsoDR03;
+      mcCalIsoDR04 = *p_mcCalIsoDR04;
+      mcTrkIsoDR03 = *p_mcTrkIsoDR03;
+      mcTrkIsoDR04 = *p_mcTrkIsoDR04;
+      pho_genMatchedIndex = *p_pho_genMatchedIndex;
+    }
+
     phoE = *p_phoE;
     phoEt = *p_phoEt;
     phoEtCorrected = *p_phoEtCorrected;
