@@ -127,12 +127,6 @@ public:
   std::vector<float> pfnIso4;
   std::vector<float> pfnIso5;
 
-  std::vector<float> pfsumIso1;
-  std::vector<float> pfsumIso2;
-  std::vector<float> pfsumIso3;
-  std::vector<float> pfsumIso4;
-  std::vector<float> pfsumIso5;
-
   std::vector<float> pfcVsIso1;
   std::vector<float> pfcVsIso2;
   std::vector<float> pfcVsIso3;
@@ -165,7 +159,6 @@ public:
   std::vector<float> pfnVsIso4th2;
   std::vector<float> pfnVsIso5th2;
 
-
   std::vector<float> pfpVsIso1;
   std::vector<float> pfpVsIso2;
   std::vector<float> pfpVsIso3;
@@ -181,30 +174,6 @@ public:
   std::vector<float> pfpVsIso3th2;
   std::vector<float> pfpVsIso4th2;
   std::vector<float> pfpVsIso5th2;
-
-
-  std::vector<float> pfsumVsIso1;
-  std::vector<float> pfsumVsIso2;
-  std::vector<float> pfsumVsIso3;
-  std::vector<float> pfsumVsIso4;
-  std::vector<float> pfsumVsIso5;
-  std::vector<float> pfsumVsIso1th1;
-  std::vector<float> pfsumVsIso2th1;
-  std::vector<float> pfsumVsIso3th1;
-  std::vector<float> pfsumVsIso4th1;
-  std::vector<float> pfsumVsIso5th1;
-  std::vector<float> pfsumVsIso1th2;
-  std::vector<float> pfsumVsIso2th2;
-  std::vector<float> pfsumVsIso3th2;
-  std::vector<float> pfsumVsIso4th2;
-  std::vector<float> pfsumVsIso5th2;
-
-
-  std::vector<float> pfVsSubIso1;
-  std::vector<float> pfVsSubIso2;
-  std::vector<float> pfVsSubIso3;
-  std::vector<float> pfVsSubIso4;
-  std::vector<float> pfVsSubIso5;
 
   std::vector<float> towerIso1;
   std::vector<float> towerIso2;
@@ -222,30 +191,30 @@ public:
   std::vector<float> towerVsSubIso4;
   std::vector<float> towerVsSubIso5;
 
-  std::vector<int>     *p_mcPID;
-  std::vector<int>     *p_mcStatus;
-  std::vector<float>   *p_mcVtx_x;
-  std::vector<float>   *p_mcVtx_y;
-  std::vector<float>   *p_mcVtx_z;
-  std::vector<float>   *p_mcPt;
-  std::vector<float>   *p_mcEta;
-  std::vector<float>   *p_mcPhi;
-  std::vector<float>   *p_mcE;
-  std::vector<float>   *p_mcEt;
-  std::vector<float>   *p_mcMass;
-  std::vector<int>     *p_mcParentage;
-  std::vector<int>     *p_mcMomPID;
-  std::vector<float>   *p_mcMomPt;
-  std::vector<float>   *p_mcMomEta;
-  std::vector<float>   *p_mcMomPhi;
-  std::vector<float>   *p_mcMomMass;
-  std::vector<int>     *p_mcGMomPID;
-  std::vector<int>     *p_mcIndex;
-  std::vector<float>   *p_mcCalIsoDR03;
-  std::vector<float>   *p_mcCalIsoDR04;
-  std::vector<float>   *p_mcTrkIsoDR03;
-  std::vector<float>   *p_mcTrkIsoDR04;
-  std::vector<int>     *p_pho_genMatchedIndex;
+  std::vector<int>     *p_mcPID =0;
+  std::vector<int>     *p_mcStatus =0;
+  std::vector<float>   *p_mcVtx_x =0;
+  std::vector<float>   *p_mcVtx_y =0;
+  std::vector<float>   *p_mcVtx_z =0;
+  std::vector<float>   *p_mcPt =0;
+  std::vector<float>   *p_mcEta =0;
+  std::vector<float>   *p_mcPhi =0;
+  std::vector<float>   *p_mcE =0;
+  std::vector<float>   *p_mcEt =0;
+  std::vector<float>   *p_mcMass =0;
+  std::vector<int>     *p_mcParentage =0;
+  std::vector<int>     *p_mcMomPID =0;
+  std::vector<float>   *p_mcMomPt =0;
+  std::vector<float>   *p_mcMomEta =0;
+  std::vector<float>   *p_mcMomPhi =0;
+  std::vector<float>   *p_mcMomMass =0;
+  std::vector<int>     *p_mcGMomPID =0;
+  std::vector<int>     *p_mcIndex =0;
+  std::vector<float>   *p_mcCalIsoDR03 =0;
+  std::vector<float>   *p_mcCalIsoDR04 =0;
+  std::vector<float>   *p_mcTrkIsoDR03 =0;
+  std::vector<float>   *p_mcTrkIsoDR04 =0;
+  std::vector<int>     *p_pho_genMatchedIndex =0;
 
   std::vector<float> *p_phoE = 0;
   std::vector<float> *p_phoEt = 0;
@@ -319,11 +288,6 @@ public:
   std::vector<float> *p_pfnIso3 = 0;
   std::vector<float> *p_pfnIso4 = 0;
   std::vector<float> *p_pfnIso5 = 0;
-  std::vector<float> *p_pfsumIso1 = 0;
-  std::vector<float> *p_pfsumIso2 = 0;
-  std::vector<float> *p_pfsumIso3 = 0;
-  std::vector<float> *p_pfsumIso4 = 0;
-  std::vector<float> *p_pfsumIso5 = 0;
   std::vector<float> *p_pfcVsIso1 = 0;
   std::vector<float> *p_pfcVsIso2 = 0;
   std::vector<float> *p_pfcVsIso3 = 0;
@@ -369,26 +333,6 @@ public:
   std::vector<float> *p_pfpVsIso3th2 = 0;
   std::vector<float> *p_pfpVsIso4th2 = 0;
   std::vector<float> *p_pfpVsIso5th2 = 0;
-  std::vector<float> *p_pfsumVsIso1 = 0;
-  std::vector<float> *p_pfsumVsIso2 = 0;
-  std::vector<float> *p_pfsumVsIso3 = 0;
-  std::vector<float> *p_pfsumVsIso4 = 0;
-  std::vector<float> *p_pfsumVsIso5 = 0;
-  std::vector<float> *p_pfsumVsIso1th1 = 0;
-  std::vector<float> *p_pfsumVsIso2th1 = 0;
-  std::vector<float> *p_pfsumVsIso3th1 = 0;
-  std::vector<float> *p_pfsumVsIso4th1 = 0;
-  std::vector<float> *p_pfsumVsIso5th1 = 0;
-  std::vector<float> *p_pfsumVsIso1th2 = 0;
-  std::vector<float> *p_pfsumVsIso2th2 = 0;
-  std::vector<float> *p_pfsumVsIso3th2 = 0;
-  std::vector<float> *p_pfsumVsIso4th2 = 0;
-  std::vector<float> *p_pfsumVsIso5th2 = 0;
-  std::vector<float> *p_pfVsSubIso1 = 0;
-  std::vector<float> *p_pfVsSubIso2 = 0;
-  std::vector<float> *p_pfVsSubIso3 = 0;
-  std::vector<float> *p_pfVsSubIso4 = 0;
-  std::vector<float> *p_pfVsSubIso5 = 0;
   std::vector<float> *p_towerIso1 = 0;
   std::vector<float> *p_towerIso2 = 0;
   std::vector<float> *p_towerIso3 = 0;
@@ -518,12 +462,6 @@ public:
     pfnIso4.clear();
     pfnIso5.clear();
 
-    pfsumIso1.clear();
-    pfsumIso2.clear();
-    pfsumIso3.clear();
-    pfsumIso4.clear();
-    pfsumIso5.clear();
-
     pfcVsIso1.clear();
     pfcVsIso2.clear();
     pfcVsIso3.clear();
@@ -571,28 +509,6 @@ public:
     pfpVsIso3th2.clear();
     pfpVsIso4th2.clear();
     pfpVsIso5th2.clear();
-
-    pfsumVsIso1.clear();
-    pfsumVsIso2.clear();
-    pfsumVsIso3.clear();
-    pfsumVsIso4.clear();
-    pfsumVsIso5.clear();
-    pfsumVsIso1th1.clear();
-    pfsumVsIso2th1.clear();
-    pfsumVsIso3th1.clear();
-    pfsumVsIso4th1.clear();
-    pfsumVsIso5th1.clear();
-    pfsumVsIso1th2.clear();
-    pfsumVsIso2th2.clear();
-    pfsumVsIso3th2.clear();
-    pfsumVsIso4th2.clear();
-    pfsumVsIso5th2.clear();
-
-    pfVsSubIso1.clear();
-    pfVsSubIso2.clear();
-    pfVsSubIso3.clear();
-    pfVsSubIso4.clear();
-    pfVsSubIso5.clear();
 
     towerIso1.clear();
     towerIso2.clear();
@@ -730,12 +646,6 @@ public:
       tree_->Branch("pfnIso4",&pfnIso4);
       tree_->Branch("pfnIso5",&pfnIso5);
 
-      // tree_->Branch("pfsumIso1",&pfsumIso1);
-      // tree_->Branch("pfsumIso2",&pfsumIso2);
-      // tree_->Branch("pfsumIso3",&pfsumIso3);
-      // tree_->Branch("pfsumIso4",&pfsumIso4);
-      // tree_->Branch("pfsumIso5",&pfsumIso5);
-
       //if(doVsIso_)
       {
 	tree_->Branch("pfcVsIso1",&pfcVsIso1);
@@ -785,30 +695,6 @@ public:
 	tree_->Branch("pfpVsIso3th2",&pfpVsIso3th2);
 	tree_->Branch("pfpVsIso4th2",&pfpVsIso4th2);
 	tree_->Branch("pfpVsIso5th2",&pfpVsIso5th2);
-
-	// tree_->Branch("pfsumVsIso1",&pfsumVsIso1);
-	// tree_->Branch("pfsumVsIso2",&pfsumVsIso2);
-	// tree_->Branch("pfsumVsIso3",&pfsumVsIso3);
-	// tree_->Branch("pfsumVsIso4",&pfsumVsIso4);
-	// tree_->Branch("pfsumVsIso5",&pfsumVsIso5);
-	// tree_->Branch("pfsumVsIso1th1",&pfsumVsIso1th1);
-	// tree_->Branch("pfsumVsIso2th1",&pfsumVsIso2th1);
-	// tree_->Branch("pfsumVsIso3th1",&pfsumVsIso3th1);
-	// tree_->Branch("pfsumVsIso4th1",&pfsumVsIso4th1);
-	// tree_->Branch("pfsumVsIso5th1",&pfsumVsIso5th1);
-	// tree_->Branch("pfsumVsIso1th2",&pfsumVsIso1th2);
-	// tree_->Branch("pfsumVsIso2th2",&pfsumVsIso2th2);
-	// tree_->Branch("pfsumVsIso3th2",&pfsumVsIso3th2);
-	// tree_->Branch("pfsumVsIso4th2",&pfsumVsIso4th2);
-	// tree_->Branch("pfsumVsIso5th2",&pfsumVsIso5th2);
-
-
-	// tree_->Branch("pfVsSubIso1",&pfVsSubIso1);
-	// tree_->Branch("pfVsSubIso2",&pfVsSubIso2);
-	// tree_->Branch("pfVsSubIso3",&pfVsSubIso3);
-	// tree_->Branch("pfVsSubIso4",&pfVsSubIso4);
-	// tree_->Branch("pfVsSubIso5",&pfVsSubIso5);
-
 
 	tree_->Branch("towerIso1",&towerIso1);
 	tree_->Branch("towerIso2",&towerIso2);
@@ -948,12 +834,6 @@ public:
       tree_->SetBranchAddress("pfnIso4",&p_pfnIso4);
       tree_->SetBranchAddress("pfnIso5",&p_pfnIso5);
 
-      // tree_->SetBranchAddress("pfsumIso1",&p_pfsumIso1);
-      // tree_->SetBranchAddress("pfsumIso2",&p_pfsumIso2);
-      // tree_->SetBranchAddress("pfsumIso3",&p_pfsumIso3);
-      // tree_->SetBranchAddress("pfsumIso4",&p_pfsumIso4);
-      // tree_->SetBranchAddress("pfsumIso5",&p_pfsumIso5);
-
       //if(doVsIso_)
       {
 	tree_->SetBranchAddress("pfcVsIso1",&p_pfcVsIso1);
@@ -1003,30 +883,6 @@ public:
 	tree_->SetBranchAddress("pfpVsIso3th2",&p_pfpVsIso3th2);
 	tree_->SetBranchAddress("pfpVsIso4th2",&p_pfpVsIso4th2);
 	tree_->SetBranchAddress("pfpVsIso5th2",&p_pfpVsIso5th2);
-
-	// tree_->SetBranchAddress("pfsumVsIso1",&p_pfsumVsIso1);
-	// tree_->SetBranchAddress("pfsumVsIso2",&p_pfsumVsIso2);
-	// tree_->SetBranchAddress("pfsumVsIso3",&p_pfsumVsIso3);
-	// tree_->SetBranchAddress("pfsumVsIso4",&p_pfsumVsIso4);
-	// tree_->SetBranchAddress("pfsumVsIso5",&p_pfsumVsIso5);
-	// tree_->SetBranchAddress("pfsumVsIso1th1",&p_pfsumVsIso1th1);
-	// tree_->SetBranchAddress("pfsumVsIso2th1",&p_pfsumVsIso2th1);
-	// tree_->SetBranchAddress("pfsumVsIso3th1",&p_pfsumVsIso3th1);
-	// tree_->SetBranchAddress("pfsumVsIso4th1",&p_pfsumVsIso4th1);
-	// tree_->SetBranchAddress("pfsumVsIso5th1",&p_pfsumVsIso5th1);
-	// tree_->SetBranchAddress("pfsumVsIso1th2",&p_pfsumVsIso1th2);
-	// tree_->SetBranchAddress("pfsumVsIso2th2",&p_pfsumVsIso2th2);
-	// tree_->SetBranchAddress("pfsumVsIso3th2",&p_pfsumVsIso3th2);
-	// tree_->SetBranchAddress("pfsumVsIso4th2",&p_pfsumVsIso4th2);
-	// tree_->SetBranchAddress("pfsumVsIso5th2",&p_pfsumVsIso5th2);
-
-
-	// tree_->SetBranchAddress("pfVsSubIso1",&p_pfVsSubIso1);
-	// tree_->SetBranchAddress("pfVsSubIso2",&p_pfVsSubIso2);
-	// tree_->SetBranchAddress("pfVsSubIso3",&p_pfVsSubIso3);
-	// tree_->SetBranchAddress("pfVsSubIso4",&p_pfVsSubIso4);
-	// tree_->SetBranchAddress("pfVsSubIso5",&p_pfVsSubIso5);
-
 
 	tree_->SetBranchAddress("towerIso1",&p_towerIso1);
 	tree_->SetBranchAddress("towerIso2",&p_towerIso2);
@@ -1148,11 +1004,6 @@ public:
     pfnIso3 = *p_pfnIso3;
     pfnIso4 = *p_pfnIso4;
     pfnIso5 = *p_pfnIso5;
-    /* pfsumIso1 = *p_pfsumIso1; */
-    /* pfsumIso2 = *p_pfsumIso2; */
-    /* pfsumIso3 = *p_pfsumIso3; */
-    /* pfsumIso4 = *p_pfsumIso4; */
-    /* pfsumIso5 = *p_pfsumIso5; */
     pfcVsIso1 = *p_pfcVsIso1;
     pfcVsIso2 = *p_pfcVsIso2;
     pfcVsIso3 = *p_pfcVsIso3;
@@ -1198,26 +1049,6 @@ public:
     pfpVsIso3th2 = *p_pfpVsIso3th2;
     pfpVsIso4th2 = *p_pfpVsIso4th2;
     pfpVsIso5th2 = *p_pfpVsIso5th2;
-    /* pfsumVsIso1 = *p_pfsumVsIso1; */
-    /* pfsumVsIso2 = *p_pfsumVsIso2; */
-    /* pfsumVsIso3 = *p_pfsumVsIso3; */
-    /* pfsumVsIso4 = *p_pfsumVsIso4; */
-    /* pfsumVsIso5 = *p_pfsumVsIso5; */
-    /* pfsumVsIso1th1 = *p_pfsumVsIso1th1; */
-    /* pfsumVsIso2th1 = *p_pfsumVsIso2th1; */
-    /* pfsumVsIso3th1 = *p_pfsumVsIso3th1; */
-    /* pfsumVsIso4th1 = *p_pfsumVsIso4th1; */
-    /* pfsumVsIso5th1 = *p_pfsumVsIso5th1; */
-    /* pfsumVsIso1th2 = *p_pfsumVsIso1th2; */
-    /* pfsumVsIso2th2 = *p_pfsumVsIso2th2; */
-    /* pfsumVsIso3th2 = *p_pfsumVsIso3th2; */
-    /* pfsumVsIso4th2 = *p_pfsumVsIso4th2; */
-    /* pfsumVsIso5th2 = *p_pfsumVsIso5th2; */
-    /* pfVsSubIso1 = *p_pfVsSubIso1; */
-    /* pfVsSubIso2 = *p_pfVsSubIso2; */
-    /* pfVsSubIso3 = *p_pfVsSubIso3; */
-    /* pfVsSubIso4 = *p_pfVsSubIso4; */
-    /* pfVsSubIso5 = *p_pfVsSubIso5; */
     towerIso1 = *p_towerIso1;
     towerIso2 = *p_towerIso2;
     towerIso3 = *p_towerIso3;

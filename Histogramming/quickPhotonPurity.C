@@ -25,7 +25,7 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 
-const TString LABEL = "pPb #sqrt{s}_{_{NN}}=5.02 TeV";
+const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
 const TCut sampleIsolation = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1.0 && phoHoverE<0.1";
 
 
@@ -61,7 +61,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
   TFile *outFile = new TFile(outputName,"RECREATE");
 
-  const TCut sidebandIsolation = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)>5) && ((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)<10) && hadronicOverEm<0.1";
+  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)>5) && ((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)<10) && phoHoverE<0.1";
   const TCut mcIsolation = "(pho_genMatchedIndex!= -1) && mcCalIsoDR04[pho_genMatchedIndex]<5 && abs(mcPID[pho_genMatchedIndex])<=22";
 
   //TCanvas *cPurity[nPTBINS];
@@ -75,7 +75,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
     //cPurity[i]->Divide(nETABINS,2,0,0);
     for(Int_t j = 0; j < nCENTBINS; ++j) {
       for(Int_t k = 0; k< nETABINS; ++k) {
-	TString ptCut = Form("(phoEtCorrected >= %f) && (phoEtCorrected < %f)",
+	TString ptCut = Form("(phoEt >= %f) && (phoEt < %f)",
 			     PTBINS[i], PTBINS[i+1]);
 	TString centCut = Form("((hiBin) >= %i) && ((hiBin) < %i)",
 			     CENTBINS[j], CENTBINS[j+1]);

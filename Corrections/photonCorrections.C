@@ -10,14 +10,14 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
   CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
-  //std::cout << config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et] << std::endl;
-  bool montecarlo = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_MonteCarlo];
+  int montecarlo = config.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].i[CUTS::PHO::k_MonteCarlo];
 
   TFile *inSkimFile = TFile::Open(inputSkimFile);
   TTree *inTree = (TTree*)inSkimFile->Get("photonSkimTree");
   PhotonSkim inPho(montecarlo);
   inPho.setupTreeForReading(inTree);
 
+  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
   PhotonSkim outPho(montecarlo);
   TTree *outTree = new TTree("photonSkimTree","photonSkimTree");
   outPho.setupTreeForWriting(outTree);
@@ -34,6 +34,7 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     outPho.run = inPho.run;
     outPho.event = inPho.event;
     outPho.lumis = inPho.lumis;
+    outPho.hiBin = inPho.hiBin;
     outPho.HBHENoiseFilterResult = inPho.HBHENoiseFilterResult;
     outPho.pcollisionEventSelection = inPho.pcollisionEventSelection;
 
@@ -114,12 +115,6 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     outPho.pfnIso4 = inPho.pfnIso4;
     outPho.pfnIso5 = inPho.pfnIso5;
 
-    //outPho.pfsumIso1 = inPho.pfsumIso1;
-    //outPho.pfsumIso2 = inPho.pfsumIso2;
-    //outPho.pfsumIso3 = inPho.pfsumIso3;
-    //outPho.pfsumIso4 = inPho.pfsumIso4;
-    //outPho.pfsumIso5 = inPho.pfsumIso5;
-
     outPho.pfcVsIso1 = inPho.pfcVsIso1;
     outPho.pfcVsIso2 = inPho.pfcVsIso2;
     outPho.pfcVsIso3 = inPho.pfcVsIso3;
@@ -169,29 +164,6 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     outPho.pfpVsIso4th2 = inPho.pfpVsIso4th2;
     outPho.pfpVsIso5th2 = inPho.pfpVsIso5th2;
 
-    //outPho.pfsumVsIso1 = inPho.pfsumVsIso1;
-    //outPho.pfsumVsIso2 = inPho.pfsumVsIso2;
-    //outPho.pfsumVsIso3 = inPho.pfsumVsIso3;
-    //outPho.pfsumVsIso4 = inPho.pfsumVsIso4;
-    //outPho.pfsumVsIso5 = inPho.pfsumVsIso5;
-    //outPho.pfsumVsIso1th1 = inPho.pfsumVsIso1th1;
-    // outPho.pfsumVsIso2th1 = inPho.pfsumVsIso2th1;
-    // outPho.pfsumVsIso3th1 = inPho.pfsumVsIso3th1;
-    // outPho.pfsumVsIso4th1 = inPho.pfsumVsIso4th1;
-    // outPho.pfsumVsIso5th1 = inPho.pfsumVsIso5th1;
-    // outPho.pfsumVsIso1th2 = inPho.pfsumVsIso1th2;
-    // outPho.pfsumVsIso2th2 = inPho.pfsumVsIso2th2;
-    // outPho.pfsumVsIso3th2 = inPho.pfsumVsIso3th2;
-    // outPho.pfsumVsIso4th2 = inPho.pfsumVsIso4th2;
-    // outPho.pfsumVsIso5th2 = inPho.pfsumVsIso5th2;
-
-
-    // outPho.pfVsSubIso1 = inPho.pfVsSubIso1;
-    // outPho.pfVsSubIso2 = inPho.pfVsSubIso2;
-    // outPho.pfVsSubIso3 = inPho.pfVsSubIso3;
-    // outPho.pfVsSubIso4 = inPho.pfVsSubIso4;
-    // outPho.pfVsSubIso5 = inPho.pfVsSubIso5;
-
     outPho.towerIso1 = inPho.towerIso1;
     outPho.towerIso2 = inPho.towerIso2;
     outPho.towerIso3 = inPho.towerIso3;
@@ -208,10 +180,39 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     outPho.towerVsSubIso4 = inPho.towerVsSubIso4;
     outPho.towerVsSubIso5 = inPho.towerVsSubIso5;
 
+    if(montecarlo){
+      outPho.nMC = inPho.nMC;
+      outPho.mcPID = inPho.mcPID;
+      outPho.mcStatus = inPho.mcStatus;
+      outPho.mcVtx_x = inPho.mcVtx_x;
+      outPho.mcVtx_y = inPho.mcVtx_y;
+      outPho.mcVtx_z = inPho.mcVtx_z;
+      outPho.mcPt = inPho.mcPt;
+      outPho.mcEta = inPho.mcEta;
+      outPho.mcPhi = inPho.mcPhi;
+      outPho.mcE = inPho.mcE;
+      outPho.mcEt = inPho.mcEt;
+      outPho.mcMass = inPho.mcMass;
+      outPho.mcParentage = inPho.mcParentage;
+      outPho.mcMomPID = inPho.mcMomPID;
+      outPho.mcMomPt = inPho.mcMomPt;
+      outPho.mcMomEta = inPho.mcMomEta;
+      outPho.mcMomPhi = inPho.mcMomPhi;
+      outPho.mcMomMass = inPho.mcMomMass;
+      outPho.mcGMomPID = inPho.mcGMomPID;
+      outPho.mcIndex = inPho.mcIndex;
+      outPho.mcCalIsoDR03 = inPho.mcCalIsoDR03;
+      outPho.mcCalIsoDR04 = inPho.mcCalIsoDR04;
+      outPho.mcTrkIsoDR03 = inPho.mcTrkIsoDR03;
+      outPho.mcTrkIsoDR04 = inPho.mcTrkIsoDR04;
+      outPho.pho_genMatchedIndex = inPho.pho_genMatchedIndex;
+    }
+
+
     outTree->Fill();
   }
 
-  TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
+  outFile->cd();
   configTree->Write();
   outTree->Write();
   outFile->Close();

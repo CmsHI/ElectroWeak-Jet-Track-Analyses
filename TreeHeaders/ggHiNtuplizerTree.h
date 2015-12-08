@@ -37,6 +37,7 @@ public :
     mcCalIsoDR04 = 0;
     mcTrkIsoDR03 = 0;
     mcTrkIsoDR04 = 0;
+    pho_genMatchedIndex = 0;
     eleCharge = 0;
     eleChargeConsistent = 0;
     eleEn = 0;
@@ -230,9 +231,9 @@ public :
   ~ggHiNtuplizer(){};
 
   // Declaration of leaf types
-  Int_t           run;
-  Long64_t        event;
-  Int_t           lumis;
+  UInt_t           run;
+  ULong64_t        event;
+  UInt_t           lumis;
   Bool_t          isData;
   Int_t           nPUInfo;
   std::vector<int>     *nPU;
@@ -262,6 +263,7 @@ public :
   std::vector<float>   *mcCalIsoDR04;
   std::vector<float>   *mcTrkIsoDR03;
   std::vector<float>   *mcTrkIsoDR04;
+  std::vector<int>     *pho_genMatchedIndex;
   Int_t           nEle;
   std::vector<int>     *eleCharge;
   std::vector<int>     *eleChargeConsistent;
@@ -489,6 +491,7 @@ public :
   TBranch        *b_mcCalIsoDR04;   //!
   TBranch        *b_mcTrkIsoDR03;   //!
   TBranch        *b_mcTrkIsoDR04;   //!
+  TBranch        *b_pho_genMatchedIndex;
   TBranch        *b_nEle;   //!
   TBranch        *b_eleCharge;   //!
   TBranch        *b_eleChargeConsistent;   //!
@@ -719,6 +722,7 @@ void setupPhotonTree(TTree *t,ggHiNtuplizer &tggHiNtuplizer)
   t->SetBranchAddress("mcCalIsoDR04", &tggHiNtuplizer.mcCalIsoDR04, &tggHiNtuplizer.b_mcCalIsoDR04);
   t->SetBranchAddress("mcTrkIsoDR03", &tggHiNtuplizer.mcTrkIsoDR03, &tggHiNtuplizer.b_mcTrkIsoDR03);
   t->SetBranchAddress("mcTrkIsoDR04", &tggHiNtuplizer.mcTrkIsoDR04, &tggHiNtuplizer.b_mcTrkIsoDR04);
+  t->SetBranchAddress("pho_genMatchedIndex", &tggHiNtuplizer.pho_genMatchedIndex, &tggHiNtuplizer.b_pho_genMatchedIndex);
   t->SetBranchAddress("nEle", &tggHiNtuplizer.nEle, &tggHiNtuplizer.b_nEle);
   t->SetBranchAddress("eleCharge", &tggHiNtuplizer.eleCharge, &tggHiNtuplizer.b_eleCharge);
   t->SetBranchAddress("eleChargeConsistent", &tggHiNtuplizer.eleChargeConsistent, &tggHiNtuplizer.b_eleChargeConsistent);

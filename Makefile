@@ -1,6 +1,6 @@
 CXX = g++
 ROOTFLAGS = `root-config --cflags --libs`
-CXXFLAGS = -Wall -O2 -Werror -Wextra $(ROOTFLAGS)
+CXXFLAGS = -Wall -g -Werror -Wextra $(ROOTFLAGS)
 SRCS_C = $(wildcard */*.C)
 PROGS_C = $(patsubst %.C,%.exe,$(SRCS_C))
 SRCS_cc = $(wildcard */*/*.C)

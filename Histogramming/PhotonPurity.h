@@ -123,9 +123,9 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
   TString bkgshift = "+";
   bkgshift += backgroundShift;
 
-  dataTree->Project(hCand->GetName(), "sigmaIetaIeta", dataCandidateCut, "");
-  dataTree->Project(hBkg->GetName(), "sigmaIetaIeta"+bkgshift, sidebandCut, "");
-  mcTree->Project(hSig->GetName(), "sigmaIetaIeta"+sigshift, mcWeightLabel*mcSignalCut, "");
+  dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta", dataCandidateCut, "");
+  dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta"+bkgshift, sidebandCut, "");
+  mcTree->Project(hSig->GetName(), "phoSigmaIEtaIEta"+sigshift, mcWeightLabel*mcSignalCut, "");
 
   PhotonPurity fitr = doFit(config, hSig, hBkg, hCand);
 
