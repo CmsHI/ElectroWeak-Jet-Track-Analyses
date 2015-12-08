@@ -71,6 +71,10 @@ void claverCanvasSaving(TCanvas* c, TString s,TString format="gif") {
   c->SaveAs(Form("%s_%d.%s",s.Data(),date->GetDate(), format.Data()));
 }
 
+Double_t getDETA(Double_t eta1, Double_t eta2){
+    return eta1 - eta2;
+}
+
 Double_t getDPHI( Double_t phi1, Double_t phi2) {
   Double_t dphi = phi1 - phi2;
 

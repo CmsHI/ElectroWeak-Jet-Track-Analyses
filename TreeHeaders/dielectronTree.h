@@ -9,6 +9,7 @@
 #ifndef TREEHEADERS_DIELECTRONTREE_H_
 #define TREEHEADERS_DIELECTRONTREE_H_
 
+#include <TTree.h>
 #include <TLorentzVector.h>
 
 #include <vector>

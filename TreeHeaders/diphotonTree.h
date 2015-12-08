@@ -9,11 +9,13 @@
 #ifndef TREEHEADERS_DIPHOTONTREE_H_
 #define TREEHEADERS_DIPHOTONTREE_H_
 
+#include <TTree.h>
 #include <TLorentzVector.h>
 
 #include <vector>
 
 #include "ggHiNtuplizerTree.h"
+#include "../Plotting/commonUtility.h"
 
 class diphoton {
 public :
@@ -562,8 +564,6 @@ public :
 void setupDiPhotonTree(TTree *t,diphoton &tdiphoton);
 void branchDiPhotonTree(TTree *t,diphoton &tdiphoton);
 void makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, diphoton &tdiphoton, bool doEleMatch = true, bool doSizeCheck = true);
-Double_t getDR  ( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2);
-Double_t getDPHI( Double_t phi1, Double_t phi2);
 
 void setupDiPhotonTree(TTree *t,diphoton &tdiphoton)
 {
@@ -1324,27 +1324,6 @@ void makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, diphoton &tdiphoton, bool 
             }
         }
     }
-}
-
-Double_t getDR( Double_t eta1, Double_t phi1, Double_t eta2, Double_t phi2){
-  Double_t theDphi = getDPHI( phi1, phi2);
-  Double_t theDeta = eta1 - eta2;
-  return TMath::Sqrt ( theDphi*theDphi + theDeta*theDeta);
-}
-
-Double_t getDPHI( Double_t phi1, Double_t phi2) {
-  Double_t dphi = phi1 - phi2;
-
-  if ( dphi > 3.141592653589 )
-    dphi = dphi - 2. * 3.141592653589;
-  if ( dphi <= -3.141592653589 )
-    dphi = dphi + 2. * 3.141592653589;
-
-  if ( TMath::Abs(dphi) > 3.141592653589 ) {
-    std::cout << " commonUtility::getDPHI error!!! dphi is bigger than 3.141592653589 " << std::endl;
-  }
-
-  return dphi;
 }
 
 #endif /* TREEHEADERS_DIPHOTONTREE_H_ */
