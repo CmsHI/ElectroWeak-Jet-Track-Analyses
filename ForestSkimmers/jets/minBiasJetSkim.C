@@ -14,6 +14,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
+#include "../../Utilities/interface/InputFileParser.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
@@ -51,29 +52,27 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
        std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
 
+       std::vector<std::string> inputFiles = InputFileParser::parse(inputFile.Data());
+
+       std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
+       std::cout<<"#####"<< std::endl;
+       for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+           std::cout<<(*it).c_str()<< std::endl;
+       }
+       std::cout<<"##### END #####"<< std::endl;
+
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeEvent = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeJet   = new TChain(Form("%s/t", jetCollection.c_str()));
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
 
-       int numFiles = 5;
-       const char* fileNames[numFiles] =
-       {
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262694.root",
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262695.root",
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262703.root",
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262726.root",
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262735.root"
-       };
-
-       for (int i=0; i<numFiles; ++i)
-       {
-           treeHLT->Add(fileNames[i]);
-           treeEvent->Add(fileNames[i]);
-           treeJet->Add(fileNames[i]);
-           treeHiEvt->Add(fileNames[i]);
-           treeSkim->Add(fileNames[i]);
+       for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+          treeHLT->Add((*it).c_str());
+          treeEvent->Add((*it).c_str());
+          treeJet->Add((*it).c_str());
+          treeHiEvt->Add((*it).c_str());
+          treeSkim->Add((*it).c_str());
        }
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
