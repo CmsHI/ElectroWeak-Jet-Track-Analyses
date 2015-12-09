@@ -53,7 +53,7 @@ namespace CUTS {
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "nPhotons",
       "puritySieieBins",
-      "matched_eleIndex"
+      "matched_eleIndex",
       "MonteCarlo"
     };
 

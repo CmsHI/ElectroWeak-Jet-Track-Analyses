@@ -15,7 +15,6 @@
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 
-const int MAXJETS = 500;
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
 void minBiasJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "minBiasJetSkim.root");
@@ -41,7 +40,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        else {
            jetCollection = "akPu4CaloJetAnalyzer";
            nMaxEvents_minBiasMixing = 20000;
-           nCentralityBins = 40;    // must divide 200 without remainders
+           nCentralityBins = 200;    // must divide 200 without remainders
            nVertexBins = 3;         // must divide 15  without remainders
        }
 
@@ -58,11 +57,14 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
 
-       int numFiles = 2;
+       int numFiles = 5;
        const char* fileNames[numFiles] =
        {
                "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262694.root",
-               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262695.root"
+               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262695.root",
+               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262703.root",
+               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262726.root",
+               "/afs/cern.ch/user/k/katatar/eos/cms/store/group/phys_heavyions/velicanu/forest/HIRun2015/HIMinimumBias2/Merged/HiForestPromptReco_262735.root"
        };
 
        for (int i=0; i<numFiles; ++i)
@@ -236,7 +238,10 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
     
        for(int i=0; i<nCentralityBins; ++i){
            for(int j=0; j<nVertexBins; ++j){
-           std::cout<<Form("outputTreesJet[%d][%d]->GetEntries() = %lld", i, j, outputTreesEvent[i][j]->GetEntries())<<std::endl;
+               std::cout<<Form("outputTreesJet[%d][%d]->GetEntries() = %lld", i, j, outputTreesEvent[i][j]->GetEntries())<<std::endl;
+               if (outputTreesEvent[i][j]->GetEntries() < 100) {
+                   std::cout<< "Be careful : less 100 events were put into centBin = "<<i<<" , vertexBin = "<<j<<std::endl;
+               }
            }
        }
   
