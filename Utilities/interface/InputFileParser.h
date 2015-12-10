@@ -43,7 +43,7 @@ public:
             // assumes there is exactly one file per line,
             // no empty line should be entered.
             // any line containing a "#" will be skipped.
-            ifstream inFile(fileName.c_str());
+	    std::ifstream inFile(fileName.c_str());
             std::string strLine;
             if (inFile.is_open())
             {
@@ -64,4 +64,3 @@ public:
 };
 
 #endif /* UTILITIES_INTERFACE_INPUTFILEPARSER_H_ */
-
