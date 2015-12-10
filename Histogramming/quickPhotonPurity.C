@@ -39,7 +39,7 @@ const Int_t CENTBINS[] = {0, 200};//, 40};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
 //const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
-const Double_t PTBINS[] = {60, 1000};
+const Double_t PTBINS[] = {40,50,60, 1000};
 const Int_t nPTBINS = sizeof(PTBINS)/sizeof(Double_t) -1;
 
 const Double_t ETABINS[] = {-1.44, 1.44};

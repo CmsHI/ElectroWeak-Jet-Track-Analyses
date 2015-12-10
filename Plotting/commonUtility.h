@@ -870,7 +870,7 @@ TH1D* getShiftedTH1D(TH1D* h1, Double_t shift) {
 }
 
 
-Int_t getNcollFrom40Bin(Int_t cBin) {
+Float_t getNcollFrom40Bin(Int_t cBin) {
   if (cBin == 0) return  1747.86 ;
   if (cBin == 1) return  1567.53 ;
   if (cBin == 2) return  1388.39 ;
