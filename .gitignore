@@ -10,6 +10,7 @@
 # ROOT offal
 *_C.d
 *.so
+*.pcm
 
 # plots
 *.gif
