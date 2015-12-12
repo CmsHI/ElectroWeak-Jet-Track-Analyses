@@ -88,7 +88,7 @@ void dielectronSkim(const char* configFile, const char* inputFile, const char* o
                continue;
            }
 
-           // skip if there are no electron to study
+           // skip if there are no electron pairs to study
            if(ggHi.nEle < cut_nEle)  continue;
            entriesAnalyzed++;
 

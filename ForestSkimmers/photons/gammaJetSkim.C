@@ -1,7 +1,3 @@
-/*
- * macro to analyze and save di-Photon, di-Electron and di-Muon spectrum
- */
-
 #include <TFile.h>
 #include <TTree.h>
 #include <TChain.h>
@@ -57,7 +53,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            nEventsToMix = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
        }
        else {
-           jetCollection = "akPu4PFJetAnalyzer";
+           jetCollection = "ak4PFJetAnalyzer";
            cutPhoEt = 15;
            cutPhoEta = 1.44;
 
@@ -79,6 +75,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout<<"Configuration :"<<std::endl;
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 
+       std::cout<<"cutPhoEt  = "<<cutPhoEt<<std::endl;
        std::cout<<"cutPhoEta = "<<cutPhoEta<<std::endl;
 
        std::cout<<"doMix     = "<<doMix<<std::endl;

@@ -1,10 +1,3 @@
-/*
- * gammaJetTree.h
- *
- *  Created on: Dec 8, 2015
- *      Author: kaya
- */
-
 #ifndef TREEHEADERS_GAMMAJETTREE_H_
 #define TREEHEADERS_GAMMAJETTREE_H_
 
@@ -14,6 +7,8 @@
 #include <vector>
 
 #include "../Plotting/commonUtility.h"
+#include "SetupJetTree.h"
+#include "ggHiNtuplizerTree.h"
 
 class GammaJet {
 public :
@@ -56,7 +51,7 @@ public :
      TBranch        *b_insideJet;   //!
      TBranch        *b_nJetin7over8;   //!
 
-     // list of objects to be used when creating a diPhoton Tree
+     // list of objects to be used when creating a gammaJet Tree
      Int_t           phoIdx_out;
      std::vector<int>     jetIdx_out;
      std::vector<float>   xjg_out;
@@ -71,6 +66,8 @@ public :
 void setupGammaJetTree(TTree *t,GammaJet &tgammaJet);
 void branchGammaJetTree(TTree *t,GammaJet &tgammaJet);
 void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx);
+void clearGammaJetPairs(GammaJet &tgammaJet, int phoIdx);
+void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx);
 
 void setupGammaJetTree(TTree *t,GammaJet &tgammaJet)
 {
