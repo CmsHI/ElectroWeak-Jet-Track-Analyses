@@ -8,13 +8,14 @@
 #include <TString.h>
 
 #include <string>
+#include <vector>
 #include <iostream>
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../Utilities/interface/InputFileParser.h"
+#include "../../Utilities/interface/InputConfigurationParser.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
@@ -52,7 +53,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
        std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
 
-       std::vector<std::string> inputFiles = InputFileParser::parse(inputFile.Data());
+       std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
        std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
        std::cout<<"#####"<< std::endl;

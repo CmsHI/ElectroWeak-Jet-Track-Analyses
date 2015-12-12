@@ -21,13 +21,11 @@
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Plotting/commonUtility.h"
-#include "../../Utilities/interface/InputFileParser.h"
+#include "../../Utilities/interface/InputConfigurationParser.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
-const bool useSumIso  = true;
-
-void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "out_analyzeDiPhoEleMu_Data_HI.root", const TString minBiasJetSkimFile = "");
+void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetSkim.root", const TString minBiasJetSkimFile = "");
 
 void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile, const TString minBiasJetSkimFile)
 {
@@ -48,7 +46,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        int nVertexBins;
        int nEventsToMix;
        if (config.isValid) {
-           jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+           jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
            cutPhoEt = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
            cutPhoEta = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
 
@@ -92,7 +90,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            std::cout<<"nEventsToMix             = "<< nEventsToMix <<std::endl;
        }
 
-       std::vector<std::string> inputFiles = InputFileParser::parse(inputFile.Data());
+       std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
        std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
        std::cout<<"#####"<< std::endl;
@@ -125,6 +123,19 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        treeEvent->SetBranchStatus("run",1);
        treeEvent->SetBranchStatus("event",1);
        treeEvent->SetBranchStatus("lumis",1);
+
+       treeJet->SetBranchStatus("*",0);        // disable all branches
+       treeJet->SetBranchStatus("nref",1);     // enable jet branches
+       treeJet->SetBranchStatus("jtpt",1);     // enable jet branches
+       treeJet->SetBranchStatus("jteta",1);     // enable jet branches
+       treeJet->SetBranchStatus("jtphi",1);     // enable jet branches
+       treeJet->SetBranchStatus("track*",1);
+       treeJet->SetBranchStatus("charged*",1);
+       treeJet->SetBranchStatus("photon*",1);
+       treeJet->SetBranchStatus("neutral*",1);
+       treeJet->SetBranchStatus("eMax*",1);
+       treeJet->SetBranchStatus("eSum*",1);
+       treeJet->SetBranchStatus("eN*",1);
 
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
@@ -205,6 +216,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
                    if(nMB[i][j] != 0) iterMB[i][j] = primeSeed%(nMB[i][j]);
                    else               iterMB[i][j] = 0;
+
+                   if (nMB[i][j] < nEventsToMix){
+                       std::cout << "centBin = "<<i<<", vzBin = "<<j<<std::endl;
+                       std::cout << "nMB[centBin][vzBin] = "<<nMB[i][j]<<std::endl;
+                       std::cout << "nEventsToMix = "<<nEventsToMix<<std::endl;
+                       std::cout << "number of MB events in that bin is not enough for mixing" <<std::endl;
+                   }
                }
            }
        }
@@ -355,15 +373,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                        if (iterMB[centBin][vzBin] == nMB[centBin][vzBin])  iterMB[centBin][vzBin] = 0;  // reset if necessary
                    }
                }
-               else
-               {
-                   std::cout << "entry = "<<j_entry<<std::endl;
-                   std::cout << "Event info : run = "<<run<<", lumi = "<<lumis<<", event = "<<event<<std::endl;
-                   std::cout << "centBin = "<<centBin<<", vzBin = "<<vzBin<<std::endl;
-                   std::cout << "nMB[centBin][vzBin] = "<<nMB[centBin][vzBin]<<std::endl;
-                   std::cout << "nEventsToMix = "<<nEventsToMix<<std::endl;
-                   std::cout << "number of MB events in that bin is not enough for mixing" <<std::endl;
-               }
                jetsMBoutput.b = -1;   // this branch is not an array.
 
                gammaJetTreeMB->Fill();
@@ -405,8 +414,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 int main(int argc, char** argv)
 {
     if (argc == 5) {
-           gammaJetSkim(argv[1], argv[2], argv[3], argv[4]);
-           return 0;
+        gammaJetSkim(argv[1], argv[2], argv[3], argv[4]);
+        return 0;
        }
     else if (argc == 4) {
         gammaJetSkim(argv[1], argv[2], argv[3]);

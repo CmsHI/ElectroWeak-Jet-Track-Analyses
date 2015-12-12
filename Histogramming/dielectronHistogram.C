@@ -47,8 +47,8 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
     float eleDz_abs_EE;
     int   eleMissHits_EE;
     if (config.isValid) {
-        str_electronID = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_electronID];
-        str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger];
+        str_electronID = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_electronID].c_str();
+        str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str();
 
         // Barrel
         eleSigmaIEtaIEta_2012_EB = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];

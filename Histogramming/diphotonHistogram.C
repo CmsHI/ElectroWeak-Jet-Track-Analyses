@@ -42,7 +42,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta;
     if (config.isValid) {
-        str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_diphoton];
+        str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_diphoton].c_str();
 
         cut_matched_eleIndex = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_matched_eleIndex];
         cut_phoSigmaIEtaIEta_spike = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_spike];

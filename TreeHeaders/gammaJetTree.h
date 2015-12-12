@@ -15,8 +15,6 @@
 
 #include "../Plotting/commonUtility.h"
 
-#define PI 3.141592653589
-
 class GammaJet {
 public :
     GammaJet(){
@@ -127,7 +125,12 @@ void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tga
         else                             tmp_insideJet = 0;
 
         tgammaJet.jetIdx_out.push_back(i);
-        tgammaJet.xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
+            tgammaJet.xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+        }
+        else {
+            tgammaJet.xjg_out.push_back(-1);
+        }
         tgammaJet.deta_out.push_back(tmp_deta);
         tgammaJet.dphi_out.push_back(tmp_dphi);
         tgammaJet.dR_out.push_back(tmp_dR);
