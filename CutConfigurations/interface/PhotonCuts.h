@@ -20,6 +20,8 @@ namespace CUTS {
       k_pho_hcalRechitIsoR4,
       k_pho_trackIsoR4PtCut20,
       k_phoSigmaIEtaIEta,
+      k_sumIso,
+      k_sumPfIso,
       kN_F_CUTS
     };
 
@@ -40,6 +42,8 @@ namespace CUTS {
       "pho_hcalRechitIsoR4",
       "pho_trackIsoR4PtCut20",
       "phoSigmaIEtaIEta",
+      "sumIso",
+      "sumPfIso"
     };
 
     enum I_CUTS{
@@ -59,12 +63,14 @@ namespace CUTS {
 
     enum S_CUTS{
       k_monteCarloWeightLabel,
+      k_trigger_gammaJet,
       k_trigger_diphoton,
       kN_S_CUTS
     };
 
     std::string S_CUTS_LABELS[kN_S_CUTS] = {
       "monteCarloWeightLabel",
+      "trigger_gammaJet",
       "trigger_diphoton"
     };
 

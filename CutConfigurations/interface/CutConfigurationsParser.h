@@ -115,6 +115,8 @@ public:
 CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 {
   using namespace CUTS;
+  std::string endSignal = "#CUTS-END#";     // signals that cut configuration parsing is to be terminated.
+                                            // another block of configuration parsing will start.
 
   CutConfiguration config;
   for(int i = 0 ; i < kN_PROCESSES; ++i){
@@ -136,6 +138,7 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
   unsigned int lineCounter = 0;
   while (getline(fin, line)) {
     lineCounter++;
+    if (line.find(endSignal) != std::string::npos) break;
     if (line.find("#") != std::string::npos) continue; //allow # comments
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
     std::istringstream sin(line.substr(line.find("=") + 1));
@@ -149,14 +152,15 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
     }
     OBJECT obj = kN_OBJECTS;
     for(int i = 0; i < kN_OBJECTS; ++i){
-      std::string label = Form(".%s.",OBJECT_LABELS[i].c_str());    // prevent substring matching, e.g. : "jet" and "gammejet"
+      std::string label = Form(".%s.",OBJECT_LABELS[i].c_str());    // prevent substring matching, e.g. : "jet" and "gammajet"
       if(line.find(label) != std::string::npos)
       {
 	obj = (OBJECT)i;
 
 	for(int j = 0; j < SUMMARY_INFO_I[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_I_LABELS[obj][j]) != std::string::npos) {
+	  std::string label_I = Form(".%s",SUMMARY_INFO_I_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  if(line.find(label_I) != std::string::npos) {
 	    int in;
 	    sin >> in;
 	    config.proc[proc].obj[obj].i[j] = in;
@@ -166,7 +170,8 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 	}
 	for(int j = 0; j < SUMMARY_INFO_F[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_F_LABELS[obj][j]) != std::string::npos) {
+	  std::string label_F = Form(".%s",SUMMARY_INFO_F_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  if(line.find(label_F) != std::string::npos) {
 	    float in;
 	    sin >> in;
 	    config.proc[proc].obj[obj].f[j] = in;
@@ -176,7 +181,8 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 	}
 	for(int j = 0; j < SUMMARY_INFO_S[obj]; ++j)
 	{
-	  if(line.find(SUMMARY_INFO_S_LABELS[obj][j]) != std::string::npos) {
+	  std::string label_S = Form(".%s",SUMMARY_INFO_S_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  if(line.find(label_S) != std::string::npos) {
 	    std::string in;
 	    sin >> in;
 	    config.proc[proc].obj[obj].s[j] = in;

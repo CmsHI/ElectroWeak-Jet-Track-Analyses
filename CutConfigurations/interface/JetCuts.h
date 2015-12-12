@@ -5,10 +5,13 @@ namespace CUTS {
   namespace JET {
     enum F_CUTS{
       k_pt,
+      k_eta,
       kN_F_CUTS
     };
 
-    std::string F_CUTS_LABELS[kN_F_CUTS] = {"pt"
+    std::string F_CUTS_LABELS[kN_F_CUTS] = {
+      "pt",
+      "eta"
     };
 
     enum I_CUTS{
