@@ -11,8 +11,6 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
-#include "../../TreeHeaders/ggHiNtuplizerTree.h"
-#include "../../TreeHeaders/SetupJetTree.h"
 #include "../../TreeHeaders/gammaJetTree.h"
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
