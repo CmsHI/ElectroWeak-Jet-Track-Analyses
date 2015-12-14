@@ -29,7 +29,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
        std::cout<<"minBiasJetSkimFile  = "<< minBiasJetSkimFile.Data() <<std::endl;
 
-       CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+       InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+       CutConfiguration configCuts = CutConfigurationsParser::Parse(configFile.Data());
+
+       // input configuration
+       int collision;
+       if (configInput.isValid) {
+           collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
+       }
+       else {
+           collision = COLL::kPP;
+       }
+       // verbose about input configuration
+       std::cout<<"Input Configuration :"<<std::endl;
+       const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
+       std::cout << "collision = " << collisionName << std::endl;
+
        std::string jetCollection;
        float cutPhoEt;
        float cutPhoEta;
@@ -39,16 +54,16 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        int nCentralityBins;
        int nVertexBins;
        int nEventsToMix;
-       if (config.isValid) {
-           jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
-           cutPhoEt = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
-           cutPhoEta = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
+       if (configCuts.isValid) {
+           jetCollection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
+           cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
+           cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
 
-           doMix = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
-           nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
-           nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
-           nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
-           nEventsToMix = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+           doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
+           nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
+           nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
+           nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+           nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
        }
        else {
            jetCollection = "ak4PFJetAnalyzer";
@@ -94,20 +109,38 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        }
        std::cout<<"##### END #####"<< std::endl;
 
+//       bool isMC = collisionIsMC((COLL::TYPE)collision);
+       bool isHI = collisionIsHI((COLL::TYPE)collision);
+
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeEvent = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeJet   = new TChain(Form("%s/t", jetCollection.c_str()));
-       TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
+       TChain* treeHiEvt;
+       bool hasHiEvt = false;
+       if (isHI) {
+           treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
+           hasHiEvt  = true;
+       }
+       else {
+           treeHiEvt = 0;
+           hasHiEvt  = false;
+       }
+       if (doMix > 0 && !hasHiEvt)
+       {
+           std::cout<<"mixing is requested in input. But the input file does not have hiEvtAnalyzer/HiTree"<<std::endl;
+           doMix = 0;
+           std::cout<<"mixing is disabled : doMix is set to "<< doMix <<std::endl;
+       }
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
           treeggHiNtuplizer->Add((*it).c_str());
           treeEvent->Add((*it).c_str());
           treeJet->Add((*it).c_str());
-          treeHiEvt->Add((*it).c_str());
           treeSkim->Add((*it).c_str());
+          if(hasHiEvt) treeHiEvt->Add((*it).c_str());
        }
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
@@ -133,24 +166,29 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        treeJet->SetBranchStatus("eN*",1);
 
        // specify explicitly which branches to store, do not use wildcard
-       treeHiEvt->SetBranchStatus("*",0);
-       treeHiEvt->SetBranchStatus("run",1);
-       treeHiEvt->SetBranchStatus("evt",1);
-       treeHiEvt->SetBranchStatus("lumi",1);
-       treeHiEvt->SetBranchStatus("vz",1);
-       treeHiEvt->SetBranchStatus("hiBin",1);
-       treeHiEvt->SetBranchStatus("hiHF",1);
-       treeHiEvt->SetBranchStatus("hiHFplus",1);
-       treeHiEvt->SetBranchStatus("hiHFminus",1);
-       treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
-       treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
-       treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-
        float vz;
        Int_t hiBin;
+       if (hasHiEvt) {
+           treeHiEvt->SetBranchStatus("*",0);
+           treeHiEvt->SetBranchStatus("run",1);
+           treeHiEvt->SetBranchStatus("evt",1);
+           treeHiEvt->SetBranchStatus("lumi",1);
+           treeHiEvt->SetBranchStatus("vz",1);
+           treeHiEvt->SetBranchStatus("hiBin",1);
+           treeHiEvt->SetBranchStatus("hiHF",1);
+           treeHiEvt->SetBranchStatus("hiHFplus",1);
+           treeHiEvt->SetBranchStatus("hiHFminus",1);
+           treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
+           treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
+           treeHiEvt->SetBranchStatus("hiNevtPlane",1);
 
-       treeHiEvt->SetBranchAddress("vz",&vz);
-       treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+           treeHiEvt->SetBranchAddress("vz",&vz);
+           treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+       }
+       else {   // overwrite to default
+           vz = 0;
+           hiBin = 200;
+       }
 
        // specify explicitly which branches to store, do not use wildcard
        treeSkim->SetBranchStatus("*",0);
@@ -167,9 +205,19 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        Int_t pHBHENoiseFilterResultProducer;
        Int_t HBHEIsoNoiseFilterResult;
 
-       treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
        treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
-       treeSkim->SetBranchAddress("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
+       if (treeSkim->GetBranch("pcollisionEventSelection")) {
+           treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+       }
+       else {   // overwrite to default
+           pcollisionEventSelection = 1;
+       }
+       if (treeSkim->GetBranch("HBHEIsoNoiseFilterResult")) {
+
+       }
+       else {   // overwrite to default
+           HBHEIsoNoiseFilterResult = 1;
+       }
 
        // event information
        Int_t run, lumis;
@@ -223,18 +271,25 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        }
 
        TFile* output = new TFile(outputFile,"RECREATE");
-       TTree *configTree = setupConfigurationTreeForWriting(config);
+       TTree *configTree = setupConfigurationTreeForWriting(configCuts);
        // output tree variables
 
        TTree *outputTreeHLT    = treeHLT->CloneTree(0);
        outputTreeHLT->SetName("hltTree");
        outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
-       TTree *outputTreeggHiNtuplizer   = treeggHiNtuplizer->CloneTree(0);
+       TTree *outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
        TTree *outputTreeJet    = treeJet->CloneTree(0);
        outputTreeJet->SetName("jets");
-       TTree *outputTreeHiEvt  = treeHiEvt->CloneTree(0);
-       outputTreeHiEvt->SetName("HiEvt");
-       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+       TTree *outputTreeHiEvt;
+       if (hasHiEvt) {
+           outputTreeHiEvt  = treeHiEvt->CloneTree(0);
+           outputTreeHiEvt->SetName("HiEvt");
+           outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+           outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
+       }
+       else {
+           outputTreeHiEvt = 0;
+       }
        TTree *outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
@@ -242,7 +297,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
        outputTreeJet->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
 
        TTree *gammaJetTree = new TTree("gammaJet","leading photon-jet correlations");
@@ -286,8 +340,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            treeggHiNtuplizer->GetEntry(j_entry);
            treeEvent->GetEntry(j_entry);
            treeJet->GetEntry(j_entry);
-           treeHiEvt->GetEntry(j_entry);
            treeSkim->GetEntry(j_entry);
+           if(hasHiEvt){
+               treeHiEvt->GetEntry(j_entry);
+           }
 
            bool eventAdded = em->addEvent(run,lumis,event,j_entry);
            if(!eventAdded) // this event is duplicate, skip this one.
@@ -335,7 +391,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            // leading photon is correlated to each jet in the event.
            makeGammaJetPairs(ggHi, jets, gammajet, phoIdx);
 
-           if(doMix)
+           if(doMix > 0)
            {
                int centBin = hiBin / centBinWidth;
                int vzBin   = (vz+15) / vertexBinWidth;
@@ -377,7 +433,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
            outputTreeJet->Fill();
-           outputTreeHiEvt->Fill();
+           if (hasHiEvt) outputTreeHiEvt->Fill();
            outputTreeSkim->Fill();
            
            gammaJetTree->Fill();
@@ -390,8 +446,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout << "outputTreeHLT->GetEntries()   = " << outputTreeHLT->GetEntries() << std::endl;
        std::cout << "outputTreeggHiNtuplizer->GetEntries()   = " << outputTreeggHiNtuplizer->GetEntries() << std::endl;
        std::cout << "outputTreeJet->GetEntries()   = " << outputTreeJet->GetEntries() << std::endl;
-       std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
        std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
+       if (hasHiEvt) std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
     
        std::cout << "gammaJetTree->GetEntries() = " << gammaJetTree->GetEntries() << std::endl;
        if (doMix > 0)

@@ -32,12 +32,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // input configuration
     int collision;
     if (configInput.isValid) {
-        collision = configInput.i[INPUT::k_CollisionType];
+        collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_CollisionType];
     }
     else {
-        collision = COLL::kPPDATA;
+        collision = COLL::kPP;
     }
     // verbose about input configuration
+    std::cout<<"Input Configuration :"<<std::endl;
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
     std::cout << "collision = " << collisionName << std::endl;
 
@@ -160,7 +161,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
     }
 
-    TFile* output = new TFile(outputFile, "RECREATE");
+    TFile* output = new TFile(outputFile, "UPDATE");
+    // histograms will be put under a directory whose name is the type of the collision
+    if(!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
+    output->cd(collisionName);
+    std::cout<<"histograms will be put under directory : " << collisionName << std::endl;
+
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
     // pT bins
@@ -172,7 +178,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     int nBins_hiBin  = 3;
     int bins_hiBin_gt[nBins_hiBin] = {0,    0,  60};
     int bins_hiBin_lt[nBins_hiBin] = {200, 60, 200};
-    double purity[nBins_pt][nBins_hiBin] = { {0.75} };      // fixed for the moment.
+    double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
+    for (int i = 0; i<nBins_pt; ++i){
+        for (int j = 0; j<nBins_hiBin; ++j){
+            purity[i][j] = 0.75;
+        }
+    }
 
     // collision type
     std::string histNames_sample;
@@ -488,21 +499,23 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             std::string tmpHistNameBKGSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kBKG][CORR::kSIG]->GetName());
             std::cout<<tmpHistNameBKGSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG] =
-                                 (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kRAW]->Clone(tmpHistNameRAWSIG.c_str());
+                                 (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kRAW]->Clone(tmpHistNameBKGSIG.c_str());
             corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG],-1);
 
             // subtract photon BKG
             // purity*SIGSIG + (1-purity)*BKGSIG = RAWSIG
             // SIGSIG = 1/purity *  ( RAWSIG - (1-purity) * BKGSIG )
             std::string tmpHistNameSIGSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kSIG][CORR::kSIG]->GetName());
+            std::cout<<tmpHistNameSIGSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG] =
-                                             (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Clone(tmpHistNameSIGSIG.c_str());
+                                 (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Clone(tmpHistNameSIGSIG.c_str());
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG],-1*(1-purity[i][j]));
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
+            std::cout<< "purity[i][j] = " << purity[i][j] << std::endl;
 
             // FINAL_NORM  RAWSIG
             std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
-            std::cout<<"drawing tmpH1D_nameSIGSIG = "<<tmpH1D_nameRAWSIG.c_str()<<std::endl;
+            std::cout<<"drawing tmpH1D_nameRAWSIG = "<<tmpH1D_nameRAWSIG.c_str()<<std::endl;
             c->SetName(Form("cnv_%s_final_norm",tmpH1D_nameRAWSIG.c_str()));
             c->cd();
             corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Draw("e");
@@ -513,7 +526,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
             // FINAL_NORM  BKGSIG
             std::string tmpH1D_nameBKGSIG = corrHists[iHist][i][j].h1D_name[CORR::kBKG][CORR::kSIG].c_str();
-            std::cout<<"drawing tmpH1D_nameSIGSIG = "<<tmpH1D_nameBKGSIG.c_str()<<std::endl;
+            std::cout<<"drawing tmpH1D_nameBKGSIG = "<<tmpH1D_nameBKGSIG.c_str()<<std::endl;
             c->SetName(Form("cnv_%s_final_norm",tmpH1D_nameBKGSIG.c_str()));
             c->cd();
             corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Draw("e");
@@ -614,6 +627,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
     }
     std::cout<<"####################"<<std::endl;
+
+    eventlist->Delete();
+    elists[CORR::kRAW]->Delete();
+    elists[CORR::kBKG]->Delete();
 
     configTree->Write("",TObject::kOverwrite);
 
