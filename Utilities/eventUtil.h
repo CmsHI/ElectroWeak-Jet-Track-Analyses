@@ -11,11 +11,11 @@
 namespace COLL {
 
     enum TYPE{
-        kHIDATA,
+        kHI,
         kHIMC,
-        kPPDATA,
+        kPP,
         kPPMC,
-        kPADATA,
+        kPA,
         kPAMC,
         kN_COLL
     };
@@ -49,22 +49,22 @@ bool collisionIsMC(COLL::TYPE collision) {
 
 bool collisionIsDATA(COLL::TYPE collision) {
 
-    return (collision == COLL::kHIDATA || collision == COLL::kPPDATA || collision == COLL::kPADATA);
+    return (collision == COLL::kHI || collision == COLL::kPP || collision == COLL::kPA);
 }
 
 bool collisionIsHI(COLL::TYPE collision) {
 
-    return (collision == COLL::kHIDATA || collision == COLL::kHIMC);
+    return (collision == COLL::kHI || collision == COLL::kHIMC);
 }
 
 bool collisionIsPP(COLL::TYPE collision) {
 
-    return (collision == COLL::kPPDATA || collision == COLL::kPPMC);
+    return (collision == COLL::kPP || collision == COLL::kPPMC);
 }
 
 bool collisionIsPA(COLL::TYPE collision) {
 
-    return (collision == COLL::kPADATA || collision == COLL::kPAMC);
+    return (collision == COLL::kPA || collision == COLL::kPAMC);
 }
 
 #endif /* UTILS_EVENTUTILS_H_ */

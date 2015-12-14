@@ -14,23 +14,54 @@
 
 namespace INPUT {
 
-enum TYPE_I{
-    k_CollisionType,
-    kN_TYPES_I
-};
-
-const std::string TYPE_I_LABELS[kN_TYPES_I] = {
-        "collisionType"
-};
-
-};
-
-struct InputConfiguration{
+struct ProcessInputs{
     std::vector<float> f;
     std::vector<int> i;
     std::vector<std::string> s;
 
     std::vector<char*> c; // this is a c-string copy of s
+};
+
+enum TYPE_I{
+    k_CollisionType,
+    k_doHI,
+    k_doHIMC,
+    k_doPP,
+    k_doPPMC,
+    k_doPA,
+    k_doPAMC,
+    kN_TYPES_I
+};
+
+const std::string TYPE_I_LABELS[kN_TYPES_I] = {
+        "collisionType",
+        "doHI",
+        "doHIMC",
+        "doPP",
+        "doPPMC",
+        "doPA",
+        "doPAMC"
+};
+
+enum PROCESS{
+  kSKIM,
+  kCORRECTION,
+  kHISTOGRAM,
+  kPLOTTING,
+  kN_PROCESSES // must come last in enum
+};
+
+std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
+                        "correction",
+                        "histogram",
+                        "plotting"
+};
+
+};
+
+struct InputConfiguration{
+    INPUT::ProcessInputs proc[CUTS::kN_PROCESSES];
+
     bool isValid;
 };
 
@@ -94,7 +125,9 @@ public:
         std::string endSignal = "#INPUT-END#";     // signals that input configuration parsing is to be terminated.
                                                   // another block of configuration parsing will start.
 
-        config.i.resize(INPUT::kN_TYPES_I);
+        for(int i = 0 ; i < INPUT::kN_PROCESSES; ++i){
+            config.proc[i].i.resize(INPUT::kN_TYPES_I);
+        }
 
         std::ifstream fin(inFile);
         if ( (fin.rdstate() & std::ifstream::failbit ) != 0 ) {
@@ -113,16 +146,27 @@ public:
             if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
             std::istringstream sin(line.substr(line.find("=") + 1));
             bool success = false;
+            INPUT::PROCESS proc = INPUT::kN_PROCESSES;
+            for(int i = 0; i < INPUT::kN_PROCESSES; ++i){
+
+                std::string label_proc = Form(".%s.",INPUT::PROCESS_LABELS[i].c_str());
+                if (line.find(label_proc) != std::string::npos) {
+                    proc = (INPUT::PROCESS)i;
+                    break;
+                }
+            }
+
             for(int j = 0; j < INPUT::kN_TYPES_I; ++j){
                 std::string label = Form(".%s",INPUT::TYPE_I_LABELS[j].c_str());    // prevent substring matching
                 if (line.find(label) != std::string::npos) {
                     int in;
                     sin >> in;
-                    config.i[j] = in;
+                    config.proc[proc].i[j] = in;
                     success = true;
                     break;
                 }
             }
+
             if (!success) {
                 std::cout << "Malformed line in configuration." << std::endl;
                 std::cout << "Line #" << lineCounter << " : " << std::endl;
