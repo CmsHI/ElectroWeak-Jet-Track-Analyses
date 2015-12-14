@@ -154,6 +154,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
        treeJet->SetBranchStatus("*",0);        // disable all branches
        treeJet->SetBranchStatus("nref",1);     // enable jet branches
+       treeJet->SetBranchStatus("rawpt",1);    // enable jet branches
        treeJet->SetBranchStatus("jtpt",1);     // enable jet branches
        treeJet->SetBranchStatus("jteta",1);     // enable jet branches
        treeJet->SetBranchStatus("jtphi",1);     // enable jet branches
@@ -164,6 +165,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        treeJet->SetBranchStatus("eMax*",1);
        treeJet->SetBranchStatus("eSum*",1);
        treeJet->SetBranchStatus("eN*",1);
+       treeJet->SetBranchStatus("muMax*",1);
+       treeJet->SetBranchStatus("muSum*",1);
+       treeJet->SetBranchStatus("muN*",1);
 
        // specify explicitly which branches to store, do not use wildcard
        float vz;
@@ -205,15 +209,20 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        Int_t pHBHENoiseFilterResultProducer;
        Int_t HBHEIsoNoiseFilterResult;
 
-       treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
        if (treeSkim->GetBranch("pcollisionEventSelection")) {
            treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
        }
        else {   // overwrite to default
            pcollisionEventSelection = 1;
        }
+       if (treeSkim->GetBranch("pHBHENoiseFilterResultProducer")) {
+           treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
+       }
+       else {   // overwrite to default
+           pHBHENoiseFilterResultProducer = 1;
+       }
        if (treeSkim->GetBranch("HBHEIsoNoiseFilterResult")) {
-
+           treeSkim->SetBranchAddress("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
        }
        else {   // overwrite to default
            HBHEIsoNoiseFilterResult = 1;

@@ -17,7 +17,7 @@
 #include "../../Plotting/commonUtility.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 
-const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
+const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
 void zJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "zJetSkim.root", const TString minBiasJetSkimFile = "");
 
@@ -103,7 +103,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"cutZPt   = "<<cutZPt<<std::endl;
        std::cout<<"cutZEta  = "<<cutZEta<<std::endl;
 
-       std::cout<<"doMix     = "<<doMix<<std::endl;
+       std::cout<<"doMix    = "<<doMix<<std::endl;
        if (doMix > 0)
        {
            std::cout<<"nMaxEvents_minBiasMixing = "<< nMaxEvents_minBiasMixing <<std::endl;
@@ -167,6 +167,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        treeJet->SetBranchStatus("*",0);        // disable all branches
        treeJet->SetBranchStatus("nref",1);     // enable jet branches
+       treeJet->SetBranchStatus("rawpt",1);    // enable jet branches
        treeJet->SetBranchStatus("jtpt",1);     // enable jet branches
        treeJet->SetBranchStatus("jteta",1);     // enable jet branches
        treeJet->SetBranchStatus("jtphi",1);     // enable jet branches
@@ -177,6 +178,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeJet->SetBranchStatus("eMax*",1);
        treeJet->SetBranchStatus("eSum*",1);
        treeJet->SetBranchStatus("eN*",1);
+       treeJet->SetBranchStatus("muMax*",1);
+       treeJet->SetBranchStatus("muSum*",1);
+       treeJet->SetBranchStatus("muN*",1);
 
        // specify explicitly which branches to store, do not use wildcard
        float vz;
@@ -218,15 +222,20 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        Int_t pHBHENoiseFilterResultProducer;
        Int_t HBHEIsoNoiseFilterResult;
 
-       treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
        if (treeSkim->GetBranch("pcollisionEventSelection")) {
            treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
        }
        else {   // overwrite to default
            pcollisionEventSelection = 1;
        }
+       if (treeSkim->GetBranch("pHBHENoiseFilterResultProducer")) {
+           treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
+       }
+       else {   // overwrite to default
+           pHBHENoiseFilterResultProducer = 1;
+       }
        if (treeSkim->GetBranch("HBHEIsoNoiseFilterResult")) {
-
+           treeSkim->SetBranchAddress("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
        }
        else {   // overwrite to default
            HBHEIsoNoiseFilterResult = 1;
@@ -411,7 +420,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            // leading z Boson is correlated to each jet in the event.
            makeZJetPairs(diEle, jets, zjet, zIdx, true);
 
-           if(doMix)
+           if(doMix > 0)
            {
                int centBin = hiBin / centBinWidth;
                int vzBin   = (vz+15) / vertexBinWidth;
@@ -453,7 +462,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
            outputTreeJet->Fill();
-           outputTreeHiEvt->Fill();
+           if (hasHiEvt) outputTreeHiEvt->Fill();
            outputTreeSkim->Fill();
            
            diElectronTree->Fill();

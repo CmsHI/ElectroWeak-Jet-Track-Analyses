@@ -15,20 +15,20 @@
 #include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 
-const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
+const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
-void diphotonSkim(const char* configFile, const char* inputFile, const char* outputFile = "diphotonSkim.root");
+void diphotonSkim(const TString configFile, const TString inputFile, const TString outputFile = "diphotonSkim.root");
 
-void diphotonSkim(const char* configFile, const char* inputFile, const char* outputFile)
+void diphotonSkim(const TString configFile, const TString inputFile, const TString outputFile)
 {
        std::cout<<"running diphotonSkim()"   <<std::endl;
-       std::cout<<"configFile = "<< configFile  <<std::endl;
-       std::cout<<"inputFile  = "<< inputFile  <<std::endl;
-       std::cout<<"outputFile = "<< outputFile <<std::endl;
+       std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
+       std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
+       std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
        std::string eventTreePath = "ggHiNtuplizer/EventTree";
 
-       TFile* input = new TFile(inputFile, "READ");
+       TFile* input = new TFile(inputFile.Data(), "READ");
 
        TTree* treeHLT            = (TTree*)input->Get("hltanalysis/HltTree");
        TTree* ggHiNtuplizerTree  = (TTree*)input->Get("ggHiNtuplizer/EventTree");
@@ -41,9 +41,9 @@ void diphotonSkim(const char* configFile, const char* inputFile, const char* out
        ggHiNtuplizer ggHi;
        setupPhotonTree(ggHiNtuplizerTree, ggHi);
 
-       TFile* output = new TFile(outputFile,"UPDATE");
+       TFile* output = new TFile(outputFile.Data(),"UPDATE");
 
-       CutConfiguration config = CutConfigurationsParser::Parse(configFile);
+       CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
        TTree* configTree = setupConfigurationTreeForWriting(config);
        int cut_nPho;
        int cut_nEle;
@@ -62,6 +62,7 @@ void diphotonSkim(const char* configFile, const char* inputFile, const char* out
        // output tree variables
        TTree *outputTreeHLT           = treeHLT->CloneTree(0);
        TTree *outputTreeggHiNtuplizer = ggHiNtuplizerTree->CloneTree(0);
+       outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
 
        TTree *diPhotonTree = new TTree("diphoton","photon pairs that match to an electron");
        diPhotonTree->SetMaxTreeSize(MAXTREESIZE);
