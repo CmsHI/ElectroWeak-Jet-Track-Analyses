@@ -4,11 +4,18 @@
 namespace CUTS {
   namespace ZBO {
     enum F_CUTS{
-      k_mass,
+      k_massMin,
+      k_massMax,
+      k_eta,
+      k_pt,
       kN_F_CUTS
     };
 
-    std::string F_CUTS_LABELS[kN_F_CUTS] = {"mass"
+    std::string F_CUTS_LABELS[kN_F_CUTS] = {
+            "massMin",
+            "massMax",
+            "eta",
+            "pt"
     };
 
     enum I_CUTS{
