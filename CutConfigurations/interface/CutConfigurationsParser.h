@@ -14,6 +14,7 @@
 #include "JetCuts.h"
 #include "TrackCuts.h"
 #include "GammaJetCuts.h"
+#include "ZJetCuts.h"
 
 namespace CUTS {
   struct ObjectCuts{
@@ -31,6 +32,7 @@ namespace CUTS {
     kJET,
     kTRACK,
     kGAMMAJET,
+    kZJET,
     kN_OBJECTS
   };
 
@@ -39,47 +41,53 @@ namespace CUTS {
 					  ZBO::kN_I_CUTS,
 					  JET::kN_I_CUTS,
 					  TRK::kN_I_CUTS,
-                      GJT::kN_I_CUTS};
+                      GJT::kN_I_CUTS,
+                      ZJT::kN_I_CUTS};
   const std::string *SUMMARY_INFO_I_LABELS[kN_OBJECTS] = {PHO::I_CUTS_LABELS,
 							  ELE::I_CUTS_LABELS,
 							  ZBO::I_CUTS_LABELS,
 							  JET::I_CUTS_LABELS,
 							  TRK::I_CUTS_LABELS,
-                              GJT::I_CUTS_LABELS};
+                              GJT::I_CUTS_LABELS,
+                              ZJT::I_CUTS_LABELS};
 
   const int SUMMARY_INFO_F[kN_OBJECTS] = {PHO::kN_F_CUTS,
 					  ELE::kN_F_CUTS,
 					  ZBO::kN_F_CUTS,
 					  JET::kN_F_CUTS,
 					  TRK::kN_F_CUTS,
-                      GJT::kN_F_CUTS};
+                      GJT::kN_F_CUTS,
+                      ZJT::kN_F_CUTS};
   const std::string *SUMMARY_INFO_F_LABELS[kN_OBJECTS] = {PHO::F_CUTS_LABELS,
 							  ELE::F_CUTS_LABELS,
 							  ZBO::F_CUTS_LABELS,
 							  JET::F_CUTS_LABELS,
 							  TRK::F_CUTS_LABELS,
-							  GJT::F_CUTS_LABELS};
+							  GJT::F_CUTS_LABELS,
+							  ZJT::F_CUTS_LABELS};
 
   const int SUMMARY_INFO_S[kN_OBJECTS] = {PHO::kN_S_CUTS,
 					  ELE::kN_S_CUTS,
 					  ZBO::kN_S_CUTS,
 					  JET::kN_S_CUTS,
 					  TRK::kN_S_CUTS,
-                      GJT::kN_S_CUTS};
+                      GJT::kN_S_CUTS,
+                      ZJT::kN_S_CUTS};
   const std::string *SUMMARY_INFO_S_LABELS[kN_OBJECTS] = {PHO::S_CUTS_LABELS,
 							  ELE::S_CUTS_LABELS,
 							  ZBO::S_CUTS_LABELS,
 							  JET::S_CUTS_LABELS,
 							  TRK::S_CUTS_LABELS,
-                              GJT::S_CUTS_LABELS};
-
+                              GJT::S_CUTS_LABELS,
+                              ZJT::S_CUTS_LABELS};
 
   std::string OBJECT_LABELS[kN_OBJECTS] = {"photon",
 					   "electron",
 					   "zboson",
 					   "jet",
 					   "track",
-					   "gammajet"
+					   "gammajet",
+					   "zjet"
   };
 
   struct ProcessCuts{
