@@ -343,7 +343,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            outputTreeJetMB->SetMaxTreeSize(MAXTREESIZE);
            zJetTreeMB->SetMaxTreeSize(MAXTREESIZE);
 
-           jetsMBoutput.setupTreeForWritingMB(outputTreeJetMB, false, false);
+           jetsMBoutput.setupTreeForWritingMB(outputTreeJetMB, true, false);
 
            zjetMB.resetAwayRange();
            zjetMB.resetConeRange();

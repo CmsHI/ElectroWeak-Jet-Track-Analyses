@@ -18,10 +18,7 @@
 #include <iostream>
 #include <TMath.h>
 
-#define PI 3.141592653589
-
 using namespace std;
-
 
 struct kinem {
   Double_t pt;

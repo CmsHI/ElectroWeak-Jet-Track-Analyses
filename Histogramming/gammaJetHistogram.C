@@ -111,7 +111,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
     //set real awayRange cut
-    cut_awayRange = cut_awayRange * PI;
+    cut_awayRange = cut_awayRange * TMath::Pi();
 
     bool isMC = collisionIsMC((COLL::TYPE)collision);
     bool isHI = collisionIsHI((COLL::TYPE)collision);
@@ -170,7 +170,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
     // pT bins
-    const int nBins_pt = 7;
+    int nBins_pt = 7;
     int bins_pt_gt[nBins_pt] = {-1,     40,     60,     40, 50, 60, 80};
     int bins_pt_lt[nBins_pt] = {999999, 999999, 999999, 50, 60, 80, 999999};
 

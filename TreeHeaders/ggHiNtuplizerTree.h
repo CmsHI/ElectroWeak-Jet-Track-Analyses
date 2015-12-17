@@ -231,9 +231,9 @@ public :
   ~ggHiNtuplizer(){};
 
   // Declaration of leaf types
-  Int_t           run;
-  Long64_t        event;
-  Int_t           lumis;
+  UInt_t          run;
+  ULong64_t       event;
+  UInt_t          lumis;
   Bool_t          isData;
   Int_t           nPUInfo;
   std::vector<int>     *nPU;

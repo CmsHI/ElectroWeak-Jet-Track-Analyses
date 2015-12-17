@@ -13,7 +13,7 @@
 class GammaJet {
 public :
     GammaJet(){
-        awayRange = PI * 7./8.;
+        awayRange = TMath::Pi() * 7./8.;
         coneRange = 0.4;
 
         jetIdx = 0;
@@ -25,7 +25,7 @@ public :
         nJetinAwayRange = 0;
     }
     ~GammaJet(){};
-    void resetAwayRange() { awayRange = PI * 7./8.; }
+    void resetAwayRange() { awayRange = TMath::Pi()  * 7./8.; }
     void resetConeRange() { coneRange = 0.4 ; }
 
     float awayRange;
@@ -49,7 +49,7 @@ public :
      TBranch        *b_dphi;   //!
      TBranch        *b_dR;   //!
      TBranch        *b_insideJet;   //!
-     TBranch        *b_nJetin7over8;   //!
+     TBranch        *b_nJetinAwayRange;   //!
 
      // list of objects to be used when creating a gammaJet Tree
      Int_t           phoIdx_out;
@@ -79,7 +79,7 @@ void setupGammaJetTree(TTree *t,GammaJet &tgammaJet)
     if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &tgammaJet.dphi, &tgammaJet.b_dphi);
     if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &tgammaJet.dR, &tgammaJet.b_dR);
     if (t->GetBranch("insideJet"))  t->SetBranchAddress("insideJet", &tgammaJet.insideJet, &tgammaJet.b_insideJet);
-    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &tgammaJet.nJetinAwayRange, &tgammaJet.b_nJetin7over8);
+    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &tgammaJet.nJetinAwayRange, &tgammaJet.b_nJetinAwayRange);
 }
 
 void branchGammaJetTree(TTree *t,GammaJet &tgammaJet)
