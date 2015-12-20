@@ -155,8 +155,8 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        }
 
        // event information
-       Int_t run, lumis;
-       Long64_t event;
+       UInt_t run, lumis;
+       ULong64_t event;
        treeEvent->SetBranchAddress("run", &run);
        treeEvent->SetBranchAddress("event", &event);
        treeEvent->SetBranchAddress("lumis", &lumis);

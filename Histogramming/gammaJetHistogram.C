@@ -17,6 +17,18 @@
 #include "../Utilities/eventUtil.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
+const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
+const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
+const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
+const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dx_{J#gamma}}",
+                                                                    "#frac{1}{N_{J#gamma}}#frac{dN_{J#gamma}}{d#Delta#phi}",
+                                                                    "#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
+const std::vector<int>         nBinsx{40, 20,       300};
+const std::vector<double>      xlow  {0,  0,          0};
+const std::vector<double>      xup   {5,  3.141592, 300};
+const std::vector<double>      xlow_final{0,  0,          0};
+const std::vector<double>      xup_final {2,  3.141592, 150};
+
 void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
 
 void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile)
@@ -170,7 +182,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
     // pT bins
-    int nBins_pt = 7;
+    const int nBins_pt = 7;
     int bins_pt_gt[nBins_pt] = {-1,     40,     60,     40, 50, 60, 80};
     int bins_pt_lt[nBins_pt] = {999999, 999999, 999999, 50, 60, 80, 999999};
 
@@ -185,23 +197,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
     }
 
-    // collision type
-    std::string histNames_sample;
-    if (isHI)   histNames_sample = "HI";
-    else        histNames_sample = "PP";
-
     TH1::SetDefaultSumw2();
-    std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
-    std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
-    std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
-    std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dx_{J#gamma}}",
-                                                                    "#frac{1}{N_{J#gamma}}#frac{dN_{J#gamma}}{d#Delta#phi}",
-                                                                    "#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
-    std::vector<int>         nBinsx{40, 20,       300};
-    std::vector<double>      xlow  {0,  0,          0};
-    std::vector<double>      xup   {5,  3.141592, 300};
-    std::vector<double>      xlow_final{0,  0,          0};
-    std::vector<double>      xup_final {2,  3.141592, 150};
     int nCorrHist = correlationHistNames.size();
     correlationHist corrHists[nCorrHist][nBins_pt][nBins_hiBin];
 
@@ -285,8 +281,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // no additional selection for jets. just use different trees.
     std::cout<<"####################"<<std::endl;
     std::cout<<"tgj->GetEntries() = "<<tgj->GetEntries()<<std::endl;
-    if (str_trigger.compare("") != 0) {
+    if (str_trigger.compare("") != 0 && !isMC) {
         std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj->GetEntries(Form("%s == 1",str_trigger.c_str()))<<std::endl;
+    }
+    else {
+        std::cout<<"tgj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC."<<std::endl;
     }
     std::cout<<"####################"<<std::endl;
 
@@ -415,7 +414,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             for (int iCorr = 0; iCorr < CORR::kN_CORRFNC -1; ++iCorr) {
                 for (int jCorr = 0; jCorr < CORR::kN_CORRFNC -1; ++jCorr) {
 
-                    if (jCorr > 0 && !isHI)  continue;      // no jet background for non-HI
+                    if (jCorr == CORR::kBKG && !isHI)  continue;      // no jet background for non-HI
 
                     std::string titleX = corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr].c_str();
                     corrHists[iHist][i][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;%s;%s",histoTitle.c_str(), titleX.c_str(), "Entries"));
@@ -486,6 +485,29 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // calculate SIGSIG histogram,
             // these histograms are ignored : SIGRAW, SIGBKG
 
+            // no background for PP and PA
+            if(!isHI){
+                // for non-HI, reset jet BKG histograms
+                // in that case BKG histograms are not used, but set to empty histograms.
+                // so it becomes SIG = RAW
+                std::cout<<"collision is "<< collisionName <<std::endl;
+                std::cout<<"contribution from BKG region is set to zero."<< std::endl;
+
+                std::string tmpHistName;
+
+                // reset RAWBKG
+                tmpHistName = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kRAW][CORR::kBKG]->GetName());
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG] =
+                        (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kRAW]->Clone(tmpHistName.c_str());
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG]->Reset();
+
+                // reset BKGBKG
+                tmpHistName = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kBKG][CORR::kBKG]->GetName());
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG] =
+                        (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kRAW]->Clone(tmpHistName.c_str());
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG]->Reset();
+            }
+
             // first subtract jet BKG, then subtract photon BKG
             // subtract jet BKG
             // RAWSIG = RAWRAW - RAWBKG
@@ -511,7 +533,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                                  (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Clone(tmpHistNameSIGSIG.c_str());
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG],-1*(1-purity[i][j]));
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
-            std::cout<< "purity[i][j] = " << purity[i][j] << std::endl;
+            if (isHI)  std::cout<< "purity[i][j] = " << purity[i][j] << std::endl;
 
             // FINAL_NORM  RAWSIG
             std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();

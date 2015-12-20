@@ -84,7 +84,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            doMix = 0;
        }
 
-       // verbose about configuration
+       // verbose about cut configuration
        std::cout<<"Configuration :"<<std::endl;
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 
@@ -229,8 +229,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        }
 
        // event information
-       Int_t run, lumis;
-       Long64_t event;
+       UInt_t run, lumis;
+       ULong64_t event;
        treeEvent->SetBranchAddress("run", &run);
        treeEvent->SetBranchAddress("event", &event);
        treeEvent->SetBranchAddress("lumis", &lumis);
@@ -374,9 +374,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            {
                bool failedEtCut  = (ggHi.phoEt->at(i) < cutPhoEt) ;
                bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta) ;
-               bool failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
-                                            ggHi.pho_swissCrx->at(i)     > 0.9   ||
-                                            TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
+               bool failedSpikeRejection;
+               if (isHI) {
+                   failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
+                                           ggHi.pho_swissCrx->at(i)     > 0.9   ||
+                                           TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
+               }
+               else {
+                   failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002);
+               }
 
                bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
 //               bool failedEnergyRatio = ((float)ggHi.phoSCRawE->at(i)/ggHi.phoE->at(i) < 0.5);
@@ -476,7 +482,7 @@ int main(int argc, char** argv)
     if (argc == 5) {
         gammaJetSkim(argv[1], argv[2], argv[3], argv[4]);
         return 0;
-       }
+    }
     else if (argc == 4) {
         gammaJetSkim(argv[1], argv[2], argv[3]);
         return 0;

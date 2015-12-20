@@ -93,7 +93,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doMix = 0;
        }
 
-       // verbose about configuration
+       // verbose about cut configuration
        std::cout<<"Configuration :"<<std::endl;
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 

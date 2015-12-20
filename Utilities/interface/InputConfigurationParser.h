@@ -157,7 +157,7 @@ public:
             }
 
             for(int j = 0; j < INPUT::kN_TYPES_I; ++j){
-                std::string label = Form(".%s",INPUT::TYPE_I_LABELS[j].c_str());    // prevent substring matching
+                std::string label = Form(".%s ",INPUT::TYPE_I_LABELS[j].c_str());    // prevent substring matching, e.g. : "doPP" and "doPPMC"
                 if (line.find(label) != std::string::npos) {
                     int in;
                     sin >> in;
