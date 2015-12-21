@@ -16,6 +16,8 @@
 #include "GammaJetCuts.h"
 #include "ZJetCuts.h"
 
+#include "../../Utilities/systemUtil.h"
+
 namespace CUTS {
   struct ObjectCuts{
     std::vector<float> f;
@@ -41,23 +43,23 @@ namespace CUTS {
 					  ZBO::kN_I_CUTS,
 					  JET::kN_I_CUTS,
 					  TRK::kN_I_CUTS,
-                      GJT::kN_I_CUTS,
-                      ZJT::kN_I_CUTS};
+					  GJT::kN_I_CUTS,
+					  ZJT::kN_I_CUTS};
   const std::string *SUMMARY_INFO_I_LABELS[kN_OBJECTS] = {PHO::I_CUTS_LABELS,
 							  ELE::I_CUTS_LABELS,
 							  ZBO::I_CUTS_LABELS,
 							  JET::I_CUTS_LABELS,
 							  TRK::I_CUTS_LABELS,
-                              GJT::I_CUTS_LABELS,
-                              ZJT::I_CUTS_LABELS};
+							  GJT::I_CUTS_LABELS,
+							  ZJT::I_CUTS_LABELS};
 
   const int SUMMARY_INFO_F[kN_OBJECTS] = {PHO::kN_F_CUTS,
 					  ELE::kN_F_CUTS,
 					  ZBO::kN_F_CUTS,
 					  JET::kN_F_CUTS,
 					  TRK::kN_F_CUTS,
-                      GJT::kN_F_CUTS,
-                      ZJT::kN_F_CUTS};
+					  GJT::kN_F_CUTS,
+					  ZJT::kN_F_CUTS};
   const std::string *SUMMARY_INFO_F_LABELS[kN_OBJECTS] = {PHO::F_CUTS_LABELS,
 							  ELE::F_CUTS_LABELS,
 							  ZBO::F_CUTS_LABELS,
@@ -71,15 +73,15 @@ namespace CUTS {
 					  ZBO::kN_S_CUTS,
 					  JET::kN_S_CUTS,
 					  TRK::kN_S_CUTS,
-                      GJT::kN_S_CUTS,
-                      ZJT::kN_S_CUTS};
+					  GJT::kN_S_CUTS,
+					  ZJT::kN_S_CUTS};
   const std::string *SUMMARY_INFO_S_LABELS[kN_OBJECTS] = {PHO::S_CUTS_LABELS,
 							  ELE::S_CUTS_LABELS,
 							  ZBO::S_CUTS_LABELS,
 							  JET::S_CUTS_LABELS,
 							  TRK::S_CUTS_LABELS,
-                              GJT::S_CUTS_LABELS,
-                              ZJT::S_CUTS_LABELS};
+							  GJT::S_CUTS_LABELS,
+							  ZJT::S_CUTS_LABELS};
 
   std::string OBJECT_LABELS[kN_OBJECTS] = {"photon",
 					   "electron",
@@ -99,13 +101,15 @@ namespace CUTS {
     kCORRECTION,
     kHISTOGRAM,
     kPLOTTING,
+    kPERFORMANCE,
     kN_PROCESSES // must come last in enum
   };
 
   std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
 					      "correction",
 					      "histogram",
-					      "plotting"
+					      "plotting",
+					      "performance"
   };
 };
 
@@ -117,6 +121,7 @@ struct CutConfiguration{
 class CutConfigurationsParser{
 public:
   static CutConfiguration Parse(std::string inFile);
+  static std::vector<std::string> ParseList(std::string strList);
 };
 
 
@@ -149,7 +154,8 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
     if (line.find(endSignal) != std::string::npos) break;
     if (line.find("#") != std::string::npos) continue; //allow # comments
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
-    std::istringstream sin(line.substr(line.find("=") + 1));
+    std::string value = line.substr(line.find("=") + 1);
+    std::istringstream sin(value);
     bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){
@@ -192,7 +198,7 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 	  std::string label_S = Form(".%s",SUMMARY_INFO_S_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
 	  if(line.find(label_S) != std::string::npos) {
 	    std::string in;
-	    sin >> in;
+	    in = trim(value);   // stringstream ignores characters after a whitespace, use the original string to read the value.
 	    config.proc[proc].obj[obj].s[j] = in;
 	    char * cstr = new char [in.length()+1];
 	    std::strcpy (cstr, in.c_str());
@@ -214,6 +220,42 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
   }
   config.isValid = true;
   return config;
+}
+
+std::vector<std::string> CutConfigurationsParser::ParseList(std::string strList)
+{
+    std::vector<std::string> list;
+
+    if(strList.empty())
+        return list;
+
+    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
+    if (posStart == std::string::npos) return list;
+
+    size_t posEnd   = strList.find("}");     // a valid list starts with '{' and ends with '}'
+    if (posEnd == std::string::npos) return list;
+
+    // elements of the list are separated by ','
+    size_t pos;
+    bool listFinished = false;
+    posStart++;     // exclude '{c'
+    while (!listFinished) {
+
+        pos = strList.find(",", posStart);
+        if (pos == std::string::npos) {    // this must be the last element. nothing after '}' is accepted.
+            pos = posEnd;
+            listFinished = true;
+        }
+
+        std::string tmp = strList.substr(posStart, pos-posStart);  //  strList = ...,ABC123 ,... --> posStart = 0, pos = 8, tmp = "ABC123 "
+
+        std::string element = trim(tmp);
+
+        list.push_back(element.c_str());
+        posStart = pos + 1;
+    }
+
+    return list;
 }
 
 #endif

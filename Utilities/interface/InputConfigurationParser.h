@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "../eventUtil.h"
+#include "../systemUtil.h"
 
 namespace INPUT {
 
@@ -144,7 +145,8 @@ public:
             if (line.find("#") != std::string::npos) continue; //allow # comments
             if (line.find("=") == std::string::npos) continue; //skip all lines without an =
             if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
-            std::istringstream sin(line.substr(line.find("=") + 1));
+            std::string value = line.substr(line.find("=") + 1);
+            std::istringstream sin(value);
             bool success = false;
             INPUT::PROCESS proc = INPUT::kN_PROCESSES;
             for(int i = 0; i < INPUT::kN_PROCESSES; ++i){
