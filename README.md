@@ -63,3 +63,10 @@ All cuts applied at every step come from files in the *CutConfigurations* folder
 - Make sure that any 'rootlogon.C' macros necessary for font sizes etc. are explicitly loaded in any macro, do not depend on users manually loading these settings.
 - It is especially important that this step is able to be performed on personal laptops.
 - It is especially important that this step is able to be performed in "batch mode" for reproducibility.
+
+### Performance
+
+ - This folder is intended for performance studies on different physics objects and observables. These include quick checks such as turn on curves, energy scale plots, object spectra and also more comprehensive studies such as Data vs. MC comparison, release validation etc.
+ - This is not a direct part of the analysis workflow, but serves as a cross-check for analysis.
+ - The main purpose of macros in this folder is to work on one or more input HiForest files and output a set of histograms to a ".root" file. Saving output as "png", "pdf" or other graphics file can be optional. However, it is discouraged to output only graphics files, but no ".root" file. For example, photonTurnOn.C outputs a ".root" file with photon turn on curves and if the related option is specified, then a graphics file is also generated.
+ - When saving a graphics file, it is encouraged to save the file also in ".C" format so that any necessary small modification can be done quickly.
