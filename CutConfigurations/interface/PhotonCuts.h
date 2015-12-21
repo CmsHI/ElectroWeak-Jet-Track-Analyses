@@ -65,13 +65,17 @@ namespace CUTS {
       k_monteCarloWeightLabel,
       k_trigger_gammaJet,
       k_trigger_diphoton,
+      k_triggerNum_List,
+      k_triggerDenom_List,
       kN_S_CUTS
     };
 
     std::string S_CUTS_LABELS[kN_S_CUTS] = {
       "monteCarloWeightLabel",
       "trigger_gammaJet",
-      "trigger_diphoton"
+      "trigger_diphoton",
+      "triggerNum_List",     // label ends with "_List". this means the input will be a list of strings
+      "triggerDenom_List"
     };
 
   };
