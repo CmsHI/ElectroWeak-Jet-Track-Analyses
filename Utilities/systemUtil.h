@@ -82,6 +82,9 @@ std::string trim(std::string str)
     {
         size_t first = str.find_first_not_of(' ');
         size_t last = str.find_last_not_of(' ');
+        if (first == std::string::npos && last == std::string::npos) {  // str is full of white spaces, e.g. "   "
+            return "";
+        }
         return str.substr(first, (last-first+1));
     }
     else {  // str = ""

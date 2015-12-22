@@ -16,6 +16,9 @@
 #include "GammaJetCuts.h"
 #include "ZJetCuts.h"
 
+#include "../../Utilities/interface/Configuration.h"
+#include "../../Utilities/interface/ConfigurationParser.h"
+
 #include "../../Utilities/systemUtil.h"
 
 namespace CUTS {
@@ -113,15 +116,17 @@ namespace CUTS {
   };
 };
 
-struct CutConfiguration{
+struct CutConfiguration : public Configuration{
   CUTS::ProcessCuts proc[CUTS::kN_PROCESSES];
-  bool isValid;
+
 };
 
-class CutConfigurationsParser{
+class CutConfigurationsParser : public ConfigurationParser{
 public:
+   CutConfigurationsParser(){};
+   ~CutConfigurationsParser(){};
+
   static CutConfiguration Parse(std::string inFile);
-  static std::vector<std::string> ParseList(std::string strList);
 };
 
 
@@ -154,8 +159,7 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
     if (line.find(endSignal) != std::string::npos) break;
     if (line.find("#") != std::string::npos) continue; //allow # comments
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
-    std::string value = line.substr(line.find("=") + 1);
-    std::istringstream sin(value);
+    std::istringstream sin(line.substr(line.find("=") + 1));
     bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){
@@ -198,7 +202,7 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
 	  std::string label_S = Form(".%s",SUMMARY_INFO_S_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
 	  if(line.find(label_S) != std::string::npos) {
 	    std::string in;
-	    in = trim(value);   // stringstream ignores characters after a whitespace, use the original string to read the value.
+	    in = trim(sin.str());   // stringstream ignores characters after a whitespace, use the original string to read the value.
 	    config.proc[proc].obj[obj].s[j] = in;
 	    char * cstr = new char [in.length()+1];
 	    std::strcpy (cstr, in.c_str());
@@ -220,42 +224,6 @@ CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
   }
   config.isValid = true;
   return config;
-}
-
-std::vector<std::string> CutConfigurationsParser::ParseList(std::string strList)
-{
-    std::vector<std::string> list;
-
-    if(strList.empty())
-        return list;
-
-    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
-    if (posStart == std::string::npos) return list;
-
-    size_t posEnd   = strList.find("}");     // a valid list starts with '{' and ends with '}'
-    if (posEnd == std::string::npos) return list;
-
-    // elements of the list are separated by ','
-    size_t pos;
-    bool listFinished = false;
-    posStart++;     // exclude '{c'
-    while (!listFinished) {
-
-        pos = strList.find(",", posStart);
-        if (pos == std::string::npos) {    // this must be the last element. nothing after '}' is accepted.
-            pos = posEnd;
-            listFinished = true;
-        }
-
-        std::string tmp = strList.substr(posStart, pos-posStart);  //  strList = ...,ABC123 ,... --> posStart = 0, pos = 8, tmp = "ABC123 "
-
-        std::string element = trim(tmp);
-
-        list.push_back(element.c_str());
-        posStart = pos + 1;
-    }
-
-    return list;
 }
 
 #endif

@@ -10,6 +10,9 @@
 #include <fstream>
 #include <sstream>
 
+#include "Configuration.h"
+#include "ConfigurationParser.h"
+
 #include "../eventUtil.h"
 #include "../systemUtil.h"
 
@@ -60,13 +63,13 @@ std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
 
 };
 
-struct InputConfiguration{
+struct InputConfiguration : public Configuration {
     INPUT::ProcessInputs proc[CUTS::kN_PROCESSES];
 
-    bool isValid;
 };
 
-class InputConfigurationParser {
+class InputConfigurationParser : public ConfigurationParser {
+
 public:
     InputConfigurationParser(){};
     ~InputConfigurationParser(){};
@@ -145,8 +148,7 @@ public:
             if (line.find("#") != std::string::npos) continue; //allow # comments
             if (line.find("=") == std::string::npos) continue; //skip all lines without an =
             if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
-            std::string value = line.substr(line.find("=") + 1);
-            std::istringstream sin(value);
+            std::istringstream sin(line.substr(line.find("=") + 1));
             bool success = false;
             INPUT::PROCESS proc = INPUT::kN_PROCESSES;
             for(int i = 0; i < INPUT::kN_PROCESSES; ++i){
