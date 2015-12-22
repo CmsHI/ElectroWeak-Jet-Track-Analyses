@@ -1,7 +1,8 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
-#include "../CutConfigurations/interface/CutConfigurationsParser.h"
+
+#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 //#include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 //#include "../TreeHeaders/SetupJetTree.h"
@@ -9,7 +10,7 @@
 void photonCorrections(const TString configFile, const TString inputPhoSkimFile,
 		       const TString inputJetSkimFile, const TString outputSkimFile)
 {
-  CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+  CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   TFile *inPhoSkimFile = TFile::Open(inputPhoSkimFile);

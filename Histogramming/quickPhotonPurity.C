@@ -50,7 +50,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 {
   TH1::SetDefaultSumw2();
 
-  CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+  CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   TFile *dataFile = TFile::Open(inputData);

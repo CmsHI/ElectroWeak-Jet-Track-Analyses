@@ -1,13 +1,14 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
-#include "../CutConfigurations/interface/CutConfigurationsParser.h"
+
+#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 
 void photonCorrections(const TString configFile, const TString inputSkimFile, const TString outputSkimFile)
 {
-  CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+  CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   int montecarlo = config.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].i[CUTS::PHO::k_MonteCarlo];

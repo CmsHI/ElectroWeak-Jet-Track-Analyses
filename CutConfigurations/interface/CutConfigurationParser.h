@@ -121,16 +121,16 @@ struct CutConfiguration : public Configuration{
 
 };
 
-class CutConfigurationsParser : public ConfigurationParser{
+class CutConfigurationParser : public ConfigurationParser{
 public:
-   CutConfigurationsParser(){};
-   ~CutConfigurationsParser(){};
+   CutConfigurationParser(){};
+   ~CutConfigurationParser(){};
 
   static CutConfiguration Parse(std::string inFile);
 };
 
 
-CutConfiguration CutConfigurationsParser::Parse(std::string inFile)
+CutConfiguration CutConfigurationParser::Parse(std::string inFile)
 {
   using namespace CUTS;
   std::string endSignal = "#CUTS-END#";     // signals that cut configuration parsing is to be terminated.

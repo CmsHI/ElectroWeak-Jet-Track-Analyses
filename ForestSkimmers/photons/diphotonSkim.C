@@ -11,8 +11,8 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/diphotonTree.h"
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
@@ -43,7 +43,7 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
 
        TFile* output = new TFile(outputFile.Data(),"UPDATE");
 
-       CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+       CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
        TTree* configTree = setupConfigurationTreeForWriting(config);
        int cut_nPho;
        int cut_nEle;

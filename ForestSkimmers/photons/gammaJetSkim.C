@@ -11,8 +11,8 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/gammaJetTree.h"
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Plotting/commonUtility.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
@@ -30,7 +30,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout<<"minBiasJetSkimFile  = "<< minBiasJetSkimFile.Data() <<std::endl;
 
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-       CutConfiguration configCuts = CutConfigurationsParser::Parse(configFile.Data());
+       CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
        // input configuration
        int collision;

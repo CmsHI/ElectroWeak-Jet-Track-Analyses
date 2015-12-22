@@ -19,7 +19,7 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
@@ -45,7 +45,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationsParser::Parse(configFile.Data());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     if (configInput.isValid) {
     }
@@ -59,9 +59,9 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     // this vector must be empty not to use any triggers in the denominator
     if (configCuts.isValid) {
         cutPhoEta = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
-        triggerBranchesNum = CutConfigurationsParser::ParseList(
+        triggerBranchesNum = CutConfigurationParser::ParseList(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
-        triggerBranchesDenom = CutConfigurationsParser::ParseList(
+        triggerBranchesDenom = CutConfigurationParser::ParseList(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
     }
     else {

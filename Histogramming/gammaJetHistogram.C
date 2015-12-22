@@ -10,7 +10,7 @@
 #include <string>
 #include <iostream>
 
-#include "../CutConfigurations/interface/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 #include "interface/correlationHist.h"
@@ -39,7 +39,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationsParser::Parse(configFile.Data());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     // input configuration
     int collision;

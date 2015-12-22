@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "../CutConfigurations/interface/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 
 void diphotonHistogram(const char* configFile, const char* inputFile, const char* outputFile = "diphotonHistogram.root", const char* sampleName = "");
@@ -29,7 +29,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
 
     TFile* output = new TFile(outputFile, "UPDATE");
 
-    CutConfiguration config = CutConfigurationsParser::Parse(configFile);
+    CutConfiguration config = CutConfigurationParser::Parse(configFile);
     TTree* configTree = setupConfigurationTreeForWriting(config);
     std::string str_trigger;
 

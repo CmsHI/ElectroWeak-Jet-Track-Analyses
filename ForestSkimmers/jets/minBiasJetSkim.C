@@ -13,7 +13,7 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 
@@ -28,7 +28,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-       CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+       CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
        std::string jetCollection;
        int nMaxEvents_minBiasMixing;
        int nCentralityBins;

@@ -1,8 +1,9 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
+
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 
@@ -10,7 +11,7 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
 {
   TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
 
-  CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+  CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   Float_t photonEtCut = config.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];

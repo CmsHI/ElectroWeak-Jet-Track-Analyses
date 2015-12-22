@@ -1,7 +1,8 @@
 #include <TFile.h>
 #include <TString.h>
 #include <iostream>
-#include "../../CutConfigurations/interface/CutConfigurationsParser.h"
+
+#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/SetupJetTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
@@ -10,7 +11,7 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
 {
   TFile *outFile = TFile::Open(outputSkimFile,"RECREATE");
 
-  CutConfiguration config = CutConfigurationsParser::Parse(configFile.Data());
+  CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
   std::string jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
