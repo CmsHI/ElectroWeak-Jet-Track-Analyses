@@ -175,11 +175,13 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        TTree *outputTreesHiEvt[nCentralityBins][nVertexBins];
        TTree *outputTreesSkim[nCentralityBins][nVertexBins];
 
-       Long64_t nEntriesFilled[nCentralityBins][nVertexBins] = {{0}}; // number of events read for a centrality bin
+       Long64_t nEntriesFilled[nCentralityBins][nVertexBins];    // number of events read for a centrality bin
 
        for(int i=0; i<nCentralityBins; ++i)
        {
            for(int j=0; j<nVertexBins; ++j){
+               nEntriesFilled[i][j] = 0;
+
                outputTreesHLT[i][j] = treeHLT->CloneTree(0);
                outputTreesHLT[i][j]->SetName(Form("hltTree_centBin%d_vzBin%d", i, j));
                outputTreesHLT[i][j]->SetTitle(Form("subbranches of hltanalysis/HltTree for centrality bin %d vz bin %d", i, j));

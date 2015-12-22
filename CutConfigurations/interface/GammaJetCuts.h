@@ -5,11 +5,13 @@ namespace CUTS {
   namespace GJT {
     enum F_CUTS{
       k_awayRange,      // default away range = 0.875, corresponding to 7/8*pi
+      k_dR,
       kN_F_CUTS
     };
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
-      "awayRange"
+      "awayRange",
+      "dR"
     };
 
     enum I_CUTS{
