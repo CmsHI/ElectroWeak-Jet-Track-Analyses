@@ -4,7 +4,7 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <TBranch.h>
-#include "../CutConfigurations/interface/CutConfigurationsParser.h"
+#include "../CutConfigurations/interface/CutConfigurationParser.h"
 
 TTree* setupConfigurationTreeForWriting(CutConfiguration config)
 {
