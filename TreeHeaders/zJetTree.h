@@ -27,6 +27,7 @@ public :
         insideJet_ele_1 = 0;
         insideJet_ele_2 = 0;
         nJetinAwayRange = 0;
+        jetID = 0;
     }
     ~ZJet(){};
     void resetAwayRange() { awayRange = TMath::Pi() * 7./8.; }
@@ -48,6 +49,7 @@ public :
      std::vector<int>     *insideJet_ele_1;
      std::vector<int>     *insideJet_ele_2;
      Int_t           nJetinAwayRange;
+     std::vector<int>     *jetID;
 
      // List of branches
      TBranch        *b_zIdx;   //!
@@ -62,6 +64,7 @@ public :
      TBranch        *b_insideJet_ele_1;   //!
      TBranch        *b_insideJet_ele_2;   //!
      TBranch        *b_nJetinAwayRange;   //!
+     TBranch        *b_jetID;   //!
 
      // list of objects to be used when creating a zjet Tree
      Int_t           zIdx_out;
@@ -76,6 +79,7 @@ public :
      std::vector<int>     insideJet_ele_1_out;
      std::vector<int>     insideJet_ele_2_out;
      Int_t           nJetinAwayRange_out;
+     std::vector<int>     jetID_out;
 
 };
 
@@ -99,6 +103,7 @@ void setupZJetTree(TTree *t,ZJet &tzJet)
     if (t->GetBranch("insideJet_ele_1"))  t->SetBranchAddress("insideJet_ele_1", &tzJet.insideJet_ele_1, &tzJet.b_insideJet_ele_1);
     if (t->GetBranch("insideJet_ele_2"))  t->SetBranchAddress("insideJet_ele_2", &tzJet.insideJet_ele_2, &tzJet.b_insideJet_ele_2);
     if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &tzJet.nJetinAwayRange, &tzJet.b_nJetinAwayRange);
+    if (t->GetBranch("jetID"))  t->SetBranchAddress("jetID", &tzJet.jetID, &tzJet.b_jetID);
 }
 
 void branchZJetTree(TTree *t,ZJet &tzJet)
@@ -115,6 +120,7 @@ void branchZJetTree(TTree *t,ZJet &tzJet)
     t->Branch("insideJet_ele_1", &tzJet.insideJet_ele_1_out);
     t->Branch("insideJet_ele_2", &tzJet.insideJet_ele_2_out);
     t->Branch("nJetinAwayRange", &tzJet.nJetinAwayRange_out);
+    t->Branch("jetID", &tzJet.jetID_out);
 }
 
 void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, bool use_diEle_out)
@@ -130,6 +136,7 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
         tzJet.insideJet_out.clear();
         tzJet.insideJet_ele_1_out.clear();
         tzJet.insideJet_ele_2_out.clear();
+        tzJet.jetID_out.clear();
 
         tzJet.zIdx_out = zIdx;
         tzJet.nJetinAwayRange_out = 0;
@@ -157,6 +164,18 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
+            int tmp_jetID = 0;
+            if (tJets.rawpt[i] > 0) {
+                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
+                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
+                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
+                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
+                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
+                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
+                        tmp_jetID = 1;
+                }
+            }
+
             tzJet.jetIdx_out.push_back(i);
             if (tdielectron.diElePt_out.at(zIdx) > 0) {
                 tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
@@ -172,6 +191,7 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             tzJet.insideJet_out.push_back(tmp_insideJet);
             tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
             tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            tzJet.jetID_out.push_back(tmp_jetID);
         }
     }
     else {
@@ -185,6 +205,7 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
         tzJet.insideJet_out.clear();
         tzJet.insideJet_ele_1_out.clear();
         tzJet.insideJet_ele_2_out.clear();
+        tzJet.jetID_out.clear();
 
         tzJet.zIdx_out = zIdx;
         tzJet.nJetinAwayRange_out = 0;
@@ -212,6 +233,18 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
+            int tmp_jetID = 0;
+            if (tJets.rawpt[i] > 0) {
+                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
+                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
+                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
+                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
+                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
+                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
+                        tmp_jetID = 1;
+                }
+            }
+
             tzJet.jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
                 tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
@@ -227,6 +260,7 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             tzJet.insideJet_out.push_back(tmp_insideJet);
             tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
             tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            tzJet.jetID_out.push_back(tmp_jetID);
         }
     }
 }
@@ -249,6 +283,7 @@ void clearZJetPairs(ZJet &tzJet, int zIdx)
     tzJet.insideJet_out.clear();
     tzJet.insideJet_ele_1_out.clear();
     tzJet.insideJet_ele_2_out.clear();
+    tzJet.jetID_out.clear();
 
     tzJet.zIdx_out = zIdx;
     tzJet.nJetinAwayRange_out = 0;
@@ -280,6 +315,18 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
+            int tmp_jetID = 0;
+            if (tJets.rawpt[i] > 0) {
+                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
+                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
+                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
+                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
+                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
+                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
+                        tmp_jetID = 1;
+                }
+            }
+
             tzJet.jetIdx_out.push_back(i);
             if (tdielectron.diElePt_out.at(zIdx) > 0) {
                 tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
@@ -295,6 +342,7 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             tzJet.insideJet_out.push_back(tmp_insideJet);
             tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
             tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            tzJet.jetID_out.push_back(tmp_jetID);
         }
     }
     else {
@@ -321,6 +369,18 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
+            int tmp_jetID = 0;
+            if (tJets.rawpt[i] > 0) {
+                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
+                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
+                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
+                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
+                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
+                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
+                        tmp_jetID = 1;
+                }
+            }
+
             tzJet.jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
                 tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
@@ -336,6 +396,7 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             tzJet.insideJet_out.push_back(tmp_insideJet);
             tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
             tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            tzJet.jetID_out.push_back(tmp_jetID);
         }
     }
 }
