@@ -47,18 +47,29 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPAMC"
 };
 
+enum TYPE_S{
+    k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
+    kN_TYPES_S
+};
+
+const std::string TYPE_S_LABELS[kN_TYPES_S] = {
+        "TH1D_Bins_List"
+};
+
 enum PROCESS{
   kSKIM,
   kCORRECTION,
   kHISTOGRAM,
   kPLOTTING,
+  kPERFORMANCE,
   kN_PROCESSES // must come last in enum
 };
 
 std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
                         "correction",
                         "histogram",
-                        "plotting"
+                        "plotting",
+                        "performance"
 };
 
 };
@@ -131,6 +142,8 @@ public:
 
         for(int i = 0 ; i < INPUT::kN_PROCESSES; ++i){
             config.proc[i].i.resize(INPUT::kN_TYPES_I);
+            config.proc[i].s.resize(INPUT::kN_TYPES_S);
+            config.proc[i].c.resize(INPUT::kN_TYPES_S);
         }
 
         std::ifstream fin(inFile);
@@ -166,6 +179,20 @@ public:
                     int in;
                     sin >> in;
                     config.proc[proc].i[j] = in;
+                    success = true;
+                    break;
+                }
+            }
+
+            for(int j = 0; j < INPUT::kN_TYPES_S; ++j){
+                std::string label = Form(".%s ",INPUT::TYPE_S_LABELS[j].c_str());    // prevent substring matching, e.g. : "doPP" and "doPPMC"
+                if (line.find(label) != std::string::npos) {
+                    std::string in;
+                    in = trim(sin.str());   // stringstream ignores characters after a whitespace, use the original string to read the value.
+                    config.proc[proc].s[j] = in;
+                    char * cstr = new char [in.length()+1];
+                    std::strcpy (cstr, in.c_str());
+                    config.proc[proc].c[j] = cstr;
                     success = true;
                     break;
                 }

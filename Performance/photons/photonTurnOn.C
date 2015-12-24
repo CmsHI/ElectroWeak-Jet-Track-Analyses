@@ -36,21 +36,33 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
     bool doHoverE = false;
-    int nBins = 40;
-    float xup = 80;
     std::string legendPosition = "SE";  // 2 options : "NW" = upper left corner, "SE" = bottom right corner.
     std::cout << "doHoverE = " << doHoverE << std::endl;
-    std::cout << "nBins    = " << nBins << std::endl;
-    std::cout << "xup      = " << xup << std::endl;
     std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    std::vector<float> TH1D_Bins;      // nBins, xLow, xUp for the TH1D histogram
     if (configInput.isValid) {
+        TH1D_Bins = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
     }
     else {
+        TH1D_Bins.push_back(40);    // nBins
+        TH1D_Bins.push_back(0);     // xLow
+        TH1D_Bins.push_back(80);    // xUp
     }
+
+    int nTH1D_Bins = TH1D_Bins.size();
+    int nBins = (int)TH1D_Bins.at(0);
+    float xLow = TH1D_Bins.at(1);
+    float xUp  = TH1D_Bins.at(2);
+    // verbose about input configuration
+    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "nTH1D_Bins = " << nTH1D_Bins << std::endl;
+    std::cout << "nBins = " << nBins << std::endl;
+    std::cout << "xLow  = " << xLow << std::endl;
+    std::cout << "xUp   = " << xUp << std::endl;
 
     float cutPhoEta;
     std::vector<std::string> triggerBranchesNum;        // triggers that go into numerator
@@ -59,9 +71,9 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     // this vector must be empty not to use any triggers in the denominator
     if (configCuts.isValid) {
         cutPhoEta = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
-        triggerBranchesNum = CutConfigurationParser::ParseList(
+        triggerBranchesNum = ConfigurationParser::ParseList(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
-        triggerBranchesDenom = CutConfigurationParser::ParseList(
+        triggerBranchesDenom = ConfigurationParser::ParseList(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
     }
     else {
@@ -153,7 +165,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     ggHiNtuplizer ggHi;
     setupPhotonTree(treeggHiNtuplizer, ggHi);
 
-    TH1D* h_pt = new TH1D("h_pt","Denominator;photon p_{T};", nBins, 0, xup);
+    TH1D* h_pt = new TH1D("h_pt","Denominator;photon p_{T};", nBins, xLow, xUp);
     TH1D*     h_pt_accepted[nTriggersNum];
     for (int i=0; i<nTriggersNum; ++i)
     {
@@ -251,7 +263,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     h_dummy->Draw();
 
     // draw line y = 1
-    TLine *line = new TLine(0, 1, h_dummy->GetXaxis()->GetXmax(),1);
+    TLine *line = new TLine(h_dummy->GetXaxis()->GetXmin(), 1, h_dummy->GetXaxis()->GetXmax(),1);
     line->SetLineStyle(kDashed);
     line->Draw();
 
