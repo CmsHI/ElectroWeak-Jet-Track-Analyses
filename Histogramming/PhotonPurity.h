@@ -7,7 +7,7 @@
 #include <TF1.h>
 #include <string>
 
-#include "../CutConfigurations/interface/CutConfigurationParser.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 
 class PhotonPurity {
 public:

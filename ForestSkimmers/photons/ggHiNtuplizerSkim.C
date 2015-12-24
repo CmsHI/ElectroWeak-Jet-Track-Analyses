@@ -2,10 +2,10 @@
 #include <TString.h>
 #include <iostream>
 
-#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
+#include "../../Utilities/interface/CutConfigurationParser.h"
 
 void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, const TString outputSkimFile)
 {

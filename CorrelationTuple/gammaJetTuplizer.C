@@ -2,8 +2,8 @@
 #include <TString.h>
 #include <iostream>
 
-#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 //#include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
 //#include "../TreeHeaders/SetupJetTree.h"
 

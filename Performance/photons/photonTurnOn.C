@@ -19,9 +19,9 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
-#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 
 void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "drawTurnOn.root", const TString outputFigureName = "");

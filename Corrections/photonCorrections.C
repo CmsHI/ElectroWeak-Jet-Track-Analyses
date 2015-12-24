@@ -2,9 +2,9 @@
 #include <TString.h>
 #include <iostream>
 
-#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 
 void photonCorrections(const TString configFile, const TString inputSkimFile, const TString outputSkimFile)
 {

@@ -2,10 +2,10 @@
 #include <TString.h>
 #include <iostream>
 
-#include "../../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/SetupJetTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../Utilities/interface/CutConfigurationParser.h"
 
 void jetSkim(const TString configFile, const TString inputHiForest, const TString outputSkimFile)
 {

@@ -8,18 +8,18 @@
 #include <cstring>
 #include <vector>
 
-#include "PhotonCuts.h"
-#include "ElectronCuts.h"
-#include "ZBosonCuts.h"
-#include "JetCuts.h"
-#include "TrackCuts.h"
-#include "GammaJetCuts.h"
-#include "ZJetCuts.h"
+#include "../../CutConfigurations/interface/PhotonCuts.h"
+#include "../../CutConfigurations/interface/ElectronCuts.h"
+#include "../../CutConfigurations/interface/ZBosonCuts.h"
+#include "../../CutConfigurations/interface/JetCuts.h"
+#include "../../CutConfigurations/interface/TrackCuts.h"
+#include "../../CutConfigurations/interface/GammaJetCuts.h"
+#include "../../CutConfigurations/interface/ZJetCuts.h"
 
-#include "../../Utilities/interface/Configuration.h"
-#include "../../Utilities/interface/ConfigurationParser.h"
+#include "Configuration.h"
+#include "ConfigurationParser.h"
 
-#include "../../Utilities/systemUtil.h"
+#include "../systemUtil.h"
 
 namespace CUTS {
   struct ObjectCuts{

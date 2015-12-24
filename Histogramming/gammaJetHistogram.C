@@ -10,11 +10,11 @@
 #include <string>
 #include <iostream>
 
-#include "../CutConfigurations/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 #include "interface/correlationHist.h"
 #include "../Utilities/eventUtil.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};

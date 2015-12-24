@@ -21,7 +21,7 @@
 #include "stdio.h"
 #include <iostream>
 #include "PhotonPurity.h"
-#include "../CutConfigurations/interface/CutConfigurationParser.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 
