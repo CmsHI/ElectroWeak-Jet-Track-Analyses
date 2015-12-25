@@ -165,6 +165,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     ggHiNtuplizer ggHi;
     setupPhotonTree(treeggHiNtuplizer, ggHi);
 
+    TH1::SetDefaultSumw2();
     TH1D* h_pt = new TH1D("h_pt","Denominator;photon p_{T};", nBins, xLow, xUp);
     TH1D*     h_pt_accepted[nTriggersNum];
     for (int i=0; i<nTriggersNum; ++i)

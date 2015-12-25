@@ -54,6 +54,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
     std::cout << "collision = " << collisionName << std::endl;
 
+    bool isMC = collisionIsMC((COLL::TYPE)collision);
+    bool isHI = collisionIsHI((COLL::TYPE)collision);
+
     // photon cuts
     std::string str_trigger;
     float cut_phoHoverE;
@@ -62,7 +65,25 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta;
     float cut_sumIso;
-    float cut_sumPfIso;
+
+    // isolation for PP
+    float cut_phoHOverE_EB;         // Barrel
+    float cut_phoSigmaIEtaIEta_EB;
+    float cut_pfcIso4_EB;
+    float cut_pfnIso4_c0_EB;
+    float cut_pfnIso4_c1_EB;
+    float cut_pfnIso4_c2_EB;
+    float cut_pfpIso4_c0_EB;
+    float cut_pfpIso4_c1_EB;
+    float cut_phoHOverE_EE;         // Endcap
+    float cut_phoSigmaIEtaIEta_EE;
+    float cut_pfcIso4_EE;
+    float cut_pfnIso4_c0_EE;
+    float cut_pfnIso4_c1_EE;
+    float cut_pfnIso4_c2_EE;
+    float cut_pfpIso4_c0_EE;
+    float cut_pfpIso4_c1_EE;
+
     // jet cuts
     float cut_jetpt;
     float cut_jeteta;
@@ -80,7 +101,25 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
         cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
         cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
-        cut_sumPfIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumPfIso];
+
+        // Barrel
+        cut_phoHOverE_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EB];
+        cut_phoSigmaIEtaIEta_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_EB];
+        cut_pfcIso4_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EB];
+        cut_pfnIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EB];
+        cut_pfnIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EB];
+        cut_pfnIso4_c2_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EB];
+        cut_pfpIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EB];
+        cut_pfpIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EB];
+        // Endcap
+        cut_phoHOverE_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EE];
+        cut_phoSigmaIEtaIEta_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_EE];
+        cut_pfcIso4_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EE];
+        cut_pfnIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EE];
+        cut_pfnIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EE];
+        cut_pfnIso4_c2_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EE];
+        cut_pfpIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EE];
+        cut_pfpIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EE];
 
         cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
@@ -99,7 +138,24 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_pho_trackIsoR4PtCut20 = 2;
         cut_phoSigmaIEtaIEta = 0.01;
         cut_sumIso = 6;
-        cut_sumPfIso = 6;
+
+        // default photon isolation for PP is "Loose".
+        cut_phoHOverE_EB = 0.05;            // Barrel
+        cut_phoSigmaIEtaIEta_EB = 0.0102;
+        cut_pfcIso4_EB = 3.32;
+        cut_pfnIso4_c0_EB = 1.92;
+        cut_pfnIso4_c1_EB = 0.014;
+        cut_pfnIso4_c2_EB = 0.000019;
+        cut_pfpIso4_c0_EB = 0.81;
+        cut_pfpIso4_c1_EB = 0.0053;
+        cut_phoHOverE_EE = 0.05;            // Endcap
+        cut_phoSigmaIEtaIEta_EE = 0.0274;
+        cut_pfcIso4_EE = 1.97;
+        cut_pfnIso4_c0_EE = 11.86;
+        cut_pfnIso4_c1_EE = 0.0139;
+        cut_pfnIso4_c2_EE = 0.000025;
+        cut_pfpIso4_c0_EE = 0.83;
+        cut_pfpIso4_c1_EE = 0.0034;
 
         cut_jetpt = 40;
         cut_jeteta = 1.6;
@@ -113,13 +169,35 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"Cut Configuration :"<<std::endl;
     std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
 
-    std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
-    std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
-    std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
-    std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
-    std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta <<std::endl;
-    std::cout<<"cut_sumIso      = "<< cut_sumIso <<std::endl;
-    std::cout<<"cut_sumPfIso    = "<< cut_sumPfIso <<std::endl;
+    if (isHI) {
+        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
+        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
+        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
+        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
+        std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta <<std::endl;
+        std::cout<<"cut_sumIso      = "<< cut_sumIso <<std::endl;
+    }
+    else {
+        std::cout<<"Barrel :"<<std::endl;
+        std::cout<<"cut_phoHOverE_EB        = "<< cut_phoHOverE_EB <<std::endl;
+        std::cout<<"cut_phoSigmaIEtaIEta_EB = "<< cut_phoSigmaIEtaIEta_EB <<std::endl;
+        std::cout<<"cut_pfcIso4_EB          = "<< cut_pfcIso4_EB <<std::endl;
+        std::cout<<"cut_pfnIso4_c0_EB       = "<< cut_pfnIso4_c0_EB <<std::endl;
+        std::cout<<"cut_pfnIso4_c1_EB       = "<< cut_pfnIso4_c1_EB <<std::endl;
+        std::cout<<"cut_pfnIso4_c2_EB       = "<< cut_pfnIso4_c2_EB <<std::endl;
+        std::cout<<"cut_pfpIso4_c0_EB       = "<< cut_pfpIso4_c0_EB <<std::endl;
+        std::cout<<"cut_pfpIso4_c1_EB       = "<< cut_pfpIso4_c1_EB <<std::endl;
+
+        std::cout<<"Endcap :"<<std::endl;
+        std::cout<<"cut_phoHOverE_EE        = "<< cut_phoHOverE_EE <<std::endl;
+        std::cout<<"cut_phoSigmaIEtaIEta_EE = "<< cut_phoSigmaIEtaIEta_EE <<std::endl;
+        std::cout<<"cut_pfcIso4_EE          = "<< cut_pfcIso4_EE <<std::endl;
+        std::cout<<"cut_pfnIso4_c0_EE       = "<< cut_pfnIso4_c0_EE <<std::endl;
+        std::cout<<"cut_pfnIso4_c1_EE       = "<< cut_pfnIso4_c1_EE <<std::endl;
+        std::cout<<"cut_pfnIso4_c2_EE       = "<< cut_pfnIso4_c2_EE <<std::endl;
+        std::cout<<"cut_pfpIso4_c0_EE       = "<< cut_pfpIso4_c0_EE <<std::endl;
+        std::cout<<"cut_pfpIso4_c1_EE       = "<< cut_pfpIso4_c1_EE <<std::endl;
+    }
 
     std::cout<<"cut_jetpt                 = "<< cut_jetpt <<std::endl;
     std::cout<<"cut_jeteta                = "<< cut_jeteta <<std::endl;
@@ -131,9 +209,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     //set real awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
-
-    bool isMC = collisionIsMC((COLL::TYPE)collision);
-    bool isHI = collisionIsHI((COLL::TYPE)collision);
 
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
@@ -272,10 +347,36 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
     }
     else {  // PP or PA
-        // selectionIso = "pho_ecalClusterIsoR4[phoIdx] < 4.2 &&  pho_hcalRechitIsoR4[phoIdx] < 2.2 && pho_trackIsoR4PtCut20[phoIdx] < 2 ";  // 2011 style
-        // use summed PF isolation
-        selectionIso = selectionIso && Form("(pfcIso4[phoIdx] + pfnIso4[phoIdx]) < %f ", cut_sumPfIso);
-        selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
+        // https://twiki.cern.ch/twiki/bin/viewauth/CMS/CutBasedPhotonIdentificationRun2#SPRING15_selections_25_ns
+        TCut selectionIso_EB = "";
+        TCut selectionIso_EE = "";
+
+        std::string cut_pfpIso4_EB_str = Form("(%f + %f * phoEt[phoIdx])", cut_pfpIso4_c0_EB, cut_pfpIso4_c1_EB);
+        std::string cut_pfnIso4_EB_str = Form("(%f + %f * phoEt[phoIdx] + %f * phoEt[phoIdx]*phoEt[phoIdx])",
+                                                 cut_pfnIso4_c0_EB, cut_pfnIso4_c1_EB, cut_pfnIso4_c2_EB);
+        selectionIso_EB = selectionIso_EB && Form("phoHoverE[phoIdx] < %f", cut_phoHOverE_EB);
+        selectionIso_EB = selectionIso_EB && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EB);
+        selectionIso_EB = selectionIso_EB && Form("pfcIso4[phoIdx] < %f", cut_pfcIso4_EB);
+        selectionIso_EB = selectionIso_EB && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EB_str.c_str());
+        selectionIso_EB = selectionIso_EB && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EB_str.c_str());
+
+        std::string cut_pfnIso4_EE_str = Form("(%f + %f * phoEt[phoIdx] + %f * phoEt[phoIdx]*phoEt[phoIdx])",
+                                                 cut_pfnIso4_c0_EE, cut_pfnIso4_c1_EE, cut_pfnIso4_c2_EE);
+        std::string cut_pfpIso4_EE_str = Form("(%f + %f * phoEt[phoIdx])", cut_pfpIso4_c0_EE, cut_pfpIso4_c1_EE);
+        selectionIso_EE = selectionIso_EE && Form("phoHoverE[phoIdx] < %f", cut_phoHOverE_EE);
+        selectionIso_EE = selectionIso_EE && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EE);
+        selectionIso_EE = selectionIso_EE && Form("pfcIso4[phoIdx] < %f", cut_pfcIso4_EE);
+        selectionIso_EE = selectionIso_EE && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EE_str.c_str());
+        selectionIso_EE = selectionIso_EE && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EE_str.c_str());
+
+        float eta_EB = 1.4791;
+        float eta_EE = 2.5;
+        TCut selection_EB_eta = Form("abs(phoEta[phoIdx]) < %f", eta_EB);
+        selectionIso_EB = selectionIso_EB && selection_EB_eta;
+        TCut selection_EE_eta = Form("abs(phoEta[phoIdx]) > %f && abs(phoEta[phoIdx]) < %f", eta_EB, eta_EE);
+        selectionIso_EE = selectionIso_EE && selection_EE_eta;
+        TCut selection_EB_EE = selectionIso_EB || selectionIso_EE;
+        selectionIso = selectionIso && selection_EB_EE;
     }
     if (isMC) {
         selectionIso = selectionIso && "1 == 1";    // gen particle specific isolation
@@ -314,7 +415,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             isEventlistSet[i][j] = false;
         }
     }
-
 
     // HISTOGRAMMING BLOCK
     TCanvas* c = new TCanvas("cnv","",600,600);

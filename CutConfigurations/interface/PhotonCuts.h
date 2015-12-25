@@ -22,6 +22,23 @@ namespace CUTS {
       k_phoSigmaIEtaIEta,
       k_sumIso,
       k_sumPfIso,
+      // isolation for PP
+      k_phoHOverE_EB,
+      k_phoSigmaIEtaIEta_EB,
+      k_pfcIso4_EB,
+      k_pfnIso4_c0_EB,
+      k_pfnIso4_c1_EB,
+      k_pfnIso4_c2_EB,
+      k_pfpIso4_c0_EB,
+      k_pfpIso4_c1_EB,
+      k_phoHOverE_EE,
+      k_phoSigmaIEtaIEta_EE,
+      k_pfcIso4_EE,
+      k_pfnIso4_c0_EE,
+      k_pfnIso4_c1_EE,
+      k_pfnIso4_c2_EE,
+      k_pfpIso4_c0_EE,
+      k_pfpIso4_c1_EE,
       kN_F_CUTS
     };
 
@@ -43,7 +60,24 @@ namespace CUTS {
       "pho_trackIsoR4PtCut20",
       "phoSigmaIEtaIEta",
       "sumIso",
-      "sumPfIso"
+      "sumPfIso",
+      // isolation for PP
+      "phoHOverE_EB",
+      "phoSigmaIEtaIEta_EB",
+      "pfcIso4_EB",
+      "pfnIso4_c0_EB",
+      "pfnIso4_c1_EB",
+      "pfnIso4_c2_EB",
+      "pfpIso4_c0_EB",
+      "pfpIso4_c1_EB",
+      "phoHOverE_EE",
+      "phoSigmaIEtaIEta_EE",
+      "pfcIso4_EE",
+      "pfnIso4_c0_EE",
+      "pfnIso4_c1_EE",
+      "pfnIso4_c2_EE",
+      "pfpIso4_c0_EE",
+      "pfpIso4_c1_EE"
     };
 
     enum I_CUTS{
