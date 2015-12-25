@@ -158,10 +158,13 @@ public:
         while (getline(fin, line)) {
             lineCounter++;
             if (line.find(endSignal) != std::string::npos) break;
-            if (line.find("#") != std::string::npos) continue; //allow # comments
             if (line.find("=") == std::string::npos) continue; //skip all lines without an =
             if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
-            std::istringstream sin(line.substr(line.find("=") + 1));
+            if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
+            if (trim(line).find_first_of("#") == 0) continue;  //skip all lines starting with comment sign #
+            size_t pos = line.find("=") + 1;
+            size_t posLast = line.find("#");    // allow inline comment signs with #
+            std::istringstream sin(line.substr(pos, (posLast-pos) ));
             bool success = false;
             INPUT::PROCESS proc = INPUT::kN_PROCESSES;
             for(int i = 0; i < INPUT::kN_PROCESSES; ++i){

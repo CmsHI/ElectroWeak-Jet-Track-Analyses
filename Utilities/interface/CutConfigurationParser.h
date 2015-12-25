@@ -157,9 +157,12 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
   while (getline(fin, line)) {
     lineCounter++;
     if (line.find(endSignal) != std::string::npos) break;
-    if (line.find("#") != std::string::npos) continue; //allow # comments
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
-    std::istringstream sin(line.substr(line.find("=") + 1));
+    if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
+    if (trim(line).find_first_of("#") == 0) continue;  //skip all lines starting with comment sign #
+    size_t pos = line.find("=") + 1;
+    size_t posLast = line.find("#");    // allow inline comment signs with #
+    std::istringstream sin(line.substr(pos, (posLast-pos) ));
     bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){
@@ -177,7 +180,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
 
 	for(int j = 0; j < SUMMARY_INFO_I[obj]; ++j)
 	{
-	  std::string label_I = Form(".%s",SUMMARY_INFO_I_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  std::string label_I = Form(".%s ",SUMMARY_INFO_I_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet", "doPP" and "doPPMC"
 	  if(line.find(label_I) != std::string::npos) {
 	    int in;
 	    sin >> in;
@@ -188,7 +191,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
 	}
 	for(int j = 0; j < SUMMARY_INFO_F[obj]; ++j)
 	{
-	  std::string label_F = Form(".%s",SUMMARY_INFO_F_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  std::string label_F = Form(".%s ",SUMMARY_INFO_F_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet", "doPP" and "doPPMC"
 	  if(line.find(label_F) != std::string::npos) {
 	    float in;
 	    sin >> in;
@@ -199,7 +202,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
 	}
 	for(int j = 0; j < SUMMARY_INFO_S[obj]; ++j)
 	{
-	  std::string label_S = Form(".%s",SUMMARY_INFO_S_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet"
+	  std::string label_S = Form(".%s ",SUMMARY_INFO_S_LABELS[obj][j].c_str());    // prevent substring matching, e.g. : "et" and "trigger_gammaJet", "doPP" and "doPPMC"
 	  if(line.find(label_S) != std::string::npos) {
 	    std::string in;
 	    in = trim(sin.str());   // stringstream ignores characters after a whitespace, use the original string to read the value.
