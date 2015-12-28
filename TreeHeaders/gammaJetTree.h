@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "../Plotting/commonUtility.h"
-#include "SetupJetTree.h"
 #include "ggHiNtuplizerTree.h"
+#include "JetTree.h"
 
 class GammaJet {
 public :
@@ -28,6 +28,11 @@ public :
     ~GammaJet(){};
     void resetAwayRange() { awayRange = TMath::Pi()  * 7./8.; }
     void resetConeRange() { coneRange = 0.4 ; }
+    void setupGammaJetTree(TTree *t);
+    void branchGammaJetTree(TTree *t);
+    void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
+    void clearGammaJetPairs(int phoIdx);
+    void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
 
     float awayRange;
     float coneRange;
@@ -67,51 +72,45 @@ public :
 
 };
 
-void setupGammaJetTree(TTree *t,GammaJet &tgammaJet);
-void branchGammaJetTree(TTree *t,GammaJet &tgammaJet);
-void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx);
-void clearGammaJetPairs(GammaJet &tgammaJet, int phoIdx);
-void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx);
-
-void setupGammaJetTree(TTree *t,GammaJet &tgammaJet)
+void GammaJet::setupGammaJetTree(TTree *t)
 {
 
-    if (t->GetBranch("phoIdx"))  t->SetBranchAddress("phoIdx", &tgammaJet.phoIdx, &tgammaJet.b_phoIdx);
-    if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &tgammaJet.jetIdx, &tgammaJet.b_jetIdx);
-    if (t->GetBranch("xjg"))  t->SetBranchAddress("xjg", &tgammaJet.xjg, &tgammaJet.b_xjg);
-    if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &tgammaJet.deta, &tgammaJet.b_deta);
-    if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &tgammaJet.dphi, &tgammaJet.b_dphi);
-    if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &tgammaJet.dR, &tgammaJet.b_dR);
-    if (t->GetBranch("insideJet"))  t->SetBranchAddress("insideJet", &tgammaJet.insideJet, &tgammaJet.b_insideJet);
-    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &tgammaJet.nJetinAwayRange, &tgammaJet.b_nJetinAwayRange);
-    if (t->GetBranch("jetID"))  t->SetBranchAddress("jetID", &tgammaJet.jetID, &tgammaJet.b_jetID);
+    if (t->GetBranch("phoIdx"))  t->SetBranchAddress("phoIdx", &phoIdx, &b_phoIdx);
+    if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
+    if (t->GetBranch("xjg"))  t->SetBranchAddress("xjg", &xjg, &b_xjg);
+    if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
+    if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &dphi, &b_dphi);
+    if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &dR, &b_dR);
+    if (t->GetBranch("insideJet"))  t->SetBranchAddress("insideJet", &insideJet, &b_insideJet);
+    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &nJetinAwayRange, &b_nJetinAwayRange);
+    if (t->GetBranch("jetID"))  t->SetBranchAddress("jetID", &jetID, &b_jetID);
 }
 
-void branchGammaJetTree(TTree *t,GammaJet &tgammaJet)
+void GammaJet::branchGammaJetTree(TTree *t)
 {
-    t->Branch("phoIdx", &tgammaJet.phoIdx_out);
-    t->Branch("jetIdx", &tgammaJet.jetIdx_out);
-    t->Branch("xjg", &tgammaJet.xjg_out);
-    t->Branch("deta", &tgammaJet.deta_out);
-    t->Branch("dphi", &tgammaJet.dphi_out);
-    t->Branch("dR", &tgammaJet.dR_out);
-    t->Branch("insideJet", &tgammaJet.insideJet_out);
-    t->Branch("nJetinAwayRange", &tgammaJet.nJetinAwayRange_out);
-    t->Branch("jetID", &tgammaJet.jetID_out);
+    t->Branch("phoIdx", &phoIdx_out);
+    t->Branch("jetIdx", &jetIdx_out);
+    t->Branch("xjg", &xjg_out);
+    t->Branch("deta", &deta_out);
+    t->Branch("dphi", &dphi_out);
+    t->Branch("dR", &dR_out);
+    t->Branch("insideJet", &insideJet_out);
+    t->Branch("nJetinAwayRange", &nJetinAwayRange_out);
+    t->Branch("jetID", &jetID_out);
 }
 
-void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx)
+void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
-    tgammaJet.jetIdx_out.clear();
-    tgammaJet.xjg_out.clear();
-    tgammaJet.deta_out.clear();
-    tgammaJet.dphi_out.clear();
-    tgammaJet.dR_out.clear();
-    tgammaJet.insideJet_out.clear();
-    tgammaJet.jetID_out.clear();
+    jetIdx_out.clear();
+    xjg_out.clear();
+    deta_out.clear();
+    dphi_out.clear();
+    dR_out.clear();
+    insideJet_out.clear();
+    jetID_out.clear();
 
-    tgammaJet.phoIdx_out = phoIdx;
-    tgammaJet.nJetinAwayRange_out = 0;
+    phoIdx_out = phoIdx;
+    nJetinAwayRange_out = 0;
 
     // all the jets must go into correlation,
     // no jet should be skipped.
@@ -120,12 +119,12 @@ void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tga
         // cuts on jets will be applied during plotting
         float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
         float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jtphi[i]);
-        if (TMath::Abs(tmp_dphi) > tgammaJet.awayRange)
-            tgammaJet.nJetinAwayRange_out++;
+        if (TMath::Abs(tmp_dphi) > awayRange)
+            nJetinAwayRange_out++;
         float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], tJets.jtphi[i]);
 
         int tmp_insideJet;
-        if(tmp_dR < tgammaJet.coneRange) tmp_insideJet = 1;
+        if(tmp_dR < coneRange) tmp_insideJet = 1;
         else                             tmp_insideJet = 0;
 
         int tmp_jetID = 0;
@@ -140,18 +139,18 @@ void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tga
             }
         }
 
-        tgammaJet.jetIdx_out.push_back(i);
+        jetIdx_out.push_back(i);
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
-            tgammaJet.xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+            xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
         }
         else {
-            tgammaJet.xjg_out.push_back(-1);
+            xjg_out.push_back(-1);
         }
-        tgammaJet.deta_out.push_back(tmp_deta);
-        tgammaJet.dphi_out.push_back(tmp_dphi);
-        tgammaJet.dR_out.push_back(tmp_dR);
-        tgammaJet.insideJet_out.push_back(tmp_insideJet);
-        tgammaJet.jetID_out.push_back(tmp_jetID);
+        deta_out.push_back(tmp_deta);
+        dphi_out.push_back(tmp_dphi);
+        dR_out.push_back(tmp_dR);
+        insideJet_out.push_back(tmp_insideJet);
+        jetID_out.push_back(tmp_jetID);
     }
 }
 
@@ -161,21 +160,21 @@ void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tga
  * This function is used to make sure that vectors of "gammaJet" object is reset only once,
  * not at each pair making.
  */
-void clearGammaJetPairs(GammaJet &tgammaJet, int phoIdx)
+void GammaJet::clearGammaJetPairs(int phoIdx)
 {
-    tgammaJet.jetIdx_out.clear();
-    tgammaJet.xjg_out.clear();
-    tgammaJet.deta_out.clear();
-    tgammaJet.dphi_out.clear();
-    tgammaJet.dR_out.clear();
-    tgammaJet.insideJet_out.clear();
-    tgammaJet.jetID_out.clear();
+    jetIdx_out.clear();
+    xjg_out.clear();
+    deta_out.clear();
+    dphi_out.clear();
+    dR_out.clear();
+    insideJet_out.clear();
+    jetID_out.clear();
 
-    tgammaJet.phoIdx_out = phoIdx;
-    tgammaJet.nJetinAwayRange_out = 0;
+    phoIdx_out = phoIdx;
+    nJetinAwayRange_out = 0;
 }
 
-void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &tgammaJet, int phoIdx)
+void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
     // all the jets must go into correlation,
     // no jet should be skipped.
@@ -184,12 +183,12 @@ void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &t
         // cuts on jets will be applied during plotting
         float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
         float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jtphi[i]);
-        if (TMath::Abs(tmp_dphi) > tgammaJet.awayRange)
-            tgammaJet.nJetinAwayRange_out++;
+        if (TMath::Abs(tmp_dphi) > awayRange)
+            nJetinAwayRange_out++;
         float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], tJets.jtphi[i]);
 
         int tmp_insideJet;
-        if(tmp_dR < tgammaJet.coneRange) tmp_insideJet = 1;
+        if(tmp_dR < coneRange) tmp_insideJet = 1;
         else                             tmp_insideJet = 0;
 
         int tmp_jetID = 0;
@@ -204,18 +203,18 @@ void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, GammaJet &t
             }
         }
 
-        tgammaJet.jetIdx_out.push_back(i);
+        jetIdx_out.push_back(i);
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
-            tgammaJet.xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+            xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
         }
         else {
-            tgammaJet.xjg_out.push_back(-1);
+            xjg_out.push_back(-1);
         }
-        tgammaJet.deta_out.push_back(tmp_deta);
-        tgammaJet.dphi_out.push_back(tmp_dphi);
-        tgammaJet.dR_out.push_back(tmp_dR);
-        tgammaJet.insideJet_out.push_back(tmp_insideJet);
-        tgammaJet.jetID_out.push_back(tmp_jetID);
+        deta_out.push_back(tmp_deta);
+        dphi_out.push_back(tmp_dphi);
+        dR_out.push_back(tmp_dR);
+        insideJet_out.push_back(tmp_insideJet);
+        jetID_out.push_back(tmp_jetID);
     }
 }
 

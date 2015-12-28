@@ -20,7 +20,7 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
   TFile *inHiForest = TFile::Open(inputHiForest);
   TTree *inTree = (TTree*)inHiForest->Get("ggHiNtuplizer/EventTree");
   ggHiNtuplizer pho;
-  setupPhotonTree(inTree, pho);
+  pho.setupTreeForReading(inTree);
 
   TTree *skimTree = (TTree*)inHiForest->Get("skimanalysis/HltTree");
   Int_t HBHENoiseFilterResult;

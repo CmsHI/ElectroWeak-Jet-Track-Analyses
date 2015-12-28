@@ -266,7 +266,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeEvent->SetBranchAddress("lumis", &lumis);
 
        ggHiNtuplizer ggHi;
-       setupPhotonTree(treeggHiNtuplizer, ggHi);        // treeggHiNtuplizer is input
+       ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
        Jets jets;
        jets.setupTreeForReading(treeJet);               // treeJet is input
 
@@ -343,14 +343,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        // objects for z-jet correlations
        dielectron diEle;
-       branchDiElectronTree(diElectronTree, diEle);     // diElectronTree is output
+       diEle.branchDiElectronTree(diElectronTree);     // diElectronTree is output
 
        TTree *zJetTree = new TTree("zJet","leading z-jet correlations");
        zJetTree->SetMaxTreeSize(MAXTREESIZE);
        ZJet zjet;
        zjet.resetAwayRange();
        zjet.resetConeRange();
-       branchZJetTree(zJetTree, zjet);
+       zjet.branchZJetTree(zJetTree);
 
        // mixed-event block
        Jets jetsMBoutput;     // object to write jet trees from MB events
@@ -365,7 +365,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            zjetMB.resetAwayRange();
            zjetMB.resetConeRange();
-           branchZJetTree(zJetTreeMB, zjetMB);
+           zjetMB.branchZJetTree(zJetTreeMB);
        }
 
        EventMatcher* em = new EventMatcher();
@@ -407,7 +407,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            if(ggHi.nEle < cut_nEle)  continue;
 
            // construct dielectron pairs during zJet skim
-           makeDiElectronPairs(ggHi,diEle);
+           diEle.makeDiElectronPairs(ggHi);
 
            // z-jet block
            // find leading z
@@ -456,7 +456,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            // z-jet correlation
            // leading z Boson is correlated to each jet in the event.
-           makeZJetPairs(diEle, jets, zjet, zIdx, true);
+           zjet.makeZJetPairs(diEle, jets, zIdx, true);
 
            if(doMix > 0)
            {
@@ -464,7 +464,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                int vzBin   = (vz+15) / vertexBinWidth;
                jetsMBoutput.nref = 0;
 
-               clearZJetPairs(zjetMB, zIdx);
+               zjetMB.clearZJetPairs(zIdx);
                if (nMB[centBin][vzBin] >= nEventsToMix)
                {
                    for (int i=0; i<nEventsToMix; ++i)
@@ -472,7 +472,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        Long64_t entryMB = iterMB[centBin][vzBin] % nMB[centBin][vzBin];     // roll back to the beginning if out of range
                        treeJetMB[centBin][vzBin]->GetEntry(entryMB);
 
-                       makeZJetPairsMB(diEle, jetsMB, zjetMB, zIdx, true);
+                       zjetMB.makeZJetPairsMB(diEle, jetsMB, zIdx, true);
 
                        // write jets from minBiasJetSkimFile to outputFile
                        for(int j = 0; j < jetsMB.nref; ++j)

@@ -1,23 +1,13 @@
-#ifndef SetupJetTree
-#define SetupJetTree
+#ifndef JetTree
+#define JetTree
 
-//////////////////////////////////////////////////////////
-// This class has been automatically generated on
-// Wed Jun 20 12:21:51 2012 by ROOT version 5.27/06b
-// from TTree t/akPu3PFpatJets Jet Analysis Tree
-// found on file: ../Pythia30_HydjetDrum_mix01_HiForest2_v19.root
-//////////////////////////////////////////////////////////
-#include <iostream>
-#include <TROOT.h>
-#include <TChain.h>
-#include <TFile.h>
 #include <TTree.h>
 #include <TBranch.h>
 
+#include <vector>
+
 const unsigned int maxJets = 10000;     // set upper limit 10K to cover the jet trees from MB mixing
 const unsigned int maxGenJets = 100;
-
-using namespace std;
 
 class Jets {
 public :
@@ -261,8 +251,8 @@ public :
     if (t->GetBranch("fr01EM")) t->SetBranchAddress("fr01EM", fr01EM, &b_fr01EM);
     if (t->GetBranch("fr01")) t->SetBranchAddress("fr01", fr01, &b_fr01);
     //if (doCheck) {
-    if (t->GetMaximum("nref")>maxJets){ cout <<"FATAL ERROR: Arrary size of nref too small!!!  "<<t->GetMaximum("nref")<<endl; exit(0);}
-    if (t->GetMaximum("ngen")>maxGenJets){ cout <<"FATAL ERROR: Arrary size of ngen too small!!!  "<<t->GetMaximum("ngen")<<endl; exit(0);}
+    if (t->GetMaximum("nref")>maxJets){ std::cout <<"FATAL ERROR: Arrary size of nref too small!!!  "<<t->GetMaximum("nref")<<std::endl; exit(0);}
+    if (t->GetMaximum("ngen")>maxGenJets){ std::cout <<"FATAL ERROR: Arrary size of ngen too small!!!  "<<t->GetMaximum("ngen")<<std::endl; exit(0);}
     //}
   }
 

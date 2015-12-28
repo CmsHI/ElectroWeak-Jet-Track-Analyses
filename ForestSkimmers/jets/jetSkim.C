@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../TreeHeaders/SetupJetTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../TreeHeaders/JetTree.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 
 void jetSkim(const TString configFile, const TString inputHiForest, const TString outputSkimFile)
@@ -28,7 +28,7 @@ void jetSkim(const TString configFile, const TString inputHiForest, const TStrin
   TTree *inPhoTree = (TTree*)inHiForest->Get("ggHiNtuplizer/EventTree");
   ggHiNtuplizer pho;
   if(requirePhotonInEvent)
-    setupPhotonTree(inPhoTree, pho);
+    pho.setupTreeForReading(inPhoTree);
 
   TTree *skimTree = (TTree*)inHiForest->Get("skimanalysis/HltTree");
   Int_t HBHENoiseFilterResult;

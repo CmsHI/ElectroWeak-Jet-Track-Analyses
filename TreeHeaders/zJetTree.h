@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "../Plotting/commonUtility.h"
-#include "SetupJetTree.h"
 #include "dielectronTree.h"
+#include "JetTree.h"
 
 class ZJet {
 public :
@@ -32,6 +32,11 @@ public :
     ~ZJet(){};
     void resetAwayRange() { awayRange = TMath::Pi() * 7./8.; }
     void resetConeRange() { coneRange = 0.4 ; }
+    void setupZJetTree(TTree *t);
+    void branchZJetTree(TTree *t);
+    void makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
+    void clearZJetPairs(int zIdx);
+    void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
 
     float awayRange;
     float coneRange;
@@ -83,63 +88,57 @@ public :
 
 };
 
-void setupZJetTree(TTree *t,ZJet &tzJet);
-void branchZJetTree(TTree *t,ZJet &tzJet);
-void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, bool use_diEle_out = true);
-void clearZJetPairs(ZJet &tzJet, int zIdx);
-void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, bool use_diEle_out = true);
-
-void setupZJetTree(TTree *t,ZJet &tzJet)
+void ZJet::setupZJetTree(TTree *t)
 {
-    if (t->GetBranch("zIdx"))  t->SetBranchAddress("zIdx", &tzJet.zIdx, &tzJet.b_zIdx);
-    if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &tzJet.jetIdx, &tzJet.b_jetIdx);
-    if (t->GetBranch("xjz"))  t->SetBranchAddress("xjz", &tzJet.xjz, &tzJet.b_xjz);
-    if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &tzJet.deta, &tzJet.b_deta);
-    if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &tzJet.dphi, &tzJet.b_dphi);
-    if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &tzJet.dR, &tzJet.b_dR);
-    if (t->GetBranch("dR_ele_1"))  t->SetBranchAddress("dR_ele_1", &tzJet.dR_ele_1, &tzJet.b_dR_ele_1);
-    if (t->GetBranch("dR_ele_2"))  t->SetBranchAddress("dR_ele_2", &tzJet.dR_ele_2, &tzJet.b_dR_ele_2);
-    if (t->GetBranch("insideJet"))  t->SetBranchAddress("insideJet", &tzJet.insideJet, &tzJet.b_insideJet);
-    if (t->GetBranch("insideJet_ele_1"))  t->SetBranchAddress("insideJet_ele_1", &tzJet.insideJet_ele_1, &tzJet.b_insideJet_ele_1);
-    if (t->GetBranch("insideJet_ele_2"))  t->SetBranchAddress("insideJet_ele_2", &tzJet.insideJet_ele_2, &tzJet.b_insideJet_ele_2);
-    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &tzJet.nJetinAwayRange, &tzJet.b_nJetinAwayRange);
-    if (t->GetBranch("jetID"))  t->SetBranchAddress("jetID", &tzJet.jetID, &tzJet.b_jetID);
+    if (t->GetBranch("zIdx"))  t->SetBranchAddress("zIdx", &zIdx, &b_zIdx);
+    if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
+    if (t->GetBranch("xjz"))  t->SetBranchAddress("xjz", &xjz, &b_xjz);
+    if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
+    if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &dphi, &b_dphi);
+    if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &dR, &b_dR);
+    if (t->GetBranch("dR_ele_1"))  t->SetBranchAddress("dR_ele_1", &dR_ele_1, &b_dR_ele_1);
+    if (t->GetBranch("dR_ele_2"))  t->SetBranchAddress("dR_ele_2", &dR_ele_2, &b_dR_ele_2);
+    if (t->GetBranch("insideJet"))  t->SetBranchAddress("insideJet", &insideJet, &b_insideJet);
+    if (t->GetBranch("insideJet_ele_1"))  t->SetBranchAddress("insideJet_ele_1", &insideJet_ele_1, &b_insideJet_ele_1);
+    if (t->GetBranch("insideJet_ele_2"))  t->SetBranchAddress("insideJet_ele_2", &insideJet_ele_2, &b_insideJet_ele_2);
+    if (t->GetBranch("nJetinAwayRange"))  t->SetBranchAddress("nJetinAwayRange", &nJetinAwayRange, &b_nJetinAwayRange);
+    if (t->GetBranch("jetID"))  t->SetBranchAddress("jetID", &jetID, &b_jetID);
 }
 
-void branchZJetTree(TTree *t,ZJet &tzJet)
+void ZJet::branchZJetTree(TTree *t)
 {
-    t->Branch("zIdx", &tzJet.zIdx_out);
-    t->Branch("jetIdx", &tzJet.jetIdx_out);
-    t->Branch("xjz", &tzJet.xjz_out);
-    t->Branch("deta", &tzJet.deta_out);
-    t->Branch("dphi", &tzJet.dphi_out);
-    t->Branch("dR", &tzJet.dR_out);
-    t->Branch("dR_ele_1", &tzJet.dR_ele_1_out);
-    t->Branch("dR_ele_2", &tzJet.dR_ele_2_out);
-    t->Branch("insideJet", &tzJet.insideJet_out);
-    t->Branch("insideJet_ele_1", &tzJet.insideJet_ele_1_out);
-    t->Branch("insideJet_ele_2", &tzJet.insideJet_ele_2_out);
-    t->Branch("nJetinAwayRange", &tzJet.nJetinAwayRange_out);
-    t->Branch("jetID", &tzJet.jetID_out);
+    t->Branch("zIdx", &zIdx_out);
+    t->Branch("jetIdx", &jetIdx_out);
+    t->Branch("xjz", &xjz_out);
+    t->Branch("deta", &deta_out);
+    t->Branch("dphi", &dphi_out);
+    t->Branch("dR", &dR_out);
+    t->Branch("dR_ele_1", &dR_ele_1_out);
+    t->Branch("dR_ele_2", &dR_ele_2_out);
+    t->Branch("insideJet", &insideJet_out);
+    t->Branch("insideJet_ele_1", &insideJet_ele_1_out);
+    t->Branch("insideJet_ele_2", &insideJet_ele_2_out);
+    t->Branch("nJetinAwayRange", &nJetinAwayRange_out);
+    t->Branch("jetID", &jetID_out);
 }
 
-void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, bool use_diEle_out)
+void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
 {
     if (use_diEle_out) {
-        tzJet.jetIdx_out.clear();
-        tzJet.xjz_out.clear();
-        tzJet.deta_out.clear();
-        tzJet.dphi_out.clear();
-        tzJet.dR_out.clear();
-        tzJet.dR_ele_1_out.clear();
-        tzJet.dR_ele_2_out.clear();
-        tzJet.insideJet_out.clear();
-        tzJet.insideJet_ele_1_out.clear();
-        tzJet.insideJet_ele_2_out.clear();
-        tzJet.jetID_out.clear();
+        jetIdx_out.clear();
+        xjz_out.clear();
+        deta_out.clear();
+        dphi_out.clear();
+        dR_out.clear();
+        dR_ele_1_out.clear();
+        dR_ele_2_out.clear();
+        insideJet_out.clear();
+        insideJet_ele_1_out.clear();
+        insideJet_ele_2_out.clear();
+        jetID_out.clear();
 
-        tzJet.zIdx_out = zIdx;
-        tzJet.nJetinAwayRange_out = 0;
+        zIdx_out = zIdx;
+        nJetinAwayRange_out = 0;
 
         // all the jets must go into correlation,
         // no jet should be skipped.
@@ -148,20 +147,20 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             // cuts on jets will be applied during plotting
             float tmp_deta = getDETA(tdielectron.diEleEta_out.at(zIdx), tJets.jteta[i]);
             float tmp_dphi = getDPHI(tdielectron.diElePhi_out.at(zIdx), tJets.jtphi[i]);
-            if (TMath::Abs(tmp_dphi) > tzJet.awayRange)
-                tzJet.nJetinAwayRange_out++;
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
             float tmp_dR   = getDR(tdielectron.diEleEta_out.at(zIdx), tdielectron.diElePhi_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_1 = getDR(tdielectron.eleEta_1_out.at(zIdx), tdielectron.elePhi_1_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_2 = getDR(tdielectron.eleEta_2_out.at(zIdx), tdielectron.elePhi_2_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
 
             int tmp_insideJet;
-            if(tmp_dR < tzJet.coneRange) tmp_insideJet = 1;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
             else                         tmp_insideJet = 0;
             int tmp_insideJet_ele_1;
-            if(tmp_dR_ele_1 < tzJet.coneRange) tmp_insideJet_ele_1 = 1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
             else                               tmp_insideJet_ele_1 = 0;
             int tmp_insideJet_ele_2;
-            if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
             int tmp_jetID = 0;
@@ -176,39 +175,39 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
                 }
             }
 
-            tzJet.jetIdx_out.push_back(i);
+            jetIdx_out.push_back(i);
             if (tdielectron.diElePt_out.at(zIdx) > 0) {
-                tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
+                xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
             }
             else {
-                tzJet.xjz_out.push_back(-1);
+                xjz_out.push_back(-1);
             }
-            tzJet.deta_out.push_back(tmp_deta);
-            tzJet.dphi_out.push_back(tmp_dphi);
-            tzJet.dR_out.push_back(tmp_dR);
-            tzJet.dR_ele_1_out.push_back(tmp_dR_ele_1);
-            tzJet.dR_ele_2_out.push_back(tmp_dR_ele_2);
-            tzJet.insideJet_out.push_back(tmp_insideJet);
-            tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
-            tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
-            tzJet.jetID_out.push_back(tmp_jetID);
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
         }
     }
     else {
-        tzJet.jetIdx_out.clear();
-        tzJet.xjz_out.clear();
-        tzJet.deta_out.clear();
-        tzJet.dphi_out.clear();
-        tzJet.dR_out.clear();
-        tzJet.dR_ele_1_out.clear();
-        tzJet.dR_ele_2_out.clear();
-        tzJet.insideJet_out.clear();
-        tzJet.insideJet_ele_1_out.clear();
-        tzJet.insideJet_ele_2_out.clear();
-        tzJet.jetID_out.clear();
+        jetIdx_out.clear();
+        xjz_out.clear();
+        deta_out.clear();
+        dphi_out.clear();
+        dR_out.clear();
+        dR_ele_1_out.clear();
+        dR_ele_2_out.clear();
+        insideJet_out.clear();
+        insideJet_ele_1_out.clear();
+        insideJet_ele_2_out.clear();
+        jetID_out.clear();
 
-        tzJet.zIdx_out = zIdx;
-        tzJet.nJetinAwayRange_out = 0;
+        zIdx_out = zIdx;
+        nJetinAwayRange_out = 0;
 
         // all the jets must go into correlation,
         // no jet should be skipped.
@@ -217,20 +216,20 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
             // cuts on jets will be applied during plotting
             float tmp_deta = getDETA(tdielectron.diEleEta->at(zIdx), tJets.jteta[i]);
             float tmp_dphi = getDPHI(tdielectron.diElePhi->at(zIdx), tJets.jtphi[i]);
-            if (TMath::Abs(tmp_dphi) > tzJet.awayRange)
-                tzJet.nJetinAwayRange_out++;
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
             float tmp_dR   = getDR(tdielectron.diEleEta->at(zIdx), tdielectron.diElePhi->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_1 = getDR(tdielectron.eleEta_1->at(zIdx), tdielectron.elePhi_1->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_2 = getDR(tdielectron.eleEta_2->at(zIdx), tdielectron.elePhi_2->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
 
             int tmp_insideJet;
-            if(tmp_dR < tzJet.coneRange) tmp_insideJet = 1;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
             else                         tmp_insideJet = 0;
             int tmp_insideJet_ele_1;
-            if(tmp_dR_ele_1 < tzJet.coneRange) tmp_insideJet_ele_1 = 1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
             else                               tmp_insideJet_ele_1 = 0;
             int tmp_insideJet_ele_2;
-            if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
             int tmp_jetID = 0;
@@ -245,22 +244,22 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
                 }
             }
 
-            tzJet.jetIdx_out.push_back(i);
+            jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
-                tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
+                xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
             }
             else {
-                tzJet.xjz_out.push_back(-1);
+                xjz_out.push_back(-1);
             }
-            tzJet.deta_out.push_back(tmp_deta);
-            tzJet.dphi_out.push_back(tmp_dphi);
-            tzJet.dR_out.push_back(tmp_dR);
-            tzJet.dR_ele_1_out.push_back(tmp_dR_ele_1);
-            tzJet.dR_ele_2_out.push_back(tmp_dR_ele_2);
-            tzJet.insideJet_out.push_back(tmp_insideJet);
-            tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
-            tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
-            tzJet.jetID_out.push_back(tmp_jetID);
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
         }
     }
 }
@@ -271,25 +270,25 @@ void makeZJetPairs(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, 
  * This function is used to make sure that vectors of "zJet" object is reset only once,
  * not at each pair making.
  */
-void clearZJetPairs(ZJet &tzJet, int zIdx)
+void ZJet::clearZJetPairs(int zIdx)
 {
-    tzJet.jetIdx_out.clear();
-    tzJet.xjz_out.clear();
-    tzJet.deta_out.clear();
-    tzJet.dphi_out.clear();
-    tzJet.dR_out.clear();
-    tzJet.dR_ele_1_out.clear();
-    tzJet.dR_ele_2_out.clear();
-    tzJet.insideJet_out.clear();
-    tzJet.insideJet_ele_1_out.clear();
-    tzJet.insideJet_ele_2_out.clear();
-    tzJet.jetID_out.clear();
+    jetIdx_out.clear();
+    xjz_out.clear();
+    deta_out.clear();
+    dphi_out.clear();
+    dR_out.clear();
+    dR_ele_1_out.clear();
+    dR_ele_2_out.clear();
+    insideJet_out.clear();
+    insideJet_ele_1_out.clear();
+    insideJet_ele_2_out.clear();
+    jetID_out.clear();
 
-    tzJet.zIdx_out = zIdx;
-    tzJet.nJetinAwayRange_out = 0;
+    zIdx_out = zIdx;
+    nJetinAwayRange_out = 0;
 }
 
-void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx, bool use_diEle_out)
+void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
 {
     if (use_diEle_out){
         // all the jets must go into correlation,
@@ -299,20 +298,20 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             // cuts on jets will be applied during plotting
             float tmp_deta = getDETA(tdielectron.diEleEta_out.at(zIdx), tJets.jteta[i]);
             float tmp_dphi = getDPHI(tdielectron.diElePhi_out.at(zIdx), tJets.jtphi[i]);
-            if (TMath::Abs(tmp_dphi) > tzJet.awayRange)
-                tzJet.nJetinAwayRange_out++;
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
             float tmp_dR   = getDR(tdielectron.diEleEta_out.at(zIdx), tdielectron.diElePhi_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_1 = getDR(tdielectron.eleEta_1_out.at(zIdx), tdielectron.elePhi_1_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_2 = getDR(tdielectron.eleEta_2_out.at(zIdx), tdielectron.elePhi_2_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
 
             int tmp_insideJet;
-            if(tmp_dR < tzJet.coneRange) tmp_insideJet = 1;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
             else                         tmp_insideJet = 0;
             int tmp_insideJet_ele_1;
-            if(tmp_dR_ele_1 < tzJet.coneRange) tmp_insideJet_ele_1 = 1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
             else                               tmp_insideJet_ele_1 = 0;
             int tmp_insideJet_ele_2;
-            if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
             int tmp_jetID = 0;
@@ -327,22 +326,22 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
                 }
             }
 
-            tzJet.jetIdx_out.push_back(i);
+            jetIdx_out.push_back(i);
             if (tdielectron.diElePt_out.at(zIdx) > 0) {
-                tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
+                xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
             }
             else {
-                tzJet.xjz_out.push_back(-1);
+                xjz_out.push_back(-1);
             }
-            tzJet.deta_out.push_back(tmp_deta);
-            tzJet.dphi_out.push_back(tmp_dphi);
-            tzJet.dR_out.push_back(tmp_dR);
-            tzJet.dR_ele_1_out.push_back(tmp_dR_ele_1);
-            tzJet.dR_ele_2_out.push_back(tmp_dR_ele_2);
-            tzJet.insideJet_out.push_back(tmp_insideJet);
-            tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
-            tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
-            tzJet.jetID_out.push_back(tmp_jetID);
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
         }
     }
     else {
@@ -353,20 +352,20 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
             // cuts on jets will be applied during plotting
             float tmp_deta = getDETA(tdielectron.diEleEta->at(zIdx), tJets.jteta[i]);
             float tmp_dphi = getDPHI(tdielectron.diElePhi->at(zIdx), tJets.jtphi[i]);
-            if (TMath::Abs(tmp_dphi) > tzJet.awayRange)
-                tzJet.nJetinAwayRange_out++;
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
             float tmp_dR   = getDR(tdielectron.diEleEta->at(zIdx), tdielectron.diElePhi->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_1 = getDR(tdielectron.eleEta_1->at(zIdx), tdielectron.elePhi_1->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
             float tmp_dR_ele_2 = getDR(tdielectron.eleEta_2->at(zIdx), tdielectron.elePhi_2->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
 
             int tmp_insideJet;
-            if(tmp_dR < tzJet.coneRange) tmp_insideJet = 1;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
             else                         tmp_insideJet = 0;
             int tmp_insideJet_ele_1;
-            if(tmp_dR_ele_1 < tzJet.coneRange) tmp_insideJet_ele_1 = 1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
             else                               tmp_insideJet_ele_1 = 0;
             int tmp_insideJet_ele_2;
-            if(tmp_dR_ele_2 < tzJet.coneRange) tmp_insideJet_ele_2 = 1;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
             int tmp_jetID = 0;
@@ -381,22 +380,22 @@ void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, ZJet &tzJet, int zIdx
                 }
             }
 
-            tzJet.jetIdx_out.push_back(i);
+            jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
-                tzJet.xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
+                xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
             }
             else {
-                tzJet.xjz_out.push_back(-1);
+                xjz_out.push_back(-1);
             }
-            tzJet.deta_out.push_back(tmp_deta);
-            tzJet.dphi_out.push_back(tmp_dphi);
-            tzJet.dR_out.push_back(tmp_dR);
-            tzJet.dR_ele_1_out.push_back(tmp_dR_ele_1);
-            tzJet.dR_ele_2_out.push_back(tmp_dR_ele_2);
-            tzJet.insideJet_out.push_back(tmp_insideJet);
-            tzJet.insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
-            tzJet.insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
-            tzJet.jetID_out.push_back(tmp_jetID);
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
         }
     }
 }

@@ -24,7 +24,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 
-void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "drawTurnOn.root", const TString outputFigureName = "");
+void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "photonTurnOn.root", const TString outputFigureName = "");
 double calcTLegendHeight(int nEntries);
 double calcTLegendWidth(std::string label);
 
@@ -163,7 +163,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
     treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
     ggHiNtuplizer ggHi;
-    setupPhotonTree(treeggHiNtuplizer, ggHi);
+    ggHi.setupTreeForReading(treeggHiNtuplizer);
 
     TH1::SetDefaultSumw2();
     TH1D* h_pt = new TH1D("h_pt","Denominator;photon p_{T};", nBins, xLow, xUp);
@@ -248,7 +248,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     h_pt->Write();
 
     TCanvas* c = new TCanvas();
-    c->SetName("cnv_drawTurnOn");
+    c->SetName("cnv_photonTurnOn");
     c->SetTitle("");
     c->cd();
 

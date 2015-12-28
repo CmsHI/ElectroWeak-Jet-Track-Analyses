@@ -5,7 +5,7 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 //#include "../TreeHeaders/ggHiNtuplizerPhotonSkim.h"
-//#include "../TreeHeaders/SetupJetTree.h"
+//#include "../TreeHeaders/JetTree.h"
 
 void photonCorrections(const TString configFile, const TString inputPhoSkimFile,
 		       const TString inputJetSkimFile, const TString outputSkimFile)

@@ -39,7 +39,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
 
        ggHiNtuplizer ggHi;
-       setupPhotonTree(ggHiNtuplizerTree, ggHi);
+       ggHi.setupTreeForReading(ggHiNtuplizerTree);
 
        TFile* output = new TFile(outputFile.Data(),"UPDATE");
 
@@ -64,7 +64,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        diElectronTree->SetMaxTreeSize(MAXTREESIZE);
 
        dielectron diEle;
-       branchDiElectronTree(diElectronTree, diEle);
+       diEle.branchDiElectronTree(diElectronTree);
 
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;
@@ -93,7 +93,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
            if(ggHi.nEle < cut_nEle)  continue;
            entriesAnalyzed++;
 
-           makeDiElectronPairs(ggHi,diEle);
+           diEle.makeDiElectronPairs(ggHi);
 
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();

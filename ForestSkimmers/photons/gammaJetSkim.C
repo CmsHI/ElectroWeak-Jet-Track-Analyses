@@ -237,7 +237,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
        // objects for gamma jet correlations
        ggHiNtuplizer ggHi;
-       setupPhotonTree(treeggHiNtuplizer, ggHi);
+       ggHi.setupTreeForReading(treeggHiNtuplizer);
        Jets jets;
        jets.setupTreeForReading(treeJet);
 
@@ -313,7 +313,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        GammaJet gammajet;
        gammajet.resetAwayRange();
        gammajet.resetConeRange();
-       branchGammaJetTree(gammaJetTree, gammajet);
+       gammajet.branchGammaJetTree(gammaJetTree);
 
        // mixed-event block
        Jets jetsMBoutput;     // object to write jet trees from MB events
@@ -328,7 +328,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
            gammajetMB.resetAwayRange();
            gammajetMB.resetConeRange();
-           branchGammaJetTree(gammaJetTreeMB, gammajetMB);
+           gammajetMB.branchGammaJetTree(gammaJetTreeMB);
        }
 
        EventMatcher* em = new EventMatcher();
@@ -404,7 +404,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
            // photon-jet correlation
            // leading photon is correlated to each jet in the event.
-           makeGammaJetPairs(ggHi, jets, gammajet, phoIdx);
+           gammajet.makeGammaJetPairs(ggHi, jets, phoIdx);
 
            if(doMix > 0)
            {
@@ -412,7 +412,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                int vzBin   = (vz+15) / vertexBinWidth;
                jetsMBoutput.nref = 0;
 
-               clearGammaJetPairs(gammajetMB, phoIdx);
+               gammajetMB.clearGammaJetPairs(phoIdx);
                if (nMB[centBin][vzBin] >= nEventsToMix)
                {
                    for (int i=0; i<nEventsToMix; ++i)
@@ -420,7 +420,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                        Long64_t entryMB = iterMB[centBin][vzBin] % nMB[centBin][vzBin];     // roll back to the beginning if out of range
                        treeJetMB[centBin][vzBin]->GetEntry(entryMB);
 
-                       makeGammaJetPairsMB(ggHi, jetsMB, gammajetMB, phoIdx);
+                       gammajetMB.makeGammaJetPairsMB(ggHi, jetsMB, phoIdx);
 
                        // write jets from minBiasJetSkimFile to outputFile
                        for(int j = 0; j < jetsMB.nref; ++j)
