@@ -47,6 +47,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        std::string jetCollection;
        int cut_nEle;
+       float eleSigmaIEtaIEta_2012_EB;
+       float eleSigmaIEtaIEta_2012_EE;
+       float eleHoverE_EB;
+       float eleHoverE_EE;
        float cutZMassMin;
        float cutZMassMax;
        float cutZPt;
@@ -60,6 +64,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        if (configCuts.isValid) {
            jetCollection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
+           eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
+           eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
+           eleHoverE_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EB];
+           eleHoverE_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EE];
            cutZMassMin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
            cutZMassMax = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
            cutZPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_pt];
@@ -74,6 +82,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        else {
            jetCollection = "ak4PFJetAnalyzer";
            cut_nEle = 2;
+           eleSigmaIEtaIEta_2012_EB = 0.02;
+           eleSigmaIEtaIEta_2012_EE = 0.045;
+           eleHoverE_EB = 0.2;
+           eleHoverE_EE = 0.15;
+
            cutZMassMin = 80;
            cutZMassMax = 100;
            cutZPt = 15;
@@ -98,6 +111,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 
        std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
+       std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
+       std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
+       std::cout<<"eleHoverE_EB = "<<eleHoverE_EB<<std::endl;
+       std::cout<<"eleHoverE_EE = "<<eleHoverE_EE<<std::endl;
        std::cout<<"cutZMassMin = "<<cutZMassMin<<std::endl;
        std::cout<<"cutZMassMax = "<<cutZMassMax<<std::endl;
        std::cout<<"cutZPt   = "<<cutZPt<<std::endl;
@@ -248,6 +265,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeEvent->SetBranchAddress("event", &event);
        treeEvent->SetBranchAddress("lumis", &lumis);
 
+       ggHiNtuplizer ggHi;
+       setupPhotonTree(treeggHiNtuplizer, ggHi);        // treeggHiNtuplizer is input
+       Jets jets;
+       jets.setupTreeForReading(treeJet);               // treeJet is input
+
        // mixed-event block
        int centBinWidth = 0;
        int vertexBinWidth = 0;
@@ -322,10 +344,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        // objects for z-jet correlations
        dielectron diEle;
        branchDiElectronTree(diElectronTree, diEle);     // diElectronTree is output
-       ggHiNtuplizer ggHi;
-       setupPhotonTree(treeggHiNtuplizer, ggHi);        // treeggHiNtuplizer is input
-       Jets jets;
-       jets.setupTreeForReading(treeJet);               // treeJet is input
 
        TTree *zJetTree = new TTree("zJet","leading z-jet correlations");
        zJetTree->SetMaxTreeSize(MAXTREESIZE);
@@ -406,6 +424,26 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                if (failedEtaCut)         continue;
                if (failedMassWindow)     continue;
                if (failedOppositeCh)     continue;
+
+               // some extra and rather loose cuts based on eta region
+               // electron 1
+               if (TMath::Abs(diEle.eleEta_1_out.at(i)) < 1.4791) {
+                   if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                   if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EB)                          continue;
+               }
+               else if (TMath::Abs(diEle.eleEta_1_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_1_out.at(i)) < 2.4) {
+                   if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                   if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
+               }
+               // electron 2
+               if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
+                   if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                   if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EB)                          continue;
+               }
+               else if (TMath::Abs(diEle.eleEta_2_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_2_out.at(i)) < 2.4) {
+                   if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                   if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
+               }
 
                if (diEle.diElePt_out.at(i) > maxZPt)
                {
