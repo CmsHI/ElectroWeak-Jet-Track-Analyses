@@ -16,11 +16,13 @@ namespace CUTS {
 
     enum I_CUTS{
       k_requirePhotonInEvent,
+      k_jetID,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
-      "requirePhotonInEvent"
+      "requirePhotonInEvent",
+      "jetID"
     };
 
     enum S_CUTS{

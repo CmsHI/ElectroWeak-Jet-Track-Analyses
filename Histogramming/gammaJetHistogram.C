@@ -87,6 +87,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // jet cuts
     float cut_jetpt;
     float cut_jeteta;
+    int   cut_jetID;
     // gammaJet cuts
     float cut_awayRange;
     float cut_dR;
@@ -123,6 +124,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
+        cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
 
         cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange];
         cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
@@ -159,6 +161,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         cut_jetpt = 40;
         cut_jeteta = 1.6;
+        cut_jetID = 0;      // jetID >= 0
 
         cut_awayRange = 7./8.;
         cut_dR = 0.4;
@@ -201,6 +204,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     std::cout<<"cut_jetpt                 = "<< cut_jetpt <<std::endl;
     std::cout<<"cut_jeteta                = "<< cut_jeteta <<std::endl;
+    std::cout<<"cut_jetID                 = "<< cut_jetID <<std::endl;
 
     std::cout<<"cut_awayRange             = "<< cut_awayRange << " * PI" <<std::endl;
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
@@ -451,6 +455,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             selectionJet = selectionJet && Form("dR >= %f", cut_dR);
             selectionJet = selectionJet && Form("jtpt > %f", cut_jetpt);
             selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
+            selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
 
             TCut selection_Barrel = "1";    // no extra selection at the moment
             TCut selection_Endcap = "1";    // no extra selection at the moment

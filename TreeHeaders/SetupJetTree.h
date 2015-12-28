@@ -268,7 +268,6 @@ public :
 
   void setupTreeForWriting(TTree *t)
   {
-    // Set branch addresses and branch pointers
     t->Branch("event", &event);
     t->Branch("run", &run);
     t->Branch("lumi", &lumi);
@@ -378,7 +377,6 @@ public :
   // make branches for trees whose single entry consists of multiple entries MB jet trees
   void setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
   {
-      // Set branch addresses and branch pointers
       t->Branch("b",&b,"b/F");
 
       t->Branch("nref",&nref,"nref/I");
