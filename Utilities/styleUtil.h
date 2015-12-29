@@ -5,7 +5,9 @@
 #include <TCanvas.h>
 #include <TLatex.h>
 #include <TLegend.h>
+#include <TLegendEntry.h>
 #include <TList.h>
+#include <TIterator.h>
 #include <TH1.h>
 #include <TH1D.h>
 #include <TAttFill.h>
@@ -19,7 +21,10 @@
 void setCanvasFinal(TCanvas* c);
 void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width);
+double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
+double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset = 0.05);
 
@@ -69,9 +74,13 @@ void setLegendFinal(TLegend* legend)
     legend->SetFillStyle(0);  // kFEmpty = 0
 }
 
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c)
+{
+    setLegendPosition(legend, position, c, legend->GetX2NDC() - legend->GetX1NDC(), legend->GetY2NDC() - legend->GetY1NDC());
+}
+
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width)
 {
-    // histograms for different centralities
     if (position.compare("NW") == 0) { // upper-left corner
         legend->SetX1(c->GetLeftMargin());
         legend->SetY1(1 - c->GetTopMargin() - height);
@@ -96,6 +105,36 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
         legend->SetX2(1 - c->GetRightMargin());
         legend->SetY2(c->GetBottomMargin() + height);
     }
+}
+
+/*
+ *  calculate a proper height for the TLegend object using the number of rows (excluding the header)
+ */
+double calcTLegendHeight(TLegend* legend, double offset, double ratio) {
+
+    int nEntries = legend->GetNRows();
+    if (legend->GetHeader() != NULL) nEntries--;
+    return ratio*nEntries + offset;
+}
+
+/*
+ *  calculate a proper width for the TLegend object that can cover the entry with longest label (excluding the header)
+ */
+double calcTLegendWidth(TLegend* legend, double offset, double ratio, double threshold) {
+
+    TIter iter(legend->GetListOfPrimitives());
+    TLegendEntry* entry;
+    double w = 0;
+    while (( entry = (TLegendEntry*)iter.Next() )) {
+        std::string label = entry->GetLabel();
+        if (label.compare(legend->GetHeader()) == 0)  continue;    // in this case, assume that the entry is actually the header
+
+        double tmp = ratio*label.length() + offset;
+        if (tmp < threshold) tmp = threshold;
+        if (tmp > w) w = tmp;
+    }
+
+    return w;
 }
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset)

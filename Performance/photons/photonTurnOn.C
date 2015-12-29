@@ -23,10 +23,9 @@
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/styleUtil.h"
 
 void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "photonTurnOn.root", const TString outputFigureName = "");
-double calcTLegendHeight(int nEntries);
-double calcTLegendWidth(std::string label);
 
 void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
 {
@@ -36,21 +35,24 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
     bool doHoverE = false;
-    std::string legendPosition = "SE";  // 2 options : "NW" = upper left corner, "SE" = bottom right corner.
     std::cout << "doHoverE = " << doHoverE << std::endl;
-    std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     std::vector<float> TH1D_Bins;      // nBins, xLow, xUp for the TH1D histogram
+    std::string legendPosition;
     if (configInput.isValid) {
         TH1D_Bins = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+
+        legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
     }
     else {
         TH1D_Bins.push_back(40);    // nBins
         TH1D_Bins.push_back(0);     // xLow
         TH1D_Bins.push_back(80);    // xUp
+
+        legendPosition = "SE";
     }
 
     int nTH1D_Bins = TH1D_Bins.size();
@@ -63,6 +65,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     std::cout << "nBins = " << nBins << std::endl;
     std::cout << "xLow  = " << xLow << std::endl;
     std::cout << "xUp   = " << xUp << std::endl;
+    std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     float cutPhoEta;
     std::vector<std::string> triggerBranchesNum;        // triggers that go into numerator
@@ -268,20 +271,8 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     line->SetLineStyle(kDashed);
     line->Draw();
 
-    double height = calcTLegendHeight(nTriggersNum);
-    double width  = -1; // width is set using entry with the longest label
-    for (int i=0; i<nTriggersNum; ++i) {
-        double tmpWidth = calcTLegendWidth(triggerBranchesNum.at(i).c_str());
-        if (tmpWidth>width) width = tmpWidth;
-    }
-
-    TLegend* leg;
-    if (legendPosition.compare("NW") == 0) {
-        leg = new TLegend(0.1, 0.9-height, 0.1 + width, 0.9, "Triggers");    // upper-left corner
-    }
-    else {  // assumes legendPosition = "SE"
-        leg = new TLegend(0.9 - width, 0.1, 0.9, 0.1+height, "Triggers");      // bottom-right corner
-    }
+    TLegend* leg = new TLegend();
+    leg->SetHeader("Triggers");
 
     // assume not more than 13 curves are drawn.
     int turnOnColors[13] = {kBlack, kBlue, kRed,   kOrange,  kViolet, kCyan, kSpring, kYellow,
@@ -305,6 +296,9 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
 
         leg->AddEntry(a[i], triggerBranchesNum.at(i).c_str(), "lp");
     }
+    double height = calcTLegendHeight(leg);
+    double width = calcTLegendWidth(leg);
+    setLegendPosition(leg, legendPosition, c, height, width);
     leg->Draw();
     c->Write();
 
@@ -340,24 +334,4 @@ int main(int argc, char** argv)
                 << std::endl;
         return 1;
     }
-}
-
-/*
- *  calculate a proper height for the TLegend object for the given number of entries
- */
-double calcTLegendHeight(int nEntries) {
-
-    double offset = 0.0375;    // offset due to the header
-    return nEntries*0.0375 + offset;
-}
-
-/*
- *  calculate a proper width for the TLegend object for the given entry label
- */
-double calcTLegendWidth(std::string label) {
-
-    double offset = 0.06;   // offset due to the line/marker of the entry
-    double w = (25./30)*0.01*label.length() + offset;
-    if (w<0.2) w = 0.2;
-    return w;
 }

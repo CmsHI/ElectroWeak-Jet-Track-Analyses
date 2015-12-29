@@ -31,8 +31,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 void setCanvas_energyScale(TCanvas* c);
 void setTH1_energyScale(TH1* h);
 void setTH1_energyWidth(TH1* h);
-double calcTLegendHeight(int nEntries);
-double calcTLegendWidth(std::string label);
 
 void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
 {
@@ -42,9 +40,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
     bool doHoverE = false;
-    std::string legendPosition = "NW";  // 2 options : "NW" = upper left corner, "SE" = bottom right corner.
     std::cout << "doHoverE = " << doHoverE << std::endl;
-    std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -52,16 +48,21 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     // input configuration
     std::vector<int> bins_hiBin[2];         // array of vectors for hiBin bins, each array element is a vector.
     int collision;
+    std::string legendPosition;
     if (configInput.isValid) {
         collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
         bins_hiBin[0] = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_hiBin_List_gt]);
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_hiBin_List_lt]);
+
+        legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
     }
     else {
         collision = COLL::kPP;
 
         bins_hiBin[0].push_back(0);
         bins_hiBin[1].push_back(200);
+
+        legendPosition = "NW";
     }
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
     int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -72,6 +73,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     for (int i=0; i<nBins_hiBin; ++i) {
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
+    std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
     std::vector<float> cuts_genPt;        // list of pt cuts for GEN-level photons matched to RECO photons
@@ -360,18 +362,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             c->cd();
             setCanvas_energyScale(c);
 
-            double height = calcTLegendHeight(nBins_hiBin);
-            double width  = calcTLegendWidth(tmpHistTitle.c_str()); // width is set using entry with the longest label
-            for (int i=0; i<nBins_hiBin; ++i) {
-                std::string hiBinStr = Form("hiBin:%d-%d%%", bins_hiBin[0].at(i)/2, bins_hiBin[1].at(i)/2);
-                double tmpWidth = calcTLegendWidth(hiBinStr.c_str());
-                if (tmpWidth>width) width = tmpWidth;
-            }
-
             // histograms for different centralities
             legend = new TLegend();
             legend->SetHeader(tmpHistTitle.c_str());
-            setLegendPosition(legend, legendPosition, c, height, width);
             for (int i = 0; i < nBins_hiBin; ++i) {
 
                 setTH1_energyScale(hist_depEta[i][iGenPt][iRecoPt].h1D[0]);
@@ -381,6 +374,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 std::string hiBinStr = Form("hiBin:%d-%d%%", bins_hiBin[0].at(i)/2, bins_hiBin[1].at(i)/2);
                 legend->AddEntry(hist_depEta[i][iGenPt][iRecoPt].h1D[0], hiBinStr.c_str(), "lp");
             }
+            double height = calcTLegendHeight(legend, 0.0475);
+            double width = calcTLegendWidth(legend);
+            setLegendPosition(legend, legendPosition, c, height, width);
             legend->Draw();
 
             // draw line y = 1
@@ -459,24 +455,4 @@ void setTH1_energyWidth(TH1* h) {
     h->SetAxisRange(0,0.5,"Y");
     h->SetStats(false);
     h->SetMarkerStyle(kFullCircle);
-}
-
-/*
- *  calculate a proper height for the TLegend object for the given number of entries
- */
-double calcTLegendHeight(int nEntries) {
-
-    double offset = 0.0475;    // offset due to the header
-    return nEntries*0.0375 + offset;
-}
-
-/*
- *  calculate a proper width for the TLegend object for the given entry label
- */
-double calcTLegendWidth(std::string label) {
-
-    double offset = 0.06;   // offset due to the line/marker of the entry
-    double w = (25./30)*0.01*label.length() + offset;
-    if (w<0.2) w = 0.2;
-    return w;
 }
