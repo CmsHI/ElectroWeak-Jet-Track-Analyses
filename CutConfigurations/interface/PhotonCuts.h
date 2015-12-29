@@ -101,6 +101,10 @@ namespace CUTS {
       k_trigger_diphoton,
       k_triggerNum_List,
       k_triggerDenom_List,
+      k_mcPt_List,
+      k_pt_List,
+      k_bins_eta_gt,
+      k_bins_eta_lt,
       kN_S_CUTS
     };
 
@@ -109,7 +113,11 @@ namespace CUTS {
       "trigger_gammaJet",
       "trigger_diphoton",
       "triggerNum_List",     // label ends with "_List". this means the input will be a list of strings
-      "triggerDenom_List"
+      "triggerDenom_List",
+      "mcPt_List",
+      "pt_List",
+      "bins_eta_gt",     // label starts with "bins_". this means the input will be a list of strings
+      "bins_eta_lt"
     };
 
   };
