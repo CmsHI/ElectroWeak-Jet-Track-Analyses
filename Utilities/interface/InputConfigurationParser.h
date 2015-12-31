@@ -50,16 +50,12 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
 enum TYPE_S{
     k_legendPosition,       // one of NW, NE, SW, SE
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
-    k_hiBin_List_gt,        // the current centrality bin is greater or equal to these centrality bins
-    k_hiBin_List_lt,        // the current centrality bin is less than these centrality bins
     kN_TYPES_S
 };
 
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "legendPosition",
-        "TH1D_Bins_List",
-        "hiBin_List_gt",
-        "hiBin_List_lt"
+        "TH1D_Bins_List"
 };
 
 enum PROCESS{

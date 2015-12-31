@@ -46,36 +46,26 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     // input configuration
-    std::vector<int> bins_hiBin[2];         // array of vectors for hiBin bins, each array element is a vector.
     int collision;
     std::string legendPosition;
     if (configInput.isValid) {
         collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
-        bins_hiBin[0] = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_hiBin_List_gt]);
-        bins_hiBin[1] = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_hiBin_List_lt]);
 
         legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
     }
     else {
         collision = COLL::kPP;
 
-        bins_hiBin[0].push_back(0);
-        bins_hiBin[1].push_back(200);
-
         legendPosition = "NW";
     }
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
-    int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "collision = " << collisionName << std::endl;
-    std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
-    for (int i=0; i<nBins_hiBin; ++i) {
-        std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
-    }
     std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
 
     std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
+    std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
     std::vector<float> cuts_genPt;        // list of pt cuts for GEN-level photons matched to RECO photons
     std::vector<float> cuts_recoPt;       // list of pt cuts for RECO photons
     if (configCuts.isValid) {
@@ -83,6 +73,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
         bins_eta[1] = ConfigurationParser::ParseListFloat(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_lt]);
+        bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+        bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
         cuts_genPt = ConfigurationParser::ParseListFloat(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_mcPt_List]);
@@ -92,11 +86,14 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     else {
         bins_eta[0].push_back(0);
         bins_eta[1].push_back(2.4);
+        bins_hiBin[0].push_back(0);
+        bins_hiBin[1].push_back(200);
 
         cuts_genPt.push_back(15);
         cuts_recoPt.push_back(0);
     }
-    int nBins_eta = bins_eta[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    int nBins_eta = bins_eta[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+    int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     int nCuts_genPt = cuts_genPt.size();
     int nCuts_recoPt = cuts_recoPt.size();
     // verbose about cut configuration
@@ -104,6 +101,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
     for (int i=0; i<nBins_eta; ++i) {
         std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
+    for (int i=0; i<nBins_hiBin; ++i) {
+        std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
     std::cout << "nCuts_genPt = " << nCuts_genPt << std::endl;
     for (int i=0; i<nCuts_genPt; ++i) {

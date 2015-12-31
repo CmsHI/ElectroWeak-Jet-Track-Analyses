@@ -105,6 +105,8 @@ namespace CUTS {
       k_pt_List,
       k_bins_eta_gt,
       k_bins_eta_lt,
+      k_bins_pt_gt,
+      k_bins_pt_lt,
       kN_S_CUTS
     };
 
@@ -117,7 +119,9 @@ namespace CUTS {
       "mcPt_List",
       "pt_List",
       "bins_eta_gt",     // label starts with "bins_". this means the input will be a list of strings
-      "bins_eta_lt"
+      "bins_eta_lt",
+      "bins_pt_gt",      // label starts with "bins_". this means the input will be a list of strings
+      "bins_pt_lt"
     };
 
   };
