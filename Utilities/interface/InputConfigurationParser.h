@@ -19,8 +19,8 @@
 namespace INPUT {
 
 struct ProcessInputs{
-    std::vector<float> f;
     std::vector<int> i;
+    std::vector<float> f;
     std::vector<std::string> s;
 
     std::vector<char*> c; // this is a c-string copy of s
@@ -51,9 +51,21 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "setLogy"
 };
 
+enum TYPE_F{
+    k_legendOffsetX,
+    k_legendOffsetY,
+    kN_TYPES_F
+};
+
+const std::string TYPE_F_LABELS[kN_TYPES_F] = {
+        "legendOffsetX",
+        "legendOffsetY"
+};
+
 enum TYPE_S{
     k_TH1_formula,
     k_TH1_selection,
+    k_TH1_selectionBase,    // selection that is applied/valid for all observables
     k_TH1_title,
     k_TH1_titleX,
     k_TH1_titleY,
@@ -68,6 +80,7 @@ enum TYPE_S{
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TH1_formula",
         "TH1_selection",
+        "TH1_selectionBase",
         "TH1_title",
         "TH1_titleX",
         "TH1_titleY",
@@ -164,6 +177,7 @@ public:
 
         for(int i = 0 ; i < INPUT::kN_PROCESSES; ++i){
             config.proc[i].i.resize(INPUT::kN_TYPES_I);
+            config.proc[i].f.resize(INPUT::kN_TYPES_F);
             config.proc[i].s.resize(INPUT::kN_TYPES_S);
             config.proc[i].c.resize(INPUT::kN_TYPES_S);
         }
@@ -204,6 +218,17 @@ public:
                     int in;
                     sin >> in;
                     config.proc[proc].i[j] = in;
+                    success = true;
+                    break;
+                }
+            }
+
+            for(int j = 0; j < INPUT::kN_TYPES_F; ++j){
+                std::string label = Form(".%s ",INPUT::TYPE_F_LABELS[j].c_str());    // prevent substring matching, e.g. : "doPP" and "doPPMC"
+                if (line.find(label) != std::string::npos) {
+                    float in;
+                    sin >> in;
+                    config.proc[proc].f[j] = in;
                     success = true;
                     break;
                 }

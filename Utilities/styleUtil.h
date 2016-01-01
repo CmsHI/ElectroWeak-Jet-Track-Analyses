@@ -22,7 +22,7 @@ void setCanvasFinal(TCanvas* c, int logy = 0);
 void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
-void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width);
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
 
@@ -81,31 +81,36 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c)
     setLegendPosition(legend, position, c, legend->GetX2NDC() - legend->GetX1NDC(), legend->GetY2NDC() - legend->GetY1NDC());
 }
 
-void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width)
+/*
+ * offsetX and offsetY are the distances of the legend from the corresponding corner.
+ * Ex. If position = NE, then the legend will be put such that the upper-right corner of the legend
+ *     has distance of offsetX and offsetY to the upper-right corner of the canvas
+ */
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX, double offsetY)
 {
     if (position.compare("NW") == 0) { // upper-left corner
-        legend->SetX1(c->GetLeftMargin());
-        legend->SetY1(1 - c->GetTopMargin() - height);
-        legend->SetX2(c->GetLeftMargin() + width);
-        legend->SetY2(1 - c->GetTopMargin());
+        legend->SetX1(c->GetLeftMargin() + offsetX);
+        legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
+        legend->SetX2(c->GetLeftMargin() + width + offsetX);
+        legend->SetY2(1 - c->GetTopMargin() - offsetY);
     }
     else if (position.compare("NE") == 0) { // upper-right corner
-        legend->SetX1(1 - c->GetRightMargin() - width);
-        legend->SetY1(1 - c->GetTopMargin() - height);
-        legend->SetX2(1 - c->GetRightMargin());
-        legend->SetY2(1 - c->GetTopMargin());
+        legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
+        legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
+        legend->SetX2(1 - c->GetRightMargin() - offsetX);
+        legend->SetY2(1 - c->GetTopMargin() - offsetY);
     }
     else if (position.compare("SW") == 0) { // lower-left corner
-        legend->SetX1(c->GetLeftMargin());
-        legend->SetY1(c->GetBottomMargin());
-        legend->SetX2(c->GetLeftMargin() + width);
-        legend->SetY2(c->GetBottomMargin() + height);
+        legend->SetX1(c->GetLeftMargin() + offsetX);
+        legend->SetY1(c->GetBottomMargin() + offsetY);
+        legend->SetX2(c->GetLeftMargin() + width + offsetX);
+        legend->SetY2(c->GetBottomMargin() + height + offsetY);
     }
     else if (position.compare("SE") == 0) { // lower-right corner
-        legend->SetX1(1 - c->GetRightMargin() - width);
-        legend->SetY1(c->GetBottomMargin());
-        legend->SetX2(1 - c->GetRightMargin());
-        legend->SetY2(c->GetBottomMargin() + height);
+        legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
+        legend->SetY1(c->GetBottomMargin() + offsetY);
+        legend->SetX2(1 - c->GetRightMargin() - offsetX);
+        legend->SetY2(c->GetBottomMargin() + height + offsetY);
     }
 }
 

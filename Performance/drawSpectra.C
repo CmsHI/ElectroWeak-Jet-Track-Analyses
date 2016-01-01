@@ -1,13 +1,14 @@
 /*
  * macro to draw spectra/distribution histograms.
  * saves histograms to a .root file.
- * if "outputFigureName" is specified, saves the canvas that includes all turn on curves as picture.
+ * if "outputFigureName" is specified and "drawSame" input is set, saves the canvas as picture.
  */
 
 #include <TFile.h>
 #include <TChain.h>
 #include <TH1.h>
 #include <TH1D.h>
+#include <TCut.h>
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TMath.h>
@@ -35,6 +36,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     std::vector<std::string> formulas;
+    std::string selectionBase;
     std::vector<std::string> selections;
     std::string title;
     std::string titleX;
@@ -42,6 +44,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
     std::vector<std::string> legendEntryLabels;
     std::string legendPosition;
+    float legendOffsetX;
+    float legendOffsetY;
 
     std::string treePath;
     std::vector<std::string> treeFriendsPath;
@@ -50,6 +54,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     int setLogy;
     if (configInput.isValid) {
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_formula]);
+        selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_selectionBase];
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_selection]);
         title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]);
         titleX = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]);
@@ -57,6 +62,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
         legendEntryLabels = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]);
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
+        legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
+        legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
 
         treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
         treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
@@ -66,6 +73,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     else {
         formulas.push_back("Entry$");
+        selectionBase = "";
         selections.push_back("1 == 1");
         title = "";
         titleX = "";
@@ -76,6 +84,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         TH1D_Bins_List[2].push_back(100);    // xUp
         legendEntryLabels.push_back("");
         legendPosition = "SE";
+        legendOffsetX = 0;
+        legendOffsetY = 0;
 
         treePath = "";
 
@@ -93,6 +103,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     for (int i=0; i<nFormulas; ++i) {
         std::cout << Form("formulas[%d]   = %s", i, formulas.at(i).c_str()) << std::endl;
     }
+    std::cout << "selectionBase = " << selectionBase.c_str() << std::endl;
     std::cout << "nSelections   = " << nSelections << std::endl;
     for (int i=0; i<nSelections; ++i) {
             std::cout << Form("selections[%d] = %s", i, selections.at(i).c_str()) << std::endl;
@@ -111,6 +122,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
     }
     std::cout << "legendPosition   = " << legendPosition.c_str() << std::endl;
+    std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
+    std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "nFriends = " << nFriends << std::endl;
@@ -184,10 +197,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         std::cout << "drawing histogram i = " << i << ", ";
 
-        entriesSelected[i] = tree->GetEntries(selection.c_str());
+        TCut selectionFinal = selectionBase.c_str();
+        selectionFinal = selectionFinal && selection.c_str();
+        entriesSelected[i] = tree->GetEntries(selectionFinal.GetTitle());
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
 
-        tree->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), selection.c_str(),"goff");
+        tree->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), selectionFinal.GetTitle(), "goff");
     }
     std::cout <<  "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries = " << entries << std::endl;
@@ -283,7 +298,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         double height = calcTLegendHeight(leg);
         double width = calcTLegendWidth(leg);
-        setLegendPosition(leg, legendPosition, c, height, width);
+        setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
         leg->Draw();
 
         c->Write();
