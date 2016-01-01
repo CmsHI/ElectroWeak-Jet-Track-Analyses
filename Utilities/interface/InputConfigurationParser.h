@@ -34,6 +34,8 @@ enum TYPE_I{
     k_doPPMC,
     k_doPA,
     k_doPAMC,
+    k_drawSame,
+    k_setLogy,
     kN_TYPES_I
 };
 
@@ -44,18 +46,36 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPP",
         "doPPMC",
         "doPA",
-        "doPAMC"
+        "doPAMC",
+        "drawSame",
+        "setLogy"
 };
 
 enum TYPE_S{
-    k_legendPosition,       // one of NW, NE, SW, SE
+    k_TH1_formula,
+    k_TH1_selection,
+    k_TH1_title,
+    k_TH1_titleX,
+    k_TH1_titleY,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
+    k_treePath,
+    k_treeFriends_List,
+    k_legendPosition,       // one of NW, NE, SW, SE
+    k_legendEntryLabel,
     kN_TYPES_S
 };
 
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
+        "TH1_formula",
+        "TH1_selection",
+        "TH1_title",
+        "TH1_titleX",
+        "TH1_titleY",
+        "TH1D_Bins_List",
+        "treePath",
+        "treeFriends_List",
         "legendPosition",
-        "TH1D_Bins_List"
+        "legendEntryLabel"
 };
 
 enum PROCESS{

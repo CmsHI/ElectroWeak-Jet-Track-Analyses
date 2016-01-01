@@ -18,7 +18,7 @@
 #ifndef CANVASUTIL_H_
 #define CANVASUTIL_H_
 
-void setCanvasFinal(TCanvas* c);
+void setCanvasFinal(TCanvas* c, int logy = 0);
 void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
@@ -41,7 +41,7 @@ void setCanvas_InvMass_PbPb(TCanvas* c, float px = 0.65, float py = 0.85,
                           const char* ptCut = "p^{e}_{T} > 20 GeV/c", const char* etaCut = "|#eta^{e}| < 1.44",
                           const char* extra = "");
 
-void setCanvasFinal(TCanvas* c)
+void setCanvasFinal(TCanvas* c, int logy)
 {
     c->SetBorderMode(0);
     c->SetBorderSize(0);
@@ -51,6 +51,8 @@ void setCanvasFinal(TCanvas* c)
     // put ticks to upper and right part of the axis.
     c->SetTickx(1);
     c->SetTicky(1);
+
+    c->SetLogy(logy);
 }
 
 void setTH1Final(TH1* h)
@@ -127,7 +129,7 @@ double calcTLegendWidth(TLegend* legend, double offset, double ratio, double thr
     double w = 0;
     while (( entry = (TLegendEntry*)iter.Next() )) {
         std::string label = entry->GetLabel();
-        if (label.compare(legend->GetHeader()) == 0)  continue;    // in this case, assume that the entry is actually the header
+        if (legend->GetHeader() != NULL && label.compare(legend->GetHeader()) == 0)  continue;    // in this case, assume that the entry is actually the header
 
         double tmp = ratio*label.length() + offset;
         if (tmp < threshold) tmp = threshold;

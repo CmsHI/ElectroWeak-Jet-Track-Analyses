@@ -13,6 +13,8 @@ public :
     static std::vector<std::string> ParseList(std::string strList);
     static std::vector<int> ParseListInteger(std::string strList);
     static std::vector<float> ParseListFloat(std::string strList);
+    static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
+    static std::string ParseLatex(std::string str);
 
 };
 
@@ -130,6 +132,36 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
     }
 
     return list;
+}
+
+/*
+ * list[0].at(i);   nBins for the ith TH1D histogram
+ * list[1].at(i);   xLow  for the ith TH1D histogram
+ * list[2].at(i);   xUp   for the ith TH1D histogram
+ */
+std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::string strList){
+
+    std::vector<std::vector<float>> list(3);
+
+    std::vector<float> listFlat = ParseListFloat(strList);
+    if (listFlat.size() % 3 != 0)   return list;
+
+    for (std::vector<float>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=3) {
+        list[0].push_back(*it);
+        list[1].push_back(*(it+1));
+        list[2].push_back(*(it+2));
+    }
+
+    return list;
+}
+
+/*
+ * parse the Latex syntax in the configuration file to the Latex syntax in ROOT
+ */
+std::string ConfigurationParser::ParseLatex(std::string str) {
+
+    std::string strNew = replaceAll(str, "\\", "#");
+    return strNew;
 }
 
 #endif
