@@ -43,6 +43,8 @@ public :
 
     // Declaration of leaf types
      Int_t           zIdx;
+     Int_t           jetIdx1;       // index of leading jet which passed jetID
+     Int_t           jetIdx2;       // index of subleading jet which passed jetID
      std::vector<int>     *jetIdx;
      std::vector<float>   *xjz;
      std::vector<float>   *deta;
@@ -58,6 +60,8 @@ public :
 
      // List of branches
      TBranch        *b_zIdx;   //!
+     TBranch        *b_jetIdx1;   //!
+     TBranch        *b_jetIdx2;   //!
      TBranch        *b_jetIdx;   //!
      TBranch        *b_xjz;   //!
      TBranch        *b_deta;   //!
@@ -73,6 +77,8 @@ public :
 
      // list of objects to be used when creating a zjet Tree
      Int_t           zIdx_out;
+     Int_t           jetIdx1_out;
+     Int_t           jetIdx2_out;
      std::vector<int>     jetIdx_out;
      std::vector<float>   xjz_out;
      std::vector<float>   deta_out;
@@ -91,6 +97,8 @@ public :
 void ZJet::setupZJetTree(TTree *t)
 {
     if (t->GetBranch("zIdx"))  t->SetBranchAddress("zIdx", &zIdx, &b_zIdx);
+    if (t->GetBranch("jetIdx1"))  t->SetBranchAddress("jetIdx1", &jetIdx1, &b_jetIdx1);
+    if (t->GetBranch("jetIdx2"))  t->SetBranchAddress("jetIdx1", &jetIdx2, &b_jetIdx2);
     if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
     if (t->GetBranch("xjz"))  t->SetBranchAddress("xjz", &xjz, &b_xjz);
     if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
@@ -108,6 +116,8 @@ void ZJet::setupZJetTree(TTree *t)
 void ZJet::branchZJetTree(TTree *t)
 {
     t->Branch("zIdx", &zIdx_out);
+    t->Branch("jetIdx1", &jetIdx1_out);
+    t->Branch("jetIdx2", &jetIdx2_out);
     t->Branch("jetIdx", &jetIdx_out);
     t->Branch("xjz", &xjz_out);
     t->Branch("deta", &deta_out);
@@ -140,6 +150,10 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
         zIdx_out = zIdx;
         nJetinAwayRange_out = 0;
 
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
         // all the jets must go into correlation,
         // no jet should be skipped.
         for (int i=0; i<tJets.nref; ++i)
@@ -173,6 +187,19 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
                     &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
                         tmp_jetID = 1;
                 }
+            }
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
             }
 
             jetIdx_out.push_back(i);
@@ -209,6 +236,10 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
         zIdx_out = zIdx;
         nJetinAwayRange_out = 0;
 
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
         // all the jets must go into correlation,
         // no jet should be skipped.
         for (int i=0; i<tJets.nref; ++i)
@@ -242,6 +273,19 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
                     &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
                         tmp_jetID = 1;
                 }
+            }
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
             }
 
             jetIdx_out.push_back(i);
@@ -291,6 +335,10 @@ void ZJet::clearZJetPairs(int zIdx)
 void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
 {
     if (use_diEle_out){
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
         // all the jets must go into correlation,
         // no jet should be skipped.
         for (int i=0; i<tJets.nref; ++i)
@@ -326,6 +374,19 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
                 }
             }
 
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
+            }
+
             jetIdx_out.push_back(i);
             if (tdielectron.diElePt_out.at(zIdx) > 0) {
                 xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt_out.at(zIdx));
@@ -345,6 +406,10 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
         }
     }
     else {
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
         // all the jets must go into correlation,
         // no jet should be skipped.
         for (int i=0; i<tJets.nref; ++i)
@@ -378,6 +443,19 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
                     &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
                         tmp_jetID = 1;
                 }
+            }
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
             }
 
             jetIdx_out.push_back(i);

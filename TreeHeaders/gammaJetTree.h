@@ -39,6 +39,8 @@ public :
 
     // Declaration of leaf types
      Int_t           phoIdx;
+     Int_t           jetIdx1;       // index of leading jet which passed jetID
+     Int_t           jetIdx2;       // index of subleading jet which passed jetID
      std::vector<int>     *jetIdx;
      std::vector<float>   *xjg;
      std::vector<float>   *deta;
@@ -50,6 +52,8 @@ public :
 
      // List of branches
      TBranch        *b_phoIdx;   //!
+     TBranch        *b_jetIdx1;   //!
+     TBranch        *b_jetIdx2;   //!
      TBranch        *b_jetIdx;   //!
      TBranch        *b_xjg;   //!
      TBranch        *b_deta;   //!
@@ -61,6 +65,8 @@ public :
 
      // list of objects to be used when creating a gammaJet Tree
      Int_t           phoIdx_out;
+     Int_t           jetIdx1_out;
+     Int_t           jetIdx2_out;
      std::vector<int>     jetIdx_out;
      std::vector<float>   xjg_out;
      std::vector<float>   deta_out;
@@ -76,6 +82,8 @@ void GammaJet::setupGammaJetTree(TTree *t)
 {
 
     if (t->GetBranch("phoIdx"))  t->SetBranchAddress("phoIdx", &phoIdx, &b_phoIdx);
+    if (t->GetBranch("jetIdx1"))  t->SetBranchAddress("jetIdx1", &jetIdx1, &b_jetIdx1);
+    if (t->GetBranch("jetIdx2"))  t->SetBranchAddress("jetIdx1", &jetIdx2, &b_jetIdx2);
     if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
     if (t->GetBranch("xjg"))  t->SetBranchAddress("xjg", &xjg, &b_xjg);
     if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
@@ -89,6 +97,8 @@ void GammaJet::setupGammaJetTree(TTree *t)
 void GammaJet::branchGammaJetTree(TTree *t)
 {
     t->Branch("phoIdx", &phoIdx_out);
+    t->Branch("jetIdx1", &jetIdx1_out);
+    t->Branch("jetIdx2", &jetIdx2_out);
     t->Branch("jetIdx", &jetIdx_out);
     t->Branch("xjg", &xjg_out);
     t->Branch("deta", &deta_out);
@@ -112,6 +122,10 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
     phoIdx_out = phoIdx;
     nJetinAwayRange_out = 0;
 
+    jetIdx1_out = -1;
+    jetIdx2_out = -1;
+    double jetIdx1_pt = -1;
+    double jetIdx2_pt = -1;
     // all the jets must go into correlation,
     // no jet should be skipped.
     for (int i=0; i<tJets.nref; ++i)
@@ -137,6 +151,19 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
                 &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
                     tmp_jetID = 1;
             }
+        }
+
+        if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+            // current leading jet becomes subleading jet
+            jetIdx2_pt = jetIdx1_pt;
+            jetIdx2_out = jetIdx1_out;
+
+            jetIdx1_pt = tJets.jtpt[i];
+            jetIdx1_out = i;
+        }
+        else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+            jetIdx2_pt = tJets.jtpt[i];
+            jetIdx2_out = i;
         }
 
         jetIdx_out.push_back(i);
@@ -176,6 +203,10 @@ void GammaJet::clearGammaJetPairs(int phoIdx)
 
 void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
+    jetIdx1_out = -1;
+    jetIdx2_out = -1;
+    double jetIdx1_pt = -1;
+    double jetIdx2_pt = -1;
     // all the jets must go into correlation,
     // no jet should be skipped.
     for (int i=0; i<tJets.nref; ++i)
@@ -201,6 +232,19 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
                 &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
                     tmp_jetID = 1;
             }
+        }
+
+        if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+            // current leading jet becomes subleading jet
+            jetIdx2_pt = jetIdx1_pt;
+            jetIdx2_out = jetIdx1_out;
+
+            jetIdx1_pt = tJets.jtpt[i];
+            jetIdx1_out = i;
+        }
+        else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+            jetIdx2_pt = tJets.jtpt[i];
+            jetIdx2_out = i;
         }
 
         jetIdx_out.push_back(i);
