@@ -297,15 +297,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
-    // pT bins
-//    const int nBins_pt = 7;
-//    int bins_pt_gt[nBins_pt] = {-1,     40,     60,     40, 50, 60, 80};
-//    int bins_pt_lt[nBins_pt] = {999999, 999999, 999999, 50, 60, 80, 999999};
-//
-//    // centrality bins
-//    int nBins_hiBin  = 3;
-//    int bins_hiBin_gt[nBins_hiBin] = {0,    0,  60};
-//    int bins_hiBin_lt[nBins_hiBin] = {200, 60, 200};
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
@@ -753,7 +744,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
                 if(j>0 && !isHI) continue;
 
-                int offset = 3; // ptBin 40-50 starts from index 3.
+                int offset = 2; // ptBin 40-50 starts from index 2.
                 // rjg block
                 for(int i=0; i<nBins_rjg; ++i){
 

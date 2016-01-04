@@ -26,10 +26,15 @@ namespace CUTS {
     std::string I_CUTS_LABELS[kN_I_CUTS] = {"nTracks"};
 
     enum S_CUTS{
+      k_bins_pt_gt,
+      k_bins_pt_lt,
       kN_S_CUTS
     };
 
-    std::string S_CUTS_LABELS[kN_S_CUTS] = {};
+    std::string S_CUTS_LABELS[kN_S_CUTS] = {
+      "bins_pt_gt",      // label starts with "bins_". this means the input will be a list of strings
+      "bins_pt_lt"
+    };
 
   };
 };
