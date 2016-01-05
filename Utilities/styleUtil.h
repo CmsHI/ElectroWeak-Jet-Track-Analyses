@@ -19,6 +19,7 @@
 #define CANVASUTIL_H_
 
 void setCanvasFinal(TCanvas* c, int logx = 0, int logy = 0, int logz = 0);
+void setCanvasMargin(TCanvas* c, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
 void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
@@ -55,6 +56,23 @@ void setCanvasFinal(TCanvas* c, int logx, int logy, int logz)
     c->SetLogx(logx);
     c->SetLogy(logy);
     c->SetLogz(logz);
+}
+
+/*
+ * modifies canvas margins such that size of the original figure does not change.
+ */
+void setCanvasMargin(TCanvas* c, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+{
+    float defaultMargin = 0.1;
+    UInt_t width = c->GetWindowWidth();
+    UInt_t height = c->GetWindowHeight();
+
+    c->SetWindowSize(width* (1 - defaultMargin*2 + leftMargin + rightMargin),
+                     height*(1 - defaultMargin*2 + bottomMargin + topMargin));
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
 }
 
 void setTH1Final(TH1* h)

@@ -58,12 +58,24 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
 enum TYPE_F{
     k_legendOffsetX,
     k_legendOffsetY,
+    k_leftMargin,
+    k_rightMargin,
+    k_bottomMargin,
+    k_topMargin,
+    k_titleOffsetX,
+    k_titleOffsetY,
     kN_TYPES_F
 };
 
 const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "legendOffsetX",
-        "legendOffsetY"
+        "legendOffsetY",
+        "leftMargin",
+        "rightMargin",
+        "bottomMargin",
+        "topMargin",
+        "titleOffsetX",
+        "titleOffsetY"
 };
 
 enum TYPE_S{

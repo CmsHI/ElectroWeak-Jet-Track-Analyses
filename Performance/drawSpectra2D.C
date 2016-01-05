@@ -48,6 +48,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::string legendPosition;
     float legendOffsetX;
     float legendOffsetY;
+    float leftMargin;
+    float rightMargin;
+    float bottomMargin;
+    float topMargin;
+    float titleOffsetX;
+    float titleOffsetY;
 
     std::string treePath;
     std::vector<std::string> treeFriendsPath;
@@ -68,6 +74,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
         legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
         legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
+        titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+        titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
 
         treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
         treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
@@ -95,6 +107,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         legendPosition = "";
         legendOffsetX = 0;
         legendOffsetY = 0;
+        leftMargin = 0.1;
+        rightMargin = 0.1;
+        bottomMargin = 0.1;
+        topMargin = 0.1;
+        titleOffsetX = 1;
+        titleOffsetY = 1;
 
         treePath = "";
 
@@ -102,7 +120,15 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         setLogy = 0;
         setLogz = 0;
     }
+    // set default values
     if (weights.size() == 0)    weights.push_back("1");   // default weight = 1.
+    if (leftMargin == 0) leftMargin = 0.1;  // default margin
+    if (rightMargin == 0) rightMargin = 0.1;  // default margin
+    if (bottomMargin == 0) bottomMargin = 0.1;  // default margin
+    if (topMargin == 0) topMargin = 0.1;  // default margin
+    if (titleOffsetX == 0) titleOffsetX = 1;    // default offset
+    if (titleOffsetY == 0) titleOffsetY = 1;    // default offset
+
     int nFormulas = formulas.size();
     int nSelections = selections.size();
     int nWeights = weights.size();
@@ -144,6 +170,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
     std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
     std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
+    std::cout << "leftMargin   = " << leftMargin << std::endl;
+    std::cout << "rightMargin  = " << rightMargin << std::endl;
+    std::cout << "bottomMargin = " << bottomMargin << std::endl;
+    std::cout << "topMargin    = " << topMargin << std::endl;
+    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "nFriends = " << nFriends << std::endl;
@@ -259,9 +291,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     for (int i=0; i<nHistos; ++i) {
         c = new TCanvas(Form("cnv_%d",i),"",600,600);
         c->SetTitle(h[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
+        h[i]->SetTitleOffset(titleOffsetX,"X");
+        h[i]->SetTitleOffset(titleOffsetY,"Y");
         h[i]->SetStats(false);
         h[i]->Draw("colz");
         c->Write();
@@ -270,9 +305,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         // normalized by number of events
         c = new TCanvas(Form("cnv_%d_normEvents",i),"",600,600);
         c->SetTitle(h_normEvents[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
+        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normEvents[i]->SetStats(false);
         h_normEvents[i]->Draw("colz");
         c->Write();
@@ -281,9 +319,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         // normalized to 1.
         c = new TCanvas(Form("cnv_%d_normInt",i),"",600,600);
         c->SetTitle(h_normInt[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
+        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normInt[i]->SetStats(false);
         h_normInt[i]->Draw("colz");
         c->Write();
@@ -296,10 +337,13 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         for (int i = 0; i<nHistos; ++i) {
 
             c = new TCanvas(Form("cnv_drawSpectra2D_%d", i),"",600,600);
+			setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
             setCanvasFinal(c, setLogx, setLogy, setLogz);
             c->cd();
             TLegend* leg = new TLegend();
 
+            h[i]->SetTitleOffset(titleOffsetX,"X");
+            h[i]->SetTitleOffset(titleOffsetY,"Y");
             h[i]->SetStats(false);
             h[i]->Draw("colz");
 

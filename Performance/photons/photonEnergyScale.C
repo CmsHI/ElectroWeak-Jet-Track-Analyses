@@ -28,7 +28,6 @@
 
 
 void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root", const TString outputFigureName = "");
-void setCanvas_energyScale(TCanvas* c);
 void setTH1_energyScale(TH1* h);
 void setTH1_energyWidth(TH1* h);
 
@@ -48,21 +47,30 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     // input configuration
     int collision;
     std::string legendPosition;
+    float legendOffsetX;
+    float legendOffsetY;
     if (configInput.isValid) {
         collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
 
         legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
+        legendOffsetX  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
+        legendOffsetY  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
     }
     else {
         collision = COLL::kPP;
 
-        legendPosition = "NW";
+        legendPosition = "";
+        legendOffsetX = 0;
+        legendOffsetY = 0;
     }
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "collision = " << collisionName << std::endl;
     std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
+    if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
+    std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
+    std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
 
     std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
@@ -300,7 +308,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 canvasName = Form("cnv_eScale_%s", name.c_str());
                 c = new TCanvas(canvasName.c_str(), "", 600, 600);
                 c->cd();
-                setCanvas_energyScale(c);
+                setCanvasMargin(c, 0.15, 0.05);
 
                 hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
                 hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->SetTitle(title.c_str());
@@ -322,7 +330,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 canvasName = Form("cnv_eRes_%s", name.c_str());
                 c = new TCanvas(canvasName.c_str(), "", 600, 600);
                 c->cd();
-                setCanvas_energyScale(c);
+                setCanvasMargin(c, 0.15, 0.05);
                 hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
                 hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]->SetTitle(title.c_str());
                 setTH1_energyWidth(hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]);
@@ -361,7 +369,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             canvasName = Form("cnv_%s", name.c_str());
             c = new TCanvas(canvasName.c_str(), "", 600, 600);
             c->cd();
-            setCanvas_energyScale(c);
+            setCanvasMargin(c, 0.15, 0.05);
 
             // histograms for different centralities
             legend = new TLegend();
@@ -377,7 +385,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             }
             double height = calcTLegendHeight(legend, 0.0475);
             double width = calcTLegendWidth(legend);
-            setLegendPosition(legend, legendPosition, c, height, width);
+            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
+                setLegendPosition(legend, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
+                legend->Draw();
+            }
             legend->Draw();
 
             // draw line y = 1
@@ -427,13 +438,6 @@ int main(int argc, char** argv)
                 << std::endl;
         return 1;
     }
-}
-
-void setCanvas_energyScale(TCanvas* c) {
-
-    c->Size(600*(1+0.2),600);
-    c->SetLeftMargin(0.15);
-    c->SetRightMargin(0.05);
 }
 
 void setTH1_energyScale(TH1* h) {
