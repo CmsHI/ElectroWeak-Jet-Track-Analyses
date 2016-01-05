@@ -35,7 +35,9 @@ enum TYPE_I{
     k_doPA,
     k_doPAMC,
     k_drawSame,
+    k_setLogx,
     k_setLogy,
+    k_setLogz,
     kN_TYPES_I
 };
 
@@ -48,7 +50,9 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPA",
         "doPAMC",
         "drawSame",
-        "setLogy"
+        "setLogx",
+        "setLogy",
+        "setLogz"
 };
 
 enum TYPE_F{
@@ -63,13 +67,15 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
 };
 
 enum TYPE_S{
-    k_TH1_formula,
-    k_TH1_selection,
-    k_TH1_selectionBase,    // selection that is applied/valid for all observables
+    k_treeFormula,
+    k_treeSelection,
+    k_treeSelectionBase,    // selection that is applied/valid for all observables
     k_TH1_title,
     k_TH1_titleX,
     k_TH1_titleY,
+    k_TH1_weight,           // weight used when filling a histogram
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
+    k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     k_treePath,
     k_treeFriends_List,
     k_legendPosition,       // one of NW, NE, SW, SE
@@ -78,13 +84,15 @@ enum TYPE_S{
 };
 
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
-        "TH1_formula",
-        "TH1_selection",
-        "TH1_selectionBase",
+        "treeFormula",
+        "treeSelection",
+        "treeSelectionBase",
         "TH1_title",
         "TH1_titleX",
         "TH1_titleY",
+        "TH1_weight",
         "TH1D_Bins_List",
+        "TH2D_Bins_List",
         "treePath",
         "treeFriends_List",
         "legendPosition",

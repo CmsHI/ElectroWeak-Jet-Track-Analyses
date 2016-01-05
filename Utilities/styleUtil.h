@@ -18,7 +18,7 @@
 #ifndef CANVASUTIL_H_
 #define CANVASUTIL_H_
 
-void setCanvasFinal(TCanvas* c, int logy = 0);
+void setCanvasFinal(TCanvas* c, int logx = 0, int logy = 0, int logz = 0);
 void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
@@ -41,7 +41,7 @@ void setCanvas_InvMass_PbPb(TCanvas* c, float px = 0.65, float py = 0.85,
                           const char* ptCut = "p^{e}_{T} > 20 GeV/c", const char* etaCut = "|#eta^{e}| < 1.44",
                           const char* extra = "");
 
-void setCanvasFinal(TCanvas* c, int logy)
+void setCanvasFinal(TCanvas* c, int logx, int logy, int logz)
 {
     c->SetBorderMode(0);
     c->SetBorderSize(0);
@@ -52,7 +52,9 @@ void setCanvasFinal(TCanvas* c, int logy)
     c->SetTickx(1);
     c->SetTicky(1);
 
+    c->SetLogx(logx);
     c->SetLogy(logy);
+    c->SetLogz(logz);
 }
 
 void setTH1Final(TH1* h)

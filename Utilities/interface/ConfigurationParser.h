@@ -14,6 +14,7 @@ public :
     static std::vector<int> ParseListInteger(std::string strList);
     static std::vector<float> ParseListFloat(std::string strList);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
+    static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
     static std::string ParseLatex(std::string str);
 
 };
@@ -127,7 +128,7 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
         float val;
         sin >> val;
 
-        if(element.size() >0 ) list.push_back(val);
+        if(element.size() > 0 ) list.push_back(val);
         posStart = pos + 1;
     }
 
@@ -150,6 +151,33 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::str
         list[0].push_back(*it);
         list[1].push_back(*(it+1));
         list[2].push_back(*(it+2));
+    }
+
+    return list;
+}
+
+/*
+ * list[0].at(i);   nBinsx for the ith TH2D histogram
+ * list[1].at(i);   xLow   for the ith TH2D histogram
+ * list[2].at(i);   xUp    for the ith TH2D histogram
+ * list[3].at(i);   nBinsy for the ith TH2D histogram
+ * list[4].at(i);   yLow   for the ith TH2D histogram
+ * list[5].at(i);   yUp    for the ith TH2D histogram
+ */
+std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::string strList){
+
+    std::vector<std::vector<float>> list(6);
+
+    std::vector<float> listFlat = ParseListFloat(strList);
+    if (listFlat.size() % 6 != 0)   return list;
+
+    for (std::vector<float>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=6) {
+        list[0].push_back(*it);
+        list[1].push_back(*(it+1));
+        list[2].push_back(*(it+2));
+        list[3].push_back(*(it+3));
+        list[4].push_back(*(it+4));
+        list[5].push_back(*(it+5));
     }
 
     return list;
