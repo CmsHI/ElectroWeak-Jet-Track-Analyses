@@ -109,7 +109,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        }
        std::cout<<"##### END #####"<< std::endl;
 
-//       bool isMC = collisionIsMC((COLL::TYPE)collision);
+       bool isMC = collisionIsMC((COLL::TYPE)collision);
        bool isHI = collisionIsHI((COLL::TYPE)collision);
 
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
@@ -119,7 +119,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
        TChain* treeHiEvt;
        bool hasHiEvt = false;
-       if (isHI) {
+       if (isHI || isMC) {
            treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
            hasHiEvt  = true;
        }
@@ -185,6 +185,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
            treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
            treeHiEvt->SetBranchStatus("hiNevtPlane",1);
+           if (isMC) {
+               treeHiEvt->SetBranchStatus("Npart",1);
+               treeHiEvt->SetBranchStatus("Ncoll",1);
+               treeHiEvt->SetBranchStatus("Nhard",1);
+               treeHiEvt->SetBranchStatus("ProcessID",1);
+               treeHiEvt->SetBranchStatus("pthat",1);
+               treeHiEvt->SetBranchStatus("weight",1);
+               treeHiEvt->SetBranchStatus("alphaQCD",1);
+               treeHiEvt->SetBranchStatus("alphaQED",1);
+               treeHiEvt->SetBranchStatus("qScale",1);
+           }
 
            treeHiEvt->SetBranchAddress("vz",&vz);
            treeHiEvt->SetBranchAddress("hiBin",&hiBin);

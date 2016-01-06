@@ -24,11 +24,11 @@ const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{
                                                                       "#frac{1}{N_{JZ}}#frac{dN_{JZ}}{d#Delta#phi}",
                                                                       "#frac{1}{N_{Z}}#frac{dN_{JZ}}{dp^{Jet}_{T}}",
                                                                       "Entries / (2 GeV/c^{2})"};
-const std::vector<int>         nBinsx{40, 20,       300, 30};
-const std::vector<double>      xlow  {0,  0,          0, 60};
-const std::vector<double>      xup   {5,  3.141592, 300, 120};
-const std::vector<double>      xlow_final{0,  0,          0, 60};
-const std::vector<double>      xup_final {2,  3.141592, 150, 120};
+const std::vector<int>         nBinsx{40, 20,          300, 30};
+const std::vector<double>      xlow  {0,  0,           0,   60};
+const std::vector<double>      xup   {5,  TMath::Pi(), 300, 120};
+const std::vector<double>      xlow_final{0,  0,           0,   60};
+const std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120};
 
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "zJetHistogram.root");
 
@@ -228,21 +228,33 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // check the existence of HI specific trees in "zJetSkim.root" file
     bool hasJetsMB = false;
     bool hasZJetMB = false;
-    bool hasHiEvt = false;
     if (isHI) {
         input->GetObject("jetsMB",tJetMB);
         input->GetObject("zJetMB",tzjMB);
-        input->GetObject("HiEvt",tHiEvt);
 
         if (tJetMB) hasJetsMB = true;
         if (tzjMB)  hasZJetMB = true;
-        if (tHiEvt) hasHiEvt = true;
     }
     else {
         tJetMB = 0;
         tzjMB  = 0;
+    }
+    bool hasHiEvt = false;
+    if (isHI || isMC) {
+        input->GetObject("HiEvt",tHiEvt);
+
+        if (tHiEvt) hasHiEvt = true;
+    }
+    else {
         tHiEvt = 0;
     }
+    bool hasEventWeight = false;
+    if (hasHiEvt) {
+        if (tHiEvt->GetBranch("weight"))    hasEventWeight = true;
+    }
+    std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
+    if (hasEventWeight)
+        std::cout << "Events will be weighted, during drawing step selections will be multiplied with the weight" <<std::endl;
 
     tzj->AddFriend(tHlt, "Hlt");
     tzj->AddFriend(tdiEle, "diEle");
@@ -517,6 +529,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 // histogram name excluding the "h1D" prefix
                 std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                 TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
+                if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight)*(%s)", selectionDraw.GetTitle());
 
                 std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                 std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();

@@ -23,11 +23,11 @@ const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dx_{J#gamma}}",
                                                                     "#frac{1}{N_{J#gamma}}#frac{dN_{J#gamma}}{d#Delta#phi}",
                                                                     "#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
-const std::vector<int>         nBinsx{40, 20,       300};
-const std::vector<double>      xlow  {0,  0,          0};
-const std::vector<double>      xup   {5,  3.141592, 300};
-const std::vector<double>      xlow_final{0,  0,          0};
-const std::vector<double>      xup_final {2,  3.141592, 150};
+const std::vector<int>         nBinsx{40, 20,          300};
+const std::vector<double>      xlow  {0,  0,           0};
+const std::vector<double>      xup   {5,  TMath::Pi(), 300};
+const std::vector<double>      xlow_final{0,  0,           0};
+const std::vector<double>      xup_final {2,  TMath::Pi(), 150};
 
 void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
 
@@ -256,21 +256,33 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // check the existence of HI specific trees in "gammaJetSkim.root" file
     bool hasJetsMB = false;
     bool hasGammaJetMB = false;
-    bool hasHiEvt = false;
     if (isHI) {
         input->GetObject("jetsMB",tJetMB);
         input->GetObject("gammaJetMB",tgjMB);
-        input->GetObject("HiEvt",tHiEvt);
 
         if (tJetMB) hasJetsMB = true;
         if (tgjMB)  hasGammaJetMB = true;
-        if (tHiEvt) hasHiEvt = true;
     }
     else {
         tJetMB = 0;
         tgjMB  = 0;
+    }
+    bool hasHiEvt = false;
+    if (isHI || isMC) {
+        input->GetObject("HiEvt",tHiEvt);
+
+        if (tHiEvt) hasHiEvt = true;
+    }
+    else {
         tHiEvt = 0;
     }
+    bool hasEventWeight = false;
+    if (hasHiEvt) {
+        if (tHiEvt->GetBranch("weight"))    hasEventWeight = true;
+    }
+    std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
+    if (hasEventWeight)
+        std::cout << "Events will be weighted, during drawing step selections will be multiplied with the weight" <<std::endl;
 
     tgj->AddFriend(tHlt, "Hlt");
     tgj->AddFriend(tPho, "Pho");
@@ -574,6 +586,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     // histogram name excluding the "h1D" prefix
                     std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                     TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
+                    if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight)*(%s)", selectionDraw.GetTitle());
 
                     std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                     std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();
