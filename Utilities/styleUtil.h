@@ -67,7 +67,8 @@ void setCanvasMargin(TCanvas* c, float leftMargin, float rightMargin, float bott
     UInt_t width = c->GetWindowWidth();
     UInt_t height = c->GetWindowHeight();
 
-    c->SetWindowSize(width* (1 - defaultMargin*2 + leftMargin + rightMargin),
+    // assume the function is called in batch mode, so use SetCanvasSize() instead of SetWindowSize()
+    c->SetCanvasSize(width* (1 - defaultMargin*2 + leftMargin + rightMargin),
                      height*(1 - defaultMargin*2 + bottomMargin + topMargin));
     c->SetLeftMargin(leftMargin);
     c->SetRightMargin(rightMargin);
@@ -108,6 +109,9 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c)
  */
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX, double offsetY)
 {
+    if (width>0.50) legend->SetMargin(0.075);     // if the legend is wide, then keep the length of the line not wide.
+    else if (width>0.25) legend->SetMargin(0.15);     // if the legend is wide, then keep the length of the line not wide.
+    // TLegend::SetMargin() helps to set the length of the line in the legend entry.
     if (position.compare("NW") == 0) { // upper-left corner
         legend->SetX1(c->GetLeftMargin() + offsetX);
         legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
@@ -156,7 +160,12 @@ double calcTLegendWidth(TLegend* legend, double offset, double ratio, double thr
         std::string label = entry->GetLabel();
         if (legend->GetHeader() != NULL && label.compare(legend->GetHeader()) == 0)  continue;    // in this case, assume that the entry is actually the header
 
-        double tmp = ratio*label.length() + offset;
+        double c = 1;
+        if (label.length() > 50) c = 1.5;
+        else if (label.length() > 30) c = 1.6;
+        else if (label.length() > 15) c = 1.4 + (label.length()-15)* 0.2 / 15 ;
+
+        double tmp = c*ratio*label.length() + offset;
         if (tmp < threshold) tmp = threshold;
         if (tmp > w) w = tmp;
     }

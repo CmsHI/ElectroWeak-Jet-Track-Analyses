@@ -19,7 +19,6 @@
 #include <iostream>
 
 #include "../TreeHeaders/CutConfigurationTree.h"
-#include "../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/styleUtil.h"
@@ -58,9 +57,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::string treePath;
     std::vector<std::string> treeFriendsPath;
 
+    int drawNormalized;
     int setLogx;
     int setLogy;
     int setLogz;
+    int windowWidth;
+    int windowHeight;
     if (configInput.isValid) {
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
@@ -74,19 +76,22 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
         legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
         legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
-        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
-        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
-        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
-        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
         titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
 
         treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
         treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
 
+        drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
         setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
         setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
         setLogz = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogz];
+        windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
+        windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
+        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
     }
     else {
         formulas.push_back("Entry$");
@@ -107,20 +112,24 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         legendPosition = "";
         legendOffsetX = 0;
         legendOffsetY = 0;
-        leftMargin = 0.1;
-        rightMargin = 0.1;
-        bottomMargin = 0.1;
-        topMargin = 0.1;
         titleOffsetX = 1;
         titleOffsetY = 1;
 
         treePath = "";
 
+        drawNormalized = 0;
         setLogx = 0;
         setLogy = 0;
         setLogz = 0;
+        windowWidth = 0;
+        windowHeight = 0;
+        leftMargin = 0.1;
+        rightMargin = 0.1;
+        bottomMargin = 0.1;
+        topMargin = 0.1;
     }
     // set default values
+    if (selections.size() == 0) selections.push_back("1");
     if (weights.size() == 0)    weights.push_back("1");   // default weight = 1.
     if (leftMargin == 0) leftMargin = 0.1;  // default margin
     if (rightMargin == 0) rightMargin = 0.1;  // default margin
@@ -128,6 +137,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     if (topMargin == 0) topMargin = 0.1;  // default margin
     if (titleOffsetX == 0) titleOffsetX = 1;    // default offset
     if (titleOffsetY == 0) titleOffsetY = 1;    // default offset
+    if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = 0;
+    if (windowWidth  == 0)  windowWidth = 600;
+    if (windowHeight == 0)  windowHeight = 600;
 
     int nFormulas = formulas.size();
     int nSelections = selections.size();
@@ -183,10 +195,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("treeFriends[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
     }
 
+    std::cout << "drawNormalized = " << drawNormalized << std::endl;
     std::cout << "setLogx  = " << setLogx << std::endl;
     std::cout << "setLogy  = " << setLogy << std::endl;
     std::cout << "setLogz  = " << setLogz << std::endl;
-    
+    std::cout << "windowWidth = " << windowWidth << std::endl;
+    std::cout << "windowHeight = " << windowHeight << std::endl;
     if (configCuts.isValid) {
 
     }
@@ -272,24 +286,25 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
-    TH2D* h_normEvents[nHistos];
     TH2D* h_normInt[nHistos];
+    TH2D* h_normEvents[nHistos];
     for (int i=0; i<nHistos; ++i) {
         h[i]->Write();
-
-        h_normEvents[i] = (TH2D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
-        h_normEvents[i]->Scale(1./entriesSelected[i]);
-        h_normEvents[i]->Write();
 
         h_normInt[i] = (TH2D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
         h_normInt[i]->Scale(1./h[i]->Integral());
         h_normInt[i]->Write();
+
+        h_normEvents[i] = (TH2D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
+        h_normEvents[i]->Scale(1./entriesSelected[i]);
+        h_normEvents[i]->Write();
     }
+    // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
     // write canvases
     TCanvas* c;
     for (int i=0; i<nHistos; ++i) {
-        c = new TCanvas(Form("cnv_%d",i),"",600,600);
+        c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
         c->SetTitle(h[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
@@ -303,7 +318,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         c->Close();         // do not use Delete() for TCanvas.
 
         // normalized by number of events
-        c = new TCanvas(Form("cnv_%d_normEvents",i),"",600,600);
+        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
         c->SetTitle(h_normEvents[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
@@ -317,7 +332,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         c->Close();         // do not use Delete() for TCanvas.
 
         // normalized to 1.
-        c = new TCanvas(Form("cnv_%d_normInt",i),"",600,600);
+        c = new TCanvas(Form("cnv_%d_normInt",i),"",windowWidth,windowHeight);
         c->SetTitle(h_normInt[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy, setLogz);
@@ -330,38 +345,70 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         c->Write();
         c->Close();         // do not use Delete() for TCanvas.
     }
+    // canvases are written.
 
-    // save canvas as picture if a figure name is provided.
+    // save histograms as picture if a figure name is provided.
     // for now 2D canvases are not drawn on top, they are drawn separately.
-    if (! outputFigureName.EqualTo("")) {
+    if (!outputFigureName.EqualTo("")) {
+        TH1D* h_draw[nHistos];
+        for (int i=0; i<nHistos; ++i) {
+            if (drawNormalized == INPUT_TH1::k_normInt) {
+                h_draw[i] = (TH1D*)h_normInt[i]->Clone(Form("h_%d_draw", i));
+            }
+            else if (drawNormalized == INPUT_TH1::k_normEvents) {
+                h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
+            }
+            else {  // no normalization
+                h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
+            }
+        }
+
         for (int i = 0; i<nHistos; ++i) {
 
-            c = new TCanvas(Form("cnv_drawSpectra2D_%d", i),"",600,600);
+            c = new TCanvas(Form("cnv_drawSpectra2D_%d", i),"",windowWidth,windowHeight);
 			setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
             setCanvasFinal(c, setLogx, setLogy, setLogz);
             c->cd();
             TLegend* leg = new TLegend();
 
-            h[i]->SetTitleOffset(titleOffsetX,"X");
-            h[i]->SetTitleOffset(titleOffsetY,"Y");
-            h[i]->SetStats(false);
-            h[i]->Draw("colz");
+            h_draw[i]->SetTitleOffset(titleOffsetX,"X");
+            h_draw[i]->SetTitleOffset(titleOffsetY,"Y");
+            h_draw[i]->SetStats(false);
+            h_draw[i]->Draw("colz");
 
             std::string label = legendEntryLabels.at(0).c_str();
             if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
 
-            leg->AddEntry(h[i], label.c_str(),"pf");
+            leg->AddEntry(h_draw[i], label.c_str(),"pf");
             double height = calcTLegendHeight(leg);
             double width = calcTLegendWidth(leg);
             if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
                 setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
                 leg->Draw();
             }
-            c->Write();
 
-            c->SaveAs(Form("%s_%d.C", outputFigureName.Data(), i));
-            c->SaveAs(Form("%s_%d.png", outputFigureName.Data(), i));
-            c->SaveAs(Form("%s_%d.pdf", outputFigureName.Data(), i));
+            // saving histogram
+            std::string tmpOutputFigureName = outputFigureName.Data();
+            if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
+                if (nHistos > 1) {
+                    // modify outputFile name
+                    // if i=1, then "output.ext" becomes "output_2.ext"
+                    size_t pos = tmpOutputFigureName.find_last_of(".");
+                    tmpOutputFigureName.replace(pos,1, Form("_%d.", i+1));
+                }
+                c->SaveAs(tmpOutputFigureName.c_str());
+            }
+            else {  // file extension is NOT specified
+                if (nHistos > 1) {
+                    // modify outputFile name
+                    // if i=1, then "output" becomes "output_2"
+                    tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), i+1);
+                }
+
+                c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
+                c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
+                c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
+            }
 
             leg->Delete();
             c->Close();
