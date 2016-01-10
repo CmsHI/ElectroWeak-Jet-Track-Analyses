@@ -20,9 +20,9 @@
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
 const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
-const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dx_{J#gamma}}",
-                                                                    "#frac{1}{N_{J#gamma}}#frac{dN_{J#gamma}}{d#Delta#phi}",
-                                                                    "#frac{1}{N_{#gamma}}#frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
+const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
+                                                                    "#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
+                                                                    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
 const std::vector<int>         nBinsx{40, 20,          300};
 const std::vector<double>      xlow  {0,  0,           0};
 const std::vector<double>      xup   {5,  TMath::Pi(), 300};

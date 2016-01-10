@@ -17,18 +17,19 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
-const std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "diEleM"};
-const std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", "diEleM[zIdx]"};
-const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", "M^{ee} (GeV/c^{2})"};
-const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}}#frac{dN_{JZ}}{dx_{JZ}}",
-                                                                      "#frac{1}{N_{JZ}}#frac{dN_{JZ}}{d#Delta#phi}",
-                                                                      "#frac{1}{N_{Z}}#frac{dN_{JZ}}{dp^{Jet}_{T}}",
-                                                                      "Entries / (2 GeV/c^{2})"};
-const std::vector<int>         nBinsx{40, 20,          300, 30};
-const std::vector<double>      xlow  {0,  0,           0,   60};
-const std::vector<double>      xup   {5,  TMath::Pi(), 300, 120};
-const std::vector<double>      xlow_final{0,  0,           0,   60};
-const std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120};
+const std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "diEleM", "diElePt"};
+const std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", "diEleM[zIdx]", "diElePt[zIdx]"};
+const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", "M^{ee} (GeV/c^{2})", "p^{Z}_{T}"};
+const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
+                                                                      "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{d#Delta#phi}",
+                                                                      "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
+                                                                      "Entries / (2 GeV/c^{2})",
+                                                                      "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{dp^{Z}_{T}}"};
+const std::vector<int>         nBinsx{40, 20,          100, 30, 100};
+const std::vector<double>      xlow  {0,  0,           0,   60, 0};
+const std::vector<double>      xup   {5,  TMath::Pi(), 300, 120, 300};
+const std::vector<double>      xlow_final{0,  0,           0,   60, 0};
+const std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120, 150};
 
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "zJetHistogram.root");
 
@@ -62,7 +63,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
     // Z Boson cuts
+    float massMin;
+    float massMax;
+    // electron cuts
     std::string str_trigger;
+    float elePt;
     float eleSigmaIEtaIEta_2012_EB;
     float eledEtaAtVtx_abs_EB;
     float eledPhiAtVtx_abs_EB;
@@ -99,7 +104,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+        massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
+        massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
+
         str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str();
+        elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
 
         // Barrel
         eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
@@ -138,7 +147,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         bins_hiBin[1].push_back(200);
         bins_hiBin[1].push_back(60);
 
+        massMin = 60;
+        massMax = 120;
+
         str_trigger = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
+        elePt = 10;
 
         // Barrel
         eleSigmaIEtaIEta_2012_EB = 0.012;
@@ -182,7 +195,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
 
+    std::cout<<"massMin = "<<massMin<<std::endl;
+    std::cout<<"massMax = "<<massMax<<std::endl;
+
     std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
+    std::cout<<"elePt      = "<<elePt<<std::endl;
 
     std::cout<<"Barrel :"<<std::endl;
     std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
@@ -343,6 +360,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // selections for different signal regions that are applied to every histogram
     // selections for dielectron regions
     TCut selectionDiele =  "";
+    selectionDiele = selectionDiele && Form("elePt_1[zIdx] > %f && elePt_2[zIdx] > %f", elePt, elePt);
     TCut selection_EB = "";
     TCut selection_EE = "";
     selection_EB = selection_EB && Form("eleSigmaIEtaIEta_2012_1[zIdx] < %f && eleSigmaIEtaIEta_2012_2[zIdx] < %f", eleSigmaIEtaIEta_2012_EB, eleSigmaIEtaIEta_2012_EB);
@@ -433,6 +451,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             TCut selectionZ;
             if (bins_pt[1].at(i) >= 0)  selectionZ = Form("diElePt[zIdx] >= %f && diElePt[zIdx] < %f", bins_pt[0].at(i), bins_pt[1].at(i));
             else                        selectionZ = Form("diElePt[zIdx] >= %f", bins_pt[0].at(i));
+            selectionZ = selectionZ && Form("diEleM[zIdx] >= %f && diEleM[zIdx] <= %f", massMin, massMax);
             selectionZ = selectionZ && selectionDiele;
 
             // jet selection
@@ -446,6 +465,13 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             selectionJet = selectionJet && Form("jtpt > %f", cut_jetpt);
             selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
             selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
+            // special selection
+            if (correlationHistNames.at(iHist).compare("diEleM") == 0) {  // select zJet events only, do not select inclusive jets
+                selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
+            }
+            if (correlationHistNames.at(iHist).compare("diElePt") == 0) {  // select zJet events only, do not select inclusive jets
+                selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
+            }
 
             TCut selection_Barrel = "1";    // no extra selection at the moment
             TCut selection_Endcap = "1";    // no extra selection at the moment

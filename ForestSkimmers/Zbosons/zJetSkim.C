@@ -47,6 +47,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        std::string jetCollection;
        int cut_nEle;
+       float elePt;
        float eleSigmaIEtaIEta_2012_EB;
        float eleSigmaIEtaIEta_2012_EE;
        float eleHoverE_EB;
@@ -64,6 +65,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        if (configCuts.isValid) {
            jetCollection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
+           elePt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
            eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
            eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
            eleHoverE_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EB];
@@ -82,6 +84,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        else {
            jetCollection = "ak4PFJetAnalyzer";
            cut_nEle = 2;
+           elePt = 0;
            eleSigmaIEtaIEta_2012_EB = 0.02;
            eleSigmaIEtaIEta_2012_EE = 0.045;
            eleHoverE_EB = 0.2;
@@ -111,6 +114,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 
        std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
+       std::cout<<"elePt = "<<elePt<<std::endl;
        std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
        std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
        std::cout<<"eleHoverE_EB = "<<eleHoverE_EB<<std::endl;
@@ -446,6 +450,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
                    if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
                }
+               if (diEle.elePt_1_out.at(i) <= elePt)  continue;
                // electron 2
                if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
                    if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
@@ -455,6 +460,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
                    if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
                }
+               if (diEle.elePt_2_out.at(i) <= elePt)  continue;
 
                if (diEle.diElePt_out.at(i) > maxZPt)
                {
