@@ -12,6 +12,7 @@
 
 #include "Configuration.h"
 #include "ConfigurationParser.h"
+#include "GraphicsConfigurationParser.h"
 
 #include "../eventUtil.h"
 #include "../systemUtil.h"
@@ -109,6 +110,9 @@ enum TYPE_S{
     k_treeFriends_List,
     k_legendPosition,       // one of NW, NE, SW, SE
     k_legendEntryLabel,
+    k_color,
+    k_markerStyle,
+    k_lineStyle,
     kN_TYPES_S
 };
 
@@ -128,7 +132,10 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "treePath",
         "treeFriends_List",
         "legendPosition",
-        "legendEntryLabel"
+        "legendEntryLabel",
+        "color",
+        "markerStyle",
+        "lineStyle"
 };
 
 enum PROCESS{
