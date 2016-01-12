@@ -26,7 +26,7 @@ void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
-double calcTextWidth(std::vector<std::string> lines, TCanvas* c, float textSize = 18);
+double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
 
@@ -165,7 +165,7 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
     return coordinatesNDC;
 }
 
-double calcTextWidth(std::vector<std::string> lines, TCanvas* c, float textSize)
+double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
 {
     c->cd();
 
