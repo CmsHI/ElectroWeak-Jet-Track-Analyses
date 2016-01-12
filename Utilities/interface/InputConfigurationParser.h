@@ -42,6 +42,7 @@ enum TYPE_I{
     k_setLogz,
     k_windowWidth,
     k_windowHeight,
+    k_textFont,
     kN_TYPES_I
 };
 
@@ -59,7 +60,8 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "setLogy",
         "setLogz",
         "windowWidth",
-        "windowHeight"
+        "windowHeight",
+        "textFont"
 };
 
 enum TYPE_F{
@@ -75,6 +77,9 @@ enum TYPE_F{
     k_TH1_xMax,
     k_TH1_yMin,
     k_TH1_yMax,
+    k_textSize,
+    k_textOffsetX,
+    k_textOffsetY,
     kN_TYPES_F
 };
 
@@ -90,7 +95,10 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "TH1_xMin",
         "TH1_xMax",
         "TH1_yMin",
-        "TH1_yMax"
+        "TH1_yMax",
+        "textSize",
+        "textOffsetX",
+        "textOffsetY"
 };
 
 enum TYPE_S{
@@ -104,6 +112,7 @@ enum TYPE_S{
     k_TH1_weight,           // weight used when filling a histogram
     k_TH1_scale,
     k_TH1_rebin,
+    k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
     k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     k_treePath,
@@ -113,6 +122,9 @@ enum TYPE_S{
     k_color,
     k_markerStyle,
     k_lineStyle,
+    k_fillStyle,
+    k_text,                 // text content of Graphics objects, e.g. : TLatex
+    k_textPosition,
     kN_TYPES_S
 };
 
@@ -127,6 +139,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TH1_weight",
         "TH1_scale",
         "TH1_rebin",
+        "drawOption",
         "TH1D_Bins_List",
         "TH2D_Bins_List",
         "treePath",
@@ -135,7 +148,10 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "legendEntryLabel",
         "color",
         "markerStyle",
-        "lineStyle"
+        "lineStyle",
+        "fillStyle",
+        "text",
+        "textPosition"
 };
 
 enum PROCESS{
@@ -167,6 +183,25 @@ enum TYPE_NORM{
 
 };
 
+namespace INPUT_DEFAULT {
+
+    const int drawNormalized = INPUT_TH1::k_noNorm;
+    const int windowWidth = 600;
+    const int windowHeight = 600;
+    const int textFont = 43;
+
+    const float leftMargin = 0.1;
+    const float rightMargin = 0.1;
+    const float bottomMargin = 0.1;
+    const float topMargin = 0.1;
+    const float titleOffsetX = 1;
+    const float titleOffsetY = 1;
+    const float textSize = 20;
+
+    // explicit specification of no input
+    const std::string nullInput = "NULL";
+};
+
 struct InputConfiguration : public Configuration {
     INPUT::ProcessInputs proc[CUTS::kN_PROCESSES];
 
@@ -188,34 +223,41 @@ public:
     static InputConfiguration Parse(std::string inFile);
 };
 
-bool InputConfigurationParser::isROOTfile(TString fileName) {
+bool InputConfigurationParser::isROOTfile(TString fileName)
+{
     return fileName.EndsWith(".root");
 }
 
-bool InputConfigurationParser::isROOTfile(std::string fileName) {
+bool InputConfigurationParser::isROOTfile(std::string fileName)
+{
     TString tstr = fileName.c_str();
     return isROOTfile(tstr);
 }
 
-bool InputConfigurationParser::isFileList(TString fileName) {
+bool InputConfigurationParser::isFileList(TString fileName)
+{
     return (fileName.EndsWith(".txt") || fileName.EndsWith(".list"));
 }
 
-bool InputConfigurationParser::isFileList(std::string fileName) {
+bool InputConfigurationParser::isFileList(std::string fileName)
+{
     TString tstr = fileName.c_str();
     return isFileList(tstr);
 }
 
-bool InputConfigurationParser::isConfigurationFile(TString fileName) {
+bool InputConfigurationParser::isConfigurationFile(TString fileName)
+{
     return fileName.EndsWith(".conf");
 }
 
-bool InputConfigurationParser::isConfigurationFile(std::string fileName) {
+bool InputConfigurationParser::isConfigurationFile(std::string fileName)
+{
     TString tstr = fileName.c_str();
     return isConfigurationFile(tstr);
 }
 
-std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileName) {
+std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileName)
+{
 
     std::vector<std::string> fileNames;
 
@@ -273,7 +315,8 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
     return fileNames;
 }
 
-InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
+InputConfiguration InputConfigurationParser::Parse(std::string inFile)
+{
 
     InputConfiguration config;
     std::string endSignal = "#INPUT-END#";     // signals that input configuration parsing is to be terminated.

@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>      // std::pair
 
 #ifndef CANVASUTIL_H_
 #define CANVASUTIL_H_
@@ -24,6 +25,8 @@ void setTH1Final   (TH1* c);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
+std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
+double calcTextWidth(std::vector<std::string> lines, TCanvas* c, float textSize = 18);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
 
@@ -136,6 +139,44 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
         legend->SetX2(1 - c->GetRightMargin() - offsetX);
         legend->SetY2(c->GetBottomMargin() + height + offsetY);
     }
+}
+
+std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX, double offsetY, float lineOffset)
+{
+
+    float x = 0.1;
+    float y = 0.1;
+    if (position.compare("NW") == 0) { // upper-left corner
+        x = c->GetLeftMargin() + offsetX;
+        y = 1 - c->GetTopMargin() - offsetY;
+    }
+    else if (position.compare("SW") == 0) { // lower-left corner
+        x = c->GetLeftMargin() + offsetX;
+        y = c->GetBottomMargin() + offsetY;
+    }
+
+    std::vector<std::pair<float, float>> coordinatesNDC;
+    for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it){
+
+        coordinatesNDC.push_back(std::make_pair(x, y));
+        y -= lineOffset;
+    }
+
+    return coordinatesNDC;
+}
+
+double calcTextWidth(std::vector<std::string> lines, TCanvas* c, float textSize)
+{
+    c->cd();
+
+    double w = 0;
+    for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it){
+        TLatex latex(0.1, 0.1, (*it).c_str());  // dummy TLatex object to calculate text width
+        double tmp = latex.GetXsize();
+        if (tmp > w)    w = tmp;
+    }
+
+    return w;
 }
 
 /*

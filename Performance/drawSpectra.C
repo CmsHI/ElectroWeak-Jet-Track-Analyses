@@ -34,73 +34,89 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    /*
+     * drawing behavior :
+     *      1. If N = # formulas and N = # selections, then N histograms will be drawn,
+     *      2. If 1 = # formulas and N = # selections, then N histograms will be drawn with the same formula.
+     *      3. If N = # formulas and 1 = # selections, then N histograms will be drawn with the same selection.
+     *      4. else, exit.
+     */
+    // input for TTree
+    std::string treePath;
+    std::vector<std::string> treeFriendsPath;
     std::vector<std::string> formulas;
     std::string selectionBase;
     std::vector<std::string> selections;
     std::vector<std::string> weights;
+     
+    // input for TH1
     std::string title;
     std::string titleX;
     std::string titleY;
     std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
-    std::vector<std::string> legendEntryLabels;
-    std::string legendPosition;
-    float legendOffsetX;
-    float legendOffsetY;
-    float leftMargin;
-    float rightMargin;
-    float bottomMargin;
-    float topMargin;
     float titleOffsetX;
     float titleOffsetY;
     float yMin;
     float yMax;
-
-    std::string treePath;
-    std::vector<std::string> treeFriendsPath;
-
     int drawSame;
     int drawNormalized;
-    int setLogx;
-    int setLogy;
+
+    // input for TLegend
+    std::vector<std::string> legendEntryLabels;
+    std::string legendPosition;
+    float legendOffsetX;
+    float legendOffsetY;
+
+    // input for TCanvas
     int windowWidth;
     int windowHeight;
+    float leftMargin;
+    float rightMargin;
+    float bottomMargin;
+    float topMargin;
+    int setLogx;
+    int setLogy;
+
     if (configInput.isValid) {
+        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
         weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
+
         title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]);
         titleX = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]);
         titleY = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]);
         TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
-        legendEntryLabels = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]);
-        legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
-        legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
-        legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
         titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
         yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
         yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
-
-        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
-
         drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
         drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
-        setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
-        setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
+
+        legendEntryLabels = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]);
+        legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
+        legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
+        legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+
         windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
         windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
         leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
         rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
         bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
         topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
+        setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
+        setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
     }
     else {
+        treePath = "";
         formulas.push_back("Entry$");
         selectionBase = "";
         selections.push_back("1 == 1");
         weights.push_back("1");
+
         title = "";
         titleX = "";
         titleY = "";
@@ -108,41 +124,40 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         TH1D_Bins_List[0].push_back(100);    // nBins
         TH1D_Bins_List[1].push_back(0);      // xLow
         TH1D_Bins_List[2].push_back(100);    // xUp
-        legendEntryLabels.push_back("");
-        legendPosition = "";
-        legendOffsetX = 0;
-        legendOffsetY = 0;
         titleOffsetX = 1;
         titleOffsetY = 1;
         yMin = 0;
         yMax = -1;
-
-        treePath = "";
-
         drawSame = 0;
         drawNormalized = 0;
-        setLogx = 0;
-        setLogy = 0;
+
+        legendEntryLabels.push_back("");
+        legendPosition = "";
+        legendOffsetX = 0;
+        legendOffsetY = 0;
+
         windowWidth = 0;
         windowHeight = 0;
         leftMargin = 0.1;
         rightMargin = 0.1;
         bottomMargin = 0.1;
         topMargin = 0.1;
+        setLogx = 0;
+        setLogy = 0;
     }
     // set default values
     if (selections.size() == 0) selections.push_back("1");
     if (weights.size() == 0)    weights.push_back("1");   // default weight = 1.
-    if (leftMargin == 0) leftMargin = 0.1;  // default margin
-    if (rightMargin == 0) rightMargin = 0.1;  // default margin
-    if (bottomMargin == 0) bottomMargin = 0.1;  // default margin
-    if (topMargin == 0) topMargin = 0.1;  // default margin
-    if (titleOffsetX == 0) titleOffsetX = 1;    // default offset
-    if (titleOffsetY == 0) titleOffsetY = 1;    // default offset
+    if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
+    if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
     if (yMin == 0 && yMax == 0)  yMax = -1;
-    if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = 0;
-    if (windowWidth  == 0)  windowWidth = 600;
-    if (windowHeight == 0)  windowHeight = 600;
+    if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
+    if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
+    if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
+    if (leftMargin == 0) leftMargin = INPUT_DEFAULT::leftMargin;
+    if (rightMargin == 0) rightMargin = INPUT_DEFAULT::rightMargin;
+    if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
+    if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
     int nFormulas = formulas.size();
     int nSelections = selections.size();
@@ -152,6 +167,11 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     int nLegendEntryLabels = legendEntryLabels.size();
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "treePath = " << treePath.c_str() << std::endl;
+    std::cout << "nFriends = " << nFriends << std::endl;
+    for (int i=0; i<nFriends; ++i) {
+        std::cout << Form("treeFriends[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
+    }
     std::cout << "nFormulas     = " << nFormulas << std::endl;
     for (int i=0; i<nFormulas; ++i) {
         std::cout << Form("formulas[%d]   = %s", i, formulas.at(i).c_str()) << std::endl;
@@ -165,15 +185,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     for (int i=0; i<nWeights; ++i) {
             std::cout << Form("weights[%d] = %s", i, weights.at(i).c_str()) << std::endl;
     }
+
+    std::cout << "title  = " << title.c_str() << std::endl;
+    std::cout << "titleX = " << titleX.c_str() << std::endl;
+    std::cout << "titleY = " << titleY.c_str() << std::endl;
     std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
     for (int i=0; i<nTH1D_Bins_List; ++i) {
             std::cout << Form("nBins[%d] = %.0f", i, TH1D_Bins_List[0].at(i)) << std::endl;
             std::cout << Form("xLow[%d]  = %f", i, TH1D_Bins_List[1].at(i)) << std::endl;
             std::cout << Form("xUp[%d]   = %f", i, TH1D_Bins_List[2].at(i)) << std::endl;
     }
-    std::cout << "title  = " << title.c_str() << std::endl;
-    std::cout << "titleX = " << titleX.c_str() << std::endl;
-    std::cout << "titleY = " << titleY.c_str() << std::endl;
+    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "yMin = " << yMin << std::endl;
+    std::cout << "yMax = " << yMax << std::endl;
+    std::cout << "drawSame = " << drawSame << std::endl;
+    std::cout << "drawNormalized = " << drawNormalized << std::endl;
+
     std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
     for (int i = 0; i<nLegendEntryLabels; ++i) {
             std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
@@ -182,27 +210,15 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
     std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
     std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
+
+    std::cout << "windowWidth = " << windowWidth << std::endl;
+    std::cout << "windowHeight = " << windowHeight << std::endl;
     std::cout << "leftMargin   = " << leftMargin << std::endl;
     std::cout << "rightMargin  = " << rightMargin << std::endl;
     std::cout << "bottomMargin = " << bottomMargin << std::endl;
     std::cout << "topMargin    = " << topMargin << std::endl;
-    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
-    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
-    std::cout << "yMin = " << yMin << std::endl;
-    std::cout << "yMax = " << yMax << std::endl;
-
-    std::cout << "treePath = " << treePath.c_str() << std::endl;
-    std::cout << "nFriends = " << nFriends << std::endl;
-    for (int i=0; i<nFriends; ++i) {
-        std::cout << Form("treeFriends[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
-    }
-
-    std::cout << "drawSame = " << drawSame << std::endl;
-    std::cout << "drawNormalized = " << drawNormalized << std::endl;
-    std::cout << "setLogx  = " << setLogx << std::endl;
-    std::cout << "setLogy  = " << setLogy << std::endl;
-    std::cout << "windowWidth = " << windowWidth << std::endl;
-    std::cout << "windowHeight = " << windowHeight << std::endl;
+    std::cout << "setLogx = " << setLogx << std::endl;
+    std::cout << "setLogy = " << setLogy << std::endl;
 
     if (configCuts.isValid) {
 
@@ -239,7 +255,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     TH1::SetDefaultSumw2();
     int nHistos = nFormulas;
-    if (nSelections > nFormulas) nHistos = nSelections;
+    if (nHistos == 1 && nSelections > nFormulas) nHistos = nSelections;
+    else if (nHistos > 1 && nSelections > 1 && nHistos != nSelections) {
+        std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
+        std::cout << "nHistos     = "<< nHistos << std::endl;
+        std::cout << "nSelections = "<< nSelections << std::endl;
+        std::cout << "exiting " << std::endl;
+        return;
+    }
     std::cout << "nHistos = " << nHistos << std::endl;
     TH1D* h[nHistos];
     for (int i=0; i<nHistos; ++i) {

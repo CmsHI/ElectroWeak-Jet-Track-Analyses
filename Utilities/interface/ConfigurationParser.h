@@ -7,6 +7,11 @@
 
 #include "../systemUtil.h"
 
+namespace CONFIGPARSER{
+
+const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from the line.
+}
+
 class ConfigurationParser {
 
 public :
@@ -26,19 +31,24 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
-    // elements of the list are separated by ','
+    // by default, elements of the list are separated by ","
+    std::string separator = ",";
+    // allow "," to be a list element
+    // if one wants to use comma inside a list element, then one should use ";;" as element separator
+    if (strList.find(";;") != std::string::npos)  separator = ";;";
+
     size_t pos;
     bool listFinished = false;
     posStart++;     // exclude '{'
     while (!listFinished) {
 
-        pos = strList.find(",", posStart);
+        pos = strList.find(separator, posStart);
         if (pos == std::string::npos) {    // this must be the last element. nothing after '}' is accepted.
             pos = posEnd;
             listFinished = true;
@@ -46,10 +56,19 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
 
         std::string tmp = strList.substr(posStart, pos-posStart);  //  strList = ...,ABC123 ,... --> posStart = 0, pos = 8, tmp = "ABC123 "
 
-        std::string element = trim(tmp);
+        // make trimming optional, trimming can be skipped if "noTrim" key appears in the element
+        bool doTrim = (tmp.find(CONFIGPARSER::noTrim) == std::string::npos);
+        std::string element;
+        if (doTrim) {
+            element = trim(tmp);
+        }
+        else {  // do not trim, allow  leading and trailing white space characters to appear in the element.
+            // remove the "do not trim" option from the element
+            element = replaceAll(tmp, CONFIGPARSER::noTrim, "");
+        }
 
         if(element.size() >0 ) list.push_back(element.c_str());
-        posStart = pos + 1;
+        posStart = pos + separator.size();
     }
 
     return list;
@@ -62,10 +81,10 @@ std::vector<int> ConfigurationParser::ParseListInteger(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
     // elements of the list are separated by ','
@@ -102,10 +121,10 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
     // elements of the list are separated by ','
