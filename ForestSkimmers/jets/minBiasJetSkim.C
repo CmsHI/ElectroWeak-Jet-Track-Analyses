@@ -261,7 +261,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            for(int j=0; j<nVertexBins; ++j){
                std::cout<<Form("outputTreesJet[%d][%d]->GetEntries() = %lld", i, j, outputTreesEvent[i][j]->GetEntries())<<std::endl;
                if (outputTreesEvent[i][j]->GetEntries() < 100) {
-                   std::cout<< "Be careful : less 100 events were put into centBin = "<<i<<" , vertexBin = "<<j<<std::endl;
+                   std::cout<< "Be careful : less than 100 events were put into centBin = "<<i<<" , vertexBin = "<<j<<std::endl;
                }
            }
        }

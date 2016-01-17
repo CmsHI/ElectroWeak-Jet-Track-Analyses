@@ -21,7 +21,7 @@ const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
 const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
-                                                                    "#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
+                                                                    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
                                                                     "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
 const std::vector<int>         nBinsx{40, 20,          300};
 const std::vector<double>      xlow  {0,  0,           0};
@@ -93,6 +93,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     int   cut_jetID;
     // gammaJet cuts
     float cut_awayRange;
+    float cut_awayRange_lt;
     float cut_dR;
     // process cuts
     int nEventsToMix;
@@ -139,13 +140,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
 
         cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange];
+        cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange_lt];
         cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
         nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     }
     else {  // default configuration for photons
         bins_pt[0].push_back(60);
-        bins_pt[1].push_back(999999);
+        bins_pt[1].push_back(-1);
         bins_hiBin[0].push_back(0);
         bins_hiBin[0].push_back(0);
         bins_hiBin[1].push_back(200);
@@ -183,10 +185,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_jetID = 0;      // jetID >= 0
 
         cut_awayRange = 7./8.;
+        cut_awayRange_lt = 1;
         cut_dR = 0.4;
 
         nEventsToMix = 1;
     }
+    // default values
+    if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
+
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
@@ -237,12 +243,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"cut_jetID                 = "<< cut_jetID <<std::endl;
 
     std::cout<<"cut_awayRange             = "<< cut_awayRange << " * PI" <<std::endl;
+    std::cout<<"cut_awayRange_lt          = "<< cut_awayRange_lt << " * PI" <<std::endl;
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
-    //set real awayRange cut
+    // set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
+    cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
@@ -278,7 +286,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     }
     bool hasEventWeight = false;
     if (hasHiEvt) {
-        if (tHiEvt->GetBranch("weight"))    hasEventWeight = true;
+        if (tHiEvt->GetBranch("weight") && tHiEvt->GetBranch("pthat"))    hasEventWeight = true;
     }
     std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
     if (hasEventWeight)
@@ -443,13 +451,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     std::string eventlistNames[2][nBins_pt][nBins_hiBin];
     TEventList* elists[2][nBins_pt][nBins_hiBin];
-    bool isEventlistSet[nBins_pt][nBins_hiBin];     // event lists are independent of the correlation histogram.
+    bool isEventlistCreated[nBins_pt][nBins_hiBin];     // event lists are independent of the correlation histogram.
     // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
             eventlistNames[CORR::kRAW][i][j] = Form("eventlist_PhoRAW_ptBin%d_HiBin%d", i, j);  // CORR::kRAW = 0
             eventlistNames[CORR::kBKG][i][j] = Form("eventlist_PhoBKG_ptBin%d_HiBin%d", i, j);  // CORR::kBKG = 1
-            isEventlistSet[i][j] = false;
+            isEventlistCreated[i][j] = false;
         }
     }
 
@@ -486,6 +494,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // special selection
             if (correlationHistNames.at(iHist).compare("dphi") != 0) {  // no awayRange cut for dphi histograms
                 selectionJet = selectionJet && Form("abs(dphi) > %f ", cut_awayRange);
+                selectionJet = selectionJet && Form("abs(dphi) <= %f ", cut_awayRange_lt);
             }
             selectionJet = selectionJet && Form("dR >= %f", cut_dR);
             selectionJet = selectionJet && Form("jtpt > %f", cut_jetpt);
@@ -512,12 +521,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             std::cout<< "selections[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].selections[CORR::kBKG][CORR::kRAW].GetTitle() <<std::endl;
 
             // use "EventList" approach to make the "draw()" shorter
-            if (!isEventlistSet[i][j]) {
+            if (!isEventlistCreated[i][j]) {
                 tgj->Draw(Form(">> %s", eventlistNames[CORR::kRAW][i][j].c_str()), (selection_event && selectionPho && selectionPhoCORR[CORR::kRAW]).GetTitle());
                 tgj->Draw(Form(">> %s", eventlistNames[CORR::kBKG][i][j].c_str()), (selection_event && selectionPho && selectionPhoCORR[CORR::kBKG]).GetTitle());
                 elists[CORR::kRAW][i][j] = (TEventList*)gDirectory->Get(eventlistNames[CORR::kRAW][i][j].c_str());
                 elists[CORR::kBKG][i][j] = (TEventList*)gDirectory->Get(eventlistNames[CORR::kBKG][i][j].c_str());
-                isEventlistSet[i][j] = true;
+                isEventlistCreated[i][j] = true;
                 // event lists are independent of the correlation histogram.
                 // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
             }
@@ -525,8 +534,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // number of events with photons, not necessarily photon-jet events
             tgj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tgj->GetEventList()->GetN();
+            tgj->SetEventList(eventlist);      // restore the original event list
             tgj->SetEventList(elists[CORR::kBKG][i][j]);
             corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tgj->GetEventList()->GetN();
+            tgj->SetEventList(eventlist);      // restore the original event list
             // nEntriesPho[][CORR::kRAW] = nEntriesPho[][CORR::kBKG] by definition
             // so no calculation for nEntriesPho[][CORR::kBKG]
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
@@ -534,8 +545,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
             tgj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] = tgj->GetEntries(corrHists[iHist][i][j].selections[CORR::kRAW][CORR::kRAW].GetTitle());
+            tgj->SetEventList(eventlist);      // restore the original event list
             tgj->SetEventList(elists[CORR::kBKG][i][j]);
             corrHists[iHist][i][j].nEntries[CORR::kBKG][CORR::kRAW] = tgj->GetEntries(corrHists[iHist][i][j].selections[CORR::kBKG][CORR::kRAW].GetTitle());
+            tgj->SetEventList(eventlist);      // restore the original event list
 
             std::cout<< "nEntries[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] <<std::endl;
             std::cout<< "nEntries[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kBKG][CORR::kRAW] <<std::endl;
@@ -552,6 +565,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
               }
               else if (bins_pt[0].at(i) <= 0 && bins_pt[1].at(i) < 0)   {
                   histoTitle = Form("%s , %d-%d %%",collisionName , bins_hiBin[0].at(j)/2, bins_hiBin[1].at(j)/2);
+              }
+              else if (bins_pt[1].at(i) < 0 && bins_hiBin[0].at(j) <= 0 && bins_hiBin[1].at(j) >= 200)   {
+                  histoTitle = Form("%s ,  p^{#gamma}_{T} > %.0f GeV/c",collisionName , bins_pt[0].at(i));
               }
               else if (bins_hiBin[0].at(j) <= 0 && bins_hiBin[1].at(j) >= 200)   {
                   histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c",collisionName , bins_pt[0].at(i), bins_pt[1].at(i));
@@ -586,7 +602,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     // histogram name excluding the "h1D" prefix
                     std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                     TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
-                    if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight)*(%s)", selectionDraw.GetTitle());
+                    if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight*HiEvt.pthat)*(%s)", selectionDraw.GetTitle());
 
                     std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                     std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();
@@ -596,10 +612,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     if (jCorr == CORR::kRAW){
                         tgj->SetEventList(elists[iCorr][i][j]);
                         tgj->Draw(Form("%s >> %s", tmpFormula.c_str(), tmpHistName.c_str()), selectionDraw.GetTitle(),"goff");
+                        tgj->SetEventList(eventlist);      // restore the original event list
                     }
                     if (jCorr == CORR::kBKG && hasJetsMB && hasGammaJetMB) {
                         tgjMB->SetEventList(elists[iCorr][i][j]);
                         tgjMB->Draw(Form("%s >> %s", tmpFormula.c_str(), tmpHistName.c_str()), selectionDraw.GetTitle(),"goff");
+                        tgjMB->SetEventList(eventlist);      // restore the original event list
                     }
 
                     corrHists[iHist][i][j].h1D[iCorr][jCorr]->Draw("e");
@@ -678,14 +696,20 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             std::cout<<tmpHistNameRAWSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG] =
                                  (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kRAW]->Clone(tmpHistNameRAWSIG.c_str());
-            corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG],-1);
+            // do arithmetic if histograms are not empty
+            if (corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG]->GetEntries() > 0) {
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG],-1);
+            }
 
             // BKGSIG = BKGRAW - BKGBKG
             std::string tmpHistNameBKGSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kBKG][CORR::kSIG]->GetName());
             std::cout<<tmpHistNameBKGSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG] =
                                  (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kRAW]->Clone(tmpHistNameBKGSIG.c_str());
-            corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG],-1);
+            // do arithmetic if histograms are not empty
+            if (corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG]->GetEntries() > 0) {
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kBKG],-1);
+            }
 
             // subtract photon BKG
             // purity*SIGSIG + (1-purity)*BKGSIG = RAWSIG
@@ -694,8 +718,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             std::cout<<tmpHistNameSIGSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG] =
                                  (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Clone(tmpHistNameSIGSIG.c_str());
-            corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG],-1*(1-purity[i][j]));
-            corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
+            // do arithmetic if histograms are not empty
+            if (corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->GetEntries() > 0) {
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG],-1*(1-purity[i][j]));
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
+            }
             if (isHI)  std::cout<< "purity[i][j] = " << purity[i][j] << std::endl;
 
             // FINAL_NORM  RAWSIG

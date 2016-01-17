@@ -91,6 +91,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int   cut_jetID;
     // zJet cuts
     float cut_awayRange;
+    float cut_awayRange_lt;
     float cut_dR;
     // process cuts
     int nEventsToMix;
@@ -134,10 +135,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
         cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
 
-        cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::GJT::k_awayRange];
-        cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::GJT::k_dR];
+        cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange];
+        cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange_lt];
+        cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_dR];
 
-        nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::GJT::k_nEventsToMix];
+        nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nEventsToMix];
     }
     else {  // default configuration
         bins_pt[0].push_back(60);
@@ -178,10 +180,14 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         cut_jetID = 0;      // jetID >= 0
 
         cut_awayRange = 2./3.;
+        cut_awayRange_lt = 1;
         cut_dR = 0.4;
 
         nEventsToMix = 1;
     }
+    // default values
+    if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
+
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
@@ -226,12 +232,14 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout<<"cut_jetID                 = "<< cut_jetID <<std::endl;
 
     std::cout<<"cut_awayRange             = "<< cut_awayRange << " * PI" <<std::endl;
+    std::cout<<"cut_awayRange_lt          = "<< cut_awayRange_lt << " * PI" <<std::endl;
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
     //set real awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
+    cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
@@ -267,7 +275,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     }
     bool hasEventWeight = false;
     if (hasHiEvt) {
-        if (tHiEvt->GetBranch("weight"))    hasEventWeight = true;
+        if (tHiEvt->GetBranch("weight") && tHiEvt->GetBranch("pthat"))    hasEventWeight = true;
     }
     std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
     if (hasEventWeight)
@@ -416,12 +424,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int nCorrZ = CORR::kRAW + 1;
     std::string eventlistNames[nCorrZ][nBins_pt][nBins_hiBin];
     TEventList* elists[nCorrZ][nBins_pt][nBins_hiBin];
-    bool isEventlistSet[nBins_pt][nBins_hiBin];     // event lists are independent of the correlation histogram.
+    bool isEventlistCreated[nBins_pt][nBins_hiBin];     // event lists are independent of the correlation histogram.
     // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
             eventlistNames[CORR::kRAW][i][j] = Form("eventlist_ptBin%d_HiBin%d", i, j);  // CORR::kRAW = 0
-            isEventlistSet[i][j] = false;
+            isEventlistCreated[i][j] = false;
         }
     }
 
@@ -459,6 +467,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // special selection
             if (correlationHistNames.at(iHist).compare("dphi") != 0) {  // no awayRange cut for dphi histograms
                 selectionJet = selectionJet && Form("abs(dphi) > %f ", cut_awayRange);
+                selectionJet = selectionJet && Form("abs(dphi) <= %f ", cut_awayRange_lt);
             }
             selectionJet = selectionJet && Form("dR_ele_1 >= %f", cut_dR);
             selectionJet = selectionJet && Form("dR_ele_2 >= %f", cut_dR);
@@ -490,10 +499,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             std::cout<< "selections[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].selections[CORR::kRAW][CORR::kRAW].GetTitle() <<std::endl;
 
             // use "EventList" approach to make the "draw()" shorter
-            if (!isEventlistSet[i][j]) {
+            if (!isEventlistCreated[i][j]) {
                 tzj->Draw(Form(">> %s", eventlistNames[CORR::kRAW][i][j].c_str()), (selection_event && selectionZ).GetTitle());
                 elists[CORR::kRAW][i][j] = (TEventList*)gDirectory->Get(eventlistNames[CORR::kRAW][i][j].c_str());
-                isEventlistSet[i][j] = true;
+                isEventlistCreated[i][j] = true;
                 // event lists are independent of the correlation histogram.
                 // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
             }
@@ -501,12 +510,14 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // number of events with Z bosons, not necessarily z-jet events
             tzj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tzj->GetEventList()->GetN();
+            tzj->SetEventList(eventlist);      // restore the original event list
             // nEntriesPho[][CORR::kRAW] = nEntriesPho[][CORR::kBKG] by definition
             // so no calculation for nEntriesPho[][CORR::kBKG]
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
 
             tzj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] = tzj->GetEntries(corrHists[iHist][i][j].selections[CORR::kRAW][CORR::kRAW].GetTitle());
+            tzj->SetEventList(eventlist);      // restore the original event list
 
             std::cout<< "nEntries[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] <<std::endl;
             std::cout<< "nEntriesPho[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] <<std::endl;
@@ -521,6 +532,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
               }
               else if (bins_pt[0].at(i) <= 0 && bins_pt[1].at(i) < 0)   {
                   histoTitle = Form("%s , %d-%d %%",collisionName , bins_hiBin[0].at(j)/2, bins_hiBin[1].at(j)/2);
+              }
+              else if (bins_pt[1].at(i) < 0 && bins_hiBin[0].at(j) <= 0 && bins_hiBin[1].at(j) >= 200)   {
+                  histoTitle = Form("%s ,  p^{Z}_{T} > %.0f GeV/c",collisionName , bins_pt[0].at(i));
               }
               else if (bins_hiBin[0].at(j) <= 0 && bins_hiBin[1].at(j) >= 200)   {
                   histoTitle = Form("%s , %.0f < p^{Z}_{T} < %.0f GeV/c",collisionName , bins_pt[0].at(i), bins_pt[1].at(i));
@@ -555,7 +569,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 // histogram name excluding the "h1D" prefix
                 std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                 TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
-                if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight)*(%s)", selectionDraw.GetTitle());
+                if (hasEventWeight)  selectionDraw = Form("((1.355*exp(-0.5*[(HiEvt.vz-0.6682)/7.729]^2))*HiEvt.weight*HiEvt.pthat)*(%s)", selectionDraw.GetTitle());
 
                 std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                 std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();
@@ -565,10 +579,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 if (jCorr == CORR::kRAW){
                     tzj->SetEventList(elists[iCorr][i][j]);
                     tzj->Draw(Form("%s >> %s", tmpFormula.c_str(), tmpHistName.c_str()), selectionDraw.GetTitle(),"goff");
+                    tzj->SetEventList(eventlist);      // restore the original event list
                 }
                 if (jCorr == CORR::kBKG && hasJetsMB && hasZJetMB) {
                     tzjMB->SetEventList(elists[iCorr][i][j]);
                     tzjMB->Draw(Form("%s >> %s", tmpFormula.c_str(), tmpHistName.c_str()), selectionDraw.GetTitle(),"goff");
+                    tzjMB->SetEventList(eventlist);      // restore the original event list
                 }
 
                 corrHists[iHist][i][j].h1D[iCorr][jCorr]->Draw("e");
@@ -642,7 +658,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             std::cout<<tmpHistNameRAWSIG.c_str()<<std::endl;
             corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG] =
                                  (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kRAW]->Clone(tmpHistNameRAWSIG.c_str());
-            corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG],-1);
+            // do arithmetic if histograms are not empty
+            if (corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG]->GetEntries() > 0) {
+                corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kBKG],-1);
+            }
 
             // there is no BKGRAW, BKGBKG, BKGSIG
 
