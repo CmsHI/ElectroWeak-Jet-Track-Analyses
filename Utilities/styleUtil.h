@@ -16,6 +16,8 @@
 #include <vector>
 #include <utility>      // std::pair
 
+#include "interface/InputConfigurationParser.h"
+
 #ifndef CANVASUTIL_H_
 #define CANVASUTIL_H_
 
@@ -29,6 +31,8 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
+
+float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset = 0.05);
 
@@ -212,6 +216,21 @@ double calcTLegendWidth(TLegend* legend, double offset, double ratio, double thr
     }
 
     return w;
+}
+
+/*
+ * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
+ */
+float resetTH1axisMin4LogScale(float axisMin, std::string axis)
+{
+    float result = axisMin;
+    if (ToLower(axis.c_str()).EqualTo("x")) {
+        if (result <= 0)   result = INPUT_DEFAULT::xMin;
+    }
+    else if (ToLower(axis.c_str()).EqualTo("y")) {
+        if (result <= 0)   result = INPUT_DEFAULT::yMin;
+    }
+    return result;
 }
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset)

@@ -9,11 +9,13 @@
 #include <string>
 #include <iostream>
 #include <fstream>      // ifstream, ofstream
+#include <algorithm>    // std::transform
 
 bool        fileExists(std::string filename);
 int         replaceStringInFile(std::string file, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string trim(std::string str);
+std::string toLowerCase(std::string str);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -90,6 +92,12 @@ std::string trim(std::string str)
     else {  // str = ""
         return str;
     }
+}
+
+std::string toLowerCase(std::string str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
 }
 
 #endif

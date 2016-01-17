@@ -11,6 +11,7 @@
 #include <TCut.h>
 #include <TCanvas.h>
 #include <TLegend.h>
+#include <TLatex.h>
 #include <TMath.h>
 
 #include <string>
@@ -20,6 +21,7 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/styleUtil.h"
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
@@ -48,11 +50,11 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::string selectionBase;
     std::vector<std::string> selections;
     std::vector<std::string> weights;
-     
+
     // input for TH1
-    std::string title;
-    std::string titleX;
-    std::string titleY;
+    std::vector<std::string>  titles;
+    std::vector<std::string>  titlesX;
+    std::vector<std::string>  titlesY;
     std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
     float titleOffsetX;
     float titleOffsetY;
@@ -60,12 +62,29 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     float yMax;
     int drawSame;
     int drawNormalized;
+    std::vector<std::string> drawOptions;
+    std::vector<std::string> markerStyles;
+    std::vector<std::string> lineStyles;
+    std::vector<std::string> fillStyles;
+    std::vector<std::string> colors;
 
     // input for TLegend
     std::vector<std::string> legendEntryLabels;
     std::string legendPosition;
     float legendOffsetX;
     float legendOffsetY;
+    int legendBorderSize;
+    float legendWidth;
+    float legendHeight;
+    float legendTextSize;
+
+    // input for text objects
+    std::vector<std::string> textLines;
+    int textFont;
+    float textSize;
+    std::string textPosition;
+    float textOffsetX;
+    float textOffsetY;
 
     // input for TCanvas
     int windowWidth;
@@ -85,9 +104,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
         weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
 
-        title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]);
-        titleX = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]);
-        titleY = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]);
+        titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
+        titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
+        titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
         TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
         titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
@@ -95,11 +114,28 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
         drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
         drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
+        drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_drawOption]);
+        markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_markerStyle]);
+        lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineStyle]);
+        fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillStyle]);
+        colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_color]);
 
-        legendEntryLabels = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]);
+        legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
         legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
         legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+        legendBorderSize  = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_legendBorderSize];
+        legendWidth       = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendWidth];
+        legendHeight      = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendHeight];
+        legendTextSize    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendTextSize];
+
+        std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
+        textLines = ConfigurationParser::ParseList(tmpText);
+        textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
+        textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
+        textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
+        textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
+        textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
 
         windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
         windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
@@ -117,9 +153,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         selections.push_back("1 == 1");
         weights.push_back("1");
 
-        title = "";
-        titleX = "";
-        titleY = "";
         TH1D_Bins_List.resize(3);
         TH1D_Bins_List[0].push_back(100);    // nBins
         TH1D_Bins_List[1].push_back(0);      // xLow
@@ -130,11 +163,21 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         yMax = -1;
         drawSame = 0;
         drawNormalized = 0;
-
+        
         legendEntryLabels.push_back("");
         legendPosition = "";
         legendOffsetX = 0;
         legendOffsetY = 0;
+        legendBorderSize = 0;
+        legendWidth = 0;
+        legendHeight = 0;
+        legendTextSize = 0;
+
+        textFont = 0;
+        textSize = 0;
+        textPosition = "";
+        textOffsetX = 0;
+        textOffsetY = 0;
 
         windowWidth = 0;
         windowHeight = 0;
@@ -151,7 +194,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
     if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
     if (yMin == 0 && yMax == 0)  yMax = -1;
+    else if (yMin <= 0 && setLogy > 0)  yMin = resetTH1axisMin4LogScale(yMin, "y");
     if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
+
+    if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
+    if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
+
     if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
     if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
     if (leftMargin == 0) leftMargin = INPUT_DEFAULT::leftMargin;
@@ -159,12 +207,21 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
+    int nFriends = treeFriendsPath.size();
     int nFormulas = formulas.size();
     int nSelections = selections.size();
     int nWeights = weights.size();
+    int nTitles = titles.size();
+    int nTitlesX = titlesX.size();
+    int nTitlesY = titlesY.size();
     int nTH1D_Bins_List = TH1D_Bins_List[0].size();
-    int nFriends = treeFriendsPath.size();
+    int nDrawOptions = drawOptions.size();
+    int nMarkerStyles = markerStyles.size();
+    int nLineStyles = lineStyles.size();
+    int nFillStyles = fillStyles.size();
+    int nColors = colors.size();
     int nLegendEntryLabels = legendEntryLabels.size();
+    int nTextLines = textLines.size();
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "treePath = " << treePath.c_str() << std::endl;
@@ -185,10 +242,19 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     for (int i=0; i<nWeights; ++i) {
             std::cout << Form("weights[%d] = %s", i, weights.at(i).c_str()) << std::endl;
     }
-
-    std::cout << "title  = " << title.c_str() << std::endl;
-    std::cout << "titleX = " << titleX.c_str() << std::endl;
-    std::cout << "titleY = " << titleY.c_str() << std::endl;
+    
+    std::cout << "nTitles   = " << nTitles << std::endl;
+    for (int i=0; i<nTitles; ++i) {
+            std::cout << Form("titles[%d] = %s", i, titles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTitlesX   = " << nTitlesX << std::endl;
+    for (int i=0; i<nTitlesX; ++i) {
+            std::cout << Form("titlesX[%d] = %s", i, titlesX.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTitlesY   = " << nTitlesY << std::endl;
+    for (int i=0; i<nTitlesY; ++i) {
+            std::cout << Form("titlesY[%d] = %s", i, titlesY.at(i).c_str()) << std::endl;
+    }
     std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
     for (int i=0; i<nTH1D_Bins_List; ++i) {
             std::cout << Form("nBins[%d] = %.0f", i, TH1D_Bins_List[0].at(i)) << std::endl;
@@ -201,6 +267,26 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout << "yMax = " << yMax << std::endl;
     std::cout << "drawSame = " << drawSame << std::endl;
     std::cout << "drawNormalized = " << drawNormalized << std::endl;
+    std::cout << "nDrawOptions   = " << nDrawOptions << std::endl;
+    for (int i = 0; i<nDrawOptions; ++i) {
+            std::cout << Form("drawOptions[%d] = %s", i, drawOptions.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nMarkerStyles   = " << nMarkerStyles << std::endl;
+    for (int i = 0; i<nMarkerStyles; ++i) {
+            std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLineStyles   = " << nLineStyles << std::endl;
+    for (int i = 0; i<nLineStyles; ++i) {
+            std::cout << Form("lineStyles[%d] = %s", i, lineStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFillStyles   = " << nFillStyles << std::endl;
+    for (int i = 0; i<nFillStyles; ++i) {
+            std::cout << Form("fillStyles[%d] = %s", i, fillStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nColors   = " << nColors << std::endl;
+    for (int i = 0; i<nColors; ++i) {
+            std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
+    }
 
     std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
     for (int i = 0; i<nLegendEntryLabels; ++i) {
@@ -210,6 +296,18 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
     std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
     std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
+    std::cout << "legendBorderSize = " << legendBorderSize << std::endl;
+    std::cout << "legendWidth      = " << legendWidth << std::endl;
+    std::cout << "legendHeight     = " << legendHeight << std::endl;
+    std::cout << "legendTextSize   = " << legendTextSize << std::endl;
+
+    std::cout << "nTextLines   = " << nTextLines << std::endl;
+    for (int i = 0; i<nTextLines; ++i) {
+            std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
+    }
+    std::cout << "textPosition = " << textPosition << std::endl;
+    std::cout << "textOffsetX  = " << textOffsetX << std::endl;
+    std::cout << "textOffsetY  = " << textOffsetY << std::endl;
 
     std::cout << "windowWidth = " << windowWidth << std::endl;
     std::cout << "windowHeight = " << windowHeight << std::endl;
@@ -274,6 +372,18 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             xLow  = TH1D_Bins_List[1].at(i);
             xUp   = TH1D_Bins_List[2].at(i);
         }
+        std::string title = "";
+        if (nTitles == 1) title = titles.at(0).c_str();
+        else if (nTitles == nHistos) title = titles.at(i).c_str();
+
+        std::string titleX = "";
+        if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
+        else if (nTitlesX == nHistos) titleX = titlesX.at(i).c_str();
+
+        std::string titleY = "";
+        if (nTitlesY == 1) titleY = titlesY.at(0).c_str();
+        else if (nTitlesY == nHistos) titleY = titlesY.at(i).c_str();
+
         h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
 
         if (yMax > yMin)       h[i]->SetAxisRange(yMin, yMax, "Y");
@@ -323,6 +433,29 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
+    // set the style of the histograms for canvases to be written
+    for (int i=0; i<nHistos; ++i) {
+        h[i]->SetTitleOffset(titleOffsetX,"X");
+        h[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
+
+        // default marker style and color
+        h[i]->SetMarkerStyle(kFullCircle);
+        h[i]->SetMarkerColor(kBlack);
+        h_normInt[i]->SetMarkerStyle(kFullCircle);
+        h_normInt[i]->SetMarkerColor(kBlack);
+        h_normEvents[i]->SetMarkerStyle(kFullCircle);
+        h_normEvents[i]->SetMarkerColor(kBlack);
+
+        // no stats box in the final plots
+        h[i]->SetStats(false);
+        h_normInt[i]->SetStats(false);
+        h_normEvents[i]->SetStats(false);
+    }
+
     // write canvases
     TCanvas* c;
     for (int i=0; i<nHistos; ++i) {
@@ -332,26 +465,13 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         setCanvasFinal(c, setLogx, setLogy);
         c->cd();
 
+        // set the style of the histograms for canvases to be written
         h[i]->SetTitleOffset(titleOffsetX,"X");
         h[i]->SetTitleOffset(titleOffsetY,"Y");
         h[i]->SetMarkerStyle(kFullCircle);
-        h[i]->SetStats(false);
+        h[i]->SetMarkerColor(kBlack);
+        h[i]->SetStats(false);              // no stats box in the final plots
         h[i]->Draw("e");
-        c->Write();
-        c->Close();         // do not use Delete() for TCanvas.
-
-        // normalized by number of events
-        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
-        c->SetTitle(h_normEvents[i]->GetTitle());
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
-        c->cd();
-
-        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
-        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normEvents[i]->SetMarkerStyle(kFullCircle);
-        h_normEvents[i]->SetStats(false);
-        h_normEvents[i]->Draw("e");
         c->Write();
         c->Close();         // do not use Delete() for TCanvas.
 
@@ -362,15 +482,79 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         setCanvasFinal(c, setLogx, setLogy);
         c->cd();
 
+        // set the style of the histograms for canvases to be written
         h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
         h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normInt[i]->SetMarkerStyle(kFullCircle);
-        h_normInt[i]->SetStats(false);
+        h_normInt[i]->SetMarkerColor(kBlack);
+        h_normInt[i]->SetStats(false);  // no stats box in the final plots
         h_normInt[i]->Draw("e");
+        c->Write();
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // normalized by number of events
+        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
+        c->SetTitle(h_normEvents[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEvents[i]->SetMarkerStyle(kFullCircle);
+        h_normEvents[i]->SetMarkerColor(kBlack);
+        h_normEvents[i]->SetStats(false);   // no stats box in the final plots
+        h_normEvents[i]->Draw("e");
         c->Write();
         c->Close();         // do not use Delete() for TCanvas.
     }
     // canvases are written.
+
+    // set style of the histograms for the canvases to be saved as picture
+    for(int i=0; i<nHistos; ++i) {
+        std::string drawOption = "";
+        if (nDrawOptions == 1) {
+            if (drawOptions.at(0).compare(INPUT_DEFAULT::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
+        }
+        else if (nDrawOptions == nHistos) {
+            if (drawOptions.at(i).compare(INPUT_DEFAULT::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
+        }
+        if (drawOption.size() > 0)  drawOptions.at(i) = drawOption.c_str();     // overwrite drawing options
+        // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
+        // TObject::SetDrawOption() is not suitable for the approach here.
+
+        int markerStyle = GRAPHICS::markerStyle;
+        if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
+        else if (nMarkerStyles == nHistos) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i));
+        h[i]->SetMarkerStyle(markerStyle);
+        h_normInt[i]->SetMarkerStyle(markerStyle);
+        h_normEvents[i]->SetMarkerStyle(markerStyle);
+
+        int lineStyle = GRAPHICS::lineStyle;
+        if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
+        else if (nLineStyles == nHistos)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i));
+        h[i]->SetLineStyle(lineStyle);
+        h_normInt[i]->SetLineStyle(lineStyle);
+        h_normEvents[i]->SetLineStyle(lineStyle);
+
+        int fillStyle = GRAPHICS::fillStyle;
+        if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
+        else if (nFillStyles == nHistos)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i));
+        h[i]->SetFillStyle(fillStyle);
+        h_normInt[i]->SetFillStyle(fillStyle);
+        h_normEvents[i]->SetFillStyle(fillStyle);
+
+        int color = GRAPHICS::colors[i];
+        if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
+        else if (nColors == nHistos) color = GraphicsConfigurationParser::ParseColor(colors.at(i));
+        h[i]->SetMarkerColor(color);
+        h[i]->SetLineColor(color);
+        h_normInt[i]->SetMarkerColor(color);
+        h_normInt[i]->SetLineColor(color);
+        h_normEvents[i]->SetMarkerColor(color);
+        h_normEvents[i]->SetLineColor(color);
+    }
 
     // save histograms as picture if a figure name is provided.
     if (!outputFigureName.EqualTo("")) {
@@ -394,11 +578,24 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 setCanvasFinal(c, setLogx, setLogy);
                 c->cd();
 
-                h_draw[i]->SetTitleOffset(titleOffsetX,"X");
-                h_draw[i]->SetTitleOffset(titleOffsetY,"Y");
-                h_draw[i]->SetMarkerStyle(kFullCircle);
-                h_draw[i]->SetStats(false);
-                h_draw[i]->Draw("e");
+                std::string drawOption = "";
+                if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+                else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+
+                h_draw[i]->Draw(drawOption.c_str());
+
+                TLatex* latex;
+                if (nTextLines > 0) {
+                    latex = new TLatex();
+                    latex->SetTextFont(textFont);
+                    latex->SetTextSize(textSize);
+                    std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
+                    for (int i = 0; i<nTextLines; ++i){
+                        float x = textCoordinates.at(i).first;
+                        float y = textCoordinates.at(i).second;
+                        latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+                    }
+                }
 
                 // saving histogram
                 std::string tmpOutputFigureName = outputFigureName.Data();
@@ -431,11 +628,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             setCanvasFinal(c, setLogx, setLogy);
             c->cd();
 
-            // assume not more than 13 curves are drawn.
-            int colors[13] = {kBlack, kBlue, kRed,   kOrange,  kViolet, kCyan, kSpring, kYellow,
-                    kAzure, kPink, kGreen, kMagenta, kTeal};
-            TLegend* leg = new TLegend();
-
             // set maximum/minimum of y-axis
             if (yMin > yMax) {
                 double histMin = h_draw[0]->GetMinimum();
@@ -448,14 +640,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 h_draw[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1*TMath::Power(10,setLogy));
             }
 
+            TLegend* leg = new TLegend();
             for (int i = 0; i<nHistos; ++i) {
 
-                h_draw[i]->SetTitleOffset(titleOffsetX,"X");
-                h_draw[i]->SetTitleOffset(titleOffsetY,"Y");
-                h_draw[i]->SetMarkerColor(colors[i]);
-                h_draw[i]->SetMarkerStyle(kFullCircle);
-                h_draw[i]->SetStats(false);
-                h_draw[i]->Draw("e same");
+                std::string drawOption = "";
+                if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+                else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+
+                h_draw[i]->Draw(Form("%s same", drawOption.c_str()));
 
                 std::string label = legendEntryLabels.at(0).c_str();
                 if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
@@ -463,11 +655,28 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 leg->AddEntry(h_draw[i], label.c_str(),"lp");
             }
 
+            if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
+            leg->SetBorderSize(legendBorderSize);
             double height = calcTLegendHeight(leg);
             double width = calcTLegendWidth(leg);
+            if (legendHeight != 0)  height = legendHeight;
+            if (legendWidth != 0)  width = legendWidth;
             if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
                 setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
                 leg->Draw();
+            }
+
+            TLatex* latex;
+            if (nTextLines > 0) {
+                latex = new TLatex();
+                latex->SetTextFont(textFont);
+                latex->SetTextSize(textSize);
+                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
+                for (int i = 0; i<nTextLines; ++i){
+                    float x = textCoordinates.at(i).first;
+                    float y = textCoordinates.at(i).second;
+                    latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+                }
             }
 
             c->Write();

@@ -43,6 +43,7 @@ enum TYPE_I{
     k_windowWidth,
     k_windowHeight,
     k_textFont,
+    k_legendBorderSize,
     kN_TYPES_I
 };
 
@@ -61,12 +62,16 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "setLogz",
         "windowWidth",
         "windowHeight",
-        "textFont"
+        "textFont",
+        "legendBorderSize"
 };
 
 enum TYPE_F{
     k_legendOffsetX,
     k_legendOffsetY,
+    k_legendWidth,
+    k_legendHeight,
+    k_legendTextSize,
     k_leftMargin,
     k_rightMargin,
     k_bottomMargin,
@@ -86,6 +91,9 @@ enum TYPE_F{
 const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "legendOffsetX",
         "legendOffsetY",
+        "legendWidth",
+        "legendHeight",
+        "legendTextSize",
         "leftMargin",
         "rightMargin",
         "bottomMargin",
@@ -197,6 +205,8 @@ namespace INPUT_DEFAULT {
     const float titleOffsetX = 1;
     const float titleOffsetY = 1;
     const float textSize = 20;
+    const float xMin = 0.001;   // for logScale histograms
+    const float yMin = 0.001;   // for logScale histograms
 
     // explicit specification of no input
     const std::string nullInput = "NULL";
