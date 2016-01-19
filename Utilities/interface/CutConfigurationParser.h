@@ -169,9 +169,10 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
     if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
     if (trim(line).find_first_of("#") == 0) continue;  //skip all lines starting with comment sign #
-    size_t pos = line.find("=") + 1;
-    size_t posLast = line.find("#");    // allow inline comment signs with #
+    size_t pos = line.find_first_of("=") + 1;
+    size_t posLast = line.find_first_of("#");    // allow inline comment signs with #
     std::istringstream sin(line.substr(pos, (posLast-pos) ));
+    line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
     bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){
