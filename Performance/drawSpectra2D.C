@@ -578,8 +578,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
             std::string label = legendEntryLabels.at(0).c_str();
             if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
-
-            leg->AddEntry(h_draw[i], label.c_str(),"pf");
+            if (label.compare(INPUT_DEFAULT::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(),"pf");
 
             if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
             leg->SetBorderSize(legendBorderSize);

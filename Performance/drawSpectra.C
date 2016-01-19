@@ -23,6 +23,7 @@
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/styleUtil.h"
+#include "../Utilities/th1Util.h"
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
@@ -651,6 +652,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
                 std::string label = legendEntryLabels.at(0).c_str();
                 if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
+                if (label.compare(INPUT_DEFAULT::nullInput) == 0)  continue;
 
                 leg->AddEntry(h_draw[i], label.c_str(),"lp");
             }

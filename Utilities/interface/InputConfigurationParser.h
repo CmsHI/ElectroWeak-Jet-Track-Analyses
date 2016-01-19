@@ -45,6 +45,7 @@ enum TYPE_I{
     k_windowWidth,
     k_windowHeight,
     k_textFont,
+    k_textAbovePadFont,
     k_legendBorderSize,
     k_lineWidth,
     kN_TYPES_I
@@ -68,6 +69,7 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "windowWidth",
         "windowHeight",
         "textFont",
+        "textAbovePadFont",
         "legendBorderSize",
         "lineWidth"
 };
@@ -91,6 +93,9 @@ enum TYPE_F{
     k_textSize,
     k_textOffsetX,
     k_textOffsetY,
+    k_textAbovePadSize,
+    k_textAbovePadOffsetX,
+    k_textAbovePadOffsetY,
     k_lineHorizontalY,      // horizontal line at y = lineHorizontalY
     k_windowHeightFraction,      // height fraction of a pad relative to some other pad
     kN_TYPES_F
@@ -115,6 +120,9 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "textSize",
         "textOffsetX",
         "textOffsetY",
+        "textAbovePadSize",
+        "textAbovePadOffsetX",
+        "textAbovePadOffsetY",
         "lineHorizontalY",
         "windowHeightFraction"
 };
@@ -145,6 +153,8 @@ enum TYPE_S{
     k_fillStyle,
     k_text,                 // text content of Graphics objects, e.g. : TLatex
     k_textPosition,
+    k_textAbovePad,
+    k_textAbovePadAlign,
     kN_TYPES_S
 };
 
@@ -173,7 +183,9 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "lineStyle",
         "fillStyle",
         "text",
-        "textPosition"
+        "textPosition",
+        "textAbovePad",
+        "textAbovePadAlign"
 };
 
 enum PROCESS{
@@ -211,6 +223,7 @@ namespace INPUT_DEFAULT {
     const int windowWidth = 600;
     const int windowHeight = 600;
     const int textFont = 43;
+    const int textAbovePadFont = 43;
     const int lineWidth = 1;
 
     const float leftMargin = 0.1;
@@ -220,6 +233,7 @@ namespace INPUT_DEFAULT {
     const float titleOffsetX = 1;
     const float titleOffsetY = 1;
     const float textSize = 20;
+    const float textAbovePadSize = 20;
     const float xMin = 0.001;   // for logScale histograms
     const float yMin = 0.001;   // for logScale histograms
     const float windowHeightFraction = 0.25;

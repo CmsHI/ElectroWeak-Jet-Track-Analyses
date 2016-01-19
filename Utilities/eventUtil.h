@@ -3,8 +3,8 @@
  *
  */
 
-#ifndef UTILS_EVENTUTILS_H_
-#define UTILS_EVENTUTILS_H_
+#ifndef EVENTUTILS_H_
+#define EVENTUTILS_H_
 
 #include <string>
 
@@ -67,4 +67,4 @@ bool collisionIsPA(COLL::TYPE collision) {
     return (collision == COLL::kPA || collision == COLL::kPAMC);
 }
 
-#endif /* UTILS_EVENTUTILS_H_ */
+#endif /* EVENTUTILS_H_ */

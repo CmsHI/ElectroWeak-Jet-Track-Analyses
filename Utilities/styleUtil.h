@@ -16,23 +16,23 @@
 #include <vector>
 #include <utility>      // std::pair
 
-#include "interface/InputConfigurationParser.h"
-
-#ifndef CANVASUTIL_H_
-#define CANVASUTIL_H_
+#ifndef STYLEUTIL_H_
+#define STYLEUTIL_H_
 
 void setCanvasFinal(TCanvas* c, int logx = 0, int logy = 0, int logz = 0);
 void setCanvasMargin(TCanvas* c, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
-void setTH1Final   (TH1* c);
+void setPadFinal(TPad* pad, int logx = 0, int logy = 0, int logz = 0);
+void setTH1Final (TH1* h);
+void setTH1Ratio (TH1* h, TH1* hBase, double factor);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
+void setTextAlignment(TLatex* latex, std::string position);
+void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
-
-float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset = 0.05);
 
@@ -51,18 +51,7 @@ void setCanvas_InvMass_PbPb(TCanvas* c, float px = 0.65, float py = 0.85,
 
 void setCanvasFinal(TCanvas* c, int logx, int logy, int logz)
 {
-    c->SetBorderMode(0);
-    c->SetBorderSize(0);
-    c->SetFrameBorderMode(0);
-    c->SetFrameLineColor(0);
-
-    // put ticks to upper and right part of the axis.
-    c->SetTickx(1);
-    c->SetTicky(1);
-
-    c->SetLogx(logx);
-    c->SetLogy(logy);
-    c->SetLogz(logz);
+    setPadFinal(c, logx, logy, logz);
 }
 
 /*
@@ -83,6 +72,22 @@ void setCanvasMargin(TCanvas* c, float leftMargin, float rightMargin, float bott
     c->SetTopMargin(topMargin);
 }
 
+void setPadFinal(TPad* pad, int logx, int logy, int logz)
+{
+    pad->SetBorderMode(0);
+    pad->SetBorderSize(0);
+    pad->SetFrameBorderMode(0);
+    pad->SetFrameLineColor(0);
+
+    // put ticks to upper and right part of the axis.
+    pad->SetTickx(1);
+    pad->SetTicky(1);
+
+    pad->SetLogx(logx);
+    pad->SetLogy(logy);
+    pad->SetLogz(logz);
+}
+
 void setTH1Final(TH1* h)
 {
     h->SetTitleOffset(1.25, "X");
@@ -90,6 +95,33 @@ void setTH1Final(TH1* h)
 
     h->SetTitle("");
     h->SetStats(false);
+}
+
+/*
+ * set the axis properties of a "ratio histogram" using the axis properties of the original histogram.
+ * this function is useful for canvases where the ratio histogram is drawn in a small pad below the original histogram.
+ * If the axis properties of the ratio is not set properly, then they will appear significantly small in the final canvas because the pad
+ * for ratio histogram is small.
+ *
+ * axis properties of the ratio histogram will be scaled with "factor"
+ */
+void setTH1Ratio(TH1* h, TH1* hBase, double factor)
+{
+    // default titles for the ratio histogram.
+    h->SetTitle("");
+    h->SetXTitle("");      // no x-axis title for ratio histograms
+    h->SetYTitle("Ratio");      // no x-axis title for ratio histograms
+
+    h->SetStats(false);
+
+    h->SetLabelSize(hBase->GetLabelSize("X")*factor, "X");   //in pixels
+    h->SetLabelSize(hBase->GetLabelSize("Y")*factor, "Y");   //in pixels
+
+    h->SetTitleSize(hBase->GetTitleSize("X")*factor, "X");   //in pixels
+    h->SetTitleSize(hBase->GetTitleSize("Y")*factor, "Y");   //in pixels
+
+    h->SetTitleOffset(hBase->GetTitleOffset("X")/factor, "X");
+    h->SetTitleOffset(hBase->GetTitleOffset("Y")/factor, "Y");
 }
 
 void setLegendFinal(TLegend* legend)
@@ -145,17 +177,52 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
     }
 }
 
+void setTextAlignment(TLatex* latex, std::string position)
+{
+    int verticalAlign = latex->GetTextAlign() % 10;
+    if (position.compare("NW") == 0 || position.compare("SW") == 0) { // left corner
+        latex->SetTextAlign(10 + verticalAlign);    // horizontal alignment is left
+    }
+    else if (position.compare("NE") == 0 || position.compare("SE") == 0) { // right corner
+        latex->SetTextAlign(30 + verticalAlign);    // horizontal alignment is right
+    }
+}
+
+/*
+ * set properties of a TLatex object that should lie above a TPad
+ * such objects are thing
+ */
+void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX, double offsetY)
+{
+    // assume the text objects is to be left aligned.
+    float x = pad->GetLeftMargin() + offsetX;
+    float y = 1 - pad->GetTopMargin() + offsetY;
+    if (latex->GetTextAlign() / 10 == 3) {  // text object is set to be right aligned.
+        x = 1 - pad->GetRightMargin() - offsetX;
+    }
+
+    latex->SetX(x);
+    latex->SetY(y);
+}
+
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX, double offsetY, float lineOffset)
 {
-
     float x = 0.1;
     float y = 0.1;
     if (position.compare("NW") == 0) { // upper-left corner
         x = c->GetLeftMargin() + offsetX;
         y = 1 - c->GetTopMargin() - offsetY;
     }
+    else if (position.compare("NE") == 0) { // upper-right corner
+        x = 1 - c->GetRightMargin() - offsetX;
+        y = 1 - c->GetTopMargin() - offsetY;
+    }
     else if (position.compare("SW") == 0) { // lower-left corner
         x = c->GetLeftMargin() + offsetX;
+        y = c->GetBottomMargin() + offsetY;
+    }
+    else if (position.compare("SE") == 0) { // lower-right corner
+        x = 1 - c->GetRightMargin() - offsetX;
         y = c->GetBottomMargin() + offsetY;
     }
 
@@ -216,21 +283,6 @@ double calcTLegendWidth(TLegend* legend, double offset, double ratio, double thr
     }
 
     return w;
-}
-
-/*
- * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
- */
-float resetTH1axisMin4LogScale(float axisMin, std::string axis)
-{
-    float result = axisMin;
-    if (ToLower(axis.c_str()).EqualTo("x")) {
-        if (result <= 0)   result = INPUT_DEFAULT::xMin;
-    }
-    else if (ToLower(axis.c_str()).EqualTo("y")) {
-        if (result <= 0)   result = INPUT_DEFAULT::yMin;
-    }
-    return result;
 }
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset)
@@ -335,4 +387,4 @@ void setCanvas_InvMass_Histo2Legend(TCanvas* c, TH1* h1, TH1* h2)
     legend->Draw();
 }
 
-#endif /* CANVASUTIL_H_ */
+#endif /* STYLEUTIL_H_ */
