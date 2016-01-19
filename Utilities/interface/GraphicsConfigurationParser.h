@@ -26,6 +26,7 @@ const int colors[13] = {kBlack, kBlue, kRed,   kOrange,  kViolet, kCyan, kSpring
 const int markerStyle = EMarkerStyle::kFullCircle;
 const int lineStyle = ELineStyle::kSolid;
 const int fillStyle = EFillStyle::kFSolid;
+const int textAlign = 11;
 };
 
 class GraphicsConfigurationParser : public ConfigurationParser {

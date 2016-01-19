@@ -37,6 +37,8 @@ enum TYPE_I{
     k_doPAMC,
     k_drawSame,
     k_drawNormalized,
+    k_drawRatio,
+    k_drawLine,
     k_setLogx,
     k_setLogy,
     k_setLogz,
@@ -44,6 +46,7 @@ enum TYPE_I{
     k_windowHeight,
     k_textFont,
     k_legendBorderSize,
+    k_lineWidth,
     kN_TYPES_I
 };
 
@@ -57,13 +60,16 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPAMC",
         "drawSame",
         "drawNormalized",
+        "drawRatio",        // ratio histograms will be drawn if drawRatio > 0
+        "drawLine",
         "setLogx",
         "setLogy",
         "setLogz",
         "windowWidth",
         "windowHeight",
         "textFont",
-        "legendBorderSize"
+        "legendBorderSize",
+        "lineWidth"
 };
 
 enum TYPE_F{
@@ -85,6 +91,8 @@ enum TYPE_F{
     k_textSize,
     k_textOffsetX,
     k_textOffsetY,
+    k_lineHorizontalY,      // horizontal line at y = lineHorizontalY
+    k_windowHeightFraction,      // height fraction of a pad relative to some other pad
     kN_TYPES_F
 };
 
@@ -106,7 +114,9 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "TH1_yMax",
         "textSize",
         "textOffsetX",
-        "textOffsetY"
+        "textOffsetY",
+        "lineHorizontalY",
+        "windowHeightFraction"
 };
 
 enum TYPE_S{
@@ -120,6 +130,7 @@ enum TYPE_S{
     k_TH1_weight,           // weight used when filling a histogram
     k_TH1_scale,
     k_TH1_rebin,
+    k_TH1_titleYRatio,      // y-axis title for ratio histograms
     k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
     k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
@@ -128,6 +139,7 @@ enum TYPE_S{
     k_legendPosition,       // one of NW, NE, SW, SE
     k_legendEntryLabel,
     k_color,
+    k_fillColor,
     k_markerStyle,
     k_lineStyle,
     k_fillStyle,
@@ -147,6 +159,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TH1_weight",
         "TH1_scale",
         "TH1_rebin",
+        "TH1_titleYRatio",
         "drawOption",
         "TH1D_Bins_List",
         "TH2D_Bins_List",
@@ -155,6 +168,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "legendPosition",
         "legendEntryLabel",
         "color",
+        "fillColor",
         "markerStyle",
         "lineStyle",
         "fillStyle",
@@ -197,6 +211,7 @@ namespace INPUT_DEFAULT {
     const int windowWidth = 600;
     const int windowHeight = 600;
     const int textFont = 43;
+    const int lineWidth = 1;
 
     const float leftMargin = 0.1;
     const float rightMargin = 0.1;
@@ -207,9 +222,10 @@ namespace INPUT_DEFAULT {
     const float textSize = 20;
     const float xMin = 0.001;   // for logScale histograms
     const float yMin = 0.001;   // for logScale histograms
+    const float windowHeightFraction = 0.25;
 
     // explicit specification of no input
-    const std::string nullInput = "NULL";
+    const std::string nullInput = "$NULL$";
 };
 
 struct InputConfiguration : public Configuration {
@@ -355,9 +371,10 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile)
         if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
         if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
         if (trim(line).find_first_of("#") == 0) continue;  //skip all lines starting with comment sign #
-        size_t pos = line.find("=") + 1;
-        size_t posLast = line.find("#");    // allow inline comment signs with #
+        size_t pos = line.find_first_of("=") + 1;
+        size_t posLast = line.find_first_of("#");    // allow inline comment signs with #
         std::istringstream sin(line.substr(pos, (posLast-pos) ));
+        line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
         bool success = false;
         INPUT::PROCESS proc = INPUT::kN_PROCESSES;
         for(int i = 0; i < INPUT::kN_PROCESSES; ++i){
