@@ -3,18 +3,24 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 #include <sstream>
 
 #include "../systemUtil.h"
 
 namespace CONFIGPARSER{
 
+const std::string comment = "#";
 const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from the line.
+const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
 }
 
 class ConfigurationParser {
 
 public :
+    static bool isList(std::string str);
+    static std::string trimComment(std::string line);
+    static std::string ReadValue(std::ifstream& fin, std::string value);
     static std::vector<std::string> ParseList(std::string strList);
     static std::vector<int> ParseListInteger(std::string strList);
     static std::vector<float> ParseListFloat(std::string strList);
@@ -23,6 +29,44 @@ public :
     static std::string ParseLatex(std::string str);
 
 };
+
+/*
+ * a string is a list if it starts with "{" and ends with "}"
+ */
+bool ConfigurationParser::isList(std::string str)
+{
+    std::string tmp = trim(str);
+    return (tmp.find_first_of("{") == 0 && tmp.find_last_of("}") == tmp.size()-1);
+}
+
+std::string ConfigurationParser::trimComment(std::string line)
+{
+    size_t pos = line.find_first_of(CONFIGPARSER::comment.c_str());
+    return line.substr(0,pos);
+}
+
+/*
+ * read the value over multiple lines as long as the lines finish with "CONFIGPARSER::newLine" key.
+ */
+std::string ConfigurationParser::ReadValue(std::ifstream& fin, std::string value)
+{
+    std::string result = trim(value);
+    if (endsWith(result, CONFIGPARSER::newLine.c_str())) {
+        result = replaceAll(result, CONFIGPARSER::newLine.c_str(), "");
+        std::string nextLine;
+        while(getline(fin, nextLine)) {
+            std::string trimmedLine = trimComment(nextLine);
+            trimmedLine = trim(trimmedLine);
+            if (trimmedLine.size() == 0) continue;  //skip all empty lines or the ones starting with comment sign
+            std::string tmpValue = replaceAll(trimmedLine, CONFIGPARSER::newLine.c_str(), "");
+            result.append(tmpValue);
+            if(! endsWith(trimmedLine, CONFIGPARSER::newLine.c_str())) {
+                break;
+            }
+        }
+    }
+    return result;
+}
 
 std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
 {

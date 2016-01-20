@@ -168,10 +168,11 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
     if (line.find(endSignal) != std::string::npos) break;
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
     if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
-    if (trim(line).find_first_of("#") == 0) continue;  //skip all lines starting with comment sign #
+    if (trim(line).find_first_of(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
     size_t pos = line.find_first_of("=") + 1;
-    size_t posLast = line.find_first_of("#");    // allow inline comment signs with #
-    std::istringstream sin(line.substr(pos, (posLast-pos) ));
+    size_t posLast = line.find_first_of(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+    std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
+    std::istringstream sin(value);
     line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
     bool success = false;
     PROCESS proc = kN_PROCESSES;

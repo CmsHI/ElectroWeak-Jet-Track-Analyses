@@ -108,11 +108,11 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
         drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
-        drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_drawOption]);
-        markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_markerStyle]);
-        lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineStyle]);
-        fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillStyle]);
-        colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_color]);
+        drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
+        markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
+        lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
+        fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
+        colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
 
         legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
@@ -286,22 +286,28 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nLegendEntryLabels; ++i) {
             std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
     }
-    std::cout << "legendPosition   = " << legendPosition.c_str() << std::endl;
-    if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
-    std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
-    std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
-    std::cout << "legendBorderSize = " << legendBorderSize << std::endl;
-    std::cout << "legendWidth      = " << legendWidth << std::endl;
-    std::cout << "legendHeight     = " << legendHeight << std::endl;
-    std::cout << "legendTextSize   = " << legendTextSize << std::endl;
+    if (nLegendEntryLabels > 0) {
+        std::cout << "legendPosition   = " << legendPosition.c_str() << std::endl;
+        if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
+        std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
+        std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
+        std::cout << "legendBorderSize = " << legendBorderSize << std::endl;
+        std::cout << "legendWidth      = " << legendWidth << std::endl;
+        std::cout << "legendHeight     = " << legendHeight << std::endl;
+        std::cout << "legendTextSize   = " << legendTextSize << std::endl;
+    }
 
     std::cout << "nTextLines   = " << nTextLines << std::endl;
     for (int i = 0; i<nTextLines; ++i) {
             std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
     }
-    std::cout << "textPosition = " << textPosition << std::endl;
-    std::cout << "textOffsetX  = " << textOffsetX << std::endl;
-    std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+    if (nTextLines > 0) {
+        std::cout << "textFont = " << textFont << std::endl;
+        std::cout << "textSize = " << textSize << std::endl;
+        std::cout << "textPosition = " << textPosition << std::endl;
+        std::cout << "textOffsetX  = " << textOffsetX << std::endl;
+        std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+    }
 
     std::cout << "windowWidth = " << windowWidth << std::endl;
     std::cout << "windowHeight = " << windowHeight << std::endl;
@@ -576,9 +582,11 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
             h_draw[i]->Draw(drawOption.c_str());
 
-            std::string label = legendEntryLabels.at(0).c_str();
-            if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
-            if (label.compare(INPUT_DEFAULT::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(),"pf");
+            if (nHistos == nLegendEntryLabels) {
+                std::string label = legendEntryLabels.at(i).c_str();
+                if (label.compare(INPUT_DEFAULT::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(),"pf");
+            }
+
 
             if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
             leg->SetBorderSize(legendBorderSize);
@@ -591,11 +599,13 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
                 leg->Draw();
             }
 
+            // add Text
             TLatex* latex;
             if (nTextLines > 0) {
                 latex = new TLatex();
                 latex->SetTextFont(textFont);
                 latex->SetTextSize(textSize);
+                setTextAlignment(latex, textPosition);
                 std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
                 for (int i = 0; i<nTextLines; ++i){
                     float x = textCoordinates.at(i).first;

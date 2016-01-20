@@ -16,6 +16,7 @@ int         replaceStringInFile(std::string file, std::string oldString, std::st
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
+bool endsWith(std::string str, std::string suffix);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -98,6 +99,15 @@ std::string toLowerCase(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     return str;
+}
+
+/*
+ * return true if string "str" ends with "suffix"
+ */
+bool endsWith(std::string str, std::string suffix)
+{
+    if (str.size() < suffix.size()) return false;
+    return str.compare(str.size() - suffix.size(), suffix.size(), suffix.c_str()) == 0;
 }
 
 #endif
