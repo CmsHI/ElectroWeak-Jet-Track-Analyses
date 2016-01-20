@@ -260,6 +260,7 @@ public:
     static bool isConfigurationFile(TString fileName);
     static bool isConfigurationFile(std::string fileName);
     static std::vector<std::string> ParseFiles(std::string fileName);
+    static void copyConfiguration(InputConfiguration& config, InputConfiguration configCopy);
     static InputConfiguration Parse(std::string inFile);
 };
 
@@ -315,7 +316,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
         {
             while(getline(inFile,strLine))
             {
-                if (trim(strLine).find_first_of(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+                if (trim(strLine).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
 
                 size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
                 std::string in = trim(strLine.substr(0, posLast));
@@ -342,7 +343,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
                 else if (strLine.find(endSignal) != std::string::npos) break;
 
                 if (!fileListFound) continue;
-                if (trim(strLine).find_first_of(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+                if (trim(strLine).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
 
                 size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
                 std::string in = trim(strLine.substr(0, posLast));
@@ -355,9 +356,34 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
     return fileNames;
 }
 
+/*
+ * copy values from "configCopy" to "config".
+ * if the original config has a value for a field, then do not copy.
+ */
+void InputConfigurationParser::copyConfiguration(InputConfiguration& config, InputConfiguration configCopy)
+{
+    for(int i = 0 ; i < INPUT::kN_PROCESSES; ++i){
+        for(int j = 0 ; j < INPUT::kN_TYPES_I; ++j){
+            if (config.proc[i].i[j] == 0)
+                config.proc[i].i[j] = configCopy.proc[i].i[j];
+        }
+        for(int j = 0 ; j < INPUT::kN_TYPES_F; ++j){
+            if (config.proc[i].f[j] == 0)
+                config.proc[i].f[j] = configCopy.proc[i].f[j];
+        }
+        for(int j = 0 ; j < INPUT::kN_TYPES_S; ++j){
+            if (config.proc[i].s[j].size() == 0) {
+                config.proc[i].s[j] = configCopy.proc[i].s[j];
+                char * cstr = new char [config.proc[i].s[j].length()+1];
+                std::strcpy (cstr, config.proc[i].s[j].c_str());
+                config.proc[i].c[j] = cstr;
+            }
+        }
+    }
+}
+
 InputConfiguration InputConfigurationParser::Parse(std::string inFile)
 {
-
     InputConfiguration config;
     std::string endSignal = "#INPUT-END#";     // signals that input configuration parsing is to be terminated.
                                               // another block of configuration parsing will start.
@@ -382,14 +408,19 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile)
         lineCounter++;
         if (line.find(endSignal) != std::string::npos) break;
         if (line.find("=") == std::string::npos) continue; //skip all lines without an =
-        if (line.find("input.") == std::string::npos) continue; //skip all lines without an "input."
+        if (line.find("input") == std::string::npos) continue; //skip all lines without an "input."
         if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
-        if (trim(line).find_first_of(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
-        size_t pos = line.find_first_of("=") + 1;
-        size_t posLast = line.find_first_of(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+        if (trim(line).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+        size_t pos = line.find("=") + 1;
+        size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
         std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));
         std::istringstream sin(value);
         line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
+        if (ConfigurationParser::isImportInputStatement(line)) {
+            InputConfiguration importedConfig = InputConfigurationParser::Parse(value);
+            InputConfigurationParser::copyConfiguration(config, importedConfig);
+            continue;
+        }
         bool success = false;
         INPUT::PROCESS proc = INPUT::kN_PROCESSES;
         for(int i = 0; i < INPUT::kN_PROCESSES; ++i){

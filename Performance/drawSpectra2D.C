@@ -251,12 +251,14 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     }
     std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;
     for (int i=0; i<nTH2D_Bins_List; ++i) {
-            std::cout << Form("nBinsx[%d] = %.0f", i, TH2D_Bins_List[0].at(i)) << std::endl;
-            std::cout << Form("xLow[%d]  = %f", i, TH2D_Bins_List[1].at(i)) << std::endl;
-            std::cout << Form("xUp[%d]   = %f", i, TH2D_Bins_List[2].at(i)) << std::endl;
-            std::cout << Form("nBinsy[%d] = %.0f", i, TH2D_Bins_List[3].at(i)) << std::endl;
-            std::cout << Form("yLow[%d]  = %f", i, TH2D_Bins_List[4].at(i)) << std::endl;
-            std::cout << Form("yUp[%d]   = %f", i, TH2D_Bins_List[5].at(i)) << std::endl;
+        std::cout << Form("TH2D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH2D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
+        std::cout << " { ";
+        std::cout << Form("%.0f, ", TH2D_Bins_List[4].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[5].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[6].at(i)) << std::endl;;
     }
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;

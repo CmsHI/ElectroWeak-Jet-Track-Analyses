@@ -258,9 +258,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
     for (int i=0; i<nTH1D_Bins_List; ++i) {
-            std::cout << Form("nBins[%d] = %.0f", i, TH1D_Bins_List[0].at(i)) << std::endl;
-            std::cout << Form("xLow[%d]  = %f", i, TH1D_Bins_List[1].at(i)) << std::endl;
-            std::cout << Form("xUp[%d]   = %f", i, TH1D_Bins_List[2].at(i)) << std::endl;
+        std::cout << Form("TH1D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
     }
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
@@ -589,6 +590,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
                 else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
 
+                h_draw[i]->SetMarkerColor(kBlack);
+                h_draw[i]->SetLineColor(kBlack);
                 h_draw[i]->Draw(drawOption.c_str());
 
                 // add Text

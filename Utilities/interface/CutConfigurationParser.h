@@ -136,8 +136,36 @@ public:
    ~CutConfigurationParser(){};
 
   static CutConfiguration Parse(std::string inFile);
+  static void copyConfiguration(CutConfiguration& config, CutConfiguration configCopy);
 };
 
+/*
+ * copy values from "configCopy" to "config".
+ * if the original config has a value for a field, then do not copy.
+ */
+void CutConfigurationParser::copyConfiguration(CutConfiguration& config, CutConfiguration configCopy)
+{
+    for(int i = 0 ; i < CUTS::kN_PROCESSES; ++i){
+        for(int j = 0; j < CUTS::kN_OBJECTS; ++j){
+            for (int k = 0; k < CUTS::SUMMARY_INFO_I[j]; ++k) {
+                if (config.proc[i].obj[j].i[k] == 0)
+                    config.proc[i].obj[j].i[k] = configCopy.proc[i].obj[j].i[k];
+            }
+            for (int k = 0; k < CUTS::SUMMARY_INFO_F[j]; ++k) {
+                if (config.proc[i].obj[j].f[k] == 0)
+                    config.proc[i].obj[j].f[k] = configCopy.proc[i].obj[j].f[k];
+            }
+            for (int k = 0; k < CUTS::SUMMARY_INFO_S[j]; ++k) {
+                if (config.proc[i].obj[j].s[k].size() == 0) {
+                    config.proc[i].obj[j].s[k] = configCopy.proc[i].obj[j].s[k];
+                    char * cstr = new char [config.proc[i].obj[j].s[k].length()+1];
+                    std::strcpy (cstr, config.proc[i].obj[j].s[k].c_str());
+                    config.proc[i].obj[j].c[k] = cstr;
+                }
+            }
+        }
+    }
+}
 
 CutConfiguration CutConfigurationParser::Parse(std::string inFile)
 {
@@ -168,12 +196,17 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
     if (line.find(endSignal) != std::string::npos) break;
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
     if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
-    if (trim(line).find_first_of(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
-    size_t pos = line.find_first_of("=") + 1;
-    size_t posLast = line.find_first_of(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+    if (trim(line).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+    size_t pos = line.find("=") + 1;
+    size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
     std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
     std::istringstream sin(value);
     line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
+    if (ConfigurationParser::isImportCutStatement(line)) {
+        CutConfiguration importedConfig = CutConfigurationParser::Parse(value);
+        CutConfigurationParser::copyConfiguration(config, importedConfig);
+        continue;
+    }
     bool success = false;
     PROCESS proc = kN_PROCESSES;
     for(int i = 0; i < kN_PROCESSES; ++i){

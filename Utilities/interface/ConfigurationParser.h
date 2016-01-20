@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <cstddef>        // std::size_t
 
 #include "../systemUtil.h"
 
@@ -13,12 +14,18 @@ namespace CONFIGPARSER{
 const std::string comment = "#";
 const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from the line.
 const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
+const std::string importStatement = "import.";
+const std::string importInputStatement = "import.input";
+const std::string importCutStatement = "import.cut";
 }
 
 class ConfigurationParser {
 
 public :
     static bool isList(std::string str);
+    static bool isImportStatement(std::string line);
+    static bool isImportInputStatement(std::string line);
+    static bool isImportCutStatement(std::string line);
     static std::string trimComment(std::string line);
     static std::string ReadValue(std::ifstream& fin, std::string value);
     static std::vector<std::string> ParseList(std::string strList);
@@ -36,12 +43,30 @@ public :
 bool ConfigurationParser::isList(std::string str)
 {
     std::string tmp = trim(str);
-    return (tmp.find_first_of("{") == 0 && tmp.find_last_of("}") == tmp.size()-1);
+    return (tmp.find("{") == 0 && tmp.rfind("}") == tmp.size()-1);
+}
+
+bool ConfigurationParser::isImportStatement(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::importStatement.c_str()) == 0);
+}
+
+bool ConfigurationParser::isImportInputStatement(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::importInputStatement.c_str()) == 0);
+}
+
+bool ConfigurationParser::isImportCutStatement(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::importCutStatement.c_str()) == 0);
 }
 
 std::string ConfigurationParser::trimComment(std::string line)
 {
-    size_t pos = line.find_first_of(CONFIGPARSER::comment.c_str());
+    size_t pos = line.find(CONFIGPARSER::comment.c_str());
     return line.substr(0,pos);
 }
 
@@ -75,10 +100,10 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.rfind("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
     // by default, elements of the list are separated by ","
@@ -125,10 +150,10 @@ std::vector<int> ConfigurationParser::ParseListInteger(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.rfind("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
     // elements of the list are separated by ','
@@ -165,10 +190,10 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
     if(strList.empty())
         return list;
 
-    size_t posStart = strList.find_first_of("{");     // a valid list starts with '{' and ends with '}'
+    size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
-    size_t posEnd   = strList.find_last_of("}");     // a valid list starts with '{' and ends with '}'
+    size_t posEnd   = strList.rfind("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
     // elements of the list are separated by ','
