@@ -168,6 +168,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        treeJet->SetBranchStatus("muMax*",1);
        treeJet->SetBranchStatus("muSum*",1);
        treeJet->SetBranchStatus("muN*",1);
+       if (isMC) {
+           treeJet->SetBranchStatus("matchedPt",1);
+           treeJet->SetBranchStatus("matchedR",1);
+           treeJet->SetBranchStatus("beamId1",1);
+           treeJet->SetBranchStatus("beamId2",1);
+           treeJet->SetBranchStatus("pthat",1);
+           treeJet->SetBranchStatus("ngen",1);
+           treeJet->SetBranchStatus("gen*",1);
+           treeJet->SetBranchStatus("signalChargedSum",1);
+           treeJet->SetBranchStatus("signalHardSum",1);
+           treeJet->SetBranchStatus("subid",1);
+           treeJet->SetBranchStatus("smpt",1);
+           treeJet->SetBranchStatus("fr01Chg",1);
+           treeJet->SetBranchStatus("fr01EM",1);
+           treeJet->SetBranchStatus("fr01",1);
+       }
 
        // specify explicitly which branches to store, do not use wildcard
        float vz;
