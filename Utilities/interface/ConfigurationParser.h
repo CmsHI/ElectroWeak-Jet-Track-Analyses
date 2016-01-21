@@ -3,9 +3,12 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstddef>        // std::size_t
+#include <map>
+#include <utility>      // std::pair
 
 #include "../systemUtil.h"
 
@@ -17,17 +20,26 @@ const std::string newLine = "$NEWLINE$";   // the value continues over the next 
 const std::string importStatement = "import.";
 const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
+const std::string varDefinition = "var.";
+const std::string varDefinitionString = "var.string";
 }
 
 class ConfigurationParser {
 
 public :
     static bool isList(std::string str);
+    static bool isComment(std::string line);
+    static bool isCommand(std::string line);
     static bool isImportStatement(std::string line);
     static bool isImportInputStatement(std::string line);
     static bool isImportCutStatement(std::string line);
+    static bool isVarDefinition(std::string line);
+    static bool isVarDefinitionString(std::string line);
+    static std::string varReference(std::string varName);
     static std::string trimComment(std::string line);
     static std::string ReadValue(std::ifstream& fin, std::string value);
+    static std::string substituteVarString(std::string value, std::map<std::string, std::string> mapVarString);
+    static std::pair<std::string, std::string> ParseVarDefinitionString(std::string command, std::string value);
     static std::vector<std::string> ParseList(std::string strList);
     static std::vector<int> ParseListInteger(std::string strList);
     static std::vector<float> ParseListFloat(std::string strList);
@@ -46,6 +58,16 @@ bool ConfigurationParser::isList(std::string str)
     return (tmp.find("{") == 0 && tmp.rfind("}") == tmp.size()-1);
 }
 
+bool ConfigurationParser::isComment(std::string line)
+{
+    return (trim(line).find(CONFIGPARSER::comment.c_str()) == 0);
+}
+
+bool ConfigurationParser::isCommand(std::string line)
+{
+    return (isImportStatement(line) || isVarDefinition(line));
+}
+
 bool ConfigurationParser::isImportStatement(std::string line)
 {
     std::string tmp = trim(line);
@@ -62,6 +84,26 @@ bool ConfigurationParser::isImportCutStatement(std::string line)
 {
     std::string tmp = trim(line);
     return (tmp.find(CONFIGPARSER::importCutStatement.c_str()) == 0);
+}
+
+bool ConfigurationParser::isVarDefinition(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::varDefinition.c_str()) == 0);
+}
+
+bool ConfigurationParser::isVarDefinitionString(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::varDefinitionString.c_str()) == 0);
+}
+
+/*
+ * constructs the syntax for referencing a variable
+ */
+std::string ConfigurationParser::varReference(std::string varName)
+{
+    return "$"+varName+"$";
 }
 
 std::string ConfigurationParser::trimComment(std::string line)
@@ -91,6 +133,32 @@ std::string ConfigurationParser::ReadValue(std::ifstream& fin, std::string value
         }
     }
     return result;
+}
+
+/*
+ * substitute the values of all current string variables in "value"
+ */
+std::string ConfigurationParser::substituteVarString(std::string value, std::map<std::string, std::string> mapVarString)
+{
+    std::map<std::string, std::string>::const_iterator iterator;
+    for (iterator = mapVarString.begin(); iterator != mapVarString.end(); ++iterator) {
+        std::string varName = iterator->first.c_str();
+        std::string varRef = varReference(varName);
+        value = replaceAll(value, varRef, iterator->second.c_str());
+    }
+
+    return value;
+}
+
+/*
+ * parse the name and value of a string variable.
+ */
+std::pair<std::string, std::string> ConfigurationParser::ParseVarDefinitionString(std::string command, std::string value)
+{
+    std::string varName = replaceAll(command,CONFIGPARSER::varDefinitionString,"");
+    varName = trim(varName);
+    value = trim(value);
+    return (std::pair<std::string, std::string>(varName, value));
 }
 
 std::vector<std::string> ConfigurationParser::ParseList(std::string strList)

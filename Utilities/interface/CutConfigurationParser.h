@@ -7,6 +7,8 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <map>
+#include <utility>      // std::pair
 
 #include "../../CutConfigurations/interface/PhotonCuts.h"
 #include "../../CutConfigurations/interface/ElectronCuts.h"
@@ -189,22 +191,32 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile)
     config.isValid = false;
     return config;
   }
+
+  std::map<std::string, std::string> mapVarString;    // map of variables of type string
+
   std::string line;
   unsigned int lineCounter = 0;
   while (getline(fin, line)) {
     lineCounter++;
     if (line.find(endSignal) != std::string::npos) break;
+    bool isCommand = ConfigurationParser::isCommand(line);
     if (line.find("=") == std::string::npos) continue; //skip all lines without an =
     if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
-    if (trim(line).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+    if (ConfigurationParser::isComment(line)) continue;  //skip all lines starting with comment sign #
     size_t pos = line.find("=") + 1;
     size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
     std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
+    value = ConfigurationParser::substituteVarString(value, mapVarString);
     std::istringstream sin(value);
     line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
-    if (ConfigurationParser::isImportCutStatement(line)) {
-        CutConfiguration importedConfig = CutConfigurationParser::Parse(value);
-        CutConfigurationParser::copyConfiguration(config, importedConfig);
+    if (isCommand) {
+        if (ConfigurationParser::isVarDefinitionString(line)) {
+            mapVarString.insert(ConfigurationParser::ParseVarDefinitionString(line, value));
+        }
+        else if (ConfigurationParser::isImportCutStatement(line)) {
+            CutConfiguration importedConfig = CutConfigurationParser::Parse(value);
+            CutConfigurationParser::copyConfiguration(config, importedConfig);
+        }
         continue;
     }
     bool success = false;
