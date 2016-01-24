@@ -422,6 +422,14 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::cout <<  "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries = " << entries << std::endl;
 
+    // print info about histograms
+    for (int i=0; i<nHistos; ++i) {
+        std::cout << "#####" << std::endl;
+        std::cout << Form("h[%d]", i) << std::endl;
+        std::string summary = summaryTH1(h[i]);
+        std::cout << summary.c_str() << std::endl;
+    }
+
     TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
