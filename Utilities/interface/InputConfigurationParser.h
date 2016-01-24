@@ -30,7 +30,7 @@ struct ProcessInputs{
 };
 
 enum TYPE_I{
-    k_CollisionType,
+    k_collisionType,
     k_doHI,
     k_doHIMC,
     k_doPP,

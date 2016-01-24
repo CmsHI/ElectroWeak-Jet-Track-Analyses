@@ -35,7 +35,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        // input configuration
        int collision;
        if (configInput.isValid) {
-           collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
+           collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
        }
        else {
            collision = COLL::kPP;

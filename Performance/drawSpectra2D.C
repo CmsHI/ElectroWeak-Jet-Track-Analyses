@@ -21,7 +21,9 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/styleUtil.h"
+#include "../Utilities/th1Util.h"
 
 void drawSpectra2D(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra2D.root", const TString outputFigureName = "");
 
@@ -54,7 +56,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string>  titles;
     std::vector<std::string>  titlesX;
     std::vector<std::string>  titlesY;
-    std::vector<std::vector<float>> TH2D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
+    std::vector<std::vector<float>> TH2D_Bins_List;      // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     float titleOffsetX;
     float titleOffsetY;
     int drawNormalized;
@@ -256,9 +258,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
         std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
         std::cout << " { ";
-        std::cout << Form("%.0f, ", TH2D_Bins_List[4].at(i));
-        std::cout << Form("%f, ", TH2D_Bins_List[5].at(i));
-        std::cout << Form("%f }", TH2D_Bins_List[6].at(i)) << std::endl;;
+        std::cout << Form("%.0f, ", TH2D_Bins_List[3].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
     }
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;

@@ -6,7 +6,7 @@ namespace CUTS {
     enum F_CUTS{
       k_eta,
       k_et,
-      k_sigmaIEtaIEta_2012,
+      k_phoSigmaIEtaIEta_2012,
       k_purityFitLow,
       k_purityFitHigh,
       k_puritySieieThreshold,
@@ -45,7 +45,7 @@ namespace CUTS {
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
       "eta",
       "et",
-      "sigmaIEtaIEta_2012",
+      "phoSigmaIEtaIEta_2012",
       "purityFitLow",
       "purityFitHigh",
       "puritySieieThreshold",
@@ -107,6 +107,8 @@ namespace CUTS {
       k_bins_eta_lt,
       k_bins_pt_gt,
       k_bins_pt_lt,
+      k_bins_mcPt_gt,
+      k_bins_mcPt_lt,
       kN_S_CUTS
     };
 
@@ -121,7 +123,9 @@ namespace CUTS {
       "bins_eta_gt",     // label starts with "bins_". this means the input will be a list of strings
       "bins_eta_lt",
       "bins_pt_gt",      // label starts with "bins_". this means the input will be a list of strings
-      "bins_pt_lt"
+      "bins_pt_lt",
+      "bins_mcPt_gt",      // label starts with "bins_". this means the input will be a list of strings
+      "bins_mcPt_lt"
     };
 
   };

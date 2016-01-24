@@ -35,7 +35,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        // input configuration
        int collision;
        if (configInput.isValid) {
-           collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
+           collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
        }
        else {
            collision = COLL::kPP;
