@@ -13,6 +13,8 @@
 
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
+void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
+void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -55,6 +57,26 @@ std::string summaryTH1(TH1* h)
     // do not put a new line to the end of the last line
 
     return result;
+}
+
+void setTH1_energyScale(TH1* h, float titleOffsetX, float titleOffsetY) {
+
+    h->SetYTitle("< Reco p_{T} / Gen p_{T} >");
+    h->SetTitleOffset(titleOffsetX, "X");
+    h->SetTitleOffset(titleOffsetY, "Y");
+    h->SetAxisRange(0.8,1.5,"Y");
+    h->SetStats(false);
+    h->SetMarkerStyle(kFullCircle);
+}
+
+void setTH1_energyWidth(TH1* h, float titleOffsetX, float titleOffsetY) {
+
+    h->SetYTitle("#sigma( Reco p_{T} / Gen p_{T} )");
+    h->SetTitleOffset(titleOffsetX, "X");
+    h->SetTitleOffset(titleOffsetY, "Y");
+    h->SetAxisRange(0,0.5,"Y");
+    h->SetStats(false);
+    h->SetMarkerStyle(kFullCircle);
 }
 
 #endif /* TH1UTIL_H_ */

@@ -1,7 +1,13 @@
 /*
- * macro to draw eta dependent photon energy scale plots.
+ * macro to draw eta, GEN Pt, RECO Pt and centrality dependent photon energy scale plots.
+ * The macro can make 4 types of 1D energy scale  histograms
+ *  1. x-axis is eta.
+ *  2. x-axis is GEN Pt
+ *  3. x-axis is RECO Pt.
+ *  4. x-axis is hiBin (centrality)
+ *  Each 1D energy scale histogram has a corresponding 1D energy width (resolution) histogram.
+ *  The macro provides a RECO Pt vs. GEN Pt correlation histogram for each eta and centrality bin.
  * saves histograms to a .root file.
- * if "outputFigureName" is specified, saves the canvas as picture.
  */
 
 #include <TFile.h>
@@ -24,103 +30,277 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/styleUtil.h"
+#include "../../Utilities/th1Util.h"
 #include "../interface/energyScaleHist.h"
 
 
-void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root", const TString outputFigureName = "");
-void setTH1_energyScale(TH1* h);
-void setTH1_energyWidth(TH1* h);
+void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root");
 
-void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
+void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile)
 {
     std::cout<<"running photonEnergyScale()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-    bool doHoverE = false;
-    std::cout << "doHoverE = " << doHoverE << std::endl;
-
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     // input configuration
+    // input for TTree
+    std::string treePath;
     int collision;
-    std::string legendPosition;
-    float legendOffsetX;
-    float legendOffsetY;
-    if (configInput.isValid) {
-        collision = configInput.proc[INPUT::kSKIM].i[INPUT::k_CollisionType];
 
-        legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
-        legendOffsetX  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
-        legendOffsetY  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+    // input for TH1
+    std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
+                                                         // this bin list will be used for histograms where x-axis is eta.
+    std::vector<std::vector<float>> TH2D_Bins_List;      // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
+                                                         // this bin list will be used for gen pt - reco pt correlation histogram.
+    float titleOffsetX;
+    float titleOffsetY;
+    float yMin;         // min. y-axis value of energy Scale histogram default : 0.8
+    float yMax;         // max. y-axis value of energy Scale histogram default : 1.5
+
+    // input for TCanvas
+    int windowWidth;
+    int windowHeight;
+    float leftMargin;
+    float rightMargin;
+    float bottomMargin;
+    float topMargin;
+
+    if (configInput.isValid) {
+        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+    
+        collision = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
+
+        TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+        TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
+        titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+        titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+        yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
+        yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
+
+        windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
+        windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
+        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
     }
     else {
+        treePath = "";
+    
         collision = COLL::kPP;
 
-        legendPosition = "";
-        legendOffsetX = 0;
-        legendOffsetY = 0;
+        TH1D_Bins_List.resize(3);
+        TH1D_Bins_List[0].push_back(12);     // nBins
+        TH1D_Bins_List[1].push_back(-2.4);   // xLow
+        TH1D_Bins_List[2].push_back(2.4);    // xUp
+        TH2D_Bins_List.resize(6);
+        TH2D_Bins_List[0].push_back(120);    // nBinsx
+        TH2D_Bins_List[1].push_back(0);      // xLow
+        TH2D_Bins_List[2].push_back(120);    // xUp
+        TH2D_Bins_List[3].push_back(120);    // nBinsy
+        TH2D_Bins_List[4].push_back(0);      // yLow
+        TH2D_Bins_List[5].push_back(120);    // yUp
+        titleOffsetX = 1;
+        titleOffsetY = 1;
+        yMin = 0;
+        yMax = -1;
+
+        windowWidth = 0;
+        windowHeight = 0;
+        leftMargin = 0.1;
+        rightMargin = 0.1;
+        bottomMargin = 0.1;
+        topMargin = 0.1;
     }
+    // set default values
+    if (treePath.size() == 0) treePath = "ggHiNtuplizer/EventTree";
+    
+    if (TH1D_Bins_List[0].size() == 0) {
+        TH1D_Bins_List[0].push_back(12);     // nBins
+        TH1D_Bins_List[1].push_back(-2.4);   // xLow
+        TH1D_Bins_List[2].push_back(2.4);    // xUp
+    }
+    if (TH2D_Bins_List[0].size() == 0) {
+        TH2D_Bins_List[0].push_back(120);    // nBinsx
+        TH2D_Bins_List[1].push_back(0);      // xLow
+        TH2D_Bins_List[2].push_back(120);    // xUp
+        TH2D_Bins_List[3].push_back(120);    // nBinsy
+        TH2D_Bins_List[4].push_back(0);      // yLow
+        TH2D_Bins_List[5].push_back(120);    // yUp
+    }
+    if (titleOffsetX == 0) titleOffsetX = 1.25;
+    if (titleOffsetY == 0) titleOffsetY = 1.75;
+    if (yMin == 0 && yMax == 0)  yMax = -1;
+
+    if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
+    if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
+    if (leftMargin == 0) leftMargin = 0.15;
+    if (rightMargin == 0) rightMargin = 0.05;
+    if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
+    if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
+
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
+    int nTH1D_Bins_List = TH1D_Bins_List[0].size();
+    int nTH2D_Bins_List = TH2D_Bins_List[0].size();
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName << std::endl;
-    std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
-    if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
-    std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
-    std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
 
+    std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
+    for (int i=0; i<nTH1D_Bins_List; ++i) {
+        std::cout << Form("TH1D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
+    }
+    std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;  // for this program nTH2D_Bins_List must be 1.
+    for (int i=0; i<nTH2D_Bins_List; ++i) {
+        std::cout << Form("TH2D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH2D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
+        std::cout << " { ";
+        std::cout << Form("%.0f, ", TH2D_Bins_List[3].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
+    }
+    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "yMin = " << yMin << std::endl;
+    std::cout << "yMax = " << yMax << std::endl;
+    if (yMax < yMin) {
+        std::cout << "default yMin and yMax values will be used." << std::endl;
+    }
+
+    std::cout << "windowWidth = " << windowWidth << std::endl;
+    std::cout << "windowHeight = " << windowHeight << std::endl;
+    std::cout << "leftMargin   = " << leftMargin << std::endl;
+    std::cout << "rightMargin  = " << rightMargin << std::endl;
+    std::cout << "bottomMargin = " << bottomMargin << std::endl;
+    std::cout << "topMargin    = " << topMargin << std::endl;
+
+    // input configuration
     std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
+    std::vector<float> bins_genPt[2];       // array of vectors for genPt bins, each array element is a vector, should function also as
+                                            // list of pt cuts for GEN-level photons matched to RECO photons
+    std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, each array element is a vector, should function also as
+                                            // list of pt cuts for RECO photons
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
-    std::vector<float> cuts_genPt;        // list of pt cuts for GEN-level photons matched to RECO photons
-    std::vector<float> cuts_recoPt;       // list of pt cuts for RECO photons
+
+    float cut_phoHoverE;
+    float cut_pho_ecalClusterIsoR4;
+    float cut_pho_hcalRechitIsoR4;
+    float cut_pho_trackIsoR4PtCut20;
+    float cut_phoSigmaIEtaIEta_2012;
+    float cut_sumIso;
+
     if (configCuts.isValid) {
         bins_eta[0] = ConfigurationParser::ParseListFloat(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
         bins_eta[1] = ConfigurationParser::ParseListFloat(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_lt]);
+        bins_genPt[0] = ConfigurationParser::ParseListFloat(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_gt]);
+        bins_genPt[1] = ConfigurationParser::ParseListFloat(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_lt]);
+        bins_recoPt[0] = ConfigurationParser::ParseListFloat(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+        bins_recoPt[1] = ConfigurationParser::ParseListFloat(
+                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
         bins_hiBin[0] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
-        cuts_genPt = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_mcPt_List]);
-        cuts_recoPt = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_List]);
+        cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+        cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
+        cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
+        cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
+        cut_phoSigmaIEtaIEta_2012 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_2012];
+        cut_sumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
     }
     else {
         bins_eta[0].push_back(0);
         bins_eta[1].push_back(2.4);
+        bins_genPt[0].push_back(0);
+        bins_genPt[1].push_back(-1);
+        bins_recoPt[0].push_back(0);
+        bins_recoPt[1].push_back(-1);
         bins_hiBin[0].push_back(0);
-        bins_hiBin[1].push_back(200);
+        bins_hiBin[1].push_back(-1);
 
-        cuts_genPt.push_back(15);
-        cuts_recoPt.push_back(0);
+        cut_phoHoverE = 0.1;
+        cut_pho_ecalClusterIsoR4 = 4.2;
+        cut_pho_hcalRechitIsoR4 = 2.2;
+        cut_pho_trackIsoR4PtCut20 = 2;
+        cut_phoSigmaIEtaIEta_2012 = 0.01;
+        cut_sumIso = 6;
     }
+    // set default values
+    if (bins_eta[0].size() == 0) {
+        bins_eta[0].push_back(0);
+        bins_eta[1].push_back(2.4);
+    }
+    if (bins_genPt[0].size() == 0) {
+        bins_genPt[0].push_back(0);
+        bins_genPt[1].push_back(-1);
+    }
+    if (bins_recoPt[0].size() == 0) {
+        bins_recoPt[0].push_back(0);
+        bins_recoPt[1].push_back(-1);
+    }
+    if (bins_hiBin[0].size() == 0) {
+        bins_hiBin[0].push_back(0);
+        bins_hiBin[1].push_back(-1);
+    }
+
+    if (bins_genPt[1].size() < bins_genPt[0].size()) {
+        int diff = (int signed)(bins_genPt[0].size() - bins_genPt[1].size());
+        for (int i=0; i < diff ; ++i)
+            bins_genPt[1].push_back(-1);
+    }
+    if (bins_recoPt[1].size() < bins_recoPt[0].size()) {
+        int diff = (int signed)(bins_recoPt[0].size() - bins_recoPt[1].size());
+        for (int i=0; i < diff; ++i)
+            bins_recoPt[1].push_back(-1);
+    }
+
     int nBins_eta = bins_eta[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+    int nBins_genPt = bins_genPt[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    int nBins_recoPt = bins_recoPt[0].size();   // assume <myvector>[0] and <myvector>[1] have the same size.
     int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
-    int nCuts_genPt = cuts_genPt.size();
-    int nCuts_recoPt = cuts_recoPt.size();
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
     for (int i=0; i<nBins_eta; ++i) {
         std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
     }
+    std::cout << "nBins_genPt = " << nBins_genPt << std::endl;
+    for (int i=0; i<nBins_genPt; ++i) {
+        std::cout << Form("bins_genPt[%d] = [%f, %f)", i, bins_genPt[0].at(i), bins_genPt[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_recoPt = " << nBins_recoPt << std::endl;
+    for (int i=0; i<nBins_recoPt; ++i) {
+        std::cout << Form("bins_recoPt[%d] = [%f, %f)", i, bins_recoPt[0].at(i), bins_recoPt[1].at(i)) << std::endl;
+    }
     std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
     for (int i=0; i<nBins_hiBin; ++i) {
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
-    std::cout << "nCuts_genPt = " << nCuts_genPt << std::endl;
-    for (int i=0; i<nCuts_genPt; ++i) {
-        std::cout << Form("cuts_genPt[%d] = ", i) << cuts_genPt.at(i) << std::endl;
-    }
-    std::cout << "nCuts_recoPt = " << nCuts_recoPt << std::endl;
-    for (int i=0; i<nCuts_recoPt; ++i) {
-        std::cout << Form("cuts_recoPt[%d] = ", i) << cuts_recoPt.at(i) << std::endl;
+
+    bool isHI = collisionIsHI((COLL::TYPE)collision);
+    if (isHI) {
+        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
+        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
+        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
+        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
+        std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
+        std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
@@ -132,10 +312,8 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    bool isHI = collisionIsHI((COLL::TYPE)collision);
-
     TChain* treeHLT = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
+    TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
     TChain* treeHiEvt;
     bool hasHiEvt = false;
     if (isHI) {
@@ -186,44 +364,119 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     ggHi.setupTreeForReading(treeggHiNtuplizer);
 
     TH1::SetDefaultSumw2();
-    energyScaleHist hist_depEta[nBins_hiBin][nCuts_genPt][nCuts_recoPt];   // energyScaleHist where x-axis is eta
-    // eta dependence of energy scale : x-axis is eta
-    for (int iHibin = 0; iHibin < nBins_hiBin; ++iHibin) {
-        for (int iGenPt = 0; iGenPt < nCuts_genPt; ++iGenPt) {
-            for (int iRecoPt = 0; iRecoPt < nCuts_recoPt; ++iRecoPt) {
+    // object for set of all possible energy scale histograms
+    energyScaleHist hist[ENERGYSCALE::kN_ENERGYSCALE_DEP][nBins_eta][nBins_genPt][nBins_recoPt][nBins_hiBin];
+    for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+        for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
+            for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                for (int iHibin = 0; iHibin < nBins_hiBin; ++iHibin) {
 
-                // prepare histogram name
-                std::string tmpName = Form("depEta_hiBin%d_genPtBin%d_recoPtBin%d", iHibin, iGenPt, iRecoPt);
-                hist_depEta[iHibin][iGenPt][iRecoPt].name = tmpName.c_str();
+                    if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
 
-                float xUp  = bins_eta[1].at(0);
-                std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                hist_depEta[iHibin][iGenPt][iRecoPt].h2D =
-                        new TH2D(tmpHistName.c_str(), ";photon #eta;Reco p_{T} / Gen p_{T}", 12, -xUp, xUp, 100, 0, 2);
+                    // histogram ranges
+                    for (int iEScale = 0; iEScale < ENERGYSCALE::kN_ENERGYSCALE_DEP; ++iEScale) {
 
-                // histogram ranges
-                hist_depEta[iHibin][iGenPt][iRecoPt].range_genPt[0] = cuts_genPt.at(iGenPt);
-                hist_depEta[iHibin][iGenPt][iRecoPt].range_recoPt[0] = cuts_recoPt.at(iRecoPt);
-                hist_depEta[iHibin][iGenPt][iRecoPt].range_hiBin[0] = bins_hiBin[0].at(iHibin);
-                hist_depEta[iHibin][iGenPt][iRecoPt].range_hiBin[1] = bins_hiBin[1].at(iHibin);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kETA][0] = bins_eta[0].at(iEta);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kETA][1] = bins_eta[1].at(iEta);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kGENPT][0] = bins_genPt[0].at(iGenPt);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kGENPT][1] = bins_genPt[1].at(iGenPt);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kHIBIN][0] = bins_hiBin[0].at(iHibin);
+                        hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].ranges[ENERGYSCALE::kHIBIN][1] = bins_hiBin[1].at(iHibin);
+                    }
 
-                // prepare histogram title
-                std::string hiBinStr  = Form("hiBin:%d-%d%%", bins_hiBin[0].at(iHibin)/2, bins_hiBin[1].at(iHibin)/2);
-                std::string genPtStr  = Form("p_{T}^{#gamma}(GEN)>%.0f",  cuts_genPt.at(iGenPt));
-                std::string recoPtStr = Form("p_{T}^{#gamma}(RECO)>%.0f", cuts_recoPt.at(iRecoPt));
+                    // for histograms with a particular dependence,
+                    // a single index is used in the multidimensional array of energyScaleHist objects is used.
+                    // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
+                    // with different eta ranges.
+                    // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iHibin]
+                    // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iHibin]
+                    // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iHibin] such that iEta, iGenpT, iRecoPt, iHibin > 0
 
-                // special cases
-                if (bins_hiBin[0].at(iHibin) <= 0 && bins_hiBin[1].at(iHibin) >=200) hiBinStr = "";     // whole centrality range
-                if (cuts_genPt.at(iGenPt)    <= 0) genPtStr  = "";       // whole pT range
-                if (cuts_recoPt.at(iRecoPt)  <= 0) recoPtStr = "";       // whole pT range
+                    int nBinsx = TH2D_Bins_List[0].at(0);    // nBinsx
+                    float xLow = TH2D_Bins_List[1].at(0);    // xLow
+                    float xUp  = TH2D_Bins_List[2].at(0);    // xUp
+                    int nBinsy = TH2D_Bins_List[3].at(0);    // nBinsy
+                    float yLow = TH2D_Bins_List[4].at(0);    // yLow
+                    float yUp  = TH2D_Bins_List[5].at(0);    // yUp
 
-                std::string tmpHistTitle = "";
-                if (hiBinStr.size() > 0)  tmpHistTitle = Form("%s", hiBinStr.c_str());
-                if (genPtStr.size() > 0)  tmpHistTitle = Form("%s %s", tmpHistTitle.c_str(), genPtStr.c_str());
-                if (recoPtStr.size() > 0) tmpHistTitle = Form("%s %s", tmpHistTitle.c_str(), recoPtStr.c_str());
+                    // initialize histograms with eta dependence
+                    if (iEta == 0)  {
+                        std::string tmpName = Form("depEta_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHibin);
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].name = tmpName.c_str();
 
-                hist_depEta[iHibin][iGenPt][iRecoPt].title = tmpHistTitle.c_str();
-                hist_depEta[iHibin][iGenPt][iRecoPt].h2D->SetTitle(tmpHistTitle.c_str());
+                        float nBinsEta = TH1D_Bins_List[0].at(0);   // nBins
+                        float xLowEta  = TH1D_Bins_List[1].at(0);   // xLow
+                        float xUpEta   = TH1D_Bins_List[2].at(0);   // xUp
+                        std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2D =
+                                new TH2D(tmpHistName.c_str(), ";photon #eta;Reco p_{T} / Gen p_{T}", nBinsEta, xLowEta, xUpEta, 100, 0, 2);
+
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+
+                        // set histogram title
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
+                    }
+                    // initialize histograms with gen pt dependence
+                    if (iGenPt == 0 && nBins_genPt > 1)  {
+                        std::string tmpName = Form("depGenPt_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHibin);
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].name = tmpName.c_str();
+
+                        // pt dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
+                        double arr[nBins_genPt];
+                        std::copy(bins_genPt[0].begin(), bins_genPt[0].end(), arr);
+                        std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2D =
+                                new TH2D(tmpHistName.c_str(), ";Gen p_{T};Reco p_{T} / Gen p_{T}", nBins_genPt-1, arr, 100, 0, 2);
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr =
+                                new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx, xLow, xUp, nBinsy, yLow, yUp);
+                        // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
+                        // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
+
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized = true;
+
+                        // set histogram title
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
+                    }
+                    // initialize histograms with gen pt dependence
+                    if (iRecoPt == 0 && nBins_recoPt > 1)  {
+                        std::string tmpName = Form("depRecoPt_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHibin);
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].name = tmpName.c_str();
+
+                        // pt dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
+                        double arr[nBins_recoPt];
+                        std::copy(bins_recoPt[0].begin(), bins_recoPt[0].end(), arr);
+                        std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2D =
+                                new TH2D(tmpHistName.c_str(), ";Reco p_{T};Reco p_{T} / Gen p_{T}", nBins_recoPt-1, arr, 100, 0, 2);
+
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+
+                        // set histogram title
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
+                    }
+                    // initialize histograms with centrality dependence
+                    if (iHibin == 0 && nBins_hiBin > 1)  {
+                        std::string tmpName = Form("depHiBin_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHibin);
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].name = tmpName.c_str();
+
+                        // centrality dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
+                        double arr[nBins_hiBin];
+                        std::copy(bins_hiBin[0].begin(), bins_hiBin[0].end(), arr);
+                        std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2D =
+                                new TH2D(tmpHistName.c_str(), ";Hibin;Reco p_{T} / Gen p_{T}", nBins_hiBin-1, arr, 100, 0, 2);
+
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+
+                        // set histogram title
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
+                    }
+                }
             }
         }
     }
@@ -234,7 +487,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     Long64_t entries = treeggHiNtuplizer->GetEntries();
     Long64_t entriesAnalyzed = 0;
     std::cout << "entries = " << entries << std::endl;
-    std::cout<< "Loop : ggHiNtuplizer/EventTree" <<std::endl;
+    std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (Long64_t j_entry = 0; j_entry < entries; ++j_entry)
     {
         if (j_entry % 2000 == 0)  {
@@ -262,26 +515,69 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
             // selections on RECO particle
             if (!(ggHi.phoSigmaIEtaIEta->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
-            if (doHoverE) {
-                if (!(ggHi.phoHoverE->at(i) < 0.1)) continue;
+
+            if (isHI) {
+                if (cut_phoHoverE != 0) {
+                    if (!(ggHi.phoHoverE->at(i) < cut_phoHoverE))   continue;
+                }
+                if (cut_pho_ecalClusterIsoR4 != 0) {
+                    if (!(ggHi.pho_ecalClusterIsoR4->at(i) < cut_pho_ecalClusterIsoR4))   continue;
+                }
+                if (cut_pho_hcalRechitIsoR4 != 0) {
+                    if (!(ggHi.pho_hcalRechitIsoR4->at(i) < cut_pho_hcalRechitIsoR4))   continue;
+                }
+                if (cut_pho_trackIsoR4PtCut20 != 0) {
+                    if (!(ggHi.pho_trackIsoR4PtCut20->at(i) < cut_pho_trackIsoR4PtCut20))   continue;
+                }
+                if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                    if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) < cut_phoSigmaIEtaIEta_2012))   continue;
+                }
+                if (cut_sumIso != 0) {
+                    if (!((ggHi.pho_ecalClusterIsoR4->at(i) +
+                           ggHi.pho_hcalRechitIsoR4->at(i)  +
+                           ggHi.pho_trackIsoR4PtCut20->at(i)) < cut_sumIso))   continue;
+                }
             }
 
-            double mcPt = ggHi.mcPt->at(ggHi.pho_genMatchedIndex->at(i));
-            if (mcPt <= 0)   continue;
+            double genPt = ggHi.mcPt->at(ggHi.pho_genMatchedIndex->at(i));
+            if (genPt <= 0)   continue;
 
             double eta = ggHi.phoEta->at(i);
             double pt  = ggHi.phoEt->at(i);
-            double energyScale = pt/mcPt;
+            double energyScale = pt/genPt;
 
             // eta dependence of energy scale : x-axis is eta
-            for (int iHibin = 0;  iHibin < nBins_hiBin; ++iHibin)
-            for (int iGenPt = 0;  iGenPt < nCuts_genPt; ++iGenPt)
-            for (int iRecoPt = 0; iRecoPt < nCuts_recoPt; ++iRecoPt)
-                 hist_depEta[iHibin][iGenPt][iRecoPt].Fillh2D(energyScale, eta, -1, mcPt, pt, hiBin);
+            for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
+            for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
+            for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+            for (int iHibin = 0;  iHibin < nBins_hiBin; ++iHibin) {
+
+                if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
+
+                if (hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, eta, eta, genPt, pt, hiBin);
+                }
+
+                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, genPt, eta, genPt, pt, hiBin);
+                }
+                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized) {
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2Dcorr(genPt, pt, eta, hiBin);
+                }
+
+                if (hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, pt, eta, genPt, pt, hiBin);
+                }
+
+                if (hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, hiBin, eta, genPt, pt, hiBin);
+                }
+
+            }}}}
 
         }
     }
-    std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
+    std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
@@ -292,126 +588,84 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     // declaration of graphics objects.
     // the idea is to initialize each Graphics object right before its use, then to delete it right after they are saved/written.
     TCanvas* c;
+    for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+        for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
+            for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                for (int iHibin = 0; iHibin < nBins_hiBin; ++iHibin) {
 
-    for (int iHibin = 0; iHibin < nBins_hiBin; ++iHibin) {
-        for (int iGenPt = 0; iGenPt < nCuts_genPt; ++iGenPt) {
-            for (int iRecoPt = 0; iRecoPt < nCuts_recoPt; ++iRecoPt) {
+                    if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
 
-                hist_depEta[iHibin][iGenPt][iRecoPt].h2D->Write();
-                TObjArray aSlices;
-                hist_depEta[iHibin][iGenPt][iRecoPt].h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
+                    // for histograms with a particular dependence,
+                    // a single index is used in the multidimensional array of energyScaleHist objects is used.
+                    // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
+                    // with different eta ranges.
+                    // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iHibin]
+                    // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iHibin]
+                    // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iHibin] such that iEta, iGenpT, iRecoPt, iHibin > 0
 
-                std::string canvasName;
-                std::string name = hist_depEta[iHibin][iGenPt][iRecoPt].name.c_str();
-                std::string title = hist_depEta[iHibin][iGenPt][iRecoPt].title.c_str();
-                // energy scale
-                canvasName = Form("cnv_eScale_%s", name.c_str());
-                c = new TCanvas(canvasName.c_str(), "", 600, 600);
-                c->cd();
-                setCanvasMargin(c, 0.15, 0.05);
+                    std::vector<int> indices {iEta, iGenPt, iRecoPt, iHibin};
+                    std::vector<int> eScale {ENERGYSCALE::kETA, ENERGYSCALE::kGENPT, ENERGYSCALE::kRECOPT, ENERGYSCALE::kHIBIN};
+                    for (int unsigned iEScale = 0; iEScale < eScale.size(); ++iEScale) {
+                        if (indices.at(iEScale) == 0)
+                        {
+                            int eScaleDep = eScale.at(iEScale);
+                            // write histograms with a particular dependence
+                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized)
+                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr->Write();
 
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->SetTitle(title.c_str());
-                setTH1_energyScale(hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]);
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->Draw("e");
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->Write();
+                            if (!hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) continue;
 
-                // draw line y = 1
-                float x1 = hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->GetXaxis()->GetXmin();
-                float x2 = hist_depEta[iHibin][iGenPt][iRecoPt].h1D[0]->GetXaxis()->GetXmax();
-                TLine line(x1, 1, x2,1);
-                line.SetLineStyle(kDashed);
-                line.Draw();
-                setCanvasFinal(c);
-                c->Write();
-                c->Close();         // do not use Delete() for TCanvas.
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->Write();
+                            TObjArray aSlices;
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
 
-                // width of energy scale
-                canvasName = Form("cnv_eRes_%s", name.c_str());
-                c = new TCanvas(canvasName.c_str(), "", 600, 600);
-                c->cd();
-                setCanvasMargin(c, 0.15, 0.05);
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]->SetTitle(title.c_str());
-                setTH1_energyWidth(hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]);
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]->Draw("e");
-                hist_depEta[iHibin][iGenPt][iRecoPt].h1D[1]->Write();
-                setCanvasFinal(c);
-                c->Write();
-                c->Close();         // do not use Delete() for TCanvas.
+                            std::string canvasName;
+                            std::string name = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].name.c_str();
+                            std::string title = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].title.c_str();
+                            std::string titleX = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].titleX.c_str();
+                            // energy scale
+                            canvasName = Form("cnv_eScale_%s", name.c_str());
+                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+                            c->cd();
+                            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetTitle(title.c_str());
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetXTitle(titleX.c_str());
+                            setTH1_energyScale(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0], titleOffsetX, titleOffsetY);
+                            if (yMax > yMin)
+                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetAxisRange(yMin, yMax, "Y");
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->Draw("e");
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->Write();
+
+                            // draw line y = 1
+                            float x1 = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->GetXaxis()->GetXmin();
+                            float x2 = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->GetXaxis()->GetXmax();
+                            TLine line(x1, 1, x2,1);
+                            line.SetLineStyle(kDashed);
+                            line.Draw();
+                            setCanvasFinal(c);
+                            c->Write();
+                            c->Close();         // do not use Delete() for TCanvas.
+
+                            // width of energy scale
+                            canvasName = Form("cnv_eRes_%s", name.c_str());
+                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+                            c->cd();
+                            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->SetTitle(title.c_str());
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->SetXTitle(titleX.c_str());
+                            setTH1_energyWidth(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1], titleOffsetX, titleOffsetY);
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->Draw("e");
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->Write();
+                            setCanvasFinal(c);
+                            c->Write();
+                            c->Close();         // do not use Delete() for TCanvas.
+                        }
+                    }
+                }
             }
-        }
-    }
-
-    // assume not more than 13 curves are drawn.
-    TLegend* legend;
-    TLine* line;
-    int colors[13] = {kBlack, kBlue, kRed,   kOrange,  kViolet, kCyan, kSpring, kYellow,
-                      kAzure, kPink, kGreen, kMagenta, kTeal};
-    // draw onto same canvas : x-Axis is eta.
-    for (int iGenPt = 0; iGenPt < nCuts_genPt; ++iGenPt) {
-        for (int iRecoPt = 0; iRecoPt < nCuts_recoPt; ++iRecoPt) {
-
-            std::string genPtStr = Form("p_{T}^{#gamma}(GEN)>%.0f", cuts_genPt.at(iGenPt));
-            std::string recoPtStr = Form("p_{T}^{#gamma}(RECO)>%.0f", cuts_recoPt.at(iRecoPt));
-
-            // special cases
-            if (cuts_genPt.at(iGenPt)   <= 0) genPtStr  = "";       // whole pT range
-            if (cuts_recoPt.at(iRecoPt) <= 0) recoPtStr = "";       // whole pT range
-
-            std::string tmpHistTitle = "";
-            if (genPtStr.size() > 0)  tmpHistTitle = Form("%s", genPtStr.c_str());
-            if (recoPtStr.size() > 0) tmpHistTitle = Form("%s, %s", tmpHistTitle.c_str(), recoPtStr.c_str());
-
-            std::string name = Form ("eScale_depEta_hiBinAll_genPtBin%d_recoPtBin%d", iGenPt, iRecoPt);
-            std::string canvasName;
-            // energy scale
-            canvasName = Form("cnv_%s", name.c_str());
-            c = new TCanvas(canvasName.c_str(), "", 600, 600);
-            c->cd();
-            setCanvasMargin(c, 0.15, 0.05);
-
-            // histograms for different centralities
-            legend = new TLegend();
-            legend->SetHeader(tmpHistTitle.c_str());
-            for (int i = 0; i < nBins_hiBin; ++i) {
-
-                setTH1_energyScale(hist_depEta[i][iGenPt][iRecoPt].h1D[0]);
-                hist_depEta[i][iGenPt][iRecoPt].h1D[0]->SetMarkerColor(colors[i]);
-                hist_depEta[i][iGenPt][iRecoPt].h1D[0]->Draw("e same");
-
-                std::string hiBinStr = Form("hiBin:%d-%d%%", bins_hiBin[0].at(i)/2, bins_hiBin[1].at(i)/2);
-                legend->AddEntry(hist_depEta[i][iGenPt][iRecoPt].h1D[0], hiBinStr.c_str(), "lp");
-            }
-            double height = calcTLegendHeight(legend, 0.0475);
-            double width = calcTLegendWidth(legend);
-            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
-                setLegendPosition(legend, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
-                legend->Draw();
-            }
-            legend->Draw();
-
-            // draw line y = 1
-            if (nBins_hiBin > 0) {
-                float x1 = hist_depEta[0][iGenPt][iRecoPt].h1D[0]->GetXaxis()->GetXmin();
-                float x2 = hist_depEta[0][iGenPt][iRecoPt].h1D[0]->GetXaxis()->GetXmax();
-                line = new TLine(x1, 1, x2, 1);
-                line->SetLineStyle(kDashed);
-                line->Draw();
-            }
-
-            setCanvasFinal(c);
-            c->Write();
-
-            // save canvas as picture if a figure name is provided.
-            if (!outputFigureName.EqualTo("")) {
-                c->SaveAs(Form("%s_%s.C", outputFigureName.Data(), name.c_str()));
-                c->SaveAs(Form("%s_%s.png", outputFigureName.Data(), name.c_str()));
-                c->SaveAs(Form("%s_%s.pdf", outputFigureName.Data(), name.c_str()));
-            }
-
-            legend->Delete();
-            c->Close();         // do not use Delete() for TCanvas.
         }
     }
 
@@ -420,11 +674,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
 int main(int argc, char** argv)
 {
-    if (argc == 5) {
-        photonEnergyScale(argv[1], argv[2], argv[3], argv[4]);
-        return 0;
-    }
-    else if (argc == 4) {
+    if (argc == 4) {
         photonEnergyScale(argv[1], argv[2], argv[3]);
         return 0;
     }
@@ -434,30 +684,9 @@ int main(int argc, char** argv)
     }
     else {
         std::cout << "Usage : \n" <<
-                "./photonEnergyScale.exe <configFile> <inputFile> <outputFile> (<outputFigureName>)"
+                "./photonEnergyScale.exe <configFile> <inputFile> <outputFile>"
                 << std::endl;
         return 1;
     }
 }
 
-void setTH1_energyScale(TH1* h) {
-
-    h->SetXTitle("photon #eta");
-    h->SetYTitle("Reco p_{T} / Gen p_{T}");
-    h->SetTitleOffset(1.5, "Y");
-    h->SetTitleOffset(1.1, "X");
-    h->SetAxisRange(0.8,1.5,"Y");
-    h->SetStats(false);
-    h->SetMarkerStyle(kFullCircle);
-}
-
-void setTH1_energyWidth(TH1* h) {
-
-    h->SetXTitle("photon #eta");
-    h->SetYTitle("#sigma( Reco p_{T} / Gen p_{T} )");
-    h->SetTitleOffset(1.5, "Y");
-    h->SetTitleOffset(1.1, "X");
-    h->SetAxisRange(0,0.5,"Y");
-    h->SetStats(false);
-    h->SetMarkerStyle(kFullCircle);
-}
