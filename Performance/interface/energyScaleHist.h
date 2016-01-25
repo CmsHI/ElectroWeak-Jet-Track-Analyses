@@ -41,14 +41,15 @@ public :
         }
 
         h2Dinitialized = false;
+        hInitialized = false;
         h2DcorrInitialized = false;
     };
     ~energyScaleHist(){};
 
-    void Fillh2D(double energyScale, double x, float eta = -5, float genPt = -1, float recoPt = -1, int hiBin = -1)
+    void FillH2D(double energyScale, double x, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1)
     {
         // make sure to fill the histogram if no explicit kinematic range is specified.
-        if (eta == -5)  eta = ranges[ENERGYSCALE::kETA][0];
+        if (eta == -999)  eta = ranges[ENERGYSCALE::kETA][0];
         if (genPt == -1) genPt = ranges[ENERGYSCALE::kGENPT][0];
         if (recoPt == -1)  recoPt = ranges[ENERGYSCALE::kRECOPT][0];
         if (hiBin == -1)  hiBin = ranges[ENERGYSCALE::kHIBIN][0];
@@ -65,10 +66,30 @@ public :
         }}}}
     }
 
-    void Fillh2Dcorr(float genPt, float recoPt, float eta = -5, int hiBin = -1)
+    void FillH(double energyScale, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1)
     {
         // make sure to fill the histogram if no explicit kinematic range is specified.
-        if (eta == -5)  eta = ranges[ENERGYSCALE::kETA][0];
+        if (eta == -999)  eta = ranges[ENERGYSCALE::kETA][0];
+        if (genPt == -1) genPt = ranges[ENERGYSCALE::kGENPT][0];
+        if (recoPt == -1)  recoPt = ranges[ENERGYSCALE::kRECOPT][0];
+        if (hiBin == -1)  hiBin = ranges[ENERGYSCALE::kHIBIN][0];
+
+        if(ranges[ENERGYSCALE::kETA][0] <= TMath::Abs(eta) &&
+           (ranges[ENERGYSCALE::kETA][1] == -1 || ranges[ENERGYSCALE::kETA][1] > TMath::Abs(eta))){
+        if(ranges[ENERGYSCALE::kGENPT][0] <= genPt         &&
+           (ranges[ENERGYSCALE::kGENPT][1] == -1  || ranges[ENERGYSCALE::kGENPT][1] > genPt)) {
+        if(ranges[ENERGYSCALE::kRECOPT][0] <= recoPt       &&
+           (ranges[ENERGYSCALE::kRECOPT][1] == -1 || ranges[ENERGYSCALE::kRECOPT][1] > recoPt)) {
+        if(ranges[ENERGYSCALE::kHIBIN][0] <= hiBin         &&
+           (ranges[ENERGYSCALE::kHIBIN][1] == -1  || ranges[ENERGYSCALE::kHIBIN][1] > hiBin)) {
+                h->Fill(energyScale);
+        }}}}
+    }
+
+    void FillH2Dcorr(float genPt, float recoPt, float eta = -999, int hiBin = -1)
+    {
+        // make sure to fill the histogram if no explicit kinematic range is specified.
+        if (eta == -999)  eta = ranges[ENERGYSCALE::kETA][0];
         if (hiBin == -1)  hiBin = ranges[ENERGYSCALE::kHIBIN][0];
 
         if(ranges[ENERGYSCALE::kETA][0] <= TMath::Abs(eta) &&
@@ -121,6 +142,9 @@ public :
             h2D->SetTitle(title.c_str());
             titleX = h2D->GetXaxis()->GetTitle();
         }
+        if (hInitialized) {
+            h->SetTitle(title.c_str());
+        }
         if(h2DcorrInitialized) {
             h2Dcorr->SetTitle(title.c_str());
         }
@@ -130,9 +154,11 @@ public :
     TH1D* h1D[2];       // h1D[0] = energy scale histogram
                         // h1D[1] = energy resolution histogram
 
+    TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
 
     bool h2Dinitialized;
+    bool hInitialized;
     bool h2DcorrInitialized;
 
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix

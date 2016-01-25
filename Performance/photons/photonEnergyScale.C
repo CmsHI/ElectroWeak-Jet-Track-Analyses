@@ -410,11 +410,14 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         float xLowEta  = TH1D_Bins_List[1].at(0);   // xLow
                         float xUpEta   = TH1D_Bins_List[2].at(0);   // xUp
                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                        std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                        std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
                         hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2D =
                                 new TH2D(tmpHistName.c_str(), ";photon #eta;Reco p_{T} / Gen p_{T}", nBinsEta, xLowEta, xUpEta, 100, 0, 2);
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h =
+                                new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
 
                         hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+                        hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].hInitialized = true;
 
                         // set histogram title
                         hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
@@ -428,15 +431,19 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         double arr[nBins_genPt];
                         std::copy(bins_genPt[0].begin(), bins_genPt[0].end(), arr);
                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
                         std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2D =
                                 new TH2D(tmpHistName.c_str(), ";Gen p_{T};Reco p_{T} / Gen p_{T}", nBins_genPt-1, arr, 100, 0, 2);
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h =
+                                new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr =
                                 new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx, xLow, xUp, nBinsy, yLow, yUp);
                         // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                         // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
 
                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+                        hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized = true;
                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized = true;
 
                         // set histogram title
@@ -451,10 +458,14 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         double arr[nBins_recoPt];
                         std::copy(bins_recoPt[0].begin(), bins_recoPt[0].end(), arr);
                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2D =
                                 new TH2D(tmpHistName.c_str(), ";Reco p_{T};Reco p_{T} / Gen p_{T}", nBins_recoPt-1, arr, 100, 0, 2);
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h =
+                                new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
 
                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+                        hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized = true;
 
                         // set histogram title
                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
@@ -468,10 +479,14 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         double arr[nBins_hiBin];
                         std::copy(bins_hiBin[0].begin(), bins_hiBin[0].end(), arr);
                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                        std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2D =
                                 new TH2D(tmpHistName.c_str(), ";Hibin;Reco p_{T} / Gen p_{T}", nBins_hiBin-1, arr, 100, 0, 2);
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h =
+                                new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
 
                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized = true;
+                        hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].hInitialized = true;
 
                         // set histogram title
                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
@@ -555,22 +570,34 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
 
                 if (hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, eta, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
+                }
+                if (hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
                 }
 
                 if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, genPt, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
+                }
+                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
                 }
                 if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized) {
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2Dcorr(genPt, pt, eta, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2Dcorr(genPt, pt, eta, hiBin);
                 }
 
                 if (hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, pt, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
+                }
+                if (hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
                 }
 
                 if (hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].Fillh2D(energyScale, hiBin, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
+                }
+                if (hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
                 }
 
             }}}}
@@ -610,6 +637,8 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         {
                             int eScaleDep = eScale.at(iEScale);
                             // write histograms with a particular dependence
+                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].hInitialized)
+                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h->Write();
                             if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized)
                                 hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr->Write();
 
