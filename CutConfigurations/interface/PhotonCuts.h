@@ -39,6 +39,9 @@ namespace CUTS {
       k_pfnIso4_c2_EE,
       k_pfpIso4_c0_EE,
       k_pfpIso4_c1_EE,
+      k_mcCalIsoDR04,
+      k_mcTrkIsoDR04,
+      k_mcSumIso,
       kN_F_CUTS
     };
 
@@ -77,7 +80,10 @@ namespace CUTS {
       "pfnIso4_c1_EE",
       "pfnIso4_c2_EE",
       "pfpIso4_c0_EE",
-      "pfpIso4_c1_EE"
+      "pfpIso4_c1_EE",
+      "mcCalIsoDR04",
+      "mcTrkIsoDR04",
+      "mcSumIso"
     };
 
     enum I_CUTS{

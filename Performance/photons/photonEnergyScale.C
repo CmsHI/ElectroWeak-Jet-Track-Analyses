@@ -192,12 +192,18 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                             // list of pt cuts for RECO photons
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
+    // RECO photon cuts
     float cut_phoHoverE;
     float cut_pho_ecalClusterIsoR4;
     float cut_pho_hcalRechitIsoR4;
     float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta_2012;
     float cut_sumIso;
+
+    // GEN photon cuts
+    float cut_mcCalIsoDR04;
+    float cut_mcTrkIsoDR04;
+    float cut_mcSumIso;
 
     if (configCuts.isValid) {
         bins_eta[0] = ConfigurationParser::ParseListFloat(
@@ -223,6 +229,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
         cut_phoSigmaIEtaIEta_2012 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_2012];
         cut_sumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
+
+        cut_mcCalIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcCalIsoDR04];
+        cut_mcTrkIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcTrkIsoDR04];
+        cut_mcSumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcSumIso];
     }
     else {
         bins_eta[0].push_back(0);
@@ -240,6 +250,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         cut_pho_trackIsoR4PtCut20 = 2;
         cut_phoSigmaIEtaIEta_2012 = 0.01;
         cut_sumIso = 6;
+
+        cut_mcCalIsoDR04 = 5;
+        cut_mcTrkIsoDR04 = 5;
+        cut_mcSumIso = 0;
     }
     // set default values
     if (bins_eta[0].size() == 0) {
@@ -301,6 +315,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
         std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
         std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
+
+        std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
+        std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
+        std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
@@ -312,7 +330,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* treeHLT = new TChain("hltanalysis/HltTree");
     TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
     TChain* treeHiEvt;
     bool hasHiEvt = false;
@@ -326,14 +343,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     }
 
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-       treeHLT->Add((*it).c_str());
        treeggHiNtuplizer->Add((*it).c_str());
        if(hasHiEvt) treeHiEvt->Add((*it).c_str());
     }
-
-    treeHLT->SetBranchStatus("*",0);     // disable all branches
-    treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-    treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
 
     treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
     treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
@@ -342,6 +354,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
     treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
     treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
+    treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
     treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
     // check existence of genMatching branch
     if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
@@ -449,7 +462,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         // set histogram title
                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
                     }
-                    // initialize histograms with gen pt dependence
+                    // initialize histograms with reco pt dependence
                     if (iRecoPt == 0 && nBins_recoPt > 1)  {
                         std::string tmpName = Form("depRecoPt_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHibin);
                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].name = tmpName.c_str();
@@ -509,7 +522,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
           std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
         }
 
-        treeHLT->GetEntry(j_entry);
         treeggHiNtuplizer->GetEntry(j_entry);
         if (hasHiEvt) treeHiEvt->GetEntry(j_entry);
 
@@ -524,9 +536,27 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
         // energy scale
         for (int i=0; i<ggHi.nPho; ++i) {
+
             // selections on GEN particle
-            if (ggHi.pho_genMatchedIndex->at(i) < 0)   continue;    // is matched
-            if (ggHi.mcPID->at(ggHi.pho_genMatchedIndex->at(i)) != 22)   continue;    // is matched to a photon
+            int genMatchedIndex = ggHi.pho_genMatchedIndex->at(i);
+            if (genMatchedIndex < 0)   continue;    // is matched
+            if (ggHi.mcPID->at(genMatchedIndex) != 22)   continue;    // is matched to a photon
+
+            double genPt = ggHi.mcPt->at(genMatchedIndex);
+            if (genPt <= 0)   continue;
+
+            if (isHI) {
+                if (cut_mcCalIsoDR04 != 0) {
+                    if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
+                }
+                if (cut_mcTrkIsoDR04 != 0) {
+                    if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
+                }
+                if (cut_mcSumIso != 0) {
+                    if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
+                           ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
+                }
+            }
 
             // selections on RECO particle
             if (!(ggHi.phoSigmaIEtaIEta->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
@@ -554,14 +584,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 }
             }
 
-            double genPt = ggHi.mcPt->at(ggHi.pho_genMatchedIndex->at(i));
-            if (genPt <= 0)   continue;
-
             double eta = ggHi.phoEta->at(i);
             double pt  = ggHi.phoEt->at(i);
             double energyScale = pt/genPt;
 
-            // eta dependence of energy scale : x-axis is eta
             for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
             for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
             for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
