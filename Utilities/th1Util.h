@@ -4,6 +4,7 @@
 
 #include <TH1.h>
 #include <TH1D.h>
+#include <TGraphAsymmErrors.h>
 #include <TString.h>
 
 #include "interface/InputConfigurationParser.h"
@@ -13,8 +14,10 @@
 
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
+TH1* Graph2Histogram(TGraphAsymmErrors* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
+void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -59,6 +62,43 @@ std::string summaryTH1(TH1* h)
     return result;
 }
 
+/*
+ * convert a TGraphAsymmErrors to 1D TH1 by setting the data points bin by bin.
+ * NOTE : cannot set the asymmetric error bars for TH1. So cannot carry over the asymmetric errors
+ * in "graph" to the histogram that is returned.
+ * The error in the histogram will be
+ * TMath::Sqrt(0.5*(elow*elow + ehigh*ehigh))  which is returned by graph->GetErrorY(i)
+ * https://root.cern.ch/root/html/src/TGraphAsymmErrors.cxx.html#rBLO5D
+ */
+TH1* Graph2Histogram(TGraphAsymmErrors* graph)
+{
+    int fNpoints = graph->GetN();
+    double* fX   = graph->GetX();
+    double* fY   = graph->GetY();
+
+    if (fNpoints == 0) {
+        return NULL;
+    }
+
+    // prepare x-bins for the histograms
+    // xbins  : array of low-edges for each bin
+    //          This is an array of size nbins+1
+    double xbins[fNpoints+1];
+    for (int i=0; i<fNpoints; ++i)  {
+        xbins[i]=fX[i]-graph->GetErrorXlow(i);
+    }
+    xbins[fNpoints]=fX[fNpoints-1]+graph->GetErrorXhigh(fNpoints-1);
+
+    TH1* h = new TH1D(graph->GetName(),graph->GetTitle(), fNpoints, xbins);
+
+    for (int i=0; i<fNpoints; ++i)  {
+        h->SetBinContent(i+1, fY[i]);
+        h->SetBinError(i+1, graph->GetErrorY(i));
+    }
+
+    return h;
+}
+
 void setTH1_energyScale(TH1* h, float titleOffsetX, float titleOffsetY) {
 
     h->SetYTitle("< Reco p_{T} / Gen p_{T} >");
@@ -75,6 +115,14 @@ void setTH1_energyWidth(TH1* h, float titleOffsetX, float titleOffsetY) {
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
     h->SetAxisRange(0,0.5,"Y");
+    h->SetStats(false);
+    h->SetMarkerStyle(kFullCircle);
+}
+
+void setTH1_efficiency(TH1* h, float titleOffsetX, float titleOffsetY) {
+
+    h->SetTitleOffset(titleOffsetX, "X");
+    h->SetTitleOffset(titleOffsetY, "Y");
     h->SetStats(false);
     h->SetMarkerStyle(kFullCircle);
 }
