@@ -191,7 +191,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	{
 	  drawText("CMS Preliminary", xpos, 0.68,1,20);
 	  drawText("PbPb #sqrt{s}_{_{NN}}=2.76 TeV", xpos, 0.60,1,20);
-	  drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
+	  //drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
 	}
 
 
