@@ -38,8 +38,8 @@ const Int_t CENTBINS[] = {0, 200};//, 40};
 //const Int_t CENTBINS[] = {0, 100};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
-//const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
-const Double_t PTBINS[] = {40,50,60, 1000};
+const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
+//const Double_t PTBINS[] = {40,50,60, 1000};
 const Int_t nPTBINS = sizeof(PTBINS)/sizeof(Double_t) -1;
 
 const Double_t ETABINS[] = {-1.44, 1.44};
@@ -81,9 +81,6 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 			     CENTBINS[j], CENTBINS[j+1]);
 	TString etaCut = Form("(phoEta >= %f) && (phoEta < %f)",
 			      ETABINS[k], ETABINS[k+1]);
-
-	//TString pPbflipetaCut = Form("(eta*((run>211257)*-1+(run<211257)) >=%f) && (eta*((run>211257)*-1+(run<211257)) <%f)",
-	//			     ETABINS[k], ETABINS[k+1]);
 
 	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut;
 	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut;
@@ -190,7 +187,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	if(i == 3)
 	{
 	  drawText("CMS Preliminary", xpos, 0.68,1,20);
-	  drawText("PbPb #sqrt{s}_{_{NN}}=2.76 TeV", xpos, 0.60,1,20);
+	  drawText("PbPb #sqrt{s}_{_{NN}}=5.02 TeV", xpos, 0.60,1,20);
 	  //drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
 	}
 
