@@ -249,8 +249,6 @@ namespace INPUT_DEFAULT {
     const float yMin = 0.001;   // for logScale histograms
     const float windowHeightFraction = 0.25;
 
-    // explicit specification of no input
-    const std::string nullInput = "$NULL$";
     const std::string fitOption = "R L M";
 };
 

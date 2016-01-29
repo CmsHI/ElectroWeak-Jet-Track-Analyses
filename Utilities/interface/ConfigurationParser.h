@@ -15,6 +15,7 @@
 namespace CONFIGPARSER{
 
 const std::string comment = "#";
+const std::string nullInput = "$NULL$";    // explicit specification of no input
 const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from the line.
 const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
 const std::string importStatement = "import.";

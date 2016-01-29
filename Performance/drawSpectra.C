@@ -531,10 +531,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     for(int i=0; i<nHistos; ++i) {
         std::string drawOption = "";
         if (nDrawOptions == 1) {
-            if (drawOptions.at(0).compare(INPUT_DEFAULT::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
+            if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
         }
         else if (nDrawOptions == nHistos) {
-            if (drawOptions.at(i).compare(INPUT_DEFAULT::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
+            if (drawOptions.at(i).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
         }
         // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
         // TObject::SetDrawOption() is not suitable for the approach here.
@@ -670,7 +670,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
                 if (nHistos == nLegendEntryLabels) {
                     std::string label = legendEntryLabels.at(i).c_str();
-                    if (label.compare(INPUT_DEFAULT::nullInput) == 0)  continue;
+                    if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
 
                     std::string legendOption = "lpf";
                     if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
