@@ -13,6 +13,10 @@ class Jets {
 public :
   Jets(){};
   ~Jets(){};
+  void setupTreeForReading(TTree *t);
+  void setupTreeForWriting(TTree *t);
+  void setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC);
+  int  jetID(int i);
 
   // Declaration of leaf types
   ULong64_t       event;
@@ -175,8 +179,10 @@ public :
   TBranch        *b_fr01EM;   //!
   TBranch        *b_fr01;   //!
 
-  void setupTreeForReading(TTree *t)
-  {
+};
+
+void Jets::setupTreeForReading(TTree *t)
+{
     // Set branch addresses and branch pointers
     if (t->GetBranch("b")) t->SetBranchAddress("b", &b, &b_b);
     if (t->GetBranch("nref")) t->SetBranchAddress("nref", &nref, &b_nref);
@@ -254,10 +260,10 @@ public :
     if (t->GetMaximum("nref")>maxJets){ std::cout <<"FATAL ERROR: Arrary size of nref too small!!!  "<<t->GetMaximum("nref")<<std::endl; exit(0);}
     if (t->GetMaximum("ngen")>maxGenJets){ std::cout <<"FATAL ERROR: Arrary size of ngen too small!!!  "<<t->GetMaximum("ngen")<<std::endl; exit(0);}
     //}
-  }
+}
 
-  void setupTreeForWriting(TTree *t)
-  {
+void Jets::setupTreeForWriting(TTree *t)
+{
     t->Branch("event", &event);
     t->Branch("run", &run);
     t->Branch("lumi", &lumi);
@@ -279,192 +285,207 @@ public :
     // jet ID information, jet composition
     //if(doHiJetID_)
     {
-      t->Branch("discr_fr01", discr_fr01,"discr_fr01[nref]/F");
+        t->Branch("discr_fr01", discr_fr01,"discr_fr01[nref]/F");
 
-      t->Branch("trackMax", trackMax,"trackMax[nref]/F");
-      t->Branch("trackSum", trackSum,"trackSum[nref]/F");
-      t->Branch("trackN", trackN,"trackN[nref]/I");
-      t->Branch("trackHardSum", trackHardSum,"trackHardSum[nref]/F");
-      t->Branch("trackHardN", trackHardN,"trackHardN[nref]/I");
+        t->Branch("trackMax", trackMax,"trackMax[nref]/F");
+        t->Branch("trackSum", trackSum,"trackSum[nref]/F");
+        t->Branch("trackN", trackN,"trackN[nref]/I");
+        t->Branch("trackHardSum", trackHardSum,"trackHardSum[nref]/F");
+        t->Branch("trackHardN", trackHardN,"trackHardN[nref]/I");
 
-      t->Branch("chargedMax", chargedMax,"chargedMax[nref]/F");
-      t->Branch("chargedSum", chargedSum,"chargedSum[nref]/F");
-      t->Branch("chargedN", chargedN,"chargedN[nref]/I");
-      t->Branch("chargedHardSum", chargedHardSum,"chargedHardSum[nref]/F");
-      t->Branch("chargedHardN", chargedHardN,"chargedHardN[nref]/I");
+        t->Branch("chargedMax", chargedMax,"chargedMax[nref]/F");
+        t->Branch("chargedSum", chargedSum,"chargedSum[nref]/F");
+        t->Branch("chargedN", chargedN,"chargedN[nref]/I");
+        t->Branch("chargedHardSum", chargedHardSum,"chargedHardSum[nref]/F");
+        t->Branch("chargedHardN", chargedHardN,"chargedHardN[nref]/I");
 
-      t->Branch("photonMax", photonMax,"photonMax[nref]/F");
-      t->Branch("photonSum", photonSum,"photonSum[nref]/F");
-      t->Branch("photonN", photonN,"photonN[nref]/I");
-      t->Branch("photonHardSum", photonHardSum,"photonHardSum[nref]/F");
-      t->Branch("photonHardN", photonHardN,"photonHardN[nref]/I");
+        t->Branch("photonMax", photonMax,"photonMax[nref]/F");
+        t->Branch("photonSum", photonSum,"photonSum[nref]/F");
+        t->Branch("photonN", photonN,"photonN[nref]/I");
+        t->Branch("photonHardSum", photonHardSum,"photonHardSum[nref]/F");
+        t->Branch("photonHardN", photonHardN,"photonHardN[nref]/I");
 
-      t->Branch("neutralMax", neutralMax,"neutralMax[nref]/F");
-      t->Branch("neutralSum", neutralSum,"neutralSum[nref]/F");
-      t->Branch("neutralN", neutralN,"neutralN[nref]/I");
+        t->Branch("neutralMax", neutralMax,"neutralMax[nref]/F");
+        t->Branch("neutralSum", neutralSum,"neutralSum[nref]/F");
+        t->Branch("neutralN", neutralN,"neutralN[nref]/I");
 
-      // t->Branch("hcalSum", hcalSum,"hcalSum[nref]/F");
-      // t->Branch("ecalSum", ecalSum,"ecalSum[nref]/F");
+        // t->Branch("hcalSum", hcalSum,"hcalSum[nref]/F");
+        // t->Branch("ecalSum", ecalSum,"ecalSum[nref]/F");
 
-      t->Branch("eMax", eMax,"eMax[nref]/F");
-      t->Branch("eSum", eSum,"eSum[nref]/F");
-      t->Branch("eN", eN,"eN[nref]/I");
+        t->Branch("eMax", eMax,"eMax[nref]/F");
+        t->Branch("eSum", eSum,"eSum[nref]/F");
+        t->Branch("eN", eN,"eN[nref]/I");
 
-      t->Branch("muMax", muMax,"muMax[nref]/F");
-      t->Branch("muSum", muSum,"muSum[nref]/F");
-      t->Branch("muN", muN,"muN[nref]/I");
+        t->Branch("muMax", muMax,"muMax[nref]/F");
+        t->Branch("muSum", muSum,"muSum[nref]/F");
+        t->Branch("muN", muN,"muN[nref]/I");
     }
 
     //if(isMC_)
     {
-      t->Branch("beamId1",&beamId1,"beamId1/I");
-      t->Branch("beamId2",&beamId2,"beamId2/I");
+        t->Branch("beamId1",&beamId1,"beamId1/I");
+        t->Branch("beamId2",&beamId2,"beamId2/I");
 
-      t->Branch("pthat",&pthat,"pthat/F");
+        t->Branch("pthat",&pthat,"pthat/F");
 
-      // Only matched gen jets
-      t->Branch("refpt",refpt,"refpt[nref]/F");
-      t->Branch("refeta",refeta,"refeta[nref]/F");
-      t->Branch("refy",refy,"refy[nref]/F");
-      t->Branch("refphi",refphi,"refphi[nref]/F");
-      t->Branch("refdphijt",refdphijt,"refdphijt[nref]/F");
-      t->Branch("refdrjt",refdrjt,"refdrjt[nref]/F");
-      // matched parton
-      t->Branch("refparton_pt",refparton_pt,"refparton_pt[nref]/F");
-      t->Branch("refparton_flavor",refparton_flavor,"refparton_flavor[nref]/I");
-      t->Branch("refparton_flavorForB",refparton_flavorForB,"refparton_flavorForB[nref]/I");
+        // Only matched gen jets
+        t->Branch("refpt",refpt,"refpt[nref]/F");
+        t->Branch("refeta",refeta,"refeta[nref]/F");
+        t->Branch("refy",refy,"refy[nref]/F");
+        t->Branch("refphi",refphi,"refphi[nref]/F");
+        t->Branch("refdphijt",refdphijt,"refdphijt[nref]/F");
+        t->Branch("refdrjt",refdrjt,"refdrjt[nref]/F");
+        // matched parton
+        t->Branch("refparton_pt",refparton_pt,"refparton_pt[nref]/F");
+        t->Branch("refparton_flavor",refparton_flavor,"refparton_flavor[nref]/I");
+        t->Branch("refparton_flavorForB",refparton_flavorForB,"refparton_flavorForB[nref]/I");
 
-      t->Branch("genChargedSum", genChargedSum,"genChargedSum[nref]/F");
-      t->Branch("genHardSum", genHardSum,"genHardSum[nref]/F");
-      t->Branch("signalChargedSum", signalChargedSum,"signalChargedSum[nref]/F");
-      t->Branch("signalHardSum", signalHardSum,"signalHardSum[nref]/F");
+        t->Branch("genChargedSum", genChargedSum,"genChargedSum[nref]/F");
+        t->Branch("genHardSum", genHardSum,"genHardSum[nref]/F");
+        t->Branch("signalChargedSum", signalChargedSum,"signalChargedSum[nref]/F");
+        t->Branch("signalHardSum", signalHardSum,"signalHardSum[nref]/F");
 
-      //if(doSubEvent_)
-      {
-	t->Branch("subid",subid,"subid[nref]/I");
-      }
+        //if(doSubEvent_)
+        {
+            t->Branch("subid",subid,"subid[nref]/I");
+        }
 
-      //if(fillGenJets_)
-      {
-	// For all gen jets, matched or unmatched
-	t->Branch("ngen",&ngen,"ngen/I");
-	t->Branch("genmatchindex",genmatchindex,"genmatchindex[ngen]/I");
-	t->Branch("genpt",genpt,"genpt[ngen]/F");
-	t->Branch("geneta",geneta,"geneta[ngen]/F");
-	t->Branch("geny",geny,"geny[ngen]/F");
-	t->Branch("genphi",genphi,"genphi[ngen]/F");
-	t->Branch("gendphijt",gendphijt,"gendphijt[ngen]/F");
-	t->Branch("gendrjt",gendrjt,"gendrjt[ngen]/F");
+        //if(fillGenJets_)
+        {
+            // For all gen jets, matched or unmatched
+            t->Branch("ngen",&ngen,"ngen/I");
+            t->Branch("genmatchindex",genmatchindex,"genmatchindex[ngen]/I");
+            t->Branch("genpt",genpt,"genpt[ngen]/F");
+            t->Branch("geneta",geneta,"geneta[ngen]/F");
+            t->Branch("geny",geny,"geny[ngen]/F");
+            t->Branch("genphi",genphi,"genphi[ngen]/F");
+            t->Branch("gendphijt",gendphijt,"gendphijt[ngen]/F");
+            t->Branch("gendrjt",gendrjt,"gendrjt[ngen]/F");
 
-	//if(doSubEvent_)
-	{
-	  t->Branch("gensubid",gensubid,"gensubid[ngen]/I");
-	}
-      }
+            //if(doSubEvent_)
+            {
+                t->Branch("gensubid",gensubid,"gensubid[ngen]/I");
+            }
+        }
     }
-  }
+}
 
-  // make branches for trees whose single entry consists of multiple entries MB jet trees
-  void setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
-  {
-      t->Branch("b",&b,"b/F");
+// make branches for trees whose single entry consists of multiple entries MB jet trees
+void Jets::setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
+{
+    t->Branch("b",&b,"b/F");
 
-      t->Branch("nref",&nref,"nref/I");
-      t->Branch("rawpt",rawpt,"rawpt[nref]/F");
-      t->Branch("jtpt",jtpt,"jtpt[nref]/F");
-      t->Branch("jteta",jteta,"jteta[nref]/F");
-      t->Branch("jty",jty,"jty[nref]/F");
-      t->Branch("jtphi",jtphi,"jtphi[nref]/F");
-      t->Branch("jtpu",jtpu,"jtpu[nref]/F");
-      t->Branch("jtm",jtm,"jtm[nref]/F");
+    t->Branch("nref",&nref,"nref/I");
+    t->Branch("rawpt",rawpt,"rawpt[nref]/F");
+    t->Branch("jtpt",jtpt,"jtpt[nref]/F");
+    t->Branch("jteta",jteta,"jteta[nref]/F");
+    t->Branch("jty",jty,"jty[nref]/F");
+    t->Branch("jtphi",jtphi,"jtphi[nref]/F");
+    t->Branch("jtpu",jtpu,"jtpu[nref]/F");
+    t->Branch("jtm",jtm,"jtm[nref]/F");
 
-      // jet ID information, jet composition
-      if(doHiJetID)
-      {
-          t->Branch("discr_fr01", discr_fr01,"discr_fr01[nref]/F");
+    // jet ID information, jet composition
+    if(doHiJetID)
+    {
+        t->Branch("discr_fr01", discr_fr01,"discr_fr01[nref]/F");
 
-          t->Branch("trackMax", trackMax,"trackMax[nref]/F");
-          t->Branch("trackSum", trackSum,"trackSum[nref]/F");
-          t->Branch("trackN", trackN,"trackN[nref]/I");
-          t->Branch("trackHardSum", trackHardSum,"trackHardSum[nref]/F");
-          t->Branch("trackHardN", trackHardN,"trackHardN[nref]/I");
+        t->Branch("trackMax", trackMax,"trackMax[nref]/F");
+        t->Branch("trackSum", trackSum,"trackSum[nref]/F");
+        t->Branch("trackN", trackN,"trackN[nref]/I");
+        t->Branch("trackHardSum", trackHardSum,"trackHardSum[nref]/F");
+        t->Branch("trackHardN", trackHardN,"trackHardN[nref]/I");
 
-          t->Branch("chargedMax", chargedMax,"chargedMax[nref]/F");
-          t->Branch("chargedSum", chargedSum,"chargedSum[nref]/F");
-          t->Branch("chargedN", chargedN,"chargedN[nref]/I");
-          t->Branch("chargedHardSum", chargedHardSum,"chargedHardSum[nref]/F");
-          t->Branch("chargedHardN", chargedHardN,"chargedHardN[nref]/I");
+        t->Branch("chargedMax", chargedMax,"chargedMax[nref]/F");
+        t->Branch("chargedSum", chargedSum,"chargedSum[nref]/F");
+        t->Branch("chargedN", chargedN,"chargedN[nref]/I");
+        t->Branch("chargedHardSum", chargedHardSum,"chargedHardSum[nref]/F");
+        t->Branch("chargedHardN", chargedHardN,"chargedHardN[nref]/I");
 
-          t->Branch("photonMax", photonMax,"photonMax[nref]/F");
-          t->Branch("photonSum", photonSum,"photonSum[nref]/F");
-          t->Branch("photonN", photonN,"photonN[nref]/I");
-          t->Branch("photonHardSum", photonHardSum,"photonHardSum[nref]/F");
-          t->Branch("photonHardN", photonHardN,"photonHardN[nref]/I");
+        t->Branch("photonMax", photonMax,"photonMax[nref]/F");
+        t->Branch("photonSum", photonSum,"photonSum[nref]/F");
+        t->Branch("photonN", photonN,"photonN[nref]/I");
+        t->Branch("photonHardSum", photonHardSum,"photonHardSum[nref]/F");
+        t->Branch("photonHardN", photonHardN,"photonHardN[nref]/I");
 
-          t->Branch("neutralMax", neutralMax,"neutralMax[nref]/F");
-          t->Branch("neutralSum", neutralSum,"neutralSum[nref]/F");
-          t->Branch("neutralN", neutralN,"neutralN[nref]/I");
+        t->Branch("neutralMax", neutralMax,"neutralMax[nref]/F");
+        t->Branch("neutralSum", neutralSum,"neutralSum[nref]/F");
+        t->Branch("neutralN", neutralN,"neutralN[nref]/I");
 
-          // t->Branch("hcalSum", hcalSum,"hcalSum[nref]/F");
-          // t->Branch("ecalSum", ecalSum,"ecalSum[nref]/F");
+        // t->Branch("hcalSum", hcalSum,"hcalSum[nref]/F");
+        // t->Branch("ecalSum", ecalSum,"ecalSum[nref]/F");
 
-          t->Branch("eMax", eMax,"eMax[nref]/F");
-          t->Branch("eSum", eSum,"eSum[nref]/F");
-          t->Branch("eN", eN,"eN[nref]/I");
+        t->Branch("eMax", eMax,"eMax[nref]/F");
+        t->Branch("eSum", eSum,"eSum[nref]/F");
+        t->Branch("eN", eN,"eN[nref]/I");
 
-          t->Branch("muMax", muMax,"muMax[nref]/F");
-          t->Branch("muSum", muSum,"muSum[nref]/F");
-          t->Branch("muN", muN,"muN[nref]/I");
-      }
+        t->Branch("muMax", muMax,"muMax[nref]/F");
+        t->Branch("muSum", muSum,"muSum[nref]/F");
+        t->Branch("muN", muN,"muN[nref]/I");
+    }
 
-      if (doMC)
-      {
-          t->Branch("beamId1",&beamId1,"beamId1/I");
-          t->Branch("beamId2",&beamId2,"beamId2/I");
+    if (doMC)
+    {
+        t->Branch("beamId1",&beamId1,"beamId1/I");
+        t->Branch("beamId2",&beamId2,"beamId2/I");
 
-          t->Branch("pthat",&pthat,"pthat/F");
+        t->Branch("pthat",&pthat,"pthat/F");
 
-          // Only matched gen jets
-          t->Branch("refpt",refpt,"refpt[nref]/F");
-          t->Branch("refeta",refeta,"refeta[nref]/F");
-          t->Branch("refy",refy,"refy[nref]/F");
-          t->Branch("refphi",refphi,"refphi[nref]/F");
-          t->Branch("refdphijt",refdphijt,"refdphijt[nref]/F");
-          t->Branch("refdrjt",refdrjt,"refdrjt[nref]/F");
-          // matched parton
-          t->Branch("refparton_pt",refparton_pt,"refparton_pt[nref]/F");
-          t->Branch("refparton_flavor",refparton_flavor,"refparton_flavor[nref]/I");
-          t->Branch("refparton_flavorForB",refparton_flavorForB,"refparton_flavorForB[nref]/I");
+        // Only matched gen jets
+        t->Branch("refpt",refpt,"refpt[nref]/F");
+        t->Branch("refeta",refeta,"refeta[nref]/F");
+        t->Branch("refy",refy,"refy[nref]/F");
+        t->Branch("refphi",refphi,"refphi[nref]/F");
+        t->Branch("refdphijt",refdphijt,"refdphijt[nref]/F");
+        t->Branch("refdrjt",refdrjt,"refdrjt[nref]/F");
+        // matched parton
+        t->Branch("refparton_pt",refparton_pt,"refparton_pt[nref]/F");
+        t->Branch("refparton_flavor",refparton_flavor,"refparton_flavor[nref]/I");
+        t->Branch("refparton_flavorForB",refparton_flavorForB,"refparton_flavorForB[nref]/I");
 
-          t->Branch("genChargedSum", genChargedSum,"genChargedSum[nref]/F");
-          t->Branch("genHardSum", genHardSum,"genHardSum[nref]/F");
-          t->Branch("signalChargedSum", signalChargedSum,"signalChargedSum[nref]/F");
-          t->Branch("signalHardSum", signalHardSum,"signalHardSum[nref]/F");
+        t->Branch("genChargedSum", genChargedSum,"genChargedSum[nref]/F");
+        t->Branch("genHardSum", genHardSum,"genHardSum[nref]/F");
+        t->Branch("signalChargedSum", signalChargedSum,"signalChargedSum[nref]/F");
+        t->Branch("signalHardSum", signalHardSum,"signalHardSum[nref]/F");
 
-          //if(doSubEvent_)
-          {
-              t->Branch("subid",subid,"subid[nref]/I");
-          }
+        //if(doSubEvent_)
+        {
+            t->Branch("subid",subid,"subid[nref]/I");
+        }
 
-          //if(fillGenJets_)
-          {
-              // For all gen jets, matched or unmatched
-              t->Branch("ngen",&ngen,"ngen/I");
-              t->Branch("genmatchindex",genmatchindex,"genmatchindex[ngen]/I");
-              t->Branch("genpt",genpt,"genpt[ngen]/F");
-              t->Branch("geneta",geneta,"geneta[ngen]/F");
-              t->Branch("geny",geny,"geny[ngen]/F");
-              t->Branch("genphi",genphi,"genphi[ngen]/F");
-              t->Branch("gendphijt",gendphijt,"gendphijt[ngen]/F");
-              t->Branch("gendrjt",gendrjt,"gendrjt[ngen]/F");
+        //if(fillGenJets_)
+        {
+            // For all gen jets, matched or unmatched
+            t->Branch("ngen",&ngen,"ngen/I");
+            t->Branch("genmatchindex",genmatchindex,"genmatchindex[ngen]/I");
+            t->Branch("genpt",genpt,"genpt[ngen]/F");
+            t->Branch("geneta",geneta,"geneta[ngen]/F");
+            t->Branch("geny",geny,"geny[ngen]/F");
+            t->Branch("genphi",genphi,"genphi[ngen]/F");
+            t->Branch("gendphijt",gendphijt,"gendphijt[ngen]/F");
+            t->Branch("gendrjt",gendrjt,"gendrjt[ngen]/F");
 
-              //if(doSubEvent_)
-              {
-                  t->Branch("gensubid",gensubid,"gensubid[ngen]/I");
-              }
-          }
-      }
-  }
-};
+            //if(doSubEvent_)
+            {
+                t->Branch("gensubid",gensubid,"gensubid[ngen]/I");
+            }
+        }
+    }
+}
+
+int Jets::jetID(int i)
+{
+    int result = 0;
+    if (rawpt[i] > 0) {
+        if (    neutralSum[i]/rawpt[i] < 0.9
+                &&  chargedSum[i]/rawpt[i] > 0.01
+                && (chargedN[i] + photonN[i] + neutralN[i] + eN[i] + muN[i]) > 0
+                &&  chargedMax[i]/rawpt[i] < 0.99
+                &&  photonSum[i]/rawpt[i]  < 0.99
+                &&  eSum[i]/rawpt[i]       < 0.99) {
+            result = 1;
+        }
+    }
+    return result;
+}
 
 #endif

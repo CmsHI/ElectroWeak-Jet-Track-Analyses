@@ -1,3 +1,6 @@
+#ifndef TREEHEADERS_GGHINTUPLIZERTREE_H_
+#define TREEHEADERS_GGHINTUPLIZERTREE_H_
+
 #include <TTree.h>
 #include <TBranch.h>
 
@@ -910,3 +913,5 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("muPFNeuIso")) t->SetBranchAddress("muPFNeuIso", &muPFNeuIso, &b_muPFNeuIso);
     if (t->GetBranch("muPFPUIso")) t->SetBranchAddress("muPFPUIso", &muPFPUIso, &b_muPFPUIso);
 }
+
+#endif /* TREEHEADERS_GGHINTUPLIZERTREE_H_ */

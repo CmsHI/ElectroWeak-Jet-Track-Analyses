@@ -569,7 +569,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 // histogram name excluding the "h1D" prefix
                 std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                 TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
-                if (hasEventWeight)  selectionDraw = Form("((1.355*exp(-0.5*((HiEvt.vz-0.6682)/7.729)^2))*HiEvt.weight)*(%s)", selectionDraw.GetTitle());
+                if (hasEventWeight)  selectionDraw = Form("(1.3649*exp(-0.5*(((HiEvt.vz-0.62814)/7.7109)^2)))*HiEvt.weight)*(%s)", selectionDraw.GetTitle());
 
                 std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                 std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();

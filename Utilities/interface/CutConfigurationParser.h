@@ -12,6 +12,7 @@
 
 #include "../../CutConfigurations/interface/PhotonCuts.h"
 #include "../../CutConfigurations/interface/ElectronCuts.h"
+#include "../../CutConfigurations/interface/MuonCuts.h"
 #include "../../CutConfigurations/interface/ZBosonCuts.h"
 #include "../../CutConfigurations/interface/JetCuts.h"
 #include "../../CutConfigurations/interface/TrackCuts.h"
@@ -36,6 +37,7 @@ namespace CUTS {
   enum OBJECT{
     kPHOTON,
     kELECTRON,
+    kMUON,
     kZBOSON,
     kJET,
     kTRACK,
@@ -47,6 +49,7 @@ namespace CUTS {
 
   const int SUMMARY_INFO_I[kN_OBJECTS] = {PHO::kN_I_CUTS,
 					  ELE::kN_I_CUTS,
+					  MUO::kN_I_CUTS,
 					  ZBO::kN_I_CUTS,
 					  JET::kN_I_CUTS,
 					  TRK::kN_I_CUTS,
@@ -55,6 +58,7 @@ namespace CUTS {
                       EVT::kN_I_CUTS};
   const std::string *SUMMARY_INFO_I_LABELS[kN_OBJECTS] = {PHO::I_CUTS_LABELS,
 							  ELE::I_CUTS_LABELS,
+							  MUO::I_CUTS_LABELS,
 							  ZBO::I_CUTS_LABELS,
 							  JET::I_CUTS_LABELS,
 							  TRK::I_CUTS_LABELS,
@@ -64,6 +68,7 @@ namespace CUTS {
 
   const int SUMMARY_INFO_F[kN_OBJECTS] = {PHO::kN_F_CUTS,
 					  ELE::kN_F_CUTS,
+					  MUO::kN_F_CUTS,
 					  ZBO::kN_F_CUTS,
 					  JET::kN_F_CUTS,
 					  TRK::kN_F_CUTS,
@@ -72,6 +77,7 @@ namespace CUTS {
 					  EVT::kN_F_CUTS};
   const std::string *SUMMARY_INFO_F_LABELS[kN_OBJECTS] = {PHO::F_CUTS_LABELS,
 							  ELE::F_CUTS_LABELS,
+							  MUO::F_CUTS_LABELS,
 							  ZBO::F_CUTS_LABELS,
 							  JET::F_CUTS_LABELS,
 							  TRK::F_CUTS_LABELS,
@@ -81,6 +87,7 @@ namespace CUTS {
 
   const int SUMMARY_INFO_S[kN_OBJECTS] = {PHO::kN_S_CUTS,
 					  ELE::kN_S_CUTS,
+					  MUO::kN_S_CUTS,
 					  ZBO::kN_S_CUTS,
 					  JET::kN_S_CUTS,
 					  TRK::kN_S_CUTS,
@@ -89,6 +96,7 @@ namespace CUTS {
 					  EVT::kN_S_CUTS};
   const std::string *SUMMARY_INFO_S_LABELS[kN_OBJECTS] = {PHO::S_CUTS_LABELS,
 							  ELE::S_CUTS_LABELS,
+							  MUO::S_CUTS_LABELS,
 							  ZBO::S_CUTS_LABELS,
 							  JET::S_CUTS_LABELS,
 							  TRK::S_CUTS_LABELS,
@@ -98,6 +106,7 @@ namespace CUTS {
 
   std::string OBJECT_LABELS[kN_OBJECTS] = {"photon",
 					   "electron",
+					   "muon",
 					   "zboson",
 					   "jet",
 					   "track",

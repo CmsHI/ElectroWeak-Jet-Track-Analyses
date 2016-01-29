@@ -1,9 +1,5 @@
 /*
- * dielectronTree.h
- *
- *      Author: Kaya Tatar
- *
- *       class to manage dielectron tree, tree of electron pairs
+ * class to manage dielectron tree, tree of electron pairs
  */
 
 #ifndef TREEHEADERS_DIELECTRONTREE_H_

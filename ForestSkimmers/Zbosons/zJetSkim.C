@@ -27,7 +27,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
        std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
-       std::cout<<"minBiasJetSkimFile  = "<< minBiasJetSkimFile.Data() <<std::endl;
+       std::cout<<"minBiasJetSkimFile = "<< minBiasJetSkimFile.Data() <<std::endl;
 
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -489,7 +489,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            // z-jet correlation
            // leading z Boson is correlated to each jet in the event.
-           zjet.makeZJetPairs(diEle, jets, zIdx, true);
+           zjet.makeZeeJetPairs(diEle, jets, zIdx, true);
 
            if(doMix > 0)
            {
@@ -505,7 +505,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        Long64_t entryMB = iterMB[centBin][vzBin] % nMB[centBin][vzBin];     // roll back to the beginning if out of range
                        treeJetMB[centBin][vzBin]->GetEntry(entryMB);
 
-                       zjetMB.makeZJetPairsMB(diEle, jetsMB, zIdx, true);
+                       zjetMB.makeZeeJetPairsMB(diEle, jetsMB, zIdx, true);
 
                        // write jets from minBiasJetSkimFile to outputFile
                        for(int j = 0; j < jetsMB.nref; ++j)

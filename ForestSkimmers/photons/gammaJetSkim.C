@@ -27,7 +27,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
        std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
-       std::cout<<"minBiasJetSkimFile  = "<< minBiasJetSkimFile.Data() <<std::endl;
+       std::cout<<"minBiasJetSkimFile = "<< minBiasJetSkimFile.Data() <<std::endl;
 
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());

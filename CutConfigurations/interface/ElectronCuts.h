@@ -1,10 +1,10 @@
-#ifndef CUTCONFIGURATION_ele
-#define CUTCONFIGURATION_ele
+#ifndef CUTCONFIGURATIONS_INTERFACE_ELECTRONCUTS_H_
+#define CUTCONFIGURATIONS_INTERFACE_ELECTRONCUTS_H_
 
 namespace CUTS {
   namespace ELE {
     enum F_CUTS{
-      k_pt,
+      k_elePt,
       k_eleSigmaIEtaIEta_spike,
       k_eleSigmaIPhiIPhi_spike,
       k_eleSigmaIEtaIEta_2012_EB,
@@ -21,11 +21,11 @@ namespace CUTS {
       k_eleEoverPInv_EE,
       k_eleD0_abs_EE,
       k_eleDz_abs_EE,
-      k_elePt,
       kN_F_CUTS
     };
 
-    std::string F_CUTS_LABELS[kN_F_CUTS] = {"pt",
+    std::string F_CUTS_LABELS[kN_F_CUTS] = {
+            "elePt",
             "eleSigmaIEtaIEta_spike",
             "eleSigmaIPhiIPhi_spike",
             "eleSigmaIEtaIEta_2012_EB",
@@ -41,8 +41,7 @@ namespace CUTS {
             "eleHoverE_EE",
             "eleEoverPInv_EE",
             "eleD0_abs_EE",
-            "eleDz_abs_EE",
-            "elePt"
+            "eleDz_abs_EE"
     };
 
     enum I_CUTS{
@@ -52,7 +51,8 @@ namespace CUTS {
       kN_I_CUTS
     };
 
-    std::string I_CUTS_LABELS[kN_I_CUTS] = {"nEle",
+    std::string I_CUTS_LABELS[kN_I_CUTS] = {
+            "nEle",
             "eleMissHits_EB",
             "eleMissHits_EE"
     };
@@ -63,7 +63,8 @@ namespace CUTS {
       kN_S_CUTS
     };
 
-    std::string S_CUTS_LABELS[kN_S_CUTS] = {"electronID",
+    std::string S_CUTS_LABELS[kN_S_CUTS] = {
+            "electronID",
             "trigger"
     };
 

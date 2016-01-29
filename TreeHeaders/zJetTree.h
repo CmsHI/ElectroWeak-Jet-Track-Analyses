@@ -8,6 +8,7 @@
 
 #include "../Plotting/commonUtility.h"
 #include "dielectronTree.h"
+#include "dimuonTree.h"
 #include "JetTree.h"
 
 class ZJet {
@@ -34,9 +35,11 @@ public :
     void resetConeRange() { coneRange = 0.4 ; }
     void setupZJetTree(TTree *t);
     void branchZJetTree(TTree *t);
-    void makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
+    void makeZeeJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
+    void makeZmmJetPairs(dimuon     &tdimuon    , Jets &tJets, int zIdx, bool use_diMu_out = true);
     void clearZJetPairs(int zIdx);
-    void makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
+    void makeZeeJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out = true);
+    void makeZmmJetPairsMB(dimuon     &tdimuon    , Jets &tJets, int zIdx, bool use_diMu_out = true);
 
     float awayRange;
     float coneRange;
@@ -132,23 +135,10 @@ void ZJet::branchZJetTree(TTree *t)
     t->Branch("jetID", &jetID_out);
 }
 
-void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
+void ZJet::makeZeeJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
 {
     if (use_diEle_out) {
-        jetIdx_out.clear();
-        xjz_out.clear();
-        deta_out.clear();
-        dphi_out.clear();
-        dR_out.clear();
-        dR_ele_1_out.clear();
-        dR_ele_2_out.clear();
-        insideJet_out.clear();
-        insideJet_ele_1_out.clear();
-        insideJet_ele_2_out.clear();
-        jetID_out.clear();
-
-        zIdx_out = zIdx;
-        nJetinAwayRange_out = 0;
+        clearZJetPairs(zIdx);
 
         jetIdx1_out = -1;
         jetIdx2_out = -1;
@@ -177,17 +167,7 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
             if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
-            int tmp_jetID = 0;
-            if (tJets.rawpt[i] > 0) {
-                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                        tmp_jetID = 1;
-                }
-            }
+            int tmp_jetID = tJets.jetID(i);
 
             if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
                 // current leading jet becomes subleading jet
@@ -221,20 +201,7 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
         }
     }
     else {
-        jetIdx_out.clear();
-        xjz_out.clear();
-        deta_out.clear();
-        dphi_out.clear();
-        dR_out.clear();
-        dR_ele_1_out.clear();
-        dR_ele_2_out.clear();
-        insideJet_out.clear();
-        insideJet_ele_1_out.clear();
-        insideJet_ele_2_out.clear();
-        jetID_out.clear();
-
-        zIdx_out = zIdx;
-        nJetinAwayRange_out = 0;
+        clearZJetPairs(zIdx);
 
         jetIdx1_out = -1;
         jetIdx2_out = -1;
@@ -263,17 +230,7 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
             if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
-            int tmp_jetID = 0;
-            if (tJets.rawpt[i] > 0) {
-                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                        tmp_jetID = 1;
-                }
-            }
+            int tmp_jetID = tJets.jetID(i);
 
             if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
                 // current leading jet becomes subleading jet
@@ -291,6 +248,136 @@ void ZJet::makeZJetPairs(dielectron &tdielectron, Jets &tJets, int zIdx, bool us
             jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
                 xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
+            }
+            else {
+                xjz_out.push_back(-1);
+            }
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
+        }
+    }
+}
+
+void ZJet::makeZmmJetPairs(dimuon &tdimuon, Jets &tJets, int zIdx, bool use_diMu_out)
+{
+    if (use_diMu_out) {
+        clearZJetPairs(zIdx);
+
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
+        // all the jets must go into correlation,
+        // no jet should be skipped.
+        for (int i=0; i<tJets.nref; ++i)
+        {
+            // cuts on jets will be applied during plotting
+            float tmp_deta = getDETA(tdimuon.diMuEta_out.at(zIdx), tJets.jteta[i]);
+            float tmp_dphi = getDPHI(tdimuon.diMuPhi_out.at(zIdx), tJets.jtphi[i]);
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
+            float tmp_dR   = getDR(tdimuon.diMuEta_out.at(zIdx), tdimuon.diMuPhi_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_1 = getDR(tdimuon.muEta_1_out.at(zIdx), tdimuon.muPhi_1_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_2 = getDR(tdimuon.muEta_2_out.at(zIdx), tdimuon.muPhi_2_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+
+            int tmp_insideJet;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
+            else                         tmp_insideJet = 0;
+            int tmp_insideJet_ele_1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
+            else                               tmp_insideJet_ele_1 = 0;
+            int tmp_insideJet_ele_2;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
+            else                               tmp_insideJet_ele_2 = 0;
+
+            int tmp_jetID = tJets.jetID(i);
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
+            }
+
+            jetIdx_out.push_back(i);
+            if (tdimuon.diMuPt_out.at(zIdx) > 0) {
+                xjz_out.push_back((float)tJets.jtpt[i]/tdimuon.diMuPt_out.at(zIdx));
+            }
+            else {
+                xjz_out.push_back(-1);
+            }
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
+        }
+    }
+    else {
+        clearZJetPairs(zIdx);
+
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
+        // all the jets must go into correlation,
+        // no jet should be skipped.
+        for (int i=0; i<tJets.nref; ++i)
+        {
+            // cuts on jets will be applied during plotting
+            float tmp_deta = getDETA(tdimuon.diMuEta->at(zIdx), tJets.jteta[i]);
+            float tmp_dphi = getDPHI(tdimuon.diMuPhi->at(zIdx), tJets.jtphi[i]);
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
+            float tmp_dR   = getDR(tdimuon.diMuEta->at(zIdx), tdimuon.diMuPhi->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_1 = getDR(tdimuon.muEta_1->at(zIdx), tdimuon.muPhi_1->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_2 = getDR(tdimuon.muEta_2->at(zIdx), tdimuon.muPhi_2->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+
+            int tmp_insideJet;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
+            else                         tmp_insideJet = 0;
+            int tmp_insideJet_ele_1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
+            else                               tmp_insideJet_ele_1 = 0;
+            int tmp_insideJet_ele_2;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
+            else                               tmp_insideJet_ele_2 = 0;
+
+            int tmp_jetID = tJets.jetID(i);
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
+            }
+
+            jetIdx_out.push_back(i);
+            if (tdimuon.diMuPt->at(zIdx) > 0) {
+                xjz_out.push_back((float)tJets.jtpt[i]/tdimuon.diMuPt->at(zIdx));
             }
             else {
                 xjz_out.push_back(-1);
@@ -332,7 +419,7 @@ void ZJet::clearZJetPairs(int zIdx)
     nJetinAwayRange_out = 0;
 }
 
-void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
+void ZJet::makeZeeJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool use_diEle_out)
 {
     if (use_diEle_out){
         jetIdx1_out = -1;
@@ -362,17 +449,7 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
             if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
-            int tmp_jetID = 0;
-            if (tJets.rawpt[i] > 0) {
-                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                        tmp_jetID = 1;
-                }
-            }
+            int tmp_jetID = tJets.jetID(i);
 
             if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
                 // current leading jet becomes subleading jet
@@ -433,17 +510,7 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
             if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
             else                               tmp_insideJet_ele_2 = 0;
 
-            int tmp_jetID = 0;
-            if (tJets.rawpt[i] > 0) {
-                if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                    &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                    && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                    &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                    &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                    &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                        tmp_jetID = 1;
-                }
-            }
+            int tmp_jetID = tJets.jetID(i);
 
             if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
                 // current leading jet becomes subleading jet
@@ -461,6 +528,132 @@ void ZJet::makeZJetPairsMB(dielectron &tdielectron, Jets &tJets, int zIdx, bool 
             jetIdx_out.push_back(i);
             if (tdielectron.diElePt->at(zIdx) > 0) {
                 xjz_out.push_back((float)tJets.jtpt[i]/tdielectron.diElePt->at(zIdx));
+            }
+            else {
+                xjz_out.push_back(-1);
+            }
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
+        }
+    }
+}
+
+void ZJet::makeZmmJetPairsMB(dimuon &tdimuon, Jets &tJets, int zIdx, bool use_diMu_out)
+{
+    if (use_diMu_out){
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
+        // all the jets must go into correlation,
+        // no jet should be skipped.
+        for (int i=0; i<tJets.nref; ++i)
+        {
+            // cuts on jets will be applied during plotting
+            float tmp_deta = getDETA(tdimuon.diMuEta_out.at(zIdx), tJets.jteta[i]);
+            float tmp_dphi = getDPHI(tdimuon.diMuPhi_out.at(zIdx), tJets.jtphi[i]);
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
+            float tmp_dR   = getDR(tdimuon.diMuEta_out.at(zIdx), tdimuon.diMuPhi_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_1 = getDR(tdimuon.muEta_1_out.at(zIdx), tdimuon.muPhi_1_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_2 = getDR(tdimuon.muEta_2_out.at(zIdx), tdimuon.muPhi_2_out.at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+
+            int tmp_insideJet;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
+            else                         tmp_insideJet = 0;
+            int tmp_insideJet_ele_1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
+            else                               tmp_insideJet_ele_1 = 0;
+            int tmp_insideJet_ele_2;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
+            else                               tmp_insideJet_ele_2 = 0;
+
+            int tmp_jetID = tJets.jetID(i);
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
+            }
+
+            jetIdx_out.push_back(i);
+            if (tdimuon.diMuPt_out.at(zIdx) > 0) {
+                xjz_out.push_back((float)tJets.jtpt[i]/tdimuon.diMuPt_out.at(zIdx));
+            }
+            else {
+                xjz_out.push_back(-1);
+            }
+            deta_out.push_back(tmp_deta);
+            dphi_out.push_back(tmp_dphi);
+            dR_out.push_back(tmp_dR);
+            dR_ele_1_out.push_back(tmp_dR_ele_1);
+            dR_ele_2_out.push_back(tmp_dR_ele_2);
+            insideJet_out.push_back(tmp_insideJet);
+            insideJet_ele_1_out.push_back(tmp_insideJet_ele_1);
+            insideJet_ele_2_out.push_back(tmp_insideJet_ele_2);
+            jetID_out.push_back(tmp_jetID);
+        }
+    }
+    else {
+        jetIdx1_out = -1;
+        jetIdx2_out = -1;
+        double jetIdx1_pt = -1;
+        double jetIdx2_pt = -1;
+        // all the jets must go into correlation,
+        // no jet should be skipped.
+        for (int i=0; i<tJets.nref; ++i)
+        {
+            // cuts on jets will be applied during plotting
+            float tmp_deta = getDETA(tdimuon.diMuEta->at(zIdx), tJets.jteta[i]);
+            float tmp_dphi = getDPHI(tdimuon.diMuPhi->at(zIdx), tJets.jtphi[i]);
+            if (TMath::Abs(tmp_dphi) > awayRange)
+                nJetinAwayRange_out++;
+            float tmp_dR   = getDR(tdimuon.diMuEta->at(zIdx), tdimuon.diMuPhi->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_1 = getDR(tdimuon.muEta_1->at(zIdx), tdimuon.muPhi_1->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+            float tmp_dR_ele_2 = getDR(tdimuon.muEta_2->at(zIdx), tdimuon.muPhi_2->at(zIdx), tJets.jteta[i], tJets.jtphi[i]);
+
+            int tmp_insideJet;
+            if(tmp_dR < coneRange) tmp_insideJet = 1;
+            else                         tmp_insideJet = 0;
+            int tmp_insideJet_ele_1;
+            if(tmp_dR_ele_1 < coneRange) tmp_insideJet_ele_1 = 1;
+            else                               tmp_insideJet_ele_1 = 0;
+            int tmp_insideJet_ele_2;
+            if(tmp_dR_ele_2 < coneRange) tmp_insideJet_ele_2 = 1;
+            else                               tmp_insideJet_ele_2 = 0;
+
+            int tmp_jetID = tJets.jetID(i);
+
+            if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+                // current leading jet becomes subleading jet
+                jetIdx2_pt = jetIdx1_pt;
+                jetIdx2_out = jetIdx1_out;
+
+                jetIdx1_pt = tJets.jtpt[i];
+                jetIdx1_out = i;
+            }
+            else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
+                jetIdx2_pt = tJets.jtpt[i];
+                jetIdx2_out = i;
+            }
+
+            jetIdx_out.push_back(i);
+            if (tdimuon.diMuPt->at(zIdx) > 0) {
+                xjz_out.push_back((float)tJets.jtpt[i]/tdimuon.diMuPt->at(zIdx));
             }
             else {
                 xjz_out.push_back(-1);
