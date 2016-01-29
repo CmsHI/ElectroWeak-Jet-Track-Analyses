@@ -536,7 +536,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         else if (nDrawOptions == nHistos) {
             if (drawOptions.at(i).compare(INPUT_DEFAULT::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
         }
-        if (drawOption.size() > 0)  drawOptions.at(i) = drawOption.c_str();     // overwrite drawing options
         // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
         // TObject::SetDrawOption() is not suitable for the approach here.
 
@@ -673,7 +672,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                     std::string label = legendEntryLabels.at(i).c_str();
                     if (label.compare(INPUT_DEFAULT::nullInput) == 0)  continue;
 
-                    leg->AddEntry(h_draw[i], label.c_str(),"lp");
+                    std::string legendOption = "lpf";
+                    if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
+                    leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
                 }
             }
 

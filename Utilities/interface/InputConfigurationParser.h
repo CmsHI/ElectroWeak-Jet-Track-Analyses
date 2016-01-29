@@ -50,6 +50,7 @@ enum TYPE_I{
     k_textAbovePadFont,
     k_legendBorderSize,
     k_lineWidth,
+    k_fitTH1,
     kN_TYPES_I
 };
 
@@ -73,7 +74,8 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "textFont",
         "textAbovePadFont",
         "legendBorderSize",
-        "lineWidth"
+        "lineWidth",
+        "fitTH1"
 };
 
 enum TYPE_F{
@@ -144,6 +146,9 @@ enum TYPE_S{
     k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
     k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
+    k_TF1,                  // formula, xMin and xMax for a TF1 function
+    k_fitOption,
+    k_fitColor,
     k_treePath,
     k_treeFriends_List,
     k_legendPosition,       // one of NW, NE, SW, SE
@@ -175,6 +180,9 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "drawOption",
         "TH1D_Bins_List",
         "TH2D_Bins_List",
+        "TF1",
+        "fitOption",
+        "fitColor",
         "treePath",
         "treeFriends_List",
         "legendPosition",
@@ -227,6 +235,7 @@ namespace INPUT_DEFAULT {
     const int textFont = 43;
     const int textAbovePadFont = 43;
     const int lineWidth = 1;
+    const int fitColor = EColor::kRed;
 
     const float leftMargin = 0.1;
     const float rightMargin = 0.1;
@@ -242,6 +251,7 @@ namespace INPUT_DEFAULT {
 
     // explicit specification of no input
     const std::string nullInput = "$NULL$";
+    const std::string fitOption = "R L M";
 };
 
 struct InputConfiguration : public Configuration {

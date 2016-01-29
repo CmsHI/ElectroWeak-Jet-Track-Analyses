@@ -46,6 +46,9 @@ public :
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
     static std::string ParseLatex(std::string str);
+    static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
+    static std::vector<std::string> ParseListTF1Formula(std::string strList);
+    static std::vector<std::vector<double>> ParseListTF1Range(std::string strList);
 
 };
 
@@ -296,7 +299,8 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
  * list[1].at(i);   xLow  for the ith TH1D histogram
  * list[2].at(i);   xUp   for the ith TH1D histogram
  */
-std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::string strList){
+std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::string strList)
+{
 
     std::vector<std::vector<float>> list(3);
 
@@ -320,7 +324,8 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::str
  * list[4].at(i);   yLow   for the ith TH2D histogram
  * list[5].at(i);   yUp    for the ith TH2D histogram
  */
-std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::string strList){
+std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::string strList)
+{
 
     std::vector<std::vector<float>> list(6);
 
@@ -342,10 +347,67 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::str
 /*
  * parse the Latex syntax in the configuration file to the Latex syntax in ROOT
  */
-std::string ConfigurationParser::ParseLatex(std::string str) {
-
+std::string ConfigurationParser::ParseLatex(std::string str)
+{
     std::string strNew = replaceAll(str, "\\", "#");
     return strNew;
+}
+
+/*
+ * list[0].at(i);   formula for the ith TF1 function
+ * list[1].at(i);   xMin    for the ith TF1 function
+ * list[2].at(i);   xMax    for the ith TF1 function
+ */
+std::vector<std::vector<std::string>> ConfigurationParser::ParseListTF1(std::string strList)
+{
+    std::vector<std::vector<std::string>> list(3);
+    std::vector<std::string> listFlat = ParseList(strList);
+    if (listFlat.size() % 3 != 0)   return list;
+
+    for (std::vector<std::string>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=3) {
+        list[0].push_back(*it);
+        list[1].push_back(*(it+1));
+        list[2].push_back(*(it+2));
+    }
+
+    return list;
+}
+
+/*
+ * list.at(i);   formula for the ith TF1 function
+ */
+std::vector<std::string> ConfigurationParser::ParseListTF1Formula(std::string strList)
+{
+    std::vector<std::string> list;
+    std::vector<std::string> listFlat = ParseList(strList);
+    if (listFlat.size() % 3 != 0)   return list;
+
+    for (std::vector<std::string>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=3) {
+        list.push_back(*it);
+    }
+
+    return list;
+}
+
+/*
+ * list[0].at(i);   xMin for the ith TF1 function
+ * list[0].at(i);   xMax for the ith TF1 function
+ */
+std::vector<std::vector<double>> ConfigurationParser::ParseListTF1Range(std::string strList)
+{
+    std::vector<std::vector<double>> list(2);
+    std::vector<std::string> listFlat = ParseList(strList);
+    if (listFlat.size() % 3 != 0)   return list;
+
+    for (std::vector<std::string>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=3) {
+        std::string str1 = *(it+1);
+        std::string str2 = *(it+2);
+
+        list[0].push_back(std::stod(str1));
+        list[1].push_back(std::stod(str2));
+    }
+
+    return list;
 }
 
 #endif
