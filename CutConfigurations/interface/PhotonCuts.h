@@ -42,6 +42,8 @@ namespace CUTS {
       k_mcCalIsoDR04,
       k_mcTrkIsoDR04,
       k_mcSumIso,
+      k_EtaLowerBound,
+      k_EtaUpperBound,
       kN_F_CUTS
     };
 
@@ -83,7 +85,9 @@ namespace CUTS {
       "pfpIso4_c1_EE",
       "mcCalIsoDR04",
       "mcTrkIsoDR04",
-      "mcSumIso"
+      "mcSumIso",
+      "etaLowerBound",
+      "etaUpperBound"
     };
 
     enum I_CUTS{

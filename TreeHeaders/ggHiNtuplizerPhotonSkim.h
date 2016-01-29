@@ -358,7 +358,7 @@ public:
     HBHENoiseFilterResult=-1;
     pcollisionEventSelection=-1;
 
-    nMC = -1;
+    nMC = 0;
     mcPID.clear();
     mcStatus.clear();
     mcVtx_x.clear();
@@ -384,7 +384,7 @@ public:
     mcTrkIsoDR04.clear();
     pho_genMatchedIndex.clear();
 
-    nPho=-1;
+    nPho=0;
 
     phoE.clear();
     phoEt.clear();
