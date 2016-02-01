@@ -41,6 +41,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     float cut_pho_hcalRechitIsoR4;
     float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta;
+    float cut_sumIso;
     if (config.isValid) {
         str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_diphoton].c_str();
 
@@ -52,6 +53,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
         cut_pho_hcalRechitIsoR4 = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
         cut_pho_trackIsoR4PtCut20 = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
         cut_phoSigmaIEtaIEta = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
+        cut_sumIso = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
     }
     else {  // default configuration for photons
         str_trigger = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
@@ -64,6 +66,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
         cut_pho_hcalRechitIsoR4 = 2.2;
         cut_pho_trackIsoR4PtCut20 = 2;
         cut_phoSigmaIEtaIEta = 0.01;
+        cut_sumIso = 6;
     }
 
     // verbose about configuration
@@ -77,6 +80,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     std::cout<<"cut_pho_hcalRechitIsoR4    = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
     std::cout<<"cut_pho_trackIsoR4PtCut20  = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
     std::cout<<"cut_phoSigmaIEtaIEta       = "<< cut_phoSigmaIEtaIEta <<std::endl;
+    std::cout<<"cut_sumIso                 = "<< cut_sumIso <<std::endl;
 
     // check the validity of the string for the trigger
     if (str_trigger.compare("") == 0) str_trigger = "1";    // trigger is turned off, if it is not valid.
