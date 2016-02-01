@@ -19,11 +19,15 @@ namespace CUTS {
     };
 
     enum I_CUTS{
-      k_nTracks,
+      k_doDiElectron,
+      k_doDiMuon,
       kN_I_CUTS
     };
 
-    std::string I_CUTS_LABELS[kN_I_CUTS] = {"nTracks"};
+    std::string I_CUTS_LABELS[kN_I_CUTS] = {
+            "doDiElectron",
+            "doDiMuon"
+            };
 
     enum S_CUTS{
       k_bins_pt_gt,

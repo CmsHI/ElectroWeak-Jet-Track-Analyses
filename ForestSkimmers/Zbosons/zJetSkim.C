@@ -46,12 +46,26 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout << "collision = " << collisionName << std::endl;
 
        std::string jetCollection;
+       // electron cuts
        int cut_nEle;
        float elePt;
        float eleSigmaIEtaIEta_2012_EB;
        float eleSigmaIEtaIEta_2012_EE;
        float eleHoverE_EB;
        float eleHoverE_EE;
+       // muon cuts
+       int cut_nMu;
+       float muPt;
+       float muChi2NDF;
+       float muInnerD0;
+       float muInnerDz;
+       int muMuonHits;
+       int muStations;
+       int muTrkLayers;
+       int muPixelHits;
+       // Z cuts
+       int doDiElectron;
+       int doDiMuon;
        float cutZMassMin;
        float cutZMassMax;
        float cutZPt;
@@ -64,12 +78,26 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int nEventsToMix;
        if (configCuts.isValid) {
            jetCollection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
+
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            elePt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
            eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
            eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
            eleHoverE_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EB];
            eleHoverE_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EE];
+
+           cut_nMu = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_nMu];
+           muPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].f[CUTS::MUO::k_muPt];
+           muChi2NDF = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].f[CUTS::MUO::k_muChi2NDF];
+           muInnerD0 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerD0];
+           muInnerDz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerDz];
+           muMuonHits = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_muMuonHits];
+           muStations = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_muStations];
+           muTrkLayers = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_muTrkLayers];
+           muPixelHits = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_muPixelHits];
+
+           doDiElectron = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron];
+           doDiMuon = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
            cutZMassMin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
            cutZMassMax = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
            cutZPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_pt];
@@ -83,6 +111,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
        else {
            jetCollection = "ak4PFJetAnalyzer";
+
            cut_nEle = 2;
            elePt = 0;
            eleSigmaIEtaIEta_2012_EB = 0.02;
@@ -90,6 +119,19 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            eleHoverE_EB = 0.2;
            eleHoverE_EE = 0.15;
 
+           cut_nMu = 2;
+           muPt = 0;
+           muChi2NDF = 10;
+           muInnerD0 = 0.2;
+           muInnerDz = 0.5;
+
+           muMuonHits = 0;
+           muStations = 1;
+           muTrkLayers = 5;
+           muPixelHits = 0;
+
+           doDiElectron = 1;
+           doDiMuon = 0;
            cutZMassMin = 80;
            cutZMassMax = 100;
            cutZPt = 15;
@@ -113,12 +155,36 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"Configuration :"<<std::endl;
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
 
-       std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
-       std::cout<<"elePt = "<<elePt<<std::endl;
-       std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
-       std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
-       std::cout<<"eleHoverE_EB = "<<eleHoverE_EB<<std::endl;
-       std::cout<<"eleHoverE_EE = "<<eleHoverE_EE<<std::endl;
+       std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
+       if (doDiElectron > 0) {
+           std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
+           std::cout<<"elePt = "<<elePt<<std::endl;
+           std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
+           std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
+           std::cout<<"eleHoverE_EB = "<<eleHoverE_EB<<std::endl;
+           std::cout<<"eleHoverE_EE = "<<eleHoverE_EE<<std::endl;
+       }
+
+       std::cout<<"doDiMuon = "<<doDiMuon<<std::endl;
+       if (doDiMuon > 0) {
+           std::cout<<"cut_nMu = "<<cut_nMu<<std::endl;
+           std::cout<<"muPt = "<<muPt<<std::endl;
+           std::cout<<"muChi2NDF = "<<muChi2NDF<<std::endl;
+           std::cout<<"muInnerD0 = "<<muInnerD0<<std::endl;
+           std::cout<<"muInnerDz = "<<muInnerDz<<std::endl;
+           std::cout<<"muMuonHits = "<<muMuonHits<<std::endl;
+           std::cout<<"muStations = "<<muStations<<std::endl;
+           std::cout<<"muTrkLayers = "<<muTrkLayers<<std::endl;
+           std::cout<<"muPixelHits = "<<muPixelHits<<std::endl;
+       }
+
+       if (doDiElectron > 0 && doDiMuon > 0) {
+           std::cout<<"WARNING : Both of doDiElectron and doDiMuon options are set."<<std::endl;
+           std::cout<<"switch to default option : doDiElectron = 1, doDiMuon = 0"<<std::endl;
+           doDiElectron = 1;
+           doDiMuon = 0;
+       }
+
        std::cout<<"cutZMassMin = "<<cutZMassMin<<std::endl;
        std::cout<<"cutZMassMax = "<<cutZMassMax<<std::endl;
        std::cout<<"cutZPt   = "<<cutZPt<<std::endl;
@@ -368,13 +434,27 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        outputTreeJet->SetMaxTreeSize(MAXTREESIZE);
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
 
+       // trees for diLepton pairs
+       TTree *diElectronTree;
        // construct dielectron pairs during zJet skim
-       TTree *diElectronTree = new TTree("dielectron","electron pairs");
-       diElectronTree->SetMaxTreeSize(MAXTREESIZE);
+       if (doDiElectron > 0)
+       {
+           diElectronTree = new TTree("dielectron","electron pairs");
+           diElectronTree->SetMaxTreeSize(MAXTREESIZE);
+       }
+       TTree *diMuonTree;
+       // construct dimuon pairs during zJet skim
+       if (doDiMuon > 0)
+       {
+           diMuonTree = new TTree("dimuon","muon pairs");
+           diMuonTree->SetMaxTreeSize(MAXTREESIZE);
+       }
 
        // objects for z-jet correlations
        dielectron diEle;
-       diEle.branchDiElectronTree(diElectronTree);     // diElectronTree is output
+       if (doDiElectron > 0)  diEle.branchDiElectronTree(diElectronTree);     // diElectronTree is output
+       dimuon diMu;
+       if (doDiMuon > 0) diMu.branchDiMuonTree(diMuonTree);     // diMuonTree is output
 
        TTree *zJetTree = new TTree("zJet","leading z-jet correlations");
        zJetTree->SetMaxTreeSize(MAXTREESIZE);
@@ -388,7 +468,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        ZJet zjetMB;
        TTree *outputTreeJetMB = new TTree("jetsMB","Jets from minbias events");
        TTree *zJetTreeMB  = new TTree("zJetMB","leading z-jet correlations from MB events");
-       if (doMix>0) {
+       if (doMix > 0) {
            outputTreeJetMB->SetMaxTreeSize(MAXTREESIZE);
            zJetTreeMB->SetMaxTreeSize(MAXTREESIZE);
 
@@ -405,7 +485,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        Long64_t entries = treeEvent->GetEntries();
        Long64_t entriesPassedEventSelection = 0;
        Long64_t entriesAnalyzed = 0;
-       std::cout << "entries         = " << entries << std::endl;
+       std::cout << "entries = " << entries << std::endl;
        std::cout<< "Loop : ggHiNtuplizer/EventTree" <<std::endl;
        for (Long64_t j_entry=0; j_entry<entries; ++j_entry)
        {
@@ -431,65 +511,125 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            // event selection
            if(!(TMath::Abs(vz) < 15 && pcollisionEventSelection == 1 && HBHEIsoNoiseFilterResult == 1)) continue;
-//           if(!(TMath::Abs(vz) < 15 && pcollisionEventSelection == 1)) continue;
            entriesPassedEventSelection++;
 
-           // skip if there are no electron pairs to study
-           if(ggHi.nEle < cut_nEle)  continue;
-
-           // construct dielectron pairs during zJet skim
-           diEle.makeDiElectronPairs(ggHi);
-
-           // z-jet block
-           // find leading z
            int zIdx = -1;     // index of the leading z
-           double maxZPt = -1;
-           for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
-           {
-               bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
-               bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
-               bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
-               bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
 
-               if (failedPtCut)          continue;
-               if (failedEtaCut)         continue;
-               if (failedMassWindow)     continue;
-               if (failedOppositeCh)     continue;
+           // dielectron block
+           if (doDiElectron > 0) {
+               // skip if there are no electron pairs to study
+               if(ggHi.nEle < cut_nEle)  continue;
 
-               // some extra and rather loose cuts based on eta region
-               // electron 1
-               if (TMath::Abs(diEle.eleEta_1_out.at(i)) < 1.4791) {
-                   if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
-                   if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EB)                          continue;
-               }
-               else if (TMath::Abs(diEle.eleEta_1_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_1_out.at(i)) < 2.4) {
-                   if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
-                   if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
-               }
-               if (diEle.elePt_1_out.at(i) <= elePt)  continue;
-               // electron 2
-               if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
-                   if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
-                   if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EB)                          continue;
-               }
-               else if (TMath::Abs(diEle.eleEta_2_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_2_out.at(i)) < 2.4) {
-                   if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
-                   if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
-               }
-               if (diEle.elePt_2_out.at(i) <= elePt)  continue;
+               // construct dielectron pairs during zJet skim
+               diEle.makeDiElectronPairs(ggHi);
 
-               if (diEle.diElePt_out.at(i) > maxZPt)
+               // Zee-jet block
+               // find leading z from dielectron
+               double maxZPt = -1;
+               for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
                {
-                   maxZPt = diEle.diElePt_out.at(i);
-                   zIdx = i;
+                   bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
+                   bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
+                   bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
+                   bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
+
+                   if (failedPtCut)          continue;
+                   if (failedEtaCut)         continue;
+                   if (failedMassWindow)     continue;
+                   if (failedOppositeCh)     continue;
+
+                   // some extra and rather loose cuts based on eta region
+                   // electron 1
+                   if (TMath::Abs(diEle.eleEta_1_out.at(i)) < 1.4791) {
+                       if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                       if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EB)                          continue;
+                   }
+                   else if (TMath::Abs(diEle.eleEta_1_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_1_out.at(i)) < 2.4) {
+                       if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                       if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
+                   }
+                   if (diEle.elePt_1_out.at(i) <= elePt)  continue;
+                   // electron 2
+                   if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
+                       if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                       if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EB)                          continue;
+                   }
+                   else if (TMath::Abs(diEle.eleEta_2_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_2_out.at(i)) < 2.4) {
+                       if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                       if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
+                   }
+                   if (diEle.elePt_2_out.at(i) <= elePt)  continue;
+
+                   if (diEle.diElePt_out.at(i) > maxZPt)
+                   {
+                       maxZPt = diEle.diElePt_out.at(i);
+                       zIdx = i;
+                   }
                }
            }
+
+           // dimuon block
+           if (doDiMuon > 0) {
+               // skip if there are no muon pairs to study
+               if(ggHi.nMu < cut_nMu)  continue;
+
+               // construct dimuon pairs during zJet skim
+               diMu.makeDiMuonPairs(ggHi);
+
+               // Zmumu-jet block
+               // find leading z from dimuon
+               double maxZPt = -1;
+               for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
+               {
+                   bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
+                   bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
+                   bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
+                   bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
+
+                   if (failedPtCut)          continue;
+                   if (failedEtaCut)         continue;
+                   if (failedMassWindow)     continue;
+                   if (failedOppositeCh)     continue;
+
+                   // some extra and rather loose cuts
+                   // muon 1
+                   if (diMu.muChi2NDF_1_out.at(i) > muChi2NDF) continue;
+                   if (TMath::Abs(diMu.muInnerD0_1_out.at(i)) > muInnerD0) continue;
+                   if (TMath::Abs(diMu.muInnerDz_1_out.at(i)) > muInnerDz) continue;
+                   if (diMu.muMuonHits_1_out.at(i) < muMuonHits) continue;
+                   if (diMu.muStations_1_out.at(i) < muStations) continue;
+                   if (diMu.muTrkLayers_1_out.at(i) < muTrkLayers) continue;
+                   if (diMu.muPixelHits_1_out.at(i) < muPixelHits) continue;
+                   if (diMu.muPt_1_out.at(i) <= muPt)  continue;
+
+                   // muon 2
+                   if (diMu.muChi2NDF_2_out.at(i) > muChi2NDF) continue;
+                   if (TMath::Abs(diMu.muInnerD0_2_out.at(i)) > muInnerD0) continue;
+                   if (TMath::Abs(diMu.muInnerDz_2_out.at(i)) > muInnerDz) continue;
+                   if (diMu.muMuonHits_2_out.at(i) < muMuonHits) continue;
+                   if (diMu.muStations_2_out.at(i) < muStations) continue;
+                   if (diMu.muTrkLayers_2_out.at(i) < muTrkLayers) continue;
+                   if (diMu.muPixelHits_2_out.at(i) < muPixelHits) continue;
+                   if (diMu.muPt_2_out.at(i) <= muPt)  continue;
+
+                   if (diMu.diMuPt_out.at(i) > maxZPt)
+                   {
+                       maxZPt = diMu.diMuPt_out.at(i);
+                       zIdx = i;
+                   }
+               }
+           }
+
            if (zIdx == -1) continue;
            entriesAnalyzed++;
 
            // z-jet correlation
-           // leading z Boson is correlated to each jet in the event.
-           zjet.makeZeeJetPairs(diEle, jets, zIdx, true);
+           // leading z Boson from dielectron is correlated to each jet in the event.
+           if (doDiElectron > 0)  zjet.makeZeeJetPairs(diEle, jets, zIdx, true);
+
+           // z-jet correlation
+           // leading z Boson from dimuon is correlated to each jet in the event.
+           if (doDiMuon > 0)  zjet.makeZmmJetPairs(diMu, jets, zIdx, true);
 
            if(doMix > 0)
            {
@@ -505,7 +645,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        Long64_t entryMB = iterMB[centBin][vzBin] % nMB[centBin][vzBin];     // roll back to the beginning if out of range
                        treeJetMB[centBin][vzBin]->GetEntry(entryMB);
 
-                       zjetMB.makeZeeJetPairsMB(diEle, jetsMB, zIdx, true);
+                       if (doDiElectron > 0) zjetMB.makeZeeJetPairsMB(diEle, jetsMB, zIdx, true);
+                       if (doDiMuon > 0)     zjetMB.makeZmmJetPairsMB(diMu,  jetsMB, zIdx, true);
 
                        // write jets from minBiasJetSkimFile to outputFile
                        for(int j = 0; j < jetsMB.nref; ++j)
@@ -536,7 +677,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            if (hasHiEvt) outputTreeHiEvt->Fill();
            outputTreeSkim->Fill();
            
-           diElectronTree->Fill();
+           if (doDiElectron > 0)  diElectronTree->Fill();
+           if (doDiMuon > 0)      diMuonTree->Fill();
            zJetTree->Fill();
        }
        std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
@@ -550,7 +692,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
        if (hasHiEvt) std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
     
+       if (doDiElectron > 0)  std::cout << "diElectronTree->GetEntries()  = " << diElectronTree->GetEntries() << std::endl;
+       if (doDiMuon > 0)      std::cout << "diMuonTree->GetEntries()  = " << diMuonTree->GetEntries() << std::endl;
        std::cout << "zJetTree->GetEntries() = " << zJetTree->GetEntries() << std::endl;
+
        if (doMix > 0)
        {
            std::cout << "zJetTreeMB->GetEntries() = " << zJetTreeMB->GetEntries() << std::endl;
