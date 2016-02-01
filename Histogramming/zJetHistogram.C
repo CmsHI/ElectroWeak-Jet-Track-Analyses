@@ -369,33 +369,41 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // selections for dielectron regions
     TCut selectionDiele =  "";
     selectionDiele = selectionDiele && Form("elePt_1[zIdx] > %f && elePt_2[zIdx] > %f", elePt, elePt);
-    TCut selection_EB = "";
-    TCut selection_EE = "";
-    selection_EB = selection_EB && Form("eleSigmaIEtaIEta_2012_1[zIdx] < %f && eleSigmaIEtaIEta_2012_2[zIdx] < %f", eleSigmaIEtaIEta_2012_EB, eleSigmaIEtaIEta_2012_EB);
-    selection_EB = selection_EB && Form("abs(eledEtaAtVtx_1[zIdx]) < %f && abs(eledEtaAtVtx_2[zIdx]) < %f", eledEtaAtVtx_abs_EB, eledEtaAtVtx_abs_EB);
-    selection_EB = selection_EB && Form("abs(eledPhiAtVtx_1[zIdx]) < %f && abs(eledPhiAtVtx_2[zIdx]) < %f", eledPhiAtVtx_abs_EB, eledPhiAtVtx_abs_EB);
-    selection_EB = selection_EB && Form("eleHoverE_1[zIdx] < %f && eleHoverE_2[zIdx] < %f", eleHoverE_EB, eleHoverE_EB);
-    selection_EB = selection_EB && Form("eleEoverPInv_1[zIdx] < %f && eleEoverPInv_2[zIdx] < %f", eleEoverPInv_EB, eleEoverPInv_EB);
-    selection_EB = selection_EB && Form("abs(eleD0_1[zIdx]) < %f && abs(eleD0_2[zIdx]) < %f", eleD0_abs_EB, eleD0_abs_EB);
-    selection_EB = selection_EB && Form("abs(eleDz_1[zIdx]) < %f && abs(eleDz_2[zIdx]) < %f", eleDz_abs_EB, eleDz_abs_EB);
-    selection_EB = selection_EB && Form("eleMissHits_1[zIdx] <= %d && eleMissHits_2[zIdx] <= %d", eleMissHits_EB, eleMissHits_EB);
 
-    selection_EE = selection_EE && Form("eleSigmaIEtaIEta_2012_1[zIdx] < %f && eleSigmaIEtaIEta_2012_2[zIdx] < %f", eleSigmaIEtaIEta_2012_EE, eleSigmaIEtaIEta_2012_EE);
-    selection_EE = selection_EE && Form("abs(eledEtaAtVtx_1[zIdx]) < %f && abs(eledEtaAtVtx_2[zIdx]) < %f", eledEtaAtVtx_abs_EE, eledEtaAtVtx_abs_EE);
-    selection_EE = selection_EE && Form("abs(eledPhiAtVtx_1[zIdx]) < %f && abs(eledPhiAtVtx_2[zIdx]) < %f", eledPhiAtVtx_abs_EE, eledPhiAtVtx_abs_EE);
-    selection_EE = selection_EE && Form("eleHoverE_1[zIdx] < %f && eleHoverE_2[zIdx] < %f", eleHoverE_EE, eleHoverE_EE);
-    selection_EE = selection_EE && Form("eleEoverPInv_1[zIdx] < %f && eleEoverPInv_2[zIdx] < %f", eleEoverPInv_EE, eleEoverPInv_EE);
-    selection_EE = selection_EE && Form("abs(eleD0_1[zIdx]) < %f && abs(eleD0_2[zIdx]) < %f", eleD0_abs_EE, eleD0_abs_EE);
-    selection_EE = selection_EE && Form("abs(eleDz_1[zIdx]) < %f && abs(eleDz_2[zIdx]) < %f", eleDz_abs_EE, eleDz_abs_EE);
-    selection_EE = selection_EE && Form("eleMissHits_1[zIdx] <= %d && eleMissHits_2[zIdx] <= %d", eleMissHits_EE, eleMissHits_EE);
+    TCut selection_ele[2];
+    TCut selection_ele_EB[2];
+    TCut selection_ele_EE[2];
+    for (int iEle=0; iEle<2; ++iEle) {
+        selection_ele_EB[iEle] = "";
+        selection_ele_EE[iEle] = "";
 
-    TCut selection_EB_eta = Form(" abs(eleEta_1[zIdx]) < %f && abs(eleEta_2[zIdx]) < %f", 1.4791, 1.4791);
-    selection_EB = selection_EB && selection_EB_eta;
-    TCut selection_EE_eta = Form(" abs(eleEta_1[zIdx]) >= %f && abs(eleEta_2[zIdx]) >= %f", 1.4791, 1.4791);
-    selection_EE_eta = selection_EE_eta && Form(" abs(eleEta_1[zIdx]) < %f && abs(eleEta_2[zIdx]) < %f", 2.4, 2.4);
-    selection_EE = selection_EE && selection_EE_eta;
-    TCut selection_EB_EE = selection_EB || selection_EE;
-    selectionDiele = selectionDiele && selection_EB_EE;
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("eleSigmaIEtaIEta_2012_%d[zIdx] < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("abs(eledEtaAtVtx_%d[zIdx]) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("abs(eledPhiAtVtx_%d[zIdx]) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("eleHoverE_%d[zIdx] < %f" ,iEle+1 ,eleHoverE_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("eleEoverPInv_%d[zIdx] < %f" ,iEle+1 ,eleEoverPInv_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("abs(eleD0_%d[zIdx]) < %f" ,iEle+1 ,eleD0_abs_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("abs(eleDz_%d[zIdx]) < %f" ,iEle+1 ,eleDz_abs_EB);
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && Form("eleMissHits_%d[zIdx] <= %d" ,iEle+1 ,eleMissHits_EB);
+
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("eleSigmaIEtaIEta_2012_%d[zIdx] < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("abs(eledEtaAtVtx_%d[zIdx]) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("abs(eledPhiAtVtx_%d[zIdx]) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("eleHoverE_%d[zIdx] < %f" ,iEle+1 ,eleHoverE_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("eleEoverPInv_%d[zIdx] < %f" ,iEle+1 ,eleEoverPInv_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("abs(eleD0_%d[zIdx]) < %f" ,iEle+1 ,eleD0_abs_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("abs(eleDz_%d[zIdx]) < %f" ,iEle+1 ,eleDz_abs_EE);
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("eleMissHits_%d[zIdx] <= %d" ,iEle+1 ,eleMissHits_EE);
+
+        TCut selection_EB_eta = Form("abs(eleEta_%d[zIdx]) < %f" ,iEle+1 ,1.4791);
+        TCut selection_EE_eta = Form("abs(eleEta_%d[zIdx]) >= %f && abs(eleEta_%d[zIdx]) < %f" ,iEle+1 ,1.4791 ,iEle+1 ,2.4);
+
+        selection_ele_EB[iEle] = selection_ele_EB[iEle] && selection_EB_eta;
+        selection_ele_EE[iEle] = selection_ele_EE[iEle] && selection_EE_eta;
+        selection_ele[iEle] = selection_ele_EB[iEle] || selection_ele_EE[iEle];
+    }
+
+    selectionDiele = selectionDiele && selection_ele[0] && selection_ele[1];
 
     if (isMC) {
         selectionDiele = selectionDiele && "1 == 1";    // gen particle specific selection
