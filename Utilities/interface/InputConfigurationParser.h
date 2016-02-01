@@ -94,6 +94,7 @@ enum TYPE_F{
     k_TH1_xMax,
     k_TH1_yMin,
     k_TH1_yMax,
+    k_markerSize,
     k_textSize,
     k_textOffsetX,
     k_textOffsetY,
@@ -121,6 +122,7 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "TH1_xMax",
         "TH1_yMin",
         "TH1_yMax",
+        "markerSize",
         "textSize",
         "textOffsetX",
         "textOffsetY",
@@ -243,6 +245,7 @@ namespace INPUT_DEFAULT {
     const float topMargin = 0.1;
     const float titleOffsetX = 1;
     const float titleOffsetY = 1;
+    const float markerSize = 1;
     const float textSize = 20;
     const float textAbovePadSize = 20;
     const float xMin = 0.001;   // for logScale histograms
