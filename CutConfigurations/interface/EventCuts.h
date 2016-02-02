@@ -5,19 +5,35 @@
 namespace CUTS {
   namespace EVT {
     enum F_CUTS{
+      k_vz,
       kN_F_CUTS
     };
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
-
+      "vz"
     };
 
     enum I_CUTS{
+      k_phfCoincFilter3,
+      k_pprimaryVertexFilter,
+      k_pclusterCompatibilityFilter,
+      k_pcollisionEventSelection,       // pcollisionEventSelection = phfCoincFilter3 && pprimaryVertexFilter && pclusterCompatibilityFilter
+      k_pPAprimaryVertexFilter,         // for pp
+      k_pBeamScrapingFilter,            // for pp
+      k_pHBHENoiseFilterResultProducer,
+      k_HBHEIsoNoiseFilterResult,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
-
+            "phfCoincFilter3",
+            "pprimaryVertexFilter",
+            "pclusterCompatibilityFilter",
+            "pcollisionEventSelection",
+            "pPAprimaryVertexFilter",
+            "pBeamScrapingFilter",
+            "pHBHENoiseFilterResultProducer",
+            "HBHEIsoNoiseFilterResult"
     };
 
     enum S_CUTS{

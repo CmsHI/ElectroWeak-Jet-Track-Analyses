@@ -29,17 +29,25 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
        CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
+       float cut_vz;
+       int cut_pcollisionEventSelection;
+
        std::string jetCollection;
        int nMaxEvents_minBiasMixing;
        int nCentralityBins;
        int nVertexBins;
        if (config.isValid) {
+           cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+           cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+
            jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
            nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
            nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
            nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
        }
        else {
+           cut_vz = 15;
+           cut_pcollisionEventSelection = 1;
            jetCollection = "akPu4CaloJetAnalyzer";
            nMaxEvents_minBiasMixing = 20000;
            nCentralityBins = 200;    // must divide 200 without remainders
@@ -47,7 +55,10 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        }
 
        // verbose about configuration
-       std::cout<<"Configuration :"<<std::endl;
+       std::cout<<"Cut Configuration :"<<std::endl;
+       std::cout<<"cut_vz = "<< cut_vz <<std::endl;
+       std::cout<<"cut_pcollisionEventSelection = "<< cut_pcollisionEventSelection <<std::endl;
+
        std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
        std::cout<<"nMaxEvents_minBiasMixing = "<< nMaxEvents_minBiasMixing <<std::endl;
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
@@ -132,26 +143,14 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        treeSkim->SetBranchStatus("HBHEIsoNoiseFilterResult",1);
 
        Int_t pcollisionEventSelection;
-       Int_t pHBHENoiseFilterResultProducer;
-       Int_t HBHEIsoNoiseFilterResult;
 
        if (treeSkim->GetBranch("pcollisionEventSelection")) {
            treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
        }
        else {   // overwrite to default
            pcollisionEventSelection = 1;
-       }
-       if (treeSkim->GetBranch("pHBHENoiseFilterResultProducer")) {
-           treeSkim->SetBranchAddress("pHBHENoiseFilterResultProducer",&pHBHENoiseFilterResultProducer);
-       }
-       else {   // overwrite to default
-           pHBHENoiseFilterResultProducer = 1;
-       }
-       if (treeSkim->GetBranch("HBHEIsoNoiseFilterResult")) {
-           treeSkim->SetBranchAddress("HBHEIsoNoiseFilterResult",&HBHEIsoNoiseFilterResult);
-       }
-       else {   // overwrite to default
-           HBHEIsoNoiseFilterResult = 1;
+           std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
+           std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
        }
 
        // event information
@@ -236,7 +235,8 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            }
 
            // event selection
-           if(!(TMath::Abs(vz) < 15 && pcollisionEventSelection == 1 && HBHEIsoNoiseFilterResult == 1)) continue;
+           if(!(TMath::Abs(vz) < cut_vz)) continue;
+           if(pcollisionEventSelection < cut_pcollisionEventSelection) continue;
            entriesAnalyzed++;
 
            int centBin = hiBin / centBinWidth;
