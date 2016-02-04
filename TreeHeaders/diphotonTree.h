@@ -158,7 +158,7 @@ public :
     ~diphoton(){};
     void setupDiPhotonTree(TTree *t);
     void branchDiPhotonTree(TTree *t);
-    void makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch = true, bool doSizeCheck = true);
+    void makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch = true, bool skipIfNoMatch = false, bool doSizeCheck = true);
 
     float cutDeltaR;
     // Declaration of leaf types
@@ -837,7 +837,7 @@ void diphoton::branchDiPhotonTree(TTree *t)
     t->Branch("diPhoPhi", &diPhoPhi_out);
 }
 
-void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch, bool doSizeCheck)
+void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch, bool skipIfNoMatch, bool doSizeCheck)
 {
 
     phoE_1_out.clear();
@@ -1033,6 +1033,10 @@ void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch,
         {
             if (doSizeCheck) {
 
+                if (skipIfNoMatch) {
+                    if (matched_eleIndex_tmp.at(i) == -1 || matched_eleIndex_tmp.at(j) == -1)  continue;
+                }
+
                 if(tggHiNtuplizer.phoE->size() == (unsigned)nPho_out)  phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
                 if(tggHiNtuplizer.phoEt->size() == (unsigned)nPho_out)  phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
                 if(tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out)  phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));
@@ -1179,6 +1183,11 @@ void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch,
                 }
             }
             else {
+
+                if (skipIfNoMatch) {
+                    if (matched_eleIndex_tmp.at(i) == -1 || matched_eleIndex_tmp.at(j) == -1)  continue;
+                }
+
                 phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
                 phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
                 phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));

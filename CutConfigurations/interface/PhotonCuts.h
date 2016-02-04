@@ -14,6 +14,8 @@ namespace CUTS {
       k_purityBackgroundShift,
       k_puritySieieHistMax,
       k_phoSigmaIEtaIEta_spike,
+      k_pho_swissCrx,
+      k_pho_seedTime,
 //      k_phoSigmaIPhiIPhi_spike,   // not available yet
       k_phoHoverE,
       k_pho_ecalClusterIsoR4,
@@ -58,6 +60,8 @@ namespace CUTS {
       "purityBackgroundShift",
       "puritySieieHistMax",
       "phoSigmaIEtaIEta_spike",
+      "pho_swissCrx",
+      "pho_seedTime",
 //      "phoSigmaIPhiIPhi_spike",   // not available yet
       "phoHoverE",
       "pho_ecalClusterIsoR4",

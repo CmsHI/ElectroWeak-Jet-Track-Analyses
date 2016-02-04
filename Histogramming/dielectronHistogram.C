@@ -209,8 +209,8 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
                 selection = selection && Form(" abs(eleEta_1) > %f && abs(eleEta_2) > %f", bins_eta_gt[j], bins_eta_gt[j]);
                 selection = selection && Form(" abs(eleEta_1) < %f && abs(eleEta_2) < %f", bins_eta_lt[j], bins_eta_lt[j]);
             }
-            selection = selection && Form("elePt_1 > %d && elePt_2 > %d", bins_pt[i], bins_pt[i]);
             selection = selection && selection_event;
+            selection = selection && Form("elePt_1 > %d && elePt_2 > %d", bins_pt[i], bins_pt[i]);
 
             TCut selection_sameCh = selection && "eleCharge_1 == eleCharge_2";
             selection             = selection && "eleCharge_1 != eleCharge_2";

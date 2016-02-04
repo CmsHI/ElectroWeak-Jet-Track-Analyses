@@ -76,9 +76,9 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     std::cout<<"cut_phoSigmaIEtaIEta_spike = "<< cut_phoSigmaIEtaIEta_spike <<std::endl;
 //    std::cout<<"cut_phoSigmaIPhiIPhi_spike = "<< cut_phoSigmaIPhiIPhi_spike <<std::endl;
     std::cout<<"cut_phoHoverE              = "<< cut_phoHoverE <<std::endl;
-    std::cout<<"cut_pho_ecalClusterIsoR4   = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
-    std::cout<<"cut_pho_hcalRechitIsoR4    = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
-    std::cout<<"cut_pho_trackIsoR4PtCut20  = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
+    std::cout<<"cut_pho_ecalClusterIsoR4   = "<< cut_pho_ecalClusterIsoR4 <<std::endl;     // not used
+    std::cout<<"cut_pho_hcalRechitIsoR4    = "<< cut_pho_hcalRechitIsoR4 <<std::endl;      // not used
+    std::cout<<"cut_pho_trackIsoR4PtCut20  = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;    // not used
     std::cout<<"cut_phoSigmaIEtaIEta       = "<< cut_phoSigmaIEtaIEta <<std::endl;
     std::cout<<"cut_sumIso                 = "<< cut_sumIso <<std::endl;
 
@@ -132,10 +132,9 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
             selection = selection && Form("phoSigmaIEtaIEta_1 > %f && phoSigmaIEtaIEta_2 > %f", cut_phoSigmaIEtaIEta_spike, cut_phoSigmaIEtaIEta_spike);
 //            selection = selection && Form("phoSigmaIPhiIPhi_1 > %f && phoSigmaIPhiIPhi_2 > %f", cut_phoSigmaIPhiIPhi_spike, cut_phoSigmaIPhiIPhi_spike);
             // isolation
+            selection = selection && Form("(pho_ecalClusterIsoR4_1 + pho_hcalRechitIsoR4_1 + pho_trackIsoR4PtCut20_1) < %f && "
+                                          "(pho_ecalClusterIsoR4_2 + pho_hcalRechitIsoR4_2 + pho_trackIsoR4PtCut20_2) < %f", cut_sumIso, cut_sumIso);
             selection = selection && Form("phoHoverE_1 < %f && phoHoverE_2 < %f", cut_phoHoverE, cut_phoHoverE);
-            selection = selection && Form("pho_ecalClusterIsoR4_1 < %f && pho_ecalClusterIsoR4_2 < %f", cut_pho_ecalClusterIsoR4, cut_pho_ecalClusterIsoR4);
-            selection = selection && Form("pho_hcalRechitIsoR4_1 < %f && pho_hcalRechitIsoR4_2 < %f", cut_pho_hcalRechitIsoR4, cut_pho_hcalRechitIsoR4);
-            selection = selection && Form("pho_trackIsoR4PtCut20_1 < %f && pho_trackIsoR4PtCut20_2 < %f", cut_pho_trackIsoR4PtCut20, cut_pho_trackIsoR4PtCut20);
             // purity
             selection = selection && Form("phoSigmaIEtaIEta_1 < %f && phoSigmaIEtaIEta_2 < %f", cut_phoSigmaIEtaIEta, cut_phoSigmaIEtaIEta);
 

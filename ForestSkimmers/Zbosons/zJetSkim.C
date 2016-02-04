@@ -1,8 +1,6 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TChain.h>
-#include <TH1.h>
-#include <TH1D.h>
 #include <TRandom3.h>
 
 #include <vector>
@@ -424,13 +422,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TTree *outputTreeHiEvt = treeHiEvt->CloneTree(0);
        outputTreeHiEvt->SetName("HiEvt");
        outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
-       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
        TTree *outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
 
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
+       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
        outputTreeJet->SetMaxTreeSize(MAXTREESIZE);
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
 
