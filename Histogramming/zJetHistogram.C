@@ -17,20 +17,6 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
-const std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "diEleM", "diElePt"};
-const std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", "diEleM[zIdx]", "diElePt[zIdx]"};
-const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", "M^{ee} (GeV/c^{2})", "p^{Z}_{T}"};
-const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
-                                                                      "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{d#Delta#phi}",
-                                                                      "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
-                                                                      "Entries / (2 GeV/c^{2})",
-                                                                      "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{dp^{Z}_{T}}"};
-const std::vector<int>         nBinsx{40, 20,          100, 30, 100};
-const std::vector<double>      xlow  {0,  0,           0,   60, 0};
-const std::vector<double>      xup   {5,  TMath::Pi(), 300, 120, 300};
-const std::vector<double>      xlow_final{0,  0,           0,   60, 0};
-const std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120, 150};
-
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "zJetHistogram.root");
 
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile)
@@ -63,10 +49,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
     // Z Boson cuts
+    int doDiElectron;
+    int doDiMuon;
     float massMin;
     float massMax;
     // electron cuts
-    std::string str_trigger;
+    std::string triggerEle;
     float elePt;
     float eleSigmaIEtaIEta_2012_EB;
     float eledEtaAtVtx_abs_EB;
@@ -84,6 +72,16 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     float eleD0_abs_EE;
     float eleDz_abs_EE;
     int   eleMissHits_EE;
+    // muon cuts
+    std::string triggerMu;
+    float muPt;
+    float muChi2NDF;
+    float muInnerD0;
+    float muInnerDz;
+    int muMuonHits;
+    int muStations;
+    int muTrkLayers;
+    int muPixelHits;
 
     // jet cuts
     float cut_jetpt;
@@ -105,10 +103,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+        doDiElectron = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron];
+        doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
         massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
         massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
 
-        str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str();
+        triggerEle = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str();
         elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
 
         // Barrel
@@ -131,6 +131,17 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         eleDz_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleDz_abs_EE];
         eleMissHits_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EE];
 
+        triggerMu = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].s[CUTS::MUO::k_trigger].c_str();
+        muPt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muPt];
+
+        muChi2NDF = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muChi2NDF];
+        muInnerD0 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerD0];
+        muInnerDz = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerDz];
+        muMuonHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muMuonHits];
+        muStations = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muStations];
+        muTrkLayers = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muTrkLayers];
+        muPixelHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muPixelHits];
+
         cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
         cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
@@ -149,10 +160,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         bins_hiBin[1].push_back(200);
         bins_hiBin[1].push_back(60);
 
+        doDiElectron = 1;
+        doDiMuon = 0;
         massMin = 60;
         massMax = 120;
 
-        str_trigger = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
+        triggerEle = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
         elePt = 10;
 
         // Barrel
@@ -174,6 +187,16 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         eleD0_abs_EE = 0.279;
         eleDz_abs_EE = 0.947;
         eleMissHits_EE = 3;
+
+        muPt = 0;
+        muChi2NDF = 10;
+        muInnerD0 = 0.2;
+        muInnerDz = 0.5;
+
+        muMuonHits = 0;
+        muStations = 1;
+        muTrkLayers = 5;
+        muPixelHits = 0;
 
         cut_jetpt = 40;
         cut_jeteta = 1.6;
@@ -204,28 +227,53 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout<<"massMin = "<<massMin<<std::endl;
     std::cout<<"massMax = "<<massMax<<std::endl;
 
-    std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
-    std::cout<<"elePt      = "<<elePt<<std::endl;
+    std::cout<<"trigger    = "<<triggerEle.c_str()<<std::endl;
 
-    std::cout<<"Barrel :"<<std::endl;
-    std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
-    std::cout<<"eledEtaAtVtx_abs_EB      = "<<eledEtaAtVtx_abs_EB<<std::endl;
-    std::cout<<"eledPhiAtVtx_abs_EB      = "<<eledPhiAtVtx_abs_EB<<std::endl;
-    std::cout<<"eleHoverE_EB             = "<<eleHoverE_EB<<std::endl;
-    std::cout<<"eleEoverPInv_EB          = "<<eleEoverPInv_EB<<std::endl;
-    std::cout<<"eleD0_abs_EB             = "<<eleD0_abs_EB<<std::endl;
-    std::cout<<"eleDz_abs_EB             = "<<eleDz_abs_EB<<std::endl;
-    std::cout<<"eleMissHits_EB           = "<<eleMissHits_EB<<std::endl;
+    std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
+    if (doDiElectron > 0) {
+        std::cout<<"triggerEle = "<<triggerEle.c_str()<<std::endl;
+        std::cout<<"elePt      = "<<elePt<<std::endl;
 
-    std::cout<<"Endcap :"<<std::endl;
-    std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
-    std::cout<<"eledEtaAtVtx_abs_EE      = "<<eledEtaAtVtx_abs_EE<<std::endl;
-    std::cout<<"eledPhiAtVtx_abs_EE      = "<<eledPhiAtVtx_abs_EE<<std::endl;
-    std::cout<<"eleHoverE_EE             = "<<eleHoverE_EE<<std::endl;
-    std::cout<<"eleEoverPInv_EE          = "<<eleEoverPInv_EE<<std::endl;
-    std::cout<<"eleD0_abs_EE             = "<<eleD0_abs_EE<<std::endl;
-    std::cout<<"eleDz_abs_EE             = "<<eleDz_abs_EE<<std::endl;
-    std::cout<<"eleMissHits_EE           = "<<eleMissHits_EE<<std::endl;
+        std::cout<<"Barrel :"<<std::endl;
+        std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
+        std::cout<<"eledEtaAtVtx_abs_EB      = "<<eledEtaAtVtx_abs_EB<<std::endl;
+        std::cout<<"eledPhiAtVtx_abs_EB      = "<<eledPhiAtVtx_abs_EB<<std::endl;
+        std::cout<<"eleHoverE_EB             = "<<eleHoverE_EB<<std::endl;
+        std::cout<<"eleEoverPInv_EB          = "<<eleEoverPInv_EB<<std::endl;
+        std::cout<<"eleD0_abs_EB             = "<<eleD0_abs_EB<<std::endl;
+        std::cout<<"eleDz_abs_EB             = "<<eleDz_abs_EB<<std::endl;
+        std::cout<<"eleMissHits_EB           = "<<eleMissHits_EB<<std::endl;
+
+        std::cout<<"Endcap :"<<std::endl;
+        std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
+        std::cout<<"eledEtaAtVtx_abs_EE      = "<<eledEtaAtVtx_abs_EE<<std::endl;
+        std::cout<<"eledPhiAtVtx_abs_EE      = "<<eledPhiAtVtx_abs_EE<<std::endl;
+        std::cout<<"eleHoverE_EE             = "<<eleHoverE_EE<<std::endl;
+        std::cout<<"eleEoverPInv_EE          = "<<eleEoverPInv_EE<<std::endl;
+        std::cout<<"eleD0_abs_EE             = "<<eleD0_abs_EE<<std::endl;
+        std::cout<<"eleDz_abs_EE             = "<<eleDz_abs_EE<<std::endl;
+        std::cout<<"eleMissHits_EE           = "<<eleMissHits_EE<<std::endl;
+    }
+
+    std::cout<<"doDiMuon = "<<doDiMuon<<std::endl;
+    if (doDiMuon > 0) {
+        std::cout<<"triggerMu = "<<triggerMu.c_str()<<std::endl;
+        std::cout<<"muPt      = "<<muPt<<std::endl;
+        std::cout<<"muChi2NDF = "<<muChi2NDF<<std::endl;
+        std::cout<<"muInnerD0 = "<<muInnerD0<<std::endl;
+        std::cout<<"muInnerDz = "<<muInnerDz<<std::endl;
+        std::cout<<"muMuonHits = "<<muMuonHits<<std::endl;
+        std::cout<<"muStations = "<<muStations<<std::endl;
+        std::cout<<"muTrkLayers = "<<muTrkLayers<<std::endl;
+        std::cout<<"muPixelHits = "<<muPixelHits<<std::endl;
+    }
+
+    if (doDiElectron > 0 && doDiMuon > 0) {
+         std::cout<<"WARNING : Both of doDiElectron and doDiMuon options are set."<<std::endl;
+         std::cout<<"switch to default option : doDiElectron = 1, doDiMuon = 0"<<std::endl;
+         doDiElectron = 1;
+         doDiMuon = 0;
+     }
 
     std::cout<<"cut_jetpt                 = "<< cut_jetpt <<std::endl;
     std::cout<<"cut_jeteta                = "<< cut_jeteta <<std::endl;
@@ -241,9 +289,50 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     cut_awayRange = cut_awayRange * TMath::Pi();
     cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
+    std::string trigger = "";
+    std::string leptonTag = "";         // acronym used for the lepton in the tree branches
+    std::string diLeptonM = "";         // name of the branch containing diLepton mass
+    std::string diLeptonPt = "";
+    std::string diLeptonTreePath = "";
+    std::string leptonSymbol = "";
+    if (doDiElectron > 0) {
+        trigger = triggerEle.c_str();
+        leptonTag = "Ele";
+        diLeptonM = "diEleM";
+        diLeptonPt = "diElePt";
+        diLeptonTreePath = "dielectron";
+        leptonSymbol = "e";
+    }
+    else if (doDiMuon > 0) {
+        trigger = triggerMu.c_str();
+        leptonTag = "Mu";
+        diLeptonM = "diMuM";
+        diLeptonPt = "diMuPt";
+        diLeptonTreePath = "dimuon";
+        leptonSymbol = "#mu";
+    }
+
+    std::string dileptonMFormula = Form("%s[zIdx]", diLeptonM.c_str());
+    std::string dileptonPtFormula = Form("%s[zIdx]", diLeptonPt.c_str());
+    std::string dileptonMtitleX = Form("M^{%s%s} (GeV/c^{2})", leptonSymbol.c_str(), leptonSymbol.c_str());
+
+    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", diLeptonM.c_str(), diLeptonPt.c_str()};
+    std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", dileptonMFormula.c_str(), dileptonPtFormula.c_str()};
+    std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", dileptonMtitleX.c_str(), "p^{Z}_{T}"};
+    std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
+                                                                          "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{d#Delta#phi}",
+                                                                          "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
+                                                                          "Entries / (2 GeV/c^{2})",
+                                                                          "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{dp^{Z}_{T}}"};
+    std::vector<int>         nBinsx{40, 20,          100, 30, 100};
+    std::vector<double>      xlow  {0,  0,           0,   60, 0};
+    std::vector<double>      xup   {5,  TMath::Pi(), 300, 120, 300};
+    std::vector<double>      xlow_final{0,  0,           0,   60, 0};
+    std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120, 150};
+
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
-    TTree *tdiEle = (TTree*)input->Get("dielectron");
+    TTree *tdiLepton = (TTree*)input->Get(diLeptonTreePath.c_str());
     TTree *tJet = (TTree*)input->Get("jets");
     TTree *tzj  = (TTree*)input->Get("zJet");
     TTree *tJetMB;
@@ -282,7 +371,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << "Events will be weighted, during drawing step selections will be multiplied with the weight" <<std::endl;
 
     tzj->AddFriend(tHlt, "Hlt");
-    tzj->AddFriend(tdiEle, "diEle");
+    tzj->AddFriend(tdiLepton, "diLepton");
     tzj->AddFriend(tJet, "Jet");
     if (hasHiEvt) {
         tzj->AddFriend(tHiEvt, "HiEvt");
@@ -291,7 +380,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // relation of trees from MB mixing block
     if (hasJetsMB && hasZJetMB) {
         tzjMB->AddFriend(tHlt, "Hlt");
-        tzjMB->AddFriend(tdiEle, "diEle");
+        tzjMB->AddFriend(tdiLepton, "diLepton");
         tzjMB->AddFriend(tJetMB, "Jet");
         if (hasHiEvt) {
             tzjMB->AddFriend(tHiEvt, "HiEvt");
@@ -402,20 +491,39 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         selection_ele_EE[iEle] = selection_ele_EE[iEle] && selection_EE_eta;
         selection_ele[iEle] = selection_ele_EB[iEle] || selection_ele_EE[iEle];
     }
-
     selectionDiele = selectionDiele && selection_ele[0] && selection_ele[1];
 
-    if (isMC) {
-        selectionDiele = selectionDiele && "1 == 1";    // gen particle specific selection
+    // selections for dimuon
+    TCut selectionDimu =  "";
+    selectionDimu = selectionDimu && Form("muPt_1[zIdx] > %f && muPt_2[zIdx] > %f", muPt, muPt);
+    TCut selection_mu[2];
+    for (int iMu=0; iMu<2; ++iMu) {
+        selection_mu[iMu] = "";
+
+        selection_mu[iMu] = selection_mu[iMu] && Form("muChi2NDF_%d[zIdx] < %f", iMu+1, muChi2NDF);
+        selection_mu[iMu] = selection_mu[iMu] && Form("abs(muInnerD0_%d[zIdx]) < %f", iMu+1, muInnerD0);
+        selection_mu[iMu] = selection_mu[iMu] && Form("abs(muInnerDz_%d[zIdx]) < %f", iMu+1, muInnerDz);
+        selection_mu[iMu] = selection_mu[iMu] && Form("muMuonHits_%d[zIdx] > %d", iMu+1, muMuonHits);
+        selection_mu[iMu] = selection_mu[iMu] && Form("muStations_%d[zIdx] > %d", iMu+1, muStations);
+        selection_mu[iMu] = selection_mu[iMu] && Form("muTrkLayers_%d[zIdx] > %d", iMu+1, muTrkLayers);
+        selection_mu[iMu] = selection_mu[iMu] && Form("muPixelHits_%d[zIdx] > %d", iMu+1, muPixelHits);
+
+        TCut selection_mu_eta = Form("abs(muEta_%d[zIdx]) < %f", iMu+1 ,2.4);
+        selection_mu[iMu] = selection_mu[iMu] && selection_mu_eta;
     }
+    selectionDimu = selectionDimu && selection_mu[0] && selection_mu[1];
+
+    TCut selectionLepton = "";
+    if (doDiElectron > 0) selectionLepton = selectionDiele;
+    else if (doDiMuon > 0) selectionLepton = selectionDimu;
 
     // selection for jet regions
     // jet from bkg region are already separated from raw region.
     // no additional selection for jets. just use different trees.
     std::cout<<"####################"<<std::endl;
     std::cout<<"tzj->GetEntries() = "<<tzj->GetEntries()<<std::endl;
-    if (str_trigger.compare("") != 0 && !isMC) {
-        std::cout<<"tzj->GetEntries(trigger==1) = "<<tzj->GetEntries(Form("%s == 1",str_trigger.c_str()))<<std::endl;
+    if (trigger.compare("") != 0 && !isMC) {
+        std::cout<<"tzj->GetEntries(trigger==1) = "<<tzj->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
     }
     else {
         std::cout<<"tzj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC."<<std::endl;
@@ -456,7 +564,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             if(j>0 && !isHI && !hasHiEvt) continue;
 
             // event selection
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection_event = Form("%s == 1", trigger.c_str());
             if (isMC) selection_event = "1==1";
             if (isHI) {
                 selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
@@ -465,10 +573,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // Z cuts were applied in the analysis code
             // Z selection
             TCut selectionZ;
-            if (bins_pt[1].at(i) >= 0)  selectionZ = Form("diElePt[zIdx] >= %f && diElePt[zIdx] < %f", bins_pt[0].at(i), bins_pt[1].at(i));
-            else                        selectionZ = Form("diElePt[zIdx] >= %f", bins_pt[0].at(i));
-            selectionZ = selectionZ && Form("diEleM[zIdx] >= %f && diEleM[zIdx] <= %f", massMin, massMax);
-            selectionZ = selectionZ && selectionDiele;
+            if (bins_pt[1].at(i) >= 0)  selectionZ = Form("%s[zIdx] >= %f && %s[zIdx] < %f", diLeptonPt.c_str(), bins_pt[0].at(i),
+                                                                                             diLeptonPt.c_str(), bins_pt[1].at(i));
+            else                        selectionZ = Form("%s[zIdx] >= %f", diLeptonPt.c_str(), bins_pt[0].at(i));
+            selectionZ = selectionZ && Form("%s[zIdx] >= %f && %s[zIdx] <= %f", diLeptonM.c_str(), massMin,
+                                                                                diLeptonM.c_str(), massMax);
+            selectionZ = selectionZ && selectionLepton;
 
             // jet selection
             TCut selectionJet = "";
@@ -483,10 +593,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
             selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
             // special selection
-            if (correlationHistNames.at(iHist).compare("diEleM") == 0) {  // select zJet events only, do not select inclusive jets
+            if (correlationHistNames.at(iHist).compare(diLeptonM.c_str()) == 0) {  // select zJet events only, do not select inclusive jets
                 selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
             }
-            if (correlationHistNames.at(iHist).compare("diElePt") == 0) {  // select zJet events only, do not select inclusive jets
+            if (correlationHistNames.at(iHist).compare(diLeptonPt.c_str()) == 0) {  // select zJet events only, do not select inclusive jets
                 selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
             }
 
@@ -528,7 +638,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             tzj->SetEventList(eventlist);      // restore the original event list
 
             std::cout<< "nEntries[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] <<std::endl;
-            std::cout<< "nEntriesPho[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] <<std::endl;
+            std::cout<< "nEntriesZ[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] <<std::endl;
 
             std::string histoTitle;
             if (isHI) {
