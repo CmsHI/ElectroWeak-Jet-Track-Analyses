@@ -21,8 +21,8 @@ const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
 const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
-                                                                    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
-                                                                    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
+                                                                      "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
+                                                                      "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
 const std::vector<int>         nBinsx{40, 20,          300};
 const std::vector<double>      xlow  {0,  0,           0};
 const std::vector<double>      xup   {5,  TMath::Pi(), 300};
@@ -60,8 +60,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+    // event cuts/weights
+    int doEventWeight;
+    std::string eventWeight;    // weight to be used for histogram entries
+                                // current purpose of this variable is for weighting events from MC samples.
     // photon cuts
-    std::string str_trigger;
+    std::string trigger;
     float cut_phoHoverE;
     float cut_pho_ecalClusterIsoR4;
     float cut_pho_hcalRechitIsoR4;
@@ -107,7 +111,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
-        str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
+        doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+        eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
+
+        trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
 
         cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
         cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
@@ -153,7 +160,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         bins_hiBin[1].push_back(200);
         bins_hiBin[1].push_back(60);
 
-        str_trigger = "HLT_HISinglePhoton20_Eta1p5_v1";
+        trigger = "HLT_HISinglePhoton20_Eta1p5_v1";
 
         cut_phoHoverE = 0.1;
         cut_pho_ecalClusterIsoR4 = 4.2;
@@ -191,6 +198,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         nEventsToMix = 1;
     }
     // default values
+    if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
 
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -206,7 +214,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
 
-    std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
+    std::cout<<"doEventWeight = "<<doEventWeight<<std::endl;
+    if (doEventWeight > 0) {
+        std::cout<<"eventWeight = "<<eventWeight.c_str()<<std::endl;
+    }
+
+    std::cout<<"trigger    = "<<trigger.c_str()<<std::endl;
 
     if (isHI) {
         std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
@@ -248,7 +261,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
-    // set the actual awayRange cut
+    //set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
     cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
@@ -257,9 +270,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *tPho = (TTree*)input->Get("EventTree");    // photons
     TTree *tJet = (TTree*)input->Get("jets");
     TTree *tgj  = (TTree*)input->Get("gammaJet");
+    TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TTree *tJetMB;
     TTree *tgjMB;
-    TTree *tHiEvt;
 
     // check the existence of HI specific trees in "gammaJetSkim.root" file
     bool hasJetsMB = false;
@@ -275,38 +288,18 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tJetMB = 0;
         tgjMB  = 0;
     }
-    bool hasHiEvt = false;
-    if (isHI || isMC) {
-        input->GetObject("HiEvt",tHiEvt);
-
-        if (tHiEvt) hasHiEvt = true;
-    }
-    else {
-        tHiEvt = 0;
-    }
-    bool hasEventWeight = false;
-    if (hasHiEvt) {
-        if (tHiEvt->GetBranch("weight") && tHiEvt->GetBranch("pthat"))    hasEventWeight = true;
-    }
-    std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
-    if (hasEventWeight)
-        std::cout << "Events will be weighted, during drawing step selections will be multiplied with the weight" <<std::endl;
 
     tgj->AddFriend(tHlt, "Hlt");
     tgj->AddFriend(tPho, "Pho");
     tgj->AddFriend(tJet, "Jet");
-    if (hasHiEvt) {
-        tgj->AddFriend(tHiEvt, "HiEvt");
-    }
+    tgj->AddFriend(tHiEvt, "HiEvt");
 
     // relation of trees from MB mixing block
     if (hasJetsMB && hasGammaJetMB) {
         tgjMB->AddFriend(tHlt, "Hlt");
         tgjMB->AddFriend(tPho, "Pho");
         tgjMB->AddFriend(tJetMB, "Jet");
-        if (hasHiEvt) {
-            tgjMB->AddFriend(tHiEvt, "HiEvt");
-        }
+        tgjMB->AddFriend(tHiEvt, "HiEvt");
     }
 
     TFile* output = new TFile(outputFile, "UPDATE");
@@ -423,9 +416,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         TCut selection_EB_EE = selectionIso_EB || selectionIso_EE;
         selectionIso = selectionIso && selection_EB_EE;
     }
-    if (isMC) {
-        selectionIso = selectionIso && "1 == 1";    // gen particle specific isolation
-    }
+
     TCut selectionPhoCORR[CORR::kN_CORRFNC];
     selectionPhoCORR[CORR::kRAW] = "phoSigmaIEtaIEta[phoIdx] < 0.01";
     selectionPhoCORR[CORR::kBKG] = "phoSigmaIEtaIEta[phoIdx] > 0.011 && phoSigmaIEtaIEta[phoIdx] < 0.017";
@@ -434,8 +425,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // no additional selection for jets. just use different trees.
     std::cout<<"####################"<<std::endl;
     std::cout<<"tgj->GetEntries() = "<<tgj->GetEntries()<<std::endl;
-    if (str_trigger.compare("") != 0 && !isMC) {
-        std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj->GetEntries(Form("%s == 1",str_trigger.c_str()))<<std::endl;
+    if (trigger.compare("") != 0 && !isMC) {
+        std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
     }
     else {
         std::cout<<"tgj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC."<<std::endl;
@@ -473,10 +464,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             std::cout<<"##########"<<std::endl;
             std::cout<<Form("histogramming : ptBin%d HiBin%d", i, j)<<std::endl;
 
-            if(j>0 && !isHI && !hasHiEvt) continue;
+            if(j>0 && !isHI) continue;
 
             // event selection
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection_event = Form("%s == 1", trigger.c_str());
             if (isMC) selection_event = "1==1";
             if (isHI) {
                 selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
@@ -602,7 +593,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     // histogram name excluding the "h1D" prefix
                     std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                     TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
-                    if (hasEventWeight)  selectionDraw = Form("(HiEvt.weight*HiEvt.pthat)*(%s)", selectionDraw.GetTitle());
+                    if (doEventWeight > 0)  selectionDraw = Form("(%s)*(%s)", eventWeight.c_str(), selectionDraw.GetTitle());
 
                     std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                     std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();

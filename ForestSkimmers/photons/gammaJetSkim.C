@@ -227,37 +227,51 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
        // specify explicitly which branches to store, do not use wildcard
        treeSkim->SetBranchStatus("*",0);
-       if (isHI)
-       treeSkim->SetBranchStatus("pcollisionEventSelection",1);
-       treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
-       treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
 
-       Int_t pcollisionEventSelection;
-       if (treeSkim->GetBranch("pcollisionEventSelection")) {
-           treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+       Int_t pcollisionEventSelection;  // this filter is used for HI.
+       if (isHI) {
+           treeSkim->SetBranchStatus("pcollisionEventSelection",1);
+           if (treeSkim->GetBranch("pcollisionEventSelection")) {
+               treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+           }
+           else {   // overwrite to default
+               pcollisionEventSelection = 1;
+               std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
+               std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
+           }
        }
-       else {   // overwrite to default
-           pcollisionEventSelection = 1;
-           std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
-           std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
+       else {
+           pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
        }
-       Int_t pPAprimaryVertexFilter;
-       if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
-           treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
+       Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+       if (!isHI) {
+           treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
+           if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
+               treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
+           }
+           else {   // overwrite to default
+               pPAprimaryVertexFilter = 1;
+               std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
+               std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
+           }
        }
-       else {   // overwrite to default
-           pPAprimaryVertexFilter = 1;
-           std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
-           std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
+       else {
+           pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
        }
-       Int_t pBeamScrapingFilter;
-       if (treeSkim->GetBranch("pBeamScrapingFilter")) {
-           treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
+       Int_t pBeamScrapingFilter;   // this filter is used for PP.
+       if (!isHI) {
+           treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
+           if (treeSkim->GetBranch("pBeamScrapingFilter")) {
+               treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
+           }
+           else {   // overwrite to default
+               pBeamScrapingFilter = 1;
+               std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
+               std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
+           }
        }
-       else {   // overwrite to default
-           pBeamScrapingFilter = 1;
-           std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
-           std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
+       else {
+           pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
        }
 
        // event information

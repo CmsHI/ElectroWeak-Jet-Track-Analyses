@@ -252,6 +252,7 @@ namespace INPUT_DEFAULT {
     const float yMin = 0.001;   // for logScale histograms
     const float windowHeightFraction = 0.25;
 
+    const std::string TH1_weight = "1";
     const std::string fitOption = "R L M";
 };
 

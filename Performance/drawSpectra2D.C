@@ -188,7 +188,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     }
     // set default values
     if (selections.size() == 0) selections.push_back("1");
-    if (weights.size() == 0)    weights.push_back("1");   // default weight = 1.
+    if (weights.size() == 0)    weights.push_back(INPUT_DEFAULT::TH1_weight.c_str());   // default weight = 1.
     if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
     if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
     if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;

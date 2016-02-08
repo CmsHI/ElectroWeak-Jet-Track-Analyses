@@ -48,6 +48,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+    // event cuts/weights
+    int doEventWeight;
+    std::string eventWeight;    // weight to be used for histogram entries
+                                // current purpose of this variable is for weighting events from MC samples.
     // Z Boson cuts
     int doDiElectron;
     int doDiMuon;
@@ -102,6 +106,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
         bins_hiBin[1] = ConfigurationParser::ParseListInteger(
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
+        doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+        eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
 
         doDiElectron = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron];
         doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
@@ -209,6 +216,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         nEventsToMix = 1;
     }
     // default values
+    if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
 
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -224,10 +232,13 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
 
+    std::cout<<"doEventWeight = "<<doEventWeight<<std::endl;
+    if (doEventWeight > 0) {
+        std::cout<<"eventWeight = "<<eventWeight.c_str()<<std::endl;
+    }
+
     std::cout<<"massMin = "<<massMin<<std::endl;
     std::cout<<"massMax = "<<massMax<<std::endl;
-
-    std::cout<<"trigger    = "<<triggerEle.c_str()<<std::endl;
 
     std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
     if (doDiElectron > 0) {
@@ -285,7 +296,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
-    //set real awayRange cut
+    //set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
     cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
@@ -335,9 +346,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     TTree *tdiLepton = (TTree*)input->Get(diLeptonTreePath.c_str());
     TTree *tJet = (TTree*)input->Get("jets");
     TTree *tzj  = (TTree*)input->Get("zJet");
+    TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TTree *tJetMB;
     TTree *tzjMB;
-    TTree *tHiEvt;
 
     // check the existence of HI specific trees in "zJetSkim.root" file
     bool hasJetsMB = false;
@@ -353,38 +364,18 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         tJetMB = 0;
         tzjMB  = 0;
     }
-    bool hasHiEvt = false;
-    if (isHI || isMC) {
-        input->GetObject("HiEvt",tHiEvt);
-
-        if (tHiEvt) hasHiEvt = true;
-    }
-    else {
-        tHiEvt = 0;
-    }
-    bool hasEventWeight = false;
-    if (hasHiEvt) {
-        if (tHiEvt->GetBranch("weight") && tHiEvt->GetBranch("pthat"))    hasEventWeight = true;
-    }
-    std::cout << "hasEventWeight = " << hasEventWeight <<std::endl;
-    if (hasEventWeight)
-        std::cout << "Events will be weighted, during drawing step selections will be multiplied with the weight" <<std::endl;
 
     tzj->AddFriend(tHlt, "Hlt");
     tzj->AddFriend(tdiLepton, "diLepton");
     tzj->AddFriend(tJet, "Jet");
-    if (hasHiEvt) {
-        tzj->AddFriend(tHiEvt, "HiEvt");
-    }
+    tzj->AddFriend(tHiEvt, "HiEvt");
 
     // relation of trees from MB mixing block
     if (hasJetsMB && hasZJetMB) {
         tzjMB->AddFriend(tHlt, "Hlt");
         tzjMB->AddFriend(tdiLepton, "diLepton");
         tzjMB->AddFriend(tJetMB, "Jet");
-        if (hasHiEvt) {
-            tzjMB->AddFriend(tHiEvt, "HiEvt");
-        }
+        tzjMB->AddFriend(tHiEvt, "HiEvt");
     }
 
     TFile* output = new TFile(outputFile, "UPDATE");
@@ -561,7 +552,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             std::cout<<"##########"<<std::endl;
             std::cout<<Form("histogramming : ptBin%d HiBin%d", i, j)<<std::endl;
 
-            if(j>0 && !isHI && !hasHiEvt) continue;
+            if(j>0 && !isHI) continue;
 
             // event selection
             TCut selection_event = Form("%s == 1", trigger.c_str());
@@ -687,7 +678,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 // histogram name excluding the "h1D" prefix
                 std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                 TCut selectionDraw = corrHists[iHist][i][j].selections[iCorr][jCorr].GetTitle();
-                if (hasEventWeight)  selectionDraw = Form("(1.3649*exp(-0.5*(((HiEvt.vz-0.62814)/7.7109)^2)))*HiEvt.weight)*(%s)", selectionDraw.GetTitle());
+                if (doEventWeight > 0)  selectionDraw = Form("(%s)*(%s)", eventWeight.c_str(), selectionDraw.GetTitle());
 
                 std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
                 std::string tmpFormula = correlationHistFormulas.at(iHist).c_str();
