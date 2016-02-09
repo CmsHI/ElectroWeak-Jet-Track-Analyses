@@ -170,6 +170,7 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
 
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
+           outputTreeHiEvt->Fill();
            diPhotonTree->Fill();
        }
        std::cout<< "Loop ENDED : " << treePath.c_str() <<std::endl;
@@ -184,6 +185,7 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
        // overwrite existing trees
        outputTreeHLT->Write("", TObject::kOverwrite);
        outputTreeggHiNtuplizer->Write("", TObject::kOverwrite);
+       outputTreeHiEvt->Write("", TObject::kOverwrite);
        diPhotonTree->Write("", TObject::kOverwrite);
 
        configTree->Write("", TObject::kOverwrite);

@@ -150,6 +150,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
 
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
+           outputTreeHiEvt->Fill();
            diElectronTree->Fill();
        }
        std::cout<< "Loop ENDED : " << treePath.c_str() <<std::endl;
@@ -164,6 +165,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        // overwrite existing trees
        outputTreeHLT->Write("", TObject::kOverwrite);
        outputTreeggHiNtuplizer->Write("", TObject::kOverwrite);
+       outputTreeHiEvt->Write("", TObject::kOverwrite);
        diElectronTree->Write("", TObject::kOverwrite);
 
        configTree->Write("", TObject::kOverwrite);
