@@ -158,7 +158,10 @@ public :
     ~diphoton(){};
     void setupDiPhotonTree(TTree *t);
     void branchDiPhotonTree(TTree *t);
+    void clearDiPhotonPairs();
+    void pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j, bool doSizeCheck = true);
     void makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch = true, bool skipIfNoMatch = false, bool doSizeCheck = true);
+    void makeDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i1, int i2, int matched_Index_1 = -1, int matched_Index_2 = -1, bool doSizeCheck = true);
 
     float cutDeltaR;
     // Declaration of leaf types
@@ -837,9 +840,8 @@ void diphoton::branchDiPhotonTree(TTree *t)
     t->Branch("diPhoPhi", &diPhoPhi_out);
 }
 
-void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch, bool skipIfNoMatch, bool doSizeCheck)
+void diphoton::clearDiPhotonPairs()
 {
-
     phoE_1_out.clear();
     phoEt_1_out.clear();
     phoEta_1_out.clear();
@@ -971,6 +973,280 @@ void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch,
     diPhoPt_out.clear();
     diPhoEta_out.clear();
     diPhoPhi_out.clear();
+}
+
+void diphoton::pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j, bool doSizeCheck)
+{
+    if (doSizeCheck) {
+
+        if(tggHiNtuplizer.phoE->size() == (unsigned)nPho_out)  phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
+        if(tggHiNtuplizer.phoEt->size() == (unsigned)nPho_out)  phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
+        if(tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out)  phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));
+        if(tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)  phoPhi_1_out.push_back(tggHiNtuplizer.phoPhi->at(i));
+        if(tggHiNtuplizer.phoSCE->size() == (unsigned)nPho_out)  phoSCE_1_out.push_back(tggHiNtuplizer.phoSCE->at(i));
+        if(tggHiNtuplizer.phoSCRawE->size() == (unsigned)nPho_out)  phoSCRawE_1_out.push_back(tggHiNtuplizer.phoSCRawE->at(i));
+        if(tggHiNtuplizer.phoESEn->size() == (unsigned)nPho_out)  phoESEn_1_out.push_back(tggHiNtuplizer.phoESEn->at(i));
+        if(tggHiNtuplizer.phoSCEta->size() == (unsigned)nPho_out)  phoSCEta_1_out.push_back(tggHiNtuplizer.phoSCEta->at(i));
+        if(tggHiNtuplizer.phoSCPhi->size() == (unsigned)nPho_out)  phoSCPhi_1_out.push_back(tggHiNtuplizer.phoSCPhi->at(i));
+        if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
+        if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
+        if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
+        if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
+        if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
+        if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
+        if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
+        if(tggHiNtuplizer.phoE1x3->size() == (unsigned)nPho_out)  phoE1x3_1_out.push_back(tggHiNtuplizer.phoE1x3->at(i));
+        if(tggHiNtuplizer.phoE2x2->size() == (unsigned)nPho_out)  phoE2x2_1_out.push_back(tggHiNtuplizer.phoE2x2->at(i));
+//                if(tggHiNtuplizer.phoE3x3->size() == (unsigned)nPho_out)  phoE3x3_1_out.push_back(tggHiNtuplizer.phoE3x3->at(i));
+        if(tggHiNtuplizer.phoE2x5Max->size() == (unsigned)nPho_out)  phoE2x5Max_1_out.push_back(tggHiNtuplizer.phoE2x5Max->at(i));
+//                if(tggHiNtuplizer.phoE1x5->size() == (unsigned)nPho_out)  phoE1x5_1_out.push_back(tggHiNtuplizer.phoE1x5->at(i));
+//                if(tggHiNtuplizer.phoE2x5->size() == (unsigned)nPho_out)  phoE2x5_1_out.push_back(tggHiNtuplizer.phoE2x5->at(i));
+        if(tggHiNtuplizer.phoE5x5->size() == (unsigned)nPho_out)  phoE5x5_1_out.push_back(tggHiNtuplizer.phoE5x5->at(i));
+//                if(tggHiNtuplizer.phoMaxEnergyXtal->size() == (unsigned)nPho_out)  phoMaxEnergyXtal_1_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(i));
+//                if(tggHiNtuplizer.phoSigmaEtaEta->size() == (unsigned)nPho_out)  phoSigmaEtaEta_1_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(i));
+//                if(tggHiNtuplizer.phoR1x5->size() == (unsigned)nPho_out)  phoR1x5_1_out.push_back(tggHiNtuplizer.phoR1x5->at(i));
+//                if(tggHiNtuplizer.phoR2x5->size() == (unsigned)nPho_out)  phoR2x5_1_out.push_back(tggHiNtuplizer.phoR2x5->at(i));
+        if(tggHiNtuplizer.phoESEffSigmaRR->size() == (unsigned)nPho_out)  phoESEffSigmaRR_1_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(i));
+        if(tggHiNtuplizer.phoSigmaIEtaIEta_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(i));
+        if(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(i));
+        if(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIPhiIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(i));
+        if(tggHiNtuplizer.phoE1x3_2012->size() == (unsigned)nPho_out)  phoE1x3_2012_1_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(i));
+        if(tggHiNtuplizer.phoE2x2_2012->size() == (unsigned)nPho_out)  phoE2x2_2012_1_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(i));
+//                if(tggHiNtuplizer.phoE3x3_2012->size() == (unsigned)nPho_out)  phoE3x3_2012_1_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(i));
+        if(tggHiNtuplizer.phoE2x5Max_2012->size() == (unsigned)nPho_out)  phoE2x5Max_2012_1_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(i));
+        if(tggHiNtuplizer.phoE5x5_2012->size() == (unsigned)nPho_out)  phoE5x5_2012_1_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(i));
+        if(tggHiNtuplizer.phoBC1E->size() == (unsigned)nPho_out)  phoBC1E_1_out.push_back(tggHiNtuplizer.phoBC1E->at(i));
+        if(tggHiNtuplizer.phoBC1Eta->size() == (unsigned)nPho_out)  phoBC1Eta_1_out.push_back(tggHiNtuplizer.phoBC1Eta->at(i));
+        if(tggHiNtuplizer.phoBC2E->size() == (unsigned)nPho_out)  phoBC2E_1_out.push_back(tggHiNtuplizer.phoBC2E->at(i));
+        if(tggHiNtuplizer.phoBC2Eta->size() == (unsigned)nPho_out)  phoBC2Eta_1_out.push_back(tggHiNtuplizer.phoBC2Eta->at(i));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR2->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR2_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(i));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR3->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR3_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(i));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR4->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR4_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(i));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR5->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR5_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(i));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR1->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR1_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(i));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR2->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR2_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(i));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR3->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR3_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(i));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR4->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR4_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(i));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR5->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR5_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(i));
+        if(tggHiNtuplizer.pho_trackIsoR1PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR1PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(i));
+        if(tggHiNtuplizer.pho_trackIsoR2PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR2PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(i));
+        if(tggHiNtuplizer.pho_trackIsoR3PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR3PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(i));
+        if(tggHiNtuplizer.pho_trackIsoR4PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR4PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(i));
+        if(tggHiNtuplizer.pho_trackIsoR5PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR5PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(i));
+        if(tggHiNtuplizer.pho_swissCrx->size() == (unsigned)nPho_out)  pho_swissCrx_1_out.push_back(tggHiNtuplizer.pho_swissCrx->at(i));
+        if(tggHiNtuplizer.pho_seedTime->size() == (unsigned)nPho_out)  pho_seedTime_1_out.push_back(tggHiNtuplizer.pho_seedTime->at(i));
+
+        if(tggHiNtuplizer.phoE->size() == (unsigned)nPho_out)  phoE_2_out.push_back(tggHiNtuplizer.phoE->at(j));
+        if(tggHiNtuplizer.phoEt->size() == (unsigned)nPho_out)  phoEt_2_out.push_back(tggHiNtuplizer.phoEt->at(j));
+        if(tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out)  phoEta_2_out.push_back(tggHiNtuplizer.phoEta->at(j));
+        if(tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)  phoPhi_2_out.push_back(tggHiNtuplizer.phoPhi->at(j));
+        if(tggHiNtuplizer.phoSCE->size() == (unsigned)nPho_out)  phoSCE_2_out.push_back(tggHiNtuplizer.phoSCE->at(j));
+        if(tggHiNtuplizer.phoSCRawE->size() == (unsigned)nPho_out)  phoSCRawE_2_out.push_back(tggHiNtuplizer.phoSCRawE->at(j));
+        if(tggHiNtuplizer.phoESEn->size() == (unsigned)nPho_out)  phoESEn_2_out.push_back(tggHiNtuplizer.phoESEn->at(j));
+        if(tggHiNtuplizer.phoSCEta->size() == (unsigned)nPho_out)  phoSCEta_2_out.push_back(tggHiNtuplizer.phoSCEta->at(j));
+        if(tggHiNtuplizer.phoSCPhi->size() == (unsigned)nPho_out)  phoSCPhi_2_out.push_back(tggHiNtuplizer.phoSCPhi->at(j));
+        if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
+        if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
+        if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
+        if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
+        if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
+        if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
+        if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
+        if(tggHiNtuplizer.phoE1x3->size() == (unsigned)nPho_out)  phoE1x3_2_out.push_back(tggHiNtuplizer.phoE1x3->at(j));
+        if(tggHiNtuplizer.phoE2x2->size() == (unsigned)nPho_out)  phoE2x2_2_out.push_back(tggHiNtuplizer.phoE2x2->at(j));
+//                if(tggHiNtuplizer.phoE3x3->size() == (unsigned)nPho_out)  phoE3x3_2_out.push_back(tggHiNtuplizer.phoE3x3->at(j));
+        if(tggHiNtuplizer.phoE2x5Max->size() == (unsigned)nPho_out)  phoE2x5Max_2_out.push_back(tggHiNtuplizer.phoE2x5Max->at(j));
+//                if(tggHiNtuplizer.phoE1x5->size() == (unsigned)nPho_out)  phoE1x5_2_out.push_back(tggHiNtuplizer.phoE1x5->at(j));
+//                if(tggHiNtuplizer.phoE2x5->size() == (unsigned)nPho_out)  phoE2x5_2_out.push_back(tggHiNtuplizer.phoE2x5->at(j));
+        if(tggHiNtuplizer.phoE5x5->size() == (unsigned)nPho_out)  phoE5x5_2_out.push_back(tggHiNtuplizer.phoE5x5->at(j));
+//                if(tggHiNtuplizer.phoMaxEnergyXtal->size() == (unsigned)nPho_out)  phoMaxEnergyXtal_2_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(j));
+//                if(tggHiNtuplizer.phoSigmaEtaEta->size() == (unsigned)nPho_out)  phoSigmaEtaEta_2_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(j));
+//                if(tggHiNtuplizer.phoR1x5->size() == (unsigned)nPho_out)  phoR1x5_2_out.push_back(tggHiNtuplizer.phoR1x5->at(j));
+//                if(tggHiNtuplizer.phoR2x5->size() == (unsigned)nPho_out)  phoR2x5_2_out.push_back(tggHiNtuplizer.phoR2x5->at(j));
+        if(tggHiNtuplizer.phoESEffSigmaRR->size() == (unsigned)nPho_out)  phoESEffSigmaRR_2_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(j));
+        if(tggHiNtuplizer.phoSigmaIEtaIEta_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(j));
+        if(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(j));
+        if(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIPhiIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(j));
+        if(tggHiNtuplizer.phoE1x3_2012->size() == (unsigned)nPho_out)  phoE1x3_2012_2_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(j));
+        if(tggHiNtuplizer.phoE2x2_2012->size() == (unsigned)nPho_out)  phoE2x2_2012_2_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(j));
+//                if(tggHiNtuplizer.phoE3x3_2012->size() == (unsigned)nPho_out)  phoE3x3_2012_2_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(j));
+        if(tggHiNtuplizer.phoE2x5Max_2012->size() == (unsigned)nPho_out)  phoE2x5Max_2012_2_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(j));
+        if(tggHiNtuplizer.phoE5x5_2012->size() == (unsigned)nPho_out)  phoE5x5_2012_2_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(j));
+        if(tggHiNtuplizer.phoBC1E->size() == (unsigned)nPho_out)  phoBC1E_2_out.push_back(tggHiNtuplizer.phoBC1E->at(j));
+        if(tggHiNtuplizer.phoBC1Eta->size() == (unsigned)nPho_out)  phoBC1Eta_2_out.push_back(tggHiNtuplizer.phoBC1Eta->at(j));
+        if(tggHiNtuplizer.phoBC2E->size() == (unsigned)nPho_out)  phoBC2E_2_out.push_back(tggHiNtuplizer.phoBC2E->at(j));
+        if(tggHiNtuplizer.phoBC2Eta->size() == (unsigned)nPho_out)  phoBC2Eta_2_out.push_back(tggHiNtuplizer.phoBC2Eta->at(j));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR2->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR2_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(j));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR3->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR3_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(j));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR4->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR4_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(j));
+        if(tggHiNtuplizer.pho_ecalClusterIsoR5->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR5_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(j));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR1->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR1_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(j));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR2->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR2_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(j));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR3->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR3_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(j));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR4->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR4_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(j));
+        if(tggHiNtuplizer.pho_hcalRechitIsoR5->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR5_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(j));
+        if(tggHiNtuplizer.pho_trackIsoR1PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR1PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(j));
+        if(tggHiNtuplizer.pho_trackIsoR2PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR2PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(j));
+        if(tggHiNtuplizer.pho_trackIsoR3PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR3PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(j));
+        if(tggHiNtuplizer.pho_trackIsoR4PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR4PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(j));
+        if(tggHiNtuplizer.pho_trackIsoR5PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR5PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(j));
+        if(tggHiNtuplizer.pho_swissCrx->size() == (unsigned)nPho_out)  pho_swissCrx_2_out.push_back(tggHiNtuplizer.pho_swissCrx->at(j));
+        if(tggHiNtuplizer.pho_seedTime->size() == (unsigned)nPho_out)  pho_seedTime_2_out.push_back(tggHiNtuplizer.pho_seedTime->at(j));
+
+        // diphoton
+        if (tggHiNtuplizer.phoEt->size()  == (unsigned)nPho_out &&
+            tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out &&
+            tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)
+        {
+            TLorentzVector v1, v2, vSum;
+            v1.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(i), tggHiNtuplizer.phoEta->at(i),
+                    tggHiNtuplizer.phoPhi->at(i), tggHiNtuplizer.phoE->at(i));
+            v2.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(j), tggHiNtuplizer.phoEta->at(j),
+                    tggHiNtuplizer.phoPhi->at(j), tggHiNtuplizer.phoE->at(j));
+            vSum = v1+v2;
+
+            diPhoM_out.push_back(vSum.M());
+            diPhoEn_out.push_back(vSum.Energy());
+            diPhoPt_out.push_back(vSum.Pt());
+            diPhoEta_out.push_back(vSum.Eta());
+            diPhoPhi_out.push_back(vSum.Phi());
+        }
+    }
+    else {
+
+        phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
+        phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
+        phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));
+        phoPhi_1_out.push_back(tggHiNtuplizer.phoPhi->at(i));
+        phoSCE_1_out.push_back(tggHiNtuplizer.phoSCE->at(i));
+        phoSCRawE_1_out.push_back(tggHiNtuplizer.phoSCRawE->at(i));
+        phoESEn_1_out.push_back(tggHiNtuplizer.phoESEn->at(i));
+        phoSCEta_1_out.push_back(tggHiNtuplizer.phoSCEta->at(i));
+        phoSCPhi_1_out.push_back(tggHiNtuplizer.phoSCPhi->at(i));
+        phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
+        phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
+        phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
+        phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
+        phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
+        phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
+        phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
+        phoE1x3_1_out.push_back(tggHiNtuplizer.phoE1x3->at(i));
+        phoE2x2_1_out.push_back(tggHiNtuplizer.phoE2x2->at(i));
+//                phoE3x3_1_out.push_back(tggHiNtuplizer.phoE3x3->at(i));
+        phoE2x5Max_1_out.push_back(tggHiNtuplizer.phoE2x5Max->at(i));
+//                phoE1x5_1_out.push_back(tggHiNtuplizer.phoE1x5->at(i));
+//                phoE2x5_1_out.push_back(tggHiNtuplizer.phoE2x5->at(i));
+        phoE5x5_1_out.push_back(tggHiNtuplizer.phoE5x5->at(i));
+//                phoMaxEnergyXtal_1_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(i));
+//                phoSigmaEtaEta_1_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(i));
+//                phoR1x5_1_out.push_back(tggHiNtuplizer.phoR1x5->at(i));
+//                phoR2x5_1_out.push_back(tggHiNtuplizer.phoR2x5->at(i));
+        phoESEffSigmaRR_1_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(i));
+        phoSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(i));
+        phoSigmaIEtaIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(i));
+        phoSigmaIPhiIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(i));
+        phoE1x3_2012_1_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(i));
+        phoE2x2_2012_1_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(i));
+//                phoE3x3_2012_1_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(i));
+        phoE2x5Max_2012_1_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(i));
+        phoE5x5_2012_1_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(i));
+        phoBC1E_1_out.push_back(tggHiNtuplizer.phoBC1E->at(i));
+        phoBC1Eta_1_out.push_back(tggHiNtuplizer.phoBC1Eta->at(i));
+        phoBC2E_1_out.push_back(tggHiNtuplizer.phoBC2E->at(i));
+        phoBC2Eta_1_out.push_back(tggHiNtuplizer.phoBC2Eta->at(i));
+        pho_ecalClusterIsoR2_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(i));
+        pho_ecalClusterIsoR3_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(i));
+        pho_ecalClusterIsoR4_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(i));
+        pho_ecalClusterIsoR5_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(i));
+        pho_hcalRechitIsoR1_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(i));
+        pho_hcalRechitIsoR2_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(i));
+        pho_hcalRechitIsoR3_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(i));
+        pho_hcalRechitIsoR4_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(i));
+        pho_hcalRechitIsoR5_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(i));
+        pho_trackIsoR1PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(i));
+        pho_trackIsoR2PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(i));
+        pho_trackIsoR3PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(i));
+        pho_trackIsoR4PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(i));
+        pho_trackIsoR5PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(i));
+        pho_swissCrx_1_out.push_back(tggHiNtuplizer.pho_swissCrx->at(i));
+        pho_seedTime_1_out.push_back(tggHiNtuplizer.pho_seedTime->at(i));
+
+        phoE_2_out.push_back(tggHiNtuplizer.phoE->at(j));
+        phoEt_2_out.push_back(tggHiNtuplizer.phoEt->at(j));
+        phoEta_2_out.push_back(tggHiNtuplizer.phoEta->at(j));
+        phoPhi_2_out.push_back(tggHiNtuplizer.phoPhi->at(j));
+        phoSCE_2_out.push_back(tggHiNtuplizer.phoSCE->at(j));
+        phoSCRawE_2_out.push_back(tggHiNtuplizer.phoSCRawE->at(j));
+        phoESEn_2_out.push_back(tggHiNtuplizer.phoESEn->at(j));
+        phoSCEta_2_out.push_back(tggHiNtuplizer.phoSCEta->at(j));
+        phoSCPhi_2_out.push_back(tggHiNtuplizer.phoSCPhi->at(j));
+        phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
+        phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
+        phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
+        phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
+        phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
+        phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
+        phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
+        phoE1x3_2_out.push_back(tggHiNtuplizer.phoE1x3->at(j));
+        phoE2x2_2_out.push_back(tggHiNtuplizer.phoE2x2->at(j));
+//                phoE3x3_2_out.push_back(tggHiNtuplizer.phoE3x3->at(j));
+        phoE2x5Max_2_out.push_back(tggHiNtuplizer.phoE2x5Max->at(j));
+//                phoE1x5_2_out.push_back(tggHiNtuplizer.phoE1x5->at(j));
+//                phoE2x5_2_out.push_back(tggHiNtuplizer.phoE2x5->at(j));
+        phoE5x5_2_out.push_back(tggHiNtuplizer.phoE5x5->at(j));
+//                phoMaxEnergyXtal_2_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(j));
+//                phoSigmaEtaEta_2_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(j));
+//                phoR1x5_2_out.push_back(tggHiNtuplizer.phoR1x5->at(j));
+//                phoR2x5_2_out.push_back(tggHiNtuplizer.phoR2x5->at(j));
+        phoESEffSigmaRR_2_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(j));
+        phoSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(j));
+        phoSigmaIEtaIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(j));
+        phoSigmaIPhiIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(j));
+        phoE1x3_2012_2_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(j));
+        phoE2x2_2012_2_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(j));
+//                phoE3x3_2012_2_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(j));
+        phoE2x5Max_2012_2_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(j));
+        phoE5x5_2012_2_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(j));
+        phoBC1E_2_out.push_back(tggHiNtuplizer.phoBC1E->at(j));
+        phoBC1Eta_2_out.push_back(tggHiNtuplizer.phoBC1Eta->at(j));
+        phoBC2E_2_out.push_back(tggHiNtuplizer.phoBC2E->at(j));
+        phoBC2Eta_2_out.push_back(tggHiNtuplizer.phoBC2Eta->at(j));
+        pho_ecalClusterIsoR2_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(j));
+        pho_ecalClusterIsoR3_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(j));
+        pho_ecalClusterIsoR4_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(j));
+        pho_ecalClusterIsoR5_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(j));
+        pho_hcalRechitIsoR1_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(j));
+        pho_hcalRechitIsoR2_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(j));
+        pho_hcalRechitIsoR3_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(j));
+        pho_hcalRechitIsoR4_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(j));
+        pho_hcalRechitIsoR5_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(j));
+        pho_trackIsoR1PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(j));
+        pho_trackIsoR2PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(j));
+        pho_trackIsoR3PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(j));
+        pho_trackIsoR4PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(j));
+        pho_trackIsoR5PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(j));
+        pho_swissCrx_2_out.push_back(tggHiNtuplizer.pho_swissCrx->at(j));
+        pho_seedTime_2_out.push_back(tggHiNtuplizer.pho_seedTime->at(j));
+
+        // diphoton
+        TLorentzVector v1, v2, vSum;
+        v1.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(i), tggHiNtuplizer.phoEta->at(i),
+                tggHiNtuplizer.phoPhi->at(i), tggHiNtuplizer.phoE->at(i));
+        v2.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(j), tggHiNtuplizer.phoEta->at(j),
+                tggHiNtuplizer.phoPhi->at(j), tggHiNtuplizer.phoE->at(j));
+        vSum = v1+v2;
+
+        diPhoM_out.push_back(vSum.M());
+        diPhoEn_out.push_back(vSum.Energy());
+        diPhoPt_out.push_back(vSum.Pt());
+        diPhoEta_out.push_back(vSum.Eta());
+        diPhoPhi_out.push_back(vSum.Phi());
+    }
+}
+
+void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch, bool skipIfNoMatch, bool doSizeCheck)
+{
+    clearDiPhotonPairs();
 
     std::vector<int>   matched_eleCharge_tmp;
     std::vector<int>   matched_eleIndex_tmp;
@@ -1031,306 +1307,64 @@ void diphoton::makeDiPhotonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doEleMatch,
     {
         for(int j=i+1; j<nPho_out; ++j)
         {
-            if (doSizeCheck) {
-
-                if (skipIfNoMatch) {
-                    if (matched_eleIndex_tmp.at(i) == -1 || matched_eleIndex_tmp.at(j) == -1)  continue;
-                }
-
-                if(tggHiNtuplizer.phoE->size() == (unsigned)nPho_out)  phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
-                if(tggHiNtuplizer.phoEt->size() == (unsigned)nPho_out)  phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
-                if(tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out)  phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));
-                if(tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)  phoPhi_1_out.push_back(tggHiNtuplizer.phoPhi->at(i));
-                if(tggHiNtuplizer.phoSCE->size() == (unsigned)nPho_out)  phoSCE_1_out.push_back(tggHiNtuplizer.phoSCE->at(i));
-                if(tggHiNtuplizer.phoSCRawE->size() == (unsigned)nPho_out)  phoSCRawE_1_out.push_back(tggHiNtuplizer.phoSCRawE->at(i));
-                if(tggHiNtuplizer.phoESEn->size() == (unsigned)nPho_out)  phoESEn_1_out.push_back(tggHiNtuplizer.phoESEn->at(i));
-                if(tggHiNtuplizer.phoSCEta->size() == (unsigned)nPho_out)  phoSCEta_1_out.push_back(tggHiNtuplizer.phoSCEta->at(i));
-                if(tggHiNtuplizer.phoSCPhi->size() == (unsigned)nPho_out)  phoSCPhi_1_out.push_back(tggHiNtuplizer.phoSCPhi->at(i));
-                if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
-                if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
-                if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
-                if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
-                if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
-                if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
-                if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
-                if(tggHiNtuplizer.phoE1x3->size() == (unsigned)nPho_out)  phoE1x3_1_out.push_back(tggHiNtuplizer.phoE1x3->at(i));
-                if(tggHiNtuplizer.phoE2x2->size() == (unsigned)nPho_out)  phoE2x2_1_out.push_back(tggHiNtuplizer.phoE2x2->at(i));
-//                if(tggHiNtuplizer.phoE3x3->size() == (unsigned)nPho_out)  phoE3x3_1_out.push_back(tggHiNtuplizer.phoE3x3->at(i));
-                if(tggHiNtuplizer.phoE2x5Max->size() == (unsigned)nPho_out)  phoE2x5Max_1_out.push_back(tggHiNtuplizer.phoE2x5Max->at(i));
-//                if(tggHiNtuplizer.phoE1x5->size() == (unsigned)nPho_out)  phoE1x5_1_out.push_back(tggHiNtuplizer.phoE1x5->at(i));
-//                if(tggHiNtuplizer.phoE2x5->size() == (unsigned)nPho_out)  phoE2x5_1_out.push_back(tggHiNtuplizer.phoE2x5->at(i));
-                if(tggHiNtuplizer.phoE5x5->size() == (unsigned)nPho_out)  phoE5x5_1_out.push_back(tggHiNtuplizer.phoE5x5->at(i));
-//                if(tggHiNtuplizer.phoMaxEnergyXtal->size() == (unsigned)nPho_out)  phoMaxEnergyXtal_1_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(i));
-//                if(tggHiNtuplizer.phoSigmaEtaEta->size() == (unsigned)nPho_out)  phoSigmaEtaEta_1_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(i));
-//                if(tggHiNtuplizer.phoR1x5->size() == (unsigned)nPho_out)  phoR1x5_1_out.push_back(tggHiNtuplizer.phoR1x5->at(i));
-//                if(tggHiNtuplizer.phoR2x5->size() == (unsigned)nPho_out)  phoR2x5_1_out.push_back(tggHiNtuplizer.phoR2x5->at(i));
-                if(tggHiNtuplizer.phoESEffSigmaRR->size() == (unsigned)nPho_out)  phoESEffSigmaRR_1_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(i));
-                if(tggHiNtuplizer.phoSigmaIEtaIEta_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(i));
-                if(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(i));
-                if(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIPhiIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(i));
-                if(tggHiNtuplizer.phoE1x3_2012->size() == (unsigned)nPho_out)  phoE1x3_2012_1_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(i));
-                if(tggHiNtuplizer.phoE2x2_2012->size() == (unsigned)nPho_out)  phoE2x2_2012_1_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(i));
-//                if(tggHiNtuplizer.phoE3x3_2012->size() == (unsigned)nPho_out)  phoE3x3_2012_1_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(i));
-                if(tggHiNtuplizer.phoE2x5Max_2012->size() == (unsigned)nPho_out)  phoE2x5Max_2012_1_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(i));
-                if(tggHiNtuplizer.phoE5x5_2012->size() == (unsigned)nPho_out)  phoE5x5_2012_1_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(i));
-                if(tggHiNtuplizer.phoBC1E->size() == (unsigned)nPho_out)  phoBC1E_1_out.push_back(tggHiNtuplizer.phoBC1E->at(i));
-                if(tggHiNtuplizer.phoBC1Eta->size() == (unsigned)nPho_out)  phoBC1Eta_1_out.push_back(tggHiNtuplizer.phoBC1Eta->at(i));
-                if(tggHiNtuplizer.phoBC2E->size() == (unsigned)nPho_out)  phoBC2E_1_out.push_back(tggHiNtuplizer.phoBC2E->at(i));
-                if(tggHiNtuplizer.phoBC2Eta->size() == (unsigned)nPho_out)  phoBC2Eta_1_out.push_back(tggHiNtuplizer.phoBC2Eta->at(i));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR2->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR2_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(i));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR3->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR3_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(i));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR4->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR4_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(i));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR5->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR5_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(i));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR1->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR1_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(i));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR2->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR2_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(i));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR3->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR3_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(i));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR4->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR4_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(i));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR5->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR5_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(i));
-                if(tggHiNtuplizer.pho_trackIsoR1PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR1PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(i));
-                if(tggHiNtuplizer.pho_trackIsoR2PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR2PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(i));
-                if(tggHiNtuplizer.pho_trackIsoR3PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR3PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(i));
-                if(tggHiNtuplizer.pho_trackIsoR4PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR4PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(i));
-                if(tggHiNtuplizer.pho_trackIsoR5PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR5PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(i));
-                if(tggHiNtuplizer.pho_swissCrx->size() == (unsigned)nPho_out)  pho_swissCrx_1_out.push_back(tggHiNtuplizer.pho_swissCrx->at(i));
-                if(tggHiNtuplizer.pho_seedTime->size() == (unsigned)nPho_out)  pho_seedTime_1_out.push_back(tggHiNtuplizer.pho_seedTime->at(i));
-                matched_eleIndex_1_out.push_back(matched_eleIndex_tmp.at(i));
-                matched_eleCharge_1_out.push_back(matched_eleCharge_tmp.at(i));
-                matched_elePt_1_out.push_back(matched_elePt_tmp.at(i));
-                matched_eleEta_1_out.push_back(matched_eleEta_tmp.at(i));
-                matched_elePhi_1_out.push_back(matched_elePhi_tmp.at(i));
-                matched_eleTrkPt_1_out.push_back(matched_eleTrkPt_tmp.at(i));
-
-                if(tggHiNtuplizer.phoE->size() == (unsigned)nPho_out)  phoE_2_out.push_back(tggHiNtuplizer.phoE->at(j));
-                if(tggHiNtuplizer.phoEt->size() == (unsigned)nPho_out)  phoEt_2_out.push_back(tggHiNtuplizer.phoEt->at(j));
-                if(tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out)  phoEta_2_out.push_back(tggHiNtuplizer.phoEta->at(j));
-                if(tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)  phoPhi_2_out.push_back(tggHiNtuplizer.phoPhi->at(j));
-                if(tggHiNtuplizer.phoSCE->size() == (unsigned)nPho_out)  phoSCE_2_out.push_back(tggHiNtuplizer.phoSCE->at(j));
-                if(tggHiNtuplizer.phoSCRawE->size() == (unsigned)nPho_out)  phoSCRawE_2_out.push_back(tggHiNtuplizer.phoSCRawE->at(j));
-                if(tggHiNtuplizer.phoESEn->size() == (unsigned)nPho_out)  phoESEn_2_out.push_back(tggHiNtuplizer.phoESEn->at(j));
-                if(tggHiNtuplizer.phoSCEta->size() == (unsigned)nPho_out)  phoSCEta_2_out.push_back(tggHiNtuplizer.phoSCEta->at(j));
-                if(tggHiNtuplizer.phoSCPhi->size() == (unsigned)nPho_out)  phoSCPhi_2_out.push_back(tggHiNtuplizer.phoSCPhi->at(j));
-                if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
-                if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
-                if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
-                if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
-                if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
-                if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
-                if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
-                if(tggHiNtuplizer.phoE1x3->size() == (unsigned)nPho_out)  phoE1x3_2_out.push_back(tggHiNtuplizer.phoE1x3->at(j));
-                if(tggHiNtuplizer.phoE2x2->size() == (unsigned)nPho_out)  phoE2x2_2_out.push_back(tggHiNtuplizer.phoE2x2->at(j));
-//                if(tggHiNtuplizer.phoE3x3->size() == (unsigned)nPho_out)  phoE3x3_2_out.push_back(tggHiNtuplizer.phoE3x3->at(j));
-                if(tggHiNtuplizer.phoE2x5Max->size() == (unsigned)nPho_out)  phoE2x5Max_2_out.push_back(tggHiNtuplizer.phoE2x5Max->at(j));
-//                if(tggHiNtuplizer.phoE1x5->size() == (unsigned)nPho_out)  phoE1x5_2_out.push_back(tggHiNtuplizer.phoE1x5->at(j));
-//                if(tggHiNtuplizer.phoE2x5->size() == (unsigned)nPho_out)  phoE2x5_2_out.push_back(tggHiNtuplizer.phoE2x5->at(j));
-                if(tggHiNtuplizer.phoE5x5->size() == (unsigned)nPho_out)  phoE5x5_2_out.push_back(tggHiNtuplizer.phoE5x5->at(j));
-//                if(tggHiNtuplizer.phoMaxEnergyXtal->size() == (unsigned)nPho_out)  phoMaxEnergyXtal_2_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(j));
-//                if(tggHiNtuplizer.phoSigmaEtaEta->size() == (unsigned)nPho_out)  phoSigmaEtaEta_2_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(j));
-//                if(tggHiNtuplizer.phoR1x5->size() == (unsigned)nPho_out)  phoR1x5_2_out.push_back(tggHiNtuplizer.phoR1x5->at(j));
-//                if(tggHiNtuplizer.phoR2x5->size() == (unsigned)nPho_out)  phoR2x5_2_out.push_back(tggHiNtuplizer.phoR2x5->at(j));
-                if(tggHiNtuplizer.phoESEffSigmaRR->size() == (unsigned)nPho_out)  phoESEffSigmaRR_2_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(j));
-                if(tggHiNtuplizer.phoSigmaIEtaIEta_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(j));
-                if(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIEtaIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(j));
-                if(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->size() == (unsigned)nPho_out)  phoSigmaIPhiIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(j));
-                if(tggHiNtuplizer.phoE1x3_2012->size() == (unsigned)nPho_out)  phoE1x3_2012_2_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(j));
-                if(tggHiNtuplizer.phoE2x2_2012->size() == (unsigned)nPho_out)  phoE2x2_2012_2_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(j));
-//                if(tggHiNtuplizer.phoE3x3_2012->size() == (unsigned)nPho_out)  phoE3x3_2012_2_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(j));
-                if(tggHiNtuplizer.phoE2x5Max_2012->size() == (unsigned)nPho_out)  phoE2x5Max_2012_2_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(j));
-                if(tggHiNtuplizer.phoE5x5_2012->size() == (unsigned)nPho_out)  phoE5x5_2012_2_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(j));
-                if(tggHiNtuplizer.phoBC1E->size() == (unsigned)nPho_out)  phoBC1E_2_out.push_back(tggHiNtuplizer.phoBC1E->at(j));
-                if(tggHiNtuplizer.phoBC1Eta->size() == (unsigned)nPho_out)  phoBC1Eta_2_out.push_back(tggHiNtuplizer.phoBC1Eta->at(j));
-                if(tggHiNtuplizer.phoBC2E->size() == (unsigned)nPho_out)  phoBC2E_2_out.push_back(tggHiNtuplizer.phoBC2E->at(j));
-                if(tggHiNtuplizer.phoBC2Eta->size() == (unsigned)nPho_out)  phoBC2Eta_2_out.push_back(tggHiNtuplizer.phoBC2Eta->at(j));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR2->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR2_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(j));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR3->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR3_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(j));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR4->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR4_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(j));
-                if(tggHiNtuplizer.pho_ecalClusterIsoR5->size() == (unsigned)nPho_out)  pho_ecalClusterIsoR5_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(j));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR1->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR1_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(j));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR2->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR2_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(j));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR3->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR3_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(j));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR4->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR4_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(j));
-                if(tggHiNtuplizer.pho_hcalRechitIsoR5->size() == (unsigned)nPho_out)  pho_hcalRechitIsoR5_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(j));
-                if(tggHiNtuplizer.pho_trackIsoR1PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR1PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(j));
-                if(tggHiNtuplizer.pho_trackIsoR2PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR2PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(j));
-                if(tggHiNtuplizer.pho_trackIsoR3PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR3PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(j));
-                if(tggHiNtuplizer.pho_trackIsoR4PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR4PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(j));
-                if(tggHiNtuplizer.pho_trackIsoR5PtCut20->size() == (unsigned)nPho_out)  pho_trackIsoR5PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(j));
-                if(tggHiNtuplizer.pho_swissCrx->size() == (unsigned)nPho_out)  pho_swissCrx_2_out.push_back(tggHiNtuplizer.pho_swissCrx->at(j));
-                if(tggHiNtuplizer.pho_seedTime->size() == (unsigned)nPho_out)  pho_seedTime_2_out.push_back(tggHiNtuplizer.pho_seedTime->at(j));
-                matched_eleIndex_2_out.push_back(matched_eleIndex_tmp.at(j));
-                matched_eleCharge_2_out.push_back(matched_eleCharge_tmp.at(j));
-                matched_elePt_2_out.push_back(matched_elePt_tmp.at(j));
-                matched_eleEta_2_out.push_back(matched_eleEta_tmp.at(j));
-                matched_elePhi_2_out.push_back(matched_elePhi_tmp.at(j));
-                matched_eleTrkPt_2_out.push_back(matched_eleTrkPt_tmp.at(j));
-
-                // diphoton
-                if (tggHiNtuplizer.phoEt->size()  == (unsigned)nPho_out &&
-                    tggHiNtuplizer.phoEta->size() == (unsigned)nPho_out &&
-                    tggHiNtuplizer.phoPhi->size() == (unsigned)nPho_out)
-                {
-                    TLorentzVector v1, v2, vSum;
-                    v1.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(i), tggHiNtuplizer.phoEta->at(i),
-                            tggHiNtuplizer.phoPhi->at(i), tggHiNtuplizer.phoE->at(i));
-                    v2.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(j), tggHiNtuplizer.phoEta->at(j),
-                            tggHiNtuplizer.phoPhi->at(j), tggHiNtuplizer.phoE->at(j));
-                    vSum = v1+v2;
-
-                    diPhoM_out.push_back(vSum.M());
-                    diPhoEn_out.push_back(vSum.Energy());
-                    diPhoPt_out.push_back(vSum.Pt());
-                    diPhoEta_out.push_back(vSum.Eta());
-                    diPhoPhi_out.push_back(vSum.Phi());
-                }
+            if (skipIfNoMatch) {
+                if (matched_eleIndex_tmp.at(i) == -1 || matched_eleIndex_tmp.at(j) == -1)  continue;
             }
-            else {
+            pushbackDiPhotonPair(tggHiNtuplizer, i, j, doSizeCheck);
 
-                if (skipIfNoMatch) {
-                    if (matched_eleIndex_tmp.at(i) == -1 || matched_eleIndex_tmp.at(j) == -1)  continue;
-                }
+            matched_eleIndex_1_out.push_back(matched_eleIndex_tmp.at(i));
+            matched_eleCharge_1_out.push_back(matched_eleCharge_tmp.at(i));
+            matched_elePt_1_out.push_back(matched_elePt_tmp.at(i));
+            matched_eleEta_1_out.push_back(matched_eleEta_tmp.at(i));
+            matched_elePhi_1_out.push_back(matched_elePhi_tmp.at(i));
+            matched_eleTrkPt_1_out.push_back(matched_eleTrkPt_tmp.at(i));
 
-                phoE_1_out.push_back(tggHiNtuplizer.phoE->at(i));
-                phoEt_1_out.push_back(tggHiNtuplizer.phoEt->at(i));
-                phoEta_1_out.push_back(tggHiNtuplizer.phoEta->at(i));
-                phoPhi_1_out.push_back(tggHiNtuplizer.phoPhi->at(i));
-                phoSCE_1_out.push_back(tggHiNtuplizer.phoSCE->at(i));
-                phoSCRawE_1_out.push_back(tggHiNtuplizer.phoSCRawE->at(i));
-                phoESEn_1_out.push_back(tggHiNtuplizer.phoESEn->at(i));
-                phoSCEta_1_out.push_back(tggHiNtuplizer.phoSCEta->at(i));
-                phoSCPhi_1_out.push_back(tggHiNtuplizer.phoSCPhi->at(i));
-                phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
-                phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
-                phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
-                phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
-                phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
-                phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
-                phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
-                phoE1x3_1_out.push_back(tggHiNtuplizer.phoE1x3->at(i));
-                phoE2x2_1_out.push_back(tggHiNtuplizer.phoE2x2->at(i));
-//                phoE3x3_1_out.push_back(tggHiNtuplizer.phoE3x3->at(i));
-                phoE2x5Max_1_out.push_back(tggHiNtuplizer.phoE2x5Max->at(i));
-//                phoE1x5_1_out.push_back(tggHiNtuplizer.phoE1x5->at(i));
-//                phoE2x5_1_out.push_back(tggHiNtuplizer.phoE2x5->at(i));
-                phoE5x5_1_out.push_back(tggHiNtuplizer.phoE5x5->at(i));
-//                phoMaxEnergyXtal_1_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(i));
-//                phoSigmaEtaEta_1_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(i));
-//                phoR1x5_1_out.push_back(tggHiNtuplizer.phoR1x5->at(i));
-//                phoR2x5_1_out.push_back(tggHiNtuplizer.phoR2x5->at(i));
-                phoESEffSigmaRR_1_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(i));
-                phoSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(i));
-                phoSigmaIEtaIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(i));
-                phoSigmaIPhiIPhi_2012_1_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(i));
-                phoE1x3_2012_1_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(i));
-                phoE2x2_2012_1_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(i));
-//                phoE3x3_2012_1_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(i));
-                phoE2x5Max_2012_1_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(i));
-                phoE5x5_2012_1_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(i));
-                phoBC1E_1_out.push_back(tggHiNtuplizer.phoBC1E->at(i));
-                phoBC1Eta_1_out.push_back(tggHiNtuplizer.phoBC1Eta->at(i));
-                phoBC2E_1_out.push_back(tggHiNtuplizer.phoBC2E->at(i));
-                phoBC2Eta_1_out.push_back(tggHiNtuplizer.phoBC2Eta->at(i));
-                pho_ecalClusterIsoR2_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(i));
-                pho_ecalClusterIsoR3_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(i));
-                pho_ecalClusterIsoR4_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(i));
-                pho_ecalClusterIsoR5_1_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(i));
-                pho_hcalRechitIsoR1_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(i));
-                pho_hcalRechitIsoR2_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(i));
-                pho_hcalRechitIsoR3_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(i));
-                pho_hcalRechitIsoR4_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(i));
-                pho_hcalRechitIsoR5_1_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(i));
-                pho_trackIsoR1PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(i));
-                pho_trackIsoR2PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(i));
-                pho_trackIsoR3PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(i));
-                pho_trackIsoR4PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(i));
-                pho_trackIsoR5PtCut20_1_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(i));
-                pho_swissCrx_1_out.push_back(tggHiNtuplizer.pho_swissCrx->at(i));
-                pho_seedTime_1_out.push_back(tggHiNtuplizer.pho_seedTime->at(i));
-
-                matched_eleIndex_1_out.push_back(matched_eleIndex_tmp.at(i));
-                matched_eleCharge_1_out.push_back(matched_eleCharge_tmp.at(i));
-                matched_elePt_1_out.push_back(matched_elePt_tmp.at(i));
-                matched_eleEta_1_out.push_back(matched_eleEta_tmp.at(i));
-                matched_elePhi_1_out.push_back(matched_elePhi_tmp.at(i));
-                matched_eleTrkPt_1_out.push_back(matched_eleTrkPt_tmp.at(i));
-
-                phoE_2_out.push_back(tggHiNtuplizer.phoE->at(j));
-                phoEt_2_out.push_back(tggHiNtuplizer.phoEt->at(j));
-                phoEta_2_out.push_back(tggHiNtuplizer.phoEta->at(j));
-                phoPhi_2_out.push_back(tggHiNtuplizer.phoPhi->at(j));
-                phoSCE_2_out.push_back(tggHiNtuplizer.phoSCE->at(j));
-                phoSCRawE_2_out.push_back(tggHiNtuplizer.phoSCRawE->at(j));
-                phoESEn_2_out.push_back(tggHiNtuplizer.phoESEn->at(j));
-                phoSCEta_2_out.push_back(tggHiNtuplizer.phoSCEta->at(j));
-                phoSCPhi_2_out.push_back(tggHiNtuplizer.phoSCPhi->at(j));
-                phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
-                phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
-                phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
-                phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
-                phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
-                phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
-                phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
-                phoE1x3_2_out.push_back(tggHiNtuplizer.phoE1x3->at(j));
-                phoE2x2_2_out.push_back(tggHiNtuplizer.phoE2x2->at(j));
-//                phoE3x3_2_out.push_back(tggHiNtuplizer.phoE3x3->at(j));
-                phoE2x5Max_2_out.push_back(tggHiNtuplizer.phoE2x5Max->at(j));
-//                phoE1x5_2_out.push_back(tggHiNtuplizer.phoE1x5->at(j));
-//                phoE2x5_2_out.push_back(tggHiNtuplizer.phoE2x5->at(j));
-                phoE5x5_2_out.push_back(tggHiNtuplizer.phoE5x5->at(j));
-//                phoMaxEnergyXtal_2_out.push_back(tggHiNtuplizer.phoMaxEnergyXtal->at(j));
-//                phoSigmaEtaEta_2_out.push_back(tggHiNtuplizer.phoSigmaEtaEta->at(j));
-//                phoR1x5_2_out.push_back(tggHiNtuplizer.phoR1x5->at(j));
-//                phoR2x5_2_out.push_back(tggHiNtuplizer.phoR2x5->at(j));
-                phoESEffSigmaRR_2_out.push_back(tggHiNtuplizer.phoESEffSigmaRR->at(j));
-                phoSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta_2012->at(j));
-                phoSigmaIEtaIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIPhi_2012->at(j));
-                phoSigmaIPhiIPhi_2012_2_out.push_back(tggHiNtuplizer.phoSigmaIPhiIPhi_2012->at(j));
-                phoE1x3_2012_2_out.push_back(tggHiNtuplizer.phoE1x3_2012->at(j));
-                phoE2x2_2012_2_out.push_back(tggHiNtuplizer.phoE2x2_2012->at(j));
-//                phoE3x3_2012_2_out.push_back(tggHiNtuplizer.phoE3x3_2012->at(j));
-                phoE2x5Max_2012_2_out.push_back(tggHiNtuplizer.phoE2x5Max_2012->at(j));
-                phoE5x5_2012_2_out.push_back(tggHiNtuplizer.phoE5x5_2012->at(j));
-                phoBC1E_2_out.push_back(tggHiNtuplizer.phoBC1E->at(j));
-                phoBC1Eta_2_out.push_back(tggHiNtuplizer.phoBC1Eta->at(j));
-                phoBC2E_2_out.push_back(tggHiNtuplizer.phoBC2E->at(j));
-                phoBC2Eta_2_out.push_back(tggHiNtuplizer.phoBC2Eta->at(j));
-                pho_ecalClusterIsoR2_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR2->at(j));
-                pho_ecalClusterIsoR3_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR3->at(j));
-                pho_ecalClusterIsoR4_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR4->at(j));
-                pho_ecalClusterIsoR5_2_out.push_back(tggHiNtuplizer.pho_ecalClusterIsoR5->at(j));
-                pho_hcalRechitIsoR1_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR1->at(j));
-                pho_hcalRechitIsoR2_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR2->at(j));
-                pho_hcalRechitIsoR3_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR3->at(j));
-                pho_hcalRechitIsoR4_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR4->at(j));
-                pho_hcalRechitIsoR5_2_out.push_back(tggHiNtuplizer.pho_hcalRechitIsoR5->at(j));
-                pho_trackIsoR1PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR1PtCut20->at(j));
-                pho_trackIsoR2PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR2PtCut20->at(j));
-                pho_trackIsoR3PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR3PtCut20->at(j));
-                pho_trackIsoR4PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR4PtCut20->at(j));
-                pho_trackIsoR5PtCut20_2_out.push_back(tggHiNtuplizer.pho_trackIsoR5PtCut20->at(j));
-                pho_swissCrx_2_out.push_back(tggHiNtuplizer.pho_swissCrx->at(j));
-                pho_seedTime_2_out.push_back(tggHiNtuplizer.pho_seedTime->at(j));
-
-                matched_eleIndex_2_out.push_back(matched_eleIndex_tmp.at(j));
-                matched_eleCharge_2_out.push_back(matched_eleCharge_tmp.at(j));
-                matched_elePt_2_out.push_back(matched_elePt_tmp.at(j));
-                matched_eleEta_2_out.push_back(matched_eleEta_tmp.at(j));
-                matched_elePhi_2_out.push_back(matched_elePhi_tmp.at(j));
-                matched_eleTrkPt_2_out.push_back(matched_eleTrkPt_tmp.at(j));
-
-                // diphoton
-                TLorentzVector v1, v2, vSum;
-                v1.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(i), tggHiNtuplizer.phoEta->at(i),
-                        tggHiNtuplizer.phoPhi->at(i), tggHiNtuplizer.phoE->at(i));
-                v2.SetPtEtaPhiE( tggHiNtuplizer.phoEt->at(j), tggHiNtuplizer.phoEta->at(j),
-                        tggHiNtuplizer.phoPhi->at(j), tggHiNtuplizer.phoE->at(j));
-                vSum = v1+v2;
-
-                diPhoM_out.push_back(vSum.M());
-                diPhoEn_out.push_back(vSum.Energy());
-                diPhoPt_out.push_back(vSum.Pt());
-                diPhoEta_out.push_back(vSum.Eta());
-                diPhoPhi_out.push_back(vSum.Phi());
-            }
+            matched_eleIndex_2_out.push_back(matched_eleIndex_tmp.at(j));
+            matched_eleCharge_2_out.push_back(matched_eleCharge_tmp.at(j));
+            matched_elePt_2_out.push_back(matched_elePt_tmp.at(j));
+            matched_eleEta_2_out.push_back(matched_eleEta_tmp.at(j));
+            matched_elePhi_2_out.push_back(matched_elePhi_tmp.at(j));
+            matched_eleTrkPt_2_out.push_back(matched_eleTrkPt_tmp.at(j));
         }
+    }
+}
+
+/*
+ * make diphoton pairs using the given photon indices i,j
+ * matched_Index_1, matched_Index_2 correspond to the index of the electron that matched to the photon
+ */
+void diphoton::makeDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i1, int i2, int matched_Index_1, int matched_Index_2, bool doSizeCheck)
+{
+    pushbackDiPhotonPair(tggHiNtuplizer, i1, i2, doSizeCheck);
+
+    matched_eleIndex_1_out.push_back(matched_Index_1);
+    if (matched_Index_1 > -1) {
+        matched_eleCharge_1_out.push_back(tggHiNtuplizer.eleCharge->at(matched_Index_1));
+        matched_elePt_1_out.push_back(tggHiNtuplizer.elePt->at(matched_Index_1));
+        matched_eleEta_1_out.push_back(tggHiNtuplizer.eleEta->at(matched_Index_1));
+        matched_elePhi_1_out.push_back(tggHiNtuplizer.elePhi->at(matched_Index_1));
+        matched_eleTrkPt_1_out.push_back(tggHiNtuplizer.eleTrkPt->at(matched_Index_1));
+    } else {
+        matched_eleCharge_1_out.push_back(0);
+        matched_elePt_1_out.push_back(-1);
+        matched_eleEta_1_out.push_back(0);
+        matched_elePhi_1_out.push_back(0);
+        matched_eleTrkPt_1_out.push_back(-1);
+    }
+
+    matched_eleIndex_2_out.push_back(matched_Index_2);
+    if (matched_Index_2 > -1) {
+        matched_eleCharge_2_out.push_back(tggHiNtuplizer.eleCharge->at(matched_Index_2));
+        matched_elePt_2_out.push_back(tggHiNtuplizer.elePt->at(matched_Index_2));
+        matched_eleEta_2_out.push_back(tggHiNtuplizer.eleEta->at(matched_Index_2));
+        matched_elePhi_2_out.push_back(tggHiNtuplizer.elePhi->at(matched_Index_2));
+        matched_eleTrkPt_2_out.push_back(tggHiNtuplizer.eleTrkPt->at(matched_Index_2));
+    } else {
+        matched_eleCharge_2_out.push_back(0);
+        matched_elePt_2_out.push_back(-1);
+        matched_eleEta_2_out.push_back(0);
+        matched_elePhi_2_out.push_back(0);
+        matched_eleTrkPt_2_out.push_back(-1);
     }
 }
 
