@@ -202,7 +202,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
                outputTreesHiEvt[i][j]->SetMaxTreeSize(MAXTREESIZE);
 
                outputTreesSkim[i][j] = treeSkim->CloneTree(0);
-               outputTreesSkim[i][j]->SetName(Form("skim_centBin%d", i));
+               outputTreesSkim[i][j]->SetName(Form("skim_centBin%d_vzBin%d", i, j));
                outputTreesSkim[i][j]->SetTitle(Form("subbranches of skimanalysis/HltTree for centrality bin %d vz bin %d", i, j));
                outputTreesSkim[i][j]->SetMaxTreeSize(MAXTREESIZE);
            }

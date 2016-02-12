@@ -136,7 +136,8 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
 enum TYPE_S{
     k_treeFormula,
     k_treeSelection,
-    k_treeSelectionBase,    // selection that is applied/valid for all observables
+    k_treeSelectionBase,        // selection that is applied/valid for all observables
+    k_treeSelectionSplitter,    // Ex. treeSelectionSplitter = {hiBin<60, hiBin>=60} means that everything in treeSelection will be split into 0-30% and 30-100%.
     k_TH1_path,             // path to the TH1 object in a file
     k_TH1_title,
     k_TH1_titleX,
@@ -175,6 +176,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "treeFormula",
         "treeSelection",
         "treeSelectionBase",
+        "treeSelectionSplitter",
         "TH1_path",
         "TH1_title",
         "TH1_titleX",

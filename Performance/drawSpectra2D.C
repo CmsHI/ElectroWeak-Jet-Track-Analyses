@@ -50,6 +50,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> formulas;
     std::string selectionBase;
     std::vector<std::string> selections;
+    std::vector<std::string> selectionSplitter;
     std::vector<std::string> weights;
     
     // input for TH1
@@ -101,6 +102,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
+        selectionSplitter = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionSplitter]);
         weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
 
         titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
@@ -206,6 +208,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     int nFriends = treeFriendsPath.size();
     int nFormulas = formulas.size();
     int nSelections = selections.size();
+    int nSelectionSplitter = selectionSplitter.size();
     int nWeights = weights.size();
     int nTitles = titles.size();
     int nTitlesX = titlesX.size();
@@ -233,6 +236,10 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::cout << "nSelections   = " << nSelections << std::endl;
     for (int i=0; i<nSelections; ++i) {
             std::cout << Form("selections[%d] = %s", i, selections.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nSelectionSplitter = " << nSelectionSplitter << std::endl;
+    for (int i=0; i<nSelectionSplitter; ++i) {
+            std::cout << Form("selectionSplitter[%d] = %s", i, selectionSplitter.at(i).c_str()) << std::endl;
     }
     std::cout << "nWeights   = " << nWeights << std::endl;
     for (int i=0; i<nWeights; ++i) {
@@ -269,7 +276,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nDrawOptions; ++i) {
             std::cout << Form("drawOptions[%d] = %s", i, drawOptions.at(i).c_str()) << std::endl;
     }
-    std::cout << "nMarkerStyles   = " << nMarkerStyles << std::endl;
+    std::cout << "nMarkerStyles  = " << nMarkerStyles << std::endl;
     for (int i = 0; i<nMarkerStyles; ++i) {
             std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
     }
@@ -356,10 +363,24 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
        }
     }
 
+    if (nSelectionSplitter == 1) {
+        std::cout << "nSelectionMultiplier = "<< nSelectionSplitter << std::endl;
+        std::cout << "selectionMultiplier has been set to have exactly one selection"<< std::endl;
+        std::cout << "selectionMultiplier is allowed to be either empty or to have more than one selections"<< std::endl;
+        std::cout << "exiting"<< std::endl;
+        return;
+    }
+    int nSplits = 1;
+    if (nSelectionSplitter > 1)  nSplits = nSelectionSplitter;
+
+    int nSelectionsTot = nSelections * nSplits;
+    int nFormulasTot = nFormulas * nSplits;
+
     TH1::SetDefaultSumw2();
-    int nHistos = nFormulas;
-    if (nHistos == 1 && nSelections > nFormulas) nHistos = nSelections;
-    else if (nHistos > 1 && nSelections > 1 && nHistos != nSelections) {
+    int nHistos = nFormulasTot;
+    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
+    if (nFormulasTot == 1 && nSelectionsTot > nFormulas) nHistos = nSelectionsTot;
+    else if (nFormulasTot > 1 && nSelectionsTot > 1 && nFormulasTot != nSelectionsTot) {
         std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
         std::cout << "nHistos     = "<< nHistos << std::endl;
         std::cout << "nSelections = "<< nSelections << std::endl;
@@ -375,25 +396,25 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         int nBinsy  = (int)TH2D_Bins_List[3].at(0);
         float yLow = TH2D_Bins_List[4].at(0);
         float yUp  = TH2D_Bins_List[5].at(0);
-        if (nHistos == nTH2D_Bins_List) {
-            nBinsx = (int)TH2D_Bins_List[0].at(i);
-            xLow  = TH2D_Bins_List[1].at(i);
-            xUp   = TH2D_Bins_List[2].at(i);
-            nBinsy = (int)TH2D_Bins_List[3].at(i);
-            yLow  = TH2D_Bins_List[4].at(i);
-            yUp   = TH2D_Bins_List[5].at(i);
+        if (nTH2D_Bins_List == nHistosInput) {
+            nBinsx = (int)TH2D_Bins_List[0].at(i%nTH2D_Bins_List);
+            xLow  = TH2D_Bins_List[1].at(i%nTH2D_Bins_List);
+            xUp   = TH2D_Bins_List[2].at(i%nTH2D_Bins_List);
+            nBinsy = (int)TH2D_Bins_List[3].at(i%nTH2D_Bins_List);
+            yLow  = TH2D_Bins_List[4].at(i%nTH2D_Bins_List);
+            yUp   = TH2D_Bins_List[5].at(i%nTH2D_Bins_List);
         }
         std::string title = "";
         if (nTitles == 1) title = titles.at(0).c_str();
-        else if (nTitles == nHistos) title = titles.at(i).c_str();
+        else if (nTitles == nHistosInput) title = titles.at(i%nTitles).c_str();
 
         std::string titleX = "";
         if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
-        else if (nTitlesX == nHistos) titleX = titlesX.at(i).c_str();
+        else if (nTitlesX == nHistosInput) titleX = titlesX.at(i%nTitlesX).c_str();
 
         std::string titleY = "";
         if (nTitlesY == 1) titleY = titlesY.at(0).c_str();
-        else if (nTitlesY == nHistos) titleY = titlesY.at(i).c_str();
+        else if (nTitlesY == nHistosInput) titleY = titlesY.at(i%nTitlesY).c_str();
 
         h[i] = new TH2D(Form("h2D_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBinsx, xLow, xUp, nBinsy, yLow, yUp);
     }
@@ -407,14 +428,18 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::string formula = formulas.at(0).c_str();
         std::string selection = selections.at(0).c_str();
         std::string weight = weights.at(0).c_str();
-        if (nHistos == nFormulas)  formula = formulas.at(i).c_str();
-        if (nHistos == nSelections)  selection = selections.at(i).c_str();
-        if (nHistos == nWeights)  weight = weights.at(i).c_str();
+        if (nHistosInput == nFormulas)  formula = formulas.at(i%nFormulas).c_str();
+        if (nHistosInput == nSelections)  selection = selections.at(i%nSelections).c_str();
+        if (nHistosInput == nWeights)  weight = weights.at(i%nWeights).c_str();
+
+        std::string selectionSplit = "";
+        if (nSelectionSplitter > 1)  selectionSplit = selectionSplitter.at(i/ (nHistos/nSelectionSplitter)).c_str();
 
         std::cout << "drawing histogram i = " << i << ", ";
 
         TCut selectionFinal = selectionBase.c_str();
         selectionFinal = selectionFinal && selection.c_str();
+        if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
         entriesSelected[i] = tree->GetEntries(selectionFinal.GetTitle());
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
 
@@ -525,36 +550,36 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         if (nDrawOptions == 1) {
             if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
         }
-        else if (nDrawOptions == nHistos) {
-            if (drawOptions.at(i).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
+        else if (nDrawOptions == nHistosInput) {
+            if (drawOptions.at(i).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
         }
         // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
         // TObject::SetDrawOption() is not suitable for the approach here.
 
         int markerStyle = GRAPHICS::markerStyle;
         if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
-        else if (nMarkerStyles == nHistos) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i));
+        else if (nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
         h[i]->SetMarkerStyle(markerStyle);
         h_normInt[i]->SetMarkerStyle(markerStyle);
         h_normEvents[i]->SetMarkerStyle(markerStyle);
 
         int lineStyle = GRAPHICS::lineStyle;
         if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
-        else if (nLineStyles == nHistos)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i));
+        else if (nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
         h[i]->SetLineStyle(lineStyle);
         h_normInt[i]->SetLineStyle(lineStyle);
         h_normEvents[i]->SetLineStyle(lineStyle);
 
         int fillStyle = GRAPHICS::fillStyle;
         if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
-        else if (nFillStyles == nHistos)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i));
+        else if (nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
         h[i]->SetFillStyle(fillStyle);
         h_normInt[i]->SetFillStyle(fillStyle);
         h_normEvents[i]->SetFillStyle(fillStyle);
 
         int color = GRAPHICS::colors[i];
         if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
-        else if (nColors == nHistos) color = GraphicsConfigurationParser::ParseColor(colors.at(i));
+        else if (nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
         h[i]->SetMarkerColor(color);
         h[i]->SetLineColor(color);
         h_normInt[i]->SetMarkerColor(color);
@@ -589,12 +614,12 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
             std::string drawOption = "";
             if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+            else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
 
             h_draw[i]->Draw(drawOption.c_str());
 
-            if (nHistos == nLegendEntryLabels) {
-                std::string label = legendEntryLabels.at(i).c_str();
+            if (nLegendEntryLabels == nHistosInput) {
+                std::string label = legendEntryLabels.at(i%nLegendEntryLabels).c_str();
                 std::string legendOption = "lpf";
                 if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
                 if (label.compare(CONFIGPARSER::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
