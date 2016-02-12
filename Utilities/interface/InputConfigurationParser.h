@@ -40,7 +40,7 @@ enum TYPE_I{
     k_drawSame,
     k_drawNormalized,
     k_drawRatio,
-    k_drawLine,
+    k_drawRatioLine,
     k_setLogx,
     k_setLogy,
     k_setLogz,
@@ -65,7 +65,7 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "drawSame",
         "drawNormalized",
         "drawRatio",        // ratio histograms will be drawn if drawRatio > 0
-        "drawLine",
+        "drawRatioLine",
         "setLogx",
         "setLogy",
         "setLogz",
@@ -101,7 +101,7 @@ enum TYPE_F{
     k_textAbovePadSize,
     k_textAbovePadOffsetX,
     k_textAbovePadOffsetY,
-    k_lineHorizontalY,      // horizontal line at y = lineHorizontalY
+    k_ratioLineY,                // horizontal line at y = ratioLineY
     k_windowHeightFraction,      // height fraction of a pad relative to some other pad
     kN_TYPES_F
 };
@@ -129,7 +129,7 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "textAbovePadSize",
         "textAbovePadOffsetX",
         "textAbovePadOffsetY",
-        "lineHorizontalY",
+        "ratioLineY",
         "windowHeightFraction"
 };
 
@@ -164,6 +164,10 @@ enum TYPE_S{
     k_textPosition,
     k_textAbovePad,
     k_textAbovePadAlign,
+    k_TLine_horizontal,         // y-axis positions of the horizontal lines to be drawn
+    k_LineStyle_horizontal,     // styles of the horizontal lines to be drawn
+    k_TLine_vertical,           // x-axis positions of the vertical lines to be drawn
+    k_LineStyle_vertical,       // styles of the vertical lines to be drawn
     kN_TYPES_S
 };
 
@@ -197,7 +201,11 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "text",
         "textPosition",
         "textAbovePad",
-        "textAbovePadAlign"
+        "textAbovePadAlign",
+        "TLine_horizontal",
+        "lineStyle_horizontal",
+        "TLine_vertical",
+        "lineStyle_vertical"
 };
 
 enum PROCESS{

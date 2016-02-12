@@ -27,6 +27,8 @@ const int markerStyle = EMarkerStyle::kFullCircle;
 const int lineStyle = ELineStyle::kSolid;
 const int fillStyle = EFillStyle::kFSolid;
 const int textAlign = 11;       // horizontal : left align, vertical : bottom align
+const int lineStyle_horizontal = ELineStyle::kDashed;
+const int lineStyle_vertical = ELineStyle::kDashed;
 };
 
 class GraphicsConfigurationParser : public ConfigurationParser {
