@@ -37,6 +37,7 @@ enum TYPE_I{
     k_doPPMC,
     k_doPA,
     k_doPAMC,
+    k_isMC,
     k_drawSame,
     k_drawNormalized,
     k_drawRatio,
@@ -62,6 +63,7 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPPMC",
         "doPA",
         "doPAMC",
+        "isMC",
         "drawSame",
         "drawNormalized",
         "drawRatio",        // ratio histograms will be drawn if drawRatio > 0
@@ -145,6 +147,7 @@ enum TYPE_S{
     k_TH1_weight,           // weight used when filling a histogram
     k_TH1_scale,
     k_TH1_rebin,
+    k_TH1_norm,
     k_TH1_titleYRatio,      // y-axis title for ratio histograms
     k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
@@ -158,6 +161,7 @@ enum TYPE_S{
     k_legendEntryLabel,
     k_color,
     k_fillColor,
+    k_lineColor,
     k_markerStyle,
     k_lineStyle,
     k_fillStyle,
@@ -184,6 +188,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TH1_weight",
         "TH1_scale",
         "TH1_rebin",
+        "TH1_norm",
         "TH1_titleYRatio",
         "drawOption",
         "TH1D_Bins_List",
@@ -197,6 +202,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "legendEntryLabel",
         "color",
         "fillColor",
+        "lineColor",
         "markerStyle",
         "lineStyle",
         "fillStyle",
