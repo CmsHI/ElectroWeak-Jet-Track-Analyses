@@ -20,17 +20,25 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
 
     TFile* input = new TFile(inputFile);
     TTree* tHLT = (TTree*)input->Get("HltTree");
+    TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TTree* t_dipho = (TTree*)input->Get("diphoton");
     TTree* treeEvent;
     input->GetObject("EventTree",treeEvent);    // EventTree may not be in "diphotonSkim.root"
 
     t_dipho->AddFriend(tHLT,"tHLT");
+    t_dipho->AddFriend(tHiEvt,"HiEvt");
+
     if(treeEvent)  t_dipho->AddFriend(treeEvent,"tEle");
 
     TFile* output = new TFile(outputFile, "UPDATE");
 
-    CutConfiguration config = CutConfigurationParser::Parse(configFile);
-    TTree* configTree = setupConfigurationTreeForWriting(config);
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile);
+    TTree* configTree = setupConfigurationTreeForWriting(configCuts);
+
+    // event cuts/weights
+    int doEventWeight;
+    std::string eventWeight;    // weight to be used for histogram entries
+                                // current purpose of this variable is for weighting events from MC samples.
     std::string str_trigger;
 
     int   cut_matched_eleIndex;
@@ -42,18 +50,22 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta;
     float cut_sumIso;
-    if (config.isValid) {
-        str_trigger = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_diphoton].c_str();
+    if (configCuts.isValid) {
+        doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+        eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
 
-        cut_matched_eleIndex = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_matched_eleIndex];
-        cut_phoSigmaIEtaIEta_spike = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_spike];
+
+        str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_diphoton].c_str();
+
+        cut_matched_eleIndex = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_matched_eleIndex];
+        cut_phoSigmaIEtaIEta_spike = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_spike];
 //        cut_phoSigmaIPhiIPhi_spike = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIPhiIPhi_spike];
-        cut_phoHoverE = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
-        cut_pho_ecalClusterIsoR4 = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
-        cut_pho_hcalRechitIsoR4 = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
-        cut_pho_trackIsoR4PtCut20 = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
-        cut_phoSigmaIEtaIEta = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
-        cut_sumIso = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
+        cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+        cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
+        cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
+        cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
+        cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
+        cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
     }
     else {  // default configuration for photons
         str_trigger = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
@@ -68,9 +80,16 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
         cut_phoSigmaIEtaIEta = 0.01;
         cut_sumIso = 6;
     }
+    // default values
+    if (eventWeight.size() == 0) eventWeight = "1";
 
-    // verbose about configuration
-    std::cout<<"Configuration :"<<std::endl;
+    // verbose about cut configuration
+    std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout<<"doEventWeight = "<<doEventWeight<<std::endl;
+    if (doEventWeight > 0) {
+        std::cout<<"eventWeight = "<<eventWeight.c_str()<<std::endl;
+    }
+
     std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
 
     std::cout<<"cut_phoSigmaIEtaIEta_spike = "<< cut_phoSigmaIEtaIEta_spike <<std::endl;
@@ -90,12 +109,15 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     const int nBins_pt = 2;
     const int nBins_eta = 4;
     int bins_pt[nBins_pt] = {10, 20};
-    float bins_eta_gt[nBins_eta] = {-1,      -1, 1.4791, 1.4791};    // All ECAL, Barrel, Endcap1, Endcap2
-    float bins_eta_lt[nBins_eta] = {2.4, 1.4791,    2.4, 2};
+    float bins_eta_gt[nBins_eta] = {-1,    -1, 1.4791, 1.4791};    // All ECAL, Barrel, Endcap1, Endcap2
+    float bins_eta_lt[nBins_eta] = {2.4, 1.44,    2.4, 2};
 
     std::string histNames_pho1pho2_M[nBins_pt][nBins_eta];
 
     int numEntries[nBins_pt][nBins_eta];
+    int numEntriesMassWindow[nBins_pt][nBins_eta];      // number of entries within given mass window, e.g. 60-120
+    TCut massWindow = "diPhoM >= 60 && diPhoM < 120";
+    std::cout << "massWindow = " << massWindow.GetTitle() << std::endl;
 
     TH1::SetDefaultSumw2();
     TH1D* h1D_pho1pho2_M[nBins_pt][nBins_eta];
@@ -124,46 +146,54 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_eta; ++j){
 
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
-            TCut selection =  "";
+            TCut selections[2];
+            TCut selections_EB[2];
+            TCut selections_EE[2];
+            for (int iPho=0; iPho<2; ++iPho) {
+                selections_EB[iPho] = "";
+                selections_EE[iPho] = "";
 
-            selection = selection && Form("matched_eleIndex_1 > %d && matched_eleIndex_2 > %d", cut_matched_eleIndex, cut_matched_eleIndex);
-            // spike rejection
-            selection = selection && Form("phoSigmaIEtaIEta_1 > %f && phoSigmaIEtaIEta_2 > %f", cut_phoSigmaIEtaIEta_spike, cut_phoSigmaIEtaIEta_spike);
-//            selection = selection && Form("phoSigmaIPhiIPhi_1 > %f && phoSigmaIPhiIPhi_2 > %f", cut_phoSigmaIPhiIPhi_spike, cut_phoSigmaIPhiIPhi_spike);
-            // isolation
-            selection = selection && Form("(pho_ecalClusterIsoR4_1 + pho_hcalRechitIsoR4_1 + pho_trackIsoR4PtCut20_1) < %f && "
-                                          "(pho_ecalClusterIsoR4_2 + pho_hcalRechitIsoR4_2 + pho_trackIsoR4PtCut20_2) < %f", cut_sumIso, cut_sumIso);
-            selection = selection && Form("phoHoverE_1 < %f && phoHoverE_2 < %f", cut_phoHoverE, cut_phoHoverE);
-            // purity
-            selection = selection && Form("phoSigmaIEtaIEta_1 < %f && phoSigmaIEtaIEta_2 < %f", cut_phoSigmaIEtaIEta, cut_phoSigmaIEtaIEta);
+                selections_EB[iPho] = selections_EB[iPho] && Form("matched_eleIndex_%d < %d" ,iPho+1 ,cut_matched_eleIndex);
+                // spike rejection
+                selections_EB[iPho] = selections_EB[iPho] && Form("phoSigmaIEtaIEta_%d > %f" ,iPho+1 ,cut_phoSigmaIEtaIEta_spike);
+                // isolation
+                selections_EB[iPho] = selections_EB[iPho] && Form("(pho_ecalClusterIsoR4_%d + pho_hcalRechitIsoR4_%d + pho_trackIsoR4PtCut20_%d) < %f",
+                                                                iPho+1, iPho+1, iPho+1 ,cut_sumIso);
+                selections_EB[iPho] = selections_EB[iPho] && Form("phoHoverE_%d < %f" ,iPho+1 ,cut_phoHoverE);
+                // purity
+                selections_EB[iPho] = selections_EB[iPho] && Form("phoSigmaIEtaIEta_%d < %f" ,iPho+1 ,cut_phoSigmaIEtaIEta);
 
-            TCut selection_Barrel = "1 == 1";    // no extra selection at the moment
-            TCut selection_Endcap = "1 == 1";    // no extra selection at the moment
+                selections_EE[iPho] = selections_EB[iPho];                  // no extra selection at the moment
 
-            if (j==0){
-                TCut selection_Barrel_eta = Form(" abs(phoEta_1) < %f && abs(phoEta_2) < %f", bins_eta_lt[1], bins_eta_lt[1]);
-                TCut selection_Endcap_eta = Form(" abs(phoEta_1) > %f && abs(phoEta_2) > %f", bins_eta_lt[1], bins_eta_lt[1]);
-                selection_Endcap_eta = selection_Endcap_eta && Form(" abs(phoEta_1) < %f && abs(phoEta_2) < %f", bins_eta_lt[0], bins_eta_lt[0]);
-                selection =  (selection && selection_Barrel && selection_Barrel_eta) || (selection && selection_Endcap && selection_Endcap_eta);
+                TCut selection_EB_eta = Form("abs(phoEta_%d) < %f" ,iPho+1 ,bins_eta_lt[1]);
+                TCut selection_EE_eta = Form("abs(phoEta_%d) > %f && abs(phoEta_%d) < %f" ,iPho+1 ,bins_eta_gt[2] ,iPho+1 ,bins_eta_lt[2]);
+
+                selections_EB[iPho] = selections_EB[iPho] && selection_EB_eta;
+                selections_EE[iPho] = selections_EE[iPho] && selection_EE_eta;
+            }
+            if (j == 0) {
+                selections[0] = selections_EB[0] || selections_EE[0];
+                selections[1] = selections_EB[1] || selections_EE[1];
             }
             if (j == 1) // Barrel,  |eta supercluster| <= 1.479
             {
-                selection = selection && selection_Barrel;
-                selection = selection && Form(" abs(phoEta_1) > %f && abs(phoEta_2) > %f", bins_eta_gt[j], bins_eta_gt[j]);
-                selection = selection && Form(" abs(phoEta_1) < %f && abs(phoEta_2) < %f", bins_eta_lt[j], bins_eta_lt[j]);
+                selections[0] = selections_EB[0];
+                selections[1] = selections_EB[1];
             }
-            else  // Endcap,  1.479 < |eta supercluster| < 2.5
+            if ( j>1 )  // Endcap,  1.479 < |eta supercluster| < 2.4
             {
-                selection = selection && selection_Endcap;
-                selection = selection && Form(" abs(phoEta_1) > %f && abs(phoEta_2) > %f", bins_eta_gt[j], bins_eta_gt[j]);
-                selection = selection && Form(" abs(phoEta_1) < %f && abs(phoEta_2) < %f", bins_eta_lt[j], bins_eta_lt[j]);
+                selections[0] = selections_EE[0];
+                selections[1] = selections_EE[1];
             }
+
+            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection =  "";
             selection = selection && Form("phoEt_1 > %d && phoEt_2 > %d", bins_pt[i], bins_pt[i]);
             selection = selection && selection_event;
 
             TCut selection_sameCh = selection && "matched_eleCharge_1 == matched_eleCharge_2";
             selection             = selection && "matched_eleCharge_1 != matched_eleCharge_2";
+            TCut selection_massWindow = selection && massWindow;
 
             // verbose
             std::cout<< "[i][j] = " << i << " , " << j <<std::endl;
@@ -171,6 +201,13 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
             std::cout<< "h1D_pho1pho2_M[i][j]->GetName() = " << h1D_pho1pho2_M[i][j]->GetName() <<std::endl;
             numEntries[i][j] = t_dipho->GetEntries(selection.GetTitle());
             std::cout<< "numEntries[i][j] = " << numEntries[i][j] <<std::endl;
+            numEntriesMassWindow[i][j] = t_dipho->GetEntries(selection_massWindow.GetTitle());
+            std::cout<< "numEntriesMassWindow[i][j] = " << numEntriesMassWindow[i][j] <<std::endl;
+
+            if (doEventWeight > 0) {
+                selection = Form("(%s)*(%s)", eventWeight.c_str(), selection.GetTitle());
+                selection_sameCh = Form("(%s)*(%s)", eventWeight.c_str(), selection_sameCh.GetTitle());
+            }
 
             std::string histoName  = Form("h_%s",histNames_pho1pho2_M[i][j].c_str());
             std::string histoTitle = Form("%s p^{#gamma}_{T} > %d GeV/c, %.2f< |#eta^{#gamma}| <%.1f ",sampleName , bins_pt[i], bins_eta_gt[j], bins_eta_lt[j]);

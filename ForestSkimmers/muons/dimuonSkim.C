@@ -32,11 +32,14 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
        // input configuration
+       int isMC;
        std::string treePath;
        if (configInput.isValid) {
+           isMC = configInput.proc[INPUT::kSKIM].i[INPUT::k_isMC];
            treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
        }
        else {
+           isMC = 0;
            treePath = "ggHiNtuplizer/EventTree";
        }
        // set default values
@@ -44,6 +47,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
 
        // verbose about input configuration
        std::cout<<"Input Configuration :"<<std::endl;
+       std::cout << "isMC = " << isMC << std::endl;
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
@@ -92,6 +96,17 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        treeHiEvt->SetBranchStatus("hiBin",1);
        treeHiEvt->SetBranchStatus("hiHF",1);
        treeHiEvt->SetBranchStatus("hiNevtPlane",1);
+       if (isMC > 0) {
+           treeHiEvt->SetBranchStatus("Npart",1);
+           treeHiEvt->SetBranchStatus("Ncoll",1);
+           treeHiEvt->SetBranchStatus("Nhard",1);
+           treeHiEvt->SetBranchStatus("ProcessID",1);
+           treeHiEvt->SetBranchStatus("pthat",1);
+           treeHiEvt->SetBranchStatus("weight",1);
+           treeHiEvt->SetBranchStatus("alphaQCD",1);
+           treeHiEvt->SetBranchStatus("alphaQED",1);
+           treeHiEvt->SetBranchStatus("qScale",1);
+       }
        
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);

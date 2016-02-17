@@ -20,15 +20,21 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
 
     TFile *input = new TFile(inputFile);
     TTree *tHLT = (TTree*)input->Get("HltTree");
+    TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TTree *t_dimu = (TTree*)input->Get("dimuon");
 
     t_dimu->AddFriend(tHLT,"tHLT");
+    t_dimu->AddFriend(tHiEvt,"HiEvt");
 
     TFile* output = new TFile(outputFile, "UPDATE");
 
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile);
     TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
+    // event cuts/weights
+    int doEventWeight;
+    std::string eventWeight;    // weight to be used for histogram entries
+                                // current purpose of this variable is for weighting events from MC samples.
     std::string str_trigger;
     float muPt;
     float muChi2NDF;
@@ -40,6 +46,9 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
     int muPixelHits;
 
     if (configCuts.isValid) {
+        doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+        eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
+
         str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].s[CUTS::MUO::k_trigger].c_str();
 
         muPt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muPt];
@@ -64,8 +73,16 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
         muTrkLayers = 5;
         muPixelHits = 0;
     }
+    // default values
+    if (eventWeight.size() == 0) eventWeight = "1";
+
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout<<"doEventWeight = "<<doEventWeight<<std::endl;
+    if (doEventWeight > 0) {
+        std::cout<<"eventWeight = "<<eventWeight.c_str()<<std::endl;
+    }
+
     std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
 
     std::cout<<"muPt = "<<muPt<<std::endl;
@@ -86,11 +103,14 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
     const int nBins_eta = 4;
     int bins_pt[nBins_pt] = {10, 20};
     float bins_eta_gt[nBins_eta] = {-1,      -1, 1.4791, 1.4791};    // All ECAL, Barrel, Endcap1, Endcap2
-    float bins_eta_lt[nBins_eta] = {2.4, 1.4791,    2.4, 2};
+    float bins_eta_lt[nBins_eta] = {2.4,      2,    2.4, 2};
 
     std::string histNames_m1m2_M[nBins_pt][nBins_eta];
 
     int numEntries[nBins_pt][nBins_eta];
+    int numEntriesMassWindow[nBins_pt][nBins_eta];      // number of entries within given mass window, e.g. 60-120
+    TCut massWindow = "diMuM >= 60 && diMuM < 120";
+    std::cout << "massWindow = " << massWindow.GetTitle() << std::endl;
 
     TH1::SetDefaultSumw2();
     TH1D* h1D_m1m2_M[nBins_pt][nBins_eta];
@@ -119,9 +139,6 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_eta; ++j){
 
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
-            TCut selection =  "";
-
             TCut selections[2];
             for (int iMu=0; iMu<2; ++iMu) {
                 selections[iMu] = "";
@@ -147,12 +164,16 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
                 selections[1] = selections[1] && Form("abs(muEta_2) > %f", bins_eta_gt[j]);
                 selections[1] = selections[1] && Form("abs(muEta_2) < %f", bins_eta_lt[j]);
             }
+
+            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection =  "";
             selection = selection && selection_event;
             selection = selection && Form("muPt_1 > %d && muPt_2 > %d", bins_pt[i], bins_pt[i]);
             selection = selection && selections[0] && selections[1];
 
             TCut selection_sameCh = selection && "muCharge_1 == muCharge_2";
             selection             = selection && "muCharge_1 != muCharge_2";
+            TCut selection_massWindow = selection && massWindow;
 
             // verbose
             std::cout<< "[i][j] = " << i << " , " << j <<std::endl;
@@ -160,6 +181,13 @@ void dimuonHistogram(const char* configFile, const char* inputFile, const char* 
             std::cout<< "h1D_m1m2_M[i][j]->GetName() = " << h1D_m1m2_M[i][j]->GetName() <<std::endl;
             numEntries[i][j] = t_dimu->GetEntries(selection.GetTitle());
             std::cout<< "numEntries[i][j] = " << numEntries[i][j] <<std::endl;
+            numEntriesMassWindow[i][j] = t_dimu->GetEntries(selection_massWindow.GetTitle());
+            std::cout<< "numEntriesMassWindow[i][j] = " << numEntriesMassWindow[i][j] <<std::endl;
+
+            if (doEventWeight > 0) {
+                selection = Form("(%s)*(%s)", eventWeight.c_str(), selection.GetTitle());
+                selection_sameCh = Form("(%s)*(%s)", eventWeight.c_str(), selection_sameCh.GetTitle());
+            }
 
             std::string histoName  = Form("h_%s",histNames_m1m2_M[i][j].c_str());
             std::string histoTitle = Form("%s p^{#mu#pm}_{T} > %d GeV/c, %.2f< |#eta^{#mu#pm}| <%.1f ",sampleName , bins_pt[i], bins_eta_gt[j], bins_eta_lt[j]);
