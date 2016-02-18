@@ -11,6 +11,7 @@
 #include <TH2D.h>
 #include <TCut.h>
 #include <TCanvas.h>
+#include <TLine.h>
 #include <TLegend.h>
 #include <TMath.h>
 
@@ -60,12 +61,16 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::vector<std::vector<float>> TH2D_Bins_List;      // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     float titleOffsetX;
     float titleOffsetY;
+    float markerSize;
     int drawNormalized;
     std::vector<std::string> drawOptions;
     std::vector<std::string> markerStyles;
     std::vector<std::string> lineStyles;
+    int lineWidth;
     std::vector<std::string> fillStyles;
     std::vector<std::string> colors;
+    std::vector<std::string> fillColors;
+    std::vector<std::string> lineColors;
 
     // input for TLegend
     std::vector<std::string> legendEntryLabels;
@@ -84,6 +89,19 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::string textPosition;
     float textOffsetX;
     float textOffsetY;
+
+    std::vector<std::string> textsOverPad;
+    std::vector<std::string> textsOverPadAlignments;
+    int textAbovePadFont;
+    float textAbovePadSize;
+    float textAbovePadOffsetX;
+    float textAbovePadOffsetY;
+
+    // input for TLine
+    std::vector<float> TLines_horizontal;               // y-axis positions of the horizontal lines to be drawn
+    std::vector<std::string> lineStyles_horizontal;     // styles of the horizontal lines to be drawn
+    std::vector<float> TLines_vertical;                 // x-axis positions of the vertical lines to be drawn
+    std::vector<std::string> lineStyles_vertical;       // styles of the vertical lines to be drawn
 
     // input for TCanvas
     int windowWidth;
@@ -111,12 +129,16 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
         titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+        markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
         drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
         drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
         markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
         lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
         fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
         colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
+        fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
+        lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
+        lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
 
         legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
@@ -134,6 +156,19 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
         textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
         textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
+
+        std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
+        textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
+        textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
+        textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
+        textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
+        textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
+        textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
+
+        TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
+        lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
+        TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
+        lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
 
         windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
         windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
@@ -161,7 +196,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         TH2D_Bins_List[5].push_back(100);    // yUp
         titleOffsetX = 1;
         titleOffsetY = 1;
+        markerSize = 1;
         drawNormalized = 0;
+        lineWidth = 0;
         
         legendEntryLabels.push_back("");
         legendPosition = "";
@@ -194,6 +231,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
     if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
     if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
+    if (lineWidth == 0)  lineWidth = INPUT_DEFAULT::lineWidth;
+
+    if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
 
     if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
     if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
@@ -219,8 +259,17 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     int nLineStyles = lineStyles.size();
     int nFillStyles = fillStyles.size();
     int nColors = colors.size();
+    int nFillColors = fillColors.size();
+    int nLineColors = lineColors.size();
     int nLegendEntryLabels = legendEntryLabels.size();
     int nTextLines = textLines.size();
+    int nTextsOverPad = textsOverPad.size();
+    int nTextsOverPadAlignments = textsOverPadAlignments.size();
+    int nTLines_horizontal = TLines_horizontal.size();
+    int nLineStyles_horizontal = lineStyles_horizontal.size();
+    int nTLines_vertical = TLines_vertical.size();
+    int nLineStyles_vertical = lineStyles_vertical.size();
+
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "treePath = " << treePath.c_str() << std::endl;
@@ -271,6 +320,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     }
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "markerSize = " << markerSize << std::endl;
     std::cout << "drawNormalized = " << drawNormalized << std::endl;
     std::cout << "nDrawOptions   = " << nDrawOptions << std::endl;
     for (int i = 0; i<nDrawOptions; ++i) {
@@ -292,6 +342,15 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nColors; ++i) {
             std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
     }
+    std::cout << "nFillColors = " << nFillColors << std::endl;
+    for (int i = 0; i<nFillColors; ++i) {
+            std::cout << Form("fillColors[%d] = %s", i, fillColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLineColors = " << nLineColors << std::endl;
+    for (int i = 0; i<nLineColors; ++i) {
+            std::cout << Form("lineColors[%d] = %s", i, lineColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "lineWidth = " << lineWidth << std::endl;
 
     std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
     for (int i = 0; i<nLegendEntryLabels; ++i) {
@@ -318,6 +377,42 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << "textPosition = " << textPosition << std::endl;
         std::cout << "textOffsetX  = " << textOffsetX << std::endl;
         std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+    }
+
+    std::cout << "nTextsOverPad = " << nTextsOverPad << std::endl;
+    for (int i = 0; i<nTextsOverPad; ++i) {
+            std::cout << Form("textsOverPad[%d] = %s", i, textsOverPad.at(i).c_str()) << std::endl;
+    }
+    if (nTextsOverPad > 0) {
+        std::cout << "nTextsOverPadAlignments = " << nTextsOverPadAlignments << std::endl;
+        for (int i = 0; i<nTextsOverPadAlignments; ++i) {
+                std::cout << Form("textsOverPadAlignments[%d] = %s", i, textsOverPadAlignments.at(i).c_str()) << std::endl;
+        }
+        std::cout << "textAbovePadFont = " << textAbovePadFont << std::endl;
+        std::cout << "textAbovePadSize = " << textAbovePadSize << std::endl;
+        std::cout << "textAbovePadOffsetX  = " << textAbovePadOffsetX << std::endl;
+        std::cout << "textAbovePadOffsetY  = " << textAbovePadOffsetY << std::endl;
+    }
+
+    std::cout << "nTLines_horizontal = " << nTLines_horizontal << std::endl;
+    for (int i = 0; i<nTLines_horizontal; ++i) {
+            std::cout << Form("TLines_horizontal[%d] = %f", i, TLines_horizontal.at(i)) << std::endl;
+    }
+    if (nTLines_horizontal > 0) {
+        std::cout << "nLineStyles_horizontal = " << nLineStyles_horizontal << std::endl;
+        for (int i = 0; i<nLineStyles_horizontal; ++i) {
+            std::cout << Form("lineStyles_horizontal[%d] = %s", i, lineStyles_horizontal.at(i).c_str()) << std::endl;
+        }
+    }
+    std::cout << "nTLines_vertical = " << nTLines_vertical << std::endl;
+    for (int i = 0; i<nTLines_vertical; ++i) {
+            std::cout << Form("TLines_vertical[%d] = %f", i, TLines_vertical.at(i)) << std::endl;
+    }
+    if (nTLines_vertical > 0) {
+        std::cout << "nLineStyles_vertical = " << nLineStyles_vertical << std::endl;
+        for (int i = 0; i<nLineStyles_vertical; ++i) {
+            std::cout << Form("lineStyles_vertical[%d] = %s", i, lineStyles_vertical.at(i).c_str()) << std::endl;
+        }
     }
 
     std::cout << "windowWidth = " << windowWidth << std::endl;
@@ -378,7 +473,6 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
     TH1::SetDefaultSumw2();
     int nHistos = nFormulasTot;
-    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     if (nFormulasTot == 1 && nSelectionsTot > nFormulas) nHistos = nSelectionsTot;
     else if (nFormulasTot > 1 && nSelectionsTot > 1 && nFormulasTot != nSelectionsTot) {
         std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
@@ -387,6 +481,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << "exiting " << std::endl;
         return;
     }
+    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     std::cout << "nHistos = " << nHistos << std::endl;
     TH2D* h[nHistos];
     for (int i=0; i<nHistos; ++i) {
@@ -586,6 +681,38 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         h_normInt[i]->SetLineColor(color);
         h_normEvents[i]->SetMarkerColor(color);
         h_normEvents[i]->SetLineColor(color);
+
+        int fillColor = -1;
+        if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
+        else if (nFillColors == nHistos) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i));
+        if (fillColor != -1)
+        {
+            h[i]->SetFillColor(fillColor);
+            h_normInt[i]->SetFillColor(fillColor);
+            h_normEvents[i]->SetFillColor(fillColor);
+        }
+
+        int lineColor = -1;
+        if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
+        else if (nLineColors == nHistos) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i));
+        if (nLineColors != -1)
+        {
+            h[i]->SetLineColor(lineColor);
+            h_normInt[i]->SetLineColor(lineColor);
+            h_normEvents[i]->SetLineColor(lineColor);
+        }
+
+        if(lineWidth != INPUT_DEFAULT::lineWidth) {
+            if (drawOption.find("hist") != std::string::npos) {
+                h[i]->SetLineWidth(lineWidth);
+                h_normInt[i]->SetLineWidth(lineWidth);
+                h_normEvents[i]->SetLineWidth(lineWidth);
+            }
+        }
+
+        h[i]->SetMarkerSize(markerSize);
+        h_normInt[i]->SetMarkerSize(markerSize);
+        h_normEvents[i]->SetMarkerSize(markerSize);
     }
 
     // save histograms as picture if a figure name is provided.
@@ -625,7 +752,6 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
                 if (label.compare(CONFIGPARSER::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
             }
 
-
             if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
             leg->SetBorderSize(legendBorderSize);
             double height = calcTLegendHeight(leg);
@@ -650,6 +776,59 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
                     float y = textCoordinates.at(i).second;
                     latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
                 }
+            }
+            
+            // add Text above the pad
+            TLatex* latexOverPad;
+            if (nTextsOverPad > 0) {
+                latexOverPad = new TLatex();
+                latexOverPad->SetTextFont(textAbovePadFont);
+                latexOverPad->SetTextSize(textAbovePadSize);
+                for (int i = 0; i < nTextsOverPad; ++i) {
+                    int textOverPadAlignment = GRAPHICS::textAlign;
+                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
+
+                    latexOverPad->SetTextAlign(textOverPadAlignment);
+                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+
+                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                }
+            }
+            
+            // add TLine
+            TLine* line_horizontal[nTLines_horizontal];
+            for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
+                // draw horizontal line
+                double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
+                double xmax = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetLast()+1);
+
+                int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+                if (nLineStyles_horizontal == 1)
+                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+                else if (nLineStyles_horizontal == nTLines_horizontal)
+                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
+
+                line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
+                line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line_horizontal[iLine]->Draw();
+            }
+            // add TLine
+            TLine* line_vertical[nTLines_vertical];
+            for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
+                // draw vertical line
+                double ymin = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetFirst());
+                double ymax = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetLast()+1);
+
+                int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+                if (nLineStyles_vertical == 1)
+                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+                else if (nLineStyles_vertical == nTLines_vertical)
+                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
+
+                line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
+                line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line_vertical[iLine]->Draw();
             }
 
             // saving histogram

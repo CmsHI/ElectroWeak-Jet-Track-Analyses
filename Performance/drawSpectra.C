@@ -10,6 +10,7 @@
 #include <TH1D.h>
 #include <TCut.h>
 #include <TCanvas.h>
+#include <TLine.h>
 #include <TLegend.h>
 #include <TLatex.h>
 #include <TMath.h>
@@ -62,13 +63,17 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     float titleOffsetY;
     float yMin;
     float yMax;
+    float markerSize;
     int drawSame;
     int drawNormalized;
     std::vector<std::string> drawOptions;
     std::vector<std::string> markerStyles;
     std::vector<std::string> lineStyles;
+    int lineWidth;
     std::vector<std::string> fillStyles;
     std::vector<std::string> colors;
+    std::vector<std::string> fillColors;
+    std::vector<std::string> lineColors;
 
     // input for TLegend
     std::vector<std::string> legendEntryLabels;
@@ -87,6 +92,19 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::string textPosition;
     float textOffsetX;
     float textOffsetY;
+
+    std::vector<std::string> textsOverPad;
+    std::vector<std::string> textsOverPadAlignments;
+    int textAbovePadFont;
+    float textAbovePadSize;
+    float textAbovePadOffsetX;
+    float textAbovePadOffsetY;
+
+    // input for TLine
+    std::vector<float> TLines_horizontal;               // y-axis positions of the horizontal lines to be drawn
+    std::vector<std::string> lineStyles_horizontal;     // styles of the horizontal lines to be drawn
+    std::vector<float> TLines_vertical;                 // x-axis positions of the vertical lines to be drawn
+    std::vector<std::string> lineStyles_vertical;       // styles of the vertical lines to be drawn
 
     // input for TCanvas
     int windowWidth;
@@ -115,6 +133,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
         yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
         yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
+        markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
         drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
         drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
         drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
@@ -122,6 +141,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
         fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
         colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
+        fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
+        lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
+        lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
 
         legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
         legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
@@ -139,6 +161,19 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
         textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
         textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
+
+        std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
+        textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
+        textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
+        textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
+        textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
+        textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
+        textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
+
+        TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
+        lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
+        TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
+        lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
 
         windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
         windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
@@ -164,8 +199,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         titleOffsetY = 1;
         yMin = 0;
         yMax = -1;
+        markerSize = 1;
         drawSame = 0;
         drawNormalized = 0;
+        lineWidth = 0;
         
         legendEntryLabels.push_back("");
         legendPosition = "";
@@ -199,6 +236,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (yMin == 0 && yMax == 0)  yMax = -1;
     else if (yMin <= 0 && setLogy > 0)  yMin = resetTH1axisMin4LogScale(yMin, "y");
     if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
+    if (lineWidth == 0)  lineWidth = INPUT_DEFAULT::lineWidth;
+
+    if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
 
     if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
     if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
@@ -224,8 +264,17 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     int nLineStyles = lineStyles.size();
     int nFillStyles = fillStyles.size();
     int nColors = colors.size();
+    int nFillColors = fillColors.size();
+    int nLineColors = lineColors.size();
     int nLegendEntryLabels = legendEntryLabels.size();
     int nTextLines = textLines.size();
+    int nTextsOverPad = textsOverPad.size();
+    int nTextsOverPadAlignments = textsOverPadAlignments.size();
+    int nTLines_horizontal = TLines_horizontal.size();
+    int nLineStyles_horizontal = lineStyles_horizontal.size();
+    int nTLines_vertical = TLines_vertical.size();
+    int nLineStyles_vertical = lineStyles_vertical.size();
+
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "treePath = " << treePath.c_str() << std::endl;
@@ -274,6 +323,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
     std::cout << "yMin = " << yMin << std::endl;
     std::cout << "yMax = " << yMax << std::endl;
+    std::cout << "markerSize = " << markerSize << std::endl;
     std::cout << "drawSame = " << drawSame << std::endl;
     std::cout << "drawNormalized = " << drawNormalized << std::endl;
     std::cout << "nDrawOptions   = " << nDrawOptions << std::endl;
@@ -296,6 +346,15 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     for (int i = 0; i<nColors; ++i) {
             std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
     }
+    std::cout << "nFillColors = " << nFillColors << std::endl;
+    for (int i = 0; i<nFillColors; ++i) {
+            std::cout << Form("fillColors[%d] = %s", i, fillColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLineColors = " << nLineColors << std::endl;
+    for (int i = 0; i<nLineColors; ++i) {
+            std::cout << Form("lineColors[%d] = %s", i, lineColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "lineWidth = " << lineWidth << std::endl;
 
     std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
     for (int i = 0; i<nLegendEntryLabels; ++i) {
@@ -322,6 +381,42 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         std::cout << "textPosition = " << textPosition << std::endl;
         std::cout << "textOffsetX  = " << textOffsetX << std::endl;
         std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+    }
+
+    std::cout << "nTextsOverPad = " << nTextsOverPad << std::endl;
+    for (int i = 0; i<nTextsOverPad; ++i) {
+            std::cout << Form("textsOverPad[%d] = %s", i, textsOverPad.at(i).c_str()) << std::endl;
+    }
+    if (nTextsOverPad > 0) {
+        std::cout << "nTextsOverPadAlignments = " << nTextsOverPadAlignments << std::endl;
+        for (int i = 0; i<nTextsOverPadAlignments; ++i) {
+                std::cout << Form("textsOverPadAlignments[%d] = %s", i, textsOverPadAlignments.at(i).c_str()) << std::endl;
+        }
+        std::cout << "textAbovePadFont = " << textAbovePadFont << std::endl;
+        std::cout << "textAbovePadSize = " << textAbovePadSize << std::endl;
+        std::cout << "textAbovePadOffsetX  = " << textAbovePadOffsetX << std::endl;
+        std::cout << "textAbovePadOffsetY  = " << textAbovePadOffsetY << std::endl;
+    }
+
+    std::cout << "nTLines_horizontal = " << nTLines_horizontal << std::endl;
+    for (int i = 0; i<nTLines_horizontal; ++i) {
+            std::cout << Form("TLines_horizontal[%d] = %f", i, TLines_horizontal.at(i)) << std::endl;
+    }
+    if (nTLines_horizontal > 0) {
+        std::cout << "nLineStyles_horizontal = " << nLineStyles_horizontal << std::endl;
+        for (int i = 0; i<nLineStyles_horizontal; ++i) {
+            std::cout << Form("lineStyles_horizontal[%d] = %s", i, lineStyles_horizontal.at(i).c_str()) << std::endl;
+        }
+    }
+    std::cout << "nTLines_vertical = " << nTLines_vertical << std::endl;
+    for (int i = 0; i<nTLines_vertical; ++i) {
+            std::cout << Form("TLines_vertical[%d] = %f", i, TLines_vertical.at(i)) << std::endl;
+    }
+    if (nTLines_vertical > 0) {
+        std::cout << "nLineStyles_vertical = " << nLineStyles_vertical << std::endl;
+        for (int i = 0; i<nLineStyles_vertical; ++i) {
+            std::cout << Form("lineStyles_vertical[%d] = %s", i, lineStyles_vertical.at(i).c_str()) << std::endl;
+        }
     }
 
     std::cout << "windowWidth = " << windowWidth << std::endl;
@@ -381,7 +476,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     TH1::SetDefaultSumw2();
     int nHistos = nFormulasTot;
-    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     if (nFormulasTot == 1 && nSelectionsTot > nFormulas) nHistos = nSelectionsTot;
     else if (nFormulasTot > 1 && nSelectionsTot > 1 && nFormulasTot != nSelectionsTot) {
         std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
@@ -390,6 +484,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         std::cout << "exiting " << std::endl;
         return;
     }
+    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     std::cout << "nHistos = " << nHistos << std::endl;
     TH1D* h[nHistos];
     for (int i=0; i<nHistos; ++i) {
@@ -594,6 +689,38 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         h_normInt[i]->SetLineColor(color);
         h_normEvents[i]->SetMarkerColor(color);
         h_normEvents[i]->SetLineColor(color);
+
+        int fillColor = -1;
+        if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
+        else if (nFillColors == nHistos) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i));
+        if (fillColor != -1)
+        {
+            h[i]->SetFillColor(fillColor);
+            h_normInt[i]->SetFillColor(fillColor);
+            h_normEvents[i]->SetFillColor(fillColor);
+        }
+
+        int lineColor = -1;
+        if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
+        else if (nLineColors == nHistos) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i));
+        if (nLineColors != -1)
+        {
+            h[i]->SetLineColor(lineColor);
+            h_normInt[i]->SetLineColor(lineColor);
+            h_normEvents[i]->SetLineColor(lineColor);
+        }
+
+        if(lineWidth != INPUT_DEFAULT::lineWidth) {
+            if (drawOption.find("hist") != std::string::npos) {
+                h[i]->SetLineWidth(lineWidth);
+                h_normInt[i]->SetLineWidth(lineWidth);
+                h_normEvents[i]->SetLineWidth(lineWidth);
+            }
+        }
+
+        h[i]->SetMarkerSize(markerSize);
+        h_normInt[i]->SetMarkerSize(markerSize);
+        h_normEvents[i]->SetMarkerSize(markerSize);
     }
 
     // save histograms as picture if a figure name is provided.
@@ -639,6 +766,59 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                         float y = textCoordinates.at(i).second;
                         latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
                     }
+                }
+
+                // add Text above the pad
+                TLatex* latexOverPad;
+                if (nTextsOverPad > 0) {
+                    latexOverPad = new TLatex();
+                    latexOverPad->SetTextFont(textAbovePadFont);
+                    latexOverPad->SetTextSize(textAbovePadSize);
+                    for (int i = 0; i < nTextsOverPad; ++i) {
+                        int textOverPadAlignment = GRAPHICS::textAlign;
+                        if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+                        else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
+
+                        latexOverPad->SetTextAlign(textOverPadAlignment);
+                        setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+
+                        latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                    }
+                }
+
+                // add TLine
+                TLine* line_horizontal[nTLines_horizontal];
+                for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
+                    // draw horizontal line
+                    double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
+                    double xmax = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetLast()+1);
+
+                    int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+                    if (nLineStyles_horizontal == 1)
+                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+                    else if (nLineStyles_horizontal == nTLines_horizontal)
+                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
+
+                    line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
+                    line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_horizontal[iLine]->Draw();
+                }
+                // add TLine
+                TLine* line_vertical[nTLines_vertical];
+                for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
+                    // draw vertical line
+                    double ymin = h[i]->GetMinimum();
+                    double ymax = h[i]->GetMaximum();
+
+                    int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+                    if (nLineStyles_vertical == 1)
+                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+                    else if (nLineStyles_vertical == nTLines_vertical)
+                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
+
+                    line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
+                    line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_vertical[iLine]->Draw();
                 }
 
                 // saving histogram
@@ -726,6 +906,63 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                     float x = textCoordinates.at(i).first;
                     float y = textCoordinates.at(i).second;
                     latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+                }
+            }
+
+            // add Text above the pad
+            TLatex* latexOverPad;
+            if (nTextsOverPad > 0) {
+                latexOverPad = new TLatex();
+                latexOverPad->SetTextFont(textAbovePadFont);
+                latexOverPad->SetTextSize(textAbovePadSize);
+                for (int i = 0; i < nTextsOverPad; ++i) {
+                    int textOverPadAlignment = GRAPHICS::textAlign;
+                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
+
+                    latexOverPad->SetTextAlign(textOverPadAlignment);
+                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+
+                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                }
+            }
+
+            // add TLine
+            TLine* line_horizontal[nTLines_horizontal];
+            for (int i = 0; i<nTLines_horizontal; ++i) {
+                if (nHistos > 0) {
+                    // draw horizontal line
+                    double xmin = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetFirst());
+                    double xmax = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetLast()+1);
+
+                    int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+                    if (nLineStyles_horizontal == 1)
+                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+                    else if (nLineStyles_horizontal == nTLines_horizontal)
+                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
+
+                    line_horizontal[i] = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
+                    line_horizontal[i]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_horizontal[i]->Draw();
+                }
+            }
+            // add TLine
+            TLine* line_vertical[nTLines_vertical];
+            for (int i = 0; i<nTLines_vertical; ++i) {
+                if (nHistos > 0) {
+                    // draw vertical line
+                    double ymin = h[0]->GetMinimum();
+                    double ymax = h[0]->GetMaximum();
+
+                    int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+                    if (nLineStyles_vertical == 1)
+                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+                    else if (nLineStyles_vertical == nTLines_vertical)
+                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
+
+                    line_vertical[i] = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
+                    line_vertical[i]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_vertical[i]->Draw();
                 }
             }
 
