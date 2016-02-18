@@ -136,6 +136,8 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
 };
 
 enum TYPE_S{
+    k_treePath,
+    k_treeFriendPath,
     k_treeFormula,
     k_treeSelection,
     k_treeSelectionBase,        // selection that is applied/valid for all observables
@@ -155,8 +157,6 @@ enum TYPE_S{
     k_TF1,                  // formula, xMin and xMax for a TF1 function
     k_fitOption,
     k_fitColor,
-    k_treePath,
-    k_treeFriends_List,
     k_legendPosition,       // one of NW, NE, SW, SE
     k_legendEntryLabel,
     k_color,
@@ -177,6 +177,8 @@ enum TYPE_S{
 };
 
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
+        "treePath",
+        "treeFriendPath",
         "treeFormula",
         "treeSelection",
         "treeSelectionBase",
@@ -196,8 +198,6 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TF1",
         "fitOption",
         "fitColor",
-        "treePath",
-        "treeFriends_List",
         "legendPosition",
         "legendEntryLabel",
         "color",

@@ -40,7 +40,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
         selection = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection];
 
         treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
+        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
     }
     else {
         formula = "";

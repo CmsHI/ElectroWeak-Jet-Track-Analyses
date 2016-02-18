@@ -46,7 +46,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
      *      4. else, exit.
      */
     // input for TTree
-    std::string treePath;
+    std::vector<std::string> treePaths;
     std::vector<std::string> treeFriendsPath;
     std::vector<std::string> formulas;
     std::string selectionBase;
@@ -117,8 +117,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     int setLogy;
 
     if (configInput.isValid) {
-        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriends_List]);
+        treePaths  = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
+        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
@@ -185,7 +185,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
     }
     else {
-        treePath = "";
+        treePaths.push_back("dummyTREE");
         formulas.push_back("Entry$");
         selectionBase = "";
         selections.push_back("1 == 1");
@@ -250,6 +250,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
+    int nTrees = treePaths.size();
     int nFriends = treeFriendsPath.size();
     int nFormulas = formulas.size();
     int nSelections = selections.size();
@@ -277,10 +278,13 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
-    std::cout << "treePath = " << treePath.c_str() << std::endl;
+    std::cout << "nTrees = " << nTrees << std::endl;
+    for (int i=0; i<nTrees; ++i) {
+        std::cout << Form("treePaths[%d] = %s", i, treePaths.at(i).c_str()) << std::endl;
+    }
     std::cout << "nFriends = " << nFriends << std::endl;
     for (int i=0; i<nFriends; ++i) {
-        std::cout << Form("treeFriends[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
+        std::cout << Form("treeFriendsPath[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
     }
     std::cout << "nFormulas     = " << nFormulas << std::endl;
     for (int i=0; i<nFormulas; ++i) {
@@ -447,18 +451,31 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* tree = new TChain(treePath.c_str());
+    TChain* trees[nTrees];
     TChain* treeFriends[nFriends];
+    for (int i=0; i < nTrees; ++i) {
+        std::string treePath = treePaths.at(i).c_str();
+        trees[i] = new TChain(treePath.c_str());
+    }
+    // initialize friend trees
     for (int i=0; i<nFriends; ++i) {
         treeFriends[i] = new TChain(treeFriendsPath.at(i).c_str());
-        tree->AddFriend(treeFriends[i], Form("t%d", i));
+    }
+    // add friends
+    for (int i=0; i<nTrees; ++i) {
+        for (int j=0; j<nFriends; ++j) {
+            trees[i]->AddFriend(treeFriends[j], Form("t%d", j));
+        }
     }
 
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-       tree->Add((*it).c_str());
-       for (int i=0; i<nFriends; ++i) {
-           treeFriends[i]->Add((*it).c_str());
-       }
+
+        for (int i=0; i<nTrees; ++i) {
+            trees[i]->Add((*it).c_str());
+            for (int j=0; j<nFriends; ++j) {
+                treeFriends[j]->Add((*it).c_str());
+            }
+        }
     }
 
     if (nSelectionSplitter == 1) {
@@ -476,11 +493,27 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     TH1::SetDefaultSumw2();
     int nHistos = nFormulasTot;
-    if (nFormulasTot == 1 && nSelectionsTot > nFormulas) nHistos = nSelectionsTot;
-    else if (nFormulasTot > 1 && nSelectionsTot > 1 && nFormulasTot != nSelectionsTot) {
+    if (nFormulas == 1 && nSelections > nFormulas) nHistos = nSelectionsTot;
+    else if (nFormulas == 1 && nSelections == 1 && nTrees > nFormulas) nHistos = nTrees * nSplits;
+    else if (nFormulas > 1 && nSelections > 1 && nFormulas != nSelections) {
         std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
         std::cout << "nHistos     = "<< nHistos << std::endl;
         std::cout << "nSelections = "<< nSelections << std::endl;
+        std::cout << "exiting " << std::endl;
+        return;
+    }
+    else if (nFormulas > 1 && nTrees > 1 && nFormulas != nTrees) {
+        std::cout << "mismatch of number of formulas and number of trees"<< std::endl;
+        std::cout << "nHistos = "<< nHistos << std::endl;
+        std::cout << "nTrees  = "<< nTrees << std::endl;
+        std::cout << "exiting " << std::endl;
+        return;
+    }
+    else if (nSelections > 1 && nTrees > 1 && nSelections != nTrees) {
+        std::cout << "mismatch of number of selections and number of trees"<< std::endl;
+        std::cout << "nHistos     = "<< nHistos << std::endl;
+        std::cout << "nSelections = "<< nSelections << std::endl;
+        std::cout << "nTrees      = "<< nTrees << std::endl;
         std::cout << "exiting " << std::endl;
         return;
     }
@@ -499,25 +532,32 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         std::string title = "";
         if (nTitles == 1) title = titles.at(0).c_str();
         else if (nTitles == nHistosInput) title = titles.at(i%nTitles).c_str();
+        else if (nTitles == nHistos)      title = titles.at(i).c_str();
 
         std::string titleX = "";
         if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
         else if (nTitlesX == nHistosInput) titleX = titlesX.at(i%nTitlesX).c_str();
+        else if (nTitlesX == nHistos)      titleX = titlesX.at(i).c_str();
 
         std::string titleY = "";
         if (nTitlesY == 1) titleY = titlesY.at(0).c_str();
         else if (nTitlesY == nHistosInput) titleY = titlesY.at(i%nTitlesY).c_str();
+        else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
 
         h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
 
         if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
     }
 
-    Long64_t entries = tree->GetEntries();
+    Long64_t entries = trees[0]->GetEntries();      // assume all the trees have same number of entries
     Long64_t entriesSelected[nHistos];
     std::cout << "entries = " << entries << std::endl;
-    std::cout << "TTree::Draw() : " << treePath.c_str() <<std::endl;
+    std::cout << "TTree::Draw()" <<std::endl;
     for (int i=0; i<nHistos; ++i) {
+
+        int treeIndex = 0;
+        if (nHistosInput == nTrees)  treeIndex = i%nTrees;
+        std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
         std::string formula = formulas.at(0).c_str();
         std::string selection = selections.at(0).c_str();
@@ -534,13 +574,13 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         TCut selectionFinal = selectionBase.c_str();
         selectionFinal = selectionFinal && selection.c_str();
         if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
-        entriesSelected[i] = tree->GetEntries(selectionFinal.GetTitle());
+        entriesSelected[i] = trees[treeIndex]->GetEntries(selectionFinal.GetTitle());
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
 
         TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
-        tree->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
+        trees[treeIndex]->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
     }
-    std::cout <<  "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
+    std::cout << "TTree::Draw() ENDED" <<std::endl;
     std::cout << "entries = " << entries << std::endl;
 
     // print info about histograms
