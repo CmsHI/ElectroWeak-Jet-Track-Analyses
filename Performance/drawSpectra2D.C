@@ -45,6 +45,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
      *      3. If N = # formulas and 1 = # selections, then N histograms will be drawn with the same selection.
      *      4. else, exit.
      */
+    // input for mode
+    int mode;
+
     // input for TTree
     std::vector<std::string> treePaths;
     std::vector<std::string> treeFriendsPath;
@@ -53,7 +56,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> selections;
     std::vector<std::string> selectionSplitter;
     std::vector<std::string> weights;
-    
+
     // input for TH1
     std::vector<std::string>  titles;
     std::vector<std::string>  titlesX;
@@ -115,7 +118,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     int setLogz;
     
     if (configInput.isValid) {
-        treePaths  = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
+        mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
+
+        treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
         treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
@@ -181,6 +186,8 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         setLogz = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogz];
     }
     else {
+        mode = 0;
+
         treePaths.push_back("dummyTREE");
         formulas.push_back("Entry$");
         selectionBase = "";
@@ -273,6 +280,14 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "mode = " << mode << std::endl;
+    if (mode == INPUT_MODE::k_comparison) {
+        // in comparison mode "inputFile" should have the following format
+        // inputFile = <inputFile1>,<inputFile2>,...
+        // there should be no single space between <inputFile1> and <inputFile2>.
+        // the idea is to feed the input samples as a single argument and split them in the macro.
+        std::cout << "comparison mode : Spectra from two input samples are going to be compared." << std::endl;
+    }
     std::cout << "nTrees = " << nTrees << std::endl;
     for (int i=0; i<nTrees; ++i) {
         std::cout << Form("treePaths[%d] = %s", i, treePaths.at(i).c_str()) << std::endl;
@@ -439,38 +454,72 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+    std::cout<<"Input handling :"<< std::endl;
 
-    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
+    std::vector<std::string> inputFileArguments = InputConfigurationParser::ParseFileArgument(inputFile.Data());
+    int nInputFileArguments = inputFileArguments.size();
+    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
+    std::cout<<"nInputFileArguments (number of input file arguments) = "<< nInputFileArguments << std::endl;
+    for (int i = 0; i < nInputFileArguments; ++i) {
+        std::cout << Form("inputFileArguments[%d] = %s", i, inputFileArguments.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<std::vector<std::string>> inputFiles(nInputFileArguments);
     std::cout<<"#####"<< std::endl;
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        std::cout<<(*it).c_str()<< std::endl;
+    for (int i = 0; i < nInputFileArguments; ++i) {
+
+        if (nInputFileArguments > 1) {
+            std::cout<<"###"<< std::endl;
+            std::cout<<"inputFileArgument = " << inputFileArguments.at(i).c_str() << std::endl;
+        }
+
+        inputFiles[i] = InputConfigurationParser::ParseFiles(inputFileArguments.at(i));
+        std::cout<<"input ROOT files : num = " << inputFiles[i].size() << std::endl;
+        for (std::vector<std::string>::iterator it = inputFiles[i].begin() ; it != inputFiles[i].end(); ++it) {
+            std::cout<<(*it).c_str()<< std::endl;
+        }
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* trees[nTrees];
-    TChain* treeFriends[nFriends];
-    for (int i=0; i < nTrees; ++i) {
-        std::string treePath = treePaths.at(i).c_str();
-        trees[i] = new TChain(treePath.c_str());
+    // check consistency of the input file arguments with the mode
+    if (mode == INPUT_MODE::k_noMode && nInputFileArguments > 1) {
+        std::cout<<"no specific mode is chosen. more than one input samples are provided."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
     }
-    // initialize friend trees
-    for (int i=0; i<nFriends; ++i) {
-        treeFriends[i] = new TChain(treeFriendsPath.at(i).c_str());
+    if (mode == INPUT_MODE::k_comparison && nInputFileArguments == 1) {
+        std::cout<<"comparison mode is chosen. But only one input sample is provided."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
     }
-    // add friends
-    for (int i=0; i<nTrees; ++i) {
-        for (int j=0; j<nFriends; ++j) {
-            trees[i]->AddFriend(treeFriends[j], Form("t%d", j));
+
+    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
+    // so in that case : 1.) the "TChain*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
+    TChain* trees[nTrees][nInputFileArguments];
+    TChain* treeFriends[nFriends][nInputFileArguments];
+    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
+        for (int i=0; i < nTrees; ++i) {
+            std::string treePath = treePaths.at(i).c_str();
+            trees[i][iInFileArg] = new TChain(treePath.c_str());
         }
-    }
-
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-
+        // initialize friend trees
+        for (int i=0; i<nFriends; ++i) {
+            treeFriends[i][iInFileArg] = new TChain(treeFriendsPath.at(i).c_str());
+        }
+        // add friends
         for (int i=0; i<nTrees; ++i) {
-            trees[i]->Add((*it).c_str());
             for (int j=0; j<nFriends; ++j) {
-                treeFriends[j]->Add((*it).c_str());
+                trees[i][iInFileArg]->AddFriend(treeFriends[j][iInFileArg], Form("t%d", j));
+            }
+        }
+
+        for (std::vector<std::string>::iterator it = inputFiles[iInFileArg].begin() ; it != inputFiles[iInFileArg].end(); ++it) {
+
+            for (int i=0; i<nTrees; ++i) {
+                trees[i][iInFileArg]->Add((*it).c_str());
+                for (int j=0; j<nFriends; ++j) {
+                    treeFriends[j][iInFileArg]->Add((*it).c_str());
+                }
             }
         }
     }
@@ -549,16 +598,30 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
         h[i] = new TH2D(Form("h2D_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBinsx, xLow, xUp, nBinsy, yLow, yUp);
     }
-
-    Long64_t entries = trees[0]->GetEntries();      // assume all the trees have same number of entries
+    Long64_t entries[nInputFileArguments];
     Long64_t entriesSelected[nHistos];
-    std::cout << "entries = " << entries << std::endl;
+    for (int i = 0; i < nInputFileArguments; ++i) {
+        entries[i] = trees[0][i]->GetEntries();      // assume all the trees have same number of entries
+
+        if (nInputFileArguments == 1)  {
+            std::cout << "entries = " << entries[0] << std::endl;
+        }
+        else {
+            std::cout << Form("entries[%d] = ", i) << entries[i] << std::endl;
+        }
+    }
     std::cout << "TTree::Draw()" <<std::endl;
     for (int i=0; i<nHistos; ++i) {
 
         int treeIndex = 0;
         if (nHistosInput == nTrees)  treeIndex = i%nTrees;
         std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
+
+        int iInFileArg = 0;
+        if (mode == INPUT_MODE::k_comparison) {
+            iInFileArg = i%nInputFileArguments;
+            std::cout << "iInFileArg = " << iInFileArg << ", ";
+        }
 
         std::string formula = formulas.at(0).c_str();
         std::string selection = selections.at(0).c_str();
@@ -575,14 +638,13 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         TCut selectionFinal = selectionBase.c_str();
         selectionFinal = selectionFinal && selection.c_str();
         if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
-        entriesSelected[i] = trees[treeIndex]->GetEntries(selectionFinal.GetTitle());
+        entriesSelected[i] = trees[treeIndex][iInFileArg]->GetEntries(selectionFinal.GetTitle());
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
 
         TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
-        trees[treeIndex]->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
+        trees[treeIndex][iInFileArg]->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
     }
     std::cout << "TTree::Draw() ENDED" <<std::endl;
-    std::cout << "entries = " << entries << std::endl;
 
     // print info about histograms
     for (int i=0; i<nHistos; ++i) {
@@ -724,7 +786,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
         int fillColor = -1;
         if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
-        else if (nFillColors == nHistos) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i));
+        else if (nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
         if (fillColor != -1)
         {
             h[i]->SetFillColor(fillColor);
@@ -734,7 +796,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
         int lineColor = -1;
         if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
-        else if (nLineColors == nHistos) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i));
+        else if (nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
         if (nLineColors != -1)
         {
             h[i]->SetLineColor(lineColor);

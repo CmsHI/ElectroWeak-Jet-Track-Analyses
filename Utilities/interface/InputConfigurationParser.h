@@ -38,6 +38,7 @@ enum TYPE_I{
     k_doPA,
     k_doPAMC,
     k_isMC,
+    k_mode,
     k_drawSame,
     k_drawNormalized,
     k_drawRatio,
@@ -64,6 +65,7 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "doPA",
         "doPAMC",
         "isMC",
+        "mode",             // working behavior of the whole macro
         "drawSame",
         "drawNormalized",
         "drawRatio",        // ratio histograms will be drawn if drawRatio > 0
@@ -240,7 +242,17 @@ enum TYPE_NORM{
   k_noNorm,         // no normalization, just a place holder
   k_normInt,        // normalization by the total number of entries, histogram integral will be 1.
   k_normEvents,     // normalization by the number of events
-  kN_TYPE_NORM // must come last in enum
+  kN_TYPE_NORM      // must come last in enum
+};
+
+};
+
+namespace INPUT_MODE {
+
+enum TYPE_MODE{
+  k_noMode,         // no mode, just a place holder
+  k_comparison,     // normalization by the total number of entries, histogram integral will be 1.
+  kN_TYPE_MODE      // must come last in enum
 };
 
 };
@@ -290,6 +302,7 @@ public:
     static bool isConfigurationFile(TString fileName);
     static bool isConfigurationFile(std::string fileName);
     static std::vector<std::string> ParseFiles(std::string fileName);
+    static std::vector<std::string> ParseFileArgument(std::string fileArgument);
     static void copyConfiguration(InputConfiguration& config, InputConfiguration configCopy);
     static InputConfiguration Parse(std::string inFile);
 };
@@ -329,7 +342,6 @@ bool InputConfigurationParser::isConfigurationFile(std::string fileName)
 
 std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileName)
 {
-
     std::vector<std::string> fileNames;
 
     if (isROOTfile(fileName)) {
@@ -384,6 +396,13 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
     }
 
     return fileNames;
+}
+
+std::vector<std::string> InputConfigurationParser::ParseFileArgument(std::string fileArgument)
+{
+    std::vector<std::string> fileArguments = ParseListWithoutBracket(fileArgument);
+
+    return fileArguments;
 }
 
 /*
