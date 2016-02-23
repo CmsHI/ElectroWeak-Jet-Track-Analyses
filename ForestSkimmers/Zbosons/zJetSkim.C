@@ -50,7 +50,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int cut_pPAprimaryVertexFilter;
        int cut_pBeamScrapingFilter;
 
-       std::string jetCollection;
+       std::vector<std::string> jetCollections;
        // electron cuts
        int cut_nEle;
        float elePt;
@@ -87,7 +87,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
            cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
            
-           jetCollection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection].c_str();
+           jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            elePt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
@@ -124,8 +124,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pcollisionEventSelection = 1;
            cut_pPAprimaryVertexFilter = 1;
            cut_pBeamScrapingFilter = 1;
-           
-           jetCollection = "ak4PFJetAnalyzer";
 
            cut_nEle = 2;
            elePt = 0;
@@ -159,6 +157,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            nVertexBins = 0;
            nEventsToMix = 0;
        }
+       int nJetCollections = jetCollections.size();
 
        if(minBiasJetSkimFile.EqualTo("")) {
            std::cout<<"no minBiasJetSkimFile was provided."<<std::endl;
@@ -180,7 +179,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            std::cout<<"cut_pBeamScrapingFilter = "<< cut_pBeamScrapingFilter <<std::endl;
        }
        
-       std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
+       std::cout<<"nJetCollections = "<< nJetCollections <<std::endl;
+       for (int i=0; i<nJetCollections; ++i) {
+           std::cout << Form("jetCollections[%d] = %s", i, jetCollections.at(i).c_str()) << std::endl;
+       }
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
@@ -238,7 +240,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeEvent = new TChain("ggHiNtuplizer/EventTree");
-       TChain* treeJet   = new TChain(Form("%s/t", jetCollection.c_str()));
+       TChain* treeJet[nJetCollections];
+       for (int i=0; i<nJetCollections; ++i) {
+           treeJet[i] = new TChain(Form("%s/t", jetCollections.at(i).c_str()));
+       }
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
 
@@ -246,7 +251,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
           treeHLT->Add((*it).c_str());
           treeggHiNtuplizer->Add((*it).c_str());
           treeEvent->Add((*it).c_str());
-          treeJet->Add((*it).c_str());
+          for (int i=0; i<nJetCollections; ++i) {
+              treeJet[i]->Add((*it).c_str());
+          }
           treeSkim->Add((*it).c_str());
           treeHiEvt->Add((*it).c_str());
        }
@@ -261,37 +268,39 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeEvent->SetBranchStatus("event",1);
        treeEvent->SetBranchStatus("lumis",1);
 
-       treeJet->SetBranchStatus("*",0);        // disable all branches
-       treeJet->SetBranchStatus("nref",1);     // enable jet branches
-       treeJet->SetBranchStatus("rawpt",1);    // enable jet branches
-       treeJet->SetBranchStatus("jtpt",1);     // enable jet branches
-       treeJet->SetBranchStatus("jteta",1);     // enable jet branches
-       treeJet->SetBranchStatus("jtphi",1);     // enable jet branches
-       treeJet->SetBranchStatus("track*",1);
-       treeJet->SetBranchStatus("charged*",1);
-       treeJet->SetBranchStatus("photon*",1);
-       treeJet->SetBranchStatus("neutral*",1);
-       treeJet->SetBranchStatus("eMax*",1);
-       treeJet->SetBranchStatus("eSum*",1);
-       treeJet->SetBranchStatus("eN*",1);
-       treeJet->SetBranchStatus("muMax*",1);
-       treeJet->SetBranchStatus("muSum*",1);
-       treeJet->SetBranchStatus("muN*",1);
-       if (isMC) {
-           treeJet->SetBranchStatus("matchedPt",1);
-           treeJet->SetBranchStatus("matchedR",1);
-           treeJet->SetBranchStatus("beamId1",1);
-           treeJet->SetBranchStatus("beamId2",1);
-           treeJet->SetBranchStatus("pthat",1);
-           treeJet->SetBranchStatus("ngen",1);
-           treeJet->SetBranchStatus("gen*",1);
-           treeJet->SetBranchStatus("signalChargedSum",1);
-           treeJet->SetBranchStatus("signalHardSum",1);
-           treeJet->SetBranchStatus("subid",1);
-           treeJet->SetBranchStatus("smpt",1);
-           treeJet->SetBranchStatus("fr01Chg",1);
-           treeJet->SetBranchStatus("fr01EM",1);
-           treeJet->SetBranchStatus("fr01",1);
+       for (int i=0; i<nJetCollections; ++i) {
+           treeJet[i]->SetBranchStatus("*",0);        // disable all branches
+           treeJet[i]->SetBranchStatus("nref",1);     // enable jet branches
+           treeJet[i]->SetBranchStatus("rawpt",1);    // enable jet branches
+           treeJet[i]->SetBranchStatus("jtpt",1);     // enable jet branches
+           treeJet[i]->SetBranchStatus("jteta",1);     // enable jet branches
+           treeJet[i]->SetBranchStatus("jtphi",1);     // enable jet branches
+           treeJet[i]->SetBranchStatus("track*",1);
+           treeJet[i]->SetBranchStatus("charged*",1);
+           treeJet[i]->SetBranchStatus("photon*",1);
+           treeJet[i]->SetBranchStatus("neutral*",1);
+           treeJet[i]->SetBranchStatus("eMax*",1);
+           treeJet[i]->SetBranchStatus("eSum*",1);
+           treeJet[i]->SetBranchStatus("eN*",1);
+           treeJet[i]->SetBranchStatus("muMax*",1);
+           treeJet[i]->SetBranchStatus("muSum*",1);
+           treeJet[i]->SetBranchStatus("muN*",1);
+           if (isMC) {
+               treeJet[i]->SetBranchStatus("matchedPt",1);
+               treeJet[i]->SetBranchStatus("matchedR",1);
+               treeJet[i]->SetBranchStatus("beamId1",1);
+               treeJet[i]->SetBranchStatus("beamId2",1);
+               treeJet[i]->SetBranchStatus("pthat",1);
+               treeJet[i]->SetBranchStatus("ngen",1);
+               treeJet[i]->SetBranchStatus("gen*",1);
+               treeJet[i]->SetBranchStatus("signalChargedSum",1);
+               treeJet[i]->SetBranchStatus("signalHardSum",1);
+               treeJet[i]->SetBranchStatus("subid",1);
+               treeJet[i]->SetBranchStatus("smpt",1);
+               treeJet[i]->SetBranchStatus("fr01Chg",1);
+               treeJet[i]->SetBranchStatus("fr01EM",1);
+               treeJet[i]->SetBranchStatus("fr01",1);
+           }
        }
 
        // specify explicitly which branches to store, do not use wildcard
@@ -384,78 +393,108 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        // objects for z-jet correlations
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
-       Jets jets;
-       jets.setupTreeForReading(treeJet);               // treeJet is input
+       std::vector<Jets> jets(nJetCollections);
+       for (int i=0; i<nJetCollections; ++i) {
+           jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
+       }
 
        // mixed-event block
        int centBinWidth = 0;
        int vertexBinWidth = 0;
-       Jets jetsMB;     // object to read jet trees from MB events
-       TChain *treeJetMB[nCentralityBins][nVertexBins];
-       Long64_t nMB[nCentralityBins][nVertexBins];
-       Long64_t iterMB[nCentralityBins][nVertexBins];   // index of the tree where the mixing starts
+       std::vector<Jets> jetsMB(nJetCollections);     // object to read jet trees from MB events
+       TTree* treeJetMB[nCentralityBins][nVertexBins][nJetCollections];
+       Long64_t nMB[nCentralityBins][nVertexBins][nJetCollections];
+       Long64_t iterMB[nCentralityBins][nVertexBins][nJetCollections];   // index of the tree where the mixing starts
+       TFile* inputMB;
        if (doMix > 0) {
            centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
            vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
-                                                    // accepted vz range is -15 to 15.
+                                                // accepted vz range is -15 to 15.
+
+           inputMB = new TFile(minBiasJetSkimFile, "READ");
 
            TRandom3 rand(12345);    // random number seed should be fixed or reproducible
            std::cout <<"Tree initialization for MinBias mixing" << std::endl;
-           std::cout <<Form("treeJetMB[%d][%d] is being read", nCentralityBins, nVertexBins)<< std::endl;
+           std::cout <<Form("treeJetMB[%d][%d][%d] is being read", nCentralityBins, nVertexBins, nJetCollections)<< std::endl;
            for(int i=0; i<nCentralityBins; ++i)
            {
                for(int j=0; j<nVertexBins; ++j){
-                   treeJetMB[i][j] = new TChain(Form("jets_centBin%d_vzBin%d",i,j));
-                   treeJetMB[i][j]->Add(minBiasJetSkimFile.Data());
-                   nMB[i][j] = treeJetMB[i][j]->GetEntries();
+                   for(int k=0; k<nJetCollections; ++k){
 
-                   jetsMB.setupTreeForReading(treeJetMB[i][j]);    // all MB jet trees point to jetsMB
-                   int primeSeed = 0;
-                   if(nMB[i][j] != 0) primeSeed = rand.Integer(nMB[i][j]); // Integer(imax) Returns a random integer on [0, imax-1].
-                   iterMB[i][j] = primeSeed;
+                       // in minBiasJetSkimFile, name of a jet tree starts with jetCollection.
+                       std::string jetCollection = jetCollections.at(k).c_str();
+                       treeJetMB[i][j][k] = (TTree*)inputMB->Get(Form("%s_centBin%d_vzBin%d",jetCollection.c_str(), i, j));
+                       if (!treeJetMB[i][j][k]) {
+                           std::cout << "jetCollection = " << jetCollection.c_str() << " is not found in minBias jet skim file" <<std::endl;
+                           std::cout << "exiting"<< std::endl;
+                           return;
+                       }
+                       nMB[i][j][k] = treeJetMB[i][j][k]->GetEntries();
 
-                   if (nMB[i][j] < nEventsToMix){
-                       std::cout << "centBin = "<<i<<", vzBin = "<<j<<std::endl;
-                       std::cout << "nMB[centBin][vzBin] = "<<nMB[i][j]<<std::endl;
-                       std::cout << "nEventsToMix = "<<nEventsToMix<<std::endl;
-                       std::cout << "number of MB events in that bin is not enough for mixing" <<std::endl;
+                       jetsMB.at(k).setupTreeForReading(treeJetMB[i][j][k]);    // all MB jet trees point to jetsMB
+                       int primeSeed = 0;
+                       if(nMB[i][j][k] != 0) primeSeed = rand.Integer(nMB[i][j][k]); // Integer(imax) Returns a random integer on [0, imax-1].
+                       iterMB[i][j][k] = primeSeed;
+
+                       if (nMB[i][j][k] < nEventsToMix){
+                           std::cout << "centBin = "<<i<<", vzBin = "<<j<<", jetCollection = "<<jetCollection.c_str()<<std::endl;
+                           std::cout << "nMB[centBin][vzBin][jetCollection] = "<<nMB[i][j][k]<<std::endl;
+                           std::cout << "nEventsToMix = "<<nEventsToMix<<std::endl;
+                           std::cout << "number of MB events in that bin is not enough for mixing" <<std::endl;
+                       }
                    }
                }
            }
        }
 
        TFile* output = new TFile(outputFile,"RECREATE");
-       TTree *configTree = setupConfigurationTreeForWriting(configCuts);
-       // output tree variables
+       TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
-       TTree *outputTreeHLT    = treeHLT->CloneTree(0);
+       // output tree variables
+       TTree* outputTreeHLT    = treeHLT->CloneTree(0);
        outputTreeHLT->SetName("hltTree");
        outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
-       TTree *outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
-       TTree *outputTreeJet    = treeJet->CloneTree(0);
-       outputTreeJet->SetName("jets");
-       TTree *outputTreeHiEvt = treeHiEvt->CloneTree(0);
+       TTree* outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+       TTree* outputTreeJet[nJetCollections];
+       for (int i=0; i<nJetCollections; ++i) {
+           outputTreeJet[i] = treeJet[i]->CloneTree(0);
+
+           // pick a unique, but also not complicated name for jet Trees
+           // jet collection names which are complicated will be put into tree title
+           std::string treeJetName = "jets";
+           if (i > 0)  treeJetName = Form("jets%d", i+1);
+           std::string treeJetTitle = jetCollections.at(i).c_str();
+           std::string currentTitle = outputTreeJet[i]->GetTitle();
+           // do not lose the current title
+           if (currentTitle.size() > 0) treeJetTitle = Form("%s - %s", treeJetTitle.c_str(), currentTitle.c_str());
+
+           outputTreeJet[i]->SetName(treeJetName.c_str());
+           outputTreeJet[i]->SetTitle(treeJetTitle.c_str());
+       }
+       TTree* outputTreeHiEvt = treeHiEvt->CloneTree(0);
        outputTreeHiEvt->SetName("HiEvt");
        outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
-       TTree *outputTreeSkim   = treeSkim->CloneTree(0);
+       TTree* outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
 
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
        outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeJet->SetMaxTreeSize(MAXTREESIZE);
+       for (int i=0; i<nJetCollections; ++i) {
+           outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
+       }
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
 
        // trees for diLepton pairs
-       TTree *diElectronTree;
+       TTree* diElectronTree;
        // construct dielectron pairs during zJet skim
        if (doDiElectron > 0)
        {
            diElectronTree = new TTree("dielectron","electron pairs");
            diElectronTree->SetMaxTreeSize(MAXTREESIZE);
        }
-       TTree *diMuonTree;
+       TTree* diMuonTree;
        // construct dimuon pairs during zJet skim
        if (doDiMuon > 0)
        {
@@ -469,27 +508,57 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        dimuon diMu;
        if (doDiMuon > 0) diMu.branchDiMuonTree(diMuonTree);     // diMuonTree is output
 
-       TTree *zJetTree = new TTree("zJet","leading z-jet correlations");
-       zJetTree->SetMaxTreeSize(MAXTREESIZE);
-       ZJet zjet;
-       zjet.resetAwayRange();
-       zjet.resetConeRange();
-       zjet.branchZJetTree(zJetTree);
+       TTree* zJetTree[nJetCollections];
+       for (int i=0; i<nJetCollections; ++i) {
+
+           // pick a unique, but also not complicated name for zJet Trees
+           // jet collection names which are complicated will be put into tree title
+           std::string treezJetName = "zJet";
+           if (i > 0)  treezJetName = Form("zJet%d", i+1);
+           std::string treezJetTitle = Form("%s : leading z-jet correlations", jetCollections.at(i).c_str());
+
+           zJetTree[i] = new TTree(treezJetName.c_str(),treezJetTitle.c_str());
+           zJetTree[i]->SetMaxTreeSize(MAXTREESIZE);
+       }
+       std::vector<ZJet> zjet(nJetCollections);
+       for (int i=0; i<nJetCollections; ++i) {
+           zjet.at(i).resetAwayRange();
+           zjet.at(i).resetConeRange();
+           zjet.at(i).branchZJetTree(zJetTree[i]);
+       }
 
        // mixed-event block
-       Jets jetsMBoutput;     // object to write jet trees from MB events
-       ZJet zjetMB;
-       TTree *outputTreeJetMB = new TTree("jetsMB","Jets from minbias events");
-       TTree *zJetTreeMB  = new TTree("zJetMB","leading z-jet correlations from MB events");
+       std::vector<Jets> jetsMBoutput(nJetCollections);     // object to write jet trees from MB events
+       std::vector<ZJet> zjetMB(nJetCollections);
+       TTree* outputTreeJetMB[nJetCollections];
+       TTree* zJetTreeMB[nJetCollections];
        if (doMix > 0) {
-           outputTreeJetMB->SetMaxTreeSize(MAXTREESIZE);
-           zJetTreeMB->SetMaxTreeSize(MAXTREESIZE);
+           for (int i=0; i<nJetCollections; ++i) {
 
-           jetsMBoutput.setupTreeForWritingMB(outputTreeJetMB, true, false);
+               // jetMB trees
+               // pick a unique, but also not complicated name for jetMB Trees
+               // jet collection names which are complicated will be put into tree title
+               std::string treeJetMBName = "jetsMB";
+               if (i > 0)  treeJetMBName = Form("jetsMB%d", i+1);
+               std::string treeJetMBTitle = Form("%s : jets from MB events", jetCollections.at(i).c_str());
+               outputTreeJetMB[i] = new TTree(treeJetMBName.c_str(), treeJetMBTitle.c_str());
 
-           zjetMB.resetAwayRange();
-           zjetMB.resetConeRange();
-           zjetMB.branchZJetTree(zJetTreeMB);
+               outputTreeJetMB[i]->SetMaxTreeSize(MAXTREESIZE);
+               jetsMBoutput.at(i).setupTreeForWritingMB(outputTreeJetMB[i], true, false);
+
+               // zJetMB trees
+               // pick a unique, but also not complicated name for zJetMB Trees
+               // jet collection names which are complicated will be put into tree title
+               std::string treezJetMBName = "zJetMB";
+               if (i > 0)  treezJetMBName = Form("zJetMB%d", i+1);
+               std::string treezJetMBTitle = Form("%s : leading z-jet correlations", jetCollections.at(i).c_str());
+               zJetTreeMB[i] = new TTree(treezJetMBName.c_str(),treezJetMBTitle.c_str());
+
+               zJetTreeMB[i]->SetMaxTreeSize(MAXTREESIZE);
+               zjetMB.at(i).resetAwayRange();
+               zjetMB.at(i).resetConeRange();
+               zjetMB.at(i).branchZJetTree(zJetTreeMB[i]);
+           }
        }
 
        EventMatcher* em = new EventMatcher();
@@ -509,7 +578,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeHLT->GetEntry(j_entry);
            treeggHiNtuplizer->GetEntry(j_entry);
            treeEvent->GetEntry(j_entry);
-           treeJet->GetEntry(j_entry);
+           for (int i=0; i<nJetCollections; ++i) {
+               treeJet[i]->GetEntry(j_entry);
+           }
            treeSkim->GetEntry(j_entry);
            treeHiEvt->GetEntry(j_entry);
 
@@ -640,63 +711,71 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            if (zIdx == -1) continue;
            entriesAnalyzed++;
 
-           // z-jet correlation
-           // leading z Boson from dielectron is correlated to each jet in the event.
-           if (doDiElectron > 0)  zjet.makeZeeJetPairs(diEle, jets, zIdx, true);
+           for (int i=0; i<nJetCollections; ++i) {
+               // z-jet correlation
+               // leading z Boson from dielectron is correlated to each jet in the event.
+               if (doDiElectron > 0)  zjet.at(i).makeZeeJetPairs(diEle, jets.at(i), zIdx, true);
 
-           // z-jet correlation
-           // leading z Boson from dimuon is correlated to each jet in the event.
-           if (doDiMuon > 0)  zjet.makeZmmJetPairs(diMu, jets, zIdx, true);
+               // z-jet correlation
+               // leading z Boson from dimuon is correlated to each jet in the event.
+               if (doDiMuon > 0)  zjet.at(i).makeZmmJetPairs(diMu, jets.at(i), zIdx, true);
+           }
 
            if(doMix > 0)
            {
                int centBin = hiBin / centBinWidth;
                int vzBin   = (vz+15) / vertexBinWidth;
-               jetsMBoutput.nref = 0;
+               for (int k = 0; k < nJetCollections; ++k) {
+                   jetsMBoutput.at(k).nref = 0;
 
-               zjetMB.clearZJetPairs(zIdx);
-               if (nMB[centBin][vzBin] >= nEventsToMix)
-               {
-                   for (int i=0; i<nEventsToMix; ++i)
+                   zjetMB.at(k).clearZJetPairs(zIdx);
+                   if (nMB[centBin][vzBin][k] >= nEventsToMix)
                    {
-                       Long64_t entryMB = iterMB[centBin][vzBin] % nMB[centBin][vzBin];     // roll back to the beginning if out of range
-                       treeJetMB[centBin][vzBin]->GetEntry(entryMB);
-
-                       if (doDiElectron > 0) zjetMB.makeZeeJetPairsMB(diEle, jetsMB, zIdx, true);
-                       if (doDiMuon > 0)     zjetMB.makeZmmJetPairsMB(diMu,  jetsMB, zIdx, true);
-
-                       // write jets from minBiasJetSkimFile to outputFile
-                       for(int j = 0; j < jetsMB.nref; ++j)
+                       for (int i=0; i<nEventsToMix; ++i)
                        {
-                           jetsMBoutput.rawpt[jetsMBoutput.nref] = jetsMB.rawpt[j];
-                           jetsMBoutput.jtpt [jetsMBoutput.nref] = jetsMB.jtpt[j];
-                           jetsMBoutput.jteta[jetsMBoutput.nref] = jetsMB.jteta[j];
-                           jetsMBoutput.jty  [jetsMBoutput.nref] = jetsMB.jty[j];
-                           jetsMBoutput.jtphi[jetsMBoutput.nref] = jetsMB.jtphi[j];
-                           jetsMBoutput.jtm  [jetsMBoutput.nref] = jetsMB.jtm[j];
-                           jetsMBoutput.nref++;
+                           Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
+                           treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
+
+                           if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);
+                           if (doDiMuon > 0)     zjetMB.at(k).makeZmmJetPairsMB(diMu,  jetsMB.at(k), zIdx, true);
+
+                           // write jets from minBiasJetSkimFile to outputFile
+                           for(int j = 0; j < jetsMB.at(k).nref; ++j)
+                           {
+                               jetsMBoutput.at(k).rawpt[jetsMBoutput.at(k).nref] = jetsMB.at(k).rawpt[j];
+                               jetsMBoutput.at(k).jtpt [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpt[j];
+                               jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
+                               jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
+                               jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
+                               jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
+                               jetsMBoutput.at(k).nref++;
+                           }
+
+                           // increase iterator
+                           iterMB[centBin][vzBin][k]++;
+                           if (iterMB[centBin][vzBin][k] == nMB[centBin][vzBin][k])  iterMB[centBin][vzBin][k] = 0;  // reset if necessary
                        }
-
-                       // increase iterator
-                       iterMB[centBin][vzBin]++;
-                       if (iterMB[centBin][vzBin] == nMB[centBin][vzBin])  iterMB[centBin][vzBin] = 0;  // reset if necessary
                    }
-               }
-               jetsMBoutput.b = -1;   // this branch is not an array.
+                   jetsMBoutput.at(k).b = -1;   // this branch is not an array.
 
-               zJetTreeMB->Fill();
-               outputTreeJetMB->Fill();
+                   zJetTreeMB[k]->Fill();
+                   outputTreeJetMB[k]->Fill();
+               }
            }
 
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
-           outputTreeJet->Fill();
+           for (int i = 0; i < nJetCollections; ++i) {
+               outputTreeJet[i]->Fill();
+           }
            outputTreeHiEvt->Fill();
            outputTreeSkim->Fill();
            
            if (doDiElectron > 0)  diElectronTree->Fill();
            if (doDiMuon > 0)      diMuonTree->Fill();
-           zJetTree->Fill();
+           for (int i = 0; i < nJetCollections; ++i) {
+               zJetTree[i]->Fill();
+           }
        }
        std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
        std::cout << "entries            = " << entries << std::endl;
@@ -705,24 +784,31 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout << "entriesAnalyzed               = " << entriesAnalyzed << std::endl;
        std::cout << "outputTreeHLT->GetEntries()   = " << outputTreeHLT->GetEntries() << std::endl;
        std::cout << "outputTreeggHiNtuplizer->GetEntries()   = " << outputTreeggHiNtuplizer->GetEntries() << std::endl;
-       std::cout << "outputTreeJet->GetEntries()   = " << outputTreeJet->GetEntries() << std::endl;
+       for (int i = 0; i < nJetCollections; ++i) {
+           std::cout << Form("outputTreeJet[%d]->GetEntries()   = ", i) << outputTreeJet[i]->GetEntries() << std::endl;
+       }
        std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
        std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
     
        if (doDiElectron > 0)  std::cout << "diElectronTree->GetEntries()  = " << diElectronTree->GetEntries() << std::endl;
        if (doDiMuon > 0)      std::cout << "diMuonTree->GetEntries()  = " << diMuonTree->GetEntries() << std::endl;
-       std::cout << "zJetTree->GetEntries() = " << zJetTree->GetEntries() << std::endl;
+       for (int i = 0; i < nJetCollections; ++i) {
+           std::cout << Form("zJetTree[%d]->GetEntries() = ", i) << zJetTree[i]->GetEntries() << std::endl;
+       }
 
        if (doMix > 0)
        {
-           std::cout << "zJetTreeMB->GetEntries() = " << zJetTreeMB->GetEntries() << std::endl;
-           std::cout << "outputTreeJetMB->GetEntries() = " << outputTreeJetMB->GetEntries() << std::endl;
+           for (int i = 0; i < nJetCollections; ++i) {
+               std::cout << Form("zJetTreeMB[%d]->GetEntries() = ", i) << zJetTreeMB[i]->GetEntries() << std::endl;
+               std::cout << Form("outputTreeJetMB[%d]->GetEntries() = ", i) << outputTreeJetMB[i]->GetEntries() << std::endl;
+           }
        }
   
        configTree->Write("",TObject::kOverwrite);
 
        output->Write("",TObject::kOverwrite);
        output->Close();
+       if (inputMB) inputMB->Close();
 }
 
 int main(int argc, char** argv)

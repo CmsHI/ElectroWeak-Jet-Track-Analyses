@@ -32,7 +32,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        float cut_vz;
        int cut_pcollisionEventSelection;
 
-       std::string jetCollection;
+       std::vector<std::string> jetCollections;
        int nMaxEvents_minBiasMixing;
        int nCentralityBins;
        int nVertexBins;
@@ -40,7 +40,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
            cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
 
-           jetCollection = config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+           jetCollections = ConfigurationParser::ParseList(config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
            nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
            nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
            nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
@@ -48,18 +48,21 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        else {
            cut_vz = 15;
            cut_pcollisionEventSelection = 1;
-           jetCollection = "akPu4CaloJetAnalyzer";
            nMaxEvents_minBiasMixing = 20000;
            nCentralityBins = 200;    // must divide 200 without remainders
            nVertexBins = 3;         // must divide 15  without remainders
        }
+       int nJetCollections = jetCollections.size();
 
        // verbose about configuration
        std::cout<<"Cut Configuration :"<<std::endl;
        std::cout<<"cut_vz = "<< cut_vz <<std::endl;
        std::cout<<"cut_pcollisionEventSelection = "<< cut_pcollisionEventSelection <<std::endl;
 
-       std::cout<<"jetCollection = "<<jetCollection.c_str()<<std::endl;
+       std::cout<<"nJetCollections = "<< nJetCollections <<std::endl;
+       for (int i=0; i<nJetCollections; ++i) {
+           std::cout << Form("jetCollections[%d] = %s", i, jetCollections.at(i).c_str()) << std::endl;
+       }
        std::cout<<"nMaxEvents_minBiasMixing = "<< nMaxEvents_minBiasMixing <<std::endl;
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
        std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
@@ -75,14 +78,19 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeEvent = new TChain("ggHiNtuplizer/EventTree");
-       TChain* treeJet   = new TChain(Form("%s/t", jetCollection.c_str()));
+       TChain* treeJets[nJetCollections];
+       for (int i=0; i<nJetCollections; ++i) {
+           treeJets[i] = new TChain(Form("%s/t", jetCollections.at(i).c_str()));
+       }
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
           treeEvent->Add((*it).c_str());
-          treeJet->Add((*it).c_str());
+          for (int i=0; i<nJetCollections; ++i) {
+              treeJets[i]->Add((*it).c_str());
+          }
           treeHiEvt->Add((*it).c_str());
           treeSkim->Add((*it).c_str());
        }
@@ -94,22 +102,24 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        treeEvent->SetBranchStatus("event",1);
        treeEvent->SetBranchStatus("lumis",1);
 
-       treeJet->SetBranchStatus("*",0);        // disable all branches
-       treeJet->SetBranchStatus("nref",1);     // enable jet branches
-       treeJet->SetBranchStatus("rawpt",1);    // enable jet branches
-       treeJet->SetBranchStatus("jtpt",1);     // enable jet branches
-       treeJet->SetBranchStatus("jteta",1);     // enable jet branches
-       treeJet->SetBranchStatus("jtphi",1);     // enable jet branches
-       treeJet->SetBranchStatus("track*",1);
-       treeJet->SetBranchStatus("charged*",1);
-       treeJet->SetBranchStatus("photon*",1);
-       treeJet->SetBranchStatus("neutral*",1);
-       treeJet->SetBranchStatus("eMax*",1);
-       treeJet->SetBranchStatus("eSum*",1);
-       treeJet->SetBranchStatus("eN*",1);
-       treeJet->SetBranchStatus("muMax*",1);
-       treeJet->SetBranchStatus("muSum*",1);
-       treeJet->SetBranchStatus("muN*",1);
+       for (int i=0; i<nJetCollections; ++i) {
+           treeJets[i]->SetBranchStatus("*",0);        // disable all branches
+           treeJets[i]->SetBranchStatus("nref",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("rawpt",1);    // enable jet branches
+           treeJets[i]->SetBranchStatus("jtpt",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("jteta",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("jtphi",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("track*",1);
+           treeJets[i]->SetBranchStatus("charged*",1);
+           treeJets[i]->SetBranchStatus("photon*",1);
+           treeJets[i]->SetBranchStatus("neutral*",1);
+           treeJets[i]->SetBranchStatus("eMax*",1);
+           treeJets[i]->SetBranchStatus("eSum*",1);
+           treeJets[i]->SetBranchStatus("eN*",1);
+           treeJets[i]->SetBranchStatus("muMax*",1);
+           treeJets[i]->SetBranchStatus("muSum*",1);
+           treeJets[i]->SetBranchStatus("muN*",1);
+       }
 
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
@@ -170,7 +180,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
        TTree *outputTreesHLT[nCentralityBins][nVertexBins];
        TTree *outputTreesEvent[nCentralityBins][nVertexBins];
-       TTree *outputTreesJet[nCentralityBins][nVertexBins];
+       TTree *outputTreesJet[nCentralityBins][nVertexBins][nJetCollections];
        TTree *outputTreesHiEvt[nCentralityBins][nVertexBins];
        TTree *outputTreesSkim[nCentralityBins][nVertexBins];
 
@@ -191,10 +201,13 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
                outputTreesEvent[i][j]->SetTitle(Form("subbranches of ggHiNtuplizer/EventTree for centrality bin %d vz bin %d", i, j));
                outputTreesEvent[i][j]->SetMaxTreeSize(MAXTREESIZE);
 
-               outputTreesJet[i][j] = treeJet->CloneTree(0);
-               outputTreesJet[i][j]->SetName(Form("jets_centBin%d_vzBin%d", i, j));
-               outputTreesJet[i][j]->SetTitle(Form("subbranches of %s/t for centrality bin %d vz bin %d", jetCollection.c_str(), i, j));
-               outputTreesJet[i][j]->SetMaxTreeSize(MAXTREESIZE);
+               for(int k=0; k<nJetCollections; ++k){
+                   std::string jetCollectionName = jetCollections.at(k).c_str();
+                   outputTreesJet[i][j][k] = treeJets[k]->CloneTree(0);
+                   outputTreesJet[i][j][k]->SetName(Form("%s_centBin%d_vzBin%d", jetCollectionName.c_str(), i, j));
+                   outputTreesJet[i][j][k]->SetTitle(Form("subbranches of %s/t for centrality bin %d vz bin %d", jetCollectionName.c_str(), i, j));
+                   outputTreesJet[i][j][k]->SetMaxTreeSize(MAXTREESIZE);
+               }
 
                outputTreesHiEvt[i][j] = treeHiEvt->CloneTree(0);
                outputTreesHiEvt[i][j]->SetName(Form("HiEvt_centBin%d_vzBin%d", i, j));
@@ -223,7 +236,9 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
            treeHLT->GetEntry(j_entry);
            treeEvent->GetEntry(j_entry);
-           treeJet->GetEntry(j_entry);
+           for (int i = 0; i<nJetCollections; ++i) {
+               treeJets[i]->GetEntry(j_entry);
+           }
            treeHiEvt->GetEntry(j_entry);
            treeSkim->GetEntry(j_entry);
 
@@ -246,7 +261,9 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
            outputTreesHLT[centBin][vzBin]->Fill();
            outputTreesEvent[centBin][vzBin]->Fill();
-           outputTreesJet[centBin][vzBin]->Fill();
+           for (int i = 0; i<nJetCollections; ++i) {
+               outputTreesJet[centBin][vzBin][i]->Fill();
+           }
            outputTreesHiEvt[centBin][vzBin]->Fill();
            outputTreesSkim[centBin][vzBin]->Fill();
 
