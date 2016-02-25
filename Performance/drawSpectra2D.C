@@ -23,6 +23,7 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/GraphicsConfigurationParser.h"
+#include "../Utilities/interface/HiForestInfoController.h"
 #include "../Utilities/styleUtil.h"
 #include "../Utilities/th1Util.h"
 
@@ -497,6 +498,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     // so in that case : 1.) the "TChain*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
     TChain* trees[nTrees][nInputFileArguments];
     TChain* treeFriends[nFriends][nInputFileArguments];
+    TChain* treeHiForestInfo[nInputFileArguments];
     for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
         for (int i=0; i < nTrees; ++i) {
             std::string treePath = treePaths.at(i).c_str();
@@ -513,6 +515,7 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
             }
         }
 
+        treeHiForestInfo[iInFileArg] = new TChain("HiForest/HiForestInfo");
         for (std::vector<std::string>::iterator it = inputFiles[iInFileArg].begin() ; it != inputFiles[iInFileArg].end(); ++it) {
 
             for (int i=0; i<nTrees; ++i) {
@@ -521,7 +524,14 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
                     treeFriends[j][iInFileArg]->Add((*it).c_str());
                 }
             }
+            treeHiForestInfo[iInFileArg]->Add((*it).c_str());
         }
+
+        HiForestInfoController hfic(treeHiForestInfo[iInFileArg]);
+        if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+        else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
+        hfic.printHiForestInfo();
+        std::cout<<"###"<< std::endl;
     }
 
     if (nSelectionSplitter == 1) {

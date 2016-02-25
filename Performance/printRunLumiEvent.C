@@ -16,6 +16,7 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/interface/HiForestInfoController.h"
 
 void printRunLumiEvent(const TString configFile, const TString inputFile, const TString outputFile = "printRunLumiEvent.txt");
 
@@ -81,6 +82,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
 
     TChain* tree = new TChain(treePath.c_str());
     TChain* treeFriends[nFriends];
+    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
     for (int i=0; i<nFriends; ++i) {
         treeFriends[i] = new TChain(treeFriendsPath.at(i).c_str());
         tree->AddFriend(treeFriends[i], Form("t%d", i));
@@ -91,7 +93,13 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
        for (int i=0; i<nFriends; ++i) {
            treeFriends[i]->Add((*it).c_str());
        }
+       treeHiForestInfo->Add((*it).c_str());
     }
+
+    HiForestInfoController hfic(treeHiForestInfo);
+    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    hfic.printHiForestInfo();
+    std::cout<<"###"<< std::endl;
 
     // select the list of events
     std::string elistName = "elist_printRunLumiEvent";

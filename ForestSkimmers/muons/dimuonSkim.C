@@ -16,6 +16,7 @@
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
+#include "../../Utilities/interface/HiForestInfoController.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
@@ -75,12 +76,19 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
+       TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
           treeggHiNtuplizer->Add((*it).c_str());
           treeHiEvt->Add((*it).c_str());
+          treeHiForestInfo->Add((*it).c_str());
        }
+
+       HiForestInfoController hfic(treeHiForestInfo);
+       std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+       hfic.printHiForestInfo();
+       std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
        treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
@@ -122,10 +130,18 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        TTree *outputTreeHiEvt = treeHiEvt->CloneTree(0);
        outputTreeHiEvt->SetName("HiEvt");
        outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+       outputTreeHiForestInfo->SetName("HiForestInfo");
+       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
        
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
        outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
+       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+
+       // write HiForestInfo
+       treeHiForestInfo->GetEntry(0);
+       outputTreeHiForestInfo->Fill();
 
        TTree *diMuonTree = new TTree("dimuon","muon pairs");
        diMuonTree->SetMaxTreeSize(MAXTREESIZE);

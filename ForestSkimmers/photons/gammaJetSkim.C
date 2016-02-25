@@ -14,6 +14,7 @@
 #include "../../Plotting/commonUtility.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/HiForestInfoController.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
@@ -147,8 +148,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        for (int i=0; i<nJetCollections; ++i) {
            treeJet[i] = new TChain(Form("%s/t", jetCollections.at(i).c_str()));
        }
-       TChain* treeSkim  = new TChain("skimanalysis/HltTree");
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
+       TChain* treeSkim  = new TChain("skimanalysis/HltTree");
+       TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
@@ -157,9 +159,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           for (int i=0; i<nJetCollections; ++i) {
               treeJet[i]->Add((*it).c_str());
           }
-          treeSkim->Add((*it).c_str());
           treeHiEvt->Add((*it).c_str());
+          treeSkim->Add((*it).c_str());
+          treeHiForestInfo->Add((*it).c_str());
        }
+
+       HiForestInfoController hfic(treeHiForestInfo);
+       std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+       hfic.printHiForestInfo();
+       std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
        treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
@@ -379,6 +387,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        TTree* outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
+       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+       outputTreeHiForestInfo->SetName("HiForestInfo");
+       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
 
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
@@ -387,6 +398,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
        }
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
+       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+
+       // record HiForestInfo
+       treeHiForestInfo->GetEntry(0);
+       outputTreeHiForestInfo->Fill();
 
        TTree* gammaJetTree[nJetCollections];
        for (int i=0; i<nJetCollections; ++i) {
@@ -605,7 +621,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
        output->Write("",TObject::kOverwrite);
        output->Close();
-       if (inputMB) inputMB->Close();
+       if (doMix > 0 && inputMB) inputMB->Close();
 }
 
 int main(int argc, char** argv)

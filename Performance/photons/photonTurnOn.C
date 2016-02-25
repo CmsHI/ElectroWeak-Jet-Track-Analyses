@@ -23,6 +23,7 @@
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/styleUtil.h"
 
 void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "photonTurnOn.root", const TString outputFigureName = "");
@@ -119,11 +120,18 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
 
     TChain* treeHLT = new TChain("hltanalysis/HltTree");
     TChain* treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
+    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
        treeHLT->Add((*it).c_str());
        treeggHiNtuplizer->Add((*it).c_str());
+       treeHiForestInfo->Add((*it).c_str());
     }
+
+    HiForestInfoController hfic(treeHiForestInfo);
+    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    hfic.printHiForestInfo();
+    std::cout<<"###"<< std::endl;
 
     treeHLT->SetBranchStatus("*",0);     // disable all branches
     std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;

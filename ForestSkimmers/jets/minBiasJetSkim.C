@@ -16,6 +16,7 @@
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/HiForestInfoController.h"
 
 const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
@@ -84,6 +85,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        }
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
        TChain* treeSkim  = new TChain("skimanalysis/HltTree");
+       TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
@@ -93,7 +95,13 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
           }
           treeHiEvt->Add((*it).c_str());
           treeSkim->Add((*it).c_str());
+          treeHiForestInfo->Add((*it).c_str());
        }
+
+       HiForestInfoController hfic(treeHiForestInfo);
+       std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+       hfic.printHiForestInfo();
+       std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
 
@@ -185,7 +193,6 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        TTree *outputTreesSkim[nCentralityBins][nVertexBins];
 
        Long64_t nEntriesFilled[nCentralityBins][nVertexBins];    // number of events read for a centrality bin
-
        for(int i=0; i<nCentralityBins; ++i)
        {
            for(int j=0; j<nVertexBins; ++j){
@@ -220,6 +227,15 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
                outputTreesSkim[i][j]->SetMaxTreeSize(MAXTREESIZE);
            }
        }
+       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+       outputTreeHiForestInfo->SetName("HiForestInfo");
+       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
+
+       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+
+       // write HiForestInfo
+       treeHiForestInfo->GetEntry(0);
+       outputTreeHiForestInfo->Fill();
 
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;

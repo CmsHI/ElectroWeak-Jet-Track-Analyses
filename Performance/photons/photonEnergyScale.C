@@ -29,6 +29,7 @@
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
 #include "../interface/energyScaleHist.h"
@@ -331,21 +332,19 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     std::cout<<"##### END #####"<< std::endl;
 
     TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
-    TChain* treeHiEvt;
-    bool hasHiEvt = false;
-    if (isHI) {
-        treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
-        hasHiEvt  = true;
-    }
-    else {
-        treeHiEvt = 0;
-        hasHiEvt  = false;
-    }
+    TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
+    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
        treeggHiNtuplizer->Add((*it).c_str());
-       if(hasHiEvt) treeHiEvt->Add((*it).c_str());
+       treeHiEvt->Add((*it).c_str());
+       treeHiForestInfo->Add((*it).c_str());
     }
+
+    HiForestInfoController hfic(treeHiForestInfo);
+    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    hfic.printHiForestInfo();
+    std::cout<<"###"<< std::endl;
 
     treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
     treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
@@ -363,15 +362,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
     // specify explicitly which branches to use, do not use wildcard
     Int_t hiBin;
-    if (hasHiEvt) {
-        treeHiEvt->SetBranchStatus("*",0);
-        treeHiEvt->SetBranchStatus("hiBin",1);
+    treeHiEvt->SetBranchStatus("*",0);
+    treeHiEvt->SetBranchStatus("hiBin",1);
 
-        treeHiEvt->SetBranchAddress("hiBin",&hiBin);
-    }
-    else {   // overwrite to default
-        hiBin = 0;
-    }
+    treeHiEvt->SetBranchAddress("hiBin",&hiBin);
 
     ggHiNtuplizer ggHi;
     ggHi.setupTreeForReading(treeggHiNtuplizer);
@@ -523,7 +517,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         }
 
         treeggHiNtuplizer->GetEntry(j_entry);
-        if (hasHiEvt) treeHiEvt->GetEntry(j_entry);
+        treeHiEvt->GetEntry(j_entry);
 
         bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
         if(!eventAdded) // this event is duplicate, skip this one.
