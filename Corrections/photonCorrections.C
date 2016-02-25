@@ -84,22 +84,22 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     outPho.phoSigmaIEtaIEta.push_back( inPho.phoSigmaIEtaIEta[maxIndex] );
     //outPho.phoE1x3.push_back( inPho.phoE1x3[maxIndex] );
     //outPho.phoE2x2.push_back( inPho.phoE2x2[maxIndex] );
-    //outPho.phoE3x3.push_back( inPho.phoE3x3[maxIndex] );
+    outPho.phoE3x3.push_back( inPho.phoE3x3[maxIndex] );
     //outPho.phoE2x5Max.push_back( inPho.phoE2x5Max[maxIndex] );
-    //outPho.phoE1x5.push_back( inPho.phoE1x5[maxIndex] );
-    //outPho.phoE2x5.push_back( inPho.phoE2x5[maxIndex] );
-    //outPho.phoE5x5.push_back( inPho.phoE5x5[maxIndex] );
-    //outPho.phoMaxEnergyXtal.push_back( inPho.phoMaxEnergyXtal[maxIndex] );
-    //outPho.phoSigmaEtaEta.push_back( inPho.phoSigmaEtaEta[maxIndex] );
-    //outPho.phoR1x5.push_back( inPho.phoR1x5[maxIndex] );
-    //outPho.phoR2x5.push_back( inPho.phoR2x5[maxIndex] );
+    outPho.phoE1x5.push_back( inPho.phoE1x5[maxIndex] );
+    outPho.phoE2x5.push_back( inPho.phoE2x5[maxIndex] );
+    outPho.phoE5x5.push_back( inPho.phoE5x5[maxIndex] );
+    outPho.phoMaxEnergyXtal.push_back( inPho.phoMaxEnergyXtal[maxIndex] );
+    outPho.phoSigmaEtaEta.push_back( inPho.phoSigmaEtaEta[maxIndex] );
+    outPho.phoR1x5.push_back( inPho.phoR1x5[maxIndex] );
+    outPho.phoR2x5.push_back( inPho.phoR2x5[maxIndex] );
     //outPho.phoESEffSigmaRR.push_back( inPho.phoESEffSigmaRR[maxIndex] );
     outPho.phoSigmaIEtaIEta_2012.push_back( inPho.phoSigmaIEtaIEta_2012[maxIndex] );
     //outPho.phoSigmaIEtaIPhi_2012.push_back( inPho.phoSigmaIEtaIPhi_2012[maxIndex] );
     //outPho.phoSigmaIPhiIPhi_2012.push_back( inPho.phoSigmaIPhiIPhi_2012[maxIndex] );
     //outPho.phoE1x3_2012.push_back( inPho.phoE1x3_2012[maxIndex] );
     //outPho.phoE2x2_2012.push_back( inPho.phoE2x2_2012[maxIndex] );
-    //outPho.phoE3x3_2012.push_back( inPho.phoE3x3_2012[maxIndex] );
+    outPho.phoE3x3_2012.push_back( inPho.phoE3x3_2012[maxIndex] );
     //outPho.phoE2x5Max_2012.push_back( inPho.phoE2x5Max_2012[maxIndex] );
     //outPho.phoE5x5_2012.push_back( inPho.phoE5x5_2012[maxIndex] );
     //outPho.phoBC1E.push_back( inPho.phoBC1E[maxIndex] );
@@ -207,6 +207,7 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
     // outPho.towerVsSubIso5.push_back( inPho.towerVsSubIso5[maxIndex] );
 
     if(montecarlo){
+      outPho.ptHat = inPho.ptHat;
       int genIndex = inPho.pho_genMatchedIndex[maxIndex];
       outPho.pho_genMatchedIndex.push_back( 0 ); // 'new' genIndex will be 0 since we only save the matched
       if(genIndex >= 0){
@@ -234,6 +235,31 @@ void photonCorrections(const TString configFile, const TString inputSkimFile, co
 	outPho.mcCalIsoDR04.push_back(  inPho.mcCalIsoDR04[genIndex] );
 	outPho.mcTrkIsoDR03.push_back(  inPho.mcTrkIsoDR03[genIndex] );
 	outPho.mcTrkIsoDR04.push_back(  inPho.mcTrkIsoDR04[genIndex] );
+      } else {
+	outPho.nMC = 0;
+	outPho.mcPID.push_back(  0 );
+	outPho.mcStatus.push_back(  0 );
+	outPho.mcVtx_x.push_back(  0 );
+	outPho.mcVtx_y.push_back(  0 );
+	outPho.mcVtx_z.push_back(  0 );
+	outPho.mcPt.push_back(  0 );
+	outPho.mcEta.push_back(  0 );
+	outPho.mcPhi.push_back(  0 );
+	outPho.mcE.push_back(  0 );
+	outPho.mcEt.push_back(  0 );
+	outPho.mcMass.push_back(  0 );
+	outPho.mcParentage.push_back(  0 );
+	outPho.mcMomPID.push_back(  0 );
+	outPho.mcMomPt.push_back(  0 );
+	outPho.mcMomEta.push_back(  0 );
+	outPho.mcMomPhi.push_back( 0 );
+	outPho.mcMomMass.push_back(  0 );
+	outPho.mcGMomPID.push_back(  0 );
+	outPho.mcIndex.push_back(  0 );
+	outPho.mcCalIsoDR03.push_back(  0 );
+	outPho.mcCalIsoDR04.push_back(  0 );
+	outPho.mcTrkIsoDR03.push_back(  0 );
+	outPho.mcTrkIsoDR04.push_back(  0 );
       }
     }
 

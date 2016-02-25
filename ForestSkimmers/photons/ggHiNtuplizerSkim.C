@@ -33,11 +33,14 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
   unsigned run;
   unsigned lumi;
   int hiBin;
+  float ptHat;
   eventTree->SetBranchAddress("evt",&event);
   eventTree->SetBranchAddress("run",&run);
   eventTree->SetBranchAddress("lumi",&lumi);
   eventTree->SetBranchAddress("hiBin",&hiBin);
-
+  if(montecarlo){
+    eventTree->SetBranchAddress("pthat",&ptHat);
+  }
   outFile->cd();
   PhotonSkim phoSkim(montecarlo);
   TTree *outTree = new TTree("photonSkimTree","photonSkimTree");
@@ -87,26 +90,26 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
     phoSkim.phoR9 = * pho.phoR9;
     phoSkim.phoHoverE = * pho.phoHoverE;
     phoSkim.phoSigmaIEtaIEta = * pho.phoSigmaIEtaIEta;
-    phoSkim.phoE1x3 = * pho.phoE1x3;
-    phoSkim.phoE2x2 = * pho.phoE2x2;
-    //phoSkim.phoE3x3 = * pho.phoE3x3;
-    phoSkim.phoE2x5Max = * pho.phoE2x5Max;
-    //phoSkim.phoE1x5 = * pho.phoE1x5;
-    //phoSkim.phoE2x5 = * pho.phoE2x5;
+    //phoSkim.phoE1x3 = * pho.phoE1x3;
+    //phoSkim.phoE2x2 = * pho.phoE2x2;
+    phoSkim.phoE3x3 = * pho.phoE3x3;
+    //phoSkim.phoE2x5Max = * pho.phoE2x5Max;
+    phoSkim.phoE1x5 = * pho.phoE1x5;
+    phoSkim.phoE2x5 = * pho.phoE2x5;
     phoSkim.phoE5x5 = * pho.phoE5x5;
-    //phoSkim.phoMaxEnergyXtal = * pho.phoMaxEnergyXtal;
-    //phoSkim.phoSigmaEtaEta = * pho.phoSigmaEtaEta;
-    //phoSkim.phoR1x5 = * pho.phoR1x5;
-    //phoSkim.phoR2x5 = * pho.phoR2x5;
+    phoSkim.phoMaxEnergyXtal = * pho.phoMaxEnergyXtal;
+    phoSkim.phoSigmaEtaEta = * pho.phoSigmaEtaEta;
+    phoSkim.phoR1x5 = * pho.phoR1x5;
+    phoSkim.phoR2x5 = * pho.phoR2x5;
     phoSkim.phoESEffSigmaRR = * pho.phoESEffSigmaRR;
     phoSkim.phoSigmaIEtaIEta_2012 = * pho.phoSigmaIEtaIEta_2012;
-    phoSkim.phoSigmaIEtaIPhi_2012 = * pho.phoSigmaIEtaIPhi_2012;
-    phoSkim.phoSigmaIPhiIPhi_2012 = * pho.phoSigmaIPhiIPhi_2012;
-    phoSkim.phoE1x3_2012 = * pho.phoE1x3_2012;
-    phoSkim.phoE2x2_2012 = * pho.phoE2x2_2012;
+    //phoSkim.phoSigmaIEtaIPhi_2012 = * pho.phoSigmaIEtaIPhi_2012;
+    //phoSkim.phoSigmaIPhiIPhi_2012 = * pho.phoSigmaIPhiIPhi_2012;
+    //phoSkim.phoE1x3_2012 = * pho.phoE1x3_2012;
+    //phoSkim.phoE2x2_2012 = * pho.phoE2x2_2012;
     //phoSkim.phoE3x3_2012 = * pho.phoE3x3_2012;
-    phoSkim.phoE2x5Max_2012 = * pho.phoE2x5Max_2012;
-    phoSkim.phoE5x5_2012 = * pho.phoE5x5_2012;
+    //phoSkim.phoE2x5Max_2012 = * pho.phoE2x5Max_2012;
+    phoSkim.phoE3x3_2012 = * pho.phoE3x3_2012;
     phoSkim.phoBC1E = * pho.phoBC1E;
     phoSkim.phoBC1Eta = * pho.phoBC1Eta;
     phoSkim.phoBC2E = * pho.phoBC2E;
@@ -210,6 +213,7 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
 
     if(montecarlo){
       phoSkim.nMC = pho.nMC;
+      phoSkim.ptHat = ptHat;
       phoSkim.mcPID = * pho.mcPID;
       phoSkim.mcStatus = * pho.mcStatus;
       phoSkim.mcVtx_x = * pho.mcVtx_x;

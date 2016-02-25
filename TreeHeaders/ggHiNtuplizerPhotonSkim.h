@@ -20,6 +20,7 @@ public:
 
   // mc stuff
   Int_t           nMC;
+  Float_t         ptHat;
   std::vector<int>     mcPID;
   std::vector<int>     mcStatus;
   std::vector<float>   mcVtx_x;
@@ -67,10 +68,10 @@ public:
   std::vector<float>  phoSigmaIEtaIEta;
 // std::vector<float>  phoSigmaIEtaIPhi;   // TODO: not available in reco::
 // std::vector<float>  phoSigmaIPhiIPhi;   // TODO: not available in reco::
-  std::vector<float>  phoE1x3;
-  std::vector<float>  phoE2x2;
+  //std::vector<float>  phoE1x3;
+  //std::vector<float>  phoE2x2;
   std::vector<float>  phoE3x3;
-  std::vector<float>  phoE2x5Max;
+  //std::vector<float>  phoE2x5Max;
   std::vector<float>  phoE1x5;
   std::vector<float>  phoE2x5;
   std::vector<float>  phoE5x5;
@@ -80,13 +81,13 @@ public:
   std::vector<float>  phoR2x5;
   std::vector<float>  phoESEffSigmaRR;
   std::vector<float>  phoSigmaIEtaIEta_2012;
-  std::vector<float>  phoSigmaIEtaIPhi_2012;
-  std::vector<float>  phoSigmaIPhiIPhi_2012;
-  std::vector<float>  phoE1x3_2012;
-  std::vector<float>  phoE2x2_2012;
+  //std::vector<float>  phoSigmaIEtaIPhi_2012;
+  //std::vector<float>  phoSigmaIPhiIPhi_2012;
+  //std::vector<float>  phoE1x3_2012;
+  //std::vector<float>  phoE2x2_2012;
   std::vector<float>  phoE3x3_2012;
-  std::vector<float>  phoE2x5Max_2012;
-  std::vector<float>  phoE5x5_2012;
+  //std::vector<float>  phoE2x5Max_2012;
+  //std::vector<float>  phoE5x5_2012;
   std::vector<float>  phoBC1E;
   std::vector<float>  phoBC1Eta;
   std::vector<float>  phoBC2E;
@@ -233,10 +234,10 @@ public:
   std::vector<float> *p_phoR9 = 0;
   std::vector<float> *p_phoHoverE = 0;
   std::vector<float> *p_phoSigmaIEtaIEta = 0;
-  std::vector<float> *p_phoE1x3 = 0;
-  std::vector<float> *p_phoE2x2 = 0;
+  //std::vector<float> *p_phoE1x3 = 0;
+  //std::vector<float> *p_phoE2x2 = 0;
   std::vector<float> *p_phoE3x3 = 0;
-  std::vector<float> *p_phoE2x5Max = 0;
+  //std::vector<float> *p_phoE2x5Max = 0;
   std::vector<float> *p_phoE1x5 = 0;
   std::vector<float> *p_phoE2x5 = 0;
   std::vector<float> *p_phoE5x5 = 0;
@@ -246,13 +247,13 @@ public:
   std::vector<float> *p_phoR2x5 = 0;
   std::vector<float> *p_phoESEffSigmaRR = 0;
   std::vector<float> *p_phoSigmaIEtaIEta_2012 = 0;
-  std::vector<float> *p_phoSigmaIEtaIPhi_2012 = 0;
-  std::vector<float> *p_phoSigmaIPhiIPhi_2012 = 0;
-  std::vector<float> *p_phoE1x3_2012 = 0;
-  std::vector<float> *p_phoE2x2_2012 = 0;
+  //std::vector<float> *p_phoSigmaIEtaIPhi_2012 = 0;
+  //std::vector<float> *p_phoSigmaIPhiIPhi_2012 = 0;
+  //std::vector<float> *p_phoE1x3_2012 = 0;
+  //std::vector<float> *p_phoE2x2_2012 = 0;
   std::vector<float> *p_phoE3x3_2012 = 0;
-  std::vector<float> *p_phoE2x5Max_2012 = 0;
-  std::vector<float> *p_phoE5x5_2012 = 0;
+  //std::vector<float> *p_phoE2x5Max_2012 = 0;
+  //std::vector<float> *p_phoE5x5_2012 = 0;
   std::vector<float> *p_phoBC1E = 0;
   std::vector<float> *p_phoBC1Eta = 0;
   std::vector<float> *p_phoBC2E = 0;
@@ -359,6 +360,7 @@ public:
     pcollisionEventSelection=-1;
 
     nMC = 0;
+    ptHat = -1;
     mcPID.clear();
     mcStatus.clear();
     mcVtx_x.clear();
@@ -403,10 +405,10 @@ public:
     phoR9.clear();
     phoHoverE.clear();
     phoSigmaIEtaIEta.clear();
-    phoE1x3.clear();
-    phoE2x2.clear();
+    //phoE1x3.clear();
+    //phoE2x2.clear();
     phoE3x3.clear();
-    phoE2x5Max.clear();
+    //phoE2x5Max.clear();
     phoE1x5.clear();
     phoE2x5.clear();
     phoE5x5.clear();
@@ -416,13 +418,13 @@ public:
     phoR2x5.clear();
     phoESEffSigmaRR.clear();
     phoSigmaIEtaIEta_2012.clear();
-    phoSigmaIEtaIPhi_2012.clear();
-    phoSigmaIPhiIPhi_2012.clear();
-    phoE1x3_2012.clear();
-    phoE2x2_2012.clear();
+    //phoSigmaIEtaIPhi_2012.clear();
+    //phoSigmaIPhiIPhi_2012.clear();
+    //phoE1x3_2012.clear();
+    //phoE2x2_2012.clear();
     phoE3x3_2012.clear();
-    phoE2x5Max_2012.clear();
-    phoE5x5_2012.clear();
+    //phoE2x5Max_2012.clear();
+    //phoE5x5_2012.clear();
     phoBC1E.clear();
     phoBC1Eta.clear();
     phoBC2E.clear();
@@ -538,6 +540,7 @@ public:
 
     if(montecarlo){
       tree_->Branch("nMC",&nMC);
+      tree_->Branch("ptHat",&ptHat);
       tree_->Branch("mcPID",&mcPID);
       tree_->Branch("mcStatus",&mcStatus);
       tree_->Branch("mcVtx_x",&mcVtx_x);
@@ -585,10 +588,10 @@ public:
     tree_->Branch("phoSigmaIEtaIEta",      &phoSigmaIEtaIEta);
 // tree_->Branch("phoSigmaIEtaIPhi",      &phoSigmaIEtaIPhi);  // TODO: not available in reco::
 // tree_->Branch("phoSigmaIPhiIPhi",      &phoSigmaIPhiIPhi);  // TODO: not available in reco::
-    tree_->Branch("phoE1x3",               &phoE1x3);
-    tree_->Branch("phoE2x2",               &phoE2x2);
+    //tree_->Branch("phoE1x3",               &phoE1x3);
+    //tree_->Branch("phoE2x2",               &phoE2x2);
     tree_->Branch("phoE3x3",               &phoE3x3);
-    tree_->Branch("phoE2x5Max",            &phoE2x5Max);
+    //tree_->Branch("phoE2x5Max",            &phoE2x5Max);
     tree_->Branch("phoE1x5",               &phoE1x5);
     tree_->Branch("phoE2x5",               &phoE2x5);
     tree_->Branch("phoE5x5",               &phoE5x5);
@@ -598,13 +601,13 @@ public:
     tree_->Branch("phoR2x5",               &phoR2x5);
     tree_->Branch("phoESEffSigmaRR",       &phoESEffSigmaRR);
     tree_->Branch("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012);
-    tree_->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
-    tree_->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
-    tree_->Branch("phoE1x3_2012",          &phoE1x3_2012);
-    tree_->Branch("phoE2x2_2012",          &phoE2x2_2012);
+    //tree_->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
+    //tree_->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
+    //tree_->Branch("phoE1x3_2012",          &phoE1x3_2012);
+    //tree_->Branch("phoE2x2_2012",          &phoE2x2_2012);
     tree_->Branch("phoE3x3_2012",          &phoE3x3_2012);
-    tree_->Branch("phoE2x5Max_2012",       &phoE2x5Max_2012);
-    tree_->Branch("phoE5x5_2012",          &phoE5x5_2012);
+    //tree_->Branch("phoE2x5Max_2012",       &phoE2x5Max_2012);
+    //tree_->Branch("phoE5x5_2012",          &phoE5x5_2012);
     tree_->Branch("phoBC1E",               &phoBC1E);
     tree_->Branch("phoBC1Eta",             &phoBC1Eta);
     tree_->Branch("phoBC2E",               &phoBC2E);
@@ -726,6 +729,7 @@ public:
 
     if(montecarlo){
       tree_->SetBranchAddress("nMC",&nMC);
+      tree_->SetBranchAddress("ptHat",&ptHat);
       tree_->SetBranchAddress("mcPID",&p_mcPID);
       tree_->SetBranchAddress("mcStatus",&p_mcStatus);
       tree_->SetBranchAddress("mcVtx_x",&p_mcVtx_x);
@@ -773,10 +777,10 @@ public:
     tree_->SetBranchAddress("phoSigmaIEtaIEta",      &p_phoSigmaIEtaIEta);
 // tree_->SetBranchAddress("phoSigmaIEtaIPhi",      &p_phoSigmaIEtaIPhi);  // TODO: not available in reco::
 // tree_->SetBranchAddress("phoSigmaIPhiIPhi",      &p_phoSigmaIPhiIPhi);  // TODO: not available in reco::
-    tree_->SetBranchAddress("phoE1x3",               &p_phoE1x3);
-    tree_->SetBranchAddress("phoE2x2",               &p_phoE2x2);
+    //tree_->SetBranchAddress("phoE1x3",               &p_phoE1x3);
+    //tree_->SetBranchAddress("phoE2x2",               &p_phoE2x2);
     tree_->SetBranchAddress("phoE3x3",               &p_phoE3x3);
-    tree_->SetBranchAddress("phoE2x5Max",            &p_phoE2x5Max);
+    //tree_->SetBranchAddress("phoE2x5Max",            &p_phoE2x5Max);
     tree_->SetBranchAddress("phoE1x5",               &p_phoE1x5);
     tree_->SetBranchAddress("phoE2x5",               &p_phoE2x5);
     tree_->SetBranchAddress("phoE5x5",               &p_phoE5x5);
@@ -786,13 +790,13 @@ public:
     tree_->SetBranchAddress("phoR2x5",               &p_phoR2x5);
     tree_->SetBranchAddress("phoESEffSigmaRR",       &p_phoESEffSigmaRR);
     tree_->SetBranchAddress("phoSigmaIEtaIEta_2012", &p_phoSigmaIEtaIEta_2012);
-    tree_->SetBranchAddress("phoSigmaIEtaIPhi_2012", &p_phoSigmaIEtaIPhi_2012);
-    tree_->SetBranchAddress("phoSigmaIPhiIPhi_2012", &p_phoSigmaIPhiIPhi_2012);
-    tree_->SetBranchAddress("phoE1x3_2012",          &p_phoE1x3_2012);
-    tree_->SetBranchAddress("phoE2x2_2012",          &p_phoE2x2_2012);
+    // tree_->SetBranchAddress("phoSigmaIEtaIPhi_2012", &p_phoSigmaIEtaIPhi_2012);
+    // tree_->SetBranchAddress("phoSigmaIPhiIPhi_2012", &p_phoSigmaIPhiIPhi_2012);
+    // tree_->SetBranchAddress("phoE1x3_2012",          &p_phoE1x3_2012);
+    // tree_->SetBranchAddress("phoE2x2_2012",          &p_phoE2x2_2012);
     tree_->SetBranchAddress("phoE3x3_2012",          &p_phoE3x3_2012);
-    tree_->SetBranchAddress("phoE2x5Max_2012",       &p_phoE2x5Max_2012);
-    tree_->SetBranchAddress("phoE5x5_2012",          &p_phoE5x5_2012);
+    // tree_->SetBranchAddress("phoE2x5Max_2012",       &p_phoE2x5Max_2012);
+    // tree_->SetBranchAddress("phoE5x5_2012",          &p_phoE5x5_2012);
     tree_->SetBranchAddress("phoBC1E",               &p_phoBC1E);
     tree_->SetBranchAddress("phoBC1Eta",             &p_phoBC1Eta);
     tree_->SetBranchAddress("phoBC2E",               &p_phoBC2E);
@@ -949,10 +953,10 @@ public:
     phoR9 = *p_phoR9;
     phoHoverE = *p_phoHoverE;
     phoSigmaIEtaIEta = *p_phoSigmaIEtaIEta;
-    phoE1x3 = *p_phoE1x3;
-    phoE2x2 = *p_phoE2x2;
+    //phoE1x3 = *p_phoE1x3;
+    //phoE2x2 = *p_phoE2x2;
     phoE3x3 = *p_phoE3x3;
-    phoE2x5Max = *p_phoE2x5Max;
+    //phoE2x5Max = *p_phoE2x5Max;
     phoE1x5 = *p_phoE1x5;
     phoE2x5 = *p_phoE2x5;
     phoE5x5 = *p_phoE5x5;
@@ -962,13 +966,13 @@ public:
     phoR2x5 = *p_phoR2x5;
     phoESEffSigmaRR = *p_phoESEffSigmaRR;
     phoSigmaIEtaIEta_2012 = *p_phoSigmaIEtaIEta_2012;
-    phoSigmaIEtaIPhi_2012 = *p_phoSigmaIEtaIPhi_2012;
-    phoSigmaIPhiIPhi_2012 = *p_phoSigmaIPhiIPhi_2012;
-    phoE1x3_2012 = *p_phoE1x3_2012;
-    phoE2x2_2012 = *p_phoE2x2_2012;
+    // phoSigmaIEtaIPhi_2012 = *p_phoSigmaIEtaIPhi_2012;
+    // phoSigmaIPhiIPhi_2012 = *p_phoSigmaIPhiIPhi_2012;
+    // phoE1x3_2012 = *p_phoE1x3_2012;
+    // phoE2x2_2012 = *p_phoE2x2_2012;
     phoE3x3_2012 = *p_phoE3x3_2012;
-    phoE2x5Max_2012 = *p_phoE2x5Max_2012;
-    phoE5x5_2012 = *p_phoE5x5_2012;
+    // phoE2x5Max_2012 = *p_phoE2x5Max_2012;
+    // phoE5x5_2012 = *p_phoE5x5_2012;
     phoBC1E = *p_phoBC1E;
     phoBC1Eta = *p_phoBC1Eta;
     phoBC2E = *p_phoBC2E;
