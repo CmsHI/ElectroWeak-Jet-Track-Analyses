@@ -371,8 +371,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
            // pick a unique, but also not complicated name for jet Trees
            // jet collection names which are complicated will be put into tree title
-           std::string treeJetName = "jets";
-           if (i > 0)  treeJetName = Form("jets%d", i+1);
+           std::string treeJetName = jetCollections.at(i).c_str();
            std::string treeJetTitle = jetCollections.at(i).c_str();
            std::string currentTitle = outputTreeJet[i]->GetTitle();
            // do not lose the current title
@@ -409,11 +408,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
            // pick a unique, but also not complicated name for gammaJet Trees
            // jet collection names which are complicated will be put into tree title
-           std::string treegammaJetName = "gammaJet";
-           if (i > 0)  treegammaJetName = Form("gammaJet%d", i+1);
-           std::string treezJetTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
+           std::string treegammaJetName = Form("gamma_%s", jetCollections.at(i).c_str());
+           std::string treegammaJetTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
 
-           gammaJetTree[i] = new TTree(treegammaJetName.c_str(),treezJetTitle.c_str());
+           gammaJetTree[i] = new TTree(treegammaJetName.c_str(),treegammaJetTitle.c_str());
            gammaJetTree[i]->SetMaxTreeSize(MAXTREESIZE);
        }
        std::vector<GammaJet> gammajet(nJetCollections);
@@ -434,8 +432,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                // jetMB trees
                // pick a unique, but also not complicated name for jetMB Trees
                // jet collection names which are complicated will be put into tree title
-               std::string treeJetMBName = "jetsMB";
-               if (i > 0)  treeJetMBName = Form("jetsMB%d", i+1);
+               std::string treeJetMBName = Form("%sMB", jetCollections.at(i).c_str());
                std::string treeJetMBTitle = Form("%s : jets from MB events", jetCollections.at(i).c_str());
                outputTreeJetMB[i] = new TTree(treeJetMBName.c_str(), treeJetMBTitle.c_str());
 
@@ -445,8 +442,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                // gammaJetMB trees
                // pick a unique, but also not complicated name for gammaJetMB Trees
                // jet collection names which are complicated will be put into tree title
-               std::string treegammaJetMBName = "gammaJetMB";
-               if (i > 0)  treegammaJetMBName = Form("gammaJetMB%d", i+1);
+               std::string treegammaJetMBName = Form("gamma_%sMB", jetCollections.at(i).c_str());
                std::string treegammaJetMBTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
                gammaJetTreeMB[i] = new TTree(treegammaJetMBName.c_str(),treegammaJetMBTitle.c_str());
 

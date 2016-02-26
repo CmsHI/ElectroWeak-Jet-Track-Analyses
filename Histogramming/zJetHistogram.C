@@ -88,6 +88,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int muPixelHits;
 
     // jet cuts
+    std::string jetCollection;
     float cut_jetpt;
     float cut_jeteta;
     int   cut_jetID;
@@ -149,6 +150,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         muTrkLayers = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muTrkLayers];
         muPixelHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muPixelHits];
 
+        jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
         cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
         cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
@@ -205,6 +207,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         muTrkLayers = 5;
         muPixelHits = 0;
 
+        jetCollection = "akPu3PFJetAnalyzer";
         cut_jetpt = 40;
         cut_jeteta = 1.6;
         cut_jetID = 0;      // jetID >= 0
@@ -286,6 +289,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
          doDiMuon = 0;
      }
 
+    std::cout<<"jetCollection             = "<< jetCollection.c_str() <<std::endl;
     std::cout<<"cut_jetpt                 = "<< cut_jetpt <<std::endl;
     std::cout<<"cut_jeteta                = "<< cut_jeteta <<std::endl;
     std::cout<<"cut_jetID                 = "<< cut_jetID <<std::endl;
@@ -344,18 +348,24 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
     TTree *tdiLepton = (TTree*)input->Get(diLeptonTreePath.c_str());
-    TTree *tJet = (TTree*)input->Get("jets");
-    TTree *tzj  = (TTree*)input->Get("zJet");
+    TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
+    TTree *tzj  = (TTree*)input->Get(Form("z_%s", jetCollection.c_str()));
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+
+    if (!tJet) {
+        std::cout<<"following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
+    }
+
     TTree *tJetMB;
     TTree *tzjMB;
-
     // check the existence of HI specific trees in "zJetSkim.root" file
     bool hasJetsMB = false;
     bool hasZJetMB = false;
     if (isHI) {
-        input->GetObject("jetsMB",tJetMB);
-        input->GetObject("zJetMB",tzjMB);
+        input->GetObject(Form("%sMB", jetCollection.c_str()), tJetMB);
+        input->GetObject(Form("z_%sMB", jetCollection.c_str()), tzjMB);
 
         if (tJetMB) hasJetsMB = true;
         if (tzjMB)  hasZJetMB = true;

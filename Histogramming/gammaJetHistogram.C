@@ -92,6 +92,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     float cut_pfpIso4_c1_EE;
 
     // jet cuts
+    std::string jetCollection;
     float cut_jetpt;
     float cut_jeteta;
     int   cut_jetID;
@@ -142,6 +143,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_pfpIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EE];
         cut_pfpIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EE];
 
+        jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
         cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
         cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
         cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
@@ -187,6 +189,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         cut_pfpIso4_c0_EE = 0.83;
         cut_pfpIso4_c1_EE = 0.0034;
 
+        jetCollection = "akPu3PFJetAnalyzer";
         cut_jetpt = 40;
         cut_jeteta = 1.6;
         cut_jetID = 0;      // jetID >= 0
@@ -251,6 +254,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         std::cout<<"cut_pfpIso4_c1_EE       = "<< cut_pfpIso4_c1_EE <<std::endl;
     }
 
+    std::cout<<"jetCollection             = "<< jetCollection.c_str() <<std::endl;
     std::cout<<"cut_jetpt                 = "<< cut_jetpt <<std::endl;
     std::cout<<"cut_jeteta                = "<< cut_jeteta <<std::endl;
     std::cout<<"cut_jetID                 = "<< cut_jetID <<std::endl;
@@ -268,18 +272,24 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
     TTree *tPho = (TTree*)input->Get("EventTree");    // photons
-    TTree *tJet = (TTree*)input->Get("jets");
-    TTree *tgj  = (TTree*)input->Get("gammaJet");
+    TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
+    TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+
+    if (!tJet) {
+        std::cout<<"following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
+    }
+
     TTree *tJetMB;
     TTree *tgjMB;
-
     // check the existence of HI specific trees in "gammaJetSkim.root" file
     bool hasJetsMB = false;
     bool hasGammaJetMB = false;
     if (isHI) {
-        input->GetObject("jetsMB",tJetMB);
-        input->GetObject("gammaJetMB",tgjMB);
+        input->GetObject(Form("%sMB", jetCollection.c_str()), tJetMB);
+        input->GetObject(Form("gamma_%sMB", jetCollection.c_str()), tgjMB);
 
         if (tJetMB) hasJetsMB = true;
         if (tgjMB)  hasGammaJetMB = true;

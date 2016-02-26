@@ -469,8 +469,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            // pick a unique, but also not complicated name for jet Trees
            // jet collection names which are complicated will be put into tree title
-           std::string treeJetName = "jets";
-           if (i > 0)  treeJetName = Form("jets%d", i+1);
+           std::string treeJetName = jetCollections.at(i).c_str();
            std::string treeJetTitle = jetCollections.at(i).c_str();
            std::string currentTitle = outputTreeJet[i]->GetTitle();
            // do not lose the current title
@@ -529,8 +528,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            // pick a unique, but also not complicated name for zJet Trees
            // jet collection names which are complicated will be put into tree title
-           std::string treezJetName = "zJet";
-           if (i > 0)  treezJetName = Form("zJet%d", i+1);
+           std::string treezJetName = Form("z_%s", jetCollections.at(i).c_str());
            std::string treezJetTitle = Form("%s : leading z-jet correlations", jetCollections.at(i).c_str());
 
            zJetTree[i] = new TTree(treezJetName.c_str(),treezJetTitle.c_str());
@@ -554,8 +552,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                // jetMB trees
                // pick a unique, but also not complicated name for jetMB Trees
                // jet collection names which are complicated will be put into tree title
-               std::string treeJetMBName = "jetsMB";
-               if (i > 0)  treeJetMBName = Form("jetsMB%d", i+1);
+               std::string treeJetMBName = Form("%sMB", jetCollections.at(i).c_str());
                std::string treeJetMBTitle = Form("%s : jets from MB events", jetCollections.at(i).c_str());
                outputTreeJetMB[i] = new TTree(treeJetMBName.c_str(), treeJetMBTitle.c_str());
 
@@ -565,8 +562,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                // zJetMB trees
                // pick a unique, but also not complicated name for zJetMB Trees
                // jet collection names which are complicated will be put into tree title
-               std::string treezJetMBName = "zJetMB";
-               if (i > 0)  treezJetMBName = Form("zJetMB%d", i+1);
+               std::string treezJetMBName = Form("z_%sMB", jetCollections.at(i).c_str());
                std::string treezJetMBTitle = Form("%s : leading z-jet correlations", jetCollections.at(i).c_str());
                zJetTreeMB[i] = new TTree(treezJetMBName.c_str(),treezJetMBTitle.c_str());
 
