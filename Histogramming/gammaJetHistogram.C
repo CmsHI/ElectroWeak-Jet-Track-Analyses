@@ -28,6 +28,8 @@ const std::vector<double>      xlow  {0,  0,           0};
 const std::vector<double>      xup   {5,  TMath::Pi(), 300};
 const std::vector<double>      xlow_final{0,  0,           0};
 const std::vector<double>      xup_final {2,  TMath::Pi(), 150};
+const std::vector<bool> isAwaySideJets {true,  false, true};  // whether the observable is plotted for inclusive jets in the away side
+const std::vector<bool> isSingleJet    {false, false, false}; // whether the observable is plotted once per event
 
 void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
 
@@ -356,6 +358,21 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     }
     }
 
+    // histograms to store the number of photon events, not photon-Jet event
+    // those histograms have a single bin whose content is the number of photon events
+    // they are just a tool to store number.
+    TH1D* h_nPho[nBins_pt][nBins_hiBin][2];
+    for (int i=0; i<nBins_pt; ++i){
+        for(int j=0; j<nBins_hiBin; ++j){
+
+            std::string histNamePhoRAW = Form("h_nPho_ptBin%d_HiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kRAW].c_str());
+            h_nPho[i][j][CORR::kRAW] = new TH1D(histNamePhoRAW.c_str(), "", 1, 0, 1);
+
+            std::string histNamePhoBKG = Form("h_nPho_ptBin%d_HiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kBKG].c_str());
+            h_nPho[i][j][CORR::kBKG] = new TH1D(histNamePhoBKG.c_str(), "", 1, 0, 1);
+        }
+    }
+
     // histograms with pt bins on x-axis
     std::vector<std::string> correlationHistNames_ptBinAll = {"rjg", "xjg_mean"};       // histograms where x-axis is pt bins
     int nCorrHist_ptBinAll = correlationHistNames_ptBinAll.size();
@@ -493,7 +510,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // jet selection
             TCut selectionJet = "";
             // special selection
-            if (correlationHistNames.at(iHist).compare("dphi") != 0) {  // no awayRange cut for dphi histograms
+            if (isAwaySideJets.at(iHist)) {  // no awayRange cut for dphi histograms
                 selectionJet = selectionJet && Form("abs(dphi) > %f ", cut_awayRange);
                 selectionJet = selectionJet && Form("abs(dphi) <= %f ", cut_awayRange_lt);
             }
@@ -501,6 +518,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             selectionJet = selectionJet && Form("jtpt > %f", cut_jetpt);
             selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
             selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
+            if (isSingleJet.at(iHist)) {  // select gammaJet events only, do not select inclusive jets
+                selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
+            }
 
             TCut selection_Barrel = "1";    // no extra selection at the moment
             TCut selection_Endcap = "1";    // no extra selection at the moment
@@ -543,6 +563,17 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // so no calculation for nEntriesPho[][CORR::kBKG]
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
             corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW];
+
+            if (h_nPho[i][j][CORR::kRAW]->GetBinContent(1) == 0)  {
+                h_nPho[i][j][CORR::kRAW]->SetBinContent(1, corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW]);
+                h_nPho[i][j][CORR::kRAW]->Write("",TObject::kOverwrite);
+            }
+
+            if (h_nPho[i][j][CORR::kBKG]->GetBinContent(1) == 0)  {
+                h_nPho[i][j][CORR::kBKG]->SetBinContent(1, corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW]);
+                h_nPho[i][j][CORR::kBKG]->Write("",TObject::kOverwrite);
+            }
+
 
             tgj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] = tgj->GetEntries(corrHists[iHist][i][j].selections[CORR::kRAW][CORR::kRAW].GetTitle());

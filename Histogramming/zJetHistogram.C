@@ -344,6 +344,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<double>      xup   {5,  TMath::Pi(), 300, 120, 300};
     std::vector<double>      xlow_final{0,  0,           0,   60, 0};
     std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120, 150};
+    std::vector<bool> isAwaySideJets {true,  false, true, false, false};  // whether the observable is plotted for inclusive jets in the away side
+    std::vector<bool> isSingleJet    {false, false, false, true, true};   // whether the observable is plotted once per event
 
     TFile *input = new TFile(inputFile, "READ");
     TTree *tHlt = (TTree*)input->Get("hltTree");
@@ -424,6 +426,18 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             }
         }
     }
+    }
+
+    // histograms to store the number of Z events, not zJet event
+    // those histograms have a single bin whose content is the number of Z events
+    // they are just a tool to store number.
+    TH1D* h_nZ[nBins_pt][nBins_hiBin];
+    for (int i=0; i<nBins_pt; ++i){
+        for(int j=0; j<nBins_hiBin; ++j){
+
+            std::string histName = Form("h_nZ_ptBin%d_HiBin%d", i, j);
+            h_nZ[i][j] = new TH1D(histName.c_str(), "", 1, 0, 1);
+        }
     }
 
     // histograms with pt bins on x-axis
@@ -584,7 +598,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // jet selection
             TCut selectionJet = "";
             // special selection
-            if (correlationHistNames.at(iHist).compare("dphi") != 0) {  // no awayRange cut for dphi histograms
+            if (isAwaySideJets.at(iHist)) {  // no awayRange cut for dphi histograms
                 selectionJet = selectionJet && Form("abs(dphi) > %f ", cut_awayRange);
                 selectionJet = selectionJet && Form("abs(dphi) <= %f ", cut_awayRange_lt);
             }
@@ -594,10 +608,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
             selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
             // special selection
-            if (correlationHistNames.at(iHist).compare(diLeptonM.c_str()) == 0) {  // select zJet events only, do not select inclusive jets
-                selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
-            }
-            if (correlationHistNames.at(iHist).compare(diLeptonPt.c_str()) == 0) {  // select zJet events only, do not select inclusive jets
+            if (isSingleJet.at(iHist)) {  // select zJet events only, do not select inclusive jets
                 selectionJet = Form("Max$(%s)>0", selectionJet.GetTitle());
             }
 
@@ -633,7 +644,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // nEntriesPho[][CORR::kRAW] = nEntriesPho[][CORR::kBKG] by definition
             // so no calculation for nEntriesPho[][CORR::kBKG]
             corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
+            if (h_nZ[i][j]->GetBinContent(1) == 0)  {
+                h_nZ[i][j]->SetBinContent(1, corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW]);
+                h_nZ[i][j]->Write("",TObject::kOverwrite);
+            }
 
+            // number of z-jet events
             tzj->SetEventList(elists[CORR::kRAW][i][j]);
             corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] = tzj->GetEntries(corrHists[iHist][i][j].selections[CORR::kRAW][CORR::kRAW].GetTitle());
             tzj->SetEventList(eventlist);      // restore the original event list

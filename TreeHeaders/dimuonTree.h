@@ -68,6 +68,7 @@ public :
         diMuPt = 0;
         diMuEta = 0;
         diMuPhi = 0;
+        diMuY = 0;
     };
     ~dimuon(){};
     void setupDiMuonTree(TTree *t);
@@ -128,6 +129,7 @@ public :
     std::vector<float>   *diMuPt;
     std::vector<float>   *diMuEta;
     std::vector<float>   *diMuPhi;
+    std::vector<float>   *diMuY;
 
     // List of branches
     TBranch        *b_nMu;
@@ -182,6 +184,7 @@ public :
     TBranch        *b_diMuPt;
     TBranch        *b_diMuEta;
     TBranch        *b_diMuPhi;
+    TBranch        *b_diMuY;
 
     // list of objects to be used when creating a diMuon Tree
     Int_t           nMu_out;
@@ -236,6 +239,7 @@ public :
     std::vector<float>   diMuPt_out;
     std::vector<float>   diMuEta_out;
     std::vector<float>   diMuPhi_out;
+    std::vector<float>   diMuY_out;
 };
 
 void dimuon::setupDiMuonTree(TTree *t)
@@ -294,6 +298,7 @@ void dimuon::setupDiMuonTree(TTree *t)
     if (t->GetBranch("diMuPt"))  t->SetBranchAddress("diMuPt", &diMuPt, &b_diMuPt);
     if (t->GetBranch("diMuEta"))  t->SetBranchAddress("diMuEta", &diMuEta, &b_diMuEta);
     if (t->GetBranch("diMuPhi"))  t->SetBranchAddress("diMuPhi", &diMuPhi, &b_diMuPhi);
+    if (t->GetBranch("diMuY"))  t->SetBranchAddress("diMuY", &diMuY, &b_diMuY);
 }
 
 void dimuon::branchDiMuonTree(TTree* t)
@@ -351,6 +356,7 @@ void dimuon::branchDiMuonTree(TTree* t)
     t->Branch("diMuPt", &diMuPt_out);
     t->Branch("diMuEta", &diMuEta_out);
     t->Branch("diMuPhi", &diMuPhi_out);
+    t->Branch("diMuY", &diMuY_out);
 }
 
 void dimuon::makeDiMuonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
@@ -406,6 +412,7 @@ void dimuon::makeDiMuonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
     diMuPt_out.clear();
     diMuEta_out.clear();
     diMuPhi_out.clear();
+    diMuY_out.clear();
 
     nMu_out = tggHiNtuplizer.nMu;
     for(int i=0; i<nMu_out; ++i)
@@ -477,6 +484,7 @@ void dimuon::makeDiMuonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
                     diMuPt_out.push_back(vSum.Pt());
                     diMuEta_out.push_back(vSum.Eta());
                     diMuPhi_out.push_back(vSum.Phi());
+                    diMuY_out.push_back(vSum.Rapidity());
                 }
             }
             else {
@@ -538,6 +546,7 @@ void dimuon::makeDiMuonPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
                 diMuPt_out.push_back(vSum.Pt());
                 diMuEta_out.push_back(vSum.Eta());
                 diMuPhi_out.push_back(vSum.Phi());
+                diMuY_out.push_back(vSum.Rapidity());
             }
         }
     }

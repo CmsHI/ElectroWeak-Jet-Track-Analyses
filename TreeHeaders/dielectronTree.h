@@ -110,6 +110,7 @@ public :
       diElePt = 0;
       diEleEta = 0;
       diElePhi = 0;
+      diEleY = 0;
   };
   ~dielectron(){};
   void setupDiElectronTree(TTree *t);
@@ -212,6 +213,7 @@ public :
   std::vector<float>   *diElePt;
   std::vector<float>   *diEleEta;
   std::vector<float>   *diElePhi;
+  std::vector<float>   *diEleY;
 
   // List of branches
   TBranch        *b_nEle;
@@ -308,6 +310,7 @@ public :
   TBranch        *b_diElePt;
   TBranch        *b_diEleEta;
   TBranch        *b_diElePhi;
+  TBranch        *b_diEleY;
 
   // list of objects to be used when creating a diElectron Tree
   Int_t           nEle_out;
@@ -404,6 +407,7 @@ public :
   std::vector<float>   diElePt_out;
   std::vector<float>   diEleEta_out;
   std::vector<float>   diElePhi_out;
+  std::vector<float>   diEleY_out;
 };
 
 void dielectron::setupDiElectronTree(TTree *t)
@@ -504,6 +508,7 @@ void dielectron::setupDiElectronTree(TTree *t)
     if (t->GetBranch("diElePt"))  t->SetBranchAddress("diElePt", &diElePt, &b_diElePt);
     if (t->GetBranch("diEleEta"))  t->SetBranchAddress("diEleEta", &diEleEta, &b_diEleEta);
     if (t->GetBranch("diElePhi"))  t->SetBranchAddress("diElePhi", &diElePhi, &b_diElePhi);
+    if (t->GetBranch("diEleY"))  t->SetBranchAddress("diEleY", &diEleY, &b_diEleY);
 }
 
 void dielectron::branchDiElectronTree(TTree *t)
@@ -603,6 +608,7 @@ void dielectron::branchDiElectronTree(TTree *t)
     t->Branch("diElePt", &diElePt_out);
     t->Branch("diEleEta", &diEleEta_out);
     t->Branch("diElePhi", &diElePhi_out);
+    t->Branch("diEleY", &diEleY_out);
 }
 
 void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
@@ -700,6 +706,7 @@ void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeC
     diElePt_out.clear();
     diEleEta_out.clear();
     diElePhi_out.clear();
+    diEleY_out.clear();
 
     nEle_out = tggHiNtuplizer.nEle;
     for(int i=0; i<nEle_out; ++i)
@@ -813,6 +820,7 @@ void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeC
                     diElePt_out.push_back(vSum.Pt());
                     diEleEta_out.push_back(vSum.Eta());
                     diElePhi_out.push_back(vSum.Phi());
+                    diEleY_out.push_back(vSum.Rapidity());
                 }
             }
             else {
@@ -917,6 +925,7 @@ void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeC
                 diElePt_out.push_back(vSum.Pt());
                 diEleEta_out.push_back(vSum.Eta());
                 diElePhi_out.push_back(vSum.Phi());
+                diEleY_out.push_back(vSum.Rapidity());
             }
         }
     }

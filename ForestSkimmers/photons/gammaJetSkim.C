@@ -569,6 +569,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                            if (iterMB[centBin][vzBin][k] == nMB[centBin][vzBin][k])  iterMB[centBin][vzBin][k] = 0;  // reset if necessary
                        }
                    }
+                   else {
+                       std::cout << "WARNING : the event lacks necessary number of MB events to mix." << std::endl;
+                       std::cout << Form("{run, lumis, event, j_entry} = %d, %d, %llu, %lld", run, lumis, event, j_entry) << std::endl;
+                       std::cout << Form("{hiBin, vz} = %d, %f", hiBin, vz) << std::endl;
+                       std::cout << "centBin = "<<centBin<<", vzBin = "<<vzBin<<", jetCollection index = "<<k<<std::endl;
+                       std::cout << "nMB[centBin][vzBin][jetCollection] = "<<nMB[centBin][vzBin][k]<<std::endl;
+                   }
                    jetsMBoutput.at(k).b = -1;   // this branch is not an array.
 
                    gammaJetTreeMB[k]->Fill();
