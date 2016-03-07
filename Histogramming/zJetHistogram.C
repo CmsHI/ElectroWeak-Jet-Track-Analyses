@@ -339,11 +339,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
                                                                           "Entries / (2 GeV/c^{2})",
                                                                           "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{dp^{Z}_{T}}"};
-    std::vector<int>         nBinsx{40, 20,          100, 30, 100};
+    std::vector<int>         nBinsx{40, 20,          60, 30, 60};
     std::vector<double>      xlow  {0,  0,           0,   60, 0};
     std::vector<double>      xup   {5,  TMath::Pi(), 300, 120, 300};
     std::vector<double>      xlow_final{0,  0,           0,   60, 0};
-    std::vector<double>      xup_final {2,  TMath::Pi(), 150, 120, 150};
+    std::vector<double>      xup_final {2,  TMath::Pi(), 200, 120, 200};
     std::vector<bool> isAwaySideJets {true,  false, true, false, false};  // whether the observable is plotted for inclusive jets in the away side
     std::vector<bool> isSingleJet    {false, false, false, true, true};   // whether the observable is plotted once per event
 
@@ -410,12 +410,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     for (int iHist=0; iHist<nCorrHist; ++iHist){
     for (int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
-            corrHists[iHist][i][j].name = Form("%s_ptBin%d_HiBin%d", correlationHistNames.at(iHist).c_str(), i, j);
+            corrHists[iHist][i][j].name = Form("%s_ptBin%d_hibin%d", correlationHistNames.at(iHist).c_str(), i, j);
 
             int iCorr = 0;
             for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
 
-                std::string subHistName = Form("%s_ptBin%d_HiBin%d_%s", correlationHistNames.at(iHist).c_str(), i, j,
+                std::string subHistName = Form("%s_ptBin%d_hibin%d_%s", correlationHistNames.at(iHist).c_str(), i, j,
                         CORR::CORR_JET_LABELS[jCorr].c_str());
                 corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                 corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()),"",
@@ -435,7 +435,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     for (int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
 
-            std::string histName = Form("h_nZ_ptBin%d_HiBin%d", i, j);
+            std::string histName = Form("h_nZ_ptBin%d_hibin%d", i, j);
             h_nZ[i][j] = new TH1D(histName.c_str(), "", 1, 0, 1);
         }
     }
@@ -456,13 +456,13 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
             // rjz
             std::string subHistName;
-            subHistName = Form("%s_ptBinAll_HiBin%d_%s", correlationHistNames_ptBinAll.at(0).c_str(), j,
+            subHistName = Form("%s_ptBinAll_hibin%d_%s", correlationHistNames_ptBinAll.at(0).c_str(), j,
                     CORR::CORR_JET_LABELS[jCorr].c_str());
             corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
             corrHists_ptBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_rjz, bins_rjz);
 
             // x_jz_mean
-            subHistName = Form("%s_ptBinAll_HiBin%d_%s", correlationHistNames_ptBinAll.at(1).c_str(), j,
+            subHistName = Form("%s_ptBinAll_hibin%d_%s", correlationHistNames_ptBinAll.at(1).c_str(), j,
                     CORR::CORR_JET_LABELS[jCorr].c_str());
             corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
             corrHists_ptBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_xjz_mean, bins_xjz_mean);
@@ -559,7 +559,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
-            eventlistNames[CORR::kRAW][i][j] = Form("eventlist_ptBin%d_HiBin%d", i, j);  // CORR::kRAW = 0
+            eventlistNames[CORR::kRAW][i][j] = Form("eventlist_ptBin%d_hibin%d", i, j);  // CORR::kRAW = 0
             isEventlistCreated[i][j] = false;
         }
     }

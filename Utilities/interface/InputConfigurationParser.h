@@ -245,6 +245,14 @@ enum TYPE_NORM{
   kN_TYPE_NORM      // must come last in enum
 };
 
+enum TYPE_DRAWSAME{
+  k_noDrawSame,         // do not draw same, just a place holder
+  k_drawSame,           // draw everything together
+  k_drawSameAcrossSplits,     // draw histogram 1 from split bins 1,2,3, ... same, draw histogram 2 from split bins 1,2,3, ... same, ...
+  k_drawSameInsideSplits,     // draw histogram 1,2,3, ... from split bin 1 same, draw histogram 1,2,3, ... from split bin 2 same, ...
+  kN_TYPE_DRAWSAME           // must come last in enum
+};
+
 };
 
 namespace INPUT_MODE {

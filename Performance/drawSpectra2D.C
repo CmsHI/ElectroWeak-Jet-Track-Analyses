@@ -535,9 +535,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     }
 
     if (nSelectionSplitter == 1) {
-        std::cout << "nSelectionMultiplier = "<< nSelectionSplitter << std::endl;
-        std::cout << "selectionMultiplier has been set to have exactly one selection"<< std::endl;
-        std::cout << "selectionMultiplier is allowed to be either empty or to have more than one selections"<< std::endl;
+        std::cout << "nSelectionSplitter = "<< nSelectionSplitter << std::endl;
+        std::cout << "selectionSplitter has been set to have exactly one selection"<< std::endl;
+        std::cout << "selectionSplitter is allowed to be either empty or to have more than one selections"<< std::endl;
         std::cout << "exiting"<< std::endl;
         return;
     }
@@ -592,9 +592,15 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
             yUp   = TH2D_Bins_List[5].at(i%nTH2D_Bins_List);
         }
         std::string title = "";
-        if (nTitles == 1) title = titles.at(0).c_str();
-        else if (nTitles == nHistosInput) title = titles.at(i%nTitles).c_str();
-        else if (nTitles == nHistos)      title = titles.at(i).c_str();
+        if (nTitles == 1)  {
+            if (titles.at(0).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(0).c_str();
+        }
+        else if (nTitles == nHistosInput)  {
+            if (titles.at(i%nTitles).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i%nTitles).c_str();
+        }
+        else if (nTitles == nHistos)  {
+            if (titles.at(i).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i).c_str();
+        }
 
         std::string titleX = "";
         if (nTitlesX == 1) titleX = titlesX.at(0).c_str();

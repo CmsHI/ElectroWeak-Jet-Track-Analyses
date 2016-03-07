@@ -538,9 +538,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
 
     if (nSelectionSplitter == 1) {
-        std::cout << "nSelectionMultiplier = "<< nSelectionSplitter << std::endl;
-        std::cout << "selectionMultiplier has been set to have exactly one selection"<< std::endl;
-        std::cout << "selectionMultiplier is allowed to be either empty or to have more than one selections"<< std::endl;
+        std::cout << "nSelectionSplitter = "<< nSelectionSplitter << std::endl;
+        std::cout << "selectionSplitter has been set to have exactly one selection"<< std::endl;
+        std::cout << "selectionSplitter is allowed to be either empty or to have more than one selections"<< std::endl;
         std::cout << "exiting"<< std::endl;
         return;
     }
@@ -589,9 +589,15 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
         }
         std::string title = "";
-        if (nTitles == 1) title = titles.at(0).c_str();
-        else if (nTitles == nHistosInput) title = titles.at(i%nTitles).c_str();
-        else if (nTitles == nHistos)      title = titles.at(i).c_str();
+        if (nTitles == 1)  {
+            if (titles.at(0).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(0).c_str();
+        }
+        else if (nTitles == nHistosInput)  {
+            if (titles.at(i%nTitles).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i%nTitles).c_str();
+        }
+        else if (nTitles == nHistos)  {
+            if (titles.at(i).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i).c_str();
+        }
 
         std::string titleX = "";
         if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
@@ -762,12 +768,17 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     // set style of the histograms for the canvases to be saved as picture
     for(int i=0; i<nHistos; ++i) {
+        bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
+
         std::string drawOption = "";
         if (nDrawOptions == 1) {
             if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
         }
         else if (nDrawOptions == nHistosInput) {
-            if (drawOptions.at(i).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
+            if (drawOptions.at(i%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
+        }
+        else if (drawSameAcrossSplits && nDrawOptions == nSplits) {
+            if (drawOptions.at((i/nHistosInput)%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at((i/nHistosInput)%nDrawOptions).c_str();
         }
         // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
         // TObject::SetDrawOption() is not suitable for the approach here.
@@ -775,6 +786,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int markerStyle = GRAPHICS::markerStyle;
         if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
         else if (nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
+        else if (drawSameAcrossSplits && nMarkerStyles == nSplits) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at((i/nHistosInput)%nMarkerStyles));
         h[i]->SetMarkerStyle(markerStyle);
         h_normInt[i]->SetMarkerStyle(markerStyle);
         h_normEvents[i]->SetMarkerStyle(markerStyle);
@@ -782,6 +794,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int lineStyle = GRAPHICS::lineStyle;
         if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
         else if (nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
+        else if (drawSameAcrossSplits && nLineStyles == nSplits)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at((i/nHistosInput)%nLineStyles));
         h[i]->SetLineStyle(lineStyle);
         h_normInt[i]->SetLineStyle(lineStyle);
         h_normEvents[i]->SetLineStyle(lineStyle);
@@ -789,6 +802,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int fillStyle = GRAPHICS::fillStyle;
         if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
         else if (nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
+        else if (drawSameAcrossSplits && nFillStyles == nSplits)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at((i/nHistosInput)%nFillStyles));
         h[i]->SetFillStyle(fillStyle);
         h_normInt[i]->SetFillStyle(fillStyle);
         h_normEvents[i]->SetFillStyle(fillStyle);
@@ -796,6 +810,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int color = GRAPHICS::colors[i];
         if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
         else if (nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
+        else if (drawSameAcrossSplits && nColors == nSplits) color = GraphicsConfigurationParser::ParseColor(colors.at((i/nHistosInput)%nColors));
         h[i]->SetMarkerColor(color);
         h[i]->SetLineColor(color);
         h_normInt[i]->SetMarkerColor(color);
@@ -806,6 +821,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int fillColor = -1;
         if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
         else if (nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
+        else if (drawSameAcrossSplits && nFillColors == nSplits) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at((i/nHistosInput)%nFillColors));
         if (fillColor != -1)
         {
             h[i]->SetFillColor(fillColor);
@@ -816,6 +832,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int lineColor = -1;
         if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
         else if (nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
+        else if (drawSameAcrossSplits && nLineColors == nSplits) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at((i/nHistosInput)%nLineColors));
         if (nLineColors != -1)
         {
             h[i]->SetLineColor(lineColor);
@@ -960,138 +977,194 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
         }
         else if (drawSame > 0) {    // histograms will be plotted to the same canvas
-            c = new TCanvas("cnv_drawSpectra","",windowWidth,windowHeight);
-            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy);
-            c->cd();
 
-            // set maximum/minimum of y-axis
-            if (yMin > yMax) {
-                double histMin = h_draw[0]->GetMinimum();
-                double histMax = h_draw[0]->GetMaximum();
-                for (int i = 1; i<nHistos; ++i) {
-                    if (h_draw[i]->GetMinimum() < histMin)   histMin = h_draw[i]->GetMinimum();
-                    if (h_draw[i]->GetMaximum() > histMax)   histMax = h_draw[i]->GetMaximum();
+            bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
+            bool drawSameInsideSplits = (drawSame == INPUT_TH1::k_drawSameInsideSplits);
+
+            int nCanvasDrawSame = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+            if (drawSameAcrossSplits)  nCanvasDrawSame = nHistosInput;
+            if (drawSameInsideSplits)  nCanvasDrawSame = nSplits;
+
+            // one must have : nHistosPerCanvas * nCanvasDrawSame = nHistos
+            int nHistosPerCanvas = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+            if (drawSameAcrossSplits)  nHistosPerCanvas = nSplits;
+            if (drawSameInsideSplits)  nHistosPerCanvas = nHistosInput;
+
+            int iCanvas = 0;
+            bool drawSameFinished = false;
+            while (!drawSameFinished)  {
+
+                TLegend* leg;
+                c = new TCanvas(Form("cnv_drawSpectra_%d", iCanvas),"",windowWidth,windowHeight);
+                setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+                setCanvasFinal(c, setLogx, setLogy);
+                c->cd();
+
+                int histStart = 0;
+                if (drawSameAcrossSplits) histStart += iCanvas;
+                if (drawSameInsideSplits) histStart =  iCanvas * nHistosPerCanvas;
+                // set maximum/minimum of y-axis
+                if (yMin > yMax) {
+                    double histMin = h_draw[histStart]->GetMinimum();
+                    double histMax = h_draw[histStart]->GetMaximum();
+
+                    int histCount = 1;
+                    int iHist = histStart;
+                    int increment = 1;
+                    if (drawSameAcrossSplits)  increment = nHistosInput;
+                    if (drawSameInsideSplits)  increment = 1;
+                    while (histCount < nHistosPerCanvas)
+                    {
+                        iHist += increment;
+                        if (h_draw[iHist]->GetMinimum() < histMin)   histMin = h_draw[iHist]->GetMinimum();
+                        if (h_draw[iHist]->GetMaximum() > histMax)   histMax = h_draw[iHist]->GetMaximum();
+                        histCount++;
+                    }
+                    if (setLogy == 0) h_draw[histStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
+                    h_draw[histStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.1*TMath::Power(10,setLogy));
                 }
-                if (setLogy == 0) h_draw[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
-                h_draw[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1*TMath::Power(10,setLogy));
-            }
 
-            TLegend* leg = new TLegend();
-            for (int i = 0; i<nHistos; ++i) {
+                leg = new TLegend();
 
-                std::string drawOption = "";
-                if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-                else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
+                int histCount = 0;
+                int iHist = histStart;
+                int increment = 1;
+                if (drawSameAcrossSplits)  increment = nHistosInput;
+                if (drawSameInsideSplits)  increment = 1;
+                while (histCount < nHistosPerCanvas)
+                {
+                    std::string drawOption = "";
+                    if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+                    else if (nDrawOptions == nHistosPerCanvas) drawOption = drawOptions.at((iHist/increment)%nDrawOptions).c_str();
 
-                h_draw[i]->Draw(Form("%s same", drawOption.c_str()));
+                    h_draw[iHist]->Draw(Form("%s same", drawOption.c_str()));
 
-                if (nLegendEntryLabels == nHistosInput) {
-                    std::string label = legendEntryLabels.at(i%nLegendEntryLabels).c_str();
-                    if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
+                    if (nLegendEntryLabels == nHistosPerCanvas) {
+                        std::string label = legendEntryLabels.at((iHist/increment)%nLegendEntryLabels).c_str();
+                        if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
 
-                    std::string legendOption = "lpf";
-                    if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
-                    leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
+                        std::string legendOption = "lpf";
+                        if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
+                        leg->AddEntry(h_draw[iHist], label.c_str(), legendOption.c_str());
+                    }
+
+                    histCount++;
+                    iHist += increment;
                 }
-            }
 
-            if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
-            leg->SetBorderSize(legendBorderSize);
-            double height = calcTLegendHeight(leg);
-            double width = calcTLegendWidth(leg);
-            if (legendHeight != 0)  height = legendHeight;
-            if (legendWidth != 0)  width = legendWidth;
-            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
-                setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
-                leg->Draw();
-            }
-
-            // add Text
-            TLatex* latex;
-            if (nTextLines > 0) {
-                latex = new TLatex();
-                latex->SetTextFont(textFont);
-                latex->SetTextSize(textSize);
-                setTextAlignment(latex, textPosition);
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLines; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+                if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
+                leg->SetBorderSize(legendBorderSize);
+                double height = calcTLegendHeight(leg);
+                double width = calcTLegendWidth(leg);
+                if (legendHeight != 0)  height = legendHeight;
+                if (legendWidth != 0)  width = legendWidth;
+                if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
+                    setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
+                    leg->Draw();
                 }
-            }
 
-            // add Text above the pad
-            TLatex* latexOverPad;
-            if (nTextsOverPad > 0) {
-                latexOverPad = new TLatex();
-                latexOverPad->SetTextFont(textAbovePadFont);
-                latexOverPad->SetTextSize(textAbovePadSize);
-                for (int i = 0; i < nTextsOverPad; ++i) {
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
-                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
-
-                    latexOverPad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
-
-                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                // add Text
+                TLatex* latex;
+                if (nTextLines > 0) {
+                    latex = new TLatex();
+                    latex->SetTextFont(textFont);
+                    latex->SetTextSize(textSize);
+                    setTextAlignment(latex, textPosition);
+                    std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
+                    for (int i = 0; i<nTextLines; ++i){
+                        float x = textCoordinates.at(i).first;
+                        float y = textCoordinates.at(i).second;
+                        latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+                    }
                 }
-            }
 
-            // add TLine
-            TLine* line_horizontal[nTLines_horizontal];
-            for (int i = 0; i<nTLines_horizontal; ++i) {
-                if (nHistos > 0) {
-                    // draw horizontal line
-                    double xmin = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetFirst());
-                    double xmax = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetLast()+1);
+                // add Text above the pad
+                TLatex* latexOverPad;
+                if (nTextsOverPad > 0) {
+                    latexOverPad = new TLatex();
+                    latexOverPad->SetTextFont(textAbovePadFont);
+                    latexOverPad->SetTextSize(textAbovePadSize);
+                    for (int i = 0; i < nTextsOverPad; ++i) {
+                        int textOverPadAlignment = GRAPHICS::textAlign;
+                        if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+                        else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
 
-                    int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                    if (nLineStyles_horizontal == 1)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                    else if (nLineStyles_horizontal == nTLines_horizontal)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
+                        latexOverPad->SetTextAlign(textOverPadAlignment);
+                        setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
 
-                    line_horizontal[i] = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
-                    line_horizontal[i]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_horizontal[i]->Draw();
+                        latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                    }
                 }
-            }
-            // add TLine
-            TLine* line_vertical[nTLines_vertical];
-            for (int i = 0; i<nTLines_vertical; ++i) {
-                if (nHistos > 0) {
-                    // draw vertical line
-                    double ymin = h[0]->GetMinimum();
-                    double ymax = h[0]->GetMaximum();
 
-                    int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                    if (nLineStyles_vertical == 1)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                    else if (nLineStyles_vertical == nTLines_vertical)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
+                // add TLine
+                TLine* line_horizontal[nTLines_horizontal];
+                for (int i = 0; i<nTLines_horizontal; ++i) {
+                    if (nHistos > 0) {
+                        // draw horizontal line
+                        double xmin = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetFirst());
+                        double xmax = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetLast()+1);
 
-                    line_vertical[i] = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
-                    line_vertical[i]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_vertical[i]->Draw();
+                        int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+                        if (nLineStyles_horizontal == 1)
+                            lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+                        else if (nLineStyles_horizontal == nTLines_horizontal)
+                            lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
+
+                        line_horizontal[i] = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
+                        line_horizontal[i]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                        line_horizontal[i]->Draw();
+                    }
                 }
-            }
+                // add TLine
+                TLine* line_vertical[nTLines_vertical];
+                for (int i = 0; i<nTLines_vertical; ++i) {
+                    if (nHistos > 0) {
+                        // draw vertical line
+                        double ymin = h[0]->GetMinimum();
+                        double ymax = h[0]->GetMaximum();
 
-            c->Write();
-            // saving histograms
-            std::string tmpOutputFigureName = outputFigureName.Data();
-            if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
-                c->SaveAs(tmpOutputFigureName.c_str());
-            }
-            else {  // file extension is NOT specified
+                        int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+                        if (nLineStyles_vertical == 1)
+                            lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+                        else if (nLineStyles_vertical == nTLines_vertical)
+                            lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
 
-                c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
-                c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
-                c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
+                        line_vertical[i] = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
+                        line_vertical[i]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                        line_vertical[i]->Draw();
+                    }
+                }
+
+                c->Write();
+                // saving histograms
+                std::string tmpOutputFigureName = outputFigureName.Data();
+                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
+
+                    if (nCanvasDrawSame > 1) {
+                        // modify outputFile name
+                        // if iCanvas=1, then "output.ext" becomes "output_2.ext"
+                        size_t pos = tmpOutputFigureName.find_last_of(".");
+                        tmpOutputFigureName.replace(pos,1, Form("_%d.", iCanvas+1));
+                    }
+
+                    c->SaveAs(tmpOutputFigureName.c_str());
+                }
+                else {  // file extension is NOT specified
+                    if (nCanvasDrawSame > 1) {
+                        // modify outputFile name
+                        // if i=1, then "output" becomes "output_2"
+                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), iCanvas+1);
+                    }
+
+                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
+                }
+                leg->Delete();
+                c->Close();
+                iCanvas++;
+                drawSameFinished = (iCanvas == nCanvasDrawSame);
             }
-            c->Close();
         }
     }
 
