@@ -48,24 +48,34 @@ namespace CUTS {
       k_nEle,
       k_eleMissHits_EB,
       k_eleMissHits_EE,
+      k_doCorrection,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
             "nEle",
             "eleMissHits_EB",
-            "eleMissHits_EE"
+            "eleMissHits_EE",
+            "doCorrection"
     };
 
     enum S_CUTS{
       k_electronID,
       k_trigger,
+      k_bins_eta_gt,
+      k_bins_eta_lt,
+      k_bins_pt_gt,
+      k_bins_pt_lt,
       kN_S_CUTS
     };
 
     std::string S_CUTS_LABELS[kN_S_CUTS] = {
             "electronID",
-            "trigger"
+            "trigger",
+            "bins_eta_gt",     // label starts with "bins_". this means the input will be a list of strings
+            "bins_eta_lt",
+            "bins_pt_gt",      // label starts with "bins_". this means the input will be a list of strings
+            "bins_pt_lt"
     };
 
   };

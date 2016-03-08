@@ -115,6 +115,8 @@ public :
   ~dielectron(){};
   void setupDiElectronTree(TTree *t);
   void branchDiElectronTree(TTree *t);
+  void clearDiElectronPairs();
+  void pushbackDiElectronPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j, bool doSizeCheck = true);
   void makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck = true);
 
   double mass;
@@ -611,7 +613,7 @@ void dielectron::branchDiElectronTree(TTree *t)
     t->Branch("diEleY", &diEleY_out);
 }
 
-void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
+void dielectron::clearDiElectronPairs()
 {
     eleCharge_1_out.clear();
     eleChargeConsistent_1_out.clear();
@@ -707,226 +709,236 @@ void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeC
     diEleEta_out.clear();
     diElePhi_out.clear();
     diEleY_out.clear();
+}
+
+void dielectron::pushbackDiElectronPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j, bool doSizeCheck)
+{
+    if (doSizeCheck) {
+
+        if(tggHiNtuplizer.eleCharge->size() == (unsigned)nEle_out)  eleCharge_1_out.push_back(tggHiNtuplizer.eleCharge->at(i));
+        if(tggHiNtuplizer.eleChargeConsistent->size() == (unsigned)nEle_out)  eleChargeConsistent_1_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(i));
+        if(tggHiNtuplizer.eleEn->size() == (unsigned)nEle_out)  eleEn_1_out.push_back(tggHiNtuplizer.eleEn->at(i));
+        if(tggHiNtuplizer.eleD0->size() == (unsigned)nEle_out)  eleD0_1_out.push_back(tggHiNtuplizer.eleD0->at(i));
+        if(tggHiNtuplizer.eleDz->size() == (unsigned)nEle_out)  eleDz_1_out.push_back(tggHiNtuplizer.eleDz->at(i));
+        if(tggHiNtuplizer.eleD0Err->size() == (unsigned)nEle_out)  eleD0Err_1_out.push_back(tggHiNtuplizer.eleD0Err->at(i));
+        if(tggHiNtuplizer.eleDzErr->size() == (unsigned)nEle_out)  eleDzErr_1_out.push_back(tggHiNtuplizer.eleDzErr->at(i));
+        if(tggHiNtuplizer.eleTrkPt->size() == (unsigned)nEle_out)  eleTrkPt_1_out.push_back(tggHiNtuplizer.eleTrkPt->at(i));
+        if(tggHiNtuplizer.eleTrkEta->size() == (unsigned)nEle_out)  eleTrkEta_1_out.push_back(tggHiNtuplizer.eleTrkEta->at(i));
+        if(tggHiNtuplizer.eleTrkPhi->size() == (unsigned)nEle_out)  eleTrkPhi_1_out.push_back(tggHiNtuplizer.eleTrkPhi->at(i));
+        if(tggHiNtuplizer.eleTrkCharge->size() == (unsigned)nEle_out)  eleTrkCharge_1_out.push_back(tggHiNtuplizer.eleTrkCharge->at(i));
+        if(tggHiNtuplizer.eleTrkChi2->size() == (unsigned)nEle_out)  eleTrkChi2_1_out.push_back(tggHiNtuplizer.eleTrkChi2->at(i));
+        if(tggHiNtuplizer.eleTrkNdof->size() == (unsigned)nEle_out)  eleTrkNdof_1_out.push_back(tggHiNtuplizer.eleTrkNdof->at(i));
+        if(tggHiNtuplizer.eleTrkNormalizedChi2->size() == (unsigned)nEle_out)  eleTrkNormalizedChi2_1_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(i));
+        if(tggHiNtuplizer.elePt->size() == (unsigned)nEle_out)  elePt_1_out.push_back(tggHiNtuplizer.elePt->at(i));
+        if(tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out)  eleEta_1_out.push_back(tggHiNtuplizer.eleEta->at(i));
+        if(tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)  elePhi_1_out.push_back(tggHiNtuplizer.elePhi->at(i));
+        if(tggHiNtuplizer.eleSCEn->size() == (unsigned)nEle_out)  eleSCEn_1_out.push_back(tggHiNtuplizer.eleSCEn->at(i));
+        if(tggHiNtuplizer.eleESEn->size() == (unsigned)nEle_out)  eleESEn_1_out.push_back(tggHiNtuplizer.eleESEn->at(i));
+        if(tggHiNtuplizer.eleSCEta->size() == (unsigned)nEle_out)  eleSCEta_1_out.push_back(tggHiNtuplizer.eleSCEta->at(i));
+        if(tggHiNtuplizer.eleSCPhi->size() == (unsigned)nEle_out)  eleSCPhi_1_out.push_back(tggHiNtuplizer.eleSCPhi->at(i));
+        if(tggHiNtuplizer.eleSCRawEn->size() == (unsigned)nEle_out)  eleSCRawEn_1_out.push_back(tggHiNtuplizer.eleSCRawEn->at(i));
+        if(tggHiNtuplizer.eleSCEtaWidth->size() == (unsigned)nEle_out)  eleSCEtaWidth_1_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(i));
+        if(tggHiNtuplizer.eleSCPhiWidth->size() == (unsigned)nEle_out)  eleSCPhiWidth_1_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(i));
+        if(tggHiNtuplizer.eleHoverE->size() == (unsigned)nEle_out)  eleHoverE_1_out.push_back(tggHiNtuplizer.eleHoverE->at(i));
+        if(tggHiNtuplizer.eleEoverP->size() == (unsigned)nEle_out)  eleEoverP_1_out.push_back(tggHiNtuplizer.eleEoverP->at(i));
+        if(tggHiNtuplizer.eleEoverPInv->size() == (unsigned)nEle_out)  eleEoverPInv_1_out.push_back(tggHiNtuplizer.eleEoverPInv->at(i));
+        if(tggHiNtuplizer.eleBrem->size() == (unsigned)nEle_out)  eleBrem_1_out.push_back(tggHiNtuplizer.eleBrem->at(i));
+        if(tggHiNtuplizer.eledEtaAtVtx->size() == (unsigned)nEle_out)  eledEtaAtVtx_1_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(i));
+        if(tggHiNtuplizer.eledPhiAtVtx->size() == (unsigned)nEle_out)  eledPhiAtVtx_1_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(i));
+        if(tggHiNtuplizer.eleSigmaIEtaIEta->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(i));
+        if(tggHiNtuplizer.eleSigmaIEtaIEta_2012->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(i));
+        if(tggHiNtuplizer.eleSigmaIPhiIPhi->size() == (unsigned)nEle_out)  eleSigmaIPhiIPhi_1_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(i));
+        if(tggHiNtuplizer.eleMissHits->size() == (unsigned)nEle_out)  eleMissHits_1_out.push_back(tggHiNtuplizer.eleMissHits->at(i));
+        if(tggHiNtuplizer.eleESEffSigmaRR->size() == (unsigned)nEle_out)  eleESEffSigmaRR_1_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(i));
+        if(tggHiNtuplizer.elePFChIso->size() == (unsigned)nEle_out)  elePFChIso_1_out.push_back(tggHiNtuplizer.elePFChIso->at(i));
+        if(tggHiNtuplizer.elePFPhoIso->size() == (unsigned)nEle_out)  elePFPhoIso_1_out.push_back(tggHiNtuplizer.elePFPhoIso->at(i));
+        if(tggHiNtuplizer.elePFNeuIso->size() == (unsigned)nEle_out)  elePFNeuIso_1_out.push_back(tggHiNtuplizer.elePFNeuIso->at(i));
+        if(tggHiNtuplizer.elePFPUIso->size() == (unsigned)nEle_out)  elePFPUIso_1_out.push_back(tggHiNtuplizer.elePFPUIso->at(i));
+        if(tggHiNtuplizer.eleBC1E->size() == (unsigned)nEle_out)  eleBC1E_1_out.push_back(tggHiNtuplizer.eleBC1E->at(i));
+        if(tggHiNtuplizer.eleBC1Eta->size() == (unsigned)nEle_out)  eleBC1Eta_1_out.push_back(tggHiNtuplizer.eleBC1Eta->at(i));
+        if(tggHiNtuplizer.eleBC2E->size() == (unsigned)nEle_out)  eleBC2E_1_out.push_back(tggHiNtuplizer.eleBC2E->at(i));
+        if(tggHiNtuplizer.eleBC2Eta->size() == (unsigned)nEle_out)  eleBC2Eta_1_out.push_back(tggHiNtuplizer.eleBC2Eta->at(i));
+
+        if(tggHiNtuplizer.eleCharge->size() == (unsigned)nEle_out)  eleCharge_2_out.push_back(tggHiNtuplizer.eleCharge->at(j));
+        if(tggHiNtuplizer.eleChargeConsistent->size() == (unsigned)nEle_out)  eleChargeConsistent_2_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(j));
+        if(tggHiNtuplizer.eleEn->size() == (unsigned)nEle_out)  eleEn_2_out.push_back(tggHiNtuplizer.eleEn->at(j));
+        if(tggHiNtuplizer.eleD0->size() == (unsigned)nEle_out)  eleD0_2_out.push_back(tggHiNtuplizer.eleD0->at(j));
+        if(tggHiNtuplizer.eleDz->size() == (unsigned)nEle_out)  eleDz_2_out.push_back(tggHiNtuplizer.eleDz->at(j));
+        if(tggHiNtuplizer.eleD0Err->size() == (unsigned)nEle_out)  eleD0Err_2_out.push_back(tggHiNtuplizer.eleD0Err->at(j));
+        if(tggHiNtuplizer.eleDzErr->size() == (unsigned)nEle_out)  eleDzErr_2_out.push_back(tggHiNtuplizer.eleDzErr->at(j));
+        if(tggHiNtuplizer.eleTrkPt->size() == (unsigned)nEle_out)  eleTrkPt_2_out.push_back(tggHiNtuplizer.eleTrkPt->at(j));
+        if(tggHiNtuplizer.eleTrkEta->size() == (unsigned)nEle_out)  eleTrkEta_2_out.push_back(tggHiNtuplizer.eleTrkEta->at(j));
+        if(tggHiNtuplizer.eleTrkPhi->size() == (unsigned)nEle_out)  eleTrkPhi_2_out.push_back(tggHiNtuplizer.eleTrkPhi->at(j));
+        if(tggHiNtuplizer.eleTrkCharge->size() == (unsigned)nEle_out)  eleTrkCharge_2_out.push_back(tggHiNtuplizer.eleTrkCharge->at(j));
+        if(tggHiNtuplizer.eleTrkChi2->size() == (unsigned)nEle_out)  eleTrkChi2_2_out.push_back(tggHiNtuplizer.eleTrkChi2->at(j));
+        if(tggHiNtuplizer.eleTrkNdof->size() == (unsigned)nEle_out)  eleTrkNdof_2_out.push_back(tggHiNtuplizer.eleTrkNdof->at(j));
+        if(tggHiNtuplizer.eleTrkNormalizedChi2->size() == (unsigned)nEle_out)  eleTrkNormalizedChi2_2_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(j));
+        if(tggHiNtuplizer.elePt->size() == (unsigned)nEle_out)  elePt_2_out.push_back(tggHiNtuplizer.elePt->at(j));
+        if(tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out)  eleEta_2_out.push_back(tggHiNtuplizer.eleEta->at(j));
+        if(tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)  elePhi_2_out.push_back(tggHiNtuplizer.elePhi->at(j));
+        if(tggHiNtuplizer.eleSCEn->size() == (unsigned)nEle_out)  eleSCEn_2_out.push_back(tggHiNtuplizer.eleSCEn->at(j));
+        if(tggHiNtuplizer.eleESEn->size() == (unsigned)nEle_out)  eleESEn_2_out.push_back(tggHiNtuplizer.eleESEn->at(j));
+        if(tggHiNtuplizer.eleSCEta->size() == (unsigned)nEle_out)  eleSCEta_2_out.push_back(tggHiNtuplizer.eleSCEta->at(j));
+        if(tggHiNtuplizer.eleSCPhi->size() == (unsigned)nEle_out)  eleSCPhi_2_out.push_back(tggHiNtuplizer.eleSCPhi->at(j));
+        if(tggHiNtuplizer.eleSCRawEn->size() == (unsigned)nEle_out)  eleSCRawEn_2_out.push_back(tggHiNtuplizer.eleSCRawEn->at(j));
+        if(tggHiNtuplizer.eleSCEtaWidth->size() == (unsigned)nEle_out)  eleSCEtaWidth_2_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(j));
+        if(tggHiNtuplizer.eleSCPhiWidth->size() == (unsigned)nEle_out)  eleSCPhiWidth_2_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(j));
+        if(tggHiNtuplizer.eleHoverE->size() == (unsigned)nEle_out)  eleHoverE_2_out.push_back(tggHiNtuplizer.eleHoverE->at(j));
+        if(tggHiNtuplizer.eleEoverP->size() == (unsigned)nEle_out)  eleEoverP_2_out.push_back(tggHiNtuplizer.eleEoverP->at(j));
+        if(tggHiNtuplizer.eleEoverPInv->size() == (unsigned)nEle_out)  eleEoverPInv_2_out.push_back(tggHiNtuplizer.eleEoverPInv->at(j));
+        if(tggHiNtuplizer.eleBrem->size() == (unsigned)nEle_out)  eleBrem_2_out.push_back(tggHiNtuplizer.eleBrem->at(j));
+        if(tggHiNtuplizer.eledEtaAtVtx->size() == (unsigned)nEle_out)  eledEtaAtVtx_2_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(j));
+        if(tggHiNtuplizer.eledPhiAtVtx->size() == (unsigned)nEle_out)  eledPhiAtVtx_2_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(j));
+        if(tggHiNtuplizer.eleSigmaIEtaIEta->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(j));
+        if(tggHiNtuplizer.eleSigmaIEtaIEta_2012->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(j));
+        if(tggHiNtuplizer.eleSigmaIPhiIPhi->size() == (unsigned)nEle_out)  eleSigmaIPhiIPhi_2_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(j));
+        if(tggHiNtuplizer.eleMissHits->size() == (unsigned)nEle_out)  eleMissHits_2_out.push_back(tggHiNtuplizer.eleMissHits->at(j));
+        if(tggHiNtuplizer.eleESEffSigmaRR->size() == (unsigned)nEle_out)  eleESEffSigmaRR_2_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(j));
+        if(tggHiNtuplizer.elePFChIso->size() == (unsigned)nEle_out)  elePFChIso_2_out.push_back(tggHiNtuplizer.elePFChIso->at(j));
+        if(tggHiNtuplizer.elePFPhoIso->size() == (unsigned)nEle_out)  elePFPhoIso_2_out.push_back(tggHiNtuplizer.elePFPhoIso->at(j));
+        if(tggHiNtuplizer.elePFNeuIso->size() == (unsigned)nEle_out)  elePFNeuIso_2_out.push_back(tggHiNtuplizer.elePFNeuIso->at(j));
+        if(tggHiNtuplizer.elePFPUIso->size() == (unsigned)nEle_out)  elePFPUIso_2_out.push_back(tggHiNtuplizer.elePFPUIso->at(j));
+        if(tggHiNtuplizer.eleBC1E->size() == (unsigned)nEle_out)  eleBC1E_2_out.push_back(tggHiNtuplizer.eleBC1E->at(j));
+        if(tggHiNtuplizer.eleBC1Eta->size() == (unsigned)nEle_out)  eleBC1Eta_2_out.push_back(tggHiNtuplizer.eleBC1Eta->at(j));
+        if(tggHiNtuplizer.eleBC2E->size() == (unsigned)nEle_out)  eleBC2E_2_out.push_back(tggHiNtuplizer.eleBC2E->at(j));
+        if(tggHiNtuplizer.eleBC2Eta->size() == (unsigned)nEle_out)  eleBC2Eta_2_out.push_back(tggHiNtuplizer.eleBC2Eta->at(j));
+
+        // dielectron
+        if (tggHiNtuplizer.elePt->size()  == (unsigned)nEle_out &&
+            tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out &&
+            tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)
+        {
+            TLorentzVector v1, v2, vSum;
+            v1.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(i), tggHiNtuplizer.eleEta->at(i),
+                    tggHiNtuplizer.elePhi->at(i), mass);
+            v2.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(j), tggHiNtuplizer.eleEta->at(j),
+                    tggHiNtuplizer.elePhi->at(j), mass);
+            vSum = v1+v2;
+
+            diEleM_out.push_back(vSum.M());
+            diEleEn_out.push_back(vSum.Energy());
+            diElePt_out.push_back(vSum.Pt());
+            diEleEta_out.push_back(vSum.Eta());
+            diElePhi_out.push_back(vSum.Phi());
+            diEleY_out.push_back(vSum.Rapidity());
+        }
+    }
+    else {
+        eleCharge_1_out.push_back(tggHiNtuplizer.eleCharge->at(i));
+        eleChargeConsistent_1_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(i));
+        eleEn_1_out.push_back(tggHiNtuplizer.eleEn->at(i));
+        eleD0_1_out.push_back(tggHiNtuplizer.eleD0->at(i));
+        eleDz_1_out.push_back(tggHiNtuplizer.eleDz->at(i));
+        eleD0Err_1_out.push_back(tggHiNtuplizer.eleD0Err->at(i));
+        eleDzErr_1_out.push_back(tggHiNtuplizer.eleDzErr->at(i));
+        eleTrkPt_1_out.push_back(tggHiNtuplizer.eleTrkPt->at(i));
+        eleTrkEta_1_out.push_back(tggHiNtuplizer.eleTrkEta->at(i));
+        eleTrkPhi_1_out.push_back(tggHiNtuplizer.eleTrkPhi->at(i));
+        eleTrkCharge_1_out.push_back(tggHiNtuplizer.eleTrkCharge->at(i));
+        eleTrkChi2_1_out.push_back(tggHiNtuplizer.eleTrkChi2->at(i));
+        eleTrkNdof_1_out.push_back(tggHiNtuplizer.eleTrkNdof->at(i));
+        eleTrkNormalizedChi2_1_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(i));
+        elePt_1_out.push_back(tggHiNtuplizer.elePt->at(i));
+        eleEta_1_out.push_back(tggHiNtuplizer.eleEta->at(i));
+        elePhi_1_out.push_back(tggHiNtuplizer.elePhi->at(i));
+        eleSCEn_1_out.push_back(tggHiNtuplizer.eleSCEn->at(i));
+        eleESEn_1_out.push_back(tggHiNtuplizer.eleESEn->at(i));
+        eleSCEta_1_out.push_back(tggHiNtuplizer.eleSCEta->at(i));
+        eleSCPhi_1_out.push_back(tggHiNtuplizer.eleSCPhi->at(i));
+        eleSCRawEn_1_out.push_back(tggHiNtuplizer.eleSCRawEn->at(i));
+        eleSCEtaWidth_1_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(i));
+        eleSCPhiWidth_1_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(i));
+        eleHoverE_1_out.push_back(tggHiNtuplizer.eleHoverE->at(i));
+        eleEoverP_1_out.push_back(tggHiNtuplizer.eleEoverP->at(i));
+        eleEoverPInv_1_out.push_back(tggHiNtuplizer.eleEoverPInv->at(i));
+        eleBrem_1_out.push_back(tggHiNtuplizer.eleBrem->at(i));
+        eledEtaAtVtx_1_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(i));
+        eledPhiAtVtx_1_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(i));
+        eleSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(i));
+        eleSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(i));
+        eleSigmaIPhiIPhi_1_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(i));
+        eleMissHits_1_out.push_back(tggHiNtuplizer.eleMissHits->at(i));
+        eleESEffSigmaRR_1_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(i));
+        elePFChIso_1_out.push_back(tggHiNtuplizer.elePFChIso->at(i));
+        elePFPhoIso_1_out.push_back(tggHiNtuplizer.elePFPhoIso->at(i));
+        elePFNeuIso_1_out.push_back(tggHiNtuplizer.elePFNeuIso->at(i));
+        elePFPUIso_1_out.push_back(tggHiNtuplizer.elePFPUIso->at(i));
+        eleBC1E_1_out.push_back(tggHiNtuplizer.eleBC1E->at(i));
+        eleBC1Eta_1_out.push_back(tggHiNtuplizer.eleBC1Eta->at(i));
+        eleBC2E_1_out.push_back(tggHiNtuplizer.eleBC2E->at(i));
+        eleBC2Eta_1_out.push_back(tggHiNtuplizer.eleBC2Eta->at(i));
+
+        eleCharge_2_out.push_back(tggHiNtuplizer.eleCharge->at(j));
+        eleChargeConsistent_2_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(j));
+        eleEn_2_out.push_back(tggHiNtuplizer.eleEn->at(j));
+        eleD0_2_out.push_back(tggHiNtuplizer.eleD0->at(j));
+        eleDz_2_out.push_back(tggHiNtuplizer.eleDz->at(j));
+        eleD0Err_2_out.push_back(tggHiNtuplizer.eleD0Err->at(j));
+        eleDzErr_2_out.push_back(tggHiNtuplizer.eleDzErr->at(j));
+        eleTrkPt_2_out.push_back(tggHiNtuplizer.eleTrkPt->at(j));
+        eleTrkEta_2_out.push_back(tggHiNtuplizer.eleTrkEta->at(j));
+        eleTrkPhi_2_out.push_back(tggHiNtuplizer.eleTrkPhi->at(j));
+        eleTrkCharge_2_out.push_back(tggHiNtuplizer.eleTrkCharge->at(j));
+        eleTrkChi2_2_out.push_back(tggHiNtuplizer.eleTrkChi2->at(j));
+        eleTrkNdof_2_out.push_back(tggHiNtuplizer.eleTrkNdof->at(j));
+        eleTrkNormalizedChi2_2_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(j));
+        elePt_2_out.push_back(tggHiNtuplizer.elePt->at(j));
+        eleEta_2_out.push_back(tggHiNtuplizer.eleEta->at(j));
+        elePhi_2_out.push_back(tggHiNtuplizer.elePhi->at(j));
+        eleSCEn_2_out.push_back(tggHiNtuplizer.eleSCEn->at(j));
+        eleESEn_2_out.push_back(tggHiNtuplizer.eleESEn->at(j));
+        eleSCEta_2_out.push_back(tggHiNtuplizer.eleSCEta->at(j));
+        eleSCPhi_2_out.push_back(tggHiNtuplizer.eleSCPhi->at(j));
+        eleSCRawEn_2_out.push_back(tggHiNtuplizer.eleSCRawEn->at(j));
+        eleSCEtaWidth_2_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(j));
+        eleSCPhiWidth_2_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(j));
+        eleHoverE_2_out.push_back(tggHiNtuplizer.eleHoverE->at(j));
+        eleEoverP_2_out.push_back(tggHiNtuplizer.eleEoverP->at(j));
+        eleEoverPInv_2_out.push_back(tggHiNtuplizer.eleEoverPInv->at(j));
+        eleBrem_2_out.push_back(tggHiNtuplizer.eleBrem->at(j));
+        eledEtaAtVtx_2_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(j));
+        eledPhiAtVtx_2_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(j));
+        eleSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(j));
+        eleSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(j));
+        eleSigmaIPhiIPhi_2_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(j));
+        eleMissHits_2_out.push_back(tggHiNtuplizer.eleMissHits->at(j));
+        eleESEffSigmaRR_2_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(j));
+        elePFChIso_2_out.push_back(tggHiNtuplizer.elePFChIso->at(j));
+        elePFPhoIso_2_out.push_back(tggHiNtuplizer.elePFPhoIso->at(j));
+        elePFNeuIso_2_out.push_back(tggHiNtuplizer.elePFNeuIso->at(j));
+        elePFPUIso_2_out.push_back(tggHiNtuplizer.elePFPUIso->at(j));
+        eleBC1E_2_out.push_back(tggHiNtuplizer.eleBC1E->at(j));
+        eleBC1Eta_2_out.push_back(tggHiNtuplizer.eleBC1Eta->at(j));
+        eleBC2E_2_out.push_back(tggHiNtuplizer.eleBC2E->at(j));
+        eleBC2Eta_2_out.push_back(tggHiNtuplizer.eleBC2Eta->at(j));
+
+        // dielectron
+        TLorentzVector v1, v2, vSum;
+        v1.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(i), tggHiNtuplizer.eleEta->at(i),
+                tggHiNtuplizer.elePhi->at(i), mass);
+        v2.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(j), tggHiNtuplizer.eleEta->at(j),
+                tggHiNtuplizer.elePhi->at(j), mass);
+        vSum = v1+v2;
+
+        diEleM_out.push_back(vSum.M());
+        diEleEn_out.push_back(vSum.Energy());
+        diElePt_out.push_back(vSum.Pt());
+        diEleEta_out.push_back(vSum.Eta());
+        diElePhi_out.push_back(vSum.Phi());
+        diEleY_out.push_back(vSum.Rapidity());
+    }
+}
+
+void dielectron::makeDiElectronPairs(ggHiNtuplizer &tggHiNtuplizer, bool doSizeCheck)
+{
+    clearDiElectronPairs();
 
     nEle_out = tggHiNtuplizer.nEle;
     for(int i=0; i<nEle_out; ++i)
     {
         for(int j=i+1; j<nEle_out; ++j)
         {
-            if (doSizeCheck) {
-
-                if(tggHiNtuplizer.eleCharge->size() == (unsigned)nEle_out)  eleCharge_1_out.push_back(tggHiNtuplizer.eleCharge->at(i));
-                if(tggHiNtuplizer.eleChargeConsistent->size() == (unsigned)nEle_out)  eleChargeConsistent_1_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(i));
-                if(tggHiNtuplizer.eleEn->size() == (unsigned)nEle_out)  eleEn_1_out.push_back(tggHiNtuplizer.eleEn->at(i));
-                if(tggHiNtuplizer.eleD0->size() == (unsigned)nEle_out)  eleD0_1_out.push_back(tggHiNtuplizer.eleD0->at(i));
-                if(tggHiNtuplizer.eleDz->size() == (unsigned)nEle_out)  eleDz_1_out.push_back(tggHiNtuplizer.eleDz->at(i));
-                if(tggHiNtuplizer.eleD0Err->size() == (unsigned)nEle_out)  eleD0Err_1_out.push_back(tggHiNtuplizer.eleD0Err->at(i));
-                if(tggHiNtuplizer.eleDzErr->size() == (unsigned)nEle_out)  eleDzErr_1_out.push_back(tggHiNtuplizer.eleDzErr->at(i));
-                if(tggHiNtuplizer.eleTrkPt->size() == (unsigned)nEle_out)  eleTrkPt_1_out.push_back(tggHiNtuplizer.eleTrkPt->at(i));
-                if(tggHiNtuplizer.eleTrkEta->size() == (unsigned)nEle_out)  eleTrkEta_1_out.push_back(tggHiNtuplizer.eleTrkEta->at(i));
-                if(tggHiNtuplizer.eleTrkPhi->size() == (unsigned)nEle_out)  eleTrkPhi_1_out.push_back(tggHiNtuplizer.eleTrkPhi->at(i));
-                if(tggHiNtuplizer.eleTrkCharge->size() == (unsigned)nEle_out)  eleTrkCharge_1_out.push_back(tggHiNtuplizer.eleTrkCharge->at(i));
-                if(tggHiNtuplizer.eleTrkChi2->size() == (unsigned)nEle_out)  eleTrkChi2_1_out.push_back(tggHiNtuplizer.eleTrkChi2->at(i));
-                if(tggHiNtuplizer.eleTrkNdof->size() == (unsigned)nEle_out)  eleTrkNdof_1_out.push_back(tggHiNtuplizer.eleTrkNdof->at(i));
-                if(tggHiNtuplizer.eleTrkNormalizedChi2->size() == (unsigned)nEle_out)  eleTrkNormalizedChi2_1_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(i));
-                if(tggHiNtuplizer.elePt->size() == (unsigned)nEle_out)  elePt_1_out.push_back(tggHiNtuplizer.elePt->at(i));
-                if(tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out)  eleEta_1_out.push_back(tggHiNtuplizer.eleEta->at(i));
-                if(tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)  elePhi_1_out.push_back(tggHiNtuplizer.elePhi->at(i));
-                if(tggHiNtuplizer.eleSCEn->size() == (unsigned)nEle_out)  eleSCEn_1_out.push_back(tggHiNtuplizer.eleSCEn->at(i));
-                if(tggHiNtuplizer.eleESEn->size() == (unsigned)nEle_out)  eleESEn_1_out.push_back(tggHiNtuplizer.eleESEn->at(i));
-                if(tggHiNtuplizer.eleSCEta->size() == (unsigned)nEle_out)  eleSCEta_1_out.push_back(tggHiNtuplizer.eleSCEta->at(i));
-                if(tggHiNtuplizer.eleSCPhi->size() == (unsigned)nEle_out)  eleSCPhi_1_out.push_back(tggHiNtuplizer.eleSCPhi->at(i));
-                if(tggHiNtuplizer.eleSCRawEn->size() == (unsigned)nEle_out)  eleSCRawEn_1_out.push_back(tggHiNtuplizer.eleSCRawEn->at(i));
-                if(tggHiNtuplizer.eleSCEtaWidth->size() == (unsigned)nEle_out)  eleSCEtaWidth_1_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(i));
-                if(tggHiNtuplizer.eleSCPhiWidth->size() == (unsigned)nEle_out)  eleSCPhiWidth_1_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(i));
-                if(tggHiNtuplizer.eleHoverE->size() == (unsigned)nEle_out)  eleHoverE_1_out.push_back(tggHiNtuplizer.eleHoverE->at(i));
-                if(tggHiNtuplizer.eleEoverP->size() == (unsigned)nEle_out)  eleEoverP_1_out.push_back(tggHiNtuplizer.eleEoverP->at(i));
-                if(tggHiNtuplizer.eleEoverPInv->size() == (unsigned)nEle_out)  eleEoverPInv_1_out.push_back(tggHiNtuplizer.eleEoverPInv->at(i));
-                if(tggHiNtuplizer.eleBrem->size() == (unsigned)nEle_out)  eleBrem_1_out.push_back(tggHiNtuplizer.eleBrem->at(i));
-                if(tggHiNtuplizer.eledEtaAtVtx->size() == (unsigned)nEle_out)  eledEtaAtVtx_1_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(i));
-                if(tggHiNtuplizer.eledPhiAtVtx->size() == (unsigned)nEle_out)  eledPhiAtVtx_1_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(i));
-                if(tggHiNtuplizer.eleSigmaIEtaIEta->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(i));
-                if(tggHiNtuplizer.eleSigmaIEtaIEta_2012->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(i));
-                if(tggHiNtuplizer.eleSigmaIPhiIPhi->size() == (unsigned)nEle_out)  eleSigmaIPhiIPhi_1_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(i));
-                if(tggHiNtuplizer.eleMissHits->size() == (unsigned)nEle_out)  eleMissHits_1_out.push_back(tggHiNtuplizer.eleMissHits->at(i));
-                if(tggHiNtuplizer.eleESEffSigmaRR->size() == (unsigned)nEle_out)  eleESEffSigmaRR_1_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(i));
-                if(tggHiNtuplizer.elePFChIso->size() == (unsigned)nEle_out)  elePFChIso_1_out.push_back(tggHiNtuplizer.elePFChIso->at(i));
-                if(tggHiNtuplizer.elePFPhoIso->size() == (unsigned)nEle_out)  elePFPhoIso_1_out.push_back(tggHiNtuplizer.elePFPhoIso->at(i));
-                if(tggHiNtuplizer.elePFNeuIso->size() == (unsigned)nEle_out)  elePFNeuIso_1_out.push_back(tggHiNtuplizer.elePFNeuIso->at(i));
-                if(tggHiNtuplizer.elePFPUIso->size() == (unsigned)nEle_out)  elePFPUIso_1_out.push_back(tggHiNtuplizer.elePFPUIso->at(i));
-                if(tggHiNtuplizer.eleBC1E->size() == (unsigned)nEle_out)  eleBC1E_1_out.push_back(tggHiNtuplizer.eleBC1E->at(i));
-                if(tggHiNtuplizer.eleBC1Eta->size() == (unsigned)nEle_out)  eleBC1Eta_1_out.push_back(tggHiNtuplizer.eleBC1Eta->at(i));
-                if(tggHiNtuplizer.eleBC2E->size() == (unsigned)nEle_out)  eleBC2E_1_out.push_back(tggHiNtuplizer.eleBC2E->at(i));
-                if(tggHiNtuplizer.eleBC2Eta->size() == (unsigned)nEle_out)  eleBC2Eta_1_out.push_back(tggHiNtuplizer.eleBC2Eta->at(i));
-
-                if(tggHiNtuplizer.eleCharge->size() == (unsigned)nEle_out)  eleCharge_2_out.push_back(tggHiNtuplizer.eleCharge->at(j));
-                if(tggHiNtuplizer.eleChargeConsistent->size() == (unsigned)nEle_out)  eleChargeConsistent_2_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(j));
-                if(tggHiNtuplizer.eleEn->size() == (unsigned)nEle_out)  eleEn_2_out.push_back(tggHiNtuplizer.eleEn->at(j));
-                if(tggHiNtuplizer.eleD0->size() == (unsigned)nEle_out)  eleD0_2_out.push_back(tggHiNtuplizer.eleD0->at(j));
-                if(tggHiNtuplizer.eleDz->size() == (unsigned)nEle_out)  eleDz_2_out.push_back(tggHiNtuplizer.eleDz->at(j));
-                if(tggHiNtuplizer.eleD0Err->size() == (unsigned)nEle_out)  eleD0Err_2_out.push_back(tggHiNtuplizer.eleD0Err->at(j));
-                if(tggHiNtuplizer.eleDzErr->size() == (unsigned)nEle_out)  eleDzErr_2_out.push_back(tggHiNtuplizer.eleDzErr->at(j));
-                if(tggHiNtuplizer.eleTrkPt->size() == (unsigned)nEle_out)  eleTrkPt_2_out.push_back(tggHiNtuplizer.eleTrkPt->at(j));
-                if(tggHiNtuplizer.eleTrkEta->size() == (unsigned)nEle_out)  eleTrkEta_2_out.push_back(tggHiNtuplizer.eleTrkEta->at(j));
-                if(tggHiNtuplizer.eleTrkPhi->size() == (unsigned)nEle_out)  eleTrkPhi_2_out.push_back(tggHiNtuplizer.eleTrkPhi->at(j));
-                if(tggHiNtuplizer.eleTrkCharge->size() == (unsigned)nEle_out)  eleTrkCharge_2_out.push_back(tggHiNtuplizer.eleTrkCharge->at(j));
-                if(tggHiNtuplizer.eleTrkChi2->size() == (unsigned)nEle_out)  eleTrkChi2_2_out.push_back(tggHiNtuplizer.eleTrkChi2->at(j));
-                if(tggHiNtuplizer.eleTrkNdof->size() == (unsigned)nEle_out)  eleTrkNdof_2_out.push_back(tggHiNtuplizer.eleTrkNdof->at(j));
-                if(tggHiNtuplizer.eleTrkNormalizedChi2->size() == (unsigned)nEle_out)  eleTrkNormalizedChi2_2_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(j));
-                if(tggHiNtuplizer.elePt->size() == (unsigned)nEle_out)  elePt_2_out.push_back(tggHiNtuplizer.elePt->at(j));
-                if(tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out)  eleEta_2_out.push_back(tggHiNtuplizer.eleEta->at(j));
-                if(tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)  elePhi_2_out.push_back(tggHiNtuplizer.elePhi->at(j));
-                if(tggHiNtuplizer.eleSCEn->size() == (unsigned)nEle_out)  eleSCEn_2_out.push_back(tggHiNtuplizer.eleSCEn->at(j));
-                if(tggHiNtuplizer.eleESEn->size() == (unsigned)nEle_out)  eleESEn_2_out.push_back(tggHiNtuplizer.eleESEn->at(j));
-                if(tggHiNtuplizer.eleSCEta->size() == (unsigned)nEle_out)  eleSCEta_2_out.push_back(tggHiNtuplizer.eleSCEta->at(j));
-                if(tggHiNtuplizer.eleSCPhi->size() == (unsigned)nEle_out)  eleSCPhi_2_out.push_back(tggHiNtuplizer.eleSCPhi->at(j));
-                if(tggHiNtuplizer.eleSCRawEn->size() == (unsigned)nEle_out)  eleSCRawEn_2_out.push_back(tggHiNtuplizer.eleSCRawEn->at(j));
-                if(tggHiNtuplizer.eleSCEtaWidth->size() == (unsigned)nEle_out)  eleSCEtaWidth_2_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(j));
-                if(tggHiNtuplizer.eleSCPhiWidth->size() == (unsigned)nEle_out)  eleSCPhiWidth_2_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(j));
-                if(tggHiNtuplizer.eleHoverE->size() == (unsigned)nEle_out)  eleHoverE_2_out.push_back(tggHiNtuplizer.eleHoverE->at(j));
-                if(tggHiNtuplizer.eleEoverP->size() == (unsigned)nEle_out)  eleEoverP_2_out.push_back(tggHiNtuplizer.eleEoverP->at(j));
-                if(tggHiNtuplizer.eleEoverPInv->size() == (unsigned)nEle_out)  eleEoverPInv_2_out.push_back(tggHiNtuplizer.eleEoverPInv->at(j));
-                if(tggHiNtuplizer.eleBrem->size() == (unsigned)nEle_out)  eleBrem_2_out.push_back(tggHiNtuplizer.eleBrem->at(j));
-                if(tggHiNtuplizer.eledEtaAtVtx->size() == (unsigned)nEle_out)  eledEtaAtVtx_2_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(j));
-                if(tggHiNtuplizer.eledPhiAtVtx->size() == (unsigned)nEle_out)  eledPhiAtVtx_2_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(j));
-                if(tggHiNtuplizer.eleSigmaIEtaIEta->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(j));
-                if(tggHiNtuplizer.eleSigmaIEtaIEta_2012->size() == (unsigned)nEle_out)  eleSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(j));
-                if(tggHiNtuplizer.eleSigmaIPhiIPhi->size() == (unsigned)nEle_out)  eleSigmaIPhiIPhi_2_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(j));
-                if(tggHiNtuplizer.eleMissHits->size() == (unsigned)nEle_out)  eleMissHits_2_out.push_back(tggHiNtuplizer.eleMissHits->at(j));
-                if(tggHiNtuplizer.eleESEffSigmaRR->size() == (unsigned)nEle_out)  eleESEffSigmaRR_2_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(j));
-                if(tggHiNtuplizer.elePFChIso->size() == (unsigned)nEle_out)  elePFChIso_2_out.push_back(tggHiNtuplizer.elePFChIso->at(j));
-                if(tggHiNtuplizer.elePFPhoIso->size() == (unsigned)nEle_out)  elePFPhoIso_2_out.push_back(tggHiNtuplizer.elePFPhoIso->at(j));
-                if(tggHiNtuplizer.elePFNeuIso->size() == (unsigned)nEle_out)  elePFNeuIso_2_out.push_back(tggHiNtuplizer.elePFNeuIso->at(j));
-                if(tggHiNtuplizer.elePFPUIso->size() == (unsigned)nEle_out)  elePFPUIso_2_out.push_back(tggHiNtuplizer.elePFPUIso->at(j));
-                if(tggHiNtuplizer.eleBC1E->size() == (unsigned)nEle_out)  eleBC1E_2_out.push_back(tggHiNtuplizer.eleBC1E->at(j));
-                if(tggHiNtuplizer.eleBC1Eta->size() == (unsigned)nEle_out)  eleBC1Eta_2_out.push_back(tggHiNtuplizer.eleBC1Eta->at(j));
-                if(tggHiNtuplizer.eleBC2E->size() == (unsigned)nEle_out)  eleBC2E_2_out.push_back(tggHiNtuplizer.eleBC2E->at(j));
-                if(tggHiNtuplizer.eleBC2Eta->size() == (unsigned)nEle_out)  eleBC2Eta_2_out.push_back(tggHiNtuplizer.eleBC2Eta->at(j));
-
-                // dielectron
-                if (tggHiNtuplizer.elePt->size()  == (unsigned)nEle_out &&
-                    tggHiNtuplizer.eleEta->size() == (unsigned)nEle_out &&
-                    tggHiNtuplizer.elePhi->size() == (unsigned)nEle_out)
-                {
-                    TLorentzVector v1, v2, vSum;
-                    v1.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(i), tggHiNtuplizer.eleEta->at(i),
-                            tggHiNtuplizer.elePhi->at(i), mass);
-                    v2.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(j), tggHiNtuplizer.eleEta->at(j),
-                            tggHiNtuplizer.elePhi->at(j), mass);
-                    vSum = v1+v2;
-
-                    diEleM_out.push_back(vSum.M());
-                    diEleEn_out.push_back(vSum.Energy());
-                    diElePt_out.push_back(vSum.Pt());
-                    diEleEta_out.push_back(vSum.Eta());
-                    diElePhi_out.push_back(vSum.Phi());
-                    diEleY_out.push_back(vSum.Rapidity());
-                }
-            }
-            else {
-                eleCharge_1_out.push_back(tggHiNtuplizer.eleCharge->at(i));
-                eleChargeConsistent_1_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(i));
-                eleEn_1_out.push_back(tggHiNtuplizer.eleEn->at(i));
-                eleD0_1_out.push_back(tggHiNtuplizer.eleD0->at(i));
-                eleDz_1_out.push_back(tggHiNtuplizer.eleDz->at(i));
-                eleD0Err_1_out.push_back(tggHiNtuplizer.eleD0Err->at(i));
-                eleDzErr_1_out.push_back(tggHiNtuplizer.eleDzErr->at(i));
-                eleTrkPt_1_out.push_back(tggHiNtuplizer.eleTrkPt->at(i));
-                eleTrkEta_1_out.push_back(tggHiNtuplizer.eleTrkEta->at(i));
-                eleTrkPhi_1_out.push_back(tggHiNtuplizer.eleTrkPhi->at(i));
-                eleTrkCharge_1_out.push_back(tggHiNtuplizer.eleTrkCharge->at(i));
-                eleTrkChi2_1_out.push_back(tggHiNtuplizer.eleTrkChi2->at(i));
-                eleTrkNdof_1_out.push_back(tggHiNtuplizer.eleTrkNdof->at(i));
-                eleTrkNormalizedChi2_1_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(i));
-                elePt_1_out.push_back(tggHiNtuplizer.elePt->at(i));
-                eleEta_1_out.push_back(tggHiNtuplizer.eleEta->at(i));
-                elePhi_1_out.push_back(tggHiNtuplizer.elePhi->at(i));
-                eleSCEn_1_out.push_back(tggHiNtuplizer.eleSCEn->at(i));
-                eleESEn_1_out.push_back(tggHiNtuplizer.eleESEn->at(i));
-                eleSCEta_1_out.push_back(tggHiNtuplizer.eleSCEta->at(i));
-                eleSCPhi_1_out.push_back(tggHiNtuplizer.eleSCPhi->at(i));
-                eleSCRawEn_1_out.push_back(tggHiNtuplizer.eleSCRawEn->at(i));
-                eleSCEtaWidth_1_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(i));
-                eleSCPhiWidth_1_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(i));
-                eleHoverE_1_out.push_back(tggHiNtuplizer.eleHoverE->at(i));
-                eleEoverP_1_out.push_back(tggHiNtuplizer.eleEoverP->at(i));
-                eleEoverPInv_1_out.push_back(tggHiNtuplizer.eleEoverPInv->at(i));
-                eleBrem_1_out.push_back(tggHiNtuplizer.eleBrem->at(i));
-                eledEtaAtVtx_1_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(i));
-                eledPhiAtVtx_1_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(i));
-                eleSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(i));
-                eleSigmaIEtaIEta_2012_1_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(i));
-                eleSigmaIPhiIPhi_1_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(i));
-                eleMissHits_1_out.push_back(tggHiNtuplizer.eleMissHits->at(i));
-                eleESEffSigmaRR_1_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(i));
-                elePFChIso_1_out.push_back(tggHiNtuplizer.elePFChIso->at(i));
-                elePFPhoIso_1_out.push_back(tggHiNtuplizer.elePFPhoIso->at(i));
-                elePFNeuIso_1_out.push_back(tggHiNtuplizer.elePFNeuIso->at(i));
-                elePFPUIso_1_out.push_back(tggHiNtuplizer.elePFPUIso->at(i));
-                eleBC1E_1_out.push_back(tggHiNtuplizer.eleBC1E->at(i));
-                eleBC1Eta_1_out.push_back(tggHiNtuplizer.eleBC1Eta->at(i));
-                eleBC2E_1_out.push_back(tggHiNtuplizer.eleBC2E->at(i));
-                eleBC2Eta_1_out.push_back(tggHiNtuplizer.eleBC2Eta->at(i));
-
-                eleCharge_2_out.push_back(tggHiNtuplizer.eleCharge->at(j));
-                eleChargeConsistent_2_out.push_back(tggHiNtuplizer.eleChargeConsistent->at(j));
-                eleEn_2_out.push_back(tggHiNtuplizer.eleEn->at(j));
-                eleD0_2_out.push_back(tggHiNtuplizer.eleD0->at(j));
-                eleDz_2_out.push_back(tggHiNtuplizer.eleDz->at(j));
-                eleD0Err_2_out.push_back(tggHiNtuplizer.eleD0Err->at(j));
-                eleDzErr_2_out.push_back(tggHiNtuplizer.eleDzErr->at(j));
-                eleTrkPt_2_out.push_back(tggHiNtuplizer.eleTrkPt->at(j));
-                eleTrkEta_2_out.push_back(tggHiNtuplizer.eleTrkEta->at(j));
-                eleTrkPhi_2_out.push_back(tggHiNtuplizer.eleTrkPhi->at(j));
-                eleTrkCharge_2_out.push_back(tggHiNtuplizer.eleTrkCharge->at(j));
-                eleTrkChi2_2_out.push_back(tggHiNtuplizer.eleTrkChi2->at(j));
-                eleTrkNdof_2_out.push_back(tggHiNtuplizer.eleTrkNdof->at(j));
-                eleTrkNormalizedChi2_2_out.push_back(tggHiNtuplizer.eleTrkNormalizedChi2->at(j));
-                elePt_2_out.push_back(tggHiNtuplizer.elePt->at(j));
-                eleEta_2_out.push_back(tggHiNtuplizer.eleEta->at(j));
-                elePhi_2_out.push_back(tggHiNtuplizer.elePhi->at(j));
-                eleSCEn_2_out.push_back(tggHiNtuplizer.eleSCEn->at(j));
-                eleESEn_2_out.push_back(tggHiNtuplizer.eleESEn->at(j));
-                eleSCEta_2_out.push_back(tggHiNtuplizer.eleSCEta->at(j));
-                eleSCPhi_2_out.push_back(tggHiNtuplizer.eleSCPhi->at(j));
-                eleSCRawEn_2_out.push_back(tggHiNtuplizer.eleSCRawEn->at(j));
-                eleSCEtaWidth_2_out.push_back(tggHiNtuplizer.eleSCEtaWidth->at(j));
-                eleSCPhiWidth_2_out.push_back(tggHiNtuplizer.eleSCPhiWidth->at(j));
-                eleHoverE_2_out.push_back(tggHiNtuplizer.eleHoverE->at(j));
-                eleEoverP_2_out.push_back(tggHiNtuplizer.eleEoverP->at(j));
-                eleEoverPInv_2_out.push_back(tggHiNtuplizer.eleEoverPInv->at(j));
-                eleBrem_2_out.push_back(tggHiNtuplizer.eleBrem->at(j));
-                eledEtaAtVtx_2_out.push_back(tggHiNtuplizer.eledEtaAtVtx->at(j));
-                eledPhiAtVtx_2_out.push_back(tggHiNtuplizer.eledPhiAtVtx->at(j));
-                eleSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta->at(j));
-                eleSigmaIEtaIEta_2012_2_out.push_back(tggHiNtuplizer.eleSigmaIEtaIEta_2012->at(j));
-                eleSigmaIPhiIPhi_2_out.push_back(tggHiNtuplizer.eleSigmaIPhiIPhi->at(j));
-                eleMissHits_2_out.push_back(tggHiNtuplizer.eleMissHits->at(j));
-                eleESEffSigmaRR_2_out.push_back(tggHiNtuplizer.eleESEffSigmaRR->at(j));
-                elePFChIso_2_out.push_back(tggHiNtuplizer.elePFChIso->at(j));
-                elePFPhoIso_2_out.push_back(tggHiNtuplizer.elePFPhoIso->at(j));
-                elePFNeuIso_2_out.push_back(tggHiNtuplizer.elePFNeuIso->at(j));
-                elePFPUIso_2_out.push_back(tggHiNtuplizer.elePFPUIso->at(j));
-                eleBC1E_2_out.push_back(tggHiNtuplizer.eleBC1E->at(j));
-                eleBC1Eta_2_out.push_back(tggHiNtuplizer.eleBC1Eta->at(j));
-                eleBC2E_2_out.push_back(tggHiNtuplizer.eleBC2E->at(j));
-                eleBC2Eta_2_out.push_back(tggHiNtuplizer.eleBC2Eta->at(j));
-
-                // dielectron
-                TLorentzVector v1, v2, vSum;
-                v1.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(i), tggHiNtuplizer.eleEta->at(i),
-                        tggHiNtuplizer.elePhi->at(i), mass);
-                v2.SetPtEtaPhiM( tggHiNtuplizer.elePt->at(j), tggHiNtuplizer.eleEta->at(j),
-                        tggHiNtuplizer.elePhi->at(j), mass);
-                vSum = v1+v2;
-
-                diEleM_out.push_back(vSum.M());
-                diEleEn_out.push_back(vSum.Energy());
-                diElePt_out.push_back(vSum.Pt());
-                diEleEta_out.push_back(vSum.Eta());
-                diElePhi_out.push_back(vSum.Phi());
-                diEleY_out.push_back(vSum.Rapidity());
-            }
+            pushbackDiElectronPair(tggHiNtuplizer, i, j, doSizeCheck);
         }
     }
 }

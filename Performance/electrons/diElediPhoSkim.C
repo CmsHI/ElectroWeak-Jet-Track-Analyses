@@ -20,6 +20,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Plotting/commonUtility.h"
+#include "../../Corrections/electrons/electronCorrector.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB7
 
@@ -54,15 +55,18 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        int cut_nPho;
 
        int cut_nEle;
+       int doCorrection;
        if (configCuts.isValid) {
            cut_nPho = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_nPhotons];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
+           doCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
        }
        else {
            cut_nPho = 2;
 
            cut_nEle = 2;
+           doCorrection = 0;
        }
 
        // verbose about cut configuration
@@ -70,6 +74,7 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"cut_nPho = "<<cut_nPho<<std::endl;
 
        std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
+       std::cout<<"doCorrection = "<<doCorrection<<std::endl;
 
        std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
@@ -114,6 +119,13 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
 
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
+
+       electronCorrector corrector;
+       if (doCorrection) {
+           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
+           corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+       }
 
        TFile* output = new TFile(outputFile,"RECREATE");
        TTree *configTree = setupConfigurationTreeForWriting(configCuts);
@@ -177,6 +189,13 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
            // skip if there are no photons or electrons to study
            if(ggHi.nPho < cut_nPho || ggHi.nEle < cut_nEle)  continue;
            entriesAnalyzed++;
+
+           if(doCorrection > 0)
+           {
+               // correct the pt of electrons
+               // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
+               corrector.correctPts(ggHi);
+           }
 
            // electron-photon matching
            // at most one photon can match to electron. If there are multiple photons, pick the one with highest energy.
