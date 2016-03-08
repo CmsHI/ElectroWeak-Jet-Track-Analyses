@@ -16,6 +16,7 @@
 #include "../../CutConfigurations/interface/ZBosonCuts.h"
 #include "../../CutConfigurations/interface/JetCuts.h"
 #include "../../CutConfigurations/interface/TrackCuts.h"
+#include "../../CutConfigurations/interface/GenParticleCuts.h"
 #include "../../CutConfigurations/interface/GammaJetCuts.h"
 #include "../../CutConfigurations/interface/ZJetCuts.h"
 #include "../../CutConfigurations/interface/EventCuts.h"
@@ -41,6 +42,7 @@ namespace CUTS {
     kZBOSON,
     kJET,
     kTRACK,
+    kGENPARTICLE,
     kGAMMAJET,
     kZJET,
     kEVENT,
@@ -53,6 +55,7 @@ namespace CUTS {
 					  ZBO::kN_I_CUTS,
 					  JET::kN_I_CUTS,
 					  TRK::kN_I_CUTS,
+					  GEN::kN_I_CUTS,
 					  GJT::kN_I_CUTS,
 					  ZJT::kN_I_CUTS,
                       EVT::kN_I_CUTS};
@@ -62,6 +65,7 @@ namespace CUTS {
 							  ZBO::I_CUTS_LABELS,
 							  JET::I_CUTS_LABELS,
 							  TRK::I_CUTS_LABELS,
+							  GEN::I_CUTS_LABELS,
 							  GJT::I_CUTS_LABELS,
 							  ZJT::I_CUTS_LABELS,
 							  EVT::I_CUTS_LABELS};
@@ -72,6 +76,7 @@ namespace CUTS {
 					  ZBO::kN_F_CUTS,
 					  JET::kN_F_CUTS,
 					  TRK::kN_F_CUTS,
+					  GEN::kN_F_CUTS,
 					  GJT::kN_F_CUTS,
 					  ZJT::kN_F_CUTS,
 					  EVT::kN_F_CUTS};
@@ -81,6 +86,7 @@ namespace CUTS {
 							  ZBO::F_CUTS_LABELS,
 							  JET::F_CUTS_LABELS,
 							  TRK::F_CUTS_LABELS,
+							  GEN::F_CUTS_LABELS,
 							  GJT::F_CUTS_LABELS,
 							  ZJT::F_CUTS_LABELS,
 							  EVT::F_CUTS_LABELS};
@@ -91,6 +97,7 @@ namespace CUTS {
 					  ZBO::kN_S_CUTS,
 					  JET::kN_S_CUTS,
 					  TRK::kN_S_CUTS,
+					  GEN::kN_S_CUTS,
 					  GJT::kN_S_CUTS,
 					  ZJT::kN_S_CUTS,
 					  EVT::kN_S_CUTS};
@@ -100,6 +107,7 @@ namespace CUTS {
 							  ZBO::S_CUTS_LABELS,
 							  JET::S_CUTS_LABELS,
 							  TRK::S_CUTS_LABELS,
+							  GEN::S_CUTS_LABELS,
 							  GJT::S_CUTS_LABELS,
 							  ZJT::S_CUTS_LABELS,
 							  EVT::S_CUTS_LABELS};
@@ -110,6 +118,7 @@ namespace CUTS {
 					   "zboson",
 					   "jet",
 					   "track",
+					   "genparticle",
 					   "gammajet",
 					   "zjet",
 					   "event"

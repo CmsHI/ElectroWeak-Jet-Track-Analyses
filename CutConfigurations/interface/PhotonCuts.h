@@ -4,8 +4,8 @@
 namespace CUTS {
   namespace PHO {
     enum F_CUTS{
-      k_eta,
       k_et,
+      k_eta,
       k_phoSigmaIEtaIEta_2012,
       k_purityFitLow,
       k_purityFitHigh,
@@ -50,8 +50,8 @@ namespace CUTS {
     };
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
-      "eta",
       "et",
+      "eta",
       "phoSigmaIEtaIEta_2012",
       "purityFitLow",
       "purityFitHigh",
