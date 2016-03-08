@@ -14,8 +14,8 @@
 #include "../Plotting/commonUtility.h"
 #include "interface/correlationHist.h"
 #include "../Utilities/eventUtil.h"
-#include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/interface/CutConfigurationParser.h"
 
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "zJetHistogram.root");
 
@@ -499,8 +499,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("abs(eleDz_%d[zIdx]) < %f" ,iEle+1 ,eleDz_abs_EE);
         selection_ele_EE[iEle] = selection_ele_EE[iEle] && Form("eleMissHits_%d[zIdx] <= %d" ,iEle+1 ,eleMissHits_EE);
 
-        TCut selection_EB_eta = Form("abs(eleEta_%d[zIdx]) < %f" ,iEle+1 ,1.4791);
-        TCut selection_EE_eta = Form("abs(eleEta_%d[zIdx]) >= %f && abs(eleEta_%d[zIdx]) < %f" ,iEle+1 ,1.4791 ,iEle+1 ,2.4);
+        // https://twiki.cern.ch/twiki/bin/view/CMS/ElectronPbPb5TeV?rev=5#1_Selection_for_all_centrality_r
+        // 08.03.2016 : switch from eleEta to eleSCEta
+        TCut selection_EB_eta = Form("abs(eleSCEta_%d[zIdx]) < %f" ,iEle+1 ,1.4442);
+        TCut selection_EE_eta = Form("abs(eleSCEta_%d[zIdx]) > %f && abs(eleSCEta_%d[zIdx]) < %f" ,iEle+1 ,1.566 ,iEle+1 ,2.5);
 
         selection_ele_EB[iEle] = selection_ele_EB[iEle] && selection_EB_eta;
         selection_ele_EE[iEle] = selection_ele_EE[iEle] && selection_EE_eta;

@@ -1,22 +1,24 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCanvas.h>
+#include <TMath.h>
 #include <TCut.h>
 #include <TH1D.h>
+#include <TCanvas.h>
 
 #include <iostream>
 
 #include "../TreeHeaders/CutConfigurationTree.h"
+#include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 
-void dielectronHistogram(const char* configFile, const char* inputFile, const char* outputFile = "dielectronHistogram.root", const char* sampleName = "");
+void dielectronHistogram(const TString configFile, const TString inputFile, const TString outputFile = "dielectronHistogram.root");
 
-void dielectronHistogram(const char* configFile, const char* inputFile, const char* outputFile, const char* sampleName)
+void dielectronHistogram(const TString configFile, const TString inputFile, const TString outputFile)
 {
     std::cout<<"running dielectronHistogram()" <<std::endl;
-    std::cout<<"configFile = "<< configFile <<std::endl;
-    std::cout<<"inputFile  = "<< inputFile <<std::endl;
-    std::cout<<"outputFile = "<< outputFile <<std::endl;
+    std::cout<<"configFile = "<< configFile.Data() <<std::endl;
+    std::cout<<"inputFile  = "<< inputFile.Data() <<std::endl;
+    std::cout<<"outputFile = "<< outputFile.Data() <<std::endl;
 
     TFile *input = new TFile(inputFile);
     TTree *tHLT = (TTree*)input->Get("HltTree");
@@ -28,13 +30,37 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
 
     TFile* output = new TFile(outputFile, "UPDATE");
 
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile);
+    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+
+    // input configuration
+    int collision;
+    if (configInput.isValid) {
+        collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+    }
+    else {
+        collision = COLL::kPP;
+    }
+    // verbose about input configuration
+    std::cout<<"Input Configuration :"<<std::endl;
+    const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
+    std::cout << "collision = " << collisionName << std::endl;
+
+    bool isHI = collisionIsHI((COLL::TYPE)collision);
+
     TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
+    // observable bins
+    std::vector<int> bins_pt[2];          // array of vectors for electron pt bins, each array element is a vector.
+    std::vector<int> bins_hiBin[2];     // array of vectors for hiBin bins, each array element is a vector.
     // event cuts/weights
     int doEventWeight;
     std::string eventWeight;    // weight to be used for histogram entries
                                 // current purpose of this variable is for weighting events from MC samples.
+    // Z boson cuts
+    float massMin;
+    float massMax;
+    float zPt;
     std::string str_electronID;
     std::string str_trigger;
     float eleSigmaIEtaIEta_2012_EB;
@@ -54,8 +80,21 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
     float eleDz_abs_EE;
     int   eleMissHits_EE;
     if (configCuts.isValid) {
+        bins_pt[0] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_bins_pt_gt]);
+        bins_pt[1] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_bins_pt_lt]);
+        bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+        bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
         doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
         eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
+
+        massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
+        massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
+        zPt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_pt];
 
         str_electronID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_electronID].c_str();
         str_trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str();
@@ -81,6 +120,10 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
         eleMissHits_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EE];
     }
     else {  // default configuration for electron ID
+        massMin = 60;
+        massMax = 120;
+        zPt = 0;
+
         str_electronID = "veto";
         str_trigger = "HLT_HIDoublePhoton15_Eta2p5_Mass50_1000_R9SigmaHECut_v1";
 
@@ -107,12 +150,27 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";
 
+    int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+    int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout << "nBins_pt = " << nBins_pt << std::endl;
+    for (int i=0; i<nBins_pt; ++i) {
+        std::cout << Form("bins_pt[%d] = [%d, %d)", i, bins_pt[0].at(i), bins_pt[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
+    for (int i=0; i<nBins_hiBin; ++i) {
+        std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
+    }
+
     std::cout<<"doEventWeight = "<<doEventWeight<<std::endl;
     if (doEventWeight > 0) {
         std::cout<<"eventWeight = "<<eventWeight.c_str()<<std::endl;
     }
+
+    std::cout<<"massMin = "<< massMin <<std::endl;
+    std::cout<<"massMax = "<< massMax <<std::endl;
+    std::cout<<"zPt = "    << zPt <<std::endl;
 
     std::cout<<"electronID = "<<str_electronID.c_str()<<std::endl;
     std::cout<<"trigger    = "<<str_trigger.c_str()<<std::endl;
@@ -142,160 +200,210 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
 
     TCanvas* c = new TCanvas("cnv","",600,600);
 
-    const int nBins_pt = 2;
+    // eta bins are not part of cut configuration
     const int nBins_eta = 4;
-    int bins_pt[nBins_pt] = {10, 20};
-    float bins_eta_gt[nBins_eta] = {-1,    -1, 1.4791, 1.4791};    // All ECAL, Barrel, Endcap1, Endcap2
-    float bins_eta_lt[nBins_eta] = {2.4, 1.44,    2.4, 2};
+    // https://twiki.cern.ch/twiki/bin/view/CMS/ElectronPbPb5TeV?rev=5#1_Selection_for_all_centrality_r
+    // these are eleSCEta selection, not eleEta (08.03.2016 : switch from eleEta to eleSCEta for rapidity binnings)
+    float EB_end = 1.4442;
+    float EE_start = 1.566;
+    if (!isHI)  {
+        EB_end = 1.4791;
+        EE_start = 1.4791;
+    }
+    float bins_eta_gt[nBins_eta] = {-1,  -1,     EE_start, EE_start};    // All ECAL, Barrel, Endcap1, Endcap2
+    float bins_eta_lt[nBins_eta] = {2.5, EB_end, 2.5,   2};
 
-    std::string histNames_e1e2_M[nBins_pt][nBins_eta];
-
-    int numEntries[nBins_pt][nBins_eta];
-    int numEntriesMassWindow[nBins_pt][nBins_eta];      // number of entries within given mass window, e.g. 60-120
-    TCut massWindow = "diEleM >= 60 && diEleM < 120";
-    std::cout << "massWindow = " << massWindow.GetTitle() << std::endl;
+    std::vector<std::string> observableNames {"M", "Pt", "Eta", "Phi", "hiBin"};
+    std::vector<bool> doMassSelection    {false, true,  true, true, true};
+    std::vector<bool> doZptSelection     {true,  false, true, true, true};
+    std::vector<std::string> histFormulas{"diEleM", "diElePt", "diEleEta", "diElePhi", "hiBin"};
+    std::vector<std::string> histTitleX  {"M^{ee} (GeV/c^{2})", "p^{ee}_{T}", "#eta^{ee}", "#phi^{ee}", "hiBin"};
+    std::vector<std::string> histTitleY  {"Entries / (2 GeV/c^{2})",
+                                                                     "#frac{1}{N} #frac{dN}{dp^{ee}_{T}}",
+                                                                     "#frac{1}{N} #frac{dN}{d#eta^{ee}_{T}}",
+                                                                     "#frac{1}{N} #frac{dN}{d#phi^{ee}_{T}}",
+                                                                     "Entries"};
+    std::vector<int>     nBinsx{100, 60,  20,    20,          20};
+    std::vector<double>  xlow  {0,   0,   -4, -TMath::Pi(), 0};
+    std::vector<double>  xup   {200, 300,  4,  TMath::Pi(),  200};
+    std::vector<double>  xlow_final{60,  0,  -4, -TMath::Pi(), 0};
+    std::vector<double>  xup_final {120, 200, 4,  TMath::Pi(), 200};
 
     TH1::SetDefaultSumw2();
-    TH1D* h1D_e1e2_M[nBins_pt][nBins_eta];
-    TH1D* h1D_e1e2_M_sameCharge[nBins_pt][nBins_eta];       // histogram for same charge
+    int nHistFormulas = histFormulas.size();
+    TH1D* h1D[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];
+    TH1D* h1D_sameCharge[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];       // histogram for same charge
+    std::string histNames[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];
+
+    int numEntries[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];
+    int numEntriesMassWindow[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];   // number of entries within given mass window, e.g. 60-120
 
     // x-axis range : 60-120
-    TH1D* h1D_e1e2_M_final[nBins_pt][nBins_eta];
-    TH1D* h1D_e1e2_M_sameCharge_final[nBins_pt][nBins_eta];     // histogram for same charge
+    TH1D* h1D_final[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];
+    TH1D* h1D_sameCharge_final[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];  // histogram for same charge
 
-    const int entriesPerGeV = 2;
-    std::string titleY = Form("Entries / (%d GeV/c^{2})", entriesPerGeV);
+    for (int i=0; i<nHistFormulas; ++i){
+        for(int iEta=0; iEta<nBins_eta; ++iEta){
+            for (int iPt=0; iPt<nBins_pt; ++iPt){
+                for(int iHibin=0; iHibin<nBins_hiBin; ++iHibin){
 
-    for (int i=0; i<nBins_pt; ++i){
-        for(int j=0; j<nBins_eta; ++j){
-            histNames_e1e2_M[i][j] = Form("e1e2_M_ptBin%d_etaBin%d", i, j);
+                    std::string histName = Form("%s_etaBin%d_ptBin%d_hiBin%d",
+                                                 observableNames.at(i).c_str(), iEta, iPt, iHibin);
+                    histNames[i][iEta][iPt][iHibin] = histName.c_str();
 
-            h1D_e1e2_M[i][j] = new TH1D(Form("h1D_%s", histNames_e1e2_M[i][j].c_str()),"",100,0,200);
+                    //h1D[i][j] = new TH1D(Form("h1D_%s", histNames_M[i][j].c_str()),"",100,0,200);
+                    h1D[i][iEta][iPt][iHibin] = new TH1D(Form("h1D_%s", histName.c_str()),"",
+                            nBinsx.at(i), xlow.at(i), xup.at(i));
+                }
+            }
         }
     }
 
-    // final Z plots have x-axis range 60-120
-    const float final_xMin = 60;
-    const float final_xMax = 120;
-    // diElectron mass
     bool doSameCharge = true;
-    for(int i=0; i<nBins_pt; ++i){
-        for(int j=0; j<nBins_eta; ++j){
+    for(int i=0; i<nHistFormulas; ++i){
+        for(int iEta=0; iEta<nBins_eta; ++iEta){
+            for(int iPt=0; iPt<nBins_pt; ++iPt){
+                for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
 
-            TCut selections[2];
-            TCut selections_EB[2];
-            TCut selections_EE[2];
-            for (int iEle=0; iEle<2; ++iEle) {
-                selections_EB[iEle] = "";
-                selections_EE[iEle] = "";
+                    TCut selections[2];
+                    TCut selections_EB[2];
+                    TCut selections_EE[2];
+                    for (int iEle=0; iEle<2; ++iEle) {
+                        selections_EB[iEle] = "";
+                        selections_EE[iEle] = "";
 
-                selections_EB[iEle] = selections_EB[iEle] && Form("eleSigmaIEtaIEta_2012_%d < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("abs(eledEtaAtVtx_%d) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("abs(eledPhiAtVtx_%d) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("eleHoverE_%d < %f" ,iEle+1 ,eleHoverE_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("eleEoverPInv_%d < %f" ,iEle+1 ,eleEoverPInv_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("abs(eleD0_%d) < %f" ,iEle+1 ,eleD0_abs_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("abs(eleDz_%d) < %f" ,iEle+1 ,eleDz_abs_EB);
-                selections_EB[iEle] = selections_EB[iEle] && Form("eleMissHits_%d <= %d" ,iEle+1 ,eleMissHits_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("eleSigmaIEtaIEta_2012_%d < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("abs(eledEtaAtVtx_%d) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("abs(eledPhiAtVtx_%d) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("eleHoverE_%d < %f" ,iEle+1 ,eleHoverE_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("eleEoverPInv_%d < %f" ,iEle+1 ,eleEoverPInv_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("abs(eleD0_%d) < %f" ,iEle+1 ,eleD0_abs_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("abs(eleDz_%d) < %f" ,iEle+1 ,eleDz_abs_EB);
+                        selections_EB[iEle] = selections_EB[iEle] && Form("eleMissHits_%d <= %d" ,iEle+1 ,eleMissHits_EB);
 
-                selections_EE[iEle] = selections_EE[iEle] && Form("eleSigmaIEtaIEta_2012_%d < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("abs(eledEtaAtVtx_%d) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("abs(eledPhiAtVtx_%d) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("eleHoverE_%d < %f" ,iEle+1 ,eleHoverE_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("eleEoverPInv_%d < %f" ,iEle+1 ,eleEoverPInv_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("abs(eleD0_%d) < %f" ,iEle+1 ,eleD0_abs_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("abs(eleDz_%d) < %f" ,iEle+1 ,eleDz_abs_EE);
-                selections_EE[iEle] = selections_EE[iEle] && Form("eleMissHits_%d <= %d" ,iEle+1 ,eleMissHits_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("eleSigmaIEtaIEta_2012_%d < %f" ,iEle+1 ,eleSigmaIEtaIEta_2012_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("abs(eledEtaAtVtx_%d) < %f" ,iEle+1 ,eledEtaAtVtx_abs_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("abs(eledPhiAtVtx_%d) < %f" ,iEle+1 ,eledPhiAtVtx_abs_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("eleHoverE_%d < %f" ,iEle+1 ,eleHoverE_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("eleEoverPInv_%d < %f" ,iEle+1 ,eleEoverPInv_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("abs(eleD0_%d) < %f" ,iEle+1 ,eleD0_abs_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("abs(eleDz_%d) < %f" ,iEle+1 ,eleDz_abs_EE);
+                        selections_EE[iEle] = selections_EE[iEle] && Form("eleMissHits_%d <= %d" ,iEle+1 ,eleMissHits_EE);
 
-                TCut selection_EB_eta = Form("abs(eleEta_%d) < %f" ,iEle+1 ,bins_eta_lt[1]);
-                TCut selection_EE_eta = Form("abs(eleEta_%d) > %f && abs(eleEta_%d) < %f" ,iEle+1 ,bins_eta_gt[2] ,iEle+1 ,bins_eta_lt[2]);
+                        TCut selection_EB_eta = Form("abs(eleSCEta_%d) < %f" ,iEle+1 ,bins_eta_lt[1]);
+                        TCut selection_EE_eta = Form("abs(eleSCEta_%d) > %f && abs(eleSCEta_%d) < %f" ,iEle+1 ,bins_eta_gt[2] ,iEle+1 ,bins_eta_lt[2]);
 
-                selections_EB[iEle] = selections_EB[iEle] && selection_EB_eta;
-                selections_EE[iEle] = selections_EE[iEle] && selection_EE_eta;
+                        selections_EB[iEle] = selections_EB[iEle] && selection_EB_eta;
+                        selections_EE[iEle] = selections_EE[iEle] && selection_EE_eta;
+                    }
+
+                    if (iEta == 0) {
+                        selections[0] = selections_EB[0] || selections_EE[0];
+                        selections[1] = selections_EB[1] || selections_EE[1];
+                    }
+                    if (iEta == 1) // Barrel,  |eta supercluster| < 1.4442
+                    {
+                        selections[0] = selections_EB[0];
+                        selections[1] = selections_EB[1];
+                    }
+                    if ( iEta>1 )  // Endcap,  1.566 < |eta supercluster| < 2.5
+                    {
+                        selections[0] = selections_EE[0];
+                        selections[1] = selections_EE[1];
+                    }
+
+                    TCut selectionElePt = Form("elePt_1 > %d && elePt_2 > %d", bins_pt[0].at(iPt), bins_pt[0].at(iPt));
+                    if (bins_pt[1].at(iPt) >= 0)
+                        selectionElePt = selectionElePt && Form("elePt_1 <= %d && elePt_2 <= %d", bins_pt[1].at(iPt), bins_pt[1].at(iPt));
+
+                    // Z cuts were applied in the analysis code
+                    // Z selection
+                    TCut selectionZ = "1";
+                    TCut selectionZpt = Form("diElePt >= %f", zPt);
+                    TCut selectionZmass = Form("diEleM >= %f && diEleM < %f", massMin, massMax);
+                    if (doZptSelection.at(i)) selectionZ = selectionZ && selectionZpt;
+                    if (doMassSelection.at(i)) selectionZ = selectionZ && selectionZmass;
+
+                    TCut selection_hiBin = Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(iHiBin), bins_hiBin[1].at(iHiBin));
+                    TCut selection_event = Form("%s == 1", str_trigger.c_str());
+
+                    TCut selection =  "";
+                    selection = selection && selection_event;
+                    selection = selection && selection_hiBin;
+                    selection = selection && selections[0] && selections[1];
+                    selection = selection && selectionElePt;
+                    selection = selection && selectionZ;
+
+                    TCut selection_sameCh = selection && "eleCharge_1 == eleCharge_2";
+                    selection             = selection && "eleCharge_1 != eleCharge_2";
+
+                    // verbose
+                    std::cout<< Form("[i][iEta][iPt][iHiBin] = %d, %d, %d, %d", i, iEta, iPt, iHiBin) << std::endl;
+                    std::cout<< "selection = " << selection.GetTitle() <<std::endl;
+                    std::cout<< "h1D[i][iEta][iPt][iHiBin]->GetName() = " << h1D[i][iEta][iPt][iHiBin]->GetName() << std::endl;
+                    numEntries[i][iEta][iPt][iHiBin] = t_diele->GetEntries(selection.GetTitle());
+                    std::cout<< "numEntries[i][iEta][iPt][iHiBin] = " << numEntries[i][iEta][iPt][iHiBin] << std::endl;
+                    numEntriesMassWindow[i][iEta][iPt][iHiBin] = t_diele->GetEntries((selection && selectionZmass).GetTitle());
+                    std::cout<< "numEntriesMassWindow[i][iEta][iPt][iHiBin] = " << numEntriesMassWindow[i][iEta][iPt][iHiBin] << std::endl;
+
+                    if (doEventWeight > 0) {
+                        selection = Form("(%s)*(%s)", eventWeight.c_str(), selection.GetTitle());
+                        selection_sameCh = Form("(%s)*(%s)", eventWeight.c_str(), selection_sameCh.GetTitle());
+                    }
+
+                    std::string histoTitle_eta = Form("|#eta^{e#pm}| < %.2f", bins_eta_lt[iEta]);
+                    if (bins_eta_gt[iEta] >= 0)  histoTitle_eta = Form("%.2f< |#eta^{e#pm}| <%.1f", bins_eta_gt[iEta], bins_eta_lt[iEta]);
+
+                    std::string histoTitle_pt = Form("p^{e#pm}_{T} > %d", bins_pt[0].at(iPt));
+                    if (bins_pt[1].at(iPt) >= 0)  histoTitle_pt = Form("%d < p^{e#pm}_{T} < %d", bins_pt[0].at(iPt), bins_pt[1].at(iPt));
+
+                    std::string histoTitle_hiBin = Form("%d-%d %%", bins_hiBin[0].at(iHiBin)/2, bins_hiBin[1].at(iHiBin)/2);
+
+                    std::string histoTitle = "";
+                    if (histoTitle_eta.size() > 0)   histoTitle = histoTitle_eta.c_str();
+                    if (histoTitle_pt.size() > 0)    histoTitle = Form("%s, %s", histoTitle.c_str(), histoTitle_pt.c_str());
+                    if (histoTitle_hiBin.size() > 0) histoTitle = Form("%s, %s", histoTitle.c_str(), histoTitle_hiBin.c_str());
+
+                    h1D[i][iEta][iPt][iHiBin]->SetTitle(Form("%s;%s;%s", histoTitle.c_str(), histTitleX.at(i).c_str(), histTitleY.at(i).c_str()));
+                    h1D[i][iEta][iPt][iHiBin]->SetMarkerStyle(kFullCircle);
+                    h1D[i][iEta][iPt][iHiBin]->SetMarkerColor(kBlack);
+                    h1D_sameCharge[i][iEta][iPt][iHiBin] = (TH1D*)h1D[i][iEta][iPt][iHiBin]->Clone(Form("%s_sameCharge",
+                            h1D[i][iEta][iPt][iHiBin]->GetName()));
+                    h1D_sameCharge[i][iEta][iPt][iHiBin]->SetMarkerStyle(kOpenCircle);
+
+                    c->SetName(Form("cnv_%s", histNames[i][iEta][iPt][iHiBin].c_str()));
+                    c->cd();
+                    t_diele->Draw(Form("%s >> %s", histFormulas.at(i).c_str() ,h1D[i][iEta][iPt][iHiBin]->GetName()), selection.GetTitle() ,"goff");
+                    h1D[i][iEta][iPt][iHiBin]->Draw("e");
+                    h1D[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
+                    h1D[i][iEta][iPt][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+                    if (doSameCharge) {
+                        t_diele->Draw(Form("%s >> %s", histFormulas.at(i).c_str() ,h1D_sameCharge[i][iEta][iPt][iHiBin]->GetName()), selection_sameCh.GetTitle(), "goff");
+                        h1D_sameCharge[i][iEta][iPt][iHiBin]->Draw("e same");
+                        h1D_sameCharge[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
+                        h1D_sameCharge[i][iEta][iPt][iHiBin]->SetStats(false);
+                    }
+                    c->Write("", TObject::kOverwrite);
+                    c->Clear();
+
+                    c->SetName(Form("cnv_%s_final", histNames[i][iEta][iPt][iHiBin].c_str()));
+                    c->cd();
+                    h1D_final[i][iEta][iPt][iHiBin] = (TH1D*)h1D[i][iEta][iPt][iHiBin]->Clone(Form("%s_final", h1D[i][iEta][iPt][iHiBin]->GetName()));
+                    h1D_final[i][iEta][iPt][iHiBin]->SetAxisRange(xlow_final.at(i), xup_final.at(i));
+                    h1D_final[i][iEta][iPt][iHiBin]->Draw("e");
+                    h1D_final[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
+                    h1D_final[i][iEta][iPt][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+                    if (doSameCharge) {
+                        h1D_sameCharge_final[i][iEta][iPt][iHiBin] = (TH1D*)h1D_sameCharge[i][iEta][iPt][iHiBin]->Clone(Form("%s_final", h1D_sameCharge[i][iEta][iPt][iHiBin]->GetName()));
+                        h1D_sameCharge_final[i][iEta][iPt][iHiBin]->SetAxisRange(xlow_final.at(i), xup_final.at(i));
+                        h1D_sameCharge_final[i][iEta][iPt][iHiBin]->Draw("e same");
+                        h1D_sameCharge_final[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
+                        h1D_sameCharge_final[i][iEta][iPt][iHiBin]->SetStats(false);
+                    }
+                    c->Write("", TObject::kOverwrite);
+                    c->Clear();
+                }
             }
-
-            if (j == 0) {
-                selections[0] = selections_EB[0] || selections_EE[0];
-                selections[1] = selections_EB[1] || selections_EE[1];
-            }
-            if (j == 1) // Barrel,  |eta supercluster| <= 1.479
-            {
-                selections[0] = selections_EB[0];
-                selections[1] = selections_EB[1];
-            }
-            if ( j>1 )  // Endcap,  1.479 < |eta supercluster| < 2.4
-            {
-                selections[0] = selections_EE[0];
-                selections[1] = selections_EE[1];
-            }
-
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
-            TCut selection =  "";
-            selection = selection && selection_event;
-            selection = selection && Form("elePt_1 > %d && elePt_2 > %d", bins_pt[i], bins_pt[i]);
-            selection = selection && selections[0] && selections[1];
-
-            TCut selection_sameCh = selection && "eleCharge_1 == eleCharge_2";
-            selection             = selection && "eleCharge_1 != eleCharge_2";
-            TCut selection_massWindow = selection && massWindow;
-
-            // verbose
-            std::cout<< "[i][j] = " << i << " , " << j <<std::endl;
-            std::cout<< "selection = " << selection.GetTitle() <<std::endl;
-            std::cout<< "h1D_e1e2_M[i][j]->GetName() = " << h1D_e1e2_M[i][j]->GetName() <<std::endl;
-            numEntries[i][j] = t_diele->GetEntries(selection.GetTitle());
-            std::cout<< "numEntries[i][j] = " << numEntries[i][j] <<std::endl;
-            numEntriesMassWindow[i][j] = t_diele->GetEntries(selection_massWindow.GetTitle());
-            std::cout<< "numEntriesMassWindow[i][j] = " << numEntriesMassWindow[i][j] <<std::endl;
-
-            if (doEventWeight > 0) {
-                selection = Form("(%s)*(%s)", eventWeight.c_str(), selection.GetTitle());
-                selection_sameCh = Form("(%s)*(%s)", eventWeight.c_str(), selection_sameCh.GetTitle());
-            }
-
-            std::string histoName  = Form("h_%s",histNames_e1e2_M[i][j].c_str());
-            std::string histoTitle = Form("%s p^{e#pm}_{T} > %d GeV/c, %.2f< |#eta^{e#pm}| <%.1f ",sampleName , bins_pt[i], bins_eta_gt[j], bins_eta_lt[j]);
-            // special cases
-            if (bins_eta_gt[j] < 0)   {
-                histoTitle = Form("%s p^{e#pm}_{T} > %d GeV/c, |#eta^{e#pm}| < %.2f ",sampleName , bins_pt[i], bins_eta_lt[j]);
-            }
-            h1D_e1e2_M[i][j]->SetTitle(Form("%s;M^{ee} (GeV/c^{2});%s",histoTitle.c_str(), titleY.c_str()));
-            h1D_e1e2_M[i][j]->SetMarkerStyle(kFullCircle);
-            h1D_e1e2_M[i][j]->SetMarkerColor(kBlack);
-            h1D_e1e2_M_sameCharge[i][j] = (TH1D*)h1D_e1e2_M[i][j]->Clone(Form("%s_sameCharge", h1D_e1e2_M[i][j]->GetName()));
-            h1D_e1e2_M_sameCharge[i][j]->SetMarkerStyle(kOpenCircle);
-
-            c->SetName(Form("cnv_%s",histNames_e1e2_M[i][j].c_str()));
-            c->cd();
-            t_diele->Draw(Form("diEleM >> %s", h1D_e1e2_M[i][j]->GetName()), selection.GetTitle() ,"goff");
-            h1D_e1e2_M[i][j]->Draw("e");
-            h1D_e1e2_M[i][j]->Write("", TObject::kOverwrite);
-            h1D_e1e2_M[i][j]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-            if (doSameCharge) {
-                t_diele->Draw(Form("diEleM >> %s", h1D_e1e2_M_sameCharge[i][j]->GetName()), selection_sameCh.GetTitle(), "goff");
-                h1D_e1e2_M_sameCharge[i][j]->Draw("e same");
-                h1D_e1e2_M_sameCharge[i][j]->Write("", TObject::kOverwrite);
-                h1D_e1e2_M_sameCharge[i][j]->SetStats(false);
-            }
-            c->Write("", TObject::kOverwrite);
-            c->Clear();
-
-            c->SetName(Form("cnv_%s_final",histNames_e1e2_M[i][j].c_str()));
-            c->cd();
-            h1D_e1e2_M_final[i][j] = (TH1D*)h1D_e1e2_M[i][j]->Clone(Form("%s_final", h1D_e1e2_M[i][j]->GetName()));
-            h1D_e1e2_M_final[i][j]->SetAxisRange(final_xMin,final_xMax);
-            h1D_e1e2_M_final[i][j]->Draw("e");
-            h1D_e1e2_M_final[i][j]->Write("", TObject::kOverwrite);
-            h1D_e1e2_M_final[i][j]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-            if (doSameCharge) {
-                h1D_e1e2_M_sameCharge_final[i][j]= (TH1D*)h1D_e1e2_M_sameCharge[i][j]->Clone(Form("%s_final", h1D_e1e2_M_sameCharge[i][j]->GetName()));
-                h1D_e1e2_M_sameCharge_final[i][j]->SetAxisRange(final_xMin,final_xMax);
-                h1D_e1e2_M_sameCharge_final[i][j]->Draw("e same");
-                h1D_e1e2_M_sameCharge_final[i][j]->Write("", TObject::kOverwrite);
-                h1D_e1e2_M_sameCharge_final[i][j]->SetStats(false);
-            }
-            c->Write("", TObject::kOverwrite);
-            c->Clear();
         }
     }
 
@@ -308,11 +416,7 @@ void dielectronHistogram(const char* configFile, const char* inputFile, const ch
 
 int main(int argc, char** argv)
 {
-    if (argc == 5) {
-        dielectronHistogram(argv[1], argv[2], argv[3], argv[4]);
-        return 0;
-    }
-    else if (argc == 4) {
+    if (argc == 4) {
         dielectronHistogram(argv[1], argv[2], argv[3]);
         return 0;
     }

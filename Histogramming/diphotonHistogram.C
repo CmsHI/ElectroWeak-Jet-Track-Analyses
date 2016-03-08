@@ -9,14 +9,14 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 
-void diphotonHistogram(const char* configFile, const char* inputFile, const char* outputFile = "diphotonHistogram.root", const char* sampleName = "");
+void diphotonHistogram(const TString configFile, const TString inputFile, const TString outputFile = "diphotonHistogram.root", const TString sampleName = "");
 
-void diphotonHistogram(const char* configFile, const char* inputFile, const char* outputFile, const char* sampleName)
+void diphotonHistogram(const TString configFile, const TString inputFile, const TString outputFile, const TString sampleName)
 {
     std::cout<<"running diphotonHistogram()" <<std::endl;
-    std::cout<<"configFile = "<< configFile <<std::endl;
-    std::cout<<"inputFile  = "<< inputFile <<std::endl;
-    std::cout<<"outputFile = "<< outputFile <<std::endl;
+    std::cout<<"configFile = "<< configFile.Data() <<std::endl;
+    std::cout<<"inputFile  = "<< inputFile.Data() <<std::endl;
+    std::cout<<"outputFile = "<< outputFile.Data() <<std::endl;
 
     TFile* input = new TFile(inputFile);
     TTree* tHLT = (TTree*)input->Get("HltTree");
@@ -32,7 +32,7 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
 
     TFile* output = new TFile(outputFile, "UPDATE");
 
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile);
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
     TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
     // event cuts/weights
@@ -210,10 +210,10 @@ void diphotonHistogram(const char* configFile, const char* inputFile, const char
             }
 
             std::string histoName  = Form("h_%s",histNames_pho1pho2_M[i][j].c_str());
-            std::string histoTitle = Form("%s p^{#gamma}_{T} > %d GeV/c, %.2f< |#eta^{#gamma}| <%.1f ",sampleName , bins_pt[i], bins_eta_gt[j], bins_eta_lt[j]);
+            std::string histoTitle = Form("%s p^{#gamma}_{T} > %d GeV/c, %.2f< |#eta^{#gamma}| <%.1f ",sampleName.Data() , bins_pt[i], bins_eta_gt[j], bins_eta_lt[j]);
             // special cases
             if (bins_eta_gt[j] < 0)   {
-                histoTitle = Form("%s p^{#gamma}_{T} > %d GeV/c, |#eta^{#gamma}| < %.2f ",sampleName , bins_pt[i], bins_eta_lt[j]);
+                histoTitle = Form("%s p^{#gamma}_{T} > %d GeV/c, |#eta^{#gamma}| < %.2f ",sampleName.Data() , bins_pt[i], bins_eta_lt[j]);
             }
             h1D_pho1pho2_M[i][j]->SetTitle(Form("%s;M^{#gamma#gamma} (GeV/c^{2});%s",histoTitle.c_str(), titleY.c_str()));
             h1D_pho1pho2_M[i][j]->SetMarkerStyle(kFullCircle);

@@ -15,6 +15,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Corrections/electrons/electronCorrector.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
@@ -54,6 +55,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::vector<std::string> jetCollections;
        // electron cuts
        int cut_nEle;
+       int doCorrectionEle;
        float elePt;
        float eleSigmaIEtaIEta_2012_EB;
        float eleSigmaIEtaIEta_2012_EE;
@@ -91,6 +93,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
+           doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
            elePt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
            eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
            eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
@@ -127,6 +130,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pBeamScrapingFilter = 1;
 
            cut_nEle = 2;
+           doCorrectionEle = 0;
            elePt = 0;
            eleSigmaIEtaIEta_2012_EB = 0.02;
            eleSigmaIEtaIEta_2012_EE = 0.045;
@@ -188,6 +192,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
            std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
+           std::cout<<"doCorrectionEle = "<<doCorrectionEle<<std::endl;
            std::cout<<"elePt = "<<elePt<<std::endl;
            std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
            std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
@@ -406,6 +411,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
        }
 
+       electronCorrector corrector;
+       if (doCorrectionEle) {
+           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
+           corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+       }
+
        // mixed-event block
        int centBinWidth = 0;
        int vertexBinWidth = 0;
@@ -619,6 +631,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            if (doDiElectron > 0) {
                // skip if there are no electron pairs to study
                if(ggHi.nEle < cut_nEle)  continue;
+
+               if(doCorrectionEle > 0)
+               {
+                   // correct the pt of electrons
+                   // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
+                   corrector.correctPts(ggHi);
+               }
 
                // construct dielectron pairs during zJet skim
                diEle.makeDiElectronPairs(ggHi);
