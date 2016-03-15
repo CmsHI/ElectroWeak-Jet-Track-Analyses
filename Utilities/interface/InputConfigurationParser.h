@@ -140,6 +140,7 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
 enum TYPE_S{
     k_treePath,
     k_treeFriendPath,
+    k_treeFriendPathIndividual,  // ith element in that list is friend only to the ith tree in treePath list
     k_treeFormula,
     k_treeSelection,
     k_treeSelectionBase,        // selection that is applied/valid for all observables
@@ -181,6 +182,7 @@ enum TYPE_S{
 const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "treePath",
         "treeFriendPath",
+        "treeFriendPathIndividual",
         "treeFormula",
         "treeSelection",
         "treeSelectionBase",

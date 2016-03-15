@@ -52,6 +52,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     // input for TTree
     std::vector<std::string> treePaths;
     std::vector<std::string> treeFriendsPath;
+    std::vector<std::string> treeFriendsPathIndividual;
     std::vector<std::string> formulas;
     std::string selectionBase;
     std::vector<std::string> selections;
@@ -125,6 +126,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
         treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
+        treeFriendsPathIndividual = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPathIndividual]);
         formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
         selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
         selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
@@ -260,6 +262,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     int nTrees = treePaths.size();
     int nFriends = treeFriendsPath.size();
+    int nFriendsIndividual = treeFriendsPathIndividual.size();
     int nFormulas = formulas.size();
     int nSelections = selections.size();
     int nSelectionSplitter = selectionSplitter.size();
@@ -301,6 +304,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout << "nFriends = " << nFriends << std::endl;
     for (int i=0; i<nFriends; ++i) {
         std::cout << Form("treeFriendsPath[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFriendsIndividual = " << nFriendsIndividual << std::endl;
+    for (int i=0; i<nFriendsIndividual; ++i) {
+        std::cout << Form("treeFriendsPathIndividual[%d] = %s", i, treeFriendsPathIndividual.at(i).c_str()) << std::endl;
     }
     std::cout << "nFormulas     = " << nFormulas << std::endl;
     for (int i=0; i<nFormulas; ++i) {
@@ -497,10 +504,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         return;
     }
 
+    if (nTrees == 1 && nFriendsIndividual > 0) {
+        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
+        std::cout<<"There is only one tree to be plotted, it does not make sense to use individual friend trees."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
+    }
+    else if (nTrees > 1 && nFriendsIndividual > 0 && nTrees != nFriendsIndividual) {
+        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return;
+    }
+
     // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
     // so in that case : 1.) the "TChain*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
     TChain* trees[nTrees][nInputFileArguments];
     TChain* treeFriends[nFriends][nInputFileArguments];
+    TChain* treeFriendsIndividual[nFriendsIndividual][nInputFileArguments];
     TChain* treeHiForestInfo[nInputFileArguments];
     for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
         for (int i=0; i < nTrees; ++i) {
@@ -518,14 +538,31 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
         }
 
+        // initialize individual friend trees
+        for (int i=0; i < nFriendsIndividual; ++i) {
+            if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
+                treeFriendsIndividual[i][iInFileArg] = new TChain(treeFriendsPathIndividual.at(i).c_str());
+        }
+        // add individual friends
+        if (nFriendsIndividual > 0) {
+            for (int i=0; i<nTrees; ++i) {
+                if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
+                    trees[i][iInFileArg]->AddFriend(treeFriendsIndividual[i][iInFileArg], Form("tSelf%d", i));
+            }
+        }
+
         treeHiForestInfo[iInFileArg] = new TChain("HiForest/HiForestInfo");
         for (std::vector<std::string>::iterator it = inputFiles[iInFileArg].begin() ; it != inputFiles[iInFileArg].end(); ++it) {
 
             for (int i=0; i<nTrees; ++i) {
                 trees[i][iInFileArg]->Add((*it).c_str());
-                for (int j=0; j<nFriends; ++j) {
-                    treeFriends[j][iInFileArg]->Add((*it).c_str());
-                }
+            }
+            for (int i=0; i<nFriends; ++i) {
+                treeFriends[i][iInFileArg]->Add((*it).c_str());
+            }
+            for (int i=0; i < nFriendsIndividual; ++i) {
+                if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
+                    treeFriendsIndividual[i][iInFileArg]->Add((*it).c_str());
             }
             treeHiForestInfo[iInFileArg]->Add((*it).c_str());
         }
