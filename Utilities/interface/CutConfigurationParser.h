@@ -19,6 +19,7 @@
 #include "../../CutConfigurations/interface/GenParticleCuts.h"
 #include "../../CutConfigurations/interface/GammaJetCuts.h"
 #include "../../CutConfigurations/interface/ZJetCuts.h"
+#include "../../CutConfigurations/interface/TrackJetCuts.h"
 #include "../../CutConfigurations/interface/EventCuts.h"
 
 #include "Configuration.h"
@@ -45,6 +46,7 @@ namespace CUTS {
     kGENPARTICLE,
     kGAMMAJET,
     kZJET,
+    kTRACKJET,
     kEVENT,
     kN_OBJECTS
   };
@@ -58,6 +60,7 @@ namespace CUTS {
 					  GEN::kN_I_CUTS,
 					  GJT::kN_I_CUTS,
 					  ZJT::kN_I_CUTS,
+					  TJT::kN_I_CUTS,
                       EVT::kN_I_CUTS};
   const std::string *SUMMARY_INFO_I_LABELS[kN_OBJECTS] = {PHO::I_CUTS_LABELS,
 							  ELE::I_CUTS_LABELS,
@@ -68,6 +71,7 @@ namespace CUTS {
 							  GEN::I_CUTS_LABELS,
 							  GJT::I_CUTS_LABELS,
 							  ZJT::I_CUTS_LABELS,
+							  TJT::I_CUTS_LABELS,
 							  EVT::I_CUTS_LABELS};
 
   const int SUMMARY_INFO_F[kN_OBJECTS] = {PHO::kN_F_CUTS,
@@ -79,6 +83,7 @@ namespace CUTS {
 					  GEN::kN_F_CUTS,
 					  GJT::kN_F_CUTS,
 					  ZJT::kN_F_CUTS,
+					  TJT::kN_F_CUTS,
 					  EVT::kN_F_CUTS};
   const std::string *SUMMARY_INFO_F_LABELS[kN_OBJECTS] = {PHO::F_CUTS_LABELS,
 							  ELE::F_CUTS_LABELS,
@@ -89,6 +94,7 @@ namespace CUTS {
 							  GEN::F_CUTS_LABELS,
 							  GJT::F_CUTS_LABELS,
 							  ZJT::F_CUTS_LABELS,
+							  TJT::F_CUTS_LABELS,
 							  EVT::F_CUTS_LABELS};
 
   const int SUMMARY_INFO_S[kN_OBJECTS] = {PHO::kN_S_CUTS,
@@ -100,6 +106,7 @@ namespace CUTS {
 					  GEN::kN_S_CUTS,
 					  GJT::kN_S_CUTS,
 					  ZJT::kN_S_CUTS,
+					  TJT::kN_S_CUTS,
 					  EVT::kN_S_CUTS};
   const std::string *SUMMARY_INFO_S_LABELS[kN_OBJECTS] = {PHO::S_CUTS_LABELS,
 							  ELE::S_CUTS_LABELS,
@@ -110,6 +117,7 @@ namespace CUTS {
 							  GEN::S_CUTS_LABELS,
 							  GJT::S_CUTS_LABELS,
 							  ZJT::S_CUTS_LABELS,
+							  TJT::S_CUTS_LABELS,
 							  EVT::S_CUTS_LABELS};
 
   std::string OBJECT_LABELS[kN_OBJECTS] = {"photon",
@@ -121,6 +129,7 @@ namespace CUTS {
 					   "genparticle",
 					   "gammajet",
 					   "zjet",
+					   "trackjet",
 					   "event"
   };
 

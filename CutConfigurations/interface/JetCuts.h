@@ -17,12 +17,14 @@ namespace CUTS {
     enum I_CUTS{
       k_requirePhotonInEvent,
       k_jetID,
+      k_jetType,       // 0 = all jets, 1 = leading Jet, 2 = subleading jet
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "requirePhotonInEvent",
-      "jetID"
+      "jetID",
+      "jetType"
     };
 
     enum S_CUTS{
@@ -31,6 +33,13 @@ namespace CUTS {
     };
 
     std::string S_CUTS_LABELS[kN_S_CUTS] = {"jetCollection"};
+
+    enum JETINDEX{
+      k_allJets,
+      k_leading,
+      k_subleading,
+      kN_JETINDEX
+    };
 
   };
 };

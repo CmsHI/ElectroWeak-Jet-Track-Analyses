@@ -1,5 +1,5 @@
-#ifndef JetTree
-#define JetTree
+#ifndef TREEHEADERS_JETTREE_H_// JetTree
+#define TREEHEADERS_JETTREE_H_// JetTree
 
 #include <TTree.h>
 #include <TBranch.h>
@@ -7,7 +7,7 @@
 #include <vector>
 
 const unsigned int maxJets = 10000;     // set upper limit 10K to cover the jet trees from MB mixing
-const unsigned int maxGenJets = 100;
+const unsigned int maxGenJets = 10000;
 
 class Jets {
 public :
@@ -489,3 +489,4 @@ int Jets::jetID(int i)
 }
 
 #endif
+
