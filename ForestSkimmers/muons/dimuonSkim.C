@@ -181,6 +181,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
 
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
+           outputTreeHiEvt->Fill();
            diMuonTree->Fill();
        }
        std::cout<< "Loop ENDED : " << treePath.c_str() <<std::endl;
