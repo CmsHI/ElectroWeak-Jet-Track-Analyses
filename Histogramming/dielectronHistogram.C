@@ -213,21 +213,27 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
     float bins_eta_gt[nBins_eta] = {-1,  -1,     EE_start, EE_start};    // All ECAL, Barrel, Endcap1, Endcap2
     float bins_eta_lt[nBins_eta] = {2.5, EB_end, 2.5,   2};
 
-    std::vector<std::string> observableNames {"M", "Pt", "Eta", "Phi", "hiBin"};
-    std::vector<bool> doMassSelection    {false, true,  true, true, true};
-    std::vector<bool> doZptSelection     {true,  false, true, true, true};
-    std::vector<std::string> histFormulas{"diEleM", "diElePt", "diEleEta", "diElePhi", "hiBin"};
-    std::vector<std::string> histTitleX  {"M^{ee} (GeV/c^{2})", "p^{ee}_{T}", "#eta^{ee}", "#phi^{ee}", "hiBin"};
+    std::vector<bool> doHistogram  {false, false,  false, false, true, true};   // if want to turn off a histogram, set corresponding value to false
+    std::vector<std::string> observableNames {"M", "Pt", "Eta", "Phi", "hiBin", "hiBin_nPart"};
+    std::vector<bool> doMassSelection    {false, true,  true, true, true, true};
+    std::vector<bool> doZptSelection     {true,  false, true, true, true, true};
+    std::vector<std::string> histFormulas{"diEleM", "diElePt", "diEleEta", "diElePhi", "hiBin", "hiBin"};
+    std::vector<std::string> histTitleX  {"M^{ee} (GeV/c^{2})", "p^{ee}_{T}", "#eta^{ee}", "#phi^{ee}", "hiBin", "hiBin"};
     std::vector<std::string> histTitleY  {"Entries / (2 GeV/c^{2})",
                                                                      "#frac{1}{N} #frac{dN}{dp^{ee}_{T}}",
                                                                      "#frac{1}{N} #frac{dN}{d#eta^{ee}_{T}}",
                                                                      "#frac{1}{N} #frac{dN}{d#phi^{ee}_{T}}",
+                                                                     "Entries",
                                                                      "Entries"};
-    std::vector<int>     nBinsx{100, 60,  20,    20,          20};
-    std::vector<double>  xlow  {0,   0,   -4, -TMath::Pi(), 0};
-    std::vector<double>  xup   {200, 300,  4,  TMath::Pi(),  200};
-    std::vector<double>  xlow_final{60,  0,  -4, -TMath::Pi(), 0};
-    std::vector<double>  xup_final {120, 200, 4,  TMath::Pi(), 200};
+    std::vector<int>     nBinsx{100, 60,  20,    20,       20, 6};
+    std::vector<double>  xlow  {0,   0,   -4, -TMath::Pi(), 0, -1};
+    std::vector<double>  xup   {200, 300,  4,  TMath::Pi(),  200, -1};
+    std::vector<double>  xlow_final{60,  0,  -4, -TMath::Pi(), 0, -1};
+    std::vector<double>  xup_final {120, 200, 4,  TMath::Pi(), 200, -1};
+
+    // special cases - nPart
+    int nNPartBins = 6;
+    float hiBinBins[nNPartBins+1] = {0,20,40,60,80,100,200};
 
     TH1::SetDefaultSumw2();
     int nHistFormulas = histFormulas.size();
@@ -243,6 +249,7 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
     TH1D* h1D_sameCharge_final[nHistFormulas][nBins_eta][nBins_pt][nBins_hiBin];  // histogram for same charge
 
     for (int i=0; i<nHistFormulas; ++i){
+        if (!doHistogram.at(i)) continue;
         for(int iEta=0; iEta<nBins_eta; ++iEta){
             for (int iPt=0; iPt<nBins_pt; ++iPt){
                 for(int iHibin=0; iHibin<nBins_hiBin; ++iHibin){
@@ -251,7 +258,22 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
                                                  observableNames.at(i).c_str(), iEta, iPt, iHibin);
                     histNames[i][iEta][iPt][iHibin] = histName.c_str();
 
-                    //h1D[i][j] = new TH1D(Form("h1D_%s", histNames_M[i][j].c_str()),"",100,0,200);
+                    {   // special cases
+                        // special cases - nPart
+                        if (observableNames.at(i).compare("hiBin_nPart") == 0) {
+                            nBinsx.at(i) = nNPartBins;
+                            xlow.at(i) = hiBinBins[0];
+                            xup.at(i)  = hiBinBins[nNPartBins];
+                            xlow_final.at(i) = hiBinBins[0];
+                            xup_final.at(i)  = hiBinBins[nNPartBins];
+
+                            h1D[i][iEta][iPt][iHibin] = new TH1D(Form("h1D_%s", histName.c_str()),"",
+                                    nNPartBins, hiBinBins);
+
+                            continue;
+                        }
+                    }
+
                     h1D[i][iEta][iPt][iHibin] = new TH1D(Form("h1D_%s", histName.c_str()),"",
                             nBinsx.at(i), xlow.at(i), xup.at(i));
                 }
@@ -261,6 +283,7 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
 
     bool doSameCharge = true;
     for(int i=0; i<nHistFormulas; ++i){
+        if (!doHistogram.at(i)) continue;
         for(int iEta=0; iEta<nBins_eta; ++iEta){
             for(int iPt=0; iPt<nBins_pt; ++iPt){
                 for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
@@ -374,11 +397,17 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
                     c->SetName(Form("cnv_%s", histNames[i][iEta][iPt][iHiBin].c_str()));
                     c->cd();
                     t_diele->Draw(Form("%s >> %s", histFormulas.at(i).c_str() ,h1D[i][iEta][iPt][iHiBin]->GetName()), selection.GetTitle() ,"goff");
+                    // scaling with bin width : for histograms with fixed bin width, this scaling is dummy.
+                    double firstBinWidth = h1D[i][iEta][iPt][iHiBin]->GetBinWidth(1);
+                    h1D[i][iEta][iPt][iHiBin]->Scale(firstBinWidth, "width");   // content of 1st bin will not change after scaling.
                     h1D[i][iEta][iPt][iHiBin]->Draw("e");
                     h1D[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
                     h1D[i][iEta][iPt][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
                     if (doSameCharge) {
                         t_diele->Draw(Form("%s >> %s", histFormulas.at(i).c_str() ,h1D_sameCharge[i][iEta][iPt][iHiBin]->GetName()), selection_sameCh.GetTitle(), "goff");
+                        // scaling with bin width : for histograms with fixed bin width, this scaling is dummy.
+                        double firstBinWidth_sameCharge = h1D_sameCharge[i][iEta][iPt][iHiBin]->GetBinWidth(1);
+                        h1D_sameCharge[i][iEta][iPt][iHiBin]->Scale(firstBinWidth_sameCharge, "width");   // content of 1st bin will not change after scaling.
                         h1D_sameCharge[i][iEta][iPt][iHiBin]->Draw("e same");
                         h1D_sameCharge[i][iEta][iPt][iHiBin]->Write("", TObject::kOverwrite);
                         h1D_sameCharge[i][iEta][iPt][iHiBin]->SetStats(false);
@@ -402,6 +431,67 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
                     }
                     c->Write("", TObject::kOverwrite);
                     c->Clear();
+                }
+            }
+        }
+    }
+
+    {   // special cases
+        for (int i = 0; i < nHistFormulas; ++i) {
+            if (!doHistogram.at(i)) continue;
+            for(int iEta=0; iEta<nBins_eta; ++iEta){
+                for(int iPt=0; iPt<nBins_pt; ++iPt){
+                    for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
+
+                        // special cases - nPart
+                        if (observableNames.at(i).compare("hiBin_nPart") == 0) {
+
+                            std::string observableName = "nPart";
+                            std::string histName = Form("%s_etaBin%d_ptBin%d_hiBin%d",
+                                                         observableName.c_str(), iEta, iPt, iHiBin);
+
+                            int len = nNPartBins + 1;
+                            std::vector<float> nPartAves = findNpartAverages(std::vector<int>(hiBinBins, hiBinBins + len));
+                            std::vector<float> nCollAves = findNcollAverages(std::vector<int>(hiBinBins, hiBinBins + len));
+
+                            std::vector<float> nPartBins = NpartAveragestoLowEdges(nPartAves);
+                            double nPartBinsArr[nNPartBins];
+                            std::copy(nPartBins.begin(), nPartBins.end(), nPartBinsArr);
+
+                            TH1D* h1D_nPart = new TH1D(Form("h1D_%s", histName.c_str()),";N_{part};dN^{Z} / N_{coll}",
+                                    nNPartBins, nPartBinsArr);
+                            h1D_nPart->SetTitle(h1D_final[i][iEta][iPt][iHiBin]->GetTitle());
+                            h1D_nPart->SetMarkerStyle(kFullCircle);
+                            h1D_nPart->SetMarkerColor(kBlack);
+
+                            // convert histogram with hiBin on x-axis to histogram with nPart on x-axis
+                            // IMPORTANT : assumes that histogram with hiBin on x-axis is properly scaled by bin width
+                            bool divideBinWidth = false;
+                            for (int j = 1; j <= nNPartBins; ++j) {
+
+                                double hiBinContent = h1D_final[i][iEta][iPt][iHiBin]->GetBinContent(nNPartBins-j+1);
+                                double hiBinError   = h1D_final[i][iEta][iPt][iHiBin]->GetBinError(nNPartBins-j+1);
+
+                                float binWidth = 1;
+                                if (divideBinWidth)
+                                    binWidth = h1D_final[i][iEta][iPt][iHiBin]->GetBinLowEdge(nNPartBins-j+2)-h1D_final[i][iEta][iPt][iHiBin]->GetBinLowEdge(nNPartBins-j+1);
+
+                                h1D_nPart->SetBinContent(j, hiBinContent/nCollAves.at(nNPartBins-j)/binWidth);
+                                h1D_nPart->SetBinError(j, hiBinError/nCollAves.at(nNPartBins-j)/binWidth);
+                            }
+
+                            c->SetName(Form("cnv_%s", histName.c_str()));
+                            c->cd();
+                            h1D_nPart->Draw("e");
+                            h1D_nPart->Write("", TObject::kOverwrite);
+                            h1D_nPart->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+                            c->Write("", TObject::kOverwrite);
+                            c->Clear();
+
+                            continue;
+                        }
+
+                    }
                 }
             }
         }
