@@ -95,7 +95,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
           }
           treeHiEvt->Add((*it).c_str());
           treeSkim->Add((*it).c_str());
-          treeHiForestInfo->Add((*it).c_str());
+          if (it == inputFiles.begin())  treeHiForestInfo->Add((*it).c_str());
        }
 
        HiForestInfoController hfic(treeHiForestInfo);
@@ -227,15 +227,15 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
                outputTreesSkim[i][j]->SetMaxTreeSize(MAXTREESIZE);
            }
        }
-       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-       outputTreeHiForestInfo->SetName("HiForestInfo");
-       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
-
-       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-
-       // write HiForestInfo
-       treeHiForestInfo->GetEntry(0);
-       outputTreeHiForestInfo->Fill();
+//       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+//       outputTreeHiForestInfo->SetName("HiForestInfo");
+//       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
+//
+//       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+//
+//       // write HiForestInfo
+//       treeHiForestInfo->GetEntry(0);
+//       outputTreeHiForestInfo->Fill();
 
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;

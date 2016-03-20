@@ -386,9 +386,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        TTree* outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
-       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-       outputTreeHiForestInfo->SetName("HiForestInfo");
-       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
+//       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+//       outputTreeHiForestInfo->SetName("HiForestInfo");
+//       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
 
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
@@ -397,11 +397,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
        }
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-
-       // record HiForestInfo
-       treeHiForestInfo->GetEntry(0);
-       outputTreeHiForestInfo->Fill();
+//       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+//
+//       // record HiForestInfo
+//       treeHiForestInfo->GetEntry(0);
+//       outputTreeHiForestInfo->Fill();
 
        TTree* gammaJetTree[nJetCollections];
        for (int i=0; i<nJetCollections; ++i) {
@@ -581,18 +581,18 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                    gammaJetTreeMB[k]->Fill();
                    outputTreeJetMB[k]->Fill();
                }
+           }
 
-               outputTreeHLT->Fill();
-               outputTreeggHiNtuplizer->Fill();
-               for (int i = 0; i < nJetCollections; ++i) {
-                   outputTreeJet[i]->Fill();
-               }
-               outputTreeHiEvt->Fill();
-               outputTreeSkim->Fill();
+           outputTreeHLT->Fill();
+           outputTreeggHiNtuplizer->Fill();
+           for (int i = 0; i < nJetCollections; ++i) {
+               outputTreeJet[i]->Fill();
+           }
+           outputTreeHiEvt->Fill();
+           outputTreeSkim->Fill();
 
-               for (int i = 0; i < nJetCollections; ++i) {
-                   gammaJetTree[i]->Fill();
-               }
+           for (int i = 0; i < nJetCollections; ++i) {
+               gammaJetTree[i]->Fill();
            }
        }
        std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;

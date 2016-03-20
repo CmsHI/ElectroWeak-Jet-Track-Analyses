@@ -23,9 +23,9 @@ const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
                                                                       "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
                                                                       "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
-const std::vector<int>         nBinsx{40, 20,          60};
+const std::vector<int>         nBinsx{16, 20,          30};
 const std::vector<double>      xlow  {0,  0,           0};
-const std::vector<double>      xup   {5,  TMath::Pi(), 300};
+const std::vector<double>      xup   {2,  TMath::Pi(), 300};
 const std::vector<double>      xlow_final{0,  0,           0};
 const std::vector<double>      xup_final {2,  TMath::Pi(), 200};
 const std::vector<bool> isAwaySideJets {true,  false, true};  // whether the observable is plotted for inclusive jets in the away side
@@ -339,12 +339,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     for (int iHist=0; iHist<nCorrHist; ++iHist){
     for (int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
-            corrHists[iHist][i][j].name = Form("%s_ptBin%d_hibin%d", correlationHistNames.at(iHist).c_str(), i, j);
+            corrHists[iHist][i][j].name = Form("%s_ptBin%d_hiBin%d", correlationHistNames.at(iHist).c_str(), i, j);
 
             for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
                 for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
 
-                  std::string subHistName = Form("%s_ptBin%d_hibin%d_%s_%s", correlationHistNames.at(iHist).c_str(), i, j,
+                  std::string subHistName = Form("%s_ptBin%d_hiBin%d_%s_%s", correlationHistNames.at(iHist).c_str(), i, j,
                                                  CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
                   corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                   corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()),"",
@@ -365,10 +365,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     for (int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
 
-            std::string histNamePhoRAW = Form("h_nPho_ptBin%d_hibin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kRAW].c_str());
+            std::string histNamePhoRAW = Form("h_nPho_ptBin%d_hiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kRAW].c_str());
             h_nPho[i][j][CORR::kRAW] = new TH1D(histNamePhoRAW.c_str(), "", 1, 0, 1);
 
-            std::string histNamePhoBKG = Form("h_nPho_ptBin%d_hibin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kBKG].c_str());
+            std::string histNamePhoBKG = Form("h_nPho_ptBin%d_hiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kBKG].c_str());
             h_nPho[i][j][CORR::kBKG] = new TH1D(histNamePhoBKG.c_str(), "", 1, 0, 1);
         }
     }
@@ -389,13 +389,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
                 // rjg
                 std::string subHistName;
-                subHistName = Form("%s_ptBinAll_hibin%d_%s_%s", correlationHistNames_ptBinAll.at(0).c_str(), j,
+                subHistName = Form("%s_ptBinAll_hiBin%d_%s_%s", correlationHistNames_ptBinAll.at(0).c_str(), j,
                                                                CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
                 corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                 corrHists_ptBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_rjg, bins_rjg);
 
                 // x_jg_mean
-                subHistName = Form("%s_ptBinAll_hibin%d_%s_%s", correlationHistNames_ptBinAll.at(1).c_str(), j,
+                subHistName = Form("%s_ptBinAll_hiBin%d_%s_%s", correlationHistNames_ptBinAll.at(1).c_str(), j,
                                                                                CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
                 corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                 corrHists_ptBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_xjg_mean, bins_xjg_mean);
@@ -473,8 +473,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // set eventlist once for a given bin, then reuse it for subsequent correlations, do not recalculate.
     for(int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
-            eventlistNames[CORR::kRAW][i][j] = Form("eventlist_PhoRAW_ptBin%d_hibin%d", i, j);  // CORR::kRAW = 0
-            eventlistNames[CORR::kBKG][i][j] = Form("eventlist_PhoBKG_ptBin%d_hibin%d", i, j);  // CORR::kBKG = 1
+            eventlistNames[CORR::kRAW][i][j] = Form("eventlist_PhoRAW_ptBin%d_hiBin%d", i, j);  // CORR::kRAW = 0
+            eventlistNames[CORR::kBKG][i][j] = Form("eventlist_PhoBKG_ptBin%d_hiBin%d", i, j);  // CORR::kBKG = 1
             isEventlistCreated[i][j] = false;
         }
     }

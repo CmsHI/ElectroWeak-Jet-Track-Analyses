@@ -496,9 +496,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TTree* outputTreeSkim   = treeSkim->CloneTree(0);
        outputTreeSkim->SetName("skim");
        outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
-       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-       outputTreeHiForestInfo->SetName("HiForestInfo");
-       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
+//       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
+//       outputTreeHiForestInfo->SetName("HiForestInfo");
+//       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
 
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
@@ -507,11 +507,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
        }
        outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-
-       // write HiForestInfo
-       treeHiForestInfo->GetEntry(0);
-       outputTreeHiForestInfo->Fill();
+//       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
+//
+//       // write HiForestInfo
+//       treeHiForestInfo->GetEntry(0);
+//       outputTreeHiForestInfo->Fill();
 
        // trees for diLepton pairs
        TTree* diElectronTree;
