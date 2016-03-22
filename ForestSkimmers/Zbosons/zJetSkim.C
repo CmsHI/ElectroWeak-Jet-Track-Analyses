@@ -781,6 +781,26 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
                                jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
                                jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
+                               // jet ID variables
+                               jetsMBoutput.at(k).trackMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackMax[j];
+                               jetsMBoutput.at(k).trackSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackSum[j];
+                               jetsMBoutput.at(k).trackN [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackN[j];
+                               jetsMBoutput.at(k).chargedMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedMax[j];
+                               jetsMBoutput.at(k).chargedSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedSum[j];
+                               jetsMBoutput.at(k).chargedN [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedN[j];
+                               jetsMBoutput.at(k).photonMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonMax[j];
+                               jetsMBoutput.at(k).photonSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonSum[j];
+                               jetsMBoutput.at(k).photonN [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonN[j];
+                               jetsMBoutput.at(k).neutralMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralMax[j];
+                               jetsMBoutput.at(k).neutralSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralSum[j];
+                               jetsMBoutput.at(k).neutralN [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralN[j];
+                               jetsMBoutput.at(k).eMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).eMax[j];
+                               jetsMBoutput.at(k).eSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).eSum[j];
+                               jetsMBoutput.at(k).eN [jetsMBoutput.at(k).nref] = jetsMB.at(k).eN[j];
+                               jetsMBoutput.at(k).muMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).muMax[j];
+                               jetsMBoutput.at(k).muSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).muSum[j];
+                               jetsMBoutput.at(k).muN [jetsMBoutput.at(k).nref] = jetsMB.at(k).muN[j];
+
                                jetsMBoutput.at(k).nref++;
                            }
 
