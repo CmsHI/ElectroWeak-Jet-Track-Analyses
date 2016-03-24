@@ -115,8 +115,11 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            treeJets[i]->SetBranchStatus("nref",1);     // enable jet branches
            treeJets[i]->SetBranchStatus("rawpt",1);    // enable jet branches
            treeJets[i]->SetBranchStatus("jtpt",1);     // enable jet branches
-           treeJets[i]->SetBranchStatus("jteta",1);     // enable jet branches
-           treeJets[i]->SetBranchStatus("jtphi",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("jteta",1);    // enable jet branches
+           treeJets[i]->SetBranchStatus("jtphi",1);    // enable jet branches
+           treeJets[i]->SetBranchStatus("jty",1);      // enable jet branches
+           treeJets[i]->SetBranchStatus("jtpu",1);     // enable jet branches
+           treeJets[i]->SetBranchStatus("jtm",1);      // enable jet branches
            treeJets[i]->SetBranchStatus("track*",1);
            treeJets[i]->SetBranchStatus("charged*",1);
            treeJets[i]->SetBranchStatus("photon*",1);

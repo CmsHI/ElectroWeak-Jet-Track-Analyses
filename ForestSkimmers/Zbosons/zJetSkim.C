@@ -288,8 +288,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeJet[i]->SetBranchStatus("nref",1);     // enable jet branches
            treeJet[i]->SetBranchStatus("rawpt",1);    // enable jet branches
            treeJet[i]->SetBranchStatus("jtpt",1);     // enable jet branches
-           treeJet[i]->SetBranchStatus("jteta",1);     // enable jet branches
-           treeJet[i]->SetBranchStatus("jtphi",1);     // enable jet branches
+           treeJet[i]->SetBranchStatus("jteta",1);    // enable jet branches
+           treeJet[i]->SetBranchStatus("jtphi",1);    // enable jet branches
+           treeJet[i]->SetBranchStatus("jtpu",1);     // enable jet branches
            treeJet[i]->SetBranchStatus("track*",1);
            treeJet[i]->SetBranchStatus("charged*",1);
            treeJet[i]->SetBranchStatus("photon*",1);
@@ -780,6 +781,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
                                jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
                                jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
+                               jetsMBoutput.at(k).jtpu [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpu[j];
                                jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
                                // jet ID variables
                                jetsMBoutput.at(k).trackMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackMax[j];
