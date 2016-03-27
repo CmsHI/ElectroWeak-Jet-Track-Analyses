@@ -33,7 +33,15 @@ std::string CORR_JET_LABELS[kN_CORRFNC] = {
 
 class correlationHist {
 public :
-    correlationHist(){};
+    correlationHist(){
+
+        for (int i = 0; i < CORR::kN_CORRFNC; ++i) {
+            for (int j = 0; j < CORR::kN_CORRFNC; ++j) {
+                nEntries[i][j] = 0;
+                nEntriesPho[i][j] = 0;
+            }
+        }
+    };
     ~correlationHist(){};
 
     std::string name;   // name of the observable to be histogrammed.

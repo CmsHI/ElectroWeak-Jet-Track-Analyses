@@ -38,6 +38,8 @@ public :
     pho_genMatchedIndex = 0;
     eleCharge = 0;
     eleChargeConsistent = 0;
+    eleSCPixCharge = 0;
+    eleCtfCharge = 0;
     eleEn = 0;
     eleD0 = 0;
     eleDz = 0;
@@ -50,6 +52,8 @@ public :
     eleTrkChi2 = 0;
     eleTrkNdof = 0;
     eleTrkNormalizedChi2 = 0;
+    eleTrkValidHits = 0;
+    eleTrkLayers = 0;
     elePt = 0;
     eleEta = 0;
     elePhi = 0;
@@ -61,6 +65,7 @@ public :
     eleSCEtaWidth = 0;
     eleSCPhiWidth = 0;
     eleHoverE = 0;
+    eleHoverEBc = 0;
     eleEoverP = 0;
     eleEoverPInv = 0;
     eleBrem = 0;
@@ -75,10 +80,37 @@ public :
     elePFPhoIso = 0;
     elePFNeuIso = 0;
     elePFPUIso = 0;
+    elePFChIso03 = 0;
+    elePFPhoIso03 = 0;
+    elePFNeuIso03 = 0;
+    elePFChIso04 = 0;
+    elePFPhoIso04 = 0;
+    elePFNeuIso04 = 0;
+    eleR9 = 0;
+    eleE3x3 = 0;
+    eleE5x5 = 0;
+    eleR9Full5x5 = 0;
+    eleE3x3Full5x5 = 0;
+    eleE5x5Full5x5 = 0;
+    NClusters = 0;
+    NEcalClusters = 0;
+    eleSeedEn = 0;
+    eleSeedEta = 0;
+    eleSeedPhi = 0;
+    eleSeedCryEta = 0;
+    eleSeedCryPhi = 0;
+    eleSeedCryIeta = 0;
+    eleSeedCryIphi = 0;
     eleBC1E = 0;
     eleBC1Eta = 0;
     eleBC2E = 0;
     eleBC2Eta = 0;
+    eleIDVeto = 0;
+    eleIDLoose = 0;
+    eleIDMedium = 0;
+    eleIDTight = 0;
+    elepassConversionVeto = 0;
+    eleEffAreaTimesRho = 0;
     phoE = 0;
     phoEt = 0;
     phoEta = 0;
@@ -274,6 +306,8 @@ public :
   Int_t           nEle;
   std::vector<int>     *eleCharge;
   std::vector<int>     *eleChargeConsistent;
+  std::vector<int>     *eleSCPixCharge;
+  std::vector<int>     *eleCtfCharge;
   std::vector<float>   *eleEn;
   std::vector<float>   *eleD0;
   std::vector<float>   *eleDz;
@@ -286,6 +320,8 @@ public :
   std::vector<float>   *eleTrkChi2;
   std::vector<float>   *eleTrkNdof;
   std::vector<float>   *eleTrkNormalizedChi2;
+  std::vector<int>     *eleTrkValidHits;
+  std::vector<int>     *eleTrkLayers;
   std::vector<float>   *elePt;
   std::vector<float>   *eleEta;
   std::vector<float>   *elePhi;
@@ -297,6 +333,7 @@ public :
   std::vector<float>   *eleSCEtaWidth;
   std::vector<float>   *eleSCPhiWidth;
   std::vector<float>   *eleHoverE;
+  std::vector<float>   *eleHoverEBc;
   std::vector<float>   *eleEoverP;
   std::vector<float>   *eleEoverPInv;
   std::vector<float>   *eleBrem;
@@ -311,10 +348,37 @@ public :
   std::vector<float>   *elePFPhoIso;
   std::vector<float>   *elePFNeuIso;
   std::vector<float>   *elePFPUIso;
+  std::vector<float>   *elePFChIso03;
+  std::vector<float>   *elePFPhoIso03;
+  std::vector<float>   *elePFNeuIso03;
+  std::vector<float>   *elePFChIso04;
+  std::vector<float>   *elePFPhoIso04;
+  std::vector<float>   *elePFNeuIso04;
+  std::vector<float>   *eleR9;
+  std::vector<float>   *eleE3x3;
+  std::vector<float>   *eleE5x5;
+  std::vector<float>   *eleR9Full5x5;
+  std::vector<float>   *eleE3x3Full5x5;
+  std::vector<float>   *eleE5x5Full5x5;
+  std::vector<int>     *NClusters;
+  std::vector<int>     *NEcalClusters;
+  std::vector<float>   *eleSeedEn;
+  std::vector<float>   *eleSeedEta;
+  std::vector<float>   *eleSeedPhi;
+  std::vector<float>   *eleSeedCryEta;
+  std::vector<float>   *eleSeedCryPhi;
+  std::vector<float>   *eleSeedCryIeta;
+  std::vector<float>   *eleSeedCryIphi;
   std::vector<float>   *eleBC1E;
   std::vector<float>   *eleBC1Eta;
   std::vector<float>   *eleBC2E;
   std::vector<float>   *eleBC2Eta;
+  std::vector<int>     *eleIDVeto;
+  std::vector<int>     *eleIDLoose;
+  std::vector<int>     *eleIDMedium;
+  std::vector<int>     *eleIDTight;
+  std::vector<int>     *elepassConversionVeto;
+  std::vector<float>   *eleEffAreaTimesRho;
   Int_t           nPho;
   std::vector<float>   *phoE;
   std::vector<float>   *phoEt;
@@ -510,6 +574,8 @@ public :
   TBranch        *b_nEle;   //!
   TBranch        *b_eleCharge;   //!
   TBranch        *b_eleChargeConsistent;   //!
+  TBranch        *b_eleSCPixCharge;   //!
+  TBranch        *b_eleCtfCharge;   //!
   TBranch        *b_eleEn;   //!
   TBranch        *b_eleD0;   //!
   TBranch        *b_eleDz;   //!
@@ -522,6 +588,8 @@ public :
   TBranch        *b_eleTrkChi2;   //!
   TBranch        *b_eleTrkNdof;   //!
   TBranch        *b_eleTrkNormalizedChi2;   //!
+  TBranch        *b_eleTrkValidHits;   //!
+  TBranch        *b_eleTrkLayers;   //!
   TBranch        *b_elePt;   //!
   TBranch        *b_eleEta;   //!
   TBranch        *b_elePhi;   //!
@@ -533,6 +601,7 @@ public :
   TBranch        *b_eleSCEtaWidth;   //!
   TBranch        *b_eleSCPhiWidth;   //!
   TBranch        *b_eleHoverE;   //!
+  TBranch        *b_eleHoverEBc;   //!
   TBranch        *b_eleEoverP;   //!
   TBranch        *b_eleEoverPInv;   //!
   TBranch        *b_eleBrem;   //!
@@ -547,10 +616,37 @@ public :
   TBranch        *b_elePFPhoIso;   //!
   TBranch        *b_elePFNeuIso;   //!
   TBranch        *b_elePFPUIso;   //!
+  TBranch        *b_elePFChIso03;   //!
+  TBranch        *b_elePFPhoIso03;   //!
+  TBranch        *b_elePFNeuIso03;   //!
+  TBranch        *b_elePFChIso04;   //!
+  TBranch        *b_elePFPhoIso04;   //!
+  TBranch        *b_elePFNeuIso04;   //!
+  TBranch        *b_eleR9;   //!
+  TBranch        *b_eleE3x3;   //!
+  TBranch        *b_eleE5x5;   //!
+  TBranch        *b_eleR9Full5x5;   //!
+  TBranch        *b_eleE3x3Full5x5;   //!
+  TBranch        *b_eleE5x5Full5x5;   //!
+  TBranch        *b_NClusters;   //!
+  TBranch        *b_NEcalClusters;   //!
+  TBranch        *b_eleSeedEn;   //!
+  TBranch        *b_eleSeedEta;   //!
+  TBranch        *b_eleSeedPhi;   //!
+  TBranch        *b_eleSeedCryEta;   //!
+  TBranch        *b_eleSeedCryPhi;   //!
+  TBranch        *b_eleSeedCryIeta;   //!
+  TBranch        *b_eleSeedCryIphi;   //!
   TBranch        *b_eleBC1E;   //!
   TBranch        *b_eleBC1Eta;   //!
   TBranch        *b_eleBC2E;   //!
   TBranch        *b_eleBC2Eta;   //!
+  TBranch        *b_eleIDVeto;   //!
+  TBranch        *b_eleIDLoose;   //!
+  TBranch        *b_eleIDMedium;   //!
+  TBranch        *b_eleIDTight;   //!
+  TBranch        *b_elepassConversionVeto;   //!
+  TBranch        *b_eleEffAreaTimesRho;   //!
   TBranch        *b_nPho;   //!
   TBranch        *b_phoE;   //!
   TBranch        *b_phoEt;   //!
@@ -748,6 +844,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("nEle")) t->SetBranchAddress("nEle", &nEle, &b_nEle);
     if (t->GetBranch("eleCharge")) t->SetBranchAddress("eleCharge", &eleCharge, &b_eleCharge);
     if (t->GetBranch("eleChargeConsistent")) t->SetBranchAddress("eleChargeConsistent", &eleChargeConsistent, &b_eleChargeConsistent);
+    if (t->GetBranch("eleSCPixCharge")) t->SetBranchAddress("eleSCPixCharge", &eleSCPixCharge, &b_eleSCPixCharge);
+    if (t->GetBranch("eleCtfCharge")) t->SetBranchAddress("eleCtfCharge", &eleCtfCharge, &b_eleCtfCharge);
     if (t->GetBranch("eleEn")) t->SetBranchAddress("eleEn", &eleEn, &b_eleEn);
     if (t->GetBranch("eleD0")) t->SetBranchAddress("eleD0", &eleD0, &b_eleD0);
     if (t->GetBranch("eleDz")) t->SetBranchAddress("eleDz", &eleDz, &b_eleDz);
@@ -757,9 +855,11 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleTrkEta")) t->SetBranchAddress("eleTrkEta", &eleTrkEta, &b_eleTrkEta);
     if (t->GetBranch("eleTrkPhi")) t->SetBranchAddress("eleTrkPhi", &eleTrkPhi, &b_eleTrkPhi);
     if (t->GetBranch("eleTrkCharge")) t->SetBranchAddress("eleTrkCharge", &eleTrkCharge, &b_eleTrkCharge);
-    if (t->GetBranch("eleTrkCharge")) t->SetBranchAddress("eleTrkCharge", &eleTrkChi2, &b_eleTrkChi2);
+    if (t->GetBranch("eleTrkChi2")) t->SetBranchAddress("eleTrkChi2", &eleTrkChi2, &b_eleTrkChi2);
     if (t->GetBranch("eleTrkNdof")) t->SetBranchAddress("eleTrkNdof", &eleTrkNdof, &b_eleTrkNdof);
     if (t->GetBranch("eleTrkNormalizedChi2")) t->SetBranchAddress("eleTrkNormalizedChi2", &eleTrkNormalizedChi2, &b_eleTrkNormalizedChi2);
+    if (t->GetBranch("eleTrkValidHits")) t->SetBranchAddress("eleTrkValidHits", &eleTrkValidHits, &b_eleTrkValidHits);
+    if (t->GetBranch("eleTrkLayers")) t->SetBranchAddress("eleTrkLayers", &eleTrkLayers, &b_eleTrkLayers);
     if (t->GetBranch("elePt")) t->SetBranchAddress("elePt", &elePt, &b_elePt);
     if (t->GetBranch("eleEta")) t->SetBranchAddress("eleEta", &eleEta, &b_eleEta);
     if (t->GetBranch("elePhi")) t->SetBranchAddress("elePhi", &elePhi, &b_elePhi);
@@ -771,6 +871,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleSCEtaWidth")) t->SetBranchAddress("eleSCEtaWidth", &eleSCEtaWidth, &b_eleSCEtaWidth);
     if (t->GetBranch("eleSCPhiWidth")) t->SetBranchAddress("eleSCPhiWidth", &eleSCPhiWidth, &b_eleSCPhiWidth);
     if (t->GetBranch("eleHoverE")) t->SetBranchAddress("eleHoverE", &eleHoverE, &b_eleHoverE);
+    if (t->GetBranch("eleHoverEBc")) t->SetBranchAddress("eleHoverEBc", &eleHoverEBc, &b_eleHoverEBc);
     if (t->GetBranch("eleEoverP")) t->SetBranchAddress("eleEoverP", &eleEoverP, &b_eleEoverP);
     if (t->GetBranch("eleEoverPInv")) t->SetBranchAddress("eleEoverPInv", &eleEoverPInv, &b_eleEoverPInv);
     if (t->GetBranch("eleBrem")) t->SetBranchAddress("eleBrem", &eleBrem, &b_eleBrem);
@@ -785,10 +886,37 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("elePFPhoIso")) t->SetBranchAddress("elePFPhoIso", &elePFPhoIso, &b_elePFPhoIso);
     if (t->GetBranch("elePFNeuIso")) t->SetBranchAddress("elePFNeuIso", &elePFNeuIso, &b_elePFNeuIso);
     if (t->GetBranch("elePFPUIso")) t->SetBranchAddress("elePFPUIso", &elePFPUIso, &b_elePFPUIso);
+    if (t->GetBranch("elePFChIso03")) t->SetBranchAddress("elePFChIso03", &elePFChIso03, &b_elePFChIso03);
+    if (t->GetBranch("elePFPhoIso03")) t->SetBranchAddress("elePFPhoIso03", &elePFPhoIso03, &b_elePFPhoIso03);
+    if (t->GetBranch("elePFNeuIso03")) t->SetBranchAddress("elePFNeuIso03", &elePFNeuIso03, &b_elePFNeuIso03);
+    if (t->GetBranch("elePFChIso04")) t->SetBranchAddress("elePFChIso04", &elePFChIso04, &b_elePFChIso04);
+    if (t->GetBranch("elePFPhoIso04")) t->SetBranchAddress("elePFPhoIso04", &elePFPhoIso04, &b_elePFPhoIso04);
+    if (t->GetBranch("elePFNeuIso04")) t->SetBranchAddress("elePFNeuIso04", &elePFNeuIso04, &b_elePFNeuIso04);
+    if (t->GetBranch("eleR9")) t->SetBranchAddress("eleR9", &eleR9, &b_eleR9);
+    if (t->GetBranch("eleE3x3")) t->SetBranchAddress("eleE3x3", &eleE3x3, &b_eleE3x3);
+    if (t->GetBranch("eleE5x5")) t->SetBranchAddress("eleE5x5", &eleE5x5, &b_eleE5x5);
+    if (t->GetBranch("eleR9Full5x5")) t->SetBranchAddress("eleR9Full5x5", &eleR9Full5x5, &b_eleR9Full5x5);
+    if (t->GetBranch("eleE3x3Full5x5")) t->SetBranchAddress("eleE3x3Full5x5", &eleE3x3Full5x5, &b_eleE3x3Full5x5);
+    if (t->GetBranch("eleE5x5Full5x5")) t->SetBranchAddress("eleE5x5Full5x5", &eleE5x5Full5x5, &b_eleE5x5Full5x5);
+    if (t->GetBranch("NClusters")) t->SetBranchAddress("NClusters", &NClusters, &b_NClusters);
+    if (t->GetBranch("NEcalClusters")) t->SetBranchAddress("NEcalClusters", &NEcalClusters, &b_NEcalClusters);
+    if (t->GetBranch("eleSeedEn")) t->SetBranchAddress("eleSeedEn", &eleSeedEn, &b_eleSeedEn);
+    if (t->GetBranch("eleSeedEta")) t->SetBranchAddress("eleSeedEta", &eleSeedEta, &b_eleSeedEta);
+    if (t->GetBranch("eleSeedPhi")) t->SetBranchAddress("eleSeedPhi", &eleSeedPhi, &b_eleSeedPhi);
+    if (t->GetBranch("eleSeedCryEta")) t->SetBranchAddress("eleSeedCryEta", &eleSeedCryEta, &b_eleSeedCryEta);
+    if (t->GetBranch("eleSeedCryPhi")) t->SetBranchAddress("eleSeedCryPhi", &eleSeedCryPhi, &b_eleSeedCryPhi);
+    if (t->GetBranch("eleSeedCryIeta")) t->SetBranchAddress("eleSeedCryIeta", &eleSeedCryIeta, &b_eleSeedCryIeta);
+    if (t->GetBranch("eleSeedCryIphi")) t->SetBranchAddress("eleSeedCryIphi", &eleSeedCryIphi, &b_eleSeedCryIphi);
     if (t->GetBranch("eleBC1E")) t->SetBranchAddress("eleBC1E", &eleBC1E, &b_eleBC1E);
     if (t->GetBranch("eleBC1Eta")) t->SetBranchAddress("eleBC1Eta", &eleBC1Eta, &b_eleBC1Eta);
     if (t->GetBranch("eleBC2E")) t->SetBranchAddress("eleBC2E", &eleBC2E, &b_eleBC2E);
     if (t->GetBranch("eleBC2Eta")) t->SetBranchAddress("eleBC2Eta", &eleBC2Eta, &b_eleBC2Eta);
+    if (t->GetBranch("eleIDVeto")) t->SetBranchAddress("eleIDVeto", &eleIDVeto, &b_eleIDVeto);
+    if (t->GetBranch("eleIDLoose")) t->SetBranchAddress("eleIDLoose", &eleIDLoose, &b_eleIDLoose);
+    if (t->GetBranch("eleIDMedium")) t->SetBranchAddress("eleIDMedium", &eleIDMedium, &b_eleIDMedium);
+    if (t->GetBranch("eleIDTight")) t->SetBranchAddress("eleIDTight", &eleIDTight, &b_eleIDTight);
+    if (t->GetBranch("elepassConversionVeto")) t->SetBranchAddress("elepassConversionVeto", &elepassConversionVeto, &b_elepassConversionVeto);
+    if (t->GetBranch("eleEffAreaTimesRho")) t->SetBranchAddress("eleEffAreaTimesRho", &eleEffAreaTimesRho, &b_eleEffAreaTimesRho);
     if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
     if (t->GetBranch("phoEt")) t->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
