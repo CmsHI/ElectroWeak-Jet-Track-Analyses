@@ -18,13 +18,21 @@ namespace CUTS {
       k_requirePhotonInEvent,
       k_jetID,
       k_jetType,       // 0 = all jets, 1 = leading Jet, 2 = subleading jet
+      k_doCorrectionMatchingEfficiency,
+      k_doCorrectionResidual,
+      k_doCorrectionSmearing,
+      k_doCorrectionSmearingPhi,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "requirePhotonInEvent",
       "jetID",
-      "jetType"
+      "jetType",
+      "doCorrectionMatchingEfficiency",
+      "doCorrectionResidual",
+      "doCorrectionSmearing",
+      "doCorrectionSmearingPhi"
     };
 
     enum S_CUTS{

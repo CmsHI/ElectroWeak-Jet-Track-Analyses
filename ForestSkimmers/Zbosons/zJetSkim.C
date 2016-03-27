@@ -53,6 +53,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int cut_pBeamScrapingFilter;
 
        std::vector<std::string> jetCollections;
+       int doCorrectionResidual;
+       int doCorrectionSmearing;
+       int doCorrectionSmearingPhi;
        // electron cuts
        int cut_nEle;
        int doCorrectionEle;
@@ -91,6 +94,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
            
            jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+           doCorrectionResidual = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionResidual];
+           doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
+           doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
@@ -128,6 +134,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pcollisionEventSelection = 1;
            cut_pPAprimaryVertexFilter = 1;
            cut_pBeamScrapingFilter = 1;
+
+           doCorrectionResidual = 0;
+           doCorrectionSmearing = 0;
+           doCorrectionSmearingPhi = 0;
 
            cut_nEle = 2;
            doCorrectionEle = 0;
@@ -172,6 +182,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        bool isMC = collisionIsMC((COLL::TYPE)collisionType);
        bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
@@ -188,6 +199,9 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        for (int i=0; i<nJetCollections; ++i) {
            std::cout << Form("jetCollections[%d] = %s", i, jetCollections.at(i).c_str()) << std::endl;
        }
+       std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
+       std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
+       std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
@@ -369,7 +383,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
        }
        Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
-       if (!isHI) {
+       if (isPP) {
            treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
            if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
                treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
@@ -384,7 +398,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
        }
        Int_t pBeamScrapingFilter;   // this filter is used for PP.
-       if (!isHI) {
+       if (isPP) {
            treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
            if (treeSkim->GetBranch("pBeamScrapingFilter")) {
                treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
@@ -414,11 +428,20 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
        }
 
-       electronCorrector corrector;
-       if (doCorrectionEle) {
+       // correctors
+       electronCorrector correctorEle;
+       if (doCorrectionEle > 0) {
            std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
            std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
-           corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+       }
+
+       std::vector<jetCorrector> correctorsJet(nJetCollections);
+       TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
+       if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
+           for (int i = 0; i < nJetCollections; ++i) {
+               correctorsJet.at(i).rand = randSmearing;
+           }
        }
 
        // mixed-event block
@@ -639,7 +662,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                {
                    // correct the pt of electrons
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-                   corrector.correctPts(ggHi);
+                   correctorEle.correctPts(ggHi);
                }
 
                // construct dielectron pairs during zJet skim
@@ -745,6 +768,25 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            if (zIdx == -1) continue;
            entriesAnalyzed++;
 
+           // jet corrections
+           if (doCorrectionResidual > 0) {
+               for (int i=0; i<nJetCollections; ++i) {
+                   correctorsJet.at(i).correctPtsResidual(jets.at(i));
+               }
+           }
+           if (isPP) {
+               if (doCorrectionSmearing > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJet.at(i).correctPtsSmearing(jets.at(i));
+                   }
+               }
+               if (doCorrectionSmearingPhi > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJet.at(i).correctPhisSmearing(jets.at(i));
+                   }
+               }
+           }
+
            for (int i=0; i<nJetCollections; ++i) {
                // z-jet correlation
                // leading z Boson from dielectron is correlated to each jet in the event.
@@ -769,6 +811,19 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        {
                            Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
                            treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
+
+                           // jet corrections for MB events
+                           if (doCorrectionResidual > 0) {
+                               correctorsJet.at(k).correctPtsResidual(jets.at(k));
+                           }
+                           if (isPP) {
+                               if (doCorrectionSmearing > 0) {
+                                   correctorsJet.at(k).correctPtsSmearing(jets.at(k));
+                               }
+                               if (doCorrectionSmearingPhi > 0) {
+                                   correctorsJet.at(k).correctPhisSmearing(jets.at(k));
+                               }
+                           }
 
                            if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);
                            if (doDiMuon > 0)     zjetMB.at(k).makeZmmJetPairsMB(diMu,  jetsMB.at(k), zIdx, true);
