@@ -16,6 +16,7 @@
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Corrections/electrons/electronCorrector.h"
+#include "../../Corrections/jets/jetCorrector.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
