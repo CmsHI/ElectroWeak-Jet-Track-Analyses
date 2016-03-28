@@ -165,7 +165,7 @@ void dimuonHistogram(const TString configFile, const TString inputFile, const TS
                 selections[1] = selections[1] && Form("abs(muEta_2) < %f", bins_eta_lt[j]);
             }
 
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection_event = Form("%s > 0", str_trigger.c_str());
             TCut selection =  "";
             selection = selection && selection_event;
             selection = selection && Form("muPt_1 > %d && muPt_2 > %d", bins_pt[i], bins_pt[i]);

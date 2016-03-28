@@ -85,7 +85,7 @@ double jetCorrector::getMatchingEfficiencyCorrection(Jets &tJets, int i)
 
 double jetCorrector::getResidualCorrection(Jets &tJets, int i)
 {
-    double result = p0 + p1/TMath::Sqrt(tJets.jtpt[i]) + p2/tJets.jtpt[i];
+    double result = 1./(p0 + p1/TMath::Sqrt(tJets.jtpt[i]) + p2/tJets.jtpt[i]);
     return result;
 }
 

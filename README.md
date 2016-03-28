@@ -70,3 +70,9 @@ All cuts applied at every step come from files in the *CutConfigurations* folder
  - This is not a direct part of the analysis workflow, but serves as a cross-check for analysis.
  - The main purpose of macros in this folder is to work on one or more input HiForest files and output a set of histograms to a ".root" file. Saving output as "png", "pdf" or other graphics file can be optional. However, it is discouraged to output only graphics files, but no ".root" file. For example, photonTurnOn.C outputs a ".root" file with photon turn on curves and if the related option is specified, then a graphics file is also generated.
  - When saving a graphics file, it is encouraged to save the file also in ".C" format so that any necessary small modification can be done quickly.
+
+### Configurations
+
+ - This folder is intended to store configuration files for different performance and analysis studies.
+ - It is recommended to follow a sound organization when placing the ".conf" files into that folder. For example "Configurations/zJet" should contain configurations related to z-Jet correlations analysis.
+

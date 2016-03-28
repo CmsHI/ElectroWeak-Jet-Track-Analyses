@@ -186,7 +186,7 @@ void diphotonHistogram(const TString configFile, const TString inputFile, const 
                 selections[1] = selections_EE[1];
             }
 
-            TCut selection_event = Form("%s == 1", str_trigger.c_str());
+            TCut selection_event = Form("%s > 0", str_trigger.c_str());
             TCut selection =  "";
             selection = selection && Form("phoEt_1 > %d && phoEt_2 > %d", bins_pt[i], bins_pt[i]);
             selection = selection && selection_event;

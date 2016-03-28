@@ -348,7 +348,7 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
                     if (doMassSelection.at(i)) selectionZ = selectionZ && selectionZmass;
 
                     TCut selection_hiBin = Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(iHiBin), bins_hiBin[1].at(iHiBin));
-                    TCut selection_event = Form("%s == 1", str_trigger.c_str());
+                    TCut selection_event = Form("%s > 0", str_trigger.c_str());
 
                     TCut selection =  "";
                     selection = selection && selection_event;

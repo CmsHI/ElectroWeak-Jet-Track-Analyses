@@ -483,7 +483,7 @@ void dileptonHistogram(const TString configFile, const TString inputFile, const 
                     if (doMassSelection.at(i)) selectionZ = selectionZ && selectionZmass;
 
                     TCut selection_hiBin = Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(iHiBin), bins_hiBin[1].at(iHiBin));
-                    TCut selection_event = Form("%s == 1", trigger.c_str());
+                    TCut selection_event = Form("%s > 0", trigger.c_str());
 
                     TCut selection =  "";
                     selection = selection && selection_event;
