@@ -432,9 +432,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        // correctors
        electronCorrector correctorEle;
        if (doCorrectionEle > 0) {
-           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
-           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
-           correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           if (isHI) {
+               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
+               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
+               correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           }
        }
 
        std::vector<jetCorrector> correctorsJet(nJetCollections);
@@ -663,7 +665,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                {
                    // correct the pt of electrons
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-                   correctorEle.correctPts(ggHi);
+                   if (isHI)  correctorEle.correctPts(ggHi);
                }
 
                // construct dielectron pairs during zJet skim
@@ -815,14 +817,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                            // jet corrections for MB events
                            if (doCorrectionResidual > 0) {
-                               correctorsJet.at(k).correctPtsResidual(jets.at(k));
+                               correctorsJet.at(k).correctPtsResidual(jetsMB.at(k));
                            }
                            if (isPP) {
                                if (doCorrectionSmearing > 0) {
-                                   correctorsJet.at(k).correctPtsSmearing(jets.at(k));
+                                   correctorsJet.at(k).correctPtsSmearing(jetsMB.at(k));
                                }
                                if (doCorrectionSmearingPhi > 0) {
-                                   correctorsJet.at(k).correctPhisSmearing(jets.at(k));
+                                   correctorsJet.at(k).correctPhisSmearing(jetsMB.at(k));
                                }
                            }
 
