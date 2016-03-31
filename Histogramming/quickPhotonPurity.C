@@ -27,23 +27,18 @@
 
 const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
 const TCut sampleIsolation = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1.0 && phoHoverE<0.1";
+const TCut noiseCut = "!((phoE3x3/phoE5x5 > 2/3-0.03 && phoE3x3/phoE5x5 < 2/3+0.03) && (phoE1x5/phoE5x5 > 1/3-0.03 && phoE1x5/phoE5x5 < 1/3+0.03) && (phoE2x5/phoE5x5 > 2/3-0.03 && phoE2x5/phoE5x5 < 2/3+0.03))";
 
-
-//const Double_t sigShifts[] = {-0.0000989, -0.000131273, -0.00016207, -0.000170555};
 const Double_t sigShifts[] = {0, 0, 0, 0};
-//const Double_t sigShifts[] = {-0.00015,-0.00015,-0.00015,-0.00015};
 
 // last entry is upper bound on last bin
-const Int_t CENTBINS[] = {0, 200};//, 40};
-//const Int_t CENTBINS[] = {0, 100};
+const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
 const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
-//const Double_t PTBINS[] = {40,50,60, 1000};
 const Int_t nPTBINS = sizeof(PTBINS)/sizeof(Double_t) -1;
 
 const Double_t ETABINS[] = {-1.44, 1.44};
-//const Double_t ETABINS[] = {-1.44, -1, -0.5, 0, 0.5, 1, 1.44};
 const Int_t nETABINS = sizeof(ETABINS)/sizeof(Double_t) -1;
 
 void quickPhotonPurity(const TString configFile, const TString inputData, const TString inputMC, const TString outputName)
@@ -61,12 +56,12 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
   TFile *outFile = new TFile(outputName,"RECREATE");
 
-  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)>10) && ((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)<20) && phoHoverE<0.1";
+  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)>20) && ((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)<30) && phoHoverE<0.1";
   const TCut mcIsolation = "(pho_genMatchedIndex!= -1) && mcCalIsoDR04[pho_genMatchedIndex]<5 && abs(mcPID[pho_genMatchedIndex])<=22";
 
   //TCanvas *cPurity[nPTBINS];
   //TCanvas *cPurity = new TCanvas("c1","c1",337*nPTBINS,300*nCENTBINS/**2*/);
-  TCanvas *cPurity = new TCanvas("c1","c1",400*nPTBINS,400);
+  TCanvas *cPurity = new TCanvas("c1","c1",400*nPTBINS,400*nCENTBINS);
   //cPurity->Divide(nPTBINS,2*nCENTBINS,0,0);
   //cPurity->Divide(nPTBINS,nCENTBINS,0,0);
   makeMultiPanelCanvas(cPurity, nPTBINS, nCENTBINS, 0.0, 0.0 , 0.2, 0.15, 0.005);
@@ -82,9 +77,9 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	TString etaCut = Form("(phoEta >= %f) && (phoEta < %f)",
 			      ETABINS[k], ETABINS[k+1]);
 
-	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut;
-	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut;
-	TCut mcSignalCut = dataCandidateCut && mcIsolation;
+	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut && noiseCut;
+	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut && noiseCut;
+	TCut mcSignalCut = dataCandidateCut && mcIsolation && noiseCut;
 
 	// if(nETABINS != 1)
 	// {
@@ -99,7 +94,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
 	//cPurity[i*nCENTBINS+j] = new TCanvas(Form("cpurity%d",i*nCENTBINS+j),
 	// 					 "",500,500);
-	cPurity->cd(2*(k+j)*nPTBINS+i+1);
+	cPurity->cd((k+j)*nPTBINS+i+1);
 	//cPurity->cd((k+j)*nPTBINS+i+1);
 	//cPurity[i]->cd(k+1);
 
@@ -204,11 +199,13 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	// if(/*nCENTBINS != 1 && */i ==0)
 	drawText(Form("%.0f - %.0f%c",
 		      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
-		 xpos, 0.82,1,20);
+		 xpos, 0.68,1,20);
 	// if(nETABINS != 1)
-	//   drawText(Form("%.3f < #eta_{#gamma} < %.3f",
-	// 		ETABINS[k], ETABINS[k+1]),
-	// 	   xpos, 0.82,1,20);
+	// drawText(Form("%.3f < #eta_{#gamma} < %.3f",
+	// 	      ETABINS[k], ETABINS[k+1]),
+	// 	 xpos, 0.82,1,20);
+	drawText("20<sideBand<30",
+		 xpos, 0.82,1,20);
 	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
 		 xpos, 0.76,1,20);
 	drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
@@ -247,7 +244,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   cPurity->Write();
   outFile->Close();
   //cPurity->SaveAs(SAVENAME+".C");
-  //cPurity->SaveAs(SAVENAME+".png");
+  cPurity->SaveAs("photon_purity_barrel20_30.png");
   //cPurity->SaveAs(SAVENAME+".pdf");
 }
 

@@ -30,7 +30,7 @@ bool endsWith(std::string str, std::string suffix);
 bool fileExists(std::string filename)
 {
   std::ifstream file(filename.c_str());
-  return file;
+  return (bool)file; //root CINT compiler requires explicit cast
 }
 
 /*
