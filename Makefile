@@ -16,5 +16,5 @@ all: $(PROGS_C) $(PROGS_cc)
 	$(CXX) $(CXXFLAGS)  -o $@ $<
 
 clean:
-	rm */*.exe
-	rm */*/*.exe
+	rm */*.exe || true
+	rm */*/*.exe || true
