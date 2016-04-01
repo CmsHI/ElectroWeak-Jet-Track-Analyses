@@ -16,7 +16,7 @@
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 
-const long MAXTREESIZE = 200000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
+const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
 void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetSkim.root", const TString minBiasJetSkimFile = "");
 
