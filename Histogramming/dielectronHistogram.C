@@ -146,6 +146,8 @@ void dielectronHistogram(const TString configFile, const TString inputFile, cons
         eleD0_abs_EE = 0.279;
         eleDz_abs_EE = 0.947;
         eleMissHits_EE = 3;
+
+	doEventWeight = 0;
     }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";

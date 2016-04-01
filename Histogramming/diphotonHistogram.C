@@ -79,6 +79,7 @@ void diphotonHistogram(const TString configFile, const TString inputFile, const 
         cut_pho_trackIsoR4PtCut20 = 2;
         cut_phoSigmaIEtaIEta = 0.01;
         cut_sumIso = 6;
+	doEventWeight = 0;
     }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";

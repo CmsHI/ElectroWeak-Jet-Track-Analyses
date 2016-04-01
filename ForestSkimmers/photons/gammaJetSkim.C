@@ -139,7 +139,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   TTree* treeJetMB[nCentralityBins][nVertexBins][nJetCollections];
   Long64_t nMB[nCentralityBins][nVertexBins][nJetCollections];
   Long64_t iterMB[nCentralityBins][nVertexBins][nJetCollections];   // index of the tree where the mixing starts
-  TFile* inputMB;
+  TFile* inputMB=0;
   if (doMix > 0) {
     centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
     vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
@@ -185,8 +185,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
   // output tree variables
-  TTree *outputTreeHLT, *outputTreeggHiNtuplizer, *outputTreeJet[nJetCollections],
-    *outputTreeHiEvt, *outputTreeSkim;
+  TTree *outputTreeHLT=0, *outputTreeggHiNtuplizer=0, *outputTreeJet[nJetCollections]={0},
+    *outputTreeHiEvt=0, *outputTreeSkim=0;
 
   TTree* gammaJetTree[nJetCollections];
   for (int i=0; i<nJetCollections; ++i) {

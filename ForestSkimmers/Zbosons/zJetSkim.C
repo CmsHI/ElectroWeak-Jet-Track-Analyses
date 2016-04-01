@@ -454,7 +454,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TTree* treeJetMB[nCentralityBins][nVertexBins][nJetCollections];
        Long64_t nMB[nCentralityBins][nVertexBins][nJetCollections];
        Long64_t iterMB[nCentralityBins][nVertexBins][nJetCollections];   // index of the tree where the mixing starts
-       TFile* inputMB;
+       TFile* inputMB =0;
        if (doMix > 0) {
            centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
            vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
@@ -543,14 +543,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 //       outputTreeHiForestInfo->Fill();
 
        // trees for diLepton pairs
-       TTree* diElectronTree;
+       TTree* diElectronTree=0;
        // construct dielectron pairs during zJet skim
        if (doDiElectron > 0)
        {
            diElectronTree = new TTree("dielectron","electron pairs");
            diElectronTree->SetMaxTreeSize(MAXTREESIZE);
        }
-       TTree* diMuonTree;
+       TTree* diMuonTree =0;
        // construct dimuon pairs during zJet skim
        if (doDiMuon > 0)
        {

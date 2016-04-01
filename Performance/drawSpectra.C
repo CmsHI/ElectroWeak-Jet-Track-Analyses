@@ -237,6 +237,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         topMargin = 0.1;
         setLogx = 0;
         setLogy = 0;
+
+	textAbovePadFont = 20;
+	textAbovePadSize = 18;
     }
     // set default values
     if (selections.size() == 0) selections.push_back("1");

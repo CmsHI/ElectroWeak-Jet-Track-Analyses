@@ -72,6 +72,7 @@ void dimuonHistogram(const TString configFile, const TString inputFile, const TS
         muStations = 1;
         muTrkLayers = 5;
         muPixelHits = 0;
+	doEventWeight = 0;
     }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";

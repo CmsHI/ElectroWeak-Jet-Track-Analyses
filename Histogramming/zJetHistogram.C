@@ -216,6 +216,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         cut_dR = 0.4;
 
         nEventsToMix = 1;
+	doEventWeight = 0;
     }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";

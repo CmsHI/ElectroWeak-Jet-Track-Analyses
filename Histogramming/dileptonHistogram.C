@@ -167,6 +167,7 @@ void dileptonHistogram(const TString configFile, const TString inputFile, const 
         muStations = 1;
         muTrkLayers = 5;
         muPixelHits = 0;
+	doEventWeight = 0;
     }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";
