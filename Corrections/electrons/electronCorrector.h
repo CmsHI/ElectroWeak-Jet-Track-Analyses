@@ -23,6 +23,8 @@ public :
     float regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i);
     void correctPt(ggHiNtuplizer &tggHiNtuplizer, int i);
     void correctPts(ggHiNtuplizer &tggHiNtuplizer);
+    void applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, int i, double energyScale);
+    void applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, double energyScale);
 
     TMVA::Reader* tmvaReader[2];
 
@@ -134,6 +136,18 @@ void electronCorrector::correctPts(ggHiNtuplizer &tggHiNtuplizer)
 {
     for (int i = 0; i<tggHiNtuplizer.nEle; ++i) {
         tggHiNtuplizer.elePt->at(i) *= regressionTMVA(tggHiNtuplizer, i);
+    }
+}
+
+void electronCorrector::applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, int i, double energyScale)
+{
+    tggHiNtuplizer.elePt->at(i) *= energyScale;
+}
+
+void electronCorrector::applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, double energyScale)
+{
+    for (int i = 0; i<tggHiNtuplizer.nEle; ++i) {
+        applyEnergyScale(tggHiNtuplizer, i, energyScale);
     }
 }
 

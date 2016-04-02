@@ -55,11 +55,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        std::vector<std::string> jetCollections;
        int doCorrectionResidual;
+       double energyScaleJet;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
        // electron cuts
        int cut_nEle;
        int doCorrectionEle;
+       float energyScaleEle;
        float elePt;
        float eleSigmaIEtaIEta_2012_EB;
        float eleSigmaIEtaIEta_2012_EE;
@@ -96,11 +98,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            
            jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
            doCorrectionResidual = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionResidual];
+           energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
+           energyScaleEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_energyScale];
            elePt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
            eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
            eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
@@ -137,11 +141,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cut_pBeamScrapingFilter = 1;
 
            doCorrectionResidual = 0;
+           energyScaleJet = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
 
            cut_nEle = 2;
            doCorrectionEle = 0;
+           energyScaleEle = 0;
            elePt = 0;
            eleSigmaIEtaIEta_2012_EB = 0.02;
            eleSigmaIEtaIEta_2012_EE = 0.045;
@@ -201,6 +207,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            std::cout << Form("jetCollections[%d] = %s", i, jetCollections.at(i).c_str()) << std::endl;
        }
        std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
+       std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
 
@@ -208,6 +215,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        if (doDiElectron > 0) {
            std::cout<<"cut_nEle = "<<cut_nEle<<std::endl;
            std::cout<<"doCorrectionEle = "<<doCorrectionEle<<std::endl;
+           std::cout<<"energyScaleEle  = "<<energyScaleEle<<std::endl;
            std::cout<<"elePt = "<<elePt<<std::endl;
            std::cout<<"eleSigmaIEtaIEta_2012_EB = "<<eleSigmaIEtaIEta_2012_EB<<std::endl;
            std::cout<<"eleSigmaIEtaIEta_2012_EE = "<<eleSigmaIEtaIEta_2012_EE<<std::endl;
@@ -667,6 +675,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
                    if (isHI)  correctorEle.correctPts(ggHi);
                }
+               if (energyScaleEle != 0 && energyScaleEle != 1)
+               {
+                   correctorEle.applyEnergyScale(ggHi, energyScaleEle);
+               }
 
                // construct dielectron pairs during zJet skim
                diEle.makeDiElectronPairs(ggHi);
@@ -777,6 +789,12 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    correctorsJet.at(i).correctPtsResidual(jets.at(i));
                }
            }
+           if (energyScaleJet != 0 && energyScaleJet != 1)
+           {
+               for (int i=0; i<nJetCollections; ++i) {
+                   correctorsJet.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
+               }
+           }
            if (isPP) {
                if (doCorrectionSmearing > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
@@ -818,6 +836,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                            // jet corrections for MB events
                            if (doCorrectionResidual > 0) {
                                correctorsJet.at(k).correctPtsResidual(jetsMB.at(k));
+                           }
+                           if (energyScaleJet != 0 && energyScaleJet != 1)
+                           {
+                               correctorsJet.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
                            }
                            if (isPP) {
                                if (doCorrectionSmearing > 0) {

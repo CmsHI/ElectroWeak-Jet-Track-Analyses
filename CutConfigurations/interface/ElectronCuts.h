@@ -21,6 +21,7 @@ namespace CUTS {
       k_eleEoverPInv_EE,
       k_eleD0_abs_EE,
       k_eleDz_abs_EE,
+      k_energyScale,
       kN_F_CUTS
     };
 
@@ -41,7 +42,8 @@ namespace CUTS {
             "eleHoverE_EE",
             "eleEoverPInv_EE",
             "eleD0_abs_EE",
-            "eleDz_abs_EE"
+            "eleDz_abs_EE",
+            "energyScale"
     };
 
     enum I_CUTS{

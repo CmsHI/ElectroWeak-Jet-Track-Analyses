@@ -6,12 +6,14 @@ namespace CUTS {
     enum F_CUTS{
       k_pt,
       k_eta,
+      k_energyScale,
       kN_F_CUTS
     };
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
       "pt",
-      "eta"
+      "eta",
+      "energyScale"
     };
 
     enum I_CUTS{
@@ -22,6 +24,7 @@ namespace CUTS {
       k_doCorrectionResidual,
       k_doCorrectionSmearing,
       k_doCorrectionSmearingPhi,
+      k_doCorrectionJetID,
       kN_I_CUTS
     };
 
@@ -32,7 +35,8 @@ namespace CUTS {
       "doCorrectionMatchingEfficiency",
       "doCorrectionResidual",
       "doCorrectionSmearing",
-      "doCorrectionSmearingPhi"
+      "doCorrectionSmearingPhi",
+      "doCorrectionJetID"
     };
 
     enum S_CUTS{

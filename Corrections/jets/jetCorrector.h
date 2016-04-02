@@ -51,6 +51,8 @@ public :
     void  correctPtsSmearing(Jets &tJets);
     void  correctPhiSmearing(Jets &tJets, int i);
     void  correctPhisSmearing(Jets &tJets);
+    void  applyEnergyScale(Jets &tJets, int i, double energyScale);
+    void  applyEnergyScale(Jets &tJets, double energyScale);
 
     TRandom3 rand;  // used for smearing
     // matching efficiency function : eps = 1/2 * eps0 * (1 + erf(a0 + a1 * pt))
@@ -150,6 +152,18 @@ void jetCorrector::correctPhisSmearing(Jets &tJets)
 {
     for (int i = 0; i<tJets.nref; ++i) {
         correctPhiSmearing(tJets, i);
+    }
+}
+
+void  jetCorrector::applyEnergyScale(Jets &tJets, int i, double energyScale)
+{
+    tJets.jtpt[i] *= energyScale;
+}
+
+void  jetCorrector::applyEnergyScale(Jets &tJets, double energyScale)
+{
+    for (int i = 0; i<tJets.nref; ++i) {
+        applyEnergyScale(tJets, i, energyScale);
     }
 }
 
