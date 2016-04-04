@@ -5,7 +5,9 @@
 #include <TH1.h>
 #include <TH1D.h>
 #include <TGraphAsymmErrors.h>
+#include <TBox.h>
 #include <TString.h>
+#include <TMath.h>
 
 #include "interface/InputConfigurationParser.h"
 
@@ -18,6 +20,16 @@ TH1* Graph2Histogram(TGraphAsymmErrors* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
+double getMinimumTH1s(TH1D* h[], int nHistos);
+double getMaximumTH1s(TH1D* h[], int nHistos);
+// systematic uncertainty
+void fillTH1fromTF1(TH1* h, TF1* f);
+void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
+void calcTF1Ratio4SysUnc(TH1* h, TF1* fNominal, TF1* fVaried, float scaleFactor = 1);
+void subtractIdentity4SysUnc(TH1* h);
+void addSysUnc(TH1* hTot, TH1* h);
+void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -127,4 +139,152 @@ void setTH1_efficiency(TH1* h, float titleOffsetX, float titleOffsetY) {
     h->SetMarkerStyle(kFullCircle);
 }
 
+/*
+ * get minimum of an array of TH1D
+ */
+double getMinimumTH1s(TH1D* h[], int nHistos) {
+
+    double result = h[0]->GetMinimum();
+    for (int i = 1; i < nHistos; ++i) {
+        if (h[i]->GetMinimum() < result)  result = h[i]->GetMinimum();
+    }
+
+    return result;
+}
+
+/*
+ * get maximum of an array of TH1D
+ */
+double getMaximumTH1s(TH1D* h[], int nHistos) {
+
+    double result = h[0]->GetMaximum();
+    for (int i = 1; i < nHistos; ++i) {
+        if (h[i]->GetMaximum() > result)  result = h[i]->GetMaximum();
+    }
+
+    return result;
+}
+
+void fillTH1fromTF1(TH1* h, TF1* f)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 1; i <= nBins; i++)
+    {
+        double x = h->GetBinCenter(i);
+        double y = f->Eval(x);
+
+        h->SetBinContent(i, y);
+        h->SetBinError(i, 0.0001);
+    }
+}
+
+/*
+ * it is assumed that "h" contains the content of hVaried, in particular "h" is clone of hVaried
+ * h = hRatio = (( (hVaried - hNominal) * scaleFactor ) - hNominal ) / hNominal
+ * if scaleFactor = 1, then : h = hRatio = hVaried / hNominal
+ */
+void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor)
+{
+    if (scaleFactor != 1) {
+        h->Add(hNominal,-1);
+        h->Scale(scaleFactor);
+        h->Add(hNominal);
+    }
+    h->Divide(hNominal);
+}
+
+/*
+ * it is assumed that "h" is a dummy clone of the histogram for which the uncertainty is calculated.
+ */
+void calcTF1Ratio4SysUnc(TH1* h, TF1* fNominal, TF1* fVaried, float scaleFactor)
+{
+  int nBins = h->GetNbinsX();
+  for ( int i = 1; i <= nBins; i++)
+  {
+      double x = h->GetBinCenter(i);
+      double yNom = fNominal->Eval(x);
+      double yVar = fVaried->Eval(x);
+
+      if (scaleFactor != 1)  h->SetBinContent(i, ((yVar - yNom)*scaleFactor + yNom) / yNom);
+      else  h->SetBinContent(i, yVar/yNom);
+      h->SetBinError(i, 0.0001);
+  }
+}
+
+/*
+ * "h" is a clone of hRatio.
+ * absolute value of the entries of "h" will be uncertainty.
+ */
+void subtractIdentity4SysUnc(TH1* h)
+{
+    int nBins = h -> GetNbinsX();
+    for(int i = 1; i <= nBins; i++)
+    {
+        float val   = TMath::Abs(h->GetBinContent(i)) - 1;
+        float error = h->GetBinError(i) - 1;
+        if( val == -1 )
+        {
+            val = 0;
+            error = 0;
+        }
+
+        h->SetBinContent(i, val);
+        h->SetBinError(i,error);
+    }
+}
+
+/*
+ * "hTot" is the histogram that contains total uncertainty
+ * add the individual uncertainty contribution from "h"
+ */
+void addSysUnc(TH1* hTot, TH1* h)
+{
+    int nBins = hTot->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i)
+    {
+        double unc1 = hTot->GetBinContent(i);
+        double unc2 = h->GetBinContent(i);
+        double uncTot = TMath::Sqrt(unc1*unc1 + unc2*unc2);
+
+        double err1 = hTot->GetBinError(i);
+        double err2 = h->GetBinError(i);
+        double errTot = TMath::Sqrt(err1*err1 + err2*err2);
+
+        hTot->SetBinContent(i, uncTot);
+        hTot->SetBinError(i, errTot);
+        // hTot->SetBinError(i, 0.0001);
+    }
+}
+
+void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth, double binWidthScale)
+{
+   double val = h->GetBinContent(bin);
+   double x   = h->GetBinCenter(bin);
+   int binSys = hSys->FindBin(x);
+
+   // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+
+   if (binWidth < 0) {
+     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
+   }
+
+   box->SetX1(x - (binWidth/2)*binWidthScale);
+   box->SetX2(x + (binWidth/2)*binWidthScale);
+   box->SetY1(val - error);
+   box->SetY2(val + error);
+}
+
+void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWidthScale)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i) {
+        if (h->GetBinError(i) == 0) continue;
+
+        setSysUncBox(box, h, hSys, i, binWidth, binWidthScale);
+        box->DrawClone();
+    }
+}
+
 #endif /* TH1UTIL_H_ */
+
