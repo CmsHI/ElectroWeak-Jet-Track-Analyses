@@ -4,6 +4,7 @@
 
 #include <TH1.h>
 #include <TH1D.h>
+#include <TF1.h>
 #include <TGraphAsymmErrors.h>
 #include <TBox.h>
 #include <TString.h>
