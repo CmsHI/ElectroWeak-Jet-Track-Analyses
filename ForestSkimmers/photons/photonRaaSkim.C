@@ -107,7 +107,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
     TChain* treeSkim  = new TChain("skimanalysis/HltTree");
     TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-    TChain* treeGen;
+    TChain* treeGen=0;
     if(isMC) treeGen  = new TChain("HiGenParticleAna/hi");
 
     // pthatWeight Calculation block! 
