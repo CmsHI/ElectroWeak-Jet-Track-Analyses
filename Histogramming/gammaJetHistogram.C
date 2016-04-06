@@ -16,6 +16,17 @@
 #include "../Utilities/eventUtil.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "PhotonPurity.h"
+
+// should be migrated to config files ASAP
+const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
+const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
+// for use on gammaSkim MC, instead of gammaJetSkim (should make these the same eventually!)
+const TCut mcIsolation2 = "(pho_genMatchedIndex!= -1) && mcCalIsoDR04[pho_genMatchedIndex]<5 && abs(mcPID[pho_genMatchedIndex])<=22";
+const TCut sampleIsolation2 = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1.0 && phoHoverE<0.1";
+const TCut noiseCut2 = "!((phoE3x3/phoE5x5 > 2/3-0.03 && phoE3x3/phoE5x5 < 2/3+0.03) && (phoE1x5/phoE5x5 > 1/3-0.03 && phoE1x5/phoE5x5 < 1/3+0.03) && (phoE2x5/phoE5x5 > 2/3-0.03 && phoE2x5/phoE5x5 < 2/3+0.03))";
+const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
+const TCut etaCut2 = "abs(phoEta) < 1.44";
 
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
@@ -31,14 +42,15 @@ const std::vector<double>      xup_final {2,  TMath::Pi(), 200};
 const std::vector<bool> isAwaySideJets {true,  false, true};  // whether the observable is plotted for inclusive jets in the away side
 const std::vector<bool> isSingleJet    {false, false, false}; // whether the observable is plotted once per event
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString inputMC, const TString outputFile = "gammaJetHistogram.root");
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile)
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString inputMC, const TString outputFile)
 {
     std::cout<<"running gammaJetHistogram()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    std::cout<<"inputMC = "<< inputMC.Data() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -69,9 +81,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // photon cuts
     std::string trigger;
     float cut_phoHoverE;
-    float cut_pho_ecalClusterIsoR4;
-    float cut_pho_hcalRechitIsoR4;
-    float cut_pho_trackIsoR4PtCut20;
+    // float cut_pho_ecalClusterIsoR4;
+    // float cut_pho_hcalRechitIsoR4;
+    // float cut_pho_trackIsoR4PtCut20;
     float cut_phoSigmaIEtaIEta;
     float cut_sumIso;
 
@@ -120,9 +132,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
 
         cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
-        cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
-        cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
-        cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
         cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
         cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
 
@@ -167,9 +176,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         trigger = "HLT_HISinglePhoton20_Eta1p5_v1";
 
         cut_phoHoverE = 0.1;
-        cut_pho_ecalClusterIsoR4 = 4.2;
-        cut_pho_hcalRechitIsoR4 = 2.2;
-        cut_pho_trackIsoR4PtCut20 = 2;
+        // cut_pho_ecalClusterIsoR4 = 4.2;
+        // cut_pho_hcalRechitIsoR4 = 2.2;
+        // cut_pho_trackIsoR4PtCut20 = 2;
         cut_phoSigmaIEtaIEta = 0.01;
         cut_sumIso = 6;
 
@@ -229,9 +238,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     if (isHI) {
         std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
-        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;    // not used
-        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;     // not used
-        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;   // not used
+        // std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;    // not used
+        // std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;     // not used
+        // std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;   // not used
         std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta <<std::endl;
         std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
     }
@@ -272,12 +281,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_awayRange = cut_awayRange * TMath::Pi();
     cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
-    TFile *input = new TFile(inputFile, "READ");
+    TFile *input = TFile::Open(inputFile);
     TTree *tHlt = (TTree*)input->Get("hltTree");
     TTree *tPho = (TTree*)input->Get("EventTree");    // photons
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+    TFile *inputMCFile = TFile::Open(inputMC);
+    TTree *mcTree = (TTree*)inputMCFile->Get("photonSkimTree");
 
     if (!tJet) {
         std::cout<<"following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
@@ -315,7 +326,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tgjMB->AddFriend(tHiEvt, "HiEvt");
     }
 
-    TFile* output = new TFile(outputFile, "UPDATE");
+    TFile* output = TFile::Open(outputFile, "UPDATE"); // do we really want update and not RECREATE?
     // histograms will be put under a directory whose name is the type of the collision
     if(!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
     output->cd(collisionName);
@@ -496,7 +507,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
             // event selection
             TCut selection_event = Form("%s == 1", trigger.c_str());
-            if (isMC) selection_event = "1==1";
+            //if (isMC) selection_event = "1==1"; // MC should have the correct HLT bit as well
             if (isHI) {
                 selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
             }
@@ -504,9 +515,30 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // photon cuts were applied in the analysis code
             // photon selection
             TCut selectionPho;
-            if (bins_pt[1].at(i) >= 0)  selectionPho = Form("phoEt[phoIdx] >= %f && phoEt[phoIdx] < %f", bins_pt[0].at(i), bins_pt[1].at(i));
-            else                        selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0].at(i));
+	    TCut selectionMCPho;
+            if (bins_pt[1].at(i) >= 0){
+	        selectionPho = Form("phoEt[phoIdx] >= %f && phoEt[phoIdx] < %f", bins_pt[0].at(i), bins_pt[1].at(i));
+		selectionMCPho = Form("phoEt >= %f && phoEt < %f", bins_pt[0].at(i), bins_pt[1].at(i));
+	    } else {
+	        selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0].at(i));
+		selectionMCPho = Form("phoEt >= %f", bins_pt[0].at(i));
+	    }
+            selectionPho = selectionPho && noiseCut && etaCut;
+
+	    TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
+	    TCut sidebandCut = dataCandidateCut && sidebandIsolation;
             selectionPho = selectionPho && selectionIso;
+	    dataCandidateCut = dataCandidateCut && selectionIso;
+	    TCut mcSignalCut = mcIsolation2 && sampleIsolation2 && etaCut2 && noiseCut2 && selectionMCPho;
+	    
+	    PhotonPurity fitr = getPurity(configCuts, tgj, mcTree,
+					  dataCandidateCut, sidebandCut,
+					  mcSignalCut);
+	    purity[i][j] = fitr.purity;
+	    
+	    std::cout << "Purity for ptBin"<< i << " hiBin"<< j << ": " << purity[i][j] << std::endl;
+	    std::cout << "nSig for ptBin"<< i << " hiBin"<< j << ": " << fitr.nSig << std::endl;
+	    std::cout << "chisq for ptBin"<< i << " hiBin"<< j << ": " << fitr.chisq << std::endl;
 
             // jet selection
             TCut selectionJet = "";
@@ -888,12 +920,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
 int main(int argc, char** argv)
 {
-    if (argc == 4) {
-        gammaJetHistogram(argv[1], argv[2], argv[3]);
+    if (argc == 5) {
+        gammaJetHistogram(argv[1], argv[2], argv[3], argv[4]);
         return 0;
     }
-    else if (argc == 3) {
-        gammaJetHistogram(argv[1], argv[2]);
+    else if (argc == 4) {
+        gammaJetHistogram(argv[1], argv[2], argv[3]);
         return 0;
     }
     else {

@@ -124,11 +124,19 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
   TString bkgshift = "+";
   bkgshift += backgroundShift;
 
-  dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta_2012", dataCandidateCut, "");
-  dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012"+bkgshift, sidebandCut, "");
+  dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", dataCandidateCut, "");
+  dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]"+bkgshift, sidebandCut, "");
   mcTree->Project(hSig->GetName(), "phoSigmaIEtaIEta_2012"+sigshift, mcWeightLabel*mcSignalCut, "");
 
+  // std::cout << "dataCount: " << hCand->GetEntries() << std::endl;
+  // std::cout << "bkgCount: " << hBkg->GetEntries() << std::endl;
+  // std::cout << "sigCount: " << hSig->GetEntries() << std::endl;
+  
   PhotonPurity fitr = doFit(config, hSig, hBkg, hCand);
+
+  // std::cout << "Purity: " << fitr.purity << std::endl;
+  // std::cout << "nSig: " << fitr.nSig << std::endl;
+  // std::cout << "chisq: " << fitr.chisq << std::endl;
 
   delete hSig;
   delete hBkg;
