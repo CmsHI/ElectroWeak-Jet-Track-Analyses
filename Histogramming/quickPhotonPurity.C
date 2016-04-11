@@ -79,7 +79,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
 	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut && noiseCut;
 	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut && noiseCut;
-	TCut mcSignalCut = dataCandidateCut && mcIsolation && noiseCut;
+	TCut mcSignalCut = dataCandidateCut && mcIsolation;
 
 	// if(nETABINS != 1)
 	// {

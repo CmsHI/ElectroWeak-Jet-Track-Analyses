@@ -42,7 +42,7 @@ enum TYPE_I{
     k_drawSame,
     k_drawNormalized,
     k_drawRatio,
-    k_drawRatioLine,
+    k_drawDiff,
     k_setLogx,
     k_setLogy,
     k_setLogz,
@@ -53,6 +53,7 @@ enum TYPE_I{
     k_legendBorderSize,
     k_lineWidth,
     k_fitTH1,
+    k_fitTH1_lowerPad,
     kN_TYPES_I
 };
 
@@ -69,7 +70,7 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "drawSame",
         "drawNormalized",
         "drawRatio",        // ratio histograms will be drawn if drawRatio > 0
-        "drawRatioLine",
+        "drawDiff",         // difference histograms will be drawn if drawDiff > 0
         "setLogx",
         "setLogy",
         "setLogz",
@@ -79,7 +80,8 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "textAbovePadFont",
         "legendBorderSize",
         "lineWidth",
-        "fitTH1"
+        "fitTH1",
+        "fitTH1_lowerPad"
 };
 
 enum TYPE_F{
@@ -153,13 +155,16 @@ enum TYPE_S{
     k_TH1_scale,
     k_TH1_rebin,
     k_TH1_norm,
-    k_TH1_titleYRatio,      // y-axis title for ratio histograms
+    k_TH1_titleY_lowerPad,      // y-axis title for lower pad histograms
     k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
     k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     k_TF1,                  // formula, xMin and xMax for a TF1 function
     k_fitOption,
     k_fitColor,
+    k_TF1_lowerPad,                  // formula, xMin and xMax for a TF1 function
+    k_fitOption_lowerPad,
+    k_fitColor_lowerPad,
     k_legendPosition,       // one of NW, NE, SW, SE
     k_legendEntryLabel,
     k_color,
@@ -176,6 +181,10 @@ enum TYPE_S{
     k_LineStyle_horizontal,     // styles of the horizontal lines to be drawn
     k_TLine_vertical,           // x-axis positions of the vertical lines to be drawn
     k_LineStyle_vertical,       // styles of the vertical lines to be drawn
+    k_TLine_horizontal_lowerPad,         // y-axis positions of the horizontal lines to be drawn in the lower pad
+    k_LineStyle_horizontal_lowerPad,     // styles of the horizontal lines to be drawn in the lower pad
+    k_TLine_vertical_lowerPad,           // x-axis positions of the vertical lines to be drawn in the lower pad
+    k_LineStyle_vertical_lowerPad,       // styles of the vertical lines to be drawn in the lower pad
     kN_TYPES_S
 };
 
@@ -195,13 +204,16 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TH1_scale",
         "TH1_rebin",
         "TH1_norm",
-        "TH1_titleYRatio",
+        "TH1_titleY_lowerPad",
         "drawOption",
         "TH1D_Bins_List",
         "TH2D_Bins_List",
         "TF1",
         "fitOption",
         "fitColor",
+        "TF1_lowerPad",
+        "fitOption_lowerPad",
+        "fitColor_lowerPad",
         "legendPosition",
         "legendEntryLabel",
         "color",
@@ -217,7 +229,11 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TLine_horizontal",
         "lineStyle_horizontal",
         "TLine_vertical",
-        "lineStyle_vertical"
+        "lineStyle_vertical",
+        "TLine_horizontal_lowerPad",
+        "lineStyle_horizontal_lowerPad",
+        "TLine_vertical_lowerPad",
+        "lineStyle_vertical_lowerPad"
 };
 
 enum PROCESS{
