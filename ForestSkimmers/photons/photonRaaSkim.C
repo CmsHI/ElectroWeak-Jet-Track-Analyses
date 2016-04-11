@@ -103,7 +103,9 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     std::cout<<"##### END #####"<< std::endl;
 
     TChain* treeHLT   = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
+    TChain* treeggHiNtuplizer;
+    if(colli==COLL::kPP || colli==COLL::kPPMC) treeggHiNtuplizer = new TChain("ggHiNtuplizerGED/EventTree");
+    else if(colli==COLL::kHI || colli==COLL::kHIMC) treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
     TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
     TChain* treeSkim  = new TChain("skimanalysis/HltTree");
     TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
@@ -234,6 +236,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     treeggHiNtuplizer->SetBranchStatus("pf*",1);
     //treeggHiNtuplizer->SetBranchStatus("tower*",1);
     if(isMC) treeggHiNtuplizer->SetBranchStatus("mc*",1);
+    if(isMC) treeggHiNtuplizer->SetBranchStatus("nMC",1);
 
 
 
