@@ -255,7 +255,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     TFile *inFile = TFile::Open((*it).c_str());
     inFile->cd();
     TTree* treeHLT   = (TTree*) inFile->Get("hltanalysis/HltTree");
-    TTree* treeggHiNtuplizer  = (TTree*) inFile->Get("ggHiNtuplizer/EventTree");
+    TTree* treeggHiNtuplizer =0;
+    if(isHI) {
+      treeggHiNtuplizer = (TTree*) inFile->Get("ggHiNtuplizer/EventTree");
+    } else {
+      treeggHiNtuplizer = (TTree*) inFile->Get("ggHiNtuplizerGED/EventTree");
+    }
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i) {
       treeJet[i] = (TTree*) inFile->Get(Form("%s/t", jetCollections.at(i).c_str()));

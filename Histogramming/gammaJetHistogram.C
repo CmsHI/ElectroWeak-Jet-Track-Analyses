@@ -21,12 +21,8 @@
 // should be migrated to config files ASAP
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
 const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
-// for use on gammaSkim MC, instead of gammaJetSkim (should make these the same eventually!)
-const TCut mcIsolation2 = "(pho_genMatchedIndex!= -1) && mcCalIsoDR04[pho_genMatchedIndex]<5 && abs(mcPID[pho_genMatchedIndex])<=22";
-const TCut sampleIsolation2 = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1.0 && phoHoverE<0.1";
-const TCut noiseCut2 = "!((phoE3x3/phoE5x5 > 2/3-0.03 && phoE3x3/phoE5x5 < 2/3+0.03) && (phoE1x5/phoE5x5 > 1/3-0.03 && phoE1x5/phoE5x5 < 1/3+0.03) && (phoE2x5/phoE5x5 > 2/3-0.03 && phoE2x5/phoE5x5 < 2/3+0.03))";
+const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
 const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
-const TCut etaCut2 = "abs(phoEta) < 1.44";
 
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
@@ -288,7 +284,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TFile *inputMCFile = TFile::Open(inputMC);
-    TTree *mcTree = (TTree*)inputMCFile->Get("photonSkimTree");
+    TTree *tmcHlt = (TTree*)inputMCFile->Get("hltTree");
+    TTree *tmcPho = (TTree*)inputMCFile->Get("EventTree");    // photons
+    TTree *tmcJet = (TTree*)inputMCFile->Get(jetCollection.c_str());
+    TTree *tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
+    TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
     if (!tJet) {
         std::cout<<"following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
@@ -317,6 +317,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tgj->AddFriend(tPho, "Pho");
     tgj->AddFriend(tJet, "Jet");
     tgj->AddFriend(tHiEvt, "HiEvt");
+
+    tmcgj->AddFriend(tmcHlt, "Hlt");
+    tmcgj->AddFriend(tmcPho, "Pho");
+    tmcgj->AddFriend(tmcJet, "Jet");
+    tmcgj->AddFriend(tmcHiEvt, "HiEvt");
+  
 
     // relation of trees from MB mixing block
     if (hasJetsMB && hasGammaJetMB) {
@@ -515,23 +521,24 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             // photon cuts were applied in the analysis code
             // photon selection
             TCut selectionPho;
-	    TCut selectionMCPho;
+	    //TCut selectionMCPho;
             if (bins_pt[1].at(i) >= 0){
 	        selectionPho = Form("phoEt[phoIdx] >= %f && phoEt[phoIdx] < %f", bins_pt[0].at(i), bins_pt[1].at(i));
-		selectionMCPho = Form("phoEt >= %f && phoEt < %f", bins_pt[0].at(i), bins_pt[1].at(i));
+		//selectionMCPho = Form("phoEt >= %f && phoEt < %f", bins_pt[0].at(i), bins_pt[1].at(i));
 	    } else {
 	        selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0].at(i));
-		selectionMCPho = Form("phoEt >= %f", bins_pt[0].at(i));
+		//selectionMCPho = Form("phoEt >= %f", bins_pt[0].at(i));
 	    }
             selectionPho = selectionPho && noiseCut && etaCut;
 
 	    TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
 	    TCut sidebandCut = dataCandidateCut && sidebandIsolation;
+	    TCut mcSignalCut = dataCandidateCut && mcIsolation;
+	    
             selectionPho = selectionPho && selectionIso;
 	    dataCandidateCut = dataCandidateCut && selectionIso;
-	    TCut mcSignalCut = mcIsolation2 && sampleIsolation2 && etaCut2 && noiseCut2 && selectionMCPho;
 	    
-	    PhotonPurity fitr = getPurity(configCuts, tgj, mcTree,
+	    PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj,
 					  dataCandidateCut, sidebandCut,
 					  mcSignalCut);
 	    purity[i][j] = fitr.purity;
