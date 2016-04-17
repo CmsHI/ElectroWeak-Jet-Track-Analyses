@@ -26,13 +26,24 @@
 #include "../Plotting/commonUtility.h"
 
 const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
-const TCut sampleIsolation = "(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1.0 && phoHoverE<0.1";
-const TCut noiseCut = "!((phoE3x3/phoE5x5 > 2/3-0.03 && phoE3x3/phoE5x5 < 2/3+0.03) && (phoE1x5/phoE5x5 > 1/3-0.03 && phoE1x5/phoE5x5 < 1/3+0.03) && (phoE2x5/phoE5x5 > 2/3-0.03 && phoE2x5/phoE5x5 < 2/3+0.03))";
+//const TCut sampleIsolation = "(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < 1.0 && phoHoverE[phoIdx]<0.1";
+const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
+
+const Float_t phoHOverE_EB = 0.05;
+const Float_t phoSigmaIEtaIEta_EB = 0.0102;
+const Float_t pfcIso4_EB = 3.32;
+const Float_t pfnIso4_c0_EB = 1.92;
+const Float_t pfnIso4_c1_EB = 0.014;
+const Float_t pfnIso4_c2_EB = 0.000019;
+const Float_t pfpIso4_c0_EB = 0.81;
+const Float_t pfpIso4_c1_EB = 0.0053;
+const std::string jetCollection = "ak4PFJetAnalyzer";
 
 const Double_t sigShifts[] = {0, 0, 0, 0};
 
 // last entry is upper bound on last bin
-const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
+//const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
+const Int_t CENTBINS[] = {-1,200};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
 const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
@@ -48,16 +59,36 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
   TTree *configTree = setupConfigurationTreeForWriting(config);
 
-  TFile *dataFile = TFile::Open(inputData);
-  TTree *dataTree = (TTree*)dataFile->Get("photonSkimTree");
+  // TFile *dataFile = TFile::Open(inputData);
+  // TTree *dataTree = (TTree*)dataFile->Get("photonSkimTree");
 
-  TFile *mcFile = TFile::Open(inputMC);
-  TTree *mcTree = (TTree*)mcFile->Get("photonSkimTree");
+  // TFile *mcFile = TFile::Open(inputMC);
+  // TTree *mcTree = (TTree*)mcFile->Get("photonSkimTree");
+  TFile *input = TFile::Open(inputData);
+  TTree *tHlt = (TTree*)input->Get("hltTree");
+  TTree *tPho = (TTree*)input->Get("EventTree");    // photons
+  //TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
+  TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+  TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+  TFile *inputMCFile = TFile::Open(inputMC);
+  TTree *tmcHlt = (TTree*)inputMCFile->Get("hltTree");
+  TTree *tmcPho = (TTree*)inputMCFile->Get("EventTree");    // photons
+  //TTree *tmcJet = (TTree*)inputMCFile->Get(jetCollection.c_str());
+  TTree *tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
+  TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well
+  tgj->AddFriend(tHlt, "Hlt");
+  tgj->AddFriend(tPho, "Pho");
+  //tgj->AddFriend(tJet, "Jet");
+  tgj->AddFriend(tHiEvt, "HiEvt");
+  tmcgj->AddFriend(tmcHlt, "Hlt");
+  tmcgj->AddFriend(tmcPho, "Pho");
+  //tmcgj->AddFriend(tmcJet, "Jet");
+  tmcgj->AddFriend(tmcHiEvt, "HiEvt");
 
   TFile *outFile = new TFile(outputName,"RECREATE");
 
-  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)>20) && ((pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20)<30) && phoHoverE<0.1";
-  const TCut mcIsolation = "(pho_genMatchedIndex!= -1) && mcCalIsoDR04[pho_genMatchedIndex]<5 && abs(mcPID[pho_genMatchedIndex])<=22";
+  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20) && phoHoverE[phoIdx]<0.1";
+  const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
 
   //TCanvas *cPurity[nPTBINS];
   //TCanvas *cPurity = new TCanvas("c1","c1",337*nPTBINS,300*nCENTBINS/**2*/);
@@ -70,13 +101,24 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
     //cPurity[i]->Divide(nETABINS,2,0,0);
     for(Int_t j = 0; j < nCENTBINS; ++j) {
       for(Int_t k = 0; k< nETABINS; ++k) {
-	TString ptCut = Form("(phoEt >= %f) && (phoEt < %f)",
+	TString ptCut = Form("(phoEt[phoIdx] >= %f) && (phoEt[phoIdx] < %f)",
 			     PTBINS[i], PTBINS[i+1]);
-	TString centCut = Form("((hiBin) >= %i) && ((hiBin) < %i)",
+	TString centCut = Form("((hiBin[phoIdx]) >= %i) && ((hiBin[phoIdx]) < %i)",
 			     CENTBINS[j], CENTBINS[j+1]);
-	TString etaCut = Form("(phoEta >= %f) && (phoEta < %f)",
+	TString etaCut = Form("(phoEta[phoIdx] >= %f) && (phoEta[phoIdx] < %f)",
 			      ETABINS[k], ETABINS[k+1]);
 
+	TCut selectionIso_EB = "";
+        std::string cut_pfpIso4_EB_str = Form("(%f + %f * phoEt[phoIdx])", pfpIso4_c0_EB, pfpIso4_c1_EB);
+        std::string cut_pfnIso4_EB_str = Form("(%f + %f * phoEt[phoIdx] + %f * phoEt[phoIdx]*phoEt[phoIdx])",
+					      pfnIso4_c0_EB, pfnIso4_c1_EB, pfnIso4_c2_EB);
+        selectionIso_EB = selectionIso_EB && Form("phoHoverE[phoIdx] < %f", phoHOverE_EB);
+        //selectionIso_EB = selectionIso_EB && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EB);
+        selectionIso_EB = selectionIso_EB && Form("pfcIso4[phoIdx] < %f", pfcIso4_EB);
+        selectionIso_EB = selectionIso_EB && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EB_str.c_str());
+        selectionIso_EB = selectionIso_EB && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EB_str.c_str());
+	TCut sampleIsolation = selectionIso_EB;
+	
 	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut && noiseCut;
 	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut && noiseCut;
 	TCut mcSignalCut = dataCandidateCut && mcIsolation;
@@ -88,7 +130,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	//   mcSignalCut =  sampleIsolation && etaCut && ptCut && centCut && mcIsolation;
 	// }
 
-	PhotonPurity fitr = getPurity(config, dataTree, mcTree,
+	PhotonPurity fitr = getPurity(config, tgj, tmcgj,
 				      dataCandidateCut, sidebandCut,
 				      mcSignalCut);
 
@@ -244,7 +286,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   cPurity->Write();
   outFile->Close();
   //cPurity->SaveAs(SAVENAME+".C");
-  cPurity->SaveAs("photon_purity_barrel20_30.png");
+  //cPurity->SaveAs("photon_purity_barrel20_30.png");
   //cPurity->SaveAs(SAVENAME+".pdf");
 }
 
