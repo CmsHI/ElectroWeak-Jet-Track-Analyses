@@ -598,6 +598,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
         f[i] = TFile::Open(inputFile.c_str());
         h[i] = (TH1D*)f[i]->Get(TH1_Path.c_str());
+	if(!(h[i])){
+	  std::cout << "No histogram found: " << TH1_Path.c_str() << " file: " << inputFile.c_str() << std::endl;
+	}
         h[i]->SetName(Form("h_%d", i));
         h[i]->SetStats(false);
 
