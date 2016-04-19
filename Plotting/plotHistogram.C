@@ -106,6 +106,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int drawDiff;
     float windowHeightFraction;
     std::string titleY_lowerPad;
+    float yMin_lowerPad;
+    float yMax_lowerPad;
     std::vector<float> TLines_horizontal_lowerPad;               // y-axis positions of the horizontal lines to be drawn in the lower pad
     std::vector<std::string> lineStyles_horizontal_lowerPad;     // styles of the horizontal lines to be drawn in the lower pad
     std::vector<float> TLines_vertical_lowerPad;                 // x-axis positions of the vertical lines to be drawn in the lower pad
@@ -194,6 +196,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         drawDiff  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawDiff];
         windowHeightFraction = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_windowHeightFraction];
         titleY_lowerPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY_lowerPad]);
+        yMin_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMin_lowerPad];
+        yMax_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMax_lowerPad];
         TLines_horizontal_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_horizontal_lowerPad]);
         lineStyles_horizontal_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_horizontal_lowerPad]);
         TLines_vertical_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_vertical_lowerPad]);
@@ -257,6 +261,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         drawRatio = 0;
         drawDiff = 0;
         windowHeightFraction = 0;
+        yMin_lowerPad = 0;
+        yMax_lowerPad = -1;
         fitTH1_lowerPad = 0;
 
         windowWidth = 0;
@@ -275,6 +281,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     else if (xMin <= 0 && setLogx > 0)  xMin = resetTH1axisMin4LogScale(xMin, "x");
     if (yMin == 0 && yMax == 0)  yMax = -1;
     else if (yMin <= 0 && setLogy > 0)  yMin = resetTH1axisMin4LogScale(yMin, "y");
+    if (yMin_lowerPad == 0 && yMax_lowerPad == 0)  yMax_lowerPad = -1;
     if (lineWidth == 0)  lineWidth = INPUT_DEFAULT::lineWidth;
 
     if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
@@ -489,6 +496,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     else if (drawRatio > 0 || drawDiff > 0) {
         std::cout << "windowHeightFraction  = " << windowHeightFraction << std::endl;
         std::cout << "titleYRatio = " << titleY_lowerPad.c_str() << std::endl;
+        std::cout << "yMin_lowerPad = " << yMin_lowerPad << std::endl;
+        std::cout << "yMax_lowerPad = " << yMax_lowerPad << std::endl;
         // lower pad objects
         if (nTLines_horizontal_lowerPad > 0) {
             std::cout << "nLineStyles_horizontal_lowerPad = " << nLineStyles_horizontal_lowerPad << std::endl;
@@ -1017,6 +1026,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 if (drawRatio > 0)  h_lowerPad[i]->Divide(h[2*i+1]);
                 else if (drawDiff > 0)  h_lowerPad[i]->Add(h[2*i+1],-1);
 
+                if (yMax_lowerPad > yMin_lowerPad)   h_lowerPad[i]->SetAxisRange(yMin_lowerPad, yMax_lowerPad, "Y");
+
                 if (fitTH1_lowerPad > 0) {
                     std::string TF1_formula_lowerPad = "";
                     double TF1_xMin_lowerPad = 0;
@@ -1049,12 +1060,21 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 }
             }
 
+            // set maximum/minimum of y-axis in the lower pad
+            if (yMin_lowerPad > yMax_lowerPad) {
+                double histMin = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
+                double histMax = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
+                h_lowerPad[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
+                h_lowerPad[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1);
+            }
+
             for (int i=0; i<nHistos_lowerPad; ++i) {
                 double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
                 setTH1Ratio(h_lowerPad[i], h[2*i], axisSizeRatio);
                 h_lowerPad[i]->SetYTitle(titleY_lowerPad.c_str());
 
                 h_lowerPad[i]->SetMarkerColor(GRAPHICS::colors[i]);
+
                 h_lowerPad[i]->Draw("e same");
             }
             // add TLine to the lower pad
