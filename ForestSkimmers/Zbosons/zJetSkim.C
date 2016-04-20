@@ -58,6 +58,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        double energyScaleJet;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
+       int smearingHiBin;
        // electron cuts
        int cut_nEle;
        int doCorrectionEle;
@@ -101,6 +102,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
+           smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
@@ -144,6 +146,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            energyScaleJet = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
+           smearingHiBin = 0;
 
            cut_nEle = 2;
            doCorrectionEle = 0;
@@ -210,6 +213,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
+       std::cout<<"smearingHiBin           = "<< smearingHiBin <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
@@ -452,6 +456,26 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
            for (int i = 0; i < nJetCollections; ++i) {
                correctorsJet.at(i).rand = randSmearing;
+
+               std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+               std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
+               correctorsJet.at(i).CSN_PP = CSN_PP;
+               correctorsJet.at(i).CSN_phi_PP = CSN_phi_PP;
+
+               if (smearingHiBin == 1) {    // smear 0-30 %
+                   std::vector<double> CSN_HI = {CSN_PP.at(0), CSN_PP.at(1), 7.54};
+                   std::vector<double> CSN_phi_HI = {-0.01584, 0.03229, 1.954};
+
+                   correctorsJet.at(i).CSN_HI = CSN_HI;
+                   correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+               }
+               else if (smearingHiBin == 2) {    // smear 30-100 %
+                   std::vector<double> CSN_HI = {CSN_PP.at(0), CSN_PP.at(1), 1.32};
+                   std::vector<double> CSN_phi_HI = {0.0168, 2.018/100000, 1.249};
+
+                   correctorsJet.at(i).CSN_HI = CSN_HI;
+                   correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+               }
            }
        }
 

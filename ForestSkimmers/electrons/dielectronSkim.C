@@ -126,8 +126,8 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
 
        electronCorrector corrector;
        if (doCorrection) {
-           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
-           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
+           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
+           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
            corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
        }
 
