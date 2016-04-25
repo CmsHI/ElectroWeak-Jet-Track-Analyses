@@ -438,7 +438,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         std::string cut_pfnIso4_EB_str = Form("(%f + %f * phoEt[phoIdx] + %f * phoEt[phoIdx]*phoEt[phoIdx])",
                                                  cut_pfnIso4_c0_EB, cut_pfnIso4_c1_EB, cut_pfnIso4_c2_EB);
         selectionIso_EB = selectionIso_EB && Form("phoHoverE[phoIdx] < %f", cut_phoHOverE_EB);
-        selectionIso_EB = selectionIso_EB && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EB);
+        //selectionIso_EB = selectionIso_EB && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EB);
         selectionIso_EB = selectionIso_EB && Form("pfcIso4[phoIdx] < %f", cut_pfcIso4_EB);
         selectionIso_EB = selectionIso_EB && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EB_str.c_str());
         selectionIso_EB = selectionIso_EB && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EB_str.c_str());
@@ -447,7 +447,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                                                  cut_pfnIso4_c0_EE, cut_pfnIso4_c1_EE, cut_pfnIso4_c2_EE);
         std::string cut_pfpIso4_EE_str = Form("(%f + %f * phoEt[phoIdx])", cut_pfpIso4_c0_EE, cut_pfpIso4_c1_EE);
         selectionIso_EE = selectionIso_EE && Form("phoHoverE[phoIdx] < %f", cut_phoHOverE_EE);
-        selectionIso_EE = selectionIso_EE && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EE);
+        //selectionIso_EE = selectionIso_EE && Form("phoSigmaIEtaIEta[phoIdx] < %f", cut_phoSigmaIEtaIEta_EE);
         selectionIso_EE = selectionIso_EE && Form("pfcIso4[phoIdx] < %f", cut_pfcIso4_EE);
         selectionIso_EE = selectionIso_EE && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EE_str.c_str());
         selectionIso_EE = selectionIso_EE && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EE_str.c_str());

@@ -25,18 +25,38 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 
-const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
+const TString LABEL = "pp #sqrt{s}_{_{NN}}=5.02 TeV";
 //const TCut sampleIsolation = "(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < 1.0 && phoHoverE[phoIdx]<0.1";
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
 
+// //loose
+// const Float_t phoHOverE_EB = 0.05;
+// const Float_t pfcIso4_EB = 3.32;
+// const Float_t pfnIso4_c0_EB = 1.92;
+// const Float_t pfnIso4_c1_EB = 0.014;
+// const Float_t pfnIso4_c2_EB = 0.000019;
+// const Float_t pfpIso4_c0_EB = 0.81;
+// const Float_t pfpIso4_c1_EB = 0.0053;
+
+//medium
 const Float_t phoHOverE_EB = 0.05;
-const Float_t phoSigmaIEtaIEta_EB = 0.0102;
-const Float_t pfcIso4_EB = 3.32;
-const Float_t pfnIso4_c0_EB = 1.92;
+const Float_t pfcIso4_EB = 1.37;
+const Float_t pfnIso4_c0_EB = 1.06;
 const Float_t pfnIso4_c1_EB = 0.014;
 const Float_t pfnIso4_c2_EB = 0.000019;
-const Float_t pfpIso4_c0_EB = 0.81;
+const Float_t pfpIso4_c0_EB = 0.28;
 const Float_t pfpIso4_c1_EB = 0.0053;
+
+// //tight
+// const Float_t phoHOverE_EB = 0.05;
+// const Float_t pfcIso4_EB = 0.76;
+// const Float_t pfnIso4_c0_EB = 0.97;
+// const Float_t pfnIso4_c1_EB = 0.014;
+// const Float_t pfnIso4_c2_EB = 0.000019;
+// const Float_t pfpIso4_c0_EB = 0.08;
+// const Float_t pfpIso4_c1_EB = 0.0053;
+
+
 const std::string jetCollection = "ak4PFJetAnalyzer";
 
 const Double_t sigShifts[] = {0, 0, 0, 0};
@@ -224,7 +244,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	if(i == 3)
 	{
 	  drawText("CMS Preliminary", xpos, 0.68,1,20);
-	  drawText("PbPb #sqrt{s}_{_{NN}}=5.02 TeV", xpos, 0.60,1,20);
+	  drawText(LABEL, xpos, 0.60,1,20);
 	  //drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
 	}
 
@@ -239,14 +259,14 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 		      PTBINS[i], PTBINS[i+1]),
 		 xpos, 0.90,1,20);
 	// if(/*nCENTBINS != 1 && */i ==0)
-	drawText(Form("%.0f - %.0f%c",
-		      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
-		 xpos, 0.68,1,20);
+	// drawText(Form("%.0f - %.0f%c",
+	// 	      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
+	// 	 xpos, 0.68,1,20);
 	// if(nETABINS != 1)
 	// drawText(Form("%.3f < #eta_{#gamma} < %.3f",
 	// 	      ETABINS[k], ETABINS[k+1]),
 	// 	 xpos, 0.82,1,20);
-	drawText("20<sideBand<30",
+	drawText("10<sideBand<20",
 		 xpos, 0.82,1,20);
 	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
 		 xpos, 0.76,1,20);
@@ -286,7 +306,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   cPurity->Write();
   outFile->Close();
   //cPurity->SaveAs(SAVENAME+".C");
-  //cPurity->SaveAs("photon_purity_barrel20_30.png");
+  cPurity->SaveAs("photon_pp_purity_ppmedium_barrel10_20.gif.png");
   //cPurity->SaveAs(SAVENAME+".pdf");
 }
 
