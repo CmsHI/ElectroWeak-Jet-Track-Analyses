@@ -304,6 +304,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
 
        treeEvent->SetBranchStatus("*",0);
        treeEvent->SetBranchStatus("run",1);
