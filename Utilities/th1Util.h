@@ -66,6 +66,7 @@ std::string summaryTH1(TH1* h)
     result.append(Form("h->GetBinContent(0) = %f \n", h->GetBinContent(0)));
     result.append(Form("h->GetBinContent(NbinsX+1) = %f \n", h->GetBinContent(h->GetNbinsX()+1)));
     result.append(Form("h->Integral() = %f \n", h->Integral()));
+    result.append(Form("h->Integral(\"width\") = %f \n", h->Integral("width")));
     result.append(Form("h->Integral(firstBin, lastBin) = %f \n", h->Integral(binFirst, binLast)));
     result.append(Form("h->GetSumOfWeights() = %f \n", h->GetSumOfWeights()));
     result.append(Form("h->GetMean() = %f , h->GetMeanError() = %f \n", h->GetMean(), h->GetMeanError()));

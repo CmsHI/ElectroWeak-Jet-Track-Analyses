@@ -12,6 +12,7 @@ namespace CUTS {
   namespace MUO {
     enum F_CUTS{
       k_muPt,
+      k_muEta,
       k_muChi2NDF,
       k_muInnerD0,
       k_muInnerDz,
@@ -20,6 +21,7 @@ namespace CUTS {
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
             "muPt",
+            "muEta",
             "muChi2NDF",
             "muInnerD0",
             "muInnerDz"

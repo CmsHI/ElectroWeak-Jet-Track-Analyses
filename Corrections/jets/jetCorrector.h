@@ -127,7 +127,10 @@ void jetCorrector::correctPtsResidual(Jets &tJets)
 
 void jetCorrector::correctPtSmearing(Jets &tJets, int i)
 {
-    tJets.jtpt[i] *= getSmearingCorrection(tJets, i);
+    if (tJets.jtpt[i] > 5)
+    {
+        tJets.jtpt[i] *= getSmearingCorrection(tJets, i);
+    }
 }
 
 void jetCorrector::correctPtsSmearing(Jets &tJets)
@@ -139,12 +142,14 @@ void jetCorrector::correctPtsSmearing(Jets &tJets)
 
 void jetCorrector::correctPhiSmearing(Jets &tJets, int i)
 {
-    tJets.jtphi[i] += getSmearingCorrectionPhi(tJets, i);
+    if (tJets.jtpt[i] > 5) {
+        tJets.jtphi[i] += getSmearingCorrectionPhi(tJets, i);
 
-    while (TMath::Abs(tJets.jtphi[i]) > TMath::Pi())
-    {
-        if ( tJets.jtphi[i] >    TMath::Pi() )  tJets.jtphi[i] -= 2*TMath::Pi();
-        if ( tJets.jtphi[i] < -1*TMath::Pi() )  tJets.jtphi[i] += 2*TMath::Pi();
+        while (TMath::Abs(tJets.jtphi[i]) > TMath::Pi())
+        {
+            if ( tJets.jtphi[i] >    TMath::Pi() )  tJets.jtphi[i] -= 2*TMath::Pi();
+            if ( tJets.jtphi[i] < -1*TMath::Pi() )  tJets.jtphi[i] += 2*TMath::Pi();
+        }
     }
 }
 

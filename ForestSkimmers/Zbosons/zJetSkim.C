@@ -58,6 +58,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        double energyScaleJet;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
+       int jetAlgoSmearing;
        int smearingHiBin;
        // electron cuts
        int cut_nEle;
@@ -102,6 +103,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
+           jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
            smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
@@ -146,6 +148,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            energyScaleJet = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
+           jetAlgoSmearing = CUTS::JET::k_akPU;
            smearingHiBin = 0;
 
            cut_nEle = 2;
@@ -213,6 +216,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
+       std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
        std::cout<<"smearingHiBin           = "<< smearingHiBin <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
@@ -370,6 +374,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeHiEvt->SetBranchStatus("alphaQCD",1);
            treeHiEvt->SetBranchStatus("alphaQED",1);
            treeHiEvt->SetBranchStatus("qScale",1);
+           treeHiEvt->SetBranchStatus("npus",1);        // store pileup info
+           treeHiEvt->SetBranchStatus("tnpus",1);       // store pileup info
        }
 
        float vz;
@@ -464,18 +470,50 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                correctorsJet.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
-                   std::vector<double> CSN_HI = {CSN_PP.at(0), CSN_PP.at(1), 7.54};
+                   std::vector<double> CSN_HI = {0.07753, 1.194, 7.54};
                    std::vector<double> CSN_phi_HI = {-0.01584, 0.03229, 1.954};
 
-                   correctorsJet.at(i).CSN_HI = CSN_HI;
-                   correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                   std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 12.43};
+                   std::vector<double> CSN_phi_HI_akCs = {0.001314, 0.07899, 2.034};
+
+                   if (jetAlgoSmearing == CUTS::JET::k_akPU)
+                   {
+                       correctorsJet.at(i).CSN_HI = CSN_HI;
+                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                   }
+                   else if (jetAlgoSmearing == CUTS::JET::k_akCS)
+                   {
+                       correctorsJet.at(i).CSN_HI = CSN_HI_akCs;
+                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                   }
+                   else {
+                       std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value" <<std::endl;
+                       std::cout << "exiting"<< std::endl;
+                       return;
+                   }
                }
                else if (smearingHiBin == 2) {    // smear 30-100 %
-                   std::vector<double> CSN_HI = {CSN_PP.at(0), CSN_PP.at(1), 1.32};
-                   std::vector<double> CSN_phi_HI = {0.0168, 2.018/100000, 1.249};
+                   std::vector<double> CSN_HI = {0.07753, 1.194, 1.32};
+                   std::vector<double> CSN_phi_HI = {0.0168, 2.018/10000000, 1.249};
 
-                   correctorsJet.at(i).CSN_HI = CSN_HI;
-                   correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                   std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 1.907};
+                   std::vector<double> CSN_phi_HI_akCs = {-0.006015, 0.07578, 1.234};
+
+                   if (jetAlgoSmearing == CUTS::JET::k_akPU)
+                   {
+                       correctorsJet.at(i).CSN_HI = CSN_HI;
+                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                   }
+                   else if (jetAlgoSmearing == CUTS::JET::k_akCS)
+                   {
+                       correctorsJet.at(i).CSN_HI = CSN_HI_akCs;
+                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                   }
+                   else {
+                       std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value." <<std::endl;
+                       std::cout << "exiting"<< std::endl;
+                       return;
+                   }
                }
            }
        }
@@ -650,6 +688,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;
 
+       const double zMassConst = 91.18;
        Long64_t entries = treeEvent->GetEntries();
        Long64_t entriesPassedEventSelection = 0;
        Long64_t entriesAnalyzed = 0;
@@ -710,18 +749,19 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                // Zee-jet block
                // find leading z from dielectron
-               double maxZPt = -1;
+               // double maxZPt = -1;
+               double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
                {
                    bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
-                   bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
+                   // bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
 
                    if (failedPtCut)          continue;
                    if (failedEtaCut)         continue;
                    if (failedMassWindow)     continue;
-                   if (failedOppositeCh)     continue;
+                   // if (failedOppositeCh)     continue;
 
                    // some extra and rather loose cuts based on eta region
                    // electron 1
@@ -745,9 +785,17 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                    if (diEle.elePt_2_out.at(i) <= elePt)  continue;
 
+                   /*
                    if (diEle.diElePt_out.at(i) > maxZPt)
                    {
                        maxZPt = diEle.diElePt_out.at(i);
+                       zIdx = i;
+                   }
+                   */
+
+                   if (TMath::Abs(diEle.diEleM_out.at(i) - zMassConst) < minDiffZMass)
+                   {
+                       minDiffZMass = TMath::Abs(diEle.diEleM_out.at(i) - zMassConst);
                        zIdx = i;
                    }
                }
@@ -763,18 +811,19 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                // Zmumu-jet block
                // find leading z from dimuon
-               double maxZPt = -1;
+               // double maxZPt = -1;
+               double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
                {
                    bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
-                   bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
+                   // bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
 
                    if (failedPtCut)          continue;
                    if (failedEtaCut)         continue;
                    if (failedMassWindow)     continue;
-                   if (failedOppositeCh)     continue;
+                   // if (failedOppositeCh)     continue;
 
                    // some extra and rather loose cuts
                    // muon 1
@@ -797,9 +846,17 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    if (diMu.muPixelHits_2_out.at(i) < muPixelHits) continue;
                    if (diMu.muPt_2_out.at(i) <= muPt)  continue;
 
+                   /*
                    if (diMu.diMuPt_out.at(i) > maxZPt)
                    {
                        maxZPt = diMu.diMuPt_out.at(i);
+                       zIdx = i;
+                   }
+                   */
+
+                   if (TMath::Abs(diMu.diMuM_out.at(i) - zMassConst) < minDiffZMass)
+                   {
+                       minDiffZMass = TMath::Abs(diMu.diMuM_out.at(i) - zMassConst);
                        zIdx = i;
                    }
                }

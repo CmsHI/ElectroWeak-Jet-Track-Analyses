@@ -24,6 +24,7 @@ namespace CUTS {
       k_doCorrectionResidual,
       k_doCorrectionSmearing,
       k_doCorrectionSmearingPhi,
+      k_jetAlgoSmearing,
       k_smearingHiBin,
       k_doCorrectionJetID,
       kN_I_CUTS
@@ -37,6 +38,7 @@ namespace CUTS {
       "doCorrectionResidual",
       "doCorrectionSmearing",
       "doCorrectionSmearingPhi",
+      "jetAlgoSmearing",
       "smearingHiBin",
       "doCorrectionJetID"
     };
@@ -53,6 +55,13 @@ namespace CUTS {
       k_leading,
       k_subleading,
       kN_JETINDEX
+    };
+
+    enum JETALGO{
+      k_akPU,
+      k_akCS,
+      k_akVS,
+      kN_JETALGO
     };
 
   };
