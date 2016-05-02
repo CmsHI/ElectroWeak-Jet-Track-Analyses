@@ -35,7 +35,7 @@ namespace CUTS {
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "requirePhotonInEvent",
       "jetID",
-      "doSubid"
+      "doSubid",
       "jetType",
       "doCorrectionMatchingEfficiency",
       "doCorrectionResidual",
