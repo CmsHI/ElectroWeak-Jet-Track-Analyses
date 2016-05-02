@@ -58,7 +58,7 @@ Double_t histFunction2::evaluate(Double_t *x, Double_t *par) {
 
   Double_t xx = x[0];
   Int_t binNum=histBck->FindBin(xx);
-  Int_t shiftedSigBinNum = histSig->FindBin(xx + par[3]);
+  Int_t shiftedSigBinNum = histSig->FindBin(xx + par[2]);
   return par[0]*(histSig->GetBinContent(shiftedSigBinNum)*par[1]+histBck->GetBinContent(binNum)*(1-par[1]));
 }
 
@@ -75,6 +75,7 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig=0, TH1D* hBkg=0, TH1D* hD
   TF1 *f = new TF1("f",myFits,&histFunction2::evaluate,varLow,varHigh,3);
   f->SetParameters( hDatatmp->Integral(1,nBins+1), 0.7, 0.0);
   //f->SetParLimits(1,0,1);
+  f->FixParameter(2,0.0);
   hDatatmp->Fit("f","WL M 0 Q","",varLow,varHigh);
   hDatatmp->Fit("f","WL M 0 Q","",varLow,varHigh);
 
