@@ -103,7 +103,7 @@ void L2L3Residual::setL2L3Residual(int radius, int etacut, bool dopPb)
             eta_max[ieta] = etabins_hcalbins4[ieta+1];
         }
     }
-    correction_file = new TFile(Form("L2L3VsPtEtaBinned_alphacut_high2_%s_etacut%d_dopPb%d.root",algo_corr.Data(),etacut,dopPb));
+    correction_file = new TFile(Form("Corrections/jets/L2L3/L2L3VsPtEtaBinned_alphacut_high2_%s_etacut%d_dopPb%d.root",algo_corr.Data(),etacut,dopPb));
     for(int ieta = 0;ieta<neta;ieta++){
         fits[ieta] = (TF1*)correction_file->Get(Form("fit%d",ieta));
     }
