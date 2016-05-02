@@ -17,6 +17,7 @@
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Corrections/electrons/electronCorrector.h"
 #include "../../Corrections/jets/jetCorrector.h"
+#include "../../Corrections/jets/L2L3/L2L3ResidualWFits.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
@@ -60,6 +61,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int doCorrectionSmearingPhi;
        int jetAlgoSmearing;
        int smearingHiBin;
+       int doCorrectionL2L3;
        // electron cuts
        int cut_nEle;
        int doCorrectionEle;
@@ -105,6 +107,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
            jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
            smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
+           doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
@@ -150,6 +153,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionSmearingPhi = 0;
            jetAlgoSmearing = CUTS::JET::k_akPU;
            smearingHiBin = 0;
+           doCorrectionL2L3 = 0;
 
            cut_nEle = 2;
            doCorrectionEle = 0;
@@ -218,6 +222,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
        std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
        std::cout<<"smearingHiBin           = "<< smearingHiBin <<std::endl;
+       std::cout<<"doCorrectionL2L3        = "<< doCorrectionL2L3 <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
@@ -455,6 +460,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
                std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
                correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           }
+       }
+
+       std::vector<L2L3Residual> correctorsL2L3(nJetCollections);
+       if (isPP && doCorrectionL2L3 > 0)
+       {
+           for (int i = 0; i < nJetCollections; ++i) {
+               correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
            }
        }
 
@@ -878,6 +891,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                }
            }
            if (isPP) {
+
+               if (doCorrectionL2L3 > 0)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+                   }
+               }
+
                if (doCorrectionSmearing > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
                        correctorsJet.at(i).correctPtsSmearing(jets.at(i));

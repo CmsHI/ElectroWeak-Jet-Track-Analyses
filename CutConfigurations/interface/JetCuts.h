@@ -28,13 +28,14 @@ namespace CUTS {
       k_jetAlgoSmearing,
       k_smearingHiBin,
       k_doCorrectionJetID,
+      k_doCorrectionL2L3,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
       "requirePhotonInEvent",
       "jetID",
-      "doSubid",
+      "doSubid"
       "jetType",
       "doCorrectionMatchingEfficiency",
       "doCorrectionResidual",
@@ -42,7 +43,8 @@ namespace CUTS {
       "doCorrectionSmearingPhi",
       "jetAlgoSmearing",
       "smearingHiBin",
-      "doCorrectionJetID"
+      "doCorrectionJetID",
+      "doCorrectionL2L3",
     };
 
     enum S_CUTS{
