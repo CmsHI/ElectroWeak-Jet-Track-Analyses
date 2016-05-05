@@ -61,6 +61,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int doDiMuon;
     float massMin;
     float massMax;
+    int doDiElectron_ReweightCent;
     // electron cuts
     std::vector<std::string> triggersEle;   // triggers will be "OR"ed
     float elePt;
@@ -122,6 +123,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
         massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
         massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
+        doDiElectron_ReweightCent = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron_ReweightCent];
 
         triggersEle = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str());
         elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
@@ -185,6 +187,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         doDiMuon = 0;
         massMin = 60;
         massMax = 120;
+        doDiElectron_ReweightCent = 1;
 
         elePt = 10;
 
@@ -266,6 +269,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         for (int i=0; i<nTriggersEle; ++i) {
             std::cout << Form("triggersEle[%d] = %s", i, triggersEle.at(i).c_str()) << std::endl;
         }
+
+        std::cout<<"doDiElectron_ReweightCent = "<<doDiElectron_ReweightCent<<std::endl;
 
         std::cout<<"elePt      = "<<elePt<<std::endl;
 
@@ -446,6 +451,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     // correctors
     jetCorrector correctorJet;
+
+    // centrality reweighting for Z-ee RECO inefficiency in central collisions
+    std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 10, 20, 30, 40, 50, 60};
+    std::vector<double> reweightCent_ZeeRECO_effs    = {0.6, 1, 1.3, 1.45, 1.65, 1.75};  // eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
+    int nReweightCent_ZeeRECO_hiBins = reweightCent_ZeeRECO_hiBins.size();
 
     TFile* output = new TFile(outputFile, "UPDATE");
     // histograms will be put under a directory whose name is the type of the collision
@@ -906,6 +916,19 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             if (isHI)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((vz-0.30709)/7.41379, 2));  // 02.04.2016
             if (isHI)  centWeight = findNcoll(hiBin);
             eventWeightAll = weight_HiEvt * vertexWeight * centWeight;
+        }
+        if (doDiElectron_ReweightCent > 0 && doDiElectron > 0 && isHI)
+        {
+            double reweightCent_ZeeRECO_eff = 1;
+            for (int i = 0; i < nReweightCent_ZeeRECO_hiBins-1; ++i)
+            {
+                if (reweightCent_ZeeRECO_hiBins.at(i) <= hiBin && hiBin < reweightCent_ZeeRECO_hiBins.at(i+1))
+                {
+                    reweightCent_ZeeRECO_eff = 1/(reweightCent_ZeeRECO_effs.at(i));
+                    break;
+                }
+            }
+            eventWeightAll *= reweightCent_ZeeRECO_eff;
         }
 
         // zJet correlation block
