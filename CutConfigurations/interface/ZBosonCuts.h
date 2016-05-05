@@ -21,14 +21,14 @@ namespace CUTS {
     enum I_CUTS{
       k_doDiElectron,
       k_doDiMuon,
-      k_doDiElectron_ReweightCent,
+      k_doDiElectron_reweightCent,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
             "doDiElectron",
             "doDiMuon",
-            "doDiElectron_ReweightCent"     // centrality reweighting for Z-ee RECO inefficiency in central collisions
+            "doDiElectron_reweightCent"     // centrality reweighting for Z-ee RECO inefficiency in central collisions
             };
 
     enum S_CUTS{

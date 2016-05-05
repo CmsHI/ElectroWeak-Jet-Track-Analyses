@@ -61,7 +61,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int doDiMuon;
     float massMin;
     float massMax;
-    int doDiElectron_ReweightCent;
+    int doDiElectron_reweightCent;
     // electron cuts
     std::vector<std::string> triggersEle;   // triggers will be "OR"ed
     float elePt;
@@ -123,7 +123,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
         massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
         massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
-        doDiElectron_ReweightCent = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron_ReweightCent];
+        doDiElectron_reweightCent = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron_reweightCent];
 
         triggersEle = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str());
         elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
@@ -187,7 +187,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         doDiMuon = 0;
         massMin = 60;
         massMax = 120;
-        doDiElectron_ReweightCent = 1;
+        doDiElectron_reweightCent = 1;
 
         elePt = 10;
 
@@ -270,7 +270,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             std::cout << Form("triggersEle[%d] = %s", i, triggersEle.at(i).c_str()) << std::endl;
         }
 
-        std::cout<<"doDiElectron_ReweightCent = "<<doDiElectron_ReweightCent<<std::endl;
+        std::cout<<"doDiElectron_reweightCent = "<<doDiElectron_reweightCent<<std::endl;
 
         std::cout<<"elePt      = "<<elePt<<std::endl;
 
@@ -917,7 +917,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             if (isHI)  centWeight = findNcoll(hiBin);
             eventWeightAll = weight_HiEvt * vertexWeight * centWeight;
         }
-        if (doDiElectron_ReweightCent > 0 && doDiElectron > 0 && isHI)
+        if (doDiElectron_reweightCent > 0 && doDiElectron > 0 && isHI)
         {
             double reweightCent_ZeeRECO_eff = 1;
             for (int i = 0; i < nReweightCent_ZeeRECO_hiBins-1; ++i)
