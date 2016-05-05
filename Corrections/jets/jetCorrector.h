@@ -5,6 +5,7 @@
 #ifndef JETCORRECTOR_H_
 #define JETCORRECTOR_H_
 
+#include <TF1.h>
 #include <TMath.h>
 #include <TRandom3.h>
 
@@ -45,10 +46,13 @@ public :
     double getMatchingEfficiency(Jets &tJets, int i);
     double getMatchingEfficiencyCorrection(Jets &tJets, int i);
     double getResidualCorrection(Jets &tJets, int i);
+    double getResidualCorrection(TF1* f1, Jets &tJets, int i);
     double getSmearingCorrection(Jets &tJets, int i);
     double getSmearingCorrectionPhi(Jets &tJets, int i);
     void  correctPtResidual(Jets &tJets, int i);
+    void  correctPtResidual(TF1* f1, Jets &tJets, int i);
     void  correctPtsResidual(Jets &tJets);
+    void  correctPtsResidual(TF1* f1, Jets &tJets);
     void  correctPtSmearing(Jets &tJets, int i);
     void  correctPtsSmearing(Jets &tJets);
     void  correctPhiSmearing(Jets &tJets, int i);
@@ -62,7 +66,6 @@ public :
     double a0;
     double a1;
     // residual correction function : corr = p0 + p1/sqrt(pt) + p2/pt
-    TF1* f1_residual;
     double p0;
     double p1;
     double p2;
@@ -96,6 +99,12 @@ double jetCorrector::getResidualCorrection(Jets &tJets, int i)
     return result;
 }
 
+double jetCorrector::getResidualCorrection(TF1* f1, Jets &tJets, int i)
+{
+    double result = 1./f1->Eval(tJets.jtpt[i]);
+    return result;
+}
+
 double jetCorrector::getSmearingCorrection(Jets &tJets, int i)
 {
     double sigma_rel = TMath::Sqrt(
@@ -123,10 +132,22 @@ void jetCorrector::correctPtResidual(Jets &tJets, int i)
     tJets.jtpt[i] *= getResidualCorrection(tJets, i);
 }
 
+void jetCorrector::correctPtResidual(TF1* f1, Jets &tJets, int i)
+{
+    tJets.jtpt[i] *= getResidualCorrection(f1, tJets, i);
+}
+
 void jetCorrector::correctPtsResidual(Jets &tJets)
 {
     for (int i = 0; i<tJets.nref; ++i) {
         correctPtResidual(tJets, i);
+    }
+}
+
+void jetCorrector::correctPtsResidual(TF1* f1, Jets &tJets)
+{
+    for (int i = 0; i<tJets.nref; ++i) {
+        correctPtResidual(f1, tJets, i);
     }
 }
 
