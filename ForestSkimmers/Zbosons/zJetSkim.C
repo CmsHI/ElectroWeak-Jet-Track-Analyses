@@ -88,6 +88,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        float cutZMassMax;
        float cutZPt;
        float cutZEta;
+       float smearZResolution;
+       TRandom3 randSmearZ(12345);
 
        int doMix;
        int nMaxEvents_minBiasMixing;
@@ -134,6 +136,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cutZMassMax = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
            cutZPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_pt];
            cutZEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_eta];
+           smearZResolution = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_smearZResolution];
 
            doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_doMix];
            nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nMaxEvents_minBiasMixing];
@@ -181,6 +184,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cutZMassMax = 100;
            cutZPt = 15;
            cutZEta = 1.44;
+           smearZResolution = 0;
 
            // default : no mixing
            doMix = 0;
@@ -260,6 +264,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"cutZMassMax = "<<cutZMassMax<<std::endl;
        std::cout<<"cutZPt   = "<<cutZPt<<std::endl;
        std::cout<<"cutZEta  = "<<cutZEta<<std::endl;
+       std::cout<<"smearZResolution  = "<<smearZResolution<<std::endl;
 
        std::cout<<"doMix    = "<<doMix<<std::endl;
        if (doMix > 0)
@@ -796,6 +801,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
                {
+                   if (smearZResolution > 0)
+                   {
+                       diEle.diElePt_out.at(i) *= randSmearZ.Gaus(1, smearZResolution);
+                   }
+
                    bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
@@ -858,6 +868,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
                {
+                   if (smearZResolution > 0)
+                   {
+                       diMu.diMuPt_out.at(i) *= randSmearZ.Gaus(1, smearZResolution);
+                   }
+
                    bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
