@@ -516,7 +516,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
-                   std::vector<double> CSN_HI = {0.07753, 1.194, 7.54};
+                   std::vector<double> CSN_HI = {0.1136, 0.7955, 7.778};
                    std::vector<double> CSN_phi_HI = {-0.01584, 0.03229, 1.954};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 12.43};
@@ -539,7 +539,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
                else if (smearingHiBin == 2) {    // smear 30-100 %
-                   std::vector<double> CSN_HI = {0.07753, 1.194, 1.32};
+                   std::vector<double> CSN_HI = {0.1136, 0.7955, 1.761};
                    std::vector<double> CSN_phi_HI = {0.0168, 2.018/10000000, 1.249};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 1.907};
@@ -934,12 +934,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
            }
-           if (energyScaleJet != 0 && energyScaleJet != 1)
-           {
-               for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
-               }
-           }
            if (isPP) {
 
                if (doCorrectionL2L3 > 0)
@@ -958,6 +952,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    for (int i=0; i<nJetCollections; ++i) {
                        correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
                    }
+               }
+           }
+           // apply JES after corrections
+           if (energyScaleJet != 0 && energyScaleJet != 1)
+           {
+               for (int i=0; i<nJetCollections; ++i) {
+                   correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
                }
            }
 
@@ -998,10 +999,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                    }
                                }
                            }
-                           if (energyScaleJet != 0 && energyScaleJet != 1)
-                           {
-                               correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
-                           }
                            if (isPP) {
                                if (doCorrectionSmearing > 0) {
                                    correctorsJetSmear.at(k).correctPtsSmearing(jetsMB.at(k));
@@ -1009,6 +1006,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                if (doCorrectionSmearingPhi > 0) {
                                    correctorsJetSmear.at(k).correctPhisSmearing(jetsMB.at(k));
                                }
+                           }
+                           // apply JES after corrections
+                           if (energyScaleJet != 0 && energyScaleJet != 1)
+                           {
+                               correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
                            }
 
                            if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);
