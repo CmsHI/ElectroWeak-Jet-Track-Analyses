@@ -463,7 +463,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
-       std::vector<L2L3Residual> correctorsL2L3(nJetCollections);
+       std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
        if (isPP && doCorrectionL2L3 > 0)
        {
            for (int i = 0; i < nJetCollections; ++i) {
@@ -471,16 +471,46 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
-       std::vector<jetCorrector> correctorsJet(nJetCollections);
+       std::vector<int> hiBins_residual{60, 200};
+       int nHiBins_residual = hiBins_residual.size();
+       std::vector<jetCorrector> correctorsJetResidual(nJetCollections*nHiBins_residual);
+       TFile* fileResidual = 0;
+       TF1* f1Residual[nHiBins_residual];
+       if (doCorrectionResidual > 0 && isHI) {
+
+           std::string pathCorrectionResidual = "Corrections/jets/zJetResidual.root";
+
+           std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
+           fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
+
+           f1Residual[0] = (TF1*)fileResidual->Get("f1Residual_hiBin1")->Clone();
+           f1Residual[1] = (TF1*)fileResidual->Get("f1Residual_hiBin2")->Clone();
+
+           for (int i=0; i < nJetCollections; ++i) {
+
+               for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+               {
+                   correctorsJetResidual.at(i*nHiBins_residual + iHibin).p0 = f1Residual[iHibin]->GetParameter(0);
+                   correctorsJetResidual.at(i*nHiBins_residual + iHibin).p1 = f1Residual[iHibin]->GetParameter(1);
+                   correctorsJetResidual.at(i*nHiBins_residual + iHibin).p2 = f1Residual[iHibin]->GetParameter(2);
+               }
+           }
+
+           if (fileResidual->IsOpen())  fileResidual->Close();
+       }
+
+       std::vector<jetCorrector> correctorsJetJES(nJetCollections);
+
+       std::vector<jetCorrector> correctorsJetSmear(nJetCollections);
        TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
        if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
            for (int i = 0; i < nJetCollections; ++i) {
-               correctorsJet.at(i).rand = randSmearing;
+               correctorsJetSmear.at(i).rand = randSmearing;
 
                std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
                std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
-               correctorsJet.at(i).CSN_PP = CSN_PP;
-               correctorsJet.at(i).CSN_phi_PP = CSN_phi_PP;
+               correctorsJetSmear.at(i).CSN_PP = CSN_PP;
+               correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
                    std::vector<double> CSN_HI = {0.07753, 1.194, 7.54};
@@ -491,13 +521,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                    if (jetAlgoSmearing == CUTS::JET::k_akPU)
                    {
-                       correctorsJet.at(i).CSN_HI = CSN_HI;
-                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI;
                    }
                    else if (jetAlgoSmearing == CUTS::JET::k_akCS)
                    {
-                       correctorsJet.at(i).CSN_HI = CSN_HI_akCs;
-                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
                    }
                    else {
                        std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value" <<std::endl;
@@ -514,13 +544,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                    if (jetAlgoSmearing == CUTS::JET::k_akPU)
                    {
-                       correctorsJet.at(i).CSN_HI = CSN_HI;
-                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI;
                    }
                    else if (jetAlgoSmearing == CUTS::JET::k_akCS)
                    {
-                       correctorsJet.at(i).CSN_HI = CSN_HI_akCs;
-                       correctorsJet.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
                    }
                    else {
                        std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value." <<std::endl;
@@ -879,15 +909,22 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            entriesAnalyzed++;
 
            // jet corrections
-           if (doCorrectionResidual > 0) {
-               for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJet.at(i).correctPtsResidual(jets.at(i));
+           if (doCorrectionResidual > 0 && isHI) {
+               for (int i=0; i < nJetCollections; ++i) {
+                   for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                   {
+                       if (hiBins_residual.at(iHibin) <= hiBin)
+                       {
+                           correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(jets.at(i));
+                           break;
+                       }
+                   }
                }
            }
            if (energyScaleJet != 0 && energyScaleJet != 1)
            {
                for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJet.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
+                   correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
                }
            }
            if (isPP) {
@@ -901,12 +938,12 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                if (doCorrectionSmearing > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJet.at(i).correctPtsSmearing(jets.at(i));
+                       correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
                    }
                }
                if (doCorrectionSmearingPhi > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJet.at(i).correctPhisSmearing(jets.at(i));
+                       correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
                    }
                }
            }
@@ -937,19 +974,27 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                            treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
 
                            // jet corrections for MB events
-                           if (doCorrectionResidual > 0) {
-                               correctorsJet.at(k).correctPtsResidual(jetsMB.at(k));
+                           if (doCorrectionResidual > 0 && isHI) {
+
+                               for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                               {
+                                   if (hiBins_residual.at(iHibin) <= hiBin)
+                                   {
+                                       correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(jetsMB.at(k));
+                                       break;
+                                   }
+                               }
                            }
                            if (energyScaleJet != 0 && energyScaleJet != 1)
                            {
-                               correctorsJet.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
+                               correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
                            }
                            if (isPP) {
                                if (doCorrectionSmearing > 0) {
-                                   correctorsJet.at(k).correctPtsSmearing(jetsMB.at(k));
+                                   correctorsJetSmear.at(k).correctPtsSmearing(jetsMB.at(k));
                                }
                                if (doCorrectionSmearingPhi > 0) {
-                                   correctorsJet.at(k).correctPhisSmearing(jetsMB.at(k));
+                                   correctorsJetSmear.at(k).correctPhisSmearing(jetsMB.at(k));
                                }
                            }
 

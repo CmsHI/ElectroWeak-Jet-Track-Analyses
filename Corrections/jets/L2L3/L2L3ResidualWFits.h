@@ -20,7 +20,7 @@
 // https://github.com/dgulhan/data_driven_jec/tree/8914e3b0a36adb4a959c465548022fd72e792e13
 
 using namespace std;
-class L2L3Residual
+class L2L3ResidualWFits
 {
  private:
   int neta;
@@ -36,8 +36,8 @@ class L2L3Residual
   double eta_max[100];
   public:
   
-  L2L3Residual(){};
-  ~L2L3Residual(){};
+  L2L3ResidualWFits(){};
+  ~L2L3ResidualWFits(){};
   void reset();
   void setL2L3Residual(int radius = 3, int etacut = 3, bool dopPb = false);
   double get_corrected_pt(double jetpt, double jeteta);
@@ -45,7 +45,7 @@ class L2L3Residual
   void correctPtsL2L3(Jets &tJets);
 };
 
-void L2L3Residual::reset()
+void L2L3ResidualWFits::reset()
 {
  for(int ieta=0;ieta<100;ieta++){
   fits[ieta] = NULL;
@@ -55,7 +55,7 @@ void L2L3Residual::reset()
 
 }
 
-void L2L3Residual::setL2L3Residual(int radius, int etacut, bool dopPb)
+void L2L3ResidualWFits::setL2L3Residual(int radius, int etacut, bool dopPb)
 {
     reset();
     this->radius = radius;
@@ -109,7 +109,7 @@ void L2L3Residual::setL2L3Residual(int radius, int etacut, bool dopPb)
     }
 }
 
-double L2L3Residual::get_corrected_pt(double jetpt, double jeteta)
+double L2L3ResidualWFits::get_corrected_pt(double jetpt, double jeteta)
 {
     double correction = 1;
     if( abs(jeteta)> ((double)etacut)) return correction*jetpt;
@@ -125,12 +125,12 @@ double L2L3Residual::get_corrected_pt(double jetpt, double jeteta)
     return fits[etaindex]->Eval(jetpt)*jetpt;
 }
 
-void L2L3Residual::correctPtL2L3(Jets &tJets, int i)
+void L2L3ResidualWFits::correctPtL2L3(Jets &tJets, int i)
 {
         tJets.jtpt[i] = get_corrected_pt(tJets.jtpt[i], tJets.jteta[i]);
 }
 
-void L2L3Residual::correctPtsL2L3(Jets &tJets)
+void L2L3ResidualWFits::correctPtsL2L3(Jets &tJets)
 {
     for (int i = 0; i<tJets.nref; ++i) {
         correctPtL2L3(tJets, i);

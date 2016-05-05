@@ -60,6 +60,7 @@ public :
     double a0;
     double a1;
     // residual correction function : corr = p0 + p1/sqrt(pt) + p2/pt
+    TF1* f1_residual;
     double p0;
     double p1;
     double p2;

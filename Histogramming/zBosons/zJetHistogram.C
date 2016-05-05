@@ -662,8 +662,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     // histograms for performance studies : correction
     ratioHist ratioHist_jetID[nBins_pt][nBins_hiBin];
-    TFile* fileMC_num;
-    TFile* fileMC_denom;
+    TFile* fileMC_num = 0;
+    TFile* fileMC_denom = 0;
     if (doCorrectionJetID > 0) {
         std::cout<<"##### histograms for jet ID efficiency correction #####"<<std::endl;
 
