@@ -25,6 +25,7 @@ public :
         p1 = -1.6122;
         p2 = 9.27212;
         // from https://github.com/CmsHI/gammaJetAnalysis/blob/ee5ef885636a47a6a3d7f52dbdb9f20dc5f9208c/CutAndBinCollection2012.h
+        sigma_rel_Var = 1;
         CSN_HI.push_back(0.0363269);
         CSN_HI.push_back(1.3291);
         CSN_HI.push_back(6.49405);
@@ -32,6 +33,7 @@ public :
         CSN_PP.push_back(0.808114);
         CSN_PP.push_back(0.000244992);
 
+        sigmaPhi_rel_Var = 1;
         CSN_phi_HI.push_back(0.0216325);
         CSN_phi_HI.push_back(0.342842);
         CSN_phi_HI.push_back(0.0002195);
@@ -65,6 +67,8 @@ public :
     double p1;
     double p2;
     // pp smearing : sigma_rel = sqrt( (C_HI^2 - C_PP^2) + (S_HI^2 - S_PP^2) / pt + (N_HI^2 - N_PP^2)/pt^2 )
+    double sigma_rel_Var;   // variation of simg_rel for systematics studies
+    double sigmaPhi_rel_Var;   // variation of simg_rel for systematics studies
     std::vector<double> CSN_HI;
     std::vector<double> CSN_PP;
     // pp smearing of phi
@@ -100,7 +104,7 @@ double jetCorrector::getSmearingCorrection(Jets &tJets, int i)
                         (CSN_HI.at(2)*CSN_HI.at(2) - CSN_PP.at(2)*CSN_PP.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
                                 );
 
-    return rand.Gaus(1, sigma_rel);
+    return sigma_rel_Var*rand.Gaus(1, sigma_rel);
 }
 
 double jetCorrector::getSmearingCorrectionPhi(Jets &tJets, int i)
@@ -111,7 +115,7 @@ double jetCorrector::getSmearingCorrectionPhi(Jets &tJets, int i)
                         (CSN_phi_HI.at(2)*CSN_phi_HI.at(2) - CSN_phi_PP.at(2)*CSN_phi_PP.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
                                 );
 
-    return rand.Gaus(0, sigma_rel);
+    return sigmaPhi_rel_Var*rand.Gaus(0, sigma_rel);
 }
 
 void jetCorrector::correctPtResidual(Jets &tJets, int i)

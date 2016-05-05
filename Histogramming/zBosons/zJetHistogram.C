@@ -983,7 +983,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                         jets[iCorr].neutralSum[i]/jets[iCorr].rawpt[i]*(-0.454)+
                                         jets[iCorr].photonSum[i]/jets[iCorr].rawpt[i]*(-0.127)+
                                         jets[iCorr].chargedSum[i]/jets[iCorr].rawpt[i]*(-0.239)+
-                                        jets[iCorr].jtpu[i]/jets[iCorr].rawpt[i]*(-0.184)+0.173 )> -0.37);
+                                        jets[iCorr].jtpu[i]/jets[iCorr].rawpt[i]*(-0.184)+0.173 )> -0.50);
                                 if (!passedJetID)  continue;
                             }
                             else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0) {

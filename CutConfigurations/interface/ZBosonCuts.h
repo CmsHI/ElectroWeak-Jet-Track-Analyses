@@ -8,7 +8,7 @@ namespace CUTS {
       k_massMax,
       k_eta,
       k_pt,
-      k_smearZResolution,   // smear Z pt with the given resolution
+      k_smearZ,   // smear Z pt with the given resolution
       kN_F_CUTS
     };
 
@@ -17,7 +17,7 @@ namespace CUTS {
             "massMax",
             "eta",
             "pt",
-            "smearZResolution"
+            "smearZ"
     };
 
     enum I_CUTS{
