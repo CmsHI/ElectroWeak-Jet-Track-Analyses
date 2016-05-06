@@ -953,8 +953,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     }
 
                     if (iCorr == CORR::kRAW)  {
-                        if (isMC)  entriesZ[iPt][iHiBin] += eventWeightAll;
-                        else       entriesZ[iPt][iHiBin]++;
+                        entriesZ[iPt][iHiBin] += eventWeightAll;
                         entriesZRaw[iPt][iHiBin]++;
                     }
 
@@ -1066,9 +1065,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         // in particular, histograms for Z in zJet events
                         if (isZJetEvent)
                         {
-                            // use weighted number of events for MC
-                            if (isMC)  entriesZJet[iPt][iHiBin] += eventWeightAll;
-                            else       entriesZJet[iPt][iHiBin]++;
+                            // use weighted number of events
+                            entriesZJet[iPt][iHiBin] += eventWeightAll;
                             entriesZJetRaw[iPt][iHiBin]++;
 
                             double w = 1;

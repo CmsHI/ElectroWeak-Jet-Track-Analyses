@@ -483,7 +483,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TF1* f1Residual[nHiBins_residual];
        if (doCorrectionResidual > 0 && isHI) {
 
-           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet30_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_30_RESIDUALCORR.root";
+           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet50_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_50_RESIDUALCORR_QGHIBINWEIGHT.root";
 
            std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
            fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
@@ -518,8 +518,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
-                   std::vector<double> CSN_HI = {0.05905, 1.199, 8.552};
-                   std::vector<double> CSN_phi_HI = {-0.01584, 0.03229, 1.954};
+                   std::vector<double> CSN_HI = {0.08624, 1.129, 7.853};
+                   std::vector<double> CSN_phi_HI = {-1.303/1000000, 0.1651, 1.864};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 12.43};
                    std::vector<double> CSN_phi_HI_akCs = {0.001314, 0.07899, 2.034};
@@ -541,8 +541,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
                else if (smearingHiBin == 2) {    // smear 30-100 %
-                   std::vector<double> CSN_HI = {0.05905, 1.199, 1.529};
-                   std::vector<double> CSN_phi_HI = {0.0168, 2.018/10000000, 1.249};
+                   std::vector<double> CSN_HI = {0.0623, 1.059, 4.245};
+                   std::vector<double> CSN_phi_HI = {-2.013/100000000, 0.1646, 1.04};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 1.907};
                    std::vector<double> CSN_phi_HI_akCs = {-0.006015, 0.07578, 1.234};
