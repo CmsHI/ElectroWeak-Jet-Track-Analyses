@@ -1599,6 +1599,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         for (int iBin = 0; iBin < h1D_calc->GetNbinsX()+1; ++iBin)
                         {
                             h1D_calc->SetBinContent(iBin, hTmp_Cumulative->GetBinContent(iBin));
+                            h1D_calc->SetBinError(iBin, hTmp_Cumulative->GetBinError(iBin));
                         }
 
                         c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
@@ -1622,7 +1623,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         std::copy(tmpBins.begin(), tmpBins.end(), binsRebin);
 
                         h1D_calc = (TH1D*)h1D_calc->Rebin(NtmpBins-1, tmpHistName_calc.c_str(), binsRebin); //creates a new variable bin size histogram hnew
-                        double firstBinWidth = h1D_calc->GetBinWidth(1);
+                        double firstBinWidth = corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetBinWidth(1);
                         h1D_calc->Scale(firstBinWidth, "width");
 
                         // do fit to the histogram.
