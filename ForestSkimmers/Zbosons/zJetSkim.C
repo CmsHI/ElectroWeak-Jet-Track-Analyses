@@ -476,7 +476,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
-       std::vector<int> hiBins_residual{20, 60, 100, 200};
+       std::vector<int> hiBins_residual{0, 20, 60, 100, 200};
        int nHiBins_residual = hiBins_residual.size()-1;
        std::vector<jetCorrector> correctorsJetResidual(nJetCollections*nHiBins_residual);
        TFile* fileResidual = 0;
