@@ -672,8 +672,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
         if (jetCollection.compare("akPu3PFJetAnalyzer") == 0)
         {
-            pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_2904_vJetIDCorr.root";
-            pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_2904_SYS_noJetID_vJetIDCorr.root";
+            pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_vJetIDCorr.root";
+            pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_SYS_noJetID_vJetIDCorr.root";
         }
         else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0)
         {
@@ -983,7 +983,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                         jets[iCorr].neutralSum[i]/jets[iCorr].rawpt[i]*(-0.454)+
                                         jets[iCorr].photonSum[i]/jets[iCorr].rawpt[i]*(-0.127)+
                                         jets[iCorr].chargedSum[i]/jets[iCorr].rawpt[i]*(-0.239)+
-                                        jets[iCorr].jtpu[i]/jets[iCorr].rawpt[i]*(-0.184)+0.173 )> -0.50);
+                                        jets[iCorr].jtpu[i]/jets[iCorr].rawpt[i]*(-0.184)+0.173 )> -0.45);
                                 if (!passedJetID)  continue;
                             }
                             else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0) {

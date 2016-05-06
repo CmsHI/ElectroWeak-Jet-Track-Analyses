@@ -469,27 +469,29 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
 
        std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
-       if (isPP && doCorrectionL2L3 > 0)
+       if (doCorrectionL2L3 > 0)
        {
            for (int i = 0; i < nJetCollections; ++i) {
                correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
            }
        }
 
-       std::vector<int> hiBins_residual{60, 200};
-       int nHiBins_residual = hiBins_residual.size();
+       std::vector<int> hiBins_residual{20, 60, 100, 200};
+       int nHiBins_residual = hiBins_residual.size()-1;
        std::vector<jetCorrector> correctorsJetResidual(nJetCollections*nHiBins_residual);
        TFile* fileResidual = 0;
        TF1* f1Residual[nHiBins_residual];
        if (doCorrectionResidual > 0 && isHI) {
 
-           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet30_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160505_pthat_30_RESIDUALCORR.root";
+           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet30_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_30_RESIDUALCORR.root";
 
            std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
            fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
 
-           f1Residual[0] = (TF1*)((TH1D*)fileResidual->Get("jtRecoOverGenVPt_Inc_Mean_akPu3PF_cent0to30_h"))->GetFunction("f1_p")->Clone("f1Residual_0");
-           f1Residual[1] = (TF1*)((TH1D*)fileResidual->Get("jtRecoOverGenVPt_Inc_Mean_akPu3PF_cent30to100_h"))->GetFunction("f1_p")->Clone("f1Residual_1");
+           f1Residual[0] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent0to10_h"))->GetFunction("f1_p")->Clone("f1Residual_0");
+           f1Residual[1] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent10to30_h"))->GetFunction("f1_p")->Clone("f1Residual_1");
+           f1Residual[2] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent30to50_h"))->GetFunction("f1_p")->Clone("f1Residual_2");
+           f1Residual[3] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent50to100_h"))->GetFunction("f1_p")->Clone("f1Residual_3");
 
            if (fileResidual->IsOpen())  fileResidual->Close();
        }
@@ -516,7 +518,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
-                   std::vector<double> CSN_HI = {0.1136, 0.7955, 7.778};
+                   std::vector<double> CSN_HI = {0.05905, 1.199, 8.552};
                    std::vector<double> CSN_phi_HI = {-0.01584, 0.03229, 1.954};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 12.43};
@@ -539,7 +541,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
                else if (smearingHiBin == 2) {    // smear 30-100 %
-                   std::vector<double> CSN_HI = {0.1136, 0.7955, 1.761};
+                   std::vector<double> CSN_HI = {0.05905, 1.199, 1.529};
                    std::vector<double> CSN_phi_HI = {0.0168, 2.018/10000000, 1.249};
 
                    std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 1.907};
@@ -922,15 +924,24 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            entriesAnalyzed++;
 
            // jet corrections
-           if (doCorrectionResidual > 0 && isHI) {
-               for (int i=0; i < nJetCollections; ++i) {
-                   for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
-                   {
-                       if (hiBins_residual.at(iHibin) <= hiBin)
+           if (isHI) {
+
+               if (doCorrectionResidual > 0) {
+                   for (int i=0; i < nJetCollections; ++i) {
+                       for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
                        {
-                           correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jets.at(i));
-                           break;
+                           if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                           {
+                               correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jets.at(i));
+                               break;
+                           }
                        }
+                   }
+               }
+               if (doCorrectionL2L3 > 0)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
            }
@@ -942,7 +953,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
-
                if (doCorrectionSmearing > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
                        correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
@@ -988,18 +998,33 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                            treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
 
                            // jet corrections for MB events
-                           if (doCorrectionResidual > 0 && isHI) {
+                           if (isHI) {
 
-                               for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
-                               {
-                                   if (hiBins_residual.at(iHibin) <= hiBin)
+                               if (doCorrectionResidual > 0) {
+                                   for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
                                    {
-                                       correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jetsMB.at(k));
-                                       break;
+                                       if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                                       {
+                                           correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jetsMB.at(k));
+                                           break;
+                                       }
+                                   }
+                               }
+                               if (doCorrectionL2L3 > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
                                    }
                                }
                            }
                            if (isPP) {
+
+                               if (doCorrectionL2L3 > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
+                                   }
+                               }
                                if (doCorrectionSmearing > 0) {
                                    correctorsJetSmear.at(k).correctPtsSmearing(jetsMB.at(k));
                                }
