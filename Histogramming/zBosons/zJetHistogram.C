@@ -20,6 +20,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Corrections/jets/jetCorrector.h"
 #include "../../Utilities/bosonJetUtil.h"
+#include "../../Utilities/th1Util.h"
 
 void zJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "zJetHistogram.root");
 
@@ -48,6 +49,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     bool isMC = collisionIsMC((COLL::TYPE)collision);
     bool isHI = collisionIsHI((COLL::TYPE)collision);
+    bool isPP = collisionIsPP((COLL::TYPE)collision);
 
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
@@ -337,6 +339,16 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
     std::cout<<"nSmear                    = "<< nSmear <<std::endl;
+
+    // special cases
+    // suppress unneccasry smearing propagation into histograms
+    if (inputFile.Contains("noCorrJetSmearALL") && nSmear > 0 && nSmear != 1)
+    {
+        std::cout<<"input file name contains \"noCorrJetSmearALL\" and nSmear is greater than 0." <<std::endl;
+        std::cout<<"smearing weighting will be turned off." <<std::endl;
+        nSmear = 0;
+        std::cout<<"nSmear is set to " << nSmear << "." <<std::endl;
+    }
 
     // WARNINGS
     if (doCorrectionJetID > 0 && cut_jetID == 0) {
@@ -1006,7 +1018,13 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                             if (!passedSubid)  continue;
                         }
 
-                        if (isAwaySideJet && iCorr == CORR::kRAW) isZJetEvent = true;
+                        if (isAwaySideJet && iCorr == CORR::kRAW) {
+                            if (nSmear > 0 && nSmear != 1)
+                            {
+                                if (i < jets[iCorr].nref / nSmear)  isZJetEvent = true;
+                            }
+                            else isZJetEvent = true;
+                        }
                         nJet++;
 
                         double w = 1;
@@ -1029,10 +1047,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                     w *= (1/val);
                                 }
                             }
-                        }
-                        if (nSmear > 0 && nSmear != 1)
-                        {
-                            w *= (1/TMath::Sqrt(nSmear));
                         }
 
                         // histograms for zJet correlations
@@ -1120,6 +1134,37 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "entriesPassedLeptonSelection  = " << entriesPassedLeptonSelection << std::endl;
     std::cout << "entriesPassedZmassSelection   = " << entriesPassedZmassSelection << std::endl;
     std::cout << "entriesAnalyzed               = " << entriesAnalyzed << std::endl;
+
+    // error bar correction due to smearing procedure
+    // histograms for zJet correlations
+    if (isPP && nSmear > 0 && nSmear != 1) {
+        double scaleContent4Smear = 1/(double)nSmear;
+        double scaleError4Smear = TMath::Sqrt(1/(double)nSmear);
+
+        for(int iHist = 0; iHist<nCorrHist; ++iHist)
+        {
+            for(int iPt=0; iPt<nBins_pt; ++iPt){
+                for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
+
+                    for (int iCorr = 0; iCorr < CORR::kN_CORRFNC - 1; ++iCorr)
+                    {
+                        if (iCorr == CORR::kBKG && (!hasJetsMB || !hasZJetMB))  continue;
+
+                        std::string tmpObservable = correlationHistNames.at(iHist).c_str();
+                        std::vector<std::string> tmpVec {"xjz", "dphi", "ptJet", "jeta", "jtphi", "nJet"};
+                        int nTmpVec = tmpVec.size();
+                        for (int iTMP = 0; iTMP<nTmpVec ; ++iTMP)
+                        {
+                            if (tmpObservable.compare(tmpVec.at(iTMP).c_str()) == 0) {
+                                scaleBinContentErrors(corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr], scaleContent4Smear, scaleError4Smear);
+                                scaleBinContentErrors(corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr], scaleContent4Smear, scaleError4Smear);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // WRITE HISTOGRAM AND CANVAS
     TCanvas* c = new TCanvas("cnv","",600,600);

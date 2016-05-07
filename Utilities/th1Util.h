@@ -23,6 +23,8 @@ void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 double getMinimumTH1s(TH1D* h[], int nHistos);
 double getMaximumTH1s(TH1D* h[], int nHistos);
+void scaleBinErrors(TH1* h, double scale);
+void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(TH1* h);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
@@ -166,6 +168,25 @@ double getMaximumTH1s(TH1D* h[], int nHistos) {
     }
 
     return result;
+}
+
+void scaleBinErrors(TH1* h, double scale)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 1; i <= nBins; i++)
+    {
+        h->SetBinError(i, h->GetBinError(i)*scale);
+    }
+}
+
+void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 1; i <= nBins; i++)
+    {
+        h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
+        h->SetBinError(i,   h->GetBinError(i)*scaleError);
+    }
 }
 
 /*
