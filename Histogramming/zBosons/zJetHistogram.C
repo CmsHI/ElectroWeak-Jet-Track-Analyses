@@ -469,9 +469,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     jetCorrector correctorJet;
 
     // centrality reweighting for Z-ee RECO inefficiency in central collisions
-    std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 20, 40, 60, 80, 100, 120};
-    std::vector<double> reweightCent_ZeeRECO_weights    = {1.9, 0.5, 1.4, 0.6, 0.6, 1.8};  // deprecated :  eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
-    int nReweightCent_ZeeRECO_hiBins = reweightCent_ZeeRECO_hiBins.size();
+    // std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 10, 20, 30, 40, 50, 60};
+    // std::vector<double> reweightCent_ZeeRECO_effs    = {0.6, 1, 1.3, 1.45, 1.65, 1.75};  // eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
+    // std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 20, 40, 60, 80, 100, 120};
+    // std::vector<double> reweightCent_ZeeRECO_weights    = {1.9, 0.5, 1.4, 0.6, 0.6, 1.8};  // deprecated :  eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
+    // int nReweightCent_ZeeRECO_hiBins = reweightCent_ZeeRECO_hiBins.size();
 
     TFile* output = new TFile(outputFile, "UPDATE");
     // histograms will be put under a directory whose name is the type of the collision
@@ -752,6 +754,63 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         if (fileMC_denom->IsOpen()) fileMC_denom->Close();
     }
 
+    ratioHist ratioHist_centReweight[nBins_pt];
+    TFile* fileDATA_num = 0;
+    TFile* fileDATA_denom = 0;
+    if (doDiElectron_reweightCent > 0 && doDiElectron > 0 && isHI) {
+
+        std::cout<<"##### histograms for centrality reweighting of ZEE Reco efficiency #####"<<std::endl;
+
+        std::string pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
+        std::string pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
+
+        std::cout << "pathFileDATA_num   = " << pathFileDATA_num.c_str() << std::endl;
+        std::cout << "pathFileDATA_denom = " << pathFileDATA_denom.c_str() << std::endl;
+
+        fileDATA_num   = new TFile(pathFileDATA_num.c_str(), "READ");
+        fileDATA_denom = new TFile(pathFileDATA_denom.c_str(), "READ");
+
+        output->cd(collisionName);
+
+        for (int i=0; i<nBins_pt; ++i){
+
+                ratioHist_centReweight[i].name = Form("hiBin_ptBin%d_hiBin0_%s_final_norm", i, CORR::CORR_JET_LABELS[CORR::kRAW].c_str());
+
+                ratioHist_centReweight[i].hNum = (TH1D*)fileDATA_num->Get(Form("HI/h1D_%s", ratioHist_centReweight[i].name.c_str()))->Clone();
+                ratioHist_centReweight[i].hNum->SetName(Form("h_num_%s", ratioHist_centReweight[i].name.c_str()));
+
+                ratioHist_centReweight[i].hDenom = (TH1D*)fileDATA_denom->Get(Form("HI/h1D_%s", ratioHist_centReweight[i].name.c_str()))->Clone();
+                ratioHist_centReweight[i].hDenom->SetName(Form("h_denom_%s", ratioHist_centReweight[i].name.c_str()));
+
+                ratioHist_centReweight[i].hNumInitialized = true;
+                ratioHist_centReweight[i].hDenomInitialized = true;
+
+                // use coarser binning
+                ratioHist_centReweight[i].hNum->Rebin(4);
+                ratioHist_centReweight[i].hDenom->Rebin(4);
+
+                ratioHist_centReweight[i].hRatio = (TH1D*)ratioHist_centReweight[i].hNum->Clone(Form("h_Ratio_%s", ratioHist_centReweight[i].name.c_str()));
+                ratioHist_centReweight[i].hRatio->Divide(ratioHist_centReweight[i].hDenom);
+
+                ratioHist_centReweight[i].hRatioInitialized = true;
+        }
+
+        // write histograms for performance studies
+        std::cout<<"##### write histograms for centrality reweighting of ZEE Reco efficiency #####"<<std::endl;
+        for (int i=0; i<nBins_pt; ++i){
+            if (!ratioHist_centReweight[i].hRatioInitialized)  continue;
+
+            ratioHist_centReweight[i].hRatio->SetMarkerStyle(kFullCircle);
+            ratioHist_centReweight[i].hRatio->SetMarkerColor(kBlack);
+            ratioHist_centReweight[i].hRatio->Write("",TObject::kOverwrite);
+            ratioHist_centReweight[i].hRatio->SetStats(false);
+        }
+
+        if (fileDATA_num->IsOpen()) fileDATA_num->Close();
+        if (fileDATA_denom->IsOpen()) fileDATA_denom->Close();
+
+    }
+
     Long64_t entries = tzj->GetEntries();
     Long64_t entriesPassedEventSelection = 0;
     Long64_t entriesPassedLeptonSelection = 0;
@@ -933,19 +992,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             if (isHI)  centWeight = findNcoll(hiBin);
             eventWeightAll = weight_HiEvt * vertexWeight * centWeight;
         }
-        if (doDiElectron_reweightCent > 0 && doDiElectron > 0 && isHI)
-        {
-            double reweightCent_ZeeRECO_eff = 1;
-            for (int i = 0; i < nReweightCent_ZeeRECO_hiBins-1; ++i)
-            {
-                if (reweightCent_ZeeRECO_hiBins.at(i) <= hiBin && hiBin < reweightCent_ZeeRECO_hiBins.at(i+1))
-                {
-                    reweightCent_ZeeRECO_eff = (reweightCent_ZeeRECO_weights.at(i));
-                    break;
-                }
-            }
-            eventWeightAll *= reweightCent_ZeeRECO_eff;
-        }
+        double eventWeightGlobal = eventWeightAll;
 
         // zJet correlation block
         // bool doneSingleJet = false;     // flag to keep track of histograms that are filled only once per zJet event, e.g. : zM, zPt
@@ -957,6 +1004,24 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // pt Bin and hiBin selections
             for(int iPt=0; iPt<nBins_pt; ++iPt){
                 for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
+
+                    // reset event weight
+                    eventWeightAll = eventWeightGlobal;
+                    if (doDiElectron_reweightCent > 0 && doDiElectron > 0 && isHI)
+                    {
+                        if (ratioHist_centReweight[iPt].hRatioInitialized) {
+
+                            int bin = ratioHist_centReweight[iPt].hRatio->FindBin(hiBin);
+
+                            bool validBin = (bin > 0 && bin <= ratioHist_centReweight[iPt].hRatio->GetNbinsX());
+
+                            double val = ratioHist_centReweight[iPt].hRatio->GetBinContent(bin);
+
+                            if (validBin && val > 0) {
+                                eventWeightAll *= val;
+                            }
+                        }
+                    }
 
                     bool passedZPt;
                     if (bins_pt[1].at(iPt) >= 0) passedZPt = ( zPt >= bins_pt[0].at(iPt) && zPt < bins_pt[1].at(iPt) );
