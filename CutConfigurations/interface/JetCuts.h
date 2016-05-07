@@ -7,13 +7,15 @@ namespace CUTS {
       k_pt,
       k_eta,
       k_energyScale,
+      k_smearingRes,
       kN_F_CUTS
     };
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
       "pt",
       "eta",
-      "energyScale"
+      "energyScale",
+      "smearingRes"
     };
 
     enum I_CUTS{

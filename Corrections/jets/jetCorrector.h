@@ -49,6 +49,7 @@ public :
     double getResidualCorrection(TF1* f1, Jets &tJets, int i);
     double getSmearingCorrection(Jets &tJets, int i);
     double getSmearingCorrectionPhi(Jets &tJets, int i);
+    double getResolutionHI(Jets &tJets, int i);
     void  correctPtResidual(Jets &tJets, int i);
     void  correctPtResidual(TF1* f1, Jets &tJets, int i);
     void  correctPtsResidual(Jets &tJets);
@@ -59,6 +60,10 @@ public :
     void  correctPhisSmearing(Jets &tJets);
     void  applyEnergyScale(Jets &tJets, int i, double energyScale);
     void  applyEnergyScale(Jets &tJets, double energyScale);
+    void  applyPtSmearing(Jets &tJets, int i, double resolution);
+    void  applyPtsSmearing(Jets &tJets, double resolution);
+    void  applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel);
+    void  applyPtsSmearingRelative(Jets &tJets, double resolutionRel);
 
     TRandom3 rand;  // used for smearing
     // matching efficiency function : eps = 1/2 * eps0 * (1 + erf(a0 + a1 * pt))
@@ -125,6 +130,17 @@ double jetCorrector::getSmearingCorrectionPhi(Jets &tJets, int i)
                                 );
 
     return sigmaPhi_rel_Var*rand.Gaus(0, sigma_rel);
+}
+
+double jetCorrector::getResolutionHI(Jets &tJets, int i)
+{
+    double sigma = TMath::Sqrt(
+            (CSN_phi_HI.at(0)*CSN_phi_HI.at(0)) +
+            (CSN_phi_HI.at(1)*CSN_phi_HI.at(1))/tJets.jtpt[i] +
+            (CSN_phi_HI.at(2)*CSN_phi_HI.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
+                    );
+
+    return sigma;
 }
 
 void jetCorrector::correctPtResidual(Jets &tJets, int i)
@@ -195,6 +211,31 @@ void  jetCorrector::applyEnergyScale(Jets &tJets, double energyScale)
 {
     for (int i = 0; i<tJets.nref; ++i) {
         applyEnergyScale(tJets, i, energyScale);
+    }
+}
+
+void  jetCorrector::applyPtSmearing(Jets &tJets, int i, double resolution)
+{
+    tJets.jtpt[i] *= rand.Gaus(1, resolution);
+}
+
+void  jetCorrector::applyPtsSmearing(Jets &tJets, double resolution)
+{
+    for (int i = 0; i<tJets.nref; ++i) {
+        applyPtSmearing(tJets, i, resolution);
+    }
+}
+
+void  jetCorrector::applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel)
+{
+    double resCSN = getResolutionHI(tJets, i);
+    tJets.jtpt[i] *= rand.Gaus(1, resCSN*resolutionRel);
+}
+
+void  jetCorrector::applyPtsSmearingRelative(Jets &tJets, double resolutionRel)
+{
+    for (int i = 0; i<tJets.nref; ++i) {
+        applyPtSmearingRelative(tJets, i, resolutionRel);
     }
 }
 

@@ -57,6 +57,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::vector<std::string> jetCollections;
        int doCorrectionResidual;
        double energyScaleJet;
+       double smearingResJet;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
        int jetAlgoSmearing;
@@ -106,6 +107,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
            doCorrectionResidual = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionResidual];
            energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
+           smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
            jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
@@ -154,6 +156,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            doCorrectionResidual = 0;
            energyScaleJet = 0;
+           smearingResJet = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
            jetAlgoSmearing = CUTS::JET::k_akPU;
@@ -225,6 +228,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
        std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
+       std::cout<<"smearingJet             = "<< smearingResJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
        std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
@@ -504,10 +508,27 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        std::vector<jetCorrector> correctorsJetSmear(nJetCollections);
        TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
-       if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
-           for (int i = 0; i < nJetCollections; ++i) {
-               correctorsJetSmear.at(i).rand = randSmearing;
 
+       // pp resolution
+       std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+       std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
+
+       // smear 0-30 %
+       std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
+       std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
+       std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
+       std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
+
+       // smear 30-100 %
+       std::vector<double> CSN_HI_cent3099 = {0.0623, 1.059, 4.245};
+       std::vector<double> CSN_phi_HI_cent3099 = {-2.013/100000000, 0.1646, 1.04};
+       std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
+       std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
+
+       for (int i = 0; i < nJetCollections; ++i) {
+           correctorsJetSmear.at(i).rand = randSmearing;
+
+           if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
                // variation of smearing by 15% for pt smearing.
                if (doCorrectionSmearing == 2)  correctorsJetSmear.at(i).sigma_rel_Var = 1.15;
                else if (doCorrectionSmearing == 3)  correctorsJetSmear.at(i).sigma_rel_Var = 0.85;
@@ -516,27 +537,19 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                if (doCorrectionSmearingPhi == 2)  correctorsJetSmear.at(i).sigmaPhi_rel_Var = 1.15;
                else if (doCorrectionSmearingPhi == 3)  correctorsJetSmear.at(i).sigmaPhi_rel_Var = 0.85;
 
-               std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
-               std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
                correctorsJetSmear.at(i).CSN_PP = CSN_PP;
                correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
                if (smearingHiBin == 1) {    // smear 0-30 %
-                   std::vector<double> CSN_HI = {0.08624, 1.129, 7.853};
-                   std::vector<double> CSN_phi_HI = {-1.303/1000000, 0.1651, 1.864};
-
-                   std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 12.43};
-                   std::vector<double> CSN_phi_HI_akCs = {0.001314, 0.07899, 2.034};
-
                    if (jetAlgoSmearing == CUTS::JET::k_akPU)
                    {
-                       correctorsJetSmear.at(i).CSN_HI = CSN_HI;
-                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
                    }
                    else if (jetAlgoSmearing == CUTS::JET::k_akCS)
                    {
-                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs;
-                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent0030;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent0030;
                    }
                    else {
                        std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value" <<std::endl;
@@ -545,21 +558,16 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
                else if (smearingHiBin == 2) {    // smear 30-100 %
-                   std::vector<double> CSN_HI = {0.0623, 1.059, 4.245};
-                   std::vector<double> CSN_phi_HI = {-2.013/100000000, 0.1646, 1.04};
-
-                   std::vector<double> CSN_HI_akCs = {0.04991, 1.25, 1.907};
-                   std::vector<double> CSN_phi_HI_akCs = {-0.006015, 0.07578, 1.234};
 
                    if (jetAlgoSmearing == CUTS::JET::k_akPU)
                    {
-                       correctorsJetSmear.at(i).CSN_HI = CSN_HI;
-                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
                    }
                    else if (jetAlgoSmearing == CUTS::JET::k_akCS)
                    {
-                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs;
-                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs;
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent3099;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent3099;
                    }
                    else {
                        std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value." <<std::endl;
@@ -948,6 +956,21 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
+               // apply jtpt smearing
+               if (smearingResJet > 0)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       if (hiBin >= 0 && hiBin < 60) {
+                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+                       }
+                       else {
+                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+                       }
+                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jets.at(i), smearingResJet);
+                   }
+               }
            }
            if (isPP) {
 
@@ -979,7 +1002,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                }
            }
            // apply JES after corrections
-           if (energyScaleJet != 0 && energyScaleJet != 1)
+           if (energyScaleJet > 0 && energyScaleJet != 1)
            {
                for (int i=0; i<nJetCollections; ++i) {
                    correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
@@ -1028,6 +1051,21 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                {
                                    for (int i=0; i<nJetCollections; ++i) {
                                        correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
+                                   }
+                               }
+                               // apply jtpt smearing
+                               if (smearingResJet > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       if (hiBin >= 0 && hiBin < 60) {
+                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+                                       }
+                                       else {
+                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+                                       }
+                                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jetsMB.at(i), smearingResJet);
                                    }
                                }
                            }
