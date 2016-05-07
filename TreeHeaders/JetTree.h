@@ -16,6 +16,7 @@ public :
   void setupTreeForReading(TTree *t);
   void setupTreeForWriting(TTree *t);
   void setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC);
+  void replicateJets(int nCopy);
   int  jetID(int i);
 
   // Declaration of leaf types
@@ -470,6 +471,73 @@ void Jets::setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
             }
         }
     }
+}
+
+void Jets::replicateJets(int nCopy)
+{
+    int nref0 = nref;
+    for (int i = 0; i<nref0; ++i)
+    {
+        for (int iCopy = 1; iCopy < nCopy; ++iCopy)
+        {
+            rawpt[iCopy*nref0 + i]=rawpt[i];
+            jtpt[iCopy*nref0 + i]=jtpt[i];
+            jteta[iCopy*nref0 + i]=jteta[i];
+            jty[iCopy*nref0 + i]=jty[i];
+            jtphi[iCopy*nref0 + i]=jtphi[i];
+            jtpu[iCopy*nref0 + i]=jtpu[i];
+            jtm[iCopy*nref0 + i]=jtm[i];
+            discr_fr01[iCopy*nref0 + i]=discr_fr01[i];
+            trackMax[iCopy*nref0 + i]=trackMax[i];
+            trackSum[iCopy*nref0 + i]=trackSum[i];
+            trackN[iCopy*nref0 + i]=trackN[i];
+            trackHardSum[iCopy*nref0 + i]=trackHardSum[i];
+            trackHardN[iCopy*nref0 + i]=trackHardN[i];
+            chargedMax[iCopy*nref0 + i]=chargedMax[i];
+            chargedSum[iCopy*nref0 + i]=chargedSum[i];
+            chargedN[iCopy*nref0 + i]=chargedN[i];
+            chargedHardSum[iCopy*nref0 + i]=chargedHardSum[i];
+            chargedHardN[iCopy*nref0 + i]=chargedHardN[i];
+            photonMax[iCopy*nref0 + i]=photonMax[i];
+            photonSum[iCopy*nref0 + i]=photonSum[i];
+            photonN[iCopy*nref0 + i]=photonN[i];
+            photonHardSum[iCopy*nref0 + i]=photonHardSum[i];
+            photonHardN[iCopy*nref0 + i]=photonHardN[i];
+            neutralMax[iCopy*nref0 + i]=neutralMax[i];
+            neutralSum[iCopy*nref0 + i]=neutralSum[i];
+            neutralN[iCopy*nref0 + i]=neutralN[i];
+
+            hcalSum[iCopy*nref0 + i]=hcalSum[i];
+            ecalSum[iCopy*nref0 + i]=ecalSum[i];
+
+            eMax[iCopy*nref0 + i]=eMax[i];
+            eSum[iCopy*nref0 + i]=eSum[i];
+            eN[iCopy*nref0 + i]=eN[i];
+            muMax[iCopy*nref0 + i]=muMax[i];
+            muSum[iCopy*nref0 + i]=muSum[i];
+            muN[iCopy*nref0 + i]=muN[i];
+            matchedPt[iCopy*nref0 + i]=matchedPt[i];
+            matchedR[iCopy*nref0 + i]=matchedR[i];
+            refpt[iCopy*nref0 + i]=refpt[i];
+            refeta[iCopy*nref0 + i]=refeta[i];
+            refy[iCopy*nref0 + i]=refy[i];
+            refphi[iCopy*nref0 + i]=refphi[i];
+            refdphijt[iCopy*nref0 + i]=refdphijt[i];
+            refdrjt[iCopy*nref0 + i]=refdrjt[i];
+            refparton_pt[iCopy*nref0 + i]=refparton_pt[i];
+            refparton_flavor[iCopy*nref0 + i]=refparton_flavor[i];
+            refparton_flavorForB[iCopy*nref0 + i]=refparton_flavorForB[i];
+
+            genChargedSum[iCopy*nref0 + i]=genChargedSum[i];
+            genHardSum[iCopy*nref0 + i]=genHardSum[i];
+
+            signalChargedSum[iCopy*nref0 + i]=signalChargedSum[i];
+            signalHardSum[iCopy*nref0 + i]=signalHardSum[i];
+            subid[iCopy*nref0 + i]=subid[i];
+        }
+    }
+
+    nref = nref0*nCopy;
 }
 
 int Jets::jetID(int i)

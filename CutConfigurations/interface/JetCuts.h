@@ -27,6 +27,7 @@ namespace CUTS {
       k_doCorrectionSmearingPhi,
       k_jetAlgoSmearing,
       k_smearingHiBin,
+      k_nSmear,
       k_doCorrectionJetID,
       k_doCorrectionL2L3,
       kN_I_CUTS
@@ -43,6 +44,7 @@ namespace CUTS {
       "doCorrectionSmearingPhi",
       "jetAlgoSmearing",
       "smearingHiBin",
+      "nSmear",
       "doCorrectionJetID",
       "doCorrectionL2L3",
     };

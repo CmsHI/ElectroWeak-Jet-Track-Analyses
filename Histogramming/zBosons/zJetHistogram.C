@@ -106,6 +106,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     float cut_dR;
     // process cuts
     int nEventsToMix;
+    int nSmear;
     if (configCuts.isValid) {
         bins_pt[0] = ConfigurationParser::ParseListFloat(
                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
@@ -172,6 +173,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_dR];
 
         nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nEventsToMix];
+        nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
     }
     else {  // default configuration
         bins_pt[0].push_back(60);
@@ -233,6 +235,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         cut_dR = 0.4;
 
         nEventsToMix = 1;
+        nSmear = 0;
         doEventWeight = 0;
     }
     // default values
@@ -333,6 +336,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
+    std::cout<<"nSmear                    = "<< nSmear <<std::endl;
 
     // WARNINGS
     if (doCorrectionJetID > 0 && cut_jetID == 0) {
@@ -1025,6 +1029,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                     w *= (1/val);
                                 }
                             }
+                        }
+                        if (nSmear > 0 && nSmear != 1)
+                        {
+                            w *= (1/TMath::Sqrt(nSmear));
                         }
 
                         // histograms for zJet correlations

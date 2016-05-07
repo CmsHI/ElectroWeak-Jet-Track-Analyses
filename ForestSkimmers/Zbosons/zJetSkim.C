@@ -61,6 +61,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int doCorrectionSmearingPhi;
        int jetAlgoSmearing;
        int smearingHiBin;
+       int nSmear;
        int doCorrectionL2L3;
        // electron cuts
        int cut_nEle;
@@ -109,6 +110,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
            jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
            smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
+           nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
            doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
@@ -156,6 +158,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionSmearingPhi = 0;
            jetAlgoSmearing = CUTS::JET::k_akPU;
            smearingHiBin = 0;
+           nSmear = 0;
            doCorrectionL2L3 = 0;
 
            cut_nEle = 2;
@@ -226,6 +229,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
        std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
        std::cout<<"smearingHiBin           = "<< smearingHiBin <<std::endl;
+       std::cout<<"nSmear                  = "<< nSmear <<std::endl;
        std::cout<<"doCorrectionL2L3        = "<< doCorrectionL2L3 <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
@@ -953,14 +957,24 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
-               if (doCorrectionSmearing > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
+               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+               {
+                   if (nSmear > 0 && nSmear != 1)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           jets.at(i).replicateJets(nSmear);
+                       }
                    }
-               }
-               if (doCorrectionSmearingPhi > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
+
+                   if (doCorrectionSmearing > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
+                       }
+                   }
+                   if (doCorrectionSmearingPhi > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
+                       }
                    }
                }
            }
@@ -1025,11 +1039,25 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                        correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
                                    }
                                }
-                               if (doCorrectionSmearing > 0) {
-                                   correctorsJetSmear.at(k).correctPtsSmearing(jetsMB.at(k));
-                               }
-                               if (doCorrectionSmearingPhi > 0) {
-                                   correctorsJetSmear.at(k).correctPhisSmearing(jetsMB.at(k));
+                               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+                               {
+                                   if (nSmear > 0 && nSmear != 1)
+                                   {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           jetsMB.at(i).replicateJets(nSmear);
+                                       }
+                                   }
+
+                                   if (doCorrectionSmearing > 0) {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           correctorsJetSmear.at(i).correctPtsSmearing(jetsMB.at(i));
+                                       }
+                                   }
+                                   if (doCorrectionSmearingPhi > 0) {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           correctorsJetSmear.at(i).correctPhisSmearing(jetsMB.at(i));
+                                       }
+                                   }
                                }
                            }
                            // apply JES after corrections
