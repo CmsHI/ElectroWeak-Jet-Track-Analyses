@@ -469,8 +469,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     jetCorrector correctorJet;
 
     // centrality reweighting for Z-ee RECO inefficiency in central collisions
-    std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 10, 20, 30, 40, 50, 60};
-    std::vector<double> reweightCent_ZeeRECO_effs    = {0.6, 1, 1.3, 1.45, 1.65, 1.75};  // eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
+    std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 20, 40, 60, 80, 100, 120};
+    std::vector<double> reweightCent_ZeeRECO_weights    = {1.9, 0.5, 1.4, 0.6, 0.6, 1.8};  // deprecated :  eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
     int nReweightCent_ZeeRECO_hiBins = reweightCent_ZeeRECO_hiBins.size();
 
     TFile* output = new TFile(outputFile, "UPDATE");
@@ -940,7 +940,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             {
                 if (reweightCent_ZeeRECO_hiBins.at(i) <= hiBin && hiBin < reweightCent_ZeeRECO_hiBins.at(i+1))
                 {
-                    reweightCent_ZeeRECO_eff = 1/(reweightCent_ZeeRECO_effs.at(i));
+                    reweightCent_ZeeRECO_eff = (reweightCent_ZeeRECO_weights.at(i));
                     break;
                 }
             }
@@ -1019,7 +1019,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         }
 
                         if (isAwaySideJet && iCorr == CORR::kRAW) {
-                            if (nSmear > 0 && nSmear != 1)
+                            if (isPP && nSmear > 0 && nSmear != 1)
                             {
                                 if (i < jets[iCorr].nref / nSmear)  isZJetEvent = true;
                             }

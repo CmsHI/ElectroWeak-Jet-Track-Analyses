@@ -173,7 +173,7 @@ double getMaximumTH1s(TH1D* h[], int nHistos) {
 void scaleBinErrors(TH1* h, double scale)
 {
     int nBins = h->GetNbinsX();
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = 0; i <= nBins+1; i++)
     {
         h->SetBinError(i, h->GetBinError(i)*scale);
     }
@@ -182,7 +182,7 @@ void scaleBinErrors(TH1* h, double scale)
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
 {
     int nBins = h->GetNbinsX();
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = 0; i <= nBins+1; i++)
     {
         h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
         h->SetBinError(i,   h->GetBinError(i)*scaleError);
@@ -309,6 +309,8 @@ void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth, double
 
    // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
    double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   std::string hSysName = hSys->GetName();
+   if (hSysName.find("ratio") != std::string::npos)  error = TMath::Abs(val * hSys->GetBinContent(binSys));
 
    if (binWidth < 0) {
      binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
