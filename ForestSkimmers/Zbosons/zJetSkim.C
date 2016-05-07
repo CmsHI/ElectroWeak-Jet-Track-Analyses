@@ -228,7 +228,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
        std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
-       std::cout<<"smearingJet             = "<< smearingResJet <<std::endl;
+       std::cout<<"smearingResJet          = "<< smearingResJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
        std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;

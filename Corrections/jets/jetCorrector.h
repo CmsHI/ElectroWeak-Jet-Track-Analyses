@@ -135,9 +135,9 @@ double jetCorrector::getSmearingCorrectionPhi(Jets &tJets, int i)
 double jetCorrector::getResolutionHI(Jets &tJets, int i)
 {
     double sigma = TMath::Sqrt(
-            (CSN_phi_HI.at(0)*CSN_phi_HI.at(0)) +
-            (CSN_phi_HI.at(1)*CSN_phi_HI.at(1))/tJets.jtpt[i] +
-            (CSN_phi_HI.at(2)*CSN_phi_HI.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
+            (CSN_HI.at(0)*CSN_HI.at(0)) +
+            (CSN_HI.at(1)*CSN_HI.at(1))/tJets.jtpt[i] +
+            (CSN_HI.at(2)*CSN_HI.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
                     );
 
     return sigma;
