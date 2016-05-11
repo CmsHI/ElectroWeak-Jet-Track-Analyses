@@ -1049,6 +1049,16 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     if (iCorr == CORR::kRAW)  {
                         entriesZ[iPt][iHiBin] += eventWeightAll;
                         entriesZRaw[iPt][iHiBin]++;
+
+                        // histograms for Z events
+                        for(int iHist = 0; iHist<nCorrHist; ++iHist)
+                        {
+                            std::string tmpObservable = correlationHistNames.at(iHist).c_str();
+                            if (tmpObservable.compare("hiBin") == 0) {
+                                corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(hiBin, eventWeightAll);
+                                corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(hiBin, eventWeightAll);
+                            }
+                        }
                     }
 
                     bool isZJetEvent = false;
@@ -1206,10 +1216,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 else if (tmpObservable.compare("nJet") == 0) {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(nJet, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(nJet, w);
-                                }
-                                else if (tmpObservable.compare("hiBin") == 0) {
-                                    corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(hiBin, w);
-                                    corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(hiBin, w);
                                 }
                             }
                         }
