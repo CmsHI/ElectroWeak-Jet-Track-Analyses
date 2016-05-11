@@ -1068,6 +1068,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         if (cut_jetID > 0) {
                             bool passedJetID = true;
                             if (jetCollection.compare("akPu3PFJetAnalyzer") == 0) {
+                                /* |jteta| < 2
                                 passedJetID = (
                                         (jets[iCorr].neutralMax[i]/jets[iCorr].rawpt[i]*(0.085)+
                                         jets[iCorr].photonMax[i]/jets[iCorr].rawpt[i]*(-0.337)+
@@ -1076,6 +1077,15 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                         jets[iCorr].photonSum[i]/jets[iCorr].rawpt[i]*(-0.127)+
                                         jets[iCorr].chargedSum[i]/jets[iCorr].rawpt[i]*(-0.239)+
                                         jets[iCorr].jtpu[i]/jets[iCorr].rawpt[i]*(-0.184)+0.173 )> -0.45);
+                                */
+                                // |jteta| < 1.6
+                                passedJetID = (
+                                        (jets[iCorr].neutralMax[i]/jets[iCorr].rawpt[i]*(+0.090)+
+                                         jets[iCorr].photonMax[i]/jets[iCorr].rawpt[i]*(-0.001)+
+                                         jets[iCorr].chargedMax[i]/jets[iCorr].rawpt[i]*(+0.446)+
+                                         jets[iCorr].neutralSum[i]/jets[iCorr].rawpt[i]*(-0.617)+
+                                         jets[iCorr].photonSum[i]/jets[iCorr].rawpt[i]*(-0.249)+
+                                         jets[iCorr].chargedSum[i]/jets[iCorr].rawpt[i]*(-0.378)) > -0.7);
                                 if (!passedJetID)  continue;
                             }
                             else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0) {
