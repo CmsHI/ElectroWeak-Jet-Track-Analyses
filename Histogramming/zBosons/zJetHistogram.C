@@ -692,6 +692,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         {
             pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_vJetIDCorr.root";
             pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_SYS_noJetID_vJetIDCorr.root";
+            if (outputFile.Contains("_jteta16"))
+            {
+                pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_vJetIDCorr_jteta16.root";
+                pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_SYS_noJetID_vJetIDCorr_jteta16.root";
+            }
         }
         else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0)
         {
@@ -761,8 +766,15 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
         std::cout<<"##### histograms for centrality reweighting of ZEE Reco efficiency #####"<<std::endl;
 
-        std::string pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
-        std::string pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
+        std::string pathFileDATA_num = "";
+        std::string pathFileDATA_denom = "";
+
+        pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
+        pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
+        if (outputFile.Contains("_jteta16")) {
+            pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent_jteta16.root";
+            pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent_jteta16.root";
+        }
 
         std::cout << "pathFileDATA_num   = " << pathFileDATA_num.c_str() << std::endl;
         std::cout << "pathFileDATA_denom = " << pathFileDATA_denom.c_str() << std::endl;
