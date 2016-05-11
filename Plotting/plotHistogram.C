@@ -1129,8 +1129,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             c->SaveAs(Form("%s.png", tmpOutputFile.c_str()));
             c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
         }
-        pad->Close();
-        c->Close();
+        //pad->Close();
+        //c->Close();
     }
 }
 
