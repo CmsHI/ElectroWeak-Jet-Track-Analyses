@@ -486,10 +486,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // gammaJet analysis has purity calculation. no purity calculation for zJet.
 
     // zJet correlation objects
-    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin"};
+    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin", "dphi2"};
     //std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", dileptonMFormula.c_str(), dileptonPtFormula.c_str()};
     std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", dileptonMtitleX.c_str(),
-                                                        "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}", "N^{Jet}", "hiBin"};
+                                                        "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}", "N^{Jet}", "hiBin", "#Delta#phi_{JZ}"};
     std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#Delta#phi}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
@@ -500,14 +500,15 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#eta^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#phi^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dN^{Jet}}",
-                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}"};
-    std::vector<int>         nBinsx{16, 20,          30, 30, 30, 20, 20, 20, 20, 8, 40};
-    std::vector<double>      xlow  {0,  0,           0,   60, 0, -4, -TMath::Pi(), -4, -TMath::Pi(), 0, 0};
-    std::vector<double>      xup   {2,  TMath::Pi(), 300, 120, 300, 4, TMath::Pi(), 4, TMath::Pi(),  8, 200};
-    std::vector<double>      xlow_final{0,  0,           0,   60, 0, -3, -TMath::Pi(), -3, -TMath::Pi(), 0, 0};
-    std::vector<double>      xup_final {2,  TMath::Pi(), 200, 120, 200, 3, TMath::Pi(), 3, TMath::Pi(),  8, 200};
-    std::vector<bool> doAwaySideJets {true,  false, true, false, false, false, false, true, true, true, true};   // whether the observable is plotted for inclusive jets in the away side
-    std::vector<bool> doSingleJet    {false, false, false, true, true, true, true, false, false, false, true};   // whether the observable is plotted once per event
+                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}",
+                                                                          "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#Delta#phi}"};
+    std::vector<int>         nBinsx{16, 20,          30, 30, 30, 20, 20, 20, 20, 8, 40, 40};
+    std::vector<double>      xlow  {0,  0,           0,   60, 0, -4, -TMath::Pi(), -4, -TMath::Pi(), 0, 0, 0};
+    std::vector<double>      xup   {2,  TMath::Pi(), 300, 120, 300, 4, TMath::Pi(), 4, TMath::Pi(),  8, 200, TMath::Pi()};
+    std::vector<double>      xlow_final{0,  0,           0,   60, 0, -3, -TMath::Pi(), -3, -TMath::Pi(), 0, 0, 0};
+    std::vector<double>      xup_final {2,  TMath::Pi(), 200, 120, 200, 3, TMath::Pi(), 3, TMath::Pi(),  8, 200, TMath::Pi()};
+    std::vector<bool> doAwaySideJets {true,  false, true, false, false, false, false, true, true, true, true, false};   // whether the observable is plotted for inclusive jets in the away side
+    std::vector<bool> doSingleJet    {false, false, false, true, true, true, true, false, false, false, true, false};   // whether the observable is plotted once per event
 
     TH1::SetDefaultSumw2();
     int nCorrHist = correlationHistNames.size();
@@ -1162,9 +1163,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
                             }
-                            else if (tmpObservable.compare("nJet") == 0) {
-                                corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(nJet, w);
-                                corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(nJet, w);
+                            else if (tmpObservable.compare("dphi2") == 0) {
+                                corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
+                                corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                             }
                         }
                     } // i
@@ -1201,6 +1202,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 else if (tmpObservable.compare("zPhi") == 0) {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(zPhi, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(zPhi, w);
+                                }
+                                else if (tmpObservable.compare("nJet") == 0) {
+                                    corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(nJet, w);
+                                    corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(nJet, w);
                                 }
                                 else if (tmpObservable.compare("hiBin") == 0) {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(hiBin, w);
