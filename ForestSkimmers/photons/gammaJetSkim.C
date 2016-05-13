@@ -15,6 +15,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Corrections/jets/jetCorrector.h"
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
@@ -60,6 +61,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int nCentralityBins;
   int nVertexBins;
   int nEventsToMix;
+  bool doCorrectionSmearing;
+  int nSmear;
+  int smearingHiBin;
   if (configCuts.isValid) {
     cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
     cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
@@ -76,6 +80,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
     nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
     nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+    doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
+    nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+    smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
   }
   else {
     cut_vz = 15;
@@ -92,6 +99,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     nCentralityBins = 0;
     nVertexBins = 0;
     nEventsToMix = 0;
+    doCorrectionSmearing = false;
+    nSmear =0;
+    smearingHiBin = 0;
   }
   int nJetCollections = jetCollections.size();
 
@@ -176,6 +186,69 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	    std::cout << "nEventsToMix = "<<nEventsToMix<<std::endl;
 	    std::cout << "number of MB events in that bin is not enough for mixing" <<std::endl;
 	  }
+	}
+      }
+    }
+  }
+
+  //smearing set up block
+  std::vector<jetCorrector> correctorsJetSmear(nJetCollections);
+  if(doCorrectionSmearing){
+    TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
+
+    // pp resolution
+    std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+    std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
+
+    // smear 0-30 %
+    std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
+    std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
+    std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
+    std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
+
+    // smear 30-100 %
+    std::vector<double> CSN_HI_cent3099 = {0.0623, 1.059, 4.245};
+    std::vector<double> CSN_phi_HI_cent3099 = {-2.013/100000000, 0.1646, 1.04};
+    std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
+    std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
+  
+    for (int i = 0; i < nJetCollections; ++i) {
+      correctorsJetSmear.at(i).rand = randSmearing;
+      correctorsJetSmear.at(i).CSN_PP = CSN_PP;
+      correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
+
+      bool isCs = jetCollections.at(i).find("Cs") != std::string::npos;
+      bool isPu = jetCollections.at(i).find("Pu") != std::string::npos;
+      
+      if (smearingHiBin == 1) {    // smear 0-30 %
+	if (isPu)
+	{
+	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+	}
+	else if (isCs)
+	{
+	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent0030;
+	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent0030;
+	} else {
+	  std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
+	  return;
+	}
+      } else if (smearingHiBin == 2) {    // smear 30-100 %
+
+	if (isPu)
+	{
+	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+	}
+	else if (isCs)
+	{
+	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent3099;
+	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent3099;
+	}
+	else {
+	  std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
+	  return;
 	}
       }
     }
@@ -536,6 +609,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
       for (int i=0; i<nJetCollections; ++i) {
 	// photon-jet correlation
+	if(doCorrectionSmearing){
+	  jets.at(i).replicateJets(nSmear);
+	  correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i), false);
+	  correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i), false);
+	}
 	// leading photon is correlated to each jet in the event.
 	gammajet.at(i).makeGammaJetPairs(ggHi, jets.at(i), phoIdx);
       }
