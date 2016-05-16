@@ -508,7 +508,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<double>      xlow_final{0,  0,           0,   60, 0, -3, -TMath::Pi(), -3, -TMath::Pi(), 0, 0, 0};
     std::vector<double>      xup_final {2,  TMath::Pi(), 200, 120, 200, 3, TMath::Pi(), 3, TMath::Pi(),  8, 200, TMath::Pi()};
     std::vector<bool> doAwaySideJets {true,  false, true, false, false, false, false, true, true, true, true, false};   // whether the observable is plotted for inclusive jets in the away side
-    std::vector<bool> doSingleJet    {false, false, false, true, true, true, true, false, false, false, true, false};   // whether the observable is plotted once per event
+    std::vector<bool> doSingleJet    {false, false, false, true, true, true, true, false, false,  true, true, false};   // whether the observable is plotted once per event
 
     TH1::SetDefaultSumw2();
     int nCorrHist = correlationHistNames.size();

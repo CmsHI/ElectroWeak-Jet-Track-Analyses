@@ -352,6 +352,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeJet[i]->SetBranchStatus("muSum*",1);
            treeJet[i]->SetBranchStatus("muN*",1);
            if (isMC) {
+               treeJet[i]->SetBranchStatus("ref*",1);
                treeJet[i]->SetBranchStatus("matchedPt",1);
                treeJet[i]->SetBranchStatus("matchedR",1);
                treeJet[i]->SetBranchStatus("beamId1",1);
