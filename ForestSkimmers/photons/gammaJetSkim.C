@@ -203,53 +203,53 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     // smear 0-30 %
     std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
     std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
-    std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
-    std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
+    // std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
+    // std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
 
     // smear 30-100 %
     std::vector<double> CSN_HI_cent3099 = {0.0623, 1.059, 4.245};
     std::vector<double> CSN_phi_HI_cent3099 = {-2.013/100000000, 0.1646, 1.04};
-    std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
-    std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
+    // std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
+    // std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
   
     for (int i = 0; i < nJetCollections; ++i) {
       correctorsJetSmear.at(i).rand = randSmearing;
       correctorsJetSmear.at(i).CSN_PP = CSN_PP;
       correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
 
-      bool isCs = jetCollections.at(i).find("Cs") != std::string::npos;
-      bool isPu = jetCollections.at(i).find("Pu") != std::string::npos;
+      // bool isCs = jetCollections.at(i).find("Cs") != std::string::npos;
+      // bool isPu = jetCollections.at(i).find("Pu") != std::string::npos;
       
       if (smearingHiBin == 1) {    // smear 0-30 %
-	if (isPu)
-	{
+	// if (isPu)
+	// {
 	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
 	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
-	}
-	else if (isCs)
-	{
-	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent0030;
-	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent0030;
-	} else {
-	  std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
-	  return;
-	}
+	// }
+	// else if (isCs)
+	// {
+	//   correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent0030;
+	//   correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent0030;
+	// } else {
+	//   std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
+	//   return;
+	// }
       } else if (smearingHiBin == 2) {    // smear 30-100 %
 
-	if (isPu)
-	{
+	// if (isPu)
+	// {
 	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
 	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
-	}
-	else if (isCs)
-	{
-	  correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent3099;
-	  correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent3099;
-	}
-	else {
-	  std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
-	  return;
-	}
+	// }
+	// else if (isCs)
+	// {
+	//   correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent3099;
+	//   correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent3099;
+	// }
+	// else {
+	//   std::cout << "No appropriate smearing parameters for collection: " << jetCollections.at(i) << std::endl;
+	//   return;
+	// }
       }
     }
   }
@@ -611,8 +611,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	// photon-jet correlation
 	if(doCorrectionSmearing){
 	  jets.at(i).replicateJets(nSmear);
-	  correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i), false);
-	  correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i), false);
+	  correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i), true); // too painful to handle separately
+	  correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i), true);
 	}
 	// leading photon is correlated to each jet in the event.
 	gammajet.at(i).makeGammaJetPairs(ggHi, jets.at(i), phoIdx);
