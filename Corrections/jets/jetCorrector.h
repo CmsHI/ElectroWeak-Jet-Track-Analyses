@@ -41,6 +41,8 @@ public :
         CSN_phi_PP.push_back(0.024497);
         CSN_phi_PP.push_back(-0.170472);
         CSN_phi_PP.push_back(-0.000188492);
+
+        smearingBranchIndex = 0;
     };
     ~jetCorrector(){};
     double getMatchingEfficiency(Jets &tJets, int i);
@@ -54,16 +56,16 @@ public :
     void  correctPtResidual(TF1* f1, Jets &tJets, int i);
     void  correctPtsResidual(Jets &tJets);
     void  correctPtsResidual(TF1* f1, Jets &tJets);
-    void  correctPtSmearing(Jets &tJets, int i, bool inplace = true);
-    void  correctPtsSmearing(Jets &tJets, bool inplace = true);
-    void  correctPhiSmearing(Jets &tJets, int i, bool inplace = true);
-    void  correctPhisSmearing(Jets &tJets, bool inplace = true);
+    void  correctPtSmearing(Jets &tJets, int i);
+    void  correctPtsSmearing(Jets &tJets);
+    void  correctPhiSmearing(Jets &tJets, int i);
+    void  correctPhisSmearing(Jets &tJets);
     void  applyEnergyScale(Jets &tJets, int i, double energyScale);
     void  applyEnergyScale(Jets &tJets, double energyScale);
-    void  applyPtSmearing(Jets &tJets, int i, double resolution, bool inplace = true);
-    void  applyPtsSmearing(Jets &tJets, double resolution, bool inplace = true);
-    void  applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel, bool inplace = true);
-    void  applyPtsSmearingRelative(Jets &tJets, double resolutionRel, bool inplace = true);
+    void  applyPtSmearing(Jets &tJets, int i, double resolution);
+    void  applyPtsSmearing(Jets &tJets, double resolution);
+    void  applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel);
+    void  applyPtsSmearingRelative(Jets &tJets, double resolutionRel);
 
     TRandom3 rand;  // used for smearing
     // matching efficiency function : eps = 1/2 * eps0 * (1 + erf(a0 + a1 * pt))
@@ -83,8 +85,17 @@ public :
     std::vector<double> CSN_phi_HI;
     std::vector<double> CSN_phi_PP;
 
-private :
+    int smearingBranchIndex;
 
+private :
+    float CorrectPhiRange(float phi){
+        while (TMath::Abs(phi) > TMath::Pi())
+        {
+            if ( phi >    TMath::Pi() )  phi -= 2*TMath::Pi();
+            if ( phi < -1*TMath::Pi() )  phi += 2*TMath::Pi();
+        }
+        return phi;
+    }
 };
 
 double jetCorrector::getMatchingEfficiency(Jets &tJets, int i)
@@ -167,51 +178,88 @@ void jetCorrector::correctPtsResidual(TF1* f1, Jets &tJets)
     }
 }
 
-void jetCorrector::correctPtSmearing(Jets &tJets, int i, bool inplace)
+void jetCorrector::correctPtSmearing(Jets &tJets, int i)
 {
     if (tJets.jtpt[i] > 5)
     {
-        if(inplace){
+        switch(smearingBranchIndex) {
+        case 0:
             tJets.jtpt[i] *= getSmearingCorrection(tJets, i);
-        } else {
-            tJets.smearedCorrectedPt[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 1:
+            tJets.jtpt_smeared_0_30[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 2:
+            tJets.jtpt_smeared_30_100[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 3:
+            tJets.jtpt_smeared_0_10[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 4:
+            tJets.jtpt_smeared_10_30[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 5:
+            tJets.jtpt_smeared_30_50[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 6:
+            tJets.jtpt_smeared_50_100[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        case 7:
+            tJets.jtpt_smeared_sys[i] = tJets.jtpt[i] * getSmearingCorrection(tJets, i);
+            break;
+        default:
+            std::cout << "smearingBranchIndex out of bounds, no smearing applied" << std::endl;
+            break;
         }
     }
 }
 
-void jetCorrector::correctPtsSmearing(Jets &tJets, bool inplace)
+void jetCorrector::correctPtsSmearing(Jets &tJets)
 {
     for (int i = 0; i<tJets.nref; ++i) {
-        correctPtSmearing(tJets, i, inplace);
+        correctPtSmearing(tJets, i);
     }
 }
 
-void jetCorrector::correctPhiSmearing(Jets &tJets, int i, bool inplace)
+void jetCorrector::correctPhiSmearing(Jets &tJets, int i)
 {
     if (tJets.jtpt[i] > 5) {
-        if(inplace){
-            tJets.jtphi[i] += getSmearingCorrectionPhi(tJets, i);
-
-            while (TMath::Abs(tJets.jtphi[i]) > TMath::Pi())
-            {
-                if ( tJets.jtphi[i] >    TMath::Pi() )  tJets.jtphi[i] -= 2*TMath::Pi();
-                if ( tJets.jtphi[i] < -1*TMath::Pi() )  tJets.jtphi[i] += 2*TMath::Pi();
-            }
-        } else {
-            tJets.smearedPhi[i] = tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i);
-            while (TMath::Abs(tJets.smearedPhi[i]) > TMath::Pi())
-            {
-                if ( tJets.smearedPhi[i] >    TMath::Pi() )  tJets.smearedPhi[i] -= 2*TMath::Pi();
-                if ( tJets.smearedPhi[i] < -1*TMath::Pi() )  tJets.smearedPhi[i] += 2*TMath::Pi();
-            }
+        switch(smearingBranchIndex) {
+        case 0:
+            tJets.jtphi[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 1:
+            tJets.jtphi_smeared_0_30[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 2:
+            tJets.jtphi_smeared_30_100[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 3:
+            tJets.jtphi_smeared_0_10[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 4:
+            tJets.jtphi_smeared_10_30[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 5:
+            tJets.jtphi_smeared_30_50[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 6:
+            tJets.jtphi_smeared_50_100[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;
+        case 7:
+            tJets.jtphi_smeared_sys[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingCorrectionPhi(tJets, i));
+            break;          
+        default:
+            std::cout << "smearingBranchIndex out of bounds, no smearing applied" << std::endl;
+            break;
         }
     }
 }
 
-void jetCorrector::correctPhisSmearing(Jets &tJets, bool inplace)
+void jetCorrector::correctPhisSmearing(Jets &tJets)
 {
     for (int i = 0; i<tJets.nref; ++i) {
-        correctPhiSmearing(tJets, i, inplace);
+        correctPhiSmearing(tJets, i);
     }
 }
 
@@ -227,36 +275,28 @@ void  jetCorrector::applyEnergyScale(Jets &tJets, double energyScale)
     }
 }
 
-void  jetCorrector::applyPtSmearing(Jets &tJets, int i, double resolution, bool inplace)
+void  jetCorrector::applyPtSmearing(Jets &tJets, int i, double resolution)
 {
-    if(inplace){
-        tJets.jtpt[i] *= rand.Gaus(1, resolution);
-    } else {
-        tJets.smearedCorrectedPt[i] = tJets.jtpt[i] * rand.Gaus(1, resolution);
-    }
+    tJets.jtpt[i] *= rand.Gaus(1, resolution);
 }
 
-void  jetCorrector::applyPtsSmearing(Jets &tJets, double resolution, bool inplace)
+void  jetCorrector::applyPtsSmearing(Jets &tJets, double resolution)
 {
     for (int i = 0; i<tJets.nref; ++i) {
-        applyPtSmearing(tJets, i, resolution, inplace);
+        applyPtSmearing(tJets, i, resolution);
     }
 }
 
-void  jetCorrector::applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel, bool inplace)
+void  jetCorrector::applyPtSmearingRelative(Jets &tJets, int i, double resolutionRel)
 {
     double resCSN = getResolutionHI(tJets, i);
-    if(inplace){
-        tJets.jtpt[i] *= rand.Gaus(1, resCSN*resolutionRel);
-    } else {
-        tJets.smearedCorrectedPt[i] = tJets.jtpt[i] * rand.Gaus(1, resCSN*resolutionRel);
-    }
+    tJets.jtpt[i] *= rand.Gaus(1, resCSN*resolutionRel);
 }
 
-void  jetCorrector::applyPtsSmearingRelative(Jets &tJets, double resolutionRel, bool inplace)
+void  jetCorrector::applyPtsSmearingRelative(Jets &tJets, double resolutionRel)
 {
     for (int i = 0; i<tJets.nref; ++i) {
-        applyPtSmearingRelative(tJets, i, resolutionRel, inplace);
+        applyPtSmearingRelative(tJets, i, resolutionRel);
     }
 }
 

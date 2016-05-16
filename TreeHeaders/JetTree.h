@@ -31,11 +31,23 @@ public :
   Int_t           nref;
   Float_t         rawpt[maxJets];   //[nref]
   Float_t         jtpt[maxJets];   //[nref]
-  Float_t         smearedCorrectedPt[maxJets]; //[nref]
+  Float_t         jtpt_smeared_0_30[maxJets]; //[nref]
+  Float_t         jtpt_smeared_30_100[maxJets]; //[nref]
+  Float_t         jtpt_smeared_0_10[maxJets]; //[nref]
+  Float_t         jtpt_smeared_10_30[maxJets]; //[nref]
+  Float_t         jtpt_smeared_30_50[maxJets]; //[nref]
+  Float_t         jtpt_smeared_50_100[maxJets]; //[nref]
+  Float_t         jtpt_smeared_sys[maxJets]; //[nref]
   Float_t         jteta[maxJets];   //[nref]
   Float_t         jty[maxJets];   //[nref]
-  Float_t         jtphi[maxJets];   //[nref]
-  Float_t         smearedPhi[maxJets]; //[nref]
+  Float_t         jtphi[maxJets]; //[nref]
+  Float_t         jtphi_smeared_0_30[maxJets];   //[nref]
+  Float_t         jtphi_smeared_30_100[maxJets]; //[nref]
+  Float_t         jtphi_smeared_0_10[maxJets]; //[nref]
+  Float_t         jtphi_smeared_10_30[maxJets]; //[nref]  
+  Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
+  Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
+  Float_t         jtphi_smeared_sys[maxJets]; //[nref]
   Float_t         jtpu[maxJets];   //[nref]
   Float_t         jtm[maxJets];   //[nref]
   Float_t         discr_fr01[maxJets];   //[nref]
@@ -113,11 +125,23 @@ public :
   TBranch        *b_nref;   //!
   TBranch        *b_rawpt;   //!
   TBranch        *b_jtpt;   //!
-  TBranch        *b_smearedCorrectedPt; 
+  TBranch        *b_jtpt_smeared_0_30; 
+  TBranch        *b_jtpt_smeared_30_100; 
+  TBranch        *b_jtpt_smeared_0_10; 
+  TBranch        *b_jtpt_smeared_10_30; 
+  TBranch        *b_jtpt_smeared_30_50; 
+  TBranch        *b_jtpt_smeared_50_100; 
+  TBranch        *b_jtpt_smeared_sys; 
   TBranch        *b_jteta;   //!
   TBranch        *b_jty;   //!
   TBranch        *b_jtphi;   //!
-  TBranch        *b_smearedPhi; 
+  TBranch        *b_jtphi_smeared_0_30; 
+  TBranch        *b_jtphi_smeared_30_100; 
+  TBranch        *b_jtphi_smeared_0_10; 
+  TBranch        *b_jtphi_smeared_10_30; 
+  TBranch        *b_jtphi_smeared_30_50; 
+  TBranch        *b_jtphi_smeared_50_100; 
+  TBranch        *b_jtphi_smeared_sys; 
   TBranch        *b_jtpu;   //!
   TBranch        *b_jtm;   //!
   TBranch        *b_discr_fr01;   //!
@@ -193,11 +217,23 @@ void Jets::setupTreeForReading(TTree *t)
     if (t->GetBranch("nref")) t->SetBranchAddress("nref", &nref, &b_nref);
     if (t->GetBranch("rawpt")) t->SetBranchAddress("rawpt", rawpt, &b_rawpt);
     if (t->GetBranch("jtpt")) t->SetBranchAddress("jtpt", jtpt, &b_jtpt);
-    if (t->GetBranch("smearedCorrectedPt")) t->SetBranchAddress("smearedCorrectedPt",smearedCorrectedPt, &b_smearedCorrectedPt);
+    if (t->GetBranch("jtpt_smeared_0_30")) t->SetBranchAddress("jtpt_smeared_0_30",jtpt_smeared_0_30, &b_jtpt_smeared_0_30);
+    if (t->GetBranch("jtpt_smeared_30_100")) t->SetBranchAddress("jtpt_smeared_30_100",jtpt_smeared_30_100, &b_jtpt_smeared_30_100);
+    if (t->GetBranch("jtpt_smeared_0_10")) t->SetBranchAddress("jtpt_smeared_0_10",jtpt_smeared_0_10, &b_jtpt_smeared_0_10);
+    if (t->GetBranch("jtpt_smeared_10_30")) t->SetBranchAddress("jtpt_smeared_10_30",jtpt_smeared_10_30, &b_jtpt_smeared_10_30);
+    if (t->GetBranch("jtpt_smeared_30_50")) t->SetBranchAddress("jtpt_smeared_30_50",jtpt_smeared_30_50, &b_jtpt_smeared_30_50);
+    if (t->GetBranch("jtpt_smeared_50_100")) t->SetBranchAddress("jtpt_smeared_50_100",jtpt_smeared_50_100, &b_jtpt_smeared_50_100);
+    if (t->GetBranch("jtpt_smeared_sys")) t->SetBranchAddress("jtpt_smeared_sys",jtpt_smeared_sys, &b_jtpt_smeared_sys);
     if (t->GetBranch("jteta")) t->SetBranchAddress("jteta", jteta, &b_jteta);
     if (t->GetBranch("jty")) t->SetBranchAddress("jty", jty, &b_jty);
     if (t->GetBranch("jtphi")) t->SetBranchAddress("jtphi", jtphi, &b_jtphi);
-    if (t->GetBranch("smearedPhi")) t->SetBranchAddress("smearedPhi", smearedPhi, &b_smearedPhi);
+    if (t->GetBranch("jtphi_smeared_0_30")) t->SetBranchAddress("jtphi_smeared_0_30", jtphi_smeared_0_30, &b_jtphi_smeared_0_30);
+    if (t->GetBranch("jtphi_smeared_30_100")) t->SetBranchAddress("jtphi_smeared_30_100", jtphi_smeared_30_100, &b_jtphi_smeared_30_100);
+    if (t->GetBranch("jtphi_smeared_0_10")) t->SetBranchAddress("jtphi_smeared_0_10", jtphi_smeared_0_10, &b_jtphi_smeared_0_10);
+    if (t->GetBranch("jtphi_smeared_10_30")) t->SetBranchAddress("jtphi_smeared_10_30", jtphi_smeared_10_30, &b_jtphi_smeared_10_30);
+    if (t->GetBranch("jtphi_smeared_30_50")) t->SetBranchAddress("jtphi_smeared_30_50", jtphi_smeared_30_50, &b_jtphi_smeared_30_50);
+    if (t->GetBranch("jtphi_smeared_50_100")) t->SetBranchAddress("jtphi_smeared_50_100", jtphi_smeared_50_100, &b_jtphi_smeared_50_100);
+    if (t->GetBranch("jtphi_smeared_sys")) t->SetBranchAddress("jtphi_smeared_sys", jtphi_smeared_sys, &b_jtphi_smeared_sys);
     if (t->GetBranch("jtpu")) t->SetBranchAddress("jtpu", jtpu, &b_jtpu);
     if (t->GetBranch("jtm")) t->SetBranchAddress("jtm", jtm, &b_jtm);
     if (t->GetBranch("discr_fr01")) t->SetBranchAddress("discr_fr01", discr_fr01, &b_discr_fr01);
@@ -283,11 +319,23 @@ void Jets::setupTreeForWriting(TTree *t)
     t->Branch("nref",&nref,"nref/I");
     t->Branch("rawpt",rawpt,"rawpt[nref]/F");
     t->Branch("jtpt",jtpt,"jtpt[nref]/F");
-    t->Branch("smearedCorrectedPt",smearedCorrectedPt,"smearedCorrectedPt[nref]/F");
+    t->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
+    t->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
+    t->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
+    t->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
+    t->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
+    t->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
+    t->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
     t->Branch("jteta",jteta,"jteta[nref]/F");
     t->Branch("jty",jty,"jty[nref]/F");
     t->Branch("jtphi",jtphi,"jtphi[nref]/F");
-    t->Branch("smearedPhi",smearedPhi,"smearedPhi[nref]/F");
+    t->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
+    t->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
+    t->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
+    t->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
+    t->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
+    t->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
+    t->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
     t->Branch("jtpu",jtpu,"jtpu[nref]/F");
     t->Branch("jtm",jtm,"jtm[nref]/F");
 
@@ -387,11 +435,9 @@ void Jets::setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
     t->Branch("nref",&nref,"nref/I");
     t->Branch("rawpt",rawpt,"rawpt[nref]/F");
     t->Branch("jtpt",jtpt,"jtpt[nref]/F");
-    t->Branch("smearedCorrectedPt",smearedCorrectedPt,"smearedCorrectedPt[nref]/F");
     t->Branch("jteta",jteta,"jteta[nref]/F");
     t->Branch("jty",jty,"jty[nref]/F");
     t->Branch("jtphi",jtphi,"jtphi[nref]/F");
-    t->Branch("smearedPhi",smearedPhi,"smearedPhi[nref]/F");
     t->Branch("jtpu",jtpu,"jtpu[nref]/F");
     t->Branch("jtm",jtm,"jtm[nref]/F");
 
@@ -492,11 +538,23 @@ void Jets::replicateJets(int nCopy)
         {
             rawpt[iCopy*nref0 + i]=rawpt[i];
             jtpt[iCopy*nref0 + i]=jtpt[i];
-            smearedCorrectedPt[iCopy*nref0 + i]=smearedCorrectedPt[i];
+            jtpt_smeared_0_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_30_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_0_10[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_10_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_30_50[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_50_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_sys[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
             jteta[iCopy*nref0 + i]=jteta[i];
             jty[iCopy*nref0 + i]=jty[i];
             jtphi[iCopy*nref0 + i]=jtphi[i];
-            smearedPhi[iCopy*nref0 + i]=smearedPhi[i];
+            jtphi_smeared_0_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_30_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_0_10[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_10_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_30_50[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_50_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_sys[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
             jtpu[iCopy*nref0 + i]=jtpu[i];
             jtm[iCopy*nref0 + i]=jtm[i];
             discr_fr01[iCopy*nref0 + i]=discr_fr01[i];

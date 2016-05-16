@@ -108,6 +108,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     float cut_dR;
     // process cuts
     int nEventsToMix;
+    int nSmear;
+    int smearingBinIndex;
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListFloat(
@@ -154,7 +156,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
-
+    nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+    smearingBinIndex = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
 
     if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
@@ -215,6 +218,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
+    std::cout<<"smearingBinIndex          = "<< smearingBinIndex << std::endl;
 
     //set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
@@ -224,7 +228,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *tHlt = (TTree*)input->Get("hltTree");
     TTree *tPho = (TTree*)input->Get("EventTree");    // photons
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
-    TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+    TTree *tgj;
+    if(smearingBinIndex == 0) {
+    tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+    } else {
+        tgj = (TTree*)input->Get(Form("gamma_%s_smearingBin%i", jetCollection.c_str(), smearingBinIndex));
+    }
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TFile *inputMCFile = TFile::Open(inputMC);
     TTree *tmcHlt = (TTree*)inputMCFile->Get("hltTree");
@@ -661,6 +670,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         if (jCorr == CORR::kBKG && hasJetsMB && hasGammaJetMB) {   // (hasJetsMB && hasGammaJetMB) ==> isHI
                             // normalize first by the number of mixed events
                             corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
+                        }
+                        if (nSmear > ) {
+                            corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
                         }
                         int tmpNEntriesPho = corrHists[iHist][i][j].nEntriesPho[iCorr][jCorr];
                         // normalization is done with photon events, not necessarily by photon-jet events

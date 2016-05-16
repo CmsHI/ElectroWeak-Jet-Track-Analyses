@@ -30,7 +30,7 @@ public :
     void resetConeRange() { coneRange = 0.4 ; }
     void setupGammaJetTree(TTree *t);
     void branchGammaJetTree(TTree *t);
-    void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
+    void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx, int smearingBranchIndex=-1);
     void clearGammaJetPairs(int phoIdx);
     void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
 
@@ -109,7 +109,7 @@ void GammaJet::branchGammaJetTree(TTree *t)
     t->Branch("jetID", &jetID_out);
 }
 
-void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
+void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx, int smearingBranchIndex)
 {
     jetIdx_out.clear();
     xjg_out.clear();
@@ -130,12 +130,54 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
     // no jet should be skipped.
     for (int i=0; i<tJets.nref; ++i)
     {
+        float jtpt;
+        float jtphi;
+        switch(smearingBranchIndex){
+        case 0:
+            jtpt = tJets.jtpt[i];
+            jtphi = tJets.jtphi[i];
+            break;
+        case 1:
+            jtpt = tJets.jtpt_smeared_0_30[i];
+            jtphi = tJets.jtphi_smeared_0_30[i];
+            break;
+        case 2:
+            jtpt = tJets.jtpt_smeared_30_100[i];
+            jtphi = tJets.jtphi_smeared_0_30[i];
+            break;
+        case 3:
+            jtpt = tJets.jtpt_smeared_0_10[i];
+            jtphi = tJets.jtphi_smeared_0_10[i];
+            break;
+        case 4:
+            jtpt = tJets.jtpt_smeared_10_30[i];
+            jtphi = tJets.jtphi_smeared_10_30[i];
+            break;
+        case 5:
+            jtpt = tJets.jtpt_smeared_30_50[i];
+            jtphi = tJets.jtphi_smeared_30_50[i];
+            break;
+        case 6:
+            jtpt = tJets.jtpt_smeared_50_100[i];
+            jtphi = tJets.jtphi_smeared_50_100[i];
+            break;
+        case 7:
+            jtpt = tJets.jtpt_smeared_sys[i];
+            jtphi = tJets.jtphi_smeared_sys[i];
+            break;
+        default:
+            std::cout << "smearingBranchIndex set incorrectly in gammaJetTree" << std::endl;
+            jtpt = tJets.jtpt[i];
+            jtphi = tJets.jtphi[i];
+            break;
+        }
+        
         // cuts on jets will be applied during plotting
         float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
-        float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jtphi[i]);
+        float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), jtphi);
         if (TMath::Abs(tmp_dphi) > awayRange)
             nJetinAwayRange_out++;
-        float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], tJets.jtphi[i]);
+        float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], jtphi);
 
         int tmp_insideJet;
         if(tmp_dR < coneRange) tmp_insideJet = 1;
@@ -153,22 +195,22 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
             }
         }
 
-        if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
+        if (jtpt > jetIdx1_pt && tmp_jetID == 1) {
             // current leading jet becomes subleading jet
             jetIdx2_pt = jetIdx1_pt;
             jetIdx2_out = jetIdx1_out;
 
-            jetIdx1_pt = tJets.jtpt[i];
+            jetIdx1_pt = jtpt;
             jetIdx1_out = i;
         }
-        else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
-            jetIdx2_pt = tJets.jtpt[i];
+        else if (jtpt > jetIdx2_pt && tmp_jetID == 1) {
+            jetIdx2_pt = jtpt;
             jetIdx2_out = i;
         }
 
         jetIdx_out.push_back(i);
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
-            xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+            xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
         }
         else {
             xjg_out.push_back(-1);
