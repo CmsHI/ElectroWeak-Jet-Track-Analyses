@@ -671,7 +671,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                             // normalize first by the number of mixed events
                             corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
                         }
-                        if (nSmear > ) {
+                        if (nSmear > 0 && nSmear != 1) {
                             corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
                         }
                         int tmpNEntriesPho = corrHists[iHist][i][j].nEntriesPho[iCorr][jCorr];
