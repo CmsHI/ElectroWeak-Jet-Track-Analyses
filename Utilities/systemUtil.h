@@ -17,6 +17,7 @@ std::string replaceAll(std::string str, std::string oldString, std::string newSt
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
 bool endsWith(std::string str, std::string suffix);
+int         findPositionInVector(std::vector<std::string> v, std::string str);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -108,6 +109,17 @@ bool endsWith(std::string str, std::string suffix)
 {
     if (str.size() < suffix.size()) return false;
     return str.compare(str.size() - suffix.size(), suffix.size(), suffix.c_str()) == 0;
+}
+
+/*
+ * return the index of a std::string in a std::vector
+ * return -1 if not found.
+ */
+int findPositionInVector(std::vector<std::string> v, std::string str)
+{
+    std::vector<std::string>::iterator it = std::find(v.begin(), v.end(), str.c_str());
+    if (it != v.end())  return int(it - v.begin());
+    else                return -1;
 }
 
 #endif

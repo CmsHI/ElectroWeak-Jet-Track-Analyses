@@ -8,6 +8,7 @@ namespace CUTS {
       k_massMax,
       k_eta,
       k_pt,
+      k_smearZ,   // smear Z pt with the given resolution
       kN_F_CUTS
     };
 
@@ -15,18 +16,21 @@ namespace CUTS {
             "massMin",
             "massMax",
             "eta",
-            "pt"
+            "pt",
+            "smearZ"
     };
 
     enum I_CUTS{
       k_doDiElectron,
       k_doDiMuon,
+      k_doDiElectron_reweightCent,
       kN_I_CUTS
     };
 
     std::string I_CUTS_LABELS[kN_I_CUTS] = {
             "doDiElectron",
-            "doDiMuon"
+            "doDiMuon",
+            "doDiElectron_reweightCent"     // centrality reweighting for Z-ee RECO inefficiency in central collisions
             };
 
     enum S_CUTS{

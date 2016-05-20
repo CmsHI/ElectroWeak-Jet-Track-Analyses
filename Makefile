@@ -1,11 +1,15 @@
 CXX = g++
-ROOTFLAGS = `root-config --cflags --libs`
-TMVAFLAGS = -lTMVA
+ROOTFLAGS := `root-config --cflags --libs`
+TMVAFLAGS := -lTMVA
 CXXFLAGS = -Wall -O2 -Werror -Wextra $(ROOTFLAGS) $(TMVAFLAGS)
-SRCS_C = $(wildcard */*.C)
-PROGS_C = $(patsubst %.C,%.exe,$(SRCS_C))
-SRCS_cc = $(wildcard */*/*.C)
-PROGS_cc = $(patsubst %.C,%.exe,$(SRCS_cc))
+GCCVERSION := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 6)
+ifeq "$(GCCVERSION)" "1"
+  CXXFLAGS += -Wno-error=misleading-indentation
+endif
+SRCS_C := $(wildcard */*.C)
+PROGS_C := $(patsubst %.C,%.exe,$(SRCS_C))
+SRCS_cc := $(wildcard */*/*.C)
+PROGS_cc := $(patsubst %.C,%.exe,$(SRCS_cc))
 
 all: $(PROGS_C) $(PROGS_cc)
 

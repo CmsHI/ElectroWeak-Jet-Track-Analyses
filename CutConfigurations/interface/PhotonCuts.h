@@ -99,6 +99,7 @@ namespace CUTS {
       k_puritySieieBins,
       k_matched_eleIndex,
       k_MonteCarlo,
+      k_usePPstyleIso,
       kN_I_CUTS
     };
 
@@ -106,7 +107,8 @@ namespace CUTS {
       "nPhotons",
       "puritySieieBins",
       "matched_eleIndex",
-      "MonteCarlo"
+      "MonteCarlo",
+      "usePPstyleIso"
     };
 
     enum S_CUTS{

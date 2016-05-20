@@ -23,6 +23,9 @@ void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 double getMinimumTH1s(TH1D* h[], int nHistos);
 double getMaximumTH1s(TH1D* h[], int nHistos);
+void scaleBinErrors(TH1* h, double scale);
+void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
+std::vector<double> getTH1xBins(TH1* h);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
@@ -65,6 +68,7 @@ std::string summaryTH1(TH1* h)
     result.append(Form("h->GetBinContent(0) = %f \n", h->GetBinContent(0)));
     result.append(Form("h->GetBinContent(NbinsX+1) = %f \n", h->GetBinContent(h->GetNbinsX()+1)));
     result.append(Form("h->Integral() = %f \n", h->Integral()));
+    result.append(Form("h->Integral(\"width\") = %f \n", h->Integral("width")));
     result.append(Form("h->Integral(firstBin, lastBin) = %f \n", h->Integral(binFirst, binLast)));
     result.append(Form("h->GetSumOfWeights() = %f \n", h->GetSumOfWeights()));
     result.append(Form("h->GetMean() = %f , h->GetMeanError() = %f \n", h->GetMean(), h->GetMeanError()));
@@ -166,6 +170,46 @@ double getMaximumTH1s(TH1D* h[], int nHistos) {
     return result;
 }
 
+void scaleBinErrors(TH1* h, double scale)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; i++)
+    {
+        h->SetBinError(i, h->GetBinError(i)*scale);
+    }
+}
+
+void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; i++)
+    {
+        h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
+        h->SetBinError(i,   h->GetBinError(i)*scaleError);
+    }
+}
+
+/*
+ * returns the bins along x-axis of a "TH1" object as a std::vector.
+ * size of the vector is nBins+1.
+ * ith element is the lower edge of bin i.
+ * last element is the upper edge of the last bin.
+ */
+std::vector<double> getTH1xBins(TH1* h) {
+
+    std::vector<double> bins;
+    int nBins = h->GetNbinsX();
+    for ( int i = 1; i <= nBins; i++)
+    {
+        bins.push_back(h->GetXaxis()->GetBinLowEdge(i));
+        if (i == nBins) bins.push_back(h->GetXaxis()->GetBinUpEdge(i));
+    }
+
+    return bins;
+}
+
+
+
 void fillTH1fromTF1(TH1* h, TF1* f)
 {
     int nBins = h->GetNbinsX();
@@ -265,15 +309,22 @@ void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth, double
 
    // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
    double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   std::string hSysName = hSys->GetName();
+   if (hSysName.find("ratio") != std::string::npos)  error = TMath::Abs(val * hSys->GetBinContent(binSys));
 
    if (binWidth < 0) {
      binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
    }
 
+   double errorLow = val - error;
+   double errorUp = val + error;
+   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
+   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
+
    box->SetX1(x - (binWidth/2)*binWidthScale);
    box->SetX2(x + (binWidth/2)*binWidthScale);
-   box->SetY1(val - error);
-   box->SetY2(val + error);
+   box->SetY1(errorLow);
+   box->SetY2(errorUp);
 }
 
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWidthScale)
@@ -281,6 +332,8 @@ void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWi
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i) {
         if (h->GetBinError(i) == 0) continue;
+        if (h->GetBinContent(i) < h->GetMinimum()) continue;
+        if (h->GetBinContent(i) > h->GetMaximum()) continue;
 
         setSysUncBox(box, h, hSys, i, binWidth, binWidthScale);
         box->DrawClone();

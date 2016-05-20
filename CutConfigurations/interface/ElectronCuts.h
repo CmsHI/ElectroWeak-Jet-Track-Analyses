@@ -5,6 +5,7 @@ namespace CUTS {
   namespace ELE {
     enum F_CUTS{
       k_elePt,
+      k_eleEta,
       k_eleSigmaIEtaIEta_spike,
       k_eleSigmaIPhiIPhi_spike,
       k_eleSigmaIEtaIEta_2012_EB,
@@ -27,6 +28,7 @@ namespace CUTS {
 
     std::string F_CUTS_LABELS[kN_F_CUTS] = {
             "elePt",
+            "eleEta",
             "eleSigmaIEtaIEta_spike",
             "eleSigmaIPhiIPhi_spike",
             "eleSigmaIEtaIEta_2012_EB",

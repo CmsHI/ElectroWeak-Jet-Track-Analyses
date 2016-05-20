@@ -16,6 +16,7 @@ public :
   void setupTreeForReading(TTree *t);
   void setupTreeForWriting(TTree *t);
   void setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC);
+  void replicateJets(int nCopy);
   int  jetID(int i);
 
   // Declaration of leaf types
@@ -30,9 +31,23 @@ public :
   Int_t           nref;
   Float_t         rawpt[maxJets];   //[nref]
   Float_t         jtpt[maxJets];   //[nref]
+  Float_t         jtpt_smeared_0_30[maxJets]; //[nref]
+  Float_t         jtpt_smeared_30_100[maxJets]; //[nref]
+  Float_t         jtpt_smeared_0_10[maxJets]; //[nref]
+  Float_t         jtpt_smeared_10_30[maxJets]; //[nref]
+  Float_t         jtpt_smeared_30_50[maxJets]; //[nref]
+  Float_t         jtpt_smeared_50_100[maxJets]; //[nref]
+  Float_t         jtpt_smeared_sys[maxJets]; //[nref]
   Float_t         jteta[maxJets];   //[nref]
   Float_t         jty[maxJets];   //[nref]
-  Float_t         jtphi[maxJets];   //[nref]
+  Float_t         jtphi[maxJets]; //[nref]
+  Float_t         jtphi_smeared_0_30[maxJets];   //[nref]
+  Float_t         jtphi_smeared_30_100[maxJets]; //[nref]
+  Float_t         jtphi_smeared_0_10[maxJets]; //[nref]
+  Float_t         jtphi_smeared_10_30[maxJets]; //[nref]  
+  Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
+  Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
+  Float_t         jtphi_smeared_sys[maxJets]; //[nref]
   Float_t         jtpu[maxJets];   //[nref]
   Float_t         jtm[maxJets];   //[nref]
   Float_t         discr_fr01[maxJets];   //[nref]
@@ -110,9 +125,23 @@ public :
   TBranch        *b_nref;   //!
   TBranch        *b_rawpt;   //!
   TBranch        *b_jtpt;   //!
+  TBranch        *b_jtpt_smeared_0_30; 
+  TBranch        *b_jtpt_smeared_30_100; 
+  TBranch        *b_jtpt_smeared_0_10; 
+  TBranch        *b_jtpt_smeared_10_30; 
+  TBranch        *b_jtpt_smeared_30_50; 
+  TBranch        *b_jtpt_smeared_50_100; 
+  TBranch        *b_jtpt_smeared_sys; 
   TBranch        *b_jteta;   //!
   TBranch        *b_jty;   //!
   TBranch        *b_jtphi;   //!
+  TBranch        *b_jtphi_smeared_0_30; 
+  TBranch        *b_jtphi_smeared_30_100; 
+  TBranch        *b_jtphi_smeared_0_10; 
+  TBranch        *b_jtphi_smeared_10_30; 
+  TBranch        *b_jtphi_smeared_30_50; 
+  TBranch        *b_jtphi_smeared_50_100; 
+  TBranch        *b_jtphi_smeared_sys; 
   TBranch        *b_jtpu;   //!
   TBranch        *b_jtm;   //!
   TBranch        *b_discr_fr01;   //!
@@ -188,9 +217,23 @@ void Jets::setupTreeForReading(TTree *t)
     if (t->GetBranch("nref")) t->SetBranchAddress("nref", &nref, &b_nref);
     if (t->GetBranch("rawpt")) t->SetBranchAddress("rawpt", rawpt, &b_rawpt);
     if (t->GetBranch("jtpt")) t->SetBranchAddress("jtpt", jtpt, &b_jtpt);
+    if (t->GetBranch("jtpt_smeared_0_30")) t->SetBranchAddress("jtpt_smeared_0_30",jtpt_smeared_0_30, &b_jtpt_smeared_0_30);
+    if (t->GetBranch("jtpt_smeared_30_100")) t->SetBranchAddress("jtpt_smeared_30_100",jtpt_smeared_30_100, &b_jtpt_smeared_30_100);
+    if (t->GetBranch("jtpt_smeared_0_10")) t->SetBranchAddress("jtpt_smeared_0_10",jtpt_smeared_0_10, &b_jtpt_smeared_0_10);
+    if (t->GetBranch("jtpt_smeared_10_30")) t->SetBranchAddress("jtpt_smeared_10_30",jtpt_smeared_10_30, &b_jtpt_smeared_10_30);
+    if (t->GetBranch("jtpt_smeared_30_50")) t->SetBranchAddress("jtpt_smeared_30_50",jtpt_smeared_30_50, &b_jtpt_smeared_30_50);
+    if (t->GetBranch("jtpt_smeared_50_100")) t->SetBranchAddress("jtpt_smeared_50_100",jtpt_smeared_50_100, &b_jtpt_smeared_50_100);
+    if (t->GetBranch("jtpt_smeared_sys")) t->SetBranchAddress("jtpt_smeared_sys",jtpt_smeared_sys, &b_jtpt_smeared_sys);
     if (t->GetBranch("jteta")) t->SetBranchAddress("jteta", jteta, &b_jteta);
     if (t->GetBranch("jty")) t->SetBranchAddress("jty", jty, &b_jty);
     if (t->GetBranch("jtphi")) t->SetBranchAddress("jtphi", jtphi, &b_jtphi);
+    if (t->GetBranch("jtphi_smeared_0_30")) t->SetBranchAddress("jtphi_smeared_0_30", jtphi_smeared_0_30, &b_jtphi_smeared_0_30);
+    if (t->GetBranch("jtphi_smeared_30_100")) t->SetBranchAddress("jtphi_smeared_30_100", jtphi_smeared_30_100, &b_jtphi_smeared_30_100);
+    if (t->GetBranch("jtphi_smeared_0_10")) t->SetBranchAddress("jtphi_smeared_0_10", jtphi_smeared_0_10, &b_jtphi_smeared_0_10);
+    if (t->GetBranch("jtphi_smeared_10_30")) t->SetBranchAddress("jtphi_smeared_10_30", jtphi_smeared_10_30, &b_jtphi_smeared_10_30);
+    if (t->GetBranch("jtphi_smeared_30_50")) t->SetBranchAddress("jtphi_smeared_30_50", jtphi_smeared_30_50, &b_jtphi_smeared_30_50);
+    if (t->GetBranch("jtphi_smeared_50_100")) t->SetBranchAddress("jtphi_smeared_50_100", jtphi_smeared_50_100, &b_jtphi_smeared_50_100);
+    if (t->GetBranch("jtphi_smeared_sys")) t->SetBranchAddress("jtphi_smeared_sys", jtphi_smeared_sys, &b_jtphi_smeared_sys);
     if (t->GetBranch("jtpu")) t->SetBranchAddress("jtpu", jtpu, &b_jtpu);
     if (t->GetBranch("jtm")) t->SetBranchAddress("jtm", jtm, &b_jtm);
     if (t->GetBranch("discr_fr01")) t->SetBranchAddress("discr_fr01", discr_fr01, &b_discr_fr01);
@@ -276,9 +319,23 @@ void Jets::setupTreeForWriting(TTree *t)
     t->Branch("nref",&nref,"nref/I");
     t->Branch("rawpt",rawpt,"rawpt[nref]/F");
     t->Branch("jtpt",jtpt,"jtpt[nref]/F");
+    t->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
+    t->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
+    t->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
+    t->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
+    t->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
+    t->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
+    t->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
     t->Branch("jteta",jteta,"jteta[nref]/F");
     t->Branch("jty",jty,"jty[nref]/F");
     t->Branch("jtphi",jtphi,"jtphi[nref]/F");
+    t->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
+    t->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
+    t->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
+    t->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
+    t->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
+    t->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
+    t->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
     t->Branch("jtpu",jtpu,"jtpu[nref]/F");
     t->Branch("jtm",jtm,"jtm[nref]/F");
 
@@ -470,6 +527,87 @@ void Jets::setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
             }
         }
     }
+}
+
+void Jets::replicateJets(int nCopy)
+{
+    int nref0 = nref;
+    for (int i = 0; i<nref0; ++i)
+    {
+        for (int iCopy = 1; iCopy < nCopy; ++iCopy)
+        {
+            rawpt[iCopy*nref0 + i]=rawpt[i];
+            jtpt[iCopy*nref0 + i]=jtpt[i];
+            jtpt_smeared_0_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_30_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_0_10[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_10_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_30_50[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_50_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jtpt_smeared_sys[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
+            jteta[iCopy*nref0 + i]=jteta[i];
+            jty[iCopy*nref0 + i]=jty[i];
+            jtphi[iCopy*nref0 + i]=jtphi[i];
+            jtphi_smeared_0_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_30_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_0_10[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_10_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_30_50[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_50_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtphi_smeared_sys[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
+            jtpu[iCopy*nref0 + i]=jtpu[i];
+            jtm[iCopy*nref0 + i]=jtm[i];
+            discr_fr01[iCopy*nref0 + i]=discr_fr01[i];
+            trackMax[iCopy*nref0 + i]=trackMax[i];
+            trackSum[iCopy*nref0 + i]=trackSum[i];
+            trackN[iCopy*nref0 + i]=trackN[i];
+            trackHardSum[iCopy*nref0 + i]=trackHardSum[i];
+            trackHardN[iCopy*nref0 + i]=trackHardN[i];
+            chargedMax[iCopy*nref0 + i]=chargedMax[i];
+            chargedSum[iCopy*nref0 + i]=chargedSum[i];
+            chargedN[iCopy*nref0 + i]=chargedN[i];
+            chargedHardSum[iCopy*nref0 + i]=chargedHardSum[i];
+            chargedHardN[iCopy*nref0 + i]=chargedHardN[i];
+            photonMax[iCopy*nref0 + i]=photonMax[i];
+            photonSum[iCopy*nref0 + i]=photonSum[i];
+            photonN[iCopy*nref0 + i]=photonN[i];
+            photonHardSum[iCopy*nref0 + i]=photonHardSum[i];
+            photonHardN[iCopy*nref0 + i]=photonHardN[i];
+            neutralMax[iCopy*nref0 + i]=neutralMax[i];
+            neutralSum[iCopy*nref0 + i]=neutralSum[i];
+            neutralN[iCopy*nref0 + i]=neutralN[i];
+
+            hcalSum[iCopy*nref0 + i]=hcalSum[i];
+            ecalSum[iCopy*nref0 + i]=ecalSum[i];
+
+            eMax[iCopy*nref0 + i]=eMax[i];
+            eSum[iCopy*nref0 + i]=eSum[i];
+            eN[iCopy*nref0 + i]=eN[i];
+            muMax[iCopy*nref0 + i]=muMax[i];
+            muSum[iCopy*nref0 + i]=muSum[i];
+            muN[iCopy*nref0 + i]=muN[i];
+            matchedPt[iCopy*nref0 + i]=matchedPt[i];
+            matchedR[iCopy*nref0 + i]=matchedR[i];
+            refpt[iCopy*nref0 + i]=refpt[i];
+            refeta[iCopy*nref0 + i]=refeta[i];
+            refy[iCopy*nref0 + i]=refy[i];
+            refphi[iCopy*nref0 + i]=refphi[i];
+            refdphijt[iCopy*nref0 + i]=refdphijt[i];
+            refdrjt[iCopy*nref0 + i]=refdrjt[i];
+            refparton_pt[iCopy*nref0 + i]=refparton_pt[i];
+            refparton_flavor[iCopy*nref0 + i]=refparton_flavor[i];
+            refparton_flavorForB[iCopy*nref0 + i]=refparton_flavorForB[i];
+
+            genChargedSum[iCopy*nref0 + i]=genChargedSum[i];
+            genHardSum[iCopy*nref0 + i]=genHardSum[i];
+
+            signalChargedSum[iCopy*nref0 + i]=signalChargedSum[i];
+            signalHardSum[iCopy*nref0 + i]=signalHardSum[i];
+            subid[iCopy*nref0 + i]=subid[i];
+        }
+    }
+
+    nref = nref0*nCopy;
 }
 
 int Jets::jetID(int i)

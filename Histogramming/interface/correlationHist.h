@@ -31,6 +31,23 @@ std::string CORR_JET_LABELS[kN_CORRFNC] = {
 
 };
 
+namespace ZJET{
+
+enum CORR{
+        kRJZ,
+        kXJZ_mean,
+        kRJZ_zNum,     // R_JZ calculated directly by the number of events
+        kN_ZJETCORR
+    };
+
+std::string CORR_NAMES[kN_ZJETCORR] = {
+        "rjz",
+        "xjz_mean",
+        "rjz_zNum"
+};
+
+};
+
 class correlationHist {
 public :
     correlationHist(){

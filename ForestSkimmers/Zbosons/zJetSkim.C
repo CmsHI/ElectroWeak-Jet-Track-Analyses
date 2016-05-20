@@ -17,6 +17,7 @@
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Corrections/electrons/electronCorrector.h"
 #include "../../Corrections/jets/jetCorrector.h"
+#include "../../Corrections/jets/L2L3/L2L3ResidualWFits.h"
 
 const long MAXTREESIZE = 500000000000; // set maximum tree size from 10 GB to 100 GB, so that the code does not switch to a new file after 10 GB
 
@@ -56,8 +57,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::vector<std::string> jetCollections;
        int doCorrectionResidual;
        double energyScaleJet;
+       double smearingResJet;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
+       int jetAlgoSmearing;
+       int smearingHiBin;
+       int nSmear;
+       int doCorrectionL2L3;
        // electron cuts
        int cut_nEle;
        int doCorrectionEle;
@@ -84,6 +90,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        float cutZMassMax;
        float cutZPt;
        float cutZEta;
+       float smearZ;
+       TRandom3 randSmearZ(12345);
 
        int doMix;
        int nMaxEvents_minBiasMixing;
@@ -99,8 +107,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
            doCorrectionResidual = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionResidual];
            energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
+           smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
+           jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
+           smearingHiBin = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
+           nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+           doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
 
            cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
            doCorrectionEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
@@ -127,6 +140,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cutZMassMax = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
            cutZPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_pt];
            cutZEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_eta];
+           smearZ = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_smearZ];
 
            doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_doMix];
            nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nMaxEvents_minBiasMixing];
@@ -142,8 +156,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
            doCorrectionResidual = 0;
            energyScaleJet = 0;
+           smearingResJet = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
+           jetAlgoSmearing = CUTS::JET::k_akPU;
+           smearingHiBin = 0;
+           nSmear = 0;
+           doCorrectionL2L3 = 0;
 
            cut_nEle = 2;
            doCorrectionEle = 0;
@@ -171,6 +190,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            cutZMassMax = 100;
            cutZPt = 15;
            cutZEta = 1.44;
+           smearZ = 0;
 
            // default : no mixing
            doMix = 0;
@@ -208,8 +228,13 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
        std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
+       std::cout<<"smearingResJet          = "<< smearingResJet <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
+       std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
+       std::cout<<"smearingHiBin           = "<< smearingHiBin <<std::endl;
+       std::cout<<"nSmear                  = "<< nSmear <<std::endl;
+       std::cout<<"doCorrectionL2L3        = "<< doCorrectionL2L3 <<std::endl;
 
        std::cout<<"doDiElectron = "<<doDiElectron<<std::endl;
        if (doDiElectron > 0) {
@@ -247,6 +272,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"cutZMassMax = "<<cutZMassMax<<std::endl;
        std::cout<<"cutZPt   = "<<cutZPt<<std::endl;
        std::cout<<"cutZEta  = "<<cutZEta<<std::endl;
+       std::cout<<"smearZ  = "<<smearZ<<std::endl;
 
        std::cout<<"doMix    = "<<doMix<<std::endl;
        if (doMix > 0)
@@ -300,6 +326,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
 
        treeEvent->SetBranchStatus("*",0);
        treeEvent->SetBranchStatus("run",1);
@@ -325,6 +352,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeJet[i]->SetBranchStatus("muSum*",1);
            treeJet[i]->SetBranchStatus("muN*",1);
            if (isMC) {
+               treeJet[i]->SetBranchStatus("ref*",1);
                treeJet[i]->SetBranchStatus("matchedPt",1);
                treeJet[i]->SetBranchStatus("matchedR",1);
                treeJet[i]->SetBranchStatus("beamId1",1);
@@ -365,6 +393,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeHiEvt->SetBranchStatus("alphaQCD",1);
            treeHiEvt->SetBranchStatus("alphaQED",1);
            treeHiEvt->SetBranchStatus("qScale",1);
+           treeHiEvt->SetBranchStatus("npus",1);        // store pileup info
+           treeHiEvt->SetBranchStatus("tnpus",1);       // store pileup info
        }
 
        float vz;
@@ -447,11 +477,105 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
-       std::vector<jetCorrector> correctorsJet(nJetCollections);
-       TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
-       if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
+       std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
+       if (doCorrectionL2L3 > 0)
+       {
            for (int i = 0; i < nJetCollections; ++i) {
-               correctorsJet.at(i).rand = randSmearing;
+               correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
+           }
+       }
+
+       std::vector<int> hiBins_residual{0, 20, 60, 100, 200};
+       int nHiBins_residual = hiBins_residual.size()-1;
+       std::vector<jetCorrector> correctorsJetResidual(nJetCollections*nHiBins_residual);
+       TFile* fileResidual = 0;
+       TF1* f1Residual[nHiBins_residual];
+       if (doCorrectionResidual > 0 && isHI) {
+
+           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet50_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_50_RESIDUALCORR_QGHIBINWEIGHT.root";
+
+           std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
+           fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
+
+           f1Residual[0] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent0to10_h"))->GetFunction("f1_p")->Clone("f1Residual_0");
+           f1Residual[1] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent10to30_h"))->GetFunction("f1_p")->Clone("f1Residual_1");
+           f1Residual[2] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent30to50_h"))->GetFunction("f1_p")->Clone("f1Residual_2");
+           f1Residual[3] = (TF1*)((TH1D*)fileResidual->Get("resCorr_cent50to100_h"))->GetFunction("f1_p")->Clone("f1Residual_3");
+
+           if (fileResidual->IsOpen())  fileResidual->Close();
+       }
+
+       std::vector<jetCorrector> correctorsJetJES(nJetCollections);
+
+       std::vector<jetCorrector> correctorsJetSmear(nJetCollections);
+       TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
+
+       // pp resolution
+       std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+       std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
+
+       // smear 0-30 %
+       std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
+       std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
+       std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
+       std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
+
+       // smear 30-100 %
+       std::vector<double> CSN_HI_cent3099 = {0.0623, 1.059, 4.245};
+       std::vector<double> CSN_phi_HI_cent3099 = {-2.013/100000000, 0.1646, 1.04};
+       std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
+       std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
+
+       for (int i = 0; i < nJetCollections; ++i) {
+           correctorsJetSmear.at(i).rand = randSmearing;
+
+           if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0) {
+               // variation of smearing by 15% for pt smearing.
+               if (doCorrectionSmearing == 2)  correctorsJetSmear.at(i).sigma_rel_Var = 1.15;
+               else if (doCorrectionSmearing == 3)  correctorsJetSmear.at(i).sigma_rel_Var = 0.85;
+
+               // variation of smearing by 15% for phi smearing.
+               if (doCorrectionSmearingPhi == 2)  correctorsJetSmear.at(i).sigmaPhi_rel_Var = 1.15;
+               else if (doCorrectionSmearingPhi == 3)  correctorsJetSmear.at(i).sigmaPhi_rel_Var = 0.85;
+
+               correctorsJetSmear.at(i).CSN_PP = CSN_PP;
+               correctorsJetSmear.at(i).CSN_phi_PP = CSN_phi_PP;
+
+               if (smearingHiBin == 1) {    // smear 0-30 %
+                   if (jetAlgoSmearing == CUTS::JET::k_akPU)
+                   {
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+                   }
+                   else if (jetAlgoSmearing == CUTS::JET::k_akCS)
+                   {
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent0030;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent0030;
+                   }
+                   else {
+                       std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value" <<std::endl;
+                       std::cout << "exiting"<< std::endl;
+                       return;
+                   }
+               }
+               else if (smearingHiBin == 2) {    // smear 30-100 %
+
+                   if (jetAlgoSmearing == CUTS::JET::k_akPU)
+                   {
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+                   }
+                   else if (jetAlgoSmearing == CUTS::JET::k_akCS)
+                   {
+                       correctorsJetSmear.at(i).CSN_HI = CSN_HI_akCs_cent3099;
+                       correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_akCs_cent3099;
+                   }
+                   else {
+                       std::cout << "jetAlgoSmearing = " << jetAlgoSmearing << " is not a proper value." <<std::endl;
+                       std::cout << "exiting"<< std::endl;
+                       return;
+                   }
+               }
            }
        }
 
@@ -625,6 +749,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;
 
+       const double zMassConst = 91.18;
        Long64_t entries = treeEvent->GetEntries();
        Long64_t entriesPassedEventSelection = 0;
        Long64_t entriesAnalyzed = 0;
@@ -685,18 +810,24 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                // Zee-jet block
                // find leading z from dielectron
-               double maxZPt = -1;
+               // double maxZPt = -1;
+               double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
                {
+                   if (smearZ > 0)
+                   {
+                       diEle.diElePt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
+                   }
+
                    bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
-                   bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
+                   // bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
 
                    if (failedPtCut)          continue;
                    if (failedEtaCut)         continue;
                    if (failedMassWindow)     continue;
-                   if (failedOppositeCh)     continue;
+                   // if (failedOppositeCh)     continue;
 
                    // some extra and rather loose cuts based on eta region
                    // electron 1
@@ -720,9 +851,17 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                    if (diEle.elePt_2_out.at(i) <= elePt)  continue;
 
+                   /*
                    if (diEle.diElePt_out.at(i) > maxZPt)
                    {
                        maxZPt = diEle.diElePt_out.at(i);
+                       zIdx = i;
+                   }
+                   */
+
+                   if (TMath::Abs(diEle.diEleM_out.at(i) - zMassConst) < minDiffZMass)
+                   {
+                       minDiffZMass = TMath::Abs(diEle.diEleM_out.at(i) - zMassConst);
                        zIdx = i;
                    }
                }
@@ -738,18 +877,24 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
                // Zmumu-jet block
                // find leading z from dimuon
-               double maxZPt = -1;
+               // double maxZPt = -1;
+               double minDiffZMass = 9999;
                for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
                {
+                   if (smearZ > 0)
+                   {
+                       diMu.diMuPt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
+                   }
+
                    bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
                    bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
                    bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
-                   bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
+                   // bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
 
                    if (failedPtCut)          continue;
                    if (failedEtaCut)         continue;
                    if (failedMassWindow)     continue;
-                   if (failedOppositeCh)     continue;
+                   // if (failedOppositeCh)     continue;
 
                    // some extra and rather loose cuts
                    // muon 1
@@ -772,9 +917,17 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    if (diMu.muPixelHits_2_out.at(i) < muPixelHits) continue;
                    if (diMu.muPt_2_out.at(i) <= muPt)  continue;
 
+                   /*
                    if (diMu.diMuPt_out.at(i) > maxZPt)
                    {
                        maxZPt = diMu.diMuPt_out.at(i);
+                       zIdx = i;
+                   }
+                   */
+
+                   if (TMath::Abs(diMu.diMuM_out.at(i) - zMassConst) < minDiffZMass)
+                   {
+                       minDiffZMass = TMath::Abs(diMu.diMuM_out.at(i) - zMassConst);
                        zIdx = i;
                    }
                }
@@ -784,27 +937,76 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            entriesAnalyzed++;
 
            // jet corrections
-           if (doCorrectionResidual > 0) {
-               for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJet.at(i).correctPtsResidual(jets.at(i));
+           if (isHI) {
+
+               if (doCorrectionResidual > 0) {
+                   for (int i=0; i < nJetCollections; ++i) {
+                       for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                       {
+                           if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                           {
+                               correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jets.at(i));
+                               break;
+                           }
+                       }
+                   }
                }
-           }
-           if (energyScaleJet != 0 && energyScaleJet != 1)
-           {
-               for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJet.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
+               if (doCorrectionL2L3 > 0)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+                   }
+               }
+               // apply jtpt smearing
+               if (smearingResJet > 0)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       if (hiBin >= 0 && hiBin < 60) {
+                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+                       }
+                       else {
+                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+                       }
+                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jets.at(i), smearingResJet);
+                   }
                }
            }
            if (isPP) {
-               if (doCorrectionSmearing > 0) {
+
+               if (doCorrectionL2L3 > 0)
+               {
                    for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJet.at(i).correctPtsSmearing(jets.at(i));
+                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
-               if (doCorrectionSmearingPhi > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJet.at(i).correctPhisSmearing(jets.at(i));
+               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+               {
+                   if (nSmear > 0 && nSmear != 1)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           jets.at(i).replicateJets(nSmear);
+                       }
                    }
+
+                   if (doCorrectionSmearing > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
+                       }
+                   }
+                   if (doCorrectionSmearingPhi > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
+                       }
+                   }
+               }
+           }
+           // apply JES after corrections
+           if (energyScaleJet > 0 && energyScaleJet != 1)
+           {
+               for (int i=0; i<nJetCollections; ++i) {
+                   correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
                }
            }
 
@@ -834,20 +1036,73 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                            treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
 
                            // jet corrections for MB events
-                           if (doCorrectionResidual > 0) {
-                               correctorsJet.at(k).correctPtsResidual(jetsMB.at(k));
-                           }
-                           if (energyScaleJet != 0 && energyScaleJet != 1)
-                           {
-                               correctorsJet.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
+                           if (isHI) {
+
+                               if (doCorrectionResidual > 0) {
+                                   for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                                   {
+                                       if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                                       {
+                                           correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jetsMB.at(k));
+                                           break;
+                                       }
+                                   }
+                               }
+                               if (doCorrectionL2L3 > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
+                                   }
+                               }
+                               // apply jtpt smearing
+                               if (smearingResJet > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       if (hiBin >= 0 && hiBin < 60) {
+                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
+                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
+                                       }
+                                       else {
+                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
+                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
+                                       }
+                                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jetsMB.at(i), smearingResJet);
+                                   }
+                               }
                            }
                            if (isPP) {
-                               if (doCorrectionSmearing > 0) {
-                                   correctorsJet.at(k).correctPtsSmearing(jetsMB.at(k));
+
+                               if (doCorrectionL2L3 > 0)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
+                                   }
                                }
-                               if (doCorrectionSmearingPhi > 0) {
-                                   correctorsJet.at(k).correctPhisSmearing(jetsMB.at(k));
+                               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+                               {
+                                   if (nSmear > 0 && nSmear != 1)
+                                   {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           jetsMB.at(i).replicateJets(nSmear);
+                                       }
+                                   }
+
+                                   if (doCorrectionSmearing > 0) {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           correctorsJetSmear.at(i).correctPtsSmearing(jetsMB.at(i));
+                                       }
+                                   }
+                                   if (doCorrectionSmearingPhi > 0) {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           correctorsJetSmear.at(i).correctPhisSmearing(jetsMB.at(i));
+                                       }
+                                   }
                                }
+                           }
+                           // apply JES after corrections
+                           if (energyScaleJet != 0 && energyScaleJet != 1)
+                           {
+                               correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
                            }
 
                            if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);

@@ -328,7 +328,7 @@ void dileptonHistogram(const TString configFile, const TString inputFile, const 
     float hiBinBins[nNPartBins+1] = {0,20,40,60,80,100,200};
 
     TFile *input = new TFile(inputFile);
-    TTree *tHLT = (TTree*)input->Get("HltTree");
+    TTree *tHLT = (TTree*)input->Get("hltTree");
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TTree *t_diele = (TTree*)input->Get(diLeptonTreePath.c_str());
 

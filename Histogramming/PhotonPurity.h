@@ -57,9 +57,9 @@ histFunction2::histFunction2(TH1D *h,TH1D *h2)
 Double_t histFunction2::evaluate(Double_t *x, Double_t *par) {
 
   Double_t xx = x[0];
-  Int_t binNum=histSig->FindBin(xx);
-
-  return par[0]*(histSig->GetBinContent(binNum)*par[1]+histBck->GetBinContent(binNum)*(1-par[1]));
+  Int_t binNum=histBck->FindBin(xx);
+  Int_t shiftedSigBinNum = histSig->FindBin(xx + par[2]);
+  return par[0]*(histSig->GetBinContent(shiftedSigBinNum)*par[1]+histBck->GetBinContent(binNum)*(1-par[1]));
 }
 
 
@@ -72,9 +72,10 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig=0, TH1D* hBkg=0, TH1D* hD
   TH1D* hDatatmp = (TH1D*)hData1->Clone(Form("%s_datatmp",hData1->GetName()));
   Int_t nBins = hDatatmp->GetNbinsX();
   histFunction2 *myFits = new histFunction2(hSig,hBkg);
-  TF1 *f = new TF1("f",myFits,&histFunction2::evaluate,varLow,varHigh,2);
-  f->SetParameters( hDatatmp->Integral(1,nBins+1), 0.3);
-  f->SetParLimits(1,0,1);
+  TF1 *f = new TF1("f",myFits,&histFunction2::evaluate,varLow,varHigh,3);
+  f->SetParameters( hDatatmp->Integral(1,nBins+1), 0.7, 0.0);
+  //f->SetParLimits(1,0,1);
+  f->FixParameter(2,0.0);
   hDatatmp->Fit("f","WL M 0 Q","",varLow,varHigh);
   hDatatmp->Fit("f","WL M 0 Q","",varLow,varHigh);
 
@@ -82,9 +83,17 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig=0, TH1D* hBkg=0, TH1D* hD
   res.nSig =0;
   Double_t nev = f->GetParameter(0);
   Double_t ratio = f->GetParameter(1);
-  Double_t ratioErr = f->GetParError(1);
+  Double_t shift = f->GetParameter(2);
+  Double_t nevError = f->GetParError(0);
+  Double_t ratioError = f->GetParError(1);
+  Double_t shiftError = f->GetParError(2);
+
+  std::cout << "nev: " << nev << " nevError: " << nevError << std::endl;
+  std::cout << "ratio: " << ratio << " ratioError: " << ratioError << std::endl;
+  std::cout << "shift: " << shift << " shiftError: " << shiftError << std::endl;
+
   res.nSig    = nev * ratio;
-  res.nSigErr = nev * ratioErr;
+  res.nSigErr = nev * ratioError;
   res.chisq = (Double_t)f->GetChisquare()/ f->GetNDF();
 
   TH1F *hSigPdf = (TH1F*)hSig->Clone(Form("%s_tmp",hSig->GetName()));
