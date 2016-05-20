@@ -321,8 +321,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     // std::cout<<"###"<< std::endl;
 
     treeHLT->SetBranchStatus("*",0);     // disable all branches
-    treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-    treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+    treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*",1);     // enable photon branches
+    treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*",1);     // enable photon branches
 
     // objects for gamma-jet correlations
     ggHiNtuplizer ggHi;
