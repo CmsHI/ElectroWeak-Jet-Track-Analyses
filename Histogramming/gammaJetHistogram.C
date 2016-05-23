@@ -25,7 +25,7 @@ const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho
 const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
 
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
-const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"};
+//const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", "jtpt"}; // made lower down
 const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
         "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
@@ -37,6 +37,29 @@ const std::vector<double>      xlow_final{0,  0,           0};
 const std::vector<double>      xup_final {2,  TMath::Pi(), 200};
 const std::vector<bool> isAwaySideJets {true,  false, true};  // whether the observable is plotted for inclusive jets in the away side
 const std::vector<bool> isSingleJet    {false, false, false}; // whether the observable is plotted once per event
+
+std::string get_jtpt_branch(int smearingBinIndex){
+    switch(smearingBinIndex){
+    case 0:
+        return "jtpt";
+    case 1:
+        return "jtpt_smeared_0_30";
+    case 2:
+        return "jtpt_smeared_30_100";
+    case 3:
+        return "jtpt_smeared_0_10";
+    case 4:
+        return "jtpt_smeared_10_30";
+    case 5:
+        return "jtpt_smeared_30_50";
+    case 6:
+        return "jtpt_smeared_50_100";
+    case 7:
+        return "jtpt_smeared_sys";
+    default:
+        return "jtpt";
+    }
+}
 
 void gammaJetHistogram(const TString configFile, const TString inputFile, const TString inputMC, const TString outputFile = "gammaJetHistogram.root");
 
@@ -159,6 +182,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
     smearingBinIndex = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
 
+    const std::vector<std::string> correlationHistFormulas{"xjg", "abs(dphi)", get_jtpt_branch(smearingBinIndex)};
+
     if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
 
@@ -232,7 +257,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     if(smearingBinIndex == 0) {
     tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
     } else {
-        tgj = (TTree*)input->Get(Form("gamma_%s_smearingBin%i", jetCollection.c_str(), smearingBinIndex));
+        tgj = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex));
     }
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
     TFile *inputMCFile = TFile::Open(inputMC);
@@ -505,7 +530,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     selectionJet = selectionJet && Form("abs(dphi) <= %f ", cut_awayRange_lt);
                 }
                 selectionJet = selectionJet && Form("dR >= %f", cut_dR);
-                selectionJet = selectionJet && Form("jtpt > %f", cut_jetpt);
+                selectionJet = selectionJet && Form("%s > %f", get_jtpt_branch(smearingBinIndex).c_str(), cut_jetpt);
                 selectionJet = selectionJet && Form("abs(jteta) < %f", cut_jeteta);
                 selectionJet = selectionJet && Form("jetID >= %d", cut_jetID);
                 if (isSingleJet.at(iHist)) {  // select gammaJet events only, do not select inclusive jets

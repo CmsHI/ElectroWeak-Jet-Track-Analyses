@@ -61,45 +61,35 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int nCentralityBins;
   int nVertexBins;
   int nEventsToMix;
+  int doEventWeight;
   bool doCorrectionSmearing;
   int nSmear;
-  if (configCuts.isValid) {
-    cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-    cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
-    cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
-    cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+  std::vector<float> mcFileWeights;
 
-    jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+  if (!configCuts.isValid) {
+    std::cout << "Invalid Configuration File" << std::endl;
+    return;
+  }
+  cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+  cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+  cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
+  cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+
+  jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
            
-    cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
-    cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
+  cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
+  cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
 
-    doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
-    nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
-    nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
-    nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
-    nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
-    doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
-    nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
-  }
-  else {
-    cut_vz = 15;
-    cut_pcollisionEventSelection = 1;
-    cut_pPAprimaryVertexFilter = 1;
-    cut_pBeamScrapingFilter = 1;
-
-    cutPhoEt = 15;
-    cutPhoEta = 1.44;
-
-    // default : no mixing
-    doMix = 0;
-    nMaxEvents_minBiasMixing = 0;
-    nCentralityBins = 0;
-    nVertexBins = 0;
-    nEventsToMix = 0;
-    doCorrectionSmearing = false;
-    nSmear =0;
-  }
+  doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
+  nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
+  nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
+  nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+  nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+  doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
+  nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+  doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+  mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+						      
   int nJetCollections = jetCollections.size();
 
   if(minBiasJetSkimFile.EqualTo("")) {
@@ -229,7 +219,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       }
     }
   }
-  
+						      
   TFile* output = TFile::Open(outputFile,"RECREATE");
   TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
@@ -260,7 +250,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       gammajet[i][j].branchGammaJetTree(gammaJetTree[i][j]);
     }
   }
-
+						      
   // mixed-event block
   std::vector<Jets> jetsMBoutput(nJetCollections);     // object to write jet trees from MB events
   std::vector<GammaJet> gammajetMB(nJetCollections);
@@ -301,6 +291,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
   std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
+						      
   std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
   std::cout<<"#####"<< std::endl;
   for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
@@ -330,8 +321,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     // std::cout<<"###"<< std::endl;
 
     treeHLT->SetBranchStatus("*",0);     // disable all branches
-    treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-    treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+    treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*",1);     // enable photon branches
+    treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*",1);     // enable photon branches
 
     // objects for gamma-jet correlations
     ggHiNtuplizer ggHi;
@@ -461,6 +452,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
     }
 
+    float eventWeight;
     if(it == inputFiles.begin()) {
       output->cd();
       outputTreeHLT    = treeHLT->CloneTree(0);
@@ -498,6 +490,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       outputTreeHiEvt = treeHiEvt->CloneTree(0);
       outputTreeHiEvt->SetName("HiEvt");
       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+      if(doEventWeight){
+	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
+      }
       outputTreeSkim   = treeSkim->CloneTree(0);
       outputTreeSkim->SetName("skim");
       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
@@ -540,6 +535,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	outputTreeJet[i]->Branch("jtphi_smeared_sys",jets.at(i).jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
       }
       treeHiEvt->CopyAddresses(outputTreeHiEvt);
+      if(doEventWeight){
+	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
+      }
       treeSkim->CopyAddresses(outputTreeSkim);
       inFile->cd();
     }
@@ -561,6 +559,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       }
       treeSkim->GetEntry(j_entry);
       treeHiEvt->GetEntry(j_entry);
+      if(doEventWeight){
+	eventWeight = mcFileWeights.at(it - inputFiles.begin());
+      }
 
       bool eventAdded = em->addEvent(run,lumis,event,j_entry);
       //std::cout << run << " " << lumis << " " << event << " " << j_entry << std::endl;
