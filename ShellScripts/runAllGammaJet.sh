@@ -1,10 +1,10 @@
 #!/bin/bash
 set -x
 
-DATE=$(date +"%Y-%m-%d_%H:%M:%S")
+DATE=$(date +"%Y-%m-%d_%H_%M_%S")
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}/
-mkdir -p OUTDIR
+mkdir -p $OUTDIR
 
 echo "### PbPb Data/MC ###"
 
