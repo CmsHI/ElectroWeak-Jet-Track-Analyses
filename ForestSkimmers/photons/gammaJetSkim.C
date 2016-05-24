@@ -16,6 +16,7 @@
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Corrections/jets/jetCorrector.h"
+#include "../../Corrections/jets/L2L3/L2L3ResidualWFits.h"
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
@@ -64,6 +65,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int doEventWeight;
   bool doCorrectionSmearing;
   int nSmear;
+  int doCorrectionL2L3;
   std::vector<float> mcFileWeights;
 
   if (!configCuts.isValid) {
@@ -89,7 +91,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
   doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
   mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
-						      
+  doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
+
   int nJetCollections = jetCollections.size();
 
   if(minBiasJetSkimFile.EqualTo("")) {
@@ -127,6 +130,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
     std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
     std::cout<<"nEventsToMix             = "<< nEventsToMix <<std::endl;
+  }
+
+
+  std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
+  if (doCorrectionL2L3 > 0)
+  {
+      for (int i = 0; i < nJetCollections; ++i) {
+          correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
+      }
   }
 
   // mixed-event block
