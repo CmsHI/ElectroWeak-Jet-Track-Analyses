@@ -93,6 +93,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
 
+  for(unsigned i = 0; i < mcFileWeights.size(); ++i)
+    std::cout << mcFileWeights.at(i) << " ";
+  std::cout << std::endl;
+						      
   int nJetCollections = jetCollections.size();
 
   if(minBiasJetSkimFile.EqualTo("")) {
@@ -303,6 +307,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
   std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
+  for(unsigned i = 0; i < inputFiles.size(); ++i)
+    std::cout << inputFiles.at(i) << " ";
+  std::cout << std::endl;
 						      
   std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
   std::cout<<"#####"<< std::endl;
@@ -398,7 +405,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHiEvt->SetBranchStatus("Nhard",1);
       treeHiEvt->SetBranchStatus("ProcessID",1);
       treeHiEvt->SetBranchStatus("pthat",1);
-      treeHiEvt->SetBranchStatus("weight",1);
+      //treeHiEvt->SetBranchStatus("weight",1); // set a new weight, don't use the old one
       treeHiEvt->SetBranchStatus("alphaQCD",1);
       treeHiEvt->SetBranchStatus("alphaQED",1);
       treeHiEvt->SetBranchStatus("qScale",1);
@@ -530,27 +537,27 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHLT->CopyAddresses(outputTreeHLT);
       treeggHiNtuplizer->CopyAddresses(outputTreeggHiNtuplizer);
       for (int i=0; i<nJetCollections; ++i) {
-	treeJet[i]->CopyAddresses(outputTreeJet[i]);
-	outputTreeJet[i]->Branch("jtpt_smeared_0_30",jets.at(i).jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_30_100",jets.at(i).jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_0_10",jets.at(i).jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_10_30",jets.at(i).jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_30_50",jets.at(i).jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_50_100",jets.at(i).jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_sys",jets.at(i).jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_0_30",jets.at(i).jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_30_100",jets.at(i).jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_0_10",jets.at(i).jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_10_30",jets.at(i).jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_30_50",jets.at(i).jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_50_100",jets.at(i).jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_sys",jets.at(i).jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
+	treeJet[i]->CopyAddresses(outputTreeJet[i], true);
+	// outputTreeJet[i]->Branch("jtpt_smeared_0_30",jets.at(i).jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_30_100",jets.at(i).jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_0_10",jets.at(i).jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_10_30",jets.at(i).jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_30_50",jets.at(i).jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_50_100",jets.at(i).jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
+	// outputTreeJet[i]->Branch("jtpt_smeared_sys",jets.at(i).jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_0_30",jets.at(i).jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_30_100",jets.at(i).jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_0_10",jets.at(i).jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_10_30",jets.at(i).jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_30_50",jets.at(i).jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_50_100",jets.at(i).jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
+	// outputTreeJet[i]->Branch("jtphi_smeared_sys",jets.at(i).jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
       }
-      treeHiEvt->CopyAddresses(outputTreeHiEvt);
-      if(doEventWeight){
-	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
-      }
-      treeSkim->CopyAddresses(outputTreeSkim);
+      treeHiEvt->CopyAddresses(outputTreeHiEvt, true);
+      // if(doEventWeight){
+      // 	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
+      // }
+      treeSkim->CopyAddresses(outputTreeSkim, true);
       inFile->cd();
     }
 
