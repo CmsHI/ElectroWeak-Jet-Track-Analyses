@@ -41,10 +41,10 @@ OUTMCSKIM=pp_MC_gammaJetSkim.root
 echo "## Histogramming"
 INFILE=${OUTDIR}/${OUTFILE}
 INMC=${OUTDIR}/${OUTMCSKIM}
-OUTFILE=pp_Data_gammaJetHistogram.root
+OUTFILE=pp_Data_gammaJetHistogram_smear0_30.root
 ../Histogramming/gammaJetHistogram.exe ../CutConfigurations/gammaJet_pp.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE} || echo "ERROR"
 
 INFILE=${OUTDIR}/${OUTMCSKIM}
 INMC=${INFILE}
-OUTFILE=pp_MC_gammaJetHistogram.root
+OUTFILE=pp_MC_gammaJetHistogram_smear0_30.root
 ../Histogramming/gammaJetHistogram.exe ../CutConfigurations/gammaJet_pp.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE} || echo "ERROR"

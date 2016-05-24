@@ -34,13 +34,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
   // input configuration
-  int collisionType;
-  if (configInput.isValid) {
-    collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
+  if (!configInput.isValid) {
+    std::cout << "Input Configuration invalid" << std::endl;
+    return;
   }
-  else {
-    collisionType = COLL::kPP;
-  }
+
+  int collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
   // verbose about input configuration
   std::cout<<"Input Configuration :"<<std::endl;
   std::cout << "collisionType = " << collisionType << std::endl;
