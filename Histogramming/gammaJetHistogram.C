@@ -320,7 +320,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
-            purity[i][j] = 0.75;
+            purity[i][j] = 0.85; // 85% is closer to the real average. This value is updated with the real value further down
         }
     }
 
@@ -568,11 +568,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 }
 
                 // number of events with photons, not necessarily photon-jet events
+                TH1F *tempHist = new TH1F("tempHist", "weighted number of photons",1,0,1);
                 tgj->SetEventList(elists[CORR::kRAW][i][j]);
-                corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tgj->GetEventList()->GetN();
+                tgj->Draw("0>>tempHist",eventWeight.c_str());
+                corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tempHist->GetBinContent(1);
                 tgj->SetEventList(eventlist);      // restore the original event list
                 tgj->SetEventList(elists[CORR::kBKG][i][j]);
-                corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tgj->GetEventList()->GetN();
+                tgj->Draw("0>>tempHist",eventWeight.c_str());
+                corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tempHist->GetBinContent(1);
                 tgj->SetEventList(eventlist);      // restore the original event list
                 // nEntriesPho[][CORR::kRAW] = nEntriesPho[][CORR::kBKG] by definition
                 // so no calculation for nEntriesPho[][CORR::kBKG]
@@ -697,7 +700,18 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                             corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
                         }
                         if (nSmear > 0 && nSmear != 1) {
+                            //first correct actual bin value
                             corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
+                            //then increase statistical bin error by 10 to account for 100 "fake" smearing
+                            for(int ibin = 1;
+                                ibin <= corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
+                                ibin++)
+                            {
+                                corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->SetBinError
+                                    (ibin,
+                                     TMath::Sqrt(nSmear)*
+                                     corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetBinError(ibin));
+                            }
                         }
                         int tmpNEntriesPho = corrHists[iHist][i][j].nEntriesPho[iCorr][jCorr];
                         // normalization is done with photon events, not necessarily by photon-jet events
