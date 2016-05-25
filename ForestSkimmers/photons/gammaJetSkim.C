@@ -471,6 +471,24 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     }
 
     float eventWeight;
+
+    // some weird memory/ownership issues with these, so hack around it
+    Float_t         jtpt_smeared_0_30[maxJets]; //[nref]
+    Float_t         jtpt_smeared_30_100[maxJets]; //[nref]
+    Float_t         jtpt_smeared_0_10[maxJets]; //[nref]
+    Float_t         jtpt_smeared_10_30[maxJets]; //[nref]
+    Float_t         jtpt_smeared_30_50[maxJets]; //[nref]
+    Float_t         jtpt_smeared_50_100[maxJets]; //[nref]
+    Float_t         jtpt_smeared_sys[maxJets]; //[nref]
+
+    Float_t         jtphi_smeared_0_30[maxJets];   //[nref]
+    Float_t         jtphi_smeared_30_100[maxJets]; //[nref]
+    Float_t         jtphi_smeared_0_10[maxJets]; //[nref]
+    Float_t         jtphi_smeared_10_30[maxJets]; //[nref]  
+    Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
+    Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
+    Float_t         jtphi_smeared_sys[maxJets]; //[nref]
+
     if(it == inputFiles.begin()) {
       output->cd();
       outputTreeHLT    = treeHLT->CloneTree(0);
@@ -490,20 +508,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
 	outputTreeJet[i]->SetName(treeJetName.c_str());
 	outputTreeJet[i]->SetTitle(treeJetTitle.c_str());
-	outputTreeJet[i]->Branch("jtpt_smeared_0_30",jets.at(i).jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_30_100",jets.at(i).jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_0_10",jets.at(i).jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_10_30",jets.at(i).jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_30_50",jets.at(i).jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_50_100",jets.at(i).jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
-	outputTreeJet[i]->Branch("jtpt_smeared_sys",jets.at(i).jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_0_30",jets.at(i).jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_30_100",jets.at(i).jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_0_10",jets.at(i).jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_10_30",jets.at(i).jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_30_50",jets.at(i).jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_50_100",jets.at(i).jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
-	outputTreeJet[i]->Branch("jtphi_smeared_sys",jets.at(i).jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
+	if(doCorrectionSmearing){
+	  outputTreeJet[i]->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
+	}
       }
       outputTreeHiEvt = treeHiEvt->CloneTree(0);
       outputTreeHiEvt->SetName("HiEvt");
@@ -536,27 +556,29 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHLT->CopyAddresses(outputTreeHLT);
       treeggHiNtuplizer->CopyAddresses(outputTreeggHiNtuplizer);
       for (int i=0; i<nJetCollections; ++i) {
-	treeJet[i]->CopyAddresses(outputTreeJet[i], true);
-	// outputTreeJet[i]->Branch("jtpt_smeared_0_30",jets.at(i).jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_30_100",jets.at(i).jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_0_10",jets.at(i).jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_10_30",jets.at(i).jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_30_50",jets.at(i).jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_50_100",jets.at(i).jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
-	// outputTreeJet[i]->Branch("jtpt_smeared_sys",jets.at(i).jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_0_30",jets.at(i).jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_30_100",jets.at(i).jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_0_10",jets.at(i).jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_10_30",jets.at(i).jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_30_50",jets.at(i).jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_50_100",jets.at(i).jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
-	// outputTreeJet[i]->Branch("jtphi_smeared_sys",jets.at(i).jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
+	treeJet[i]->CopyAddresses(outputTreeJet[i]);
+	if(doCorrectionSmearing){
+	  outputTreeJet[i]->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
+	  outputTreeJet[i]->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
+	}
       }
-      treeHiEvt->CopyAddresses(outputTreeHiEvt, true);
-      // if(doEventWeight){
-      // 	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
-      // }
-      treeSkim->CopyAddresses(outputTreeSkim, true);
+      treeHiEvt->CopyAddresses(outputTreeHiEvt);
+      if(doEventWeight){
+      	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
+      }
+      treeSkim->CopyAddresses(outputTreeSkim);
       inFile->cd();
     }
 
@@ -646,6 +668,24 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	      correctorsJetSmear[j-1][i].correctPhisSmearing(jets.at(i));
 	    }
 	    gammajet[i][j].makeGammaJetPairs(ggHi, jets.at(i), phoIdx, j);
+	  }
+	  // awful!
+	  for(int ijet = 0; ijet < jets.at(i).nref; ijet++)
+	  {
+	    jtpt_smeared_0_30[ijet] = jets.at(i).jtpt_smeared_0_30[ijet]; 
+	    jtpt_smeared_30_100[ijet] = jets.at(i).jtpt_smeared_30_100[ijet]; 
+	    jtpt_smeared_0_10[ijet] = jets.at(i).jtpt_smeared_0_10[ijet]; 
+	    jtpt_smeared_10_30[ijet] = jets.at(i).jtpt_smeared_10_30[ijet]; 
+	    jtpt_smeared_30_50[ijet] = jets.at(i).jtpt_smeared_30_50[ijet]; 
+	    jtpt_smeared_50_100[ijet] = jets.at(i).jtpt_smeared_50_100[ijet]; 
+	    jtpt_smeared_sys[ijet] = jets.at(i).jtpt_smeared_sys[ijet]; 
+	    jtphi_smeared_0_30[ijet]  = jets.at(i).jtphi_smeared_0_30[ijet];
+	    jtphi_smeared_30_100[ijet] = jets.at(i).jtphi_smeared_30_100[ijet]; 
+	    jtphi_smeared_0_10[ijet] = jets.at(i).jtphi_smeared_0_10[ijet]; 
+	    jtphi_smeared_10_30[ijet]  = jets.at(i).jtphi_smeared_10_30[ijet];
+	    jtphi_smeared_30_50[ijet] = jets.at(i).jtphi_smeared_30_50[ijet]; 
+	    jtphi_smeared_50_100[ijet] = jets.at(i).jtphi_smeared_50_100[ijet]; 
+	    jtphi_smeared_sys[ijet] = jets.at(i).jtphi_smeared_sys[ijet]; 
 	  }
 	} else {
 	  gammajet[i][0].makeGammaJetPairs(ggHi, jets.at(i), phoIdx, 0);
