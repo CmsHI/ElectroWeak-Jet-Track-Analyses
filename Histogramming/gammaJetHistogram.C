@@ -146,7 +146,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
 
     trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
-
+    // trigger is named differently in MC, hardcode for now :(
+    std::string triggerMC_forPurity = "(HLT_HISinglePhoton40_Eta1p5_v2)";
+        
     cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
     cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
     cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
@@ -488,9 +490,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
                 // event selection
                 TCut selection_event = Form("%s == 1", trigger.c_str());
+                TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
                 //if (isMC) selection_event = "1==1"; // MC should have the correct HLT bit as well
                 if (isHI) {
                     selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
+                    selection_event_mc_forPurity = selection_event_mc_forPurity && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
                 }
 
                 // photon cuts were applied in the analysis code
@@ -508,7 +512,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
                 TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
                 TCut sidebandCut = dataCandidateCut && sidebandIsolation;
-                TCut mcSignalCut = dataCandidateCut && mcIsolation;
+                TCut mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && noiseCut && mcIsolation;
 	    
                 selectionPho = selectionPho && selectionIso;
                 dataCandidateCut = dataCandidateCut && selectionIso;
@@ -568,15 +572,25 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 }
 
                 // number of events with photons, not necessarily photon-jet events
-                TH1F *tempHist = new TH1F("tempHist", "weighted number of photons",1,0,1);
-                tgj->SetEventList(elists[CORR::kRAW][i][j]);
-                tgj->Draw("0>>tempHist",eventWeight.c_str());
-                corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tempHist->GetBinContent(1);
-                tgj->SetEventList(eventlist);      // restore the original event list
-                tgj->SetEventList(elists[CORR::kBKG][i][j]);
-                tgj->Draw("0>>tempHist",eventWeight.c_str());
-                corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tempHist->GetBinContent(1);
-                tgj->SetEventList(eventlist);      // restore the original event list
+                if(isMC){
+                    TH1F *tempHist = new TH1F("tempHist", "weighted number of photons",1,0,1);
+                    tgj->SetEventList(elists[CORR::kRAW][i][j]);
+                    tgj->Draw("0>>tempHist",eventWeight.c_str());
+                    corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tempHist->GetBinContent(1);
+                    tgj->SetEventList(eventlist);      // restore the original event list
+                    tgj->SetEventList(elists[CORR::kBKG][i][j]);
+                    tgj->Draw("0>>tempHist",eventWeight.c_str());
+                    corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tempHist->GetBinContent(1);
+                    tgj->SetEventList(eventlist);      // restore the original event list
+                    delete tempHist;
+                } else {
+                    tgj->SetEventList(elists[CORR::kRAW][i][j]);
+                    corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] = tgj->GetEventList()->GetN();
+                    tgj->SetEventList(eventlist);      // restore the original event list
+                    tgj->SetEventList(elists[CORR::kBKG][i][j]);
+                    corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] = tgj->GetEventList()->GetN();
+                    tgj->SetEventList(eventlist);      // restore the original event list
+                }
                 // nEntriesPho[][CORR::kRAW] = nEntriesPho[][CORR::kBKG] by definition
                 // so no calculation for nEntriesPho[][CORR::kBKG]
                 corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
