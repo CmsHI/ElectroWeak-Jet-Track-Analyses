@@ -660,6 +660,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
       for (int i=0; i<nJetCollections; ++i) {
 	// photon-jet correlation
+          if (doCorrectionL2L3 > 0)
+          {
+              correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+          }
+ 
 	if(doCorrectionSmearing){
 	  jets.at(i).replicateJets(nSmear);
 	  for (int j =0; j<=7; ++j) {
@@ -707,6 +712,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	    {
 	      Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
 	      treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
+
+          if (doCorrectionL2L3 > 0)
+          {
+              correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+          }
 
 	      gammajetMB.at(k).makeGammaJetPairsMB(ggHi, jetsMB.at(k), phoIdx);
 
