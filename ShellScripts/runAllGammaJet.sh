@@ -2,7 +2,7 @@
 set -x
 
 DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-#DATE=2016-05-24_17_11_04
+#DATE=2016-05-25_13_44_28
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 mkdir -p $OUTDIR
@@ -37,7 +37,7 @@ OUTFILE=pp_Data_gammaJetSkim.root
 
 INFILE=pp_MC_HiForest.list
 OUTMCSKIM=pp_MC_gammaJetSkim.root
-../ForestSkimmers/photons/gammaJetSkim.exe ../CutConfigurations/gammaJet_pp.conf $INFILE ${OUTDIR}/${OUTFILE}  > ${OUTDIR}/${OUTFILE}.log || echo "ERROR"
+../ForestSkimmers/photons/gammaJetSkim.exe ../CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
 
 echo "## Histogramming"
 INFILE=${OUTDIR}/${OUTFILE}
