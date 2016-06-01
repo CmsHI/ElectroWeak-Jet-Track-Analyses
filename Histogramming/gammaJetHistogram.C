@@ -36,6 +36,8 @@ const std::vector<double>      xup_final {2,  TMath::Pi(), 200};
 
 const float tempPbPbPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
 
+const int nSmearBins = 8;
+
 float smeared_jtpt(Jets j, int ijet, int smearingBinIndex){
     switch(smearingBinIndex){
     case 0:
@@ -132,7 +134,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // process cuts
     int nEventsToMix;
     int nSmear;
-    int smearingBinIndex;
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListFloat(
@@ -183,7 +184,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
-    smearingBinIndex = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_smearingHiBin];
 
     if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
@@ -244,7 +244,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
     std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
-    std::cout<<"smearingBinIndex          = "<< smearingBinIndex << std::endl;
 
     //set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
@@ -278,11 +277,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tJet->SetBranchStatus("jtpt_smeared_50_100",1);
     tJet->SetBranchStatus("jtpt_smeared_sys",1);
     tJet->SetBranchStatus("jteta",1);
-    TTree *tgj;
-    if(smearingBinIndex == 0) {
-    tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
-    } else {
-        tgj = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex-1));
+    TTree *tgj[nSmearBins];
+    for(int smearingBinIndex = 0; smearingBinIndex<nSmearBins; smearingBinIndex++)
+    {
+        if(smearingBinIndex == 0) {
+            tgj[smearingBinIndex]  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+        } else {
+            tgj[smearingBinIndex] = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex-1));
+        }
     }
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
@@ -292,8 +294,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         return;
     }
 
-    GammaJet gj;
-    gj.setupGammaJetTree(tgj);
+    GammaJet gj[nSmearBins];
+    for(int smearingBinIndex = 0; smearingBinIndex < nSmearBins; smearingBinIndex++)
+    {
+        if(tgj[smearingBinIndex]){
+            gj[smearingBinIndex].setupGammaJetTree(tgj[smearingBinIndex]);
+        }
+    }
     ggHiNtuplizer pho;
     pho.setupTreeForReading(tPho);
     Jets jet;
@@ -338,13 +345,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tJetMB->SetBranchStatus("*",0);
         tJetMB->SetBranchStatus("jtpt",1);
         tJetMB->SetBranchStatus("nref",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_0_30",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_30_100",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_0_10",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_10_30",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_30_50",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_50_100",1);
-        tJetMB->SetBranchStatus("jtpt_smeared_sys",1);
         tJetMB->SetBranchStatus("jteta",1);
 
         jetMB.setupTreeForReading(tJetMB);
@@ -362,9 +362,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
     // need to addfriend for purity calculation
-    tgj->AddFriend(tHlt, "Hlt");
-    tgj->AddFriend(tPho, "Pho");
-    tgj->AddFriend(tHiEvt, "HiEvt");
+    tgj[0]->AddFriend(tHlt, "Hlt");
+    tgj[0]->AddFriend(tPho, "Pho");
+    tgj[0]->AddFriend(tHiEvt, "HiEvt");
 
     tmcgj->AddFriend(tmcHlt, "Hlt");
     tmcgj->AddFriend(tmcPho, "Pho");
@@ -380,11 +380,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
-            if(isHI && !isMC)
-            {
-                purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
-                continue;
-            }
+            // //if(isHI && !isMC)
+            // {
+            //     purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
+            //     continue;
+            // }
             TCut selection_event = Form("%s == 1", trigger.c_str());
             TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
             TCut selection_event_mc_forPurity_pp = Form("%s == 1", triggerMC_forPurity_pp.c_str());
@@ -415,7 +415,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
             dataCandidateCut = dataCandidateCut && selectionIso;
 	    
-            PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj,
+            PhotonPurity fitr = getPurity(configCuts, tgj[0], tmcgj,
                                           dataCandidateCut, sidebandCut,
                                           mcSignalCut);
             purity[i][j] = fitr.purity;
@@ -443,7 +443,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     // prepare histogram names for xjg, abs(dphi) and jet pt
     // if the collision is not HI, then cannot split it into hiBins.
-    if (!isHI) nBins_hiBin = 1;
+    //if (!isHI) nBins_hiBin = 1;
     for (int iHist=0; iHist<nCorrHist; ++iHist){
         for (int i=0; i<nBins_pt; ++i){
             for(int j=0; j<nBins_hiBin; ++j){
@@ -511,13 +511,44 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
     }
 
+    // histograms with centrality on the x-axis
+    std::vector<std::string> correlationHistNames_centBinAll = {"rjg", "xjg_mean"};
+    int nCorrHist_centBinAll = correlationHistNames_centBinAll.size();
+    correlationHist corrHists_centBinAll[nCorrHist_centBinAll][nBins_pt];
+    // prepare histogram names for rjg and <xjg>
+    const int nBins_rjg_cent = 4;
+    const int nBins_xjg_mean_cent= 4;
+    double bins_rjg_cent[nBins_rjg+1] =           {0, 20, 60, 100, 200};
+    double bins_xjg_mean_cent[nBins_xjg_mean+1] = {0, 20, 60, 100, 200};
+
+    for (int j=0; j<nBins_pt; ++j){
+        for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
+            for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
+
+                // rjg
+                std::string subHistName;
+                subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll.at(0).c_str(), j,
+                                   CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
+                corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_rjg_cent, bins_rjg_cent);
+
+                // x_jg_mean
+                subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll.at(1).c_str(), j,
+                                   CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
+                corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",nBins_xjg_mean_cent, bins_xjg_mean_cent);
+            }
+        }
+    }
+
+
     // selection for jet regions
     // jet from bkg region are already separated from raw region.
     // no additional selection for jets. just use different trees.
     std::cout<<"####################"<<std::endl;
-    std::cout<<"tgj->GetEntries() = "<<tgj->GetEntries()<<std::endl;
+    std::cout<<"tgj->GetEntries() = "<<tgj[0]->GetEntries()<<std::endl;
     if (trigger.compare("") != 0 && !isMC) {
-        std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
+        std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj[0]->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
     }
     else {
         std::cout<<"tgj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC."<<std::endl;
@@ -527,7 +558,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     //time_t startTime = time(0);
     // double phoCutInt = 0;
     // double jetCutInt = 0;
-    long long nentries = tgj->GetEntries();
+    long long nentries = tgj[0]->GetEntries();
     for(long long jentry = 0; jentry < nentries; jentry++)
     {
         if (jentry % 2000 == 0)  {
@@ -542,27 +573,27 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         if(!isHI && isMC && !HLT_HISinglePhoton40_Eta1p5ForPPRef_v1) continue;
 
         tPho->GetEntry(jentry);
-        tgj->GetEntry(jentry);
+        tgj[0]->GetEntry(jentry);
         // eta cut
-        if(TMath::Abs(pho.phoEta->at(gj.phoIdx)) > 1.44) continue;
+        if(TMath::Abs(pho.phoEta->at(gj[0].phoIdx)) > 1.44) continue;
 
         // noise cut
-        if((pho.phoE3x3->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) > 2/3-0.03 &&
-            pho.phoE3x3->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) < 2/3+0.03) &&
-           (pho.phoE1x5->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) > 1/3-0.03 &&
-            pho.phoE1x5->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) < 1/3+0.03) &&
-           (pho.phoE2x5->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) > 2/3-0.03 &&
-            pho.phoE2x5->at(gj.phoIdx)/pho.phoE5x5->at(gj.phoIdx) < 2/3+0.03)) continue;
+        if((pho.phoE3x3->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) > 2/3-0.03 &&
+            pho.phoE3x3->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) < 2/3+0.03) &&
+           (pho.phoE1x5->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) > 1/3-0.03 &&
+            pho.phoE1x5->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) < 1/3+0.03) &&
+           (pho.phoE2x5->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) > 2/3-0.03 &&
+            pho.phoE2x5->at(gj[0].phoIdx)/pho.phoE5x5->at(gj[0].phoIdx) < 2/3+0.03)) continue;
 
         // isolation cut
-        if((pho.pho_ecalClusterIsoR4->at(gj.phoIdx) +
-            pho.pho_hcalRechitIsoR4->at(gj.phoIdx) +
-            pho.pho_trackIsoR4PtCut20->at(gj.phoIdx) ) > cut_sumIso) continue;
-        if(pho.phoHoverE->at(gj.phoIdx) > 0.1) continue;
+        if((pho.pho_ecalClusterIsoR4->at(gj[0].phoIdx) +
+            pho.pho_hcalRechitIsoR4->at(gj[0].phoIdx) +
+            pho.pho_trackIsoR4PtCut20->at(gj[0].phoIdx) ) > cut_sumIso) continue;
+        if(pho.phoHoverE->at(gj[0].phoIdx) > 0.1) continue;
 
-        bool isSignalPho = (pho.phoSigmaIEtaIEta_2012->at(gj.phoIdx) < cut_phoSigmaIEtaIEta);
-        bool isBkgPho = (pho.phoSigmaIEtaIEta_2012->at(gj.phoIdx) > 0.011 &&
-                         pho.phoSigmaIEtaIEta_2012->at(gj.phoIdx) < 0.017);
+        bool isSignalPho = (pho.phoSigmaIEtaIEta_2012->at(gj[0].phoIdx) < cut_phoSigmaIEtaIEta);
+        bool isBkgPho = (pho.phoSigmaIEtaIEta_2012->at(gj[0].phoIdx) > 0.011 &&
+                         pho.phoSigmaIEtaIEta_2012->at(gj[0].phoIdx) < 0.017);
 
         if(!(isSignalPho || isBkgPho)) continue;
 
@@ -571,7 +602,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
-
+       
         float weight = 1;
         if(isMC){
             weight = evt.weight;
@@ -579,11 +610,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         // handle nEntriesPho separate from jet loop
         for (int i=0; i<nBins_pt; ++i){
-            if(pho.phoEt->at(gj.phoIdx) < bins_pt[0].at(i) ||
-               pho.phoEt->at(gj.phoIdx) >= bins_pt[1].at(i)) continue;
+            if(pho.phoEt->at(gj[0].phoIdx) < bins_pt[0].at(i) ||
+               pho.phoEt->at(gj[0].phoIdx) >= bins_pt[1].at(i)) continue;
             for(int j=0; j<nBins_hiBin; ++j){
-                if(evt.hiBin < bins_hiBin[0].at(j) ||
-                   evt.hiBin >= bins_hiBin[1].at(j)) continue;
+                if(isHI){
+                    if(evt.hiBin < bins_hiBin[0].at(j) ||
+                       evt.hiBin >= bins_hiBin[1].at(j)) continue;
+                }
                 for(int iHist = 0; iHist < nCorrHist; iHist++){
                     corrHists[iHist][i][j].nEntriesPho[phoType][CORR::kRAW] += weight;
                 }
@@ -591,29 +624,42 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
 
         // time_t jetCutStart = time(0);
+        bool gotEntry[nSmearBins] = {false}; // only call getEntry once per event for smear trees
+        gotEntry[0] = true;
         for(int ijet = 0; ijet < jet.nref; ijet++){
             // jet cuts
-            if(gj.dR->at(ijet) < cut_dR) continue;
             if(TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
-            if(smeared_jtpt(jet, ijet, smearingBinIndex) < cut_jetpt) continue;
-            if(gj.jetID->at(ijet) < cut_jetID) continue;
-
-            for (int i=0; i<nBins_pt; ++i){
-                if(pho.phoEt->at(gj.phoIdx) < bins_pt[0].at(i) ||
-                   pho.phoEt->at(gj.phoIdx) >= bins_pt[1].at(i)) continue;
-                for(int j=0; j<nBins_hiBin; ++j){
+            if(gj[0].jetID->at(ijet) < cut_jetID) continue;
+            
+            for(int j=0; j<nBins_hiBin; ++j){
+                int smearingBinIndex = 0;
+                if(isHI){
                     if(evt.hiBin < bins_hiBin[0].at(j) ||
                        evt.hiBin >= bins_hiBin[1].at(j)) continue;
-                
+                } else {
+                    if(!gotEntry[j]){
+                        tgj[j]->GetEntry(jentry);
+                        gotEntry[j] = true;
+                    }
+                    smearingBinIndex = j;
+                }
+
+                if(smeared_jtpt(jet, ijet, smearingBinIndex) < cut_jetpt) continue;
+                if(gj[smearingBinIndex].dR->at(ijet) < cut_dR) continue;
+
+                for (int i=0; i<nBins_pt; ++i){
+                    if(pho.phoEt->at(gj[0].phoIdx) < bins_pt[0].at(i) ||
+                       pho.phoEt->at(gj[0].phoIdx) >= bins_pt[1].at(i)) continue;
+
                     // fill histograms
                     // dphi = 1
-                    corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(gj.dphi->at(ijet), weight);
+                    corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs(gj[smearingBinIndex].dphi->at(ijet)), weight);
                     corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     //apply dphi cuts now
-                    if(TMath::Abs(gj.dphi->at(ijet)) <= cut_awayRange) continue;
+                    if(TMath::Abs(gj[smearingBinIndex].dphi->at(ijet)) <= cut_awayRange) continue;
                     // xjg = 0
                     // jtpt = 2
-                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(gj.xjg->at(ijet), weight);
+                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(gj[smearingBinIndex].xjg->at(ijet), weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(
                         smeared_jtpt(jet, ijet, smearingBinIndex), weight);
@@ -635,15 +681,15 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 if(gjMB.jetID->at(ijet) < cut_jetID) continue;
 
                 for (int i=0; i<nBins_pt; ++i){
-                    if(pho.phoEt->at(gj.phoIdx) < bins_pt[0].at(i) ||
-                       pho.phoEt->at(gj.phoIdx) >= bins_pt[1].at(i)) continue;
+                    if(pho.phoEt->at(gjMB.phoIdx) < bins_pt[0].at(i) ||
+                       pho.phoEt->at(gjMB.phoIdx) >= bins_pt[1].at(i)) continue;
                     for(int j=0; j<nBins_hiBin; ++j){
                         if(evt.hiBin < bins_hiBin[0].at(j) ||
                            evt.hiBin >= bins_hiBin[1].at(j)) continue;
                 
                         // fill histograms
                         // dphi = 1
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(gjMB.dphi->at(ijet), weight);
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs(gjMB.dphi->at(ijet)), weight);
                         corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
                         //apply dphi cuts now
                         if(TMath::Abs(gjMB.dphi->at(ijet)) <= cut_awayRange) continue;
@@ -687,7 +733,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 std::cout<< "nEntriesPho[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] <<std::endl;
 
                 std::string histoTitle;
-                if (isHI) {
+                //if (isHI) {
                     histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %% ",collisionName , bins_pt[0].at(i), bins_pt[1].at(i), bins_hiBin[0].at(j)/2, bins_hiBin[1].at(j)/2);
 
                     // special cases
@@ -706,18 +752,18 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     else if (bins_pt[1].at(i) < 0) {
                         histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c, %d-%d %% ",collisionName , bins_pt[0].at(i), bins_hiBin[0].at(j)/2, bins_hiBin[1].at(j)/2);
                     }
-                }
-                else {
-                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c",collisionName , bins_pt[0].at(i), bins_pt[1].at(i));
+                    //}
+                // else {
+                //     histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c",collisionName , bins_pt[0].at(i), bins_pt[1].at(i));
 
-                    // special cases
-                    if (bins_pt[0].at(i) <= 0 && bins_pt[1].at(i) < 0)   {
-                        histoTitle = Form("%s",collisionName );
-                    }
-                    else if (bins_pt[1].at(i) < 0) {
-                        histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0].at(i));
-                    }
-                }
+                //     // special cases
+                //     if (bins_pt[0].at(i) <= 0 && bins_pt[1].at(i) < 0)   {
+                //         histoTitle = Form("%s",collisionName );
+                //     }
+                //     else if (bins_pt[1].at(i) < 0) {
+                //         histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0].at(i));
+                //     }
+                // }
 
                 // histograms for RAW and BKG regions
                 for (int iCorr = 0; iCorr < CORR::kN_CORRFNC -1; ++iCorr) {
@@ -907,7 +953,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 // ignore SIGRAW, SIGBKG histograms
                 if ((iCorr == CORR::kSIG && (jCorr == CORR::kRAW || jCorr == CORR::kBKG))) continue;
 
-                if(j>0 && !isHI) continue;
+                //if(j>0) continue;
 
                 int offset = 2; // ptBin 40-50 starts from index 2.
                 // rjg block
@@ -956,6 +1002,73 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
                 corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Write("",TObject::kOverwrite);
                 corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+                c->Write("",TObject::kOverwrite);
+                c->Clear();
+            }
+        }
+    }
+    std::cout<<"####################"<<std::endl;
+
+    // histograms with centrality bins on x-axis
+    // corrHists_centBinAll[0][]  = R_jg
+    // corrHists_centBinAll[1][]  = <X_jg>
+    std::cout<<"####################"<<std::endl;
+    for(int j=0; j<nBins_pt; ++j){
+        for(int iCorr=0; iCorr<CORR::kN_CORRFNC; ++iCorr) {
+            for(int jCorr=0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
+
+                // ignore SIGRAW, SIGBKG histograms
+                if ((iCorr == CORR::kSIG && (jCorr == CORR::kRAW || jCorr == CORR::kBKG))) continue;
+
+                //if(j>0 && !isHI) continue;
+
+                int offset = 6; // hiBin 0-10 starts from index 6.
+                // rjg block
+                for(int i=0; i<nBins_rjg_cent; ++i){
+
+                    double err;
+                    double val = corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
+                                                                                                          corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err);
+
+                    corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+                    corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+                }
+
+                std::string histoTitle = Form("%s , %lf-%lf %%",collisionName , bins_pt[0].at(j), bins_pt[1].at(j));
+
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; R_{J#gamma}",histoTitle.c_str()));
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
+
+                std::cout<<"drawing : "<<corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str()<<std::endl;
+                c->SetName(Form("cnv_%s",corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str()));
+                c->cd();
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Draw("e");
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Write("",TObject::kOverwrite);
+                corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+                c->Write("",TObject::kOverwrite);
+                c->Clear();
+
+                // xjg_mean block
+                for(int i=0; i<nBins_xjg_mean_cent; ++i){
+
+                    double val = corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetMean();
+                    double err = corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetMeanError();
+
+                    corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+                    corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+                }
+
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; <x_{J#gamma}>",histoTitle.c_str()));
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
+
+                std::cout<<"drawing : "<<corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str()<<std::endl;
+                c->SetName(Form("cnv_%s",corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str()));
+                c->cd();
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Write("",TObject::kOverwrite);
+                corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
                 c->Write("",TObject::kOverwrite);
                 c->Clear();
             }

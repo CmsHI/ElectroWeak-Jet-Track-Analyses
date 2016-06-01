@@ -21,12 +21,12 @@ OUTMCSKIM=PbPb_MC_gammaJetSkim.root
 echo "## Histogramming"
 INFILE=${OUTDIR}/${OUTFILE}
 INMC=${OUTDIR}/${OUTMCSKIM}
-OUTFILE=PbPb_Data_gammaJetHistogram_jet30.root
+OUTFILE=PbPb_Data_gammaJetHistogram.root
 time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE} > ${OUTDIR}/${OUTFILE}.log || echo "ERROR"
 
 INFILE=${OUTDIR}/${OUTMCSKIM}
 INMC=${INFILE}
-OUTFILE=PbPb_MC_gammaJetHistogram_jet30.root
+OUTFILE=PbPb_MC_gammaJetHistogram.root
 time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_mc.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE} > ${OUTDIR}/${OUTFILE}.log || echo "ERROR"
 
 echo "### pp Data/MC ###"
@@ -37,15 +37,15 @@ OUTFILE=pp_Data_gammaJetSkim.root
 
 INFILE=./ShellScripts/pp_MC_HiForest.list
 OUTMCSKIM=pp_MC_gammaJetSkim.root
-#time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
 
 echo "## Histogramming"
 INFILE=${OUTDIR}/${OUTFILE}
 INMC=${OUTDIR}/${OUTMCSKIM}
-OUTFILE=pp_Data_gammaJetHistogram_smear0_30_jet30.root
+OUTFILE=pp_Data_gammaJetHistogram.root
 time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE}  > ${OUTDIR}/${OUTFILE}.log || echo "ERROR"
 
 INFILE=${OUTDIR}/${OUTMCSKIM}
 INMC=${INFILE}
-OUTFILE=pp_MC_gammaJetHistogram_smear0_30_jet30.root
+OUTFILE=pp_MC_gammaJetHistogram.root
 time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp_mc.conf ${INFILE} ${INMC} ${OUTDIR}/${OUTFILE}  > ${OUTDIR}/${OUTFILE}.log || echo "ERROR"
