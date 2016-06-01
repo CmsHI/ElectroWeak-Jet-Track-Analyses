@@ -1125,8 +1125,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
         else {  // file extension is NOT specified
 
-            c->SaveAs(Form("%s.C", tmpOutputFile.c_str()));
-            c->SaveAs(Form("%s.png", tmpOutputFile.c_str()));
+            //c->SaveAs(Form("%s.C", tmpOutputFile.c_str()));
+            //c->SaveAs(Form("%s.png", tmpOutputFile.c_str()));
             c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
         }
         //pad->Close();
