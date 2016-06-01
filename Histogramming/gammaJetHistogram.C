@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+// #include <ctime>
 
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../TreeHeaders/JetTree.h"
@@ -147,6 +148,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
     // trigger is named differently in MC, hardcode for now :(
     std::string triggerMC_forPurity = "(HLT_HISinglePhoton40_Eta1p5_v2)";
+    std::string triggerMC_forPurity_pp = "(HLT_HISinglePhoton40_Eta1p5ForPPRef_v1)";
         
     cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
     cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
@@ -280,7 +282,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     if(smearingBinIndex == 0) {
     tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
     } else {
-        tgj = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex));
+        tgj = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex-1));
     }
     TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
@@ -378,12 +380,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
-            if(isHI && !isMC){
+            if(isHI && !isMC)
+            {
                 purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
                 continue;
             }
             TCut selection_event = Form("%s == 1", trigger.c_str());
             TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
+            TCut selection_event_mc_forPurity_pp = Form("%s == 1", triggerMC_forPurity_pp.c_str());
             if (isHI) {
                 selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
                 selection_event_mc_forPurity = selection_event_mc_forPurity && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0].at(j), bins_hiBin[1].at(j));
@@ -403,7 +407,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
             TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
             TCut sidebandCut = dataCandidateCut && sidebandIsolation;
-            TCut mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && noiseCut && mcIsolation;
+            TCut mcSignalCut;
+            if(isHI){
+                mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && noiseCut && mcIsolation;
+            } else {
+                mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && noiseCut && mcIsolation;
+            }
             dataCandidateCut = dataCandidateCut && selectionIso;
 	    
             PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj,
@@ -515,13 +524,17 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     }
     std::cout<<"####################"<<std::endl;
 
+    //time_t startTime = time(0);
+    // double phoCutInt = 0;
+    // double jetCutInt = 0;
     long long nentries = tgj->GetEntries();
     for(long long jentry = 0; jentry < nentries; jentry++)
     {
         if (jentry % 2000 == 0)  {
             std::cout << "current entry = " <<jentry<<" out of "<<nentries<<" : "<<std::setprecision(2)<<(double)jentry/nentries*100<<" %"<<std::endl;
         }
-        
+
+        // time_t phoCutStart = time(0);
         tHlt->GetEntry(jentry);
         // event selection
         if(!isMC && !HLT_HISinglePhoton40_Eta1p5_v1) continue;
@@ -554,7 +567,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         if(!(isSignalPho || isBkgPho)) continue;
 
         int phoType = (isSignalPho ? CORR::kRAW : CORR::kBKG);
-        
+        // phoCutInt += difftime(time(0),phoCutStart);
+
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
 
@@ -576,6 +590,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         }
 
+        // time_t jetCutStart = time(0);
         for(int ijet = 0; ijet < jet.nref; ijet++){
             // jet cuts
             if(gj.dR->at(ijet) < cut_dR) continue;
@@ -595,7 +610,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(gj.dphi->at(ijet), weight);
                     corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     //apply dphi cuts now
-                    if(gj.dphi->at(ijet) <= cut_awayRange) continue;
+                    if(TMath::Abs(gj.dphi->at(ijet)) <= cut_awayRange) continue;
                     // xjg = 0
                     // jtpt = 2
                     corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(gj.xjg->at(ijet), weight);
@@ -606,6 +621,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 }
             }
         }
+        // jetCutInt += difftime(time(0), jetCutStart);
 
         if(hasJetsMB && hasGammaJetMB) {
             tJetMB->GetEntry(jentry);
@@ -630,7 +646,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(gjMB.dphi->at(ijet), weight);
                         corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
                         //apply dphi cuts now
-                        if(gjMB.dphi->at(ijet) <= cut_awayRange) continue;
+                        if(TMath::Abs(gjMB.dphi->at(ijet)) <= cut_awayRange) continue;
                         // xjg = 0
                         // jtpt = 2
                         corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(gjMB.xjg->at(ijet), weight);
@@ -643,6 +659,9 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         }
     }
+
+    // std::cout << "Photon Cuts Time: " << phoCutInt << std::endl;
+    // std::cout << "Jet Cuts/Loop Time: " << jetCutInt << std::endl;
 
     /// Histogram arithmetic (no reading I/O)
     TCanvas* c = new TCanvas("cnv","",600,600);
