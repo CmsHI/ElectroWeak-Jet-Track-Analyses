@@ -55,6 +55,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   std::vector<std::string> jetCollections;
   float cutPhoEt;
   float cutPhoEta;
+  float cutJetPt; // applied to any of the smeared values in the case of smearing.
+  float cutJetEta;
 
   int doMix;
   int nMaxEvents_minBiasMixing;
@@ -80,6 +82,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
            
   cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
   cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
+
+  cutJetPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
+  cutJetEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
 
   doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
   nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
@@ -139,9 +144,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
   if (doCorrectionL2L3 > 0)
   {
-      for (int i = 0; i < nJetCollections; ++i) {
-          correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
-      }
+    for (int i = 0; i < nJetCollections; ++i) {
+      correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
+    }
   }
 
   // mixed-event block
@@ -245,6 +250,16 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   TTree* gammaJetTree[nJetCollections][8];
   GammaJet gammajet[nJetCollections][8];
 
+  std::vector<Jets> outputJets(nJetCollections);
+  for (int i=0; i<nJetCollections; ++i) {
+    std::string treeJetName = jetCollections.at(i).c_str();
+    std::string treeJetTitle = jetCollections.at(i).c_str();
+    // do not lose the current title
+    outputTreeJet[i] = new TTree(treeJetName.c_str(), treeJetTitle.c_str());
+    outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
+    outputJets.at(i).setupTreeForWriting(outputTreeJet[i]);   
+  }
+
   for (int i=0; i<nJetCollections; ++i) {
     for (int j=0; j<=7; ++j) {
       // pick a unique, but also not complicated name for gammaJet Trees
@@ -256,13 +271,14 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	treegammaJetName = Form("gamma_%s_smearBin%i", jetCollections.at(i).c_str(), j-1);
       }
       treegammaJetTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
-	
+
       gammaJetTree[i][j] = new TTree(treegammaJetName.c_str(),treegammaJetTitle.c_str());
       gammaJetTree[i][j]->SetMaxTreeSize(MAXTREESIZE);
 
       gammajet[i][j].resetAwayRange();
       gammajet[i][j].resetConeRange();
       gammajet[i][j].branchGammaJetTree(gammaJetTree[i][j]);
+      if(!doCorrectionSmearing) break;
     }
   }
 						      
@@ -314,8 +330,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   std::cout<<"#####"<< std::endl;
   for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
     std::cout<<(*it).c_str()<< std::endl;
-    //}
-    //std::cout<<"##### END #####"<< std::endl;
+
     TFile *inFile = TFile::Open((*it).c_str());
     inFile->cd();
     TTree* treeHLT   = (TTree*) inFile->Get("hltanalysis/HltTree");
@@ -331,12 +346,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     }
     TTree* treeHiEvt = (TTree*) inFile->Get("hiEvtAnalyzer/HiTree");
     TTree* treeSkim  = (TTree*) inFile->Get("skimanalysis/HltTree");
-    // TTree* treeHiForestInfo = (TTree*) inFile->Get("HiForest/HiForestInfo");
-
-    // HiForestInfoController hfic(treeHiForestInfo);
-    // std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    // hfic.printHiForestInfo();
-    // std::cout<<"###"<< std::endl;
 
     treeHLT->SetBranchStatus("*",0);     // disable all branches
     treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*",1);     // enable photon branches
@@ -472,59 +481,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
     float eventWeight;
 
-    // some weird memory/ownership issues with these, so hack around it
-    Float_t         jtpt_smeared_0_30[maxJets]; //[nref]
-    Float_t         jtpt_smeared_30_100[maxJets]; //[nref]
-    Float_t         jtpt_smeared_0_10[maxJets]; //[nref]
-    Float_t         jtpt_smeared_10_30[maxJets]; //[nref]
-    Float_t         jtpt_smeared_30_50[maxJets]; //[nref]
-    Float_t         jtpt_smeared_50_100[maxJets]; //[nref]
-    Float_t         jtpt_smeared_sys[maxJets]; //[nref]
-
-    Float_t         jtphi_smeared_0_30[maxJets];   //[nref]
-    Float_t         jtphi_smeared_30_100[maxJets]; //[nref]
-    Float_t         jtphi_smeared_0_10[maxJets]; //[nref]
-    Float_t         jtphi_smeared_10_30[maxJets]; //[nref]  
-    Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
-    Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
-    Float_t         jtphi_smeared_sys[maxJets]; //[nref]
-
     if(it == inputFiles.begin()) {
       output->cd();
       outputTreeHLT    = treeHLT->CloneTree(0);
       outputTreeHLT->SetName("hltTree");
       outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
       outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
-      for (int i=0; i<nJetCollections; ++i) {
-	outputTreeJet[i] = treeJet[i]->CloneTree(0);
-
-	// pick a unique, but also not complicated name for jet Trees
-	// jet collection names which are complicated will be put into tree title
-	std::string treeJetName = jetCollections.at(i).c_str();
-	std::string treeJetTitle = jetCollections.at(i).c_str();
-	std::string currentTitle = outputTreeJet[i]->GetTitle();
-	// do not lose the current title
-	if (currentTitle.size() > 0) treeJetTitle = Form("%s - %s", treeJetTitle.c_str(), currentTitle.c_str());
-
-	outputTreeJet[i]->SetName(treeJetName.c_str());
-	outputTreeJet[i]->SetTitle(treeJetTitle.c_str());
-	if(doCorrectionSmearing){
-	  outputTreeJet[i]->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
-	}
-      }
       outputTreeHiEvt = treeHiEvt->CloneTree(0);
       outputTreeHiEvt->SetName("HiEvt");
       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
@@ -534,50 +496,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       outputTreeSkim   = treeSkim->CloneTree(0);
       outputTreeSkim->SetName("skim");
       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
-//       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-//       outputTreeHiForestInfo->SetName("HiForestInfo");
-//       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
 
       outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
       outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
-      for (int i=0; i<nJetCollections; ++i) {
-	outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
-      }
       outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
-//       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-//
-//       // record HiForestInfo
-//       treeHiForestInfo->GetEntry(0);
-//       outputTreeHiForestInfo->Fill();
       inFile->cd();
     } else {
       output->cd();
       treeHLT->CopyAddresses(outputTreeHLT);
       treeggHiNtuplizer->CopyAddresses(outputTreeggHiNtuplizer);
-      for (int i=0; i<nJetCollections; ++i) {
-	treeJet[i]->CopyAddresses(outputTreeJet[i]);
-	if(doCorrectionSmearing){
-	  outputTreeJet[i]->Branch("jtpt_smeared_0_30",jtpt_smeared_0_30,"jtpt_smeared_0_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_30_100",jtpt_smeared_30_100,"jtpt_smeared_30_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_0_10",jtpt_smeared_0_10,"jtpt_smeared_0_10[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_10_30",jtpt_smeared_10_30,"jtpt_smeared_10_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_30_50",jtpt_smeared_30_50,"jtpt_smeared_30_50[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_50_100",jtpt_smeared_50_100,"jtpt_smeared_50_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtpt_smeared_sys",jtpt_smeared_sys,"jtpt_smeared_sys[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_0_30",jtphi_smeared_0_30,"jtphi_smeared_0_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_30_100",jtphi_smeared_30_100,"jtphi_smeared_30_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_0_10",jtphi_smeared_0_10,"jtphi_smeared_0_10[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_10_30",jtphi_smeared_10_30,"jtphi_smeared_10_30[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_30_50",jtphi_smeared_30_50,"jtphi_smeared_30_50[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_50_100",jtphi_smeared_50_100,"jtphi_smeared_50_100[nref]/F");
-	  outputTreeJet[i]->Branch("jtphi_smeared_sys",jtphi_smeared_sys,"jtphi_smeared_sys[nref]/F");
-	}
-      }
       treeHiEvt->CopyAddresses(outputTreeHiEvt);
-      if(doEventWeight){
-      	outputTreeHiEvt->Branch("weight",&eventWeight,"weight/F");
-      }
       treeSkim->CopyAddresses(outputTreeSkim);
       inFile->cd();
     }
@@ -604,7 +533,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       }
 
       bool eventAdded = em->addEvent(run,lumis,event,j_entry);
-      //std::cout << run << " " << lumis << " " << event << " " << j_entry << std::endl;
       if(!eventAdded) // this event is duplicate, skip this one.
       {
 	duplicateEntries++;
@@ -630,24 +558,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	bool failedEtCut  = (ggHi.phoEt->at(i) < cutPhoEt) ;
 	bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta) ;
 	bool failedSpikeRejection;
-	// all samples should have swissCrx and seedTime now
-	//if (isHI) {
 	failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
 				ggHi.pho_swissCrx->at(i)     > 0.9   ||
 				TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
-	// }
-	// else {
-	//     failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002);
-	// }
-
 	bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
-//               bool failedEnergyRatio = ((float)ggHi.phoSCRawE->at(i)/ggHi.phoE->at(i) < 0.5);
 
 	if (failedEtCut)          continue;
 	if (failedEtaCut)         continue;
 	if (failedSpikeRejection) continue;
 	if (failedHoverE)         continue;
-//               if (failedEnergyRatio)    continue;    // actually applied after corrections
 
 	if (ggHi.phoEt->at(i) > maxPhoEt)
 	{
@@ -659,11 +578,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       entriesAnalyzed++;
 
       for (int i=0; i<nJetCollections; ++i) {
-	// photon-jet correlation
-          if (doCorrectionL2L3 > 0)
-          {
-              correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
-          }
+	outputJets.at(i).nref = 0;
+	if (doCorrectionL2L3 > 0)
+	{
+	  correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+	}
  
 	if(doCorrectionSmearing){
 	  jets.at(i).replicateJets(nSmear);
@@ -672,29 +591,87 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	      correctorsJetSmear[j-1][i].correctPtsSmearing(jets.at(i)); 
 	      correctorsJetSmear[j-1][i].correctPhisSmearing(jets.at(i));
 	    }
-	    gammajet[i][j].makeGammaJetPairs(ggHi, jets.at(i), phoIdx, j);
 	  }
-	  // awful!
-	  for(int ijet = 0; ijet < jets.at(i).nref; ijet++)
-	  {
-	    jtpt_smeared_0_30[ijet] = jets.at(i).jtpt_smeared_0_30[ijet]; 
-	    jtpt_smeared_30_100[ijet] = jets.at(i).jtpt_smeared_30_100[ijet]; 
-	    jtpt_smeared_0_10[ijet] = jets.at(i).jtpt_smeared_0_10[ijet]; 
-	    jtpt_smeared_10_30[ijet] = jets.at(i).jtpt_smeared_10_30[ijet]; 
-	    jtpt_smeared_30_50[ijet] = jets.at(i).jtpt_smeared_30_50[ijet]; 
-	    jtpt_smeared_50_100[ijet] = jets.at(i).jtpt_smeared_50_100[ijet]; 
-	    jtpt_smeared_sys[ijet] = jets.at(i).jtpt_smeared_sys[ijet]; 
-	    jtphi_smeared_0_30[ijet]  = jets.at(i).jtphi_smeared_0_30[ijet];
-	    jtphi_smeared_30_100[ijet] = jets.at(i).jtphi_smeared_30_100[ijet]; 
-	    jtphi_smeared_0_10[ijet] = jets.at(i).jtphi_smeared_0_10[ijet]; 
-	    jtphi_smeared_10_30[ijet]  = jets.at(i).jtphi_smeared_10_30[ijet];
-	    jtphi_smeared_30_50[ijet] = jets.at(i).jtphi_smeared_30_50[ijet]; 
-	    jtphi_smeared_50_100[ijet] = jets.at(i).jtphi_smeared_50_100[ijet]; 
-	    jtphi_smeared_sys[ijet] = jets.at(i).jtphi_smeared_sys[ijet]; 
+	}
+
+	// scrape some jets.
+	for(int j = 0; j < jets.at(i).nref; ++j){
+	  if(TMath::Abs(jets.at(i).jteta[j]) > cutJetEta) continue;
+	  if(doCorrectionSmearing){
+	    if((jets.at(i).jtpt[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_0_30[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_30_100[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_0_10[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_10_30[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_30_50[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_50_100[j] < cutJetPt) &&
+	       (jets.at(i).jtpt_smeared_sys[j] < cutJetPt)) continue;
+	  } else {
+	    if((jets.at(i).jtpt[j] < cutJetPt)) continue;
 	  }
-	} else {
-	  gammajet[i][0].makeGammaJetPairs(ggHi, jets.at(i), phoIdx, 0);
-	  // leading photon is correlated to each jet in the event.
+	  
+	  outputJets.at(i).rawpt[outputJets.at(i).nref] = jets.at(i).rawpt[j];
+	  outputJets.at(i).jtpt[outputJets.at(i).nref] = jets.at(i).jtpt[j];
+	  outputJets.at(i).jteta[outputJets.at(i).nref] = jets.at(i).jteta[j];
+	  outputJets.at(i).jty[outputJets.at(i).nref] = jets.at(i).jty[j];
+	  outputJets.at(i).jtphi[outputJets.at(i).nref] = jets.at(i).jtphi[j];
+	  outputJets.at(i).jtm[outputJets.at(i).nref] = jets.at(i).jtm[j];
+	  outputJets.at(i).trackMax[outputJets.at(i).nref] = jets.at(i).trackMax[j];
+	  outputJets.at(i).trackSum[outputJets.at(i).nref] = jets.at(i).trackSum[j];
+	  outputJets.at(i).trackN[outputJets.at(i).nref] = jets.at(i).trackN[j];
+	  outputJets.at(i).trackHardSum[outputJets.at(i).nref] = jets.at(i).trackHardSum[j];
+	  outputJets.at(i).trackHardN[outputJets.at(i).nref] = jets.at(i).trackHardN[j];
+	  outputJets.at(i).chargedMax[outputJets.at(i).nref] = jets.at(i).chargedMax[j];
+	  outputJets.at(i).chargedN[outputJets.at(i).nref] = jets.at(i).chargedN[j];
+	  outputJets.at(i).chargedSum[outputJets.at(i).nref] = jets.at(i).chargedSum[j];
+	  outputJets.at(i).chargedHardSum[outputJets.at(i).nref] = jets.at(i).chargedHardSum[j];
+	  outputJets.at(i).chargedHardN[outputJets.at(i).nref] = jets.at(i).chargedHardN[j];
+	  outputJets.at(i).photonMax[outputJets.at(i).nref] = jets.at(i).photonMax[j];
+	  outputJets.at(i).photonSum[outputJets.at(i).nref] = jets.at(i).photonSum[j];
+	  outputJets.at(i).photonN[outputJets.at(i).nref] = jets.at(i).photonN[j];
+	  outputJets.at(i).photonHardSum[outputJets.at(i).nref] = jets.at(i).photonHardSum[j];
+	  outputJets.at(i).photonHardN[outputJets.at(i).nref] = jets.at(i).photonHardN[j];
+	  outputJets.at(i).neutralMax[outputJets.at(i).nref] = jets.at(i).neutralMax[j];
+	  outputJets.at(i).neutralSum[outputJets.at(i).nref] = jets.at(i).neutralSum[j];
+	  outputJets.at(i).neutralN[outputJets.at(i).nref] = jets.at(i).neutralN[j];
+	  outputJets.at(i).eMax[outputJets.at(i).nref] = jets.at(i).eMax[j];
+	  outputJets.at(i).eSum[outputJets.at(i).nref] = jets.at(i).eSum[j];
+	  outputJets.at(i).eN[outputJets.at(i).nref] = jets.at(i).eN[j];
+	  outputJets.at(i).muMax[outputJets.at(i).nref] = jets.at(i).muMax[j];
+	  outputJets.at(i).muSum[outputJets.at(i).nref] = jets.at(i).muSum[j];
+	  outputJets.at(i).muN[outputJets.at(i).nref] = jets.at(i).muN[j];
+
+	  if(isMC){
+	    outputJets.at(i).genChargedSum[outputJets.at(i).nref] = jets.at(i).genChargedSum[j];
+	    outputJets.at(i).genHardSum[outputJets.at(i).nref] = jets.at(i).genHardSum[j];
+	    outputJets.at(i).signalChargedSum[outputJets.at(i).nref] = jets.at(i).signalChargedSum[j];
+	    outputJets.at(i).signalHardSum[outputJets.at(i).nref] = jets.at(i).signalHardSum[j];
+	    outputJets.at(i).subid[outputJets.at(i).nref] = jets.at(i).subid[j];
+	    // don't include the full gen jet tree (might regret this)
+	  }
+	  
+	  if(doCorrectionSmearing){
+	    outputJets.at(i).jtpt_smeared_0_30[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_0_30[j];
+	    outputJets.at(i).jtpt_smeared_30_100[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_30_100[j];
+	    outputJets.at(i).jtpt_smeared_0_10[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_0_10[j];
+	    outputJets.at(i).jtpt_smeared_10_30[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_10_30[j];
+	    outputJets.at(i).jtpt_smeared_30_50[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_30_50[j];
+	    outputJets.at(i).jtpt_smeared_50_100[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_50_100[j];
+	    outputJets.at(i).jtpt_smeared_sys[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_sys[j];
+
+	    outputJets.at(i).jtphi_smeared_0_30[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_0_30[j];
+	    outputJets.at(i).jtphi_smeared_30_100[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_30_100[j];
+	    outputJets.at(i).jtphi_smeared_0_10[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_0_10[j];
+	    outputJets.at(i).jtphi_smeared_10_30[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_10_30[j];
+	    outputJets.at(i).jtphi_smeared_30_50[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_30_50[j];
+	    outputJets.at(i).jtphi_smeared_50_100[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_50_100[j];
+	    outputJets.at(i).jtphi_smeared_sys[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_sys[j];
+	  }
+	  outputJets.at(i).nref++;
+	}
+	for (int j =0; j<=7; ++j) {
+	  gammajet[i][j].makeGammaJetPairs(ggHi, outputJets.at(i), phoIdx, j);
+	  if(!doCorrectionSmearing) break;
 	}
       }
 
@@ -713,16 +690,19 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	      Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
 	      treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
 
-          if (doCorrectionL2L3 > 0)
-          {
-              correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
-          }
+	      if (doCorrectionL2L3 > 0)
+	      {
+		correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+	      }
 
 	      gammajetMB.at(k).makeGammaJetPairsMB(ggHi, jetsMB.at(k), phoIdx);
 
 	      // write jets from minBiasJetSkimFile to outputFile
 	      for(int j = 0; j < jetsMB.at(k).nref; ++j)
 	      {
+		if(TMath::Abs(jetsMB.at(k).jteta[j]) > cutJetEta) continue;
+		if((jetsMB.at(k).jtpt[j] < cutJetPt)) continue;
+
 		jetsMBoutput.at(k).rawpt[jetsMBoutput.at(k).nref] = jetsMB.at(k).rawpt[j];
 		jetsMBoutput.at(k).jtpt [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpt[j];
 		jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
@@ -762,6 +742,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       for (int i = 0; i < nJetCollections; ++i) {
 	for(int j = 0; j <=7; ++j) {
 	  gammaJetTree[i][j]->Fill();
+	  if(!doCorrectionSmearing) break;
 	}
       }
     }
@@ -783,6 +764,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   for (int i = 0; i < nJetCollections; ++i) {
     for (int j = 0; j<=7; ++j) {
       std::cout << Form("gammaJetTree[%d][%d]->GetEntries() = ", i,j) << gammaJetTree[i][j]->GetEntries() << std::endl;
+      if(!doCorrectionSmearing) break;
     }
   }
 
