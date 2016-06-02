@@ -74,8 +74,8 @@ public :
     TH2D* h2D[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
 
     TCut  selections[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
-    int   nEntries[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
-    int   nEntriesPho[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
+    float   nEntries[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
+    float   nEntriesPho[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
 };
 
 #endif
