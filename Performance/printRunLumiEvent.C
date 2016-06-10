@@ -1,5 +1,12 @@
 /*
  * macro to print Run, Event, Lumi numbers for a given event selection.
+ *
+ * 09.06.2016 : quit EventList approach for now. I experienced some problems with reading the EventList from gDirectory. That happened when "tree" was not in the top directory, if "tree" is in top directory, then there is no problem.
+ *      Example :
+ *         input.performance.treePath = EventTree --> "tree" is in top directory --> EventList works
+ *         input.performance.treePath = ggHiNtuplizer/EventTree --> "tree" is not in top directory --> EventList does not work
+ *         --> gives : "Error in <TChain::SetEntryList>: No list found for the trees in this chain"
+ *
  */
 
 #include <TFile.h>
@@ -101,16 +108,10 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     hfic.printHiForestInfo();
     std::cout<<"###"<< std::endl;
 
-    // select the list of events
-    std::string elistName = "elist_printRunLumiEvent";
-    tree->Draw(Form(">> %s", elistName.c_str()), selection.c_str());
-    TEventList* elist = (TEventList*)gDirectory->Get(elistName.c_str());
-    tree->SetEventList(elist);
-
     Long64_t entries = tree->GetEntries();
     std::cout << "entries = " << entries << std::endl;
     std::cout << "TTree::Draw() : " << treePath.c_str() <<std::endl;
-    tree->Draw(formula.c_str(),"","goff");
+    tree->Draw(formula.c_str(), Form("Sum$(%s) > 0", selection.c_str()), "goff");
 
     std::cout <<  "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
 
@@ -131,8 +132,6 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     }
     outFileStream.close();
     std::cout << "wrote file   : " << outputFile.Data() << std::endl;
-
-    elist->Delete();
 }
 
 int main(int argc, char** argv)
