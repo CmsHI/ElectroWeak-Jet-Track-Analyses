@@ -58,6 +58,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        int doCorrectionResidual;
        double energyScaleJet;
        double smearingResJet;
+       double smearingResJetPhi;
        int doCorrectionSmearing;
        int doCorrectionSmearingPhi;
        int jetAlgoSmearing;
@@ -108,6 +109,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionResidual = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionResidual];
            energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
            smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
+           smearingResJetPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingResPhi];
            doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
            doCorrectionSmearingPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearingPhi];
            jetAlgoSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetAlgoSmearing];
@@ -157,6 +159,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            doCorrectionResidual = 0;
            energyScaleJet = 0;
            smearingResJet = 0;
+           smearingResJetPhi = 0;
            doCorrectionSmearing = 0;
            doCorrectionSmearingPhi = 0;
            jetAlgoSmearing = CUTS::JET::k_akPU;
@@ -229,6 +232,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        std::cout<<"doCorrectionResidual    = "<< doCorrectionResidual <<std::endl;
        std::cout<<"energyScaleJet          = "<< energyScaleJet <<std::endl;
        std::cout<<"smearingResJet          = "<< smearingResJet <<std::endl;
+       std::cout<<"smearingResJetPhi       = "<< smearingResJetPhi <<std::endl;
        std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
        std::cout<<"doCorrectionSmearingPhi = "<< doCorrectionSmearingPhi <<std::endl;
        std::cout<<"jetAlgoSmearing = "<< jetAlgoSmearing <<std::endl;
@@ -973,7 +977,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    }
                }
            }
-           if (isPP) {
+           else if (isPP) {
 
                if (doCorrectionL2L3 > 0)
                {
@@ -981,24 +985,35 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
+
+               if (nSmear > 0 && nSmear != 1)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       jets.at(i).replicateJets(nSmear);
+                   }
+               }
+
                if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
                {
-                   if (nSmear > 0 && nSmear != 1)
-                   {
-                       for (int i=0; i<nJetCollections; ++i) {
-                           jets.at(i).replicateJets(nSmear);
-                       }
-                   }
-
-                   if (doCorrectionSmearing > 0) {
-                       for (int i=0; i<nJetCollections; ++i) {
-                           correctorsJetSmear.at(i).correctPtsSmearing(jets.at(i));
-                       }
-                   }
                    if (doCorrectionSmearingPhi > 0) {
                        for (int i=0; i<nJetCollections; ++i) {
-                           correctorsJetSmear.at(i).correctPhisSmearing(jets.at(i));
+                           correctorsJetSmear.at(i).applyPhisSmearing(jets.at(i));
                        }
+                   }
+                   if (doCorrectionSmearing > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).applyPtsSmearing(jets.at(i));
+                       }
+                   }
+               }
+               if (smearingResJetPhi > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
+                   }
+               }
+               if (smearingResJet > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
                    }
                }
            }
@@ -1070,7 +1085,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                    }
                                }
                            }
-                           if (isPP) {
+                           else if (isPP) {
 
                                if (doCorrectionL2L3 > 0)
                                {
@@ -1078,24 +1093,35 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                        correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
                                    }
                                }
+
+                               if (nSmear > 0 && nSmear != 1)
+                               {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       jetsMB.at(i).replicateJets(nSmear);
+                                   }
+                               }
+
                                if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
                                {
-                                   if (nSmear > 0 && nSmear != 1)
-                                   {
-                                       for (int i=0; i<nJetCollections; ++i) {
-                                           jetsMB.at(i).replicateJets(nSmear);
-                                       }
-                                   }
-
-                                   if (doCorrectionSmearing > 0) {
-                                       for (int i=0; i<nJetCollections; ++i) {
-                                           correctorsJetSmear.at(i).correctPtsSmearing(jetsMB.at(i));
-                                       }
-                                   }
                                    if (doCorrectionSmearingPhi > 0) {
                                        for (int i=0; i<nJetCollections; ++i) {
-                                           correctorsJetSmear.at(i).correctPhisSmearing(jetsMB.at(i));
+                                           correctorsJetSmear.at(i).applyPhisSmearing(jetsMB.at(i));
                                        }
+                                   }
+                                   if (doCorrectionSmearing > 0) {
+                                       for (int i=0; i<nJetCollections; ++i) {
+                                           correctorsJetSmear.at(i).applyPtsSmearing(jetsMB.at(i));
+                                       }
+                                   }
+                               }
+                               if (smearingResJetPhi > 0) {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsJetSmear.at(i).applyPhisResolution(jetsMB.at(i), smearingResJetPhi);
+                                   }
+                               }
+                               if (smearingResJet > 0) {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsJetSmear.at(i).applyPtsResolution(jetsMB.at(i), smearingResJet);
                                    }
                                }
                            }
