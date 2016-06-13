@@ -431,7 +431,15 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     /// End Purity Block ///
 
     TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
-    TH2D* h_weights = (TH2D*)weightsFile->Get("h_weights");
+    TH2D* h_weights_PbPb=0;
+    TH1D* h_weights_pp=0;
+    if(isMC){
+        if(isHI){
+            h_weights_PbPb = (TH2D*)weightsFile->Get("h_weights");
+        } else {
+            h_weights_pp = (TH1D*)weightsFile->Get("h_weights");
+        }
+    }
 
     TFile* output = TFile::Open(outputFile, "RECREATE");
     // histograms will be put under a directory whose name is the type of the collision
@@ -613,8 +621,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         float weight = 1;
         if(isMC){
             weight = evt.weight;
-            if (isHI)
-                weight *= h_weights->GetBinContent(h_weights->FindBin(evt.hiBin, evt.vz));
+            if (isHI) {
+                weight *= h_weights_PbPb->GetBinContent(h_weights_PbPb->FindBin(evt.hiBin, evt.vz));
+            } else {
+                weight *= h_weights_pp->GetBinContent(h_weights_pp->FindBin(evt.vz));
+            }
         }
 
         // handle nEntriesPho separate from jet loop
