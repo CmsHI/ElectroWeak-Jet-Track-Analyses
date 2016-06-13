@@ -8,6 +8,7 @@ namespace CUTS {
       k_eta,
       k_energyScale,
       k_smearingRes,
+      k_smearingResPhi,
       kN_F_CUTS
     };
 
@@ -15,7 +16,8 @@ namespace CUTS {
       "pt",
       "eta",
       "energyScale",
-      "smearingRes"
+      "smearingRes",
+      "smearingResPhi"
     };
 
     enum I_CUTS{

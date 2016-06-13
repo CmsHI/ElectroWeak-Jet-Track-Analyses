@@ -1249,7 +1249,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         if (iCorr == CORR::kBKG && (!hasJetsMB || !hasZJetMB))  continue;
 
                         std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                        std::vector<std::string> tmpVec {"xjz", "dphi", "ptJet", "jeta", "jtphi", "nJet"};
+                        std::vector<std::string> tmpVec {"xjz", "dphi", "ptJet", "jteta", "jtphi", "nJet"};
                         int nTmpVec = tmpVec.size();
                         for (int iTMP = 0; iTMP<nTmpVec ; ++iTMP)
                         {

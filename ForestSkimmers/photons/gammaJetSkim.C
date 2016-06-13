@@ -588,8 +588,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	  jets.at(i).replicateJets(nSmear);
 	  for (int j =0; j<=7; ++j) {
 	    if(j !=0 ){
-	      correctorsJetSmear[j-1][i].correctPtsSmearing(jets.at(i)); 
-	      correctorsJetSmear[j-1][i].correctPhisSmearing(jets.at(i));
+	      correctorsJetSmear[j-1][i].applyPtsSmearing(jets.at(i)); 
+	      correctorsJetSmear[j-1][i].applyPhisSmearing(jets.at(i));
 	    }
 	  }
 	}
