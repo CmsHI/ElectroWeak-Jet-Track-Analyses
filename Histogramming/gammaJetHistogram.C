@@ -261,10 +261,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("pho_hcalRechitIsoR4",1);
     tPho->SetBranchStatus("pho_trackIsoR4PtCut20",1);
     tPho->SetBranchStatus("phoHoverE",1);
-    tPho->SetBranchStatus("phoE3x3",1);
-    tPho->SetBranchStatus("phoE5x5",1);
-    tPho->SetBranchStatus("phoE1x5",1);
-    tPho->SetBranchStatus("phoE2x5",1);
+    // tPho->SetBranchStatus("phoE3x3",1);
+    // tPho->SetBranchStatus("phoE5x5",1);
+    // tPho->SetBranchStatus("phoE1x5",1);
+    // tPho->SetBranchStatus("phoE2x5",1);
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*",0);
     tJet->SetBranchStatus("nref",1);
@@ -276,7 +276,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tJet->SetBranchStatus("jtpt_smeared_30_50",1);
     tJet->SetBranchStatus("jtpt_smeared_50_100",1);
     tJet->SetBranchStatus("jtpt_smeared_sys",1);
-    tJet->SetBranchStatus("jteta",1);
+    //tJet->SetBranchStatus("jteta",1);
     TTree *tgj[nSmearBins];
     for(int smearingBinIndex = 0; smearingBinIndex<nSmearBins; smearingBinIndex++)
     {
@@ -345,7 +345,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tJetMB->SetBranchStatus("*",0);
         tJetMB->SetBranchStatus("jtpt",1);
         tJetMB->SetBranchStatus("nref",1);
-        tJetMB->SetBranchStatus("jteta",1);
+        //tJetMB->SetBranchStatus("jteta",1);
 
         jetMB.setupTreeForReading(tJetMB);
         gjMB.setupGammaJetTree(tgjMB);
@@ -371,7 +371,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tmcgj->AddFriend(tmcHiEvt, "HiEvt");
 
     // should be migrated to config files ASAP
-    const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
+    // noise cut moved to skim
+    //const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
     const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
     const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
     const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
@@ -380,11 +381,11 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
-            if(isHI && !isMC)
-            {
-                purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
-                continue;
-            }
+            // if(isHI && !isMC)
+            // {
+            //     purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
+            //     continue;
+            // }
             TCut selection_event = Form("%s == 1", trigger.c_str());
             TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
             TCut selection_event_mc_forPurity_pp = Form("%s == 1", triggerMC_forPurity_pp.c_str());
@@ -399,19 +400,19 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             } else {
                 selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0][i]);
             }
-            selectionPho = selectionPho && noiseCut && etaCut;
+            selectionPho = selectionPho && etaCut;
 
             TCut selectionIso = "";
             selectionIso = selectionIso && Form("(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < %f", cut_sumIso);
             selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
 
-            TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
+            TCut dataCandidateCut = selectionPho && selection_event && etaCut;
             TCut sidebandCut = dataCandidateCut && sidebandIsolation;
             TCut mcSignalCut;
             if(isHI){
-                mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && noiseCut && mcIsolation;
+                mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && mcIsolation;
             } else {
-                mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && noiseCut && mcIsolation;
+                mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && mcIsolation;
             }
             dataCandidateCut = dataCandidateCut && selectionIso;
 
@@ -577,16 +578,19 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         tPho->GetEntry(jentry);
         tgj[0]->GetEntry(jentry);
-        // eta cut
-        if(TMath::Abs((*pho.phoEta)[gj[0].phoIdx]) > 1.44) continue;
 
-        // noise cut
-        if(((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-            (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03) &&
-           ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1/3-0.03 &&
-            (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1/3+0.03) &&
-           ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-            (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03)) continue;
+        // eta cut moved to skim step
+        // eta cut
+        //if(TMath::Abs((*pho.phoEta)[gj[0].phoIdx]) > 1.44) continue;
+
+        // noise cut moved to skim step
+        // // noise cut
+        // if(((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
+        //     (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03) &&
+        //    ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1/3-0.03 &&
+        //     (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1/3+0.03) &&
+        //    ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
+        //     (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03)) continue;
 
         // isolation cut
         if(((*pho.pho_ecalClusterIsoR4)[gj[0].phoIdx] +
@@ -633,7 +637,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         gotEntry[0] = true;
         for(int ijet = 0; ijet < jet.nref; ijet++){
             // jet cuts
-            if(TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
+            //jteta cut moved to skim
+            //if(TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
             if((*gj[0].jetID)[ijet] < cut_jetID) continue;
 
             for(int j=0; j<nBins_hiBin; ++j){
@@ -680,7 +685,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             for(int ijet = 0; ijet < jetMB.nref; ijet++){
                 // jet cuts
                 if((*gjMB.dR)[ijet] < cut_dR) continue;
-                if(TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
+                //jteta cut moved to skim
+                //if(TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
                 if(smeared_jtpt(jetMB, ijet, 0) < cut_jetpt) continue;
                 if((*gjMB.jetID)[ijet] < cut_jetID) continue;
 

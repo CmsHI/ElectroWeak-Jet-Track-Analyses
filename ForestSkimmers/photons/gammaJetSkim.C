@@ -98,7 +98,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
 
   for(unsigned i = 0; i < mcFileWeights.size(); ++i)
-    std::cout << mcFileWeights.at(i) << " ";
+    std::cout << mcFileWeights[i] << " ";
   std::cout << std::endl;
 						      
   int nJetCollections = jetCollections.size();
@@ -125,7 +125,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
        
   std::cout<<"nJetCollections = "<< nJetCollections <<std::endl;
   for (int i=0; i<nJetCollections; ++i) {
-    std::cout << Form("jetCollections[%d] = %s", i, jetCollections.at(i).c_str()) << std::endl;
+    std::cout << Form("jetCollections[%d] = %s", i, jetCollections[i].c_str()) << std::endl;
   }
 
   std::cout<<"cutPhoEt  = "<<cutPhoEt<<std::endl;
@@ -145,7 +145,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   if (doCorrectionL2L3 > 0)
   {
     for (int i = 0; i < nJetCollections; ++i) {
-      correctorsL2L3.at(i).setL2L3Residual(3, 3, false);
+      correctorsL2L3[i].setL2L3Residual(3, 3, false);
     }
   }
 
@@ -173,7 +173,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	for(int k=0; k<nJetCollections; ++k){
 
 	  // in minBiasJetSkimFile, name of a jet tree starts with jetCollection.
-	  std::string jetCollection = jetCollections.at(k).c_str();
+	  std::string jetCollection = jetCollections[k].c_str();
 	  treeJetMB[i][j][k] = (TTree*)inputMB->Get(Form("%s_centBin%d_vzBin%d",jetCollection.c_str(), i, j));
 	  if (!treeJetMB[i][j][k]) {
 	    std::cout << "jetCollection = " << jetCollection.c_str() << " is not found in minBias jet skim file" <<std::endl;
@@ -182,7 +182,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	  }
 	  nMB[i][j][k] = treeJetMB[i][j][k]->GetEntries();
 
-	  jetsMB.at(k).setupTreeForReading(treeJetMB[i][j][k]);    // all MB jet trees point to jetsMB
+	  jetsMB[k].setupTreeForReading(treeJetMB[i][j][k]);    // all MB jet trees point to jetsMB
 	  int primeSeed = 0;
 	  if(nMB[i][j][k] != 0) primeSeed = rand.Integer(nMB[i][j][k]); // Integer(imax) Returns a random integer on [0, imax-1].
 	  iterMB[i][j][k] = primeSeed;
@@ -252,12 +252,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
   std::vector<Jets> outputJets(nJetCollections);
   for (int i=0; i<nJetCollections; ++i) {
-    std::string treeJetName = jetCollections.at(i).c_str();
-    std::string treeJetTitle = jetCollections.at(i).c_str();
+    std::string treeJetName = jetCollections[i].c_str();
+    std::string treeJetTitle = jetCollections[i].c_str();
     // do not lose the current title
     outputTreeJet[i] = new TTree(treeJetName.c_str(), treeJetTitle.c_str());
     outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
-    outputJets.at(i).setupTreeForWriting(outputTreeJet[i]);   
+    outputJets[i].setupTreeForWriting(outputTreeJet[i]);   
   }
 
   for (int i=0; i<nJetCollections; ++i) {
@@ -266,11 +266,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       // jet collection names which are complicated will be put into tree title
       std::string treegammaJetName, treegammaJetTitle;
       if(j==0){
-	treegammaJetName = Form("gamma_%s", jetCollections.at(i).c_str());
+	treegammaJetName = Form("gamma_%s", jetCollections[i].c_str());
       } else {
-	treegammaJetName = Form("gamma_%s_smearBin%i", jetCollections.at(i).c_str(), j-1);
+	treegammaJetName = Form("gamma_%s_smearBin%i", jetCollections[i].c_str(), j-1);
       }
-      treegammaJetTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
+      treegammaJetTitle = Form("%s : leading photon-jet correlations", jetCollections[i].c_str());
 
       gammaJetTree[i][j] = new TTree(treegammaJetName.c_str(),treegammaJetTitle.c_str());
       gammaJetTree[i][j]->SetMaxTreeSize(MAXTREESIZE);
@@ -293,24 +293,24 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       // jetMB trees
       // pick a unique, but also not complicated name for jetMB Trees
       // jet collection names which are complicated will be put into tree title
-      std::string treeJetMBName = Form("%sMB", jetCollections.at(i).c_str());
-      std::string treeJetMBTitle = Form("%s : jets from MB events", jetCollections.at(i).c_str());
+      std::string treeJetMBName = Form("%sMB", jetCollections[i].c_str());
+      std::string treeJetMBTitle = Form("%s : jets from MB events", jetCollections[i].c_str());
       outputTreeJetMB[i] = new TTree(treeJetMBName.c_str(), treeJetMBTitle.c_str());
 
       outputTreeJetMB[i]->SetMaxTreeSize(MAXTREESIZE);
-      jetsMBoutput.at(i).setupTreeForWritingMB(outputTreeJetMB[i], true, false);
+      jetsMBoutput[i].setupTreeForWritingMB(outputTreeJetMB[i], true, false);
 
       // gammaJetMB trees
       // pick a unique, but also not complicated name for gammaJetMB Trees
       // jet collection names which are complicated will be put into tree title
-      std::string treegammaJetMBName = Form("gamma_%sMB", jetCollections.at(i).c_str());
-      std::string treegammaJetMBTitle = Form("%s : leading photon-jet correlations", jetCollections.at(i).c_str());
+      std::string treegammaJetMBName = Form("gamma_%sMB", jetCollections[i].c_str());
+      std::string treegammaJetMBTitle = Form("%s : leading photon-jet correlations", jetCollections[i].c_str());
       gammaJetTreeMB[i] = new TTree(treegammaJetMBName.c_str(),treegammaJetMBTitle.c_str());
 
       gammaJetTreeMB[i]->SetMaxTreeSize(MAXTREESIZE);
-      gammajetMB.at(i).resetAwayRange();
-      gammajetMB.at(i).resetConeRange();
-      gammajetMB.at(i).branchGammaJetTree(gammaJetTreeMB[i]);
+      gammajetMB[i].resetAwayRange();
+      gammajetMB[i].resetConeRange();
+      gammajetMB[i].branchGammaJetTree(gammaJetTreeMB[i]);
     }
   }
 
@@ -323,7 +323,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
   for(unsigned i = 0; i < inputFiles.size(); ++i)
-    std::cout << inputFiles.at(i) << " ";
+    std::cout << inputFiles[i] << " ";
   std::cout << std::endl;
 						      
   std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -342,7 +342,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     }
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i) {
-      treeJet[i] = (TTree*) inFile->Get(Form("%s/t", jetCollections.at(i).c_str()));
+      treeJet[i] = (TTree*) inFile->Get(Form("%s/t", jetCollections[i].c_str()));
     }
     TTree* treeHiEvt = (TTree*) inFile->Get("hiEvtAnalyzer/HiTree");
     TTree* treeSkim  = (TTree*) inFile->Get("skimanalysis/HltTree");
@@ -356,7 +356,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
     std::vector<Jets> jets(nJetCollections);
     for (int i=0; i<nJetCollections; ++i) {
-      jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
+      jets[i].setupTreeForReading(treeJet[i]);   // treeJet is input
     }
 
     for (int i=0; i<nJetCollections; ++i) {
@@ -529,7 +529,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeSkim->GetEntry(j_entry);
       treeHiEvt->GetEntry(j_entry);
       if(doEventWeight){
-	eventWeight = mcFileWeights.at(it - inputFiles.begin());
+	eventWeight = mcFileWeights[it - inputFiles.begin()];
       }
 
       bool eventAdded = em->addEvent(run,lumis,event,j_entry);
@@ -556,17 +556,27 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       for(int i=0; i<ggHi.nPho; ++i)
       {
 	bool failedEtCut  = (ggHi.phoEt->at(i) < cutPhoEt) ;
+	if (failedEtCut)          continue;
 	bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta) ;
+	if (failedEtaCut)         continue;
 	bool failedSpikeRejection;
 	failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
 				ggHi.pho_swissCrx->at(i)     > 0.9   ||
 				TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
-	bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
-
-	if (failedEtCut)          continue;
-	if (failedEtaCut)         continue;
 	if (failedSpikeRejection) continue;
+	bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
 	if (failedHoverE)         continue;
+	bool failedLooseIso = ((ggHi.pho_ecalClusterIsoR4->at(i) + ggHi.pho_hcalRechitIsoR4->at(i) + ggHi.pho_trackIsoR4PtCut20->at(i)) > 30.0);
+	if (failedLooseIso)       continue;
+	bool failedNoiseCut;
+	failedNoiseCut = (((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
+			   (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03) &&
+			  ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1/3-0.03 &&
+			   (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1/3+0.03) &&
+			  ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
+			   (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03));
+	if(failedNoiseCut)        continue;
+
 
 	if (ggHi.phoEt->at(i) > maxPhoEt)
 	{
@@ -578,99 +588,99 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       entriesAnalyzed++;
 
       for (int i=0; i<nJetCollections; ++i) {
-	outputJets.at(i).nref = 0;
+	outputJets[i].nref = 0;
 	if (doCorrectionL2L3 > 0)
 	{
-	  correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+	  correctorsL2L3[i].correctPtsL2L3(jets[i]);
 	}
  
 	if(doCorrectionSmearing){
-	  jets.at(i).replicateJets(nSmear);
+	  jets[i].replicateJets(nSmear);
 	  for (int j =0; j<=7; ++j) {
 	    if(j !=0 ){
-	      correctorsJetSmear[j-1][i].applyPtsSmearing(jets.at(i)); 
-	      correctorsJetSmear[j-1][i].applyPhisSmearing(jets.at(i));
+	      correctorsJetSmear[j-1][i].applyPtsSmearing(jets[i]); 
+	      correctorsJetSmear[j-1][i].applyPhisSmearing(jets[i]);
 	    }
 	  }
 	}
 
 	// scrape some jets.
-	for(int j = 0; j < jets.at(i).nref; ++j){
-	  if(TMath::Abs(jets.at(i).jteta[j]) > cutJetEta) continue;
+	for(int j = 0; j < jets[i].nref; ++j){
+	  if(TMath::Abs(jets[i].jteta[j]) > cutJetEta) continue;
 	  if(doCorrectionSmearing){
-	    if((jets.at(i).jtpt[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_0_30[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_30_100[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_0_10[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_10_30[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_30_50[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_50_100[j] < cutJetPt) &&
-	       (jets.at(i).jtpt_smeared_sys[j] < cutJetPt)) continue;
+	    if((jets[i].jtpt[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_0_30[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_30_100[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_0_10[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_10_30[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_30_50[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_50_100[j] < cutJetPt) &&
+	       (jets[i].jtpt_smeared_sys[j] < cutJetPt)) continue;
 	  } else {
-	    if((jets.at(i).jtpt[j] < cutJetPt)) continue;
+	    if((jets[i].jtpt[j] < cutJetPt)) continue;
 	  }
 	  
-	  outputJets.at(i).rawpt[outputJets.at(i).nref] = jets.at(i).rawpt[j];
-	  outputJets.at(i).jtpt[outputJets.at(i).nref] = jets.at(i).jtpt[j];
-	  outputJets.at(i).jteta[outputJets.at(i).nref] = jets.at(i).jteta[j];
-	  outputJets.at(i).jty[outputJets.at(i).nref] = jets.at(i).jty[j];
-	  outputJets.at(i).jtphi[outputJets.at(i).nref] = jets.at(i).jtphi[j];
-	  outputJets.at(i).jtm[outputJets.at(i).nref] = jets.at(i).jtm[j];
-	  outputJets.at(i).trackMax[outputJets.at(i).nref] = jets.at(i).trackMax[j];
-	  outputJets.at(i).trackSum[outputJets.at(i).nref] = jets.at(i).trackSum[j];
-	  outputJets.at(i).trackN[outputJets.at(i).nref] = jets.at(i).trackN[j];
-	  outputJets.at(i).trackHardSum[outputJets.at(i).nref] = jets.at(i).trackHardSum[j];
-	  outputJets.at(i).trackHardN[outputJets.at(i).nref] = jets.at(i).trackHardN[j];
-	  outputJets.at(i).chargedMax[outputJets.at(i).nref] = jets.at(i).chargedMax[j];
-	  outputJets.at(i).chargedN[outputJets.at(i).nref] = jets.at(i).chargedN[j];
-	  outputJets.at(i).chargedSum[outputJets.at(i).nref] = jets.at(i).chargedSum[j];
-	  outputJets.at(i).chargedHardSum[outputJets.at(i).nref] = jets.at(i).chargedHardSum[j];
-	  outputJets.at(i).chargedHardN[outputJets.at(i).nref] = jets.at(i).chargedHardN[j];
-	  outputJets.at(i).photonMax[outputJets.at(i).nref] = jets.at(i).photonMax[j];
-	  outputJets.at(i).photonSum[outputJets.at(i).nref] = jets.at(i).photonSum[j];
-	  outputJets.at(i).photonN[outputJets.at(i).nref] = jets.at(i).photonN[j];
-	  outputJets.at(i).photonHardSum[outputJets.at(i).nref] = jets.at(i).photonHardSum[j];
-	  outputJets.at(i).photonHardN[outputJets.at(i).nref] = jets.at(i).photonHardN[j];
-	  outputJets.at(i).neutralMax[outputJets.at(i).nref] = jets.at(i).neutralMax[j];
-	  outputJets.at(i).neutralSum[outputJets.at(i).nref] = jets.at(i).neutralSum[j];
-	  outputJets.at(i).neutralN[outputJets.at(i).nref] = jets.at(i).neutralN[j];
-	  outputJets.at(i).eMax[outputJets.at(i).nref] = jets.at(i).eMax[j];
-	  outputJets.at(i).eSum[outputJets.at(i).nref] = jets.at(i).eSum[j];
-	  outputJets.at(i).eN[outputJets.at(i).nref] = jets.at(i).eN[j];
-	  outputJets.at(i).muMax[outputJets.at(i).nref] = jets.at(i).muMax[j];
-	  outputJets.at(i).muSum[outputJets.at(i).nref] = jets.at(i).muSum[j];
-	  outputJets.at(i).muN[outputJets.at(i).nref] = jets.at(i).muN[j];
+	  outputJets[i].rawpt[outputJets[i].nref] = jets[i].rawpt[j];
+	  outputJets[i].jtpt[outputJets[i].nref] = jets[i].jtpt[j];
+	  outputJets[i].jteta[outputJets[i].nref] = jets[i].jteta[j];
+	  outputJets[i].jty[outputJets[i].nref] = jets[i].jty[j];
+	  outputJets[i].jtphi[outputJets[i].nref] = jets[i].jtphi[j];
+	  outputJets[i].jtm[outputJets[i].nref] = jets[i].jtm[j];
+	  outputJets[i].trackMax[outputJets[i].nref] = jets[i].trackMax[j];
+	  outputJets[i].trackSum[outputJets[i].nref] = jets[i].trackSum[j];
+	  outputJets[i].trackN[outputJets[i].nref] = jets[i].trackN[j];
+	  outputJets[i].trackHardSum[outputJets[i].nref] = jets[i].trackHardSum[j];
+	  outputJets[i].trackHardN[outputJets[i].nref] = jets[i].trackHardN[j];
+	  outputJets[i].chargedMax[outputJets[i].nref] = jets[i].chargedMax[j];
+	  outputJets[i].chargedN[outputJets[i].nref] = jets[i].chargedN[j];
+	  outputJets[i].chargedSum[outputJets[i].nref] = jets[i].chargedSum[j];
+	  outputJets[i].chargedHardSum[outputJets[i].nref] = jets[i].chargedHardSum[j];
+	  outputJets[i].chargedHardN[outputJets[i].nref] = jets[i].chargedHardN[j];
+	  outputJets[i].photonMax[outputJets[i].nref] = jets[i].photonMax[j];
+	  outputJets[i].photonSum[outputJets[i].nref] = jets[i].photonSum[j];
+	  outputJets[i].photonN[outputJets[i].nref] = jets[i].photonN[j];
+	  outputJets[i].photonHardSum[outputJets[i].nref] = jets[i].photonHardSum[j];
+	  outputJets[i].photonHardN[outputJets[i].nref] = jets[i].photonHardN[j];
+	  outputJets[i].neutralMax[outputJets[i].nref] = jets[i].neutralMax[j];
+	  outputJets[i].neutralSum[outputJets[i].nref] = jets[i].neutralSum[j];
+	  outputJets[i].neutralN[outputJets[i].nref] = jets[i].neutralN[j];
+	  outputJets[i].eMax[outputJets[i].nref] = jets[i].eMax[j];
+	  outputJets[i].eSum[outputJets[i].nref] = jets[i].eSum[j];
+	  outputJets[i].eN[outputJets[i].nref] = jets[i].eN[j];
+	  outputJets[i].muMax[outputJets[i].nref] = jets[i].muMax[j];
+	  outputJets[i].muSum[outputJets[i].nref] = jets[i].muSum[j];
+	  outputJets[i].muN[outputJets[i].nref] = jets[i].muN[j];
 
 	  if(isMC){
-	    outputJets.at(i).genChargedSum[outputJets.at(i).nref] = jets.at(i).genChargedSum[j];
-	    outputJets.at(i).genHardSum[outputJets.at(i).nref] = jets.at(i).genHardSum[j];
-	    outputJets.at(i).signalChargedSum[outputJets.at(i).nref] = jets.at(i).signalChargedSum[j];
-	    outputJets.at(i).signalHardSum[outputJets.at(i).nref] = jets.at(i).signalHardSum[j];
-	    outputJets.at(i).subid[outputJets.at(i).nref] = jets.at(i).subid[j];
+	    outputJets[i].genChargedSum[outputJets[i].nref] = jets[i].genChargedSum[j];
+	    outputJets[i].genHardSum[outputJets[i].nref] = jets[i].genHardSum[j];
+	    outputJets[i].signalChargedSum[outputJets[i].nref] = jets[i].signalChargedSum[j];
+	    outputJets[i].signalHardSum[outputJets[i].nref] = jets[i].signalHardSum[j];
+	    outputJets[i].subid[outputJets[i].nref] = jets[i].subid[j];
 	    // don't include the full gen jet tree (might regret this)
 	  }
 	  
 	  if(doCorrectionSmearing){
-	    outputJets.at(i).jtpt_smeared_0_30[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_0_30[j];
-	    outputJets.at(i).jtpt_smeared_30_100[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_30_100[j];
-	    outputJets.at(i).jtpt_smeared_0_10[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_0_10[j];
-	    outputJets.at(i).jtpt_smeared_10_30[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_10_30[j];
-	    outputJets.at(i).jtpt_smeared_30_50[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_30_50[j];
-	    outputJets.at(i).jtpt_smeared_50_100[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_50_100[j];
-	    outputJets.at(i).jtpt_smeared_sys[outputJets.at(i).nref] = jets.at(i).jtpt_smeared_sys[j];
+	    outputJets[i].jtpt_smeared_0_30[outputJets[i].nref] = jets[i].jtpt_smeared_0_30[j];
+	    outputJets[i].jtpt_smeared_30_100[outputJets[i].nref] = jets[i].jtpt_smeared_30_100[j];
+	    outputJets[i].jtpt_smeared_0_10[outputJets[i].nref] = jets[i].jtpt_smeared_0_10[j];
+	    outputJets[i].jtpt_smeared_10_30[outputJets[i].nref] = jets[i].jtpt_smeared_10_30[j];
+	    outputJets[i].jtpt_smeared_30_50[outputJets[i].nref] = jets[i].jtpt_smeared_30_50[j];
+	    outputJets[i].jtpt_smeared_50_100[outputJets[i].nref] = jets[i].jtpt_smeared_50_100[j];
+	    outputJets[i].jtpt_smeared_sys[outputJets[i].nref] = jets[i].jtpt_smeared_sys[j];
 
-	    outputJets.at(i).jtphi_smeared_0_30[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_0_30[j];
-	    outputJets.at(i).jtphi_smeared_30_100[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_30_100[j];
-	    outputJets.at(i).jtphi_smeared_0_10[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_0_10[j];
-	    outputJets.at(i).jtphi_smeared_10_30[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_10_30[j];
-	    outputJets.at(i).jtphi_smeared_30_50[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_30_50[j];
-	    outputJets.at(i).jtphi_smeared_50_100[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_50_100[j];
-	    outputJets.at(i).jtphi_smeared_sys[outputJets.at(i).nref] = jets.at(i).jtphi_smeared_sys[j];
+	    outputJets[i].jtphi_smeared_0_30[outputJets[i].nref] = jets[i].jtphi_smeared_0_30[j];
+	    outputJets[i].jtphi_smeared_30_100[outputJets[i].nref] = jets[i].jtphi_smeared_30_100[j];
+	    outputJets[i].jtphi_smeared_0_10[outputJets[i].nref] = jets[i].jtphi_smeared_0_10[j];
+	    outputJets[i].jtphi_smeared_10_30[outputJets[i].nref] = jets[i].jtphi_smeared_10_30[j];
+	    outputJets[i].jtphi_smeared_30_50[outputJets[i].nref] = jets[i].jtphi_smeared_30_50[j];
+	    outputJets[i].jtphi_smeared_50_100[outputJets[i].nref] = jets[i].jtphi_smeared_50_100[j];
+	    outputJets[i].jtphi_smeared_sys[outputJets[i].nref] = jets[i].jtphi_smeared_sys[j];
 	  }
-	  outputJets.at(i).nref++;
+	  outputJets[i].nref++;
 	}
 	for (int j =0; j<=7; ++j) {
-	  gammajet[i][j].makeGammaJetPairs(ggHi, outputJets.at(i), phoIdx, j);
+	  gammajet[i][j].makeGammaJetPairs(ggHi, outputJets[i], phoIdx, j);
 	  if(!doCorrectionSmearing) break;
 	}
       }
@@ -680,9 +690,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	int centBin = hiBin / centBinWidth;
 	int vzBin   = (vz+15) / vertexBinWidth;
 	for (int k = 0; k < nJetCollections; ++k) {
-	  jetsMBoutput.at(k).nref = 0;
+	  jetsMBoutput[k].nref = 0;
 
-	  gammajetMB.at(k).clearGammaJetPairs(phoIdx);
+	  gammajetMB[k].clearGammaJetPairs(phoIdx);
 	  if (nMB[centBin][vzBin][k] >= nEventsToMix)
 	  {
 	    for (int i=0; i<nEventsToMix; ++i)
@@ -692,24 +702,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
 	      if (doCorrectionL2L3 > 0)
 	      {
-		correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+		correctorsL2L3[k].correctPtsL2L3(jetsMB[k]);
 	      }
 
-	      gammajetMB.at(k).makeGammaJetPairsMB(ggHi, jetsMB.at(k), phoIdx);
-
 	      // write jets from minBiasJetSkimFile to outputFile
-	      for(int j = 0; j < jetsMB.at(k).nref; ++j)
+	      for(int j = 0; j < jetsMB[k].nref; ++j)
 	      {
-		if(TMath::Abs(jetsMB.at(k).jteta[j]) > cutJetEta) continue;
-		if((jetsMB.at(k).jtpt[j] < cutJetPt)) continue;
+		if(TMath::Abs(jetsMB[k].jteta[j]) > cutJetEta) continue;
+		if((jetsMB[k].jtpt[j] < cutJetPt)) continue;
 
-		jetsMBoutput.at(k).rawpt[jetsMBoutput.at(k).nref] = jetsMB.at(k).rawpt[j];
-		jetsMBoutput.at(k).jtpt [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpt[j];
-		jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
-		jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
-		jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
-		jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
-		jetsMBoutput.at(k).nref++;
+		jetsMBoutput[k].rawpt[jetsMBoutput[k].nref] = jetsMB[k].rawpt[j];
+		jetsMBoutput[k].jtpt [jetsMBoutput[k].nref] = jetsMB[k].jtpt[j];
+		jetsMBoutput[k].jteta[jetsMBoutput[k].nref] = jetsMB[k].jteta[j];
+		jetsMBoutput[k].jty  [jetsMBoutput[k].nref] = jetsMB[k].jty[j];
+		jetsMBoutput[k].jtphi[jetsMBoutput[k].nref] = jetsMB[k].jtphi[j];
+		jetsMBoutput[k].jtm  [jetsMBoutput[k].nref] = jetsMB[k].jtm[j];
+		jetsMBoutput[k].nref++;
 	      }
 
 	      // increase iterator
@@ -724,7 +732,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	    std::cout << "centBin = "<<centBin<<", vzBin = "<<vzBin<<", jetCollection index = "<<k<<std::endl;
 	    std::cout << "nMB[centBin][vzBin][jetCollection] = "<<nMB[centBin][vzBin][k]<<std::endl;
 	  }
-	  jetsMBoutput.at(k).b = -1;   // this branch is not an array.
+	  jetsMBoutput[k].b = -1;   // this branch is not an array.
+	  gammajetMB[k].makeGammaJetPairsMB(ggHi, jetsMBoutput[k], phoIdx);
 
 	  gammaJetTreeMB[k]->Fill();
 	  outputTreeJetMB[k]->Fill();
