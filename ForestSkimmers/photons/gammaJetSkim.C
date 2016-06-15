@@ -140,6 +140,16 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout<<"nEventsToMix             = "<< nEventsToMix <<std::endl;
   }
 
+  TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
+  TH2D* h_weights_PbPb=0;
+  TH1D* h_weights_pp=0;
+  if(isMC){
+    if(isHI){
+      h_weights_PbPb = (TH2D*)weightsFile->Get("h_weights");
+    } else {
+      h_weights_pp = (TH1D*)weightsFile->Get("h_weights");
+    }
+  }
 
   std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
   if (doCorrectionL2L3 > 0)
@@ -530,6 +540,11 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHiEvt->GetEntry(j_entry);
       if(doEventWeight){
 	eventWeight = mcFileWeights[it - inputFiles.begin()];
+	if (isHI) {
+	  eventWeight *= h_weights_PbPb->GetBinContent(h_weights_PbPb->FindBin(hiBin, vz));
+	} else {
+	  eventWeight *= h_weights_pp->GetBinContent(h_weights_pp->FindBin(vz));
+	}
       }
 
       bool eventAdded = em->addEvent(run,lumis,event,j_entry);
@@ -566,17 +581,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	if (failedSpikeRejection) continue;
 	bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
 	if (failedHoverE)         continue;
-	bool failedLooseIso = ((ggHi.pho_ecalClusterIsoR4->at(i) + ggHi.pho_hcalRechitIsoR4->at(i) + ggHi.pho_trackIsoR4PtCut20->at(i)) > 30.0);
-	if (failedLooseIso)       continue;
-	bool failedNoiseCut;
-	failedNoiseCut = (((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
-			   (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03) &&
-			  ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1/3-0.03 &&
-			   (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1/3+0.03) &&
-			  ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
-			   (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03));
-	if(failedNoiseCut)        continue;
-
 
 	if (ggHi.phoEt->at(i) > maxPhoEt)
 	{
@@ -585,6 +589,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	}
       }
       if (phoIdx == -1) continue;
+      bool failedLooseIso = ((ggHi.pho_ecalClusterIsoR4->at(phoIdx) + ggHi.pho_hcalRechitIsoR4->at(phoIdx) + ggHi.pho_trackIsoR4PtCut20->at(phoIdx)) > 30.0);
+      if (failedLooseIso)       continue;
+      bool failedNoiseCut;
+      failedNoiseCut = (((*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
+			 (*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03) &&
+			((*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 1/3-0.03 &&
+			 (*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 1/3+0.03) &&
+			((*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
+			 (*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03));
+      if(failedNoiseCut)        continue;
+
       entriesAnalyzed++;
 
       for (int i=0; i<nJetCollections; ++i) {
