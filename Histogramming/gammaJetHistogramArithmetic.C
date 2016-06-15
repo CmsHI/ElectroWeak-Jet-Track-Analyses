@@ -58,6 +58,15 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
   std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
+  bins_pt[0] = ConfigurationParser::ParseListFloat(
+    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+  bins_pt[1] = ConfigurationParser::ParseListFloat(
+    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
+  bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+  bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
   int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
   int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
@@ -87,14 +96,16 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   }
   /// End Purity Block ///
   TFile* output = TFile::Open(outputFile, "RECREATE");
-  // histograms will be put under a directory whose name is the type of the collision
-  if(!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
-  output->cd(collisionName);
-  std::cout<<"histograms will be put under directory : " << collisionName << std::endl;
   
   TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
   TFile *input = TFile::Open(inputFile);
+
+  // histograms will be put under a directory whose name is the type of the collision
+  if(!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
+  output->cd(collisionName);
+  std::cout<<"histograms will be put under directory : " << collisionName << std::endl;
+
 
   int nCorrHist = correlationHistNames.size();
   correlationHist corrHists[nCorrHist][nBins_pt][nBins_hiBin];
@@ -117,7 +128,11 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()),"",
 								  nBinsx[iHist], xlow[iHist], xup[iHist]);
 	    } else {
-	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = (TH1D*)input->Get(subHistName.c_str());
+	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s",collisionName,subHistName.c_str()));
+	      corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s_final_norm",collisionName,subHistName.c_str()));
+	      if(!corrHists[iHist][i][j].h1D[iCorr][jCorr]){
+		std::cout << "Histogram not found: " << subHistName.c_str() << std::endl;
+	      }
 	    }
 
 	    corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr] = correlationHistTitleX[iHist].c_str();
@@ -128,6 +143,8 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
+  output->cd(collisionName);
+  
   // histograms with pt bins on x-axis
   std::vector<std::string> correlationHistNames_ptBinAll = {"rjg", "xjg_mean"};       // histograms where x-axis is pt bins
   int nCorrHist_ptBinAll = correlationHistNames_ptBinAll.size();

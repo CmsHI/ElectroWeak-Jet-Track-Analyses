@@ -58,9 +58,9 @@ float smeared_jtpt(Jets j, int ijet, int smearingBinIndex){
     }
 }
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile)
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum)
 {
     TH1::SetDefaultSumw2();
 
@@ -406,7 +406,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"####################"<<std::endl;
     std::cout<<"tgj->GetEntries() = "<<tgj[0]->GetEntries()<<std::endl;
     if (trigger.compare("") != 0 && !isMC) {
-        std::cout<<"tgj->GetEntries(trigger==1) = "<<tgj[0]->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
+        std::cout<<"tgj->GetEntries(trigger==1) = "<<tHlt->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
     }
     else {
         std::cout<<"tgj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC."<<std::endl;
@@ -417,11 +417,28 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // double phoCutInt = 0;
     // double jetCutInt = 0;
     long long nentries = tgj[0]->GetEntries();
-    for(long long jentry = 0; jentry < nentries; jentry++)
-    {
-        if (jentry % 2000 == 0)  {
-            std::cout << "current entry = " <<jentry<<" out of "<<nentries<<" : "<<std::setprecision(2)<<(double)jentry/nentries*100<<" %"<<std::endl;
+    long long firstEntry = 0;
+    long long lastEntry = nentries;
+    std::cout << "Total Entries: " << nentries << std::endl;
+    if(nJobs != -1) {
+        if(jobNum >= nJobs){
+            std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
+            return;
         }
+        firstEntry = floor(nentries/nJobs)*jobNum;
+        lastEntry = floor(nentries/nJobs)*(jobNum+1);
+        if(jobNum == nJobs-1){
+            lastEntry = nentries;
+        }
+        std::cout << "For this job " << jobNum << std::endl;
+        std::cout << "First Entry: " << firstEntry << std::endl;
+        std::cout << "Final Entry: " << lastEntry << std::endl;
+    }
+    for(long long jentry = firstEntry; jentry < lastEntry; jentry++)
+    {
+        // if (jentry % 2000 == 0)  {
+        //     std::cout << "current entry = " <<jentry<<" out of "<<nentries<<" : "<<std::setprecision(2)<<(double)jentry/nentries*100<<" %"<<std::endl;
+        // }
 
         // time_t phoCutStart = time(0);
         tHlt->GetEntry(jentry);
@@ -710,12 +727,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
 int main(int argc, char** argv)
 {
-    if (argc == 4) {
-        gammaJetHistogram(argv[1], argv[2], argv[3]);
+    if (argc == 6) {
+        gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
         return 0;
     }
-    else if (argc == 3) {
-        gammaJetHistogram(argv[1], argv[2]);
+    else if (argc == 6) {
+        gammaJetHistogram(argv[1], argv[2], argv[3]);
         return 0;
     }
     else {
