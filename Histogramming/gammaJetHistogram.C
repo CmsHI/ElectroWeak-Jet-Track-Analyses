@@ -34,8 +34,6 @@ const std::vector<double>      xup   {2,  TMath::Pi(), 300};
 const std::vector<double>      xlow_final{0,  0,           0};
 const std::vector<double>      xup_final {2,  TMath::Pi(), 200};
 
-const float tempPbPbPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
-
 const int nSmearBins = 8;
 
 float smeared_jtpt(Jets j, int ijet, int smearingBinIndex){
@@ -61,9 +59,9 @@ float smeared_jtpt(Jets j, int ijet, int smearingBinIndex){
     }
 }
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString inputMC, const TString outputFile = "gammaJetHistogram.root");
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetHistogram.root");
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString inputMC, const TString outputFile)
+void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile)
 {
     TH1::SetDefaultSumw2();
 
@@ -71,7 +69,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
-    std::cout<<"inputMC = "<< inputMC.Data() << std::endl;
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -354,80 +351,29 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     /// End Input Bookkeeping block //
 
     /// Purity Calculation Block ///
-    // mc only needed for purity calc.
-    TFile *inputMCFile = TFile::Open(inputMC);
-    TTree *tmcHlt = (TTree*)inputMCFile->Get("hltTree");
-    TTree *tmcPho = (TTree*)inputMCFile->Get("EventTree");    // photons
-    TTree *tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
-    TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+    // these lists of constants should really be in the conf. Cheat for time for now.
+    const float tempPbPbPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
 
-    // need to addfriend for purity calculation
-    tgj[0]->AddFriend(tHlt, "Hlt");
-    tgj[0]->AddFriend(tPho, "Pho");
-    tgj[0]->AddFriend(tHiEvt, "HiEvt");
+    const float tempPbPbMCPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
 
-    tmcgj->AddFriend(tmcHlt, "Hlt");
-    tmcgj->AddFriend(tmcPho, "Pho");
-    tmcgj->AddFriend(tmcHiEvt, "HiEvt");
+    const float tempPPPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
 
-    // should be migrated to config files ASAP
-    // noise cut moved to skim
-    //const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
-    const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
-    const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
-    const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
-
-
+    const float tempPPMCPurity[56] = {0.676347, 0.686488, 0.756964, 0.675387, 0.703763, 0.752848, 0.787882, 0.712814, 0.707078, 0.784051, 0.675911, 0.72968, 0.76778, 0.844154, 0.663561, 0.678369, 0.746681, 0.651645, 0.693355, 0.742194, 0.776277, 0.680703, 0.679884, 0.757597, 0.662675, 0.689962, 0.752508, 0.769309, 0.703061, 0.693244, 0.780901, 0.639828, 0.713101, 0.760176, 0.841252, 0.73165, 0.727308, 0.788082, 0.711999, 0.738944, 0.771933, 0.855741, 0.720931, 0.713083, 0.77815, 0.682542, 0.708191, 0.759067, 0.849453, 0.744423, 0.735621, 0.803791, 0.691025, 0.763615, 0.778766, 0.886822};
+    
     double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
     for (int i = 0; i<nBins_pt; ++i){
         for (int j = 0; j<nBins_hiBin; ++j){
-            // if(isHI && !isMC)
-            // {
-            //     purity[i][j] = tempPbPbPurity[i*7+j]; // cheat purity computation
-            //     continue;
-            // }
-            TCut selection_event = Form("%s == 1", trigger.c_str());
-            TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
-            TCut selection_event_mc_forPurity_pp = Form("%s == 1", triggerMC_forPurity_pp.c_str());
-            if (isHI) {
-                selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
-                selection_event_mc_forPurity = selection_event_mc_forPurity && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
-            }
-
-            TCut selectionPho;
-            if (bins_pt[1][i] >= 0){
-                selectionPho = Form("phoEt[phoIdx] >= %f && phoEt[phoIdx] < %f", bins_pt[0][i], bins_pt[1][i]);
+            if(isHI && !isMC){
+                purity[i][j] = tempPbPbPurity[i*nBins_hiBin+j];
+            } else if (isHI && isMC) {
+                purity[i][j] = tempPbPbMCPurity[i*nBins_hiBin+j];
+            } else if (!isHI && !isMC) {
+                purity[i][j] = tempPPPurity[i*nBins_hiBin+j];
             } else {
-                selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0][i]);
+                purity[i][j] = tempPPMCPurity[i*nBins_hiBin+j];
             }
-            selectionPho = selectionPho && etaCut;
-
-            TCut selectionIso = "";
-            selectionIso = selectionIso && Form("(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < %f", cut_sumIso);
-            selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
-
-            TCut dataCandidateCut = selectionPho && selection_event && etaCut;
-            TCut sidebandCut = dataCandidateCut && sidebandIsolation;
-            TCut mcSignalCut;
-            if(isHI){
-                mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && mcIsolation;
-            } else {
-                mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && mcIsolation;
-            }
-            dataCandidateCut = dataCandidateCut && selectionIso;
-
-            PhotonPurity fitr = getPurity(configCuts, tgj[0], tmcgj,
-                                          dataCandidateCut, sidebandCut,
-                                          mcSignalCut);
-            purity[i][j] = fitr.purity;
-
-            std::cout << "Purity for ptBin"<< i << " hiBin"<< j << ": " << purity[i][j] << std::endl;
-            std::cout << "nSig for ptBin"<< i << " hiBin"<< j << ": " << fitr.nSig << std::endl;
-            std::cout << "chisq for ptBin"<< i << " hiBin"<< j << ": " << fitr.chisq << std::endl;
         }
     }
-
-    inputMCFile->Close();
     /// End Purity Block ///
 
     TFile* output = TFile::Open(outputFile, "RECREATE");
@@ -1089,12 +1035,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
 int main(int argc, char** argv)
 {
-    if (argc == 5) {
-        gammaJetHistogram(argv[1], argv[2], argv[3], argv[4]);
+    if (argc == 4) {
+        gammaJetHistogram(argv[1], argv[2], argv[3]);
         return 0;
     }
-    else if (argc == 4) {
-        gammaJetHistogram(argv[1], argv[2], argv[3]);
+    else if (argc == 3) {
+        gammaJetHistogram(argv[1], argv[2]);
         return 0;
     }
     else {
