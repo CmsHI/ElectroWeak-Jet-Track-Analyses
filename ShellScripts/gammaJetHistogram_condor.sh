@@ -40,7 +40,7 @@ cat > $now/merge.sh <<EOF
 mv gammaJetHistogram_\${4}.root \$3
 EOF
 
-cat $now/pmerge.condor
-cat $now/merge.sh
-echo condor_submit $now/pmerge.condor
-#condor_submit $now/pmerge.condor
+#cat $now/pmerge.condor
+#cat $now/merge.sh
+#echo condor_submit $now/pmerge.condor
+condor_submit $now/pmerge.condor
