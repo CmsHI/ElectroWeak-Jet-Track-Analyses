@@ -12,15 +12,14 @@ mkdir -p $3
 cp Histogramming/gammaJetHistogram.exe $now/
 mkdir -p $now/CutConfigurations/
 cp $1 $now/CutConfigurations/
-
-realconfig=$(basename $1)
+cp ./CutConfigurations/gammaJet.conf $now/CutConfigurations/
 
 cat > $now/pmerge.condor <<EOF
 Universe     = vanilla
 Initialdir   = $PWD/$now
 Notification = Error
 Executable   = $PWD/$now/merge.sh
-Arguments    = $realconfig $2 $3 \$(Process) 
+Arguments    = $1 $2 $3 \$(Process) 
 GetEnv       = True
 Output       = \$(Process).out
 Error        = \$(Process).err
@@ -29,13 +28,15 @@ Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = gammaJetHistogram.exe,$1
+transfer_input_files = gammaJetHistogram.exe,$1,./CutConfigurations/gammaJet.conf
 
 Queue $4
 
 EOF
 
 cat > $now/merge.sh <<EOF
+mkdir CutConfigurations/
+mv gammaJet*.conf CutConfigurations/
 ./gammaJetHistogram.exe \$1 \$2 gammaJetHistogram_\${4}.root $4 \$4
 mv gammaJetHistogram_\${4}.root \$3
 EOF
