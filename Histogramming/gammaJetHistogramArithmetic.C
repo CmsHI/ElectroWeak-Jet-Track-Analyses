@@ -129,6 +129,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 								  nBinsx[iHist], xlow[iHist], xup[iHist]);
 	    } else {
 	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s",collisionName,subHistName.c_str()));
+	      corrHists[iHist][i][j].h1D_final[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s_final",collisionName,subHistName.c_str()));
 	      corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s_final_norm",collisionName,subHistName.c_str()));
 	      if(!corrHists[iHist][i][j].h1D[iCorr][jCorr]){
 		std::cout << "Histogram not found: " << subHistName.c_str() << std::endl;
@@ -210,6 +211,18 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     for (int i=0; i<nBins_pt; ++i){
       for(int j=0; j<nBins_hiBin; ++j){
 
+	// histograms for RAW and BKG regions
+	for (int iCorr = 0; iCorr < CORR::kN_CORRFNC -1; ++iCorr) {
+	  for (int jCorr = 0; jCorr < CORR::kN_CORRFNC -1; ++jCorr) {
+
+	    if (jCorr == CORR::kBKG && !isHI)  continue;      // no jet background for non-HI
+
+	    corrHists[iHist][i][j].h1D[iCorr][jCorr]->Write("",TObject::kOverwrite);
+	    corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Write("",TObject::kOverwrite);
+	    corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Write("",TObject::kOverwrite);
+	  }
+	}
+  
 	std::cout<<"making histograms for SIG regions"<<std::endl;
 	// calculate SIGSIG histogram,
 	// these histograms are ignored : SIGRAW, SIGBKG

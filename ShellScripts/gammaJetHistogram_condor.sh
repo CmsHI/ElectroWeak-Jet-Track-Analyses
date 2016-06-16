@@ -4,7 +4,7 @@ then
   exit 1
 fi
 
-now=$(date +"%Y-%m-%d_%H_%M_%S")
+now="$(basename $2)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
@@ -40,7 +40,7 @@ cat > $now/merge.sh <<EOF
 mv gammaJetHistogram_\${4}.root \$3
 EOF
 
-#cat $now/pmerge.condor
-#cat $now/merge.sh
-#echo condor_submit $now/pmerge.condor
-condor_submit $now/pmerge.condor
+cat $now/pmerge.condor
+cat $now/merge.sh
+echo condor_submit $now/pmerge.condor
+#condor_submit $now/pmerge.condor
