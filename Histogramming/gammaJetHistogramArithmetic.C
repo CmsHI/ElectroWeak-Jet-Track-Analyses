@@ -51,7 +51,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
   std::cout << "collision = " << collisionName << std::endl;
 
-  //bool isMC = collisionIsMC((COLL::TYPE)collision);
+  bool isMC = collisionIsMC((COLL::TYPE)collision);
   bool isHI = collisionIsHI((COLL::TYPE)collision);
 
   // observable bins

@@ -60,19 +60,19 @@ echo "## Histogramming Condor Jobs"
 ############ HADD/ARITHMETIC SECTION ###################
 #echo "## Summing Histograms"
 #hadd PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
-#cp PbPb_Data_gammaJetHistogram.root ${OUTDIR}/
+#mv PbPb_Data_gammaJetHistogram.root ${OUTDIR}/
 #rm ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
 
 #hadd PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
-#cp PbPb_MC_gammaJetHistogram.root ${OUTDIR}/
+#mv PbPb_MC_gammaJetHistogram.root ${OUTDIR}/
 #rm ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
 
 #hadd pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
-#cp pp_Data_gammaJetHistogram.root ${OUTDIR}/
+#mv pp_Data_gammaJetHistogram.root ${OUTDIR}/
 #rm ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
 
 #hadd pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
-#cp pp_MC_gammaJetHistogram.root ${OUTDIR}/
+#mv pp_MC_gammaJetHistogram.root ${OUTDIR}/
 #rm ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
 
 #./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
