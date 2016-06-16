@@ -51,7 +51,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
   std::cout << "collision = " << collisionName << std::endl;
 
-  bool isMC = collisionIsMC((COLL::TYPE)collision);
+  //bool isMC = collisionIsMC((COLL::TYPE)collision);
   bool isHI = collisionIsHI((COLL::TYPE)collision);
 
   // observable bins
@@ -66,6 +66,12 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
   bins_hiBin[1] = ConfigurationParser::ParseListInteger(
     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
+  int nEventsToMix;
+  int nSmear;
+  nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+  nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+
 
   int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
   int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -86,13 +92,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   for (int i = 0; i<nBins_pt; ++i){
     for (int j = 0; j<nBins_hiBin; ++j){
       if(isHI && !isMC){
-	purity[i][j] = tempPbPbPurity[i*nBins_hiBin+j];
+        purity[i][j] = tempPbPbPurity[i*nBins_hiBin+j];
       } else if (isHI && isMC) {
-	purity[i][j] = tempPbPbMCPurity[i*nBins_hiBin+j];
+        purity[i][j] = tempPbPbMCPurity[i*nBins_hiBin+j];
       } else if (!isHI && !isMC) {
-	purity[i][j] = tempPPPurity[i*nBins_hiBin+j];
+        purity[i][j] = tempPPPurity[i*nBins_hiBin+j];
       } else {
-	purity[i][j] = tempPPMCPurity[i*nBins_hiBin+j];
+        purity[i][j] = tempPPMCPurity[i*nBins_hiBin+j];
       }
     }
   }
@@ -112,6 +118,20 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   int nCorrHist = correlationHistNames.size();
   correlationHist corrHists[nCorrHist][nBins_pt][nBins_hiBin];
 
+  // nPho Histograms
+  TH1D* h_nPho[nBins_pt][nBins_hiBin][2];
+  for (int i=0; i<nBins_pt; ++i){
+    for(int j=0; j<nBins_hiBin; ++j){
+
+      std::string histNamePhoRAW = Form("h_nPho_ptBin%d_hiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kRAW].c_str());
+      h_nPho[i][j][CORR::kRAW] = (TH1D*)input->Get(Form("%s/%s",collisionName,histNamePhoRAW.c_str()));
+
+      std::string histNamePhoBKG = Form("h_nPho_ptBin%d_hiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kBKG].c_str());
+      h_nPho[i][j][CORR::kBKG] = (TH1D*)input->Get(Form("%s/%s",collisionName,histNamePhoBKG.c_str()));
+    }
+  }
+
+
   // prepare histogram names for xjg, abs(dphi) and jet pt
   // if the collision is not HI, then cannot split it into hiBins.
   //if (!isHI) nBins_hiBin = 1;
@@ -126,20 +146,61 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 	    std::string subHistName = Form("%s_ptBin%d_hiBin%d_%s_%s", correlationHistNames[iHist].c_str(), i, j,
 					   CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
 	    corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-	    if(iCorr > 1 && jCorr > 1){
+	    if(iCorr > 1 || jCorr > 1){
 	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()),"",
-								  nBinsx[iHist], xlow[iHist], xup[iHist]);
-	    } else {
+	    							  nBinsx[iHist], xlow[iHist], xup[iHist]);
+	      continue;
+	    }
+	    // } else {
 	      corrHists[iHist][i][j].h1D[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s",collisionName,subHistName.c_str()));
-	      corrHists[iHist][i][j].h1D_final[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s_final",collisionName,subHistName.c_str()));
-	      corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s_final_norm",collisionName,subHistName.c_str()));
+
 	      if(!corrHists[iHist][i][j].h1D[iCorr][jCorr]){
 		std::cout << "Histogram not found: " << subHistName.c_str() << std::endl;
 	      }
-	    }
+	      //}
 
 	    corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr] = correlationHistTitleX[iHist].c_str();
 	    corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr] = correlationHistTitleY_final_normalized[iHist].c_str();
+
+	    if (jCorr == CORR::kBKG && !isHI)  continue;
+
+	    // FINAL
+	    std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
+	    corrHists[iHist][i][j].h1D_final[iCorr][jCorr] =
+	      (TH1D*)corrHists[iHist][i][j].h1D[iCorr][jCorr]->Clone(Form("%s_final", tmpHistName.c_str()));
+	    double tmpXlow = xlow_final[iHist];
+	    double tmpXup  = xup_final[iHist];
+	    corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetAxisRange(tmpXlow, tmpXup);
+	    corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Write("",TObject::kOverwrite);
+
+	    // FINAL_NORM
+	    corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr] =
+	      (TH1D*)corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Clone(Form("%s_final_norm", tmpHistName.c_str()));
+	    if (jCorr == CORR::kBKG && isHI) {   // (hasJetsMB && hasGammaJetMB) ==> isHI
+	      // normalize first by the number of mixed events
+	      corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
+	    }
+	    if (nSmear > 0 && nSmear != 1) {
+	      //first correct actual bin value
+	      corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
+	      //then increase statistical bin error by 10 to account for 100 "fake" smearing
+	      for(int ibin = 1;
+		  ibin <= corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
+		  ibin++)
+	      {
+		corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->SetBinError
+		  (ibin,
+		   TMath::Sqrt(nSmear)*
+		   corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetBinError(ibin));
+	      }
+	    }
+	    // normalization is done with photon events, not necessarily by photon-jet events
+	    // so the integral of the normalized histogram is R_jg.
+	    double tmpNEntriesPho = h_nPho[i][j][iCorr]->GetBinContent(1);
+	    corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./tmpNEntriesPho);
+	    std::string tmpTitleY_final_norm = corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr].c_str();
+	    corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetYaxis()->SetTitle(tmpTitleY_final_norm.c_str());
+	    corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Write("",TObject::kOverwrite);
 	  }
 	}
       }

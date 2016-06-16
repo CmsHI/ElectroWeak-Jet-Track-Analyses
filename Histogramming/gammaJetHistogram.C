@@ -128,8 +128,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     float cut_awayRange_lt;
     float cut_dR;
     // process cuts
-    int nEventsToMix;
-    int nSmear;
+    //int nEventsToMix;
+    //int nSmear;
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListFloat(
@@ -178,8 +178,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange_lt];
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
-    nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
-    nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
+    // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+    // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
     if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
@@ -239,7 +239,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout<<"cut_awayRange_lt          = "<< cut_awayRange_lt << " * PI" <<std::endl;
     std::cout<<"cut_dR                    = "<< cut_dR <<std::endl;
 
-    std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
+    // std::cout<<"nEventsToMix              = "<< nEventsToMix <<std::endl;
 
     //set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
@@ -257,10 +257,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("pho_hcalRechitIsoR4",1);
     tPho->SetBranchStatus("pho_trackIsoR4PtCut20",1);
     tPho->SetBranchStatus("phoHoverE",1);
-    // tPho->SetBranchStatus("phoE3x3",1);
-    // tPho->SetBranchStatus("phoE5x5",1);
-    // tPho->SetBranchStatus("phoE1x5",1);
-    // tPho->SetBranchStatus("phoE2x5",1);
+    tPho->SetBranchStatus("phoE3x3",1);
+    tPho->SetBranchStatus("phoE5x5",1);
+    tPho->SetBranchStatus("phoE1x5",1);
+    tPho->SetBranchStatus("phoE2x5",1);
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*",0);
     tJet->SetBranchStatus("nref",1);
@@ -456,12 +456,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         // noise cut moved to skim step
         // // noise cut
-        // if(((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-        //     (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03) &&
-        //    ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1/3-0.03 &&
-        //     (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1/3+0.03) &&
-        //    ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-        //     (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03)) continue;
+        if(((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
+            (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03) &&
+           ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1/3-0.03 &&
+            (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1/3+0.03) &&
+           ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
+            (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03)) continue;
 
         // isolation cut
         if(((*pho.pho_ecalClusterIsoR4)[gj[0].phoIdx] +
@@ -663,54 +663,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         corrHists[iHist][i][j].h1D[iCorr][jCorr]->Draw("e");
                         corrHists[iHist][i][j].h1D[iCorr][jCorr]->Write("",TObject::kOverwrite);
                         corrHists[iHist][i][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-                        c->Write("",TObject::kOverwrite);
-                        c->Clear();
-
-                        // FINAL
-                        c->SetName(Form("cnv_%s_final",tmpH1D_name.c_str()));
-                        c->cd();
-                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr] =
-                            (TH1D*)corrHists[iHist][i][j].h1D[iCorr][jCorr]->Clone(Form("%s_final", tmpHistName.c_str()));
-                        double tmpXlow = xlow_final[iHist];
-                        double tmpXup  = xup_final[iHist];
-                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetAxisRange(tmpXlow, tmpXup);
-                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Draw("e");
-                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Write("",TObject::kOverwrite);
-                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-                        c->Write("",TObject::kOverwrite);
-                        c->Clear();
-
-                        // FINAL_NORM
-                        c->SetName(Form("cnv_%s_final_norm",tmpH1D_name.c_str()));
-                        c->cd();
-                        corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr] =
-                            (TH1D*)corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Clone(Form("%s_final_norm", tmpHistName.c_str()));
-                        if (jCorr == CORR::kBKG && hasJetsMB && hasGammaJetMB) {   // (hasJetsMB && hasGammaJetMB) ==> isHI
-                            // normalize first by the number of mixed events
-                            corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
-                        }
-                        if (nSmear > 0 && nSmear != 1) {
-                            //first correct actual bin value
-                            corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
-                            //then increase statistical bin error by 10 to account for 100 "fake" smearing
-                            for(int ibin = 1;
-                                ibin <= corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
-                                ibin++)
-                            {
-                                corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->SetBinError
-                                    (ibin,
-                                     TMath::Sqrt(nSmear)*
-                                     corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetBinError(ibin));
-                            }
-                        }
-                        int tmpNEntriesPho = corrHists[iHist][i][j].nEntriesPho[iCorr][jCorr];
-                        // normalization is done with photon events, not necessarily by photon-jet events
-                        // so the integral of the normalized histogram is R_jg.
-                        corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./tmpNEntriesPho);
-                        std::string tmpTitleY_final_norm = corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr].c_str();
-                        corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetYaxis()->SetTitle(tmpTitleY_final_norm.c_str());
-                        corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Draw("e");
-                        corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Write("",TObject::kOverwrite);
                         c->Write("",TObject::kOverwrite);
                         c->Clear();
                     }
