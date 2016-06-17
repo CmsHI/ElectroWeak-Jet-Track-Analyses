@@ -19,7 +19,7 @@
 const std::vector<std::string> correlationHistNames   {"xjg", "dphi", "ptJet"};
 const std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"};
 const std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
-    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
+    "#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
     "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"};
 const std::vector<int>         nBinsx{16, 20,          30};
 const std::vector<double>      xlow  {0,  0,           0};
@@ -348,6 +348,11 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 	  corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
 	}
 	std::cout<< "purity[i][j] = " << purity[i][j] << std::endl;
+
+	// correct dphi normalization
+	if(iHist == 1){
+	  corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Integral());
+	}
 
 	// FINAL_NORM  RAWSIG
 	std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
