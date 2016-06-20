@@ -79,7 +79,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
 
   jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
-           
+
   cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
   cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
 
@@ -100,7 +100,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   for(unsigned i = 0; i < mcFileWeights.size(); ++i)
     std::cout << mcFileWeights[i] << " ";
   std::cout << std::endl;
-						      
+
   int nJetCollections = jetCollections.size();
 
   if(minBiasJetSkimFile.EqualTo("")) {
@@ -122,7 +122,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout<<"cut_pPAprimaryVertexFilter = "<< cut_pPAprimaryVertexFilter <<std::endl;
     std::cout<<"cut_pBeamScrapingFilter = "<< cut_pBeamScrapingFilter <<std::endl;
   }
-       
+
   std::cout<<"nJetCollections = "<< nJetCollections <<std::endl;
   for (int i=0; i<nJetCollections; ++i) {
     std::cout << Form("jetCollections[%d] = %s", i, jetCollections[i].c_str()) << std::endl;
@@ -230,7 +230,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	correctorsJetSmear[j][i].CSN_PP = CSN_PP;
 	correctorsJetSmear[j][i].CSN_phi_PP = CSN_phi_PP;
 	correctorsJetSmear[j][i].smearingBranchIndex = j+1;
-      
+
 	switch(j){
 	case 0: //0-30
 	case 2: //0-10
@@ -249,7 +249,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       }
     }
   }
-						      
+
   TFile* output = TFile::Open(outputFile,"RECREATE");
   TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
@@ -267,7 +267,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     // do not lose the current title
     outputTreeJet[i] = new TTree(treeJetName.c_str(), treeJetTitle.c_str());
     outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
-    outputJets[i].setupTreeForWriting(outputTreeJet[i]);   
+    outputJets[i].setupTreeForWriting(outputTreeJet[i]);
   }
 
   for (int i=0; i<nJetCollections; ++i) {
@@ -291,7 +291,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       if(!doCorrectionSmearing) break;
     }
   }
-						      
+
   // mixed-event block
   std::vector<Jets> jetsMBoutput(nJetCollections);     // object to write jet trees from MB events
   std::vector<GammaJet> gammajetMB(nJetCollections);
@@ -335,7 +335,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   for(unsigned i = 0; i < inputFiles.size(); ++i)
     std::cout << inputFiles[i] << " ";
   std::cout << std::endl;
-						      
+
   std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
   std::cout<<"#####"<< std::endl;
   for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
@@ -570,6 +570,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       double maxPhoEt = -1;
       for(int i=0; i<ggHi.nPho; ++i)
       {
+        bool failedNoiseCut;
+        failedNoiseCut = (((*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
+                           (*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03) &&
+                          ((*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 1/3-0.03 &&
+                           (*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 1/3+0.03) &&
+                          ((*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
+                           (*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03));
+        if(failedNoiseCut) {
+          phoIdx = -1;
+          break;
+        }
 	bool failedEtCut  = (ggHi.phoEt->at(i) < cutPhoEt) ;
 	if (failedEtCut)          continue;
 	bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta) ;
@@ -591,14 +602,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       if (phoIdx == -1) continue;
       bool failedLooseIso = ((ggHi.pho_ecalClusterIsoR4->at(phoIdx) + ggHi.pho_hcalRechitIsoR4->at(phoIdx) + ggHi.pho_trackIsoR4PtCut20->at(phoIdx)) > 30.0);
       if (failedLooseIso)       continue;
-      bool failedNoiseCut;
-      failedNoiseCut = (((*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
-			 (*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03) &&
-			((*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 1/3-0.03 &&
-			 (*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 1/3+0.03) &&
-			((*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2/3-0.03 &&
-			 (*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2/3+0.03));
-      if(failedNoiseCut)        continue;
 
       entriesAnalyzed++;
 
@@ -608,12 +611,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	{
 	  correctorsL2L3[i].correctPtsL2L3(jets[i]);
 	}
- 
+
 	if(doCorrectionSmearing){
 	  jets[i].replicateJets(nSmear);
 	  for (int j =0; j<=7; ++j) {
 	    if(j !=0 ){
-	      correctorsJetSmear[j-1][i].applyPtsSmearing(jets[i]); 
+	      correctorsJetSmear[j-1][i].applyPtsSmearing(jets[i]);
 	      correctorsJetSmear[j-1][i].applyPhisSmearing(jets[i]);
 	    }
 	  }
@@ -634,7 +637,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	  } else {
 	    if((jets[i].jtpt[j] < cutJetPt)) continue;
 	  }
-	  
+
 	  outputJets[i].rawpt[outputJets[i].nref] = jets[i].rawpt[j];
 	  outputJets[i].jtpt[outputJets[i].nref] = jets[i].jtpt[j];
 	  outputJets[i].jteta[outputJets[i].nref] = jets[i].jteta[j];
@@ -674,7 +677,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 	    outputJets[i].subid[outputJets[i].nref] = jets[i].subid[j];
 	    // don't include the full gen jet tree (might regret this)
 	  }
-	  
+
 	  if(doCorrectionSmearing){
 	    outputJets[i].jtpt_smeared_0_30[outputJets[i].nref] = jets[i].jtpt_smeared_0_30[j];
 	    outputJets[i].jtpt_smeared_30_100[outputJets[i].nref] = jets[i].jtpt_smeared_30_100[j];
@@ -784,7 +787,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   }
   std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
   std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
-    
+
   for (int i = 0; i < nJetCollections; ++i) {
     for (int j = 0; j<=7; ++j) {
       std::cout << Form("gammaJetTree[%d][%d]->GetEntries() = ", i,j) << gammaJetTree[i][j]->GetEntries() << std::endl;
