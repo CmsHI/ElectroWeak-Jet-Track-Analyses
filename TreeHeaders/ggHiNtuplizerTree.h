@@ -8,7 +8,7 @@
 
 class ggHiNtuplizer {
 public :
-  ggHiNtuplizer(){
+  ggHiNtuplizer() {
     nPU = 0;
     puBX = 0;
     puTrue = 0;
@@ -113,6 +113,7 @@ public :
     eleEffAreaTimesRho = 0;
     phoE = 0;
     phoEt = 0;
+    phoEtCorrected = 0;
     phoEta = 0;
     phoPhi = 0;
     phoSCE = 0;
@@ -382,6 +383,7 @@ public :
   Int_t           nPho;
   std::vector<float>   *phoE;
   std::vector<float>   *phoEt;
+  std::vector<float>   *phoEtCorrected;
   std::vector<float>   *phoEta;
   std::vector<float>   *phoPhi;
   std::vector<float>   *phoSCE;
@@ -650,6 +652,7 @@ public :
   TBranch        *b_nPho;   //!
   TBranch        *b_phoE;   //!
   TBranch        *b_phoEt;   //!
+  TBranch        *b_phoEtCorrected;   //!
   TBranch        *b_phoEta;   //!
   TBranch        *b_phoPhi;   //!
   TBranch        *b_phoSCE;   //!
@@ -802,7 +805,6 @@ public :
   TBranch        *b_muPFPhoIso;   //!
   TBranch        *b_muPFNeuIso;   //!
   TBranch        *b_muPFPUIso;   //!
-
 };
 
 void ggHiNtuplizer::setupTreeForReading(TTree *t)
@@ -920,6 +922,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
     if (t->GetBranch("phoEt")) t->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
+    if (t->GetBranch("phoEtCorrected")) t->SetBranchAddress("phoEtCorrected", &phoEtCorrected, &b_phoEtCorrected);
     if (t->GetBranch("phoEta")) t->SetBranchAddress("phoEta", &phoEta, &b_phoEta);
     if (t->GetBranch("phoPhi")) t->SetBranchAddress("phoPhi", &phoPhi, &b_phoPhi);
     if (t->GetBranch("phoSCE")) t->SetBranchAddress("phoSCE", &phoSCE, &b_phoSCE);

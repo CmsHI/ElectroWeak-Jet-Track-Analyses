@@ -18,6 +18,7 @@ public :
 
         jetIdx = 0;
         xjg = 0;
+        xjgCorrected = 0;
         deta = 0;
         dphi = 0;
         dR = 0;
@@ -43,6 +44,7 @@ public :
      Int_t           jetIdx2;       // index of subleading jet which passed jetID
      std::vector<int>     *jetIdx;
      std::vector<float>   *xjg;
+     std::vector<float>   *xjgCorrected;
      std::vector<float>   *deta;
      std::vector<float>   *dphi;
      std::vector<float>   *dR;
@@ -56,6 +58,7 @@ public :
      TBranch        *b_jetIdx2;   //!
      TBranch        *b_jetIdx;   //!
      TBranch        *b_xjg;   //!
+     TBranch        *b_xjgCorrected;   //!
      TBranch        *b_deta;   //!
      TBranch        *b_dphi;   //!
      TBranch        *b_dR;   //!
@@ -69,6 +72,7 @@ public :
      Int_t           jetIdx2_out;
      std::vector<int>     jetIdx_out;
      std::vector<float>   xjg_out;
+     std::vector<float>   xjgCorrected_out;
      std::vector<float>   deta_out;
      std::vector<float>   dphi_out;
      std::vector<float>   dR_out;
@@ -86,6 +90,7 @@ void GammaJet::setupGammaJetTree(TTree *t)
     if (t->GetBranch("jetIdx2"))  t->SetBranchAddress("jetIdx1", &jetIdx2, &b_jetIdx2);
     if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
     if (t->GetBranch("xjg"))  t->SetBranchAddress("xjg", &xjg, &b_xjg);
+    if (t->GetBranch("xjgCorrected"))  t->SetBranchAddress("xjgCorrected", &xjgCorrected, &b_xjgCorrected);
     if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
     if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &dphi, &b_dphi);
     if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &dR, &b_dR);
@@ -101,6 +106,7 @@ void GammaJet::branchGammaJetTree(TTree *t)
     t->Branch("jetIdx2", &jetIdx2_out);
     t->Branch("jetIdx", &jetIdx_out);
     t->Branch("xjg", &xjg_out);
+    t->Branch("xjgCorrected", &xjgCorrected_out);
     t->Branch("deta", &deta_out);
     t->Branch("dphi", &dphi_out);
     t->Branch("dR", &dR_out);
@@ -171,7 +177,7 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
             jtphi = tJets.jtphi[i];
             break;
         }
-        
+
         // cuts on jets will be applied during plotting
         float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
         float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), jtphi);
@@ -261,7 +267,7 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
         float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], tJets.jtphi[i]);
 
         int tmp_insideJet;
-        if(tmp_dR < coneRange) tmp_insideJet = 1;
+        if (tmp_dR < coneRange) tmp_insideJet = 1;
         else                             tmp_insideJet = 0;
 
         int tmp_jetID = 0;
