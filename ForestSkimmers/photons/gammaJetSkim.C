@@ -555,12 +555,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       double maxPhoEt = -1;
       for (int i=0; i<ggHi.nPho; ++i) {
         // bool failedNoiseCut;
-        // failedNoiseCut = (((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
-        //                    (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03) &&
-        //                   ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1/3-0.03 &&
-        //                    (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1/3+0.03) &&
-        //                   ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2/3-0.03 &&
-        //                    (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2/3+0.03));
+        // failedNoiseCut = (((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+        //                    (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03) &&
+        //                   ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1./3.-0.03 &&
+        //                    (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1./3.+0.03) &&
+        //                   ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+        //                    (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03));
         // if (failedNoiseCut) {
         //   phoIdx = -1;
         //   break;
