@@ -25,15 +25,15 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 
-const TString LABEL = "pp #sqrt{s}_{_{NN}}=5.02 TeV";
+const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
 const TCut sampleIsolation_PbPb = "(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < 1.0 && phoHoverE[phoIdx]<0.1";
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
 
 const Double_t sigShifts[] = {0, 0, 0, 0};
 
 // last entry is upper bound on last bin
-//const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
-const Int_t CENTBINS[] = {-1,200};
+const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
+//const Int_t CENTBINS[] = {-1,200};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
 const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
