@@ -4,6 +4,7 @@
 #include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
+#include "TF1.h"
 
 #include <vector>
 #include <string>
@@ -391,6 +392,70 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     std::cout << "####################" << std::endl;
   }
 
+  // fit dphi
+  TF1* dphi_fit_func = new TF1("dphi_fit_func", "[0]+[1]*exp((x-3.14159265358979323)/[2])", 0, TMath::Pi());
+  dphi_fit_func->SetParameters(0.01, 0.5, 0.3);
+
+  TF1* fit_dphi[nBins_pt][nBins_hiBin];
+  for (int i=0; i<nBins_pt; ++i) {
+    for (int j=0; j<nBins_hiBin; ++j) {
+      corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Fit("dphi_fit_func", "QREM0");
+      fit_dphi[i][j] = corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->GetFunction("dphi_fit_func");
+      fit_dphi[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i", i, j), TObject::kOverwrite);
+    }
+  }
+
+  // dphi width/pedestal plots as a function of photon pt, for different centrality bins
+  std::vector<int> pt_bin_numbers;
+  pt_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_bin_numbers]);
+  int n_pt_bins = pt_bin_numbers.size();
+
+  float dphi_fit_pt_bins[n_pt_bins + 2];
+  dphi_fit_pt_bins[0] = 0;
+  dphi_fit_pt_bins[1] = bins_pt[0][pt_bin_numbers[0]];
+  for (int i=0; i<n_pt_bins; ++i)
+      dphi_fit_pt_bins[i+2] = bins_pt[1][pt_bin_numbers[i]];
+  if (dphi_fit_pt_bins[n_pt_bins+1] > 200)
+      dphi_fit_pt_bins[n_pt_bins+1] = 200;
+
+  TH1D* h_dphi_width_pt[nBins_hiBin];
+  TH1D* h_dphi_pedestal_pt[nBins_hiBin];
+  for (int i=0; i<nBins_hiBin; ++i) {
+    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+
+    for (int j=0; j<n_pt_bins; ++j) {
+      h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
+      h_dphi_width_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
+      h_dphi_pedestal_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
+      h_dphi_pedestal_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
+    }
+  }
+
+  // dphi width/pedestal plots as a function of centrality, for different photon pt bins
+  std::vector<int> cent_bin_numbers;
+  cent_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_cent_bin_numbers]);
+  int n_cent_bins = cent_bin_numbers.size();
+
+  float dphi_fit_cent_bins[n_cent_bins + 1];
+  dphi_fit_cent_bins[0] = bins_hiBin[0][cent_bin_numbers[0]];
+  for (int i=0; i<n_cent_bins; ++i)
+      dphi_fit_cent_bins[i+1] = bins_hiBin[1][cent_bin_numbers[i]];
+
+  TH1D* h_dphi_width_cent[nBins_pt];
+  TH1D* h_dphi_pedestal_cent[nBins_pt];
+  for (int i=0; i<nBins_pt; ++i) {
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_ptBin%i", i), "", n_cent_bins+1, dphi_fit_cent_bins);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_ptBin%i", i), "", n_cent_bins+1, dphi_fit_cent_bins);
+
+    for (int j=0; j<n_cent_bins; ++j) {
+      h_dphi_width_cent[i]->SetBinContent(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
+      h_dphi_width_cent[i]->SetBinError(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      h_dphi_pedestal_cent[i]->SetBinContent(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
+      h_dphi_pedestal_cent[i]->SetBinError(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
+    }
+  }
+
 // histograms with pt bins on x-axis
 // corrHists_ptBinAll[0][]  = R_jg
 // corrHists_ptBinAll[1][]  = <X_jg>
@@ -479,7 +544,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
         }
 
-        std::string histoTitle = Form("%s , %lf-%lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
+        std::string histoTitle = Form("%s , %.0lf-%.0lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
 
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; R_{J#gamma}", histoTitle.c_str()));
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
