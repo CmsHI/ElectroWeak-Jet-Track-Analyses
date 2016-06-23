@@ -32,11 +32,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     TTree* gjTree[nJetCollections];
     GammaJet gammajet_event[nJetCollections];
-    std::vector<float> xjgCorrected[nJetCollections];
+    std::vector<float>* xjgCorrected[nJetCollections] = {0};
     for (int i=0; i<nJetCollections; ++i) {
         gjTree[i] = (TTree*)inFile->Get(Form("gamma_%s", jetCollections[i].c_str()));
         gammajet_event[i].setupGammaJetTree(gjTree[i]);
-        gjTree[i]->Branch("xjgCorrected", &xjgCorrected[i]);
     }
 
     int hiBin;
@@ -51,6 +50,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     for (int i=0; i<nJetCollections; ++i) {
         outGJTree[i] = gjTree[i]->CloneTree(0);
         outGJTree[i]->SetMaxTreeSize(MAXTREESIZE);
+        outGJTree[i]->SetBranchAddress("xjgCorrected", &xjgCorrected[i]);
     }
 
     TTree* outEventTree = eventTree->CloneTree(-1, "fast");
@@ -84,7 +84,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
         for (int igj=0; igj<nJetCollections; ++igj) {
             gjTree[igj]->GetEntry(i);
-            xjgCorrected[igj].clear();
+            xjgCorrected[igj]->clear();
         }
 
         int icent = 0;
@@ -106,9 +106,9 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
             for (std::size_t k=0; k<gammajet_event[igj].xjg->size(); ++k) {
                 if (ieta == nEtaBins)
-                    xjgCorrected[igj].push_back(0);
+                    xjgCorrected[igj]->push_back(0);
                 else
-                    xjgCorrected[igj].push_back((*gammajet_event[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_event[igj].phoIdx])));
+                    xjgCorrected[igj]->push_back((*gammajet_event[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_event[igj].phoIdx])));
             }
         }
 
