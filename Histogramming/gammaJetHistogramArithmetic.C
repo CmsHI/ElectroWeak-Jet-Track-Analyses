@@ -436,7 +436,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         // if (j>0 && !isHI) continue;
 
-        int offset = 6; // hiBin 0-10 starts from index 6.
+        int offset = 3; // hiBin 0-10 starts from index 3.
         // rjg block
         for (int i=0; i<nBins_rjg_cent; ++i) {
           double err;
