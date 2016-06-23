@@ -1,6 +1,5 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCanvas.h>
 #include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
@@ -268,7 +267,6 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
-  TCanvas* c = new TCanvas("cnv", "", 600, 600);
   for (int iHist = 0; iHist < nCorrHist; iHist++) {
     for (int i=0; i<nBins_pt; ++i) {
       for (int j=0; j<nBins_hiBin; ++j) {
@@ -354,35 +352,17 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // FINAL_NORM  RAWSIG
         std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameRAWSIG = " << tmpH1D_nameRAWSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameRAWSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // FINAL_NORM  BKGSIG
         std::string tmpH1D_nameBKGSIG = corrHists[iHist][i][j].h1D_name[CORR::kBKG][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameBKGSIG = " << tmpH1D_nameBKGSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameBKGSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // FINAL_NORM  SIGSIG
         std::string tmpH1D_nameSIGSIG = corrHists[iHist][i][j].h1D_name[CORR::kSIG][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameSIGSIG = " << tmpH1D_nameSIGSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameSIGSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         std::cout << Form("histogramming END : ptBin%d HiBin%d", i, j) << std::endl;
         std::cout << "##########" << std::endl;
@@ -487,13 +467,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // xjg_mean block
         for (int i=0; i<nBins_xjg_mean; ++i) {
@@ -509,13 +483,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
       }
     }
   }
@@ -533,7 +501,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         // if (j>0 && !isHI) continue;
 
-        int offset = 6; // hiBin 0-10 starts from index 6.
+        int offset = 3; // hiBin 0-10 starts from index 3.
         // rjg block
         for (int i=0; i<nBins_rjg_cent; ++i) {
           double err;
@@ -551,13 +519,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // xjg_mean block
         for (int i=0; i<nBins_xjg_mean_cent; ++i) {
@@ -573,13 +535,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
       }
     }
   }

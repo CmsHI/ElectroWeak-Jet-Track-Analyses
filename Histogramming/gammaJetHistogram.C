@@ -1,6 +1,5 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCanvas.h>
 #include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
@@ -255,7 +254,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     TTree *tHlt = (TTree*)input->Get("hltTree");
     TTree *tPho = (TTree*)input->Get("EventTree");    // photons
     tPho->SetBranchStatus("*", 0);
-    tPho->SetBranchStatus("phoEt", 1);
+    tPho->SetBranchStatus("phoEtCorrected", 1);
     tPho->SetBranchStatus("phoEta", 1);
     tPho->SetBranchStatus("phoSigmaIEtaIEta_2012", 1);
     tPho->SetBranchStatus("pho_ecalClusterIsoR4", 1);
@@ -453,12 +452,12 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         // noise cut moved to skim step
         // // noise cut
-        if (((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-             (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03) &&
-            ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1/3-0.03 &&
-             (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1/3+0.03) &&
-            ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2/3-0.03 &&
-             (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2/3+0.03)) continue;
+        if (((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2./3.-0.03 &&
+             (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2./3.+0.03) &&
+            ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1./3.-0.03 &&
+             (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1./3.+0.03) &&
+            ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2./3.-0.03 &&
+             (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2./3.+0.03)) continue;
 
         // isolation cut
         if (((*pho.pho_ecalClusterIsoR4)[gj[0].phoIdx] +
@@ -484,8 +483,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         // handle nEntriesPho separate from jet loop
         for (int i=0; i<nBins_pt; ++i) {
-            if ((*pho.phoEt)[gj[0].phoIdx] <  bins_pt[0][i] ||
-                (*pho.phoEt)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+            if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
+                (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
             for (int j=0; j<nBins_hiBin; ++j) {
                 if (isHI) {
                     if (evt.hiBin <  bins_hiBin[0][j] ||
@@ -522,8 +521,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 if ((*gj[smearingBinIndex].dR)[ijet] < cut_dR) continue;
 
                 for (int i=0; i<nBins_pt; ++i) {
-                    if ((*pho.phoEt)[gj[0].phoIdx] <  bins_pt[0][i] ||
-                        (*pho.phoEt)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+                    if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
+                        (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
 
                     // fill histograms
                     // dphi = 1
@@ -554,8 +553,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 if ((*gjMB.jetID)[ijet] < cut_jetID) continue;
 
                 for (int i=0; i<nBins_pt; ++i) {
-                    if ((*pho.phoEt)[gjMB.phoIdx] <  bins_pt[0][i] ||
-                        (*pho.phoEt)[gjMB.phoIdx] >= bins_pt[1][i]) continue;
+                    if ((*pho.phoEtCorrected)[gjMB.phoIdx] <  bins_pt[0][i] ||
+                        (*pho.phoEtCorrected)[gjMB.phoIdx] >= bins_pt[1][i]) continue;
                     for (int j=0; j<nBins_hiBin; ++j) {
                         if (evt.hiBin <  bins_hiBin[0][j] ||
                             evt.hiBin >= bins_hiBin[1][j]) continue;
@@ -579,7 +578,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     }
 
     /// Histogram arithmetic (no reading I/O)
-    TCanvas* c = new TCanvas("cnv", "", 600, 600);
     for (int iHist = 0; iHist < nCorrHist; iHist++) {
         for (int i=0; i<nBins_pt; ++i) {
             for (int j=0; j<nBins_hiBin; ++j) {
@@ -647,13 +645,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                         std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
 
-                        c->SetName(Form("cnv_%s", tmpH1D_name.c_str()));
-                        c->cd();
-                        corrHists[iHist][i][j].h1D[iCorr][jCorr]->Draw("e");
                         corrHists[iHist][i][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-                        corrHists[iHist][i][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-                        c->Write("", TObject::kOverwrite);
-                        c->Clear();
                     }
                 }
             }
