@@ -1,6 +1,5 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCanvas.h>
 #include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
@@ -579,7 +578,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     }
 
     /// Histogram arithmetic (no reading I/O)
-    TCanvas* c = new TCanvas("cnv", "", 600, 600);
     for (int iHist = 0; iHist < nCorrHist; iHist++) {
         for (int i=0; i<nBins_pt; ++i) {
             for (int j=0; j<nBins_hiBin; ++j) {
@@ -647,13 +645,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         std::string tmpH1D_name = corrHists[iHist][i][j].h1D_name[iCorr][jCorr].c_str();
                         std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
 
-                        c->SetName(Form("cnv_%s", tmpH1D_name.c_str()));
-                        c->cd();
-                        corrHists[iHist][i][j].h1D[iCorr][jCorr]->Draw("e");
                         corrHists[iHist][i][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-                        corrHists[iHist][i][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-                        c->Write("", TObject::kOverwrite);
-                        c->Clear();
                     }
                 }
             }
