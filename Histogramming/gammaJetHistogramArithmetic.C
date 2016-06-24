@@ -425,14 +425,14 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   TH1D* h_dphi_width_cent[nBins_pt];
   TH1D* h_dphi_pedestal_cent[nBins_pt];
   for (int i=0; i<nBins_pt; ++i) {
-    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_ptBin%i", i), "", n_cent_bins+1, dphi_fit_cent_bins);
-    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_ptBin%i", i), "", n_cent_bins+1, dphi_fit_cent_bins);
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
 
     for (int j=0; j<n_cent_bins; ++j) {
-      h_dphi_width_cent[i]->SetBinContent(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
-      h_dphi_width_cent[i]->SetBinError(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
-      h_dphi_pedestal_cent[i]->SetBinContent(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
-      h_dphi_pedestal_cent[i]->SetBinError(j+2, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
+      h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
+      h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      h_dphi_pedestal_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
+      h_dphi_pedestal_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
     }
   }
 
