@@ -245,8 +245,8 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   // prepare histogram names for rjg and <xjg>
   const int nBins_rjg_cent = 4;
   const int nBins_xjg_mean_cent= 4;
-  double bins_rjg_cent[nBins_rjg+1] =           {0, 20, 60, 100, 200};
-  double bins_xjg_mean_cent[nBins_xjg_mean+1] = {0, 20, 60, 100, 200};
+  double bins_rjg_cent[nBins_rjg_cent+1] =           {0, 20, 60, 100, 200};
+  double bins_xjg_mean_cent[nBins_xjg_mean_cent+1] = {0, 20, 60, 100, 200};
 
   for (int j=0; j<nBins_pt; ++j) {
     for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
@@ -510,6 +510,12 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          
+          // std::cout << "ENTER" << std::endl;
+          // std::cout << "histname: " << corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetName() << std::endl;
+          // std::cout << "outhistname: " << corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->GetName() << std::endl;
+          // std::cout << "ptBin: " << j << " hiBin: " << i+offset << std::endl;
+          // std::cout << "Rjg: " << val << std::endl;
         }
 
         std::string histoTitle = Form("%s , %.0lf-%.0lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
