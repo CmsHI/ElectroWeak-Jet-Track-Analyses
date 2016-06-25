@@ -37,7 +37,7 @@ const std::vector<double>      xup    {2,  TMath::Pi(), 300};
 // const std::vector<double>      xlow_final {0,  0,           0};
 // const std::vector<double>      xup_final  {2,  TMath::Pi(), 200};
 
-const int nSmearBins = 8;
+const int nSmearBins = 8; // should come from config...
 
 float smeared_jtpt(Jets j, int ijet, int smearingBinIndex) {
     switch (smearingBinIndex) {
