@@ -532,7 +532,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     if (TMath::Abs((*gj[smearingBinIndex].dphi)[ijet]) <= cut_awayRange) continue;
                     // xjg = 0
                     // jtpt = 2
-                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill((*gj[smearingBinIndex].xjg)[ijet], weight);
+                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill((*gj[smearingBinIndex].xjgCorrected)[ijet], weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(smeared_jtpt(jet, ijet, smearingBinIndex), weight);
                     corrHists[2][i][j].nEntries[phoType][CORR::kRAW] += weight;
@@ -567,7 +567,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         if (TMath::Abs((*gjMB.dphi)[ijet]) <= cut_awayRange) continue;
                         // xjg = 0
                         // jtpt = 2
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gjMB.xjg)[ijet], weight);
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gjMB.xjgCorrected)[ijet], weight);
                         corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
                         corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(smeared_jtpt(jetMB, ijet, 0), weight);
                         corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
