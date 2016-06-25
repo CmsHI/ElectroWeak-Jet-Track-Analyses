@@ -104,9 +104,9 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
 
       TCut selectionPho;
       if (bins_pt[1][i] >= 0){
-	selectionPho = Form("phoEt[phoIdx] >= %f && phoEt[phoIdx] < %f", bins_pt[0][i], bins_pt[1][i]);
+	selectionPho = Form("phoEtCorrected[phoIdx] >= %f && phoEtCorrected[phoIdx] < %f", bins_pt[0][i], bins_pt[1][i]);
       } else {
-	selectionPho = Form("phoEt[phoIdx] >= %f", bins_pt[0][i]);
+	selectionPho = Form("phoEtCorrected[phoIdx] >= %f", bins_pt[0][i]);
       }
       selectionPho = selectionPho && etaCut;
 
