@@ -71,16 +71,16 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 ############ HADD/ARITHMETIC SECTION ###################
 echo "## Summing Histograms"
 hadd -f ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
-rm ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged
 
 hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
-rm ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
 
 hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
-rm ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
 
 hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
-rm ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
 
 ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
 

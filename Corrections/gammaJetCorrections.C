@@ -15,6 +15,9 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+    bool isHI = collisionIsHI((COLL::TYPE)collision);
+
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
     TFile* inFile = TFile::Open(inputFile, "read");
@@ -32,10 +35,17 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     TTree* gjTree[nJetCollections];
     GammaJet gammajet_event[nJetCollections];
+    TTree *gjTreeMB[nJetCollections];
+    GammaJet gammajet_eventMB[nJetCollections];
     std::vector<float>* xjgCorrected[nJetCollections] = {0};
+    std::vector<float>* xjgCorrectedMB[nJetCollections] = {0};
     for (int i=0; i<nJetCollections; ++i) {
         gjTree[i] = (TTree*)inFile->Get(Form("gamma_%s", jetCollections[i].c_str()));
         gammajet_event[i].setupGammaJetTree(gjTree[i]);
+        if(isHI){
+            gjTreeMB[i] = (TTree*)inFile->Get(Form("gamma_%sMB", jetCollections[i].c_str()));
+            gammajet_eventMB[i].setupGammaJetTree(gjTreeMB[i]);
+        }
     }
 
     int hiBin;
@@ -47,10 +57,16 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     outPhoTree->SetMaxTreeSize(MAXTREESIZE);
 
     TTree* outGJTree[nJetCollections];
+    TTree* outGJTreeMB[nJetCollections];
     for (int i=0; i<nJetCollections; ++i) {
         outGJTree[i] = gjTree[i]->CloneTree(0);
         outGJTree[i]->SetMaxTreeSize(MAXTREESIZE);
         outGJTree[i]->SetBranchAddress("xjgCorrected", &xjgCorrected[i]);
+        if(isHI){
+            outGJTreeMB[i] = gjTreeMB[i]->CloneTree(0);
+            outGJTreeMB[i]->SetMaxTreeSize(MAXTREESIZE);
+            outGJTreeMB[i]->SetBranchAddress("xjgCorrected", &xjgCorrectedMB[i]);
+        }
     }
 
     TTree* outEventTree = eventTree->CloneTree(-1, "fast");
@@ -85,6 +101,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         for (int igj=0; igj<nJetCollections; ++igj) {
             gjTree[igj]->GetEntry(i);
             xjgCorrected[igj]->clear();
+            if(isHI){
+                gjTreeMB[igj]->GetEntry(i);
+                xjgCorrectedMB[igj]->clear();
+            }
         }
 
         int icent = 0;
@@ -105,28 +125,53 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
             for (; fabs((*pho_event.phoEta)[gammajet_event[igj].phoIdx])>=etaBins[1][ieta] && ieta<nEtaBins; ++ieta);
 
             for (std::size_t k=0; k<gammajet_event[igj].xjg->size(); ++k) {
-                if (ieta == nEtaBins)
+                if (ieta == nEtaBins){
                     xjgCorrected[igj]->push_back(0);
-                else
+                } else {
                     xjgCorrected[igj]->push_back((*gammajet_event[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_event[igj].phoIdx])));
+                }
+            }
+            if(isHI){
+                ieta = 0; // probably superfluous recalculation
+                for (; fabs((*pho_event.phoEta)[gammajet_eventMB[igj].phoIdx])>=etaBins[1][ieta] && ieta<nEtaBins; ++ieta);
+                for (std::size_t k=0; k< gammajet_eventMB[igj].xjg->size(); ++k) {
+                    if (ieta == nEtaBins){
+                        xjgCorrectedMB[igj]->push_back(0);
+                    } else {
+                        xjgCorrectedMB[igj]->push_back((*gammajet_eventMB[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_eventMB[igj].phoIdx])));
+                    }
+                }
             }
         }
 
         outPhoTree->Fill();
-        for (int igj=0; igj<nJetCollections; ++igj)
+        for (int igj=0; igj<nJetCollections; ++igj){
             outGJTree[igj]->Fill();
+            if(isHI){
+                outGJTreeMB[igj]->Fill();
+            }
+        }
     }
 
     outPhoTree->AutoSave();
-    for (int i=0; i<nJetCollections; ++i)
+    for (int i=0; i<nJetCollections; ++i){
         outGJTree[i]->AutoSave();
+        if(isHI){
+            outGJTreeMB[i]->AutoSave();
+        }
+    }
 
     outFile->cd();
 
     const char* photonTreeName = "EventTree";
     TString jetCollectionNames[nJetCollections];
-    for (int i=0; i<nJetCollections; ++i)
+    TString jetCollectionNamesMB[nJetCollections];
+    for (int i=0; i<nJetCollections; ++i){
         jetCollectionNames[i] = Form("gamma_%s", jetCollections[i].c_str());
+        if(isHI){
+            jetCollectionNamesMB[i] = Form("gamma_%sMB", jetCollections[i].c_str());
+        }
+    }
 
     TKey* key;
     TIter nextkey(inFile->GetListOfKeys());
@@ -134,9 +179,16 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         if (key->GetName() == photonTreeName)
             continue;
         bool skipKey = false;
-        for (int i=0; i<nJetCollections; ++i)
-            if (key->GetName() == jetCollectionNames[i].Data())
+        for (int i=0; i<nJetCollections; ++i){
+            if (key->GetName() == jetCollectionNames[i].Data()){
                 skipKey = true;
+            }
+            if(isHI){
+                if(key->GetName() == jetCollectionNamesMB[i].Data()){
+                    skipKey = true;
+                }
+            }
+        }
         if (skipKey)
             continue;
 
@@ -153,8 +205,12 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     configTree->Write("", TObject::kOverwrite);
     outPhoTree->Write("", TObject::kOverwrite);
-    for (int i=0; i<nJetCollections; ++i)
+    for (int i=0; i<nJetCollections; ++i){
         outGJTree[i]->Write("", TObject::kOverwrite);
+        if(isHI){
+            outGJTreeMB[i]->Write("", TObject::kOverwrite);
+        }
+    }
     outEventTree->Write("", TObject::kOverwrite);
     outFile->Close();
 
