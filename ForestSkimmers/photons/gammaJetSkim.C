@@ -64,6 +64,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int nVertexBins;
   int nEventsToMix;
   int doEventWeight;
+  double smearingResJet;
+  double smearingResJetPhi;
   bool doCorrectionSmearing;
   int nSmear;
   int doCorrectionL2L3;
@@ -91,6 +93,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
   nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
   nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+  smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
+  smearingResJetPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingResPhi];
   doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
   nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
   doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
@@ -137,6 +141,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout << "nVertexBins              = " << nVertexBins << std::endl;
     std::cout << "nEventsToMix             = " << nEventsToMix << std::endl;
   }
+
+  std::cout<<"smearingResJet          = "<< smearingResJet <<std::endl;
+  std::cout<<"smearingResJetPhi       = "<< smearingResJetPhi <<std::endl;
+  std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
 
   TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
   TH2D* h_weights_PbPb=0;
@@ -626,6 +634,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           }
         }
 
+        if (smearingResJetPhi > 0) {
+            correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
+        }
+        if (smearingResJet > 0) {
+            correctorsJetSmear[0][i].applyPtsResolution(jets[i], smearingResJet);
+        }
+
         // scrape some jets.
         for (int j = 0; j < jets[i].nref; ++j) {
           if (TMath::Abs(jets[i].jteta[j]) > cutJetEta) continue;
@@ -725,6 +740,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
               if (doCorrectionL2L3 > 0) {
                 correctorsL2L3[k].correctPtsL2L3(jetsMB[k]);
+              }
+
+              if (smearingResJetPhi > 0) {
+                  correctorsJetSmear[0][k].applyPhisResolution(jetsMB[k], smearingResJetPhi);
+              }
+              if (smearingResJet > 0) {
+                  correctorsJetSmear[0][k].applyPtsResolution(jetsMB[k], smearingResJet);
               }
 
               // write jets from minBiasJetSkimFile to outputFile
