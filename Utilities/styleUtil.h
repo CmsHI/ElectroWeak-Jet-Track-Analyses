@@ -91,10 +91,13 @@ void setPadFinal(TPad* pad, int logx, int logy, int logz)
 void setTH1Final(TH1* h)
 {
     h->SetTitleOffset(1.25, "X");
-    h->SetTitleOffset(1.5,  "Y");
+    h->SetTitleOffset(2,  "Y");
 
     h->SetTitle("");
     h->SetStats(false);
+
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
 }
 
 /*

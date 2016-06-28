@@ -1,0 +1,115 @@
+Input Configuration :
+collision = PPMC
+dataCount: 56926
+bkgCount: 7410
+sigCount: 69153
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 56933.9 nevError: 238.671
+ratio: 0.980074 ratioError: 0.00161329
+shift: 0 shiftError: 0
+Purity: 0.983406
+nSig: 55799.4
+chisq: 26.9635
+Purity for ptBin0 hiBin0: 0.983406
+nSig for ptBin0 hiBin0: 55799.4
+chisq for ptBin0 hiBin0: 26.9635
+dataCount: 33053
+bkgCount: 3667
+sigCount: 40863
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 33052.3 nevError: 181.83
+ratio: 0.978006 ratioError: 0.00205328
+shift: 0 shiftError: 0
+Purity: 0.982107
+nSig: 32325.4
+chisq: 26.2073
+Purity for ptBin1 hiBin0: 0.982107
+nSig for ptBin1 hiBin0: 32325.4
+chisq for ptBin1 hiBin0: 26.2073
+dataCount: 14194
+bkgCount: 2261
+sigCount: 16740
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 14190 nevError: 119.139
+ratio: 0.969401 ratioError: 0.00429793
+shift: 0 shiftError: 0
+Purity: 0.973667
+nSig: 13755.8
+chisq: 2.56399
+Purity for ptBin2 hiBin0: 0.973667
+nSig for ptBin2 hiBin0: 13755.8
+chisq for ptBin2 hiBin0: 2.56399
+dataCount: 9679
+bkgCount: 1482
+sigCount: 11550
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 9686.38 nevError: 98.4876
+ratio: 0.982395 ratioError: 0.00365517
+shift: 0 shiftError: 0
+Purity: 0.985271
+nSig: 9515.86
+chisq: 6.43389
+Purity for ptBin3 hiBin0: 0.985271
+nSig for ptBin3 hiBin0: 9515.86
+chisq for ptBin3 hiBin0: 6.43389
+dataCount: 11629
+bkgCount: 1717
+sigCount: 13999
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 11622.8 nevError: 107.822
+ratio: 0.96874 ratioError: 0.00437335
+shift: 0 shiftError: 0
+Purity: 0.974137
+nSig: 11259.4
+chisq: 8.746
+Purity for ptBin4 hiBin0: 0.974137
+nSig for ptBin4 hiBin0: 11259.4
+chisq for ptBin4 hiBin0: 8.746
+dataCount: 21424
+bkgCount: 1950
+sigCount: 26864
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 21429.7 nevError: 146.416
+ratio: 0.981719 ratioError: 0.00232128
+shift: 0 shiftError: 0
+Purity: 0.985353
+nSig: 21038
+chisq: 14.3291
+Purity for ptBin5 hiBin0: 0.985353
+nSig for ptBin5 hiBin0: 21038
+chisq for ptBin5 hiBin0: 14.3291
+dataCount: 7473
+bkgCount: 878
+sigCount: 9176
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 7474.23 nevError: 86.4719
+ratio: 0.973195 ratioError: 0.00547624
+shift: 0 shiftError: 0
+Purity: 0.977951
+nSig: 7273.88
+chisq: 3.77776
+Purity for ptBin6 hiBin0: 0.977951
+nSig for ptBin6 hiBin0: 7273.88
+chisq for ptBin6 hiBin0: 3.77776
+dataCount: 13951
+bkgCount: 1072
+sigCount: 17688
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+Warning in <HFit::FitObject>: A weighted likelihood fit is requested but histogram is not weighted - do a standard Likelihood fit
+nev: 13954.8 nevError: 118.148
+ratio: 0.985084 ratioError: 0.00247403
+shift: 0 shiftError: 0
+Purity: 0.988275
+nSig: 13746.7
+chisq: 12.7787
+Purity for ptBin7 hiBin0: 0.988275
+nSig for ptBin7 hiBin0: 13746.7
+chisq for ptBin7 hiBin0: 12.7787
+0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275, 

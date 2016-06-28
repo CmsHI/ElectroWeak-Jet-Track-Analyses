@@ -89,7 +89,7 @@ int calcWeights(const TString configFile, const char* inputData, const char* inp
 
     TH1::SetDefaultSumw2();
 
-    TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "RECREATE");
+    TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "RECREATE");
 
     if (isHI) {
         TH2D* h_weights = new TH2D("h_weights", "", 200, 0, 200, 75, -15, 15);

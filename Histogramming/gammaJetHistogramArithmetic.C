@@ -1,9 +1,9 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCanvas.h>
 #include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
+#include "TF1.h"
 
 #include <vector>
 #include <string>
@@ -83,13 +83,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
   /// Purity Calculation Block ///
   // these lists of constants should really be in the conf. Cheat for time for now.
-  const float tempPbPbPurity[56] = {0.702726, 0.692646, 0.75921, 0.674927, 0.70327, 0.750118, 0.786656, 0.71751, 0.702323, 0.783669, 0.67068, 0.725316, 0.764944, 0.844193, 0.693741, 0.683762, 0.748641, 0.649198, 0.693495, 0.736504, 0.775254, 0.699095, 0.682799, 0.75569, 0.660304, 0.682612, 0.752626, 0.767441, 0.704878, 0.687348, 0.778036, 0.633753, 0.709403, 0.753792, 0.840418, 0.73504, 0.719383, 0.786581, 0.70193, 0.732405, 0.766615, 0.853465, 0.724402, 0.704693, 0.775784, 0.676428, 0.702662, 0.757212, 0.843195, 0.735312, 0.715622, 0.796616, 0.661611, 0.749459, 0.767631, 0.885657};
+  const float tempPbPbPurity[56] = {0.706449, 0.695512, 0.753847, 0.672904, 0.70562, 0.745369, 0.779227, 0.720351, 0.70361, 0.783455, 0.672856, 0.723058, 0.763915, 0.845693, 0.696766, 0.685863, 0.74166, 0.641307, 0.692725, 0.731084, 0.76233, 0.704944, 0.690111, 0.750074, 0.654865, 0.696883, 0.748097, 0.760527, 0.706296, 0.686822, 0.77576, 0.638959, 0.703232, 0.751671, 0.838696, 0.739794, 0.720459, 0.792379, 0.688511, 0.738537, 0.771016, 0.860922, 0.72964, 0.701675, 0.786383, 0.663564, 0.705977, 0.761013, 0.862756, 0.752235, 0.734993, 0.799376, 0.67615, 0.763525, 0.77734, 0.871363};
 
-  const float tempPbPbMCPurity[56] = {0.98507, 0.93854, 0.986544, 0.840261, 0.947733, 0.977036, 0.980668, 0.973473, 0.90675, 0.979065, 0.801764, 0.919658, 0.968447, 0.978083, 0.970155, 0.913428, 0.979304, 0.849345, 0.925336, 0.968439, 0.970503, 0.965688, 0.904153, 0.970519, 0.815123, 0.877161, 0.935067, 0.96842, 0.963009, 0.854243, 0.975278, 0.759254, 0.865356, 0.969819, 0.976953, 0.965081, 0.910418, 0.967923, 0.857482, 0.920473, 0.941762, 0.970795, 0.953954, 0.890306, 0.95976, 0.813959, 0.885176, 0.933201, 0.959885, 0.948094, 0.860413, 0.962034, 0.791151, 0.85419, 0.923807, 0.972199};
+  const float tempPbPbMCPurity[56] = {0.984186, 0.93407, 0.986594, 0.830477, 0.94706, 0.97694, 0.981124, 0.973568, 0.910024, 0.978645, 0.825902, 0.918562, 0.967179, 0.977758, 0.969806, 0.899218, 0.978373, 0.811125, 0.914797, 0.968709, 0.970082, 0.969542, 0.911165, 0.970947, 0.831977, 0.893451, 0.936001, 0.96505, 0.961371, 0.864521, 0.973363, 0.795989, 0.856696, 0.968921, 0.973975, 0.967064, 0.907272, 0.967539, 0.804415, 0.925754, 0.940879, 0.970023, 0.964022, 0.889302, 0.959816, 0.831406, 0.882411, 0.930203, 0.962523, 0.95241, 0.872021, 0.964027, 0.756482, 0.890066, 0.930738, 0.969223};
 
-  const float tempPPPurity[56] = {0.821141, 0.821141, 0.821141, 0.821141, 0.821141, 0.821141, 0.821141, 0.84249, 0.84249, 0.84249, 0.84249, 0.84249, 0.84249, 0.84249, 0.818391, 0.818391, 0.818391, 0.818391, 0.818391, 0.818391, 0.818391, 0.829162, 0.829162, 0.829162, 0.829162, 0.829162, 0.829162, 0.829162, 0.843656, 0.843656, 0.843656, 0.843656, 0.843656, 0.843656, 0.843656, 0.85379, 0.85379, 0.85379, 0.85379, 0.85379, 0.85379, 0.85379, 0.856648, 0.856648, 0.856648, 0.856648, 0.856648, 0.856648, 0.856648, 0.851934, 0.851934, 0.851934, 0.851934, 0.851934, 0.851934, 0.851934};
+  const float tempPPPurity[56] = {0.824017, 0.824017, 0.824017, 0.824017, 0.824017, 0.824017, 0.824017, 0.845796, 0.845796, 0.845796, 0.845796, 0.845796, 0.845796, 0.845796, 0.820373, 0.820373, 0.820373, 0.820373, 0.820373, 0.820373, 0.820373, 0.831518, 0.831518, 0.831518, 0.831518, 0.831518, 0.831518, 0.831518, 0.846746, 0.846746, 0.846746, 0.846746, 0.846746, 0.846746, 0.846746, 0.856995, 0.856995, 0.856995, 0.856995, 0.856995, 0.856995, 0.856995, 0.858343, 0.858343, 0.858343, 0.858343, 0.858343, 0.858343, 0.858343, 0.858506, 0.858506, 0.858506, 0.858506, 0.858506, 0.858506, 0.858506};
 
-  const float tempPPMCPurity[56] = {0.982772, 0.982772, 0.982772, 0.982772, 0.982772, 0.982772, 0.982772, 0.98325, 0.98325, 0.98325, 0.98325, 0.98325, 0.98325, 0.98325, 0.972809, 0.972809, 0.972809, 0.972809, 0.972809, 0.972809, 0.972809, 0.983359, 0.983359, 0.983359, 0.983359, 0.983359, 0.983359, 0.983359, 0.980189, 0.980189, 0.980189, 0.980189, 0.980189, 0.980189, 0.980189, 0.982756, 0.982756, 0.982756, 0.982756, 0.982756, 0.982756, 0.982756, 0.971526, 0.971526, 0.971526, 0.971526, 0.971526, 0.971526, 0.971526, 0.985944, 0.985944, 0.985944, 0.985944, 0.985944, 0.985944, 0.985944};
+  const float tempPPMCPurity[56] = {0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.983406, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.982107, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.973667, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.985271, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.974137, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.985353, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.977951, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275, 0.988275};
 
   double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
   for (int i = 0; i<nBins_pt; ++i) {
@@ -245,8 +245,8 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   // prepare histogram names for rjg and <xjg>
   const int nBins_rjg_cent = 4;
   const int nBins_xjg_mean_cent= 4;
-  double bins_rjg_cent[nBins_rjg+1] =           {0, 20, 60, 100, 200};
-  double bins_xjg_mean_cent[nBins_xjg_mean+1] = {0, 20, 60, 100, 200};
+  double bins_rjg_cent[nBins_rjg_cent+1] =           {0, 20, 60, 100, 200};
+  double bins_xjg_mean_cent[nBins_xjg_mean_cent+1] = {0, 20, 60, 100, 200};
 
   for (int j=0; j<nBins_pt; ++j) {
     for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
@@ -267,7 +267,6 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
-  TCanvas* c = new TCanvas("cnv", "", 600, 600);
   for (int iHist = 0; iHist < nCorrHist; iHist++) {
     for (int i=0; i<nBins_pt; ++i) {
       for (int j=0; j<nBins_hiBin; ++j) {
@@ -353,35 +352,17 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // FINAL_NORM  RAWSIG
         std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameRAWSIG = " << tmpH1D_nameRAWSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameRAWSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // FINAL_NORM  BKGSIG
         std::string tmpH1D_nameBKGSIG = corrHists[iHist][i][j].h1D_name[CORR::kBKG][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameBKGSIG = " << tmpH1D_nameBKGSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameBKGSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // FINAL_NORM  SIGSIG
         std::string tmpH1D_nameSIGSIG = corrHists[iHist][i][j].h1D_name[CORR::kSIG][CORR::kSIG].c_str();
         std::cout << "drawing tmpH1D_nameSIGSIG = " << tmpH1D_nameSIGSIG.c_str() << std::endl;
-        c->SetName(Form("cnv_%s_final_norm", tmpH1D_nameSIGSIG.c_str()));
-        c->cd();
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Draw("e");
         corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Write("", TObject::kOverwrite);
-        corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->SetStats(false);  // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         std::cout << Form("histogramming END : ptBin%d HiBin%d", i, j) << std::endl;
         std::cout << "##########" << std::endl;
@@ -389,6 +370,70 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
     std::cout << "histogramming END : " << correlationHistNames[iHist].c_str() << std::endl;
     std::cout << "####################" << std::endl;
+  }
+
+  // fit dphi
+  TF1* dphi_fit_func = new TF1("dphi_fit_func", "[0]+[1]*exp((x-3.14159265358979323)/[2])", 0, TMath::Pi());
+  dphi_fit_func->SetParameters(0.01, 0.5, 0.3);
+
+  TF1* fit_dphi[nBins_pt][nBins_hiBin];
+  for (int i=0; i<nBins_pt; ++i) {
+    for (int j=0; j<nBins_hiBin; ++j) {
+      corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Fit("dphi_fit_func", "QREM0");
+      fit_dphi[i][j] = corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->GetFunction("dphi_fit_func");
+      fit_dphi[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i", i, j), TObject::kOverwrite);
+    }
+  }
+
+  // dphi width/pedestal plots as a function of photon pt, for different centrality bins
+  std::vector<int> pt_bin_numbers;
+  pt_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_bin_numbers]);
+  int n_pt_bins = pt_bin_numbers.size();
+
+  float dphi_fit_pt_bins[n_pt_bins + 2];
+  dphi_fit_pt_bins[0] = 0;
+  dphi_fit_pt_bins[1] = bins_pt[0][pt_bin_numbers[0]];
+  for (int i=0; i<n_pt_bins; ++i)
+      dphi_fit_pt_bins[i+2] = bins_pt[1][pt_bin_numbers[i]];
+  if (dphi_fit_pt_bins[n_pt_bins+1] > 200)
+      dphi_fit_pt_bins[n_pt_bins+1] = 200;
+
+  TH1D* h_dphi_width_pt[nBins_hiBin];
+  TH1D* h_dphi_pedestal_pt[nBins_hiBin];
+  for (int i=0; i<nBins_hiBin; ++i) {
+    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+
+    for (int j=0; j<n_pt_bins; ++j) {
+      h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
+      h_dphi_width_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
+      h_dphi_pedestal_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
+      h_dphi_pedestal_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
+    }
+  }
+
+  // dphi width/pedestal plots as a function of centrality, for different photon pt bins
+  std::vector<int> cent_bin_numbers;
+  cent_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_cent_bin_numbers]);
+  int n_cent_bins = cent_bin_numbers.size();
+
+  float dphi_fit_cent_bins[n_cent_bins + 1];
+  dphi_fit_cent_bins[0] = bins_hiBin[0][cent_bin_numbers[0]];
+  for (int i=0; i<n_cent_bins; ++i)
+      dphi_fit_cent_bins[i+1] = bins_hiBin[1][cent_bin_numbers[i]];
+
+  TH1D* h_dphi_width_cent[nBins_pt];
+  TH1D* h_dphi_pedestal_cent[nBins_pt];
+  for (int i=0; i<nBins_pt; ++i) {
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+
+    for (int j=0; j<n_cent_bins; ++j) {
+      h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
+      h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      h_dphi_pedestal_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
+      h_dphi_pedestal_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
+    }
   }
 
 // histograms with pt bins on x-axis
@@ -422,13 +467,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // xjg_mean block
         for (int i=0; i<nBins_xjg_mean; ++i) {
@@ -444,13 +483,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
       }
     }
   }
@@ -468,7 +501,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         // if (j>0 && !isHI) continue;
 
-        int offset = 6; // hiBin 0-10 starts from index 6.
+        int offset = 3; // hiBin 0-10 starts from index 3.
         // rjg block
         for (int i=0; i<nBins_rjg_cent; ++i) {
           double err;
@@ -477,22 +510,22 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          
+          // std::cout << "ENTER" << std::endl;
+          // std::cout << "histname: " << corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetName() << std::endl;
+          // std::cout << "outhistname: " << corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->GetName() << std::endl;
+          // std::cout << "ptBin: " << j << " hiBin: " << i+offset << std::endl;
+          // std::cout << "Rjg: " << val << std::endl;
         }
 
-        std::string histoTitle = Form("%s , %lf-%lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
+        std::string histoTitle = Form("%s , %.0lf-%.0lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
 
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; R_{J#gamma}", histoTitle.c_str()));
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
 
         // xjg_mean block
         for (int i=0; i<nBins_xjg_mean_cent; ++i) {
@@ -508,13 +541,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
         std::cout << "drawing : " << corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
-        c->SetName(Form("cnv_%s", corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str()));
-        c->cd();
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Draw("e");
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("", TObject::kOverwrite);
-        c->Clear();
       }
     }
   }

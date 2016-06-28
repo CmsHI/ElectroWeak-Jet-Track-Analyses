@@ -30,6 +30,9 @@ std::vector<double> getTH1xBins(TH1* h);
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
 void calcTF1Ratio4SysUnc(TH1* h, TF1* fNominal, TF1* fVaried, float scaleFactor = 1);
+void calcTH1AbsMax4SysUnc(TH1* h, TH1* h1, TH1* h2);
+void calcTH1Abs4SysUnc(TH1* h);
+void setTH1Style4SysUnc(TH1* h);
 void subtractIdentity4SysUnc(TH1* h);
 void addSysUnc(TH1* hTot, TH1* h);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
@@ -208,8 +211,6 @@ std::vector<double> getTH1xBins(TH1* h) {
     return bins;
 }
 
-
-
 void fillTH1fromTF1(TH1* h, TF1* f)
 {
     int nBins = h->GetNbinsX();
@@ -257,6 +258,50 @@ void calcTF1Ratio4SysUnc(TH1* h, TF1* fNominal, TF1* fVaried, float scaleFactor)
 }
 
 /*
+ * h = max(h1, h2) : maximum of absolute value is calculated bin by bin
+ */
+void calcTH1AbsMax4SysUnc(TH1* h, TH1* h1, TH1* h2)
+{
+    int nBins = h1->GetNbinsX();
+    for (int i = 1; i < nBins; ++i) {
+
+        double val1 = h1->GetBinContent(i);
+        double val2 = h2->GetBinContent(i);
+        double err1 = h1->GetBinError(i);
+        double err2 = h2->GetBinError(i);
+
+        double val  = (TMath::Abs(val1) > TMath::Abs(val2)) ? val1 : val2;
+        h->SetBinContent(i, val);
+
+        if (val == val1)  h->SetBinError(i, err1);
+        else              h->SetBinError(i, err2);
+    }
+}
+
+/*
+ * "h" becomes "abs(h)" : replace the bin contents of a "h" with the absolute values
+ */
+void calcTH1Abs4SysUnc(TH1* h)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 1; i <= nBins; i++)
+    {
+        double x = TMath::Abs(h->GetBinContent(i));
+        h->SetBinContent(i, x);
+    }
+}
+
+void setTH1Style4SysUnc(TH1* h)
+{
+    h->GetYaxis()->CenterTitle();
+    double titleSize = h->GetTitleSize("Y");
+    h->SetTitleSize(titleSize*1.25,"Y");
+    h->SetTitleOffset(1.5,"Y");
+    h->SetMarkerStyle(kFullSquare);
+    h->SetMarkerSize(2);
+}
+
+/*
  * "h" is a clone of hRatio.
  * absolute value of the entries of "h" will be uncertainty.
  */
@@ -297,7 +342,6 @@ void addSysUnc(TH1* hTot, TH1* h)
 
         hTot->SetBinContent(i, uncTot);
         hTot->SetBinError(i, errTot);
-        // hTot->SetBinError(i, 0.0001);
     }
 }
 
@@ -310,7 +354,6 @@ void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth, double
    // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
    double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
    std::string hSysName = hSys->GetName();
-   if (hSysName.find("ratio") != std::string::npos)  error = TMath::Abs(val * hSys->GetBinContent(binSys));
 
    if (binWidth < 0) {
      binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
