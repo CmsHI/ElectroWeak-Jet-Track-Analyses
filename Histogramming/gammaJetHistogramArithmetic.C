@@ -401,8 +401,8 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   TH1D* h_dphi_width_pt[nBins_hiBin];
   TH1D* h_dphi_pedestal_pt[nBins_hiBin];
   for (int i=0; i<nBins_hiBin; ++i) {
-    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
-    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
+    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
 
     for (int j=0; j<n_pt_bins; ++j) {
       h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
@@ -425,8 +425,8 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   TH1D* h_dphi_width_cent[nBins_pt];
   TH1D* h_dphi_pedestal_cent[nBins_pt];
   for (int i=0; i<nBins_pt; ++i) {
-    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
-    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_centBinAll_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
 
     for (int j=0; j<n_cent_bins; ++j) {
       h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
@@ -510,7 +510,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
-          
+
           // std::cout << "ENTER" << std::endl;
           // std::cout << "histname: " << corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetName() << std::endl;
           // std::cout << "outhistname: " << corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->GetName() << std::endl;
@@ -518,7 +518,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           // std::cout << "Rjg: " << val << std::endl;
         }
 
-        std::string histoTitle = Form("%s , %.0lf-%.0lf %%", collisionName , bins_pt[0][j], bins_pt[1][j]);
+        std::string histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][j], bins_pt[1][j]);
 
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; R_{J#gamma}", histoTitle.c_str()));
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
