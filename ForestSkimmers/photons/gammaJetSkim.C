@@ -227,6 +227,23 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::vector<double> CSN_HI_cent30100 = {0.0623, 1.059, 4.245};
     std::vector<double> CSN_phi_HI_cent30100 = {-2.013/100000000, 0.1646, 1.04};
 
+    // smear 0-10 %
+    std::vector<double> CSN_HI_cent0010 = {0.07122, 1.179, 7.113};
+    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000,  0.125911, 2.23898};
+
+    // smear 10-30 %
+    std::vector<double> CSN_HI_cent1030 = {0.07122, 1.179, 4.443};
+    std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
+
+    // smear 30-50 %
+    std::vector<double> CSN_HI_cent3050 = {0.7122, 1.165, 1.826};
+    std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.121572, 1.21751};
+
+    // smear 50-100 %
+    std::vector<double> CSN_HI_cent50100 = {0.06614, 1.065, -5.288/1000000};
+    std::vector<double> CSN_phi_HI_cent50100 = {-0.0073078, 0.168879, 0.798885};
+
+
     for (int j = 0; j < 7; ++j) {
       for (int i = 0; i < nJetCollections; ++i) {
         correctorsJetSmear[j][i].rand = randSmearing;
@@ -236,14 +253,29 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
         switch (j) {
         case 0: //0-30
-        case 2: //0-10
-        case 3: //10-30
           correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent0030;
           correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent0030;
           break;
         case 1: //30-100
+          correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent30100;
+          correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent30100;
+          break;
+        case 2: //0-10
+          correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent0010;
+          correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent0010;
+          break;
+        case 3: //10-30
+          correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent1030;
+          correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent1030;
+          break;
         case 4: //30-50
+          correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent3050;
+          correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent3050;
+          break;
         case 5: //50-100
+          correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent50100;
+          correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent50100;
+          break;
         case 6: //sys
           correctorsJetSmear[j][i].CSN_HI = CSN_HI_cent30100;
           correctorsJetSmear[j][i].CSN_phi_HI = CSN_phi_HI_cent30100;
