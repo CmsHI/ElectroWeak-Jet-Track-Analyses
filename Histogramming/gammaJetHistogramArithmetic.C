@@ -405,8 +405,10 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
 
     for (int j=0; j<n_pt_bins; ++j) {
+      h_dphi_width_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi width");
       h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
       h_dphi_width_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
+      h_dphi_pedestal_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi pedestal");
       h_dphi_pedestal_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
       h_dphi_pedestal_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
     }
@@ -429,8 +431,10 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
 
     for (int j=0; j<n_cent_bins; ++j) {
+      h_dphi_width_cent[i]->SetTitle(";Centrality;#Delta#phi width");
       h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
       h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      h_dphi_pedestal_cent[i]->SetTitle(";Centrality;#Delta#phi pedestal");
       h_dphi_pedestal_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
       h_dphi_pedestal_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
     }
