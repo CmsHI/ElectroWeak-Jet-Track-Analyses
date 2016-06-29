@@ -1,6 +1,7 @@
 #include "TFile.h"
 #include "TString.h"
 #include "TH1.h"
+#include "TF1.h"
 #include "TCanvas.h"
 
 #include "../Utilities/interface/CutConfigurationParser.h"
@@ -39,6 +40,10 @@ int gammaJetFinalHistograms(const TString configFile,
     TH1D* h_dphi_PbPb_MC[nPtBins][nCentBins];
     TH1D* h_dphi_pp_Data[nPtBins][nCentBins];
 
+    TF1* f_dphi_PbPb_Data[nPtBins][nCentBins];
+    TF1* f_dphi_PbPb_MC[nPtBins][nCentBins];
+    TF1* f_dphi_pp_Data[nPtBins][nCentBins];
+
     TH1D* h_ptJet_PbPb_Data[nPtBins][nCentBins];
     TH1D* h_ptJet_PbPb_MC[nPtBins][nCentBins];
     TH1D* h_ptJet_pp_Data[nPtBins][nCentBins];
@@ -62,6 +67,14 @@ int gammaJetFinalHistograms(const TString configFile,
             h_dphi_PbPb_Data[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_PbPb_Data", i, j), TObject::kOverwrite);
             h_dphi_PbPb_MC[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_PbPb_MC", i, j), TObject::kOverwrite);
             h_dphi_pp_Data[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_pp_Data", i, j), TObject::kOverwrite);
+
+            f_dphi_PbPb_Data[i][j] = (TF1*)PbPb_Data_file->Get(Form("HI/fit_dphi_ptBin%i_hiBin%i", i, j));
+            f_dphi_PbPb_MC[i][j] = (TF1*)PbPb_MC_file->Get(Form("HIMC/fit_dphi_ptBin%i_hiBin%i", i, j));
+            f_dphi_pp_Data[i][j] = (TF1*)pp_Data_file->Get(Form("PP/fit_dphi_ptBin%i_hiBin%i", i, j));
+
+            f_dphi_PbPb_Data[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i_PbPb_Data", i, j), TObject::kOverwrite);
+            f_dphi_PbPb_MC[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i_PbPb_MC", i, j), TObject::kOverwrite);
+            f_dphi_pp_Data[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i_pp_Data", i, j), TObject::kOverwrite);
 
             h_ptJet_PbPb_Data[i][j] = (TH1D*)PbPb_Data_file->Get(Form("HI/h1D_ptJet_ptBin%i_hiBin%i_phoSIG_jetSIG_final_norm", i, j));
             h_ptJet_PbPb_MC[i][j] = (TH1D*)PbPb_MC_file->Get(Form("HIMC/h1D_ptJet_ptBin%i_hiBin%i_phoSIG_jetSIG_final_norm", i, j));
