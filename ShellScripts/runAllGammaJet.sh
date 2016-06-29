@@ -2,7 +2,7 @@
 set -x
 
 #DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2016-06-28_19_33_16
+DATE=2016-06-29-binfixes
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
@@ -69,18 +69,18 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 # ./ShellScripts/gammaJetHistogram_condor.sh ./CutConfigurations/gammaJet_pp_mc.conf ${H_INDIR}/pp_MC_gammaJetSkim_Corrected.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/ 160
 
 ############ HADD/ARITHMETIC SECTION ###################
-echo "## Summing Histograms"
-hadd -f ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged
+# echo "## Summing Histograms"
+# hadd -f ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
 
 ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
 
