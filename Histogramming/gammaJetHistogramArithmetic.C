@@ -30,8 +30,8 @@ const std::vector<std::string> correlationHistTitleY_final_normalized {
 const std::vector<int>         nBinsx {16, 20,          30};
 const std::vector<double>      xlow   {0,  0,           0};
 const std::vector<double>      xup    {2,  TMath::Pi(), 300};
-const std::vector<double>      xlow_final {0,  0,           0};
-const std::vector<double>      xup_final  {2,  TMath::Pi(), 200};
+// const std::vector<double>      xlow_final {0,  0,           0};
+// const std::vector<double>      xup_final  {2,  TMath::Pi(), 200};
 
 void gammaJetHistogramArithmetic(const TString configFile, const TString inputFile, const TString outputFile)
 {
@@ -163,14 +163,15 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
             corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr] = correlationHistTitleY_final_normalized[iHist].c_str();
 
             if (jCorr == CORR::kBKG && !isHI) continue;
+            corrHists[iHist][i][j].h1D[iCorr][jCorr]->Scale(1, "width"); // distribution histogram : scale by bin width
 
             // FINAL
             std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
             corrHists[iHist][i][j].h1D_final[iCorr][jCorr] =
               (TH1D*)corrHists[iHist][i][j].h1D[iCorr][jCorr]->Clone(Form("%s_final", tmpHistName.c_str()));
-            double tmpXlow = xlow_final[iHist];
-            double tmpXup  = xup_final[iHist];
-            corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetAxisRange(tmpXlow, tmpXup);
+            // double tmpXlow = xlow_final[iHist];
+            // double tmpXup  = xup_final[iHist];
+            // corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetAxisRange(tmpXlow, tmpXup);
             corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Write("", TObject::kOverwrite);
 
             // FINAL_NORM
@@ -458,7 +459,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
           double err;
           double val = corrHists[0][i+offset][j].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
-            corrHists[0][i+offset][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err);
+                                                                                                corrHists[0][i+offset][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
 
           corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
@@ -510,7 +511,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         for (int i=0; i<nBins_rjg_cent; ++i) {
           double err;
           double val = corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
-            corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err);
+                                                                                                corrHists[0][j][i+offset].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
 
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
