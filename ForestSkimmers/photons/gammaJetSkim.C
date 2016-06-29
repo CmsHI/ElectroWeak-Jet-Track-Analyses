@@ -236,7 +236,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
 
     // smear 30-50 %
-    std::vector<double> CSN_HI_cent3050 = {0.7122, 1.165, 1.826};
+    std::vector<double> CSN_HI_cent3050 = {0.07122, 1.165, 1.826};
     std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.121572, 1.21751};
 
     // smear 50-100 %
