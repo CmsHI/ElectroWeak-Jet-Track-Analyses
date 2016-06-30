@@ -656,6 +656,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           correctorsL2L3[i].correctPtsL2L3(jets[i]);
         }
 
+        if (smearingResJetPhi > 0) {
+            correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
+        }
+        if (smearingResJet > 0) {
+            correctorsJetSmear[0][i].applyPtsResolution(jets[i], smearingResJet);
+        }
+
         if (doCorrectionSmearing) {
           jets[i].replicateJets(nSmear);
           for (int j=0; j<=7; ++j) {
@@ -664,13 +671,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
               correctorsJetSmear[j-1][i].applyPhisSmearing(jets[i]);
             }
           }
-        }
-
-        if (smearingResJetPhi > 0) {
-            correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
-        }
-        if (smearingResJet > 0) {
-            correctorsJetSmear[0][i].applyPtsResolution(jets[i], smearingResJet);
         }
 
         // scrape some jets.
