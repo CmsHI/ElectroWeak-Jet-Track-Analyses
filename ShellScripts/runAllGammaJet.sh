@@ -2,7 +2,7 @@
 set -x
 
 #DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2016-06-23_16_37_30
+DATE=2016-06-29-binfixes
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
@@ -32,7 +32,7 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 # OUTMCSKIM=pp_MC_gammaJetSkim.root
 # time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
 
-# # ########### Photon corrections ###################
+# # # ########### Photon corrections ###################
 # echo "## Corrections"
 
 # time ./Corrections/gammaJetCorrections.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetSkim.root ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root > ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root.log || echo "ERROR"
@@ -47,18 +47,18 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 # cp ${OUTDIR}/*_Corrected.root ${H_INDIR}
 
 
-# ########### PURITY SECTION ##################
-# Optionally print out purity values to be pasted into Histogram macro
-# echo "## Purity Calculations"
-# nohup ./Performance/printPurity.exe CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root > PbPb_Data_purity.txt &
+# # ########### PURITY SECTION ##################
+# # Optionally print out purity values to be pasted into Histogram macro
+# # echo "## Purity Calculations"
+# # nohup ./Performance/printPurity.exe CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root > PbPb_Data_purity.txt &
 
-# nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root > PbPb_MC_purity.txt &
+# # nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root > PbPb_MC_purity.txt &
 
-# nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root > pp_Data_purity.txt &
+# # nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root > pp_Data_purity.txt &
 
-# nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root > pp_MC_purity.txt &
+# # nohup ./Performance/printPurity.exe CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root > pp_MC_purity.txt &
 
-# # # ########### PARALLEL HISTOGRAMMING SECTION ##########
+# # # # ########### PARALLEL HISTOGRAMMING SECTION ##########
 # echo "## Histogramming Condor Jobs"
 # ./ShellScripts/gammaJetHistogram_condor.sh ./CutConfigurations/gammaJet.conf ${H_INDIR}/PbPb_Data_gammaJetSkim_Corrected.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/ 20
 
@@ -69,18 +69,18 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 # ./ShellScripts/gammaJetHistogram_condor.sh ./CutConfigurations/gammaJet_pp_mc.conf ${H_INDIR}/pp_MC_gammaJetSkim_Corrected.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/ 160
 
 ############ HADD/ARITHMETIC SECTION ###################
-echo "## Summing Histograms"
-hadd -f ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged
+# echo "## Summing Histograms"
+# hadd -f ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/PbPb_Data_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
 
-hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
-#rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
+# hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
+# #rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
 
 ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
 
