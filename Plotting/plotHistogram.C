@@ -44,6 +44,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::string titleY;
     float titleOffsetX;
     float titleOffsetY;
+    int centerTitleX;
+    int centerTitleY;
     std::vector<float> TH1_scales;
     std::vector<int> TH1_rebins;
     std::vector<float> TH1_norms;
@@ -136,6 +138,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         titleY = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY]);
         titleOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetX];
         titleOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetY];
+        centerTitleX = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleX];
+        centerTitleY = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleY];
         TH1_scales  = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
         TH1_rebins  = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
         TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
@@ -224,6 +228,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         titleY = "";
         titleOffsetX = 1;
         titleOffsetY = 1;
+        centerTitleX = 0;
+        centerTitleY = 0;
         xMin = 0;
         xMax = -1;
         yMin = 0;
@@ -342,6 +348,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "titleY = " << titleY.c_str() << std::endl;
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "centerTitleX = " << centerTitleX << std::endl;
+    std::cout << "centerTitleY = " << centerTitleY << std::endl;
     std::cout << "nTH1_scales  = " << nTH1_scales << std::endl;
     for (int i = 0; i<nTH1_scales; ++i) {
             std::cout << Form("TH1_scales[%d] = %f", i, TH1_scales.at(i)) << std::endl;
@@ -706,6 +714,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
         h[i]->SetTitleOffset(titleOffsetX,"X");
         h[i]->SetTitleOffset(titleOffsetY,"Y");
+
+        if (centerTitleX > 0)  h[i]->GetXaxis()->CenterTitle();
+        if (centerTitleY > 0)  h[i]->GetYaxis()->CenterTitle();
 
         if (fitTH1 > 0) {
             std::string TF1_formula = "";
