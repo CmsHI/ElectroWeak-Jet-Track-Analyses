@@ -488,7 +488,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         }
 
         float phoEt = (*pho.phoEtCorrected)[gj[0].phoIdx];
-        if(useUncorrectedPhotonEnergy)
+        if (useUncorrectedPhotonEnergy)
             phoEt = (*pho.phoEt)[gj[0].phoIdx];
 
         // handle nEntriesPho separate from jet loop
@@ -543,7 +543,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     // xjg = 0
                     // jtpt = 2
                     float xjg = (*gj[smearingBinIndex].xjgCorrected)[ijet];
-                    if(useUncorrectedPhotonEnergy)
+                    if (useUncorrectedPhotonEnergy)
                         xjg = (*gj[smearingBinIndex].xjg)[ijet];
                     corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
@@ -566,28 +566,17 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
                             (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
 
-                        // corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gj[0].dphi)[ijet]), weight);
-                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
-
                         // apply dphi cuts now
-                        if (TMath::Abs((*gj[0].dphi)[ijet]) > TMath::Pi()/2 || TMath::Abs((*gj[0].dphi)[ijet]) < 1) continue;
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight * (TMath::Pi()/8)/(TMath::Pi()/2-1));
-                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight * (TMath::Pi()/8)/(TMath::Pi()/2-1);
-                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight * (TMath::Pi()/8)/(TMath::Pi()/2-1));
-                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight * (TMath::Pi()/8)/(TMath::Pi()/2-1);
+                        if (TMath::Abs((*gj[0].dphi)[ijet]) > TMath::Pi()/2 || TMath::Abs((*gj[0].dphi)[ijet]) < 3*TMath::Pi()/8) continue;
+
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-3*TMath::Pi()/8)*8, weight*8);
+                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*8;
+
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight);
+                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight);
+                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
                     }
-                }
-            }
-
-            for (int j=0; j<nBins_hiBin; ++j) {
-                for (int i=0; i<nBins_pt; ++i) {
-                    double dphi_bin_width = corrHists[1][i][j].h1D[phoType][CORR::kBKG]->GetXaxis()->GetBinWidth(1);
-                    double mean_dphi_count = corrHists[1][i][j].nEntries[phoType][CORR::kBKG] * dphi_bin_width / (TMath::Pi()/2 - 1);
-                    int n_dphi_bins = corrHists[1][i][j].h1D[phoType][CORR::kBKG]->GetNbinsX();
-
-                    for (int k=1; k<n_dphi_bins-1; ++k)
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->SetBinContent(k, mean_dphi_count);
-                    corrHists[1][i][j].nEntries[phoType][CORR::kBKG] = weight * TMath::Pi() / (TMath::Pi()/2 - 1);
                 }
             }
         } else {
@@ -619,7 +608,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                             // xjg = 0
                             // jtpt = 2
                             float xjg = (*gjMB.xjgCorrected)[ijet];
-                            if(useUncorrectedPhotonEnergy)
+                            if (useUncorrectedPhotonEnergy)
                                 xjg = (*gjMB.xjg)[ijet];
 
                             corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
