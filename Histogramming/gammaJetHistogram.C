@@ -143,6 +143,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+    int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
+
     doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
     eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
 
@@ -500,8 +502,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         gotEntry[0] = true;
         for (int ijet = 0; ijet < jet.nref; ijet++) {
             // jet cuts
-            //jteta cut moved to skim
-            //if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
+            // jteta cut moved to skim
+            // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
             if ((*gj[0].jetID)[ijet] < cut_jetID) continue;
 
             for (int j=0; j<nBins_hiBin; ++j) {
@@ -540,37 +542,78 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         }
 
-        if (hasJetsMB && hasGammaJetMB) {
-            tJetMB->GetEntry(jentry);
-            tgjMB->GetEntry(jentry);
-
-            for (int ijet = 0; ijet < jetMB.nref; ijet++) {
-                // jet cuts
-                if ((*gjMB.dR)[ijet] < cut_dR) continue;
-                //jteta cut moved to skim
-                //if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
-                if (smeared_jtpt(jetMB, ijet, 0) < cut_jetpt) continue;
-                if ((*gjMB.jetID)[ijet] < cut_jetID) continue;
-
-                for (int i=0; i<nBins_pt; ++i) {
-                    if ((*pho.phoEtCorrected)[gjMB.phoIdx] <  bins_pt[0][i] ||
-                        (*pho.phoEtCorrected)[gjMB.phoIdx] >= bins_pt[1][i]) continue;
-                    for (int j=0; j<nBins_hiBin; ++j) {
+        if (dphi_check && isHI) {
+            for (int ijet = 0; ijet < jet.nref; ijet++) {
+                for (int j=0; j<nBins_hiBin; ++j) {
+                    if (isHI) {
                         if (evt.hiBin <  bins_hiBin[0][j] ||
                             evt.hiBin >= bins_hiBin[1][j]) continue;
+                    }
 
-                        // fill histograms
-                        // dphi = 1
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gjMB.dphi)[ijet]), weight);
+                    if (jet.jtpt[ijet] < cut_jetpt) continue;
+                    if ((*gj[0].dR)[ijet] < cut_dR) continue;
+
+                    for (int i=0; i<nBins_pt; ++i) {
+                        if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
+                            (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+
+                        // corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gj[0].dphi)[ijet]), weight);
                         corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                        //apply dphi cuts now
-                        if (TMath::Abs((*gjMB.dphi)[ijet]) <= cut_awayRange) continue;
-                        // xjg = 0
-                        // jtpt = 2
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gjMB.xjgCorrected)[ijet], weight);
-                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(smeared_jtpt(jetMB, ijet, 0), weight);
-                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+
+                        // apply dphi cuts now
+                        if (TMath::Abs((*gj[0].dphi)[ijet]) > TMath::Pi()/2 || TMath::Abs((*gj[0].dphi)[ijet]) < 1) continue;
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight * (TMath::Pi()/8)/(TMath::Pi()/2-1));
+                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight * (TMath::Pi()/8)/(TMath::Pi()/2-1);
+                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight * (TMath::Pi()/8)/(TMath::Pi()/2-1));
+                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight * (TMath::Pi()/8)/(TMath::Pi()/2-1);
+                    }
+                }
+            }
+
+            for (int j=0; j<nBins_hiBin; ++j) {
+                for (int i=0; i<nBins_pt; ++i) {
+                    double dphi_bin_width = corrHists[1][i][j].h1D[phoType][CORR::kBKG]->GetXaxis()->GetBinWidth(1);
+                    double mean_dphi_count = corrHists[1][i][j].nEntries[phoType][CORR::kBKG] * dphi_bin_width / (TMath::Pi()/2 - 1);
+                    int n_dphi_bins = corrHists[1][i][j].h1D[phoType][CORR::kBKG]->GetNbinsX();
+
+                    for (int k=1; k<n_dphi_bins-1; ++k)
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->SetBinContent(k, mean_dphi_count);
+                    corrHists[1][i][j].nEntries[phoType][CORR::kBKG] = weight * TMath::Pi() / (TMath::Pi()/2 - 1);
+                }
+            }
+        } else {
+            if (hasJetsMB && hasGammaJetMB) {
+                tJetMB->GetEntry(jentry);
+                tgjMB->GetEntry(jentry);
+
+                for (int ijet = 0; ijet < jetMB.nref; ijet++) {
+                    // jet cuts
+                    if ((*gjMB.dR)[ijet] < cut_dR) continue;
+                    // jteta cut moved to skim
+                    // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
+                    if (smeared_jtpt(jetMB, ijet, 0) < cut_jetpt) continue;
+                    if ((*gjMB.jetID)[ijet] < cut_jetID) continue;
+
+                    for (int i=0; i<nBins_pt; ++i) {
+                        if ((*pho.phoEtCorrected)[gjMB.phoIdx] <  bins_pt[0][i] ||
+                            (*pho.phoEtCorrected)[gjMB.phoIdx] >= bins_pt[1][i]) continue;
+                        for (int j=0; j<nBins_hiBin; ++j) {
+                            if (evt.hiBin <  bins_hiBin[0][j] ||
+                                evt.hiBin >= bins_hiBin[1][j]) continue;
+
+                            // fill histograms
+                            // dphi = 1
+                            corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gjMB.dphi)[ijet]), weight);
+                            corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            //apply dphi cuts now
+                            if (TMath::Abs((*gjMB.dphi)[ijet]) <= cut_awayRange) continue;
+                            // xjg = 0
+                            // jtpt = 2
+                            corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gjMB.xjgCorrected)[ijet], weight);
+                            corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(smeared_jtpt(jetMB, ijet, 0), weight);
+                            corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                        }
                     }
                 }
             }
