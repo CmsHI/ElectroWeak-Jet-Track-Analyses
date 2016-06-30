@@ -46,6 +46,7 @@ namespace CUTS {
       k_mcSumIso,
       k_EtaLowerBound,
       k_EtaUpperBound,
+      k_useUncorrectedPhotonEnergy,
       kN_F_CUTS
     };
 
@@ -91,7 +92,8 @@ namespace CUTS {
       "mcTrkIsoDR04",
       "mcSumIso",
       "etaLowerBound",
-      "etaUpperBound"
+      "etaUpperBound",
+      "useUncorrectedPhotonEnergy"
     };
 
     enum I_CUTS{

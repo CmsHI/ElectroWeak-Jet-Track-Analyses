@@ -25,11 +25,11 @@
 #include "../Utilities/styleUtil.h"
 #include "../Utilities/th1Util.h"
 
-void plotHistogram(const TString configFile, const TString inputFile, const TString outputFile = "plotHistogram");
+void plotHistogram1Rows4Cols(const TString configFile, const TString inputFile, const TString outputFile = "plotHistogram");
 
-void plotHistogram(const TString configFile, const TString inputFile, const TString outputFile)
+void plotHistogram1Rows4Cols(const TString configFile, const TString inputFile, const TString outputFile)
 {
-    std::cout<<"running plotHistogram()"<<std::endl;
+    std::cout<<"running plotHistogram1Rows4Cols()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
@@ -752,7 +752,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     // save canvases
     TCanvas* c;
-    TPad* pad;
+//    TPad* pad;
     TPad* pad2;
     if (drawSame == 0) {    // histograms will be plotted separately.
         for (int i=0; i<nHistos; ++i) {
@@ -863,7 +863,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     }
     else if (drawSame > 0) {
         // set canvas and pads
-        c = new TCanvas("cnv","",windowWidth,windowHeight);
+        c = new TCanvas("cnv","",windowWidth*4,windowHeight);
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c, setLogx, setLogy);
         c->cd();
@@ -880,13 +880,15 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             pad2->SetNumber(2);
         }
         c->SetCanvasSize(c->GetWw(), c->GetWh()*windowHeightScale);
+        //c->Divide(4,1, leftMargin, 0);
+        c->Divide(4,1);
 
-        pad = new TPad("pad", "",0, windowHeightScale-1, 1, 1);
-        pad->SetMargin(leftMargin, rightMargin, bottomMargin, topMargin);
-        setPadFinal(pad, setLogx, setLogy);
-
-        pad->Draw();
-        pad->SetNumber(1);
+//        pad = new TPad("pad", "",0, windowHeightScale-1, 1, 1);
+//        pad->SetMargin(leftMargin, rightMargin, bottomMargin, topMargin);
+//        setPadFinal(pad, setLogx, setLogy);
+//
+//        pad->Draw();
+//        pad->SetNumber(1);
         c->cd(1);
         // set canvas and pads - END
 
@@ -904,6 +906,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             // draw first the histograms with drawOption = "hist" so that plots with markers are not overwritten.
             int iHist = indexDrawOptionHist.at(i);
 
+            int panelIndex = iHist / 4 + 1;
+            c->cd(panelIndex);
+
             std::string drawOption = "";
             if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
             else if (nDrawOptions == nHistos) drawOption = drawOptions.at(iHist).c_str();
@@ -915,6 +920,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
 
         for (int i = 0; i<nHistos; ++i) {
+
+            int panelIndex = (i*4 / nHistos) + 1;
+            c->cd(panelIndex);
 
             std::string drawOption = "";
             if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
@@ -931,7 +939,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
             std::string legendOption = "lpf";
             if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
-            leg->AddEntry(h[i], label.c_str(), legendOption.c_str());
+            if (panelIndex == 1) leg->AddEntry(h[i], label.c_str(), legendOption.c_str());
         }
 
         if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
@@ -942,21 +950,30 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (legendWidth != 0)  width = legendWidth;
         if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
             setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
+            c->cd(1);
             leg->Draw();
         }
 
         // add Text
         TLatex* latex;
         if (nTextLines > 0) {
-            latex = new TLatex();
-            latex->SetTextFont(textFont);
-            latex->SetTextSize(textSize);
-            setTextAlignment(latex, textPosition);
-            std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
-            for (int i = 0; i<nTextLines; ++i){
-                float x = textCoordinates.at(i).first;
-                float y = textCoordinates.at(i).second;
-                latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
+            for (int iPanel = 0; iPanel < 4; ++iPanel)
+            {
+                c->cd(iPanel+1);
+                latex = new TLatex();
+                latex->SetTextFont(textFont);
+                latex->SetTextSize(textSize);
+                setTextAlignment(latex, textPosition);
+                std::vector<std::string> textLinesTmp;
+                for (int iLine = 0; iLine < nTextLines/4; ++iLine) {
+                    textLinesTmp.push_back(textLines.at((iPanel*nTextLines)/4 + iLine).c_str());
+                }
+                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY);
+                for (int i = 0; i<nTextLines/4; ++i){
+                    float x = textCoordinates.at(i).first;
+                    float y = textCoordinates.at(i).second;
+                    latex->DrawLatexNDC(x, y, textLinesTmp.at(i).c_str());
+                }
             }
         }
 
@@ -974,6 +991,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 latexOverPad->SetTextAlign(textOverPadAlignment);
                 setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
 
+                c->cd(1);
                 latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
             }
         }
@@ -1146,21 +1164,21 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 }
 
 /*
- * g++ Plotting/plotHistogram.C $(root-config --cflags --libs) -std=c++11 -Werror -Wall -O2 -o Plotting/plotHistogram.exe
+ * g++ Plotting/plotHistogram1Rows4Cols.C $(root-config --cflags --libs) -std=c++11 -Werror -Wall -O2 -o Plotting/plotHistogram1Rows4Cols.exe
  */
 int main(int argc, char** argv)
 {
     if (argc == 4) {
-        plotHistogram(argv[1], argv[2], argv[3]);
+        plotHistogram1Rows4Cols(argv[1], argv[2], argv[3]);
         return 0;
     }
     else if (argc == 3) {
-        plotHistogram(argv[1], argv[2]);
+        plotHistogram1Rows4Cols(argv[1], argv[2]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./plotHistogram.exe <configFile> <inputFile> <outputFile>"
+                "./plotHistogram1Rows4Cols.exe <configFile> <inputFile> <outputFile>"
                 << std::endl;
         return 1;
     }

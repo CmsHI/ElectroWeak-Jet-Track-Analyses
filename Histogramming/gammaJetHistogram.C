@@ -134,6 +134,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // process cuts
     // int nEventsToMix;
     // int nSmear;
+    bool useUncorrectedPhotonEnergy;
+
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListFloat(
@@ -183,6 +185,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange];
     cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange_lt];
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
+
+    useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
 
     // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
@@ -483,10 +487,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             weight = evt.weight;
         }
 
+        float phoEt = (*pho.phoEtCorrected)[gj[0].phoIdx];
+        if(useUncorrectedPhotonEnergy)
+            phoEt = (*pho.phoEt)[gj[0].phoIdx];
+
         // handle nEntriesPho separate from jet loop
         for (int i=0; i<nBins_pt; ++i) {
-            if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
-                (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+            if (phoEt <  bins_pt[0][i] ||
+                phoEt >= bins_pt[1][i]) continue;
             for (int j=0; j<nBins_hiBin; ++j) {
                 if (isHI) {
                     if (evt.hiBin <  bins_hiBin[0][j] ||
@@ -523,8 +531,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 if ((*gj[smearingBinIndex].dR)[ijet] < cut_dR) continue;
 
                 for (int i=0; i<nBins_pt; ++i) {
-                    if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
-                        (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+                    if (phoEt <  bins_pt[0][i] ||
+                        phoEt >= bins_pt[1][i]) continue;
 
                     // fill histograms
                     // dphi = 1
@@ -534,7 +542,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                     if (TMath::Abs((*gj[smearingBinIndex].dphi)[ijet]) <= cut_awayRange) continue;
                     // xjg = 0
                     // jtpt = 2
-                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill((*gj[smearingBinIndex].xjgCorrected)[ijet], weight);
+                    float xjg = (*gj[smearingBinIndex].xjgCorrected)[ijet];
+                    if(useUncorrectedPhotonEnergy)
+                        xjg = (*gj[smearingBinIndex].xjg)[ijet];
+                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(smeared_jtpt(jet, ijet, smearingBinIndex), weight);
                     corrHists[2][i][j].nEntries[phoType][CORR::kRAW] += weight;
@@ -545,10 +556,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         if (dphi_check && isHI) {
             for (int ijet = 0; ijet < jet.nref; ijet++) {
                 for (int j=0; j<nBins_hiBin; ++j) {
-                    if (isHI) {
-                        if (evt.hiBin <  bins_hiBin[0][j] ||
-                            evt.hiBin >= bins_hiBin[1][j]) continue;
-                    }
+                    if (evt.hiBin <  bins_hiBin[0][j] ||
+                        evt.hiBin >= bins_hiBin[1][j]) continue;
 
                     if (jet.jtpt[ijet] < cut_jetpt) continue;
                     if ((*gj[0].dR)[ijet] < cut_dR) continue;
@@ -605,11 +614,15 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                             // dphi = 1
                             corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gjMB.dphi)[ijet]), weight);
                             corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                            //apply dphi cuts now
+                            // apply dphi cuts now
                             if (TMath::Abs((*gjMB.dphi)[ijet]) <= cut_awayRange) continue;
                             // xjg = 0
                             // jtpt = 2
-                            corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gjMB.xjgCorrected)[ijet], weight);
+                            float xjg = (*gjMB.xjgCorrected)[ijet];
+                            if(useUncorrectedPhotonEnergy)
+                                xjg = (*gjMB.xjg)[ijet];
+
+                            corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
                             corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(smeared_jtpt(jetMB, ijet, 0), weight);
                             corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
