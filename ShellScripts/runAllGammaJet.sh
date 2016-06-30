@@ -2,15 +2,15 @@
 set -x
 
 #DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2016-06-29-binfixes
+DATE=2016-06-29-smearingFix
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 
 # ############ SKIMMING SECTION ##############
-# echo "## Skimming"
+echo "## Skimming"
 
-# mkdir -p $OUTDIR
+mkdir -p $OUTDIR
 
 # echo "### PbPb Data/MC ###"
 
@@ -76,15 +76,15 @@ H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
 # hadd -f ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged/*.root
 # #rm -r ${H_INDIR}/PbPb_MC_gammaJetHistogram_unmerged
 
-# hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
-# #rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
+hadd -f ${OUTDIR}/pp_Data_gammaJetHistogram.root ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/pp_Data_gammaJetHistogram_unmerged
 
-# hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
-# #rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
+hadd -f ${OUTDIR}/pp_MC_gammaJetHistogram.root ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged/*.root
+#rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
 
-./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
+# ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root
 
-./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root
+# ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root
 
 ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetHistogram.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root
 

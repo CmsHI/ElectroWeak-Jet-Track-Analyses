@@ -54,6 +54,8 @@ enum TYPE_I{
     k_lineWidth,
     k_fitTH1,
     k_fitTH1_lowerPad,
+    k_centerTitleX,
+    k_centerTitleY,
     kN_TYPES_I
 };
 
@@ -81,7 +83,9 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "legendBorderSize",
         "lineWidth",
         "fitTH1",
-        "fitTH1_lowerPad"
+        "fitTH1_lowerPad",
+        "centerTitleX",
+        "centerTitleY"
 };
 
 enum TYPE_F{
