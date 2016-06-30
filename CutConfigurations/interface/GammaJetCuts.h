@@ -21,6 +21,7 @@ namespace CUTS {
       k_nMaxEvents_minBiasMixing,
       k_nCentralityBins,
       k_nVertexBins,
+      k_nEventPlaneBins,
       k_nEventsToMix,
       kN_I_CUTS
     };
@@ -30,6 +31,7 @@ namespace CUTS {
       "nMaxEvents_minBiasMixing",
       "nCentralityBins",
       "nVertexBins",
+      "nEventPlaneBins",
       "nEventsToMix"
     };
 
