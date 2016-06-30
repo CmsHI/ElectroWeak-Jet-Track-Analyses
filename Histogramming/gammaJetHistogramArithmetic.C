@@ -380,7 +380,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   TF1* fit_dphi[nBins_pt][nBins_hiBin];
   for (int i=0; i<nBins_pt; ++i) {
     for (int j=0; j<nBins_hiBin; ++j) {
-      corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Fit("dphi_fit_func", "QREM0");
+      corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Fit("dphi_fit_func", "QREM0", "", TMath::Pi()*2/3, TMath::Pi());
       fit_dphi[i][j] = corrHists[1][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->GetFunction("dphi_fit_func");
       fit_dphi[i][j]->Write(Form("fit_dphi_ptBin%i_hiBin%i", i, j), TObject::kOverwrite);
     }
