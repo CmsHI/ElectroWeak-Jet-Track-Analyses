@@ -103,6 +103,7 @@ namespace CUTS {
       k_MonteCarlo,
       k_usePPstyleIso,
       k_doElectronRejection,
+      k_doPhotonIsolationSys,
       kN_I_CUTS
     };
 
@@ -113,6 +114,7 @@ namespace CUTS {
       "MonteCarlo",
       "usePPstyleIso",
       "doElectronRejection",
+      "doPhotonIsolationSys"
     };
 
     enum S_CUTS{

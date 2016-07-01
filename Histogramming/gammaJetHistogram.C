@@ -136,6 +136,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // int nSmear;
     bool useUncorrectedPhotonEnergy;
     bool doElectronRejection;
+    bool doPhotonIsolationSys;
 
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
@@ -189,6 +190,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
     doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
+    doPhotonIsolationSys= configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
@@ -279,6 +281,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tPho->SetBranchStatus("eleEta", 1);
         tPho->SetBranchStatus("elePhi", 1);
         tPho->SetBranchStatus("eleEoverP", 1);
+    }
+    if (isMC && doPhotonIsolationSys) {
+        tPho->SetBranchStatus("nMC", 1);
+        tPho->SetBranchStatus("mcPID", 1);
+        tPho->SetBranchStatus("mcEta", 1);
+        tPho->SetBranchStatus("mcPhi", 1);
+        tPho->SetBranchStatus("mcCalIsoDR03", 1);
+        tPho->SetBranchStatus("mcCalIsoDR04", 1);
     }
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*", 0);
@@ -505,6 +515,28 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         }
         if (isEle) continue;
+
+        // photon isolation systematic part (gen matching & genIso condition)
+        bool failedGenIso = false;
+        if (isMC && doPhotonIsolationSys) {
+            const float cutdeltaR = 0.2;
+            float deltaRMin= 999;
+            int matchedIndex=-1;     // index of the matched GEN photon into this RECO photon
+            for(int ig=0; ig<pho.nMC; ++ig) {
+                //const int PDG_PHOTON = 22;
+                if ( TMath::Abs(pho.mcPID->at(ig))!= 22 ) continue;
+                double deltaRtmp = getDR((*pho.phoEta)[gj[0].phoIdx], (*pho.phoPhi)[gj[0].phoIdx], pho.mcEta->at(ig), pho.mcPhi->at(ig));
+                if (deltaRtmp >= cutdeltaR) continue;
+                if (pho.mcCalIsoDR03->at(ig) > 5.0) continue;
+                if (deltaRtmp < deltaRMin){
+                    deltaRMin = deltaRtmp;
+                    matchedIndex = ig;
+                }
+            }
+            if(matchedIndex!=-1) failedGenIso = true;
+        }
+        if (failedGenIso) continue;
+
 
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
