@@ -71,6 +71,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int doCorrectionL2L3;
   bool doElectronRejection;
   std::vector<float> mcFileWeights;
+  float energyScaleJet;
 
   if (!configCuts.isValid) {
     std::cout << "Invalid Configuration File" << std::endl;
@@ -102,6 +103,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
   doElectronRejection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
+  energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
   for (unsigned i = 0; i < mcFileWeights.size(); ++i)
     std::cout << mcFileWeights[i] << " ";
@@ -212,6 +214,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       }
     }
   }
+
+  std::vector<jetCorrector> correctorsJetJES(nJetCollections);
 
   //smearing set up block
   jetCorrector correctorsJetSmear[7][nJetCollections];
@@ -678,6 +682,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           correctorsL2L3[i].correctPtsL2L3(jets[i]);
         }
 
+        // apply JES after corrections
+        if (energyScaleJet > 0 && energyScaleJet != 1)
+        {
+          correctorsJetJES.at(i).applyEnergyScale(jets[i], energyScaleJet);
+        }
+
         if (smearingResJetPhi > 0) {
             correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
         }
@@ -794,6 +804,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
               if (doCorrectionL2L3 > 0) {
                 correctorsL2L3[k].correctPtsL2L3(jetsMB[k]);
+              }
+
+              // apply JES after corrections
+              if (energyScaleJet > 0 && energyScaleJet != 1)
+              {
+                correctorsJetJES.at(k).applyEnergyScale(jetsMB[k], energyScaleJet);
               }
 
               if (smearingResJetPhi > 0) {

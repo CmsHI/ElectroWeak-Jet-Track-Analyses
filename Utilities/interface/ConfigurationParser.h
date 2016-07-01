@@ -48,6 +48,7 @@ public :
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
     static std::string ParseLatex(std::string str);
+    static std::vector<std::string> ParseListLatex(std::string strList);
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
     static std::vector<std::string> ParseListTF1Formula(std::string strList);
     static std::vector<std::vector<double>> ParseListTF1Range(std::string strList);
@@ -402,6 +403,54 @@ std::string ConfigurationParser::ParseLatex(std::string str)
 {
     std::string strNew = replaceAll(str, "\\", "#");
     return strNew;
+}
+
+/*
+ * parse a list of Latex strings
+ */
+std::vector<std::string> ConfigurationParser::ParseListLatex(std::string strList)
+{
+    std::vector<std::string> list;
+
+    if(strList.empty())
+        return list;
+
+    size_t posStart = 0;
+    size_t posEnd   = strList.size();
+
+    // by default, elements of the list are separated by ","
+    std::string separator = ",";
+    // allow "," to be a list element
+    // if one wants to use comma inside a list element, then one should use ";;" as element separator
+    if (strList.find(";;") != std::string::npos)  separator = ";;";
+
+    size_t pos;
+    bool listFinished = false;
+    while (!listFinished) {
+        pos = strList.find(separator, posStart);
+        if (pos == std::string::npos) {    // this must be the last element.
+            pos = posEnd;
+            listFinished = true;
+        }
+
+        std::string tmp = strList.substr(posStart, pos-posStart);  //  strList = ...,ABC123 ,... --> posStart = 0, pos = 8, tmp = "ABC123 "
+
+        // make trimming optional, trimming can be skipped if "noTrim" key appears in the element
+        bool doTrim = (tmp.find(CONFIGPARSER::noTrim) == std::string::npos);
+        std::string element;
+        if (doTrim) {
+            element = trim(tmp);
+        } else {  // do not trim, allow  leading and trailing white space characters to appear in the element.
+            // remove the "do not trim" option from the element
+            element = replaceAll(tmp, CONFIGPARSER::noTrim, "");
+        }
+
+        if (element.size() > 0)
+            list.push_back(ConfigurationParser::ParseLatex(element.c_str()));
+        posStart = pos + separator.size();
+    }
+
+    return list;
 }
 
 /*

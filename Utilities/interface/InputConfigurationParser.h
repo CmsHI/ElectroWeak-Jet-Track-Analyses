@@ -56,6 +56,11 @@ enum TYPE_I{
     k_fitTH1_lowerPad,
     k_centerTitleX,
     k_centerTitleY,
+    k_mpp_columns,
+    k_mpp_rows,
+    k_mpp_layers,
+    k_mpp_hist_width,
+    k_mpp_hist_height,
     kN_TYPES_I
 };
 
@@ -85,7 +90,12 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
         "fitTH1",
         "fitTH1_lowerPad",
         "centerTitleX",
-        "centerTitleY"
+        "centerTitleY",
+        "mpp_columns",
+        "mpp_rows",
+        "mpp_layers",
+        "mpp_hist_width",
+        "mpp_hist_height"
 };
 
 enum TYPE_F{
@@ -115,6 +125,8 @@ enum TYPE_F{
     k_textAbovePadOffsetY,
     k_ratioLineY,                // horizontal line at y = ratioLineY
     k_windowHeightFraction,      // height fraction of a pad relative to some other pad
+    k_mpp_margin,
+    k_mpp_edge,
     kN_TYPES_F
 };
 
@@ -144,7 +156,9 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
         "textAbovePadOffsetX",
         "textAbovePadOffsetY",
         "ratioLineY",
-        "windowHeightFraction"
+        "windowHeightFraction",
+        "mpp_margin",
+        "mpp_edge"
 };
 
 enum TYPE_S{
@@ -193,6 +207,25 @@ enum TYPE_S{
     k_LineStyle_horizontal_lowerPad,     // styles of the horizontal lines to be drawn in the lower pad
     k_TLine_vertical_lowerPad,           // x-axis positions of the vertical lines to be drawn in the lower pad
     k_LineStyle_vertical_lowerPad,       // styles of the vertical lines to be drawn in the lower pad
+    k_mpp_file_name,
+    k_mpp_hist_names,
+    k_mpp_draw_options,
+    k_mpp_is_tf1,
+    k_mpp_legend_labels,
+    k_mpp_legend_options,
+    k_mpp_pad_titles,
+    k_mpp_marker_style,
+    k_mpp_marker_color,
+    k_mpp_marker_size,
+    k_mpp_line_style,
+    k_mpp_line_color,
+    k_mpp_y_max,
+    k_mpp_y_min,
+    k_mpp_l_x1,
+    k_mpp_l_y1,
+    k_mpp_l_x2,
+    k_mpp_l_y2,
+    k_mpp_canvas_title,
     kN_TYPES_S
 };
 
@@ -241,7 +274,26 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "TLine_horizontal_lowerPad",
         "lineStyle_horizontal_lowerPad",
         "TLine_vertical_lowerPad",
-        "lineStyle_vertical_lowerPad"
+        "lineStyle_vertical_lowerPad",
+        "mpp_file_name",
+        "mpp_hist_names",
+        "mpp_draw_options",
+        "mpp_is_tf1",
+        "mpp_legend_labels",
+        "mpp_legend_options",
+        "mpp_pad_titles",
+        "mpp_marker_style",
+        "mpp_marker_color",
+        "mpp_marker_size",
+        "mpp_line_style",
+        "mpp_line_color",
+        "mpp_y_max",
+        "mpp_y_min",
+        "mpp_l_x1",
+        "mpp_l_y1",
+        "mpp_l_x2",
+        "mpp_l_y2",
+        "mpp_canvas_title"
 };
 
 enum PROCESS{
@@ -253,7 +305,8 @@ enum PROCESS{
   kN_PROCESSES // must come last in enum
 };
 
-std::string PROCESS_LABELS[kN_PROCESSES] = {"skim",
+std::string PROCESS_LABELS[kN_PROCESSES] = {
+                        "skim",
                         "correction",
                         "histogram",
                         "plotting",
