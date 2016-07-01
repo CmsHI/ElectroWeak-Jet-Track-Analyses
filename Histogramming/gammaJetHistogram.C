@@ -519,21 +519,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         // photon isolation systematic part (gen matching & genIso condition)
         bool failedGenIso = false;
         if (isMC && doPhotonIsolationSys) {
-            const float cutdeltaR = 0.2;
-            float deltaRMin= 999;
-            int matchedIndex=-1;     // index of the matched GEN photon into this RECO photon
-            for(int ig=0; ig<pho.nMC; ++ig) {
-                //const int PDG_PHOTON = 22;
-                if ( TMath::Abs(pho.mcPID->at(ig))!= 22 ) continue;
-                double deltaRtmp = getDR((*pho.phoEta)[gj[0].phoIdx], (*pho.phoPhi)[gj[0].phoIdx], pho.mcEta->at(ig), pho.mcPhi->at(ig));
-                if (deltaRtmp >= cutdeltaR) continue;
-                if (pho.mcCalIsoDR03->at(ig) > 5.0) continue;
-                if (deltaRtmp < deltaRMin){
-                    deltaRMin = deltaRtmp;
-                    matchedIndex = ig;
-                }
-            }
-            if(matchedIndex!=-1) failedGenIso = true;
+           if ( !(((*pho.pho_genMatchedIndex)[gj[0].phoIdx]!=-1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx])<5.0)) ) {
+               failedGenIso = true;
+               //std::cout << "failedGenIso : mcCalIso = " << (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx]))<< std::endl;
+           }
         }
         if (failedGenIso) continue;
 
