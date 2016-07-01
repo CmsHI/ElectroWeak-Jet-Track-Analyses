@@ -566,16 +566,20 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
                             (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
 
-                        // apply dphi cuts now
-                        if (TMath::Abs((*gj[0].dphi)[ijet]) > TMath::Pi()/2 || TMath::Abs((*gj[0].dphi)[ijet]) < 3*TMath::Pi()/8) continue;
+                        float lower_sideband = 1;
+                        float upper_sideband = TMath::Pi()/2;
+                        float sideband_width = upper_sideband - lower_sideband;
 
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-3*TMath::Pi()/8)*8, weight*8);
-                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*8;
+                        // select dphi sideband region
+                        if (TMath::Abs((*gj[0].dphi)[ijet]) > upper_sideband || TMath::Abs((*gj[0].dphi)[ijet]) < lower_sideband) continue;
 
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight);
-                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight);
-                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-lower_sideband)*(TMath::Pi()/sideband_width), weight*40*(TMath::Pi()/sideband_width));
+                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/sideband_width);
+
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight*40*(TMath::Pi()/8/sideband_width));
+                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
+                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight*40*(TMath::Pi()/8/sideband_width));
+                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
                     }
                 }
             }
