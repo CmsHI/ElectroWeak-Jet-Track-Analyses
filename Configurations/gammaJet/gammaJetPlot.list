@@ -1,0 +1,13 @@
+# HI DATA
+/home/kaya/Desktop/EWJTA-out/gammaJet/2016-06-30-nominal/PbPb_Data_gammaJetHistogramArithmetic.root
+# HI MC
+/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+# PP DATA
+/home/kaya/Desktop/EWJTA-out/gammaJet/2016-06-30-nominal/pp_Data_gammaJetHistogramArithmetic.root
+# PP MC
+/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+# HI DATA SYS
+Configurations/gammaJet/3006/gammaJetSystematics.root
+/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+Configurations/gammaJet/3006/gammaJetSystematicsPP.root
+/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
