@@ -135,6 +135,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // int nEventsToMix;
     // int nSmear;
     bool useUncorrectedPhotonEnergy;
+    bool doElectronRejection;
 
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
@@ -187,7 +188,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
-
+    doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
     // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
@@ -262,6 +263,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("*", 0);
     tPho->SetBranchStatus("phoEtCorrected", 1);
     tPho->SetBranchStatus("phoEta", 1);
+    tPho->SetBranchStatus("phoPhi", 1);
     tPho->SetBranchStatus("phoSigmaIEtaIEta_2012", 1);
     tPho->SetBranchStatus("pho_ecalClusterIsoR4", 1);
     tPho->SetBranchStatus("pho_hcalRechitIsoR4", 1);
@@ -271,7 +273,13 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("phoE5x5", 1);
     tPho->SetBranchStatus("phoE1x5", 1);
     tPho->SetBranchStatus("phoE2x5", 1);
-
+    if (doElectronRejection) {
+        tPho->SetBranchStatus("nEle", 1);
+        tPho->SetBranchStatus("elePt", 1);
+        tPho->SetBranchStatus("eleEta", 1);
+        tPho->SetBranchStatus("elePhi", 1);
+        tPho->SetBranchStatus("eleEoverP", 1);
+    }
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*", 0);
     tJet->SetBranchStatus("nref", 1);
@@ -478,6 +486,25 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         if (!(isSignalPho || isBkgPho)) continue;
 
         int phoType = (isSignalPho ? CORR::kRAW : CORR::kBKG);
+
+        // reco electron rejection part
+        bool isEle = false;
+        if (doElectronRejection) {
+            float eleEpTemp = 100.0;
+            for(int ie=0; ie<pho.nEle; ++ie){
+                if ( (*pho.elePt)[ie] < 10 ) continue;
+                if ( abs( (*pho.eleEta)[ie] - (*pho.phoEta)[gj[0].phoIdx] ) > 0.03 ) continue;
+                double dphi = getDPHI((*pho.elePhi)[ie], (*pho.phoPhi)[gj[0].phoIdx]);
+                //float dphi = pho.elePhi->at(ie) - (*pho.phoPhi)[gj[0].phoIdx];
+                //if ( dphi >  3.141592 ) dphi = dphi - 2* 3.141592;
+                //if ( dphi < -3.141592 ) dphi = dphi + 2* 3.141592;
+                if ( abs(dphi) > 0.03 )  continue;
+                if ( eleEpTemp < pho.eleEoverP->at(ie) )  continue;
+                eleEpTemp = pho.eleEoverP->at(ie);
+                isEle = true;
+            }
+        }
+        if (isEle) continue;
 
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
