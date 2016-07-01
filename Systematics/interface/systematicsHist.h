@@ -18,17 +18,19 @@ enum SYSPOLFNC {
     kPOL0,
     kPOL1,
     kPOL2,
+    kPOL3,
     kN_SYSPOLFNC
 };
 
 std::string POLFNC_FORMULAS[kN_SYSPOLFNC] = {
         "pol0",
         "pol1",
-        "pol2"
+        "pol2",
+        "pol3"     // user can overwrite this function according to their wish
 };
 
-const int POLFNC_COLORS[kN_SYSPOLFNC] = {kRed, kBlue, kGreen};
-const int POLFNC_MARKERSTYLES[kN_SYSPOLFNC] = {kOpenCircle, kOpenSquare, kOpenTriangleDown};
+const int POLFNC_COLORS[kN_SYSPOLFNC] = {kRed, kBlue, kGreen, kMagenta};
+const int POLFNC_MARKERSTYLES[kN_SYSPOLFNC] = {kOpenCircle, kOpenSquare, kOpenTriangleDown, kOpenDiamond};
 
 };
 
@@ -73,6 +75,9 @@ public :
 
     TH1D* h1D_fnc_pol[SYS::kN_SYSPOLFNC];         // histograms made by bin-by-bin evaluation of fnc_pol
     TH1D* h1D_fnc_pol_rel[SYS::kN_SYSPOLFNC];     // histograms made by bin-by-bin evaluation of fnc_pol_rel
+
+    TH1D* h1D_fnc_pol_v1[SYS::kN_SYSPOLFNC];         // initial version of h1D_fnc_pol before any other setting
+    TH1D* h1D_fnc_pol_rel_v1[SYS::kN_SYSPOLFNC];     // initial version of h1D_fnc_pol_rel before any other setting
 
     bool isValid;
     bool isSet;

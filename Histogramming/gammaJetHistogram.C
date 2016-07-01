@@ -135,6 +135,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // int nEventsToMix;
     // int nSmear;
     bool useUncorrectedPhotonEnergy;
+    bool doElectronRejection;
+    bool doPhotonIsolationSys;
 
     bins_pt[0] = ConfigurationParser::ParseListFloat(
         configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
@@ -187,7 +189,8 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
-
+    doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
+    doPhotonIsolationSys= configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
     // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
@@ -262,6 +265,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("*", 0);
     tPho->SetBranchStatus("phoEtCorrected", 1);
     tPho->SetBranchStatus("phoEta", 1);
+    tPho->SetBranchStatus("phoPhi", 1);
     tPho->SetBranchStatus("phoSigmaIEtaIEta_2012", 1);
     tPho->SetBranchStatus("pho_ecalClusterIsoR4", 1);
     tPho->SetBranchStatus("pho_hcalRechitIsoR4", 1);
@@ -271,7 +275,21 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tPho->SetBranchStatus("phoE5x5", 1);
     tPho->SetBranchStatus("phoE1x5", 1);
     tPho->SetBranchStatus("phoE2x5", 1);
-
+    if (doElectronRejection) {
+        tPho->SetBranchStatus("nEle", 1);
+        tPho->SetBranchStatus("elePt", 1);
+        tPho->SetBranchStatus("eleEta", 1);
+        tPho->SetBranchStatus("elePhi", 1);
+        tPho->SetBranchStatus("eleEoverP", 1);
+    }
+    if (isMC && doPhotonIsolationSys) {
+        tPho->SetBranchStatus("nMC", 1);
+        tPho->SetBranchStatus("mcPID", 1);
+        tPho->SetBranchStatus("mcEta", 1);
+        tPho->SetBranchStatus("mcPhi", 1);
+        tPho->SetBranchStatus("mcCalIsoDR03", 1);
+        tPho->SetBranchStatus("mcCalIsoDR04", 1);
+    }
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*", 0);
     tJet->SetBranchStatus("nref", 1);
@@ -479,6 +497,36 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
         int phoType = (isSignalPho ? CORR::kRAW : CORR::kBKG);
 
+        // reco electron rejection part
+        bool isEle = false;
+        if (doElectronRejection) {
+            float eleEpTemp = 100.0;
+            for(int ie=0; ie<pho.nEle; ++ie){
+                if ( (*pho.elePt)[ie] < 10 ) continue;
+                if ( abs( (*pho.eleEta)[ie] - (*pho.phoEta)[gj[0].phoIdx] ) > 0.03 ) continue;
+                double dphi = getDPHI((*pho.elePhi)[ie], (*pho.phoPhi)[gj[0].phoIdx]);
+                //float dphi = pho.elePhi->at(ie) - (*pho.phoPhi)[gj[0].phoIdx];
+                //if ( dphi >  3.141592 ) dphi = dphi - 2* 3.141592;
+                //if ( dphi < -3.141592 ) dphi = dphi + 2* 3.141592;
+                if ( abs(dphi) > 0.03 )  continue;
+                if ( eleEpTemp < pho.eleEoverP->at(ie) )  continue;
+                eleEpTemp = pho.eleEoverP->at(ie);
+                isEle = true;
+            }
+        }
+        if (isEle) continue;
+
+        // photon isolation systematic part (gen matching & genIso condition)
+        bool failedGenIso = false;
+        if (isMC && doPhotonIsolationSys) {
+           if ( !(((*pho.pho_genMatchedIndex)[gj[0].phoIdx]!=-1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx])<5.0)) ) {
+               failedGenIso = true;
+               //std::cout << "failedGenIso : mcCalIso = " << (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx]))<< std::endl;
+           }
+        }
+        if (failedGenIso) continue;
+
+
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
 
@@ -566,16 +614,20 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                         if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
                             (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
 
-                        // apply dphi cuts now
-                        if (TMath::Abs((*gj[0].dphi)[ijet]) > TMath::Pi()/2 || TMath::Abs((*gj[0].dphi)[ijet]) < 3*TMath::Pi()/8) continue;
+                        float lower_sideband = 1;
+                        float upper_sideband = TMath::Pi()/2;
+                        float sideband_width = upper_sideband - lower_sideband;
 
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-3*TMath::Pi()/8)*8, weight*8);
-                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*8;
+                        // select dphi sideband region
+                        if (TMath::Abs((*gj[0].dphi)[ijet]) > upper_sideband || TMath::Abs((*gj[0].dphi)[ijet]) < lower_sideband) continue;
 
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight);
-                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight);
-                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-lower_sideband)*(TMath::Pi()/sideband_width), weight*40*(TMath::Pi()/sideband_width));
+                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/sideband_width);
+
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight*40*(TMath::Pi()/8/sideband_width));
+                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
+                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight*40*(TMath::Pi()/8/sideband_width));
+                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
                     }
                 }
             }
