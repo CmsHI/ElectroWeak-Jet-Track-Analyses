@@ -289,6 +289,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tPho->SetBranchStatus("mcPhi", 1);
         tPho->SetBranchStatus("mcCalIsoDR03", 1);
         tPho->SetBranchStatus("mcCalIsoDR04", 1);
+        tPho->SetBranchStatus("pho_genMatchedIndex", 1);
     }
     TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
     tJet->SetBranchStatus("*", 0);
