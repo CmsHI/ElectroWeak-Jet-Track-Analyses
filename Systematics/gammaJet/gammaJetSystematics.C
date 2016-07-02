@@ -519,7 +519,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                     double xmax = sysHist[0][i].h1D_diff->GetXaxis()->GetBinLowEdge(sysHist[0][i].h1D_diff->GetXaxis()->GetLast()+1);
                     std::string fnc_pol_name = Form("fnc_%s_pol_%d", tmpName_uncTot.c_str(), j);
 
-                    sysHist[0][i].fnc_pol_formula[j] = "";
+                    sysHist[0][i].fnc_pol_formula[j] = "pol0";      // dummy formula to avoid "Error in <TFormula::TFormula>: expression may not be 0 or have 0 length"
                     sysHist[0][i].fnc_pol[j] = new TF1(fnc_pol_name.c_str() , sysHist[0][i].fnc_pol_formula[j].c_str(),
                             xmin, xmax);
                     sysHist[0][i].fnc_pol[j]->SetLineColor(SYS::POLFNC_COLORS[j]);
