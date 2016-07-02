@@ -46,7 +46,6 @@ namespace CUTS {
       k_mcSumIso,
       k_EtaLowerBound,
       k_EtaUpperBound,
-      k_useUncorrectedPhotonEnergy,
       kN_F_CUTS
     };
 
@@ -93,7 +92,6 @@ namespace CUTS {
       "mcSumIso",
       "etaLowerBound",
       "etaUpperBound",
-      "useUncorrectedPhotonEnergy"
     };
 
     enum I_CUTS{
@@ -104,6 +102,7 @@ namespace CUTS {
       k_usePPstyleIso,
       k_doElectronRejection,
       k_doPhotonIsolationSys,
+      k_useUncorrectedPhotonEnergy,
       kN_I_CUTS
     };
 
@@ -114,7 +113,8 @@ namespace CUTS {
       "MonteCarlo",
       "usePPstyleIso",
       "doElectronRejection",
-      "doPhotonIsolationSys"
+      "doPhotonIsolationSys",
+      "useUncorrectedPhotonEnergy"
     };
 
     enum S_CUTS{
