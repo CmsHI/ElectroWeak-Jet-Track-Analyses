@@ -1,13 +1,13 @@
 # HI DATA
-/home/kaya/Desktop/EWJTA-out/gammaJet/2016-07-01/gammaJetHistograms.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
 # HI MC
-/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
 # PP DATA
-/home/kaya/Desktop/EWJTA-out/gammaJet/2016-07-01/gammaJetHistograms.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
 # PP MC
-/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+Configurations/gammaJet/DUMMY.root
 # HI DATA SYS
-/home/kaya/Desktop/EWJTA-out/gammaJet/2016-07-01/gammaJetSystematics.root
-/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
-/home/kaya/Desktop/EWJTA-out/gammaJet/2016-07-01/gammaJetSystematicsPP.root
-/home/kaya/Desktop/EWJTA-out/gammaJet/DUMMY.root
+Configurations/gammaJet/gammaJetSystematics.root
+Configurations/gammaJet/DUMMY.root
+Configurations/gammaJet/gammaJetSystematicsPP.root
+Configurations/gammaJet/DUMMY.root

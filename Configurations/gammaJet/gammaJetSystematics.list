@@ -1,11 +1,11 @@
 # original result
-./2016-07-01/gammaJetHistograms.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
 # sys variations
-./2016-07-01/gammaJetHistograms_SYS_JES_DOWN.root
-./2016-07-01/gammaJetHistograms_SYS_JES_UP.root
-./2016-07-01/gammaJetHistograms_purityDOWN.root
-./2016-07-01/gammaJetHistograms_purityUP.root
-./2016-07-01/gammaJetHistograms_SYS_JER.root
-./2016-07-01/gammaJetHistograms_eleRejection.root
-./2016-07-01/gammaJetHistograms_noEngCorr.root
-./2016-07-01/gammaJetHistograms_phoIsolation.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JES_DOWN.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JES_UP.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_purityDOWN.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_purityUP.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JER.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_eleRej.root
+/export/d00/scratch/biran/07-02-final/gammaJetHistograms_noEngCorr.root
+# /export/d00/scratch/biran/07-02-final/gammaJetHistograms_phoIsolation.root
