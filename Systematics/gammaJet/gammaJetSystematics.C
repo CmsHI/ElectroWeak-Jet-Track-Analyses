@@ -200,6 +200,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
     // bool isMC = collisionIsMC((COLL::TYPE)collision);
     bool isHI = collisionIsHI((COLL::TYPE)collision);
     bool isPP = collisionIsPP((COLL::TYPE)collision);
+    bool isMC = collisionIsMC((COLL::TYPE)collision);
 
     // cuts in this macro are only used for adding text to the plots
     std::vector<float> bins_pt[2];
@@ -209,7 +210,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
     std::string jetCollection;
     float jetpt;
     float jeteta;
-    // zJet cuts
+    // gammaJet cuts
     float awayRange;    // awayRange = 78 means dphi > 7/8 PI
     if (configCuts.isValid) {
         bins_pt[0] = ConfigurationParser::ParseListFloat(
@@ -280,7 +281,9 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
         inputExists[i] = (input[i] && input[i]->IsOpen());
         if (!inputExists[i])  continue;
 
-        inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory(collisionName.c_str());
+        //inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory(collisionName.c_str());
+        // switch histogram naming convention
+        inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory("");
     }
 
     TFile* output = new TFile(outputFile, "RECREATE");
@@ -295,19 +298,41 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
 
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
-    std::vector<std::string> correlationHistNames  {"xjg", "dphi", "ptJet", "rjg_ptBinAll", "rjg_centBinAll", "xjg_mean_ptBinAll", "xjg_mean_centBinAll"};
+    std::string h1D_suffix = "";
+    if (isHI)          h1D_suffix = "PbPb_Data";
+    if (isHI && isMC)  h1D_suffix = "PbPb_MC";
+    if (isPP)          h1D_suffix = "pp_Data";
 
-    std::vector<std::string> versionSuffix         {"final_norm", "final_norm", "final_norm", "", "", "", ""};
-    std::vector<std::string> phoRegion {"SIG", "SIG", "RAW", "SIG", "SIG", "SIG", "SIG"};
-    std::vector<std::string> jetRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
-    std::vector<std::string> legendPositions {"NE", "NW", "NE", "NW", "NW", "NE", "NE"};
-    std::vector<std::string> textPositions   {"NE", "NW", "NE", "SE", "SE", "NE", "NE"};
-    std::vector<bool> textWriteDphi   {true, false, true, true, true, true, true};
-    std::vector<std::string> functionFormulas {"([0]+[1]*x+[2]*x*x)*exp(-[3]*(x-[4]))", "([0]+[1]*x)*exp(-[2]*(TMath::Pi()-x))+[3]", "pol4", "pol4", "pol4", "pol4", "pol4"};
-    std::vector<std::string> fitOptions {"chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M"};
-    std::vector<bool>        calcUncfromFit {false, false, false, false, false, false, false};
-    std::vector<std::string> functionFormulas_uncTot {"pol0", "pol0", "pol2", "pol2", "pol2", "pol2", "pol2"};
-    std::vector<int>         rebins      {1, 4, 3, 1, 1, 1, 1};
+    std::vector<std::string> correlationHistNames  {"xjg", "dphi", "ptJet", "rjg_ptBinAll", "rjg_centBinAll",
+                                                                            "xjg_mean_ptBinAll", "xjg_mean_centBinAll",
+                                                                            "dphi_width_ptBinAll", "dphi_width_centBinAll",
+                                                                            "iaa"};
+
+    std::vector<std::string> versionSuffix         {h1D_suffix, h1D_suffix, h1D_suffix, h1D_suffix, h1D_suffix,
+                                                                                        h1D_suffix, h1D_suffix,
+                                                                                        h1D_suffix, h1D_suffix,
+                                                                                        "rebin"};
+    //std::vector<std::string> phoRegion {"SIG", "SIG", "RAW", "SIG", "SIG", "SIG", "SIG"};
+    //std::vector<std::string> jetRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
+    std::vector<std::string> legendPositions {"NE", "NW", "NE", "NW", "NW", "NE", "NE", "NE", "NE", "NE"};
+    std::vector<std::string> textPositions   {"NE", "NW", "NE", "SE", "SE", "NE", "NE", "NE", "NE", "NE"};
+    std::vector<bool> textWriteDphi   {true, false, true, true, true, true, true, true, true, true};
+    std::vector<std::string> functionFormulas {"([0]+[1]*x+[2]*x*x)*exp(-[3]*(x-[4]))", "([0]+[1]*x)*exp(-[2]*(TMath::Pi()-x))+[3]", "pol4", "pol4", "pol4",
+                                                                                                                                             "pol4", "pol4",
+                                                                                                                                             "pol4", "pol4",
+                                                                                                                                             "pol4"};
+    std::vector<std::string> fitOptions {"chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M", "chi2 R M",
+                                                                             "chi2 R M", "chi2 R M",
+                                                                             "chi2 R M", "chi2 R M",
+                                                                             "chi2 R M"};
+    std::vector<std::string> functionFormulas_uncTot {"pol0", "pol0", "pol2", "pol2", "pol2",
+                                                                              "pol2", "pol2",
+                                                                              "pol2", "pol2",
+                                                                              "pol2"};
+    std::vector<int> rebins      {1, 4, 3, 1, 1,
+                                           1, 1,
+                                           1, 1,
+                                           1};
 
     int nCorrHist = correlationHistNames.size();
     std::vector<bool> vecFalse  (nCorrHist, false);
@@ -330,8 +355,8 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
     TH1::SetDefaultSumw2();
     systematicsHist sysHist[nInputFiles][nCorrHist];
 
-    TF1*  fnc[nInputFiles][nCorrHist];
-    bool  fncNominalHasbeenFit[nCorrHist];     // once a nominal distribution is fit do not fit it again in the next iteration over iFile.
+    //TF1*  fnc[nInputFiles][nCorrHist];
+    //bool  fncNominalHasbeenFit[nCorrHist];     // once a nominal distribution is fit do not fit it again in the next iteration over iFile.
 
     TF1*  fnc_uncTot[nCorrHist];          // polynomial fit to final total uncertainty
 
@@ -344,11 +369,10 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
 
             for (int iHiBin=0; iHiBin < nBins_hiBin; ++iHiBin){
 
-                // if (iHiBin > 0 && !isHI)  continue;
-
                 std::string correlation = correlationHistNames.at(i).c_str();
                 std::cout<<"##### "<< correlation.c_str() <<" #####"<<std::endl;
 
+                /*
                 std::string tmpName = Form("%s_ptBin%d_hiBin%d_pho%s_jet%s_%s", correlationHistNames.at(i).c_str(), iPt, iHiBin,
                         phoRegion.at(i).c_str(), jetRegion.at(i).c_str(), versionSuffix.at(i).c_str());
                 // special cases
@@ -361,6 +385,20 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                     if (iHiBin > 0)  continue;
                     tmpName = Form("%s_ptBin%d_pho%s_jet%s", correlationHistNames.at(i).c_str(),
                             iPt, phoRegion.at(i).c_str(), jetRegion.at(i).c_str());
+                }
+                */
+                std::string tmpName = Form("%s_ptBin%d_hiBin%d_%s", correlationHistNames.at(i).c_str(), iPt, iHiBin,
+                        versionSuffix.at(i).c_str());
+                // special cases
+                if (correlation.find("ptBinAll") != std::string::npos) {
+                    if (iPt > 0)  continue;
+                    tmpName = Form("%s_hiBin%d_%s", correlationHistNames.at(i).c_str(),
+                            iHiBin, versionSuffix.at(i).c_str());
+                }
+                else if (correlation.find("centBinAll") != std::string::npos) {
+                    if (iHiBin > 0)  continue;
+                    tmpName = Form("%s_ptBin%d_%s", correlationHistNames.at(i).c_str(),
+                            iPt, versionSuffix.at(i).c_str());
                 }
 
                 std::string tmpHistName = Form("h1D_%s", tmpName.c_str());
@@ -403,7 +441,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                 sysHist[0][i].h1D_nominal = (TH1D*)sysHist[0][i].h1D_varied->Clone(Form("%s_nominal", tmpHistName.c_str()));
                 sysHist[0][i].h1D_nominal->SetStats(false);
 
-                fncNominalHasbeenFit[i] = false;
+                //fncNominalHasbeenFit[i] = false;
                 std::string tmpName_uncTot = Form("%s_uncTot", tmpName.c_str());
                 std::string tmpHistName_uncTot = Form("h1D_%s", tmpName_uncTot.c_str());
 
@@ -514,7 +552,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                     sysHist[iFile][i].h1D_diff = (TH1D*)sysHist[iFile][i].h1D_nominal->Clone(tmpHistName_diff.c_str());
                     sysHist[iFile][i].h1D_diff->Add(h1D_temp, -1);
                     // use the error bars of nominal histogram
-                    for (int iBin = 1; iBin < sysHist[iFile][i].h1D_nominal->GetNbinsX(); ++iBin) {
+                    for (int iBin = 0; iBin < sysHist[iFile][i].h1D_nominal->GetNbinsX(); ++iBin) {
                         sysHist[iFile][i].h1D_diff->SetBinContent(iBin, sysHist[iFile][i].h1D_nominal->GetBinError(iBin));
                     }
 
@@ -548,6 +586,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                     std::string tmpHistName_ratio_v1 = Form("%s_v1", sysHist[iFile][i].h1D_ratio->GetName());
                     sysHist[iFile][i].h1D_ratio_v1 = (TH1D*)sysHist[iFile][i].h1D_ratio->Clone(tmpHistName_ratio_v1.c_str());
 
+                    /*
                     if (calcUncfromFit.at(i)) {
                         // initialize fit function
                         std::string tmpFncName = Form("fnc_%s_%d", tmpName.c_str(), iFile);
@@ -596,6 +635,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
 
                         sysHist[iFile][i].h1D_ratio->SetYTitle("Ratio");
                     }
+                    */
 
                     // SYS UNC that is calculated from differences
                     // this will be the SYS UNC. calculation of the analysis
@@ -629,17 +669,27 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                         sysHist[iFile][i].h1D_ratio->Scale(sysHist[iFile][i].h1D_varied->GetBinWidth(1));   // assumes the original histogram has uniform binning.
                     }
 
+                    // iFile = 6   : electron rejection
+                    // hard coded scale for electron rejection
+                    if (iFile == 6) {
+                        sysHist[iFile][i].h1D_diff->Scale(0.36);
+                        sysHist[iFile][i].h1D_ratio->Scale(0.36);
+                    }
+
                     bool tmpSysValid = false;
                     if (isHI)
                     {
-                        // take the maximum of uncertainties : SYS_purity = max(down, up), iFile = 1,2
-                        // iFile = 1,2 : photon purity down and up variation
-                        // iFile = 3   : jet energy resolution
-                        // iFile = 4   : photon energy scale
-                        tmpSysValid = (iFile != 1);
+                        // take the maximum of uncertainties : SYS = max(down, up), iFile = 1,2
+                        // iFile = 1,2 : jet energy scale down and up variation
+                        // iFile = 3,4 : photon purity down and up variation
+                        // iFile = 5   : jet energy resolution
+                        // iFile = 6   : electron rejection
+                        // iFile = 7   : noEngCorr
+                        // iFile = 8   : photon isolation
+                        tmpSysValid = (iFile != 1 && iFile != 3);
                         if (tmpSysValid)   // wait for iFile = 2
                         {
-                            if (iFile == 2) {
+                            if (iFile == 2 || iFile == 4) {
 
                                 calcTH1AbsMax4SysUnc(sysHist[iFile][i].h1D_diff,
                                                      sysHist[iFile-1][i].h1D_diff, sysHist[iFile][i].h1D_diff);
@@ -652,14 +702,17 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                     }
                     else if (isPP)
                     {
-                        // take the maximum of uncertainties : SYS_purity = max(down, up), iFile = 1,2
-                        // iFile = 1,2 : photon purity down and up variation
-                        // iFile = 3   : jet energy resolution
-                        // iFile = 4   : photon energy scale
-                        tmpSysValid = (iFile != 1);
+                        // take the maximum of uncertainties : SYS = max(down, up), iFile = 1,2
+                        // iFile = 1,2 : jet energy scale down and up variation
+                        // iFile = 3,4 : photon purity down and up variation
+                        // iFile = 5   : jet energy resolution
+                        // iFile = 6   : electron rejection
+                        // iFile = 7   : noEngCorr
+                        // iFile = 8   : photon isolation
+                        tmpSysValid = (iFile != 1 && iFile != 3);
                         if (tmpSysValid)    // wait for iFile = 2
                         {
-                            if (iFile == 2) {
+                            if (iFile == 2 || iFile == 4) {
 
                                 calcTH1AbsMax4SysUnc(sysHist[iFile][i].h1D_diff,
                                         sysHist[iFile-1][i].h1D_diff, sysHist[iFile][i].h1D_diff);
@@ -1019,7 +1072,7 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                             outputFigureName = Form("%s%s", outputFigurePrefix.Data(), c->GetName());
                         }
                         c->SaveAs(Form("%s.png", outputFigureName.c_str()));
-                         c->SaveAs(Form("%s.pdf", outputFigureName.c_str()));
+                        c->SaveAs(Form("%s.pdf", outputFigureName.c_str()));
                         // c->SaveAs(Form("%s.C",   outputFigureName.c_str()));
 
                         c->Close();         // do not use Delete() for TCanvas.
