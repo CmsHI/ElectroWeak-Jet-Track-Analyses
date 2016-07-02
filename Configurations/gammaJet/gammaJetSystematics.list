@@ -1,0 +1,11 @@
+# original result
+./2016-07-01/gammaJetHistograms.root
+# sys variations
+./2016-07-01/gammaJetHistograms_SYS_JES_DOWN.root
+./2016-07-01/gammaJetHistograms_SYS_JES_UP.root
+./2016-07-01/gammaJetHistograms_purityDOWN.root
+./2016-07-01/gammaJetHistograms_purityUP.root
+./2016-07-01/gammaJetHistograms_SYS_JER.root
+./2016-07-01/gammaJetHistograms_eleRejection.root
+./2016-07-01/gammaJetHistograms_noEngCorr.root
+./2016-07-01/gammaJetHistograms_phoIsolation.root
