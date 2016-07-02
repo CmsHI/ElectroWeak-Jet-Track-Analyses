@@ -1078,6 +1078,36 @@ void gammaJetSystematics(const TString configFile, const TString inputFile, cons
                         c->Close();         // do not use Delete() for TCanvas.
                         std::cout<<"##########"<<std::endl;
                     }// plot systematics - END
+
+                    if (iFile == nInputFiles - 1) {
+
+                        // print SYS. UNC. summary for this observable
+                        std::cout << "### SYS. UNC. summary ###" << std::endl;
+                        std::cout << "histogram name = " << tmpHistName.c_str() << std::endl;
+                        for (int iFile2 = 1; iFile2 <= iFile; ++iFile2) {
+
+                            if (!sysHist[iFile2][i].isSet)  continue;
+
+                            // use the sys. unc. estimated by a line fit (pol1)
+                            int fitFncIndex = SYS::kPOL1;
+                            if (correlation.compare("xjg") == 0)  fitFncIndex = 3;
+
+                            int nBins = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetNbinsX();
+                            int binMin = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetMinimumBin();
+                            int binMax = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetMaximumBin();
+
+                            double uncMin = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetBinContent(binMin);
+                            double uncMax = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetBinContent(binMax);
+                            // assume the bin in the middle has the ave. sys. unc.
+                            // this needs more thinking
+                            double uncAve = sysHist[iFile2][i].h1D_fnc_pol_rel[fitFncIndex]->GetBinContent((nBins+1)/2);
+                            std::cout << Form("# sys.unc. file %d  : ", iFile2) ;
+                            std::cout << "uncMin = " << uncMin ;
+                            std::cout << ", uncMax = " << uncMax ;
+                            std::cout << ", uncAve = " << uncAve << std::endl;
+                        }
+                        std::cout << "### SYS. UNC. summary - END ###" << std::endl;
+                    }
                 }// LOOP over SYSTEMATICS - END
             }
         }
