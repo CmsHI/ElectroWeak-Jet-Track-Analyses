@@ -13,6 +13,7 @@
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/dielectronTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
@@ -96,9 +97,12 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
-       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
        
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
@@ -124,10 +128,13 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
 
+       hiEvt hiEvt;
+       hiEvt.setupTreeForReading(treeHiEvt);
+
        electronCorrector corrector;
        if (doCorrection) {
-           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
-           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
+           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
            corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
        }
 
@@ -193,7 +200,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
            {
                // correct the pt of electrons
                // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-               corrector.correctPts(ggHi);
+               corrector.correctPtsregressionTMVA(ggHi, hiEvt.hiBin);
            }
 
            diEle.makeDiElectronPairs(ggHi);

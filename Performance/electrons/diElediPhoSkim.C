@@ -15,6 +15,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/dielectronTree.h"
 #include "../../TreeHeaders/diphotonTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
@@ -120,6 +121,9 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
 
+       hiEvt hiEvt;
+       hiEvt.setupTreeForReading(treeHiEvt);
+
        electronCorrector corrector;
        if (doCorrection) {
            std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
@@ -194,7 +198,7 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
            {
                // correct the pt of electrons
                // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-               corrector.correctPts(ggHi);
+               corrector.correctPtsregressionTMVA(ggHi, hiEvt.hiBin);
            }
 
            // electron-photon matching

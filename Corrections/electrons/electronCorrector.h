@@ -20,9 +20,9 @@ public :
     };
     ~electronCorrector(){};
     void initiliazeReader(std::string pathEB = "weights/BDTG_EB_PbPb_16V.weights.xml", std::string pathEE = "weights/BDTG_EE_PbPb_16V.weights.xml");
-    float regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i);
-    void correctPt(ggHiNtuplizer &tggHiNtuplizer, int i);
-    void correctPts(ggHiNtuplizer &tggHiNtuplizer);
+    float regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i, int hiBin = 0);
+    void correctPtregressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i, int hiBin = 0);
+    void correctPtsregressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int hiBin = 0);
     void applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, int i, double energyScale);
     void applyEnergyScale(ggHiNtuplizer &tggHiNtuplizer, double energyScale);
 
@@ -44,6 +44,7 @@ public :
     float eleSeedEnToRawEn;
     float eleSeedEta;
     float eleSeedPhi;
+    float hiBin;
 
 private :
     float eleSCEta_EB;
@@ -79,6 +80,7 @@ void electronCorrector::initiliazeReader(std::string pathEB, std::string pathEE)
       tmvaReader[iECAL]->AddVariable("eleSeedEn/eleSCRawEn", &eleSeedEnToRawEn);
       tmvaReader[iECAL]->AddVariable("eleSeedEta",  &eleSeedEta);
       tmvaReader[iECAL]->AddVariable("eleSeedPhi",  &eleSeedPhi);
+      tmvaReader[iECAL]->AddVariable("hiBin",  &hiBin);
 
       //book method, read weight files
       if (iECAL == 0)
@@ -98,7 +100,7 @@ void electronCorrector::initiliazeReader(std::string pathEB, std::string pathEE)
  * deprecated :
  * https://github.com/doanhien/ZJet/blob/51371bbffb6c6bcde2bb19120c479c9e861ddd95/Electron_EnergyRegression/PbPb/EnergyRegression.h
  */
-float electronCorrector::regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i)
+float electronCorrector::regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i, int hiBin)
 {
     int iBE = (TMath::Abs(tggHiNtuplizer.eleSCEta->at(i)) < eleSCEta_EB) ? 0 : 1;
 
@@ -119,23 +121,24 @@ float electronCorrector::regressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i)
     eleSeedEnToRawEn = tggHiNtuplizer.eleSeedEn->at(i)/tggHiNtuplizer.eleSCRawEn->at(i);
     eleSeedEta = tggHiNtuplizer.eleSeedEta->at(i);
     eleSeedPhi = tggHiNtuplizer.eleSeedPhi->at(i);
+    this->hiBin = (float)hiBin;
 
     // get regression
     return (tmvaReader[iBE]->EvaluateRegression("BDTG"))[0];
 }
 
-void electronCorrector::correctPt(ggHiNtuplizer &tggHiNtuplizer, int i)
+void electronCorrector::correctPtregressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int i, int hiBin)
 {
-    tggHiNtuplizer.elePt->at(i) *= regressionTMVA(tggHiNtuplizer, i);
+    tggHiNtuplizer.elePt->at(i) *= regressionTMVA(tggHiNtuplizer, i, hiBin);
 }
 
 /*
  * correct the pt of all electrons
  */
-void electronCorrector::correctPts(ggHiNtuplizer &tggHiNtuplizer)
+void electronCorrector::correctPtsregressionTMVA(ggHiNtuplizer &tggHiNtuplizer, int hiBin)
 {
     for (int i = 0; i<tggHiNtuplizer.nEle; ++i) {
-        tggHiNtuplizer.elePt->at(i) *= regressionTMVA(tggHiNtuplizer, i);
+        correctPtregressionTMVA(tggHiNtuplizer, i, hiBin);
     }
 }
 

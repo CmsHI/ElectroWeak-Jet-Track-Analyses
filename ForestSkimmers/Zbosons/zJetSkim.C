@@ -475,8 +475,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        electronCorrector correctorEle;
        if (doCorrectionEle > 0) {
            if (isHI) {
-               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
-               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
+               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
                correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
            }
        }
@@ -802,7 +802,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                {
                    // correct the pt of electrons
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-                   if (isHI)  correctorEle.correctPts(ggHi);
+                   if (isHI)  correctorEle.correctPtsregressionTMVA(ggHi, hiBin);
                }
                if (energyScaleEle != 0 && energyScaleEle != 1)
                {
@@ -961,19 +961,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
-               // apply jtpt smearing
-               if (smearingResJet > 0)
-               {
+               if (smearingResJetPhi > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
-                       if (hiBin >= 0 && hiBin < 60) {
-                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
-                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
-                       }
-                       else {
-                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
-                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
-                       }
-                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jets.at(i), smearingResJet);
+                       correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
+                   }
+               }
+               if (smearingResJet > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
                    }
                }
            }
@@ -1069,19 +1064,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                        correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
                                    }
                                }
-                               // apply jtpt smearing
-                               if (smearingResJet > 0)
-                               {
+                               if (smearingResJetPhi > 0) {
                                    for (int i=0; i<nJetCollections; ++i) {
-                                       if (hiBin >= 0 && hiBin < 60) {
-                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
-                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
-                                       }
-                                       else {
-                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
-                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
-                                       }
-                                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jetsMB.at(i), smearingResJet);
+                                       correctorsJetSmear.at(i).applyPhisResolution(jetsMB.at(i), smearingResJetPhi);
+                                   }
+                               }
+                               if (smearingResJet > 0) {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsJetSmear.at(i).applyPtsResolution(jetsMB.at(i), smearingResJet);
                                    }
                                }
                            }
