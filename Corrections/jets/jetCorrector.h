@@ -79,8 +79,8 @@ public :
     double p1;
     double p2;
     // pp smearing : sigma_rel = sqrt( (C_HI^2 - C_PP^2) + (S_HI^2 - S_PP^2) / pt + (N_HI^2 - N_PP^2)/pt^2 )
-    double sigma_rel_Var;   // variation of simg_rel for systematics studies
-    double sigmaPhi_rel_Var;   // variation of simg_rel for systematics studies
+    double sigma_rel_Var;   // variation of sigma_rel for systematics studies
+    double sigmaPhi_rel_Var;   // variation of sigma_rel for systematics studies
     std::vector<double> CSN_HI;
     std::vector<double> CSN_PP;
     // pp smearing of phi
@@ -131,7 +131,7 @@ double jetCorrector::getSmearingPt(Jets &tJets, int i)
                         (CSN_HI.at(2)*CSN_HI.at(2) - CSN_PP.at(2)*CSN_PP.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
                                 );
 
-    return sigma_rel_Var*rand.Gaus(1, sigma_rel);
+    return rand.Gaus(1, sigma_rel*sigma_rel_Var);
 }
 
 double jetCorrector::getSmearingPhi(Jets &tJets, int i)
@@ -142,7 +142,7 @@ double jetCorrector::getSmearingPhi(Jets &tJets, int i)
                         (CSN_phi_HI.at(2)*CSN_phi_HI.at(2) - CSN_phi_PP.at(2)*CSN_phi_PP.at(2))/(tJets.jtpt[i]*tJets.jtpt[i])
                                 );
 
-    return sigmaPhi_rel_Var*rand.Gaus(0, sigma_rel);
+    return rand.Gaus(0, sigma_rel*sigmaPhi_rel_Var);
 }
 
 double jetCorrector::getResolutionHI(Jets &tJets, int i)
