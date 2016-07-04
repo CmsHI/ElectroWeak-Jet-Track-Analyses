@@ -905,6 +905,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   output->Write("", TObject::kOverwrite);
   output->Close();
   if (doMix > 0 && inputMB) inputMB->Close();
+
+  std::cout<<"gammaJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)

@@ -306,6 +306,8 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
        output->Write("",TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"minBiasJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)

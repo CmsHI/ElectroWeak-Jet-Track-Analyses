@@ -543,6 +543,8 @@ void trackJetSkim(const TString configFile, const TString inputFile, const TStri
 
        output->Write("",TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"trackJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
