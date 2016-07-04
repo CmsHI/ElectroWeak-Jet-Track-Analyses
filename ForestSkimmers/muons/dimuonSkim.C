@@ -64,8 +64,8 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        }
 
        bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-       bool isHI = collisionIsHI((COLL::TYPE)collisionType);
-       bool isPP = collisionIsPP((COLL::TYPE)collisionType);
+       //bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       //bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
