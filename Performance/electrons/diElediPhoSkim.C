@@ -38,11 +38,14 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
        // input configuration
+       int collisionType;
        std::string treePath;
        if (configInput.isValid) {
+           collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
            treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
        }
        else {
+           collisionType = COLL::kPP;
            treePath = "ggHiNtuplizer/EventTree";
        }
        // set default values
@@ -50,6 +53,9 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
 
        // verbose about input configuration
        std::cout<<"Input Configuration :"<<std::endl;
+       std::cout << "collisionType = " << collisionType << std::endl;
+       const char* collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+       std::cout << "collision = " << collisionName << std::endl;
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
@@ -69,6 +75,10 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
            cut_nEle = 2;
            doCorrection = 0;
        }
+
+       bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+       bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
@@ -104,10 +114,13 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
-       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
-
+       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
+       
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
        treeHiEvt->SetBranchStatus("run",1);
@@ -117,7 +130,18 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        treeHiEvt->SetBranchStatus("hiBin",1);
        treeHiEvt->SetBranchStatus("hiHF",1);
        treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-
+       if (isMC) {
+           treeHiEvt->SetBranchStatus("Npart",1);
+           treeHiEvt->SetBranchStatus("Ncoll",1);
+           treeHiEvt->SetBranchStatus("Nhard",1);
+           treeHiEvt->SetBranchStatus("ProcessID",1);
+           treeHiEvt->SetBranchStatus("pthat",1);
+           treeHiEvt->SetBranchStatus("weight",1);
+           treeHiEvt->SetBranchStatus("alphaQCD",1);
+           treeHiEvt->SetBranchStatus("alphaQED",1);
+           treeHiEvt->SetBranchStatus("qScale",1);
+       }
+       
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
 
@@ -126,9 +150,15 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
 
        electronCorrector corrector;
        if (doCorrection) {
-           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
-           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
-           corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           if (isHI) {
+               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
+               corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           }
+           else if (isPP) {
+               std::string path = "Corrections/electrons/weights/gbrmva_pp_16V.root";
+               corrector.initRegressionGBR(path);
+           }
        }
 
        TFile* output = new TFile(outputFile,"RECREATE");
@@ -145,13 +175,13 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
        TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
        outputTreeHiForestInfo->SetName("HiForestInfo");
        outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
-
+       
        outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
        outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
        outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
        outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
 
-       // record HiForestInfo
+       // write HiForestInfo
        treeHiForestInfo->GetEntry(0);
        outputTreeHiForestInfo->Fill();
 
@@ -169,6 +199,7 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
 
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;
+
        Long64_t entries = treeggHiNtuplizer->GetEntries();
        Long64_t entriesAnalyzed = 0;
        std::cout << "entries = " << entries << std::endl;
@@ -198,7 +229,8 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
            {
                // correct the pt of electrons
                // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-               corrector.correctPtsregressionTMVA(ggHi, hiEvt.hiBin);
+               if (isHI)  corrector.correctPtsregressionTMVA(ggHi, hiEvt.hiBin);
+               else if (isPP) corrector.correctPtsregressionGBR(ggHi);
            }
 
            // electron-photon matching
@@ -274,6 +306,8 @@ void diElediPhoSkim(const TString configFile, const TString inputFile, const TSt
 
        output->Write("", TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"diElediPhoSkim() - END"   <<std::endl;
 }
 
 int main(int argc, char** argv)

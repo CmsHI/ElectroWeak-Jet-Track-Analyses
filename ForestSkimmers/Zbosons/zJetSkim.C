@@ -479,6 +479,10 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
                correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
            }
+           else if (isPP) {
+               std::string path = "Corrections/electrons/weights/gbrmva_pp_16V.root";
+               correctorEle.initRegressionGBR(path);
+           }
        }
 
        std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
@@ -803,6 +807,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    // correct the pt of electrons
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
                    if (isHI)  correctorEle.correctPtsregressionTMVA(ggHi, hiBin);
+                   else if (isPP) correctorEle.correctPtsregressionGBR(ggHi);
                }
                if (energyScaleEle != 0 && energyScaleEle != 1)
                {
@@ -1222,6 +1227,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        output->Write("",TObject::kOverwrite);
        output->Close();
        if (doMix > 0 && inputMB) inputMB->Close();
+
+       std::cout<<"zJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
