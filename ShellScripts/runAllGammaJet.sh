@@ -14,12 +14,12 @@ echo "## minbias skimming"
 set -f
 INFILE=/mnt/hadoop/cms/store/user/rbi/merged/HIMinimumBias2-HIRun2015-PromptReco-v1_forest_csjet_v1/*.root
 OUTFILE=PbPb_Data_minbiasJetSkim.root
-time ../ForestSkimmers/jets/minBiasJetSkim.exe ../CutConfigurations/gammaJet.conf $INFILE ${OUTDIR}/$OUTFILE > ${OUTDIR}/$OUTFILE.log || echo "ERROR"
+time ./ForestSkimmers/jets/minBiasJetSkim.exe ./CutConfigurations/gammaJet.conf $INFILE ${OUTDIR}/$OUTFILE > ${OUTDIR}/$OUTFILE.log || echo "ERROR"
 set +f
 
 INFILE=/mnt/hadoop/cms/store/user/velicanu/Merged/Hydjet_Quenched_MinBias_5020GeV_758p2_FOREST_v20/0.root
 OUTFILE=PbPb_MC_minbiasJetSkim.root
-time ../ForestSkimmers/jets/minBiasJetSkim.exe ../CutConfigurations/gammaJet_mc.conf $INFILE ${OUTDIR}/$OUTFILE > ${OUTDIR}/$OUTFILE.log || echo "ERROR"
+time ./ForestSkimmers/jets/minBiasJetSkim.exe ./CutConfigurations/gammaJet_mc.conf $INFILE ${OUTDIR}/$OUTFILE > ${OUTDIR}/$OUTFILE.log || echo "ERROR"
 
 # ############ SKIMMING SECTION ##############
 echo "## Skimming"
