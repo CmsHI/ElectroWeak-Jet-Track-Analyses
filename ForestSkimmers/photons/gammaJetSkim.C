@@ -837,12 +837,37 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                 if ((jetsMB[k].jtpt[j] < cutJetPt)) continue;
 
                 jetsMBoutput[k].rawpt[jetsMBoutput[k].nref] = jetsMB[k].rawpt[j];
-                jetsMBoutput[k].jtpt [jetsMBoutput[k].nref] = jetsMB[k].jtpt[j];
+                jetsMBoutput[k].jtpt[jetsMBoutput[k].nref] = jetsMB[k].jtpt[j];
                 jetsMBoutput[k].jteta[jetsMBoutput[k].nref] = jetsMB[k].jteta[j];
-                jetsMBoutput[k].jty  [jetsMBoutput[k].nref] = jetsMB[k].jty[j];
+                jetsMBoutput[k].jty[jetsMBoutput[k].nref] = jetsMB[k].jty[j];
                 jetsMBoutput[k].jtphi[jetsMBoutput[k].nref] = jetsMB[k].jtphi[j];
-                jetsMBoutput[k].jtm  [jetsMBoutput[k].nref] = jetsMB[k].jtm[j];
+                jetsMBoutput[k].jtm[jetsMBoutput[k].nref] = jetsMB[k].jtm[j];
+                jetsMBoutput[k].trackMax[jetsMBoutput[k].nref] = jetsMB[k].trackMax[j];
+                jetsMBoutput[k].trackSum[jetsMBoutput[k].nref] = jetsMB[k].trackSum[j];
+                jetsMBoutput[k].trackN[jetsMBoutput[k].nref] = jetsMB[k].trackN[j];
+                jetsMBoutput[k].trackHardSum[jetsMBoutput[k].nref] = jetsMB[k].trackHardSum[j];
+                jetsMBoutput[k].trackHardN[jetsMBoutput[k].nref] = jetsMB[k].trackHardN[j];
+                jetsMBoutput[k].chargedMax[jetsMBoutput[k].nref] = jetsMB[k].chargedMax[j];
+                jetsMBoutput[k].chargedN[jetsMBoutput[k].nref] = jetsMB[k].chargedN[j];
+                jetsMBoutput[k].chargedSum[jetsMBoutput[k].nref] = jetsMB[k].chargedSum[j];
+                jetsMBoutput[k].chargedHardSum[jetsMBoutput[k].nref] = jetsMB[k].chargedHardSum[j];
+                jetsMBoutput[k].chargedHardN[jetsMBoutput[k].nref] = jetsMB[k].chargedHardN[j];
+                jetsMBoutput[k].photonMax[jetsMBoutput[k].nref] = jetsMB[k].photonMax[j];
+                jetsMBoutput[k].photonSum[jetsMBoutput[k].nref] = jetsMB[k].photonSum[j];
+                jetsMBoutput[k].photonN[jetsMBoutput[k].nref] = jetsMB[k].photonN[j];
+                jetsMBoutput[k].photonHardSum[jetsMBoutput[k].nref] = jetsMB[k].photonHardSum[j];
+                jetsMBoutput[k].photonHardN[jetsMBoutput[k].nref] = jetsMB[k].photonHardN[j];
+                jetsMBoutput[k].neutralMax[jetsMBoutput[k].nref] = jetsMB[k].neutralMax[j];
+                jetsMBoutput[k].neutralSum[jetsMBoutput[k].nref] = jetsMB[k].neutralSum[j];
+                jetsMBoutput[k].neutralN[jetsMBoutput[k].nref] = jetsMB[k].neutralN[j];
+                jetsMBoutput[k].eMax[jetsMBoutput[k].nref] = jetsMB[k].eMax[j];
+                jetsMBoutput[k].eSum[jetsMBoutput[k].nref] = jetsMB[k].eSum[j];
+                jetsMBoutput[k].eN[jetsMBoutput[k].nref] = jetsMB[k].eN[j];
+                jetsMBoutput[k].muMax[jetsMBoutput[k].nref] = jetsMB[k].muMax[j];
+                jetsMBoutput[k].muSum[jetsMBoutput[k].nref] = jetsMB[k].muSum[j];
+                jetsMBoutput[k].muN[jetsMBoutput[k].nref] = jetsMB[k].muN[j];
                 jetsMBoutput[k].nref++;
+
               }
 
               // increase iterator
