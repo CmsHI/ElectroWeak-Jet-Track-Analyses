@@ -13,6 +13,16 @@
 #include <RooDataSet.h>
 #include <RooConstVar.h>
 #include <RooWorkspace.h>
+//#include <../roofit/roofitcore/inc/RooRealVar.h>
+//#include <../roofit/roofitcore/inc/RooDataSet.h>
+//#include <../roofit/roofitcore/inc/RooConstVar.h>
+//#include <../roofit/roofitcore/inc/RooWorkspace.h>
+//#include "../../../GBRLikelihood/interface/RooDoubleCBFast.h"
+//#include "../../../GBRLikelihood/interface/RooRealConstraint.h"
+//#include "../../../GBRLikelihood/interface/RooGBRTargetFlex.h"
+//#include "../../../GBRLikelihood/interface/RooGBRFunctionFlex.h"
+//#include "../../../GBRLikelihood/interface/HybridGBRForestFlex.h"
+//#include "../../../GBRLikelihood/interface/HybridGBRTreeD.h"
 
 #include <string>
 #include <vector>

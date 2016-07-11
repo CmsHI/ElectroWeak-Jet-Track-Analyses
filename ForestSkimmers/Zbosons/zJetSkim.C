@@ -328,9 +328,12 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
        treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       //treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                   // no such branch
        treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL1DoubleMu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2DoubleMu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3DoubleMu*",1);                     // enable muon branches
 
        treeEvent->SetBranchStatus("*",0);
        treeEvent->SetBranchStatus("run",1);
@@ -473,7 +476,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        // correctors
        electronCorrector correctorEle;
-       if (doCorrectionEle > 0) {
+       if (doCorrectionEle > 0 && doDiElectron > 0) {
            if (isHI) {
                std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
                std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
@@ -500,7 +503,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TF1* f1Residual[nHiBins_residual];
        if (doCorrectionResidual > 0 && isHI) {
 
-           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet50_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_50_RESIDUALCORR_QGHIBINWEIGHT.root";
+           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet30_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160512_pthat_30_RESIDUALCORR.root";
 
            std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
            fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
