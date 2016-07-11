@@ -204,7 +204,7 @@ function runZJetHistogram() {
           skimFile=$outputSkimDir$skimPrefix"_"${configSuffixListSkim[$i1]}".root"
         fi
         input=$skimFile
-        outputPrefix=$skimPrefix
+        outputPrefix="${skimPrefix/zJetSkim/zJetHistogram}"
         output=$outputHistDir$outputPrefix"_"${configSuffixList[i1]}".root"
         outputLOG=$outputHistDirLOG$outputPrefix"_"${configSuffixList[i1]}".log"
 
