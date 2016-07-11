@@ -70,7 +70,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   bool doCorrectionSmearing;
   int nSmear;
   int doCorrectionL2L3;
-  std::vector<float> mcFileWeights;
+  std::vector<float> mcPthatWeights;
   float energyScaleJet;
 
   if (!configCuts.isValid) {
@@ -101,12 +101,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   doCorrectionSmearing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionSmearing];
   nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
   doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
-  mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+  mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
   energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
-  for (unsigned i = 0; i < mcFileWeights.size(); ++i)
-    std::cout << mcFileWeights[i] << " ";
+  for (unsigned i = 0; i < mcPthatWeights.size(); ++i)
+    std::cout << mcPthatWeights[i] << " ";
   std::cout << std::endl;
 
   int nJetCollections = jetCollections.size();
@@ -485,6 +485,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     Int_t hiBin;
     UInt_t run, lumis;
     ULong64_t event;
+    float pthat;
 
     Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
     treeHiEvt->SetBranchAddress("hiEvtPlanes",&hiEvtPlanes);
@@ -494,6 +495,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     treeHiEvt->SetBranchAddress("run", &run);
     treeHiEvt->SetBranchAddress("evt", &event);
     treeHiEvt->SetBranchAddress("lumi", &lumis);
+    if(isMC) {
+      treeHiEvt->SetBranchAddress("pthat", &pthat);
+    }
 
     // specify explicitly which branches to store, do not use wildcard
     treeSkim->SetBranchStatus("*", 0);
@@ -604,7 +608,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeSkim->GetEntry(j_entry);
       treeHiEvt->GetEntry(j_entry);
       if (doEventWeight) {
-        eventWeight = mcFileWeights[it - inputFiles.begin()];
+        int ptHatBin = -1;
+        if(pthat >= 15 && pthat < 30) {
+          ptHatBin = 0;
+        } else if (pthat >=30 && pthat < 50) {
+          ptHatBin = 1;
+        } else if (pthat >=50 && pthat < 80) {
+          ptHatBin = 2;
+        } else if (pthat >=80 && pthat < 120) {
+          ptHatBin = 3;
+        } else if (pthat >= 120) {
+          ptHatBin = 4;
+        } else {
+          std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
+          return;
+        }
+        eventWeight = mcPthatWeights[ptHatBin];
         if (isHI) {
           eventWeight *= h_weights_PbPb->GetBinContent(h_weights_PbPb->FindBin(hiBin, vz));
         } else {
