@@ -103,7 +103,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     std::cout<<"##### END #####"<< std::endl;
 
     TChain* treeHLT   = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer;
+    TChain* treeggHiNtuplizer = 0;
     if(colli==COLL::kPP || colli==COLL::kPPMC) treeggHiNtuplizer = new TChain("ggHiNtuplizerGED/EventTree");
     else if(colli==COLL::kHI || colli==COLL::kHIMC) treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
     TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
@@ -271,8 +271,8 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
 
 
     /////// Vertex and Centrality reweighting for MC ///////
-    TH1D* vertexHistoRatio;
-    TH1D* centBinHistoRatio;
+    TH1D* vertexHistoRatio = 0;
+    TH1D* centBinHistoRatio = 0;
     if(isMC){
         TFile* rewf = new TFile(reweightInputFile);
         vertexHistoRatio = (TH1D*) rewf -> Get("vertexHistoRatio");
