@@ -18,10 +18,10 @@
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
-void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", COLL::TYPE colli = COLL::kPP);
+void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", COLL::TYPE colli = COLL::kPP, const TString reweightInputFile = "/home/goyeonju/CMS/2016/PhotonAnalysis2016/160302_skim/files/vertexReweightingHistogram_pthatweighted_ppAllQCD.root");
 float xSecCal(const char* fname_lowestPthat, TChain* mergedTree, float pthat_i, float pthat_f);
 
-void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile, COLL::TYPE colli)
+void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile, COLL::TYPE colli, const TString reweightInputFile)
 {
     std::cout<<"running photonRaaSkim()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
@@ -165,6 +165,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     UInt_t run, lumis;
     ULong64_t event;
     float pthat, pthatWeight;
+    float vtxWeight, centWeight;
     treeHiEvt->SetBranchAddress("vz",&vz);
     treeHiEvt->SetBranchAddress("hiBin",&hiBin);
     treeHiEvt->SetBranchAddress("run", &run);
@@ -264,7 +265,19 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     if(isMC) outputTreeGen->SetMaxTreeSize(MAXTREESIZE);
 
     if(isMC) outputTreeHiEvt->Branch("pthatWeight", &pthatWeight, "pthatWeight/F");
-  
+    if(isMC) outputTreeHiEvt->Branch("vtxWeight", &vtxWeight, "vtxWeight/F");
+    if(isMC) outputTreeHiEvt->Branch("centWeight", &centWeight, "centWeight/F");
+
+
+
+    /////// Vertex and Centrality reweighting for MC ///////
+    TH1D* vertexHistoRatio;
+    TH1D* centBinHistoRatio;
+    if(isMC){
+        TFile* rewf = new TFile(reweightInputFile);
+        vertexHistoRatio = (TH1D*) rewf -> Get("vertexHistoRatio");
+        centBinHistoRatio = (TH1D*) rewf -> Get("centBinHistoRatio");
+    }
 
     /////// Event Matching for DATA ///////
     EventMatcher* em = new EventMatcher();
@@ -315,6 +328,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
         }
         entriesPassedEventSelection++;
 
+
         // photon block
         // find leading photon
         int phoIdx = -1;     // index of the leading photon
@@ -357,6 +371,14 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
             }
         }
         if (phoIdx == -1) continue;
+
+        ////// Vertex and Centrality reweighting for MC ////////
+        if (isMC) {
+            vtxWeight = vertexHistoRatio->GetBinContent(vertexHistoRatio->FindBin(vz));
+            centWeight = centBinHistoRatio->GetBinContent(centBinHistoRatio->FindBin(hiBin));
+        }
+        ////////////////////////////////////////////////////////
+
         entriesAnalyzed++;
 
         outputTreeHLT->Fill();
