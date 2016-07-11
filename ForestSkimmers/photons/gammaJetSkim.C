@@ -70,7 +70,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   bool doCorrectionSmearing;
   int nSmear;
   int doCorrectionL2L3;
-  bool doElectronRejection;
   std::vector<float> mcFileWeights;
   float energyScaleJet;
 
@@ -104,7 +103,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
   mcFileWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
-  doElectronRejection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
   energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
   for (unsigned i = 0; i < mcFileWeights.size(); ++i)
@@ -653,29 +651,6 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                                 TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
         if (failedSpikeRejection)
           continue;
-        bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
-        if (failedHoverE)
-          continue;
-
-        // reco electron rejection part
-        bool isEle = false;
-        if (doElectronRejection) {
-            float eleEpTemp(100);
-            for(int ie=0; ie<ggHi.nEle; ++ie){
-                if ( ggHi.elePt->at(ie) < 10 ) continue;
-                if ( abs( ggHi.eleEta->at(ie) - ggHi.phoEta->at(i) ) > 0.03 ) continue;
-                float dphi = ggHi.elePhi->at(ie) - ggHi.phoPhi->at(i);
-                if ( dphi >  3.141592 ) dphi = dphi - 2* 3.141592;
-                if ( dphi < -3.141592 ) dphi = dphi + 2* 3.141592;
-                if ( abs(dphi) > 0.03 )  continue;
-                if ( eleEpTemp < ggHi.eleEoverP->at(ie) )  continue;
-                eleEpTemp = ggHi.eleEoverP->at(ie);
-                isEle = true;
-            }
-        }
-        if (isEle)
-            continue;
-
 
         if (ggHi.phoEt->at(i) > maxPhoEt) {
           maxPhoEt = ggHi.phoEt->at(i);
