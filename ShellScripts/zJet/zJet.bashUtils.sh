@@ -19,6 +19,17 @@ config_HI_ZEE_MC="Configurations/zJet/zJet.HIMC.conf"
 config_HI_ZMM_MC="Configurations/zJet/zJet.HIMC.diMuon.conf"
 config_PP_ZEE_MC="Configurations/zJet/zJet.PPMC.conf"
 config_PP_ZMM_MC="Configurations/zJet/zJet.PPMC.diMuon.conf"
+
+config_HI_ZEE_MC_Pythia=$config_HI_ZEE_MC
+config_HI_ZMM_MC_Pythia=$config_HI_ZMM_MC
+config_PP_ZEE_MC_Pythia=$config_PP_ZEE_MC
+config_PP_ZMM_MC_Pythia=$config_PP_ZMM_MC
+
+config_HI_ZEE_MC_Pyquen=$config_HI_ZEE_MC
+config_HI_ZMM_MC_Pyquen=$config_HI_ZMM_MC
+
+config_PP_ZEE_MC_Madgraph=$config_PP_ZEE_MC
+config_PP_ZMM_MC_Madgraph=$config_PP_ZMM_MC
 # flags for running systematic variation
 DO_SYSVAR_HI_ZEE_DATA=0
 DO_SYSVAR_HI_ZMM_DATA=0
