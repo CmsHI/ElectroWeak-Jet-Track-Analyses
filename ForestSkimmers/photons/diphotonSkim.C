@@ -223,6 +223,8 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
 
        output->Write("", TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"diphotonSkim() - END"   <<std::endl;
 }
 
 int main(int argc, char** argv)

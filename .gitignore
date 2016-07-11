@@ -6,6 +6,7 @@
 
 # output data
 *.root
+*.xml
 
 # ROOT offal
 *_C.d

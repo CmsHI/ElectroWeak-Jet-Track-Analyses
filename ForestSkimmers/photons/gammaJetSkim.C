@@ -62,6 +62,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   int nMaxEvents_minBiasMixing;
   int nCentralityBins;
   int nVertexBins;
+  int nEventPlaneBins;
   int nEventsToMix;
   int doEventWeight;
   double smearingResJet;
@@ -94,6 +95,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
   nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
   nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+  nEventPlaneBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
   nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
   smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
   smearingResJetPhi = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingResPhi];
@@ -143,6 +145,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout << "nMaxEvents_minBiasMixing = " << nMaxEvents_minBiasMixing << std::endl;
     std::cout << "nCentralityBins          = " << nCentralityBins << std::endl;
     std::cout << "nVertexBins              = " << nVertexBins << std::endl;
+    std::cout << "nEventPlaneBins              = " << nEventPlaneBins << std::endl;
     std::cout << "nEventsToMix             = " << nEventsToMix << std::endl;
   }
 
@@ -171,44 +174,48 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   // mixed-event block
   int centBinWidth = 0;
   int vertexBinWidth = 0;
+  float eventPlaneBinWidth = 0;
   std::vector<Jets> jetsMB(nJetCollections);     // object to read jet trees from MB events
-  TTree* treeJetMB[nCentralityBins][nVertexBins][nJetCollections];
-  Long64_t nMB[nCentralityBins][nVertexBins][nJetCollections];
-  Long64_t iterMB[nCentralityBins][nVertexBins][nJetCollections];   // index of the tree where the mixing starts
+  TTree* treeJetMB[nCentralityBins][nVertexBins][nEventPlaneBins][nJetCollections];
+  Long64_t nMB[nCentralityBins][nVertexBins][nEventPlaneBins][nJetCollections];
+  Long64_t iterMB[nCentralityBins][nVertexBins][nEventPlaneBins][nJetCollections];   // index of the tree where the mixing starts
   TFile* inputMB = 0;
   if (doMix > 0) {
     centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
     vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
-    // accepted vz range is -15 to 15.
+                                          // accepted vz range is -15 to 15.
+    eventPlaneBinWidth = TMath::Pi()/nEventPlaneBins;     // number of angles    that a evtplane     bin covers
 
     inputMB = TFile::Open(minBiasJetSkimFile, "READ");
 
     TRandom3 rand(12345);    // random number seed should be fixed or reproducible
     std::cout << "Tree initialization for MinBias mixing" << std::endl;
-    std::cout << Form("treeJetMB[%d][%d][%d] is being read", nCentralityBins, nVertexBins, nJetCollections) << std::endl;
+    std::cout << Form("treeJetMB[%d][%d][%d][%d] is being read", nCentralityBins, nVertexBins, nEventPlaneBins, nJetCollections) << std::endl;
     for (int i=0; i<nCentralityBins; ++i) {
       for (int j=0; j<nVertexBins; ++j) {
-        for (int k=0; k<nJetCollections; ++k) {
-          // in minBiasJetSkimFile, name of a jet tree starts with jetCollection.
-          std::string jetCollection = jetCollections[k].c_str();
-          treeJetMB[i][j][k] = (TTree*)inputMB->Get(Form("%s_centBin%d_vzBin%d", jetCollection.c_str(), i, j));
-          if (!treeJetMB[i][j][k]) {
-            std::cout << "jetCollection = " << jetCollection.c_str() << " is not found in minBias jet skim file" << std::endl;
-            std::cout << "exiting" << std::endl;
-            return;
-          }
-          nMB[i][j][k] = treeJetMB[i][j][k]->GetEntries();
+        for (int l=0; l<nEventPlaneBins; ++l) {
+          for (int k=0; k<nJetCollections; ++k) {
+            // in minBiasJetSkimFile, name of a jet tree starts with jetCollection.
+            std::string jetCollection = jetCollections[k].c_str();
+            treeJetMB[i][j][l][k] = (TTree*)inputMB->Get(Form("%s_centBin%d_vzBin%d_evPlaneBin%d", jetCollection.c_str(), i, j, l));
+            if (!treeJetMB[i][j][l][k]) {
+              std::cout << "jetCollection = " << jetCollection.c_str() << " is not found in minBias jet skim file" << std::endl;
+              std::cout << "exiting" << std::endl;
+              return;
+            }
+            nMB[i][j][l][k] = treeJetMB[i][j][l][k]->GetEntries();
 
-          jetsMB[k].setupTreeForReading(treeJetMB[i][j][k]);    // all MB jet trees point to jetsMB
-          int primeSeed = 0;
-          if (nMB[i][j][k] != 0) primeSeed = rand.Integer(nMB[i][j][k]); // Integer(imax) Returns a random integer on [0, imax-1].
-          iterMB[i][j][k] = primeSeed;
+            jetsMB[k].setupTreeForReading(treeJetMB[i][j][l][k]);    // all MB jet trees point to jetsMB
+            int primeSeed = 0;
+            if (nMB[i][j][l][k] != 0) primeSeed = rand.Integer(nMB[i][j][l][k]); // Integer(imax) Returns a random integer on [0, imax-1].
+            iterMB[i][j][l][k] = primeSeed;
 
-          if (nMB[i][j][k] < nEventsToMix) {
-            std::cout << "centBin = " << i << ", vzBin = " << j << ", jetCollection = " << jetCollection.c_str() << std::endl;
-            std::cout << "nMB[centBin][vzBin][jetCollection] = " << nMB[i][j][k] << std::endl;
-            std::cout << "nEventsToMix = " << nEventsToMix << std::endl;
-            std::cout << "number of MB events in that bin is not enough for mixing" << std::endl;
+            if (nMB[i][j][l][k] < nEventsToMix) {
+              std::cout << "centBin = " << i << ", vzBin = " << j << ", eventPlane = " << l <<", jetCollection = " << jetCollection.c_str() << std::endl;
+              std::cout << "nMB[centBin][vzBin][EventPlaneBin][jetCollection] = " << nMB[i][j][l][k] << std::endl;
+              std::cout << "nEventsToMix = " << nEventsToMix << std::endl;
+              std::cout << "number of MB events in that bin is not enough for mixing" << std::endl;
+            }
           }
         }
       }
@@ -462,7 +469,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     treeHiEvt->SetBranchStatus("hiHFminus", 1);
     treeHiEvt->SetBranchStatus("hiHFplusEta4", 1);
     treeHiEvt->SetBranchStatus("hiHFminusEta4", 1);
-    treeHiEvt->SetBranchStatus("hiNevtPlane", 1);
+    // treeHiEvt->SetBranchStatus("hiNevtPlane", 1);
+    treeHiEvt->SetBranchStatus("hiEvtPlanes", 1);
     if (isMC) {
       treeHiEvt->SetBranchStatus("Npart", 1);
       treeHiEvt->SetBranchStatus("Ncoll", 1);
@@ -479,6 +487,9 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     Int_t hiBin;
     UInt_t run, lumis;
     ULong64_t event;
+
+    Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
+    treeHiEvt->SetBranchAddress("hiEvtPlanes",&hiEvtPlanes);
 
     treeHiEvt->SetBranchAddress("vz", &vz);
     treeHiEvt->SetBranchAddress("hiBin", &hiBin);
@@ -791,16 +802,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       if (doMix > 0) {
         int centBin = hiBin / centBinWidth;
         int vzBin   = (vz+15) / vertexBinWidth;
+        int evplaneBin = (hiEvtPlanes[8]+(TMath::Pi()/2.)) / eventPlaneBinWidth;
         for (int k = 0; k < nJetCollections; ++k) {
           jetsMBoutput[k].nref = 0;
 
           if(phoIdx != -1){
             gammajetMB[k].clearGammaJetPairs(phoIdx);
           }
-          if (nMB[centBin][vzBin][k] >= nEventsToMix) {
+            if (nMB[centBin][vzBin][evplaneBin][k] >= nEventsToMix) {
             for (int i=0; i<nEventsToMix; ++i) {
-              Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
-              treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
+              Long64_t entryMB = iterMB[centBin][vzBin][evplaneBin][k] % nMB[centBin][vzBin][evplaneBin][k];     // roll back to the beginning if out of range
+              treeJetMB[centBin][vzBin][evplaneBin][k]->GetEntry(entryMB);
 
               if (doCorrectionL2L3 > 0) {
                 correctorsL2L3[k].correctPtsL2L3(jetsMB[k]);
@@ -825,24 +837,49 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
                 if ((jetsMB[k].jtpt[j] < cutJetPt)) continue;
 
                 jetsMBoutput[k].rawpt[jetsMBoutput[k].nref] = jetsMB[k].rawpt[j];
-                jetsMBoutput[k].jtpt [jetsMBoutput[k].nref] = jetsMB[k].jtpt[j];
+                jetsMBoutput[k].jtpt[jetsMBoutput[k].nref] = jetsMB[k].jtpt[j];
                 jetsMBoutput[k].jteta[jetsMBoutput[k].nref] = jetsMB[k].jteta[j];
-                jetsMBoutput[k].jty  [jetsMBoutput[k].nref] = jetsMB[k].jty[j];
+                jetsMBoutput[k].jty[jetsMBoutput[k].nref] = jetsMB[k].jty[j];
                 jetsMBoutput[k].jtphi[jetsMBoutput[k].nref] = jetsMB[k].jtphi[j];
-                jetsMBoutput[k].jtm  [jetsMBoutput[k].nref] = jetsMB[k].jtm[j];
+                jetsMBoutput[k].jtm[jetsMBoutput[k].nref] = jetsMB[k].jtm[j];
+                jetsMBoutput[k].trackMax[jetsMBoutput[k].nref] = jetsMB[k].trackMax[j];
+                jetsMBoutput[k].trackSum[jetsMBoutput[k].nref] = jetsMB[k].trackSum[j];
+                jetsMBoutput[k].trackN[jetsMBoutput[k].nref] = jetsMB[k].trackN[j];
+                jetsMBoutput[k].trackHardSum[jetsMBoutput[k].nref] = jetsMB[k].trackHardSum[j];
+                jetsMBoutput[k].trackHardN[jetsMBoutput[k].nref] = jetsMB[k].trackHardN[j];
+                jetsMBoutput[k].chargedMax[jetsMBoutput[k].nref] = jetsMB[k].chargedMax[j];
+                jetsMBoutput[k].chargedN[jetsMBoutput[k].nref] = jetsMB[k].chargedN[j];
+                jetsMBoutput[k].chargedSum[jetsMBoutput[k].nref] = jetsMB[k].chargedSum[j];
+                jetsMBoutput[k].chargedHardSum[jetsMBoutput[k].nref] = jetsMB[k].chargedHardSum[j];
+                jetsMBoutput[k].chargedHardN[jetsMBoutput[k].nref] = jetsMB[k].chargedHardN[j];
+                jetsMBoutput[k].photonMax[jetsMBoutput[k].nref] = jetsMB[k].photonMax[j];
+                jetsMBoutput[k].photonSum[jetsMBoutput[k].nref] = jetsMB[k].photonSum[j];
+                jetsMBoutput[k].photonN[jetsMBoutput[k].nref] = jetsMB[k].photonN[j];
+                jetsMBoutput[k].photonHardSum[jetsMBoutput[k].nref] = jetsMB[k].photonHardSum[j];
+                jetsMBoutput[k].photonHardN[jetsMBoutput[k].nref] = jetsMB[k].photonHardN[j];
+                jetsMBoutput[k].neutralMax[jetsMBoutput[k].nref] = jetsMB[k].neutralMax[j];
+                jetsMBoutput[k].neutralSum[jetsMBoutput[k].nref] = jetsMB[k].neutralSum[j];
+                jetsMBoutput[k].neutralN[jetsMBoutput[k].nref] = jetsMB[k].neutralN[j];
+                jetsMBoutput[k].eMax[jetsMBoutput[k].nref] = jetsMB[k].eMax[j];
+                jetsMBoutput[k].eSum[jetsMBoutput[k].nref] = jetsMB[k].eSum[j];
+                jetsMBoutput[k].eN[jetsMBoutput[k].nref] = jetsMB[k].eN[j];
+                jetsMBoutput[k].muMax[jetsMBoutput[k].nref] = jetsMB[k].muMax[j];
+                jetsMBoutput[k].muSum[jetsMBoutput[k].nref] = jetsMB[k].muSum[j];
+                jetsMBoutput[k].muN[jetsMBoutput[k].nref] = jetsMB[k].muN[j];
                 jetsMBoutput[k].nref++;
+
               }
 
               // increase iterator
-              iterMB[centBin][vzBin][k]++;
-              if (iterMB[centBin][vzBin][k] == nMB[centBin][vzBin][k]) iterMB[centBin][vzBin][k] = 0;  // reset if necessary
+              iterMB[centBin][vzBin][evplaneBin][k]++;
+              if (iterMB[centBin][vzBin][evplaneBin][k] == nMB[centBin][vzBin][evplaneBin][k]) iterMB[centBin][vzBin][evplaneBin][k] = 0;  // reset if necessary
             }
           } else {
             std::cout << "WARNING : the event lacks necessary number of MB events to mix." << std::endl;
             std::cout << Form("{run, lumis, event, j_entry} = %d, %d, %llu, %lld", run, lumis, event, j_entry) << std::endl;
             std::cout << Form("{hiBin, vz} = %d, %f", hiBin, vz) << std::endl;
             std::cout << "centBin = " << centBin << ", vzBin = " << vzBin << ", jetCollection index = " << k << std::endl;
-            std::cout << "nMB[centBin][vzBin][jetCollection] = " << nMB[centBin][vzBin][k] << std::endl;
+            std::cout << "nMB[centBin][vzBin][evplaneBin][jetCollection] = " << nMB[centBin][vzBin][evplaneBin][k] << std::endl;
           }
           jetsMBoutput[k].b = -1;   // this branch is not an array.
           if(phoIdx != -1){
@@ -853,7 +890,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           outputTreeJetMB[k]->Fill();
         }
       }
- 
+
       outputTreeHLT->Fill();
       outputTreeggHiNtuplizer->Fill();
       for (int i = 0; i < nJetCollections; ++i) {
@@ -905,6 +942,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   output->Write("", TObject::kOverwrite);
   output->Close();
   if (doMix > 0 && inputMB) inputMB->Close();
+
+  std::cout<<"gammaJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)

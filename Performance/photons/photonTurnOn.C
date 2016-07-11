@@ -41,18 +41,29 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    // input configuration
+    // input for TTree
+    std::string treePath;
+    int collisionType;
+
+    // input for TH1
     std::vector<float> TH1D_Bins;      // nBins, xLow, xUp for the TH1D histogram
     std::string legendPosition;
     if (configInput.isValid) {
+        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+
+        collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
         TH1D_Bins = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
 
         legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
     }
     else {
+        treePath = "";
+        collisionType = 0;
+
         TH1D_Bins.push_back(40);    // nBins
         TH1D_Bins.push_back(0);     // xLow
         TH1D_Bins.push_back(80);    // xUp
-
         legendPosition = "SE";
     }
 
@@ -62,11 +73,19 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     float xUp  = TH1D_Bins.at(2);
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "treePath = " << treePath.c_str() << std::endl;
+    std::cout << "collisionType = " << collisionType << std::endl;
+    const char* collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+    std::cout << "collision = " << collisionName << std::endl;
     std::cout << "nTH1D_Bins = " << nTH1D_Bins << std::endl;
     std::cout << "nBins = " << nBins << std::endl;
     std::cout << "xLow  = " << xLow << std::endl;
     std::cout << "xUp   = " << xUp << std::endl;
     std::cout << "legendPosition = " << legendPosition.c_str() << std::endl;
+
+    //bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+    bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
     float cutPhoEta;
     std::vector<std::string> triggerBranchesNum;        // triggers that go into numerator
@@ -119,7 +138,14 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     std::cout<<"##### END #####"<< std::endl;
 
     TChain* treeHLT = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
+    TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
+    if (isHI && treePath.compare("ggHiNtuplizer/EventTree") != 0) {
+        std::cout << "WARNING : Collision is HI. But the photon tree is not set to ggHiNtuplizer/EventTree" << std::endl;
+    }
+    else if (isPP && treePath.compare("ggHiNtuplizerGED/EventTree") != 0) {
+        std::cout << "WARNING : Collision is PP. But the photon tree is not set to ggHiNtuplizerGED/EventTree" << std::endl;
+    }
+
     TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
@@ -177,7 +203,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     ggHi.setupTreeForReading(treeggHiNtuplizer);
 
     TH1::SetDefaultSumw2();
-    TH1D* h_pt = new TH1D("h_pt","Denominator;photon p_{T};", nBins, xLow, xUp);
+    TH1D* h_pt = new TH1D("h_pt","Denominator;p_{T}^{#gamma} (GeV/c);", nBins, xLow, xUp);
     TH1D*     h_pt_accepted[nTriggersNum];
     for (int i=0; i<nTriggersNum; ++i)
     {
@@ -192,7 +218,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     Long64_t entriesAnalyzed = 0;
     Long64_t entriesPassedDenom = 0;
     std::cout << "entries = " << entries << std::endl;
-    std::cout<< "Loop : ggHiNtuplizer/EventTree" <<std::endl;
+    std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (Long64_t j_entry = 0; j_entry < entries; ++j_entry)
     {
         if (j_entry % 2000 == 0)  {
@@ -248,7 +274,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
             if (triggersNum[i] == 1)  h_pt_accepted[i]->Fill(maxPt);
         }
     }
-    std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
+    std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesPassedDenom = " << entriesPassedDenom << std::endl;
@@ -272,6 +298,8 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     h_dummy->SetMinimum(0);
     h_dummy->SetMaximum(1.2);
     h_dummy->SetStats(false);
+    h_dummy->GetXaxis()->CenterTitle();
+    h_dummy->GetYaxis()->CenterTitle();
     h_dummy->Draw();
 
     // draw line y = 1

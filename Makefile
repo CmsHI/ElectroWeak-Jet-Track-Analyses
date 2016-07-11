@@ -1,7 +1,7 @@
 CXX = g++
 ROOTFLAGS := `root-config --cflags --libs`
-TMVAFLAGS := -lTMVA
-CXXFLAGS = -Wall -O2 -Werror -Wextra $(ROOTFLAGS) $(TMVAFLAGS)
+EXTRAFLAGS := -lTMVA -lRooFitCore
+CXXFLAGS = -Wall -O2 -Werror -Wextra $(ROOTFLAGS) $(EXTRAFLAGS)
 GCCVERSION := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 6)
 ifeq "$(GCCVERSION)" "1"
   CXXFLAGS += -Wno-error=misleading-indentation

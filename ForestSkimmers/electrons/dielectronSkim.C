@@ -13,6 +13,7 @@
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/dielectronTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
@@ -34,14 +35,14 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
        // input configuration
-       int isMC;
+       int collisionType;
        std::string treePath;
        if (configInput.isValid) {
-           isMC = configInput.proc[INPUT::kSKIM].i[INPUT::k_isMC];
+           collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
            treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
        }
        else {
-           isMC = 0;
+           collisionType = COLL::kPP;
            treePath = "ggHiNtuplizer/EventTree";
        }
        // set default values
@@ -49,7 +50,9 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
 
        // verbose about input configuration
        std::cout<<"Input Configuration :"<<std::endl;
-       std::cout << "isMC = " << isMC << std::endl;
+       std::cout << "collisionType = " << collisionType << std::endl;
+       const char* collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+       std::cout << "collision = " << collisionName << std::endl;
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
@@ -63,6 +66,10 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
            cut_nEle = 2;
            doCorrection = 0;
        }
+
+       bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+       bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
@@ -96,9 +103,12 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
-       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
        
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
@@ -109,7 +119,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        treeHiEvt->SetBranchStatus("hiBin",1);
        treeHiEvt->SetBranchStatus("hiHF",1);
        treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-       if (isMC > 0) {
+       if (isMC) {
            treeHiEvt->SetBranchStatus("Npart",1);
            treeHiEvt->SetBranchStatus("Ncoll",1);
            treeHiEvt->SetBranchStatus("Nhard",1);
@@ -124,11 +134,20 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
 
+       hiEvt hiEvt;
+       hiEvt.setupTreeForReading(treeHiEvt);
+
        electronCorrector corrector;
        if (doCorrection) {
-           std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
-           std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
-           corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           if (isHI) {
+               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
+               corrector.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           }
+           else if (isPP) {
+               std::string path = "Corrections/electrons/weights/gbrmva_pp_16V.root";
+               corrector.initRegressionGBR(path);
+           }
        }
 
        TFile* output = new TFile(outputFile,"RECREATE");
@@ -193,7 +212,8 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
            {
                // correct the pt of electrons
                // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-               corrector.correctPts(ggHi);
+               if (isHI)  corrector.correctPtsregressionTMVA(ggHi, hiEvt.hiBin);
+               else if (isPP) corrector.correctPtsregressionGBR(ggHi);
            }
 
            diEle.makeDiElectronPairs(ggHi);
@@ -222,6 +242,8 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
 
        output->Write("", TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"dielectronSkim() - END"   <<std::endl;
 }
 
 int main(int argc, char** argv)

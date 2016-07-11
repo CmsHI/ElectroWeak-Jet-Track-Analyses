@@ -29,6 +29,8 @@ void setTH1_diLepton(TH1* h);
 void setTH1StyleSample(TH1 *h, COLL::TYPE collisionType);
 void setTH1_xjg(TH1* h);
 void setTH1_dphi(TH1* h);
+void setTH1_dphi_width(TH1* h);
+void setTH1_IAA(TH1* h);
 
 void gammaJetPlot(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigurePrefix)
 {
@@ -319,7 +321,9 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
         if (!inputExists[i])  continue;
 
         std::string collisionName = getCollisionTypeName((COLL::TYPE)collisionTypes.at(i));
-        inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory(collisionName.c_str());
+        //inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory(collisionName.c_str());
+        // switch histogram naming convention
+        inputDir[i] = (TDirectoryFile*)input[i]->GetDirectory("");
 
         if (i == COLL::kHIMC && inputExists[i])
         {
@@ -354,22 +358,59 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
     TFile* output = new TFile(outputFile, "RECREATE");
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
+    std::string h1D_suffix_HI   = "PbPb_Data";
+    std::string h1D_suffix_HIMC = "PbPb_MC";
+    std::string h1D_suffix_PP   = "pp_Data";
+    std::string h1D_suffix_PPMC = "pp_MC";
+    std::string h1D_suffix = h1D_suffix_HI.c_str();     // will get updated where appropriate
+
     const std::vector<std::string> legendEntryLabels_const {"PbPb DATA", "PbPb MC", "pp DATA", "pp MC"};
+    const std::vector<std::string> h1D_suffices {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC"};
 
-    std::vector<std::string> correlationHistNames   {"xjg", "dphi", "rjg_ptBinAll", "rjg_centBinAll", "xjg_mean_ptBinAll", "xjg_mean_centBinAll"};
+    std::vector<std::string> correlationHistNames  {"xjg", "dphi", "ptJet", "rjg_ptBinAll", "rjg_centBinAll",
+                                                                            "xjg_mean_ptBinAll", "xjg_mean_centBinAll",
+                                                                            "dphi_width_ptBinAll", "dphi_width_centBinAll",
+                                                                            "iaa"};
 
-    std::vector<std::string> versionSuffix {"final_norm", "final_norm", "", "", "", ""};
-    std::vector<std::string> phoRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
-    std::vector<std::string> jetRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
-    std::vector<std::string> legendPositions {"NW", "NW", "NE", "NE", "NE", "NE"};
-    std::vector<std::string> textPositions   {"NE", "NW", "SE", "SE", "NE", "NE"};
-    std::vector<bool> textWriteHiBin    {true, true, true, false, true, false};
-    std::vector<bool> textWritephoPt    {true, true, false, true, false, true};
-    std::vector<bool> textWriteDphi     {true, false, true, true, true, true};
+    std::vector<std::string> versionSuffix         {h1D_suffix, h1D_suffix, h1D_suffix, h1D_suffix, h1D_suffix,
+                                                                                        h1D_suffix, h1D_suffix,
+                                                                                        h1D_suffix, h1D_suffix,
+                                                                                        "rebin"};
+    //std::vector<std::string> phoRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
+    //std::vector<std::string> jetRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG"};
+    std::vector<std::string> legendPositions {"NW", "NW", "NE", "NW", "NE",
+                                                                "NE", "NE",
+                                                                "NE", "NE",
+                                                                "NE"};
+    std::vector<std::string> textPositions   {"NE", "NW", "SE", "SE", "SE",
+                                                                "NE", "SE",
+                                                                "SW", "SW",
+                                                                "NE"};
+    std::vector<bool> textWriteHiBin    {true, true, true, true, false,
+                                                           true, false,
+                                                           true, false,
+                                                           true};
+    std::vector<bool> textWritephoPt    {true, true, false, false, true,
+                                                            false, true,
+                                                            false, true,
+                                                            true};
+    std::vector<bool> textWriteDphi     {true, false, true, true, true,
+                                                            true, true,
+                                                            false, false,
+                                                            true};
     std::vector<bool> textWritejetPtEtaSeparate
-                                      {true, true, false, false, false, false};
-    std::vector<std::string> drawOptionsMC   {"hist", "hist", "hist", "hist", "hist", "hist"};
-    std::vector<std::string> legEntriesMC    {"lf",   "lf",   "lf",   "lf",   "lf",   "lf" };
+                                        {true, true, false, false, false,
+                                                            false, false,
+                                                            false, false,
+                                                            false};
+    std::vector<std::string> drawOptionsMC   {"hist", "hist", "hist", "hist", "hist",
+                                                                      "hist", "hist",
+                                                                      "hist", "hist",
+                                                                      "hist"};
+    std::vector<std::string> legEntriesMC    {"lf",   "lf",   "lf",  "lf",   "lf",
+                                                                     "lf",   "lf",
+                                                                     "lf",   "lf",
+                                                                     "lf"};
 
     // decided on which collision to be plotted based on the existence of the histogram files
     int nCorrHist = correlationHistNames.size();
@@ -411,7 +452,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
         plotPP = vecTrue;
 
         std::vector<std::string> correlationHistNamesTMP =
-        {"ptJet", "jteta", "jtphi"};
+        {"ptJet", "jteta", "jtphi", "iaa"};
 
         int sizeTMP = correlationHistNamesTMP.size();
         for (int i = 0; i < sizeTMP; ++i) {
@@ -432,7 +473,6 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
     // plot pp with histogram if only PbPb and pp data is plotted.
     if (inputExists[COLL::kHI] && inputExists[COLL::kPP] && !inputExists[COLL::kHIMC] && !inputExists[COLL::kPPMC])
     {
-
         std::vector<std::string> correlationHistNamesTMP =
         {};
 
@@ -462,6 +502,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
     plotSYSfromFIT[COLL::kPP] = vecFalse;
     plotSYSfromFIT[COLL::kPPMC] = vecFalse;
 
+    /*
     for (int i=0; i<nCorrHist; ++i) {
         std::vector<std::string> correlationHistNamesTMP =
         {"xjg", "dphi"};
@@ -475,6 +516,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
             }
         }
     }
+    */
 
     // declaration of graphics objects.
     // the idea is to initialize each Graphics object right before its use, then to delete it right after they are saved/written.
@@ -522,6 +564,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                 std::string correlation = correlationHistNames.at(i).c_str();
                 std::cout<<"##### "<< correlation.c_str() <<" #####"<<std::endl;
 
+                /*
                 std::string tmpName = Form("%s_ptBin%d_hiBin%d_pho%s_jet%s_%s", correlationHistNames.at(i).c_str(), iPt, iHiBin,
                         phoRegion.at(i).c_str(), jetRegion.at(i).c_str(), versionSuffix.at(i).c_str());
                 // special cases
@@ -535,6 +578,20 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     tmpName = Form("%s_ptBin%d_pho%s_jet%s", correlationHistNames.at(i).c_str(),
                             iPt, phoRegion.at(i).c_str(), jetRegion.at(i).c_str());
                 }
+                */
+                std::string tmpName = Form("%s_ptBin%d_hiBin%d_%s", correlationHistNames.at(i).c_str(), iPt, iHiBin,
+                                                                    versionSuffix.at(i).c_str());
+                // special cases
+                if (correlation.find("ptBinAll") != std::string::npos) {
+                    if (iPt > 0)  continue;
+                    tmpName = Form("%s_hiBin%d_%s", correlationHistNames.at(i).c_str(),
+                            iHiBin, versionSuffix.at(i).c_str());
+                }
+                else if (correlation.find("centBinAll") != std::string::npos) {
+                    if (iHiBin > 0)  continue;
+                    tmpName = Form("%s_ptBin%d_%s", correlationHistNames.at(i).c_str(),
+                            iPt, versionSuffix.at(i).c_str());
+                }
 
                 std::string tmpHistName = Form("h1D_%s", tmpName.c_str());
 
@@ -547,9 +604,10 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                 for (int iColl = 0; iColl < nCollisions; ++iColl){
                     std::string tmpNameColl = tmpName.c_str();
                     std::string tmpHistNameColl = tmpHistName.c_str();
+
                     // no centrality bin for PP or PPMC
                     if (iColl == COLL::kPP || iColl == COLL::kPPMC) {
-                        std::string tmpNamePP = tmpName.c_str();
+                        std::string tmpNamePP = replaceAll(tmpName.c_str(), h1D_suffix, h1D_suffix_PP);
                         std::string tmpHistNamePP = Form("h1D_%s", tmpNamePP.c_str());
 
                         tmpNameColl = tmpNamePP.c_str();
@@ -567,9 +625,6 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                         std::string tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1", tmpNameColl.c_str());
                         if (correlation.compare("xjg") == 0)  tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_3", tmpNameColl.c_str());
                         if (correlation.compare("dphi") == 0)  tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1", tmpNameColl.c_str());
-                        if (iColl == COLL::kPP || iColl == COLL::kPPMC) {
-                            if (correlation.compare("dphi") == 0)  tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_2", tmpNameColl.c_str());
-                        }
 
                         if (plotSYSfromFIT[iColl].at(i))  tmpHistSysName = Form("h1D_%s_uncTot_Fit", tmpNameColl.c_str());
 
@@ -623,6 +678,9 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     setTH1_diLepton(h1D[COLL::kHI][i]);
                     if (correlation.compare("xjg") == 0 || correlation.compare("xjg_rebin") == 0) setTH1_xjg(h1D[COLL::kHI][i]);
                     if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kHI][i]);
+                    if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)
+                               setTH1_dphi_width(h1D[COLL::kHI][i]);
+                    if (correlation.compare("iaa") == 0) setTH1_IAA(h1D[COLL::kHI][i]);
 
                     h1D[COLL::kHI][i]->SetMarkerSize(markerSize);
 
@@ -636,9 +694,11 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     hLegend->SetLineWidth(0);
                     std::string legEntryStr = Form("PbPb, %d-%d %%", cent_low, cent_up);
                     if (!textWriteHiBin.at(i))  legEntryStr = "PbPb";
-                    leg->AddEntry(hLegend, legEntryStr.c_str(), "pf");
-                    
+                    bool addLegEntry = (correlation.compare("iaa") != 0);   // do not put I_AA as legend entry
+                    if (addLegEntry)  leg->AddEntry(hLegend, legEntryStr.c_str(), "pf");
+
                     // special cases
+                    /*
                     if (correlation.compare("ptJet") == 0 && jetRegion.at(i).compare("RAW") == 0 && !plotHIMC.at(i))
                     {
                         std::string hTmpName = replaceAll(h1D[COLL::kHI][i]->GetName(), "_jetRAW", "_jetBKG");
@@ -652,12 +712,16 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                         if (!textWriteHiBin.at(i))  legEntryStrMB = "PbPb MB";
                         leg->AddEntry(hTmp, legEntryStrMB.c_str(), "lpf");
                     }
+                    */
                 }
                 if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
                     setTH1StyleSample(h1D[COLL::kPP][i], COLL::kPP);
                     setTH1_diLepton(h1D[COLL::kPP][i]);
                     if (correlation.compare("xjg") == 0 || correlation.compare("xjg_rebin") == 0) setTH1_xjg(h1D[COLL::kPP][i]);
                     if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kPP][i]);
+                    if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)
+                               setTH1_dphi_width(h1D[COLL::kPP][i]);
+                    if (correlation.compare("iaa") == 0) setTH1_IAA(h1D[COLL::kPP][i]);
 
                     if (correlation.compare("jteta") == 0)
                     {
@@ -690,6 +754,9 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     setTH1_diLepton(h1D[COLL::kHIMC][i]);
                     if (correlation.compare("xjg") == 0 || correlation.compare("xjg_rebin") == 0) setTH1_xjg(h1D[COLL::kHIMC][i]);
                     if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kHIMC][i]);
+                    if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)
+                               setTH1_dphi_width(h1D[COLL::kHIMC][i]);
+                    if (correlation.compare("iaa")) setTH1_IAA(h1D[COLL::kHIMC][i]);
 
                     h1D[COLL::kHIMC][i]->SetMarkerSize(markerSize);
 
@@ -704,6 +771,9 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     setTH1_diLepton(h1D[COLL::kPPMC][i]);
                     if (correlation.compare("xjg") == 0 || correlation.compare("xjg_rebin") == 0) setTH1_xjg(h1D[COLL::kPPMC][i]);
                     if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kPPMC][i]);
+                    if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)
+                               setTH1_dphi_width(h1D[COLL::kPPMC][i]);
+                    if (correlation.compare("iaa") == 0) setTH1_IAA(h1D[COLL::kPPMC][i]);
 
                     h1D[COLL::kPPMC][i]->SetMarkerSize(markerSize);
 
@@ -735,20 +805,30 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
 
                 if (correlation.compare("xjg") == 0)  {
                     histMax = 1.6;
-                    if (plotTheory)  histMax = 2.0;
                     histMin = -0.05;
-                    if (iPt == 1 ) {
-                        histMax = 1.5;
-                        histMin = -0.05;
-                    }
-                    if (iPt == 2 )  {
-                        histMax = 1.5;
+                    if (iPt > 4 )  {
+                        histMax = 2;
                         histMin = -0.05;
                     }
                 }
-                else if (correlation.compare("rjg") == 0)       {
+                else if (correlation.compare("dphi") == 0)  {
+                    histMax = 0.5;
+                    histMin = -0.05;
+                }
+                else if (correlation.compare("rjg_ptBinAll") == 0 || correlation.compare("rjg_centBinAll") == 0)       {
                     histMax = 1; histMin = 0;
-                    if (plotTheory)  histMax = 1.2;
+                    if (iPt > 4)  {
+                        histMax = 1.2; histMin = 0.2;
+                    }
+                }
+                else if (correlation.compare("xjg_mean_ptBinAll") == 0 || correlation.compare("xjg_mean_centBinAll") == 0)       {
+                    histMax = 1.2; histMin = 0.6;
+                }
+                else if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)       {
+                    histMax = 0.5; histMin = 0;
+                }
+                else if (correlation.compare("iaa") == 0)       {
+                    histMax = 3; histMin = 0;
                 }
                 else if (correlation.compare("xjg_mean") == 0)  {histMax = 1.1; histMin = 0.6;}
                 else if (correlation.compare("rjg_zNum") == 0)  histMax = 1.1;
@@ -807,6 +887,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     h1D[COLL::kHI][i]->Write();
 
                     // special cases
+                    /*
                     if (correlation.compare("ptJet") == 0 && jetRegion.at(i).compare("RAW") == 0 && !plotHIMC.at(i))
                     {
                         if (hTmp) {
@@ -814,10 +895,18 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                             hTmp->Write();
                         }
                     }
+                    */
                 }
 
                 // put info onto the canvas
                 std::vector<std::string> textLines;
+
+                if (correlation.compare("iaa") == 0) {
+                    int cent_low = (int)(bins_hiBin[0].at(iHiBin)/2);
+                    int cent_up  = (int)(bins_hiBin[1].at(iHiBin)/2);
+                    std::string tmpTextLine = Form("%d-%d %%", cent_low, cent_up);
+                    textLines.push_back(tmpTextLine.c_str());
+                }
 
                 if (textWritephoPt.at(i))  {
                     int phoPt1 = (int)bins_pt[0].at(iPt);
@@ -858,6 +947,7 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     else if (legendPositions.at(i).compare("NW") == 0)  {   // leave space for latexCMS
                         tmpTextOffsetY = textOffsetY+0.11;
                     }
+                    if (correlation.compare("iaa") == 0)  tmpTextOffsetY = textOffsetY - 0.12;
                     std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition.c_str(), c, textOffsetX, tmpTextOffsetY);
                     for (int i = 0; i<nTextLines; ++i){
                         float x = textCoordinates.at(i).first;
@@ -939,8 +1029,14 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
 
                 // special cases
                 // draw a horizontal line at y = 0 for xjz and dphi.
-                if (correlation.compare("xjg") == 0 || correlation.compare("xjg_rebin") == 0 || correlation.compare("dphi_rebin") == 0) {
+                if (correlation.compare("xjg") == 0 || correlation.compare("dphi") == 0) {
                     lineTmp = new TLine(xmin, 0, xmax, 0);
+                    lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    lineTmp->Draw();
+                }
+                // draw a horizontal line at y = 1 for I_AA
+                if (correlation.compare("iaa") == 0) {
+                    lineTmp = new TLine(xmin, 1, xmax, 1);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
                 }
@@ -1155,3 +1251,15 @@ void setTH1_dphi(TH1* h) {
 
     h->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
 }
+
+void setTH1_dphi_width(TH1* h) {
+
+    h->SetYTitle("#sigma (#Delta#phi_{J#gamma})");
+}
+
+void setTH1_IAA(TH1* h) {
+
+    h->SetXTitle("p^{Jet}_{T} (GeV/c)");
+    h->SetYTitle("Jet I_{AA}");
+}
+

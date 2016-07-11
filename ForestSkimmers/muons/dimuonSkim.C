@@ -13,6 +13,7 @@
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/dimuonTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
@@ -33,14 +34,14 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
        // input configuration
-       int isMC;
+       int collisionType;
        std::string treePath;
        if (configInput.isValid) {
-           isMC = configInput.proc[INPUT::kSKIM].i[INPUT::k_isMC];
+           collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
            treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
        }
        else {
-           isMC = 0;
+           collisionType = COLL::kPP;
            treePath = "ggHiNtuplizer/EventTree";
        }
        // set default values
@@ -48,7 +49,9 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
 
        // verbose about input configuration
        std::cout<<"Input Configuration :"<<std::endl;
-       std::cout << "isMC = " << isMC << std::endl;
+       std::cout << "collisionType = " << collisionType << std::endl;
+       const char* collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+       std::cout << "collision = " << collisionName << std::endl;
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
@@ -59,6 +62,10 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        else {
            cut_nMu = 2;
        }
+
+       bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+       //bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       //bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
@@ -91,9 +98,12 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        std::cout<<"###"<< std::endl;
 
        treeHLT->SetBranchStatus("*",0);     // disable all branches
-       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*",1);     // enable photon branches
+       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
        
        // specify explicitly which branches to store, do not use wildcard
        treeHiEvt->SetBranchStatus("*",0);
@@ -104,7 +114,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        treeHiEvt->SetBranchStatus("hiBin",1);
        treeHiEvt->SetBranchStatus("hiHF",1);
        treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-       if (isMC > 0) {
+       if (isMC) {
            treeHiEvt->SetBranchStatus("Npart",1);
            treeHiEvt->SetBranchStatus("Ncoll",1);
            treeHiEvt->SetBranchStatus("Nhard",1);
@@ -118,6 +128,9 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
+       
+       hiEvt hiEvt;
+       hiEvt.setupTreeForReading(treeHiEvt);
 
        TFile* output = new TFile(outputFile,"RECREATE");
        TTree *configTree = setupConfigurationTreeForWriting(configCuts);
@@ -196,12 +209,15 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        // overwrite existing trees
        outputTreeHLT->Write("", TObject::kOverwrite);
        outputTreeggHiNtuplizer->Write("", TObject::kOverwrite);
+       outputTreeHiEvt->Write("", TObject::kOverwrite);
        diMuonTree->Write("", TObject::kOverwrite);
 
        configTree->Write("", TObject::kOverwrite);
 
        output->Write("", TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"dimuonSkim() - END"   <<std::endl;
 }
 
 int main(int argc, char** argv)

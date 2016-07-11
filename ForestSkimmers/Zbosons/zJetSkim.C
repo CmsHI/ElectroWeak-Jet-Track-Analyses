@@ -328,9 +328,12 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
        treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
        treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                     // enable muon branches
+       //treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                   // no such branch
        treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
        treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL1DoubleMu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL2DoubleMu*",1);                     // enable muon branches
+       treeHLT->SetBranchStatus("HLT_HIL3DoubleMu*",1);                     // enable muon branches
 
        treeEvent->SetBranchStatus("*",0);
        treeEvent->SetBranchStatus("run",1);
@@ -473,11 +476,15 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
 
        // correctors
        electronCorrector correctorEle;
-       if (doCorrectionEle > 0) {
+       if (doCorrectionEle > 0 && doDiElectron > 0) {
            if (isHI) {
-               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb_16V.weights.xml";
-               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb_16V.weights.xml";
+               std::string pathEB = "Corrections/electrons/weights/BDTG_EB_PbPb.weights.xml";
+               std::string pathEE = "Corrections/electrons/weights/BDTG_EE_PbPb.weights.xml";
                correctorEle.initiliazeReader(pathEB.c_str(), pathEE.c_str());
+           }
+           else if (isPP) {
+               std::string path = "Corrections/electrons/weights/gbrmva_pp_16V.root";
+               correctorEle.initRegressionGBR(path);
            }
        }
 
@@ -496,7 +503,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TF1* f1Residual[nHiBins_residual];
        if (doCorrectionResidual > 0 && isHI) {
 
-           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet50_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160506_pthat_50_RESIDUALCORR_QGHIBINWEIGHT.root";
+           std::string pathCorrectionResidual = "Corrections/jets/merged_dgulhan-Pythia8_Dijet30_pp_TuneCUETP8M1_Hydjet_MinBias_5020GeV_RECODEBUG_758_PrivMC_forest_v28_0_20160512_pthat_30_RESIDUALCORR.root";
 
            std::cout << "pathCorrectionResidual = " << pathCorrectionResidual.c_str() << std::endl;
            fileResidual = new TFile(pathCorrectionResidual.c_str(), "READ");
@@ -802,7 +809,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                {
                    // correct the pt of electrons
                    // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-                   if (isHI)  correctorEle.correctPts(ggHi);
+                   if (isHI)  correctorEle.correctPtsregressionTMVA(ggHi, hiBin);
+                   else if (isPP) correctorEle.correctPtsregressionGBR(ggHi);
                }
                if (energyScaleEle != 0 && energyScaleEle != 1)
                {
@@ -961,19 +969,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
-               // apply jtpt smearing
-               if (smearingResJet > 0)
-               {
+               if (smearingResJetPhi > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
-                       if (hiBin >= 0 && hiBin < 60) {
-                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
-                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
-                       }
-                       else {
-                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
-                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
-                       }
-                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jets.at(i), smearingResJet);
+                       correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
+                   }
+               }
+               if (smearingResJet > 0) {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
                    }
                }
            }
@@ -1069,19 +1072,14 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                        correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
                                    }
                                }
-                               // apply jtpt smearing
-                               if (smearingResJet > 0)
-                               {
+                               if (smearingResJetPhi > 0) {
                                    for (int i=0; i<nJetCollections; ++i) {
-                                       if (hiBin >= 0 && hiBin < 60) {
-                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent0030;
-                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent0030;
-                                       }
-                                       else {
-                                           correctorsJetSmear.at(i).CSN_HI = CSN_HI_cent3099;
-                                           correctorsJetSmear.at(i).CSN_phi_HI = CSN_phi_HI_cent3099;
-                                       }
-                                       correctorsJetSmear.at(i).applyPtsSmearingRelative(jetsMB.at(i), smearingResJet);
+                                       correctorsJetSmear.at(i).applyPhisResolution(jetsMB.at(i), smearingResJetPhi);
+                                   }
+                               }
+                               if (smearingResJet > 0) {
+                                   for (int i=0; i<nJetCollections; ++i) {
+                                       correctorsJetSmear.at(i).applyPtsResolution(jetsMB.at(i), smearingResJet);
                                    }
                                }
                            }
@@ -1232,6 +1230,8 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        output->Write("",TObject::kOverwrite);
        output->Close();
        if (doMix > 0 && inputMB) inputMB->Close();
+
+       std::cout<<"zJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)

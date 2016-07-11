@@ -341,7 +341,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout<<"nSmear                    = "<< nSmear <<std::endl;
 
     // special cases
-    // suppress unneccasry smearing propagation into histograms
+    // suppress unnecessary smearing propagation into histograms
     if (inputFile.Contains("noCorrJetSmearALL") && nSmear > 0 && nSmear != 1)
     {
         std::cout<<"input file name contains \"noCorrJetSmearALL\" and nSmear is greater than 0." <<std::endl;
@@ -349,6 +349,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         nSmear = 0;
         std::cout<<"nSmear is set to " << nSmear << "." <<std::endl;
     }
+    // special cases - END
 
     // WARNINGS
     if (doCorrectionJetID > 0 && cut_jetID == 0) {
@@ -382,7 +383,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::string dileptonMFormula = Form("%s[zIdx]", diLeptonM.c_str());
     std::string dileptonPtFormula = Form("%s[zIdx]", diLeptonPt.c_str());
-    std::string dileptonMtitleX = Form("M^{%s%s} (GeV/c^{2})", leptonSymbol.c_str(), leptonSymbol.c_str());
 
     // READ TREES
     TFile *input = new TFile(inputFile, "READ");
@@ -485,13 +485,22 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     // gammaJet analysis has purity calculation. no purity calculation for zJet.
 
+
+    std::string xjzTitleX  = "x_{JZ} = p^{Jet}_{T}/p^{Z}_{T}";
+    std::string xjzTitleY  = "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}";
+    std::string dphiTitleX = "#Delta#phi_{JZ}";
+    std::string dphiTitleY = "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#Delta#phi_{JZ}}";
+    std::string dphiTitleY_normJZ = "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{d#Delta#phi_{JZ}}";
+    std::string zMTitleX = Form("M^{%s%s} (GeV/c^{2})", leptonSymbol.c_str(), leptonSymbol.c_str());
+    const double PI = TMath::Pi();
     // zJet correlation objects
-    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin", "dphi2"};
-    //std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", dileptonMFormula.c_str(), dileptonPtFormula.c_str()};
-    std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", dileptonMtitleX.c_str(),
-                                                        "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}", "N^{Jet}", "hiBin", "#Delta#phi_{JZ}"};
-    std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
-                                                                          "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#Delta#phi}",
+    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin"};
+    std::vector<std::string> correlationHistTitleX  {xjzTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(),
+                                                                        "p^{Jet}_{T}",
+                                                                         zMTitleX.c_str(),
+                                                                        "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}",
+                                                                        "N^{Jet}", "hiBin"};
+    std::vector<std::string> correlationHistTitleY_final_normalized{xjzTitleY.c_str(), dphiTitleY.c_str(), dphiTitleY.c_str(), dphiTitleY_normJZ.c_str(), dphiTitleY_normJZ.c_str(),
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
                                                                           "Entries / (2 GeV/c^{2})",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Z}_{T}}",
@@ -500,15 +509,22 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#eta^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#phi^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dN^{Jet}}",
-                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}",
-                                                                          "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#Delta#phi}"};
-    std::vector<int>         nBinsx{16, 20,          30, 30, 30, 20, 20, 20, 20, 8, 40, 40};
-    std::vector<double>      xlow  {0,  0,           0,   60, 0, -4, -TMath::Pi(), -4, -TMath::Pi(), 0, 0, 0};
-    std::vector<double>      xup   {2,  TMath::Pi(), 300, 120, 300, 4, TMath::Pi(), 4, TMath::Pi(),  8, 200, TMath::Pi()};
-    std::vector<double>      xlow_final{0,  0,           0,   60, 0, -3, -TMath::Pi(), -3, -TMath::Pi(), 0, 0, 0};
-    std::vector<double>      xup_final {2,  TMath::Pi(), 200, 120, 200, 3, TMath::Pi(), 3, TMath::Pi(),  8, 200, TMath::Pi()};
-    std::vector<bool> doAwaySideJets {true,  false, true, false, false, false, false, true, true, true, true, false};   // whether the observable is plotted for inclusive jets in the away side
-    std::vector<bool> doSingleJet    {false, false, false, true, true, true, true, false, false,  true, true, false};   // whether the observable is plotted once per event
+                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}"};
+    std::vector<int>         nBinsx{16, 20, 20, 20, 20, 30,  30,  30, 20, 20,  20,  20, 8, 40};
+    std::vector<double>      xlow  {0,  0,  0,  0,  0,  0,   60,  0,  -4, -PI, -4, -PI, 0, 0};
+    std::vector<double>      xup   {2,  PI, PI, PI, PI, 300, 120, 300, 4,  PI,  4,  PI, 8, 200};
+    std::vector<double>      xlow_final{0,  0,  0,  0,  0,  0,   60,  0,  -3, -PI, -3, -PI, 0, 0};
+    std::vector<double>      xup_final {2,  PI, PI, PI, PI, 200, 120, 200, 3,  PI,  3,  PI, 8, 200};
+    std::vector<bool> doAwaySideJets {true,  false, false, false, false,
+                                             true,
+                                             false,
+                                             false, false, false, true, true, true,
+                                             true, false};   // whether the observable is plotted for inclusive jets in the away side
+    std::vector<bool> doSingleJet    {false, false, false, false, false,
+                                             false,
+                                             true,
+                                             true, true, true, false, false,  true,
+                                             true, false};   // whether the observable is plotted once per event
 
     TH1::SetDefaultSumw2();
     int nCorrHist = correlationHistNames.size();
@@ -521,12 +537,14 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     for (int iHist=0; iHist<nCorrHist; ++iHist){
         for (int i=0; i<nBins_pt; ++i){
             for(int j=0; j<nBins_hiBin; ++j){
-                corrHists[iHist][i][j].name = Form("%s_ptBin%d_hiBin%d", correlationHistNames.at(iHist).c_str(), i, j);
+
+                std::string correlationName = correlationHistNames.at(iHist).c_str();
+                corrHists[iHist][i][j].name = Form("%s_ptBin%d_hiBin%d", correlationName.c_str(), i, j);
 
                 int iCorr = 0;
                 for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
 
-                    std::string subHistName = Form("%s_ptBin%d_hiBin%d_%s", correlationHistNames.at(iHist).c_str(), i, j,
+                    std::string subHistName = Form("%s_ptBin%d_hiBin%d_%s", correlationName.c_str(), i, j,
                             CORR::CORR_JET_LABELS[jCorr].c_str());
                     corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                     corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr] = correlationHistTitleX.at(iHist).c_str();
@@ -537,6 +555,29 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     int nBinx_final = int((xup_final.at(iHist)-xlow_final.at(iHist))/(xup.at(iHist)-xlow.at(iHist))*nBinsx.at(iHist));
                     corrHists[iHist][i][j].h1D_final[iCorr][jCorr] = new TH1D(Form("h1D_%s_final", subHistName.c_str()),"",
                             nBinx_final, xlow_final.at(iHist), xup_final.at(iHist));
+
+                    // special cases
+                    // rebinned "dphi" histograms
+                    if (correlationName.find("dphi_rebin") != std::string::npos) {
+
+                        std::vector<double> tmpBins = getTH1xBins(corrHists[iHist][i][j].h1D_final[iCorr][jCorr]);
+
+                        tmpBins = rebinDphiBins(tmpBins);
+
+                        int NtmpBins = tmpBins.size();
+                        double binsRebin[NtmpBins];
+                        std::copy(tmpBins.begin(), tmpBins.end(), binsRebin);
+
+                        std::string tmpHistName = "";
+                        tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
+                        corrHists[iHist][i][j].h1D[iCorr][jCorr] =
+                                (TH1D*)corrHists[iHist][i][j].h1D[iCorr][jCorr]->Rebin(NtmpBins-1, tmpHistName.c_str(), binsRebin);
+
+                        tmpHistName = corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->GetName();
+                        corrHists[iHist][i][j].h1D_final[iCorr][jCorr] =
+                                (TH1D*)corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Rebin(NtmpBins-1, tmpHistName.c_str(), binsRebin);
+                    }
+                    // special cases - END
 
                     // HISTO TITLE
                     std::string histoTitle = makeHistTitle(isHI, collisionName, bins_pt[0].at(i), bins_pt[1].at(i), bins_hiBin[0].at(j), bins_hiBin[1].at(j));
@@ -770,12 +811,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::string pathFileDATA_num = "";
         std::string pathFileDATA_denom = "";
 
-        pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
-        pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
-        if (outputFile.Contains("_jteta16")) {
-            pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent_jteta16.root";
-            pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent_jteta16.root";
-        }
+        pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zmm_20160704_vReweightCent.root";
+        pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zee_20160704_SYS_noReweightCent.root";
 
         std::cout << "pathFileDATA_num   = " << pathFileDATA_num.c_str() << std::endl;
         std::cout << "pathFileDATA_denom = " << pathFileDATA_denom.c_str() << std::endl;
@@ -999,8 +1036,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         double vertexWeight = 1;
         double centWeight = 1;
         if (doEventWeight > 0) {
-            // 1.3649*exp(-0.5*((HiEvt.vz-0.62814)/7.7109)^2)
-            //vertexWeight = 1.3649*TMath::Exp(-0.5*TMath::Power((vz-0.62814)/7.7109, 2));
             if (isHI)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((vz-0.30709)/7.41379, 2));  // 02.04.2016
             if (isHI)  centWeight = findNcoll(hiBin);
             eventWeightAll = weight_HiEvt * vertexWeight * centWeight;
@@ -1157,7 +1192,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(zJets[iCorr].xjz->at(i), w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(zJets[iCorr].xjz->at(i), w);
                             }
-                            else if (tmpObservable.compare("dphi") == 0) {
+                            else if (tmpObservable.find("dphi") == 0) {     // observable name starts with "dphi"
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                             }
@@ -1172,10 +1207,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                             else if (tmpObservable.compare("jtphi") == 0) {
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
-                            }
-                            else if (tmpObservable.compare("dphi2") == 0) {
-                                corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
-                                corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                             }
                         }
                     } // i
@@ -1249,7 +1280,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         if (iCorr == CORR::kBKG && (!hasJetsMB || !hasZJetMB))  continue;
 
                         std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                        std::vector<std::string> tmpVec {"xjz", "dphi", "ptJet", "jteta", "jtphi", "nJet"};
+                        std::vector<std::string> tmpVec {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "jteta", "jtphi", "nJet"};
                         int nTmpVec = tmpVec.size();
                         for (int iTMP = 0; iTMP<nTmpVec ; ++iTMP)
                         {
@@ -1284,8 +1315,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             int iCorr = CORR::kRAW;
             for(int iHist = 0; iHist<nCorrHist; ++iHist)
             {
-                for (int jCorr = 0; jCorr < CORR::kN_CORRFNC -1; ++jCorr) {
+                std::string correlationName = correlationHistNames.at(iHist).c_str();
 
+                for (int jCorr = 0; jCorr < CORR::kN_CORRFNC -1; ++jCorr) {
                     if (jCorr == CORR::kBKG && !isHI)  continue;      // no jet background for non-HI
 
                     corrHists[iHist][iPt][iHiBin].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
@@ -1376,6 +1408,14 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
                 // FINAL_NORM  RAWSIG
                 std::string tmpH1D_nameRAWSIG = corrHists[iHist][iPt][iHiBin].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
+                // special cases
+                // normalized by number of Z+jet pairs
+                if (correlationName.find("_normJZ") != std::string::npos) {
+                    double integral = corrHists[iHist][iPt][iHiBin].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Integral();
+                    corrHists[iHist][iPt][iHiBin].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Scale(1./integral);
+                }
+                // special cases - END
+
                 c->SetName(Form("cnv_%s_final_norm",tmpH1D_nameRAWSIG.c_str()));
                 c->cd();
                 corrHists[iHist][iPt][iHiBin].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Draw("e");
@@ -1396,22 +1436,26 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // corrHists_ptBinAll[0][]  = R_JZ
     // corrHists_ptBinAll[1][]  = <X_JZ>
     // corrHists_ptBinAll[2][]  = R_JZ_zNum
-    const int offset_PtBins_rjz = 3; // ptBin 40-50 starts from index 3.
+    const int offset_ptBins_rjz = 3; // ptBin 40-50 starts from index 3.
+    const int offset_ptBins_xjz_mean = offset_ptBins_rjz;
     std::cout<<"####################"<<std::endl;
     for(int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin){
 
         int iCorr = CORR::kRAW;
 
-        if (nBins_pt < offset_PtBins_rjz + nPtBins_rjz) break;
+        if (nBins_pt < offset_ptBins_rjz + nPtBins_rjz) break;
 
         // R_JZ block
         for(int i=0; i<nPtBins_rjz; ++i){
+
+            int iPt = i+offset_ptBins_rjz;
             // calculate R_JZ from the integral of X_JZ
             int jCorr = CORR::kSIG;
-            int nBinsX = corrHists[0][i+offset_PtBins_rjz][iHiBin].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
+            int nBinsX = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
             double val;
             double err;
-            val = corrHists[0][i+offset_PtBins_rjz][iHiBin].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, nBinsX, err, "width");
+            // include the overflow bin in rjz calculation
+            val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, nBinsX+1, err, "width");
 
             corrHists_ptBinAll[ZJET::kRJZ][iHiBin].h1D[iCorr][0]->SetBinContent(i+1, val);
             corrHists_ptBinAll[ZJET::kRJZ][iHiBin].h1D[iCorr][0]->SetBinError(i+1, err);
@@ -1420,10 +1464,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // 1st bin stores the number of zJet events
             // 2nd bin stores the number of Z events, not zJet event
             // R_JZ calculation using number of events
-            rjz_num_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinContent(i+1, h_nums[i+offset_PtBins_rjz][iHiBin]->GetBinContent(1));
-            rjz_num_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinError(i+1, TMath::Sqrt(h_nums[i+offset_PtBins_rjz][iHiBin]->GetBinContent(1)));
-            rjz_denom_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinContent(i+1, h_nums[i+offset_PtBins_rjz][iHiBin]->GetBinContent(2));
-            rjz_denom_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinError(i+1, TMath::Sqrt(h_nums[i+offset_PtBins_rjz][iHiBin]->GetBinContent(2)));
+            rjz_num_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinContent(i+1, h_nums[iPt][iHiBin]->GetBinContent(1));
+            rjz_num_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinError(i+1, TMath::Sqrt(h_nums[iPt][iHiBin]->GetBinContent(1)));
+            rjz_denom_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinContent(i+1, h_nums[iPt][iHiBin]->GetBinContent(2));
+            rjz_denom_ptBinAll[iHiBin].h1D[iCorr][0]->SetBinError(i+1, TMath::Sqrt(h_nums[iPt][iHiBin]->GetBinContent(2)));
         }
         corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin].h1D[iCorr][0]->Add(rjz_num_ptBinAll[iHiBin].h1D[iCorr][0]);
         corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin].h1D[iCorr][0]->Divide(rjz_denom_ptBinAll[iHiBin].h1D[iCorr][0]);
@@ -1483,10 +1527,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             // xjz_mean block
             for(int i=0; i<nPtBins_xjz_mean; ++i){
 
+                int iPt = i+offset_ptBins_xjz_mean;
+
                 if (jCorr == CORR::kRAW || jCorr == CORR::kBKG) {
-                    double val = corrHists[0][i+offset_PtBins_rjz][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMean();
-                    double sumWeights = corrHists[0][i+offset_PtBins_rjz][iHiBin].h1D_final_norm[iCorr][jCorr]->GetSumOfWeights();
-                    double err = corrHists[0][i+offset_PtBins_rjz][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMeanError();
+                    double val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMean();
+                    double sumWeights = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetSumOfWeights();
+                    double err = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMeanError();
 
                     meansANDweights[i].push_back(val);
                     meansANDweights[i].push_back(sumWeights);
@@ -1552,7 +1598,8 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
             int nBinsX = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
             double val;
             double err;
-            val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, nBinsX, err, "width");
+            // include the overflow bin in rjz calculation
+            val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, nBinsX+1, err, "width");
 
             corrHists_hiBins[ZJET::kRJZ][iPt].h1D[iCorr][0]->SetBinContent(i+1, val);
             corrHists_hiBins[ZJET::kRJZ][iPt].h1D[iCorr][0]->SetBinError(i+1, err);
@@ -1620,6 +1667,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
          */
         std::vector<double> meansANDweights[nHiBins_xjz_mean];
         for(int jCorr = 0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
+
             if(jCorr > 0 && !isHI) continue;
             // xjz_mean block
             for(int i = 0; i < nHiBins_xjz_mean; ++i){
@@ -1676,19 +1724,17 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::cout<<"##### HISTOGRAMS WHICH ARE CALCULATED FROM HISTOGRAMS THAT ARE \"FILLED\" #####"<<std::endl;
     // HISTOGRAMS WHICH ARE MODIFICATIONS OF HISTOGRAMS THAT ARE "FILLED"
-    // dphi correlation with variable binning
     // integral of dphi : CDF (dphi)
-    // xjz correlation with variable binning
-    TH1D* h1D_calc;
-//    TF1* tf1_dphi[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];     // fit functions to dphi distribution
-//    TF1* tf1_dphi_CDF[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];     // fit functions to cumulative dphi distribution
+    // integral of dphi : CDF (dphi) - with variable binning
+    TH1D* h1D_calc = 0;
     for (int iPt=0; iPt<nBins_pt; ++iPt) {
         for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
             std::cout<<"##########"<<std::endl;
+            std::cout<<"##### iPt = " << iPt << ", iHibin = " << iHiBin <<std::endl;
             int iCorr = CORR::kRAW;
             for(int iHist = 0; iHist<nCorrHist; ++iHist)
             {
-                std::string tmpObservable = correlationHistNames.at(iHist).c_str();
+                std::string correlation = correlationHistNames.at(iHist).c_str();
                 for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
 
                     if (jCorr == CORR::kBKG && !isHI)  continue;      // no jet background for non-HI
@@ -1698,50 +1744,15 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     std::string tmpH1D_name_calc = "";
                     std::string tmpHistName_calc = "";
 
-                    // dphi correlation with variable binning
-                    if (tmpObservable.compare("dphi") == 0)
+                    // 1. integral of dphi : CDF (dphi)
+                    // 2. integral of dphi : CDF (dphi) - with variable binning
+                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0)
                     {
                         // histogram name excluding the "h1D" prefix
                         tmpH1D_name_calc = Form("%s_final_norm", tmpH1D_name.c_str());
-                        tmpH1D_name_calc = replaceAll(tmpH1D_name_calc, "dphi_", "dphi_rebin_");
+                        tmpH1D_name_calc = replaceAll(tmpH1D_name_calc, Form("%s_", correlation.c_str()), Form("%s_CDF_", correlation.c_str()));
                         tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
-
-                        std::vector<double> tmpBins = getTH1xBins(corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]);
-
-                        tmpBins = rebinDphiBins(tmpBins);
-
-                        int NtmpBins = tmpBins.size();
-                        double binsRebin[NtmpBins];
-                        std::copy(tmpBins.begin(), tmpBins.end(), binsRebin);
-
-                        h1D_calc = (TH1D*)corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->Rebin(NtmpBins-1, tmpHistName_calc.c_str(), binsRebin); //creates a new variable bin size histogram hnew
-                        double firstBinWidth = corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetBinWidth(1);
-                        h1D_calc->Scale(firstBinWidth, "width");
-
-                        // do fit to the histogram.
-//                        int nBins_h1D_calc = h1D_calc->GetNbinsX();
-//                        double xLow_fit = h1D_calc->GetBinLowEdge(nBins_h1D_calc - 3);  // lower edge of 4th to last bin
-//                        double xUp_fit  = h1D_calc->GetBinLowEdge(nBins_h1D_calc + 1);  // upper edge of the last bin
-//                        tf1_dphi[iPt][iHiBin][jCorr] = new TF1(Form("f1_%s", tmpH1D_name_calc.c_str()), "[0]*exp(-(TMath::Pi()-x)*[1])", xLow_fit, xUp_fit);
-//                        tf1_dphi[iPt][iHiBin][jCorr]->SetLineColor(kRed);
-//                        h1D_calc->Fit(tf1_dphi[iPt][iHiBin][jCorr]->GetName(), "RM");
-//                        h1D_calc->GetFunction(tf1_dphi[iPt][iHiBin][jCorr]->GetName())->SetBit(TF1::kNotDraw);
-//                        tf1_dphi[iPt][iHiBin][jCorr]->Write("",TObject::kOverwrite);
-
-                        c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
-                        c->cd();
-                        h1D_calc->Draw("e");
-                        h1D_calc->Write("",TObject::kOverwrite);
-                        c->Write("",TObject::kOverwrite);
-                        c->Clear();
-                    }
-                    // integral of dphi : CDF (dphi)
-                    if (tmpObservable.compare("dphi") == 0)
-                    {
-                        // histogram name excluding the "h1D" prefix
-                        tmpH1D_name_calc = Form("%s_final_norm", tmpH1D_name.c_str());
-                        tmpH1D_name_calc = replaceAll(tmpH1D_name_calc, "dphi_", "dphi_CDF_");
-                        tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
+                        std::cout << "## " << tmpHistName_calc.c_str() << std::endl;
 
                         h1D_calc = (TH1D*)corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->Clone(tmpHistName_calc.c_str());
                         TH1D* hTmp_Cumulative = (TH1D*)corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetCumulative();
@@ -1757,120 +1768,108 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         h1D_calc->Write("",TObject::kOverwrite);
                         c->Write("",TObject::kOverwrite);
                         c->Clear();
-
-                        // integral of dphi : CDF (dphi) - with variable binning
-                        tmpH1D_name_calc = Form("%s_final_norm", tmpH1D_name.c_str());
-                        tmpH1D_name_calc = replaceAll(tmpH1D_name_calc, "dphi_", "dphi_CDF_rebin_");
-                        tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
-
-                        std::vector<double> tmpBins = getTH1xBins(h1D_calc);
-
-                        tmpBins = rebinDphiBins(tmpBins);
-
-                        int NtmpBins = tmpBins.size();
-                        double binsRebin[NtmpBins];
-                        std::copy(tmpBins.begin(), tmpBins.end(), binsRebin);
-
-                        h1D_calc = (TH1D*)h1D_calc->Rebin(NtmpBins-1, tmpHistName_calc.c_str(), binsRebin); //creates a new variable bin size histogram hnew
-                        double firstBinWidth = corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetBinWidth(1);
-                        h1D_calc->Scale(firstBinWidth, "width");
-
-                        // do fit to the histogram.
-//                        int nBins_h1D_calc = h1D_calc->GetNbinsX();
-//                        double xLow_fit = h1D_calc->GetBinLowEdge(nBins_h1D_calc - 3);  // lower edge of 4th to last bin
-//                        double xUp_fit  = h1D_calc->GetBinLowEdge(nBins_h1D_calc + 1);  // upper edge of the last bin
-//                        tf1_dphi_CDF[iPt][iHiBin][jCorr] = new TF1(Form("f1_%s", tmpH1D_name_calc.c_str()), "[0]*exp(-(TMath::Pi()-x)*[1])", xLow_fit, xUp_fit);
-//                        tf1_dphi_CDF[iPt][iHiBin][jCorr]->SetLineColor(kRed);
-//                        h1D_calc->Fit(tf1_dphi_CDF[iPt][iHiBin][jCorr]->GetName(), "RM");
-//                        h1D_calc->GetFunction(tf1_dphi_CDF[iPt][iHiBin][jCorr]->GetName())->SetBit(TF1::kNotDraw);
-//                        tf1_dphi_CDF[iPt][iHiBin][jCorr]->Write("",TObject::kOverwrite);
-
-                        c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
-                        c->cd();
-                        h1D_calc->Draw("e");
-                        h1D_calc->Write("",TObject::kOverwrite);
-                        c->Write("",TObject::kOverwrite);
-                        c->Clear();
-                    }
-                    // xjz correlation with variable binning
-                    if (tmpObservable.compare("xjz") == 0)
-                    {
-                        // histogram name excluding the "h1D" prefix
-                        tmpH1D_name_calc = Form("%s_final_norm", tmpH1D_name.c_str());
-                        tmpH1D_name_calc = replaceAll(tmpH1D_name_calc, "xjz_", "xjz_rebin_");
-                        tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
-
-                        std::vector<double> tmpBins = getTH1xBins(corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]);
-
-                        tmpBins = rebinXjBins(tmpBins);
-
-                        int NtmpBins = tmpBins.size();
-                        double binsRebin[NtmpBins];
-                        std::copy(tmpBins.begin(), tmpBins.end(), binsRebin);
-
-                        h1D_calc = (TH1D*)corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->Rebin(NtmpBins-1, tmpHistName_calc.c_str(), binsRebin); //creates a new variable bin size histogram hnew
-                        double firstBinWidth = corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetBinWidth(1);
-                        h1D_calc->Scale(firstBinWidth, "width");
-
-                        c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
-                        c->cd();
-                        h1D_calc->Draw("e");
-                        h1D_calc->Write("",TObject::kOverwrite);
-                        c->Write("",TObject::kOverwrite);
-                        c->Clear();
                     }
                 }
             }
         }
     }
     std::cout<<"##########"<<std::endl;
-//    // width(dphi) in Z pt bins
-//    const int nBins_dphi_width_ptBin = nPtBins_rjz;
-//    const int offset_dphi_width_ptBin = offset_PtBins_rjz;
-//    for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
-//        std::cout<<"##########"<<std::endl;
-//
-//        // get the histogram template from R_JZ histograms
-//        std::string tmpHistName_template = Form("h1D_%s_ptBinAll_hiBin%d", correlationHistNames_ptBinAll.at(ZJET::kRJZ).c_str() ,iHiBin);
-//        std::string tmpH1D_name_calc;
-//        std::string tmpHistName_calc;
-//        tmpH1D_name_calc = Form("dphi_width_ptBinAll_hiBin%d", iHiBin);
-//        tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
-//
-//        tmpHistName_template = Form("%s/%s", collisionName, tmpHistName_template.c_str());
-//        //h1D_calc = (TH1D*)output->Get(tmpHistName_template.c_str())->Clone(tmpHistName_calc.c_str());
-//        h1D_calc = (TH1D*)corrHists_ptBinAll[ZJET::kRJZ][iHiBin].h1D[0][0]->Clone(tmpHistName_calc.c_str());
-//        h1D_calc->Reset("ICES");   // the histogram above is cloned just to copy axis properties
-//        h1D_calc->SetYTitle("#sigma (#Delta#phi_{JZ})");
-//        std::cout << "tmpHistName_template = " << tmpHistName_template.c_str() <<std::endl;
-//
-//        for(int i=0; i<nBins_dphi_width_ptBin; ++i){
-//
-//            int iPt = i + offset_dphi_width_ptBin;
-//            // width(dphi) is the 2nd parameter in the fit function
-//            double val = tf1_dphi[iPt][iHiBin][CORR::kSIG]->GetParameter(1);
-//            double err = tf1_dphi[iPt][iHiBin][CORR::kSIG]->GetParError(1);
-//            std::cout << "val = " << val << std::endl;
-//            std::cout << "err = " << err << std::endl;
-//
-//            h1D_calc->SetBinContent(i+1, val);
-//            h1D_calc->SetBinError(i+1, err);
-//        }
-//
-//        c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
-//        c->cd();
-//        h1D_calc->Draw("e");
-//        h1D_calc->Write("",TObject::kOverwrite);
-//        c->Write("",TObject::kOverwrite);
-//        c->Clear();
-//    }
-//    // HISTOGRAMS WHICH ARE MODIFICATIONS OF HISTOGRAMS THAT ARE "FILLED" - END
+    /*
+    // width(dphi) in Z pt bins
+    TF1*  f1_calc = 0;
+    std::cout << "width(dphi) in Z pt bins" << std::endl;
+    const int nPtBins_dphi_width = nPtBins_rjz;
+    const int offset_PtBins_dphi_width = offset_ptBins_rjz;
+    for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
+        std::cout<<"##########"<<std::endl;
+        std::cout<<"##### iHibin = " << iHiBin <<std::endl;
+        int iCorr = CORR::kRAW;
+        for(int iHist = 0; iHist<nCorrHist; ++iHist)
+        {
+            std::string correlation = correlationHistNames.at(iHist).c_str();
+
+            // look for dphi histograms only
+            if (correlation.find("dphi") == std::string::npos)  continue;
+
+            for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
+
+                if ((jCorr == CORR::kBKG && !isHI))  continue;      // no jet background for non-HI
+
+                // get the histogram template from R_JZ histograms
+                std::string tmpHistName_template = Form("h1D_%s_ptBinAll_hiBin%d", correlationHistNames_ptBinAll.at(ZJET::kRJZ).c_str() ,iHiBin);
+                std::string tmpH1D_name_calc = Form("%s_width_ptBinAll_hiBin%d_%s", correlation.c_str(), iHiBin, CORR::CORR_JET_LABELS[jCorr].c_str());
+                std::string tmpHistName_calc = Form("h1D_%s", tmpH1D_name_calc.c_str());
+                std::cout << "## " << tmpHistName_calc.c_str() << std::endl;
+
+                tmpHistName_template = Form("%s/%s", collisionName, tmpHistName_template.c_str());
+                h1D_calc = (TH1D*)corrHists_ptBinAll[ZJET::kRJZ][iHiBin].h1D[0][0]->Clone(tmpHistName_calc.c_str());
+                h1D_calc->Reset("ICES");   // the histogram above is cloned just to copy axis properties
+                h1D_calc->SetYTitle("#sigma (#Delta#phi_{JZ})");
+
+                for(int i=0; i<nPtBins_dphi_width; ++i){
+
+                    int iPt = i + offset_PtBins_dphi_width;
+
+                    std::string tmpH1D_name = corrHists[iHist][iPt][iHiBin].h1D_name[iCorr][jCorr].c_str();
+                    std::string tmpName = Form("%s_final_norm", tmpH1D_name.c_str());
+
+                    // apply fit to dphi, try to extract information about the width of the distribution
+                    // fit functions used for "dphi" and "dphi_normJZ" histograms are different.
+                    std::string tf1Formula = "pol0";
+                    int parIndex = 0;
+                    std::vector<double> parInit = {};
+                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) {
+                        tf1Formula = "[0]*exp(-(TMath::Pi()-x)*[1])+[2]";
+                        parIndex = 1;
+                        parInit = {0, 0.01, 0};
+                    }
+                    else if (correlation.compare("dphi_normJZ") == 0 || correlation.compare("dphi_rebin_normJZ") == 0) {
+                        tf1Formula = "exp(-(TMath::Pi()-x)/[0])/([0]*(1-exp(-TMath::Pi()/[0])))";
+                        parIndex = 0;
+                        parInit = {0.01};
+                    }
+                    int nParams = parInit.size();
+                    double paramsInit[nParams];
+                    std::copy(parInit.begin(), parInit.end(), paramsInit);
+
+                    // do fit to the histogram.
+                    f1_calc = new TF1(Form("f1_%s", tmpName.c_str()), tf1Formula.c_str(), 2*PI/3, PI);
+                    f1_calc->SetParameters(paramsInit);
+                    f1_calc->SetLineColor(kRed);
+                    corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->Fit(f1_calc->GetName(), "QREM");
+                    //corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetFunction(f1_calc->GetName())->SetBit(TF1::kNotDraw);
+                    f1_calc = corrHists[iHist][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetFunction(f1_calc->GetName());
+                    f1_calc->Write(f1_calc->GetName(), TObject::kOverwrite);
+
+                    double val = f1_calc->GetParameter(parIndex);
+                    double err = f1_calc->GetParError(parIndex);
+                    std::cout << "val = " << val << std::endl;
+                    std::cout << "err = " << err << std::endl;
+
+                    h1D_calc->SetBinContent(i+1, val);
+                    h1D_calc->SetBinError(i+1, err);
+                }
+
+                c->SetName(Form("cnv_%s",tmpH1D_name_calc.c_str()));
+                c->cd();
+                h1D_calc->Draw("e");
+                h1D_calc->Write("",TObject::kOverwrite);
+                c->Write("",TObject::kOverwrite);
+                c->Clear();
+            }
+        }
+    }
+    */
+    std::cout<<"##### HISTOGRAMS WHICH ARE CALCULATED FROM HISTOGRAMS THAT ARE \"FILLED\" - END #####"<<std::endl;
+    // HISTOGRAMS WHICH ARE MODIFICATIONS OF HISTOGRAMS THAT ARE "FILLED" - END
 
     configTree->Write("",TObject::kOverwrite);
 
     output->Write("",TObject::kOverwrite);
     input->Close();
     output->Close();
+
+    std::cout<<"zJetHistogram() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)

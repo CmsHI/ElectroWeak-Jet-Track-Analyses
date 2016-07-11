@@ -6,6 +6,7 @@
 #include <TTree.h>
 #include <TChain.h>
 #include <TString.h>
+#include <TMath.h>
 
 #include <string>
 #include <vector>
@@ -37,6 +38,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        int nMaxEvents_minBiasMixing;
        int nCentralityBins;
        int nVertexBins;
+       int nEventPlaneBins;
        if (config.isValid) {
            cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
            cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
@@ -45,6 +47,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
            nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
            nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+           nEventPlaneBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
        }
        else {
            cut_vz = 15;
@@ -52,6 +55,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
            nMaxEvents_minBiasMixing = 20000;
            nCentralityBins = 200;    // must divide 200 without remainders
            nVertexBins = 3;         // must divide 15  without remainders
+           nEventPlaneBins = 10;         // must divide 15  without remainders
        }
        int nJetCollections = jetCollections.size();
 
@@ -67,6 +71,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"nMaxEvents_minBiasMixing = "<< nMaxEvents_minBiasMixing <<std::endl;
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
        std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
+       std::cout<<"nEventPlaneBins              = "<< nEventPlaneBins <<std::endl;
 
        std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
@@ -144,10 +149,12 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        treeHiEvt->SetBranchStatus("hiHFminus",1);
        treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
        treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
-       treeHiEvt->SetBranchStatus("hiNevtPlane",1);
+      //  treeHiEvt->SetBranchStatus("hiNevtPlane",1);
 
        float vz;
        Int_t hiBin;
+       Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
+       treeHiEvt->SetBranchAddress("hiEvtPlanes",&hiEvtPlanes);
 
        treeHiEvt->SetBranchAddress("vz",&vz);
        treeHiEvt->SetBranchAddress("hiBin",&hiBin);
@@ -187,47 +194,51 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
        int centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
        int vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
+       float eventPlaneBinWidth = TMath::Pi()/nEventPlaneBins;     // number of "vz"s    that a vertex     bin covers
                                                 // accepted vz range is -15 to 15.
 
-       TTree *outputTreesHLT[nCentralityBins][nVertexBins];
-       TTree *outputTreesEvent[nCentralityBins][nVertexBins];
-       TTree *outputTreesJet[nCentralityBins][nVertexBins][nJetCollections];
-       TTree *outputTreesHiEvt[nCentralityBins][nVertexBins];
-       TTree *outputTreesSkim[nCentralityBins][nVertexBins];
+       TTree *outputTreesHLT[nCentralityBins][nVertexBins][nEventPlaneBins];
+       TTree *outputTreesEvent[nCentralityBins][nVertexBins][nEventPlaneBins];
+       TTree *outputTreesJet[nCentralityBins][nVertexBins][nEventPlaneBins][nJetCollections];
+       TTree *outputTreesHiEvt[nCentralityBins][nVertexBins][nEventPlaneBins];
+       TTree *outputTreesSkim[nCentralityBins][nVertexBins][nEventPlaneBins];
 
-       Long64_t nEntriesFilled[nCentralityBins][nVertexBins];    // number of events read for a centrality bin
+       Long64_t nEntriesFilled[nCentralityBins][nVertexBins][nEventPlaneBins];    // number of events read for a centrality bin
        for(int i=0; i<nCentralityBins; ++i)
        {
            for(int j=0; j<nVertexBins; ++j){
-               nEntriesFilled[i][j] = 0;
+             for(int l=0; l<nEventPlaneBins; ++l) {
 
-               outputTreesHLT[i][j] = treeHLT->CloneTree(0);
-               outputTreesHLT[i][j]->SetName(Form("hltTree_centBin%d_vzBin%d", i, j));
-               outputTreesHLT[i][j]->SetTitle(Form("subbranches of hltanalysis/HltTree for centrality bin %d vz bin %d", i, j));
-               outputTreesHLT[i][j]->SetMaxTreeSize(MAXTREESIZE);
+               nEntriesFilled[i][j][l] = 0;
 
-               outputTreesEvent[i][j] = treeEvent->CloneTree(0);
-               outputTreesEvent[i][j]->SetName(Form("EventTree_centBin%d_vzBin%d", i, j));
-               outputTreesEvent[i][j]->SetTitle(Form("subbranches of ggHiNtuplizer/EventTree for centrality bin %d vz bin %d", i, j));
-               outputTreesEvent[i][j]->SetMaxTreeSize(MAXTREESIZE);
+               outputTreesHLT[i][j][l] = treeHLT->CloneTree(0);
+               outputTreesHLT[i][j][l]->SetName(Form("hltTree_centBin%d_vzBin%d_evPlaneBin%d", i, j, l));
+               outputTreesHLT[i][j][l]->SetTitle(Form("subbranches of hltanalysis/HltTree for centrality bin %d vz bin %d evPlane Bin %d", i, j, l));
+               outputTreesHLT[i][j][l]->SetMaxTreeSize(MAXTREESIZE);
+
+               outputTreesEvent[i][j][l] = treeEvent->CloneTree(0);
+               outputTreesEvent[i][j][l]->SetName(Form("EventTree_centBin%d_vzBin%d_evPlaneBin%d", i, j, l));
+               outputTreesEvent[i][j][l]->SetTitle(Form("subbranches of ggHiNtuplizer/EventTree for centrality bin %d vz bin %d evPlane Bin %d", i, j, l));
+               outputTreesEvent[i][j][l]->SetMaxTreeSize(MAXTREESIZE);
 
                for(int k=0; k<nJetCollections; ++k){
                    std::string jetCollectionName = jetCollections.at(k).c_str();
-                   outputTreesJet[i][j][k] = treeJets[k]->CloneTree(0);
-                   outputTreesJet[i][j][k]->SetName(Form("%s_centBin%d_vzBin%d", jetCollectionName.c_str(), i, j));
-                   outputTreesJet[i][j][k]->SetTitle(Form("subbranches of %s/t for centrality bin %d vz bin %d", jetCollectionName.c_str(), i, j));
-                   outputTreesJet[i][j][k]->SetMaxTreeSize(MAXTREESIZE);
+                   outputTreesJet[i][j][l][k] = treeJets[k]->CloneTree(0);
+                   outputTreesJet[i][j][l][k]->SetName(Form("%s_centBin%d_vzBin%d_evPlaneBin%d", jetCollectionName.c_str(), i, j, l));
+                   outputTreesJet[i][j][l][k]->SetTitle(Form("subbranches of %s/t for centrality bin %d vz bin %d evPlane Bin %d", jetCollectionName.c_str(), i, j, l));
+                   outputTreesJet[i][j][l][k]->SetMaxTreeSize(MAXTREESIZE);
                }
 
-               outputTreesHiEvt[i][j] = treeHiEvt->CloneTree(0);
-               outputTreesHiEvt[i][j]->SetName(Form("HiEvt_centBin%d_vzBin%d", i, j));
-               outputTreesHiEvt[i][j]->SetTitle(Form("subbranches of hiEvtAnalyzer/HiTree for centrality bin %d vz bin %d", i, j));
-               outputTreesHiEvt[i][j]->SetMaxTreeSize(MAXTREESIZE);
+               outputTreesHiEvt[i][j][l] = treeHiEvt->CloneTree(0);
+               outputTreesHiEvt[i][j][l]->SetName(Form("HiEvt_centBin%d_vzBin%d_evPlaneBin%d", i, j, l));
+               outputTreesHiEvt[i][j][l]->SetTitle(Form("subbranches of hiEvtAnalyzer/HiTree for centrality bin %d vz bin %d evPlane Bin %d", i, j, l));
+               outputTreesHiEvt[i][j][l]->SetMaxTreeSize(MAXTREESIZE);
 
-               outputTreesSkim[i][j] = treeSkim->CloneTree(0);
-               outputTreesSkim[i][j]->SetName(Form("skim_centBin%d_vzBin%d", i, j));
-               outputTreesSkim[i][j]->SetTitle(Form("subbranches of skimanalysis/HltTree for centrality bin %d vz bin %d", i, j));
-               outputTreesSkim[i][j]->SetMaxTreeSize(MAXTREESIZE);
+               outputTreesSkim[i][j][l] = treeSkim->CloneTree(0);
+               outputTreesSkim[i][j][l]->SetName(Form("skim_centBin%d_vzBin%d_evPlaneBin%d", i, j, l));
+               outputTreesSkim[i][j][l]->SetTitle(Form("subbranches of skimanalysis/HltTree for centrality bin %d vz bin %d evPlane Bin %d", i, j, l));
+               outputTreesSkim[i][j][l]->SetMaxTreeSize(MAXTREESIZE);
+             }
            }
        }
 //       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
@@ -275,37 +286,42 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
            int centBin = hiBin / centBinWidth;
            int vzBin   = (vz+15) / vertexBinWidth;
+           int evplaneBin = (hiEvtPlanes[8]+(TMath::Pi()/2.)) / eventPlaneBinWidth;
+          //  std::cout<<evplaneBin<< " bin " << eventPlaneBinWidth << " value " << hiEvtPlanes[8]+(TMath::Pi()/2.) << std::endl;
+           if (nEntriesFilled[centBin][vzBin][evplaneBin] > nMaxEvents_minBiasMixing) continue;
 
-           if (nEntriesFilled[centBin][vzBin] > nMaxEvents_minBiasMixing) continue;
-
-           outputTreesHLT[centBin][vzBin]->Fill();
-           outputTreesEvent[centBin][vzBin]->Fill();
+           outputTreesHLT[centBin][vzBin][evplaneBin]->Fill();
+           outputTreesEvent[centBin][vzBin][evplaneBin]->Fill();
            for (int i = 0; i<nJetCollections; ++i) {
-               outputTreesJet[centBin][vzBin][i]->Fill();
+               outputTreesJet[centBin][vzBin][evplaneBin][i]->Fill();
            }
-           outputTreesHiEvt[centBin][vzBin]->Fill();
-           outputTreesSkim[centBin][vzBin]->Fill();
+           outputTreesHiEvt[centBin][vzBin][evplaneBin]->Fill();
+           outputTreesSkim[centBin][vzBin][evplaneBin]->Fill();
 
-           nEntriesFilled[centBin][vzBin]++;
+           nEntriesFilled[centBin][vzBin][evplaneBin]++;
        }
        std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
        std::cout << "entries            = " << entries << std::endl;
        std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
        std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
-    
+
        for(int i=0; i<nCentralityBins; ++i){
            for(int j=0; j<nVertexBins; ++j){
-               std::cout<<Form("outputTreesJet[%d][%d]->GetEntries() = %lld", i, j, outputTreesEvent[i][j]->GetEntries())<<std::endl;
-               if (outputTreesEvent[i][j]->GetEntries() < 100) {
-                   std::cout<< "Be careful : less than 100 events were put into centBin = "<<i<<" , vertexBin = "<<j<<std::endl;
-               }
-           }
+             for(int l=0; l<nEventPlaneBins; ++l){
+                 std::cout<<Form("outputTreesJet[%d][%d][%d]->GetEntries() = %lld", i, j, l, outputTreesEvent[i][j][l]->GetEntries())<<std::endl;
+                 if (outputTreesEvent[i][j][l]->GetEntries() < 100) {
+                     std::cout<< "Be careful : less than 100 events were put into centBin = "<<i<<" , vertexBin = "<<j<<" , EventPlaneBin = "<<l<<std::endl;
+                 }
+             }
+          }
        }
-  
+
        configTree->Write("",TObject::kOverwrite);
 
        output->Write("",TObject::kOverwrite);
        output->Close();
+
+       std::cout<<"minBiasJetSkim() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
