@@ -50,7 +50,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 "# skim.jet.doCorrectionSmearing = 3 \n skim.jet.doCorrectionSmearingPhi = 3"
 #"# skim.jet.doCorrectionSmearing = 0"
 #"# skim.jet.doCorrectionSmearingPhi = 0"
-#"# skim.jet.doCorrectionSmearing = 0 \n skim.jet.doCorrectionSmearingPhi = 0"
+"# skim.jet.doCorrectionSmearing = 0 \n skim.jet.doCorrectionSmearingPhi = 0"
 #"# skim.jet.doCorrectionL2L3 = 0"
   );
 
@@ -64,7 +64,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 "SYS_corrJetSmearMinus"
 #"SYS_noCorrJetSmear"
 #"SYS_noCorrJetSmearPhi"
-#"SYS_noCorrJetSmearALL"
+"SYS_noCorrJetSmearALL"
 #"SYS_noL2L3"
   );
 
