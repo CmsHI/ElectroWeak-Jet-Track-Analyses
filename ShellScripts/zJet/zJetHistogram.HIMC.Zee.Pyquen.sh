@@ -49,7 +49,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 "# skim.electron.energyScale = 0.995"
 #"# skim.jet.doCorrectionResidual = 0"
 "# skim.zboson.smearZ = 0.05"
-"# skim.jet.smearingRes = 1.15"
+"# skim.jet.smearingRes = 0.15"
 "# skim.jet.smearingRes = 0.85"
 "histogram.zboson.doDiElectron_reweightCent = 0"
 #"histogram.jet.jetID = 0 \n histogram.jet.doCorrectionJetID = 0"

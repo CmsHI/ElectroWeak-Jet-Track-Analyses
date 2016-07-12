@@ -40,7 +40,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 "# skim.jet.energyScale = 1.06"
 "# skim.jet.energyScale = 0.96"
 #"# skim.jet.doCorrectionResidual = 0"
-"# skim.jet.smearingRes = 1.15"
+"# skim.jet.smearingRes = 0.15"
 "# skim.jet.smearingRes = 0.85"
 #"histogram.jet.jetID = 0 \n histogram.jet.doCorrectionJetID = 0"
 #"histogram.jet.jetID = 1 \n histogram.jet.doCorrectionJetID = 0"

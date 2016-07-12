@@ -37,7 +37,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 "skim.jet.energyScale = 0.96"
 #"skim.jet.doCorrectionResidual = 0"
 #"skim.jet.doCorrectionL2L3 = 0"
-"skim.jet.smearingRes = 1.15"
+"skim.jet.smearingRes = 0.15"
 "skim.jet.smearingRes = 0.85"
   );
 
