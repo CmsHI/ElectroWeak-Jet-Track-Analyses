@@ -45,7 +45,7 @@ if [ $DO_SYSVAR -eq 1 ]; then
 #"skim.jet.doCorrectionL2L3 = 0"
   );
 
-  runZJetSkim $configFile $inputSkim $outputSkimPrefix $configSuffixList $cutList $inputMinBiasJetSkim
+  runZJetSkim $configFile $inputSkim $outputSkimPrefix $configSuffixList $cutList
   echo "################# SYSTEMATICS - END #######################"
 fi
 ####################
