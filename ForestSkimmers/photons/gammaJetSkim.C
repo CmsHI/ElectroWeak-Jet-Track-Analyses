@@ -555,7 +555,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
     }
 
-    float eventWeight;
+    float eventWeight = 1;
 
     if (it == inputFiles.begin()) {
       output->cd();
@@ -609,21 +609,24 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHiEvt->GetEntry(j_entry);
       if (doEventWeight) {
         int ptHatBin = -1;
-        if(pthat >= 15 && pthat < 30) {
+        if(pthat >= 14.99 && pthat < 30.) {
           ptHatBin = 0;
-        } else if (pthat >=30 && pthat < 50) {
+        } else if (pthat >=30. && pthat < 50.) {
           ptHatBin = 1;
-        } else if (pthat >=50 && pthat < 80) {
+        } else if (pthat >=50. && pthat < 80.) {
           ptHatBin = 2;
-        } else if (pthat >=80 && pthat < 120) {
+        } else if (pthat >=80. && pthat < 120.) {
           ptHatBin = 3;
-        } else if (pthat >= 120) {
+        } else if (pthat >= 120.) {
           ptHatBin = 4;
         } else {
           std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
-          return;
         }
-        eventWeight = mcPthatWeights[ptHatBin];
+        if(ptHatBin != -1){
+          eventWeight = mcPthatWeights[ptHatBin];
+        } else {
+          eventWeight = 0;
+        }
         if (isHI) {
           eventWeight *= h_weights_PbPb->GetBinContent(h_weights_PbPb->FindBin(hiBin, vz));
         } else {
