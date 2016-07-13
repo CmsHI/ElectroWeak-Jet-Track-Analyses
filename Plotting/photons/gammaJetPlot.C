@@ -327,22 +327,23 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
 
         if (i == COLL::kHIMC && inputExists[i])
         {
-            std::string tmpFileName = input[i]->GetName();
-            if (tmpFileName.find("Pythia") != std::string::npos && tmpFileName.find("Hydjet") != std::string::npos)
-                mcReferenceHI = "Pythia+Hydjet";
-            else if (tmpFileName.find("Pythia") != std::string::npos)  mcReferenceHI = "Pythia";
+            // std::string tmpFileName = input[i]->GetName();
+            // if (tmpFileName.find("Pythia") != std::string::npos && tmpFileName.find("Hydjet") != std::string::npos)
+            mcReferenceHI = "Pythia+Hydjet";
+            // else if (tmpFileName.find("Pythia") != std::string::npos)  mcReferenceHI = "Pythia";
 
-            if (tmpFileName.find("Pyquen") != std::string::npos && tmpFileName.find("Hydjet") != std::string::npos)
-                mcReferenceHI = "Pyquen+Hydjet";
-            else if (tmpFileName.find("Pyquen") != std::string::npos)  mcReferenceHI = "Pyquen";
+            // if (tmpFileName.find("Pyquen") != std::string::npos && tmpFileName.find("Hydjet") != std::string::npos)
+            //     mcReferenceHI = "Pyquen+Hydjet";
+            // else if (tmpFileName.find("Pyquen") != std::string::npos)  mcReferenceHI = "Pyquen";
         }
 
         if (i == COLL::kPPMC && inputExists[i])
         {
-            std::string tmpFileName = input[i]->GetName();
-            if (tmpFileName.find("Pythia") != std::string::npos)  mcReferencePP = "Pythia";
-            if (tmpFileName.find("Pyquen") != std::string::npos)  mcReferencePP = "Pyquen";
-            if (tmpFileName.find("DYJetsToLL") != std::string::npos)  mcReferencePP = "Madgraph";
+            // std::string tmpFileName = input[i]->GetName();
+            // if (tmpFileName.find("Pythia") != std::string::npos)  mcReferencePP = "Pythia";
+            // if (tmpFileName.find("Pyquen") != std::string::npos)  mcReferencePP = "Pyquen";
+            // if (tmpFileName.find("DYJetsToLL") != std::string::npos)  mcReferencePP = "Madgraph";
+            mcReferencePP = "Pythia";
         }
 
         if (plotSystematics) {
@@ -605,9 +606,22 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
                     std::string tmpNameColl = tmpName.c_str();
                     std::string tmpHistNameColl = tmpHistName.c_str();
 
-                    // no centrality bin for PP or PPMC
-                    if (iColl == COLL::kPP || iColl == COLL::kPPMC) {
+                    if (iColl == COLL::kPP) {
                         std::string tmpNamePP = replaceAll(tmpName.c_str(), h1D_suffix, h1D_suffix_PP);
+                        std::string tmpHistNamePP = Form("h1D_%s", tmpNamePP.c_str());
+
+                        tmpNameColl = tmpNamePP.c_str();
+                        tmpHistNameColl = tmpHistNamePP.c_str();
+                    }
+                    if (iColl == COLL::kPPMC) {
+                        std::string tmpNamePP = replaceAll(tmpName.c_str(), h1D_suffix, h1D_suffix_PPMC);
+                        std::string tmpHistNamePP = Form("h1D_%s", tmpNamePP.c_str());
+
+                        tmpNameColl = tmpNamePP.c_str();
+                        tmpHistNameColl = tmpHistNamePP.c_str();
+                    }
+                    if (iColl == COLL::kHIMC) {
+                        std::string tmpNamePP = replaceAll(tmpName.c_str(), h1D_suffix, h1D_suffix_HIMC);
                         std::string tmpHistNamePP = Form("h1D_%s", tmpNamePP.c_str());
 
                         tmpNameColl = tmpNamePP.c_str();
