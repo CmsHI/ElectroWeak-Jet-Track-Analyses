@@ -1,12 +1,16 @@
 #include <TFile.h>
 #include <TTree.h>
+#include <TCanvas.h>
+#include <TH1F.h>
+#include <TH1D.h>
 
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
 #include "../Histogramming/PhotonPurity.h"
+#include "../Plotting/commonUtility.h"
 
-void printPurity(const TString configFile, const TString inputFile, const TString inputMC){
+void printPurity(const TString configFile, const TString inputFile, const TString inputMC, const bool savePlots = false){
   InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
   if(!configCuts.isValid){
@@ -24,6 +28,16 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
 
   //bool isMC = collisionIsMC((COLL::TYPE)collision);
   bool isHI = collisionIsHI((COLL::TYPE)collision);
+  bool isMC = collisionIsMC((COLL::TYPE)collision);
+
+  std::string collisionTypeLabel = "PbPb";
+  if(isHI && isMC) {
+    collisionTypeLabel = "PbPb_MC";
+  } else if (!isHI && !isMC) {
+    collisionTypeLabel = "PP";
+  } else if (!isHI && isMC) {
+    collisionTypeLabel = "PP_MC";
+  }
 
   // observable bins
   std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
@@ -132,6 +146,61 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
       std::cout << "Purity for ptBin"<< i << " hiBin"<< j << ": " << purity[i][j] << std::endl;
       std::cout << "nSig for ptBin"<< i << " hiBin"<< j << ": " << fitr.nSig << std::endl;
       std::cout << "chisq for ptBin"<< i << " hiBin"<< j << ": " << fitr.chisq << std::endl;
+
+      if(savePlots){
+        TCanvas *c1 = new TCanvas();
+        TH1F *hSigPdf = fitr.sigPdf;
+	TH1F *hBckPdf = fitr.bckPdf;
+	TH1D *hData1  = fitr.data;
+	hSigPdf->Add(hBckPdf);
+
+        handsomeTH1(hSigPdf);
+	mcStyle(hSigPdf);
+	sbStyle(hBckPdf);
+	cleverRange(hSigPdf,1.5);
+	hSigPdf->SetAxisRange(0.001,0.024,"X");
+	hSigPdf->SetNdivisions(505);
+	hSigPdf->GetYaxis()->SetTitleOffset(1.75);
+	hSigPdf->SetYTitle("Entries");
+	hSigPdf->SetXTitle("#sigma_{#eta #eta}");
+        hSigPdf->SetStats(false);
+        hSigPdf->GetXaxis()->CenterTitle();
+        hSigPdf->GetYaxis()->CenterTitle();
+
+        hData1->SetMarkerStyle(kFullCircle);
+        hData1->SetLineColor(kBlack);
+        hData1->SetMarkerColor(kBlack);
+
+	hSigPdf->DrawCopy("hist");
+	//drawSys(hSigPdf, err, kRed, -1, 0.001);
+	hBckPdf->DrawCopy("same hist");
+	hData1->DrawCopy("same e");
+
+        TLegend *t3=new TLegend(0.5, 0.68, 0.92, 0.92);
+	t3->AddEntry(hData1,Form("%s #sqrt{s}_{_{NN}}=5.02 TeV",collisionTypeLabel.c_str()),"pl");
+	t3->AddEntry(hSigPdf,"Signal","lf");
+	t3->AddEntry(hBckPdf,"Background","lf");
+	t3->SetFillColor(0);
+	t3->SetBorderSize(0);
+	t3->SetFillStyle(0);
+	t3->SetTextFont(43);
+	t3->SetTextSize(20);
+        t3->Draw();
+
+        drawText(Form("%.0f GeV < p_{T}^{#gamma} < %.0f GeV",
+		      bins_pt[0][i], bins_pt[1][i]),
+		 0.5, 0.60,1,20);
+	drawText(Form("%.0f - %.0f%c",
+	 	      bins_hiBin[0][j]/2., bins_hiBin[1][j]/2.,'%'),
+	 	 0.5, 0.52,1,20);
+	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
+		 0.5, 0.46,1,20);
+	drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
+		 0.5, 0.38,1,20);
+
+        c1->SaveAs(Form("Performance/photons/purityPlots/%s_purity_ptBin%i_hiBin%i.pdf",collisionTypeLabel.c_str(), i, j));
+        delete c1;
+      }
     }
   }
 
@@ -152,6 +221,8 @@ int main(int argc, char** argv)
   if (argc == 4) {
     printPurity(argv[1], argv[2], argv[3]);
     return 0;
+  } else if (argc ==5) {
+    printPurity(argv[1], argv[2], argv[3], atoi(argv[4]));
   }
   else {
     std::cout << "Usage : \n" <<
