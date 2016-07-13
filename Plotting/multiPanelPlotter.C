@@ -59,6 +59,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string hist_type = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_hist_type];
     std::string plot_type = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_plot_type];
 
+    std::vector<int> set_log_scale = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_set_log_scale]);
+
     std::vector<float> y_max = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_y_max]);
     std::vector<float> y_min = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_y_min]);
 
@@ -102,6 +104,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     float pad_width = (columns > 1) ? hist_width*(1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : hist_width/(1.0-margin-edge);
     float pad_height = (rows > 1) ? hist_height*(1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2) : hist_height/(1.0-margin-edge);
 
+    if (!set_log_scale.size())
+        set_log_scale = std::vector<int>(rows, 0);
+
     TCanvas* c1 = new TCanvas("c1", "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
 
@@ -112,6 +117,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     for (int i=0; i<rows; ++i) {
         for (int j=0; j<columns; ++j) {
             c1->cd(i*columns+j+1);
+            if (set_log_scale[i])
+                gPad->SetLogy();
 
             box_t l_box = (box_t) {
                 l_x1[i],

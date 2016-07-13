@@ -199,6 +199,7 @@ enum TYPE_S{
     k_LineStyle_vertical_lowerPad,       // styles of the vertical lines to be drawn in the lower pad
     k_mpp_hist_type,
     k_mpp_plot_type,
+    k_mpp_set_log_scale,
     k_mpp_y_max,
     k_mpp_y_min,
     k_mpp_l_x1,
@@ -259,6 +260,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "lineStyle_vertical_lowerPad",
         "mpp_hist_type",
         "mpp_plot_type",
+        "mpp_set_log_scale",
         "mpp_y_max",
         "mpp_y_min",
         "mpp_l_x1",
