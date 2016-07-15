@@ -60,12 +60,16 @@ public :
     TH1D* h1D_nominal;  // nominal observable
     TH1D* h1D_varied;   // observable after systematics variation
     TH1D* h1D_diff;     // diff = nominal - varied
+    TH1D* h1D_diffAbs;     // diff = | nominal - varied |
     TH1D* h1D_ratio;    // ratio = varied / nominal
     TH1D* h1D_diff_rel;      // diff_rel  = abs(diff) / nominal
     TH1D* h1D_ratio_rel;     // ratio_rel = abs(ratio - 1)
 
-    TH1D* h1D_diff_v1;     // initial version of h1D_diff  before scaling, abs(), rebinning etc. operations
-    TH1D* h1D_ratio_v1;    // initial version of h1D_ratio before scaling, abs(), rebinning etc. operations
+    TH1D* h1D_nominal_v1;  // initial version of h1D_nominal before scaling, abs(), rebinning etc. operations
+    TH1D* h1D_varied_v1;   // initial version of h1D_varied  before scaling, abs(), rebinning etc. operations
+    TH1D* h1D_diff_v1;     // initial version of h1D_diff    before scaling, abs(), rebinning etc. operations
+    TH1D* h1D_diffAbs_v1;  // initial version of h1D_diffAbs before scaling, abs(), rebinning etc. operations
+    TH1D* h1D_ratio_v1;    // initial version of h1D_ratio   before scaling, abs(), rebinning etc. operations
 
     TF1* fnc_nominal;           // function to fit nominal observable
     TF1* fnc_varied;            // function to fit varied observable
@@ -101,6 +105,12 @@ std::string systematicsHist::get_fnc_pol_Formula(TF1* fnc, int polIndex)
         formula = Form("(%f + %f*pow(x, 1) + %f*pow(x, 2))", fnc->GetParameter(0),
                                                              fnc->GetParameter(1),
                                                              fnc->GetParameter(2));
+    }
+    else if (polIndex == 3) {
+        formula = Form("(%f + %f*pow(x, 1) + %f*pow(x, 2)+ %f*pow(x, 3))", fnc->GetParameter(0),
+                                                                           fnc->GetParameter(1),
+                                                                           fnc->GetParameter(2),
+                                                                           fnc->GetParameter(3));
     }
 
     return formula;
