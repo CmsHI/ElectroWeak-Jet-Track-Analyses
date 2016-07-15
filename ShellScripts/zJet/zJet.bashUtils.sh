@@ -218,3 +218,46 @@ function runZJetHistogram() {
     echo "runZJetHistogram() - END"
 }
 
+# run "zJetHistogramSum" on a list of ZEE and ZMM zJetHistogram files defined by file name suffices.
+function runZJetHistogramSum() {
+
+    echo "runZJetHistogramSum()"
+
+    progPath="./Histogramming/zBosons/zJetHistogramSum.exe"
+    importedConfig=$1
+    outputPrefix=$2
+    zJetHistZEEPrefix=$3
+    zJetHistZMMPrefix=$4
+    configSuffixListZEE=$5
+    configSuffixListZMM=$6
+
+    arrayIndices=${!configSuffixListZEE[*]}
+    for i1 in $arrayIndices
+    do
+        zJetHistZEEPath=$zJetHistZEEPrefix".root"
+        zJetHistZEEPath=$zJetHistZEEPrefix".root"
+        if (( ${#configSuffixListZEE[$i1]} > 0 )); then
+          zJetHistZEEPath=$zJetHistZEEPrefix"_"${configSuffixListZEE[i1]}".root"
+        fi
+
+        zJetHistZMMPath=$zJetHistZMMPrefix".root"
+        if (( ${#configSuffixListZMM[$i1]} > 0 )); then
+          zJetHistZMMPath=$zJetHistZMMPrefix"_"${configSuffixListZMM[i1]}".root"
+        fi
+
+        output=$outputPrefix
+        if (( ${#configSuffixListZMM[$i1]} > 0 )); then
+          output=$outputPrefix"_"${configSuffixListZMM[i1]}
+        fi
+        if (( ${#configSuffixListZEE[$i1]} > 0 )); then
+          output=$outputPrefix"_"${configSuffixListZEE[i1]}
+        fi
+        output=$output."root"
+        outputLOG=$output."log"
+
+        $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ~/code/scripts/myRun.sh
+        echo "$progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &"
+    done
+
+    echo "runZJetHistogramSum() - END"
+}
