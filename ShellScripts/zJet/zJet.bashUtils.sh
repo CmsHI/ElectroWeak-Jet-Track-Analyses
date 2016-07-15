@@ -3,7 +3,7 @@
 source ./ShellScripts/bashUtils.sh
 ## global variables
 IFS=$'\n' # very important. force to use only '\n' to split the elements of the array
-productionVersion="20160704"
+productionVersion="20160715"
 outputSkimDir="/export/d00/scratch/tatar/EWJTA-out/"
 outputSkimDirLOG="./"
 outputHistDir="./"

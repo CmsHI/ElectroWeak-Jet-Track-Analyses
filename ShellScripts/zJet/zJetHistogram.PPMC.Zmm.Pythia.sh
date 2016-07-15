@@ -3,7 +3,7 @@
 source ./ShellScripts/bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.SysVar.sh
-###################### 04.07.2016 ####################
+####################
 echo "### PPSTOGRAM STEP"
 echo "## zJetHistogram PP MC Pythia ZMM"
 ####################
