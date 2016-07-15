@@ -1664,6 +1664,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
            so it will not be ratio of weigthed sums, but ratio of weighted differences.
            this approach should avoid the case of negative entries.
+
+         * 11.07.2016 : made lots of cross-check, this method actually gives the same result as calculating
+         * xjz_mean directly from jetSIG histogram. The value calculated with this approach is the same as what
+         * h1D_xjz_..._jetSIG_final_norm->GetMean() gives.
          */
         std::vector<double> meansANDweights[nHiBins_xjz_mean];
         for(int jCorr = 0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
