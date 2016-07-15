@@ -166,6 +166,7 @@ public :
     pho_trackIsoR3PtCut20 = 0;
     pho_trackIsoR4PtCut20 = 0;
     pho_trackIsoR5PtCut20 = 0;
+    pho_sumIsoCorrected = 0;
     pho_swissCrx = 0;
     pho_seedTime = 0;
     pfcIso1 = 0;
@@ -436,6 +437,7 @@ public :
   std::vector<float>   *pho_trackIsoR3PtCut20;
   std::vector<float>   *pho_trackIsoR4PtCut20;
   std::vector<float>   *pho_trackIsoR5PtCut20;
+  std::vector<float>   *pho_sumIsoCorrected;
   std::vector<float>   *pho_swissCrx;
   std::vector<float>   *pho_seedTime;
   std::vector<float>   *pfcIso1;
@@ -705,6 +707,7 @@ public :
   TBranch        *b_pho_trackIsoR3PtCut20;   //!
   TBranch        *b_pho_trackIsoR4PtCut20;   //!
   TBranch        *b_pho_trackIsoR5PtCut20;   //!
+  TBranch        *b_pho_sumIsoCorrected;
   TBranch        *b_pho_swissCrx;   //!
   TBranch        *b_pho_seedTime;   //!
   TBranch        *b_pfcIso1;   //!
@@ -975,6 +978,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trackIsoR3PtCut20")) t->SetBranchAddress("pho_trackIsoR3PtCut20", &pho_trackIsoR3PtCut20, &b_pho_trackIsoR3PtCut20);
     if (t->GetBranch("pho_trackIsoR4PtCut20")) t->SetBranchAddress("pho_trackIsoR4PtCut20", &pho_trackIsoR4PtCut20, &b_pho_trackIsoR4PtCut20);
     if (t->GetBranch("pho_trackIsoR5PtCut20")) t->SetBranchAddress("pho_trackIsoR5PtCut20", &pho_trackIsoR5PtCut20, &b_pho_trackIsoR5PtCut20);
+    if (t->GetBranch("pho_sumIsoCorrected")) t->SetBranchAddress("pho_sumIsoCorrected", &pho_sumIsoCorrected, &b_pho_sumIsoCorrected);
     if (t->GetBranch("pho_swissCrx")) t->SetBranchAddress("pho_swissCrx", &pho_swissCrx, &b_pho_swissCrx);
     if (t->GetBranch("pho_seedTime")) t->SetBranchAddress("pho_seedTime", &pho_seedTime, &b_pho_seedTime);
     if (t->GetBranch("pfcIso1")) t->SetBranchAddress("pfcIso1", &pfcIso1, &b_pfcIso1);

@@ -12,7 +12,9 @@
 static const long MAXTREESIZE = 2000000000000;
 const int nSmearBins = 8; // should really come from config
 
-int gammaJetCorrections(const TString configFile, const TString inputFile, const TString outputFile) {
+double getAngleToEP(double angle);
+
+int gammaJetCorrections(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int job = -1) {
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
@@ -28,6 +30,8 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     std::vector<float> phoEtCorrected;
     phoTree->Branch("phoEtCorrected", &phoEtCorrected);
+    std::vector<float> pho_sumIsoCorrected;
+    phoTree->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
 
     std::vector<std::string> jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
     int nJetCollections = jetCollections.size();
@@ -57,6 +61,8 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     int hiBin;
     eventTree->SetBranchAddress("hiBin", &hiBin);
+    float hiEvtPlanes[29];
+    eventTree->SetBranchAddress("hiEvtPlanes", hiEvtPlanes);
 
     TFile* outFile = TFile::Open(outputFile, "recreate");
 
@@ -101,8 +107,27 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         for (int j=0; j<nEtaBins; ++j)
             photonEnergyCorrections[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
 
+    TFile* sumIsoCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str());
+    TH1D* sumIsoCorrections = (TH1D*)sumIsoCorrectionFile->Get("sumIsoCorrections");
+
     uint64_t nentries = phoTree->GetEntries();
-    for (uint64_t i=0; i<nentries; ++i) {
+
+    uint64_t first_entry = 0;
+    uint64_t last_entry = nentries;
+
+    if (nJobs > 0) {
+        if (job >= nJobs || job < 0) {
+            printf("invalid job number: %i\n", job);
+            return 1;
+        }
+
+        first_entry = nentries/nJobs * job;
+        last_entry = std::min(nentries/nJobs * (job+1), nentries);
+
+        printf("job: %i, first entry = %lu, last entry < %lu\n", job, first_entry, last_entry);
+    }
+
+    for (uint64_t i=first_entry; i<last_entry; ++i) {
         if (i % 5000 == 0)
             printf("entry: %lu\n", i);
 
@@ -110,6 +135,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
         phoTree->GetEntry(i);
         phoEtCorrected.clear();
+        pho_sumIsoCorrected.clear();
 
         for (int igj=0; igj<nJetCollections; ++igj) {
             gjTree[igj][0]->GetEntry(i);
@@ -129,6 +155,8 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
 
         for (int j=0; j<pho_event.nPho; ++j) {
+            double sumIso = (*pho_event.pho_ecalClusterIsoR4)[j] + (*pho_event.pho_hcalRechitIsoR4)[j] + (*pho_event.pho_trackIsoR4PtCut20)[j];
+
             if (isHI) {
                 int ieta = 0;
                 for (; fabs((*pho_event.phoEta)[j])>=etaBins[1][ieta] && ieta<nEtaBins; ++ieta);
@@ -137,8 +165,11 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
                     phoEtCorrected.push_back(0);
                 else
                     phoEtCorrected.push_back((*pho_event.phoEt)[j] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[j])));
+
+                pho_sumIsoCorrected.push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*pho_event.phoPhi)[j] - hiEvtPlanes[8])))));
             } else {
                 phoEtCorrected.push_back((*pho_event.phoEt)[j]);
+                pho_sumIsoCorrected.push_back(sumIso);
             }
         }
 
@@ -266,8 +297,15 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     return 0;
 }
 
+double getAngleToEP(double angle) {
+    angle = (angle > TMath::Pi()) ? 2 * TMath::Pi() - angle : angle;
+    return (angle > TMath::Pi()/2) ? TMath::Pi() - angle : angle;
+}
+
 int main(int argc, char* argv[]) {
-    if (argc == 4)
+    if (argc == 6)
+        return gammaJetCorrections(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
+    else if (argc == 4)
         return gammaJetCorrections(argv[1], argv[2], argv[3]);
     else
         printf("Usage: ./gammaJetCorrections.exe <configFile> <inputSkim> <outputFile>\n");
