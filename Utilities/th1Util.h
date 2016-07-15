@@ -6,9 +6,13 @@
 #include <TH1D.h>
 #include <TF1.h>
 #include <TGraphAsymmErrors.h>
+#include <TGraph.h>
 #include <TBox.h>
 #include <TString.h>
 #include <TMath.h>
+
+#include <string>
+#include <vector>
 
 #include "interface/InputConfigurationParser.h"
 
@@ -23,6 +27,10 @@ void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 double getMinimumTH1s(TH1D* h[], int nHistos);
 double getMaximumTH1s(TH1D* h[], int nHistos);
+void setConstantBinContent(TH1* h, double constantContent);
+void setConstantBinContentError(TH1* h, double constantContent, double  constantError);
+void setBinContents(TH1* h, std::vector<double> binContents);
+void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(TH1* h);
@@ -37,6 +45,8 @@ void subtractIdentity4SysUnc(TH1* h);
 void addSysUnc(TH1* hTot, TH1* h);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -173,6 +183,65 @@ double getMaximumTH1s(TH1D* h[], int nHistos) {
     return result;
 }
 
+/*
+ * set content of all bins to the given value
+ */
+void setConstantBinContent(TH1* h, double constantContent)
+{
+    int nBins = h->GetNbinsX();
+    std::vector<double> binContents (nBins, constantContent);
+    setBinContents(h, binContents);
+}
+
+/*
+ * set content of all bins to constantContent
+ * set error of all bins to constantError
+ */
+void setConstantBinContentError(TH1* h, double constantContent, double  constantError)
+{
+    int nBins = h->GetNbinsX();
+    std::vector<double> binContents (nBins, constantContent);
+    std::vector<double> binErrors   (nBins, constantError);
+    setBinContentsErrors(h, binContents, binErrors);
+}
+
+/*
+ * function to set bin contents of TH1 histogram.
+ * avoids looping over the bins in the main program.
+ * helps to keep the code clean.
+ */
+void setBinContents(TH1* h, std::vector<double> binContents)
+{
+    int nBins = h->GetNbinsX();
+    int nVec  = binContents.size();
+    if (nBins != nVec)  return;
+
+    for ( int i = 1; i <= nBins; i++)
+    {
+        h->SetBinContent(i, binContents.at(i-1));
+    }
+}
+
+/*
+ * function to set bin contents and errors of TH1 histogram.
+ * avoids looping over the bins in the main program.
+ * helps to keep the code clean.
+ */
+void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors)
+{
+    int nBins    = h->GetNbinsX();
+    int nVec     = binContents.size();
+    int nVecErr  = binErrors.size();
+    if (nBins != nVec)     return;
+    if (nBins != nVecErr)  return;
+
+    for ( int i = 1; i <= nBins; i++)
+    {
+        h->SetBinContent(i, binContents.at(i-1));
+        h->SetBinError(i, binErrors.at(i-1));
+    }
+}
+
 void scaleBinErrors(TH1* h, double scale)
 {
     int nBins = h->GetNbinsX();
@@ -293,9 +362,15 @@ void calcTH1Abs4SysUnc(TH1* h)
 
 void setTH1Style4SysUnc(TH1* h)
 {
+    h->GetXaxis()->CenterTitle();
     h->GetYaxis()->CenterTitle();
-    double titleSize = h->GetTitleSize("Y");
-    h->SetTitleSize(titleSize*1.25,"Y");
+
+    double titleSize = h->GetTitleSize("X");
+    h->SetTitleSize(titleSize*1.2,"X");
+    titleSize = h->GetTitleSize("Y");
+    h->SetTitleSize(titleSize*1.2,"Y");
+
+    h->SetTitleOffset(1.2,"X");
     h->SetTitleOffset(1.5,"Y");
     h->SetMarkerStyle(kFullSquare);
     h->SetMarkerSize(2);
@@ -380,6 +455,48 @@ void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWi
 
         setSysUncBox(box, h, hSys, i, binWidth, binWidthScale);
         box->DrawClone();
+    }
+}
+
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, double binWidth, double binWidthScale)
+{
+   double val = h->GetBinContent(bin);
+   double x   = h->GetBinCenter(bin);
+   int binSys = hSys->FindBin(x);
+
+   // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   std::string hSysName = hSys->GetName();
+
+   if (binWidth < 0) {
+     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
+   }
+
+   double errorLow = val - error;
+   double errorUp = val + error;
+   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
+   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
+
+   gr->SetPoint(0, x - (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(1, x + (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(2, x + (binWidth/2)*binWidthScale, errorUp);
+   gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
+}
+
+/*
+ * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
+ * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
+ */
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, double binWidth, double binWidthScale)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i) {
+        if (h->GetBinError(i) == 0) continue;
+        if (h->GetBinContent(i) < h->GetMinimum()) continue;
+        if (h->GetBinContent(i) > h->GetMaximum()) continue;
+
+        setSysUncBox(gr, h, hSys, i, binWidth, binWidthScale);
+        gr->DrawClone("f");
     }
 }
 
