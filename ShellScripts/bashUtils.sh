@@ -45,9 +45,15 @@ function runGeneratedConf() {
     if (( ${#logFile} > 0 )); then
       echo "$progPath $temporaryConfig $inputFile $outputFile &> $logFile &"
       $progPath $temporaryConfig $inputFile $outputFile &> $logFile & #      ~/code/scripts/myRun.sh  
+      ## possibility to run as a ROOT macro
+      ## progPath2="${progPath/.exe/.C}"
+      ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'")' &> $logFile &
     else
       echo "$progPath $temporaryConfig $inputFile $outputFile &"
       $progPath $temporaryConfig $inputFile $outputFile & # ~/code/scripts/myRun.sh 
+      ## possibility to run as a ROOT macro
+      ## progPath2="${progPath/.exe/.C}"
+      ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'")'
     fi
 
     # remove the config file
@@ -101,9 +107,15 @@ function runGeneratedConf2() {
     if (( ${#logFile} > 0 )); then
       echo "$progPath $temporaryConfig $inputFile $outputFile $ioFile2 &> $logFile &"
       $progPath $temporaryConfig $inputFile $outputFile $ioFile2 &> $logFile & #      ~/code/scripts/myRun.sh  
+      ## possibility to run as a ROOT macro
+      ## progPath2="${progPath/.exe/.C}"
+      ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'", "'$ioFile2'")' &> $logFile &
     else
       echo "$progPath $temporaryConfig $inputFile $outputFile $ioFile2 &"
       $progPath $temporaryConfig $inputFile $outputFile $ioFile2 & # ~/code/scripts/myRun.sh 
+      ## possibility to run as a ROOT macro
+      ## progPath2="${progPath/.exe/.C}"
+      ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'", "'$ioFile2'")'
     fi
 
     # remove the config file
@@ -112,3 +124,4 @@ function runGeneratedConf2() {
 
     echo "runGeneratedConf2() - END"
 }
+
