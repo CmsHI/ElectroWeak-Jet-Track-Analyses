@@ -30,19 +30,6 @@ config_HI_ZMM_MC_Pyquen=$config_HI_ZMM_MC
 
 config_PP_ZEE_MC_Madgraph=$config_PP_ZEE_MC
 config_PP_ZMM_MC_Madgraph=$config_PP_ZMM_MC
-# flags for running systematic variation
-DO_SYSVAR_HI_ZEE_DATA=0
-DO_SYSVAR_HI_ZMM_DATA=0
-DO_SYSVAR_PP_ZEE_DATA=1
-DO_SYSVAR_PP_ZMM_DATA=1
-DO_SYSVAR_HI_ZEE_MC_Pythia=0
-DO_SYSVAR_HI_ZMM_MC_Pythia=0
-DO_SYSVAR_PP_ZEE_MC_Pythia=1
-DO_SYSVAR_PP_ZMM_MC_Pythia=1
-DO_SYSVAR_HI_ZEE_MC_Pyquen=1
-DO_SYSVAR_HI_ZMM_MC_Pyquen=1
-DO_SYSVAR_PP_ZEE_MC_Madgraph=0
-DO_SYSVAR_PP_ZEE_MC_Madgraph=0
 ### SAMPLES - HIFOREST
 ## DATA
 HI_ZEE_DATA="/mnt/hadoop/cms/store/user/rbi/azsigmon-HIRun2015E-PromptReco-AOD-DielectronSkim-ElePt8-v3_forest_csjet_v1_3/0.root"
@@ -255,8 +242,8 @@ function runZJetHistogramSum() {
         output=$output."root"
         outputLOG=$output."log"
 
-        $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ~/code/scripts/myRun.sh
         echo "$progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &"
+        $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ~/code/scripts/myRun.sh
     done
 
     echo "runZJetHistogramSum() - END"

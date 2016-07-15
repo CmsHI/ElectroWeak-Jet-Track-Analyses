@@ -2,6 +2,7 @@
 
 source ./ShellScripts/bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.sh
+source ./ShellScripts/zJet/zJet.bashUtils.SysVar.sh
 ###################### 04.07.2016 ####################
 echo "### PPSTOGRAM STEP"
 echo "## zJetHistogram PP DATA ZEE"
@@ -26,47 +27,11 @@ if [ $DO_SYSVAR -eq 1 ]; then
   echo "### PPSTOGRAM STEP"
   echo "## zJetHistogram PP DATA ZEE"
 
-  configSuffixList=(
-#"SYS_noCorrEle"
-"SYS_jes102"
-"SYS_jes098"
-"SYS_eesPlus"
-"SYS_eesMinus"
-"SYS_corrJetSmearPlus"
-"SYS_corrJetSmearMinus"
-#"SYS_noCorrJetSmear"
-#"SYS_noCorrJetSmearPhi"
-"SYS_noCorrJetSmearALL"
-#"SYS_noL2L3"
-  );
+  configSuffixList=$configSuffixList_hist_PP_ZEE_DATA
 
-  cutList=(
-#"# skim.electron.doCorrection = 0"
-"# skim.jet.energyScale = 1.02"
-"# skim.jet.energyScale = 0.98"
-"# skim.electron.energyScale = 1.005"
-"# skim.electron.energyScale = 0.995"
-"# skim.jet.doCorrectionSmearing = 2 \n skim.jet.doCorrectionSmearingPhi = 2"
-"# skim.jet.doCorrectionSmearing = 3 \n skim.jet.doCorrectionSmearingPhi = 3"
-#"# skim.jet.doCorrectionSmearing = 0"
-#"# skim.jet.doCorrectionSmearingPhi = 0"
-"# skim.jet.doCorrectionSmearing = 0 \n skim.jet.doCorrectionSmearingPhi = 0"
-#"# skim.jet.doCorrectionL2L3 = 0"
-  );
+  cutList=$cutList_hist_PP_ZEE_DATA
 
-  configSuffixListSkim=(
-#"SYS_noCorrEle"
-"SYS_jes102"
-"SYS_jes098"
-"SYS_eesPlus"
-"SYS_eesMinus"
-"SYS_corrJetSmearPlus"
-"SYS_corrJetSmearMinus"
-#"SYS_noCorrJetSmear"
-#"SYS_noCorrJetSmearPhi"
-"SYS_noCorrJetSmearALL"
-#"SYS_noL2L3"
-  );
+  configSuffixListSkim=$skimSuffixList_hist_PP_ZEE_DATA
 
   runZJetHistogram $configFile $outputSkimPrefix $configSuffixList $cutList $configSuffixListSkim
   echo "################# SYSTEMATICS - END #######################"

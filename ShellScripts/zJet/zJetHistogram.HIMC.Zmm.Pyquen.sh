@@ -2,6 +2,7 @@
 
 source ./ShellScripts/bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.sh
+source ./ShellScripts/zJet/zJet.bashUtils.SysVar.sh
 ###################### 04.07.2016 ####################
 echo "### HISTOGRAM STEP"
 echo "## zJetHistogram HI MC Pyquen ZMM"
@@ -26,35 +27,11 @@ if [ $DO_SYSVAR -eq 1 ]; then
   echo "### HISTOGRAM STEP"
   echo "## zJetHistogram HI MC Pyquen ZMM"
 
-  configSuffixList=(
-"SYS_jes106"
-"SYS_jes096"
-#"SYS_noCorrJetRes"
-"SYS_smearResJetPlus"
-"SYS_smearResJetMinus"
-#"SYS_noJetID"
-#"SYS_noJetIDCorr"
-  );
+  configSuffixList=$configSuffixList_hist_HI_ZMM_MC
 
-  cutList=(
-"# skim.jet.energyScale = 1.06"
-"# skim.jet.energyScale = 0.96"
-#"# skim.jet.doCorrectionResidual = 0"
-"# skim.jet.smearingRes = 0.15"
-"# skim.jet.smearingRes = 0.85"
-#"histogram.jet.jetID = 0 \n histogram.jet.doCorrectionJetID = 0"
-#"histogram.jet.jetID = 1 \n histogram.jet.doCorrectionJetID = 0"
-  );
+  cutList=$cutList_hist_HI_ZMM_MC
 
-  configSuffixListSkim=(
-"SYS_jes106"
-"SYS_jes096"
-#"SYS_noCorrJetRes"
-"SYS_smearResJetPlus"
-"SYS_smearResJetMinus"
-#""
-#""
-  );
+  configSuffixListSkim=$skimSuffixList_hist_HI_ZMM_MC
 
   runZJetHistogram $configFile $outputSkimPrefix $configSuffixList $cutList $configSuffixListSkim
   echo "################# SYSTEMATICS - END #######################"
