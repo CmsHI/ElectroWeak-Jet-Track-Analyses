@@ -13,6 +13,7 @@
 std::vector<double> rebinXjBins(std::vector<double> binsTH1x);
 std::vector<double> rebinXjBinsPP(std::vector<double> binsTH1x);
 std::vector<double> rebinDphiBins(std::vector<double> binsTH1x);
+std::vector<double> rebinDphiBins2(std::vector<double> binsTH1x);
 std::string makeHistTitle(bool isHI, std::string collisionName, float ptBinLow, float ptBinUp, int hiBinLow, int hiBinUp);
 
 /*
@@ -21,12 +22,21 @@ std::string makeHistTitle(bool isHI, std::string collisionName, float ptBinLow, 
  */
 std::vector<double> rebinXjBins(std::vector<double> binsTH1x)
 {
-    binsTH1x.erase(binsTH1x.begin() + 13, binsTH1x.begin() + 13 + 3);  // merge last 4 bins : 13,14,15,16
-    binsTH1x.erase(binsTH1x.begin() + 10, binsTH1x.begin() + 10 + 2);  // merge bins        : 10,11,12
-    binsTH1x.erase(binsTH1x.begin() + 8, binsTH1x.begin() + 8 + 1);    // merge bins        : 8,9
-    binsTH1x.erase(binsTH1x.begin() + 6, binsTH1x.begin() + 6 + 1);    // merge bins        : 6,7
-    binsTH1x.erase(binsTH1x.begin() + 4, binsTH1x.begin() + 4 + 1);    // merge bins        : 4,5
-    binsTH1x.erase(binsTH1x.begin() + 2, binsTH1x.begin() + 2 + 1);    // merge bins        : 2,3
+    // binning as of 14.07.2016
+    binsTH1x.erase(binsTH1x.begin() + 14, binsTH1x.begin() + 14 + 2);  // merge last 3 bins : 14,15,16
+    binsTH1x.erase(binsTH1x.begin() + 11, binsTH1x.begin() + 11 + 2);  // merge bins        : 11,12,13
+    binsTH1x.erase(binsTH1x.begin() + 9, binsTH1x.begin() + 9 + 1);    // merge bins        : 9,10
+    binsTH1x.erase(binsTH1x.begin() + 7, binsTH1x.begin() + 7 + 1);    // merge bins        : 7,8
+    binsTH1x.erase(binsTH1x.begin() + 5, binsTH1x.begin() + 5 + 1);    // merge bins        : 5,6
+    binsTH1x.erase(binsTH1x.begin() + 2, binsTH1x.begin() + 2 + 2);    // merge bins        : 2,3,4
+
+    // binning before 13.07.2016
+//    binsTH1x.erase(binsTH1x.begin() + 13, binsTH1x.begin() + 13 + 3);  // merge last 4 bins : 13,14,15,16
+//    binsTH1x.erase(binsTH1x.begin() + 10, binsTH1x.begin() + 10 + 2);  // merge bins        : 10,11,12
+//    binsTH1x.erase(binsTH1x.begin() + 8, binsTH1x.begin() + 8 + 1);    // merge bins        : 8,9
+//    binsTH1x.erase(binsTH1x.begin() + 6, binsTH1x.begin() + 6 + 1);    // merge bins        : 6,7
+//    binsTH1x.erase(binsTH1x.begin() + 4, binsTH1x.begin() + 4 + 1);    // merge bins        : 4,5
+//    binsTH1x.erase(binsTH1x.begin() + 2, binsTH1x.begin() + 2 + 1);    // merge bins        : 2,3
 
 //    old binning
 //    binsTH1x.erase(binsTH1x.begin() + 13, binsTH1x.begin() + 13 + 3);  // merge last 4 bins : 13,14,15,16
@@ -45,11 +55,20 @@ std::vector<double> rebinXjBins(std::vector<double> binsTH1x)
  */
 std::vector<double> rebinXjBinsPP(std::vector<double> binsTH1x)
 {
+    binsTH1x.erase(binsTH1x.begin() + 14, binsTH1x.begin() + 14 + 2);  // merge last 3 bins : 14,15,16
+    binsTH1x.erase(binsTH1x.begin() + 11, binsTH1x.begin() + 11 + 2);  // merge bins        : 11,12,13
+    binsTH1x.erase(binsTH1x.begin() + 9, binsTH1x.begin() + 9 + 1);    // merge bins        : 9,10
+    binsTH1x.erase(binsTH1x.begin() + 7, binsTH1x.begin() + 7 + 1);    // merge bins        : 7,8
+    binsTH1x.erase(binsTH1x.begin() + 5, binsTH1x.begin() + 5 + 1);    // merge bins        : 5,6
+    binsTH1x.erase(binsTH1x.begin() + 2, binsTH1x.begin() + 2 + 2);    // merge bins        : 2,3,4
+
+    /*
     binsTH1x.erase(binsTH1x.begin() + 13, binsTH1x.begin() + 13 + 3);  // merge last 4 bins : 13,14,15,16
     binsTH1x.erase(binsTH1x.begin() + 9, binsTH1x.begin() + 9 + 3);    // merge bins        : 9,10,11,12
     binsTH1x.erase(binsTH1x.begin() + 6, binsTH1x.begin() + 6 + 2);    // merge bins        : 6,7,8
     binsTH1x.erase(binsTH1x.begin() + 4, binsTH1x.begin() + 4 + 1);    // merge bins        : 4,5
     binsTH1x.erase(binsTH1x.begin() + 2, binsTH1x.begin() + 2 + 1);    // merge bins        : 2,3
+    */
 
     return binsTH1x;
 }
@@ -68,6 +87,18 @@ std::vector<double> rebinDphiBins(std::vector<double> binsTH1x)
     binsTH1x.erase(binsTH1x.begin() + 9, binsTH1x.begin() + 9 + 2);      // merge bins : 9,10,11
     binsTH1x.erase(binsTH1x.begin() + 5, binsTH1x.begin() + 5 + 3);      // merge bins : 5,6,7,8
     binsTH1x.erase(binsTH1x.begin() + 1, binsTH1x.begin() + 1 + 3);      // merge bins : 1,2,3,4
+
+    return binsTH1x;
+}
+
+/*
+ * rebin the bins in dphi correlation
+ * returns a vector that should be used in TH1::Rebin() function
+ */
+std::vector<double> rebinDphiBins2(std::vector<double> binsTH1x)
+{
+    binsTH1x.erase(binsTH1x.begin() + 3, binsTH1x.begin() + 3 + 1);      // merge bins : 3,4
+    binsTH1x.erase(binsTH1x.begin() + 1, binsTH1x.begin() + 1 + 1);      // merge bins : 1,2
 
     return binsTH1x;
 }

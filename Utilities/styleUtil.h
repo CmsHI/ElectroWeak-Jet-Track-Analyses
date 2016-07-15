@@ -113,7 +113,7 @@ void setTH1Ratio(TH1* h, TH1* hBase, double factor)
     // default titles for the ratio histogram.
     h->SetTitle("");
     h->SetXTitle("");      // no x-axis title for ratio histograms
-    h->SetYTitle("Ratio");      // no x-axis title for ratio histograms
+    //h->SetYTitle("Ratio");      // no x-axis title for ratio histograms
 
     h->SetStats(false);
 
