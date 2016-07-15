@@ -20,10 +20,7 @@
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
-void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile = "gammaJetSkim.root", const TString minBiasJetSkimFile = "");
-
-void gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile, const TString minBiasJetSkimFile)
-{
+int gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile, const TString minBiasJetSkimFile = "") {
   std::cout << "running gammaJetSkim()" << std::endl;
   std::cout << "configFile  = " << configFile.Data() << std::endl;
   std::cout << "inputFile   = " << inputFile.Data() << std::endl;
@@ -36,7 +33,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   // input configuration
   if (!configInput.isValid) {
     std::cout << "Input Configuration invalid" << std::endl;
-    return;
+    return 1;
   }
 
   int collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
@@ -75,7 +72,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
   if (!configCuts.isValid) {
     std::cout << "Invalid Configuration File" << std::endl;
-    return;
+    return 1;
   }
   cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
   cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
@@ -143,17 +140,17 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     std::cout << "nMaxEvents_minBiasMixing = " << nMaxEvents_minBiasMixing << std::endl;
     std::cout << "nCentralityBins          = " << nCentralityBins << std::endl;
     std::cout << "nVertexBins              = " << nVertexBins << std::endl;
-    std::cout << "nEventPlaneBins              = " << nEventPlaneBins << std::endl;
+    std::cout << "nEventPlaneBins          = " << nEventPlaneBins << std::endl;
     std::cout << "nEventsToMix             = " << nEventsToMix << std::endl;
   }
 
-  std::cout<<"smearingResJet          = "<< smearingResJet <<std::endl;
-  std::cout<<"smearingResJetPhi       = "<< smearingResJetPhi <<std::endl;
-  std::cout<<"doCorrectionSmearing    = "<< doCorrectionSmearing <<std::endl;
+  std::cout << "smearingResJet          = " << smearingResJet << std::endl;
+  std::cout << "smearingResJetPhi       = " << smearingResJetPhi << std::endl;
+  std::cout << "doCorrectionSmearing    = " << doCorrectionSmearing << std::endl;
 
   TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
-  TH2D* h_weights_PbPb=0;
-  TH1D* h_weights_pp=0;
+  TH2D* h_weights_PbPb = 0;
+  TH1D* h_weights_pp = 0;
   if (isMC) {
     if (isHI) {
       h_weights_PbPb = (TH2D*)weightsFile->Get("h_weights");
@@ -181,7 +178,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   if (doMix > 0) {
     centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
     vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
-                                          // accepted vz range is -15 to 15.
+    // accepted vz range is -15 to 15.
     eventPlaneBinWidth = TMath::Pi()/nEventPlaneBins;     // number of angles    that a evtplane     bin covers
 
     inputMB = TFile::Open(minBiasJetSkimFile, "READ");
@@ -199,7 +196,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
             if (!treeJetMB[i][j][l][k]) {
               std::cout << "jetCollection = " << jetCollection.c_str() << " is not found in minBias jet skim file" << std::endl;
               std::cout << "exiting" << std::endl;
-              return;
+              return 1;
             }
             nMB[i][j][l][k] = treeJetMB[i][j][l][k]->GetEntries();
 
@@ -209,7 +206,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
             iterMB[i][j][l][k] = primeSeed;
 
             if (nMB[i][j][l][k] < nEventsToMix) {
-              std::cout << "centBin = " << i << ", vzBin = " << j << ", eventPlane = " << l <<", jetCollection = " << jetCollection.c_str() << std::endl;
+              std::cout << "centBin = " << i << ", vzBin = " << j << ", eventPlane = " << l << ", jetCollection = " << jetCollection.c_str() << std::endl;
               std::cout << "nMB[centBin][vzBin][EventPlaneBin][jetCollection] = " << nMB[i][j][l][k] << std::endl;
               std::cout << "nEventsToMix = " << nEventsToMix << std::endl;
               std::cout << "number of MB events in that bin is not enough for mixing" << std::endl;
@@ -240,20 +237,16 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
 
     // smear 0-10 %
     std::vector<double> CSN_HI_cent0010 = {0.07764, 1.179, 7.113};
-    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000,  0.125911, 2.23898};
-
+    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000, 0.125911, 2.23898};
     // smear 10-30 %
     std::vector<double> CSN_HI_cent1030 = {0.07764, 1.179, 4.443};
     std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
-
     // smear 30-50 %
     std::vector<double> CSN_HI_cent3050 = {0.07764, 1.165, 1.826};
     std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.1222, 1.21751};
-
     // smear 50-100 %
     std::vector<double> CSN_HI_cent50100 = {0.07764, 1.065, -0.0003191};
     std::vector<double> CSN_phi_HI_cent50100 = {-0.0073078, 0.168879, 0.798885};
-
 
     for (int j = 0; j < 7; ++j) {
       for (int i = 0; i < nJetCollections; ++i) {
@@ -487,15 +480,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     ULong64_t event;
     float pthat;
 
-    Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
-    treeHiEvt->SetBranchAddress("hiEvtPlanes",&hiEvtPlanes);
+    Float_t hiEvtPlanes[29];   //[hiNevtPlane]
+    treeHiEvt->SetBranchAddress("hiEvtPlanes", &hiEvtPlanes);
 
     treeHiEvt->SetBranchAddress("vz", &vz);
     treeHiEvt->SetBranchAddress("hiBin", &hiBin);
     treeHiEvt->SetBranchAddress("run", &run);
     treeHiEvt->SetBranchAddress("evt", &event);
     treeHiEvt->SetBranchAddress("lumi", &lumis);
-    if(isMC) {
+    if (isMC) {
       treeHiEvt->SetBranchAddress("pthat", &pthat);
     }
 
@@ -517,8 +510,8 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     }
     Int_t HBHENoiseFilterResultRun2Loose;
     if (!isMC) {
-      treeSkim->SetBranchStatus("HBHENoiseFilterResultRun2Loose",1);
-            if (treeSkim->GetBranch("HBHENoiseFilterResultRun2Loose")) {
+      treeSkim->SetBranchStatus("HBHENoiseFilterResultRun2Loose", 1);
+      if (treeSkim->GetBranch("HBHENoiseFilterResultRun2Loose")) {
         treeSkim->SetBranchAddress("HBHENoiseFilterResultRun2Loose", &HBHENoiseFilterResultRun2Loose);
       } else {   // overwrite to default
         HBHENoiseFilterResultRun2Loose = 1;
@@ -569,10 +562,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       if (doEventWeight) {
         outputTreeHiEvt->Branch("weight", &eventWeight, "weight/F");
       }
-      outputTreeHiEvt->Branch("pcollisionEventSelection",&pcollisionEventSelection_out,"pcollisionEventSelection/I");
+      outputTreeHiEvt->Branch("pcollisionEventSelection", &pcollisionEventSelection_out, "pcollisionEventSelection/I");
       outputTreeHiEvt->Branch("pPAprimaryVertexFilter", &pPAprimaryVertexFilter_out, "pPAprimaryVertexFilter/I");
       outputTreeHiEvt->Branch("pBeamScrapingFilter", &pBeamScrapingFilter_out, "pBeamScrapingFilter/I");
-      outputTreeHiEvt->Branch("HBHENoiseFilterResultRun2Loose",&HBHENoiseFilterResultRun2Loose_out, "HBHENoiseFilterResultRun2Loose/I");
+      outputTreeHiEvt->Branch("HBHENoiseFilterResultRun2Loose", &HBHENoiseFilterResultRun2Loose_out, "HBHENoiseFilterResultRun2Loose/I");
       outputTreeSkim = treeSkim->CloneTree(0);
       outputTreeSkim->SetName("skim");
       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
@@ -592,13 +585,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     }
 
     Long64_t entries = treeggHiNtuplizer->GetEntries();
+
     Tentries += entries;
     std::cout << "entries = " << entries << std::endl;
     std::cout << "Loop : ggHiNtuplizer/EventTree" << std::endl;
     for (Long64_t j_entry=0; j_entry<entries; ++j_entry) {
-      if (j_entry % 2000 == 0) {
-        std::cout << "current entry = " << j_entry << " out of " << entries << " : " << std::setprecision(2) << (double)j_entry/entries*100 << " %" << std::endl;
-      }
+      if (j_entry % 2000 == 0)
+        printf("current entry = %lli out of %lli : %.1f%%\n", j_entry, entries, j_entry*100.0/entries);
 
       treeHLT->GetEntry(j_entry);
       treeggHiNtuplizer->GetEntry(j_entry);
@@ -609,20 +602,20 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       treeHiEvt->GetEntry(j_entry);
       if (doEventWeight) {
         int ptHatBin = -1;
-        if(pthat >= 14.99 && pthat < 30.) {
+        if (pthat >= 14.99 && pthat < 30.) {
           ptHatBin = 0;
-        } else if (pthat >=30. && pthat < 50.) {
+        } else if (pthat >= 30. && pthat < 50.) {
           ptHatBin = 1;
-        } else if (pthat >=50. && pthat < 80.) {
+        } else if (pthat >= 50. && pthat < 80.) {
           ptHatBin = 2;
-        } else if (pthat >=80. && pthat < 120.) {
+        } else if (pthat >= 80. && pthat < 120.) {
           ptHatBin = 3;
         } else if (pthat >= 120.) {
           ptHatBin = 4;
         } else {
           std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
         }
-        if(ptHatBin != -1){
+        if (ptHatBin != -1) {
           eventWeight = mcPthatWeights[ptHatBin];
         } else {
           eventWeight = 0;
@@ -644,7 +637,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
       if (!(TMath::Abs(vz) < cut_vz))  continue;
       if (isHI) {
         if ((pcollisionEventSelection < cut_pcollisionEventSelection))  continue;
-        if(!isMC) {
+        if (!isMC) {
           if (HBHENoiseFilterResultRun2Loose < cut_pcollisionEventSelection) continue; // re-use config value...
         }
       } else {
@@ -691,25 +684,22 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
         }
 
         // apply JES after corrections
-        if (energyScaleJet > 0 && energyScaleJet != 1)
-        {
+        if (energyScaleJet > 0 && energyScaleJet != 1) {
           correctorsJetJES.at(i).applyEnergyScale(jets[i], energyScaleJet);
         }
 
         if (smearingResJetPhi > 0) {
-            correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
+          correctorsJetSmear[0][i].applyPhisResolution(jets[i], smearingResJetPhi);
         }
         if (smearingResJet > 0) {
-            correctorsJetSmear[0][i].applyPtsResolution(jets[i], smearingResJet);
+          correctorsJetSmear[0][i].applyPtsResolution(jets[i], smearingResJet);
         }
 
         if (doCorrectionSmearing) {
           jets[i].replicateJets(nSmear);
-          for (int j=0; j<=7; ++j) {
-            if (j != 0) {
-              correctorsJetSmear[j-1][i].applyPtsSmearing(jets[i]);
-              correctorsJetSmear[j-1][i].applyPhisSmearing(jets[i]);
-            }
+          for (int j=0; j<7; ++j) {
+            correctorsJetSmear[j][i].applyPtsSmearing(jets[i]);
+            correctorsJetSmear[j][i].applyPhisSmearing(jets[i]);
           }
         }
 
@@ -718,13 +708,13 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           if (TMath::Abs(jets[i].jteta[j]) > cutJetEta) continue;
           if (doCorrectionSmearing) {
             if ((jets[i].jtpt[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_0_30[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_30_100[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_0_10[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_10_30[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_30_50[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_50_100[j] < cutJetPt) &&
-               (jets[i].jtpt_smeared_sys[j] < cutJetPt)) continue;
+                (jets[i].jtpt_smeared_0_30[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_30_100[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_0_10[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_10_30[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_30_50[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_50_100[j] < cutJetPt) &&
+                (jets[i].jtpt_smeared_sys[j] < cutJetPt)) continue;
           } else {
             if ((jets[i].jtpt[j] < cutJetPt)) continue;
           }
@@ -788,7 +778,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           }
           outputJets[i].nref++;
         }
-        if(phoIdx != -1){
+        if (phoIdx != -1) {
           for (int j =0; j<=7; ++j) {
             gammajet[i][j].makeGammaJetPairs(ggHi, outputJets[i], phoIdx, j);
             if (!doCorrectionSmearing) break;
@@ -803,10 +793,10 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
         for (int k = 0; k < nJetCollections; ++k) {
           jetsMBoutput[k].nref = 0;
 
-          if(phoIdx != -1){
+          if (phoIdx != -1) {
             gammajetMB[k].clearGammaJetPairs(phoIdx);
           }
-            if (nMB[centBin][vzBin][evplaneBin][k] >= nEventsToMix) {
+          if (nMB[centBin][vzBin][evplaneBin][k] >= nEventsToMix) {
             for (int i=0; i<nEventsToMix; ++i) {
               Long64_t entryMB = iterMB[centBin][vzBin][evplaneBin][k] % nMB[centBin][vzBin][evplaneBin][k];     // roll back to the beginning if out of range
               treeJetMB[centBin][vzBin][evplaneBin][k]->GetEntry(entryMB);
@@ -816,16 +806,15 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
               }
 
               // apply JES after corrections
-              if (energyScaleJet > 0 && energyScaleJet != 1)
-              {
+              if (energyScaleJet > 0 && energyScaleJet != 1) {
                 correctorsJetJES.at(k).applyEnergyScale(jetsMB[k], energyScaleJet);
               }
 
               if (smearingResJetPhi > 0) {
-                  correctorsJetSmear[0][k].applyPhisResolution(jetsMB[k], smearingResJetPhi);
+                correctorsJetSmear[0][k].applyPhisResolution(jetsMB[k], smearingResJetPhi);
               }
               if (smearingResJet > 0) {
-                  correctorsJetSmear[0][k].applyPtsResolution(jetsMB[k], smearingResJet);
+                correctorsJetSmear[0][k].applyPtsResolution(jetsMB[k], smearingResJet);
               }
 
               // write jets from minBiasJetSkimFile to outputFile
@@ -874,12 +863,12 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
           } else {
             std::cout << "WARNING : the event lacks necessary number of MB events to mix." << std::endl;
             std::cout << Form("{run, lumis, event, j_entry} = %d, %d, %llu, %lld", run, lumis, event, j_entry) << std::endl;
-            std::cout << Form("{hiBin, vz} = %d, %f", hiBin, vz) << std::endl;
-            std::cout << "centBin = " << centBin << ", vzBin = " << vzBin << ", jetCollection index = " << k << std::endl;
+            std::cout << Form("{hiBin, vz, eventPlane} = %d, %f, %f", hiBin, vz, hiEvtPlanes[8]) << std::endl;
+            printf("centBin = %i, vzBin = %i, evplaneBin = %i, jetCollection index = %i\n", centBin, vzBin, evplaneBin, k);
             std::cout << "nMB[centBin][vzBin][evplaneBin][jetCollection] = " << nMB[centBin][vzBin][evplaneBin][k] << std::endl;
           }
           jetsMBoutput[k].b = -1;   // this branch is not an array.
-          if(phoIdx != -1){
+          if (phoIdx != -1) {
             gammajetMB[k].makeGammaJetPairsMB(ggHi, jetsMBoutput[k], phoIdx);
           }
 
@@ -906,7 +895,7 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
     inFile->Close();
   } // files loop
 
-  std::cout <<  "Loop ENDED : ggHiNtuplizer/EventTree" << std::endl;
+  std::cout << "Loop ENDED : ggHiNtuplizer/EventTree" << std::endl;
   std::cout << "entries            = " << Tentries << std::endl;
   std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
   std::cout << "entriesPassedEventSelection   = " << entriesPassedEventSelection << std::endl;
@@ -940,27 +929,19 @@ void gammaJetSkim(const TString configFile, const TString inputFile, const TStri
   output->Close();
   if (doMix > 0 && inputMB) inputMB->Close();
 
-  std::cout<<"gammaJetSkim() - END"<<std::endl;
+  std::cout << "gammaJetSkim() - END" << std::endl;
+
+  return 0;
 }
 
-int main(int argc, char** argv)
-{
-  if (argc == 5) {
-    gammaJetSkim(argv[1], argv[2], argv[3], argv[4]);
-    return 0;
-  }
-  else if (argc == 4) {
-    gammaJetSkim(argv[1], argv[2], argv[3]);
-    return 0;
-  }
-  else if (argc == 3) {
-    gammaJetSkim(argv[1], argv[2]);
-    return 0;
-  }
-  else {
-    std::cout << "Usage : \n" <<
-      "./gammaJetSkim.exe <configFile> <inputFile> <outputFile> (<minBiasJetSkimFile>)"
-              << std::endl;
-    return 1;
-  }
+int main(int argc, char** argv) {
+  if (argc == 5)
+    return gammaJetSkim(argv[1], argv[2], argv[3], argv[4]);
+  else if (argc == 4)
+    return gammaJetSkim(argv[1], argv[2], argv[3]);
+  else
+    printf("Usage : \n"
+           "./gammaJetSkim.exe <configFile> <inputFile> <outputFile> (<minBiasJetSkimFile>)\n");
+
+  return 1;
 }

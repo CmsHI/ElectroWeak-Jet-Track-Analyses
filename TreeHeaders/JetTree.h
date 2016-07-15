@@ -44,7 +44,7 @@ public :
   Float_t         jtphi_smeared_0_30[maxJets];   //[nref]
   Float_t         jtphi_smeared_30_100[maxJets]; //[nref]
   Float_t         jtphi_smeared_0_10[maxJets]; //[nref]
-  Float_t         jtphi_smeared_10_30[maxJets]; //[nref]  
+  Float_t         jtphi_smeared_10_30[maxJets]; //[nref]
   Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
   Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
   Float_t         jtphi_smeared_sys[maxJets]; //[nref]
@@ -125,23 +125,23 @@ public :
   TBranch        *b_nref;   //!
   TBranch        *b_rawpt;   //!
   TBranch        *b_jtpt;   //!
-  TBranch        *b_jtpt_smeared_0_30; 
-  TBranch        *b_jtpt_smeared_30_100; 
-  TBranch        *b_jtpt_smeared_0_10; 
-  TBranch        *b_jtpt_smeared_10_30; 
-  TBranch        *b_jtpt_smeared_30_50; 
-  TBranch        *b_jtpt_smeared_50_100; 
-  TBranch        *b_jtpt_smeared_sys; 
+  TBranch        *b_jtpt_smeared_0_30;
+  TBranch        *b_jtpt_smeared_30_100;
+  TBranch        *b_jtpt_smeared_0_10;
+  TBranch        *b_jtpt_smeared_10_30;
+  TBranch        *b_jtpt_smeared_30_50;
+  TBranch        *b_jtpt_smeared_50_100;
+  TBranch        *b_jtpt_smeared_sys;
   TBranch        *b_jteta;   //!
   TBranch        *b_jty;   //!
   TBranch        *b_jtphi;   //!
-  TBranch        *b_jtphi_smeared_0_30; 
-  TBranch        *b_jtphi_smeared_30_100; 
-  TBranch        *b_jtphi_smeared_0_10; 
-  TBranch        *b_jtphi_smeared_10_30; 
-  TBranch        *b_jtphi_smeared_30_50; 
-  TBranch        *b_jtphi_smeared_50_100; 
-  TBranch        *b_jtphi_smeared_sys; 
+  TBranch        *b_jtphi_smeared_0_30;
+  TBranch        *b_jtphi_smeared_30_100;
+  TBranch        *b_jtphi_smeared_0_10;
+  TBranch        *b_jtphi_smeared_10_30;
+  TBranch        *b_jtphi_smeared_30_50;
+  TBranch        *b_jtphi_smeared_50_100;
+  TBranch        *b_jtphi_smeared_sys;
   TBranch        *b_jtpu;   //!
   TBranch        *b_jtm;   //!
   TBranch        *b_discr_fr01;   //!
@@ -531,83 +531,82 @@ void Jets::setupTreeForWritingMB(TTree *t, bool doHiJetID, bool doMC)
 
 void Jets::replicateJets(int nCopy)
 {
-    int nref0 = nref;
-    for (int i = 0; i<nref0; ++i)
-    {
-        for (int iCopy = 1; iCopy < nCopy; ++iCopy)
-        {
-            rawpt[iCopy*nref0 + i]=rawpt[i];
-            jtpt[iCopy*nref0 + i]=jtpt[i];
-            jtpt_smeared_0_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_30_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_0_10[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_10_30[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_30_50[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_50_100[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jtpt_smeared_sys[iCopy*nref0 + i]=jtpt[i]; // careful! This overwrites smeared with original.
-            jteta[iCopy*nref0 + i]=jteta[i];
-            jty[iCopy*nref0 + i]=jty[i];
-            jtphi[iCopy*nref0 + i]=jtphi[i];
-            jtphi_smeared_0_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_30_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_0_10[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_10_30[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_30_50[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_50_100[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtphi_smeared_sys[iCopy*nref0 + i]=jtphi[i]; // same as above warning!
-            jtpu[iCopy*nref0 + i]=jtpu[i];
-            jtm[iCopy*nref0 + i]=jtm[i];
-            discr_fr01[iCopy*nref0 + i]=discr_fr01[i];
-            trackMax[iCopy*nref0 + i]=trackMax[i];
-            trackSum[iCopy*nref0 + i]=trackSum[i];
-            trackN[iCopy*nref0 + i]=trackN[i];
-            trackHardSum[iCopy*nref0 + i]=trackHardSum[i];
-            trackHardN[iCopy*nref0 + i]=trackHardN[i];
-            chargedMax[iCopy*nref0 + i]=chargedMax[i];
-            chargedSum[iCopy*nref0 + i]=chargedSum[i];
-            chargedN[iCopy*nref0 + i]=chargedN[i];
-            chargedHardSum[iCopy*nref0 + i]=chargedHardSum[i];
-            chargedHardN[iCopy*nref0 + i]=chargedHardN[i];
-            photonMax[iCopy*nref0 + i]=photonMax[i];
-            photonSum[iCopy*nref0 + i]=photonSum[i];
-            photonN[iCopy*nref0 + i]=photonN[i];
-            photonHardSum[iCopy*nref0 + i]=photonHardSum[i];
-            photonHardN[iCopy*nref0 + i]=photonHardN[i];
-            neutralMax[iCopy*nref0 + i]=neutralMax[i];
-            neutralSum[iCopy*nref0 + i]=neutralSum[i];
-            neutralN[iCopy*nref0 + i]=neutralN[i];
+    for (int i = 0; i<nref; ++i) {
+        for (int iCopy = 1; iCopy < nCopy; ++iCopy) {
+            rawpt[iCopy*nref + i] = rawpt[i];
+            jtpt[iCopy*nref + i] = jtpt[i];
+            jteta[iCopy*nref + i] = jteta[i];
+            jty[iCopy*nref + i] = jty[i];
+            jtphi[iCopy*nref + i] = jtphi[i];
+            jtpu[iCopy*nref + i] = jtpu[i];
+            jtm[iCopy*nref + i] = jtm[i];
+            discr_fr01[iCopy*nref + i] = discr_fr01[i];
+            trackMax[iCopy*nref + i] = trackMax[i];
+            trackSum[iCopy*nref + i] = trackSum[i];
+            trackN[iCopy*nref + i] = trackN[i];
+            trackHardSum[iCopy*nref + i] = trackHardSum[i];
+            trackHardN[iCopy*nref + i] = trackHardN[i];
+            chargedMax[iCopy*nref + i] = chargedMax[i];
+            chargedSum[iCopy*nref + i] = chargedSum[i];
+            chargedN[iCopy*nref + i] = chargedN[i];
+            chargedHardSum[iCopy*nref + i] = chargedHardSum[i];
+            chargedHardN[iCopy*nref + i] = chargedHardN[i];
+            photonMax[iCopy*nref + i] = photonMax[i];
+            photonSum[iCopy*nref + i] = photonSum[i];
+            photonN[iCopy*nref + i] = photonN[i];
+            photonHardSum[iCopy*nref + i] = photonHardSum[i];
+            photonHardN[iCopy*nref + i] = photonHardN[i];
+            neutralMax[iCopy*nref + i] = neutralMax[i];
+            neutralSum[iCopy*nref + i] = neutralSum[i];
+            neutralN[iCopy*nref + i] = neutralN[i];
 
-            hcalSum[iCopy*nref0 + i]=hcalSum[i];
-            ecalSum[iCopy*nref0 + i]=ecalSum[i];
+            hcalSum[iCopy*nref + i] = hcalSum[i];
+            ecalSum[iCopy*nref + i] = ecalSum[i];
 
-            eMax[iCopy*nref0 + i]=eMax[i];
-            eSum[iCopy*nref0 + i]=eSum[i];
-            eN[iCopy*nref0 + i]=eN[i];
-            muMax[iCopy*nref0 + i]=muMax[i];
-            muSum[iCopy*nref0 + i]=muSum[i];
-            muN[iCopy*nref0 + i]=muN[i];
-            matchedPt[iCopy*nref0 + i]=matchedPt[i];
-            matchedR[iCopy*nref0 + i]=matchedR[i];
-            refpt[iCopy*nref0 + i]=refpt[i];
-            refeta[iCopy*nref0 + i]=refeta[i];
-            refy[iCopy*nref0 + i]=refy[i];
-            refphi[iCopy*nref0 + i]=refphi[i];
-            refdphijt[iCopy*nref0 + i]=refdphijt[i];
-            refdrjt[iCopy*nref0 + i]=refdrjt[i];
-            refparton_pt[iCopy*nref0 + i]=refparton_pt[i];
-            refparton_flavor[iCopy*nref0 + i]=refparton_flavor[i];
-            refparton_flavorForB[iCopy*nref0 + i]=refparton_flavorForB[i];
+            eMax[iCopy*nref + i] = eMax[i];
+            eSum[iCopy*nref + i] = eSum[i];
+            eN[iCopy*nref + i] = eN[i];
+            muMax[iCopy*nref + i] = muMax[i];
+            muSum[iCopy*nref + i] = muSum[i];
+            muN[iCopy*nref + i] = muN[i];
+            matchedPt[iCopy*nref + i] = matchedPt[i];
+            matchedR[iCopy*nref + i] = matchedR[i];
+            refpt[iCopy*nref + i] = refpt[i];
+            refeta[iCopy*nref + i] = refeta[i];
+            refy[iCopy*nref + i] = refy[i];
+            refphi[iCopy*nref + i] = refphi[i];
+            refdphijt[iCopy*nref + i] = refdphijt[i];
+            refdrjt[iCopy*nref + i] = refdrjt[i];
+            refparton_pt[iCopy*nref + i] = refparton_pt[i];
+            refparton_flavor[iCopy*nref + i] = refparton_flavor[i];
+            refparton_flavorForB[iCopy*nref + i] = refparton_flavorForB[i];
 
-            genChargedSum[iCopy*nref0 + i]=genChargedSum[i];
-            genHardSum[iCopy*nref0 + i]=genHardSum[i];
+            genChargedSum[iCopy*nref + i] = genChargedSum[i];
+            genHardSum[iCopy*nref + i] = genHardSum[i];
 
-            signalChargedSum[iCopy*nref0 + i]=signalChargedSum[i];
-            signalHardSum[iCopy*nref0 + i]=signalHardSum[i];
-            subid[iCopy*nref0 + i]=subid[i];
+            signalChargedSum[iCopy*nref + i] = signalChargedSum[i];
+            signalHardSum[iCopy*nref + i] = signalHardSum[i];
+            subid[iCopy*nref + i] = subid[i];
         }
     }
 
-    nref = nref0*nCopy;
+    nref *= nCopy;
+
+    memcpy(jtpt_smeared_0_30, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_30_100, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_0_10, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_10_30, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_30_50, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_50_100, jtpt, nref * sizeof(Float_t));
+    memcpy(jtpt_smeared_sys, jtpt, nref * sizeof(Float_t));
+
+    memcpy(jtphi_smeared_0_30, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_30_100, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_0_10, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_10_30, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_30_50, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_50_100, jtphi, nref * sizeof(Float_t));
+    memcpy(jtphi_smeared_sys, jtphi, nref * sizeof(Float_t));
 }
 
 int Jets::jetID(int i)
@@ -627,4 +626,3 @@ int Jets::jetID(int i)
 }
 
 #endif
-
