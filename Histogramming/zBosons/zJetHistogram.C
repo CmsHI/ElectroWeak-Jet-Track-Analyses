@@ -813,6 +813,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
         pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zmm_20160704_vReweightCent.root";
         pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zee_20160704_SYS_noReweightCent.root";
+        if (inputFile.Contains("_0505")) {
+            pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
+            pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
+        }
 
         std::cout << "pathFileDATA_num   = " << pathFileDATA_num.c_str() << std::endl;
         std::cout << "pathFileDATA_denom = " << pathFileDATA_denom.c_str() << std::endl;
