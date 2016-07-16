@@ -9,7 +9,7 @@ outputSkimDirLOG="./"
 outputHistDir="./"
 outputHistDirLOG="./"
 inputMinBiasJetSkim="/mnt/hadoop/cms/store/user/katatar/skims/minBiasJetSkim_HIMinimumBias2_HIRun2015_PromptReco_v1_Run263233_263284.root"
-inputMinBiasJetSkimHydjet="/export/d00/scratch/tatar/EWJTA-out/minBiasJetSkim_Hydjet_Quenched_MinBias_5020GeV_750_HINPbPbWinter16DR.root"
+inputMinBiasJetSkimHydjet="/export/d00/scratch/tatar/EWJTA-out/minBiasJetSkim_Hydjet_Quenched_MinBias_5020GeV_750.root"
 # path to configuration files
 config_HI_ZEE_DATA="Configurations/zJet/zJet.conf"
 config_HI_ZMM_DATA="Configurations/zJet/zJet.diMuon.conf"
@@ -55,6 +55,7 @@ PP_ZEE_MC_Pythia_OLD="/mnt/hadoop/cms/store/user/rbi/merged/Pythia8_Z30eeJet-HIN
 PP_ZMM_MC_Pythia_OLD="/mnt/hadoop/cms/store/user/rbi/merged/Pythia8_Z30mumuJet-HINppWinter16DR-75X_mcRun2_forest_v1/0.root"
 PP_ZEE_MC_Madgraph_OLD="/mnt/hadoop/cms/store/user/rbi/merged/DYJetsToLL_TuneCUETP8M1_5020GeV-amcatnloFXFX-pythia8_HINppWinter16DR-75X_mcRun2_forest_v1/0.root"
 PP_ZMM_MC_Madgraph_OLD="/mnt/hadoop/cms/store/user/rbi/merged/DYJetsToLL_TuneCUETP8M1_5020GeV-amcatnloFXFX-pythia8_HINppWinter16DR-75X_mcRun2_forest_v1/0.root"
+inputMinBiasJetSkimHydjet_OLD="/export/d00/scratch/tatar/EWJTA-out/minBiasJetSkim_Hydjet_Quenched_MinBias_5020GeV_750_HINPbPbWinter16DR.root"
 ### substrings used in output file names
 substr_HI_ZEE_DATA="HIRun2015E_PromptReco_AOD_HI_Zee"
 substr_HI_ZMM_DATA="HIRun2015E_PromptReco_AOD_HI_Zmm"
