@@ -27,9 +27,9 @@ if [ $DO_SYSVAR -eq 1 ]; then
   echo "### SKIM STEP"
   echo "## zJetSkim PP DATA ZEE"
 
-  configSuffixList=$configSuffixList_skim_PP_ZEE_DATA
+  configSuffixList=("${configSuffixList_skim_PP_ZEE_DATA[@]}")
 
-  cutList=$cutList_skim_PP_ZEE_DATA
+  cutList=("${cutList_skim_PP_ZEE_DATA[@]}")
 
   runZJetSkim $configFile $inputSkim $outputSkimPrefix $configSuffixList $cutList
   echo "################# SYSTEMATICS - END #######################"

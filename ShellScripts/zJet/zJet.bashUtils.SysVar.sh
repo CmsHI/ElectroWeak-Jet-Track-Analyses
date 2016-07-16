@@ -303,57 +303,57 @@ skimSuffixList_hist_PP_ZMM=(
 );
 
 ## arrays for skim step - DATA
-configSuffixList_skim_HI_ZEE_DATA=$configSuffixList_skim_HI_ZEE
-configSuffixList_skim_HI_ZMM_DATA=$configSuffixList_skim_HI_ZMM
-configSuffixList_skim_PP_ZEE_DATA=$configSuffixList_skim_PP_ZEE
-configSuffixList_skim_PP_ZMM_DATA=$configSuffixList_skim_PP_ZMM
+configSuffixList_skim_HI_ZEE_DATA=("${configSuffixList_skim_HI_ZEE[@]}")
+configSuffixList_skim_HI_ZMM_DATA=("${configSuffixList_skim_HI_ZMM[@]}")
+configSuffixList_skim_PP_ZEE_DATA=("${configSuffixList_skim_PP_ZEE[@]}")
+configSuffixList_skim_PP_ZMM_DATA=("${configSuffixList_skim_PP_ZMM[@]}")
 
-cutList_skim_HI_ZEE_DATA=$cutList_skim_HI_ZEE
-cutList_skim_HI_ZMM_DATA=$cutList_skim_HI_ZMM
-cutList_skim_PP_ZEE_DATA=$cutList_skim_PP_ZEE
-cutList_skim_PP_ZMM_DATA=$cutList_skim_PP_ZMM
+cutList_skim_HI_ZEE_DATA=("${cutList_skim_HI_ZEE[@]}")
+cutList_skim_HI_ZMM_DATA=("${cutList_skim_HI_ZMM[@]}")
+cutList_skim_PP_ZEE_DATA=("${cutList_skim_PP_ZEE[@]}")
+cutList_skim_PP_ZMM_DATA=("${cutList_skim_PP_ZMM[@]}")
 
 ## arrays for skim step - MC
-configSuffixList_skim_HI_ZEE_MC=$configSuffixList_skim_HI_ZEE
-configSuffixList_skim_HI_ZMM_MC=$configSuffixList_skim_HI_ZMM
-configSuffixList_skim_PP_ZEE_MC=$configSuffixList_skim_PP_ZEE
-configSuffixList_skim_PP_ZMM_MC=$configSuffixList_skim_PP_ZMM
+configSuffixList_skim_HI_ZEE_MC=("${configSuffixList_skim_HI_ZEE[@]}")
+configSuffixList_skim_HI_ZMM_MC=("${configSuffixList_skim_HI_ZMM[@]}")
+configSuffixList_skim_PP_ZEE_MC=("${configSuffixList_skim_PP_ZEE[@]}")
+configSuffixList_skim_PP_ZMM_MC=("${configSuffixList_skim_PP_ZMM[@]}")
 
-cutList_skim_HI_ZEE_MC=$cutList_skim_HI_ZEE
-cutList_skim_HI_ZMM_MC=$cutList_skim_HI_ZMM
-cutList_skim_PP_ZEE_MC=$cutList_skim_PP_ZEE
-cutList_skim_PP_ZMM_MC=$cutList_skim_PP_ZMM
+cutList_skim_HI_ZEE_MC=("${cutList_skim_HI_ZEE[@]}")
+cutList_skim_HI_ZMM_MC=("${cutList_skim_HI_ZMM[@]}")
+cutList_skim_PP_ZEE_MC=("${cutList_skim_PP_ZEE[@]}")
+cutList_skim_PP_ZMM_MC=("${cutList_skim_PP_ZMM[@]}")
 
 ## arrays for histogram step - DATA
-configSuffixList_hist_HI_ZEE_DATA=$configSuffixList_hist_HI_ZEE
-configSuffixList_hist_HI_ZMM_DATA=$configSuffixList_hist_HI_ZMM
-configSuffixList_hist_PP_ZEE_DATA=$configSuffixList_hist_PP_ZEE
-configSuffixList_hist_PP_ZMM_DATA=$configSuffixList_hist_PP_ZMM
+configSuffixList_hist_HI_ZEE_DATA=("${configSuffixList_hist_HI_ZEE[@]}")
+configSuffixList_hist_HI_ZMM_DATA=("${configSuffixList_hist_HI_ZMM[@]}")
+configSuffixList_hist_PP_ZEE_DATA=("${configSuffixList_hist_PP_ZEE[@]}")
+configSuffixList_hist_PP_ZMM_DATA=("${configSuffixList_hist_PP_ZMM[@]}")
 
-cutList_hist_HI_ZEE_DATA=$cutList_hist_HI_ZEE
-cutList_hist_HI_ZMM_DATA=$cutList_hist_HI_ZMM
-cutList_hist_PP_ZEE_DATA=$cutList_hist_PP_ZEE
-cutList_hist_PP_ZMM_DATA=$cutList_hist_PP_ZMM
+cutList_hist_HI_ZEE_DATA=("${cutList_hist_HI_ZEE[@]}")
+cutList_hist_HI_ZMM_DATA=("${cutList_hist_HI_ZMM[@]}")
+cutList_hist_PP_ZEE_DATA=("${cutList_hist_PP_ZEE[@]}")
+cutList_hist_PP_ZMM_DATA=("${cutList_hist_PP_ZMM[@]}")
 
-skimSuffixList_hist_HI_ZEE_DATA=$skimSuffixList_hist_HI_ZEE
-skimSuffixList_hist_HI_ZMM_DATA=$skimSuffixList_hist_HI_ZMM
-skimSuffixList_hist_PP_ZEE_DATA=$skimSuffixList_hist_PP_ZEE
-skimSuffixList_hist_PP_ZMM_DATA=$skimSuffixList_hist_PP_ZMM
+skimSuffixList_hist_HI_ZEE_DATA=("${skimSuffixList_hist_HI_ZEE[@]}")
+skimSuffixList_hist_HI_ZMM_DATA=("${skimSuffixList_hist_HI_ZMM[@]}")
+skimSuffixList_hist_PP_ZEE_DATA=("${skimSuffixList_hist_PP_ZEE[@]}")
+skimSuffixList_hist_PP_ZMM_DATA=("${skimSuffixList_hist_PP_ZMM[@]}")
 
 ## arrays for histogram step - MC
-configSuffixList_hist_HI_ZEE_MC=$configSuffixList_hist_HI_ZEE
-configSuffixList_hist_HI_ZMM_MC=$configSuffixList_hist_HI_ZMM
-configSuffixList_hist_PP_ZEE_MC=$configSuffixList_hist_PP_ZEE
-configSuffixList_hist_PP_ZMM_MC=$configSuffixList_hist_PP_ZMM
+configSuffixList_hist_HI_ZEE_MC=("${configSuffixList_hist_HI_ZEE[@]}")
+configSuffixList_hist_HI_ZMM_MC=("${configSuffixList_hist_HI_ZMM[@]}")
+configSuffixList_hist_PP_ZEE_MC=("${configSuffixList_hist_PP_ZEE[@]}")
+configSuffixList_hist_PP_ZMM_MC=("${configSuffixList_hist_PP_ZMM[@]}")
 
-cutList_hist_HI_ZEE_MC=$cutList_hist_HI_ZEE
-cutList_hist_HI_ZMM_MC=$cutList_hist_HI_ZMM
-cutList_hist_PP_ZEE_MC=$cutList_hist_PP_ZEE
-cutList_hist_PP_ZMM_MC=$cutList_hist_PP_ZMM
+cutList_hist_HI_ZEE_MC=("${cutList_hist_HI_ZEE[@]}")
+cutList_hist_HI_ZMM_MC=("${cutList_hist_HI_ZMM[@]}")
+cutList_hist_PP_ZEE_MC=("${cutList_hist_PP_ZEE[@]}")
+cutList_hist_PP_ZMM_MC=("${cutList_hist_PP_ZMM[@]}")
 
-skimSuffixList_hist_HI_ZEE_MC=$skimSuffixList_hist_HI_ZEE
-skimSuffixList_hist_HI_ZMM_MC=$skimSuffixList_hist_HI_ZMM
-skimSuffixList_hist_PP_ZEE_MC=$skimSuffixList_hist_PP_ZEE
-skimSuffixList_hist_PP_ZMM_MC=$skimSuffixList_hist_PP_ZMM
+skimSuffixList_hist_HI_ZEE_MC=("${skimSuffixList_hist_HI_ZEE[@]}")
+skimSuffixList_hist_HI_ZMM_MC=("${skimSuffixList_hist_HI_ZMM[@]}")
+skimSuffixList_hist_PP_ZEE_MC=("${skimSuffixList_hist_PP_ZEE[@]}")
+skimSuffixList_hist_PP_ZMM_MC=("${skimSuffixList_hist_PP_ZMM[@]}")
 #### global variables - END
 

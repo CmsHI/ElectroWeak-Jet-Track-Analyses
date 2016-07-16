@@ -27,11 +27,11 @@ if [ $DO_SYSVAR -eq 1 ]; then
   echo "### PPSTOGRAM STEP"
   echo "## zJetHistogram PP DATA ZMM"
 
-  configSuffixList=$configSuffixList_hist_PP_ZMM_DATA
+  configSuffixList=("${configSuffixList_hist_PP_ZMM_DATA[@]}")
 
-  cutList=$cutList_hist_PP_ZMM_DATA
+  cutList=("${cutList_hist_PP_ZMM_DATA[@]}")
 
-  configSuffixListSkim=$skimSuffixList_hist_PP_ZMM_DATA
+  configSuffixListSkim=("${skimSuffixList_hist_PP_ZMM_DATA[@]}")
 
   runZJetHistogram $configFile $outputSkimPrefix $configSuffixList $cutList $configSuffixListSkim
   echo "################# SYSTEMATICS - END #######################"

@@ -24,9 +24,9 @@ if [ $DO_SYSVAR -eq 1 ]; then
   echo "### SKIM STEP"
   echo "## zJetSkim HI DATA ZMM"
 
-  configSuffixList=$configSuffixList_skim_HI_ZMM_DATA
+  configSuffixList=("${configSuffixList_skim_HI_ZMM_DATA[@]}")
 
-  cutList=$cutList_skim_HI_ZMM_DATA
+  cutList=("${cutList_skim_HI_ZMM_DATA[@]}")
 
   runZJetSkim $configFile $inputSkim $outputSkimPrefix $configSuffixList $cutList $inputMinBiasJetSkim
   echo "################# SYSTEMATICS - END #######################"
