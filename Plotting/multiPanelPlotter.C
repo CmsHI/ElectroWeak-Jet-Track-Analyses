@@ -505,7 +505,7 @@ int main(int argc, char* argv[]) {
             multiPanelPlotter(argv[1], argv[p]);
         }
     } else {
-        printf("Usage: ./multiPanelPlotter.exe <configFiles>\n");
+        printf("Usage: ./multiPanelPlotter.exe <fileList> <configFiles>\n");
     }
 
     return 0;
