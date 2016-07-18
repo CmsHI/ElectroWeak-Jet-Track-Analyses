@@ -1,8 +1,8 @@
 #!/bin/bash
 set -x
 
-#DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2016-07-05-eventPlaneBins
+DATE=$(date +"%Y-%m-%d_%H_%M_%S")
+#DATE=2016-07-05-eventPlaneBins
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 H_INDIR=/mnt/hadoop/cms/store/user/luck/GAMMAJETFILES/${DATE}/
@@ -102,5 +102,5 @@ echo "## Histogramming Condor Jobs"
 
 # ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetHistogram.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root
 
-# ./Histogramming/gammaJetFinalHistograms.exe CutConfiguration/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/gammaJetHistograms.root
+# ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/gammaJetHistograms.root
 
