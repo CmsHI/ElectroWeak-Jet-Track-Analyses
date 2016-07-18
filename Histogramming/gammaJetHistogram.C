@@ -104,24 +104,6 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     float cut_phoSigmaIEtaIEta;
     float cut_sumIso;
 
-    // bool usePPstyleIso;
-
-    // // isolation for PP
-    // float cut_phoHOverE_EB;         // Barrel
-    // float cut_pfcIso4_EB;
-    // float cut_pfnIso4_c0_EB;
-    // float cut_pfnIso4_c1_EB;
-    // float cut_pfnIso4_c2_EB;
-    // float cut_pfpIso4_c0_EB;
-    // float cut_pfpIso4_c1_EB;
-    // float cut_phoHOverE_EE;         // Endcap
-    // float cut_pfcIso4_EE;
-    // float cut_pfnIso4_c0_EE;
-    // float cut_pfnIso4_c1_EE;
-    // float cut_pfnIso4_c2_EE;
-    // float cut_pfpIso4_c0_EE;
-    // float cut_pfpIso4_c1_EE;
-
     // jet cuts
     std::string jetCollection;
     float cut_jetpt;
@@ -137,6 +119,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     bool useUncorrectedPhotonEnergy;
     bool doElectronRejection;
     bool doPhotonIsolationSys;
+    bool useCorrectedSumIso;
 
     bins_pt[0] = ConfigurationParser::ParseListFloat(
                      configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
@@ -157,24 +140,6 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
     cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
 
-    // usePPstyleIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_usePPstyleIso];
-    // // Barrel
-    // cut_phoHOverE_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EB];
-    // cut_pfcIso4_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EB];
-    // cut_pfnIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EB];
-    // cut_pfnIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EB];
-    // cut_pfnIso4_c2_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EB];
-    // cut_pfpIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EB];
-    // cut_pfpIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EB];
-    // // Endcap
-    // cut_phoHOverE_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EE];
-    // cut_pfcIso4_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EE];
-    // cut_pfnIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EE];
-    // cut_pfnIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EE];
-    // cut_pfnIso4_c2_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EE];
-    // cut_pfpIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EE];
-    // cut_pfpIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EE];
-
     jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
     cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
     cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
@@ -187,6 +152,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
     doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
     doPhotonIsolationSys= configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
+    useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
 
     if (cut_awayRange_lt == 0)
         cut_awayRange_lt = 1;
@@ -204,31 +170,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
     std::cout << "trigger    = " << trigger.c_str() << std::endl;
 
-    // if (isHI || !usePPstyleIso) {
     std::cout << "cut_phoHoverE             = " << cut_phoHoverE << std::endl;
     std::cout << "cut_phoSigmaIEtaIEta      = " << cut_phoSigmaIEtaIEta << std::endl;
     std::cout << "cut_sumIso                = " << cut_sumIso << std::endl;
-    // }
-    // else {
-    //     std::cout << "pp style isolation" << std::endl;
-    //     std::cout << "Barrel :" << std::endl;
-    //     std::cout << "cut_phoHOverE_EB        = " << cut_phoHOverE_EB << std::endl;
-    //     std::cout << "cut_pfcIso4_EB          = " << cut_pfcIso4_EB << std::endl;
-    //     std::cout << "cut_pfnIso4_c0_EB       = " << cut_pfnIso4_c0_EB << std::endl;
-    //     std::cout << "cut_pfnIso4_c1_EB       = " << cut_pfnIso4_c1_EB << std::endl;
-    //     std::cout << "cut_pfnIso4_c2_EB       = " << cut_pfnIso4_c2_EB << std::endl;
-    //     std::cout << "cut_pfpIso4_c0_EB       = " << cut_pfpIso4_c0_EB << std::endl;
-    //     std::cout << "cut_pfpIso4_c1_EB       = " << cut_pfpIso4_c1_EB << std::endl;
-
-    //     std::cout << "Endcap :" << std::endl;
-    //     std::cout << "cut_phoHOverE_EE        = " << cut_phoHOverE_EE << std::endl;
-    //     std::cout << "cut_pfcIso4_EE          = " << cut_pfcIso4_EE << std::endl;
-    //     std::cout << "cut_pfnIso4_c0_EE       = " << cut_pfnIso4_c0_EE << std::endl;
-    //     std::cout << "cut_pfnIso4_c1_EE       = " << cut_pfnIso4_c1_EE << std::endl;
-    //     std::cout << "cut_pfnIso4_c2_EE       = " << cut_pfnIso4_c2_EE << std::endl;
-    //     std::cout << "cut_pfpIso4_c0_EE       = " << cut_pfpIso4_c0_EE << std::endl;
-    //     std::cout << "cut_pfpIso4_c1_EE       = " << cut_pfpIso4_c1_EE << std::endl;
-    // }
+    std::cout << "useCorrectedSumIso        = " << useCorrectedSumIso << std::endl;
 
     std::cout << "jetCollection             = " << jetCollection.c_str() << std::endl;
     std::cout << "cut_jetpt                 = " << cut_jetpt << std::endl;
@@ -266,6 +211,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tPho->SetBranchStatus("pho_ecalClusterIsoR4", 1);
     tPho->SetBranchStatus("pho_hcalRechitIsoR4", 1);
     tPho->SetBranchStatus("pho_trackIsoR4PtCut20", 1);
+    tPho->SetBranchStatus("pho_sumIsoCorrected", 1);
     tPho->SetBranchStatus("phoHoverE", 1);
     tPho->SetBranchStatus("phoE3x3", 1);
     tPho->SetBranchStatus("phoE5x5", 1);
@@ -473,9 +419,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
              (*pho.phoE2x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 2./3.+0.03)) continue;
 
         // isolation cut
-        if (((*pho.pho_ecalClusterIsoR4)[gammaJet[0].phoIdx] +
-             (*pho.pho_hcalRechitIsoR4)[gammaJet[0].phoIdx] +
-             (*pho.pho_trackIsoR4PtCut20)[gammaJet[0].phoIdx]) > cut_sumIso) continue;
+        if (useCorrectedSumIso) {
+            if ( (*pho.pho_sumIsoCorrected)[gammaJet[0].phoIdx] > cut_sumIso) {continue;}
+        } else if (((*pho.pho_ecalClusterIsoR4)[gammaJet[0].phoIdx] +
+                    (*pho.pho_hcalRechitIsoR4)[gammaJet[0].phoIdx] +
+                    (*pho.pho_trackIsoR4PtCut20)[gammaJet[0].phoIdx]) > cut_sumIso) {continue;}
+
         if ((*pho.phoHoverE)[gammaJet[0].phoIdx] > 0.1)
             continue;
 

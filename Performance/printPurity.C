@@ -47,6 +47,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   float cut_phoHoverE;
   float cut_sumIso;
   std::string jetCollection;
+  bool useCorrectedSumIso;
 
   // process cuts
   bins_pt[0] = ConfigurationParser::ParseListFloat(
@@ -66,6 +67,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
   cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
   jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+  useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
 
   int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
   int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -95,8 +97,13 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
 
   // should be migrated to config files ASAP
   // noise cut moved to skim
-  const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
-  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
+  const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
+  TCut sidebandIsolation;
+  if(useCorrectedSumIso){
+    sidebandIsolation = "(pho_sumIsoCorrected>10) && (pho_sumIsoCorrected<20)";
+  } else {
+    sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
+  }
   const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
   const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
 
@@ -125,7 +132,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
       selectionPho = selectionPho && etaCut;
 
       TCut selectionIso = "";
-      selectionIso = selectionIso && Form("(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < %f", cut_sumIso);
+      selectionIso = selectionIso && Form("pho_sumIsoCorrected < %f", cut_sumIso);
       selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
 
       TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;

@@ -103,6 +103,7 @@ namespace CUTS {
       k_doElectronRejection,
       k_doPhotonIsolationSys,
       k_useUncorrectedPhotonEnergy,
+      k_useCorrectedSumIso,
       kN_I_CUTS
     };
 
@@ -114,7 +115,8 @@ namespace CUTS {
       "usePPstyleIso",
       "doElectronRejection",
       "doPhotonIsolationSys",
-      "useUncorrectedPhotonEnergy"
+      "useUncorrectedPhotonEnergy",
+      "useCorrectedSumIso"
     };
 
     enum S_CUTS{
