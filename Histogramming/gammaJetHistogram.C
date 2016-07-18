@@ -1,21 +1,19 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TCut.h>
 #include <TH1D.h>
 #include <TMath.h>
 
 #include <vector>
 #include <string>
 #include <iostream>
-#include <iomanip>
 
+#include "interface/correlationHist.h"
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../TreeHeaders/JetTree.h"
 #include "../TreeHeaders/gammaJetTree.h"
 #include "../TreeHeaders/hiEvtTree.h"
 #include "../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../Plotting/commonUtility.h"
-#include "interface/correlationHist.h"
 #include "../Utilities/eventUtil.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
@@ -34,38 +32,33 @@ const std::vector<std::string> correlationHistTitleY_final_normalized {
 const std::vector<int>         nBinsx {16, 20,          30};
 const std::vector<double>      xlow   {0,  0,           0};
 const std::vector<double>      xup    {2,  TMath::Pi(), 300};
-// const std::vector<double>      xlow_final {0,  0,           0};
-// const std::vector<double>      xup_final  {2,  TMath::Pi(), 200};
-
-const int nSmearBins = 8; // should come from config...
 
 float smeared_jtpt(Jets j, int ijet, int smearingBinIndex) {
     switch (smearingBinIndex) {
-    case 0:
-        return j.jtpt[ijet];
-    case 1:
-        return j.jtpt_smeared_0_30[ijet];
-    case 2:
-        return j.jtpt_smeared_30_100[ijet];
-    case 3:
-        return j.jtpt_smeared_0_10[ijet];
-    case 4:
-        return j.jtpt_smeared_10_30[ijet];
-    case 5:
-        return j.jtpt_smeared_30_50[ijet];
-    case 6:
-        return j.jtpt_smeared_50_100[ijet];
-    case 7:
-        return j.jtpt_smeared_sys[ijet];
-    default:
-        return j.jtpt[ijet];
+        case 0:
+            return j.jtpt[ijet];
+        case 1:
+            return j.jtpt_smeared_0_30[ijet];
+        case 2:
+            return j.jtpt_smeared_30_100[ijet];
+        case 3:
+            return j.jtpt_smeared_0_10[ijet];
+        case 4:
+            return j.jtpt_smeared_10_30[ijet];
+        case 5:
+            return j.jtpt_smeared_30_50[ijet];
+        case 6:
+            return j.jtpt_smeared_50_100[ijet];
+        case 7:
+            return j.jtpt_smeared_sys[ijet];
+        default:
+            return j.jtpt[ijet];
     }
 }
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
 
-void gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum)
-{
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum) {
     TH1::SetDefaultSumw2();
 
     std::cout << "running gammaJetHistogram()" << std::endl;
@@ -75,16 +68,23 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+
+    // input configuration
+    if (!configInput.isValid) {
+        std::cout << "Invalid input configuration" << std::endl;
+        return 1;
+    }
+
     if (!configCuts.isValid) {
-        std::cout << "Invalid configfile, terminating." << std::endl;
-        return;
+        std::cout << "Invalid cut configuration" << std::endl;
+        return 1;
     }
 
     // input configuration
-    int collision;
-    collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     // verbose about input configuration
     std::cout << "Input Configuration :" << std::endl;
+
+    int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
     std::cout << "collision = " << collisionName << std::endl;
 
@@ -94,10 +94,10 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+
+    int nSmearBins;
+
     // event cuts/weights
-    int doEventWeight;
-    std::string eventWeight;    // weight to be used for histogram entries
-                                // current purpose of this variable is for weighting events from MC samples.
     // photon cuts
     std::string trigger;
     float cut_phoHoverE;
@@ -127,35 +127,31 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     float cut_jetpt;
     float cut_jeteta;
     int   cut_jetID;
+
     // gammaJet cuts
     float cut_awayRange;
     float cut_awayRange_lt;
     float cut_dR;
+
     // process cuts
-    // int nEventsToMix;
-    // int nSmear;
     bool useUncorrectedPhotonEnergy;
     bool doElectronRejection;
     bool doPhotonIsolationSys;
 
     bins_pt[0] = ConfigurationParser::ParseListFloat(
-        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+                     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListFloat(
-        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
+                     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
     bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+                        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+                        configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
+    nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
 
     int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
 
-    doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
-    eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
-
     trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
-    // trigger is named differently in MC, hardcode for now :(
-    std::string triggerMC_forPurity = "(HLT_HISinglePhoton40_Eta1p5_v2)";
-    std::string triggerMC_forPurity_pp = "(HLT_HISinglePhoton40_Eta1p5ForPPRef_v1)";
 
     cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
     cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
@@ -189,39 +185,29 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
-    
     doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
     doPhotonIsolationSys= configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
-    // nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
-    // nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
-    if (eventWeight.size() == 0) eventWeight = "1";
-    if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;
+    if (cut_awayRange_lt == 0)
+        cut_awayRange_lt = 1;
 
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
     std::cout << "Cut Configuration :" << std::endl;
     std::cout << "nBins_pt = " << nBins_pt << std::endl;
-    for (int i=0; i<nBins_pt; ++i) {
+    for (int i=0; i<nBins_pt; ++i)
         std::cout << Form("bins_pt[%d] = [%.1f, %.1f)", i, bins_pt[0][i], bins_pt[1][i]) << std::endl;
-    }
     std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
-    for (int i=0; i<nBins_hiBin; ++i) {
+    for (int i=0; i<nBins_hiBin; ++i)
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0][i], bins_hiBin[1][i]) << std::endl;
-    }
-
-    std::cout << "doEventWeight = " << doEventWeight << std::endl;
-    if (doEventWeight > 0) {
-        std::cout << "eventWeight = " << eventWeight.c_str() << std::endl;
-    }
 
     std::cout << "trigger    = " << trigger.c_str() << std::endl;
 
     // if (isHI || !usePPstyleIso) {
-        std::cout << "cut_phoHoverE             = " << cut_phoHoverE << std::endl;
-        std::cout << "cut_phoSigmaIEtaIEta      = " << cut_phoSigmaIEtaIEta << std::endl;
-        std::cout << "cut_sumIso                = " << cut_sumIso << std::endl;
+    std::cout << "cut_phoHoverE             = " << cut_phoHoverE << std::endl;
+    std::cout << "cut_phoSigmaIEtaIEta      = " << cut_phoSigmaIEtaIEta << std::endl;
+    std::cout << "cut_sumIso                = " << cut_sumIso << std::endl;
     // }
     // else {
     //     std::cout << "pp style isolation" << std::endl;
@@ -252,18 +238,25 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     std::cout << "cut_awayRange             = " << cut_awayRange << " * PI" << std::endl;
     std::cout << "cut_awayRange_lt          = " << cut_awayRange_lt << " * PI" << std::endl;
     std::cout << "cut_dR                    = " << cut_dR << std::endl;
-    std::cout << "useUncorrectedPhotonEnergy = " << useUncorrectedPhotonEnergy << std::endl;
 
-    // std::cout << "nEventsToMix              = " << nEventsToMix << std::endl;
+    std::cout << "useUncorrectedPhotonEnergy = " << useUncorrectedPhotonEnergy << std::endl;
 
     // set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
     cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
     /// Input Bookkeeping block ///
-    TFile *input = TFile::Open(inputFile);
-    TTree *tHlt = (TTree*)input->Get("hltTree");
-    TTree *tPho = (TTree*)input->Get("EventTree");    // photons
+    TFile* input = TFile::Open(inputFile);
+
+    TTree* tHlt = (TTree*)input->Get("hltTree");
+    tHlt->SetBranchStatus("*", 0);
+    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5_v1", 1);
+    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5_v2", 1);
+    tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v1", 1);
+    tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v2", 1);
+    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", 1);
+
+    TTree* tPho = (TTree*)input->Get("EventTree");    // photons
     tPho->SetBranchStatus("*", 0);
     tPho->SetBranchStatus("phoEt", 1);
     tPho->SetBranchStatus("phoEtCorrected", 1);
@@ -294,7 +287,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         tPho->SetBranchStatus("mcCalIsoDR04", 1);
         tPho->SetBranchStatus("pho_genMatchedIndex", 1);
     }
-    TTree *tJet = (TTree*)input->Get(jetCollection.c_str());
+
+    TTree* tJet = (TTree*)input->Get(jetCollection.c_str());
+    if (!tJet) {
+        std::cout << "following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
+        std::cout << "exiting" << std::endl;
+        return 1;
+    }
+
     tJet->SetBranchStatus("*", 0);
     tJet->SetBranchStatus("nref", 1);
     tJet->SetBranchStatus("jtpt", 1);
@@ -305,84 +305,70 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     tJet->SetBranchStatus("jtpt_smeared_30_50", 1);
     tJet->SetBranchStatus("jtpt_smeared_50_100", 1);
     tJet->SetBranchStatus("jtpt_smeared_sys", 1);
-    //tJet->SetBranchStatus("jteta", 1);
+    // tJet->SetBranchStatus("jteta", 1);
 
-    TTree *tgj[nSmearBins];
-    for (int smearingBinIndex = 0; smearingBinIndex<nSmearBins; smearingBinIndex++) {
-        if (smearingBinIndex == 0) {
-            tgj[smearingBinIndex] = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
-        } else {
-            tgj[smearingBinIndex] = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), smearingBinIndex-1));
-        }
-    }
-    TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+    TTree* tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
-    if (!tJet) {
-        std::cout << "following jet collection is not found in the input file : " << jetCollection.c_str() << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-
-    GammaJet gj[nSmearBins];
-    for (int smearingBinIndex = 0; smearingBinIndex < nSmearBins; smearingBinIndex++) {
-        if (tgj[smearingBinIndex]) {
-            gj[smearingBinIndex].setupGammaJetTree(tgj[smearingBinIndex]);
-        }
-    }
     ggHiNtuplizer pho;
     pho.setupTreeForReading(tPho);
+
     Jets jet;
     jet.setupTreeForReading(tJet);
+
     hiEvt evt;
     evt.setupTreeForReading(tHiEvt);
+
     Int_t HLT_HISinglePhoton40_Eta1p5_v1, HLT_HISinglePhoton40_Eta1p5_v2;
     Int_t HLT_HISinglePhoton50_Eta3p1_v1, HLT_HISinglePhoton50_Eta3p1_v2;
     Int_t HLT_HISinglePhoton40_Eta1p5ForPPRef_v1;
-    tHlt->SetBranchStatus("*", 0);
-    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5_v1", 1);
-    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5_v2", 1);
-    tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v1", 1);
-    tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v2", 1);
-    tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", 1);
     tHlt->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5_v1", &HLT_HISinglePhoton40_Eta1p5_v1);
     tHlt->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5_v2", &HLT_HISinglePhoton40_Eta1p5_v2);
     tHlt->SetBranchAddress("HLT_HISinglePhoton50_Eta3p1_v1", &HLT_HISinglePhoton50_Eta3p1_v1);
     tHlt->SetBranchAddress("HLT_HISinglePhoton50_Eta3p1_v2", &HLT_HISinglePhoton50_Eta3p1_v2);
     tHlt->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", &HLT_HISinglePhoton40_Eta1p5ForPPRef_v1);
 
-    TTree *tJetMB;
-    TTree *tgjMB;
+    TTree* gammaJetTree[nSmearBins+1];
+    gammaJetTree[0] = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+    for (int i=0; i<nSmearBins; i++)
+        gammaJetTree[i+1] = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), i));
+
+    GammaJet gammaJet[nSmearBins+1];
+    for (int i=0; i<nSmearBins+1; i++)
+        gammaJet[i].setupGammaJetTree(gammaJetTree[i]);
+
+    TTree* jetTreeMB = 0;
+    TTree* gammaJetTreeMB = 0;
     // check the existence of HI specific trees in "gammaJetSkim.root" file
     bool hasJetsMB = false;
     bool hasGammaJetMB = false;
     if (isHI) {
-        input->GetObject(Form("%sMB", jetCollection.c_str()), tJetMB);
-        input->GetObject(Form("gamma_%sMB", jetCollection.c_str()), tgjMB);
+        input->GetObject(Form("%sMB", jetCollection.c_str()), jetTreeMB);
+        input->GetObject(Form("gamma_%sMB", jetCollection.c_str()), gammaJetTreeMB);
 
-        if (tJetMB) hasJetsMB = true;
-        if (tgjMB)  hasGammaJetMB = true;
-    } else {
-        tJetMB = 0;
-        tgjMB  = 0;
+        if (jetTreeMB)
+            hasJetsMB = true;
+        if (gammaJetTreeMB)
+            hasGammaJetMB = true;
     }
 
     Jets jetMB;
-    GammaJet gjMB;
+    GammaJet gammaJetMB;
     if (hasJetsMB && hasGammaJetMB) {
-        tJetMB->SetBranchStatus("*", 0);
-        tJetMB->SetBranchStatus("jtpt", 1);
-        tJetMB->SetBranchStatus("nref", 1);
-        // tJetMB->SetBranchStatus("jteta", 1);
+        jetTreeMB->SetBranchStatus("*", 0);
+        jetTreeMB->SetBranchStatus("jtpt", 1);
+        jetTreeMB->SetBranchStatus("nref", 1);
+        // jetTreeMB->SetBranchStatus("jteta", 1);
 
-        jetMB.setupTreeForReading(tJetMB);
-        gjMB.setupGammaJetTree(tgjMB);
+        jetMB.setupTreeForReading(jetTreeMB);
+        gammaJetMB.setupGammaJetTree(gammaJetTreeMB);
     }
 
     /// End Input Bookkeeping block //
 
     TFile* output = TFile::Open(outputFile, "RECREATE");
     // histograms will be put under a directory whose name is the type of the collision
-    if (!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
+    if (!output->GetKey(collisionName))
+        output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
     output->cd(collisionName);
     std::cout << "histograms will be put under directory : " << collisionName << std::endl;
 
@@ -392,8 +378,6 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     correlationHist corrHists[nCorrHist][nBins_pt][nBins_hiBin];
 
     // prepare histogram names for xjg, abs(dphi) and jet pt
-    // if the collision is not HI, then cannot split it into hiBins.
-    // if (!isHI) nBins_hiBin = 1;
     for (int iHist=0; iHist<nCorrHist; ++iHist) {
         for (int i=0; i<nBins_pt; ++i) {
             for (int j=0; j<nBins_hiBin; ++j) {
@@ -405,7 +389,7 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                                                        CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
                         corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
                         corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",
-                                                                            nBinsx[iHist], xlow[iHist], xup[iHist]);
+                                nBinsx[iHist], xlow[iHist], xup[iHist]);
 
                         corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr] = correlationHistTitleX[iHist].c_str();
                         corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr] = correlationHistTitleY_final_normalized[iHist].c_str();
@@ -433,174 +417,161 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
     // jet from bkg region are already separated from raw region.
     // no additional selection for jets. just use different trees.
     std::cout << "####################" << std::endl;
-    std::cout << "tgj->GetEntries() = " << tgj[0]->GetEntries() << std::endl;
-    if (trigger.compare("") != 0 && !isMC) {
-        std::cout << "tgj->GetEntries(trigger==1) = " << tHlt->GetEntries(Form("%s == 1", trigger.c_str())) << std::endl;
-    } else {
-        std::cout << "tgj->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC." << std::endl;
-    }
+    std::cout << "gammaJetTree->GetEntries() = " << gammaJetTree[0]->GetEntries() << std::endl;
+    if (trigger.compare("") != 0 && !isMC)
+        std::cout << "gammaJetTree->GetEntries(trigger==1) = " << tHlt->GetEntries(Form("%s == 1", trigger.c_str())) << std::endl;
+    else
+        std::cout << "gammaJetTree->GetEntries(trigger==1) is skipped because either no trigger is specified or the data is coming from MC." << std::endl;
     std::cout << "####################" << std::endl;
 
-    long long nentries = tgj[0]->GetEntries();
+    long long nentries = gammaJetTree[0]->GetEntries();
     long long firstEntry = 0;
     long long lastEntry = nentries;
     std::cout << "Total Entries: " << nentries << std::endl;
+
     if (nJobs != -1) {
         if (jobNum >= nJobs) {
             std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
-            return;
+            return 1;
         }
+
         firstEntry = floor(nentries/nJobs)*jobNum;
         lastEntry = floor(nentries/nJobs)*(jobNum+1);
-        if (jobNum == nJobs-1) {
+        if (jobNum == nJobs-1)
             lastEntry = nentries;
-        }
+
         std::cout << "For this job " << jobNum << std::endl;
         std::cout << "First Entry: " << firstEntry << std::endl;
         std::cout << "Final Entry: " << lastEntry << std::endl;
     }
+
     for (long long jentry = firstEntry; jentry < lastEntry; jentry++) {
-        if (jentry % 2000 == 0 && nJobs == -1) {
-            // std::cout << "current entry = " << jentry << " out of " << nentries << " : " << std::setprecision(2) << (double)jentry/nentries*100 << " %" << std::endl;
+        if (jentry % 2000 == 0 && nJobs == -1)
             printf("current entry = %lli out of %lli : %3f%%\n", jentry, nentries, (double)jentry/nentries*100);
-        }
 
         tHlt->GetEntry(jentry);
         // event selection
-        if (!isMC && !HLT_HISinglePhoton40_Eta1p5_v1) continue;
-        if (isHI && isMC && !HLT_HISinglePhoton40_Eta1p5_v2) continue;
-        if (!isHI && isMC && !HLT_HISinglePhoton40_Eta1p5ForPPRef_v1) continue;
+        if (!isMC && !HLT_HISinglePhoton40_Eta1p5_v1)
+            continue;
+        if (isHI && isMC && !HLT_HISinglePhoton40_Eta1p5_v2)
+            continue;
+        if (!isHI && isMC && !HLT_HISinglePhoton40_Eta1p5ForPPRef_v1)
+            continue;
 
         tPho->GetEntry(jentry);
-        tgj[0]->GetEntry(jentry);
+        gammaJetTree[0]->GetEntry(jentry);
 
         // eta cut moved to skim step
-        // eta cut
-        // if (TMath::Abs((*pho.phoEta)[gj[0].phoIdx]) > 1.44) continue;
+        // if (TMath::Abs((*pho.phoEta)[gammaJet[0].phoIdx]) > 1.44) continue;
 
-        // noise cut moved to skim step
-        // // noise cut
-        if (((*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2./3.-0.03 &&
-             (*pho.phoE3x3)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2./3.+0.03) &&
-            ((*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 1./3.-0.03 &&
-             (*pho.phoE1x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 1./3.+0.03) &&
-            ((*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] > 2./3.-0.03 &&
-             (*pho.phoE2x5)[gj[0].phoIdx]/(*pho.phoE5x5)[gj[0].phoIdx] < 2./3.+0.03)) continue;
+        // noise cut
+        if (((*pho.phoE3x3)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 2./3.-0.03 &&
+             (*pho.phoE3x3)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 2./3.+0.03) &&
+            ((*pho.phoE1x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 1./3.-0.03 &&
+             (*pho.phoE1x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 1./3.+0.03) &&
+            ((*pho.phoE2x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 2./3.-0.03 &&
+             (*pho.phoE2x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 2./3.+0.03)) continue;
 
         // isolation cut
-        if (((*pho.pho_ecalClusterIsoR4)[gj[0].phoIdx] +
-             (*pho.pho_hcalRechitIsoR4)[gj[0].phoIdx] +
-             (*pho.pho_trackIsoR4PtCut20)[gj[0].phoIdx]) > cut_sumIso) continue;
-        if ((*pho.phoHoverE)[gj[0].phoIdx] > 0.1) continue;
+        if (((*pho.pho_ecalClusterIsoR4)[gammaJet[0].phoIdx] +
+             (*pho.pho_hcalRechitIsoR4)[gammaJet[0].phoIdx] +
+             (*pho.pho_trackIsoR4PtCut20)[gammaJet[0].phoIdx]) > cut_sumIso) continue;
+        if ((*pho.phoHoverE)[gammaJet[0].phoIdx] > 0.1)
+            continue;
 
-        bool isSignalPho = ((*pho.phoSigmaIEtaIEta_2012)[gj[0].phoIdx] < cut_phoSigmaIEtaIEta);
-        bool isBkgPho = ((*pho.phoSigmaIEtaIEta_2012)[gj[0].phoIdx] > 0.011 &&
-                         (*pho.phoSigmaIEtaIEta_2012)[gj[0].phoIdx] < 0.017);
+        bool isSignalPho = ((*pho.phoSigmaIEtaIEta_2012)[gammaJet[0].phoIdx] < cut_phoSigmaIEtaIEta);
+        bool isBkgPho = ((*pho.phoSigmaIEtaIEta_2012)[gammaJet[0].phoIdx] > 0.011 &&
+                         (*pho.phoSigmaIEtaIEta_2012)[gammaJet[0].phoIdx] < 0.017);
 
-        if (!(isSignalPho || isBkgPho)) continue;
+        if (!(isSignalPho || isBkgPho))
+            continue;
 
-        int phoType = (isSignalPho ? CORR::kRAW : CORR::kBKG);
+        int phoType = isSignalPho ? CORR::kRAW : CORR::kBKG;
 
         // reco electron rejection part
         bool isEle = false;
         if (doElectronRejection) {
             float eleEpTemp = 100.0;
-            for(int ie=0; ie<pho.nEle; ++ie){
-                if ( (*pho.elePt)[ie] < 10 ) continue;
-                if ( abs( (*pho.eleEta)[ie] - (*pho.phoEta)[gj[0].phoIdx] ) > 0.03 ) continue;
-                double dphi = getDPHI((*pho.elePhi)[ie], (*pho.phoPhi)[gj[0].phoIdx]);
-                //float dphi = pho.elePhi->at(ie) - (*pho.phoPhi)[gj[0].phoIdx];
-                //if ( dphi >  3.141592 ) dphi = dphi - 2* 3.141592;
-                //if ( dphi < -3.141592 ) dphi = dphi + 2* 3.141592;
-                if ( abs(dphi) > 0.03 )  continue;
-                if ( eleEpTemp < pho.eleEoverP->at(ie) )  continue;
-                eleEpTemp = pho.eleEoverP->at(ie);
+            for (int ie=0; ie<pho.nEle; ++ie) {
+                if ((*pho.elePt)[ie] < 10)
+                    continue;
+                if (abs((*pho.eleEta)[ie] - (*pho.phoEta)[gammaJet[0].phoIdx]) > 0.03) // deta
+                    continue;
+                if (abs(getDPHI((*pho.elePhi)[ie], (*pho.phoPhi)[gammaJet[0].phoIdx])) > 0.03) // dphi
+                    continue;
+                if (eleEpTemp < pho.eleEoverP->at(ie))
+                    continue;
+
                 isEle = true;
+                break;
             }
         }
-        if (isEle) continue;
+        if (isEle)
+            continue;
 
         // photon isolation systematic part (gen matching & genIso condition)
-        bool failedGenIso = false;
         if (isMC && doPhotonIsolationSys) {
-           if ( !(((*pho.pho_genMatchedIndex)[gj[0].phoIdx]!=-1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx])<5.0)) ) {
-               failedGenIso = true;
-               //std::cout << "failedGenIso : mcCalIso = " << (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gj[0].phoIdx]))<< std::endl;
-           }
+            if (!(((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx]!=-1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx])<5.0))) {
+                // std::cout << "failedGenIso : mcCalIso = " << (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx]))<< std::endl;
+                continue;
+            }
         }
-        if (failedGenIso) continue;
-
 
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
 
-        float weight = 1;
-        if (isMC) {
-            weight = evt.weight;
-        }
+        float weight = isMC ? evt.weight : 1;
+        float phoEt = useUncorrectedPhotonEnergy ? (*pho.phoEt)[gammaJet[0].phoIdx] : (*pho.phoEtCorrected)[gammaJet[0].phoIdx];
 
-        float phoEt = 0;
-        if (useUncorrectedPhotonEnergy) {
-            phoEt = (*pho.phoEt)[gj[0].phoIdx];
-        } else {
-            phoEt = (*pho.phoEtCorrected)[gj[0].phoIdx];
-        }
         // handle nEntriesPho separate from jet loop
         for (int i=0; i<nBins_pt; ++i) {
-            if (phoEt <  bins_pt[0][i] ||
-                phoEt >= bins_pt[1][i]) continue;
+            if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
+                continue;
             for (int j=0; j<nBins_hiBin; ++j) {
-                if (isHI) {
-                    if (evt.hiBin <  bins_hiBin[0][j] ||
-                        evt.hiBin >= bins_hiBin[1][j]) continue;
-                }
-                for (int iHist = 0; iHist < nCorrHist; iHist++) {
+                if (isHI && (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j]))
+                    continue;
+                for (int iHist = 0; iHist < nCorrHist; iHist++)
                     corrHists[iHist][i][j].nEntriesPho[phoType][CORR::kRAW] += weight;
-                }
             }
         }
 
-        bool gotEntry[nSmearBins] = {false}; // only call getEntry once per event for smear trees
-        gotEntry[0] = true;
-        for (int ijet = 0; ijet < jet.nref; ijet++) {
-            // jet cuts
-            // jteta cut moved to skim
-            // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
-            if ((*gj[0].jetID)[ijet] < cut_jetID) continue;
-
-            for (int j=0; j<nBins_hiBin; ++j) {
-                int smearingBinIndex = 0;
-                if (isHI) {
-                    if (evt.hiBin <  bins_hiBin[0][j] ||
-                        evt.hiBin >= bins_hiBin[1][j]) continue;
-                } else {
-                    if (!gotEntry[j]) {
-                        tgj[j]->GetEntry(jentry);
-                        gotEntry[j] = true;
-                    }
+        for (int j=0; j<nBins_hiBin; ++j) {
+            int smearingBinIndex = 0;
+            if (isHI) {
+                if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+                    continue;
+            } else {
+                if (j) {
                     smearingBinIndex = j;
+                    gammaJetTree[j]->GetEntry(jentry);
                 }
+            }
 
-                if (smeared_jtpt(jet, ijet, smearingBinIndex) < cut_jetpt) continue;
-                if ((*gj[smearingBinIndex].dR)[ijet] < cut_dR) continue;
+            for (int ijet = 0; ijet < jet.nref; ijet++) {
+                // jet cuts
+                // jteta cut moved to skim
+                // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
+                if ((*gammaJet[0].jetID)[ijet] < cut_jetID)
+                    continue;
+                if (smeared_jtpt(jet, ijet, smearingBinIndex) < cut_jetpt)
+                    continue;
+                if ((*gammaJet[smearingBinIndex].dR)[ijet] < cut_dR)
+                    continue;
 
                 for (int i=0; i<nBins_pt; ++i) {
-                    if (phoEt <  bins_pt[0][i] ||
-                        phoEt >= bins_pt[1][i]) continue;
+                    if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
+                        continue;
 
                     // fill histograms
                     // dphi = 1
-                    corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gj[smearingBinIndex].dphi)[ijet]), weight);
+                    corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gammaJet[smearingBinIndex].dphi)[ijet]), weight);
                     corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     //apply dphi cuts now
-                    if (TMath::Abs((*gj[smearingBinIndex].dphi)[ijet]) <= cut_awayRange) continue;
+                    if (TMath::Abs((*gammaJet[smearingBinIndex].dphi)[ijet]) <= cut_awayRange)
+                        continue;
                     // xjg = 0
                     // jtpt = 2
-                    float xjg;
-                    if (useUncorrectedPhotonEnergy)
-                        xjg = (*gj[smearingBinIndex].xjg)[ijet];
-                    else
-                        xjg = (*gj[smearingBinIndex].xjgCorrected)[ijet];
+                    float xjg = useUncorrectedPhotonEnergy ? (*gammaJet[smearingBinIndex].xjg)[ijet] : (*gammaJet[smearingBinIndex].xjgCorrected)[ijet];
                     corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(smeared_jtpt(jet, ijet, smearingBinIndex), weight);
@@ -612,27 +583,29 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
         if (dphi_check && isHI) {
             for (int ijet = 0; ijet < jet.nref; ijet++) {
                 for (int j=0; j<nBins_hiBin; ++j) {
-                    if (evt.hiBin <  bins_hiBin[0][j] ||
-                        evt.hiBin >= bins_hiBin[1][j]) continue;
-
-                    if (jet.jtpt[ijet] < cut_jetpt) continue;
-                    if ((*gj[0].dR)[ijet] < cut_dR) continue;
+                    if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+                        continue;
+                    if (jet.jtpt[ijet] < cut_jetpt)
+                        continue;
+                    if ((*gammaJet[0].dR)[ijet] < cut_dR)
+                        continue;
 
                     for (int i=0; i<nBins_pt; ++i) {
-                        if ((*pho.phoEtCorrected)[gj[0].phoIdx] <  bins_pt[0][i] ||
-                            (*pho.phoEtCorrected)[gj[0].phoIdx] >= bins_pt[1][i]) continue;
+                        if ((*pho.phoEtCorrected)[gammaJet[0].phoIdx] <  bins_pt[0][i] ||
+                            (*pho.phoEtCorrected)[gammaJet[0].phoIdx] >= bins_pt[1][i]) continue;
 
                         float lower_sideband = 1;
                         float upper_sideband = TMath::Pi()/2;
                         float sideband_width = upper_sideband - lower_sideband;
 
                         // select dphi sideband region
-                        if (TMath::Abs((*gj[0].dphi)[ijet]) > upper_sideband || TMath::Abs((*gj[0].dphi)[ijet]) < lower_sideband) continue;
+                        if (TMath::Abs((*gammaJet[0].dphi)[ijet]) > upper_sideband || TMath::Abs((*gammaJet[0].dphi)[ijet]) < lower_sideband)
+                            continue;
 
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gj[0].dphi)[ijet])-lower_sideband)*(TMath::Pi()/sideband_width), weight*40*(TMath::Pi()/sideband_width));
+                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gammaJet[0].dphi)[ijet])-lower_sideband)*(TMath::Pi()/sideband_width), weight*40*(TMath::Pi()/sideband_width));
                         corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/sideband_width);
 
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gj[0].xjgCorrected)[ijet], weight*40*(TMath::Pi()/8/sideband_width));
+                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gammaJet[0].xjgCorrected)[ijet], weight*40*(TMath::Pi()/8/sideband_width));
                         corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
                         corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight*40*(TMath::Pi()/8/sideband_width));
                         corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
@@ -641,36 +614,37 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         } else {
             if (hasJetsMB && hasGammaJetMB) {
-                tJetMB->GetEntry(jentry);
-                tgjMB->GetEntry(jentry);
+                jetTreeMB->GetEntry(jentry);
+                gammaJetTreeMB->GetEntry(jentry);
 
                 for (int ijet = 0; ijet < jetMB.nref; ijet++) {
                     // jet cuts
-                    if ((*gjMB.dR)[ijet] < cut_dR) continue;
+                    if ((*gammaJetMB.dR)[ijet] < cut_dR)
+                        continue;
                     // jteta cut moved to skim
                     // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
-                    if (smeared_jtpt(jetMB, ijet, 0) < cut_jetpt) continue;
-                    if ((*gjMB.jetID)[ijet] < cut_jetID) continue;
+                    if (smeared_jtpt(jetMB, ijet, 0) < cut_jetpt)
+                        continue;
+                    if ((*gammaJetMB.jetID)[ijet] < cut_jetID)
+                        continue;
 
                     for (int i=0; i<nBins_pt; ++i) {
-                        if ((*pho.phoEtCorrected)[gjMB.phoIdx] <  bins_pt[0][i] ||
-                            (*pho.phoEtCorrected)[gjMB.phoIdx] >= bins_pt[1][i]) continue;
+                        if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
+                            (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
                         for (int j=0; j<nBins_hiBin; ++j) {
-                            if (evt.hiBin <  bins_hiBin[0][j] ||
-                                evt.hiBin >= bins_hiBin[1][j]) continue;
+                            if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+                                continue;
 
                             // fill histograms
                             // dphi = 1
-                            corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gjMB.dphi)[ijet]), weight);
+                            corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gammaJetMB.dphi)[ijet]), weight);
                             corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             // apply dphi cuts now
-                            if (TMath::Abs((*gjMB.dphi)[ijet]) <= cut_awayRange) continue;
+                            if (TMath::Abs((*gammaJetMB.dphi)[ijet]) <= cut_awayRange)
+                                continue;
                             // xjg = 0
                             // jtpt = 2
-                            float xjg = (*gjMB.xjgCorrected)[ijet];
-                            if (useUncorrectedPhotonEnergy)
-                                xjg = (*gjMB.xjg)[ijet];
-
+                            float xjg = useUncorrectedPhotonEnergy ? (*gammaJetMB.xjg)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
                             corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
                             corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(smeared_jtpt(jetMB, ijet, 0), weight);
@@ -705,36 +679,14 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
                 std::cout << "nEntriesPho[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] << std::endl;
 
                 std::string histoTitle;
-                // if (isHI) {
+                if (bins_pt[1][i] == 9999 && bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200)
+                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0][i]);
+                else if (bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200)
+                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][i], bins_pt[1][i]);
+                else if (bins_pt[1][i] == 9999)
+                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c, %d-%d %% ", collisionName , bins_pt[0][i], bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
+                else
                     histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %% ", collisionName , bins_pt[0][i], bins_pt[1][i], bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
-
-                    // special cases
-                    if (bins_pt[0][i] <= 0 && bins_pt[1][i] < 0 && bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200) {
-                        histoTitle = Form("%s", collisionName );
-                    }
-                    else if (bins_pt[0][i] <= 0 && bins_pt[1][i] < 0) {
-                        histoTitle = Form("%s , %d-%d %%", collisionName , bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
-                    }
-                    else if (bins_pt[1][i] < 0 && bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200) {
-                        histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0][i]);
-                    }
-                    else if (bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200) {
-                        histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][i], bins_pt[1][i]);
-                    }
-                    else if (bins_pt[1][i] < 0) {
-                        histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c, %d-%d %% ", collisionName , bins_pt[0][i], bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
-                    }
-                // } else {
-                //     histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][i], bins_pt[1][i]);
-
-                //     // special cases
-                //     if (bins_pt[0][i] <= 0 && bins_pt[1][i] < 0) {
-                //         histoTitle = Form("%s", collisionName );
-                //     }
-                //     else if (bins_pt[1][i] < 0) {
-                //         histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0][i]);
-                //     }
-                // }
 
                 // histograms for RAW and BKG regions
                 for (int iCorr = 0; iCorr < CORR::kN_CORRFNC-1; ++iCorr) {
@@ -756,25 +708,24 @@ void gammaJetHistogram(const TString configFile, const TString inputFile, const 
             }
         }
     }
+
     configTree->Write("", TObject::kOverwrite);
 
     output->Write("", TObject::kOverwrite);
     input->Close();
     output->Close();
+
+    return 0;
 }
 
-int main(int argc, char** argv)
-{
-    if (argc == 6) {
-        gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
-        return 0;
-    } else if (argc == 4) {
-        gammaJetHistogram(argv[1], argv[2], argv[3]);
-        return 0;
-    } else {
-        std::cout << "Usage : \n" <<
-            "./gammaJetHistogram.exe <configFile> <inputFile> <outputFile>"
-                  << std::endl;
-        return 1;
-    }
+int main(int argc, char** argv) {
+    if (argc == 6)
+        return gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
+    else if (argc == 4)
+        return gammaJetHistogram(argv[1], argv[2], argv[3]);
+    else
+        printf("Usage : \n"
+               "./gammaJetHistogram.exe <configFile> <inputFile> <outputFile>");
+
+    return 1;
 }
