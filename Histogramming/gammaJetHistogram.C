@@ -221,13 +221,6 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tJet->SetBranchStatus("*", 0);
     tJet->SetBranchStatus("nref", 1);
     tJet->SetBranchStatus("jtpt", 1);
-    tJet->SetBranchStatus("jtpt_smeared_0_30", 1);
-    tJet->SetBranchStatus("jtpt_smeared_30_100", 1);
-    tJet->SetBranchStatus("jtpt_smeared_0_10", 1);
-    tJet->SetBranchStatus("jtpt_smeared_10_30", 1);
-    tJet->SetBranchStatus("jtpt_smeared_30_50", 1);
-    tJet->SetBranchStatus("jtpt_smeared_50_100", 1);
-    tJet->SetBranchStatus("jtpt_smeared_sys", 1);
     tJet->SetBranchStatus("jtpt_smeared", 1);
     // tJet->SetBranchStatus("jteta", 1);
 
