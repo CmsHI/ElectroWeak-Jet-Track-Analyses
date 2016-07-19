@@ -10,6 +10,11 @@
 #include "ggHiNtuplizerTree.h"
 #include "JetTree.h"
 
+double unsafe_dphi(double phi1, double phi2) {
+    double dphi = TMath::Abs(phi1 - phi2);
+    return (dphi > TMath::Pi()) ? 2 * TMath::Pi() - dphi : dphi;
+}
+
 class GammaJet {
 public :
     GammaJet(){
@@ -31,9 +36,11 @@ public :
     void resetConeRange() { coneRange = 0.4 ; }
     void setupGammaJetTree(TTree *t);
     void branchGammaJetTree(TTree *t);
-    void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx, int smearingBranchIndex=-1);
     void clearGammaJetPairs(int phoIdx);
+    void makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
     void makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx);
+    void makeGammaJetPairsSmeared(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx,
+                                  std::vector<float>* jtpt_smeared, std::vector<float>* jtphi_smeared);
 
     float awayRange;
     float coneRange;
@@ -115,120 +122,6 @@ void GammaJet::branchGammaJetTree(TTree *t)
     t->Branch("jetID", &jetID_out);
 }
 
-void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx, int smearingBranchIndex)
-{
-    jetIdx_out.clear();
-    xjg_out.clear();
-    deta_out.clear();
-    dphi_out.clear();
-    dR_out.clear();
-    insideJet_out.clear();
-    jetID_out.clear();
-
-    phoIdx_out = phoIdx;
-    nJetinAwayRange_out = 0;
-
-    jetIdx1_out = -1;
-    jetIdx2_out = -1;
-    double jetIdx1_pt = -1;
-    double jetIdx2_pt = -1;
-    // all the jets must go into correlation,
-    // no jet should be skipped.
-    for (int i=0; i<tJets.nref; ++i)
-    {
-        float jtpt;
-        float jtphi;
-        switch(smearingBranchIndex){
-        case 0:
-            jtpt = tJets.jtpt[i];
-            jtphi = tJets.jtphi[i];
-            break;
-        case 1:
-            jtpt = tJets.jtpt_smeared_0_30[i];
-            jtphi = tJets.jtphi_smeared_0_30[i];
-            break;
-        case 2:
-            jtpt = tJets.jtpt_smeared_30_100[i];
-            jtphi = tJets.jtphi_smeared_0_30[i];
-            break;
-        case 3:
-            jtpt = tJets.jtpt_smeared_0_10[i];
-            jtphi = tJets.jtphi_smeared_0_10[i];
-            break;
-        case 4:
-            jtpt = tJets.jtpt_smeared_10_30[i];
-            jtphi = tJets.jtphi_smeared_10_30[i];
-            break;
-        case 5:
-            jtpt = tJets.jtpt_smeared_30_50[i];
-            jtphi = tJets.jtphi_smeared_30_50[i];
-            break;
-        case 6:
-            jtpt = tJets.jtpt_smeared_50_100[i];
-            jtphi = tJets.jtphi_smeared_50_100[i];
-            break;
-        case 7:
-            jtpt = tJets.jtpt_smeared_sys[i];
-            jtphi = tJets.jtphi_smeared_sys[i];
-            break;
-        default:
-            std::cout << "smearingBranchIndex set incorrectly in gammaJetTree" << std::endl;
-            jtpt = tJets.jtpt[i];
-            jtphi = tJets.jtphi[i];
-            break;
-        }
-
-        // cuts on jets will be applied during plotting
-        float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
-        float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), jtphi);
-        if (TMath::Abs(tmp_dphi) > awayRange)
-            nJetinAwayRange_out++;
-        float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], jtphi);
-
-        int tmp_insideJet;
-        if(tmp_dR < coneRange) tmp_insideJet = 1;
-        else                             tmp_insideJet = 0;
-
-        int tmp_jetID = 0;
-        if (tJets.rawpt[i] > 0) {
-            if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                    tmp_jetID = 1;
-            }
-        }
-
-        if (jtpt > jetIdx1_pt && tmp_jetID == 1) {
-            // current leading jet becomes subleading jet
-            jetIdx2_pt = jetIdx1_pt;
-            jetIdx2_out = jetIdx1_out;
-
-            jetIdx1_pt = jtpt;
-            jetIdx1_out = i;
-        }
-        else if (jtpt > jetIdx2_pt && tmp_jetID == 1) {
-            jetIdx2_pt = jtpt;
-            jetIdx2_out = i;
-        }
-
-        jetIdx_out.push_back(i);
-        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
-            xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
-        }
-        else {
-            xjg_out.push_back(-1);
-        }
-        deta_out.push_back(tmp_deta);
-        dphi_out.push_back(tmp_dphi);
-        dR_out.push_back(tmp_dR);
-        insideJet_out.push_back(tmp_insideJet);
-        jetID_out.push_back(tmp_jetID);
-    }
-}
-
 /*
  * in MB event mixing step, one photon is paired to jets from multiple events.
  * So, In the same event, gammajet pairs will be made multiple times.
@@ -249,6 +142,76 @@ void GammaJet::clearGammaJetPairs(int phoIdx)
     nJetinAwayRange_out = 0;
 }
 
+void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
+{
+    jetIdx_out.clear();
+    xjg_out.clear();
+    deta_out.clear();
+    dphi_out.clear();
+    dR_out.clear();
+    insideJet_out.clear();
+    jetID_out.clear();
+
+    phoIdx_out = phoIdx;
+    nJetinAwayRange_out = 0;
+
+    jetIdx1_out = -1;
+    jetIdx2_out = -1;
+    double jetIdx1_pt = -1;
+    double jetIdx2_pt = -1;
+    // all the jets must go into correlation,
+    // no jet should be skipped.
+    for (int i=0; i<tJets.nref; ++i) {
+        float jtpt = tJets.jtpt[i];
+        float jtphi = tJets.jtphi[i];
+
+        // cuts on jets will be applied during plotting
+        float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
+        float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), jtphi);
+        if (TMath::Abs(tmp_dphi) > awayRange)
+            nJetinAwayRange_out++;
+        float tmp_dR = TMath::Sqrt(tmp_deta * tmp_deta + tmp_dphi * tmp_dphi);
+
+        int tmp_insideJet = tmp_dR < coneRange;
+
+        int tmp_jetID = 0;
+        if (tJets.rawpt[i] > 0) {
+            if (tJets.neutralSum[i]/tJets.rawpt[i] < 0.9 &&
+                tJets.chargedSum[i]/tJets.rawpt[i] > 0.01 &&
+                tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i] > 0 &&
+                tJets.chargedMax[i]/tJets.rawpt[i] < 0.99 &&
+                tJets.photonSum[i]/tJets.rawpt[i]  < 0.99 &&
+                tJets.eSum[i]/tJets.rawpt[i]       < 0.99)
+            {
+                tmp_jetID = 1;
+
+                if (jtpt > jetIdx1_pt) {
+                    // current leading jet becomes subleading jet
+                    jetIdx2_pt = jetIdx1_pt;
+                    jetIdx2_out = jetIdx1_out;
+
+                    jetIdx1_pt = jtpt;
+                    jetIdx1_out = i;
+                } else if (jtpt > jetIdx2_pt) {
+                    jetIdx2_pt = jtpt;
+                    jetIdx2_out = i;
+                }
+            }
+        }
+
+        jetIdx_out.push_back(i);
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+            xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
+        else
+            xjg_out.push_back(-1);
+        deta_out.push_back(tmp_deta);
+        dphi_out.push_back(tmp_dphi);
+        dR_out.push_back(tmp_dR);
+        insideJet_out.push_back(tmp_insideJet);
+        jetID_out.push_back(tmp_jetID);
+    }
+}
+
 void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
     jetIdx1_out = -1;
@@ -257,51 +220,115 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
     double jetIdx2_pt = -1;
     // all the jets must go into correlation,
     // no jet should be skipped.
-    for (int i=0; i<tJets.nref; ++i)
-    {
+    for (int i=0; i<tJets.nref; ++i) {
         // cuts on jets will be applied during plotting
         float tmp_deta = getDETA(tggHiNtuplizer.phoEta->at(phoIdx), tJets.jteta[i]);
         float tmp_dphi = getDPHI(tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jtphi[i]);
         if (TMath::Abs(tmp_dphi) > awayRange)
             nJetinAwayRange_out++;
-        float tmp_dR   = getDR(tggHiNtuplizer.phoEta->at(phoIdx), tggHiNtuplizer.phoPhi->at(phoIdx), tJets.jteta[i], tJets.jtphi[i]);
+        float tmp_dR = TMath::Sqrt(tmp_deta * tmp_deta + tmp_dphi * tmp_dphi);
 
-        int tmp_insideJet;
-        if (tmp_dR < coneRange) tmp_insideJet = 1;
-        else                             tmp_insideJet = 0;
+        int tmp_insideJet = tmp_dR < coneRange;
 
         int tmp_jetID = 0;
         if (tJets.rawpt[i] > 0) {
-            if (    tJets.neutralSum[i]/tJets.rawpt[i] < 0.9
-                &&  tJets.chargedSum[i]/tJets.rawpt[i] > 0.01
-                && (tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i]) > 0
-                &&  tJets.chargedMax[i]/tJets.rawpt[i] < 0.99
-                &&  tJets.photonSum[i]/tJets.rawpt[i]  < 0.99
-                &&  tJets.eSum[i]/tJets.rawpt[i]       < 0.99) {
-                    tmp_jetID = 1;
+            if (tJets.neutralSum[i]/tJets.rawpt[i] < 0.9 &&
+                tJets.chargedSum[i]/tJets.rawpt[i] > 0.01 &&
+                tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i] > 0 &&
+                tJets.chargedMax[i]/tJets.rawpt[i] < 0.99 &&
+                tJets.photonSum[i]/tJets.rawpt[i] < 0.99 &&
+                tJets.eSum[i]/tJets.rawpt[i] < 0.99)
+            {
+                tmp_jetID = 1;
+
+                if (tJets.jtpt[i] > jetIdx1_pt) {
+                    // current leading jet becomes subleading jet
+                    jetIdx2_pt = jetIdx1_pt;
+                    jetIdx2_out = jetIdx1_out;
+
+                    jetIdx1_pt = tJets.jtpt[i];
+                    jetIdx1_out = i;
+                } else if (tJets.jtpt[i] > jetIdx2_pt) {
+                    jetIdx2_pt = tJets.jtpt[i];
+                    jetIdx2_out = i;
+                }
             }
         }
 
-        if (tJets.jtpt[i] > jetIdx1_pt && tmp_jetID == 1) {
-            // current leading jet becomes subleading jet
-            jetIdx2_pt = jetIdx1_pt;
-            jetIdx2_out = jetIdx1_out;
+        jetIdx_out.push_back(i);
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+            xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
+        else
+            xjg_out.push_back(-1);
+        deta_out.push_back(tmp_deta);
+        dphi_out.push_back(tmp_dphi);
+        dR_out.push_back(tmp_dR);
+        insideJet_out.push_back(tmp_insideJet);
+        jetID_out.push_back(tmp_jetID);
+    }
+}
 
-            jetIdx1_pt = tJets.jtpt[i];
-            jetIdx1_out = i;
-        }
-        else if (tJets.jtpt[i] > jetIdx2_pt && tmp_jetID == 1) {
-            jetIdx2_pt = tJets.jtpt[i];
-            jetIdx2_out = i;
+void GammaJet::makeGammaJetPairsSmeared(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx,
+                                        std::vector<float>* jtpt_smeared, std::vector<float>* jtphi_smeared) {
+    jetIdx_out.clear();
+    xjg_out.clear();
+    deta_out.clear();
+    dphi_out.clear();
+    dR_out.clear();
+    insideJet_out.clear();
+    jetID_out.clear();
+
+    phoIdx_out = phoIdx;
+    nJetinAwayRange_out = 0;
+
+    jetIdx1_out = -1;
+    jetIdx2_out = -1;
+    double jetIdx1_pt = -1;
+    double jetIdx2_pt = -1;
+
+    // all the jets must go into correlation,
+    // no jet should be skipped.
+    for (int i=0; i<tJets.nref; ++i) {
+        float jtpt = (*jtpt_smeared)[i];
+        float jtphi = (*jtphi_smeared)[i];
+
+        // cuts on jets will be applied during plotting
+        float tmp_deta = tggHiNtuplizer.phoEta->at(phoIdx) - tJets.jteta[i];
+        float tmp_dphi = unsafe_dphi(tggHiNtuplizer.phoPhi->at(phoIdx), jtphi);
+        if (tmp_dphi > awayRange)
+            nJetinAwayRange_out++;
+        float tmp_dR = TMath::Sqrt(tmp_deta * tmp_deta + tmp_dphi * tmp_dphi);
+        int tmp_insideJet = tmp_dR < coneRange;
+
+        int tmp_jetID = 0;
+        if (tJets.rawpt[i] > 0) {
+            if (tJets.neutralSum[i]/tJets.rawpt[i] < 0.9 &&
+                tJets.chargedSum[i]/tJets.rawpt[i] > 0.01 &&
+                tJets.chargedN[i] + tJets.photonN[i] + tJets.neutralN[i] + tJets.eN[i] + tJets.muN[i] > 0 &&
+                tJets.chargedMax[i]/tJets.rawpt[i] < 0.99 &&
+                tJets.photonSum[i]/tJets.rawpt[i] < 0.99 &&
+                tJets.eSum[i]/tJets.rawpt[i] < 0.99)
+            {
+                tmp_jetID = 1;
+
+                if (jtpt > jetIdx1_pt) {
+                    jetIdx2_pt = jetIdx1_pt;
+                    jetIdx2_out = jetIdx1_out;
+
+                    jetIdx1_pt = jtpt;
+                    jetIdx1_out = i;
+                } else if (jtpt > jetIdx2_pt) {
+                    jetIdx2_pt = jtpt;
+                    jetIdx2_out = i;
+                }
+            }
         }
 
         jetIdx_out.push_back(i);
-        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
-            xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
-        }
-        else {
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+            xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
+        else
             xjg_out.push_back(-1);
-        }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
         dR_out.push_back(tmp_dR);

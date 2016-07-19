@@ -38,6 +38,7 @@ public :
   Float_t         jtpt_smeared_30_50[maxJets]; //[nref]
   Float_t         jtpt_smeared_50_100[maxJets]; //[nref]
   Float_t         jtpt_smeared_sys[maxJets]; //[nref]
+  std::vector< std::vector<float> >* jtpt_smeared = 0;
   Float_t         jteta[maxJets];   //[nref]
   Float_t         jty[maxJets];   //[nref]
   Float_t         jtphi[maxJets]; //[nref]
@@ -48,6 +49,7 @@ public :
   Float_t         jtphi_smeared_30_50[maxJets]; //[nref]
   Float_t         jtphi_smeared_50_100[maxJets]; //[nref]
   Float_t         jtphi_smeared_sys[maxJets]; //[nref]
+  std::vector< std::vector<float> >* jtphi_smeared = 0;
   Float_t         jtpu[maxJets];   //[nref]
   Float_t         jtm[maxJets];   //[nref]
   Float_t         discr_fr01[maxJets];   //[nref]
@@ -132,6 +134,7 @@ public :
   TBranch        *b_jtpt_smeared_30_50;
   TBranch        *b_jtpt_smeared_50_100;
   TBranch        *b_jtpt_smeared_sys;
+  TBranch        *b_jtpt_smeared;
   TBranch        *b_jteta;   //!
   TBranch        *b_jty;   //!
   TBranch        *b_jtphi;   //!
@@ -142,6 +145,7 @@ public :
   TBranch        *b_jtphi_smeared_30_50;
   TBranch        *b_jtphi_smeared_50_100;
   TBranch        *b_jtphi_smeared_sys;
+  TBranch        *b_jtphi_smeared;
   TBranch        *b_jtpu;   //!
   TBranch        *b_jtm;   //!
   TBranch        *b_discr_fr01;   //!
@@ -224,6 +228,7 @@ void Jets::setupTreeForReading(TTree *t)
     if (t->GetBranch("jtpt_smeared_30_50")) t->SetBranchAddress("jtpt_smeared_30_50",jtpt_smeared_30_50, &b_jtpt_smeared_30_50);
     if (t->GetBranch("jtpt_smeared_50_100")) t->SetBranchAddress("jtpt_smeared_50_100",jtpt_smeared_50_100, &b_jtpt_smeared_50_100);
     if (t->GetBranch("jtpt_smeared_sys")) t->SetBranchAddress("jtpt_smeared_sys",jtpt_smeared_sys, &b_jtpt_smeared_sys);
+    if (t->GetBranch("jtpt_smeared")) t->SetBranchAddress("jtpt_smeared",&jtpt_smeared, &b_jtpt_smeared);
     if (t->GetBranch("jteta")) t->SetBranchAddress("jteta", jteta, &b_jteta);
     if (t->GetBranch("jty")) t->SetBranchAddress("jty", jty, &b_jty);
     if (t->GetBranch("jtphi")) t->SetBranchAddress("jtphi", jtphi, &b_jtphi);
@@ -234,6 +239,7 @@ void Jets::setupTreeForReading(TTree *t)
     if (t->GetBranch("jtphi_smeared_30_50")) t->SetBranchAddress("jtphi_smeared_30_50", jtphi_smeared_30_50, &b_jtphi_smeared_30_50);
     if (t->GetBranch("jtphi_smeared_50_100")) t->SetBranchAddress("jtphi_smeared_50_100", jtphi_smeared_50_100, &b_jtphi_smeared_50_100);
     if (t->GetBranch("jtphi_smeared_sys")) t->SetBranchAddress("jtphi_smeared_sys", jtphi_smeared_sys, &b_jtphi_smeared_sys);
+    if (t->GetBranch("jtphi_smeared")) t->SetBranchAddress("jtphi_smeared",&jtphi_smeared, &b_jtphi_smeared);
     if (t->GetBranch("jtpu")) t->SetBranchAddress("jtpu", jtpu, &b_jtpu);
     if (t->GetBranch("jtm")) t->SetBranchAddress("jtm", jtm, &b_jtm);
     if (t->GetBranch("discr_fr01")) t->SetBranchAddress("discr_fr01", discr_fr01, &b_discr_fr01);

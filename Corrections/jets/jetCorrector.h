@@ -69,6 +69,9 @@ public :
     void  applyPhiResolution(Jets &tJets, int i, double resolutionRel);
     void  applyPhisResolution(Jets &tJets, double resolutionRel);
 
+    void applyPtSmearingToVector(Jets &tJets, std::vector<float>* jtpt_smeared);
+    void applyPhiSmearingToVector(Jets &tJets, std::vector<float>* jtphi_smeared);
+
     TRandom3 rand;  // used for smearing
     // matching efficiency function : eps = 1/2 * eps0 * (1 + erf(a0 + a1 * pt))
     double eps0;
@@ -250,7 +253,7 @@ void jetCorrector::applyPhiSmearing(Jets &tJets, int i)
             break;
         case 7:
             tJets.jtphi_smeared_sys[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;          
+            break;
         default:
             std::cout << "smearingBranchIndex out of bounds, no smearing applied" << std::endl;
             break;
@@ -316,6 +319,16 @@ void  jetCorrector::applyPhisResolution(Jets &tJets, double resolutionRel)
     for (int i = 0; i<tJets.nref; ++i) {
         applyPhiResolution(tJets, i, resolutionRel);
     }
+}
+
+void jetCorrector::applyPtSmearingToVector(Jets &tJets, std::vector<float>* jtpt_smeared) {
+    for (int i=0; i<tJets.nref; ++i)
+        jtpt_smeared->push_back(tJets.jtpt[i] * getSmearingPt(tJets, i));
+}
+
+void jetCorrector::applyPhiSmearingToVector(Jets &tJets, std::vector<float>* jtphi_smeared) {
+    for (int i=0; i<tJets.nref; ++i)
+        jtphi_smeared->push_back(CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i)));
 }
 
 #endif
