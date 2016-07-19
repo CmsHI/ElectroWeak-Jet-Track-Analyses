@@ -41,8 +41,6 @@ public :
         CSN_phi_PP.push_back(0.024497);
         CSN_phi_PP.push_back(-0.170472);
         CSN_phi_PP.push_back(-0.000188492);
-
-        smearingBranchIndex = 0;
     };
     ~jetCorrector(){};
     double getMatchingEfficiency(Jets &tJets, int i);
@@ -89,8 +87,6 @@ public :
     // pp smearing of phi
     std::vector<double> CSN_phi_HI;
     std::vector<double> CSN_phi_PP;
-
-    int smearingBranchIndex;
 
 private :
     float CorrectPhiRange(float phi){
@@ -186,37 +182,7 @@ void jetCorrector::correctPtsResidual(TF1* f1, Jets &tJets)
 void jetCorrector::applyPtSmearing(Jets &tJets, int i)
 {
     if (tJets.jtpt[i] > 5)
-    {
-        switch(smearingBranchIndex) {
-        case 0:
-            tJets.jtpt[i] *= getSmearingPt(tJets, i);
-            break;
-        case 1:
-            tJets.jtpt_smeared_0_30[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 2:
-            tJets.jtpt_smeared_30_100[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 3:
-            tJets.jtpt_smeared_0_10[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 4:
-            tJets.jtpt_smeared_10_30[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 5:
-            tJets.jtpt_smeared_30_50[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 6:
-            tJets.jtpt_smeared_50_100[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        case 7:
-            tJets.jtpt_smeared_sys[i] = tJets.jtpt[i] * getSmearingPt(tJets, i);
-            break;
-        default:
-            std::cout << "smearingBranchIndex out of bounds, no smearing applied" << std::endl;
-            break;
-        }
-    }
+        tJets.jtpt[i] *= getSmearingPt(tJets, i);
 }
 
 void jetCorrector::applyPtsSmearing(Jets &tJets)
@@ -228,37 +194,8 @@ void jetCorrector::applyPtsSmearing(Jets &tJets)
 
 void jetCorrector::applyPhiSmearing(Jets &tJets, int i)
 {
-    if (tJets.jtpt[i] > 5) {
-        switch(smearingBranchIndex) {
-        case 0:
-            tJets.jtphi[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 1:
-            tJets.jtphi_smeared_0_30[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 2:
-            tJets.jtphi_smeared_30_100[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 3:
-            tJets.jtphi_smeared_0_10[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 4:
-            tJets.jtphi_smeared_10_30[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 5:
-            tJets.jtphi_smeared_30_50[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 6:
-            tJets.jtphi_smeared_50_100[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        case 7:
-            tJets.jtphi_smeared_sys[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
-            break;
-        default:
-            std::cout << "smearingBranchIndex out of bounds, no smearing applied" << std::endl;
-            break;
-        }
-    }
+    if (tJets.jtpt[i] > 5)
+        tJets.jtphi[i] = CorrectPhiRange(tJets.jtphi[i] + getSmearingPhi(tJets, i));
 }
 
 void jetCorrector::applyPhisSmearing(Jets &tJets)
