@@ -468,13 +468,6 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // correctors
     jetCorrector correctorJet;
 
-    // centrality reweighting for Z-ee RECO inefficiency in central collisions
-    // std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 10, 20, 30, 40, 50, 60};
-    // std::vector<double> reweightCent_ZeeRECO_effs    = {0.6, 1, 1.3, 1.45, 1.65, 1.75};  // eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
-    // std::vector<double> reweightCent_ZeeRECO_hiBins  = {0, 20, 40, 60, 80, 100, 120};
-    // std::vector<double> reweightCent_ZeeRECO_weights    = {1.9, 0.5, 1.4, 0.6, 0.6, 1.8};  // deprecated :  eff = (Z is RECO in MC sample) / (Z is NOT RECO in MC sample)
-    // int nReweightCent_ZeeRECO_hiBins = reweightCent_ZeeRECO_hiBins.size();
-
     TFile* output = new TFile(outputFile, "UPDATE");
     // histograms will be put under a directory whose name is the type of the collision
     if(!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
@@ -494,12 +487,13 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     std::string zMTitleX = Form("M^{%s%s} (GeV/c^{2})", leptonSymbol.c_str(), leptonSymbol.c_str());
     const double PI = TMath::Pi();
     // zJet correlation objects
-    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin"};
+    std::vector<std::string> correlationHistNames   {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin", "xjz_binJER", "xjz_binJER2"};
     std::vector<std::string> correlationHistTitleX  {xjzTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(),
                                                                         "p^{Jet}_{T}",
                                                                          zMTitleX.c_str(),
                                                                         "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}",
-                                                                        "N^{Jet}", "hiBin"};
+                                                                        "N^{Jet}", "hiBin",
+                                                                         xjzTitleX.c_str(), xjzTitleX.c_str()};
     std::vector<std::string> correlationHistTitleY_final_normalized{xjzTitleY.c_str(), dphiTitleY.c_str(), dphiTitleY.c_str(), dphiTitleY_normJZ.c_str(), dphiTitleY_normJZ.c_str(),
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
                                                                           "Entries / (2 GeV/c^{2})",
@@ -509,22 +503,25 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#eta^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{d#phi^{Jet}}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dN^{Jet}}",
-                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}"};
-    std::vector<int>         nBinsx{16, 20, 20, 20, 20, 30,  30,  30, 20, 20,  20,  20, 8, 40};
-    std::vector<double>      xlow  {0,  0,  0,  0,  0,  0,   60,  0,  -4, -PI, -4, -PI, 0, 0};
-    std::vector<double>      xup   {2,  PI, PI, PI, PI, 300, 120, 300, 4,  PI,  4,  PI, 8, 200};
-    std::vector<double>      xlow_final{0,  0,  0,  0,  0,  0,   60,  0,  -3, -PI, -3, -PI, 0, 0};
-    std::vector<double>      xup_final {2,  PI, PI, PI, PI, 200, 120, 200, 3,  PI,  3,  PI, 8, 200};
+                                                                          "#frac{1}{N_{Z}} #frac{dN}{dhiBin}",
+                                                                           xjzTitleY.c_str(), xjzTitleY.c_str()};
+    std::vector<int>         nBinsx{16, 20, 20, 20, 20, 30,  30,  30, 20, 20,  20,  20, 8, 40,  10, 12};
+    std::vector<double>      xlow  {0,  0,  0,  0,  0,  0,   60,  0,  -4, -PI, -4, -PI, 0, 0,   0,  0};
+    std::vector<double>      xup   {2,  PI, PI, PI, PI, 300, 120, 300, 4,  PI,  4,  PI, 8, 200, 2,  2};
+    std::vector<double>      xlow_final{0,  0,  0,  0,  0,  0,   60,  0,  -3, -PI, -3, -PI, 0, 0,   0, 0};
+    std::vector<double>      xup_final {2,  PI, PI, PI, PI, 200, 120, 200, 3,  PI,  3,  PI, 8, 200, 2, 2};
     std::vector<bool> doAwaySideJets {true,  false, false, false, false,
                                              true,
                                              false,
-                                             false, false, false, true, true, true,
-                                             true, false};   // whether the observable is plotted for inclusive jets in the away side
+                                             false, false, false, true, true,
+                                             true, false,
+                                             true, true};   // whether the observable is plotted for inclusive jets in the away side
     std::vector<bool> doSingleJet    {false, false, false, false, false,
                                              false,
                                              true,
-                                             true, true, true, false, false,  true,
-                                             true, false};   // whether the observable is plotted once per event
+                                             true, true, true, false, false,
+                                             true, false,
+                                             false, false};   // whether the observable is plotted once per event
 
     TH1::SetDefaultSumw2();
     int nCorrHist = correlationHistNames.size();
@@ -811,11 +808,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::string pathFileDATA_num = "";
         std::string pathFileDATA_denom = "";
 
-        pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zmm_20160704_vReweightCent.root";
-        pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zee_20160704_SYS_noReweightCent.root";
+        pathFileDATA_num   = "/export/d00/scratch/tatar/EWJTA-out/zJet_BACKUP/zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zmm_20160715_vReweightCent.root";
+        pathFileDATA_denom = "/export/d00/scratch/tatar/EWJTA-out/zJet_BACKUP/zJetHistogram_HIRun2015E_PromptReco_AOD_HI_Zee_20160715_SYS_noReweightCent.root";
         if (inputFile.Contains("_0505")) {
-            pathFileDATA_num   = "zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
-            pathFileDATA_denom = "zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
+            pathFileDATA_num   = "/export/d00/scratch/tatar/EWJTA-out/zJet_BACKUP/zJetHistogram_HIRun2015E_PromptReco_AOD_DimuonSkim_v3_forest_csjet_v1_2_0505_vReweightCent.root";
+            pathFileDATA_denom = "/export/d00/scratch/tatar/EWJTA-out/zJet_BACKUP/zJetHistogram_HIRun2015E_PromptReco_AOD_DielectronSkim_ElePt8_v3_forest_csjet_v1_3_0505_SYS_noReweightCent.root";
         }
 
         std::cout << "pathFileDATA_num   = " << pathFileDATA_num.c_str() << std::endl;
@@ -1192,7 +1189,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                             if (doAwaySideJets.at(iHist) && !isAwaySideJet)  continue;
 
                             std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                            if (tmpObservable.compare("xjz") == 0) {
+                            if (tmpObservable.find("xjz") == 0) {     // observable name starts with "xjz"
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(zJets[iCorr].xjz->at(i), w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(zJets[iCorr].xjz->at(i), w);
                             }
@@ -1284,7 +1281,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         if (iCorr == CORR::kBKG && (!hasJetsMB || !hasZJetMB))  continue;
 
                         std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                        std::vector<std::string> tmpVec {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "jteta", "jtphi", "nJet"};
+                        std::vector<std::string> tmpVec {"xjz", "xjz_binJER", "xjz_binJER2", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "jteta", "jtphi", "nJet"};
                         int nTmpVec = tmpVec.size();
                         for (int iTMP = 0; iTMP<nTmpVec ; ++iTMP)
                         {
