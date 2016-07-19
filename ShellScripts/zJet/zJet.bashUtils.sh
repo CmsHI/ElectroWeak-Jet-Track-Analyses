@@ -8,6 +8,8 @@ outputSkimDir="/export/d00/scratch/tatar/EWJTA-out/"
 outputSkimDirLOG="./"
 outputHistDir="./"
 outputHistDirLOG="./"
+outputHistSumDir="./Configurations/zJet/"$productionVersion"/"
+outputHistSumDirLOG="./Configurations/zJet/"$productionVersion"/"
 inputMinBiasJetSkim="/mnt/hadoop/cms/store/user/katatar/skims/minBiasJetSkim_HIMinimumBias2_HIRun2015_PromptReco_v1_Run263233_263284.root"
 inputMinBiasJetSkimHydjet="/export/d00/scratch/tatar/EWJTA-out/minBiasJetSkim_Hydjet_Quenched_MinBias_5020GeV_750.root"
 # path to configuration files
@@ -19,6 +21,10 @@ config_HI_ZEE_MC="Configurations/zJet/zJet.HIMC.conf"
 config_HI_ZMM_MC="Configurations/zJet/zJet.HIMC.diMuon.conf"
 config_PP_ZEE_MC="Configurations/zJet/zJet.PPMC.conf"
 config_PP_ZMM_MC="Configurations/zJet/zJet.PPMC.diMuon.conf"
+config_histSum_HI_DATA="Configurations/zJet/zJetHistogramSum.conf"
+config_histSum_PP_DATA="Configurations/zJet/zJetHistogramSum.PP.conf"
+config_histSum_HI_MC="Configurations/zJet/zJetHistogramSum.HIMC.conf"
+config_histSum_PP_MC="Configurations/zJet/zJetHistogramSum.PPMC.conf"
 
 config_HI_ZEE_MC_Pythia=$config_HI_ZEE_MC
 config_HI_ZMM_MC_Pythia=$config_HI_ZMM_MC
@@ -30,6 +36,13 @@ config_HI_ZMM_MC_Pyquen=$config_HI_ZMM_MC
 
 config_PP_ZEE_MC_Madgraph=$config_PP_ZEE_MC
 config_PP_ZMM_MC_Madgraph=$config_PP_ZMM_MC
+
+config_histSum_HI_MC_Pythia=$config_histSum_HI_MC
+config_histSum_PP_MC_Pythia=$config_histSum_PP_MC
+
+config_histSum_HI_MC_Pyquen=$config_histSum_HI_MC
+
+config_histSum_PP_MC_Madgraph=$config_histSum_PP_MC
 ### SAMPLES - HIFOREST
 ## DATA
 HI_ZEE_DATA="/mnt/hadoop/cms/store/user/rbi/azsigmon-HIRun2015E-PromptReco-AOD-DielectronSkim-ElePt8-v3_forest_csjet_v1_3/0.root"
@@ -72,6 +85,17 @@ substr_HI_ZMM_MC_Pyquen="PyquenFW_Z30mumuJet_Hydjet_MB_HI_Zmm"
 
 substr_PP_ZEE_MC_Madgraph="DYJetsToLL_TuneCUETP8M1_5020GeV_PP_Zee"
 substr_PP_ZMM_MC_Madgraph="DYJetsToLL_TuneCUETP8M1_5020GeV_PP_Zmm"
+
+substr_histSum_HI_DATA="HI"
+substr_histSum_PP_DATA="PP"
+substr_histSum_HI_MC="HIMC"
+substr_histSum_PP_MC="PPMC"
+substr_histSum_HI_MC_Pythia=$substr_histSum_HI_MC"_Pythia8_Hydjet_MB"
+substr_histSum_PP_MC_Pythia=$substr_histSum_PP_MC"_Pythia8"
+
+substr_histSum_HI_MC_Pyquen=$substr_histSum_HI_MC"_PyquenFW_Hydjet_MB"
+
+substr_histSum_PP_MC_Madgraph=$substr_histSum_PP_MC"_DYJetsToLL_TuneCUETP8M1_5020GeV"
 ### prefix for skim file names
 skim_HI_ZEE_DATA_Prefix="zJetSkim_"$substr_HI_ZEE_DATA"_"$productionVersion
 skim_HI_ZMM_DATA_Prefix="zJetSkim_"$substr_HI_ZMM_DATA"_"$productionVersion
@@ -104,6 +128,18 @@ hist_HI_ZMM_MC_Pyquen_Prefix="zJetHistogram_"$substr_HI_ZMM_MC_Pyquen"_"$product
 
 hist_PP_ZEE_MC_Madgraph_Prefix="zJetHistogram_"$substr_PP_ZEE_MC_Madgraph"_"$productionVersion
 hist_PP_ZMM_MC_Madgraph_Prefix="zJetHistogram_"$substr_PP_ZMM_MC_Madgraph"_"$productionVersion
+
+histSum_HI_DATA_Prefix="zJetHistogramSum_"$substr_histSum_HI_DATA
+histSum_PP_DATA_Prefix="zJetHistogramSum_"$substr_histSum_PP_DATA
+histSum_HI_MC_Prefix="zJetHistogramSum_"$substr_histSum_HI_MC
+histSum_PP_MC_Prefix="zJetHistogramSum_"$substr_histSum_PP_MC
+
+histSum_HI_MC_Pythia_Prefix="zJetHistogramSum_"$substr_histSum_HI_MC_Pythia
+histSum_PP_MC_Pythia_Prefix="zJetHistogramSum_"$substr_histSum_PP_MC_Pythia
+
+histSum_HI_MC_Pyquen_Prefix="zJetHistogramSum_"$substr_histSum_HI_MC_Pyquen
+
+histSum_PP_MC_Madgraph_Prefix="zJetHistogramSum_"$substr_histSum_PP_MC_Madgraph
 #### SAMPLES - AOD
 ## DATA
 DAS_HI_ZEE_DATA="/HIPhoton40AndZ/azsigmon-HIRun2015E-PromptReco-AOD-DielectronSkim-ElePt8-v3-f8ca4a1d94c645c1a352f0d31009e079/USER"
@@ -233,15 +269,15 @@ function runZJetHistogramSum() {
           zJetHistZMMPath=$zJetHistZMMPrefix"_"${configSuffixListZMM[i1]}".root"
         fi
 
-        output=$outputPrefix
+        outputPrefix2=$outputPrefix
         if (( ${#configSuffixListZMM[$i1]} > 0 )); then
-          output=$outputPrefix"_"${configSuffixListZMM[i1]}
+          outputPrefix2=$outputPrefix"_"${configSuffixListZMM[i1]}
         fi
         if (( ${#configSuffixListZEE[$i1]} > 0 )); then
-          output=$outputPrefix"_"${configSuffixListZEE[i1]}
+          outputPrefix2=$outputPrefix"_"${configSuffixListZEE[i1]}
         fi
-        output=$output."root"
-        outputLOG=$output."log"
+        output=$outputPrefix2."root"
+        outputLOG=$outputPrefix2."log"
 
         echo "$progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &"
         $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ~/code/scripts/myRun.sh
