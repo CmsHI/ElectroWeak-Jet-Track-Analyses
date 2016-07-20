@@ -100,7 +100,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
   TCut sidebandIsolation;
   if(useCorrectedSumIso){
-    sidebandIsolation = "(pho_sumIsoCorrected>10) && (pho_sumIsoCorrected<20)";
+    sidebandIsolation = "(pho_sumIsoCorrected[phoIdx]>10) && (pho_sumIsoCorrected[phoIdx]<20)";
   } else {
     sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
   }
@@ -132,7 +132,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
       selectionPho = selectionPho && etaCut;
 
       TCut selectionIso = "";
-      selectionIso = selectionIso && Form("pho_sumIsoCorrected < %f", cut_sumIso);
+      selectionIso = selectionIso && Form("pho_sumIsoCorrected[phoIdx] < %f", cut_sumIso);
       selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
 
       TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
