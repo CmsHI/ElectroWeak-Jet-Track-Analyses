@@ -31,6 +31,19 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
        CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
+       InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+
+       // input configuration
+       if (!configInput.isValid) {
+	 std::cout << "Invalid input configuration" << std::endl;
+	 return;
+       }
+
+       if (!config.isValid) {
+	 std::cout << "Invalid cut configuration" << std::endl;
+	 return;
+       }
+
        float cut_vz;
        int cut_pcollisionEventSelection;
 
@@ -39,24 +52,16 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        int nCentralityBins;
        int nVertexBins;
        int nEventPlaneBins;
-       if (config.isValid) {
-           cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-           cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
 
-           jetCollections = ConfigurationParser::ParseList(config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
-           nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
-           nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
-           nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
-           nEventPlaneBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
-       }
-       else {
-           cut_vz = 15;
-           cut_pcollisionEventSelection = 1;
-           nMaxEvents_minBiasMixing = 20000;
-           nCentralityBins = 200;    // must divide 200 without remainders
-           nVertexBins = 3;         // must divide 15  without remainders
-           nEventPlaneBins = 10;         // must divide 15  without remainders
-       }
+       cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+       cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+
+       jetCollections = ConfigurationParser::ParseList(config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+       nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
+       nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
+       nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+       nEventPlaneBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
+
        int nJetCollections = jetCollections.size();
 
        // verbose about configuration
