@@ -10,7 +10,6 @@
 #include "../Utilities/interface/InputConfigurationParser.h"
 
 static const long MAXTREESIZE = 2000000000000;
-const int nSmearBins = 8; // should really come from config
 
 double getAngleToEP(double angle);
 
@@ -20,6 +19,9 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
 
     int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     bool isHI = collisionIsHI((COLL::TYPE)collision);
+
+    int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
+    nSmearBins++; // include unsmeared gamma-jet tree
 
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
@@ -40,8 +42,8 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     GammaJet gammajet_event[nJetCollections][nSmearBins];
     TTree *gjTreeMB[nJetCollections];
     GammaJet gammajet_eventMB[nJetCollections];
-    std::vector<float>* xjgCorrected[nJetCollections][nSmearBins] = {0};
-    std::vector<float>* xjgCorrectedMB[nJetCollections] = {0};
+    std::vector< std::vector< std::vector<float>* > > xjgCorrected(nJetCollections, std::vector< std::vector<float>* >(nSmearBins, 0));
+    std::vector< std::vector<float>* > xjgCorrectedMB(nJetCollections, 0);
 
     for (int i=0; i<nJetCollections; ++i) {
         gjTree[i][0] = (TTree*)inFile->Get(Form("gamma_%s", jetCollections[i].c_str()));
@@ -122,7 +124,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         }
 
         first_entry = nentries/nJobs * job;
-        last_entry = std::min(nentries/nJobs * (job+1), nentries);
+        last_entry = (job == nJobs - 1) ? nentries : nentries/nJobs * (job+1);
 
         printf("job: %i, first entry = %lu, last entry < %lu\n", job, first_entry, last_entry);
     }
