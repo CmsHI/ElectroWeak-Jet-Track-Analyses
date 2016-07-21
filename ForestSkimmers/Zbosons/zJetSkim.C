@@ -969,6 +969,12 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
                    }
                }
+               if (nSmear > 0 && nSmear != 1)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       jets.at(i).replicateJets(nSmear);
+                   }
+               }
                if (smearingResJetPhi > 0) {
                    for (int i=0; i<nJetCollections; ++i) {
                        correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
@@ -1048,7 +1054,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                    zjetMB.at(k).clearZJetPairs(zIdx);
                    if (nMB[centBin][vzBin][k] >= nEventsToMix)
                    {
-                       for (int i=0; i<nEventsToMix; ++i)
+                       for (int iMB=0; iMB<nEventsToMix; ++iMB)
                        {
                            Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
                            treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
@@ -1068,59 +1074,43 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                                }
                                if (doCorrectionL2L3 > 0)
                                {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
-                                   }
+                                   correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+                               }
+                               if (nSmear > 0 && nSmear != 1)
+                               {
+                                   jetsMB.at(k).replicateJets(nSmear);
                                }
                                if (smearingResJetPhi > 0) {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsJetSmear.at(i).applyPhisResolution(jetsMB.at(i), smearingResJetPhi);
-                                   }
+                                   correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
                                }
                                if (smearingResJet > 0) {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsJetSmear.at(i).applyPtsResolution(jetsMB.at(i), smearingResJet);
-                                   }
+                                   correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
                                }
                            }
                            else if (isPP) {
 
                                if (doCorrectionL2L3 > 0)
                                {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsL2L3.at(i).correctPtsL2L3(jetsMB.at(i));
-                                   }
+                                   correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
                                }
-
                                if (nSmear > 0 && nSmear != 1)
                                {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       jetsMB.at(i).replicateJets(nSmear);
-                                   }
+                                   jetsMB.at(k).replicateJets(nSmear);
                                }
-
                                if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
                                {
                                    if (doCorrectionSmearingPhi > 0) {
-                                       for (int i=0; i<nJetCollections; ++i) {
-                                           correctorsJetSmear.at(i).applyPhisSmearing(jetsMB.at(i));
-                                       }
+                                       correctorsJetSmear.at(k).applyPhisSmearing(jetsMB.at(k));
                                    }
                                    if (doCorrectionSmearing > 0) {
-                                       for (int i=0; i<nJetCollections; ++i) {
-                                           correctorsJetSmear.at(i).applyPtsSmearing(jetsMB.at(i));
-                                       }
+                                       correctorsJetSmear.at(k).applyPtsSmearing(jetsMB.at(k));
                                    }
                                }
                                if (smearingResJetPhi > 0) {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsJetSmear.at(i).applyPhisResolution(jetsMB.at(i), smearingResJetPhi);
-                                   }
+                                   correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
                                }
                                if (smearingResJet > 0) {
-                                   for (int i=0; i<nJetCollections; ++i) {
-                                       correctorsJetSmear.at(i).applyPtsResolution(jetsMB.at(i), smearingResJet);
-                                   }
+                                   correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
                                }
                            }
                            // apply JES after corrections
