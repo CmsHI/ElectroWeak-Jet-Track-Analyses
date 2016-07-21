@@ -593,22 +593,49 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // 1st bin stores the number of zJet events
     // 2nd bin stores the number of Z events, not zJet event
     // 3rd bin stores the number of mixed MB events
+    // 4th bin stores <xjz> of jetRAW correlation, 4th bin error stores <xjz> error of jetRAW correlation
+    // 5th bin stores <xjz> of jetBKG correlation, 5th bin error stores <xjz> error of jetBKG correlation
+    // 6th bin stores <xjz> of jetSIG correlation, 6th bin error stores <xjz> error of jetSIG correlation
+    // 7th bin stores sumofweights of jetRAW xjz correlation
+    // 8th bin stores sumofweights of jetBKG xjz correlation
+    // 9th bin stores sumofweights of jetSIG xjz correlation : wSIG = wRAW - wBKG
     // they are just a tool to store numbers.
+    /*
+     * information regarding storage of <xjz> numbers.
+     * Normally histograms are filled, ROOT calculates the exact mean.
+     * However, when histograms are scaled with "width" option the exact mean information is lost.
+     * ROOT starts to calculate mean using histogram bins.
+     * The difference between "exact" mean and "histogram bins based" mean calculation is less than 1%.
+     * (default xjz histogram has nBins=16, xmin=0 and xmax=2).
+     * Bins 4,5,6 are added to store the exact mean of xjz histogram.
+     * NOTE : TH1::Scale() without "width" option preserves the exact mean, it is not lost.
+     * NOTE 2 : TH1::Scale() preserves sumofweights, but store them anyway for convenience in other code.
+     * https://root.cern.ch/doc/master/classTH1.html#add929909dcb3745f6a52e9ae0860bfbd
+     */
     TH1D* h_nums[nBins_pt][nBins_hiBin];
     double entriesZJet[nBins_pt][nBins_hiBin];
     double entriesZ[nBins_pt][nBins_hiBin];
     Long64_t entriesZJetRaw[nBins_pt][nBins_hiBin];
     Long64_t entriesZRaw[nBins_pt][nBins_hiBin];
+    double xjz_mean[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_meanErr[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_weight[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
     for (int i=0; i<nBins_pt; ++i){
         for(int j=0; j<nBins_hiBin; ++j){
 
             std::string histName = Form("h_nums_ptBin%d_hiBin%d", i, j);
-            h_nums[i][j] = new TH1D(histName.c_str(), "", 3, 0, 3);
+            h_nums[i][j] = new TH1D(histName.c_str(), "", 9, 0, 9);
 
             entriesZJet[i][j] = 0;
             entriesZ[i][j] = 0;
             entriesZJetRaw[i][j] = 0;
             entriesZRaw[i][j] = 0;
+
+            for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
+                xjz_mean[i][j][iCorr] = 0;
+                xjz_meanErr[i][j][iCorr] = 0;
+                xjz_weight[i][j][iCorr] = 0;
+            }
         }
     }
 
@@ -1296,6 +1323,77 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         }
     }
 
+    // store <xjz> and its error before exact mean information is lost.
+    // this block of code works on histograms with raw number of counts.
+    // There is one exception. SumOfWeights of jetBKG histogram is divided by nEventsToMix to obtain the BKG per event.
+    for(int iHist = 0; iHist<nCorrHist; ++iHist)
+    {
+        std::string correlationName = correlationHistNames.at(iHist).c_str();
+        if (correlationName.compare("xjz") != 0) continue;
+
+        for (int iPt=0; iPt<nBins_pt; ++iPt) {
+            for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
+
+                int iCorr = CORR::kRAW;
+                for (int jCorr = 0; jCorr < CORR::kN_CORRFNC -1; ++jCorr) {
+
+                    if (jCorr == CORR::kBKG && !isHI)  continue;      // no jet background for non-HI
+
+                    xjz_mean[iPt][iHiBin][jCorr] = corrHists[iHist][iPt][iHiBin].h1D_final[iCorr][jCorr]->GetMean();
+                    xjz_meanErr[iPt][iHiBin][jCorr] = corrHists[iHist][iPt][iHiBin].h1D_final[iCorr][jCorr]->GetMeanError();
+                    xjz_weight[iPt][iHiBin][jCorr] = corrHists[iHist][iPt][iHiBin].h1D_final[iCorr][jCorr]->GetSumOfWeights();
+                    if (jCorr == CORR::kBKG)  xjz_weight[iPt][iHiBin][jCorr] = xjz_weight[iPt][iHiBin][jCorr]/nEventsToMix;
+
+                    int iBin = 4+jCorr;     // iBin = 4 contains information for jetRAW, iBin = 5 contains information for jetBKG
+                    h_nums[iPt][iHiBin]->SetBinContent(iBin, xjz_mean[iPt][iHiBin][jCorr]);
+                    h_nums[iPt][iHiBin]->SetBinError(iBin, xjz_meanErr[iPt][iHiBin][jCorr]);
+                    h_nums[iPt][iHiBin]->SetBinContent(iBin+3, xjz_weight[iPt][iHiBin][jCorr]);
+                }
+
+                // do not calculate xjz_mean directly from jetSIG any more.
+                /*
+                 * should follow this procedure to calculate mean of X_JZ :
+
+                   mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
+                   mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
+                   by definition : w_SIG = w_RAW - w_BKG
+                   ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
+
+                   so it will not be ratio of weigthed sums, but ratio of weighted differences.
+                   this approach should avoid the case of negative entries.
+                   11.07.2016 : made lots of cross-check, this method actually gives the same result as calculating
+                 * xjz_mean directly from jetSIG histogram. The value calculated with this approach is the same as what
+                 * h1D_xjz_..._jetSIG_final->GetMean() gives.
+                 */
+                // calculate mean for SIG
+                double meanRAW = xjz_mean[iPt][iHiBin][CORR::kRAW];
+                double meanBKG = xjz_mean[iPt][iHiBin][CORR::kBKG];
+                double wRAW = xjz_weight[iPt][iHiBin][CORR::kRAW];
+                double wBKG = xjz_weight[iPt][iHiBin][CORR::kBKG];
+                xjz_mean[iPt][iHiBin][CORR::kSIG] = (meanRAW*wRAW - meanBKG*wBKG) / (wRAW - wBKG);
+                xjz_weight[iPt][iHiBin][CORR::kSIG] = (wRAW - wBKG);
+
+                /*
+                 * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
+                 * ==>
+                 * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
+                 * assume Cov(SIG,BKG) = 0
+                 * ==>
+                 * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)^2
+                 * err_SIG = sqrt(var_SIG)
+                 */
+                double errRAW = xjz_meanErr[iPt][iHiBin][CORR::kRAW];
+                double errBKG = xjz_meanErr[iPt][iHiBin][CORR::kBKG];
+                xjz_meanErr[iPt][iHiBin][CORR::kSIG] = TMath::Sqrt(wRAW*wRAW*errRAW*errRAW - wBKG*wBKG*errBKG*errBKG) / (wRAW - wBKG);
+
+                int iBinSIG = 4+CORR::kSIG;     // iBin = 6 contains information for jetSIG
+                h_nums[iPt][iHiBin]->SetBinContent(iBinSIG, xjz_mean[iPt][iHiBin][CORR::kSIG]);
+                h_nums[iPt][iHiBin]->SetBinError(iBinSIG, xjz_meanErr[iPt][iHiBin][CORR::kSIG]);
+                h_nums[iPt][iHiBin]->SetBinContent(iBinSIG+3, xjz_weight[iPt][iHiBin][CORR::kSIG]);
+            }
+        }
+    }
+
     // WRITE HISTOGRAM AND CANVAS
     TCanvas* c = new TCanvas("cnv","",600,600);
     for (int iPt=0; iPt<nBins_pt; ++iPt) {
@@ -1503,33 +1601,22 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         c->Write("",TObject::kOverwrite);
         c->Clear();
 
-        // do not calculate xjz_mean directly from jetSIG any more.
-        // array of <x_jz> mean and weights for RAW and BKG correlations
-        // [0][i] : <x_jz> for jetRAW in ptBin i
-        // [1][i] : weight of <x_jz> for jetRAW in ptBin i
-        // [2][i] : error  of <x_jz> for jetRAW in ptBin i
-        // [3][i] : <x_jz> for jetBKG in ptBin i
-        // [4][i] : weight of <x_jz> for jetBKG in ptBin i
-        // [5][i] : error  of <x_jz> for jetBKG in ptBin i
-        /*
-         * should follow this procedure to calculate mean of X_JZ :
-
-           mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
-           mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
-           by definition : w_SIG = w_RAW - w_BKG
-           ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-
-           so it will not be ratio of weigthed sums, but ratio of weighted differences.
-           this approach should avoid the case of negative entries.
-         */
-        std::vector<double> meansANDweights[nPtBins_xjz_mean];
         for(int jCorr = 0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
-            if((iHiBin > 0 || jCorr > 0) && !isHI) continue;
+
             // xjz_mean block
             for(int i=0; i<nPtBins_xjz_mean; ++i){
 
                 int iPt = i+offset_ptBins_xjz_mean;
 
+                double val = xjz_mean[iPt][iHiBin][jCorr];
+                double err = xjz_meanErr[iPt][iHiBin][jCorr];
+                corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+                corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+
+                /*
+                 * This calculation uses histograms that lost the exact mean information.
+                 * Hence, it is  obsolete as of 20.07.2016.
+                 * New calculation uses exact mean.
                 if (jCorr == CORR::kRAW || jCorr == CORR::kBKG) {
                     double val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMean();
                     double sumWeights = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetSumOfWeights();
@@ -1548,18 +1635,11 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     double meanSIG = (meansANDweights[i].at(0)*meansANDweights[i].at(1) - meansANDweights[i].at(3)*meansANDweights[i].at(4)) / sumWeightsSIG;
                     double errSIG = TMath::Sqrt(meansANDweights[i].at(2)*meansANDweights[i].at(2)*meansANDweights[i].at(1)*meansANDweights[i].at(1)
                                               - meansANDweights[i].at(5)*meansANDweights[i].at(5)*meansANDweights[i].at(4)*meansANDweights[i].at(4)) / sumWeightsSIG;
-                    /*
-                     * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
-                     * ==>
-                     * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
-                     * assume Cov(SIG,BKG) = 0
-                     * ==>
-                     * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)
-                     */
 
                     corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinContent(i+1, meanSIG);
                     corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinError(i+1, errSIG);
                 }
+                */
             }
 
             corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
@@ -1647,69 +1727,18 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         c->Write("",TObject::kOverwrite);
         c->Clear();
 
-        // do not calculate xjz_mean directly from jetSIG any more.
-        // array of <x_jz> mean and weights for RAW and BKG correlations
-        // [0][i] : <x_jz> for jetRAW in ptBin i
-        // [1][i] : weight of <x_jz> for jetRAW in ptBin i
-        // [2][i] : error  of <x_jz> for jetRAW in ptBin i
-        // [3][i] : <x_jz> for jetBKG in ptBin i
-        // [4][i] : weight of <x_jz> for jetBKG in ptBin i
-        // [5][i] : error  of <x_jz> for jetBKG in ptBin i
-        /*
-         * should follow this procedure to calculate mean of X_JZ :
-
-           mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
-           mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
-           by definition : w_SIG = w_RAW - w_BKG
-           ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-
-           so it will not be ratio of weigthed sums, but ratio of weighted differences.
-           this approach should avoid the case of negative entries.
-
-         * 11.07.2016 : made lots of cross-check, this method actually gives the same result as calculating
-         * xjz_mean directly from jetSIG histogram. The value calculated with this approach is the same as what
-         * h1D_xjz_..._jetSIG_final_norm->GetMean() gives.
-         */
-        std::vector<double> meansANDweights[nHiBins_xjz_mean];
         for(int jCorr = 0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
 
-            if(jCorr > 0 && !isHI) continue;
             // xjz_mean block
             for(int i = 0; i < nHiBins_xjz_mean; ++i){
 
                 int iHiBin = i + offset_HiBins_rjz;
                 if (!isHI)  iHiBin = 0;
 
-                if (jCorr == CORR::kRAW || jCorr == CORR::kBKG) {
-                    double val = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMean();
-                    double sumWeights = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetSumOfWeights();
-                    double err = corrHists[0][iPt][iHiBin].h1D_final_norm[iCorr][jCorr]->GetMeanError();
-
-                    meansANDweights[i].push_back(val);
-                    meansANDweights[i].push_back(sumWeights);
-                    meansANDweights[i].push_back(err);
-
-                    corrHists_hiBins[ZJET::kXJZ_mean][iPt].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
-                    corrHists_hiBins[ZJET::kXJZ_mean][iPt].h1D[iCorr][jCorr]->SetBinError(i+1, err);
-                }
-                else if (jCorr == CORR::kSIG) {
-                    // mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-                    double sumWeightsSIG = meansANDweights[i].at(1) - meansANDweights[i].at(4);
-                    double meanSIG = (meansANDweights[i].at(0)*meansANDweights[i].at(1) - meansANDweights[i].at(3)*meansANDweights[i].at(4)) / sumWeightsSIG;
-                    double errSIG = TMath::Sqrt(meansANDweights[i].at(2)*meansANDweights[i].at(2)*meansANDweights[i].at(1)*meansANDweights[i].at(1)
-                                              - meansANDweights[i].at(5)*meansANDweights[i].at(5)*meansANDweights[i].at(4)*meansANDweights[i].at(4)) / sumWeightsSIG;
-                    /*
-                     * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
-                     * ==>
-                     * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
-                     * assume Cov(SIG,BKG) = 0
-                     * ==>
-                     * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)
-                     */
-
-                    corrHists_hiBins[ZJET::kXJZ_mean][iPt].h1D[iCorr][jCorr]->SetBinContent(i+1, meanSIG);
-                    corrHists_hiBins[ZJET::kXJZ_mean][iPt].h1D[iCorr][jCorr]->SetBinError(i+1, errSIG);
-                }
+                double val = xjz_mean[iPt][iHiBin][jCorr];
+                double err = xjz_meanErr[iPt][iHiBin][jCorr];
+                corrHists_hiBins[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+                corrHists_hiBins[ZJET::kXJZ_mean][iHiBin].h1D[iCorr][jCorr]->SetBinError(i+1, err);
             }
 
             corrHists_hiBins[ZJET::kXJZ_mean][iPt].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
