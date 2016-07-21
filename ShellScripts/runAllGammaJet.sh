@@ -1,8 +1,8 @@
 #!/bin/bash
 set -x
 
-DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-#DATE=2016-07-13-noEvtPlaneBins-newMC
+#DATE=$(date +"%Y-%m-%d_%H_%M_%S")
+DATE=2016-07-20-noEvtPlaneBins
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 mkdir -p $OUTDIR
@@ -10,11 +10,9 @@ mkdir -p $OUTDIR
 # ################ Minbias Skimming Section ####################
 echo "## minbias skimming"
 
-set -f
-INFILE=/mnt/hadoop/cms/store/user/rbi/merged/HIMinimumBias2-HIRun2015-PromptReco-v1_forest_csjet_v1/*.root
+INFILE=./ShellScripts/PbPb_Data_MB_HiForest.list
 OUTFILE=PbPb_Data_minbiasJetSkim.root
 time ./ForestSkimmers/jets/minBiasJetSkim.exe ./CutConfigurations/gammaJet.conf $INFILE ${OUTDIR}/$OUTFILE > ${OUTDIR}/$OUTFILE.log &
-set +f
 
 INFILE=/mnt/hadoop/cms/store/user/rbi/merged/Hydjet_Quenched_MinBias_5020GeV_750-HINPbPbWinter16DR-NoPU_75X_mcRun2_HeavyIon_forest_v2/0.root 
 OUTFILE=PbPb_MC_minbiasJetSkim.root
