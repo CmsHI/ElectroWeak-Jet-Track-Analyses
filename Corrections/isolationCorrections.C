@@ -40,6 +40,11 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
     _SET_BRANCH_VEC(t_photon, float, pho_ecalClusterIsoR4);
     _SET_BRANCH_VEC(t_photon, float, pho_hcalRechitIsoR4);
     _SET_BRANCH_VEC(t_photon, float, pho_trackIsoR4PtCut20);
+    _SET_BRANCH_VEC(t_photon, float, phoE3x3);
+    _SET_BRANCH_VEC(t_photon, float, phoE1x5);
+    _SET_BRANCH_VEC(t_photon, float, phoE2x5);
+    _SET_BRANCH_VEC(t_photon, float, phoE5x5);
+    _SET_BRANCH_VEC(t_photon, float, phoHoverE);
 
     t_gj->SetBranchStatus("*", 0);
     _SET_BRANCH_VAR(t_gj, int, phoIdx);
@@ -63,9 +68,15 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
 
         if (phoIdx < 0)
             continue;
+        if (((*phoE3x3)[phoIdx]/(*phoE5x5)[phoIdx] > 2./3.-0.03 && (*phoE3x3)[phoIdx]/(*phoE5x5)[phoIdx] < 2./3.+0.03) &&
+            ((*phoE1x5)[phoIdx]/(*phoE5x5)[phoIdx] > 1./3.-0.03 && (*phoE1x5)[phoIdx]/(*phoE5x5)[phoIdx] < 1./3.+0.03) &&
+            ((*phoE2x5)[phoIdx]/(*phoE5x5)[phoIdx] > 2./3.-0.03 && (*phoE2x5)[phoIdx]/(*phoE5x5)[phoIdx] < 2./3.+0.03))
+            continue;
+        if ((*phoHoverE)[phoIdx] > 0.1)
+            continue;
 
-        double angle = getAngleToEP(fabs((*phoPhi)[phoIdx] - hiEvtPlanes[8]));
         double sumIso = (*pho_ecalClusterIsoR4)[phoIdx] + (*pho_hcalRechitIsoR4)[phoIdx] + (*pho_trackIsoR4PtCut20)[phoIdx];
+        double angle = getAngleToEP(fabs((*phoPhi)[phoIdx] - hiEvtPlanes[8]));
 
         h2D_sumIso_angle->Fill(angle, sumIso);
     }
@@ -75,8 +86,9 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
     TProfile* h1D_meanSumIso_angle = (TProfile*)h2D_sumIso_angle->ProfileX("h1D_meanSumIso_angle");
     h1D_meanSumIso_angle->RebinX(4);
 
-    TH1D* sumIsoCorrections = (TH1D*)h1D_meanSumIso_angle->Clone("sumIsoCorrections");
-    sumIsoCorrections->Scale(1/meanSumIso);
+    TH1D* sumIsoCorrections = new TH1D("sumIsoCorrections", "", 20, 0, 1.6);
+    for (int i=1; i<sumIsoCorrections->GetSize()-1; ++i)
+        sumIsoCorrections->SetBinContent(i, h1D_meanSumIso_angle->GetBinContent(i) - meanSumIso);
 
     f_output->Write("", TObject::kOverwrite);
     f_output->Close();

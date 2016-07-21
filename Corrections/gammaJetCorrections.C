@@ -168,7 +168,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
                 else
                     phoEtCorrected.push_back((*pho_event.phoEt)[j] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[j])));
 
-                pho_sumIsoCorrected.push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*pho_event.phoPhi)[j] - hiEvtPlanes[8])))));
+                pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*pho_event.phoPhi)[j] - hiEvtPlanes[8])))));
             } else {
                 phoEtCorrected.push_back((*pho_event.phoEt)[j]);
                 pho_sumIsoCorrected.push_back(sumIso);
