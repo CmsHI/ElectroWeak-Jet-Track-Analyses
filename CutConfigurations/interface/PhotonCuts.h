@@ -137,6 +137,7 @@ namespace CUTS {
       k_sumiso_correction_file,
       k_pt_bin_numbers,
       k_cent_bin_numbers,
+      k_purity,
       kN_S_CUTS
     };
 
@@ -157,7 +158,8 @@ namespace CUTS {
       "energy_correction_file",
       "sumiso_correction_file",
       "pt_bin_numbers",      // select pt bins for dphi width/pedestal plots
-      "cent_bin_numbers"      // select cent bins for "
+      "cent_bin_numbers",      // select cent bins for "
+      "purity"
     };
 
   };

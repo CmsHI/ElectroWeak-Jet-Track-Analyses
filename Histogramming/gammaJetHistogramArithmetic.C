@@ -57,7 +57,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
   std::cout << "collision = " << collisionName << std::endl;
 
-  bool isMC = collisionIsMC((COLL::TYPE)collision);
+  //bool isMC = collisionIsMC((COLL::TYPE)collision);
   bool isHI = collisionIsHI((COLL::TYPE)collision);
 
   // observable bins
@@ -72,6 +72,25 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
   bins_hiBin[1] = ConfigurationParser::ParseListInteger(
     configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
+  int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+  int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+
+  std::vector<float> purityVec = ConfigurationParser::ParseListFloat(
+    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_purity]);
+  int puritySize = purityVec.size();
+  if(puritySize != (nBins_pt * nBins_hiBin) ){
+    std::cout << "Purity array malformed. Should be size: " << (nBins_pt * nBins_hiBin)
+              << ", actual size: " << puritySize << ". Aborting." << std::endl;
+    return;
+  }
+
+  double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
+  for (int i = 0; i<nBins_pt; ++i) {
+    for (int j = 0; j<nBins_hiBin; ++j) {
+        purity[i][j] = purityVec[i*nBins_hiBin+j];
+    }
+  }
 
   // dphi width/pedestal plots as a function of photon pt, for different centrality bins
   std::vector<int> pt_bin_numbers;
@@ -88,34 +107,6 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
   nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
-  int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
-  int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
-
-  /// Purity Calculation Block ///
-  // these lists of constants should really be in the conf. Cheat for time for now.
-  const float tempPbPbPurity[56] = {0.723048, 0.71411, 0.763773, 0.700998, 0.722347, 0.756998, 0.785598, 0.733459, 0.719714, 0.791071, 0.700825, 0.735065, 0.773079, 0.850832, 0.714101, 0.705075, 0.752752, 0.683238, 0.713721, 0.74667, 0.770087, 0.719715, 0.71061, 0.766883, 0.700247, 0.720904, 0.766403, 0.770699, 0.726155, 0.712148, 0.787896, 0.689441, 0.729292, 0.76972, 0.846405, 0.745387, 0.730491, 0.80014, 0.714901, 0.746231, 0.784158, 0.868264, 0.733213, 0.715777, 0.798325, 0.707294, 0.725095, 0.779037, 0.86972, 0.764268, 0.75237, 0.810844, 0.724895, 0.779519, 0.798868, 0.874249};
-
-  const float tempPbPbMCPurity[56] = {0.997257, 0.970485, 0.99303, 0.923417, 0.977473, 0.982682, 0.990262, 0.987989, 0.959651, 0.986329, 0.938241, 0.963101, 0.975352, 0.985049, 0.9848, 0.937319, 0.987337, 0.889518, 0.943746, 0.969002, 0.984073, 0.987913, 0.949616, 0.986781, 0.902459, 0.958536, 0.972087, 0.984749, 0.980167, 0.939734, 0.983324, 0.920144, 0.946338, 0.973033, 0.983574, 0.983182, 0.953262, 0.981861, 0.928382, 0.959017, 0.967944, 0.982877, 0.976112, 0.933231, 0.978778, 0.941631, 0.933237, 0.962863, 0.983078, 0.980276, 0.949212, 0.983006, 0.912535, 0.956059, 0.971913, 0.981887};
-
-  const float tempPPPurity[56] = {0.823368, 0.823368, 0.823368, 0.823368, 0.823368, 0.823368, 0.823368, 0.846154, 0.846154, 0.846154, 0.846154, 0.846154, 0.846154, 0.846154, 0.820975, 0.820975, 0.820975, 0.820975, 0.820975, 0.820975, 0.820975, 0.830048, 0.830048, 0.830048, 0.830048, 0.830048, 0.830048, 0.830048, 0.846293, 0.846293, 0.846293, 0.846293, 0.846293, 0.846293, 0.846293, 0.859037, 0.859037, 0.859037, 0.859037, 0.859037, 0.859037, 0.859037, 0.863744, 0.863744, 0.863744, 0.863744, 0.863744, 0.863744, 0.863744, 0.857244, 0.857244, 0.857244, 0.857244, 0.857244, 0.857244, 0.857244};
-
-  const float tempPPMCPurity[56] = {0.984435, 0.984435, 0.984435, 0.984435, 0.984435, 0.984435, 0.984435, 0.985024, 0.985024, 0.985024, 0.985024, 0.985024, 0.985024, 0.985024, 0.979803, 0.979803, 0.979803, 0.979803, 0.979803, 0.979803, 0.979803, 0.984948, 0.984948, 0.984948, 0.984948, 0.984948, 0.984948, 0.984948, 0.983431, 0.983431, 0.983431, 0.983431, 0.983431, 0.983431, 0.983431, 0.986905, 0.986905, 0.986905, 0.986905, 0.986905, 0.986905, 0.986905, 0.984677, 0.984677, 0.984677, 0.984677, 0.984677, 0.984677, 0.984677, 0.98947, 0.98947, 0.98947, 0.98947, 0.98947, 0.98947, 0.98947};
-
-  double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
-  for (int i = 0; i<nBins_pt; ++i) {
-    for (int j = 0; j<nBins_hiBin; ++j) {
-      if (isHI && !isMC) {
-        purity[i][j] = tempPbPbPurity[i*nBins_hiBin+j];
-      } else if (isHI && isMC) {
-        purity[i][j] = tempPbPbMCPurity[i*nBins_hiBin+j];
-      } else if (!isHI && !isMC) {
-        purity[i][j] = tempPPPurity[i*nBins_hiBin+j];
-      } else {
-        purity[i][j] = tempPPMCPurity[i*nBins_hiBin+j];
-      }
-    }
-  }
-  /// End Purity Block ///
   TFile* output = TFile::Open(outputFile, "RECREATE");
 
   TTree *configTree = setupConfigurationTreeForWriting(configCuts);
