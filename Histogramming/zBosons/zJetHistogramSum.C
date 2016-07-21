@@ -121,22 +121,27 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     std::vector<std::string> correlationHistNames {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ",
                                                           "ptJet", "zM",
                                                           "zPt", "zEta", "zPhi", "jteta", "jtphi",
-                                                          "nJet", "hiBin"};
+                                                          "nJet", "hiBin",
+                                                          "xjz_binJER", "xjz_binJER2"};
     std::vector<bool>  normbyZcount {true, true, true, true, true,
                                            true, false,
                                            false, false, false, true, true,
+                                           true, true,
                                            true, true};
     std::vector<std::string> versionSuffix {"final", "final", "final", "final", "final",
                                                      "final", "final",
                                                      "final", "final", "final", "final", "final",
+                                                     "final", "final",
                                                      "final", "final"};
     std::vector<std::string> jetRegion    {"RAW", "RAW", "RAW", "RAW", "RAW",
                                                   "RAW", "RAW",
                                                   "RAW", "RAW", "RAW", "RAW", "RAW",
+                                                  "RAW", "RAW",
                                                   "RAW", "RAW"};
     std::vector<std::string> jetRegionBKG {"BKG", "BKG", "BKG", "BKG", "BKG",
                                                   "BKG", "BKG",
                                                   "BKG", "BKG", "BKG", "BKG", "BKG",
+                                                  "BKG", "BKG",
                                                   "BKG", "BKG"};
     if (!isHI) {
         std::cout << "There is no jetBKG for PP" <<std::endl;
@@ -185,9 +190,10 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     const int nPtBins_rjz = 4;
     const int nBins_xjz_mean_ptBin = 4;
     const int offset_ptBins_rjz = 3; // ptBin 40-50 starts from index 3.
+    const int offset_ptBins_xjz_mean = offset_ptBins_rjz;
     for (int i = 0; i < nBins_xjz_mean_ptBin; ++i) {
 
-        int iPt = i + offset_ptBins_rjz;
+        int iPt = i + offset_ptBins_xjz_mean;
         for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
             std::string tmpName = Form("xjz_ptBin%d_hiBin%d_jetRAW_final", iPt, iHiBin);
             std::string tmpHistName = Form("h1D_%s", tmpName.c_str());
@@ -250,8 +256,23 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     TH1D* hMu_nums [nTH1_pathsMu];
     double nZeventsEle[nTH1_pathsEle];     // value by which the original histogram was divided
     double nZeventsMu [nTH1_pathsMu];      // value by which the original histogram was divided
+
+    // arrays with <xjz>, <xjz> error, sumofweights values in dielectron channel
+    double xjz_mean_Ele[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_meanErr_Ele[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_weight_Ele[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+
+    // arrays with <xjz>, <xjz> error, sumofweights values in dimuon channel
+    double xjz_mean_Mu[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_meanErr_Mu[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_weight_Mu[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+
     bool matchZmmZeeRatio = isMC && isHI;  // scale the number of Zmm events to match the Zee/Zmm event ratio in DATA
+    if (matchZmmZeeRatio)  {
+        std::cout << "scale the number of Zmm events to match the Zee/Zmm event ratio in DATA" << std::endl;
+    }
     double ratioZmmZee = 1;
+    // dielectron channel
     for (int i=0; i<nTH1_pathsEle; ++i){
         std::string histPath = TH1_pathsEle.at(i).c_str();
         hEle[i] = (TH1D*)keysHistoEle->FindObject(histPath.c_str());
@@ -265,7 +286,31 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
         std::string histPath_nums = TH1_pathsEle_nums.at(i).c_str();
         hEle_nums[i] = (TH1D*)keysHistoEle->FindObject(histPath_nums.c_str());
         nZeventsEle[i] = double(hEle_nums[i]->GetBinContent(2));     // 2nd bin contains the number of Z events
+
+        // read <xjz>, <xjz> error, sumofweights values
+        for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
+            if (histPath_nums.find(Form("_ptBin%d", iPt)) == std::string::npos)  continue;
+            for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
+                if (histPath_nums.find(Form("_hiBin%d", iHiBin)) == std::string::npos)  continue;
+
+                int iBinRAW = 4;
+                xjz_mean_Ele[iPt][iHiBin][CORR::kRAW] = hEle_nums[i]->GetBinContent(iBinRAW);
+                xjz_meanErr_Ele[iPt][iHiBin][CORR::kRAW] = hEle_nums[i]->GetBinError(iBinRAW);
+                xjz_weight_Ele[iPt][iHiBin][CORR::kRAW] = hEle_nums[i]->GetBinContent(iBinRAW+3);
+
+                int iBinBKG = 5;
+                xjz_mean_Ele[iPt][iHiBin][CORR::kBKG] = hEle_nums[i]->GetBinContent(iBinBKG);
+                xjz_meanErr_Ele[iPt][iHiBin][CORR::kBKG] = hEle_nums[i]->GetBinError(iBinBKG);
+                xjz_weight_Ele[iPt][iHiBin][CORR::kBKG] = hEle_nums[i]->GetBinContent(iBinBKG+3);
+
+                int iBinSIG = 6;
+                xjz_mean_Ele[iPt][iHiBin][CORR::kSIG] = hEle_nums[i]->GetBinContent(iBinSIG);
+                xjz_meanErr_Ele[iPt][iHiBin][CORR::kSIG] = hEle_nums[i]->GetBinError(iBinSIG);
+                xjz_weight_Ele[iPt][iHiBin][CORR::kSIG] = hEle_nums[i]->GetBinContent(iBinSIG+3);
+            }
+        }
     }
+    // dimuon channel
     for (int i=0; i<nTH1_pathsMu; ++i){
         std::string histPath = TH1_pathsMu.at(i).c_str();
         hMu[i] = (TH1D*)keysHistoMu->FindObject(histPath.c_str());
@@ -283,6 +328,29 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
             // this scaling is hard coded.
             ratioZmmZee = (164/74.9714);
             nZeventsMu[i] = ratioZmmZee*nZeventsEle[i];
+        }
+
+        // read <xjz>, <xjz> error, sumofweights values
+        for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
+            if (histPath_nums.find(Form("_ptBin%d", iPt)) == std::string::npos)  continue;
+            for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
+                if (histPath_nums.find(Form("_hiBin%d", iHiBin)) == std::string::npos)  continue;
+
+                int iBinRAW = 4;
+                xjz_mean_Mu[iPt][iHiBin][CORR::kRAW] = hMu_nums[i]->GetBinContent(iBinRAW);
+                xjz_meanErr_Mu[iPt][iHiBin][CORR::kRAW] = hMu_nums[i]->GetBinError(iBinRAW);
+                xjz_weight_Mu[iPt][iHiBin][CORR::kRAW] = hMu_nums[i]->GetBinContent(iBinRAW+3);
+
+                int iBinBKG = 5;
+                xjz_mean_Mu[iPt][iHiBin][CORR::kBKG] = hMu_nums[i]->GetBinContent(iBinBKG);
+                xjz_meanErr_Mu[iPt][iHiBin][CORR::kBKG] = hMu_nums[i]->GetBinError(iBinBKG);
+                xjz_weight_Mu[iPt][iHiBin][CORR::kBKG] = hMu_nums[i]->GetBinContent(iBinBKG+3);
+
+                int iBinSIG = 6;
+                xjz_mean_Mu[iPt][iHiBin][CORR::kSIG] = hMu_nums[i]->GetBinContent(iBinSIG);
+                xjz_meanErr_Mu[iPt][iHiBin][CORR::kSIG] = hMu_nums[i]->GetBinError(iBinSIG);
+                xjz_weight_Mu[iPt][iHiBin][CORR::kSIG] = hMu_nums[i]->GetBinContent(iBinSIG+3);
+            }
         }
     }
 
@@ -487,10 +555,77 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
         c->Clear();
     }
 
+    // calculate <xjz> from sum of dielectron and dimuon channels
+    // arrays with <xjz>, <xjz> error, sumofweights values for sum of dielectron and dimuon channels
+    double xjz_mean[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_meanErr[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
+        for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
+
+            // calculate mean of jetRAW
+            double wRAW_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kRAW];
+            double meanRAW_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kRAW];
+            double errRAW_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kRAW];
+            double wRAW_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kRAW];
+            double meanRAW_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kRAW];
+            double errRAW_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kRAW];
+
+            double wRAW = (wRAW_Ele + wRAW_Mu);
+            double meanRAW = (meanRAW_Ele*wRAW_Ele + meanRAW_Mu*wRAW_Mu) / wRAW;
+            double errRAW = TMath::Sqrt(wRAW_Ele*wRAW_Ele*errRAW_Ele*errRAW_Ele + wRAW_Mu*wRAW_Mu*errRAW_Mu*errRAW_Mu) / wRAW;
+
+            // calculate mean of jetBKG
+            double wBKG_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kBKG];
+            double meanBKG_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kBKG];
+            double errBKG_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kBKG];
+            double wBKG_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kBKG];
+            double meanBKG_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kBKG];
+            double errBKG_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kBKG];
+
+            double wBKG = (wBKG_Ele + wBKG_Mu);
+            double meanBKG = (meanBKG_Ele*wBKG_Ele + meanBKG_Mu*wBKG_Mu) / wBKG;
+            double errBKG = TMath::Sqrt(wBKG_Ele*wBKG_Ele*errBKG_Ele*errBKG_Ele + wBKG_Mu*wBKG_Mu*errBKG_Mu*errBKG_Mu) / wBKG;
+            if (wBKG == 0) {
+                meanBKG = 0;
+                errBKG = 0;
+            }
+
+            /*
+             * should follow this procedure to calculate mean of X_JZ :
+
+              mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
+              mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
+              by definition : w_SIG = w_RAW - w_BKG
+              ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
+             */
+            double meanSIG = (meanRAW*wRAW - meanBKG*wBKG) / (wRAW - wBKG);
+
+            /*
+             * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
+             * ==>
+             * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
+             * assume Cov(SIG,BKG) = 0
+             * ==>
+             * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)^2
+             * err_SIG = sqrt(var_SIG)
+             */
+            double errSIG = TMath::Sqrt(wRAW*wRAW*errRAW*errRAW - wBKG*wBKG*errBKG*errBKG) / (wRAW - wBKG);
+
+            xjz_mean[iPt][iHiBin][CORR::kRAW] = meanRAW;
+            xjz_meanErr[iPt][iHiBin][CORR::kRAW] = errRAW;
+
+            xjz_mean[iPt][iHiBin][CORR::kBKG] = meanBKG;
+            xjz_meanErr[iPt][iHiBin][CORR::kBKG] = errBKG;
+
+            xjz_mean[iPt][iHiBin][CORR::kSIG] = meanSIG;
+            xjz_meanErr[iPt][iHiBin][CORR::kSIG] = errSIG;
+        }
+    }
+
     // histograms with "Z pt bins" on x-axis
     std::vector<std::string> correlationHistNames_ptBinAll (ZJET::CORR_NAMES, ZJET::CORR_NAMES + ZJET::kN_ZJETCORR);       // histograms where x-axis is pt bins
     int nCorrHist_ptBinAll = correlationHistNames_ptBinAll.size();
-    TH1D* corrHists_ptBinAll[nCorrHist_ptBinAll][nBins_hiBin];
+    TH1D* corrHists_ptBinAll[nCorrHist_ptBinAll][nBins_hiBin][CORR::kN_CORRFNC];
 
     TH1D* rjz_num_Ele_ptBinAll[nBins_hiBin];       // histograms where x-axis is pt bins, y-axis is number of zJet events
     TH1D* rjz_denom_Ele_ptBinAll[nBins_hiBin];     // histograms where x-axis is pt bins, y-axis is number of Z events
@@ -517,8 +652,8 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
         std::string histPath;
         subHistName = Form("%s_ptBinAll_hiBin%d", correlationHistNames_ptBinAll.at(ZJET::kRJZ).c_str(), iHiBin);
         histPath = Form("h1D_%s", subHistName.c_str());
-        corrHists_ptBinAll[ZJET::kRJZ][iHiBin] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
-        corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
+        corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
+        corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
 
         for(int i=0; i<nPtBins_rjz; ++i){
             // calculate R_JZ from the integral of X_JZ
@@ -537,20 +672,20 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                     // include the overflow bin in rjz calculation
                     val = hSIGNorm[iHist]->IntegralAndError(1, nBinsX+1, err, "width");
 
-                    corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->SetBinContent(i+1, val);
-                    corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->SetBinError(i+1, err);
+                    corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->SetBinContent(i+1, val);
+                    corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->SetBinError(i+1, err);
 
                     break;
                 }
             }
         }
         // R_JZ has been calculated from sum of electron and muon channels
-        std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->GetName()<<std::endl;
+        std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->GetName()<<std::endl;
         c->SetName(Form("cnv_%s", subHistName.c_str()));
         c->cd();
-        corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->Draw("e");
-        corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->Write("",TObject::kOverwrite);
-        corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+        corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->Draw("e");
+        corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->Write("",TObject::kOverwrite);
+        corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
         c->Write("",TObject::kOverwrite);
         c->Clear();
 
@@ -573,180 +708,74 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
 
         subHistName = Form("%s_ptBinAll_hiBin%d", correlationHistNames_ptBinAll.at(ZJET::kRJZ_zNum).c_str(), iHiBin);
         histPath = Form("h1D_%s", subHistName.c_str());
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->Add(rjz_num_ptBinAll[iHiBin]);
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->Divide(rjz_denom_ptBinAll[iHiBin]);
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->Add(rjz_num_ptBinAll[iHiBin]);
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->Divide(rjz_denom_ptBinAll[iHiBin]);
         // R_JZ has been calculated from sum of electron and muon channels -  using number of events
 
         // write those histograms without creating a canvas for them
         rjz_num_ptBinAll[iHiBin]->Write("",TObject::kOverwrite);
         rjz_denom_ptBinAll[iHiBin]->Write("",TObject::kOverwrite);
 
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->SetMarkerStyle(kFullCircle);
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->SetMarkerColor(kBlack);
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->SetMarkerStyle(kFullCircle);
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->SetMarkerColor(kBlack);
 
-        std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->GetName()<<std::endl;
+        std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->GetName()<<std::endl;
         c->SetName(Form("cnv_%s", subHistName.c_str()));
         c->cd();
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->Draw("e");
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->Write("",TObject::kOverwrite);
-        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->Draw("e");
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->Write("",TObject::kOverwrite);
+        corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
         c->Write("",TObject::kOverwrite);
         c->Clear();
 
         std::cout << "####" << std::endl;
-        std::cout << Form("h = %s", corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->GetName()) << std::endl;
-        for (int bin = 1; bin <= corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->GetNbinsX(); ++bin) {
+        std::cout << Form("h = %s", corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->GetName()) << std::endl;
+        for (int bin = 1; bin <= corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->GetNbinsX(); ++bin) {
             std::cout << "bin = " << bin << std::endl;
-            std::cout << Form("rjz = %f", corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->GetBinContent(bin)) << std::endl;
-            std::cout << Form("rjz_zNum = %f", corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin]->GetBinContent(bin)) << std::endl;
+            std::cout << Form("rjz = %f", corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->GetBinContent(bin)) << std::endl;
+            std::cout << Form("rjz_zNum = %f", corrHists_ptBinAll[ZJET::kRJZ_zNum][iHiBin][0]->GetBinContent(bin)) << std::endl;
             std::cout << Form("rjz_num = %f", rjz_num_ptBinAll[iHiBin]->GetBinContent(bin)) << std::endl;
             std::cout << Form("rjz_denom = %f", rjz_denom_ptBinAll[iHiBin]->GetBinContent(bin)) << std::endl;
         }
 
-        // xjz_mean block
-        subHistName = Form("%s_ptBinAll_hiBin%d_jetSIG", correlationHistNames_ptBinAll.at(ZJET::kXJZ_mean).c_str(), iHiBin);
-        histPath = Form("h1D_%s", subHistName.c_str());
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
+        for(int jCorr = 0; jCorr<CORR::kN_CORRFNC; ++jCorr) {
+            // xjz_mean block
+            subHistName = Form("%s_ptBinAll_hiBin%d_%s", correlationHistNames_ptBinAll.at(ZJET::kXJZ_mean).c_str(), iHiBin,
+                                                         CORR::CORR_JET_LABELS[jCorr].c_str());
+            histPath = Form("h1D_%s", subHistName.c_str());
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr] = (TH1D*)keysHistoEle->FindObject(histPath.c_str())->Clone(histPath.c_str());
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->Reset("ICES");   // the histogram above is cloned just to copy axis properties
 
-        if(iHiBin > 0 && !isHI) continue;
-
-        if (!isHI) {
             for (int i = 0; i < nBins_xjz_mean_ptBin; ++i) {
 
-                int iPt = i + offset_ptBins_rjz;
-                std::string tmpName = Form("xjz_ptBin%d_hiBin%d_jetSIG_final_norm", iPt, iHiBin);
-                std::string tmpHistName = Form("h1D_%s", tmpName.c_str());
+                int iPt = i + offset_ptBins_xjz_mean;
 
-                // search through histograms that are created by summing dielectron and dimuon channels
-                for (int iHist = 0; iHist < nTH1; ++iHist)
-                {
-                    if (tmpHistName.compare(hSIGNorm[iHist]->GetName()) == 0) {
-                        double val = hSIGNorm[iHist]->GetMean();
-                        double err = hSIGNorm[iHist]->GetMeanError();
-
-                        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetBinContent(i+1, val);
-                        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetBinError(i+1, err);
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        // do not calculate xjz_mean directly from jetSIG any more.
-        // array of <x_jz> mean and weights for RAW and BKG correlations
-        // [0][i] : <x_jz> for jetRAW in ptBin i
-        // [1][i] : weight of <x_jz> for jetRAW in ptBin i
-        // [2][i] : error  of <x_jz> for jetRAW in ptBin i
-        // [3][i] : <x_jz> for jetBKG in ptBin i
-        // [4][i] : weight of <x_jz> for jetBKG in ptBin i
-        // [5][i] : error  of <x_jz> for jetBKG in ptBin i
-        /*
-         * should follow this procedure to calculate mean of X_JZ :
-
-           mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
-           mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
-           by definition : w_SIG = w_RAW - w_BKG
-           ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-
-           so it will not be ratio of weigthed sums, but ratio of weighted differences.
-           this approach should avoid the case of negative entries.
-
-         * 11.07.2016 : made lots of cross-check, this method actually gives the same result as calculating
-         * xjz_mean directly from jetSIG histogram. The value calculated with this approach is the same as what
-         * h1D_xjz_..._jetSIG_final_norm->GetMean() gives.
-         */
-        std::vector<double> meansANDweights[nBins_xjz_mean_ptBin];
-        if (isHI) {
-        for (int i = 0; i < nBins_xjz_mean_ptBin; ++i) {
-
-            int iPt = i + offset_ptBins_rjz;
-            std::string tmpNameRAW = Form("xjz_ptBin%d_hiBin%d_jetRAW_final_norm", iPt, iHiBin);
-            std::string tmpNameBKG = Form("xjz_ptBin%d_hiBin%d_jetBKG_final_norm", iPt, iHiBin);
-            std::string tmpNameSIG = Form("xjz_ptBin%d_hiBin%d_jetSIG_final_norm", iPt, iHiBin);
-            std::string tmpHistNameRAW = Form("h1D_%s", tmpNameRAW.c_str());
-            std::string tmpHistNameBKG = Form("h1D_%s", tmpNameBKG.c_str());
-            std::string tmpHistNameSIG = Form("h1D_%s", tmpNameSIG.c_str());
-
-            // search through histograms that are created by summing dielectron and dimuon channels
-            // get values from jetRAW
-            for (int iHist = 0; iHist < nTH1; ++iHist)
-            {
-                if (tmpHistNameRAW.compare(hNorm[iHist]->GetName()) == 0) {
-                    double val = hNorm[iHist]->GetMean();
-                    double sumWeights = hNorm[iHist]->GetSumOfWeights();
-                    double err = hNorm[iHist]->GetMeanError();
-
-                    meansANDweights[i].push_back(val);
-                    meansANDweights[i].push_back(sumWeights);
-                    meansANDweights[i].push_back(err);
-
-                    break;
-                }
-            }
-            // get values from jetBKG
-            for (int iHist = 0; iHist < nTH1; ++iHist)
-            {
-                if (tmpHistNameBKG.compare(hBKGNorm[iHist]->GetName()) == 0) {
-                    double val = hBKGNorm[iHist]->GetMean();
-                    double sumWeights = hBKGNorm[iHist]->GetSumOfWeights();
-                    double err = hBKGNorm[iHist]->GetMeanError();
-
-                    meansANDweights[i].push_back(val);
-                    meansANDweights[i].push_back(sumWeights);
-                    meansANDweights[i].push_back(err);
-
-                    break;
-                }
+                double val = xjz_mean[iPt][iHiBin][jCorr];
+                double err = xjz_meanErr[iPt][iHiBin][jCorr];
+                corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->SetBinContent(i+1, val);
+                corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->SetBinError(i+1, err);
             }
 
-            if (meansANDweights[i].size() != 6) {
-                std::cout << "meansANDweights[i].size() != 6" << std::endl;
-                std::cout << "something went wrong with reading values from : "
-                          << "xjz_ptBin%d_hiBin%d_jetRAW_final_norm or xjz_ptBin%d_hiBin%d_jetBKG_final_norm" << std::endl;
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->SetMarkerStyle(kFullCircle);
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->SetMarkerColor(kBlack);
+
+            std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->GetName() <<std::endl;
+            c->SetName(Form("cnv_%s", subHistName.c_str()));
+            c->cd();
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->Draw("e");
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->Write("",TObject::kOverwrite);
+            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
+            c->Write("",TObject::kOverwrite);
+            c->Clear();
+
+            std::cout << "####" << std::endl;
+            std::cout << Form("h = %s", corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->GetName()) << std::endl;
+            for (int bin = 1; bin <= corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->GetNbinsX(); ++bin) {
+                std::cout << Form("xjz_mean->GetBinContent(%d) = %f", bin, corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->GetBinContent(bin)) << std::endl;
+                std::cout << Form("xjz_mean->GetBinError(%d)   = %f", bin, corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin][jCorr]->GetBinError(bin)) << std::endl;
             }
-
-            // calculate values for jetSIG
-            // mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-            double sumWeightsSIG = meansANDweights[i].at(1) - meansANDweights[i].at(4);
-            double meanSIG = (meansANDweights[i].at(0)*meansANDweights[i].at(1) - meansANDweights[i].at(3)*meansANDweights[i].at(4)) / sumWeightsSIG;
-            double errSIG = TMath::Sqrt(meansANDweights[i].at(2)*meansANDweights[i].at(2)*meansANDweights[i].at(1)*meansANDweights[i].at(1)
-                                      - meansANDweights[i].at(5)*meansANDweights[i].at(5)*meansANDweights[i].at(4)*meansANDweights[i].at(4)) / sumWeightsSIG;
-
-            /*
-             * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
-             * ==>
-             * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
-             * assume Cov(SIG,BKG) = 0
-             * ==>
-             * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)
-             */
-
-            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetBinContent(i+1, meanSIG);
-            corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetBinError(i+1, errSIG);
-        }
-        }
-
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetMarkerStyle(kFullCircle);
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetMarkerColor(kBlack);
-
-        std::cout<<"drawing : "<<corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->GetName() <<std::endl;
-        c->SetName(Form("cnv_%s", subHistName.c_str()));
-        c->cd();
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->Draw("e");
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->Write("",TObject::kOverwrite);
-        corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->SetStats(false);     // remove stat box from the canvas, but keep in the histograms.
-        c->Write("",TObject::kOverwrite);
-        c->Clear();
-
-        std::cout << "####" << std::endl;
-        std::cout << Form("h = %s", corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->GetName()) << std::endl;
-        for (int bin = 1; bin <= corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->GetNbinsX(); ++bin) {
-            std::cout << Form("xjz_mean->GetBinContent(%d) = %f", bin, corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->GetBinContent(bin)) << std::endl;
-            std::cout << Form("xjz_mean->GetBinError(%d)   = %f", bin, corrHists_ptBinAll[ZJET::kXJZ_mean][iHiBin]->GetBinError(bin)) << std::endl;
         }
     }
     std::cout<<"####################"<<std::endl;
@@ -871,7 +900,7 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                 std::cout << "## " << tmpHistName_calc.c_str() << std::endl;
 
                 tmpHistName_template = Form("%s/%s", collisionName, tmpHistName_template.c_str());
-                h1D_calc = (TH1D*)corrHists_ptBinAll[ZJET::kRJZ][iHiBin]->Clone(tmpHistName_calc.c_str());
+                h1D_calc = (TH1D*)corrHists_ptBinAll[ZJET::kRJZ][iHiBin][0]->Clone(tmpHistName_calc.c_str());
                 h1D_calc->Reset("ICES");   // the histogram above is cloned just to copy axis properties
                 h1D_calc->SetYTitle("#sigma (#Delta#phi_{JZ})");
 
