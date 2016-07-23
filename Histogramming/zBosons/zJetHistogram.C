@@ -1294,7 +1294,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     // error bar correction due to smearing procedure
     // histograms for zJet correlations
-    if (isPP && nSmear > 0 && nSmear != 1) {
+    if (nSmear > 0 && nSmear != 1) {
         double scaleContent4Smear = 1/(double)nSmear;
         double scaleError4Smear = TMath::Sqrt(1/(double)nSmear);
 
