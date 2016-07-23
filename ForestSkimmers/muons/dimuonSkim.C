@@ -55,20 +55,44 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
+       float cut_vz;
+       int cut_pcollisionEventSelection;
+       int cut_pPAprimaryVertexFilter;
+       int cut_pBeamScrapingFilter;
+
        int cut_nMu;
        if (configCuts.isValid) {
+           cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+           cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+           cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
+           cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+
            cut_nMu = configCuts.proc[CUTS::kSKIM].obj[CUTS::kMUON].i[CUTS::MUO::k_nMu];
        }
        else {
+           cut_vz = 15;
+           cut_pcollisionEventSelection = 1;
+           cut_pPAprimaryVertexFilter = 1;
+           cut_pBeamScrapingFilter = 1;
+
            cut_nMu = 2;
        }
 
        bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-       //bool isHI = collisionIsHI((COLL::TYPE)collisionType);
-       //bool isPP = collisionIsPP((COLL::TYPE)collisionType);
+       bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+       bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
+       std::cout<<"cut_vz = "<< cut_vz <<std::endl;
+       if (isHI) {
+           std::cout<<"cut_pcollisionEventSelection = "<< cut_pcollisionEventSelection <<std::endl;
+       }
+       else {   // PP
+           std::cout<<"cut_pPAprimaryVertexFilter = "<< cut_pPAprimaryVertexFilter <<std::endl;
+           std::cout<<"cut_pBeamScrapingFilter = "<< cut_pBeamScrapingFilter <<std::endl;
+       }
+
        std::cout<<"cut_nMu = "<<cut_nMu<<std::endl;
 
        std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
@@ -83,12 +107,14 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        TChain* treeHLT   = new TChain("hltanalysis/HltTree");
        TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
        TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
+       TChain* treeSkim  = new TChain("skimanalysis/HltTree");
        TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
 
        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
           treeHLT->Add((*it).c_str());
           treeggHiNtuplizer->Add((*it).c_str());
           treeHiEvt->Add((*it).c_str());
+          treeSkim->Add((*it).c_str());
           treeHiForestInfo->Add((*it).c_str());
        }
 
@@ -125,7 +151,56 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
            treeHiEvt->SetBranchStatus("alphaQED",1);
            treeHiEvt->SetBranchStatus("qScale",1);
        }
-       
+
+       // specify explicitly which branches to store, do not use wildcard
+       treeSkim->SetBranchStatus("*",0);
+
+       Int_t pcollisionEventSelection;  // this filter is used for HI.
+       if (isHI) {
+           treeSkim->SetBranchStatus("pcollisionEventSelection",1);
+           if (treeSkim->GetBranch("pcollisionEventSelection")) {
+               treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+           }
+           else {   // overwrite to default
+               pcollisionEventSelection = 1;
+               std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
+               std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
+           }
+       }
+       else {
+           pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
+       }
+       Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+       if (isPP) {
+           treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
+           if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
+               treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
+           }
+           else {   // overwrite to default
+               pPAprimaryVertexFilter = 1;
+               std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
+               std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
+           }
+       }
+       else {
+           pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
+       }
+       Int_t pBeamScrapingFilter;   // this filter is used for PP.
+       if (isPP) {
+           treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
+           if (treeSkim->GetBranch("pBeamScrapingFilter")) {
+               treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
+           }
+           else {   // overwrite to default
+               pBeamScrapingFilter = 1;
+               std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
+               std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
+           }
+       }
+       else {
+           pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
+       }
+
        ggHiNtuplizer ggHi;
        ggHi.setupTreeForReading(treeggHiNtuplizer);
        
@@ -143,6 +218,9 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        TTree *outputTreeHiEvt = treeHiEvt->CloneTree(0);
        outputTreeHiEvt->SetName("HiEvt");
        outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+       TTree* outputTreeSkim  = treeSkim->CloneTree(0);
+       outputTreeSkim->SetName("skim");
+       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
        TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
        outputTreeHiForestInfo->SetName("HiForestInfo");
        outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
@@ -166,6 +244,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        Long64_t duplicateEntries = 0;
 
        Long64_t entries = treeggHiNtuplizer->GetEntries();
+       Long64_t entriesPassedEventSelection = 0;
        Long64_t entriesAnalyzed = 0;
        std::cout << "entries = " << entries << std::endl;
        std::cout<< "Loop : " << treePath.c_str() <<std::endl;
@@ -178,6 +257,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
            treeHLT->GetEntry(j_entry);
            treeggHiNtuplizer->GetEntry(j_entry);
            treeHiEvt->GetEntry(j_entry);
+           treeSkim->GetEntry(j_entry);
 
            bool eventAdded = em->addEvent(ggHi.run,ggHi.lumis,ggHi.event,j_entry);
            if(!eventAdded) // this event is duplicate, skip this one.
@@ -185,6 +265,16 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
                duplicateEntries++;
                continue;
            }
+
+           // event selection
+           if (!(TMath::Abs(hiEvt.vz) < cut_vz))  continue;
+           if (isHI) {
+               if ((pcollisionEventSelection < cut_pcollisionEventSelection))  continue;
+           }
+           else {
+               if (pPAprimaryVertexFilter < cut_pPAprimaryVertexFilter || pBeamScrapingFilter < cut_pBeamScrapingFilter)  continue;
+           }
+           entriesPassedEventSelection++;
 
            // skip if there are no muon pairs to study
            if(ggHi.nMu < cut_nMu)  continue;
@@ -195,15 +285,18 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
            outputTreeHLT->Fill();
            outputTreeggHiNtuplizer->Fill();
            outputTreeHiEvt->Fill();
+           outputTreeSkim->Fill();
            diMuonTree->Fill();
        }
        std::cout<< "Loop ENDED : " << treePath.c_str() <<std::endl;
        std::cout << "entries            = " << entries << std::endl;
        std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
+       std::cout << "entriesPassedEventSelection   = " << entriesPassedEventSelection << std::endl;
        std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
        std::cout << "outputTreeHLT->GetEntries()           = " << outputTreeHLT->GetEntries() << std::endl;
        std::cout << "outputTreeggHiNtuplizer->GetEntries() = " << outputTreeggHiNtuplizer->GetEntries() << std::endl;
        std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
+       std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
        std::cout << "diMuonTree->GetEntries()          = " << diMuonTree->GetEntries() << std::endl;
 
        // overwrite existing trees
