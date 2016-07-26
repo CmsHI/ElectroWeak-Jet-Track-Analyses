@@ -301,12 +301,12 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
         std::cout<<"##### END #####"<< std::endl;
     }
 
-    TFile* input[nCollisions];
-    bool   inputExists[nCollisions];
+    TFile* input[nCollisions] = {0};
+    bool   inputExists[nCollisions] = {false};
     TDirectoryFile* inputDir[nCollisions];
 
-    TFile* inputSys[nCollisions];
-    bool   inputSysExists[nCollisions];
+    TFile* inputSys[nCollisions] = {0};
+    bool   inputSysExists[nCollisions] = {false};
     TDirectoryFile* inputSysDir[nCollisions];
 
     std::string mcReferenceHI = "MC";
@@ -540,11 +540,11 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
     boxPP->SetFillStyle(kFSolid_ColorAlpha);
 
     TH1::SetDefaultSumw2();
-    TH1D* h1D[nInputFiles][nCorrHist];
-    bool  h1DisValid[nInputFiles][nCorrHist];
+    TH1D* h1D[nInputFiles][nCorrHist] = {0};
+    bool  h1DisValid[nInputFiles][nCorrHist] = {false};
 
-    TH1D* h1DSys[nInputFiles][nCorrHist];
-    bool  h1DSysIsValid[nInputFiles][nCorrHist];
+    TH1D* h1DSys[nInputFiles][nCorrHist] = {0};
+    bool  h1DSysIsValid[nInputFiles][nCorrHist] = {false};
 
     // no horizontal error bars
     gStyle->SetErrorX(0);
@@ -1179,12 +1179,6 @@ void gammaJetPlot(const TString configFile, const TString inputFile, const TStri
     configTree->Write("",TObject::kOverwrite);
 
     output->Write("",TObject::kOverwrite);
-    for (int i = 0; i<nInputFiles; ++i) {
-        if (inputExists[i])  {
-            inputDir[i]->Close();
-            input[i]->Close();
-        }
-    }
     output->Close();
 }
 
