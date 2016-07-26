@@ -57,74 +57,41 @@ int gammaJetPlot(const TString configFile, const TString inputFile, const TStrin
      * mode = 2 : plot no systematics, but theory model
      * mode = 3 : plot systematics and theory model
      */
-    int mode;
+    int mode = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mode];
 
     // input for TH1
-    float markerSize;
+    float markerSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_markerSize];
 
     // input for TLegend
-    float legendOffsetX;
-    float legendOffsetY;
-    int legendBorderSize;
-    float legendWidth;
-    float legendHeight;
-    float legendTextSize;
+    float legendOffsetX  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
+    float legendOffsetY  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
+    int legendBorderSize = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
+    float legendWidth    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
+    float legendHeight   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
+    float legendTextSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
 
     // input for text objects
-    int textFont;
-    float textSize;
-    float textOffsetX;
-    float textOffsetY;
+    int textFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textFont];
+    float textSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textSize];
+    float textOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetX];
+    float textOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetY];
 
-    std::vector<std::string> textsOverPad;
-    std::vector<std::string> textsOverPadAlignments;
-    int textAbovePadFont;
-    float textAbovePadSize;
-    float textAbovePadOffsetX;
-    float textAbovePadOffsetY;
+    std::vector<std::string> textsOverPad = ConfigurationParser::ParseListLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePad]);
+    std::vector<std::string> textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePadAlign]);
+    int textAbovePadFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textAbovePadFont];
+    float textAbovePadSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadSize];
+    float textAbovePadOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetX];
+    float textAbovePadOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetY];
 
     // input for TCanvas
-    int windowWidth;
-    int windowHeight;
-    float leftMargin;
-    float rightMargin;
-    float bottomMargin;
-    float topMargin;
-    int setLogx;
-    int setLogy;
-
-    mode = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mode];
-
-    markerSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_markerSize];
-
-    legendOffsetX    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
-    legendOffsetY    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
-    legendBorderSize = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
-    legendWidth      = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
-    legendHeight     = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
-    legendTextSize   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
-
-    textFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textFont];
-    textSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textSize];
-    textOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetX];
-    textOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetY];
-
-    std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePad]);
-    textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
-    textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePadAlign]);
-    textAbovePadFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textAbovePadFont];
-    textAbovePadSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadSize];
-    textAbovePadOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetX];
-    textAbovePadOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetY];
-
-    windowWidth  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
-    windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
-    leftMargin   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
-    rightMargin  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
-    bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
-    topMargin    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
-    setLogx = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogx];
-    setLogy = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogy];
+    int windowWidth  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
+    int windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
+    float leftMargin   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
+    float rightMargin  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
+    float bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
+    float topMargin    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
+    int setLogx = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogx];
+    int setLogy = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogy];
 
     // set default values
     if (markerSize == 0) markerSize = INPUT_DEFAULT::markerSize;
@@ -432,18 +399,18 @@ int gammaJetPlot(const TString configFile, const TString inputFile, const TStrin
     TLine* line = 0;
     TLine* linePP = 0;
     for (int i=0; i<nCorrHist; ++i) {
-        for (int iPt=0; iPt < nBins_pt; ++iPt) {
-            for (int iHiBin=0; iHiBin < nBins_hiBin; ++iHiBin) {
+        for (int iPt=0; iPt<nBins_pt; ++iPt) {
+            for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
                 std::string correlation = correlationHistNames.at(i).c_str();
                 std::cout << "##### " << correlation.c_str() << " #####" << std::endl;
 
                 std::string tmpName = Form("%s_ptBin%d_hiBin%d", correlationHistNames.at(i).c_str(), iPt, iHiBin);
                 // special cases
                 if (correlation.find("ptBinAll") != std::string::npos) {
-                    if (iPt > 0) continue;
+                    if (iPt > 0) break;
                     tmpName = Form("%s_hiBin%d", correlationHistNames.at(i).c_str(), iHiBin);
                 } else if (correlation.find("centBinAll") != std::string::npos) {
-                    if (iHiBin > 0) continue;
+                    if (iHiBin > 0) break;
                     tmpName = Form("%s_ptBin%d", correlationHistNames.at(i).c_str(), iPt);
                 }
 
