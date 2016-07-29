@@ -446,12 +446,12 @@ int gammaJetPlot(const TString configFile, const TString inputFile, const TStrin
 
                     h1DSysIsValid[iColl][i] = false;
                     if (plotSystematics) {
-                        std::string tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1", tmpNameColl.c_str());
-                        if (correlation.compare("xjg") == 0) tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_3", tmpNameColl.c_str());
-                        if (correlation.compare("dphi") == 0) tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1", tmpNameColl.c_str());
+                        std::string tmpHistSysName = Form("h1D_%s_uncTot_diff", tmpNameColl.c_str());
+                        // if (correlation.compare("xjg") == 0) tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_3", tmpNameColl.c_str());
+                        // if (correlation.compare("dphi") == 0) tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1", tmpNameColl.c_str());
 
-                        if (plotSYSfromFIT[iColl].at(i))
-                            tmpHistSysName = Form("h1D_%s_uncTot_Fit", tmpNameColl.c_str());
+                        // if (plotSYSfromFIT[iColl].at(i))
+                        //     tmpHistSysName = Form("h1D_%s_uncTot_Fit", tmpNameColl.c_str());
 
                         if (inputSysExists[iColl])
                             inputSysDir[iColl]->GetObject(tmpHistSysName.c_str(), h1DSys[iColl][i]);
