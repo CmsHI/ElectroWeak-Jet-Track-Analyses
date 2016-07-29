@@ -564,7 +564,7 @@ int gammaJetPlot(const TString configFile, const TString inputFile, const TStrin
                     if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kHIMC][i]);
                     if (correlation.compare("dphi_width_ptBinAll") == 0 || correlation.compare("dphi_width_centBinAll") == 0)
                         setTH1_dphi_width(h1D[COLL::kHIMC][i]);
-                    if (correlation.compare("iaa")) setTH1_IAA(h1D[COLL::kHIMC][i]);
+                    if (correlation.compare("iaa") == 0) setTH1_IAA(h1D[COLL::kHIMC][i]);
 
                     h1D[COLL::kHIMC][i]->SetMarkerSize(markerSize);
 
