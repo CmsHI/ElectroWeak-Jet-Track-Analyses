@@ -439,7 +439,7 @@ int gammaJetSystematics(const TString configFile, const TString inputFile, const
                     sysHist[iFile][i].h1D_diff->Add(h1D_temp, -1);
                     // use the error bars of nominal histogram
                     for (int iBin = 0; iBin < sysHist[iFile][i].h1D_nominal->GetNbinsX(); ++iBin) {
-                        sysHist[iFile][i].h1D_diff->SetBinContent(iBin, sysHist[iFile][i].h1D_nominal->GetBinError(iBin));
+                        sysHist[iFile][i].h1D_diff->SetBinError(iBin, sysHist[iFile][i].h1D_nominal->GetBinError(iBin));
                     }
 
                     // set TH1 style

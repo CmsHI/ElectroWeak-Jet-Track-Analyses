@@ -354,6 +354,77 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
         }
     }
 
+    // calculate <xjz> from sum of dielectron and dimuon channels
+    // arrays with <xjz>, <xjz> error, sumofweights values for sum of dielectron and dimuon channels
+    double xjz_mean[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_meanErr[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    double xjz_weight[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
+    for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
+        for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
+
+            // calculate mean of jetRAW
+            double wRAW_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kRAW];
+            double meanRAW_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kRAW];
+            double errRAW_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kRAW];
+            double wRAW_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kRAW];
+            double meanRAW_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kRAW];
+            double errRAW_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kRAW];
+
+            double wRAW = (wRAW_Ele + wRAW_Mu);
+            double meanRAW = (meanRAW_Ele*wRAW_Ele + meanRAW_Mu*wRAW_Mu) / wRAW;
+            double errRAW = TMath::Sqrt(wRAW_Ele*wRAW_Ele*errRAW_Ele*errRAW_Ele + wRAW_Mu*wRAW_Mu*errRAW_Mu*errRAW_Mu) / wRAW;
+
+            // calculate mean of jetBKG
+            double wBKG_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kBKG];
+            double meanBKG_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kBKG];
+            double errBKG_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kBKG];
+            double wBKG_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kBKG];
+            double meanBKG_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kBKG];
+            double errBKG_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kBKG];
+
+            double wBKG = (wBKG_Ele + wBKG_Mu);
+            double meanBKG = 0;
+            double errBKG = 0;
+            if (wBKG > 0) {
+                meanBKG = (meanBKG_Ele*wBKG_Ele + meanBKG_Mu*wBKG_Mu) / wBKG;
+                errBKG = TMath::Sqrt(wBKG_Ele*wBKG_Ele*errBKG_Ele*errBKG_Ele + wBKG_Mu*wBKG_Mu*errBKG_Mu*errBKG_Mu) / wBKG;
+            }
+
+            /*
+             * should follow this procedure to calculate mean of X_JZ :
+
+              mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
+              mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
+              by definition : w_SIG = w_RAW - w_BKG
+              ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
+             */
+            double meanSIG = (meanRAW*wRAW - meanBKG*wBKG) / (wRAW - wBKG);
+
+            /*
+             * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
+             * ==>
+             * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
+             * assume Cov(SIG,BKG) = 0
+             * ==>
+             * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)^2
+             * err_SIG = sqrt(var_SIG)
+             */
+            double errSIG = TMath::Sqrt(wRAW*wRAW*errRAW*errRAW - wBKG*wBKG*errBKG*errBKG) / (wRAW - wBKG);
+
+            xjz_mean[iPt][iHiBin][CORR::kRAW] = meanRAW;
+            xjz_meanErr[iPt][iHiBin][CORR::kRAW] = errRAW;
+            xjz_weight[iPt][iHiBin][CORR::kRAW] = wRAW;
+
+            xjz_mean[iPt][iHiBin][CORR::kBKG] = meanBKG;
+            xjz_meanErr[iPt][iHiBin][CORR::kBKG] = errBKG;
+            xjz_weight[iPt][iHiBin][CORR::kBKG] = wBKG;
+
+            xjz_mean[iPt][iHiBin][CORR::kSIG] = meanSIG;
+            xjz_meanErr[iPt][iHiBin][CORR::kSIG] = errSIG;
+            xjz_weight[iPt][iHiBin][CORR::kSIG] = wRAW - wBKG;
+        }
+    }
+
     // HISTOGRAM ADDITION AND NORMALIZATION BLOCK
     // skip histograms that contain label "jetSIG" or "norm".
     // sum of individual jet signal or normalized histograms will not be correct.
@@ -364,6 +435,20 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     TH1D* hBKG[nTH1];   // jetBKG
     TH1D* hBKGNorm[nTH1];
     TH1D* hSIGNorm[nTH1];       // there is no unnormalized SIG histogram
+
+    TH1D* h_nums[nTH1];
+    // histograms to store numbers
+    // 1st bin stores the number of zJet events
+    // 2nd bin stores the number of Z events, not zJet event
+    // 3rd bin stores the number of mixed MB events
+    // 4th bin stores <xjz> of jetRAW correlation, 4th bin error stores <xjz> error of jetRAW correlation
+    // 5th bin stores <xjz> of jetBKG correlation, 5th bin error stores <xjz> error of jetBKG correlation
+    // 6th bin stores <xjz> of jetSIG correlation, 6th bin error stores <xjz> error of jetSIG correlation
+    // 7th bin stores sumofweights of jetRAW xjz correlation
+    // 8th bin stores sumofweights of jetBKG xjz correlation
+    // 9th bin stores sumofweights of jetSIG xjz correlation : wSIG = wRAW - wBKG
+    // they are just a tool to store numbers.
+
     bool hInitialized[nTH1];
     for (int i = 0; i<nTH1; ++i) {
 
@@ -379,8 +464,32 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
         }
         // special cases - END
 
-        // SUM jetRAW histograms
         hInitialized[i] = true;
+        // SUM h_nums histograms
+        std::string hNameEle_nums = hEle_nums[i]->GetName();
+        std::string hNameMu_nums = hMu_nums[i]->GetName();
+        std::string hName_nums = Form("%s", hNameEle_nums.c_str());
+        h_nums[i] = (TH1D*)hEle_nums[i]->Clone(hName_nums.c_str());
+        h_nums[i]->SetBinContent(1, hEle_nums[i]->GetBinContent(1) + hMu_nums[i]->GetBinContent(1));
+        h_nums[i]->SetBinContent(2, nZeventsEle[i]+nZeventsMu[i]);
+        h_nums[i]->SetBinContent(3, (hEle_nums[i]->GetBinContent(3) + hMu_nums[i]->GetBinContent(3))/2);
+        for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
+            if (hName_nums.find(Form("ptBin%d", iPt)) == std::string::npos)  continue;
+
+            for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
+                if (hName_nums.find(Form("hiBin%d", iHiBin)) == std::string::npos)  continue;
+
+                for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
+
+                    int iBin = 4+jCorr;     // iBin = 4 contains information for jetRAW, iBin = 5 contains information for jetBKG
+                    h_nums[i]->SetBinContent(iBin, xjz_mean[iPt][iHiBin][jCorr]);
+                    h_nums[i]->SetBinError(iBin, xjz_meanErr[iPt][iHiBin][jCorr]);
+                    h_nums[i]->SetBinContent(iBin+3, xjz_weight[iPt][iHiBin][jCorr]);
+                }
+            }
+        }
+
+        // SUM jetRAW histograms
         std::string hNameEle = hEle[i]->GetName();
         std::string hNameMu = hMu[i]->GetName();
         std::string hName = Form("%s", hNameEle.c_str());
@@ -480,6 +589,9 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     {
         if (!hInitialized[i])  continue;
 
+        // write h_nums histogram, do not use Canvas for this one.
+        h_nums[i]->Write("",TObject::kOverwrite);
+
         // write unnormalized jetRAW histogram
         std::string hName = h[i]->GetName();
         std::string canvasName = replaceAll(hName, "h1D_", "cnv_");     // replace the prefix in histogram name
@@ -553,73 +665,6 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
 
         c->Write("",TObject::kOverwrite);
         c->Clear();
-    }
-
-    // calculate <xjz> from sum of dielectron and dimuon channels
-    // arrays with <xjz>, <xjz> error, sumofweights values for sum of dielectron and dimuon channels
-    double xjz_mean[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
-    double xjz_meanErr[nBins_pt][nBins_hiBin][CORR::kN_CORRFNC];
-    for (int iPt = 0; iPt < nBins_pt ; ++iPt) {
-        for (int iHiBin = 0; iHiBin < nBins_hiBin ; ++iHiBin) {
-
-            // calculate mean of jetRAW
-            double wRAW_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kRAW];
-            double meanRAW_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kRAW];
-            double errRAW_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kRAW];
-            double wRAW_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kRAW];
-            double meanRAW_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kRAW];
-            double errRAW_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kRAW];
-
-            double wRAW = (wRAW_Ele + wRAW_Mu);
-            double meanRAW = (meanRAW_Ele*wRAW_Ele + meanRAW_Mu*wRAW_Mu) / wRAW;
-            double errRAW = TMath::Sqrt(wRAW_Ele*wRAW_Ele*errRAW_Ele*errRAW_Ele + wRAW_Mu*wRAW_Mu*errRAW_Mu*errRAW_Mu) / wRAW;
-
-            // calculate mean of jetBKG
-            double wBKG_Ele = xjz_weight_Ele[iPt][iHiBin][CORR::kBKG];
-            double meanBKG_Ele = xjz_mean_Ele[iPt][iHiBin][CORR::kBKG];
-            double errBKG_Ele = xjz_meanErr_Ele[iPt][iHiBin][CORR::kBKG];
-            double wBKG_Mu  = xjz_weight_Mu[iPt][iHiBin][CORR::kBKG];
-            double meanBKG_Mu = xjz_mean_Mu[iPt][iHiBin][CORR::kBKG];
-            double errBKG_Mu = xjz_meanErr_Mu[iPt][iHiBin][CORR::kBKG];
-
-            double wBKG = (wBKG_Ele + wBKG_Mu);
-            double meanBKG = (meanBKG_Ele*wBKG_Ele + meanBKG_Mu*wBKG_Mu) / wBKG;
-            double errBKG = TMath::Sqrt(wBKG_Ele*wBKG_Ele*errBKG_Ele*errBKG_Ele + wBKG_Mu*wBKG_Mu*errBKG_Mu*errBKG_Mu) / wBKG;
-            if (wBKG == 0) {
-                meanBKG = 0;
-                errBKG = 0;
-            }
-
-            /*
-             * should follow this procedure to calculate mean of X_JZ :
-
-              mean_RAW * w_RAW = mean_SIG * w_SIG + mean_BKG * w_BKG
-              mean_RAW * w_RAW - mean_BKG * w_BKG = mean_SIG * w_SIG
-              by definition : w_SIG = w_RAW - w_BKG
-              ==> mean_SIG = (mean_RAW * w_RAW - mean_BKG * w_BKG) / (w_RAW - w_BKG)
-             */
-            double meanSIG = (meanRAW*wRAW - meanBKG*wBKG) / (wRAW - wBKG);
-
-            /*
-             * Var(aX+bY)=a^2*Var(X)+b^2*Var(Y)+2*a*b*Cov(X,Y)
-             * ==>
-             * w_RAW^2*var_RAW = w_SIG^2*var_SIG+w_BKG^2*var_BKG+2*w_SIG*w_BKG*Cov(SIG,BKG)
-             * assume Cov(SIG,BKG) = 0
-             * ==>
-             * var_SIG = ( w_RAW^2*var_RAW-w_BKG^2*var_BKG ) / (w_RAW - w_BKG)^2
-             * err_SIG = sqrt(var_SIG)
-             */
-            double errSIG = TMath::Sqrt(wRAW*wRAW*errRAW*errRAW - wBKG*wBKG*errBKG*errBKG) / (wRAW - wBKG);
-
-            xjz_mean[iPt][iHiBin][CORR::kRAW] = meanRAW;
-            xjz_meanErr[iPt][iHiBin][CORR::kRAW] = errRAW;
-
-            xjz_mean[iPt][iHiBin][CORR::kBKG] = meanBKG;
-            xjz_meanErr[iPt][iHiBin][CORR::kBKG] = errBKG;
-
-            xjz_mean[iPt][iHiBin][CORR::kSIG] = meanSIG;
-            xjz_meanErr[iPt][iHiBin][CORR::kSIG] = errSIG;
-        }
     }
 
     // histograms with "Z pt bins" on x-axis

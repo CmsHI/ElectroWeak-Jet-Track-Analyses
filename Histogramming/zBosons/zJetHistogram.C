@@ -429,6 +429,9 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     // EventTree
     tEvent->SetBranchStatus("*", 0);
+    tEvent->SetBranchStatus("run", 1);
+    tEvent->SetBranchStatus("event", 1);
+    tEvent->SetBranchStatus("lumis", 1);
 
     // HiEvt
     tHiEvt->SetBranchStatus("*", 0);
@@ -447,6 +450,10 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     else {
         weight_HiEvt = 1;
     }
+
+    // gghi
+    ggHiNtuplizer ggHi;
+    ggHi.setupTreeForReading(tEvent);
 
     // dilepton tree
     dielectron diEle;
