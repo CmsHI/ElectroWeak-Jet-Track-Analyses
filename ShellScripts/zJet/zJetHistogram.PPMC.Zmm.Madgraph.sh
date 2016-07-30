@@ -4,7 +4,7 @@ source ./ShellScripts/bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.sh
 source ./ShellScripts/zJet/zJet.bashUtils.SysVar.sh
 ####################
-echo "### PPSTOGRAM STEP"
+echo "### HISTOGRAM STEP"
 echo "## zJetHistogram PP MC Madgraph ZMM"
 ####################
 configFile=$config_PP_ZMM_MC_Madgraph
@@ -24,7 +24,7 @@ echo "~/code/scripts/myRun.sh Histogramming/zBosons/zJetHistogram.exe $configFil
 DO_SYSVAR=$DO_SYSVAR_PP_ZMM_MC_Madgraph
 if [ $DO_SYSVAR -eq 1 ]; then 
   echo "################# SYSTEMATICS #######################"
-  echo "### PPSTOGRAM STEP"
+  echo "### HISTOGRAM STEP"
   echo "## zJetHistogram PP MC Madgraph ZMM"
 
   configSuffixList=("${configSuffixList_hist_PP_ZMM_MC[@]}")
@@ -42,7 +42,7 @@ fi
 DO_ANAVAR=0
 if [ $DO_ANAVAR -eq 1 ]; then 
   echo "################# ANALYSIS VARIATIONS #######################"
-  echo "### PPSTOGRAM STEP"
+  echo "### HISTOGRAM STEP"
   echo "## zJetHistogram PP MC Madgraph ZMM"
 
   configSuffixList=(

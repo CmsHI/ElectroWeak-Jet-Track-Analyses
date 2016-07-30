@@ -23,12 +23,16 @@ echo "./Histogramming/zBosons/zJetHistogramSum.exe $configFile $inputZEE $inputZ
 ./Histogramming/zBosons/zJetHistogramSum.exe $configFile $inputZEE $inputZMM $output &> $outputLOG &
 
 ####################
-configSuffixListZEE=("${configSuffixList_histSum_PP_ZEE_MC[@]}")
+configSuffixListZEE=(
+"SYS_noCorrJetSmearALL"
+);
 
-configSuffixListZMM=("${configSuffixList_histSum_PP_ZMM_MC[@]}")
+configSuffixListZMM=(
+"SYS_noCorrJetSmearALL"
+);
 
-DO_SYS_ZEE=$DO_SYSVAR_PP_ZEE_MC_Pythia
-DO_SYS_ZMM=$DO_SYSVAR_PP_ZMM_MC_Pythia
+DO_SYS_ZEE=1
+DO_SYS_ZMM=1
 if [[ $DO_SYS_ZEE -eq 1 ]] && [[ $DO_SYS_ZMM -eq 1 ]]; then 
   echo "################# SYSTEMATICS #######################"
   echo "### HISTOGRAM STEP"
