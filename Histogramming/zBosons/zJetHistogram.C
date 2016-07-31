@@ -423,6 +423,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     int nTriggers = triggers.size();
     Int_t triggerBits[nTriggers];
     for (int i = 0; i < nTriggers; ++i) {
+        triggerBits[i] = 0;
         tHlt->SetBranchStatus(triggers.at(i).c_str(), 1);
         tHlt->SetBranchAddress(triggers.at(i).c_str(), &triggerBits[i]);
     }
@@ -496,7 +497,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // zJet correlation objects
     std::vector<std::string> correlationHistNames   {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ", "ptJet", "zM", "zPt", "zEta", "zPhi", "jteta", "jtphi", "nJet", "hiBin", "xjz_binJER", "xjz_binJER2"};
     std::vector<std::string> correlationHistTitleX  {xjzTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(), dphiTitleX.c_str(),
-                                                                        "p^{Jet}_{T}",
+                                                                        "p^{Jet}_{T} (GeV/c)",
                                                                          zMTitleX.c_str(),
                                                                         "p^{Z}_{T}", "#eta^{Z}", "#phi^{Z}", "#eta^{Jet}", "#phi^{Jet}",
                                                                         "N^{Jet}", "hiBin",
