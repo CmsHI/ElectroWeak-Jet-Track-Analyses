@@ -487,6 +487,7 @@ void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double 
 /*
  * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
  * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
+ * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
  */
 void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
 {
