@@ -35,6 +35,7 @@ namespace CUTS {
       k_nSmearBins,
       k_doCorrectionJetID,
       k_doCorrectionL2L3,
+      k_doResidualCorrection,
       kN_I_CUTS
     };
 
@@ -53,14 +54,19 @@ namespace CUTS {
       "nSmearBins",
       "doCorrectionJetID",
       "doCorrectionL2L3",
+      "doResidualCorrection"
     };
 
     enum S_CUTS{
       k_jetCollection,
+      k_residualCorrectionFile,
       kN_S_CUTS
     };
 
-    std::string S_CUTS_LABELS[kN_S_CUTS] = {"jetCollection"};
+    std::string S_CUTS_LABELS[kN_S_CUTS] = {
+      "jetCollection",
+      "residualCorrectionFile"
+    };
 
     enum JETINDEX{
       k_allJets,

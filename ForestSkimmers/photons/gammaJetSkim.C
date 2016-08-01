@@ -72,6 +72,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   int doCorrectionL2L3;
   std::vector<float> mcPthatWeights;
   float energyScaleJet;
+  bool doResidualCorrection;
+  std::string jetResidualCorrectionFile;
 
   cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
   cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
@@ -101,6 +103,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
   energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
+  doResidualCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doResidualCorrection];
+  jetResidualCorrectionFile = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_residualCorrectionFile];
 
   for (std::size_t i=0; i<mcPthatWeights.size(); ++i)
     std::cout << mcPthatWeights[i] << " ";
@@ -147,6 +151,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::cout << "smearingResJetPhi       = " << smearingResJetPhi << std::endl;
   std::cout << "doCorrectionSmearing    = " << doCorrectionSmearing << std::endl;
 
+  std::cout << "doResidualCorrection    = " << doResidualCorrection << std::endl;
+  std::cout << "jetResidualCorrectionFile = " << jetResidualCorrectionFile << std::endl;
+
   TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
   TH2D* h_weights_PbPb = 0;
   TH1D* h_weights_pp = 0;
@@ -161,6 +168,20 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   if (doCorrectionL2L3 > 0) {
     for (int i=0; i<nJetCollections; ++i) {
       correctorsL2L3[i].setL2L3Residual(3, 3, false);
+    }
+  }
+
+  TF1 *jetResidualFunction[4];
+  if(doResidualCorrection){
+    if(isHI){
+      TFile *jetResidualFile = TFile::Open(jetResidualCorrectionFile.c_str());
+      jetResidualFunction[3] = ((TH1F*)jetResidualFile->Get("resCorr_cent50to100_h"))->GetFunction("f1_p");
+      jetResidualFunction[2] = ((TH1F*)jetResidualFile->Get("resCorr_cent30to50_h"))->GetFunction("f1_p");
+      jetResidualFunction[1] = ((TH1F*)jetResidualFile->Get("resCorr_cent10to30_h"))->GetFunction("f1_p");
+      jetResidualFunction[0] = ((TH1F*)jetResidualFile->Get("resCorr_cent0to10_h"))->GetFunction("f1_p");
+      //jetResidualFile->Close();
+    } else {
+      jetResidualFunction[0] = new TF1("f1_p","(1+.5/x)",5,300);
     }
   }
 
@@ -680,6 +701,29 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
       for (int i=0; i<nJetCollections; ++i) {
         outputJets[i].nref = 0;
+
+        // can't use helper functions because of centrality dependence
+        // so much loop over jet collections manually
+        if(doResidualCorrection){
+          int centBin = 0;
+          if(isHI){
+            if(hiBin >= 100)
+              centBin = 3;
+            else if (hiBin >= 60)
+              centBin = 2;
+            else if (hiBin >= 20)
+              centBin = 1;
+            else
+              centBin = 0;
+          }
+          double xmin, xmax;
+          jetResidualFunction[centBin]->GetRange(xmin,xmax);
+          for (int k=0; k<jets[i].nref; ++k) {
+            if(jets[i].jtpt[k]<xmin || jets[i].jtpt[k]>xmax) continue;
+            jets[i].jtpt[k] /= jetResidualFunction[centBin]->Eval(jets[i].jtpt[k]);
+          }
+        }
+        
         if (doCorrectionL2L3 > 0)
           correctorsL2L3[i].correctPtsL2L3(jets[i]);
 
@@ -796,6 +840,29 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
             for (int n=0; n<nEventsToMix; ++n) {
               Long64_t entryMB = iterMB[centBin][vzBin][evplaneBin][i] % nMB[centBin][vzBin][evplaneBin][i];     // roll back to the beginning if out of range
               treeJetMB[centBin][vzBin][evplaneBin][i]->GetEntry(entryMB);
+
+              // can't use helper functions because of centrality dependence
+              // so much loop over jet collections manually
+              if(doResidualCorrection){
+                int centBin = 0;
+                if(isHI){
+                  if(hiBin >= 100)
+                    centBin = 3;
+                  else if (hiBin >= 60)
+                    centBin = 2;
+                  else if (hiBin >= 20)
+                    centBin = 1;
+                  else
+                    centBin = 0;
+                }
+
+                double xmin, xmax;
+                jetResidualFunction[centBin]->GetRange(xmin,xmax);
+                for (int k=0; k<jetsMB[i].nref; ++k) {
+                  if(jetsMB[i].jtpt[k]<xmin || jetsMB[i].jtpt[k]>xmax) continue;
+                  jetsMB[i].jtpt[k] /= jetResidualFunction[centBin]->Eval(jetsMB[i].jtpt[k]);
+                }
+              }
 
               if (doCorrectionL2L3 > 0)
                 correctorsL2L3[i].correctPtsL2L3(jetsMB[i]);
