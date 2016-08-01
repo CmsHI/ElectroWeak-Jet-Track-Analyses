@@ -15,6 +15,7 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/eventUtil.h"
 
 const std::vector<std::string> correlationHistNames {
   "xjg", "dphi", "ptJet"
@@ -249,24 +250,30 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
+  double bins_centrality_npart[n_cent_bins+1] = {findNpart(199),
+                                                 findNpart(100),
+                                                 findNpart(60),
+                                                 findNpart(20),
+                                                 findNpart(0)};
+
   // histograms with centrality on the x-axis
   std::vector<std::string> correlationHistNames_centBinAll = {"rjg", "xjg_mean"};
   int nCorrHist_centBinAll = correlationHistNames_centBinAll.size();
   correlationHist corrHists_centBinAll[nCorrHist_centBinAll][nBins_pt];
   // prepare histogram names for rjg and <xjg>
-  double bins_rjg_cent[n_cent_bins+1];
-  double bins_xjg_mean_cent[n_cent_bins+1];
-  for(int i = 0; i < n_cent_bins; ++i){
-    if(i != 0){
-      if(bins_hiBin[0][cent_bin_numbers[i]] != bins_hiBin[1][cent_bin_numbers[i-1]]){
-        std::cout << "ERROR: cent bins are not arranged correctly." << std::endl;
-      }
-    }
-    bins_rjg_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
-    bins_xjg_mean_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
-  }
-  bins_rjg_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
-  bins_xjg_mean_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
+  //double bins_rjg_cent[n_cent_bins+1] = {0, 80, 170, 300, 400};
+  //double bins_xjg_mean_cent[n_cent_bins+1] = {0, 80, 170, 300, 400};;
+  // for(int i = 0; i < n_cent_bins; ++i){
+  //   if(i != 0){
+  //     if(bins_hiBin[0][cent_bin_numbers[i]] != bins_hiBin[1][cent_bin_numbers[i-1]]){
+  //       std::cout << "ERROR: cent bins are not arranged correctly." << std::endl;
+  //     }
+  //   }
+  //   bins_rjg_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
+  //   bins_xjg_mean_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
+  // }
+  // bins_rjg_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
+  // bins_xjg_mean_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
 
   for (int j=0; j<nBins_pt; ++j) {
     for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
@@ -276,13 +283,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll[0].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_rjg_cent);
+        corrHists_centBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_centrality_npart);
 
         // x_jg_mean
         subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll[1].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_xjg_mean_cent);
+        corrHists_centBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_centrality_npart);
       }
     }
   }
@@ -419,34 +426,38 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
     h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
 
+    h_dphi_width_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi width");
+    h_dphi_pedestal_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi pedestal");
     for (int j=0; j<n_pt_bins; ++j) {
-      h_dphi_width_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi width");
       h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
       h_dphi_width_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
-      h_dphi_pedestal_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi pedestal");
       h_dphi_pedestal_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
       h_dphi_pedestal_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
     }
   }
 
-  float dphi_fit_cent_bins[n_cent_bins + 1];
-  dphi_fit_cent_bins[0] = bins_hiBin[0][cent_bin_numbers[0]];
-  for (int i=0; i<n_cent_bins; ++i)
-    dphi_fit_cent_bins[i+1] = bins_hiBin[1][cent_bin_numbers[i]];
+  //float dphi_fit_cent_bins[n_cent_bins + 1] = {0, 80, 170, 300, 400};;
+  // dphi_fit_cent_bins[0] = bins_hiBin[0][cent_bin_numbers[0]];
+  // for (int i=0; i<n_cent_bins; ++i)
+  //   dphi_fit_cent_bins[i+1] = bins_hiBin[1][cent_bin_numbers[i]];
 
   TH1D* h_dphi_width_cent[nBins_pt];
   TH1D* h_dphi_pedestal_cent[nBins_pt];
   for (int i=0; i<nBins_pt; ++i) {
-    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_centBinAll_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
-    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, dphi_fit_cent_bins);
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_centBinAll_ptBin%i", i), "", n_cent_bins, bins_centrality_npart);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, bins_centrality_npart);
 
+    h_dphi_width_cent[i]->SetTitle(";N_{part};#Delta#phi width");
+    h_dphi_pedestal_cent[i]->SetTitle(";N_{part};#Delta#phi pedestal");
     for (int j=0; j<n_cent_bins; ++j) {
-      h_dphi_width_cent[i]->SetTitle(";Centrality;#Delta#phi width");
-      h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
-      h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
-      h_dphi_pedestal_cent[i]->SetTitle(";Centrality;#Delta#phi pedestal");
-      h_dphi_pedestal_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
-      h_dphi_pedestal_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
+      // h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
+      // h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      // h_dphi_pedestal_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
+      // h_dphi_pedestal_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
+      h_dphi_width_cent[i]->SetBinContent(n_cent_bins-j, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
+      h_dphi_width_cent[i]->SetBinError(n_cent_bins-j, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
+      h_dphi_pedestal_cent[i]->SetBinContent(n_cent_bins-j, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(0));
+      h_dphi_pedestal_cent[i]->SetBinError(n_cent_bins-j, fit_dphi[i][cent_bin_numbers[j]]->GetParError(0));
     }
   }
 
@@ -522,8 +533,10 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           double val = corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
                                                                                                            corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
 
-          corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
-          corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          // corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+          // corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(n_cent_bins-i, val);
+          corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(n_cent_bins-i, err);
 
           // std::cout << "ENTER" << std::endl;
           // std::cout << "histname: " << corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetName() << std::endl;
@@ -534,7 +547,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         std::string histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][j], bins_pt[1][j]);
 
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; R_{J#gamma}", histoTitle.c_str()));
+        corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;N_{part}; R_{J#gamma}", histoTitle.c_str()));
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
@@ -546,11 +559,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           double val = corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetMean();
           double err = corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetMeanError();
 
-          corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
-          corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          // corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
+          // corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
+          corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinContent(n_cent_bins-i, val);
+          corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetBinError(n_cent_bins-i, err);
         }
 
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;Centrality Bin; <x_{J#gamma}>", histoTitle.c_str()));
+        corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetTitle(Form("%s;N_{part}; <x_{J#gamma}>", histoTitle.c_str()));
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
