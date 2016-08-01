@@ -330,7 +330,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::vector<std::string> correlationHistNames   {"xjz", "dphi", "ptJet", "zM", "zPt"};
     std::vector<std::string> correlationHistFormulas{"xjz", "abs(dphi)", "jtpt", dileptonMFormula.c_str(), dileptonPtFormula.c_str()};
-    std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T}", dileptonMtitleX.c_str(), "p^{Z}_{T}"};
+    std::vector<std::string> correlationHistTitleX  {"p^{Jet}_{T}/p^{Z}_{T}", "#Delta#phi_{JZ}", "p^{Jet}_{T} (GeV/c)", dileptonMtitleX.c_str(), "p^{Z}_{T}"};
     std::vector<std::string> correlationHistTitleY_final_normalized{"#frac{1}{N_{Z}} #frac{dN_{JZ}}{dx_{JZ}}",
                                                                           "#frac{1}{N_{JZ}} #frac{dN_{JZ}}{d#Delta#phi}",
                                                                           "#frac{1}{N_{Z}} #frac{dN_{JZ}}{dp^{Jet}_{T}}",
