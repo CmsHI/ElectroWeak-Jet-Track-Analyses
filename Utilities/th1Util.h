@@ -45,8 +45,8 @@ void subtractIdentity4SysUnc(TH1* h);
 void addSysUnc(TH1* hTot, TH1* h);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
-void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -332,7 +332,7 @@ void calcTF1Ratio4SysUnc(TH1* h, TF1* fNominal, TF1* fVaried, float scaleFactor)
 void calcTH1AbsMax4SysUnc(TH1* h, TH1* h1, TH1* h2)
 {
     int nBins = h1->GetNbinsX();
-    for (int i = 1; i < nBins; ++i) {
+    for (int i = 1; i <= nBins; ++i) {
 
         double val1 = h1->GetBinContent(i);
         double val2 = h2->GetBinContent(i);
@@ -458,14 +458,15 @@ void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWi
     }
 }
 
-void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, double binWidth, double binWidthScale)
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
 {
    double val = h->GetBinContent(bin);
    double x   = h->GetBinCenter(bin);
    int binSys = hSys->FindBin(x);
 
-   // double error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
    double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+
    std::string hSysName = hSys->GetName();
 
    if (binWidth < 0) {
@@ -487,7 +488,7 @@ void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, double binWidth, doubl
  * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
  * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
  */
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, double binWidth, double binWidthScale)
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
 {
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i) {
@@ -495,7 +496,7 @@ void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, double binWidth, double binW
         if (h->GetBinContent(i) < h->GetMinimum()) continue;
         if (h->GetBinContent(i) > h->GetMaximum()) continue;
 
-        setSysUncBox(gr, h, hSys, i, binWidth, binWidthScale);
+        setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
         gr->DrawClone("f");
     }
 }
