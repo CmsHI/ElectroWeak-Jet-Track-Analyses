@@ -225,7 +225,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::vector<jetCorrector> correctorsJetJES(nJetCollections);
 
   // smearing set up block
-  jetCorrector correctorsJetSmear[nJetCollections][nSmearBins];
+  jetCorrector correctorsJetSmear[nJetCollections][nSmearBins+1];
 
   TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
 
@@ -289,6 +289,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent30100;
         break;
       }
+    }
+    if(nSmearBins == 0){
+      correctorsJetSmear[i][0].rand = randSmearing;
     }
   }
 
