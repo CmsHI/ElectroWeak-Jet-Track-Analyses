@@ -115,11 +115,11 @@ wait
 echo "## Arithmetic"
 time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root.log &
 
-time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root > ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root.log &
 
-time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetHistogram.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetHistogram.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root > ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root.log &
 
-time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetHistogram.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetHistogram.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root > ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root.log &
 
 wait
 
