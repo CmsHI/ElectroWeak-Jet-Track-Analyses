@@ -180,11 +180,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 h1[i][j][k]->Draw(draw_options[k].c_str());
 
                 if (sys_file_valid[k]) {
-                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("SYS/h1D_%s_uncTot_diff", hist_handle.c_str()));
-                    // if (hist_type == "xjg")
-                    //     h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("SYS/h1D_fnc_%s_uncTot_diff_pol_3", hist_handle.c_str()));
-                    // else
-                    //     h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("SYS/h1D_fnc_%s_uncTot_diff_pol_1", hist_handle.c_str()));
+                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total_fit", hist_handle.c_str()));
 
                     TBox* sys_box = new TBox();
                     sys_box->SetFillColorAlpha(46, 0.7);
@@ -507,6 +503,7 @@ int main(int argc, char* argv[]) {
         }
     } else {
         printf("Usage: ./multiPanelPlotter.exe <fileList> <configFiles>\n");
+        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/gammaJetPlot.list CutConfigurations/mpp_configs/*.conf\n");
     }
 
     return 0;

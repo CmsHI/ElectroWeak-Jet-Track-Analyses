@@ -1,3 +1,4 @@
+# ./Systematics/gammaJet/gammaJetSystematics.exe CutConfigurations/gammaJet.conf Configurations/gammaJet/gammaJetSystematics.list Configurations/gammaJet/gammaJetSystematics.root
 # nominal
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
 # systematic variations
