@@ -522,17 +522,17 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
 
        // pp resolution
-       std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+       std::vector<double> CSN_PP = {0.06, 0.9525, -0.00001709};   // {0.07764, 0.9648, -0.0003191};
        std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
 
        // smear 0-30 %
-       std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
+       std::vector<double> CSN_HI_cent0030 = {0.06179, 1.24, 8.075};   // {0.08624, 1.129, 7.853};
        std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
        std::vector<double> CSN_HI_akCs_cent0030 = {0.04991, 1.25, 12.43};
        std::vector<double> CSN_phi_HI_akCs_cent0030 = {0.001314, 0.07899, 2.034};
 
        // smear 30-100 %
-       std::vector<double> CSN_HI_cent3099 = {0.0623, 1.059, 4.245};
+       std::vector<double> CSN_HI_cent3099 = {0.05821, 1.2, 2.834};    // {0.0623, 1.059, 4.245};
        std::vector<double> CSN_phi_HI_cent3099 = {-2.013/100000000, 0.1646, 1.04};
        std::vector<double> CSN_HI_akCs_cent3099 = {0.04991, 1.25, 1.907};
        std::vector<double> CSN_phi_HI_akCs_cent3099 = {-0.006015, 0.07578, 1.234};
