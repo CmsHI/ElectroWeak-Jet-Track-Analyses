@@ -1,11 +1,12 @@
-# original result
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
-# sys variations
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JES_DOWN.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JES_UP.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_purityDOWN.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_purityUP.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_SYS_JER.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_eleRej.root
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms_noEngCorr.root
-# /export/d00/scratch/biran/07-02-final/gammaJetHistograms_phoIsolation.root
+# nominal
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
+# systematic variations
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_UP/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_DOWN/gammaJetHistograms.root
+/export/d00/scratch/luck/DUMMY.root
+/export/d00/scratch/luck/DUMMY.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29-SYS_JER/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysEleRej.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPES.root
+/export/d00/scratch/luck/DUMMY.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysIso.root

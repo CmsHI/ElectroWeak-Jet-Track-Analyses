@@ -1,13 +1,10 @@
-# HI DATA
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
-# HI MC
+# Histograms
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
 Configurations/gammaJet/DUMMY.root
-# PP DATA
-/export/d00/scratch/biran/07-02-final/gammaJetHistograms.root
-# PP MC
-Configurations/gammaJet/DUMMY.root
-# HI DATA SYS
+# Systematics
 Configurations/gammaJet/gammaJetSystematics.root
 Configurations/gammaJet/DUMMY.root
-Configurations/gammaJet/gammaJetSystematicsPP.root
+Configurations/gammaJet/gammaJetSystematics.root
 Configurations/gammaJet/DUMMY.root
