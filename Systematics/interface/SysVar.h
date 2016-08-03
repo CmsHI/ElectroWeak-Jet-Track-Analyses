@@ -93,18 +93,18 @@ public:
     ~SysVar() {};
 
     void clear() {
-        h1D_nominal->Delete();
-        h1D_varied->Delete();
-        h1D_diff->Delete();
-        h1D_diff_abs->Delete();
-        h1D_ratio->Delete();
-        h1D_ratio_abs->Delete();
+        h1D_nominal->Reset("ICES");
+        h1D_varied->Reset("ICES");
+        h1D_diff->Reset("ICES");
+        h1D_diff_abs->Reset("ICES");
+        h1D_ratio->Reset("ICES");
+        h1D_ratio_abs->Reset("ICES");
 
         fit_diff_abs->Delete();
         fit_ratio_abs->Delete();
 
-        h1D_diff_abs_fit->Delete();
-        h1D_ratio_abs_fit->Delete();
+        h1D_diff_abs_fit->Reset("ICES");
+        h1D_ratio_abs_fit->Reset("ICES");
     }
 
     void init(TH1D* h1D_nominal, TH1D* h1D_varied) {
@@ -142,7 +142,7 @@ public:
         TF1* diff_fit = new TF1(diff_fit_name.c_str(), diff_fit_function.c_str());
         diff_fit->SetRange(h1D_diff_abs->GetBinLowEdge(1), h1D_diff_abs->GetBinLowEdge(h1D_diff_abs->GetNbinsX() + 1));
 
-        h1D_diff_abs->Fit(diff_fit_name.c_str());
+        h1D_diff_abs->Fit(diff_fit_name.c_str(), "Q");
         fit_diff_abs = h1D_diff_abs->GetFunction(diff_fit_name.c_str());
         fit_diff_abs->Write("", TObject::kOverwrite);
 
@@ -150,7 +150,7 @@ public:
         TF1* ratio_fit = new TF1(ratio_fit_name.c_str(), ratio_fit_function.c_str());
         ratio_fit->SetRange(h1D_ratio_abs->GetBinLowEdge(1), h1D_ratio_abs->GetBinLowEdge(h1D_ratio_abs->GetNbinsX() + 1));
 
-        h1D_ratio_abs->Fit(ratio_fit_name.c_str());
+        h1D_ratio_abs->Fit(ratio_fit_name.c_str(), "Q");
         fit_ratio_abs = h1D_ratio_abs->GetFunction(ratio_fit_name.c_str());
         fit_ratio_abs->Write("", TObject::kOverwrite);
 
@@ -179,6 +179,21 @@ private:
 
     TH1D* h1D_diff_abs_fit = 0;
     TH1D* h1D_ratio_abs_fit = 0;
+
+    void print_average() {
+        int n_bins = 0;
+        double ave_sys = 0;
+        for (int i=1; i<=h1D_ratio_abs->GetNbinsX(); ++i) {
+            if (h1D_ratio_abs->GetBinContent(i) != 0) {
+                ave_sys += h1D_ratio_abs->GetBinContent(i);
+                ++n_bins;
+            }
+        }
+        ave_sys /= n_bins;
+
+        printf("systematic source: %s\n", sys_type.c_str());
+        printf("average: %f\n", ave_sys);
+    }
 };
 
 class TotalSysVar {
@@ -186,7 +201,14 @@ public:
     TotalSysVar() {};
 
     TotalSysVar(SysVar* up, SysVar* down) {
+        init = true;
+
         hist_name = up->hist_name;
+        sys_types.push_back(up->sys_type.c_str());
+        sys_types.push_back(down->sys_type.c_str());
+
+        SysVar_objects.push_back(up);
+        SysVar_objects.push_back(down);
 
         h1D_diff = new TH1D();
         h1D_ratio = new TH1D();
@@ -198,10 +220,10 @@ public:
         up->h1D_diff_abs_fit->Copy(*h1D_diff_fit);
         up->h1D_ratio_abs_fit->Copy(*h1D_ratio_fit);
 
-        h1D_diff->SetName(Form("h1D_%s_diff_%s_down_total", hist_name.c_str(), up->sys_type.c_str()));
-        h1D_ratio->SetName(Form("h1D_%s_ratio_%s_down_total", hist_name.c_str(), up->sys_type.c_str()));
-        h1D_diff_fit->SetName(Form("h1D_%s_diff_%s_down_total_fit", hist_name.c_str(), up->sys_type.c_str()));
-        h1D_ratio_fit->SetName(Form("h1D_%s_ratio_%s_down_total_fit", hist_name.c_str(), up->sys_type.c_str()));
+        h1D_diff->SetName(Form("h1D_%s_diff_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
+        h1D_ratio->SetName(Form("h1D_%s_ratio_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
+        h1D_diff_fit->SetName(Form("h1D_%s_diff_%s_%s_total_fit", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
+        h1D_ratio_fit->SetName(Form("h1D_%s_ratio_%s_%s_total_fit", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
 
         TH1D_Max(h1D_diff, down->h1D_diff_abs);
         TH1D_Max(h1D_ratio, down->h1D_ratio_abs);
@@ -210,7 +232,13 @@ public:
     }
 
     TotalSysVar(const TotalSysVar& sys) {
+        init = true;
+
         hist_name = sys.hist_name;
+        sys_types = sys.sys_types;
+
+        TotalSysVar_objects = sys.TotalSysVar_objects;
+        SysVar_objects = sys.SysVar_objects;
 
         h1D_diff = sys.h1D_diff;
         h1D_ratio = sys.h1D_ratio;
@@ -221,14 +249,23 @@ public:
     ~TotalSysVar() {};
 
     void clear() {
-        h1D_diff->Delete();
-        h1D_ratio->Delete();
-        h1D_diff_fit->Delete();
-        h1D_ratio_fit->Delete();
+        init = false;
+
+        sys_types.clear();
+
+        TotalSysVar_objects.clear();
+        SysVar_objects.clear();
+
+        h1D_diff->Reset("ICES");
+        h1D_ratio->Reset("ICES");
+        h1D_diff_fit->Reset("ICES");
+        h1D_ratio_fit->Reset("ICES");
     }
 
     void add_SysVar(SysVar* sys) {
-        if (hist_name == "") {
+        if (!init) {
+            init = true;
+
             hist_name = sys->hist_name;
 
             h1D_diff = new TH1D();
@@ -251,10 +288,15 @@ public:
             TH1D_SqrtSumofSquares(h1D_diff_fit, sys->h1D_diff_abs_fit);
             TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_abs_fit);
         }
+
+        sys_types.push_back(sys->sys_type);
+        SysVar_objects.push_back(sys);
     }
 
     void add_SysVar(TotalSysVar* sys) {
-        if (hist_name == "") {
+        if (!init) {
+            init = true;
+
             hist_name = sys->hist_name;
 
             h1D_diff = new TH1D();
@@ -277,17 +319,52 @@ public:
             TH1D_SqrtSumofSquares(h1D_diff_fit, sys->h1D_diff_fit);
             TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_fit);
         }
+
+        sys_types.insert(sys_types.end(), sys->sys_types.begin(), sys->sys_types.end());
+        TotalSysVar_objects.push_back(sys);
     }
 
-    bool non_zero() {return h1D_diff!=0 && h1D_ratio!=0;}
+    void print_all() {
+        printf("histogram: %s\n", hist_name.c_str());
+        for (std::size_t i=0; i<TotalSysVar_objects.size(); ++i)
+            TotalSysVar_objects[i]->print_average();
+        for (std::size_t i=0; i<SysVar_objects.size(); ++i)
+            SysVar_objects[i]->print_average();
+    }
+
+    bool non_zero() {return init;}
 
 private:
+    bool init = false;
+
     std::string hist_name = "";
+    std::vector<std::string> sys_types;
+
+    std::vector<TotalSysVar*> TotalSysVar_objects;
+    std::vector<SysVar*> SysVar_objects;
 
     TH1D* h1D_diff = 0;
     TH1D* h1D_ratio = 0;
     TH1D* h1D_diff_fit = 0;
     TH1D* h1D_ratio_fit = 0;
+
+    void print_average() {
+        int n_bins = 0;
+        double ave_sys = 0;
+        for (int i=1; i<=h1D_ratio->GetNbinsX(); ++i) {
+            if (h1D_ratio->GetBinContent(i) != 0) {
+                ave_sys += h1D_ratio->GetBinContent(i);
+                ++n_bins;
+            }
+        }
+        ave_sys /= n_bins;
+
+        printf("systematic sources: ");
+        for (std::size_t i=0; i<sys_types.size(); ++i)
+            printf("%s ", sys_types[i].c_str());
+        printf("\n");
+        printf("average: %f\n", ave_sys);
+    }
 };
 
 #endif

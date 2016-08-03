@@ -151,6 +151,9 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         if (!valid_input[m])
                             continue;
 
+                        if (sys_types[m] == "photon_energy" && data_types[l].find("pp") != std::string::npos)
+                            continue;
+
                         TH1D* h1D_varied = (TH1D*)input_files[m]->Get(Form("h1D_%s", hist_full_name.c_str()));
 
                         SysVar* sys_hists = new SysVar(hist_full_name, sys_types[m]);
@@ -223,8 +226,10 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                     for (; m<systematics[i][j][k][l].size(); ++m)
                         total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
 
-                    if (total_sys_hists->non_zero())
+                    if (total_sys_hists->non_zero()) {
                         total_sys.push_back(total_sys_hists);
+                        total_sys_hists->print_all();
+                    }
                 }
             }
         }
