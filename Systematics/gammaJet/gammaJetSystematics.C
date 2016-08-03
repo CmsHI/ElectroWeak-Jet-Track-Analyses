@@ -174,7 +174,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         sys_hists->calc_sys();
 
                         if (sys_types[m] == "ele_rejection")
-                            sys_hists->scale_sys(0.36);
+                            sys_hists->scale_sys(0.55);
 
                         sys_hists->fit_sys(fit_funcs_diff[i][m], fit_funcs_ratio[i][m]);
 
