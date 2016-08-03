@@ -4,8 +4,8 @@
 # systematic variations
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_UP/gammaJetHistograms.root
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_DOWN/gammaJetHistograms.root
-/export/d00/scratch/luck/DUMMY.root
-/export/d00/scratch/luck/DUMMY.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPhoPurityUp.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPhoPurityDown.root
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-29-SYS_JER/gammaJetHistograms.root
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysEleRej.root
 /export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPES.root
