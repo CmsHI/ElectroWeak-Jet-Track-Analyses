@@ -6,6 +6,7 @@
 #include "TMath.h"
 
 #include <string>
+#include <map>
 
 void TH1D_Abs(TH1D* h) {
     for (int i=1; i<=h->GetNbinsX(); ++i)
@@ -88,6 +89,8 @@ public:
 
         h1D_diff_abs_fit = sys.h1D_diff_abs_fit;
         h1D_ratio_abs_fit = sys.h1D_ratio_abs_fit;
+
+        ave_sys = sys.ave_sys;
     }
 
     ~SysVar() {};
@@ -105,6 +108,8 @@ public:
 
         h1D_diff_abs_fit->Reset("ICES");
         h1D_ratio_abs_fit->Reset("ICES");
+
+        ave_sys = 0;
     }
 
     void init(TH1D* h1D_nominal, TH1D* h1D_varied) {
@@ -159,6 +164,8 @@ public:
 
         TH1D_from_TF1(h1D_diff_abs_fit, fit_diff_abs);
         TH1D_from_TF1(h1D_ratio_abs_fit, fit_ratio_abs);
+
+        calc_average();
     }
 
     TH1D* get_ratio() {return h1D_ratio;}
@@ -180,19 +187,18 @@ private:
     TH1D* h1D_diff_abs_fit = 0;
     TH1D* h1D_ratio_abs_fit = 0;
 
-    void print_average() {
-        int n_bins = 0;
-        double ave_sys = 0;
+    double ave_sys = 0;
+
+    void calc_average() {
+        int nonzero_bins = 0;
         for (int i=1; i<=h1D_ratio_abs->GetNbinsX(); ++i) {
             if (h1D_ratio_abs->GetBinContent(i) != 0) {
                 ave_sys += h1D_ratio_abs->GetBinContent(i);
-                ++n_bins;
+                ++nonzero_bins;
             }
         }
-        ave_sys /= n_bins;
-
-        printf("systematic source: %s\n", sys_type.c_str());
-        printf("average: %f\n", ave_sys);
+        if (nonzero_bins)
+            ave_sys /= nonzero_bins;
     }
 };
 
@@ -204,8 +210,7 @@ public:
         init = true;
 
         hist_name = up->hist_name;
-        sys_types.push_back(up->sys_type.c_str());
-        sys_types.push_back(down->sys_type.c_str());
+        sys_type = up->sys_type;
 
         SysVar_objects.push_back(up);
         SysVar_objects.push_back(down);
@@ -229,13 +234,14 @@ public:
         TH1D_Max(h1D_ratio, down->h1D_ratio_abs);
         TH1D_Max(h1D_diff_fit, down->h1D_diff_abs_fit);
         TH1D_Max(h1D_ratio_fit, down->h1D_ratio_abs_fit);
+
+        calc_average();
     }
 
     TotalSysVar(const TotalSysVar& sys) {
-        init = true;
+        init = sys.init;
 
         hist_name = sys.hist_name;
-        sys_types = sys.sys_types;
 
         TotalSysVar_objects = sys.TotalSysVar_objects;
         SysVar_objects = sys.SysVar_objects;
@@ -244,14 +250,14 @@ public:
         h1D_ratio = sys.h1D_ratio;
         h1D_diff_fit = sys.h1D_diff_fit;
         h1D_ratio_fit = sys.h1D_ratio_fit;
+
+        ave_sys = sys.ave_sys;
     }
 
     ~TotalSysVar() {};
 
     void clear() {
         init = false;
-
-        sys_types.clear();
 
         TotalSysVar_objects.clear();
         SysVar_objects.clear();
@@ -260,6 +266,8 @@ public:
         h1D_ratio->Reset("ICES");
         h1D_diff_fit->Reset("ICES");
         h1D_ratio_fit->Reset("ICES");
+
+        ave_sys = 0;
     }
 
     void add_SysVar(SysVar* sys) {
@@ -289,7 +297,6 @@ public:
             TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_abs_fit);
         }
 
-        sys_types.push_back(sys->sys_type);
         SysVar_objects.push_back(sys);
     }
 
@@ -320,16 +327,25 @@ public:
             TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_fit);
         }
 
-        sys_types.insert(sys_types.end(), sys->sys_types.begin(), sys->sys_types.end());
         TotalSysVar_objects.push_back(sys);
     }
 
-    void print_all() {
-        printf("histogram: %s\n", hist_name.c_str());
-        for (std::size_t i=0; i<TotalSysVar_objects.size(); ++i)
-            TotalSysVar_objects[i]->print_average();
-        for (std::size_t i=0; i<SysVar_objects.size(); ++i)
-            SysVar_objects[i]->print_average();
+    void print_latex(std::map<std::string, std::string> sys_names) {
+        printf("\\begin{table}[hbtp]\n");
+        printf("\\begin{center}\n");
+        printf("\\begin{tabular}{|l|r|}\n");
+        printf("Systematic Uncertainty   &        \\\n");
+        printf("\\hline\n");
+        for (size_t i=0; i<TotalSysVar_objects.size(); ++i)
+            printf("%-24s & %5.1f%% \\\n", sys_names[TotalSysVar_objects[i]->sys_type].c_str(), TotalSysVar_objects[i]->ave_sys * 100);
+        for (size_t i=0; i<SysVar_objects.size(); ++i)
+            printf("%-24s & %5.1f%% \\\n", sys_names[SysVar_objects[i]->sys_type].c_str(), SysVar_objects[i]->ave_sys * 100);
+        printf("\\hline\n");
+        printf("\\end{tabular}\n");
+        printf("\\caption{\\label{table:sys_unc_%s} Summary of the average systematic uncertainties for %s}\n", hist_name.c_str(), hist_name.c_str());
+        printf("\\end{center}\n");
+        printf("\\end{table}\n");
+        printf("\n");
     }
 
     bool non_zero() {return init;}
@@ -338,7 +354,7 @@ private:
     bool init = false;
 
     std::string hist_name = "";
-    std::vector<std::string> sys_types;
+    std::string sys_type = "";
 
     std::vector<TotalSysVar*> TotalSysVar_objects;
     std::vector<SysVar*> SysVar_objects;
@@ -348,22 +364,18 @@ private:
     TH1D* h1D_diff_fit = 0;
     TH1D* h1D_ratio_fit = 0;
 
-    void print_average() {
-        int n_bins = 0;
-        double ave_sys = 0;
+    double ave_sys = 0;
+
+    void calc_average() {
+        int nonzero_bins = 0;
         for (int i=1; i<=h1D_ratio->GetNbinsX(); ++i) {
             if (h1D_ratio->GetBinContent(i) != 0) {
                 ave_sys += h1D_ratio->GetBinContent(i);
-                ++n_bins;
+                ++nonzero_bins;
             }
         }
-        ave_sys /= n_bins;
-
-        printf("systematic sources: ");
-        for (std::size_t i=0; i<sys_types.size(); ++i)
-            printf("%s ", sys_types[i].c_str());
-        printf("\n");
-        printf("average: %f\n", ave_sys);
+        if (nonzero_bins)
+            ave_sys /= nonzero_bins;
     }
 };
 

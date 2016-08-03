@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 #include "../interface/SysVar.h"
 
@@ -54,6 +55,16 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
         printf("please add dummy files to input file list: %s\n", inputList.Data());
         return 1;
     }
+
+    std::map<std::string, std::string> sys_names;
+    sys_names["JES_up"] = "Jet Energy Scale";
+    sys_names["JES_down"] = "Jet Energy Scale";
+    sys_names["purity_up"] = "Photon Purity";
+    sys_names["purity_down"] = "Photon Purity";
+    sys_names["JER"] = "Jet Energy Resolution";
+    sys_names["ele_rejection"] = "Electron Contamination";
+    sys_names["photon_energy"] = "Photon Energy Scale";
+    sys_names["photon_iso"] = "Photon Isolation";
 
     TFile* input_files[n_input_files] = {0};
     std::vector<bool> valid_input(n_input_files, false);
@@ -143,10 +154,10 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         hist_full_name = Form("%s_%s", hist_name.c_str(), data_types[l].c_str());
                     }
 
-                    printf("getting nominal: %s\n", hist_full_name.c_str());
+                    printf("nominal: %s\n", hist_full_name.c_str());
                     TH1D* h1D_nominal = (TH1D*)input_files[0]->Get(Form("h1D_%s", hist_full_name.c_str()));
 
-                    printf("getting variations:\n");
+                    printf("calculating systematics...\n");
                     for (int m=1; m<n_sys_types; ++m) {
                         if (!valid_input[m])
                             continue;
@@ -228,7 +239,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
                     if (total_sys_hists->non_zero()) {
                         total_sys.push_back(total_sys_hists);
-                        total_sys_hists->print_all();
+                        total_sys_hists->print_latex(sys_names);
                     }
                 }
             }
