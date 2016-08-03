@@ -334,6 +334,7 @@ public:
         printf("\\begin{table}[hbtp]\n");
         printf("\\begin{center}\n");
         printf("\\begin{tabular}{|l|r|}\n");
+        printf("\\hline\n");
         printf("Systematic Uncertainty   &        \\\n");
         printf("\\hline\n");
         for (size_t i=0; i<TotalSysVar_objects.size(); ++i)

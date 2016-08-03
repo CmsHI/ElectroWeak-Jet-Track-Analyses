@@ -150,6 +150,8 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                     std::string hist_full_name;
                     if (hist_types[i] == "iaa") {
                         hist_full_name = Form("%s_rebin", hist_name.c_str());
+                    } else if (hist_types[i] == "ptJet" && (l == 0 || l == 2)) {
+                        hist_full_name = Form("%s_%s_rebin", hist_name.c_str(), data_types[l].c_str());
                     } else {
                         hist_full_name = Form("%s_%s", hist_name.c_str(), data_types[l].c_str());
                     }

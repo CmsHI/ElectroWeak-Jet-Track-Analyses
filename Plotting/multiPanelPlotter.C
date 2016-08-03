@@ -97,6 +97,15 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         sys_file_valid[i] = (sys_files[i] && sys_files[i]->IsOpen());
     }
 
+    if (hist_type == "iaa") {
+        hist_file_valid[1] = false;
+        hist_file_valid[2] = false;
+        hist_file_valid[3] = false;
+    } else if (hist_type == "ptJet") {
+        hist_file_valid[1] = false;
+        hist_file_valid[3] = false;
+    }
+
     bool cent_based_plots = (plot_type == "cent");
     int columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
     int rows = cent_based_plots ? pt_bin_numbers.size() : cent_bin_numbers.size();
@@ -134,15 +143,18 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 int k = draw_order[l];
                 if (!hist_file_valid[k])
                     continue;
-                if (hist_type == "iaa" && k != 0)
-                    continue;
 
                 std::string hist_handle;
-                if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "ptJet") {
+                if (hist_type == "xjg" || hist_type == "dphi") {
                     if (cent_based_plots)
                         hist_handle = Form("%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
                         hist_handle = Form("%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
+                } else if (hist_type == "ptJet") {
+                    if (cent_based_plots)
+                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
+                    else
+                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
                 } else if (hist_type == "iaa") {
                     if (cent_based_plots)
                         hist_handle = Form("%s_ptBin%d_hiBin%d_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j]);
@@ -180,7 +192,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 h1[i][j][k]->Draw(draw_options[k].c_str());
 
                 if (sys_file_valid[k]) {
-                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total_fit", hist_handle.c_str()));
+                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total", hist_handle.c_str()));
 
                     TBox* sys_box = new TBox();
                     sys_box->SetFillColorAlpha(46, 0.7);
@@ -225,7 +237,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
             adjust_coordinates(prelim_box, margin, edge, i, j, rows, columns);
             latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
-
 
             std::vector<std::string> infoText;
             if (hist_type == "iaa") {
