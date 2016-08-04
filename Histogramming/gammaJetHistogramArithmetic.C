@@ -19,23 +19,20 @@
 
 const std::vector<std::string> correlationHistNames {
   "xjg", "dphi", "ptJet"
-    };
+};
 const std::vector<std::string> correlationHistTitleX {
   "p^{Jet}_{T}/p^{#gamma}_{T}", "#Delta#phi_{J#gamma}", "p^{Jet}_{T}"
-    };
+};
 const std::vector<std::string> correlationHistTitleY_final_normalized {
   "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}",
-    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
-    "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"
-    };
+  "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi}",
+  "#frac{1}{N_{#gamma}} #frac{dN_{J#gamma}}{dp^{Jet}_{T}}"
+};
 const std::vector<int>         nBinsx {16, 20,          30};
 const std::vector<double>      xlow   {0,  0,           0};
 const std::vector<double>      xup    {2,  TMath::Pi(), 300};
-// const std::vector<double>      xlow_final {0,  0,           0};
-// const std::vector<double>      xup_final  {2,  TMath::Pi(), 200};
 
-void gammaJetHistogramArithmetic(const TString configFile, const TString inputFile, const TString outputFile)
-{
+int gammaJetHistogramArithmetic(const TString configFile, const TString inputFile, const TString outputFile) {
   TH1::SetDefaultSumw2();
 
   std::cout << "running gammaJetHistogramArithmetic()" << std::endl;
@@ -45,20 +42,23 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
   InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
-  if (!configCuts.isValid) {
-    std::cout << "Invalid configfile, terminating." << std::endl;
-    return;
+
+  if (!configInput.isValid) {
+    std::cout << "Invalid input configuration" << std::endl;
+    return 1;
+  } else if (!configCuts.isValid) {
+    std::cout << "Invalid cut configuration" << std::endl;
+    return 1;
   }
 
   // input configuration
-  int collision;
-  collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+  int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+  const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
   // verbose about input configuration
   std::cout << "Input Configuration :" << std::endl;
-  const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
   std::cout << "collision = " << collisionName << std::endl;
 
-  //bool isMC = collisionIsMC((COLL::TYPE)collision);
+  // bool isMC = collisionIsMC((COLL::TYPE)collision);
   bool isHI = collisionIsHI((COLL::TYPE)collision);
 
   // observable bins
@@ -66,56 +66,52 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
   bins_pt[0] = ConfigurationParser::ParseListFloat(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
   bins_pt[1] = ConfigurationParser::ParseListFloat(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
+                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
   bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+                    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
   bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+                    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
   int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
   int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
   std::vector<float> purityVec = ConfigurationParser::ParseListFloat(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_purity]);
+                                   configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_purity]);
   int puritySize = purityVec.size();
-  if(puritySize != (nBins_pt * nBins_hiBin) ){
+  if (puritySize != (nBins_pt * nBins_hiBin)) {
     std::cout << "Purity array malformed. Should be size: " << (nBins_pt * nBins_hiBin)
               << ", actual size: " << puritySize << ". Aborting." << std::endl;
-    return;
+    return 1;
   }
 
-  double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
-  for (int i = 0; i<nBins_pt; ++i) {
-    for (int j = 0; j<nBins_hiBin; ++j) {
-        purity[i][j] = purityVec[i*nBins_hiBin+j];
+  double purity[nBins_pt][nBins_hiBin];
+  for (int i=0; i<nBins_pt; ++i) {
+    for (int j=0; j<nBins_hiBin; ++j) {
+      purity[i][j] = purityVec[i*nBins_hiBin+j];
     }
   }
 
   // dphi width/pedestal plots as a function of photon pt, for different centrality bins
-  std::vector<int> pt_bin_numbers;
-  pt_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_bin_numbers]);
+  std::vector<int> pt_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_bin_numbers]);
   const int n_pt_bins = pt_bin_numbers.size();
 
   // dphi width/pedestal plots as a function of centrality, for different photon pt bins
-  std::vector<int> cent_bin_numbers;
-  cent_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_cent_bin_numbers]);
+  std::vector<int> cent_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_cent_bin_numbers]);
   int n_cent_bins = cent_bin_numbers.size();
 
-  int nEventsToMix;
-  int nSmear;
-  nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
-  nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
-
-  TFile* output = TFile::Open(outputFile, "RECREATE");
+  int nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventsToMix];
+  int nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
   TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
   TFile *input = TFile::Open(inputFile);
+  TFile* output = TFile::Open(outputFile, "RECREATE");
 
   // histograms will be put under a directory whose name is the type of the collision
-  if (!output->GetKey(collisionName)) output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
+  if (!output->GetKey(collisionName))
+    output->mkdir(collisionName, Form("input file is %s", inputFile.Data()));
   output->cd(collisionName);
   std::cout << "histograms will be put under directory : " << collisionName << std::endl;
 
@@ -134,10 +130,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
-
   // prepare histogram names for xjg, abs(dphi) and jet pt
-  // if the collision is not HI, then cannot split it into hiBins.
-  //if (!isHI) nBins_hiBin = 1;
   for (int iHist=0; iHist<nCorrHist; ++iHist) {
     for (int i=0; i<nBins_pt; ++i) {
       for (int j=0; j<nBins_hiBin; ++j) {
@@ -150,16 +143,14 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
             corrHists[iHist][i][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
             if (iCorr > 1 || jCorr > 1) {
               corrHists[iHist][i][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "",
-                                                                  nBinsx[iHist], xlow[iHist], xup[iHist]);
+                  nBinsx[iHist], xlow[iHist], xup[iHist]);
               continue;
             }
-            // } else {
+
             corrHists[iHist][i][j].h1D[iCorr][jCorr] = (TH1D*)input->Get(Form("%s/h1D_%s", collisionName, subHistName.c_str()));
 
-            if (!corrHists[iHist][i][j].h1D[iCorr][jCorr]) {
+            if (!corrHists[iHist][i][j].h1D[iCorr][jCorr])
               std::cout << "Histogram not found: " << subHistName.c_str() << std::endl;
-            }
-            //}
 
             corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr] = correlationHistTitleX[iHist].c_str();
             corrHists[iHist][i][j].h1D_titleY_final_norm[iCorr][jCorr] = correlationHistTitleY_final_normalized[iHist].c_str();
@@ -171,9 +162,6 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
             std::string tmpHistName = corrHists[iHist][i][j].h1D[iCorr][jCorr]->GetName();
             corrHists[iHist][i][j].h1D_final[iCorr][jCorr] =
               (TH1D*)corrHists[iHist][i][j].h1D[iCorr][jCorr]->Clone(Form("%s_final", tmpHistName.c_str()));
-            // double tmpXlow = xlow_final[iHist];
-            // double tmpXup  = xup_final[iHist];
-            // corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->SetAxisRange(tmpXlow, tmpXup);
             corrHists[iHist][i][j].h1D_final[iCorr][jCorr]->Write("", TObject::kOverwrite);
 
             // FINAL_NORM
@@ -183,18 +171,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
               // normalize first by the number of mixed events
               corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nEventsToMix);
             }
+
             if (nSmear > 0 && nSmear != 1) {
-              //first correct actual bin value
+              // first correct actual bin value
               corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->Scale(1./nSmear);
-              //then increase statistical bin error by 10 to account for 100 "fake" smearing
-              for (int ibin = 1;
-                   ibin <= corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX();
-                   ibin++)
-              {
-                corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->SetBinError
-                  (ibin,
-                   TMath::Sqrt(nSmear)*
-                   corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetBinError(ibin));
+              // then increase statistical bin error by 10 to account for 100 "fake" smearing
+              for (int ibin = 1; ibin <= corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX(); ibin++) {
+                corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->SetBinError(ibin, TMath::Sqrt(nSmear)*corrHists[iHist][i][j].h1D_final_norm[iCorr][jCorr]->GetBinError(ibin));
               }
             }
             // normalization is done with photon events, not necessarily by photon-jet events
@@ -216,21 +199,18 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   std::vector<std::string> correlationHistNames_ptBinAll = {"rjg", "xjg_mean"};       // histograms where x-axis is pt bins
   int nCorrHist_ptBinAll = correlationHistNames_ptBinAll.size();
   correlationHist corrHists_ptBinAll[nCorrHist_ptBinAll][nBins_hiBin];
-  // prepare histogram names for rjg and <xjg>
-  double bins_rjg[n_pt_bins+1];
-  double bins_xjg_mean[n_pt_bins+1];
-  for(int i = 0; i < n_pt_bins; ++i){
-    if(i != 0){
-      if(bins_pt[0][pt_bin_numbers[i]] != bins_pt[1][pt_bin_numbers[i-1]]){
-        std::cout << "ERROR: pt bins are not arranged correctly." << std::endl;
-      }
-    }
-    bins_rjg[i] = bins_pt[0][pt_bin_numbers[i]];
-    bins_xjg_mean[i] = bins_pt[0][pt_bin_numbers[i]];
-  }
-  bins_rjg[n_pt_bins] = bins_pt[0][pt_bin_numbers[n_pt_bins-1]]+20;
-  bins_xjg_mean[n_pt_bins] = bins_pt[0][pt_bin_numbers[n_pt_bins-1]]+20;
 
+  double pt_binning[n_pt_bins+1];
+  for (int i = 0; i < n_pt_bins; ++i) {
+    if (i > 0 && bins_pt[0][pt_bin_numbers[i]] != bins_pt[1][pt_bin_numbers[i-1]]) {
+      std::cout << "ERROR: pt bins are not arranged correctly." << std::endl;
+      return 1;
+    }
+    pt_binning[i] = bins_pt[0][pt_bin_numbers[i]];
+  }
+  pt_binning[n_pt_bins] = bins_pt[0][pt_bin_numbers[n_pt_bins-1]] + 20;
+
+  // prepare histogram names for rjg and <xjg>
   for (int j=0; j<nBins_hiBin; ++j) {
     for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
       for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
@@ -239,42 +219,37 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         subHistName = Form("%s_ptBinAll_hiBin%d_%s_%s", correlationHistNames_ptBinAll[0].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_pt_bins, bins_rjg);
+        corrHists_ptBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_pt_bins, pt_binning);
 
         // x_jg_mean
         subHistName = Form("%s_ptBinAll_hiBin%d_%s_%s", correlationHistNames_ptBinAll[1].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_pt_bins, bins_xjg_mean);
+        corrHists_ptBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_pt_bins, pt_binning);
       }
     }
   }
-
-  double bins_centrality_npart[n_cent_bins+1] = {findNpart(199),
-                                                 findNpart(100),
-                                                 findNpart(60),
-                                                 findNpart(20),
-                                                 findNpart(0)};
 
   // histograms with centrality on the x-axis
   std::vector<std::string> correlationHistNames_centBinAll = {"rjg", "xjg_mean"};
   int nCorrHist_centBinAll = correlationHistNames_centBinAll.size();
   correlationHist corrHists_centBinAll[nCorrHist_centBinAll][nBins_pt];
-  // prepare histogram names for rjg and <xjg>
-  //double bins_rjg_cent[n_cent_bins+1] = {0, 80, 170, 300, 400};
-  //double bins_xjg_mean_cent[n_cent_bins+1] = {0, 80, 170, 300, 400};;
-  // for(int i = 0; i < n_cent_bins; ++i){
-  //   if(i != 0){
-  //     if(bins_hiBin[0][cent_bin_numbers[i]] != bins_hiBin[1][cent_bin_numbers[i-1]]){
-  //       std::cout << "ERROR: cent bins are not arranged correctly." << std::endl;
-  //     }
-  //   }
-  //   bins_rjg_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
-  //   bins_xjg_mean_cent[i] = bins_hiBin[0][cent_bin_numbers[i]];
-  // }
-  // bins_rjg_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
-  // bins_xjg_mean_cent[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
 
+  double centrality_binning[n_cent_bins+1];
+  for (int i = 0; i < n_cent_bins; ++i) {
+    if (i > 0 && bins_hiBin[0][cent_bin_numbers[i]] != bins_hiBin[1][cent_bin_numbers[i-1]]) {
+      std::cout << "ERROR: cent bins are not arranged correctly." << std::endl;
+      return 1;
+    }
+    centrality_binning[i] = bins_hiBin[0][cent_bin_numbers[i]];
+  }
+  centrality_binning[n_cent_bins] = bins_hiBin[1][cent_bin_numbers[n_cent_bins-1]];
+
+  double npart_binning[n_cent_bins+1];
+  for (int i=0; i<n_cent_bins+1; ++i)
+    npart_binning[i] = findNpart(centrality_binning[n_cent_bins+1-i]);
+
+  // prepare histogram names for rjg and <xjg>
   for (int j=0; j<nBins_pt; ++j) {
     for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
       for (int jCorr = 0; jCorr < CORR::kN_CORRFNC; ++jCorr) {
@@ -283,13 +258,13 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll[0].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_centBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_centrality_npart);
+        corrHists_centBinAll[0][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, npart_binning);
 
         // x_jg_mean
         subHistName = Form("%s_centBinAll_ptBin%d_%s_%s", correlationHistNames_centBinAll[1].c_str(), j,
                            CORR::CORR_PHO_LABELS[iCorr].c_str(), CORR::CORR_JET_LABELS[jCorr].c_str());
         corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr] = subHistName.c_str();
-        corrHists_centBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, bins_centrality_npart);
+        corrHists_centBinAll[1][j].h1D[iCorr][jCorr] = new TH1D(Form("h1D_%s", subHistName.c_str()), "", n_cent_bins, npart_binning);
       }
     }
   }
@@ -308,7 +283,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           }
         }
 
-        //std::cout << "making histograms for SIG regions" << std::endl;
+        // std::cout << "making histograms for SIG regions" << std::endl;
         // calculate SIGSIG histogram,
         // these histograms are ignored : SIGRAW, SIGBKG
 
@@ -339,7 +314,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // subtract jet BKG
         // RAWSIG = RAWRAW - RAWBKG
         std::string tmpHistNameRAWSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kRAW][CORR::kSIG]->GetName());
-        //std::cout << tmpHistNameRAWSIG.c_str() << std::endl;
+        // std::cout << tmpHistNameRAWSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG] =
           (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kRAW]->Clone(tmpHistNameRAWSIG.c_str());
         // do arithmetic if histograms are not empty
@@ -349,7 +324,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         // BKGSIG = BKGRAW - BKGBKG
         std::string tmpHistNameBKGSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kBKG][CORR::kSIG]->GetName());
-        //std::cout << tmpHistNameBKGSIG.c_str() << std::endl;
+        // std::cout << tmpHistNameBKGSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG] =
           (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kRAW]->Clone(tmpHistNameBKGSIG.c_str());
         // do arithmetic if histograms are not empty
@@ -361,7 +336,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // purity*SIGSIG + (1-purity)*BKGSIG = RAWSIG
         // SIGSIG = 1/purity *  ( RAWSIG - (1-purity) * BKGSIG )
         std::string tmpHistNameSIGSIG = Form("%s_final_norm", corrHists[iHist][i][j].h1D[CORR::kSIG][CORR::kSIG]->GetName());
-        //std::cout << tmpHistNameSIGSIG.c_str() << std::endl;
+        // std::cout << tmpHistNameSIGSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG] =
           (TH1D*)corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Clone(tmpHistNameSIGSIG.c_str());
         // do arithmetic if histograms are not empty
@@ -369,7 +344,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
           corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Add(corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG], -1*(1-purity[i][j]));
           corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./purity[i][j]);
         }
-        //std::cout << "purity[i][j] = " << purity[i][j] << std::endl;
+        // std::cout << "purity[i][j] = " << purity[i][j] << std::endl;
 
         // correct dphi normalization
         if (iHist == 1) {
@@ -378,21 +353,21 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
 
         // FINAL_NORM  RAWSIG
         std::string tmpH1D_nameRAWSIG = corrHists[iHist][i][j].h1D_name[CORR::kRAW][CORR::kSIG].c_str();
-        //std::cout << "drawing tmpH1D_nameRAWSIG = " << tmpH1D_nameRAWSIG.c_str() << std::endl;
+        // std::cout << "drawing tmpH1D_nameRAWSIG = " << tmpH1D_nameRAWSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kRAW][CORR::kSIG]->Write("", TObject::kOverwrite);
 
         // FINAL_NORM  BKGSIG
         std::string tmpH1D_nameBKGSIG = corrHists[iHist][i][j].h1D_name[CORR::kBKG][CORR::kSIG].c_str();
-        //std::cout << "drawing tmpH1D_nameBKGSIG = " << tmpH1D_nameBKGSIG.c_str() << std::endl;
+        // std::cout << "drawing tmpH1D_nameBKGSIG = " << tmpH1D_nameBKGSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kBKG][CORR::kSIG]->Write("", TObject::kOverwrite);
 
         // FINAL_NORM  SIGSIG
         std::string tmpH1D_nameSIGSIG = corrHists[iHist][i][j].h1D_name[CORR::kSIG][CORR::kSIG].c_str();
-        //std::cout << "drawing tmpH1D_nameSIGSIG = " << tmpH1D_nameSIGSIG.c_str() << std::endl;
+        // std::cout << "drawing tmpH1D_nameSIGSIG = " << tmpH1D_nameSIGSIG.c_str() << std::endl;
         corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Write("", TObject::kOverwrite);
 
         std::cout << Form("histogramming END : ptBin%d HiBin%d", i, j) << std::endl;
-        //std::cout << "##########" << std::endl;
+        // std::cout << "##########" << std::endl;
       }
     }
     std::cout << "histogramming END : " << correlationHistNames[iHist].c_str() << std::endl;
@@ -412,43 +387,30 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
     }
   }
 
-  float dphi_fit_pt_bins[n_pt_bins + 2];
-  dphi_fit_pt_bins[0] = 0;
-  dphi_fit_pt_bins[1] = bins_pt[0][pt_bin_numbers[0]];
-  for (int i=0; i<n_pt_bins; ++i)
-    dphi_fit_pt_bins[i+2] = bins_pt[1][pt_bin_numbers[i]];
-  if (dphi_fit_pt_bins[n_pt_bins+1] > 200)
-    dphi_fit_pt_bins[n_pt_bins+1] = 200;
-
   TH1D* h_dphi_width_pt[nBins_hiBin];
   TH1D* h_dphi_pedestal_pt[nBins_hiBin];
   for (int i=0; i<nBins_hiBin; ++i) {
-    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
-    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, dphi_fit_pt_bins);
-
+    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins+1, pt_binning);
+    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, pt_binning);
     h_dphi_width_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi width");
     h_dphi_pedestal_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi pedestal");
+
     for (int j=0; j<n_pt_bins; ++j) {
-      h_dphi_width_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
-      h_dphi_width_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
-      h_dphi_pedestal_pt[i]->SetBinContent(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
-      h_dphi_pedestal_pt[i]->SetBinError(j+2, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
+      h_dphi_width_pt[i]->SetBinContent(j+1, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(2));
+      h_dphi_width_pt[i]->SetBinError(j+1, fit_dphi[pt_bin_numbers[j]][i]->GetParError(2));
+      h_dphi_pedestal_pt[i]->SetBinContent(j+1, fit_dphi[pt_bin_numbers[j]][i]->GetParameter(0));
+      h_dphi_pedestal_pt[i]->SetBinError(j+1, fit_dphi[pt_bin_numbers[j]][i]->GetParError(0));
     }
   }
-
-  //float dphi_fit_cent_bins[n_cent_bins + 1] = {0, 80, 170, 300, 400};;
-  // dphi_fit_cent_bins[0] = bins_hiBin[0][cent_bin_numbers[0]];
-  // for (int i=0; i<n_cent_bins; ++i)
-  //   dphi_fit_cent_bins[i+1] = bins_hiBin[1][cent_bin_numbers[i]];
 
   TH1D* h_dphi_width_cent[nBins_pt];
   TH1D* h_dphi_pedestal_cent[nBins_pt];
   for (int i=0; i<nBins_pt; ++i) {
-    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_centBinAll_ptBin%i", i), "", n_cent_bins, bins_centrality_npart);
-    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, bins_centrality_npart);
-
+    h_dphi_width_cent[i] = new TH1D(Form("h1D_dphi_width_centBinAll_ptBin%i", i), "", n_cent_bins, npart_binning);
+    h_dphi_pedestal_cent[i] = new TH1D(Form("h1D_dphi_pedestal_centBinAll_ptBin%i", i), "", n_cent_bins, npart_binning);
     h_dphi_width_cent[i]->SetTitle(";N_{part};#Delta#phi width");
     h_dphi_pedestal_cent[i]->SetTitle(";N_{part};#Delta#phi pedestal");
+
     for (int j=0; j<n_cent_bins; ++j) {
       // h_dphi_width_cent[i]->SetBinContent(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParameter(2));
       // h_dphi_width_cent[i]->SetBinError(j+1, fit_dphi[i][cent_bin_numbers[j]]->GetParError(2));
@@ -471,15 +433,10 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // ignore SIGRAW, SIGBKG histograms
         if ((iCorr == CORR::kSIG && (jCorr == CORR::kRAW || jCorr == CORR::kBKG))) continue;
 
-        // if (j>0) continue;
-
-        //int offset = 2; // ptBin 40-50 starts from index 2.
         // rjg block
         for (int i=0; i<n_pt_bins; ++i) {
-
           double err;
-          double val = corrHists[0][pt_bin_numbers[i]][j].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
-                                                                                                         corrHists[0][pt_bin_numbers[i]][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
+          double val = corrHists[0][pt_bin_numbers[i]][j].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, corrHists[0][pt_bin_numbers[i]][j].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
 
           corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
@@ -491,7 +448,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
-        //std::cout << "drawing : " << corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
+        // std::cout << "drawing : " << corrHists_ptBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
         corrHists_ptBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
 
         // xjg_mean block
@@ -507,7 +464,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
-        //std::cout << "drawing : " << corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
+        // std::cout << "drawing : " << corrHists_ptBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
         corrHists_ptBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
       }
     }
@@ -524,14 +481,10 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         // ignore SIGRAW, SIGBKG histograms
         if ((iCorr == CORR::kSIG && (jCorr == CORR::kRAW || jCorr == CORR::kBKG))) continue;
 
-        // if (j>0 && !isHI) continue;
-
-        //int offset = 3; // hiBin 0-10 starts from index 3.
         // rjg block
         for (int i=0; i<n_cent_bins; ++i) {
           double err;
-          double val = corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1,
-                                                                                                           corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
+          double val = corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->IntegralAndError(1, corrHists[0][j][cent_bin_numbers[i]].h1D_final_norm[iCorr][jCorr]->GetNbinsX(), err, "width");
 
           // corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinContent(i+1, val);
           // corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetBinError(i+1, err);
@@ -551,7 +504,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
-        //std::cout << "drawing : " << corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
+        // std::cout << "drawing : " << corrHists_centBinAll[0][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
         corrHists_centBinAll[0][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
 
         // xjg_mean block
@@ -569,7 +522,7 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerStyle(kFullCircle);
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->SetMarkerColor(kBlack);
 
-        //std::cout << "drawing : " << corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
+        // std::cout << "drawing : " << corrHists_centBinAll[1][j].h1D_name[iCorr][jCorr].c_str() << std::endl;
         corrHists_centBinAll[1][j].h1D[iCorr][jCorr]->Write("", TObject::kOverwrite);
       }
     }
@@ -581,18 +534,16 @@ void gammaJetHistogramArithmetic(const TString configFile, const TString inputFi
   output->Write("", TObject::kOverwrite);
   input->Close();
   output->Close();
+
+  return 0;
 }
 
-int main(int argc, char** argv)
-{
-  if (argc == 4) {
-    gammaJetHistogramArithmetic(argv[1], argv[2], argv[3]);
-    return 0;
-  }
-  else {
-    std::cout << "Usage : \n" <<
-      "./gammaJetHistogramArithmetic.exe <configFile> <inputFile> <outputFile>"
-              << std::endl;
-    return 1;
-  }
+int main(int argc, char** argv) {
+  if (argc == 4)
+    return gammaJetHistogramArithmetic(argv[1], argv[2], argv[3]);
+  else
+    printf("Usage : \n"
+           "./gammaJetHistogramArithmetic.exe <configFile> <inputFile> <outputFile>\n");
+
+  return 1;
 }
