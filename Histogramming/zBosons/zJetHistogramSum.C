@@ -914,6 +914,45 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                         c->Write("",TObject::kOverwrite);
                         c->Clear();
                     }
+                    // fit dphi correlation
+                    if (tmpObservable.find("dphi") == 0)
+                    {
+                        std::cout << "fit dphi correlation : " << tmpH1D_name.c_str() << std::endl;
+
+                        // apply fit to dphi, try to extract information about the width of the distribution
+                        // fit functions used for "dphi" and "dphi_normJZ" histograms are different.
+                        std::string tf1Formula = "pol0";
+                        int parIndex = 0;
+                        std::vector<double> parInit = {};
+                        if (tmpObservable.compare("dphi") == 0 || tmpObservable.compare("dphi_rebin") == 0) {
+                            tf1Formula = "[0]+[1]*exp((x-TMath::Pi())/[2])";
+                            parIndex = 2;
+                            parInit = {0.01, 0.5, 0.3};
+                        }
+                        else if (tmpObservable.compare("dphi_normJZ") == 0 || tmpObservable.compare("dphi_rebin_normJZ") == 0) {
+                            tf1Formula = "exp(-(TMath::Pi()-x)/[0])/([0]*(1-exp(-TMath::Pi()/[0])))";
+                            parIndex = 0;
+                            parInit = {0.25};
+                        }
+                        int nParams = parInit.size();
+                        double paramsInit[nParams];
+                        std::copy(parInit.begin(), parInit.end(), paramsInit);
+
+                        // do fit to the histogram.
+                        double xmin = hTmp->GetBinCenter(hTmp->GetNbinsX()-3);
+                        f1_calc = new TF1(Form("f1_%s", tmpH1D_name.c_str()), tf1Formula.c_str(), xmin, PI);
+                        f1_calc->SetParameters(paramsInit);
+                        f1_calc->SetLineColor(kRed);
+                        hTmp->Fit(f1_calc->GetName(), "QREM0");
+                        hTmp->GetFunction(f1_calc->GetName())->SetBit(TF1::kNotDraw);
+                        f1_calc = hTmp->GetFunction(f1_calc->GetName());
+                        f1_calc->Write("", TObject::kOverwrite);
+
+                        double val = f1_calc->GetParameter(parIndex);
+                        double err = f1_calc->GetParError(parIndex);
+                        std::cout << "val = " << val << std::endl;
+                        std::cout << "err = " << err << std::endl;
+                    }
                 }
             }
             std::cout<<"##########"<<std::endl;
