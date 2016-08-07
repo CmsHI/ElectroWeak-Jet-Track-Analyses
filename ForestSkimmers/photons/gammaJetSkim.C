@@ -251,27 +251,27 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
 
   // pp resolution
-  std::vector<double> CSN_PP = {0.07764, 0.9648, -0.0003191};
+  std::vector<double> CSN_PP = {0.06, 0.91, 0};
   std::vector<double> CSN_phi_PP = {7.72/100000000, 0.1222, 0.5818};
 
   // smear 0-30 %
-  std::vector<double> CSN_HI_cent0030 = {0.08624, 1.129, 7.853};
+  std::vector<double> CSN_HI_cent0030 = {0.06, 1.23, 7.38};
   std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
   // smear 30-100 %
-  std::vector<double> CSN_HI_cent30100 = {0.07764, 1.059, 4.245};
+  std::vector<double> CSN_HI_cent30100 = {0.06, 1.23, 2.1};
   std::vector<double> CSN_phi_HI_cent30100 = {-2.013/100000000, 0.1646, 1.04};
 
   // smear 0-10 %
-  std::vector<double> CSN_HI_cent0010 = {0.07764, 1.179, 7.113};
+  std::vector<double> CSN_HI_cent0010 = {0.06, 1.23, 8.38};
   std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000, 0.125911, 2.23898};
   // smear 10-30 %
-  std::vector<double> CSN_HI_cent1030 = {0.07764, 1.179, 4.443};
+  std::vector<double> CSN_HI_cent1030 = {0.06, 1.23, 5.88};
   std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
   // smear 30-50 %
-  std::vector<double> CSN_HI_cent3050 = {0.07764, 1.165, 1.826};
+  std::vector<double> CSN_HI_cent3050 = {0.06, 1.23, 3.24};
   std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.1222, 1.21751};
   // smear 50-100 %
-  std::vector<double> CSN_HI_cent50100 = {0.07764, 1.065, -0.0003191};
+  std::vector<double> CSN_HI_cent50100 = {0.06, 1.23, 0};
   std::vector<double> CSN_phi_HI_cent50100 = {-0.0073078, 0.168879, 0.798885};
 
   for (int i=0; i<nJetCollections; ++i) {
