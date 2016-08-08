@@ -53,9 +53,21 @@ int gammaJetFinalHistograms(const TString configFile,
     TH1D* h_ptJet_pp_Data[nPtBins][nCentBins];
     TH1D* h_ptJet_pp_MC[nPtBins][nCentBins];
 
-    double iaa_bins[9] = {0, 20, 40, 60, 80, 100, 150, 200, 300};
+    const int n_iaa_bins = 8;
+    double iaa_bins[n_iaa_bins] = {0, 20, 40, 60, 100, 150, 200, 300};
     TH1D* h_ptJet_PbPb_Data_rebin[nPtBins][nCentBins];
     TH1D* h_ptJet_pp_Data_rebin[nPtBins][nCentBins];
+
+    int iaa_bin_cutoff[nPtBins][nCentBins] = {
+        {8, 8, 8, 8, 8, 6, 6},
+        {8, 8, 8, 8, 8, 6, 6},
+        {6, 6, 5, 5, 5, 5, 5},
+        {6, 6, 6, 6, 6, 6, 5},
+        {7, 7, 6, 6, 6, 6, 5},
+        {8, 8, 8, 8, 8, 8, 7},
+        {6, 6, 6, 6, 6, 6, 5},
+        {8, 8, 8, 8, 8, 8, 6}
+    };
 
     TH1D* h_IAA[nPtBins][nCentBins];
 
@@ -101,12 +113,17 @@ int gammaJetFinalHistograms(const TString configFile,
             h_ptJet_pp_Data[i][j]->Write(Form("h1D_ptJet_ptBin%i_hiBin%i_pp_Data", i, j), TObject::kOverwrite);
             h_ptJet_pp_MC[i][j]->Write(Form("h1D_ptJet_ptBin%i_hiBin%i_pp_MC", i, j), TObject::kOverwrite);
 
-            h_ptJet_PbPb_Data_rebin[i][j] = (TH1D*)h_ptJet_PbPb_Data[i][j]->Rebin(8, Form("h1D_ptJet_ptBin%i_hiBin%i_PbPb_Data_rebin", i, j), iaa_bins);
-            h_ptJet_pp_Data_rebin[i][j] = (TH1D*)h_ptJet_pp_Data[i][j]->Rebin(8, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_Data_rebin", i, j), iaa_bins);
+            h_ptJet_PbPb_Data_rebin[i][j] = (TH1D*)h_ptJet_PbPb_Data[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_PbPb_Data_rebin", i, j), iaa_bins);
+            h_ptJet_pp_Data_rebin[i][j] = (TH1D*)h_ptJet_pp_Data[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_Data_rebin", i, j), iaa_bins);
 
             h_IAA[i][j] = (TH1D*)h_ptJet_PbPb_Data_rebin[i][j]->Clone(Form("h1D_iaa_ptBin%i_hiBin%i_rebin", i, j));
             h_IAA[i][j]->SetTitle(Form("%.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %%", ptBins[0][i], ptBins[1][i], centBins[0][j]/2, centBins[1][j]/2));
             h_IAA[i][j]->Divide(h_ptJet_pp_Data_rebin[i][j]);
+
+            for (int k=iaa_bin_cutoff[i][j]; k<=h_IAA[i][j]->GetNbinsX(); ++k) {
+                h_IAA[i][j]->SetBinContent(k, 0);
+                h_IAA[i][j]->SetBinError(k, 0);
+            }
 
             h_IAA[i][j]->Write("", TObject::kOverwrite);
         }
