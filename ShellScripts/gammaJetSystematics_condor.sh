@@ -70,6 +70,7 @@ mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Correc
 
 #copy out histogram to hadoop
 mv gammaJetHistogram_\${4}.root \$3
+rm *.root
 EOF
 
 #cat $now/gjSystematics.condor
