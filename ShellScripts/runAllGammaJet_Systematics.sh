@@ -28,7 +28,7 @@ mv ${OUTDIR}/*_minbiasJetSkim.root $H_INDIR/
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 SYSTEMATIC=(JER JES_DOWN JES_UP RESIDUAL)
 INFILE=(./ShellScripts/PbPb_Data_HiForest.list ./ShellScripts/PbPb_MC_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/pp_MC_HiForest.list)
-NJOBS=(100 10 100 10)
+NJOBS=(200 20 200 20)
 MIXINGSAMPLE=($H_INDIR/PbPb_Data_minbiasJetSkim.root $H_INDIR/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 CONFPOSTFIX1=("" _mc _pp _pp_mc)
 

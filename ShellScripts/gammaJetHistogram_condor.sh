@@ -39,6 +39,7 @@ mkdir CutConfigurations/
 mv gammaJet*.conf CutConfigurations/
 ./gammaJetHistogram.exe \$1 \$2 gammaJetHistogram_\${4}.root $4 \$4
 mv gammaJetHistogram_\${4}.root \$3
+rm *.root
 EOF
 
 #cat $now/pmerge.condor
