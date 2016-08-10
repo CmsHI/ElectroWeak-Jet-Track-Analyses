@@ -32,9 +32,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   if (!configInput.isValid) {
     std::cout << "Invalid input configuration" << std::endl;
     return 1;
-  }
-
-  if (!configCuts.isValid) {
+  } else if (!configCuts.isValid) {
     std::cout << "Invalid cut configuration" << std::endl;
     return 1;
   }
@@ -46,15 +44,13 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::cout << "collision = " << getCollisionTypeName((COLL::TYPE)collisionType).c_str() << std::endl;
 
   // cut configuration
-  std::vector<std::string> jetCollections;
-  std::vector<float> mcPthatWeights;
+  std::vector<std::string> jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+  std::vector<float> mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
 
   const float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
   const float cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
   const int cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
   const int cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
-
-  jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
 
   const float cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
   const float cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
@@ -74,7 +70,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   const int nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
   const int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
   const int doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
-  mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
   const int doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
   const float energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
   const int doResidualCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doResidualCorrection];
@@ -146,8 +141,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   }
 
   TF1 *jetResidualFunction[4];
-  if(doResidualCorrection){
-    if(isHI){
+  if (doResidualCorrection) {
+    if (isHI) {
       TFile *jetResidualFile = TFile::Open(jetResidualCorrectionFile.c_str());
       jetResidualFunction[3] = ((TH1F*)jetResidualFile->Get("resCorr_cent50to100_h"))->GetFunction("f1_p");
       jetResidualFunction[2] = ((TH1F*)jetResidualFile->Get("resCorr_cent30to50_h"))->GetFunction("f1_p");
@@ -180,11 +175,11 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     inputMB = TFile::Open(minBiasJetSkimFile, "READ");
 
     int seed = 0;
-    if(nJobs == -1)
+    if (nJobs == -1)
       seed = 12345;
     else
       seed = jobNum;
-    
+
     TRandom3 rand(seed);    // random number seed should be fixed or reproducible
 
     std::cout << "Tree initialization for MinBias mixing" << std::endl;
@@ -243,7 +238,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::vector<jetCorrector> correctorsJetJES(nJetCollections);
 
   // smearing set up block
-  jetCorrector correctorsJetSmear[nJetCollections][nSmearBins+1];
+  jetCorrector correctorsJetSmear[nJetCollections][nSmearBins];
 
   TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
 
@@ -278,37 +273,37 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       correctorsJetSmear[i][j].CSN_phi_PP = CSN_phi_PP;
 
       switch (j) {
-      case 0: //0-30
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent0030;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent0030;
-        break;
-      case 1: //30-100
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent30100;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent30100;
-        break;
-      case 2: //0-10
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent0010;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent0010;
-        break;
-      case 3: //10-30
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent1030;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent1030;
-        break;
-      case 4: //30-50
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent3050;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent3050;
-        break;
-      case 5: //50-100
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent50100;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent50100;
-        break;
-      case 6: //sys
-        correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent30100;
-        correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent30100;
-        break;
+        case 0: //0-30
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent0030;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent0030;
+          break;
+        case 1: //30-100
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent30100;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent30100;
+          break;
+        case 2: //0-10
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent0010;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent0010;
+          break;
+        case 3: //10-30
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent1030;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent1030;
+          break;
+        case 4: //30-50
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent3050;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent3050;
+          break;
+        case 5: //50-100
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent50100;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent50100;
+          break;
+        case 6: //sys
+          correctorsJetSmear[i][j].CSN_HI = CSN_HI_cent30100;
+          correctorsJetSmear[i][j].CSN_phi_HI = CSN_phi_HI_cent30100;
+          break;
       }
     }
-    if(nSmearBins == 0){
+    if (nSmearBins == 0) {
       correctorsJetSmear[i][0].rand = randSmearing;
     }
   }
@@ -406,8 +401,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
   std::vector<std::string>::iterator itFirst = inputFiles.begin();
   std::vector<std::string>::iterator itEnd = inputFiles.end();
-  
-  if (inputFiles.size() > 1 && nJobs != -1){
+
+  if (inputFiles.size() > 1 && nJobs != -1) {
     if (jobNum >= nJobs) {
       std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
       return 1;
@@ -632,19 +627,19 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     std::cout << "Total Entries: " << nentries << std::endl;
 
     if (inputFiles.size() == 1 && nJobs != -1) {
-        if (jobNum >= nJobs) {
-            std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
-            return 1;
-        }
+      if (jobNum >= nJobs) {
+        std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
+        return 1;
+      }
 
-        firstEntry = floor(nentries/nJobs)*jobNum;
-        lastEntry = floor(nentries/nJobs)*(jobNum+1);
-        if (jobNum == nJobs-1)
-            lastEntry = nentries;
+      firstEntry = floor(nentries/nJobs)*jobNum;
+      lastEntry = floor(nentries/nJobs)*(jobNum+1);
+      if (jobNum == nJobs-1)
+        lastEntry = nentries;
 
-        std::cout << "For this job " << jobNum << std::endl;
-        std::cout << "First Entry: " << firstEntry << std::endl;
-        std::cout << "Final Entry: " << lastEntry << std::endl;
+      std::cout << "For this job " << jobNum << std::endl;
+      std::cout << "First Entry: " << firstEntry << std::endl;
+      std::cout << "Final Entry: " << lastEntry << std::endl;
     }
 
     totalEntries += nentries;
@@ -737,10 +732,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
         //can't use helper functions because of centrality dependence
         //so much loop over jet collections manually
-        if(doResidualCorrection){
+        if (doResidualCorrection) {
           int centBin = 0;
-          if(isHI){
-            if(hiBin >= 100)
+          if (isHI) {
+            if (hiBin >= 100)
               centBin = 3;
             else if (hiBin >= 60)
               centBin = 2;
@@ -752,11 +747,11 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           double xmin, xmax;
           jetResidualFunction[centBin]->GetRange(xmin,xmax);
           for (int k=0; k<jets[i].nref; ++k) {
-            if(jets[i].jtpt[k]<xmin || jets[i].jtpt[k]>xmax) continue;
+            if (jets[i].jtpt[k]<xmin || jets[i].jtpt[k]>xmax) continue;
             jets[i].jtpt[k] /= jetResidualFunction[centBin]->Eval(jets[i].jtpt[k]);
           }
         }
-        
+
         if (doCorrectionL2L3 > 0)
           correctorsL2L3[i].correctPtsL2L3(jets[i]);
 
@@ -871,10 +866,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
               //can't use helper functions because of centrality dependence
               //so much loop over jet collections manually
-              if(doResidualCorrection){
+              if (doResidualCorrection) {
                 int rcentBin = 0;
-                if(isHI){
-                  if(hiBin >= 100)
+                if (isHI) {
+                  if (hiBin >= 100)
                     rcentBin = 3;
                   else if (hiBin >= 60)
                     rcentBin = 2;
@@ -887,7 +882,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
                 double xmin, xmax;
                 jetResidualFunction[rcentBin]->GetRange(xmin,xmax);
                 for (int k=0; k<jetsMB[i].nref; ++k) {
-                  if(jetsMB[i].jtpt[k]<xmin || jetsMB[i].jtpt[k]>xmax) continue;
+                  if (jetsMB[i].jtpt[k]<xmin || jetsMB[i].jtpt[k]>xmax) continue;
                   jetsMB[i].jtpt[k] /= jetResidualFunction[rcentBin]->Eval(jetsMB[i].jtpt[k]);
                 }
               }
@@ -974,7 +969,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       outputTreeHiEvt->Fill();
       outputTreeSkim->Fill();
 
-      for (int i=0; i<nJetCollections; ++i){
+      for (int i=0; i<nJetCollections; ++i) {
         treeJet[i]->DropBaskets();
         for (int j=0; j<nSmearBins+1; ++j)
           gammaJetTree[i][j]->Fill();
