@@ -168,7 +168,10 @@ public:
         calc_average();
     }
 
+    std::string get_hist_name() {return hist_name;}
+    std::string get_sys_type() {return sys_type;}
     TH1D* get_ratio() {return h1D_ratio;}
+    TH1D* get_diff() {return h1D_diff;}
 
 private:
     std::string hist_name = "";
