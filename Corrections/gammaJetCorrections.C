@@ -20,6 +20,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     bool isHI = collisionIsHI((COLL::TYPE)collision);
 
+    int doMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_doMix];
     int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
     nSmearBins++; // include unsmeared gamma-jet tree
 
@@ -48,10 +49,11 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     for (int i=0; i<nJetCollections; ++i) {
         gjTree[i][0] = (TTree*)inFile->Get(Form("gamma_%s", jetCollections[i].c_str()));
         gammajet_event[i][0].setupGammaJetTree(gjTree[i][0]);
-        if (isHI) {
+        if (doMix) {
             gjTreeMB[i] = (TTree*)inFile->Get(Form("gamma_%sMB", jetCollections[i].c_str()));
             gammajet_eventMB[i].setupGammaJetTree(gjTreeMB[i]);
-        } else {
+        }
+        if (nSmearBins >1){
             for (int j = 1; j < nSmearBins; j++) {
                 gjTree[i][j] = (TTree*)inFile->Get(Form("gamma_%s_smearBin%i", jetCollections[i].c_str(), j-1));
                 gammajet_event[i][j].setupGammaJetTree(gjTree[i][j]);
@@ -77,11 +79,12 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         outGJTree[i][0] = gjTree[i][0]->CloneTree(0);
         outGJTree[i][0]->SetMaxTreeSize(MAXTREESIZE);
         outGJTree[i][0]->SetBranchAddress("xjgCorrected", &xjgCorrected[i][0]);
-        if (isHI) {
+        if (doMix) {
             outGJTreeMB[i] = gjTreeMB[i]->CloneTree(0);
             outGJTreeMB[i]->SetMaxTreeSize(MAXTREESIZE);
             outGJTreeMB[i]->SetBranchAddress("xjgCorrected", &xjgCorrectedMB[i]);
-        } else {
+        }
+        if (nSmearBins > 1) {
             for (int j = 1; j < nSmearBins; j++) {
                 outGJTree[i][j] = gjTree[i][j]->CloneTree(0);
                 outGJTree[i][j]->SetMaxTreeSize(MAXTREESIZE);
@@ -142,10 +145,11 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         for (int igj=0; igj<nJetCollections; ++igj) {
             gjTree[igj][0]->GetEntry(i);
             xjgCorrected[igj][0]->clear();
-            if (isHI) {
+            if (doMix) {
                 gjTreeMB[igj]->GetEntry(i);
                 xjgCorrectedMB[igj]->clear();
-            } else {
+            }
+            if (nSmearBins>1){
                 for (int j = 1; j < nSmearBins; j++) {
                     gjTree[igj][j]->GetEntry(i);
                     xjgCorrected[igj][j]->clear();
@@ -178,7 +182,7 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         for (int igj=0; igj<nJetCollections; ++igj) {
             if (isHI) {
                 int ieta = 0;
-                for (; fabs((*pho_event.phoEta)[gammajet_eventMB[igj].phoIdx])>=etaBins[1][ieta] && ieta<nEtaBins; ++ieta);
+                for (; fabs((*pho_event.phoEta)[gammajet_event[igj][0].phoIdx])>=etaBins[1][ieta] && ieta<nEtaBins; ++ieta);
 
                 for (std::size_t k=0; k<gammajet_event[igj][0].xjg->size(); ++k) {
                     if (ieta == nEtaBins) {
@@ -188,11 +192,13 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
                     }
                 }
 
-                for (std::size_t k=0; k< gammajet_eventMB[igj].xjg->size(); ++k) {
-                    if (ieta == nEtaBins) {
-                        xjgCorrectedMB[igj]->push_back(0);
-                    } else {
-                        xjgCorrectedMB[igj]->push_back((*gammajet_eventMB[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_eventMB[igj].phoIdx])));
+                if(doMix){
+                    for (std::size_t k=0; k< gammajet_eventMB[igj].xjg->size(); ++k) {
+                        if (ieta == nEtaBins) {
+                            xjgCorrectedMB[igj]->push_back(0);
+                        } else {
+                            xjgCorrectedMB[igj]->push_back((*gammajet_eventMB[igj].xjg)[k] * photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*pho_event.phoEt)[gammajet_eventMB[igj].phoIdx])));
+                        }
                     }
                 }
             } else {
@@ -207,9 +213,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
         outPhoTree->Fill();
         for (int igj=0; igj<nJetCollections; ++igj) {
             outGJTree[igj][0]->Fill();
-            if (isHI) {
+            if (doMix) {
                 outGJTreeMB[igj]->Fill();
-            } else {
+            }
+            if (nSmearBins>1){
                 for (int j = 1; j < nSmearBins; j++) {
                     outGJTree[igj][j]->Fill();
                 }
@@ -220,9 +227,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     outPhoTree->AutoSave();
     for (int i=0; i<nJetCollections; ++i) {
         outGJTree[i][0]->AutoSave();
-        if (isHI) {
+        if (doMix) {
             outGJTreeMB[i]->AutoSave();
-        } else {
+        }
+        if (nSmearBins>1){
             for (int j = 1; j < nSmearBins; j++) {
                 outGJTree[i][j]->AutoSave();
             }
@@ -236,9 +244,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     TString jetCollectionNamesMB[nJetCollections];
     for (int i=0; i<nJetCollections; ++i) {
         jetCollectionNames[i][0] = Form("gamma_%s", jetCollections[i].c_str());
-        if (isHI) {
+        if (doMix) {
             jetCollectionNamesMB[i] = Form("gamma_%sMB", jetCollections[i].c_str());
-        } else {
+        }
+        if (nSmearBins>1){
             for (int j = 1; j < nSmearBins; j++) {
                 jetCollectionNames[i][j] = Form("gamma_%s_smearBin%i", jetCollections[i].c_str(),j-1);
             }
@@ -255,11 +264,12 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
             if (strcmp(key->GetName(), jetCollectionNames[i][0].Data()) == 0) {
                 skipKey = true;
             }
-            if (isHI) {
+            if (doMix) {
                 if(strcmp(key->GetName(), jetCollectionNamesMB[i].Data()) == 0) {
                     skipKey = true;
                 }
-            } else {
+            }
+            if(nSmearBins>1){
                 for (int j = 1; j < nSmearBins; j++) {
                     if (strcmp(key->GetName(), jetCollectionNames[i][j].Data()) == 0) {
                         skipKey = true;
@@ -285,9 +295,10 @@ int gammaJetCorrections(const TString configFile, const TString inputFile, const
     outPhoTree->Write("", TObject::kOverwrite);
     for (int i=0; i<nJetCollections; ++i) {
         outGJTree[i][0]->Write("", TObject::kOverwrite);
-        if (isHI) {
+        if (doMix) {
             outGJTreeMB[i]->Write("", TObject::kOverwrite);
-        } else {
+        }
+        if(nSmearBins>1){
             for (int j = 1; j < nSmearBins; j++) {
                 outGJTree[i][j]->Write("", TObject::kOverwrite);
             }
