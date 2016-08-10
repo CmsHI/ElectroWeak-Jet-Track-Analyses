@@ -975,7 +975,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       outputTreeSkim->Fill();
 
       for (int i=0; i<nJetCollections; ++i){
-        treeJet[i]->DropBaskets();
+        //treeJet[i]->DropBaskets();
         for (int j=0; j<nSmearBins+1; ++j)
           gammaJetTree[i][j]->Fill();
       }
