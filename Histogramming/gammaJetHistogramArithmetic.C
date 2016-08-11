@@ -247,7 +247,7 @@ int gammaJetHistogramArithmetic(const TString configFile, const TString inputFil
 
   double npart_binning[n_cent_bins+1];
   for (int i=0; i<n_cent_bins+1; ++i)
-    npart_binning[i] = findNpart(centrality_binning[n_cent_bins+1-i]);
+    npart_binning[i] = findNpart(centrality_binning[n_cent_bins-i]);
 
   // prepare histogram names for rjg and <xjg>
   for (int j=0; j<nBins_pt; ++j) {
@@ -390,8 +390,8 @@ int gammaJetHistogramArithmetic(const TString configFile, const TString inputFil
   TH1D* h_dphi_width_pt[nBins_hiBin];
   TH1D* h_dphi_pedestal_pt[nBins_hiBin];
   for (int i=0; i<nBins_hiBin; ++i) {
-    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins+1, pt_binning);
-    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins+1, pt_binning);
+    h_dphi_width_pt[i] = new TH1D(Form("h1D_dphi_width_ptBinAll_hiBin%i", i), "", n_pt_bins, pt_binning);
+    h_dphi_pedestal_pt[i] = new TH1D(Form("h1D_dphi_pedestal_ptBinAll_hiBin%i", i), "", n_pt_bins, pt_binning);
     h_dphi_width_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi width");
     h_dphi_pedestal_pt[i]->SetTitle(";p^{#gamma}_{T} (GeV/c);#Delta#phi pedestal");
 
