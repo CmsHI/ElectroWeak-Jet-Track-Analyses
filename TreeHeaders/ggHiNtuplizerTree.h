@@ -114,8 +114,7 @@ public :
     phoE = 0;
     phoEt = 0;
     phoEtCorrected = 0;
-    phoEtCorrected_up = 0;
-    phoEtCorrected_down = 0;
+    phoEtCorrected_sys = 0;
     phoEta = 0;
     phoPhi = 0;
     phoSCE = 0;
@@ -387,8 +386,7 @@ public :
   std::vector<float>   *phoE;
   std::vector<float>   *phoEt;
   std::vector<float>   *phoEtCorrected;
-  std::vector<float>   *phoEtCorrected_up;
-  std::vector<float>   *phoEtCorrected_down;
+  std::vector<float>   *phoEtCorrected_sys;
   std::vector<float>   *phoEta;
   std::vector<float>   *phoPhi;
   std::vector<float>   *phoSCE;
@@ -659,8 +657,7 @@ public :
   TBranch        *b_phoE;   //!
   TBranch        *b_phoEt;   //!
   TBranch        *b_phoEtCorrected;   //!
-  TBranch        *b_phoEtCorrected_up;   //!
-  TBranch        *b_phoEtCorrected_down;   //!
+  TBranch        *b_phoEtCorrected_sys;   //!
   TBranch        *b_phoEta;   //!
   TBranch        *b_phoPhi;   //!
   TBranch        *b_phoSCE;   //!
@@ -932,8 +929,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
     if (t->GetBranch("phoEt")) t->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
     if (t->GetBranch("phoEtCorrected")) t->SetBranchAddress("phoEtCorrected", &phoEtCorrected, &b_phoEtCorrected);
-    if (t->GetBranch("phoEtCorrected_up")) t->SetBranchAddress("phoEtCorrected_up", &phoEtCorrected_up, &b_phoEtCorrected_up);
-    if (t->GetBranch("phoEtCorrected_down")) t->SetBranchAddress("phoEtCorrected_down", &phoEtCorrected_down, &b_phoEtCorrected_down);
+    if (t->GetBranch("phoEtCorrected_sys")) t->SetBranchAddress("phoEtCorrected_sys", &phoEtCorrected_sys, &b_phoEtCorrected_sys);
     if (t->GetBranch("phoEta")) t->SetBranchAddress("phoEta", &phoEta, &b_phoEta);
     if (t->GetBranch("phoPhi")) t->SetBranchAddress("phoPhi", &phoPhi, &b_phoPhi);
     if (t->GetBranch("phoSCE")) t->SetBranchAddress("phoSCE", &phoSCE, &b_phoSCE);

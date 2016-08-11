@@ -645,8 +645,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     }
 
     outputTreeggHiNtuplizer->Branch("phoEtCorrected", &ggHi.phoEtCorrected);
-    outputTreeggHiNtuplizer->Branch("phoEtCorrected_up", &ggHi.phoEtCorrected_up);
-    outputTreeggHiNtuplizer->Branch("phoEtCorrected_down", &ggHi.phoEtCorrected_down);
+    outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &ggHi.phoEtCorrected_sys);
     outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &ggHi.pho_sumIsoCorrected);
 
     Long64_t nentries = treeggHiNtuplizer->GetEntries();
@@ -676,8 +675,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         printf("current entry = %lli out of %lli : %.1f%%\n", jentry, nentries, jentry*100.0/nentries);
 
       ggHi.phoEtCorrected->clear();
-      ggHi.phoEtCorrected_up->clear();
-      ggHi.phoEtCorrected_down->clear();
+      ggHi.phoEtCorrected_sys->clear();
       ggHi.pho_sumIsoCorrected->clear();
 
       treeHLT->GetEntry(jentry);
@@ -745,20 +743,23 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
           int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
 
-          ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i])));
+          double phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
+          ggHi.phoEtCorrected->push_back(phoEt_corrected);
           ggHi.pho_sumIsoCorrected->push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
           // systematic variations
-          // TO UPDATE
-          ggHi.phoEtCorrected_up->push_back(-1);
-          ggHi.phoEtCorrected_down->push_back(-1);
+          // MC   0 - 30%   Z mass: 9.094649e+01
+          // Data 0 - 30%   Z mass: 9.000079e+01
+          // MC   30 - 100% Z mass: 9.094943e+01
+          // Data 30 - 100% Z mass: 9.064840e+01
+          phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
+          ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
         } else {
           ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
           ggHi.pho_sumIsoCorrected->push_back(sumIso);
 
-          // systematic variations
-          ggHi.phoEtCorrected_up->push_back((*ggHi.phoEt)[i]);
-          ggHi.phoEtCorrected_down->push_back((*ggHi.phoEt)[i]);
+          // no correction applied to pp
+          ggHi.phoEtCorrected_sys->push_back((*ggHi.phoEt)[i]);
         }
 
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
