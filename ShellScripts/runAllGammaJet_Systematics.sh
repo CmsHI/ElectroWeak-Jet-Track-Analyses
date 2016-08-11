@@ -32,7 +32,7 @@ NJOBS=(200 10 200 5)
 MIXINGSAMPLE=($H_INDIR/PbPb_Data_minbiasJetSkim.root $H_INDIR/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 CONFPOSTFIX1=("" _mc _pp _pp_mc)
 
-for ITERSAM in 1 3 #0 1 2 3
+for ITERSAM in 0 1 2 3
 do
     for ITERSYS in 0 1 2 3
     do
