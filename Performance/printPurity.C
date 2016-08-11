@@ -10,7 +10,7 @@
 #include "../Histogramming/PhotonPurity.h"
 #include "../Plotting/commonUtility.h"
 
-void printPurity(const TString configFile, const TString inputFile, const TString inputMC, const bool savePlots = false){
+void printPurity(const TString configFile, const TString inputFile, const TString inputMC, const bool savePlots = false, const TString inputBKGMC="DUMMY"){
   InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
   if(!configCuts.isValid){
@@ -86,6 +86,25 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   TTree *tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
   TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
+  TFile *inputBKGMCFile;
+  TTree *tbkgmcHlt;
+  TTree *tbkgmcPho;
+  TTree *tbkgmcgj = 0;
+  TTree *tbkgmcHiEvt;
+  if(inputBKGMC != "DUMMY"){
+    std::cout << "Background MC file found, background template will come from MC." << std::endl;
+    std::cout << inputBKGMC << std::endl;
+    inputBKGMCFile = TFile::Open(inputBKGMC);
+    tbkgmcHlt = (TTree*)inputBKGMCFile->Get("hltTree");
+    tbkgmcPho = (TTree*)inputBKGMCFile->Get("EventTree");    // photons
+    tbkgmcgj  = (TTree*)inputBKGMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
+    tbkgmcHiEvt = (TTree*)inputBKGMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+
+    tbkgmcgj->AddFriend(tbkgmcHlt, "Hlt");
+    tbkgmcgj->AddFriend(tbkgmcPho, "Pho");
+    tbkgmcgj->AddFriend(tbkgmcHiEvt, "HiEvt");
+  }
+
   // need to addfriend for purity calculation
   tgj->AddFriend(tHlt, "Hlt");
   tgj->AddFriend(tPho, "Pho");
@@ -100,7 +119,8 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
   TCut sidebandIsolation;
   if(useCorrectedSumIso){
-    sidebandIsolation = "(pho_sumIsoCorrected[phoIdx]>10) && (pho_sumIsoCorrected[phoIdx]<20)";
+    sidebandIsolation = "(pho_sumIsoCorrected[phoIdx]>20) && (pho_sumIsoCorrected[phoIdx]<30)";
+    //sidebandIsolation = "(pho_sumIsoCorrected[phoIdx]<1)";
   } else {
     sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20)";
   }
@@ -136,7 +156,16 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
       selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
 
       TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
-      TCut sidebandCut = dataCandidateCut && sidebandIsolation && noiseCut;
+      TCut sidebandCut;
+      if(tbkgmcgj == 0){
+        sidebandCut = dataCandidateCut && sidebandIsolation && noiseCut;
+      } else if(isHI){
+        sidebandCut = selectionPho && selection_event_mc_forPurity && etaCut &&
+          noiseCut && sidebandIsolation && noiseCut;
+      } else {
+        sidebandCut = selectionPho && selection_event_mc_forPurity_pp && etaCut &&
+          noiseCut && sidebandIsolation && noiseCut;
+      }
       TCut mcSignalCut;
       if(isHI){
 	mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && mcIsolation;
@@ -147,7 +176,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
 
       PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj,
 				    dataCandidateCut, sidebandCut,
-				    mcSignalCut);
+				    mcSignalCut, tbkgmcgj);
       purity[i][j] = fitr.purity;
 
       std::cout << "Purity for ptBin"<< i << " hiBin"<< j << ": " << purity[i][j] << std::endl;
@@ -228,8 +257,12 @@ int main(int argc, char** argv)
   if (argc == 4) {
     printPurity(argv[1], argv[2], argv[3]);
     return 0;
-  } else if (argc ==5) {
+  } else if (argc == 5) {
     printPurity(argv[1], argv[2], argv[3], atoi(argv[4]));
+    return 0;
+  } else if (argc == 6) {
+    printPurity(argv[1], argv[2], argv[3], atoi(argv[4]), argv[5]);
+    return 0;
   }
   else {
     std::cout << "Usage : \n" <<

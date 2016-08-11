@@ -28,7 +28,7 @@ BASELISTS="PbPb_Data_HiForest.list,PbPb_Data_MB_HiForest.list,PbPb_MC_HiForest.l
 cat > $now/gjSystematics.condor <<EOF
 Universe     = vanilla
 Initialdir   = $PWD/$now
-Request_memory = 4096
+#Request_memory = 4096
 Notification = Error
 Executable   = $PWD/$now/runGammaJetAna.sh
 Arguments    = $1 $2 $3 \$(Process) $5

@@ -115,7 +115,7 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig=0, TH1D* hBkg=0, TH1D* hD
 
 PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
 		       TCut dataCandidateCut, TCut sidebandCut,
-		       TCut mcSignalCut)
+		       TCut mcSignalCut, TTree *bkgmcTree=0)
 {
   Float_t signalShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
   Float_t backgroundShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
@@ -134,7 +134,11 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
   bkgshift += backgroundShift;
 
   dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", dataCandidateCut, "");
-  dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]"+bkgshift, sidebandCut, "");
+  if(bkgmcTree==0){
+    dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]"+bkgshift, sidebandCut, "");
+  } else {
+    bkgmcTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]"+bkgshift, mcWeightLabel*sidebandCut, "");
+  }
   mcTree->Project(hSig->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]"+sigshift, mcWeightLabel*mcSignalCut, "");
 
   std::cout << "dataCount: " << hCand->GetEntries() << std::endl;
