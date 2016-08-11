@@ -18,6 +18,8 @@
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
+double getAngleToEP(double angle);
+
 int gammaJetSkim(const TString configFile, const TString inputFile, const TString outputFile, const TString minBiasJetSkimFile = "", const int nJobs=-1, const int jobNum=-1) {
   std::cout << "running gammaJetSkim()" << std::endl;
   std::cout << "configFile  = " << configFile.Data() << std::endl;
@@ -74,6 +76,26 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   const float energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
   const int doResidualCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doResidualCorrection];
   const std::string jetResidualCorrectionFile = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_residualCorrectionFile];
+
+  // binning for photon energy correction
+  std::vector<int> centBins[2];
+  centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+  centBins[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+  int nCentBins = centBins[0].size();
+
+  std::vector<float> etaBins[2];
+  etaBins[0] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_gt]);
+  etaBins[1] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_lt]);
+  int nEtaBins = etaBins[0].size();
+
+  TFile* energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
+  TH1D* photonEnergyCorrections[nCentBins][nEtaBins];
+  for (int i=0; i<nCentBins; ++i)
+    for (int j=0; j<nEtaBins; ++j)
+      photonEnergyCorrections[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
+
+  TFile* sumIsoCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str());
+  TH1D* sumIsoCorrections = (TH1D*)sumIsoCorrectionFile->Get("sumIsoCorrections");
 
   for (std::size_t i=0; i<mcPthatWeights.size(); ++i)
     std::cout << mcPthatWeights[i] << " ";
@@ -425,7 +447,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     TFile *inFile = TFile::Open((*it).c_str());
     inFile->cd();
 
-    TTree* treeHLT = (TTree*) inFile->Get("hltanalysis/HltTree");
+    TTree* treeHLT = (TTree*)inFile->Get("hltanalysis/HltTree");
     TTree* treeggHiNtuplizer = 0;
     if (isHI)
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizer/EventTree");
@@ -434,7 +456,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i)
-      treeJet[i] = (TTree*) inFile->Get(Form("%s/t", jetCollections[i].c_str()));
+      treeJet[i] = (TTree*)inFile->Get(Form("%s/t", jetCollections[i].c_str()));
     TTree* treeHiEvt = (TTree*)inFile->Get("hiEvtAnalyzer/HiTree");
     TTree* treeSkim  = (TTree*)inFile->Get("skimanalysis/HltTree");
 
@@ -445,6 +467,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     // objects for gamma-jet correlations
     ggHiNtuplizer ggHi;
     ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
+
     std::vector<Jets> jets(nJetCollections);
 
     for (int i=0; i<nJetCollections; ++i)
@@ -621,6 +644,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       inFile->cd();
     }
 
+    outputTreeggHiNtuplizer->Branch("phoEtCorrected", &ggHi.phoEtCorrected);
+    outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &ggHi.pho_sumIsoCorrected);
+
     Long64_t nentries = treeggHiNtuplizer->GetEntries();
     long long firstEntry = 0;
     long long lastEntry = nentries;
@@ -646,6 +672,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     for (long long jentry = firstEntry; jentry < lastEntry; jentry++) {
       if (jentry % 2000 == 0)
         printf("current entry = %lli out of %lli : %.1f%%\n", jentry, nentries, jentry*100.0/nentries);
+
+      ggHi.phoEtCorrected->clear();
+      ggHi.pho_sumIsoCorrected->clear();
 
       treeHLT->GetEntry(jentry);
       treeggHiNtuplizer->GetEntry(jentry);
@@ -703,6 +732,22 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       double maxPhoEt = -1;
 
       for (int i=0; i<ggHi.nPho; ++i) {
+        // apply corrections to every photon
+        double sumIso = (*ggHi.pho_ecalClusterIsoR4)[i] + (*ggHi.pho_hcalRechitIsoR4)[i] + (*ggHi.pho_trackIsoR4PtCut20)[i];
+
+        if (isHI) {
+          int icent = 0;
+          for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
+
+          int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
+
+          ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i])));
+          ggHi.pho_sumIsoCorrected->push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+        } else {
+          ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
+          ggHi.pho_sumIsoCorrected->push_back(sumIso);
+        }
+
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
         if (failedEtCut)
           continue;
@@ -864,8 +909,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
               const Long64_t entryMB = iterMB[centBin][vzBin][evplaneBin][i] % nMB[centBin][vzBin][evplaneBin][i];     // roll back to the beginning if out of range
               treeJetMB[centBin][vzBin][evplaneBin][i]->GetEntry(entryMB);
 
-              //can't use helper functions because of centrality dependence
-              //so much loop over jet collections manually
+              // can't use helper functions because of centrality dependence
+              // so loop over jet collections manually
               if (doResidualCorrection) {
                 int rcentBin = 0;
                 if (isHI) {
@@ -880,7 +925,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
                 }
 
                 double xmin, xmax;
-                jetResidualFunction[rcentBin]->GetRange(xmin,xmax);
+                jetResidualFunction[rcentBin]->GetRange(xmin, xmax);
                 for (int k=0; k<jetsMB[i].nref; ++k) {
                   if (jetsMB[i].jtpt[k]<xmin || jetsMB[i].jtpt[k]>xmax) continue;
                   jetsMB[i].jtpt[k] /= jetResidualFunction[rcentBin]->Eval(jetsMB[i].jtpt[k]);
@@ -1012,6 +1057,11 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::cout << "gammaJetSkim() - END" << std::endl;
 
   return 0;
+}
+
+double getAngleToEP(double angle) {
+    angle = (angle > TMath::Pi()) ? 2 * TMath::Pi() - angle : angle;
+    return (angle > TMath::Pi()/2) ? TMath::Pi() - angle : angle;
 }
 
 int main(int argc, char** argv) {

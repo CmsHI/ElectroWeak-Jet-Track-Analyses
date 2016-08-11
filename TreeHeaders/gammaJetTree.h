@@ -17,7 +17,7 @@ double unsafe_dphi(double phi1, double phi2) {
 
 class GammaJet {
 public :
-    GammaJet(){
+    GammaJet() {
         awayRange = TMath::Pi() * 7./8.;
         coneRange = 0.4;
 
@@ -31,9 +31,9 @@ public :
         nJetinAwayRange = 0;
         jetID = 0;
     }
-    ~GammaJet(){};
+    ~GammaJet() {};
     void resetAwayRange() { awayRange = TMath::Pi()  * 7./8.; }
-    void resetConeRange() { coneRange = 0.4 ; }
+    void resetConeRange() { coneRange = 0.4; }
     void setupGammaJetTree(TTree *t);
     void branchGammaJetTree(TTree *t);
     void clearGammaJetPairs(int phoIdx);
@@ -91,7 +91,6 @@ public :
 
 void GammaJet::setupGammaJetTree(TTree *t)
 {
-
     if (t->GetBranch("phoIdx"))  t->SetBranchAddress("phoIdx", &phoIdx, &b_phoIdx);
     if (t->GetBranch("jetIdx1"))  t->SetBranchAddress("jetIdx1", &jetIdx1, &b_jetIdx1);
     if (t->GetBranch("jetIdx2"))  t->SetBranchAddress("jetIdx1", &jetIdx2, &b_jetIdx2);
@@ -132,6 +131,7 @@ void GammaJet::clearGammaJetPairs(int phoIdx)
 {
     jetIdx_out.clear();
     xjg_out.clear();
+    xjgCorrected_out.clear();
     deta_out.clear();
     dphi_out.clear();
     dR_out.clear();
@@ -144,16 +144,7 @@ void GammaJet::clearGammaJetPairs(int phoIdx)
 
 void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
-    jetIdx_out.clear();
-    xjg_out.clear();
-    deta_out.clear();
-    dphi_out.clear();
-    dR_out.clear();
-    insideJet_out.clear();
-    jetID_out.clear();
-
-    phoIdx_out = phoIdx;
-    nJetinAwayRange_out = 0;
+    clearGammaJetPairs(phoIdx);
 
     jetIdx1_out = -1;
     jetIdx2_out = -1;
@@ -200,10 +191,13 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
         }
 
         jetIdx_out.push_back(i);
-        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
-        else
+            xjgCorrected_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+        } else {
             xjg_out.push_back(-1);
+            xjgCorrected_out.push_back(-1);
+        }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
         dR_out.push_back(tmp_dR);
@@ -214,6 +208,8 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
 
 void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx)
 {
+    clearGammaJetPairs(phoIdx);
+
     jetIdx1_out = -1;
     jetIdx2_out = -1;
     double jetIdx1_pt = -1;
@@ -256,10 +252,13 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
         }
 
         jetIdx_out.push_back(i);
-        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
-        else
+            xjgCorrected_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+        } else {
             xjg_out.push_back(-1);
+            xjgCorrected_out.push_back(-1);
+        }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
         dR_out.push_back(tmp_dR);
@@ -270,16 +269,7 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
 
 void GammaJet::makeGammaJetPairsSmeared(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int phoIdx,
                                         std::vector<float>* jtpt_smeared, std::vector<float>* jtphi_smeared) {
-    jetIdx_out.clear();
-    xjg_out.clear();
-    deta_out.clear();
-    dphi_out.clear();
-    dR_out.clear();
-    insideJet_out.clear();
-    jetID_out.clear();
-
-    phoIdx_out = phoIdx;
-    nJetinAwayRange_out = 0;
+    clearGammaJetPairs(phoIdx);
 
     jetIdx1_out = -1;
     jetIdx2_out = -1;
@@ -325,10 +315,13 @@ void GammaJet::makeGammaJetPairsSmeared(ggHiNtuplizer &tggHiNtuplizer, Jets &tJe
         }
 
         jetIdx_out.push_back(i);
-        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0)
+        if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
-        else
+            xjgCorrected_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+        } else {
             xjg_out.push_back(-1);
+            xjgCorrected_out.push_back(-1);
+        }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
         dR_out.push_back(tmp_dR);
