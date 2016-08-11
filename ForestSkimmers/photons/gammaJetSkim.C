@@ -428,18 +428,29 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     if (jobNum >= nJobs) {
       std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
       return 1;
+    } else if ((unsigned)nJobs > inputFiles.size()) {
+      std::cout << "More jobs defined than input files, invalid settings." << std::endl;
+      std::cout << "Number of files: " << inputFiles.size() << " . Number of jobs: " << nJobs << std::endl;
+      return 1;
     }
 
     int totFiles = inputFiles.size();
-    itFirst = inputFiles.begin() + floor(totFiles/nJobs)*jobNum;
-    itEnd = inputFiles.begin() + floor(totFiles/nJobs)*(jobNum+1);
+    itFirst = inputFiles.begin() + floor((float)totFiles*(float)jobNum/(float)nJobs);
+    itEnd = inputFiles.begin() + floor((float)totFiles*(float)(jobNum+1)/(float)nJobs);
     if (jobNum == nJobs-1)
       itEnd = inputFiles.end();
 
     std::cout << "For this job " << jobNum << std::endl;
-    std::cout << "First Entry: " << floor(totFiles/nJobs)*jobNum << std::endl;
-    std::cout << "Final Entry: " << floor(totFiles/nJobs)*(jobNum+1)<< std::endl;
+    std::cout << "First Entry: " << floor((float)totFiles*(float)jobNum/(float)nJobs) << std::endl;
+    std::cout << "Final Entry: " << floor((float)totFiles*(float)(jobNum+1)/(float)nJobs) << std::endl;
   }
+
+  float eventWeight;
+  std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIsoCorrected;
+  Int_t pcollisionEventSelection;  // this filter is used for HI.
+  Int_t HBHENoiseFilterResultRun2Loose;
+  Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+  Int_t pBeamScrapingFilter;   // this filter is used for PP.
 
   for (std::vector<std::string>::iterator it = itFirst; it != itEnd; ++it) {
     std::cout << (*it).c_str() << std::endl;
@@ -453,6 +464,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizer/EventTree");
     else
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizerGED/EventTree");
+    // treeggHiNtuplizer->SetBranchStatus("pho_sumIsoCorrected",0);
+    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected",0);
+    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected_sys",0);
 
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i)
@@ -467,7 +481,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     // objects for gamma-jet correlations
     ggHiNtuplizer ggHi;
     ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
-
+    ggHi.phoEtCorrected = &phoEtCorrected;
+    ggHi.phoEtCorrected_sys = &phoEtCorrected_sys;
+    ggHi.pho_sumIsoCorrected = &pho_sumIsoCorrected;
+    
     std::vector<Jets> jets(nJetCollections);
 
     for (int i=0; i<nJetCollections; ++i)
@@ -553,7 +570,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     // specify explicitly which branches to store, do not use wildcard
     treeSkim->SetBranchStatus("*", 0);
 
-    Int_t pcollisionEventSelection;  // this filter is used for HI.
     if (isHI) {
       treeSkim->SetBranchStatus("pcollisionEventSelection", 1);
       if (treeSkim->GetBranch("pcollisionEventSelection")) {
@@ -567,7 +583,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
     }
 
-    Int_t HBHENoiseFilterResultRun2Loose;
     if (!isMC) {
       treeSkim->SetBranchStatus("HBHENoiseFilterResultRun2Loose", 1);
       if (treeSkim->GetBranch("HBHENoiseFilterResultRun2Loose")) {
@@ -581,7 +596,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       HBHENoiseFilterResultRun2Loose = 0;
     }
 
-    Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
     if (!isHI) {
       treeSkim->SetBranchStatus("pPAprimaryVertexFilter", 1);
       if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
@@ -595,7 +609,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
     }
 
-    Int_t pBeamScrapingFilter;   // this filter is used for PP.
     if (!isHI) {
       treeSkim->SetBranchStatus("pBeamScrapingFilter", 1);
       if (treeSkim->GetBranch("pBeamScrapingFilter")) {
@@ -609,7 +622,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
     }
 
-    float eventWeight = 1;
 
     if (it == itFirst) {
       output->cd();
@@ -617,6 +629,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       outputTreeHLT->SetName("hltTree");
       outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
       outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+      outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
+      outputTreeggHiNtuplizer->Branch("phoEtCorrected", &phoEtCorrected);
+      outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &phoEtCorrected_sys);
+      outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
       outputTreeHiEvt = treeHiEvt->CloneTree(0);
       outputTreeHiEvt->SetName("HiEvt");
       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
@@ -631,7 +647,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
 
       outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
-      outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
       outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
       inFile->cd();
@@ -644,10 +659,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       inFile->cd();
     }
 
-    outputTreeggHiNtuplizer->Branch("phoEtCorrected", &ggHi.phoEtCorrected);
-    outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &ggHi.phoEtCorrected_sys);
-    outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &ggHi.pho_sumIsoCorrected);
-
     Long64_t nentries = treeggHiNtuplizer->GetEntries();
     long long firstEntry = 0;
     long long lastEntry = nentries;
@@ -659,8 +670,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         return 1;
       }
 
-      firstEntry = floor(nentries/nJobs)*jobNum;
-      lastEntry = floor(nentries/nJobs)*(jobNum+1);
+      firstEntry = floor((float)nentries*(float)jobNum/(float)nJobs);
+      lastEntry = floor((float)nentries*(float)(jobNum+1)/(float)nJobs);
       if (jobNum == nJobs-1)
         lastEntry = nentries;
 
@@ -674,9 +685,11 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       if (jentry % 2000 == 0)
         printf("current entry = %lli out of %lli : %.1f%%\n", jentry, nentries, jentry*100.0/nentries);
 
-      ggHi.phoEtCorrected->clear();
-      ggHi.phoEtCorrected_sys->clear();
-      ggHi.pho_sumIsoCorrected->clear();
+      phoEtCorrected.clear();
+      phoEtCorrected_sys.clear();
+      pho_sumIsoCorrected.clear();
+      // ggHi.phoEtCorrected->clear();
+      // ggHi.phoEtCorrected_sys->clear();
 
       treeHLT->GetEntry(jentry);
       treeggHiNtuplizer->GetEntry(jentry);
@@ -685,6 +698,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeSkim->GetEntry(jentry);
       treeHiEvt->GetEntry(jentry);
 
+      eventWeight = 1;
       if (doEventWeight) {
         if (pthat >= 14.99 && pthat < 30.) {
           eventWeight = mcPthatWeights[0];
@@ -744,8 +758,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
 
           double phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
-          ggHi.phoEtCorrected->push_back(phoEt_corrected);
-          ggHi.pho_sumIsoCorrected->push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+          phoEtCorrected.push_back(phoEt_corrected);
+          // ggHi.phoEtCorrected->push_back(phoEt_corrected);
+          pho_sumIsoCorrected.push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
           // systematic variations
           // MC   0 - 30%   Z mass: 9.094649e+01
@@ -753,13 +768,16 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           // MC   30 - 100% Z mass: 9.094943e+01
           // Data 30 - 100% Z mass: 9.064840e+01
           phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
-          ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
+          phoEtCorrected_sys.push_back(phoEt_corrected);
+          // ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
         } else {
-          ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
-          ggHi.pho_sumIsoCorrected->push_back(sumIso);
+          phoEtCorrected.push_back((*ggHi.phoEt)[i]);
+          // ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
+          pho_sumIsoCorrected.push_back(sumIso);
 
           // no correction applied to pp
-          ggHi.phoEtCorrected_sys->push_back((*ggHi.phoEt)[i]);
+          phoEtCorrected_sys.push_back((*ggHi.phoEt)[i]);
+          // ggHi.phoEtCorrected_sys->push_back((*ggHi.phoEt)[i]);
         }
 
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
