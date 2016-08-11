@@ -2,7 +2,7 @@
 set -x
 
 #DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2016-07-20-noEvtPlaneBins
+DATE=2016-08-11-nominal
 
 OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 mkdir -p $OUTDIR
@@ -26,37 +26,22 @@ echo "## Skimming"
 echo "### PbPb Data/MC ###"
 
 INFILE=./ShellScripts/PbPb_Data_HiForest.list
-OUTFILE=PbPb_Data_gammaJetSkim.root
-time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet.conf ${INFILE} ${OUTDIR}/${OUTFILE} ${OUTDIR}/PbPb_Data_minbiasJetSkim.root > ${OUTDIR}/${OUTFILE}.log &
+OUTFILE=PbPb_Data_gammaJetSkim_Corrected.root
+time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet.conf ${INFILE} ${OUTDIR}/${OUTFILE} ${OUTDIR}/PbPb_Data_minbiasJetSkim.root > ${OUTDIR}/${OUTFILE}.log
 
 INFILE=./ShellScripts/PbPb_MC_HiForest.list
-OUTMCSKIM=PbPb_MC_gammaJetSkim.root
-time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_mc.conf ${INFILE} ${OUTDIR}/${OUTMCSKIM} ${OUTDIR}/PbPb_MC_minbiasJetSkim.root  > ${OUTDIR}/${OUTMCSKIM}.log &
+OUTMCSKIM=PbPb_MC_gammaJetSkim_Corrected.root
+time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_mc.conf ${INFILE} ${OUTDIR}/${OUTMCSKIM} ${OUTDIR}/PbPb_MC_minbiasJetSkim.root  > ${OUTDIR}/${OUTMCSKIM}.log
 
 echo "### pp Data/MC ###"
 
 INFILE=/mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root
-OUTFILE=pp_Data_gammaJetSkim.root
-time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp.conf ${INFILE} ${OUTDIR}/${OUTFILE}  > ${OUTDIR}/${OUTFILE}.log &
+OUTFILE=pp_Data_gammaJetSkim_Corrected.root
+time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp.conf ${INFILE} ${OUTDIR}/${OUTFILE}  > ${OUTDIR}/${OUTFILE}.log
 
 INFILE=./ShellScripts/pp_MC_HiForest.list
-OUTMCSKIM=pp_MC_gammaJetSkim.root
-time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log &
-
-wait
-
-########### Photon corrections ###################
-echo "## Corrections"
-
-time ./Corrections/gammaJetCorrections.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetSkim.root ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root > ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root.log &
-
-time ./Corrections/gammaJetCorrections.exe ./CutConfigurations/gammaJet_mc.conf ${OUTDIR}/PbPb_MC_gammaJetSkim.root ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root > ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root.log &
-
-time ./Corrections/gammaJetCorrections.exe ./CutConfigurations/gammaJet_pp.conf ${OUTDIR}/pp_Data_gammaJetSkim.root ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root > ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root.log &
-
-time ./Corrections/gammaJetCorrections.exe ./CutConfigurations/gammaJet_pp_mc.conf ${OUTDIR}/pp_MC_gammaJetSkim.root ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root > ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root.log &
-
-wait
+OUTMCSKIM=pp_MC_gammaJetSkim_Corrected.root
+time ./ForestSkimmers/photons/gammaJetSkim.exe ./CutConfigurations/gammaJet_pp_mc.conf $INFILE ${OUTDIR}/${OUTMCSKIM}  > ${OUTDIR}/${OUTMCSKIM}.log
 
 # # ########### PURITY SECTION ##################
 ##Optionally print out purity values to be pasted into Histogram macro

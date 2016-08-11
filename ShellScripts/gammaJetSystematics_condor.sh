@@ -60,10 +60,7 @@ mv Corrections/merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_He
 mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Corrections/jets/L2L3/
 
 #run Skim
-./gammaJetSkim.exe \$1 \$2 gammaJetSkim_\${4}.root \${5} $4 \${4}
-
-#run Corrections
-./gammaJetCorrections.exe \$1 gammaJetSkim_\${4}.root gammaJetSkim_Corrected_\${4}.root
+./gammaJetSkim.exe \$1 \$2 gammaJetSkim_Corrected_\${4}.root \${5} $4 \${4}
 
 #run Histogram
 ./gammaJetHistogram.exe \$1 gammaJetSkim_Corrected_\${4}.root gammaJetHistogram_\${4}.root
