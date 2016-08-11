@@ -645,6 +645,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     }
 
     outputTreeggHiNtuplizer->Branch("phoEtCorrected", &ggHi.phoEtCorrected);
+    outputTreeggHiNtuplizer->Branch("phoEtCorrected_up", &ggHi.phoEtCorrected_up);
+    outputTreeggHiNtuplizer->Branch("phoEtCorrected_down", &ggHi.phoEtCorrected_down);
     outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &ggHi.pho_sumIsoCorrected);
 
     Long64_t nentries = treeggHiNtuplizer->GetEntries();
@@ -674,6 +676,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         printf("current entry = %lli out of %lli : %.1f%%\n", jentry, nentries, jentry*100.0/nentries);
 
       ggHi.phoEtCorrected->clear();
+      ggHi.phoEtCorrected_up->clear();
+      ggHi.phoEtCorrected_down->clear();
       ggHi.pho_sumIsoCorrected->clear();
 
       treeHLT->GetEntry(jentry);
@@ -743,9 +747,18 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
           ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i])));
           ggHi.pho_sumIsoCorrected->push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+
+          // systematic variations
+          // TO UPDATE
+          ggHi.phoEtCorrected_up->push_back(-1);
+          ggHi.phoEtCorrected_down->push_back(-1);
         } else {
           ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
           ggHi.pho_sumIsoCorrected->push_back(sumIso);
+
+          // systematic variations
+          ggHi.phoEtCorrected_up->push_back((*ggHi.phoEt)[i]);
+          ggHi.phoEtCorrected_down->push_back((*ggHi.phoEt)[i]);
         }
 
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);

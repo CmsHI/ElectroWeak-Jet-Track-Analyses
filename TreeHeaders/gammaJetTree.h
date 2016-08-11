@@ -24,6 +24,8 @@ public :
         jetIdx = 0;
         xjg = 0;
         xjgCorrected = 0;
+        xjgCorrected_up = 0;
+        xjgCorrected_down = 0;
         deta = 0;
         dphi = 0;
         dR = 0;
@@ -52,6 +54,8 @@ public :
      std::vector<int>     *jetIdx;
      std::vector<float>   *xjg;
      std::vector<float>   *xjgCorrected;
+     std::vector<float>   *xjgCorrected_up;
+     std::vector<float>   *xjgCorrected_down;
      std::vector<float>   *deta;
      std::vector<float>   *dphi;
      std::vector<float>   *dR;
@@ -66,6 +70,8 @@ public :
      TBranch        *b_jetIdx;   //!
      TBranch        *b_xjg;   //!
      TBranch        *b_xjgCorrected;   //!
+     TBranch        *b_xjgCorrected_up;   //!
+     TBranch        *b_xjgCorrected_down;   //!
      TBranch        *b_deta;   //!
      TBranch        *b_dphi;   //!
      TBranch        *b_dR;   //!
@@ -80,6 +86,8 @@ public :
      std::vector<int>     jetIdx_out;
      std::vector<float>   xjg_out;
      std::vector<float>   xjgCorrected_out;
+     std::vector<float>   xjgCorrected_up_out;
+     std::vector<float>   xjgCorrected_down_out;
      std::vector<float>   deta_out;
      std::vector<float>   dphi_out;
      std::vector<float>   dR_out;
@@ -97,6 +105,8 @@ void GammaJet::setupGammaJetTree(TTree *t)
     if (t->GetBranch("jetIdx"))  t->SetBranchAddress("jetIdx", &jetIdx, &b_jetIdx);
     if (t->GetBranch("xjg"))  t->SetBranchAddress("xjg", &xjg, &b_xjg);
     if (t->GetBranch("xjgCorrected"))  t->SetBranchAddress("xjgCorrected", &xjgCorrected, &b_xjgCorrected);
+    if (t->GetBranch("xjgCorrected_up"))  t->SetBranchAddress("xjgCorrected_up", &xjgCorrected_up, &b_xjgCorrected_up);
+    if (t->GetBranch("xjgCorrected_down"))  t->SetBranchAddress("xjgCorrected_down", &xjgCorrected_down, &b_xjgCorrected_down);
     if (t->GetBranch("deta"))  t->SetBranchAddress("deta", &deta, &b_deta);
     if (t->GetBranch("dphi"))  t->SetBranchAddress("dphi", &dphi, &b_dphi);
     if (t->GetBranch("dR"))  t->SetBranchAddress("dR", &dR, &b_dR);
@@ -113,6 +123,8 @@ void GammaJet::branchGammaJetTree(TTree *t)
     t->Branch("jetIdx", &jetIdx_out);
     t->Branch("xjg", &xjg_out);
     t->Branch("xjgCorrected", &xjgCorrected_out);
+    t->Branch("xjgCorrected_up", &xjgCorrected_up_out);
+    t->Branch("xjgCorrected_down", &xjgCorrected_down_out);
     t->Branch("deta", &deta_out);
     t->Branch("dphi", &dphi_out);
     t->Branch("dR", &dR_out);
@@ -132,6 +144,8 @@ void GammaJet::clearGammaJetPairs(int phoIdx)
     jetIdx_out.clear();
     xjg_out.clear();
     xjgCorrected_out.clear();
+    xjgCorrected_up_out.clear();
+    xjgCorrected_down_out.clear();
     deta_out.clear();
     dphi_out.clear();
     dR_out.clear();
@@ -194,9 +208,13 @@ void GammaJet::makeGammaJetPairs(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, int
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
             xjgCorrected_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+            xjgCorrected_up_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected_up->at(phoIdx));
+            xjgCorrected_down_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected_down->at(phoIdx));
         } else {
             xjg_out.push_back(-1);
             xjgCorrected_out.push_back(-1);
+            xjgCorrected_up_out.push_back(-1);
+            xjgCorrected_down_out.push_back(-1);
         }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
@@ -255,9 +273,13 @@ void GammaJet::makeGammaJetPairsMB(ggHiNtuplizer &tggHiNtuplizer, Jets &tJets, i
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEt->at(phoIdx));
             xjgCorrected_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+            xjgCorrected_up_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEtCorrected_up->at(phoIdx));
+            xjgCorrected_down_out.push_back((float)tJets.jtpt[i]/tggHiNtuplizer.phoEtCorrected_down->at(phoIdx));
         } else {
             xjg_out.push_back(-1);
             xjgCorrected_out.push_back(-1);
+            xjgCorrected_up_out.push_back(-1);
+            xjgCorrected_down_out.push_back(-1);
         }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
@@ -318,9 +340,13 @@ void GammaJet::makeGammaJetPairsSmeared(ggHiNtuplizer &tggHiNtuplizer, Jets &tJe
         if (tggHiNtuplizer.phoEt->at(phoIdx) > 0) {
             xjg_out.push_back((float)jtpt/tggHiNtuplizer.phoEt->at(phoIdx));
             xjgCorrected_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected->at(phoIdx));
+            xjgCorrected_up_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected_up->at(phoIdx));
+            xjgCorrected_down_out.push_back((float)jtpt/tggHiNtuplizer.phoEtCorrected_down->at(phoIdx));
         } else {
             xjg_out.push_back(-1);
             xjgCorrected_out.push_back(-1);
+            xjgCorrected_up_out.push_back(-1);
+            xjgCorrected_down_out.push_back(-1);
         }
         deta_out.push_back(tmp_deta);
         dphi_out.push_back(tmp_dphi);
