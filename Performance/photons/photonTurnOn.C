@@ -38,6 +38,9 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     bool doHoverE = false;
     std::cout << "doHoverE = " << doHoverE << std::endl;
 
+    bool doEcalNoiseMask= false;
+    std::cout << "doEcalNoiseMask = " << doEcalNoiseMask << std::endl;
+
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
@@ -210,6 +213,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
         h_pt_accepted[i] = (TH1D*)h_pt->Clone(Form("%s_accepted_%d", h_pt->GetName(), i));
         h_pt_accepted[i]->SetTitle(triggerBranchesNum.at(i).c_str());
     }
+    TH1D* h_pt_allpho = new TH1D("h_pt_allpho","all photon that pass at least one of the triggers ;p_{T}^{#gamma} (GeV/c);", nBins, xLow, xUp);
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -249,6 +253,25 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
         }
         if (!passedDenom) continue;
         entriesPassedDenom++;
+       
+        // is this event passing at least one of the triggers?
+        bool passTrigger = false;
+        if (nTriggersNum==7) {
+                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1 || triggersNum[5]==1 || triggersNum[6]==1) passTrigger=true;
+        } else if(nTriggersNum==6) {
+                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1 || triggersNum[5]==1) passTrigger=true;
+        } else if(nTriggersNum==5) {
+                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1) passTrigger=true;
+        } else if(nTriggersNum==4) {
+                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1) passTrigger=true;
+        } else if(nTriggersNum==3) {
+                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1) passTrigger=true;
+        } else if(nTriggersNum==2) {
+                if(triggersNum[0]==1 || triggersNum[1]==1) passTrigger=true;
+        } else if(nTriggersNum==1) {
+                if(triggersNum[0]==1) passTrigger=true;
+        }
+
 
         float maxPt = -1;
         for (int i=0; i<ggHi.nPho; ++i) {
@@ -258,7 +281,16 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
             if (doHoverE) {
                 if (!(ggHi.phoHoverE->at(i) < 0.1)) continue;
             }
-
+            if (doEcalNoiseMask) {
+                if (((ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
+                        (ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03) &&
+                    ((ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) > 1./3.-0.03 &&
+                        (ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) < 1./3.+0.03) &&
+                    ((ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
+                        (ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03)) continue;
+            }
+            if (passTrigger) h_pt_allpho->Fill(gHi.phoEt->at(i));
+            
             if (ggHi.phoEt->at(i) > maxPt) {
                 maxPt = ggHi.phoEt->at(i);
             }
@@ -283,6 +315,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
     h_pt->Write();
+    h_pt_allpho->Write();
 
     TCanvas* c = new TCanvas();
     c->SetName("cnv_photonTurnOn");
