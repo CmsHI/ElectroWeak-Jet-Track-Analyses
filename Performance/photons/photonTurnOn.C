@@ -289,7 +289,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
                     ((ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
                         (ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03)) continue;
             }
-            if (passTrigger) h_pt_allpho->Fill(gHi.phoEt->at(i));
+            if (passTrigger) h_pt_allpho->Fill(ggHi.phoEt->at(i));
             
             if (ggHi.phoEt->at(i) > maxPt) {
                 maxPt = ggHi.phoEt->at(i);
