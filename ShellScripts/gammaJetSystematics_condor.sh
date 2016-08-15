@@ -66,7 +66,8 @@ mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Correc
 ./gammaJetHistogram.exe \$1 gammaJetSkim_Corrected_\${4}.root gammaJetHistogram_\${4}.root
 
 #copy out histogram to hadoop
-mv gammaJetHistogram_\${4}.root \$3
+#mv gammaJetHistogram_\${4}.root \$3
+mv *.root \$3
 rm *.root
 EOF
 
