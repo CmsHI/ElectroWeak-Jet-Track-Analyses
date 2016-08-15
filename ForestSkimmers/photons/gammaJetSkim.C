@@ -760,7 +760,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           double phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
           phoEtCorrected.push_back(phoEt_corrected);
           // ggHi.phoEtCorrected->push_back(phoEt_corrected);
-          pho_sumIsoCorrected.push_back(sumIso / sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+          pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
           // systematic variations
           // MC   0 - 30%   Z mass: 9.094649e+01
