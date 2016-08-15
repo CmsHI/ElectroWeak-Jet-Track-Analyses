@@ -46,6 +46,8 @@ namespace CUTS {
       k_mcSumIso,
       k_EtaLowerBound,
       k_EtaUpperBound,
+      k_puritySidebandLow,
+      k_puritySidebandHigh,
       kN_F_CUTS
     };
 
@@ -92,6 +94,8 @@ namespace CUTS {
       "mcSumIso",
       "etaLowerBound",
       "etaUpperBound",
+      "puritySidebandLow",
+      "puritySidebandHigh",
     };
 
     enum I_CUTS{
