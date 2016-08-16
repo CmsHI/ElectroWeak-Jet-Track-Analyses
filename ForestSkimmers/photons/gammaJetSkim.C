@@ -484,7 +484,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     ggHi.phoEtCorrected = &phoEtCorrected;
     ggHi.phoEtCorrected_sys = &phoEtCorrected_sys;
     ggHi.pho_sumIsoCorrected = &pho_sumIsoCorrected;
-    
+
     std::vector<Jets> jets(nJetCollections);
 
     for (int i=0; i<nJetCollections; ++i)
@@ -757,9 +757,11 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
           int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
 
-          double phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
+          double phoEt_corrected = 0;
+          if ((*ggHi.phoEt)[i] > 20)
+            phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
+
           phoEtCorrected.push_back(phoEt_corrected);
-          // ggHi.phoEtCorrected->push_back(phoEt_corrected);
           pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
           // systematic variations
@@ -772,12 +774,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           // ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
         } else {
           phoEtCorrected.push_back((*ggHi.phoEt)[i]);
-          // ggHi.phoEtCorrected->push_back((*ggHi.phoEt)[i]);
           pho_sumIsoCorrected.push_back(sumIso);
 
           // no correction applied to pp
           phoEtCorrected_sys.push_back((*ggHi.phoEt)[i]);
-          // ggHi.phoEtCorrected_sys->push_back((*ggHi.phoEt)[i]);
         }
 
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
