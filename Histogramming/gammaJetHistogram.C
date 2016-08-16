@@ -617,7 +617,7 @@ int main(int argc, char** argv) {
         return gammaJetHistogram(argv[1], argv[2], argv[3]);
     else
         printf("Usage : \n"
-               "./gammaJetHistogram.exe <configFile> <inputFile> <outputFile>");
+               "./gammaJetHistogram.exe <configFile> <inputFile> <outputFile>\n");
 
     return 1;
 }

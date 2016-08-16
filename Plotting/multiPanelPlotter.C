@@ -339,7 +339,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     lumiLatex->SetTextFont(43);
     lumiLatex->SetTextSize(topLatexFontSize);
     lumiLatex->SetTextAlign(31);
-    lumiLatex->DrawLatexNDC(1-canvas_right_margin-0.01, canvas_top_edge, "PbPb 404 #mub^{-1}, pp 25.8 pb^{-1}");
+    lumiLatex->DrawLatexNDC(1-canvas_right_margin-0.01, canvas_top_edge, "PbPb 404 #mub^{-1}, pp 27.9 pb^{-1}");
 
     TLatex* infoLatex = new TLatex();
     infoLatex->SetTextFont(43);
