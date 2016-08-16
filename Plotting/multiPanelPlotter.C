@@ -21,7 +21,7 @@ typedef struct box_t {
 
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
 void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
-void set_hist_style(TH1D* h1, int k);
+void set_hist_style(TH1D* h1, int k, int columns);
 void set_axis_style(TH1D* h1, int i, int j, int rows);
 void set_legend_style(TLegend* l1);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
@@ -187,7 +187,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     h1[i][j][k]->SetYTitle("Jet I_{AA}");
                 }
 
-                set_hist_style(h1[i][j][k], k);
+                set_hist_style(h1[i][j][k], k, columns);
                 set_axis_style(h1[i][j][k], i, j, rows);
 
                 h1[i][j][k]->Draw(draw_options[k].c_str());
@@ -259,9 +259,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", photon_pt_low));
 
             if (columns < 4) {
-                plotInfo.push_back("anti-k_{T} Jet R = 0.3");
-                plotInfo.push_back("p_{T}^{Jet} > 30 GeV/c");
-                plotInfo.push_back("|#eta^{Jet}| < 1.6");
+                if (i + j < 1) {
+                    plotInfo.push_back("anti-k_{T} Jet R = 0.3");
+                    plotInfo.push_back("p_{T}^{Jet} > 30 GeV/c");
+                    plotInfo.push_back("|#eta^{Jet}| < 1.6");
+                }
             } else {
                 commonInfo = "anti-k_{T} Jet R = 0.3, p_{T}^{Jet} > 30 GeV/c, |#eta^{Jet}| < 1.6";
             }
@@ -425,7 +427,7 @@ void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys) {
     }
 }
 
-void set_hist_style(TH1D* h1, int k) {
+void set_hist_style(TH1D* h1, int k, int columns) {
     switch (k) {
         case 0:
             h1->SetLineColor(kBlack);
@@ -434,10 +436,9 @@ void set_hist_style(TH1D* h1, int k) {
             h1->SetMarkerColor(kBlack);
             break;
         case 1:
-            h1->SetLineColor(kOrange+7);
-            h1->SetLineStyle(2);
-            h1->SetLineWidth(2);
-            // h1->SetFillColor(90);
+            h1->SetLineColor(1);
+            h1->SetLineStyle(columns > 3 ? 3 : 2);
+            h1->SetLineWidth(columns > 3 ? 2 : 3);
             h1->SetMarkerSize(0);
             h1->SetMarkerColor(kOrange-2);
             break;
