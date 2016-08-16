@@ -96,7 +96,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     float cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     // process cuts
-    bool useUncorrectedPhotonEnergy = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useUncorrectedPhotonEnergy];
+    bool doPhotonEnergyScaleSystematics = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonEnergyScaleSystematics];
     bool doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
     bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
@@ -133,7 +133,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     std::cout << "cut_awayRange_lt          = " << cut_awayRange_lt << " * PI" << std::endl;
     std::cout << "cut_dR                    = " << cut_dR << std::endl;
 
-    std::cout << "useUncorrectedPhotonEnergy = " << useUncorrectedPhotonEnergy << std::endl;
+    std::cout << "doPhotonEnergyScaleSystematics = " << doPhotonEnergyScaleSystematics << std::endl;
 
     // set the actual awayRange cut
     cut_awayRange = cut_awayRange * TMath::Pi();
@@ -417,7 +417,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         tHiEvt->GetEntry(jentry);
 
         float weight = isMC ? evt.weight : 1;
-        float phoEt = useUncorrectedPhotonEnergy ? (*pho.phoEt)[gammaJet[0].phoIdx] : (*pho.phoEtCorrected)[gammaJet[0].phoIdx];
+        float phoEt = doPhotonEnergyScaleSystematics ? (*pho.phoEtCorrected_sys)[gammaJet[0].phoIdx] : (*pho.phoEtCorrected)[gammaJet[0].phoIdx];
 
         // handle nEntriesPho separate from jet loop
         for (int i=0; i<nBins_pt; ++i) {
@@ -471,7 +471,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         continue;
                     // xjg = 0
                     // jtpt = 2
-                    float xjg = useUncorrectedPhotonEnergy ? (*gammaJet[smearBin].xjg)[ijet] : (*gammaJet[smearBin].xjgCorrected)[ijet];
+                    float xjg = doPhotonEnergyScaleSystematics ? (*gammaJet[smearBin].xjgCorrected_sys)[ijet] : (*gammaJet[smearBin].xjgCorrected)[ijet];
                     corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                     corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                     corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill((*jet.jtpt_smeared)[smearBin][ijet], weight);
@@ -544,7 +544,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                                 continue;
                             // xjg = 0
                             // jtpt = 2
-                            float xjg = useUncorrectedPhotonEnergy ? (*gammaJetMB.xjg)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
+                            float xjg = doPhotonEnergyScaleSystematics ? (*gammaJetMB.xjgCorrected_sys)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
                             corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
                             corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jetMB.jtpt[ijet], weight);

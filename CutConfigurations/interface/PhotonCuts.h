@@ -106,7 +106,7 @@ namespace CUTS {
       k_usePPstyleIso,
       k_doElectronRejection,
       k_doPhotonIsolationSys,
-      k_useUncorrectedPhotonEnergy,
+      k_doPhotonEnergyScaleSystematics,
       k_useCorrectedSumIso,
       kN_I_CUTS
     };
@@ -119,7 +119,7 @@ namespace CUTS {
       "usePPstyleIso",
       "doElectronRejection",
       "doPhotonIsolationSys",
-      "useUncorrectedPhotonEnergy",
+      "doPhotonEnergyScaleSystematics",
       "useCorrectedSumIso"
     };
 
