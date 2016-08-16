@@ -59,12 +59,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     // verbose about input configuration
     std::cout << "Input Configuration :" << std::endl;
 
-    int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+    const int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
     std::cout << "collision = " << collisionName << std::endl;
 
-    bool isMC = collisionIsMC((COLL::TYPE)collision);
-    bool isHI = collisionIsHI((COLL::TYPE)collision);
+    const bool isMC = collisionIsMC((COLL::TYPE)collision);
+    const bool isHI = collisionIsHI((COLL::TYPE)collision);
 
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
@@ -75,39 +75,35 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     bins_hiBin[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
-    int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
+    const int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
 
     // event cuts/weights
     // photon cuts
-    std::string trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
-    float cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
-    float cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
-    float cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
+    const std::string trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
+    const float cut_phoHoverE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+    const float cut_phoSigmaIEtaIEta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta];
+    const float cut_sumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
 
     // jet cuts
-    std::string jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
-    float cut_jetpt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
-    float cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
-    int   cut_jetID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
+    const std::string jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+    const float cut_jetpt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
+    const float cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
+    const int   cut_jetID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
 
     // gammaJet cuts
-    float cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange];
-    float cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange_lt];
-    float cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
+    const float cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange] * TMath::Pi();
+    const float cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
     // process cuts
-    bool doPhotonEnergyScaleSystematics = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonEnergyScaleSystematics];
-    bool doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
-    bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
-    bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
+    const bool doPhotonEnergyScaleSystematics = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonEnergyScaleSystematics];
+    const bool doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
+    const bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
+    const bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
 
-    int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
+    const int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
 
-    if (cut_awayRange_lt == 0)
-        cut_awayRange_lt = 1;
-
-    int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
-    int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+    const int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
     std::cout << "Cut Configuration :" << std::endl;
     std::cout << "nBins_pt = " << nBins_pt << std::endl;
@@ -129,15 +125,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     std::cout << "cut_jeteta                = " << cut_jeteta << std::endl;
     std::cout << "cut_jetID                 = " << cut_jetID << std::endl;
 
-    std::cout << "cut_awayRange             = " << cut_awayRange << " * PI" << std::endl;
-    std::cout << "cut_awayRange_lt          = " << cut_awayRange_lt << " * PI" << std::endl;
+    std::cout << "cut_awayRange             = " << cut_awayRange << std::endl;
     std::cout << "cut_dR                    = " << cut_dR << std::endl;
 
     std::cout << "doPhotonEnergyScaleSystematics = " << doPhotonEnergyScaleSystematics << std::endl;
-
-    // set the actual awayRange cut
-    cut_awayRange = cut_awayRange * TMath::Pi();
-    cut_awayRange_lt = cut_awayRange_lt * TMath::Pi();
 
     /// Input Bookkeeping block ///
     TFile* input = TFile::Open(inputFile);
