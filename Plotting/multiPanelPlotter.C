@@ -74,9 +74,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
     std::string suffix[4] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC"};
-    std::string draw_options[4] = {"same e", "hist f", "same e", "hist f"};
+    std::string draw_options[4] = {"same e", "hist", "same e", "hist"};
     std::string legend_labels[4] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia"};
-    std::string legend_options[4] = {"plf", "lf", "plf", "lf"};
+    std::string legend_options[4] = {"plf", "l", "plf", "l"};
 
     int draw_order[4] = {3, 1, 2, 0};
 
@@ -435,7 +435,9 @@ void set_hist_style(TH1D* h1, int k) {
             break;
         case 1:
             h1->SetLineColor(kOrange+7);
-            h1->SetFillColor(90);
+            h1->SetLineStyle(2);
+            h1->SetLineWidth(2);
+            // h1->SetFillColor(90);
             h1->SetMarkerSize(0);
             h1->SetMarkerColor(kOrange-2);
             break;
