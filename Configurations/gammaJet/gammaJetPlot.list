@@ -1,7 +1,7 @@
 # Histograms
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
 Configurations/gammaJet/DUMMY.root
 # Systematics
 Configurations/gammaJet/gammaJetSystematics.root

@@ -1,13 +1,13 @@
 # ./Systematics/gammaJet/gammaJetSystematics.exe CutConfigurations/gammaJet.conf Configurations/gammaJet/gammaJetSystematics.list Configurations/gammaJet/gammaJetSystematics.root
 # nominal
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms.root
 # systematic variations
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_UP/gammaJetHistograms.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29_SYS_JES_DOWN/gammaJetHistograms.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPhoPurityUp.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPhoPurityDown.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-29-SYS_JER/gammaJetHistograms.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysEleRej.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysPES.root
-/export/d00/scratch/luck/DUMMY.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-07-28-EPBins-sumIsoCorrected/gammaJetHistograms_sysIso.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_JES_UP.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_JES_DOWN.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_purityUP.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_purityDOWN.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_JER.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_sysEleRej.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_sysPES.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
+/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_sysIso.root
