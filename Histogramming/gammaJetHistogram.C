@@ -145,6 +145,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tPho->SetBranchStatus("*", 0);
     tPho->SetBranchStatus("phoEt", 1);
     tPho->SetBranchStatus("phoEtCorrected", 1);
+    tPho->SetBranchStatus("phoEtCorrected_sys", 1);
     tPho->SetBranchStatus("phoEta", 1);
     tPho->SetBranchStatus("phoPhi", 1);
     tPho->SetBranchStatus("phoSigmaIEtaIEta_2012", 1);
