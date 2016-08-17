@@ -68,6 +68,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
     sys_names["ele_rejection"] = "Electron Contamination";
     sys_names["photon_energy"] = "Photon Energy Scale";
     sys_names["photon_iso"] = "Photon Isolation";
+    sys_names["jet_residual"] = "Jet Residual Correction";
 
     TFile* input_files[n_input_files] = {0};
     std::vector<bool> valid_input(n_input_files, false);

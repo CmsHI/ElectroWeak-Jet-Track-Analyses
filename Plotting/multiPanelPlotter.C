@@ -253,10 +253,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             int photon_pt_low = (cent_based_plots) ? bins_pt[0][pt_bin_numbers[i]] : bins_pt[0][pt_bin_numbers[j]];
             int photon_pt_high = (cent_based_plots) ? bins_pt[1][pt_bin_numbers[i]] : bins_pt[1][pt_bin_numbers[j]];
 
-            if (photon_pt_high > 0 && photon_pt_high < 9999)
-                plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", photon_pt_low, photon_pt_high));
-            else
-                plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", photon_pt_low));
+            if (!cent_based_plots || i + j == 0) {
+                if (photon_pt_high > 0 && photon_pt_high < 9999)
+                    plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", photon_pt_low, photon_pt_high));
+                else
+                    plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", photon_pt_low));
+            }
 
             if (columns < 4) {
                 if (i + j < 1) {
@@ -437,8 +439,8 @@ void set_hist_style(TH1D* h1, int k, int columns) {
             break;
         case 1:
             h1->SetLineColor(1);
-            h1->SetLineStyle(columns > 3 ? 3 : 2);
-            h1->SetLineWidth(columns > 3 ? 2 : 3);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(columns > 3 ? 1 : 3);
             h1->SetMarkerSize(0);
             h1->SetMarkerColor(kOrange-2);
             break;
