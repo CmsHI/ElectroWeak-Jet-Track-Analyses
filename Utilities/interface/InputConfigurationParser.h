@@ -206,8 +206,8 @@ enum TYPE_S{
     k_mpp_l_y1,
     k_mpp_l_x2,
     k_mpp_l_y2,
-    k_mpp_i_x2,
-    k_mpp_i_y2,
+    k_mpp_i_x,
+    k_mpp_i_y,
     k_mpp_canvas_title,
     kN_TYPES_S
 };
@@ -267,8 +267,8 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
         "mpp_l_y1",
         "mpp_l_x2",
         "mpp_l_y2",
-        "mpp_i_x2",
-        "mpp_i_y2",
+        "mpp_i_x",
+        "mpp_i_y",
         "mpp_canvas_title"
 };
 
