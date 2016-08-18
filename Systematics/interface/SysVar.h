@@ -147,7 +147,7 @@ public:
         TF1* diff_fit = new TF1(diff_fit_name.c_str(), diff_fit_function.c_str());
         diff_fit->SetRange(h1D_diff_abs->GetBinLowEdge(1), h1D_diff_abs->GetBinLowEdge(h1D_diff_abs->GetNbinsX() + 1));
 
-        h1D_diff_abs->Fit(diff_fit_name.c_str(), "Q");
+        h1D_diff_abs->Fit(diff_fit_name.c_str(), "Q0");
         fit_diff_abs = h1D_diff_abs->GetFunction(diff_fit_name.c_str());
         fit_diff_abs->Write("", TObject::kOverwrite);
 
@@ -155,7 +155,7 @@ public:
         TF1* ratio_fit = new TF1(ratio_fit_name.c_str(), ratio_fit_function.c_str());
         ratio_fit->SetRange(h1D_ratio_abs->GetBinLowEdge(1), h1D_ratio_abs->GetBinLowEdge(h1D_ratio_abs->GetNbinsX() + 1));
 
-        h1D_ratio_abs->Fit(ratio_fit_name.c_str(), "Q");
+        h1D_ratio_abs->Fit(ratio_fit_name.c_str(), "Q0");
         fit_ratio_abs = h1D_ratio_abs->GetFunction(ratio_fit_name.c_str());
         fit_ratio_abs->Write("", TObject::kOverwrite);
 

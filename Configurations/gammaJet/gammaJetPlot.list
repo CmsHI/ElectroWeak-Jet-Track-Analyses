@@ -1,10 +1,10 @@
 # Histograms
-/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
-/export/d00/scratch/luck/GAMMAJETFILES/2016-08-15-Systematics/gammaJetHistograms_RESIDUAL.root
-Configurations/gammaJet/DUMMY.root
+Data/photons/gammaJetHistograms.root
+Data/photons/gammaJetHistograms.root
+Data/photons/gammaJetHistograms.root
+Data/photons/DUMMY.root
 # Systematics
-Configurations/gammaJet/gammaJetSystematics.root
-Configurations/gammaJet/DUMMY.root
-Configurations/gammaJet/gammaJetSystematics.root
-Configurations/gammaJet/DUMMY.root
+Data/photons/gammaJetSystematics.root
+Data/photons/DUMMY.root
+Data/photons/gammaJetSystematics.root
+Data/photons/DUMMY.root

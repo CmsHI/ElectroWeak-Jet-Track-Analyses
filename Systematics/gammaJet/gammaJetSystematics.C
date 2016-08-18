@@ -252,37 +252,6 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
         }
     }
 
-    printf("drawing systematics...\n");
-    for (std::size_t i=0; i<systematics.size(); ++i) {
-        printf("for %s\n", hist_types[i].c_str());
-        for (std::size_t j=0; j<systematics[i].size(); ++j) {
-            for (std::size_t k=0; k<systematics[i][j].size(); ++k) {
-                for (std::size_t l=0; l<systematics[i][j][k].size(); ++l) {
-                    if (!systematics[i][j][k][l].size())
-                        continue;
-
-                    TCanvas* c1 = new TCanvas(Form("canvas_%s_systematics", systematics[i][j][k][l][0]->get_hist_name().c_str()), "", 400, 400);
-                    TLegend* l1 = new TLegend(0.6, 0.6, 0.9, 0.9);
-
-                    for (std::size_t m=0; m<systematics[i][j][k][l].size(); ++m) {
-                        systematics[i][j][k][l][m]->get_diff()->SetLineColor(m+1);
-                        systematics[i][j][k][l][m]->get_diff()->SetMarkerColor(m+1);
-                        systematics[i][j][k][l][m]->get_diff()->SetMarkerStyle(24);
-                        systematics[i][j][k][l][m]->get_diff()->SetMarkerSize(0.7);
-                        systematics[i][j][k][l][m]->get_diff()->Draw("same hist");
-
-                        l1->AddEntry(systematics[i][j][k][l][m]->get_diff(), systematics[i][j][k][l][m]->get_sys_type().c_str(), "pl");
-                    }
-
-                    c1->Draw();
-                    l1->Draw();
-
-                    c1->Write("", TObject::kOverwrite);
-                }
-            }
-        }
-    }
-
     printf("writing objects...\n");
     output->Write("", TObject::kOverwrite);
     output->Close();
