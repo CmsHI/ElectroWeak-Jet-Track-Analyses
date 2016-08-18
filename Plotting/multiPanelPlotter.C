@@ -74,11 +74,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
     std::string suffix[4] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC"};
-    std::string draw_options[4] = {"same e x0", "hist x0", "same e x0", "hist x0"};
+    std::string draw_options[4] = {"same e x0", "same hist x0", "same e x0", "hist x0"};
     std::string legend_labels[4] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia"};
     std::string legend_options[4] = {"pf", "l", "pf", "l"};
 
-    int draw_order[4] = {3, 1, 2, 0};
+    int draw_order[4] = {3, 2, 0, 1};
 
     TFile* hist_files[4];
     bool hist_file_valid[4] = {false};
@@ -212,14 +212,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             for (int k=0; k<4; ++k) {
                 if (hist_file_valid[k] && hist_type != "iaa") {
-                    if (!k && !(hist_type == "rjg_centBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "dphi_width_centBinAll")) {
-                        if (cent_based_plots)
-                            l1[i][j]->AddEntry(h1[i][j][k], Form("%s, %d - %d %%", legend_labels[k].c_str(), bins_cent[0].at(cent_bin_numbers[j])/2, bins_cent[1].at(cent_bin_numbers[j])/2), legend_options[k].c_str());
-                        else
-                            l1[i][j]->AddEntry(h1[i][j][k], Form("%s, %d - %d %%", legend_labels[k].c_str(), bins_cent[0].at(cent_bin_numbers[i])/2, bins_cent[1].at(cent_bin_numbers[i])/2), legend_options[k].c_str());
-                    } else {
-                        l1[i][j]->AddEntry(h1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
-                    }
+                    l1[i][j]->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
                 }
             }
 
@@ -228,22 +221,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             // ---- Photon/Jet Cuts ----
             std::vector<std::string> plotInfo;
 
-            if (hist_type == "iaa") {
-                if (cent_based_plots)
-                    plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[j]]/2, bins_cent[1][cent_bin_numbers[j]]/2));
-                else
-                    plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[i]]/2, bins_cent[1][cent_bin_numbers[i]]/2));
-            }
+            int cent_index = cent_based_plots ? j : i;
+            int pt_index = cent_based_plots ? i : j;
 
-            int photon_pt_low = (cent_based_plots) ? bins_pt[0][pt_bin_numbers[i]] : bins_pt[0][pt_bin_numbers[j]];
-            int photon_pt_high = (cent_based_plots) ? bins_pt[1][pt_bin_numbers[i]] : bins_pt[1][pt_bin_numbers[j]];
-
-            if (!cent_based_plots || i + j == 0) {
-                if (photon_pt_high > 0 && photon_pt_high < 9999)
-                    plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", photon_pt_low, photon_pt_high));
-                else
-                    plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", photon_pt_low));
-            }
+            plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
+            if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
+                plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
+            else
+                plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
 
             if (i + j == 0) {
                 TLatex* latexCMS = new TLatex();
@@ -295,25 +280,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 arrow_pp->SetLineColor(30);
                 arrow_pp->SetFillColor(30);
 
-                double arrow_y = h1[i][j][0]->GetMaximum()*0.12;
                 double arrow_x = h1[i][j][0]->GetMean();
                 double arrow_x_pp = h1[i][j][2]->GetMean();
-                double x_err = h1[i][j][0]->GetMeanError();
-                double x_err_pp = h1[i][j][2]->GetMeanError();
-
-                // horizontal line for statistical uncertainty on the mean
-                TLine* line = new TLine();
-                line->SetLineColor(arrow->GetLineColor());
-                double line_y = arrow_y/2;
-
-                TLine* line_pp = new TLine();
-                line_pp->SetLineColor(arrow_pp->GetLineColor());
-                double line_y_pp = line_y;
+                double arrow_y = h1[i][j][0]->GetMaximum()*0.12;
 
                 arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
                 arrow_pp->DrawArrow(arrow_x_pp, arrow_y, arrow_x_pp, 0);
-                line->DrawLine(arrow_x-x_err, line_y, arrow_x+x_err, line_y);
-                line_pp->DrawLine(arrow_x_pp-x_err_pp, line_y_pp, arrow_x_pp+x_err_pp, line_y_pp);
             }
 
             // Draw line at 1 for Jet IAA
