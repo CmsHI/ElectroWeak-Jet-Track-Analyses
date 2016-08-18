@@ -123,6 +123,10 @@ int gammaJetFinalHistograms(const TString configFile,
             for (int k=iaa_bin_cutoff[i][j]; k<=h_IAA[i][j]->GetNbinsX(); ++k) {
                 h_IAA[i][j]->SetBinContent(k, 0);
                 h_IAA[i][j]->SetBinError(k, 0);
+                h_ptJet_PbPb_Data_rebin[i][j]->SetBinContent(k, 0);
+                h_ptJet_PbPb_Data_rebin[i][j]->SetBinError(k, 0);
+                h_ptJet_pp_Data_rebin[i][j]->SetBinContent(k, 0);
+                h_ptJet_pp_Data_rebin[i][j]->SetBinError(k, 0);
             }
 
             h_IAA[i][j]->Write("", TObject::kOverwrite);
