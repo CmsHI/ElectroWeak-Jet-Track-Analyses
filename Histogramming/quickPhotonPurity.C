@@ -16,6 +16,7 @@
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TLegendEntry.h"
 #include "TString.h"
 #include "TLatex.h"
 #include "stdio.h"
@@ -25,18 +26,18 @@
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Plotting/commonUtility.h"
 
-const TString LABEL = "PbPb #sqrt{s}_{_{NN}}=5.02 TeV";
-const TCut sampleIsolation_PbPb = "(pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx]) < 1.0 && phoHoverE[phoIdx]<0.1";
-const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1/3-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1/3+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2/3-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2/3+0.03))";
+const TString LABEL = "PbPb Data";
+const TCut sampleIsolation = "(pho_sumIsoCorrected[phoIdx]) < 1.0 && phoHoverE[phoIdx]<0.1";
+const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
 
 const Double_t sigShifts[] = {0, 0, 0, 0};
 
 // last entry is upper bound on last bin
-const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
-//const Int_t CENTBINS[] = {-1,200};
+//const Int_t CENTBINS[] = {0, 20, 60, 100, 200};
+const Int_t CENTBINS[] = {60,100};
 const Int_t nCENTBINS = sizeof(CENTBINS)/sizeof(Int_t) -1;
 
-const Double_t PTBINS[] = {40, 50, 60, 80, 1000};
+const Double_t PTBINS[] = {40, 50, 60, 80, 100, 1000};
 const Int_t nPTBINS = sizeof(PTBINS)/sizeof(Double_t) -1;
 
 const Double_t ETABINS[] = {-1.44, 1.44};
@@ -55,47 +56,6 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
   std::string jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
   
-  // isolation for PP
-  float cut_phoHOverE_EB=0;         // Barrel
-  float cut_pfcIso4_EB=0;
-  float cut_pfnIso4_c0_EB=0;
-  float cut_pfnIso4_c1_EB=0;
-  float cut_pfnIso4_c2_EB=0;
-  float cut_pfpIso4_c0_EB=0;
-  float cut_pfpIso4_c1_EB=0;
-  // float cut_phoHOverE_EE;         // Endcap
-  // float cut_pfcIso4_EE;
-  // float cut_pfnIso4_c0_EE;
-  // float cut_pfnIso4_c1_EE;
-  // float cut_pfnIso4_c2_EE;
-  // float cut_pfpIso4_c0_EE;
-  // float cut_pfpIso4_c1_EE;
-
-  bool usePPstyleIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_usePPstyleIso];
-  if(usePPstyleIso){
-    std::cout << "Using pp-style isolation." << std::endl;
-  } else { 
-    std::cout << "Using PbPb-style isolation." << std::endl;
-  }
-  if(usePPstyleIso){
-    // Barrel
-    cut_phoHOverE_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EB];
-    cut_pfcIso4_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EB];
-    cut_pfnIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EB];
-    cut_pfnIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EB];
-    cut_pfnIso4_c2_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EB];
-    cut_pfpIso4_c0_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EB];
-    cut_pfpIso4_c1_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EB];
-    // // Endcap
-    // cut_phoHOverE_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHOverE_EE];
-    // cut_pfcIso4_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfcIso4_EE];
-    // cut_pfnIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c0_EE];
-    // cut_pfnIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c1_EE];
-    // cut_pfnIso4_c2_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfnIso4_c2_EE];
-    // cut_pfpIso4_c0_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c0_EE];
-    // cut_pfpIso4_c1_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pfpIso4_c1_EE];
-  }
-
   TFile *input = TFile::Open(inputData);
   TTree *tHlt = (TTree*)input->Get("hltTree");
   TTree *tPho = (TTree*)input->Get("EventTree");    // photons
@@ -118,7 +78,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
   TFile *outFile = new TFile(Form("%s.root",outputName.Data()),"RECREATE");
 
-  const TCut sidebandIsolation = "((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>10) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<20) && phoHoverE[phoIdx]<0.1";
+  const TCut sidebandIsolation = "((pho_sumIsoCorrected[phoIdx])>10) && ((pho_sumIsoCorrected)<20) && phoHoverE[phoIdx]<0.1";
   const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
 
   //TCanvas *cPurity[nPTBINS];
@@ -132,28 +92,14 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
     //cPurity[i]->Divide(nETABINS,2,0,0);
     for(Int_t j = 0; j < nCENTBINS; ++j) {
       for(Int_t k = 0; k< nETABINS; ++k) {
-	TString ptCut = Form("(phoEt[phoIdx] >= %f) && (phoEt[phoIdx] < %f)",
+	TString ptCut = Form("(phoEtCorrected[phoIdx] >= %f) && (phoEtCorrected[phoIdx] < %f)",
 			     PTBINS[i], PTBINS[i+1]);
 	TString centCut = Form("((hiBin[phoIdx]) >= %i) && ((hiBin[phoIdx]) < %i)",
 			     CENTBINS[j], CENTBINS[j+1]);
 	TString etaCut = Form("(phoEta[phoIdx] >= %f) && (phoEta[phoIdx] < %f)",
 			      ETABINS[k], ETABINS[k+1]);
 
-	TCut sampleIsolation;
-	if(usePPstyleIso){
-	  TCut selectionIso_ppstyle_EB = "";
-	  std::string cut_pfpIso4_EB_str = Form("(%f + %f * phoEt[phoIdx])", cut_pfpIso4_c0_EB, cut_pfpIso4_c1_EB);
-	  std::string cut_pfnIso4_EB_str = Form("(%f + %f * phoEt[phoIdx] + %f * phoEt[phoIdx]*phoEt[phoIdx])",
-						cut_pfnIso4_c0_EB, cut_pfnIso4_c1_EB, cut_pfnIso4_c2_EB);
-	  selectionIso_ppstyle_EB = selectionIso_ppstyle_EB && Form("phoHoverE[phoIdx] < %f", cut_phoHOverE_EB);
-	  selectionIso_ppstyle_EB = selectionIso_ppstyle_EB && Form("pfcIso4[phoIdx] < %f", cut_pfcIso4_EB);
-	  selectionIso_ppstyle_EB = selectionIso_ppstyle_EB && Form("pfnIso4[phoIdx] < %s", cut_pfnIso4_EB_str.c_str());
-	  selectionIso_ppstyle_EB = selectionIso_ppstyle_EB && Form("pfpIso4[phoIdx] < %s", cut_pfpIso4_EB_str.c_str());
-	  sampleIsolation = selectionIso_ppstyle_EB;
-	} else {
-	  sampleIsolation = sampleIsolation_PbPb;
-	}
-	
+
 	TCut dataCandidateCut = sampleIsolation && etaCut && ptCut && centCut && noiseCut;
 	TCut sidebandCut =  sidebandIsolation && etaCut && ptCut && centCut && noiseCut;
 	TCut mcSignalCut = dataCandidateCut && mcIsolation;
@@ -227,6 +173,10 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	hSigPdf->GetYaxis()->SetTitleOffset(1.75);
 	hSigPdf->SetYTitle("Entries");
 	hSigPdf->SetXTitle("#sigma_{#eta #eta}");
+	hSigPdf->SetLabelFont(43);
+	hSigPdf->SetLabelSize(14);
+	hSigPdf->SetTitleFont(43);
+	hSigPdf->SetTitleSize(18);
 
 	hSigPdf->DrawCopy("hist");
 	//drawSys(hSigPdf, err, kRed, -1, 0.001);
@@ -237,56 +187,41 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	if(2*(k+j)*nPTBINS+i+1 == 1)
 	  xpos = 0.54;
 
-	TLegend *t3=new TLegend(xpos, 0.45, 0.92, 0.71);
-	t3->AddEntry(hData1,LABEL,"pl");
-	t3->AddEntry(hSigPdf,"Signal","lf");
-	t3->AddEntry(hBckPdf,"Background","lf");
-	t3->SetFillColor(0);
-	t3->SetBorderSize(0);
-	t3->SetFillStyle(0);
-	t3->SetTextFont(43);
-	t3->SetTextSize(20);
-	//if(i == 0)
-	// TH1D *dummyHist = new TH1D("dummyHist","",10,0,10);
-	// dummyHist->Fill(1);
-	// dummyHist->SetFillColor(kRed);
-	// dummyHist->SetLineColor(kRed);
-	// dummyHist->SetFillStyle(1001);
-	// t3->AddEntry(dummyHist,"MC Sys. Error","f");
-	// if(i == 0)
-	//   t3->Draw();
-
-	if(i == 3)
+	if(i == 0)
 	{
-	  drawText("CMS Preliminary", xpos, 0.68,1,20);
-	  drawText(LABEL, xpos, 0.60,1,20);
+	  drawText("CMS Preliminary", xpos, 0.60,1,20);
+	  drawText(LABEL, xpos, 0.52,1,20);
 	  //drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
 	}
-
-
 
 	//drawText("|#eta_{#gamma}| < 1.479",0.5680963,0.9);
 	//drawText(Form("%f shift",fitr.sigMeanShift),0.57,0.82);
 	//drawText("Background Correction",0.57,0.82);
 	//drawText("bkg Tighter",0.57,0.82);
 	//if(nPTBINS != 1)
+	if(i != 4){
 	drawText(Form("%.0f GeV < p_{T}^{#gamma} < %.0f GeV",
 		      PTBINS[i], PTBINS[i+1]),
 		 xpos, 0.90,1,20);
+	} else {
+	  drawText(Form("p_{T}^{#gamma} > %.0f GeV",
+		      PTBINS[i]),
+		 xpos, 0.90,1,20);
+	}
 	// if(/*nCENTBINS != 1 && */i ==0)
-	// drawText(Form("%.0f - %.0f%c",
-	// 	      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
-	// 	 xpos, 0.68,1,20);
+	drawText(Form("%.0f - %.0f%c",
+		      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
+		 xpos, 0.82,1,20);
 	// if(nETABINS != 1)
 	// drawText(Form("%.3f < #eta_{#gamma} < %.3f",
 	// 	      ETABINS[k], ETABINS[k+1]),
 	// 	 xpos, 0.82,1,20);
-	drawText("10<sideBand<20",
-		 xpos, 0.82,1,20);
+	//drawText("10<sideBand<20",
+	//	 xpos, 0.82,1,20);
 	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
 		 xpos, 0.76,1,20);
 	drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
-		 xpos, 0.45,1,20);
+		 xpos, 0.68,1,20);
 
 
 	// //plot ratio
@@ -313,16 +248,41 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
       }
     }
-    //cPurity[i]->SaveAs(Form("pPb_purity_etadep_wshift_ptbin%.0f.png",PTBINS[i]));
-    //cPurity[i]->SaveAs(Form("pPb_purity_etadep_noshift_inclusive.png"));
   }
+  TH1D *permaCopy[3];
+  permaCopy[0] = new TH1D("copy0","",1,0,1);
+  permaCopy[1] = new TH1D("copy1","",1,0,1);
+  permaCopy[2] = new TH1D("copy2","",1,0,1);
+  handsomeTH1(permaCopy[0]);
+  mcStyle(permaCopy[0]);
+  sbStyle(permaCopy[1]);
+  TLegend *t3=new TLegend(0.44, 0.36, 0.92, 0.60);
+  TLegendEntry *ent1 = t3->AddEntry(permaCopy[2],LABEL,"pl");
+  TLegendEntry *ent2 = t3->AddEntry(permaCopy[0],"Signal","lf");
+  TLegendEntry *ent3 = t3->AddEntry(permaCopy[1],"Background","lf");
+  ent1->SetMarkerStyle(20);
+  ent2->SetLineColor(kPink);
+  ent2->SetFillColor(kOrange+7);
+  ent2->SetFillStyle(3004);
+  ent3->SetLineColor(kGreen+4);
+  ent3->SetFillColor(kGreen+1);
+  ent3->SetFillStyle(3001);
+
+
+  t3->SetFillColor(0);
+  t3->SetBorderSize(0);
+  t3->SetFillStyle(0);
+  t3->SetTextFont(43);
+  t3->SetTextSize(20);
+  t3->Draw();
+
   outFile->cd();
   configTree->Write();
   cPurity->Write();
   outFile->Close();
   //cPurity->SaveAs(SAVENAME+".C");
-  cPurity->SaveAs(Form("%s.png", outputName.Data()));
-  //cPurity->SaveAs(SAVENAME+".pdf");
+  //cPurity->SaveAs(Form("%s.png", outputName.Data()));
+  cPurity->SaveAs(Form("%s.pdf", outputName.Data()));
 }
 
 int main(int argc, char **argv)
