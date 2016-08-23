@@ -1,6 +1,7 @@
 #include "TROOT.h"
 #include "TFile.h"
 #include "TH1.h"
+#include "TGraphErrors.h"
 #include "TStyle.h"
 #include "TCanvas.h"
 #include "TPad.h"
@@ -23,8 +24,13 @@ void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge)
 void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
 void set_legend_style(TLegend* l1, int font_size);
 void set_hist_style(TH1D* h1, int k, int columns);
+void set_graph_style(TGraphErrors* g1, int k, int columns);
 void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
+
+#define _NPLOTS 6
+#define _JEWEL 4
+#define _JEWEL_REF 5
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -70,26 +76,28 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
-    std::string suffix[4] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC"};
-    std::string draw_options[4] = {"same e x0", "same hist x0", "same e x0", "hist x0"};
-    std::string legend_labels[4] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia"};
-    std::string legend_options[4] = {"pf", "l", "pf", "l"};
+    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref"};
+    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "e x0", "hist x0", "same hist e x0", "same hist e x0"};
+    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "hist x0", "", ""};
+    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]"};
+    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)"};
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l"};
 
-    int draw_order[4] = {3, 2, 0, 1};
+    int draw_order[_NPLOTS] = {3, 2, 0, 1, 5, 4};
 
-    TFile* hist_files[4];
-    bool hist_file_valid[4] = {false};
-    TFile* sys_files[4];
-    bool sys_file_valid[4] = {false};
+    TFile* hist_files[_NPLOTS];
+    bool hist_file_valid[_NPLOTS] = {false};
+    TFile* sys_files[_NPLOTS];
+    bool sys_file_valid[_NPLOTS] = {false};
 
     // read files
-    for (int i=0; i<4; ++i) {
+    for (int i=0; i<_NPLOTS; ++i) {
         hist_files[i] = new TFile(inputFiles.at(i).c_str(), "READ");
         hist_file_valid[i] = (hist_files[i] && hist_files[i]->IsOpen());
         if (!hist_file_valid[i])
             continue;
 
-        sys_files[i] = new TFile(inputFiles.at(i+4).c_str(), "READ");
+        sys_files[i] = new TFile(inputFiles.at(i+_NPLOTS).c_str(), "READ");
         sys_file_valid[i] = (sys_files[i] && sys_files[i]->IsOpen());
     }
 
@@ -97,6 +105,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[1] = false;
         hist_file_valid[2] = false;
         hist_file_valid[3] = false;
+        hist_file_valid[_JEWEL_REF] = false;
     } else if (hist_type == "ptJet") {
         hist_file_valid[1] = false;
         hist_file_valid[3] = false;
@@ -123,8 +132,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     TCanvas* c1 = new TCanvas(Form("canvas_%s", canvas_title.c_str()), "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
 
-    TH1D* h1[rows][columns][4];
-    TH1D* h1_sys[rows][columns][4];
+    TH1D* h1[rows][columns][_NPLOTS] = {0};
+    TH1D* h1_sys[rows][columns][_NPLOTS] = {0};
+
+    TGraphErrors* g1[rows][columns][_NPLOTS] = {0};
 
     for (int i=0; i<rows; ++i) {
         for (int j=0; j<columns; ++j) {
@@ -133,7 +144,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 gPad->SetLogy();
 
             // Draw histograms
-            for (int l=0; l<4; ++l) {
+            for (int l=0; l<_NPLOTS; ++l) {
                 int k = draw_order[l];
                 if (!hist_file_valid[k])
                     continue;
@@ -168,26 +179,42 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
-                h1[i][j][k] = (TH1D*)hist_files[k]->Get(Form("h1D_%s", hist_handle.c_str()));
-                h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
-                h1[i][j][k]->SetMaximum(y_max[i]);
-                h1[i][j][k]->SetMinimum(y_min[i]);
+                if ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos) {
+                    h1[i][j][k] = (TH1D*)hist_files[k]->Get(Form("h1D_%s", hist_handle.c_str()));
+                    if (!h1[i][j][k])
+                        continue;
 
-                if (hist_type == "dphi_width_centBinAll" || hist_type == "dphi_width_ptBinAll")
-                    h1[i][j][k]->SetYTitle("#sigma #left(#Delta#phi_{J#gamma}#right)");
-                if (hist_type == "iaa") {
-                    h1[i][j][k]->SetXTitle("p^{Jet}_{T} (GeV/c)");
-                    h1[i][j][k]->SetYTitle("Jet I_{AA}");
+                    h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
+                    h1[i][j][k]->SetMaximum(y_max[i]);
+                    h1[i][j][k]->SetMinimum(y_min[i]);
+
+                    if (hist_type == "dphi_width_centBinAll" || hist_type == "dphi_width_ptBinAll")
+                        h1[i][j][k]->SetYTitle("#sigma (#Delta#phi_{J#gamma})");
+                    if (hist_type == "iaa") {
+                        h1[i][j][k]->SetXTitle("p^{Jet}_{T} (GeV/c)");
+                        h1[i][j][k]->SetYTitle("Jet I_{AA}");
+                    }
+                    if (hist_type == "dphi")
+                        h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
+                    if (hist_type.find("xjg_mean") != std::string::npos)
+                        h1[i][j][k]->SetYTitle("#LT x_{J#gamma} #GT");
+
+                    set_hist_style(h1[i][j][k], k, columns);
+                    set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], label_font_sizes[columns]);
+
+                    if ((k == _JEWEL || k == _JEWEL_REF) && hist_type == "dphi")
+                        h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
+
+                    h1[i][j][k]->Draw(draw_options[k].c_str());
+                } else {
+                    g1[i][j][k] = (TGraphErrors*)hist_files[k]->Get(Form("h1D_%s", hist_handle.c_str()));
+                    if (!g1[i][j][k])
+                        continue;
+
+                    set_graph_style(g1[i][j][k], k, columns);
+
+                    g1[i][j][k]->Draw(graph_draw_options[k].c_str());
                 }
-                if (hist_type == "dphi")
-                    h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{dx_{J#gamma}}");
-                if (hist_type.find("xjg_mean") != std::string::npos)
-                    h1[i][j][k]->SetYTitle("#LT x_{J#gamma} #GT");
-
-                set_hist_style(h1[i][j][k], k, columns);
-                set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], label_font_sizes[columns]);
-
-                h1[i][j][k]->Draw(draw_options[k].c_str());
 
                 if (sys_file_valid[k]) {
                     h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total", hist_handle.c_str()));
@@ -201,7 +228,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     else sys_box->SetFillColorAlpha(30, 0.7);
 
                     draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k]);
-                    h1[i][j][k]->Draw(draw_options[k].c_str());
+                    h1[i][j][k]->Draw(sys_draw_options[k].c_str());
 
                     h1[i][j][k]->SetFillColor(sys_box->GetFillColor());
                     h1[i][j][k]->SetFillStyle(1001);
@@ -216,9 +243,17 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
                 set_legend_style(l1, latex_font_sizes[columns]);
 
-                for (int k=0; k<4; ++k) {
-                    if (hist_file_valid[k] && hist_type != "iaa") {
-                        l1->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
+                    for (int k=0; k<_NPLOTS; ++k) {
+                        if (hist_file_valid[k]) {
+                            if ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos) {
+                                if (g1[i][j][k]) {
+                                    l1->AddEntry(g1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                                }
+                            } else {
+                                l1->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                            }
+                        }
                     }
                 }
 
@@ -442,7 +477,6 @@ void set_hist_style(TH1D* h1, int k, int columns) {
             h1->SetLineStyle(1);
             h1->SetLineWidth(columns > 3 ? 1 : 3);
             h1->SetMarkerSize(0);
-            h1->SetMarkerColor(kOrange-2);
             break;
         case 2:
             h1->SetLineColor(kBlack);
@@ -450,8 +484,36 @@ void set_hist_style(TH1D* h1, int k, int columns) {
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerColor(kBlack);
             break;
+        case 3:
+            break;
+        case _JEWEL:
+            h1->SetLineColor(9);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetMarkerSize(0);
+            break;
+        case _JEWEL_REF:
+            h1->SetLineColor(6);
+            h1->SetLineStyle(2);
+            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetMarkerSize(0);
+            break;
         default:
             break;
+    }
+}
+
+void set_graph_style(TGraphErrors* g1, int k, int columns) {
+    if (k == _JEWEL) {
+        g1->SetLineColor(9);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(columns > 3 ? 1 : 2);
+        g1->SetMarkerSize(0);
+    } else if (k == _JEWEL_REF) {
+        g1->SetLineColor(6);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(columns > 3 ? 1 : 2);
+        g1->SetMarkerSize(0);
     }
 }
 
