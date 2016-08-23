@@ -28,13 +28,15 @@ void set_graph_style(TGraphErrors* g1, int k, int columns);
 void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
 
-#define _NPLOTS 6
+#define _NPLOTS 8
 #define _PBPB_DATA 0
 #define _PBPB_MC 1
 #define _PP_DATA 2
 #define _PP_MC 3
 #define _JEWEL 4
 #define _JEWEL_REF 5
+#define _LBT 6
+#define _LBT_REF 7
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -80,14 +82,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
-    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref"};
-    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "e x0", "hist x0", "same hist e x0", "same hist e x0"};
-    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "hist x0", "", ""};
-    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]"};
-    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)"};
-    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l"};
+    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref"};
+    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "e x0", "hist x0", "same hist e x0", "same hist e x0", "same hist x0", "same hist x0"};
+    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "hist x0", "", "", "", ""};
+    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]", "", ""};
+    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)"};
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL};
+    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT};
 
     TFile* hist_files[_NPLOTS];
     bool hist_file_valid[_NPLOTS] = {false};
@@ -110,6 +112,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_PP_DATA] = false;
         hist_file_valid[_PP_MC] = false;
         hist_file_valid[_JEWEL_REF] = false;
+        hist_file_valid[_LBT_REF] = false;
     } else if (hist_type == "ptJet") {
         hist_file_valid[_PBPB_MC] = false;
         hist_file_valid[_PP_MC] = false;
@@ -499,6 +502,18 @@ void set_hist_style(TH1D* h1, int k, int columns) {
         case _JEWEL_REF:
             h1->SetLineColor(6);
             h1->SetLineStyle(2);
+            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetMarkerSize(0);
+            break;
+        case _LBT:
+            h1->SetLineColor(7);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetMarkerSize(0);
+            break;
+        case _LBT_REF:
+            h1->SetLineColor(5);
+            h1->SetLineStyle(5);
             h1->SetLineWidth(columns > 3 ? 1 : 2);
             h1->SetMarkerSize(0);
             break;
