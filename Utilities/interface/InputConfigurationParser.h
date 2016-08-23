@@ -14,6 +14,7 @@
 
 #include "Configuration.h"
 #include "ConfigurationParser.h"
+#include "CutConfigurationParser.h"
 #include "GraphicsConfigurationParser.h"
 
 #include "../eventUtil.h"
