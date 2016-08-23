@@ -29,6 +29,10 @@ void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int la
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
 
 #define _NPLOTS 6
+#define _PBPB_DATA 0
+#define _PBPB_MC 1
+#define _PP_DATA 2
+#define _PP_MC 3
 #define _JEWEL 4
 #define _JEWEL_REF 5
 
@@ -83,7 +87,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)"};
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l"};
 
-    int draw_order[_NPLOTS] = {3, 2, 0, 1, 5, 4};
+    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL};
 
     TFile* hist_files[_NPLOTS];
     bool hist_file_valid[_NPLOTS] = {false};
@@ -102,13 +106,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     }
 
     if (hist_type == "iaa") {
-        hist_file_valid[1] = false;
-        hist_file_valid[2] = false;
-        hist_file_valid[3] = false;
+        hist_file_valid[_PBPB_MC] = false;
+        hist_file_valid[_PP_DATA] = false;
+        hist_file_valid[_PP_MC] = false;
         hist_file_valid[_JEWEL_REF] = false;
     } else if (hist_type == "ptJet") {
-        hist_file_valid[1] = false;
-        hist_file_valid[3] = false;
+        hist_file_valid[_PBPB_MC] = false;
+        hist_file_valid[_PP_MC] = false;
     }
 
     const int hist_width = 250;
@@ -466,25 +470,25 @@ void set_legend_style(TLegend* l1, int font_size) {
 
 void set_hist_style(TH1D* h1, int k, int columns) {
     switch (k) {
-        case 0:
+        case _PBPB_DATA:
             h1->SetLineColor(kBlack);
             h1->SetMarkerSize(0.64);
             h1->SetMarkerStyle(kFullCircle);
             h1->SetMarkerColor(kBlack);
             break;
-        case 1:
+        case _PBPB_MC:
             h1->SetLineColor(1);
             h1->SetLineStyle(1);
             h1->SetLineWidth(columns > 3 ? 1 : 3);
             h1->SetMarkerSize(0);
             break;
-        case 2:
+        case _PP_DATA:
             h1->SetLineColor(kBlack);
             h1->SetMarkerSize(0.64);
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerColor(kBlack);
             break;
-        case 3:
+        case _PP_MC:
             break;
         case _JEWEL:
             h1->SetLineColor(9);
