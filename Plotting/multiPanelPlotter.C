@@ -323,27 +323,26 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             // Draw arrow for xjg mean
             if (hist_type == "xjg") {
-                TArrow* arrow = new TArrow();
-                arrow->SetArrowSize(0.01);
-                arrow->SetLineColor(46);
-                arrow->SetFillColor(46);
-
-                TArrow* arrow_pp = new TArrow();
-                arrow_pp->SetArrowSize(0.01);
-                arrow_pp->SetLineColor(30);
-                arrow_pp->SetFillColor(30);
-
-                double arrow_x, arrow_y;
                 if (hist_file_valid[_PBPB_DATA]) {
-                    arrow_x = h1[i][j][_PBPB_DATA]->GetMean();
-                    arrow_y = h1[i][j][_PBPB_DATA]->GetMaximum()*0.12;
+                    TArrow* arrow = new TArrow();
+                    arrow->SetArrowSize(0.01);
+                    arrow->SetLineColor(46);
+                    arrow->SetFillColor(46);
+
+                    double arrow_x = h1[i][j][_PBPB_DATA]->GetMean();
+                    double arrow_y = h1[i][j][_PBPB_DATA]->GetMaximum()*0.12;
                     arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
                 }
 
                 if (hist_file_valid[_PP_DATA]) {
-                    arrow_x = h1[i][j][_PP_DATA]->GetMean();
-                    arrow_y = h1[i][j][_PP_DATA]->GetMaximum()*0.12;
-                    arrow_pp->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
+                    TArrow* arrow = new TArrow();
+                    arrow->SetArrowSize(0.01);
+                    arrow->SetLineColor(30);
+                    arrow->SetFillColor(30);
+
+                    double arrow_x = h1[i][j][_PP_DATA]->GetMean();
+                    double arrow_y = h1[i][j][_PP_DATA]->GetMaximum()*0.12;
+                    arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
                 }
             }
 
