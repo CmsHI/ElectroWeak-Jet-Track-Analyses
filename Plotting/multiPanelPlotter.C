@@ -204,7 +204,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "dphi")
                         h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
                     if (hist_type.find("xjg_mean") != std::string::npos)
-                        h1[i][j][k]->SetYTitle("#LT x_{J#gamma} #GT");
+                        h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
 
                     set_hist_style(h1[i][j][k], k, columns);
                     set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], label_font_sizes[columns]);
