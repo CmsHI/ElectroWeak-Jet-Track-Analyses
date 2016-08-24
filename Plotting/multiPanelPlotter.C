@@ -254,11 +254,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     for (int k=0; k<_NPLOTS; ++k) {
                         if (hist_file_valid[k]) {
                             if ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos) {
-                                if (g1[i][j][k]) {
+                                if (g1[i][j][k])
                                     l1->AddEntry(g1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
-                                }
                             } else {
-                                l1->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                                if (h1[i][j][k])
+                                    l1->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
                             }
                         }
                     }
@@ -333,20 +333,26 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 arrow_pp->SetLineColor(30);
                 arrow_pp->SetFillColor(30);
 
-                double arrow_x = h1[i][j][0]->GetMean();
-                double arrow_x_pp = h1[i][j][2]->GetMean();
-                double arrow_y = h1[i][j][0]->GetMaximum()*0.12;
+                double arrow_x, arrow_y;
+                if (hist_file_valid[_PBPB_DATA]) {
+                    arrow_x = h1[i][j][_PBPB_DATA]->GetMean();
+                    arrow_y = h1[i][j][_PBPB_DATA]->GetMaximum()*0.12;
+                    arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
+                }
 
-                arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
-                arrow_pp->DrawArrow(arrow_x_pp, arrow_y, arrow_x_pp, 0);
+                if (hist_file_valid[_PP_DATA]) {
+                    arrow_x = h1[i][j][_PP_DATA]->GetMean();
+                    arrow_y = h1[i][j][_PP_DATA]->GetMaximum()*0.12;
+                    arrow_pp->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
+                }
             }
 
             // Draw line at 1 for Jet IAA
-            if (hist_type == "iaa") {
+            if (hist_type == "iaa" && hist_file_valid[_PBPB_DATA]) {
                 TLine* line = new TLine();
                 line->SetLineStyle(3);
                 line->SetLineWidth(1);
-                line->DrawLine(h1[i][j][0]->GetXaxis()->GetXmin(), 1, h1[i][j][0]->GetXaxis()->GetXmax(), 1);
+                line->DrawLine(h1[i][j][_PBPB_DATA]->GetXaxis()->GetXmin(), 1, h1[i][j][_PBPB_DATA]->GetXaxis()->GetXmax(), 1);
             }
         }
     }

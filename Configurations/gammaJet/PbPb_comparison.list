@@ -1,16 +1,16 @@
 # Histograms
 Data/photons/gammaJetHistograms.root
-Data/photons/DUMMY.root
 Data/photons/gammaJetHistograms.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
+Data/photons/JEWEL.root
 Data/photons/DUMMY.root
-Data/photons/DUMMY.root
+Data/photons/LBT.root
 Data/photons/DUMMY.root
 # Systematics
 Data/photons/gammaJetSystematics.root
 Data/photons/DUMMY.root
-Data/photons/gammaJetSystematics.root
+Data/photons/DUMMY.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
