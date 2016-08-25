@@ -170,13 +170,19 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	cleverRange(hSigPdf,1.5);
 	hSigPdf->SetAxisRange(0.001,0.024,"X");
 	hSigPdf->SetNdivisions(505);
-	hSigPdf->GetYaxis()->SetTitleOffset(1.75);
+	hSigPdf->GetYaxis()->SetTitleOffset(1.30);
 	hSigPdf->SetYTitle("Entries");
 	hSigPdf->SetXTitle("#sigma_{#eta #eta}");
 	hSigPdf->SetLabelFont(43);
-	hSigPdf->SetLabelSize(14);
+	hSigPdf->SetLabelSize(27);
 	hSigPdf->SetTitleFont(43);
-	hSigPdf->SetTitleSize(18);
+	hSigPdf->SetTitleSize(27);
+	hSigPdf->GetYaxis()->SetLabelFont(43);
+	hSigPdf->GetYaxis()->SetLabelSize(27);
+	hSigPdf->GetYaxis()->SetTitleFont(43);
+	hSigPdf->GetYaxis()->SetTitleSize(27);
+	hSigPdf->GetYaxis()->SetLabelOffset(0.005);
+	hSigPdf->GetXaxis()->SetTitleOffset(1);
 
 	hSigPdf->DrawCopy("hist");
 	//drawSys(hSigPdf, err, kRed, -1, 0.001);
@@ -189,9 +195,12 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
 	if(i == 0)
 	{
-	  drawText("CMS Preliminary", xpos, 0.60,1,20);
-	  drawText(LABEL, xpos, 0.52,1,20);
+	  drawText("CMS Preliminary", xpos, 0.60,1,27);
+	  drawText(LABEL, xpos, 0.50,1,27);
 	  //drawText("#intL = 150 #mub^{-1}", xpos, 0.50,1,20);
+	  drawText(Form("%.0f - %.0f%c",
+			CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
+		   xpos, 0.40,1,27);
 	}
 
 	//drawText("|#eta_{#gamma}| < 1.479",0.5680963,0.9);
@@ -199,29 +208,32 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	//drawText("Background Correction",0.57,0.82);
 	//drawText("bkg Tighter",0.57,0.82);
 	//if(nPTBINS != 1)
-	if(i != 4){
-	drawText(Form("%.0f GeV < p_{T}^{#gamma} < %.0f GeV",
+	if(i==0)
+	{
+	drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c",
 		      PTBINS[i], PTBINS[i+1]),
-		 xpos, 0.90,1,20);
+		 0.25, 0.90,1,27);
+	  
+	} else if(i!= 0 && i != 4){
+	drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c",
+		      PTBINS[i], PTBINS[i+1]),
+		 0.15, 0.90,1,27);
 	} else {
-	  drawText(Form("p_{T}^{#gamma} > %.0f GeV",
+	  drawText(Form("p_{T}^{#gamma} > %.0f GeV/c",
 		      PTBINS[i]),
-		 xpos, 0.90,1,20);
+		 0.2, 0.90,1,27);
 	}
 	// if(/*nCENTBINS != 1 && */i ==0)
-	drawText(Form("%.0f - %.0f%c",
-		      CENTBINS[j]/2., CENTBINS[j+1]/2.,'%'),
-		 xpos, 0.82,1,20);
 	// if(nETABINS != 1)
 	// drawText(Form("%.3f < #eta_{#gamma} < %.3f",
 	// 	      ETABINS[k], ETABINS[k+1]),
 	// 	 xpos, 0.82,1,20);
 	//drawText("10<sideBand<20",
 	//	 xpos, 0.82,1,20);
-	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
-		 xpos, 0.76,1,20);
+	drawText(Form("Purity : %.2f", (Float_t)fitr.purity),
+		 xpos, 0.80,1,27);
 	drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
-		 xpos, 0.68,1,20);
+		 xpos, 0.70,1,27);
 
 
 	// //plot ratio
@@ -256,7 +268,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   handsomeTH1(permaCopy[0]);
   mcStyle(permaCopy[0]);
   sbStyle(permaCopy[1]);
-  TLegend *t3=new TLegend(0.44, 0.36, 0.92, 0.60);
+  TLegend *t3=new TLegend(0.44, 0.30, 0.92, 0.60);
   TLegendEntry *ent1 = t3->AddEntry(permaCopy[2],LABEL,"pl");
   TLegendEntry *ent2 = t3->AddEntry(permaCopy[0],"Signal","lf");
   TLegendEntry *ent3 = t3->AddEntry(permaCopy[1],"Background","lf");
@@ -273,7 +285,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   t3->SetBorderSize(0);
   t3->SetFillStyle(0);
   t3->SetTextFont(43);
-  t3->SetTextSize(20);
+  t3->SetTextSize(27);
   t3->Draw();
 
   outFile->cd();
