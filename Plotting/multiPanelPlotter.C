@@ -121,10 +121,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     const int hist_width = 250;
     const int hist_height = 250;
 
-    const int latex_font_sizes[6] = {0, 12, 13, 14, 16, 18};
-    const int axis_font_sizes[6] = {0, 13, 13, 13, 14, 14};
-    const int label_font_sizes[6] = {0, 13, 14, 15, 16, 18};
-    const float latex_spacing[6] = {0, 0.07, 0.0725, 0.0775, 0.08, 0.084};
+    const int latex_font_sizes[6] = {0, 12, 13, 14, 16, 20};
+    const int axis_font_sizes[6] = {0, 13, 13, 13, 14, 24};
+    const int label_font_sizes[6] = {0, 13, 14, 15, 16, 27};
+    const float latex_spacing[6] = {0, 0.07, 0.0725, 0.0775, 0.081, 0.085};
 
     bool cent_based_plots = (plot_type == "cent");
     int columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
@@ -208,6 +208,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     set_hist_style(h1[i][j][k], k, columns);
                     set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], label_font_sizes[columns]);
+
+                    if (hist_type == "xjg")
+                        h1[i][j][k]->SetNdivisions(504);
 
                     if ((k == _JEWEL || k == _JEWEL_REF) && hist_type == "dphi")
                         h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
