@@ -20,14 +20,6 @@ typedef struct box_t {
     float x1, y1, x2, y2;
 } box_t;
 
-void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
-void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
-void set_legend_style(TLegend* l1, int font_size);
-void set_hist_style(TH1D* h1, int k, int columns);
-void set_graph_style(TGraphErrors* g1, int k, int columns);
-void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size);
-void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
-
 #define _NPLOTS 8
 #define _PBPB_DATA 0
 #define _PBPB_MC 1
@@ -37,6 +29,14 @@ void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int 
 #define _JEWEL_REF 5
 #define _LBT 6
 #define _LBT_REF 7
+
+void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
+void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
+void set_legend_style(TLegend* l1, int font_size);
+void set_hist_style(TH1D* h1, int k, int columns);
+void set_graph_style(TGraphErrors* g1, int k, int columns);
+void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size);
+void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -82,15 +82,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
-    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref"};
-    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "e x0", "hist x0", "same hist e x0", "same hist e x0", "same hist x0", "same hist x0"};
-    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "hist x0", "", "", "", ""};
-    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]", "", ""};
-    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)"};
-    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l"};
-
-    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT};
-
     TFile* hist_files[_NPLOTS];
     bool hist_file_valid[_NPLOTS] = {false};
     TFile* sys_files[_NPLOTS];
@@ -118,17 +109,28 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_PP_MC] = false;
     }
 
-    const int hist_width = 250;
-    const int hist_height = 250;
+    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref"};
+    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "same hist x0", "same hist e x0", "same hist e x0", "same hist x0", "same hist x0"};
+    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "same hist x0", "", "", "", ""};
+    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]", "", ""};
+    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)"};
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l"};
 
-    const int latex_font_sizes[6] = {0, 12, 13, 14, 16, 20};
-    const int axis_font_sizes[6] = {0, 13, 13, 13, 14, 24};
-    const int label_font_sizes[6] = {0, 13, 14, 15, 16, 27};
-    const float latex_spacing[6] = {0, 0.07, 0.0725, 0.0775, 0.081, 0.085};
+    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT};
+    for (int i=0; i<_NPLOTS; ++i) {
+        int j = draw_order[i];
+        if (hist_file_valid[j]) {
+            draw_options[j].erase(draw_options[j].find("same "), 5);
+            break;
+        }
+    }
 
     bool cent_based_plots = (plot_type == "cent");
     int columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
     int rows = cent_based_plots ? pt_bin_numbers.size() : cent_bin_numbers.size();
+
+    const int hist_width = 250;
+    const int hist_height = 250;
 
     float pad_width = (columns > 1) ? hist_width*(1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : hist_width/(1.0-margin-edge);
     float pad_height = (rows > 1) ? hist_height*(1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2) : hist_height/(1.0-margin-edge);
@@ -136,12 +138,16 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     if (!set_log_scale.size())
         set_log_scale = std::vector<int>(rows, 0);
 
+    const int axis_font_sizes[6] = {0, 13, 13, 13, 18, 24};
+    const int axis_label_font_sizes[6] = {0, 13, 14, 15, 20, 27};
+    const int latex_font_sizes[6] = {0, 12, 13, 14, 16, 20};
+    const float latex_spacing[6] = {0, 0.07, 0.0725, 0.0775, 0.081, 0.085};
+
     TCanvas* c1 = new TCanvas(Form("canvas_%s", canvas_title.c_str()), "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
 
     TH1D* h1[rows][columns][_NPLOTS] = {0};
     TH1D* h1_sys[rows][columns][_NPLOTS] = {0};
-
     TGraphErrors* g1[rows][columns][_NPLOTS] = {0};
 
     for (int i=0; i<rows; ++i) {
@@ -191,23 +197,23 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (!h1[i][j][k])
                         continue;
 
-                    h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
-                    h1[i][j][k]->SetMaximum(y_max[i]);
-                    h1[i][j][k]->SetMinimum(y_min[i]);
-
                     if (hist_type == "dphi_width_centBinAll" || hist_type == "dphi_width_ptBinAll")
                         h1[i][j][k]->SetYTitle("#sigma (#Delta#phi_{J#gamma})");
-                    if (hist_type == "iaa") {
-                        h1[i][j][k]->SetXTitle("p^{Jet}_{T} (GeV/c)");
+                    if (hist_type == "iaa")
                         h1[i][j][k]->SetYTitle("Jet I_{AA}");
-                    }
+                    if (hist_type == "ptJet" || hist_type == "iaa")
+                        h1[i][j][k]->SetXTitle("p^{Jet}_{T} (GeV/c)");
                     if (hist_type == "dphi")
                         h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
                     if (hist_type.find("xjg_mean") != std::string::npos)
                         h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
 
                     set_hist_style(h1[i][j][k], k, columns);
-                    set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], label_font_sizes[columns]);
+                    set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], axis_label_font_sizes[columns]);
+
+                    h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
+                    h1[i][j][k]->SetMaximum(y_max[i]);
+                    h1[i][j][k]->SetMinimum(y_min[i]);
 
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
@@ -258,10 +264,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         if (hist_file_valid[k]) {
                             if ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos) {
                                 if (g1[i][j][k])
-                                    l1->AddEntry(g1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                                    l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
                             } else {
                                 if (h1[i][j][k])
-                                    l1->AddEntry(h1[i][j][k], Form("%s", legend_labels[k].c_str()), legend_options[k].c_str());
+                                    l1->AddEntry(h1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
                             }
                         }
                     }
@@ -310,7 +316,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
             latexInfo->SetTextSize(latex_font_sizes[columns]);
-            if (i_x[i] > 0.6)
+            if (i_x[i] > 0.8)
                 latexInfo->SetTextAlign(31);
             else
                 latexInfo->SetTextAlign(11);
@@ -325,27 +331,20 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw arrow for xjg mean
+            const std::vector<int> show_xjg_arrow = {_PBPB_DATA, _PP_DATA};
+            const std::vector<int> xjg_arrow_colour = {46, 30};
             if (hist_type == "xjg") {
-                if (hist_file_valid[_PBPB_DATA]) {
-                    TArrow* arrow = new TArrow();
-                    arrow->SetArrowSize(0.01);
-                    arrow->SetLineColor(46);
-                    arrow->SetFillColor(46);
+                for (std::size_t n=0; n<show_xjg_arrow.size(); ++n) {
+                    if (hist_file_valid[show_xjg_arrow[n]]) {
+                        TArrow* arrow = new TArrow();
+                        arrow->SetArrowSize(0.01);
+                        arrow->SetLineColor(xjg_arrow_colour[n]);
+                        arrow->SetFillColor(xjg_arrow_colour[n]);
 
-                    double arrow_x = h1[i][j][_PBPB_DATA]->GetMean();
-                    double arrow_y = h1[i][j][_PBPB_DATA]->GetMaximum()*0.12;
-                    arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
-                }
-
-                if (hist_file_valid[_PP_DATA]) {
-                    TArrow* arrow = new TArrow();
-                    arrow->SetArrowSize(0.01);
-                    arrow->SetLineColor(30);
-                    arrow->SetFillColor(30);
-
-                    double arrow_x = h1[i][j][_PP_DATA]->GetMean();
-                    double arrow_y = h1[i][j][_PP_DATA]->GetMaximum()*0.12;
-                    arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
+                        double arrow_x = h1[i][j][show_xjg_arrow[n]]->GetMean();
+                        double arrow_y = h1[i][j][show_xjg_arrow[n]]->GetMaximum()*0.12;
+                        arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
+                    }
                 }
             }
 
