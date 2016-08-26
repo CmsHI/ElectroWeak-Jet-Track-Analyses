@@ -41,8 +41,9 @@ static float column_scale_factor;
 static int axis_font_size;
 static int axis_label_font_size;
 static int latex_font_size;
-static float latex_spacing;
 static int line_width;
+static float latex_spacing;
+static float axis_label_cover_size;
 
 void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
@@ -52,6 +53,7 @@ void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
 void set_axis_style(TH1D* h1, int i, int j);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j);
+void cover_axis(std::string hist_type, float margin, float edge);
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -403,6 +405,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     infoLatex->SetTextAlign(21);
     infoLatex->DrawLatexNDC((canvas_left_margin+1-canvas_right_margin)/2, canvas_top_edge, commonInfo.c_str());
 
+    // Cover cut-off axis labels
+    cover_axis(hist_type, margin, edge);
+
     c1->SaveAs(canvas_title.append(".pdf").c_str());
 
     return 0;
@@ -414,43 +419,49 @@ void set_global_style() {
             axis_font_size = 13;
             axis_label_font_size = 13;
             latex_font_size = 12;
-            latex_spacing = 0.07;
             line_width = 3;
+            latex_spacing = 0.07;
+            axis_label_cover_size = 0.02;
             break;
         case 2:
             axis_font_size = 14;
             axis_label_font_size = 14;
             latex_font_size = 13;
-            latex_spacing = 0.0725;
             line_width = 2;
+            latex_spacing = 0.0725;
+            axis_label_cover_size = 0.016;
             break;
         case 3:
             axis_font_size = 15;
             axis_label_font_size = 16;
             latex_font_size = 14;
-            latex_spacing = 0.0775;
             line_width = 2;
+            latex_spacing = 0.0775;
+            axis_label_cover_size = 0.014;
             break;
         case 4:
             axis_font_size = 18;
             axis_label_font_size = 20;
             latex_font_size = 16;
-            latex_spacing = 0.081;
             line_width = 1;
+            latex_spacing = 0.081;
+            axis_label_cover_size = 0.0125;
             break;
         case 5:
             axis_font_size = 24;
             axis_label_font_size = 27;
             latex_font_size = 20;
-            latex_spacing = 0.085;
             line_width = 1;
+            latex_spacing = 0.085;
+            axis_label_cover_size = 0.0125;
             break;
         default:
             axis_font_size = 13;
             axis_label_font_size = 13;
             latex_font_size = 12;
-            latex_spacing = 0.07;
             line_width = 3;
+            latex_spacing = 0.07;
+            axis_label_cover_size = 0.02;
             break;
     }
 }
@@ -657,6 +668,37 @@ void adjust_coordinates(box_t& box, float margin, float edge, int i, int j) {
     } else if (i == rows - 1) {
         box.y1 = box.y1 * (1-margin) + margin;
         box.y2 = box.y2 * (1-margin) + margin;
+    }
+}
+
+void cover_axis(std::string hist_type, float margin, float edge) {
+    TPad* x_covers[columns - 1];
+    TPad* y_covers[rows - 1];
+
+    float pad_width = 1.0 / column_scale_factor;
+    float pad_height = 1.0 / row_scale_factor;
+
+    float x_min[columns];
+    x_min[0] = (columns > 1) ? pad_width*margin/(1.0-margin) : margin;
+    for (int i=1; i<columns; ++i)
+        x_min[i] = x_min[i-1] + pad_width;
+
+    float y_min[rows];
+    y_min[0] = (rows > 1) ? 1.0-pad_height/(1.0-edge) : margin;
+    for (int i=1; i<rows; ++i)
+        y_min[i] = y_min[i-1] - pad_height;
+
+    float axis_label_cover_size_tall = (hist_type == "ptJet") ? 0.02 : axis_label_cover_size;
+    float axis_label_cover_size_upper = (hist_type == "xjg") ? 0 : axis_label_cover_size_tall;
+    for (int p=0; p<rows-1; ++p) {
+        y_covers[p] = new TPad(Form("y_cover_%d", p), Form("y_cover_%d", p), x_min[0]-0.05, y_min[p]-axis_label_cover_size_tall, x_min[0]-0.0018, y_min[p]+axis_label_cover_size_upper);
+        y_covers[p]->Draw();
+    }
+
+    float axis_label_cover_size_wide = (hist_type.find("BinAll") != std::string::npos) ? 0.025 : axis_label_cover_size;
+    for (int p=1; p<columns; ++p) {
+        x_covers[p] = new TPad(Form("x_cover_%d", p), Form("x_cover_%d", p), x_min[p]-axis_label_cover_size_wide, y_min[rows-1]-0.05, x_min[p]+axis_label_cover_size_wide, y_min[rows-1]-0.0024);
+        x_covers[p]->Draw();
     }
 }
 
