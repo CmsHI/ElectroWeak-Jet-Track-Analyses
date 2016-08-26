@@ -118,6 +118,8 @@ enum TYPE_F {
     k_windowHeightFraction,      // height fraction of a pad relative to some other pad
     k_mpp_margin,
     k_mpp_edge,
+    k_mpp_x_axis_offset,
+    k_mpp_y_axis_offset,
     kN_TYPES_F
 };
 
@@ -149,7 +151,9 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "ratioLineY",
     "windowHeightFraction",
     "mpp_margin",
-    "mpp_edge"
+    "mpp_edge",
+    "mpp_x_axis_offset",
+    "mpp_y_axis_offset"
 };
 
 enum TYPE_S {

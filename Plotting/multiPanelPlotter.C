@@ -51,7 +51,7 @@ void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
 void set_legend_style(TLegend* l1);
 void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
-void set_axis_style(TH1D* h1, int i, int j);
+void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_offset);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j);
 void cover_axis(std::string hist_type, float margin, float edge);
 
@@ -95,6 +95,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     std::vector<float> i_x = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_x]);
     std::vector<float> i_y = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_y]);
+
+    float x_axis_offset = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_x_axis_offset];
+    float y_axis_offset = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_axis_offset];
 
     std::string canvas_title = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_canvas_title].c_str();
 
@@ -221,7 +224,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
 
                     set_hist_style(h1[i][j][k], k);
-                    set_axis_style(h1[i][j][k], i, j);
+                    set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
 
                     h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
                     h1[i][j][k]->SetMaximum(y_max[i]);
@@ -611,7 +614,7 @@ void set_graph_style(TGraphErrors* g1, int k) {
     }
 }
 
-void set_axis_style(TH1D* h1, int i, int j) {
+void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_offset) {
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
 
@@ -626,7 +629,7 @@ void set_axis_style(TH1D* h1, int i, int j) {
     y_axis->SetTitleSize(axis_label_font_size);
 
     if (i == rows - 1) {
-        x_axis->SetTitleOffset(2);
+        x_axis->SetTitleOffset(x_axis_offset);
         x_axis->CenterTitle();
     } else {
         x_axis->SetTitleOffset(999);
@@ -634,16 +637,11 @@ void set_axis_style(TH1D* h1, int i, int j) {
     }
 
     if (j == 0) {
-        y_axis->SetTitleOffset(3.2);
+        y_axis->SetTitleOffset(y_axis_offset);
         y_axis->CenterTitle();
     } else {
         y_axis->SetTitleOffset(999);
         y_axis->SetTitle("");
-    }
-
-    if (rows == 1) {
-        x_axis->SetTitleOffset(1.25);
-        y_axis->SetTitleOffset(1.6);
     }
 }
 
