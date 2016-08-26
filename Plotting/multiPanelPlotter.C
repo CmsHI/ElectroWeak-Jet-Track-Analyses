@@ -6,7 +6,6 @@
 #include "TCanvas.h"
 #include "TPad.h"
 #include "TLegend.h"
-#include "TPaveText.h"
 #include "TLatex.h"
 #include "TArrow.h"
 #include "TLine.h"
@@ -173,38 +172,38 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 if (!hist_file_valid[k])
                     continue;
 
-                std::string hist_handle;
+                std::string hist_name;
                 if (hist_type == "xjg" || hist_type == "dphi") {
                     if (cent_based_plots)
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
                 } else if (hist_type == "ptJet") {
                     if (cent_based_plots)
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
                 } else if (hist_type == "iaa") {
                     if (cent_based_plots)
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j]);
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j]);
                     else
-                        hist_handle = Form("%s_ptBin%d_hiBin%d_rebin", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i]);
+                        hist_name = Form("h1D_%s_ptBin%d_hiBin%d_rebin", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i]);
                 } else if (hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_ptBinAll" || hist_type == "dphi_width_ptBinAll") {
                     if (cent_based_plots)
-                        hist_handle = Form("%s_hiBin%d_%s", hist_type.c_str(), cent_bin_numbers[j], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_hiBin%d_%s", hist_type.c_str(), cent_bin_numbers[j], suffix[k].c_str());
                     else
                         printf("Error: trying to plot %s as a function of pT!\n", hist_type.c_str());
                 } else if (hist_type == "rjg_centBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "dphi_width_centBinAll") {
                     if (cent_based_plots)
                         printf("Error: trying to plot %s as a function of centrality!\n", hist_type.c_str());
                     else
-                        hist_handle = Form("%s_ptBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], suffix[k].c_str());
+                        hist_name = Form("h1D_%s_ptBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], suffix[k].c_str());
                 } else {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
                 if ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos) {
-                    h1[i][j][k] = (TH1D*)hist_files[k]->Get(Form("h1D_%s", hist_handle.c_str()));
+                    h1[i][j][k] = (TH1D*)hist_files[k]->Get(hist_name.c_str());
                     if (!h1[i][j][k])
                         continue;
 
@@ -234,7 +233,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     h1[i][j][k]->Draw(draw_options[k].c_str());
                 } else {
-                    g1[i][j][k] = (TGraphErrors*)hist_files[k]->Get(Form("h1D_%s", hist_handle.c_str()));
+                    g1[i][j][k] = (TGraphErrors*)hist_files[k]->Get(hist_name.c_str());
                     if (!g1[i][j][k])
                         continue;
 
@@ -244,9 +243,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 }
 
                 if (sys_file_valid[k]) {
-                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total", hist_handle.c_str()));
+                    h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total", hist_name.c_str()));
                     if (hist_type == "dphi")
-                        h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("h1D_%s_diff_total_fit", hist_handle.c_str()));
+                        h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total_fit", hist_name.c_str()));
 
                     TBox* sys_box = new TBox();
                     sys_box->SetFillColorAlpha(46, 0.7);
@@ -404,7 +403,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     infoLatex->SetTextAlign(21);
     infoLatex->DrawLatexNDC((canvas_left_margin+1-canvas_right_margin)/2, canvas_top_edge, commonInfo.c_str());
 
-    c1->SaveAs(Form("%s.pdf", canvas_title.c_str()));
+    c1->SaveAs(canvas_title.append(".pdf").c_str());
 
     return 0;
 }
@@ -668,7 +667,7 @@ int main(int argc, char* argv[]) {
         }
     } else {
         printf("Usage: ./multiPanelPlotter.exe <fileList> <configFiles>\n");
-        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/gammaJetPlot.list CutConfigurations/mpp_configs/*.conf\n");
+        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/gammaJetPlot.list Plotting/mpp_configs/*.conf\n");
     }
 
     return 0;
