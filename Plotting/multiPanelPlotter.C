@@ -20,7 +20,6 @@ typedef struct box_t {
     float x1, y1, x2, y2;
 } box_t;
 
-#define _NPLOTS 8
 #define _PBPB_DATA 0
 #define _PBPB_MC 1
 #define _PP_DATA 2
@@ -29,14 +28,31 @@ typedef struct box_t {
 #define _JEWEL_REF 5
 #define _LBT 6
 #define _LBT_REF 7
+#define _NPLOTS 8
 
+static const int hist_width = 250;
+static const int hist_height = 250;
+
+static int rows;
+static int columns;
+
+static float row_scale_factor;
+static float column_scale_factor;
+
+static int axis_font_size;
+static int axis_label_font_size;
+static int latex_font_size;
+static float latex_spacing;
+static int line_width;
+
+void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
 void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
-void set_legend_style(TLegend* l1, int font_size);
-void set_hist_style(TH1D* h1, int k, int columns);
-void set_graph_style(TGraphErrors* g1, int k, int columns);
-void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size);
-void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns);
+void set_legend_style(TLegend* l1);
+void set_hist_style(TH1D* h1, int k);
+void set_graph_style(TGraphErrors* g1, int k);
+void set_axis_style(TH1D* h1, int i, int j);
+void adjust_coordinates(box_t& box, float margin, float edge, int i, int j);
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -47,13 +63,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     std::vector<int> bins_pt[2];
-    std::vector<int> bins_cent[2];
-
     bins_pt[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
     bins_pt[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
     std::vector<int> pt_bin_numbers;
     pt_bin_numbers = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_pt_bin_numbers]);
 
+    std::vector<int> bins_cent[2];
     bins_cent[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     bins_cent[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
     std::vector<int> cent_bin_numbers;
@@ -126,22 +141,18 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     }
 
     bool cent_based_plots = (plot_type == "cent");
-    int columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
-    int rows = cent_based_plots ? pt_bin_numbers.size() : cent_bin_numbers.size();
 
-    const int hist_width = 250;
-    const int hist_height = 250;
+    rows = cent_based_plots ? pt_bin_numbers.size() : cent_bin_numbers.size();
+    columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
+    row_scale_factor = (rows > 1) ? 1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2 : 1.0/(1.0-margin-edge);
+    column_scale_factor = (columns > 1) ? 1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2 : 1.0/(1.0-margin-edge);
+    set_global_style();
 
-    float pad_width = (columns > 1) ? hist_width*(1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : hist_width/(1.0-margin-edge);
-    float pad_height = (rows > 1) ? hist_height*(1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2) : hist_height/(1.0-margin-edge);
+    float pad_width = hist_width * column_scale_factor;
+    float pad_height = hist_height * row_scale_factor;
 
     if (!set_log_scale.size())
         set_log_scale = std::vector<int>(rows, 0);
-
-    const int axis_font_sizes[6] = {0, 13, 13, 13, 18, 24};
-    const int axis_label_font_sizes[6] = {0, 13, 14, 15, 20, 27};
-    const int latex_font_sizes[6] = {0, 12, 13, 14, 16, 20};
-    const float latex_spacing[6] = {0, 0.07, 0.0725, 0.0775, 0.081, 0.085};
 
     TCanvas* c1 = new TCanvas(Form("canvas_%s", canvas_title.c_str()), "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
@@ -208,8 +219,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type.find("xjg_mean") != std::string::npos)
                         h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
 
-                    set_hist_style(h1[i][j][k], k, columns);
-                    set_axis_style(h1[i][j][k], i, j, rows, axis_font_sizes[columns], axis_label_font_sizes[columns]);
+                    set_hist_style(h1[i][j][k], k);
+                    set_axis_style(h1[i][j][k], i, j);
 
                     h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
                     h1[i][j][k]->SetMaximum(y_max[i]);
@@ -227,7 +238,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (!g1[i][j][k])
                         continue;
 
-                    set_graph_style(g1[i][j][k], k, columns);
+                    set_graph_style(g1[i][j][k], k);
 
                     g1[i][j][k]->Draw(graph_draw_options[k].c_str());
                 }
@@ -255,9 +266,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             // Draw legend
             if (i + j == 0) {
                 box_t l_box = (box_t) {l_x1[i], l_y1[i], l_x2[i], l_y2[i]};
-                adjust_coordinates(l_box, margin, edge, i, j, rows, columns);
+                adjust_coordinates(l_box, margin, edge, i, j);
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
-                set_legend_style(l1, latex_font_sizes[columns]);
+                set_legend_style(l1);
 
                 if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
                     for (int k=0; k<_NPLOTS; ++k) {
@@ -293,14 +304,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
-                adjust_coordinates(cms_box, margin, edge, i, j, rows, columns);
+                adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
 
                 TLatex* latexPrelim = new TLatex();
                 latexPrelim->SetTextFont(53);
                 latexPrelim->SetTextSize(13);
                 box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
-                adjust_coordinates(prelim_box, margin, edge, i, j, rows, columns);
+                adjust_coordinates(prelim_box, margin, edge, i, j);
                 latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
 
                 if (columns < 4) {
@@ -315,7 +326,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
-            latexInfo->SetTextSize(latex_font_sizes[columns]);
+            latexInfo->SetTextSize(latex_font_size);
             if (i_x[i] > 0.8)
                 latexInfo->SetTextAlign(31);
             else
@@ -324,9 +335,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (i_x[i] < 0.05 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             else if (i_x[i] > 0.95 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
-                float line_pos = i_y[i] - l * latex_spacing[columns];
+                float line_pos = i_y[i] - l * latex_spacing;
                 box_t info_box = (box_t) {0, 0, i_x[i], line_pos};
-                adjust_coordinates(info_box, margin, edge, i, j, rows, columns);
+                adjust_coordinates(info_box, margin, edge, i, j);
                 latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
             }
 
@@ -361,19 +372,19 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     // Draw energy, lumi info, jet cuts on top
     c1->cd();
 
-    float canvas_left_margin = (columns > 1) ? margin / (1-margin) / (1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : margin;
-    float canvas_right_margin = (columns > 1) ? edge / (1-edge) / (1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : edge;
-    float canvas_top_edge = (rows > 1) ? 1.02 - edge / (1-edge) / (1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2) : 1.02 - edge;
+    float canvas_left_margin = (columns > 1) ? margin / (1-margin) / column_scale_factor : margin;
+    float canvas_right_margin = (columns > 1) ? edge / (1-edge) / column_scale_factor : edge;
+    float canvas_top_edge = (rows > 1) ? 1.02 - edge / (1-edge) / row_scale_factor : 1.02 - edge;
 
     TLatex* energyLatex = new TLatex();
     energyLatex->SetTextFont(43);
-    energyLatex->SetTextSize(latex_font_sizes[columns]);
+    energyLatex->SetTextSize(latex_font_size);
     energyLatex->SetTextAlign(11);
     energyLatex->DrawLatexNDC(canvas_left_margin+0.01, canvas_top_edge, "#sqrt{s_{NN}} = 5.02 TeV");
 
     TLatex* lumiLatex = new TLatex();
     lumiLatex->SetTextFont(43);
-    lumiLatex->SetTextSize(latex_font_sizes[columns]);
+    lumiLatex->SetTextSize(latex_font_size);
     lumiLatex->SetTextAlign(31);
     lumiLatex->DrawLatexNDC(1-canvas_right_margin-0.01, canvas_top_edge, "PbPb 404 #mub^{-1}, pp 27.9 pb^{-1}");
 
@@ -389,7 +400,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     TLatex* infoLatex = new TLatex();
     infoLatex->SetTextFont(43);
-    infoLatex->SetTextSize(latex_font_sizes[columns]);
+    infoLatex->SetTextSize(latex_font_size);
     infoLatex->SetTextAlign(21);
     infoLatex->DrawLatexNDC((canvas_left_margin+1-canvas_right_margin)/2, canvas_top_edge, commonInfo.c_str());
 
@@ -398,13 +409,60 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     return 0;
 }
 
+void set_global_style() {
+    switch (columns) {
+        case 1:
+            axis_font_size = 13;
+            axis_label_font_size = 13;
+            latex_font_size = 12;
+            latex_spacing = 0.07;
+            line_width = 3;
+            break;
+        case 2:
+            axis_font_size = 14;
+            axis_label_font_size = 14;
+            latex_font_size = 13;
+            latex_spacing = 0.0725;
+            line_width = 2;
+            break;
+        case 3:
+            axis_font_size = 15;
+            axis_label_font_size = 16;
+            latex_font_size = 14;
+            latex_spacing = 0.0775;
+            line_width = 2;
+            break;
+        case 4:
+            axis_font_size = 18;
+            axis_label_font_size = 20;
+            latex_font_size = 16;
+            latex_spacing = 0.081;
+            line_width = 1;
+            break;
+        case 5:
+            axis_font_size = 24;
+            axis_label_font_size = 27;
+            latex_font_size = 20;
+            latex_spacing = 0.085;
+            line_width = 1;
+            break;
+        default:
+            axis_font_size = 13;
+            axis_label_font_size = 13;
+            latex_font_size = 12;
+            latex_spacing = 0.07;
+            line_width = 3;
+            break;
+    }
+}
+
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge) {
     c1->Clear();
 
     TPad* pads[rows][columns];
 
-    float pad_width = (columns > 1) ? 1.0 / (1.0/(1.0-margin) + 1.0/(1.0-edge) + columns - 2) : 1.0-margin-edge;
-    float pad_height = (rows > 1) ? 1.0 / (1.0/(1.0-margin) + 1.0/(1.0-edge) + rows - 2) : 1.0-margin-edge;
+    float pad_width = 1.0 / column_scale_factor;
+    float pad_height = 1.0 / row_scale_factor;
 
     float x_min[columns], x_max[columns];
     x_min[0] = 0;
@@ -471,14 +529,14 @@ void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys) {
     }
 }
 
-void set_legend_style(TLegend* l1, int font_size) {
+void set_legend_style(TLegend* l1) {
     l1->SetTextFont(43);
-    l1->SetTextSize(font_size);
+    l1->SetTextSize(latex_font_size);
     l1->SetBorderSize(0);
     l1->SetFillStyle(0);
 }
 
-void set_hist_style(TH1D* h1, int k, int columns) {
+void set_hist_style(TH1D* h1, int k) {
     switch (k) {
         case _PBPB_DATA:
             h1->SetLineColor(kBlack);
@@ -489,7 +547,7 @@ void set_hist_style(TH1D* h1, int k, int columns) {
         case _PBPB_MC:
             h1->SetLineColor(1);
             h1->SetLineStyle(1);
-            h1->SetLineWidth(columns > 3 ? 1 : 3);
+            h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         case _PP_DATA:
@@ -503,25 +561,25 @@ void set_hist_style(TH1D* h1, int k, int columns) {
         case _JEWEL:
             h1->SetLineColor(9);
             h1->SetLineStyle(1);
-            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         case _JEWEL_REF:
             h1->SetLineColor(6);
             h1->SetLineStyle(2);
-            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         case _LBT:
             h1->SetLineColor(7);
             h1->SetLineStyle(1);
-            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         case _LBT_REF:
             h1->SetLineColor(5);
             h1->SetLineStyle(5);
-            h1->SetLineWidth(columns > 3 ? 1 : 2);
+            h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         default:
@@ -529,21 +587,21 @@ void set_hist_style(TH1D* h1, int k, int columns) {
     }
 }
 
-void set_graph_style(TGraphErrors* g1, int k, int columns) {
+void set_graph_style(TGraphErrors* g1, int k) {
     if (k == _JEWEL) {
         g1->SetLineColor(9);
         g1->SetLineStyle(1);
-        g1->SetLineWidth(columns > 3 ? 1 : 2);
+        g1->SetLineWidth(line_width);
         g1->SetMarkerSize(0);
     } else if (k == _JEWEL_REF) {
         g1->SetLineColor(6);
         g1->SetLineStyle(1);
-        g1->SetLineWidth(columns > 3 ? 1 : 2);
+        g1->SetLineWidth(line_width);
         g1->SetMarkerSize(0);
     }
 }
 
-void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int label_font_size) {
+void set_axis_style(TH1D* h1, int i, int j) {
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
 
@@ -553,15 +611,15 @@ void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int la
     y_axis->SetLabelSize(axis_font_size);
 
     x_axis->SetTitleFont(43);
-    x_axis->SetTitleSize(label_font_size);
+    x_axis->SetTitleSize(axis_label_font_size);
     y_axis->SetTitleFont(43);
-    y_axis->SetTitleSize(label_font_size);
+    y_axis->SetTitleSize(axis_label_font_size);
 
     if (i == rows - 1) {
-        x_axis->SetTitleOffset(2.4);
+        x_axis->SetTitleOffset(2);
         x_axis->CenterTitle();
     } else {
-        x_axis->SetLabelOffset(999);
+        x_axis->SetTitleOffset(999);
         x_axis->SetTitle("");
     }
 
@@ -569,17 +627,17 @@ void set_axis_style(TH1D* h1, int i, int j, int rows, int axis_font_size, int la
         y_axis->SetTitleOffset(3.2);
         y_axis->CenterTitle();
     } else {
-        y_axis->SetLabelOffset(999);
+        y_axis->SetTitleOffset(999);
         y_axis->SetTitle("");
     }
 
     if (rows == 1) {
-        x_axis->SetTitleOffset(1.5);
+        x_axis->SetTitleOffset(1.25);
         y_axis->SetTitleOffset(1.6);
     }
 }
 
-void adjust_coordinates(box_t& box, float margin, float edge, int i, int j, int rows, int columns) {
+void adjust_coordinates(box_t& box, float margin, float edge, int i, int j) {
     if (columns == 1) {
         box.x1 = box.x1 * (1-margin-edge) + margin;
         box.x2 = box.x2 * (1-margin-edge) + margin;
