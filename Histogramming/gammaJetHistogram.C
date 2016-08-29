@@ -2,6 +2,7 @@
 #include <TTree.h>
 #include <TH1D.h>
 #include <TMath.h>
+#include <TRandom.h>
 
 #include <vector>
 #include <string>
@@ -100,6 +101,11 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     const bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
 
+    const float smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
+    const bool doSmearingRes = (smearingResJet > 0);
+    const int sysUncFactor = 100;
+    TRandom rand(12345);
+    
     const int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
 
     const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -129,6 +135,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     std::cout << "cut_dR                    = " << cut_dR << std::endl;
 
     std::cout << "doPhotonEnergyScaleSystematics = " << doPhotonEnergyScaleSystematics << std::endl;
+    std::cout << "doSmearingRes = " << doSmearingRes << std::endl;
+    std::cout << "smearingResJet = " << smearingResJet << std::endl;
 
     /// Input Bookkeeping block ///
     TFile* input = TFile::Open(inputFile);
@@ -423,6 +431,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             }
         }
 
+        if(doSmearingRes)
+            weight /= sysUncFactor;
+
         for (int j=0; j<nBins_hiBin; ++j) {
             int smearBin = 0;
             if (isHI) {
@@ -440,34 +451,49 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             }
 
             for (int ijet = 0; ijet < jet.nref; ijet++) {
-                // jet cuts
-                // jteta cut moved to skim
-                // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
-                if ((*gammaJet[0].jetID)[ijet] < cut_jetID)
-                    continue;
-                if ((*jet.jtpt_smeared)[smearBin][ijet] < cut_jetpt)
-                    continue;
-                if ((*gammaJet[smearBin].dR)[ijet] < cut_dR)
-                    continue;
-
-                for (int i=0; i<nBins_pt; ++i) {
-                    if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
+                int multiplyJets = 1;
+                if(doSmearingRes)
+                    multiplyJets = sysUncFactor;
+                for(int iResSmear = 0; iResSmear < multiplyJets; iResSmear++){
+                    float jetpt = (*jet.jtpt_smeared)[smearBin][ijet];
+                    float smearFactor = 1;
+                    if(doSmearingRes) {
+                        smearFactor = rand.Gaus(1,smearingResJet);
+                        jetpt *= smearFactor;
+                    }
+                    // jet cuts
+                    // jteta cut moved to skim
+                    // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
+                    if ((*gammaJet[0].jetID)[ijet] < cut_jetID)
+                        continue;
+                    if (jetpt < cut_jetpt)
+                        continue;
+                    if ((*gammaJet[smearBin].dR)[ijet] < cut_dR)
                         continue;
 
-                    // fill histograms
-                    // dphi = 1
-                    corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gammaJet[smearBin].dphi)[ijet]), weight);
-                    corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
-                    //apply dphi cuts now
-                    if (TMath::Abs((*gammaJet[smearBin].dphi)[ijet]) <= cut_awayRange)
-                        continue;
-                    // xjg = 0
-                    // jtpt = 2
-                    float xjg = doPhotonEnergyScaleSystematics ? (*gammaJet[smearBin].xjgCorrected_sys)[ijet] : (*gammaJet[smearBin].xjgCorrected)[ijet];
-                    corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
-                    corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
-                    corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill((*jet.jtpt_smeared)[smearBin][ijet], weight);
-                    corrHists[2][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                    for (int i=0; i<nBins_pt; ++i) {
+                        if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
+                            continue;
+
+                        // fill histograms
+                        // dphi = 1
+                        corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gammaJet[smearBin].dphi)[ijet]), weight);
+                        corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                        
+                        //apply dphi cuts now
+                        if (TMath::Abs((*gammaJet[smearBin].dphi)[ijet]) <= cut_awayRange)
+                            continue;
+                        // xjg = 0
+                        // jtpt = 2
+                        float xjg = doPhotonEnergyScaleSystematics ? (*gammaJet[smearBin].xjgCorrected_sys)[ijet] : (*gammaJet[smearBin].xjgCorrected)[ijet];
+                        if(doSmearingRes){
+                            xjg *= smearFactor;
+                        }
+                        corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
+                        corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                        corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(jetpt, weight);
+                        corrHists[2][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                    }
                 }
             }
         }
