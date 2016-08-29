@@ -85,16 +85,16 @@ OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 # # #rm -r ${H_INDIR}/pp_MC_gammaJetHistogram_unmerged
 
 ######## Serial Histogramming Section ############## Somehow we got faster!?!!?
-# echo "## Histogramming"
-# time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_JER.conf ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_Data_gammaJetHistogram_JER.root > ${OUTDIR}/PbPb_Data_gammaJetHistogram_JER.root.log &
+echo "## Histogramming"
+time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_JER.conf ${OUTDIR}/PbPb_Data_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_Data_gammaJetHistogram_JER.root > ${OUTDIR}/PbPb_Data_gammaJetHistogram_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_mc_JER.conf ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetHistogram_JER.root > ${OUTDIR}/PbPb_MC_gammaJetHistogram_JER.root.log &
+time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_mc_JER.conf ${OUTDIR}/PbPb_MC_gammaJetSkim_Corrected.root ${OUTDIR}/PbPb_MC_gammaJetHistogram_JER.root > ${OUTDIR}/PbPb_MC_gammaJetHistogram_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp_JER.conf ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root ${OUTDIR}/pp_Data_gammaJetHistogram_JER.root > ${OUTDIR}/pp_Data_gammaJetHistogram_JER.root.log &
+time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp_JER.conf ${OUTDIR}/pp_Data_gammaJetSkim_Corrected.root ${OUTDIR}/pp_Data_gammaJetHistogram_JER.root > ${OUTDIR}/pp_Data_gammaJetHistogram_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp_mc_JER.conf ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetHistogram_JER.root > ${OUTDIR}/pp_MC_gammaJetHistogram_JER.root.log &
+time ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet_pp_mc_JER.conf ${OUTDIR}/pp_MC_gammaJetSkim_Corrected.root ${OUTDIR}/pp_MC_gammaJetHistogram_JER.root > ${OUTDIR}/pp_MC_gammaJetHistogram_JER.root.log &
 
-# wait
+wait
 
 # ######## JES mumbojumbo ################
 # time ./Performance/JES_Fitting.exe ./CutConfigurations/gammaJet_JES_DOWN.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram_JES_DOWN.root ${OUTDIR}/PbPb_Data_gammaJetHistogram_xjg_JES_DOWN.root > ${OUTDIR}/PbPb_Data_gammaJetHistogram_xjg_JES_DOWN.root.log &
@@ -108,19 +108,19 @@ OUTDIR=/export/d00/scratch/luck/GAMMAJETFILES/${DATE}
 # wait
 
 
-# ######## Histogram Arithmetic Section ##############
-# echo "## Arithmetic"
-# time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_JES_DOWN.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram_JES_DOWN.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root.log &
+######## Histogram Arithmetic Section ##############
+echo "## Arithmetic"
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_JER.conf ${OUTDIR}/PbPb_Data_gammaJetHistogram_JER.root ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_JER.root > ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc_JES_DOWN.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram_JES_DOWN.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root > ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_mc_JER.conf ${OUTDIR}/PbPb_MC_gammaJetHistogram_JER.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_JER.root > ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_JES_DOWN.conf ${OUTDIR}/pp_Data_gammaJetHistogram_JES_DOWN.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root > ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_JER.conf ${OUTDIR}/pp_Data_gammaJetHistogram_JER.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_JER.root > ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_JER.root.log &
 
-# time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_mc_JES_DOWN.conf ${OUTDIR}/pp_MC_gammaJetHistogram_JES_DOWN.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root > ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root.log &
+time ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet_pp_mc_JER.conf ${OUTDIR}/pp_MC_gammaJetHistogram_JER.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_JER.root > ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_JER.root.log &
 
-# wait
+wait
 
 ######## IAA Section ##############
-time ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet_xjg_JES_DOWN.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_xjg_JES_DOWN.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_xjg_JES_DOWN.root ${OUTDIR}/gammaJetHistograms_xjg_JES_DOWN.root > ${OUTDIR}/gammaJetHistograms_xjg_JES_DOWN.root.log &
+time ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet_JER.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic_JER.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_JER.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic_JER.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_JER.root ${OUTDIR}/gammaJetHistograms_JER.root > ${OUTDIR}/gammaJetHistograms_JER.root.log &
 
 wait
