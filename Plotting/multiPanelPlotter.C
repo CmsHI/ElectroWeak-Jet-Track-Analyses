@@ -145,11 +145,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     };
     std::string graph_draw_options[_NPLOTS] = {
         "", "", "", "",
-        "same l []", "same l []", "", "", "same l e3", ""
+        "same l z", "same l z", "", "", "same l e3", ""
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia",
-        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)", "Hybrid Model", "pp (Hybrid Model)"
+        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))", "Hybrid Model", "pp (Hybrid Model)"
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l"};
 
@@ -371,7 +371,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             // Draw arrow for xjg mean
             const std::vector<int> show_xjg_arrow = {_PBPB_DATA, _PP_DATA};
             const std::vector<int> xjg_arrow_colour = {46, 30};
-            if (hist_type == "xjg") {
+            // Don't draw arrows if comparing against theory
+            if (hist_type == "xjg" && hist_file_valid[_PBPB_DATA] && hist_file_valid[_PP_DATA]) {
                 for (std::size_t n=0; n<show_xjg_arrow.size(); ++n) {
                     if (hist_file_valid[show_xjg_arrow[n]]) {
                         TArrow* arrow = new TArrow();
