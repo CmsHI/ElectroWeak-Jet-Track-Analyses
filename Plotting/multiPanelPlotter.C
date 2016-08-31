@@ -27,7 +27,9 @@ typedef struct box_t {
 #define _JEWEL_REF 5
 #define _LBT 6
 #define _LBT_REF 7
-#define _NPLOTS 8
+#define _HYBRID 8
+#define _HYBRID_REF 9
+#define _NPLOTS 10
 
 static const int hist_width = 250;
 static const int hist_height = 250;
@@ -123,19 +125,35 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_PP_MC] = false;
         hist_file_valid[_JEWEL_REF] = false;
         hist_file_valid[_LBT_REF] = false;
+        hist_file_valid[_HYBRID_REF] = false;
     } else if (hist_type == "ptJet") {
         hist_file_valid[_PBPB_MC] = false;
         hist_file_valid[_PP_MC] = false;
     }
 
-    std::string suffix[_NPLOTS] = {"PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC", "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref"};
-    std::string draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "same hist x0", "same hist e x0", "same hist e x0", "same hist x0", "same hist x0"};
-    std::string sys_draw_options[_NPLOTS] = {"same e x0", "same hist x0", "same e x0", "same hist x0", "", "", "", ""};
-    std::string graph_draw_options[_NPLOTS] = {"", "", "", "", "same p[]", "same p[]", "", ""};
-    std::string legend_labels[_NPLOTS] = {"PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia", "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)"};
-    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l"};
+    std::string suffix[_NPLOTS] = {
+        "PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC",
+        "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref", "Hybrid", "Hybrid_ppref"
+    };
+    std::string draw_options[_NPLOTS] = {
+        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
+        "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0"
+    };
+    std::string sys_draw_options[_NPLOTS] = {
+        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
+        "", "", "", "", "", ""
+    };
+    std::string graph_draw_options[_NPLOTS] = {
+        "", "", "", "",
+        "same l []", "same l []", "", "", "same l e3", ""
+    };
+    std::string legend_labels[_NPLOTS] = {
+        "PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia",
+        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT", "pp (LBT)", "Hybrid Model", "pp (Hybrid Model)"
+    };
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT};
+    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID, _HYBRID_REF};
     for (int i=0; i<_NPLOTS; ++i) {
         int j = draw_order[i];
         if (hist_file_valid[j]) {
@@ -207,7 +225,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
-                if ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos) {
+                if (k != _HYBRID && ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos)) {
                     h1[i][j][k] = (TH1D*)hist_files[k]->Get(hist_name.c_str());
                     if (!h1[i][j][k])
                         continue;
@@ -233,9 +251,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
 
-                    if ((k == _JEWEL || k == _JEWEL_REF) && hist_type == "dphi")
+                    if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF) && hist_type == "dphi")
                         h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
 
+                    // Workaround for not being able to draw a line through histogram contents and error bars at the same time
+                    if (k == _JEWEL || k == _JEWEL_REF || k == _HYBRID || k == _HYBRID_REF)
+                        h1[i][j][k]->Draw("same e x0");
                     h1[i][j][k]->Draw(draw_options[k].c_str());
                 } else {
                     g1[i][j][k] = (TGraphErrors*)hist_files[k]->Get(hist_name.c_str());
@@ -243,6 +264,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         continue;
 
                     set_graph_style(g1[i][j][k], k);
+                    if ((k == _HYBRID || k == _HYBRID_REF) && hist_name.find("dphi") != std::string::npos)
+                        g1[i][j][k]->SetLineWidth(line_width);
 
                     g1[i][j][k]->Draw(graph_draw_options[k].c_str());
                 }
@@ -277,7 +300,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
                     for (int k=0; k<_NPLOTS; ++k) {
                         if (hist_file_valid[k]) {
-                            if ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos) {
+                            if (k == _HYBRID || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
                                 if (g1[i][j][k])
                                     l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
                             } else {
@@ -575,24 +598,38 @@ void set_hist_style(TH1D* h1, int k) {
             h1->SetLineColor(9);
             h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
+            h1->SetMarkerColor(9);
+            h1->SetMarkerStyle(20);
             h1->SetMarkerSize(0);
             break;
         case _JEWEL_REF:
-            h1->SetLineColor(6);
-            h1->SetLineStyle(2);
+            h1->SetLineColor(9);
+            h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
+            h1->SetMarkerColor(9);
+            h1->SetMarkerStyle(20);
             h1->SetMarkerSize(0);
             break;
         case _LBT:
-            h1->SetLineColor(7);
+            h1->SetLineColor(kOrange-3);
             h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
             h1->SetMarkerSize(0);
             break;
         case _LBT_REF:
-            h1->SetLineColor(5);
-            h1->SetLineStyle(5);
+            h1->SetLineColor(kOrange-3);
+            h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
+            h1->SetMarkerSize(0);
+            break;
+        case _HYBRID:
+            break;
+        case _HYBRID_REF:
+            h1->SetLineColor(kTeal+9);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(line_width);
+            h1->SetMarkerColor(kTeal+9);
+            h1->SetMarkerStyle(20);
             h1->SetMarkerSize(0);
             break;
         default:
@@ -607,10 +644,16 @@ void set_graph_style(TGraphErrors* g1, int k) {
         g1->SetLineWidth(line_width);
         g1->SetMarkerSize(0);
     } else if (k == _JEWEL_REF) {
-        g1->SetLineColor(6);
+        g1->SetLineColor(9);
         g1->SetLineStyle(1);
         g1->SetLineWidth(line_width);
         g1->SetMarkerSize(0);
+    } else if (k == _HYBRID) {
+        g1->SetLineColorAlpha(kTeal+9, 0.7);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(0);
+        g1->SetFillColor(kTeal+9);
+        g1->SetFillColorAlpha(kTeal+9, 0.7);
     }
 }
 
