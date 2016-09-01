@@ -126,9 +126,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_JEWEL_REF] = false;
         hist_file_valid[_LBT_REF] = false;
         hist_file_valid[_HYBRID_REF] = false;
-    } else if (hist_type == "ptJet") {
-        hist_file_valid[_PBPB_MC] = false;
-        hist_file_valid[_PP_MC] = false;
     }
 
     std::string suffix[_NPLOTS] = {
@@ -148,7 +145,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "same l z", "same l z", "", "", "same l e3", ""
     };
     std::string legend_labels[_NPLOTS] = {
-        "PbPb", "Pythia + Hydjet", "pp (smeared)", "Pythia",
+        "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
         "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))", "Hybrid Model", "pp (Hybrid Model)"
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l"};
@@ -286,7 +283,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     h1[i][j][k]->SetFillColor(sys_box->GetFillColor());
                     h1[i][j][k]->SetFillStyle(1001);
-                    h1[i][j][k]->SetLineColor(h1[i][j][k]->GetFillColor());
                 }
             }
 
@@ -320,7 +316,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             int cent_index = cent_based_plots ? j : i;
             int pt_index = cent_based_plots ? i : j;
 
-            plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
+            if (hist_type.find("centBinAll") == std::string::npos)
+                plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
                 plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
             else
