@@ -49,7 +49,7 @@ static float axis_label_cover_size;
 
 void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
-void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys);
+void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
 void set_legend_style(TLegend* l1);
 void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
@@ -245,6 +245,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     h1[i][j][k]->SetMaximum(y_max[i]);
                     h1[i][j][k]->SetMinimum(y_min[i]);
 
+                    if (hist_type == "dphi" && set_log_scale[i])
+                        h1[i][j][k]->SetAxisRange(0.9, 3.14, "X");
+
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
 
@@ -278,7 +281,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (!k) sys_box->SetFillColorAlpha(46, 0.7);
                     else sys_box->SetFillColorAlpha(30, 0.7);
 
-                    draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k]);
+                    if (hist_type == "dphi" && set_log_scale[i])
+                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k], 6);
+                    else
+                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k]);
                     h1[i][j][k]->Draw(sys_draw_options[k].c_str());
 
                     h1[i][j][k]->SetFillColor(sys_box->GetFillColor());
@@ -540,9 +546,9 @@ void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge)
     }
 }
 
-void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys) {
+void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
-    for (int i=1; i<=nBins; ++i) {
+    for (int i=first_bin; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
         if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
         if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
