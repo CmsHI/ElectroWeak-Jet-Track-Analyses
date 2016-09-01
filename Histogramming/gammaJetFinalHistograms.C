@@ -56,7 +56,9 @@ int gammaJetFinalHistograms(const TString configFile,
     const int n_iaa_bins = 8;
     double iaa_bins[n_iaa_bins] = {0, 30, 40, 60, 100, 150, 200, 300};
     TH1D* h_ptJet_PbPb_Data_rebin[nPtBins][nCentBins];
+    TH1D* h_ptJet_PbPb_MC_rebin[nPtBins][nCentBins];
     TH1D* h_ptJet_pp_Data_rebin[nPtBins][nCentBins];
+    TH1D* h_ptJet_pp_MC_rebin[nPtBins][nCentBins];
 
     int iaa_bin_cutoff[nPtBins][nCentBins] = {
         {8, 8, 8, 8, 8, 6, 6},
@@ -114,7 +116,12 @@ int gammaJetFinalHistograms(const TString configFile,
             h_ptJet_pp_MC[i][j]->Write(Form("h1D_ptJet_ptBin%i_hiBin%i_pp_MC", i, j), TObject::kOverwrite);
 
             h_ptJet_PbPb_Data_rebin[i][j] = (TH1D*)h_ptJet_PbPb_Data[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_PbPb_Data_rebin", i, j), iaa_bins);
+            h_ptJet_PbPb_MC_rebin[i][j] = (TH1D*)h_ptJet_PbPb_MC[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_PbPb_MC_rebin", i, j), iaa_bins);
             h_ptJet_pp_Data_rebin[i][j] = (TH1D*)h_ptJet_pp_Data[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_Data_rebin", i, j), iaa_bins);
+            h_ptJet_pp_MC_rebin[i][j] = (TH1D*)h_ptJet_pp_MC[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_MC_rebin", i, j), iaa_bins);
+
+            h_ptJet_PbPb_MC_rebin[i][j]->Write("", TObject::kOverwrite);
+            h_ptJet_pp_MC_rebin[i][j]->Write("", TObject::kOverwrite);
 
             h_IAA[i][j] = (TH1D*)h_ptJet_PbPb_Data_rebin[i][j]->Clone(Form("h1D_iaa_ptBin%i_hiBin%i_rebin", i, j));
             h_IAA[i][j]->SetTitle(Form("%.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %%", ptBins[0][i], ptBins[1][i], centBins[0][j]/2, centBins[1][j]/2));
