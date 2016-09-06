@@ -246,7 +246,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     h1[i][j][k]->SetMinimum(y_min[i]);
 
                     if (hist_type == "dphi" && set_log_scale[i])
-                        h1[i][j][k]->SetAxisRange(0.9, 3.14, "X");
+                        h1[i][j][k]->SetAxisRange(2, 3.14, "X");
 
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
@@ -282,7 +282,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     else sys_box->SetFillColorAlpha(30, 0.7);
 
                     if (hist_type == "dphi" && set_log_scale[i])
-                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k], 6);
+                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k], 13);
                     else
                         draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k]);
                     h1[i][j][k]->Draw(sys_draw_options[k].c_str());
@@ -372,7 +372,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw arrow for xjg mean
-            const std::vector<int> show_xjg_arrow = {_PBPB_DATA, _PP_DATA};
+            const std::vector<int> show_xjg_arrow = {};
             const std::vector<int> xjg_arrow_colour = {46, 30};
             // Don't draw arrows if comparing against theory
             if (hist_type == "xjg" && hist_file_valid[_PBPB_DATA] && hist_file_valid[_PP_DATA]) {
