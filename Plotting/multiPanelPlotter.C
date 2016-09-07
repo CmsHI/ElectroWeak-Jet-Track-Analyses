@@ -15,6 +15,14 @@
 
 #include <string>
 
+#define H1D_TO_GRAPH(g_name)                                                        \
+    int npoints = h1[i][j][k]->GetNbinsX();                                         \
+    g_name = new TGraphErrors(npoints);                                             \
+    for (int p=0; p<npoints; ++p) {                                                 \
+        g_name->SetPoint(p, ncoll_w_npart[p], h1[i][j][k]->GetBinContent(p+1));     \
+        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+1));                 \
+    }                                                                               \
+
 typedef struct box_t {
     float x1, y1, x2, y2;
 } box_t;
@@ -30,6 +38,8 @@ typedef struct box_t {
 #define _HYBRID 8
 #define _HYBRID_REF 9
 #define _NPLOTS 10
+
+const float ncoll_w_npart[4] = {21.87, 118.8, 239.9, 363.4};
 
 static const int hist_width = 250;
 static const int hist_height = 250;
@@ -49,13 +59,16 @@ static float axis_label_cover_size;
 
 void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
-void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
 void set_legend_style(TLegend* l1);
 void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
 void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_offset);
+void set_graph_axis_style(TGraphErrors* g1, int i, int j, float x_axis_offset, float y_axis_offset);
 void adjust_coordinates(box_t& box, float margin, float edge, int i, int j);
 void cover_axis(std::string hist_type, float margin, float edge);
+void trash_histogram(TH1D* h1);
 
 int multiPanelPlotter(const TString inputFile, const TString configFile) {
     gStyle->SetOptTitle(0);
@@ -141,7 +154,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
-        "", "", "", "",
+        "same p z", "same l", "same p z", " same l",
         "same l z", "same l z", "", "", "same l e3", ""
     };
     std::string legend_labels[_NPLOTS] = {
@@ -237,6 +250,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
                     if (hist_type.find("xjg_mean") != std::string::npos)
                         h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
+                    if (hist_type.find("centBinAll") != std::string::npos)
+                        h1[i][j][k]->SetXTitle("N_{coll} weighted <N_{part}>");
 
                     set_hist_style(h1[i][j][k], k);
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
@@ -257,7 +272,19 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     if (k == _JEWEL || k == _JEWEL_REF || k == _HYBRID || k == _HYBRID_REF)
                         h1[i][j][k]->Draw("same e x0");
-                    h1[i][j][k]->Draw(draw_options[k].c_str());
+
+                    if (k < _JEWEL && hist_type.find("centBinAll") != std::string::npos) {
+                        H1D_TO_GRAPH(g1[i][j][k]);
+                        set_graph_style(g1[i][j][k], k);
+
+                        TH1D* h_tmp = (TH1D*)h1[i][j][k]->Clone();
+                        trash_histogram(h_tmp);
+
+                        h_tmp->Draw(draw_options[k].c_str());
+                        g1[i][j][k]->Draw(graph_draw_options[k].c_str());
+                    } else {
+                        h1[i][j][k]->Draw(draw_options[k].c_str());
+                    }
                 } else {
                     g1[i][j][k] = (TGraphErrors*)hist_files[k]->Get(hist_name.c_str());
                     if (!g1[i][j][k])
@@ -276,16 +303,22 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total_fit", hist_name.c_str()));
 
                     TBox* sys_box = new TBox();
-                    sys_box->SetFillColorAlpha(46, 0.7);
                     sys_box->SetFillStyle(1001);
-                    if (!k) sys_box->SetFillColorAlpha(46, 0.7);
-                    else sys_box->SetFillColorAlpha(30, 0.7);
+                    if (k == _PBPB_DATA)
+                        sys_box->SetFillColorAlpha(46, 0.7);
+                    else if (k == _PP_DATA)
+                        sys_box->SetFillColorAlpha(30, 0.7);
 
-                    if (hist_type == "dphi" && set_log_scale[i])
-                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k], 13);
-                    else
-                        draw_sys_uncertainties(sys_box, h1[i][j][k], h1_sys[i][j][k]);
-                    h1[i][j][k]->Draw(sys_draw_options[k].c_str());
+                    if (hist_type.find("centBinAll") == std::string::npos) {
+                        if (hist_type == "dphi" && set_log_scale[i])
+                            draw_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k], 13);
+                        else
+                            draw_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k]);
+                        h1[i][j][k]->Draw(sys_draw_options[k].c_str());
+                    } else {
+                        draw_graph_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k]);
+                        g1[i][j][k]->Draw(graph_draw_options[k].c_str());
+                    }
 
                     h1[i][j][k]->SetFillColor(sys_box->GetFillColor());
                     h1[i][j][k]->SetFillStyle(1001);
@@ -546,7 +579,7 @@ void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge)
     }
 }
 
-void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
+void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
     for (int i=first_bin; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
@@ -562,6 +595,28 @@ void draw_sys_uncertainties(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
 
         box->SetX1(x - (bin_width/2));
         box->SetX2(x + (bin_width/2));
+        box->SetY1(std::max(val - error, h1->GetMinimum()));
+        box->SetY2(std::min(val + error, h1->GetMaximum()));
+
+        box->DrawClone();
+    }
+}
+
+void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
+    int nBins = h1->GetNbinsX();
+    for (int i=first_bin; i<=nBins; ++i) {
+        if (h1->GetBinError(i) == 0) continue;
+        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
+        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
+
+        double x = ncoll_w_npart[i-first_bin];
+        int sys_bin = h1_sys->FindBin(x);
+
+        double val = h1->GetBinContent(i);
+        double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
+
+        box->SetX1(x - 10);
+        box->SetX2(x + 10);
         box->SetY1(std::max(val - error, h1->GetMinimum()));
         box->SetY2(std::min(val + error, h1->GetMaximum()));
 
@@ -642,7 +697,22 @@ void set_hist_style(TH1D* h1, int k) {
 }
 
 void set_graph_style(TGraphErrors* g1, int k) {
-    if (k == _JEWEL) {
+    if (k == _PBPB_DATA) {
+        g1->SetLineColor(kBlack);
+        g1->SetMarkerSize(0.64);
+        g1->SetMarkerStyle(kFullCircle);
+        g1->SetMarkerColor(kBlack);
+    } else if (k == _PBPB_MC) {
+        g1->SetLineColor(1);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(line_width);
+        g1->SetMarkerSize(0);
+    } else if (k == _PP_DATA) {
+        g1->SetLineColor(kBlack);
+        g1->SetMarkerSize(0.64);
+        g1->SetMarkerStyle(kOpenCircle);
+        g1->SetMarkerColor(kBlack);
+    } else if (k == _JEWEL) {
         g1->SetLineColor(9);
         g1->SetLineStyle(1);
         g1->SetLineWidth(line_width);
@@ -664,6 +734,37 @@ void set_graph_style(TGraphErrors* g1, int k) {
 void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_offset) {
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
+
+    x_axis->SetLabelFont(43);
+    x_axis->SetLabelSize(axis_font_size);
+    y_axis->SetLabelFont(43);
+    y_axis->SetLabelSize(axis_font_size);
+
+    x_axis->SetTitleFont(43);
+    x_axis->SetTitleSize(axis_label_font_size);
+    y_axis->SetTitleFont(43);
+    y_axis->SetTitleSize(axis_label_font_size);
+
+    if (i == rows - 1) {
+        x_axis->SetTitleOffset(x_axis_offset);
+        x_axis->CenterTitle();
+    } else {
+        x_axis->SetTitleOffset(999);
+        x_axis->SetTitle("");
+    }
+
+    if (j == 0) {
+        y_axis->SetTitleOffset(y_axis_offset);
+        y_axis->CenterTitle();
+    } else {
+        y_axis->SetTitleOffset(999);
+        y_axis->SetTitle("");
+    }
+}
+
+void set_graph_axis_style(TGraphErrors* g1, int i, int j, float x_axis_offset, float y_axis_offset) {
+    TAxis* x_axis = g1->GetXaxis();
+    TAxis* y_axis = g1->GetYaxis();
 
     x_axis->SetLabelFont(43);
     x_axis->SetLabelSize(axis_font_size);
@@ -745,6 +846,11 @@ void cover_axis(std::string hist_type, float margin, float edge) {
         x_covers[p] = new TPad(Form("x_cover_%d", p), Form("x_cover_%d", p), x_min[p]-axis_label_cover_size_wide, y_min[rows-1]-0.05, x_min[p]+axis_label_cover_size_wide, y_min[rows-1]-0.0024);
         x_covers[p]->Draw();
     }
+}
+
+void trash_histogram(TH1D* h1) {
+    for (int i=1; i<=h1->GetNbinsX(); ++i)
+        h1->SetBinContent(i, -100);
 }
 
 int main(int argc, char* argv[]) {
