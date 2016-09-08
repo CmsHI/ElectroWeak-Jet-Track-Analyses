@@ -20,9 +20,10 @@ int printPurity(const TString configFile, const TString inputFile, const TString
 
   // input configuration
   int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+  const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
+
   // verbose about input configuration
   std::cout << "Input Configuration :" << std::endl;
-  const char* collisionName = getCollisionTypeName((COLL::TYPE)collision).c_str();
   std::cout << "collision = " << collisionName << std::endl;
 
   bool isHI = collisionIsHI((COLL::TYPE)collision);
@@ -61,25 +62,25 @@ int printPurity(const TString configFile, const TString inputFile, const TString
   int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
   int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
-  TFile *input = TFile::Open(inputFile);
-  TTree *tHlt = (TTree*)input->Get("hltTree");
-  TTree *tPho = (TTree*)input->Get("EventTree");    // photons
-  TTree *tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
-  TTree *tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+  TFile* input = TFile::Open(inputFile);
+  TTree* tHlt = (TTree*)input->Get("hltTree");
+  TTree* tPho = (TTree*)input->Get("EventTree");    // photons
+  TTree* tgj  = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
+  TTree* tHiEvt = (TTree*)input->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
   /// Purity Calculation Block ///
   // mc only needed for purity calc.
-  TFile *inputMCFile = TFile::Open(inputMC);
-  TTree *tmcHlt = (TTree*)inputMCFile->Get("hltTree");
-  TTree *tmcPho = (TTree*)inputMCFile->Get("EventTree");    // photons
-  TTree *tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
-  TTree *tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
+  TFile* inputMCFile = TFile::Open(inputMC);
+  TTree* tmcHlt = (TTree*)inputMCFile->Get("hltTree");
+  TTree* tmcPho = (TTree*)inputMCFile->Get("EventTree");    // photons
+  TTree* tmcgj  = (TTree*)inputMCFile->Get(Form("gamma_%s", jetCollection.c_str()));
+  TTree* tmcHiEvt = (TTree*)inputMCFile->Get("HiEvt");       // HiEvt tree will be placed in PP forest as well.
 
-  TFile *inputBKGMCFile = 0;
-  TTree *tbkgmcHlt = 0;
-  TTree *tbkgmcPho = 0;
-  TTree *tbkgmcgj = 0;
-  TTree *tbkgmcHiEvt = 0;
+  TFile* inputBKGMCFile = 0;
+  TTree* tbkgmcHlt = 0;
+  TTree* tbkgmcPho = 0;
+  TTree* tbkgmcgj = 0;
+  TTree* tbkgmcHiEvt = 0;
 
   if (inputBKGMC != "DUMMY") {
     std::cout << "Background MC file found, background template will come from MC." << std::endl;
@@ -106,7 +107,6 @@ int printPurity(const TString configFile, const TString inputFile, const TString
   tmcgj->AddFriend(tmcPho, "Pho");
   tmcgj->AddFriend(tmcHiEvt, "HiEvt");
 
-  // should be migrated to config files ASAP
   // noise cut moved to skim
   const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
   TCut sidebandIsolation;
@@ -165,10 +165,10 @@ int printPurity(const TString configFile, const TString inputFile, const TString
       std::cout << "chisq for ptBin" << i << " hiBin" << j << ": " << fitr.chisq << std::endl;
 
       if (savePlots) {
-        TCanvas *c1 = new TCanvas();
-        TH1F *hSigPdf = fitr.sigPdf;
-        TH1F *hBckPdf = fitr.bckPdf;
-        TH1D *hData1  = fitr.data;
+        TCanvas* c1 = new TCanvas();
+        TH1F* hSigPdf = fitr.sigPdf;
+        TH1F* hBckPdf = fitr.bckPdf;
+        TH1D* hData1  = fitr.data;
         hSigPdf->Add(hBckPdf);
 
         handsomeTH1(hSigPdf);
@@ -194,7 +194,7 @@ int printPurity(const TString configFile, const TString inputFile, const TString
         hBckPdf->DrawCopy("same hist");
         hData1->DrawCopy("same e");
 
-        TLegend *t3 = new TLegend(0.5, 0.68, 0.92, 0.92);
+        TLegend* t3 = new TLegend(0.5, 0.68, 0.92, 0.92);
         t3->AddEntry(hData1, Form("%s #sqrt{s}_{_{NN}}=5.02 TeV", collisionTypeLabel.c_str()), "pl");
         t3->AddEntry(hSigPdf, "Signal", "lf");
         t3->AddEntry(hBckPdf, "Background", "lf");
