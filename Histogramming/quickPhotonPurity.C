@@ -6,6 +6,7 @@
 // of the background and a MC calculation of the signal. This info is
 // used to do a template fit in the sigmaIetaIeta variable.
 
+#include "TStyle.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TNtuple.h"
@@ -45,6 +46,8 @@ const Int_t nETABINS = sizeof(ETABINS)/sizeof(Double_t) -1;
 
 void quickPhotonPurity(const TString configFile, const TString inputData, const TString inputMC, const TString outputName)
 {
+  gStyle->SetOptStat(0);
+
   TH1::SetDefaultSumw2();
 
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -55,7 +58,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
   TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
   std::string jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
-  
+
   TFile *input = TFile::Open(inputData);
   TTree *tHlt = (TTree*)input->Get("hltTree");
   TTree *tPho = (TTree*)input->Get("EventTree");    // photons
@@ -78,7 +81,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 
   TFile *outFile = new TFile(Form("%s.root",outputName.Data()),"RECREATE");
 
-  const TCut sidebandIsolation = "((pho_sumIsoCorrected[phoIdx])>10) && ((pho_sumIsoCorrected)<20) && phoHoverE[phoIdx]<0.1";
+  const TCut sidebandIsolation = "((pho_sumIsoCorrected[phoIdx])>10) && ((pho_sumIsoCorrected[phoIdx])<20) && phoHoverE[phoIdx]<0.1";
   const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
 
   //TCanvas *cPurity[nPTBINS];
@@ -213,7 +216,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
 	drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c",
 		      PTBINS[i], PTBINS[i+1]),
 		 0.25, 0.90,1,27);
-	  
+
 	} else if(i!= 0 && i != 4){
 	drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c",
 		      PTBINS[i], PTBINS[i+1]),
