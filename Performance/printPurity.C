@@ -10,10 +10,10 @@
 #include "../Histogramming/PhotonPurity.h"
 #include "../Plotting/commonUtility.h"
 
-void printPurity(const TString configFile, const TString inputFile, const TString inputMC, const bool savePlots = false, const TString inputBKGMC="DUMMY"){
+void printPurity(const TString configFile, const TString inputFile, const TString inputMC, const bool savePlots = false, const TString inputBKGMC="DUMMY") {
   InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
   CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
-  if(!configCuts.isValid){
+  if (!configCuts.isValid) {
     std::cout << "Invalid configfile, terminating." << std::endl;
     return;
   }
@@ -31,7 +31,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   bool isMC = collisionIsMC((COLL::TYPE)collision);
 
   std::string collisionTypeLabel = "PbPb";
-  if(isHI && isMC) {
+  if (isHI && isMC) {
     collisionTypeLabel = "PbPb_MC";
   } else if (!isHI && !isMC) {
     collisionTypeLabel = "PP";
@@ -53,13 +53,13 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
 
   // process cuts
   bins_pt[0] = ConfigurationParser::ParseListFloat(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
   bins_pt[1] = ConfigurationParser::ParseListFloat(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
+                 configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
   bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+                    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
   bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+                    configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
   trigger = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_trigger_gammaJet].c_str();
   // trigger is named differently in MC, hardcode for now :(
@@ -95,7 +95,7 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   TTree *tbkgmcPho;
   TTree *tbkgmcgj = 0;
   TTree *tbkgmcHiEvt;
-  if(inputBKGMC != "DUMMY"){
+  if (inputBKGMC != "DUMMY") {
     std::cout << "Background MC file found, background template will come from MC." << std::endl;
     std::cout << inputBKGMC << std::endl;
     inputBKGMCFile = TFile::Open(inputBKGMC);
@@ -122,35 +122,35 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   // noise cut moved to skim
   const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
   TCut sidebandIsolation;
-  if(useCorrectedSumIso){
-    sidebandIsolation = Form("(pho_sumIsoCorrected[phoIdx]>%f) && (pho_sumIsoCorrected[phoIdx]<%f)",sidebandLow, sidebandHigh);
+  if (useCorrectedSumIso) {
+    sidebandIsolation = Form("(pho_sumIsoCorrected[phoIdx]>%f) && (pho_sumIsoCorrected[phoIdx]<%f) && (phoHoverE[phoIdx]<0.1)",sidebandLow, sidebandHigh);
   } else {
-    sidebandIsolation = Form("((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>%f) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<%f)",sidebandLow,sidebandHigh);
+    sidebandIsolation = Form("((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])>%f) && ((pho_ecalClusterIsoR4[phoIdx] + pho_hcalRechitIsoR4[phoIdx] + pho_trackIsoR4PtCut20[phoIdx])<%f) && (phoHoverE[phoIdx]<0.1)",sidebandLow,sidebandHigh);
   }
   const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
   const TCut etaCut = "abs(phoEta[phoIdx]) < 1.44";
 
 
   double purity[nBins_pt][nBins_hiBin];   // fixed for the moment.
-  for (int i = 0; i<nBins_pt; ++i){
-    for (int j = 0; j<nBins_hiBin; ++j){
-      if(!isHI && j > 0) {
-	purity[i][j] = purity[i][j-1];
-	continue;
+  for (int i = 0; i<nBins_pt; ++i) {
+    for (int j = 0; j<nBins_hiBin; ++j) {
+      if (!isHI && j > 0) {
+        purity[i][j] = purity[i][j-1];
+        continue;
       }
       TCut selection_event = Form("%s == 1", trigger.c_str());
       TCut selection_event_mc_forPurity =  Form("%s == 1", triggerMC_forPurity.c_str());
       TCut selection_event_mc_forPurity_pp = Form("%s == 1", triggerMC_forPurity_pp.c_str());
       if (isHI) {
-	selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
-	selection_event_mc_forPurity = selection_event_mc_forPurity && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
+        selection_event = selection_event && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
+        selection_event_mc_forPurity = selection_event_mc_forPurity && Form("hiBin >= %d && hiBin < %d", bins_hiBin[0][j], bins_hiBin[1][j]);
       }
 
       TCut selectionPho;
-      if (bins_pt[1][i] >= 0){
-	selectionPho = Form("phoEtCorrected[phoIdx] >= %f && phoEtCorrected[phoIdx] < %f", bins_pt[0][i], bins_pt[1][i]);
+      if (bins_pt[1][i] >= 0) {
+        selectionPho = Form("phoEtCorrected[phoIdx] >= %f && phoEtCorrected[phoIdx] < %f", bins_pt[0][i], bins_pt[1][i]);
       } else {
-	selectionPho = Form("phoEtCorrected[phoIdx] >= %f", bins_pt[0][i]);
+        selectionPho = Form("phoEtCorrected[phoIdx] >= %f", bins_pt[0][i]);
       }
       selectionPho = selectionPho && etaCut;
 
@@ -158,50 +158,53 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
       selectionIso = selectionIso && Form("pho_sumIsoCorrected[phoIdx] < %f", cut_sumIso);
       selectionIso = selectionIso && Form("phoHoverE[phoIdx] < %f", cut_phoHoverE);
 
-      TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut;
+      TCut dataCandidateCut = selectionPho && selection_event && etaCut && noiseCut && selectionIso;
       TCut sidebandCut;
-      if(tbkgmcgj == 0){
-        sidebandCut = dataCandidateCut && sidebandIsolation && noiseCut;
-      } else if(isHI){
+      if (tbkgmcgj == 0) {
+        sidebandCut = selectionPho && selection_event && etaCut && noiseCut && sidebandIsolation;
+      } else if (isHI) {
         sidebandCut = selectionPho && selection_event_mc_forPurity && etaCut &&
-          noiseCut && sidebandIsolation && noiseCut;
+                      noiseCut && sidebandIsolation;
       } else {
         sidebandCut = selectionPho && selection_event_mc_forPurity_pp && etaCut &&
-          noiseCut && sidebandIsolation && noiseCut;
+                      noiseCut && sidebandIsolation;
       }
       TCut mcSignalCut;
-      if(isHI){
-	mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && mcIsolation;
+      if (isHI) {
+        mcSignalCut = selectionPho && selection_event_mc_forPurity && etaCut && mcIsolation;
       } else {
-	mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && mcIsolation;
+        mcSignalCut = selectionPho && selection_event_mc_forPurity_pp && etaCut && mcIsolation;
       }
-      dataCandidateCut = dataCandidateCut && selectionIso;
+
+      printf("%s\n", dataCandidateCut.GetTitle());
+      printf("%s\n", sidebandCut.GetTitle());
+      printf("%s\n", mcSignalCut.GetTitle());
 
       PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj,
-				    dataCandidateCut, sidebandCut,
-				    mcSignalCut, tbkgmcgj);
+                                    dataCandidateCut, sidebandCut,
+                                    mcSignalCut, tbkgmcgj);
       purity[i][j] = fitr.purity;
 
       std::cout << "Purity for ptBin"<< i << " hiBin"<< j << ": " << purity[i][j] << std::endl;
       std::cout << "nSig for ptBin"<< i << " hiBin"<< j << ": " << fitr.nSig << std::endl;
       std::cout << "chisq for ptBin"<< i << " hiBin"<< j << ": " << fitr.chisq << std::endl;
 
-      if(savePlots){
+      if (savePlots) {
         TCanvas *c1 = new TCanvas();
         TH1F *hSigPdf = fitr.sigPdf;
-	TH1F *hBckPdf = fitr.bckPdf;
-	TH1D *hData1  = fitr.data;
-	hSigPdf->Add(hBckPdf);
+        TH1F *hBckPdf = fitr.bckPdf;
+        TH1D *hData1  = fitr.data;
+        hSigPdf->Add(hBckPdf);
 
         handsomeTH1(hSigPdf);
-	mcStyle(hSigPdf);
-	sbStyle(hBckPdf);
-	cleverRange(hSigPdf,1.5);
-	hSigPdf->SetAxisRange(0.001,0.024,"X");
-	hSigPdf->SetNdivisions(505);
-	hSigPdf->GetYaxis()->SetTitleOffset(1.75);
-	hSigPdf->SetYTitle("Entries");
-	hSigPdf->SetXTitle("#sigma_{#eta #eta}");
+        mcStyle(hSigPdf);
+        sbStyle(hBckPdf);
+        cleverRange(hSigPdf,1.5);
+        hSigPdf->SetAxisRange(0.001,0.024,"X");
+        hSigPdf->SetNdivisions(505);
+        hSigPdf->GetYaxis()->SetTitleOffset(1.75);
+        hSigPdf->SetYTitle("Entries");
+        hSigPdf->SetXTitle("#sigma_{#eta #eta}");
         hSigPdf->SetStats(false);
         hSigPdf->GetXaxis()->CenterTitle();
         hSigPdf->GetYaxis()->CenterTitle();
@@ -210,32 +213,32 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
         hData1->SetLineColor(kBlack);
         hData1->SetMarkerColor(kBlack);
 
-	hSigPdf->DrawCopy("hist");
-	//drawSys(hSigPdf, err, kRed, -1, 0.001);
-	hBckPdf->DrawCopy("same hist");
-	hData1->DrawCopy("same e");
+        hSigPdf->DrawCopy("hist");
+        //drawSys(hSigPdf, err, kRed, -1, 0.001);
+        hBckPdf->DrawCopy("same hist");
+        hData1->DrawCopy("same e");
 
         TLegend *t3=new TLegend(0.5, 0.68, 0.92, 0.92);
-	t3->AddEntry(hData1,Form("%s #sqrt{s}_{_{NN}}=5.02 TeV",collisionTypeLabel.c_str()),"pl");
-	t3->AddEntry(hSigPdf,"Signal","lf");
-	t3->AddEntry(hBckPdf,"Background","lf");
-	t3->SetFillColor(0);
-	t3->SetBorderSize(0);
-	t3->SetFillStyle(0);
-	t3->SetTextFont(43);
-	t3->SetTextSize(20);
+        t3->AddEntry(hData1,Form("%s #sqrt{s}_{_{NN}}=5.02 TeV",collisionTypeLabel.c_str()),"pl");
+        t3->AddEntry(hSigPdf,"Signal","lf");
+        t3->AddEntry(hBckPdf,"Background","lf");
+        t3->SetFillColor(0);
+        t3->SetBorderSize(0);
+        t3->SetFillStyle(0);
+        t3->SetTextFont(43);
+        t3->SetTextSize(20);
         t3->Draw();
 
         drawText(Form("%.0f GeV < p_{T}^{#gamma} < %.0f GeV",
-		      bins_pt[0][i], bins_pt[1][i]),
-		 0.5, 0.60,1,20);
-	drawText(Form("%.0f - %.0f%c",
-	 	      bins_hiBin[0][j]/2., bins_hiBin[1][j]/2.,'%'),
-	 	 0.5, 0.52,1,20);
-	drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
-		 0.5, 0.46,1,20);
-	drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
-		 0.5, 0.38,1,20);
+                      bins_pt[0][i], bins_pt[1][i]),
+                 0.5, 0.60,1,20);
+        drawText(Form("%.0f - %.0f%c",
+                      bins_hiBin[0][j]/2., bins_hiBin[1][j]/2.,'%'),
+                 0.5, 0.52,1,20);
+        drawText(Form("Purity (#sigma_{#eta#eta} < 0.01) : %.2f", (Float_t)fitr.purity),
+                 0.5, 0.46,1,20);
+        drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq),
+                 0.5, 0.38,1,20);
 
         c1->SaveAs(Form("Performance/photons/purityPlots/%s_purity_ptBin%i_hiBin%i.pdf",collisionTypeLabel.c_str(), i, j));
         delete c1;
@@ -247,16 +250,15 @@ void printPurity(const TString configFile, const TString inputFile, const TStrin
   inputMCFile->Close();
   /// End Purity Block ///
 
-  for (int i = 0; i<nBins_pt; ++i){
-    for (int j = 0; j<nBins_hiBin; ++j){
+  for (int i = 0; i<nBins_pt; ++i) {
+    for (int j = 0; j<nBins_hiBin; ++j) {
       std::cout << purity[i][j] << ", ";
     }
   }
   std::cout << std::endl;
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   if (argc == 4) {
     printPurity(argv[1], argv[2], argv[3]);
     return 0;
@@ -266,11 +268,10 @@ int main(int argc, char** argv)
   } else if (argc == 6) {
     printPurity(argv[1], argv[2], argv[3], atoi(argv[4]), argv[5]);
     return 0;
-  }
-  else {
+  } else {
     std::cout << "Usage : \n" <<
-      "./printPurity.exe <configFile> <inputFile> <inputMCFile>"
-	      << std::endl;
+              "./printPurity.exe <configFile> <inputFile> <inputMCFile>"
+              << std::endl;
     return 1;
   }
 }
