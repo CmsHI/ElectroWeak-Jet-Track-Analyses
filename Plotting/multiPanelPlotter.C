@@ -39,7 +39,7 @@ typedef struct box_t {
 #define _HYBRID_REF 9
 #define _NPLOTS 10
 
-const float ncoll_w_npart[4] = {21.87, 118.8, 239.9, 363.4};
+const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
 
 static const int hist_width = 250;
 static const int hist_height = 250;
