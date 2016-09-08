@@ -97,7 +97,7 @@ void quickPhotonPurity(const TString configFile, const TString inputData, const 
       for(Int_t k = 0; k< nETABINS; ++k) {
 	TString ptCut = Form("(phoEtCorrected[phoIdx] >= %f) && (phoEtCorrected[phoIdx] < %f)",
 			     PTBINS[i], PTBINS[i+1]);
-	TString centCut = Form("((hiBin[phoIdx]) >= %i) && ((hiBin[phoIdx]) < %i)",
+	TString centCut = Form("(hiBin >= %i) && (hiBin < %i)",
 			     CENTBINS[j], CENTBINS[j+1]);
 	TString etaCut = Form("(phoEta[phoIdx] >= %f) && (phoEta[phoIdx] < %f)",
 			      ETABINS[k], ETABINS[k+1]);
