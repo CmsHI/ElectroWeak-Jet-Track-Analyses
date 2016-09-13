@@ -9,5 +9,5 @@ Data/photons/gammaJetHistograms_purityDOWN.root
 Data/photons/gammaJetHistograms_JER.root
 Data/photons/gammaJetHistograms_sysEleRej.root
 Data/photons/gammaJetHistograms_sysPES.root
-Data/photons/gammaJetHistograms_RESIDUAL.root
+Data/photons/DUMMY.root
 Data/photons/gammaJetHistograms_sysIso.root
