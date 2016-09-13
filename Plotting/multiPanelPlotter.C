@@ -860,7 +860,7 @@ int main(int argc, char* argv[]) {
         }
     } else {
         printf("Usage: ./multiPanelPlotter.exe <fileList> <configFiles>\n");
-        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/gammaJetPlot.list Plotting/mpp_configs/*.conf\n");
+        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/data/gammaJetPlot.list Configurations/gammaJet/data/*.conf\n");
     }
 
     return 0;
