@@ -6,8 +6,8 @@
 
 #include <vector>
 
-const unsigned int maxJets = 10000;     // set upper limit 10K to cover the jet trees from MB mixing
-const unsigned int maxGenJets = 10000;
+const unsigned int maxJets = 50000;     // set upper limit 50K to cover the jet trees from MB mixing, jet smearing etc.
+const unsigned int maxGenJets = 50000;
 
 class Jets {
 public :
