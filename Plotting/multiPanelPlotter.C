@@ -31,6 +31,14 @@
         g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+2));                 \
     }                                                                               \
 
+#define H1D_TO_JPT_GRAPH(g_name)                                                                \
+    int npoints = h1[i][j][k]->GetNbinsX() - 3;                                                 \
+    g_name = new TGraphErrors(npoints);                                                         \
+    for (int p=0; p<npoints; ++p) {                                                             \
+        g_name->SetPoint(p, h1[i][j][k]->GetBinCenter(p+4), h1[i][j][k]->GetBinContent(p+4));   \
+        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+4));                             \
+    }                                                                                           \
+
 typedef struct box_t {
     float x1, y1, x2, y2;
 } box_t;
@@ -282,8 +290,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (k == _JEWEL || k == _JEWEL_REF || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
-                    if (k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) {
+                    if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) || ((k == _LBT || k == _LBT_REF) && (hist_type == "iaa" || hist_type == "ptJet"))) {
                         if (k == _HYBRID_REF) {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
+                        else if (k == _LBT || k == _LBT_REF) {H1D_TO_JPT_GRAPH(g1[i][j][k]);}
                         else {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
                         set_graph_style(g1[i][j][k], k);
 
