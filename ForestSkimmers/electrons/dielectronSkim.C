@@ -82,7 +82,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
            doCorrection = 0;
        }
 
-       bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+       // bool isMC = collisionIsMC((COLL::TYPE)collisionType);
        bool isHI = collisionIsHI((COLL::TYPE)collisionType);
        bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
@@ -137,25 +137,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
        
        // specify explicitly which branches to store, do not use wildcard
-       treeHiEvt->SetBranchStatus("*",0);
-       treeHiEvt->SetBranchStatus("run",1);
-       treeHiEvt->SetBranchStatus("evt",1);
-       treeHiEvt->SetBranchStatus("lumi",1);
-       treeHiEvt->SetBranchStatus("vz",1);
-       treeHiEvt->SetBranchStatus("hiBin",1);
-       treeHiEvt->SetBranchStatus("hiHF",1);
-       treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-       if (isMC) {
-           treeHiEvt->SetBranchStatus("Npart",1);
-           treeHiEvt->SetBranchStatus("Ncoll",1);
-           treeHiEvt->SetBranchStatus("Nhard",1);
-           treeHiEvt->SetBranchStatus("ProcessID",1);
-           treeHiEvt->SetBranchStatus("pthat",1);
-           treeHiEvt->SetBranchStatus("weight",1);
-           treeHiEvt->SetBranchStatus("alphaQCD",1);
-           treeHiEvt->SetBranchStatus("alphaQED",1);
-           treeHiEvt->SetBranchStatus("qScale",1);
-       }
+       treeHiEvt->SetBranchStatus("*",1);
 
        // specify explicitly which branches to store, do not use wildcard
        treeSkim->SetBranchStatus("*",0);
