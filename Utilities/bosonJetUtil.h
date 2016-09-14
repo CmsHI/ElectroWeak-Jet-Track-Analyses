@@ -12,8 +12,10 @@
 
 std::vector<double> rebinXjBins(std::vector<double> binsTH1x);
 std::vector<double> rebinXjBinsPP(std::vector<double> binsTH1x);
+std::vector<double> rebinXjBinsJER(std::vector<double> binsTH1x);
 std::vector<double> rebinDphiBins(std::vector<double> binsTH1x);
 std::vector<double> rebinDphiBins2(std::vector<double> binsTH1x);
+std::vector<double> rebinDphiBins3(std::vector<double> binsTH1x);
 std::string makeHistTitle(bool isHI, std::string collisionName, float ptBinLow, float ptBinUp, int hiBinLow, int hiBinUp);
 
 /*
@@ -73,7 +75,22 @@ std::vector<double> rebinXjBinsPP(std::vector<double> binsTH1x)
     return binsTH1x;
 }
 
+/*
+ * rebin the bins in xjz or xjg correlation, histogram is assumed to have 10 bins
+ * returns a vector that should be used in TH1::Rebin() function
+ */
+std::vector<double> rebinXjBinsJER(std::vector<double> binsTH1x)
+{
+    binsTH1x.erase(binsTH1x.begin() + 1, binsTH1x.begin() + 1 + 1);    // merge bins        : 1,2
 
+//    binsTH1x.erase(binsTH1x.begin() + 9, binsTH1x.begin() + 9 + 1);    // merge bins        : 9,10
+//    binsTH1x.erase(binsTH1x.begin() + 7, binsTH1x.begin() + 7 + 1);    // merge bins        : 7,8
+//    binsTH1x.erase(binsTH1x.begin() + 5, binsTH1x.begin() + 5 + 1);    // merge bins        : 5,6
+//    binsTH1x.erase(binsTH1x.begin() + 3, binsTH1x.begin() + 3 + 1);    // merge bins        : 3,4
+//    binsTH1x.erase(binsTH1x.begin() + 1, binsTH1x.begin() + 1 + 1);    // merge bins        : 1,2
+
+    return binsTH1x;
+}
 
 /*
  * rebin the bins in dphi correlation
@@ -99,6 +116,17 @@ std::vector<double> rebinDphiBins2(std::vector<double> binsTH1x)
 {
     binsTH1x.erase(binsTH1x.begin() + 3, binsTH1x.begin() + 3 + 1);      // merge bins : 3,4
     binsTH1x.erase(binsTH1x.begin() + 1, binsTH1x.begin() + 1 + 1);      // merge bins : 1,2
+
+    return binsTH1x;
+}
+
+/*
+ * rebin the bins in dphi correlation
+ * returns a vector that should be used in TH1::Rebin() function
+ */
+std::vector<double> rebinDphiBins3(std::vector<double> binsTH1x)
+{
+    binsTH1x.erase(binsTH1x.begin() + 7, binsTH1x.begin() + 7 + 1);      // merge bins : 7,8
 
     return binsTH1x;
 }
