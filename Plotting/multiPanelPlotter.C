@@ -163,7 +163,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     };
     std::string graph_draw_options[_NPLOTS] = {
         "same p z", "same l", "same p z", " same l",
-        "same l z", "same l z", "", "", "same l e3", "same l z"
+        "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
@@ -278,12 +278,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
-                    if (k == _JEWEL || k == _JEWEL_REF || k == _HYBRID || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
+                    // LBT has no error bars!
+                    if (k == _JEWEL || k == _JEWEL_REF || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
-                    if ((k < _JEWEL || k == _HYBRID_REF) && hist_type.find("centBinAll") != std::string::npos) {
-                        if (k < _JEWEL) {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
-                        else {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
+                    if (k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) {
+                        if (k == _HYBRID_REF) {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
+                        else {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
                         set_graph_style(g1[i][j][k], k);
 
                         TH1D* h_tmp = (TH1D*)h1[i][j][k]->Clone();
@@ -724,6 +725,11 @@ void set_graph_style(TGraphErrors* g1, int k) {
         g1->SetMarkerColor(kBlack);
     } else if (k == _JEWEL || k == _JEWEL_REF) {
         g1->SetLineColor(9);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(line_width);
+        g1->SetMarkerSize(0);
+    } else if (k == _LBT || k == _LBT_REF) {
+        g1->SetLineColor(kOrange-3);
         g1->SetLineStyle(1);
         g1->SetLineWidth(line_width);
         g1->SetMarkerSize(0);
