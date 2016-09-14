@@ -483,7 +483,7 @@ void set_global_style() {
             axis_label_font_size = 13;
             latex_font_size = 12;
             line_width = 3;
-            latex_spacing = 0.07;
+            latex_spacing = 0.0675;
             axis_label_cover_size = 0.02;
             break;
         case 2:
@@ -491,7 +491,7 @@ void set_global_style() {
             axis_label_font_size = 14;
             latex_font_size = 13;
             line_width = 2;
-            latex_spacing = 0.0725;
+            latex_spacing = 0.07;
             axis_label_cover_size = 0.016;
             break;
         case 3:
