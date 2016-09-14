@@ -15,12 +15,20 @@
 
 #include <string>
 
-#define H1D_TO_GRAPH(g_name)                                                        \
+#define H1D_TO_NPART_GRAPH(g_name)                                                  \
     int npoints = h1[i][j][k]->GetNbinsX();                                         \
     g_name = new TGraphErrors(npoints);                                             \
     for (int p=0; p<npoints; ++p) {                                                 \
         g_name->SetPoint(p, ncoll_w_npart[p], h1[i][j][k]->GetBinContent(p+1));     \
         g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+1));                 \
+    }                                                                               \
+
+#define H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g_name)                                    \
+    int npoints = h1[i][j][k]->GetNbinsX() - 1;                                     \
+    g_name = new TGraphErrors(npoints);                                             \
+    for (int p=0; p<npoints; ++p) {                                                 \
+        g_name->SetPoint(p, ncoll_w_npart[p+1], h1[i][j][k]->GetBinContent(p+2));   \
+        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+2));                 \
     }                                                                               \
 
 typedef struct box_t {
@@ -155,7 +163,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     };
     std::string graph_draw_options[_NPLOTS] = {
         "same p z", "same l", "same p z", " same l",
-        "same l z", "same l z", "", "", "same l e3", ""
+        "same l z", "same l z", "", "", "same l e3", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
@@ -270,11 +278,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
-                    if (k == _JEWEL || k == _JEWEL_REF || k == _HYBRID || k == _HYBRID_REF)
+                    if (k == _JEWEL || k == _JEWEL_REF || k == _HYBRID || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
-                    if (k < _JEWEL && hist_type.find("centBinAll") != std::string::npos) {
-                        H1D_TO_GRAPH(g1[i][j][k]);
+                    if ((k < _JEWEL || k == _HYBRID_REF) && hist_type.find("centBinAll") != std::string::npos) {
+                        if (k < _JEWEL) {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
+                        else {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
                         set_graph_style(g1[i][j][k], k);
 
                         TH1D* h_tmp = (TH1D*)h1[i][j][k]->Clone();
@@ -291,7 +300,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         continue;
 
                     set_graph_style(g1[i][j][k], k);
-                    if ((k == _HYBRID || k == _HYBRID_REF) && hist_name.find("dphi") != std::string::npos)
+                    if ((k == _HYBRID || k == _HYBRID_REF) && hist_type == "dphi")
                         g1[i][j][k]->SetLineWidth(line_width);
 
                     g1[i][j][k]->Draw(graph_draw_options[k].c_str());
@@ -395,7 +404,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             else
                 latexInfo->SetTextAlign(11);
 
-            if (i_x[i] < 0.05 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
+            if (i_x[i] < 0.05 && hist_type == "dphi" && i + j > 0) {i_y[i] = 0.9;}
+            else if (i_x[i] < 0.05 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             else if (i_x[i] > 0.95 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
                 float line_pos = i_y[i] - l * latex_spacing;
@@ -712,12 +722,7 @@ void set_graph_style(TGraphErrors* g1, int k) {
         g1->SetMarkerSize(0.64);
         g1->SetMarkerStyle(kOpenCircle);
         g1->SetMarkerColor(kBlack);
-    } else if (k == _JEWEL) {
-        g1->SetLineColor(9);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
-    } else if (k == _JEWEL_REF) {
+    } else if (k == _JEWEL || k == _JEWEL_REF) {
         g1->SetLineColor(9);
         g1->SetLineStyle(1);
         g1->SetLineWidth(line_width);
@@ -728,6 +733,10 @@ void set_graph_style(TGraphErrors* g1, int k) {
         g1->SetLineWidth(0);
         g1->SetFillColor(kTeal+9);
         g1->SetFillColorAlpha(kTeal+9, 0.7);
+    } else if (k == _HYBRID_REF) {
+        g1->SetLineColorAlpha(kTeal+9, 0.7);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(line_width);
     }
 }
 
