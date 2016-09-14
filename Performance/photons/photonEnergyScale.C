@@ -50,7 +50,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     // input configuration
     // input for TTree
     std::string treePath;
-    int collision;
+    int collisionType;
 
     // input for TH1
     std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
@@ -73,7 +73,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     if (configInput.isValid) {
         treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
     
-        collision = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
+        collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
 
         TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
         TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
@@ -92,7 +92,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     else {
         treePath = "";
     
-        collision = COLL::kPP;
+        collisionType = COLL::kPP;
 
         TH1D_Bins_List.resize(3);
         TH1D_Bins_List[0].push_back(12);     // nBins
@@ -144,13 +144,13 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
-    const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
+    std::string collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     int nTH1D_Bins_List = TH1D_Bins_List[0].size();
     int nTH2D_Bins_List = TH2D_Bins_List[0].size();
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "treePath = " << treePath.c_str() << std::endl;
-    std::cout << "collision = " << collisionName << std::endl;
+    std::cout << "collision = " << collisionName.c_str() << std::endl;
 
     std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
     for (int i=0; i<nTH1D_Bins_List; ++i) {
@@ -308,19 +308,18 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
     }
 
-    bool isHI = collisionIsHI((COLL::TYPE)collision);
-    if (isHI) {
-        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
-        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
-        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
-        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
-        std::cout<<"cut_phoSigmaIEtaIEta      = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
-        std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
+    bool isHI = collisionIsHI((COLL::TYPE)collisionType);
 
-        std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
-        std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
-        std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
-    }
+    std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
+    std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
+    std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
+    std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
+    std::cout<<"cut_phoSigmaIEtaIEta_2012 = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
+    std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
+
+    std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
+    std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
+    std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
@@ -551,31 +550,41 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                            ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
                 }
             }
+            else {
+                if (cut_mcCalIsoDR04 != 0) {
+                    if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
+                }
+                if (cut_mcTrkIsoDR04 != 0) {
+                    if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
+                }
+                if (cut_mcSumIso != 0) {
+                    if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
+                           ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
+                }
+            }
 
             // selections on RECO particle
-            if (!(ggHi.phoSigmaIEtaIEta->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
+            if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
 
-            if (isHI) {
-                if (cut_phoHoverE != 0) {
-                    if (!(ggHi.phoHoverE->at(i) < cut_phoHoverE))   continue;
-                }
-                if (cut_pho_ecalClusterIsoR4 != 0) {
-                    if (!(ggHi.pho_ecalClusterIsoR4->at(i) < cut_pho_ecalClusterIsoR4))   continue;
-                }
-                if (cut_pho_hcalRechitIsoR4 != 0) {
-                    if (!(ggHi.pho_hcalRechitIsoR4->at(i) < cut_pho_hcalRechitIsoR4))   continue;
-                }
-                if (cut_pho_trackIsoR4PtCut20 != 0) {
-                    if (!(ggHi.pho_trackIsoR4PtCut20->at(i) < cut_pho_trackIsoR4PtCut20))   continue;
-                }
-                if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                    if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) < cut_phoSigmaIEtaIEta_2012))   continue;
-                }
-                if (cut_sumIso != 0) {
-                    if (!((ggHi.pho_ecalClusterIsoR4->at(i) +
-                           ggHi.pho_hcalRechitIsoR4->at(i)  +
-                           ggHi.pho_trackIsoR4PtCut20->at(i)) < cut_sumIso))   continue;
-                }
+            if (cut_phoHoverE != 0) {
+                if (!(ggHi.phoHoverE->at(i) < cut_phoHoverE))   continue;
+            }
+            if (cut_pho_ecalClusterIsoR4 != 0) {
+                if (!(ggHi.pho_ecalClusterIsoR4->at(i) < cut_pho_ecalClusterIsoR4))   continue;
+            }
+            if (cut_pho_hcalRechitIsoR4 != 0) {
+                if (!(ggHi.pho_hcalRechitIsoR4->at(i) < cut_pho_hcalRechitIsoR4))   continue;
+            }
+            if (cut_pho_trackIsoR4PtCut20 != 0) {
+                if (!(ggHi.pho_trackIsoR4PtCut20->at(i) < cut_pho_trackIsoR4PtCut20))   continue;
+            }
+            if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) < cut_phoSigmaIEtaIEta_2012))   continue;
+            }
+            if (cut_sumIso != 0) {
+                if (!((ggHi.pho_ecalClusterIsoR4->at(i) +
+                        ggHi.pho_hcalRechitIsoR4->at(i)  +
+                        ggHi.pho_trackIsoR4PtCut20->at(i)) < cut_sumIso))   continue;
             }
 
             double eta = ggHi.phoEta->at(i);
@@ -657,18 +666,30 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         {
                             int eScaleDep = eScale.at(iEScale);
                             // write histograms with a particular dependence
-                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].hInitialized)
+                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
+                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h->SetMarkerStyle(kFullCircle);
                                 hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h->Write();
+                            }
                             if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized)
                                 hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr->Write();
 
                             if (!hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) continue;
 
+                            std::string canvasName = "";
+                            canvasName = replaceAll(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->GetName(), "h2D", "cnv2D");
+                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+                            c->cd();
+                            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->SetStats(false);
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->Draw("colz");
                             hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->Write();
+                            setCanvasFinal(c);
+                            c->Write();
+                            c->Close();         // do not use Delete() for TCanvas.
+
                             TObjArray aSlices;
                             hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
 
-                            std::string canvasName;
                             std::string name = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].name.c_str();
                             std::string title = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].title.c_str();
                             std::string titleX = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].titleX.c_str();
