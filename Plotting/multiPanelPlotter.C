@@ -536,7 +536,7 @@ void set_global_style() {
             latex_font_size = 20;
             line_width = 1;
             latex_spacing = 0.085;
-            axis_label_cover_size = 0.0125;
+            axis_label_cover_size = 0.012;
             break;
         default:
             axis_font_size = 13;
