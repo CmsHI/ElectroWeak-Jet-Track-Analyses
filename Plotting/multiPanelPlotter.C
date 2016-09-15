@@ -170,7 +170,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
-        "same p z", "same l", "same p z", " same l",
+        "same p z", "same l z", "same p z", " same l z",
         "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
