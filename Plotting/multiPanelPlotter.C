@@ -55,7 +55,7 @@ typedef struct box_t {
 #define _HYBRID_REF 9
 #define _NPLOTS 10
 
-const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
+const float ncoll_w_npart[4] = {21.87, 109.1, 226.7, 358.8};
 
 static const int hist_width = 250;
 static const int hist_height = 250;
@@ -267,7 +267,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type.find("xjg_mean") != std::string::npos)
                         h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
                     if (hist_type.find("centBinAll") != std::string::npos)
-                        h1[i][j][k]->SetXTitle("N_{coll} weighted <N_{part}>");
+                        h1[i][j][k]->SetXTitle("N_{part}");
 
                     set_hist_style(h1[i][j][k], k);
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
