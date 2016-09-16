@@ -376,16 +376,20 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             if (hist_type.find("centBinAll") == std::string::npos)
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
-            if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
-                plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
-            else
-                plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
+            if (hist_type.find("ptBinAll") == std::string::npos) {
+                if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
+                    plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
+                else
+                    plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
+            }
 
             if (i + j == 0) {
                 TLatex* latexCMS = new TLatex();
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
+                if (hist_type == "xjg_mean_ptBinAll")
+                    cms_box.x1 = 0.2;
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
 
@@ -393,6 +397,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexPrelim->SetTextFont(53);
                 latexPrelim->SetTextSize(13);
                 box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
+                if (hist_type == "xjg_mean_ptBinAll")
+                    prelim_box.x1 = 0.2;
                 adjust_coordinates(prelim_box, margin, edge, i, j);
                 latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
 
