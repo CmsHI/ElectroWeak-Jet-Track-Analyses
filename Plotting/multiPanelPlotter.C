@@ -345,9 +345,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw legend
-            if ((i + j == 0 && (canvas_title != "dphi_log" || configFile.Contains("data")) && (canvas_title != "xjg_cent" || !configFile.Contains("theory_pp"))) ||
+            if ((i + j == 0 && (canvas_title != "dphi_log" || configFile.Contains("data")) && (canvas_title != "xjg_cent" || !configFile.Contains("theory_pp")) && (canvas_title != "ptJet" || configFile.Contains("data")) && (canvas_title != "xjg" || configFile.Contains("data"))) ||
                 (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) ||
-                (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp"))) {
+                (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp")) ||
+                (i == 0 && j == 1 && canvas_title == "ptJet" && configFile.Contains("theory_pp")) ||
+                (i == 1 && j == 0 && canvas_title == "ptJet" && configFile.Contains("theory_PbPb")) ||
+                (i == 0 && j == 1 && canvas_title == "xjg" && configFile.Contains("theory_PbPb")) ||
+                (i == 0 && j == 2 && canvas_title == "xjg" && configFile.Contains("theory_pp"))) {
                 box_t l_box = (box_t) {l_x1[i], l_y1[i], l_x2[i], l_y2[i]};
                 adjust_coordinates(l_box, margin, edge, i, j);
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
@@ -441,6 +445,18 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 float line_pos = i_y[i] - l * latex_spacing;
                 if (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp")) {
                     line_pos = 0.64 - l * latex_spacing;
+                }
+                if (i == 0 && j == 1 && canvas_title == "ptJet" && configFile.Contains("theory_pp")) {
+                    line_pos = 0.56 - l * latex_spacing;
+                }
+                if (i == 1 && j == 0 && canvas_title == "ptJet" && configFile.Contains("theory_PbPb")) {
+                    line_pos = 0.6 - l * latex_spacing;
+                }
+                if (i == 0 && j == 1 && canvas_title == "xjg" && configFile.Contains("theory_PbPb")) {
+                    line_pos = 0.5 - l * latex_spacing;
+                }
+                if (i == 0 && j == 2 && canvas_title == "xjg" && configFile.Contains("theory_pp")) {
+                    line_pos = 0.59 - l * latex_spacing;
                 }
                 box_t info_box = (box_t) {0, 0, i_x[i], line_pos};
                 adjust_coordinates(info_box, margin, edge, i, j);
