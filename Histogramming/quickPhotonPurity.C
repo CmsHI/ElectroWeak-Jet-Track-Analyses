@@ -150,7 +150,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
         hSigPdf->SetNdivisions(505);
         hSigPdf->GetYaxis()->SetTitleOffset(1.30);
         hSigPdf->SetYTitle("Entries");
-        hSigPdf->SetXTitle("#sigma_{#eta #eta}");
+        hSigPdf->SetXTitle("#sigma_{#eta#eta}");
         hSigPdf->SetLabelFont(43);
         hSigPdf->SetLabelSize(27);
         hSigPdf->SetTitleFont(43);
@@ -167,26 +167,44 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
         hBckPdf->DrawCopy("same hist");
         hData1->DrawCopy("same");
 
-        Float_t xpos = 0.44;
+        Float_t xpos = 0.48;
         if (2*(k+j)*nPTBINS+i+1 == 1)
-          xpos = 0.54;
+          xpos = 0.6;
 
         if (i == 0) {
-          drawText("CMS Preliminary", xpos, 0.60, 1, 27);
+          // drawText("CMS Preliminary", 0.225, 0.90, 1, 27);
+
+          TLatex* latexCMS = new TLatex();
+          latexCMS->SetTextFont(63);
+          latexCMS->SetTextSize(32);
+          latexCMS->DrawLatexNDC(0.24, 0.9, "CMS");
+
+          TLatex* latexPrelim = new TLatex();
+          latexPrelim->SetTextFont(53);
+          latexPrelim->SetTextSize(28);
+          latexPrelim->DrawLatexNDC(0.4, 0.9, "Preliminary");
+
           drawText(LABEL, xpos, 0.50, 1, 27);
-          // drawText("#intL = 404 #mub^{-1}", xpos, 0.50, 1, 20);
           drawText(Form("%.0f - %.0f%c", CENTBINS[j]/2., CENTBINS[j+1]/2., '%'), xpos, 0.40, 1, 27);
         }
 
         if (i == 0) {
-          drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c", PTBINS[i], PTBINS[i+1]), 0.25, 0.90, 1, 27);
+          drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c", PTBINS[i], PTBINS[i+1]), 0.25, 0.80, 1, 27);
         } else if (i != 0 && i != 4) {
           drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c", PTBINS[i], PTBINS[i+1]), 0.15, 0.90, 1, 27);
         } else {
-          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.2, 0.90, 1, 27);
+          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.24, 0.90, 1, 27);
         }
-        drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.80, 1, 27);
-        drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.70, 1, 27);
+        if (i == 0) {
+          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.70, 1, 27);
+        } else {
+          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.80, 1, 27);
+        }
+        if (i == 0) {
+          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.60, 1, 27);
+        } else {
+          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.70, 1, 27);
+        }
       }
     }
   }

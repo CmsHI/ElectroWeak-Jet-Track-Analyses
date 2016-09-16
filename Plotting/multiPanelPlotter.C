@@ -345,11 +345,19 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw legend
-            if (i + j == 0) {
+            if ((i + j == 0 && (canvas_title != "dphi_log" || configFile.Contains("data")) && (canvas_title != "xjg_cent" || !configFile.Contains("theory_pp"))) ||
+                (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) ||
+                (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp"))) {
                 box_t l_box = (box_t) {l_x1[i], l_y1[i], l_x2[i], l_y2[i]};
                 adjust_coordinates(l_box, margin, edge, i, j);
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
                 set_legend_style(l1);
+                if (columns == 5) {
+                    if (configFile.Contains("theory_pp"))
+                        l1->SetTextSize(latex_font_size - 2);
+                    else
+                        l1->SetTextSize(latex_font_size - 1);
+                }
 
                 if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
                     for (int k=0; k<_NPLOTS; ++k) {
@@ -415,6 +423,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
             latexInfo->SetTextSize(latex_font_size);
+
+            if (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) {
+                i_x[i] = 0.96;
+                i_y[i] = 0.18;
+            }
+
             if (i_x[i] > 0.8)
                 latexInfo->SetTextAlign(31);
             else
@@ -425,6 +439,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             else if (i_x[i] > 0.95 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
                 float line_pos = i_y[i] - l * latex_spacing;
+                if (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp")) {
+                    line_pos = 0.64 - l * latex_spacing;
+                }
                 box_t info_box = (box_t) {0, 0, i_x[i], line_pos};
                 adjust_coordinates(info_box, margin, edge, i, j);
                 latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
