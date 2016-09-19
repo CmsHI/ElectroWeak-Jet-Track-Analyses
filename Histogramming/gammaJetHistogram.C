@@ -2,7 +2,7 @@
 #include <TTree.h>
 #include <TH1D.h>
 #include <TMath.h>
-#include <TRandom.h>
+#include <TRandom3.h>
 
 #include <vector>
 #include <string>
@@ -16,6 +16,7 @@
 #include "../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../Plotting/commonUtility.h"
 #include "../Utilities/eventUtil.h"
+#include "../Corrections/jets/jetCorrector.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
@@ -33,6 +34,9 @@ const std::vector<std::string> correlationHistTitleY_final_normalized {
 const std::vector<int>         nBinsx {16, 20,          30};
 const std::vector<double>      xlow   {0,  0,           0};
 const std::vector<double>      xup    {2,  TMath::Pi(), 300};
+
+int getResolutionBin(int hiBin);
+int getResolutionBinPP(int smearBin);
 
 int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
 
@@ -104,7 +108,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const float smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
     const bool doSmearingRes = (smearingResJet > 0);
     const int sysUncFactor = 100;
-    TRandom rand(12345);
+    TRandom3 rand(12345);
     
     const int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
 
@@ -250,6 +254,65 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
         jetMB.setupTreeForReading(jetTreeMB);
         gammaJetMB.setupGammaJetTree(gammaJetTreeMB);
+    }
+
+    // smearing set up block
+    // ONLY used for JER systematic
+    // WARNING make super sure this matches the values in gammaJetSkim.C !!
+    // otherwise JER systematic will be off
+    jetCorrector resolutionJetSmear[6];
+
+    // smear 0-10 %
+    std::vector<double> CSN_HI_cent0010 = {0.06, 1.23, 8.38};
+    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000, 0.125911, 2.23898};
+    // smear 10-30 %
+    std::vector<double> CSN_HI_cent1030 = {0.06, 1.23, 5.88};
+    std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
+    // smear 30-50 %
+    std::vector<double> CSN_HI_cent3050 = {0.06, 1.23, 3.24};
+    std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.1222, 1.21751};
+    // smear 50-100 %
+    std::vector<double> CSN_HI_cent50100 = {0.06, 1.23, 0};
+    std::vector<double> CSN_phi_HI_cent50100 = {-0.0073078, 0.168879, 0.798885};
+
+    // 0-30 and 30-100 are necessary only for smeared pp JER computation
+    // smear 0-30 %
+    std::vector<double> CSN_HI_cent0030 = {0.06, 1.23, 7.38};
+    std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
+    // smear 30-100 %
+    std::vector<double> CSN_HI_cent30100 = {0.06, 1.23, 2.1};
+    std::vector<double> CSN_phi_HI_cent30100 = {-2.013/100000000, 0.1646, 1.04};
+
+
+    for (int i=0; i<6; ++i) {
+        resolutionJetSmear[i].rand = rand;
+
+        switch (i) {
+        case 0: //0-10
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent0010;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0010;
+            break;
+        case 1: //10-30
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent1030;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent1030;
+            break;
+        case 2: //30-50
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent3050;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent3050;
+            break;
+        case 3: //50-100
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent50100;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent50100;
+            break;
+        case 4: // 0-30, for smeared pp only
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent0030;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0030;
+            break;
+        case 5: // 30-100, for smeared pp only
+            resolutionJetSmear[i].CSN_HI = CSN_HI_cent30100;
+            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent30100;
+            break;
+        }
     }
 
     /// End Input Bookkeeping block //
@@ -458,7 +521,16 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     float jetpt = (*jet.jtpt_smeared)[smearBin][ijet];
                     float smearFactor = 1;
                     if(doSmearingRes) {
-                        smearFactor = rand.Gaus(1,smearingResJet);
+                        //smearFactor = rand.Gaus(1,smearingResJet);
+                        float SF = 1 + smearingResJet;
+                        int resolutionBin = 0;
+                        if(isHI) {
+                            resolutionBin = getResolutionBin(evt.hiBin);
+                        } else {
+                            resolutionBin = getResolutionBinPP(smearBin);
+                        }
+                        float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
+                        smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
                         jetpt *= smearFactor;
                     }
                     // jet cuts
@@ -543,7 +615,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         float jetpt = jetMB.jtpt[ijet];
                         float smearFactor = 1;
                         if(doSmearingRes) {
-                            smearFactor = rand.Gaus(1,smearingResJet);
+                            //smearFactor = rand.Gaus(1,smearingResJet);
+                            float SF = 1 + smearingResJet;
+                            int resolutionBin = 0;
+                            resolutionBin = getResolutionBin(evt.hiBin);
+                            float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
+                            smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
                             jetpt *= smearFactor;
                         }
 
@@ -648,6 +725,39 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     input->Close();
     output->Close();
 
+    return 0;
+}
+
+int getResolutionBin(int hiBin){
+    int boundaries[4] = {20, 60, 100, 200};
+    for(int i = 0; i < 4; ++i){
+        if(hiBin < boundaries[i])
+            return i;
+    }
+    std::cout << "Warning, getResolutionBin out of bounds." << std::endl;
+    return 0;
+}
+
+int getResolutionBinPP(int smearBin){
+    switch(smearBin){
+    case 0: // no smearing? make something up...
+        return 0;
+    case 1: // 0-30%
+        return 4;
+    case 2: // 30-100%
+        return 5;
+    case 3: // 0-10%
+        return 0;
+    case 4: // 10-30%
+        return 1;
+    case 5: // 30-50%
+        return 2;
+    case 6: // 50-100%
+        return 3;
+    case 7: //sys ? make something up...
+        return 0;
+    }
+    std::cout << "Warning, getResolutionBinPP out of bounds." << std::endl;
     return 0;
 }
 

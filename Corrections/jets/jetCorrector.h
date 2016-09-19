@@ -50,6 +50,7 @@ public :
     double getSmearingPt(Jets &tJets, int i);
     double getSmearingPhi(Jets &tJets, int i);
     double getResolutionHI(Jets &tJets, int i);
+    double getResolutionHI(double jtpt);
     void  correctPtResidual(Jets &tJets, int i);
     void  correctPtResidual(TF1* f1, Jets &tJets, int i);
     void  correctPtsResidual(Jets &tJets);
@@ -154,6 +155,18 @@ double jetCorrector::getResolutionHI(Jets &tJets, int i)
 
     return sigma;
 }
+
+double jetCorrector::getResolutionHI(double jtpt)
+{
+    double sigma = TMath::Sqrt(
+            (CSN_HI.at(0)*CSN_HI.at(0)) +
+            (CSN_HI.at(1)*CSN_HI.at(1))/jtpt +
+            (CSN_HI.at(2)*CSN_HI.at(2))/(jtpt*jtpt)
+                    );
+
+    return sigma;
+}
+
 
 void jetCorrector::correctPtResidual(Jets &tJets, int i)
 {
