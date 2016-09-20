@@ -39,6 +39,14 @@
         g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+4));                             \
     }                                                                                           \
 
+#define H1D_TO_GRAPH_WCEL(h_name, g_name)                                               \
+    int npoints = h_name->GetNbinsX() - 3;                                              \
+    g_name = new TGraphErrors(npoints);                                                 \
+    for (int p=0; p<npoints; ++p) {                                                     \
+        g_name->SetPoint(p, h_name->GetBinCenter(p+4), h_name->GetBinContent(p+4));     \
+        g_name->SetPointError(p, 0, h_name->GetBinError(p+4));                          \
+    }                                                                                   \
+
 typedef struct box_t {
     float x1, y1, x2, y2;
 } box_t;
@@ -53,7 +61,10 @@ typedef struct box_t {
 #define _LBT_REF 7
 #define _HYBRID 8
 #define _HYBRID_REF 9
-#define _NPLOTS 10
+#define _IVITEV 10
+#define _IVITEV_REF 11
+#define _NPLOTS 12
+#define _WCEL 13
 
 const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
 
@@ -155,31 +166,33 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_JEWEL_REF] = false;
         hist_file_valid[_LBT_REF] = false;
         hist_file_valid[_HYBRID_REF] = false;
+        hist_file_valid[_IVITEV_REF] = false;
     }
 
     std::string suffix[_NPLOTS] = {
         "PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC",
-        "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref", "Hybrid", "Hybrid_ppref"
+        "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref", "Hybrid", "Hybrid_ppref", "pQCD", "pQCD_ppref"
     };
     std::string draw_options[_NPLOTS] = {
         "same e x0", "same hist e x0", "same e x0", "same hist e x0",
-        "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0"
+        "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0", "same l x0", "same l x0"
     };
     std::string sys_draw_options[_NPLOTS] = {
         "same e x0", "same hist e x0", "same e x0", "same hist e x0",
-        "", "", "", "", "", ""
+        "", "", "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
         "same p z", "same l z", "same p z", " same l z",
-        "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z"
+        "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z", "same l z", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
-        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))", "Hybrid Model", "pp (Hybrid Model)"
+        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))",
+        "Hybrid Model", "pp (Hybrid Model)", "pQCD jet E-loss", "pp (pQCD jet E-loss)"
     };
-    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l"};
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID, _HYBRID_REF};
+    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
     for (int i=0; i<_NPLOTS; ++i) {
         int j = draw_order[i];
         if (hist_file_valid[j]) {
@@ -290,9 +303,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (k == _JEWEL || k == _JEWEL_REF || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
-                    if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) || ((k == _LBT || k == _LBT_REF) && (hist_type == "iaa" || hist_type == "ptJet"))) {
+                    if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) || ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
                         if (k == _HYBRID_REF) {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
-                        else if (k == _LBT || k == _LBT_REF) {H1D_TO_JPT_GRAPH(g1[i][j][k]);}
+                        else if (k == _LBT || k == _LBT_REF || k == _IVITEV) {H1D_TO_JPT_GRAPH(g1[i][j][k]);}
                         else {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
                         set_graph_style(g1[i][j][k], k);
 
@@ -301,6 +314,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                         h_tmp->Draw(draw_options[k].c_str());
                         g1[i][j][k]->Draw(graph_draw_options[k].c_str());
+
+                        if (k == _IVITEV) {
+                            TH1D* h_wcel = (TH1D*)hist_files[k]->Get(Form("%s_wcel", hist_name.c_str()));
+                            TGraphErrors* g_wcel = 0;
+                            H1D_TO_GRAPH_WCEL(h_wcel, g_wcel);
+                            set_graph_style(g_wcel, _WCEL);
+                            g_wcel->Draw(graph_draw_options[k].c_str());
+                        }
                     } else {
                         h1[i][j][k]->Draw(draw_options[k].c_str());
                     }
@@ -357,7 +378,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
                 set_legend_style(l1);
                 if (columns == 5) {
-                    if (configFile.Contains("theory_pp"))
+                    if (configFile.Contains("theory_pp") || (configFile.Contains("theory_PbPb") && hist_type == "iaa"))
                         l1->SetTextSize(latex_font_size - 2);
                     else
                         l1->SetTextSize(latex_font_size - 1);
@@ -427,10 +448,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
             latexInfo->SetTextSize(latex_font_size);
+            if (columns == 5) latexInfo->SetTextSize(latex_font_size - 1);
 
             if (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) {
                 i_x[i] = 0.96;
                 i_y[i] = 0.18;
+            }
+            if (i == 1 && j == 4 && canvas_title == "iaa") {
+                i_x[i] = 0.04;
             }
 
             if (i_x[i] > 0.8)
@@ -570,8 +595,8 @@ void set_global_style() {
             axis_label_cover_size = 0.0125;
             break;
         case 5:
-            axis_font_size = 24;
-            axis_label_font_size = 27;
+            axis_font_size = 22;
+            axis_label_font_size = 25;
             latex_font_size = 20;
             line_width = 1;
             latex_spacing = 0.085;
@@ -750,6 +775,14 @@ void set_hist_style(TH1D* h1, int k) {
             h1->SetMarkerStyle(20);
             h1->SetMarkerSize(0);
             break;
+        case _IVITEV:
+            h1->SetLineColor(kMagenta+1);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(line_width);
+            h1->SetMarkerSize(0);
+            break;
+        case _IVITEV_REF:
+            break;
         default:
             break;
     }
@@ -791,6 +824,16 @@ void set_graph_style(TGraphErrors* g1, int k) {
         g1->SetLineColorAlpha(kTeal+9, 0.7);
         g1->SetLineStyle(1);
         g1->SetLineWidth(line_width);
+    } else if (k == _IVITEV || k == _IVITEV_REF) {
+        g1->SetLineColorAlpha(kMagenta+1, 0.7);
+        g1->SetLineStyle(1);
+        g1->SetLineWidth(line_width);
+        g1->SetMarkerSize(0);
+    } else if (k == _WCEL) {
+        g1->SetLineColorAlpha(kMagenta+1, 0.7);
+        g1->SetLineStyle(2);
+        g1->SetLineWidth(line_width);
+        g1->SetMarkerSize(0);
     }
 }
 
