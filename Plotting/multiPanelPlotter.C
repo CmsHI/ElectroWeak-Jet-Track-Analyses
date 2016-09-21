@@ -192,7 +192,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PP_DATA, _PBPB_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
+    int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
     for (int i=0; i<_NPLOTS; ++i) {
         int j = draw_order[i];
         if (hist_file_valid[j]) {
@@ -291,12 +291,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     if (hist_type == "dphi" && set_log_scale[i])
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
-                    if ((hist_type == "ptJet" || hist_type == "iaa") && j < 4)
-                        h1[i][j][k]->SetAxisRange(0, 160, "X");
 
                     if (hist_type == "xjg")
-                        h1[i][j][k]->SetNdivisions(504);
-                    if ((hist_type == "ptJet" || hist_type == "iaa") && j < 4)
                         h1[i][j][k]->SetNdivisions(504);
 
                     if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF) && hist_type == "dphi")
@@ -703,8 +699,8 @@ void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
         double val = h1->GetBinContent(i);
         double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
 
-        box->SetX1(x - 10);
-        box->SetX2(x + 10);
+        box->SetX1(x - 16);
+        box->SetX2(x + 16);
         box->SetY1(std::max(val - error, h1->GetMinimum()));
         box->SetY2(std::min(val + error, h1->GetMaximum()));
 
