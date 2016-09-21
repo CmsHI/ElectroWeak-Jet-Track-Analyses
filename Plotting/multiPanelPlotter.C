@@ -291,8 +291,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     if (hist_type == "dphi" && set_log_scale[i])
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
+                    if ((hist_type == "ptJet" || hist_type == "iaa") && j < 4)
+                        h1[i][j][k]->SetAxisRange(0, 160, "X");
 
                     if (hist_type == "xjg")
+                        h1[i][j][k]->SetNdivisions(504);
+                    if ((hist_type == "ptJet" || hist_type == "iaa") && j < 4)
                         h1[i][j][k]->SetNdivisions(504);
 
                     if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF) && hist_type == "dphi")
@@ -845,6 +849,9 @@ void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_of
     x_axis->SetLabelSize(axis_font_size);
     y_axis->SetLabelFont(43);
     y_axis->SetLabelSize(axis_font_size);
+
+    x_axis->SetLabelOffset(0.012);
+    y_axis->SetLabelOffset(0.012);
 
     x_axis->SetTitleFont(43);
     x_axis->SetTitleSize(axis_label_font_size);
