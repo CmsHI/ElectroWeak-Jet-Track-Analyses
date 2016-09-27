@@ -7,6 +7,8 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
+void renorm(TH1D* h1, int* iaa_nbins);
+
 int gammaJetFinalHistograms(const TString configFile,
                             const TString PbPb_Data_Filename, const TString PbPb_MC_Filename,
                             const TString pp_Data_Filename, const TString pp_MC_Filename,
@@ -55,6 +57,7 @@ int gammaJetFinalHistograms(const TString configFile,
 
     const int n_iaa_bins = 8;
     double iaa_bins[n_iaa_bins] = {0, 30, 40, 60, 100, 150, 200, 300};
+    int iaa_nbins[n_iaa_bins - 1] = {3, 1, 2, 4, 5, 5, 10};
     TH1D* h_ptJet_PbPb_Data_rebin[nPtBins][nCentBins];
     TH1D* h_ptJet_PbPb_MC_rebin[nPtBins][nCentBins];
     TH1D* h_ptJet_pp_Data_rebin[nPtBins][nCentBins];
@@ -119,6 +122,11 @@ int gammaJetFinalHistograms(const TString configFile,
             h_ptJet_PbPb_MC_rebin[i][j] = (TH1D*)h_ptJet_PbPb_MC[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_PbPb_MC_rebin", i, j), iaa_bins);
             h_ptJet_pp_Data_rebin[i][j] = (TH1D*)h_ptJet_pp_Data[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_Data_rebin", i, j), iaa_bins);
             h_ptJet_pp_MC_rebin[i][j] = (TH1D*)h_ptJet_pp_MC[i][j]->Rebin(n_iaa_bins - 1, Form("h1D_ptJet_ptBin%i_hiBin%i_pp_MC_rebin", i, j), iaa_bins);
+
+            renorm(h_ptJet_PbPb_Data_rebin[i][j], iaa_nbins);
+            renorm(h_ptJet_PbPb_MC_rebin[i][j], iaa_nbins);
+            renorm(h_ptJet_pp_Data_rebin[i][j], iaa_nbins);
+            renorm(h_ptJet_pp_MC_rebin[i][j], iaa_nbins);
 
             h_ptJet_PbPb_MC_rebin[i][j]->Write("", TObject::kOverwrite);
             h_ptJet_pp_MC_rebin[i][j]->Write("", TObject::kOverwrite);
@@ -273,6 +281,13 @@ int gammaJetFinalHistograms(const TString configFile,
     output_file->Close();
 
     return 0;
+}
+
+void renorm(TH1D* h1, int* iaa_nbins) {
+    for (int i=1; i<=h1->GetNbinsX(); ++i) {
+        h1->SetBinContent(i, h1->GetBinContent(i) / iaa_nbins[i-1]);
+        h1->SetBinError(i, h1->GetBinError(i) / iaa_nbins[i-1]);
+    }
 }
 
 int main(int argc, char* argv[]) {
