@@ -15,36 +15,20 @@
 
 #include <string>
 
-#define H1D_TO_NPART_GRAPH(g_name)                                                  \
-    int npoints = h1[i][j][k]->GetNbinsX();                                         \
-    g_name = new TGraphErrors(npoints);                                             \
-    for (int p=0; p<npoints; ++p) {                                                 \
-        g_name->SetPoint(p, ncoll_w_npart[p], h1[i][j][k]->GetBinContent(p+1));     \
-        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+1));                 \
-    }                                                                               \
+#define HIST_MINUS_N_PTS_TO_NPART_GRAPH(h_name, g_name, n)                      \
+    int npoints = h_name->GetNbinsX();                                          \
+    g_name = new TGraphErrors(npoints);                                         \
+    for (int p=0; p<npoints; ++p) {                                             \
+        g_name->SetPoint(p, ncoll_w_npart[p+n], h_name->GetBinContent(p+1+n));  \
+        g_name->SetPointError(p, 0, h_name->GetBinError(p+1+n));                \
+    }                                                                           \
 
-#define H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g_name)                                    \
-    int npoints = h1[i][j][k]->GetNbinsX() - 1;                                     \
-    g_name = new TGraphErrors(npoints);                                             \
-    for (int p=0; p<npoints; ++p) {                                                 \
-        g_name->SetPoint(p, ncoll_w_npart[p+1], h1[i][j][k]->GetBinContent(p+2));   \
-        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+2));                 \
-    }                                                                               \
-
-#define H1D_TO_JPT_GRAPH(g_name)                                                                \
-    int npoints = h1[i][j][k]->GetNbinsX() - 3;                                                 \
-    g_name = new TGraphErrors(npoints);                                                         \
-    for (int p=0; p<npoints; ++p) {                                                             \
-        g_name->SetPoint(p, h1[i][j][k]->GetBinCenter(p+4), h1[i][j][k]->GetBinContent(p+4));   \
-        g_name->SetPointError(p, 0, h1[i][j][k]->GetBinError(p+4));                             \
-    }                                                                                           \
-
-#define H1D_TO_GRAPH_WCEL(h_name, g_name)                                               \
-    int npoints = h_name->GetNbinsX() - 3;                                              \
+#define HIST_MINUS_N_PTS_TO_GRAPH(h_name, g_name, n)                                    \
+    int npoints = h_name->GetNbinsX() - n;                                              \
     g_name = new TGraphErrors(npoints);                                                 \
     for (int p=0; p<npoints; ++p) {                                                     \
-        g_name->SetPoint(p, h_name->GetBinCenter(p+4), h_name->GetBinContent(p+4));     \
-        g_name->SetPointError(p, 0, h_name->GetBinError(p+4));                          \
+        g_name->SetPoint(p, h_name->GetBinCenter(p+1+n), h_name->GetBinContent(p+1+n)); \
+        g_name->SetPointError(p, 0, h_name->GetBinError(p+1+n));                        \
     }                                                                                   \
 
 typedef struct box_t {
@@ -303,10 +287,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (k == _JEWEL || k == _JEWEL_REF || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
-                    if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) || ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
-                        if (k == _HYBRID_REF) {H1D_TO_NPART_GRAPH_NO_PERIPHERAL(g1[i][j][k]);}
-                        else if (k == _LBT || k == _LBT_REF || k == _IVITEV) {H1D_TO_JPT_GRAPH(g1[i][j][k]);}
-                        else {H1D_TO_NPART_GRAPH(g1[i][j][k]);}
+                    if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) ||
+                        ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
+                        if (k == _HYBRID_REF) {HIST_MINUS_N_PTS_TO_NPART_GRAPH(h1[i][j][k], g1[i][j][k], 1);}
+                        else if (k == _LBT || k == _LBT_REF || k == _IVITEV) {HIST_MINUS_N_PTS_TO_GRAPH(h1[i][j][k], g1[i][j][k], 3);}
+                        else {HIST_MINUS_N_PTS_TO_NPART_GRAPH(h1[i][j][k], g1[i][j][k], 0);}
                         set_graph_style(g1[i][j][k], k);
 
                         TH1D* h_tmp = (TH1D*)h1[i][j][k]->Clone();
@@ -318,7 +303,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         if (k == _IVITEV) {
                             TH1D* h_wcel = (TH1D*)hist_files[k]->Get(Form("%s_wcel", hist_name.c_str()));
                             TGraphErrors* g_wcel = 0;
-                            H1D_TO_GRAPH_WCEL(h_wcel, g_wcel);
+                            HIST_MINUS_N_PTS_TO_GRAPH(h_wcel, g_wcel, 3);
                             set_graph_style(g_wcel, _WCEL);
                             g_wcel->Draw(graph_draw_options[k].c_str());
                         }
@@ -737,7 +722,7 @@ void set_hist_style(TH1D* h1, int k) {
             break;
         case _PP_MC:
             break;
-        case _JEWEL:
+        case _JEWEL: case _JEWEL_REF:
             h1->SetLineColor(9);
             h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
@@ -745,21 +730,7 @@ void set_hist_style(TH1D* h1, int k) {
             h1->SetMarkerStyle(20);
             h1->SetMarkerSize(0);
             break;
-        case _JEWEL_REF:
-            h1->SetLineColor(9);
-            h1->SetLineStyle(1);
-            h1->SetLineWidth(line_width);
-            h1->SetMarkerColor(9);
-            h1->SetMarkerStyle(20);
-            h1->SetMarkerSize(0);
-            break;
-        case _LBT:
-            h1->SetLineColor(kOrange-3);
-            h1->SetLineStyle(1);
-            h1->SetLineWidth(line_width);
-            h1->SetMarkerSize(0);
-            break;
-        case _LBT_REF:
+        case _LBT: case _LBT_REF:
             h1->SetLineColor(kOrange-3);
             h1->SetLineStyle(1);
             h1->SetLineWidth(line_width);
@@ -789,51 +760,65 @@ void set_hist_style(TH1D* h1, int k) {
 }
 
 void set_graph_style(TGraphErrors* g1, int k) {
-    if (k == _PBPB_DATA) {
-        g1->SetLineColor(kBlack);
-        g1->SetMarkerSize(0.64);
-        g1->SetMarkerStyle(kFullCircle);
-        g1->SetMarkerColor(kBlack);
-    } else if (k == _PBPB_MC) {
-        g1->SetLineColor(1);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
-    } else if (k == _PP_DATA) {
-        g1->SetLineColor(kBlack);
-        g1->SetMarkerSize(0.64);
-        g1->SetMarkerStyle(kOpenCircle);
-        g1->SetMarkerColor(kBlack);
-    } else if (k == _JEWEL || k == _JEWEL_REF) {
-        g1->SetLineColor(9);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
-    } else if (k == _LBT || k == _LBT_REF) {
-        g1->SetLineColor(kOrange-3);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
-    } else if (k == _HYBRID) {
-        g1->SetLineColorAlpha(kTeal+9, 0.7);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(0);
-        g1->SetFillColor(kTeal+9);
-        g1->SetFillColorAlpha(kTeal+9, 0.7);
-    } else if (k == _HYBRID_REF) {
-        g1->SetLineColorAlpha(kTeal+9, 0.7);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-    } else if (k == _IVITEV || k == _IVITEV_REF) {
-        g1->SetLineColorAlpha(kMagenta+1, 0.7);
-        g1->SetLineStyle(1);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
-    } else if (k == _WCEL) {
-        g1->SetLineColorAlpha(kMagenta+1, 0.7);
-        g1->SetLineStyle(2);
-        g1->SetLineWidth(line_width);
-        g1->SetMarkerSize(0);
+    switch (k) {
+        case _PBPB_DATA:
+            g1->SetLineColor(kBlack);
+            g1->SetMarkerSize(0.64);
+            g1->SetMarkerStyle(kFullCircle);
+            g1->SetMarkerColor(kBlack);
+            break;
+        case _PBPB_MC:
+            g1->SetLineColor(1);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            g1->SetMarkerSize(0);
+            break;
+        case _PP_DATA:
+            g1->SetLineColor(kBlack);
+            g1->SetMarkerSize(0.64);
+            g1->SetMarkerStyle(kOpenCircle);
+            g1->SetMarkerColor(kBlack);
+            break;
+        case _PP_MC:
+            break;
+        case _JEWEL: case _JEWEL_REF:
+            g1->SetLineColor(9);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            g1->SetMarkerSize(0);
+            break;
+        case _LBT: case _LBT_REF:
+            g1->SetLineColor(kOrange-3);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            g1->SetMarkerSize(0);
+            break;
+        case _HYBRID:
+            g1->SetLineColorAlpha(kTeal+9, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(0);
+            g1->SetFillColor(kTeal+9);
+            g1->SetFillColorAlpha(kTeal+9, 0.7);
+            break;
+        case _HYBRID_REF:
+            g1->SetLineColorAlpha(kTeal+9, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            break;
+        case _IVITEV: case _IVITEV_REF:
+            g1->SetLineColorAlpha(kMagenta+1, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            g1->SetMarkerSize(0);
+            break;
+        case _WCEL:
+            g1->SetLineColorAlpha(kMagenta+1, 0.7);
+            g1->SetLineStyle(2);
+            g1->SetLineWidth(line_width);
+            g1->SetMarkerSize(0);
+            break;
+        default:
+            break;
     }
 }
 
@@ -970,6 +955,8 @@ int main(int argc, char* argv[]) {
     } else {
         printf("Usage: ./multiPanelPlotter.exe <fileList> <configFiles>\n");
         printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/data/gammaJetPlot.list Configurations/gammaJet/data/*.conf\n");
+        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/theory_PbPb/gammaJetPlot.list Configurations/gammaJet/theory_PbPb/*.conf\n");
+        printf("./Plotting/multiPanelPlotter.exe Configurations/gammaJet/theory_pp/gammaJetPlot.list Configurations/gammaJet/theory_pp/*.conf\n");
     }
 
     return 0;
