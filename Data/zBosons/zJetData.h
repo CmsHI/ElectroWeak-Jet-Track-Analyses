@@ -285,10 +285,10 @@ const std::vector<double> y_xjz_PP = {0.0040369166, 0.020680538, 0.05090977, 0.0
 
 // <xjz> points
 // 0-30 %
-const std::vector<double> xjz_mean_COLL = 0.71;
-const std::vector<double> xjz_mean_NOCOLL = 0.73;
+const double xjz_mean_COLL = 0.71;
+const double xjz_mean_NOCOLL = 0.73;
 
-const std::vector<double> xjz_mean_PP = 0.8;
+const double xjz_mean_PP = 0.8;
 
 enum MODEL{
     kCOLL,      // collisional energy loss
