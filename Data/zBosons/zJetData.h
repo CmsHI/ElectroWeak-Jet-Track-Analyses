@@ -75,32 +75,47 @@ const std::vector<double> y_dphi_PP = {0.0177265, 0.0236685, 0.0338809, 0.066581
 const std::vector<double> yerr_dphi_PP = {0.000286749, 0.000331367, 0.000458977, 0.000643401, 0.00128754, 0.00224169, 0.00478292, 0.00742312};
 
 // IAA
-const int n_IAA = 5;
 
-const std::vector<double> x_IAA_STRONG = {35.069, 45.1078, 54.9757, 67.307, 89.4147};
-const std::vector<double> ymin_IAA_STRONG = {0.890972, 0.775532, 0.64381, 0.504133, 0.422482};
-const std::vector<double> ymax_IAA_STRONG = {1.00827, 0.917928, 0.771226, 0.625474, 0.527708};
+// iaa :  Z pt > 60
+const int n_IAA = 6;
+const std::vector<double> x_IAA_STRONG = {35, 50, 70, 90, 120, 170};
+const std::vector<double> ymin_IAA_STRONG = {0.89841, 0.823095, 0.663751, 0.617739, 0.604402, 0.608686};
+const std::vector<double> ymax_IAA_STRONG = {0.982277, 0.915486, 0.765051, 0.719981, 0.711777, 0.719935};
 
-const std::vector<double> x_IAA_RAD = {35.0623, 45.0946, 54.9826, 67.3234, 89.4107};
-const std::vector<double> ymin_IAA_RAD = {1.035, 0.897975, 0.706066, 0.527602, 0.417987};
-const std::vector<double> ymax_IAA_RAD = {1.10573, 0.990985, 0.821189, 0.648459, 0.526771};
+const std::vector<double> x_IAA_RAD = {35, 50, 70, 90, 120, 170};
+const std::vector<double> ymin_IAA_RAD = {1.0084, 0.910662, 0.708897, 0.638986, 0.633478, 0.628464};
+const std::vector<double> ymax_IAA_RAD = {1.05132, 0.972902, 0.802562, 0.734336, 0.726685, 0.730443};
 
-const std::vector<double> x_IAA_COLL = {35.0782, 45.0962, 54.9867, 67.313, 89.4289};
-const std::vector<double> ymin_IAA_COLL = {1.07732, 0.949815, 0.740491, 0.548713, 0.416121};
-const std::vector<double> ymax_IAA_COLL = {1.13572, 1.02667, 0.844317, 0.654911, 0.525503};
+const std::vector<double> x_IAA_COLL = {35, 50, 70, 90, 120, 170};
+const std::vector<double> ymin_IAA_COLL = {1.0282, 0.941004, 0.735154, 0.664372, 0.634824, 0.636381};
+const std::vector<double> ymax_IAA_COLL = {1.06689, 1.00025, 0.811338, 0.738423, 0.731618, 0.73232};
 
-// IAA 2
-const std::vector<double> x_IAA2_STRONG = {39.7211, 65.6362, 93.0506, 123.442};
-const std::vector<double> ymin_IAA2_STRONG = {0.958907, 0.891856, 0.677577, 0.61297};
-const std::vector<double> ymax_IAA2_STRONG = {1.00003, 0.9621, 0.777774, 0.730158};
+const int n_IAA_ptBin = 5;
+// iaa_ptBin5 : 60 < Z pt < 80
+const std::vector<double> x_IAA_ptBin5_STRONG = {35.069, 45.1078, 54.9757, 67.307, 89.4147};
+const std::vector<double> ymin_IAA_ptBin5_STRONG = {0.890972, 0.775532, 0.64381, 0.504133, 0.422482};
+const std::vector<double> ymax_IAA_ptBin5_STRONG = {1.00827, 0.917928, 0.771226, 0.625474, 0.527708};
 
-const std::vector<double> x_IAA2_RAD = {39.7286, 65.613, 93.0124, 123.451};
-const std::vector<double> ymin_IAA2_RAD = {1.00834, 0.965166, 0.713259, 0.645519};
-const std::vector<double> ymax_IAA2_RAD = {1.04925, 1.02371, 0.803982, 0.738814};
+const std::vector<double> x_IAA_ptBin5_RAD = {35.0623, 45.0946, 54.9826, 67.3234, 89.4107};
+const std::vector<double> ymin_IAA_ptBin5_RAD = {1.035, 0.897975, 0.706066, 0.527602, 0.417987};
+const std::vector<double> ymax_IAA_ptBin5_RAD = {1.10573, 0.990985, 0.821189, 0.648459, 0.526771};
 
-const std::vector<double> x_IAA2_COLL = {39.7103, 65.6364, 92.9684, 123.436};
-const std::vector<double> ymin_IAA2_COLL = {1.01515, 1.00435, 0.739984, 0.643649};
-const std::vector<double> ymax_IAA2_COLL = {1.03824, 1.04631, 0.811429, 0.739145};
+const std::vector<double> x_IAA_ptBin5_COLL = {35.0782, 45.0962, 54.9867, 67.313, 89.4289};
+const std::vector<double> ymin_IAA_ptBin5_COLL = {1.07732, 0.949815, 0.740491, 0.548713, 0.416121};
+const std::vector<double> ymax_IAA_ptBin5_COLL = {1.13572, 1.02667, 0.844317, 0.654911, 0.525503};
+
+// iaa_ptBin6 : Z pt > 80
+const std::vector<double> x_IAA_ptBin6_STRONG = {39.7211, 65.6362, 93.0506, 123.442};
+const std::vector<double> ymin_IAA_ptBin6_STRONG = {0.958907, 0.891856, 0.677577, 0.61297};
+const std::vector<double> ymax_IAA_ptBin6_STRONG = {1.00003, 0.9621, 0.777774, 0.730158};
+
+const std::vector<double> x_IAA_ptBin6_RAD = {39.7286, 65.613, 93.0124, 123.451};
+const std::vector<double> ymin_IAA_ptBin6_RAD = {1.00834, 0.965166, 0.713259, 0.645519};
+const std::vector<double> ymax_IAA_ptBin6_RAD = {1.04925, 1.02371, 0.803982, 0.738814};
+
+const std::vector<double> x_IAA_ptBin6_COLL = {39.7103, 65.6364, 92.9684, 123.436};
+const std::vector<double> ymin_IAA_ptBin6_COLL = {1.01515, 1.00435, 0.739984, 0.643649};
+const std::vector<double> ymax_IAA_ptBin6_COLL = {1.03824, 1.04631, 0.811429, 0.739145};
 
 enum MODEL{
     kSTRONG,
@@ -179,22 +194,40 @@ const std::vector<double> ymax_IAA[kN_MODEL] = {
         ymax_IAA_COLL
 };
 
-const std::vector<double> x_IAA2[kN_MODEL] = {
-        x_IAA2_STRONG,
-        x_IAA2_RAD,
-        x_IAA2_COLL
+const std::vector<double> x_IAA_ptBin5[kN_MODEL] = {
+        x_IAA_ptBin5_STRONG,
+        x_IAA_ptBin5_RAD,
+        x_IAA_ptBin5_COLL
 };
 
-const std::vector<double> ymin_IAA2[kN_MODEL] = {
-        ymin_IAA2_STRONG,
-        ymin_IAA2_RAD,
-        ymin_IAA2_COLL
+const std::vector<double> ymin_IAA_ptBin5[kN_MODEL] = {
+        ymin_IAA_ptBin5_STRONG,
+        ymin_IAA_ptBin5_RAD,
+        ymin_IAA_ptBin5_COLL
 };
 
-const std::vector<double> ymax_IAA2[kN_MODEL] = {
-        ymax_IAA2_STRONG,
-        ymax_IAA2_RAD,
-        ymax_IAA2_COLL
+const std::vector<double> ymax_IAA_ptBin5[kN_MODEL] = {
+        ymax_IAA_ptBin5_STRONG,
+        ymax_IAA_ptBin5_RAD,
+        ymax_IAA_ptBin5_COLL
+};
+
+const std::vector<double> x_IAA_ptBin6[kN_MODEL] = {
+        x_IAA_ptBin6_STRONG,
+        x_IAA_ptBin6_RAD,
+        x_IAA_ptBin6_COLL
+};
+
+const std::vector<double> ymin_IAA_ptBin6[kN_MODEL] = {
+        ymin_IAA_ptBin6_STRONG,
+        ymin_IAA_ptBin6_RAD,
+        ymin_IAA_ptBin6_COLL
+};
+
+const std::vector<double> ymax_IAA_ptBin6[kN_MODEL] = {
+        ymax_IAA_ptBin6_STRONG,
+        ymax_IAA_ptBin6_RAD,
+        ymax_IAA_ptBin6_COLL
 };
 
 };

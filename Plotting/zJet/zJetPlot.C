@@ -63,16 +63,16 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
     int mode = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mode];
 
     // input for TH1
-    std::vector<std::string> TH1_paths   = ConfigurationParser::ParseList(configInput.proc[INPUT::kHISTOGRAM].s[INPUT::k_TH1_path]);   // paths of TH1D histograms
+    std::vector<std::string> TH1_paths = ConfigurationParser::ParseList(configInput.proc[INPUT::kHISTOGRAM].s[INPUT::k_TH1_path]);   // paths of TH1D histograms
     float markerSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_markerSize];
 
     // input for TLegend
-    float legendOffsetX     = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
-    float legendOffsetY     = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
-    int legendBorderSize  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
-    float legendWidth       = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
-    float legendHeight      = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
-    float legendTextSize    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
+    float legendOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
+    float legendOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
+    int legendBorderSize = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
+    float legendWidth = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
+    float legendHeight = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
+    float legendTextSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
 
     // input for text objects
     int textFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textFont];
@@ -91,10 +91,10 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
     // input for TCanvas
     int windowWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
     int windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
-    float leftMargin   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
-    float rightMargin  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
+    float leftMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
+    float rightMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
     float bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
-    float topMargin    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
+    float topMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
     int setLogx = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogx];
     int setLogy = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogy];
 
@@ -174,7 +174,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
     std::vector<float> bins_pt = ConfigurationParser::ParseListFloat(
             configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
 
-    std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+    std::vector<int> bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
     bins_hiBin[0] = ConfigurationParser::ParseListInteger(
             configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(
@@ -196,7 +196,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
 
     // jet cuts
     std::string jetCollection = configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
-    float jetpt  = configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kJET].f[CUTS::JET::k_pt];
+    float jetpt = configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kJET].f[CUTS::JET::k_pt];
     float jeteta = configCuts.proc[CUTS::kPLOTTING].obj[CUTS::kJET].f[CUTS::JET::k_eta];
 
     // zJet cuts
@@ -1144,18 +1144,25 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP = HYBRID::y_rjz_PP;
                         yerrPP = HYBRID::yerr_rjz_PP;
                     }
-                    else if (correlation.compare("iaa_ptBin5") == 0) {
+                    else if (correlation.compare("iaa") == 0) {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_IAA[iModel];
                             ymin_hybrid[iModel] = HYBRID::ymin_IAA[iModel];
                             ymax_hybrid[iModel] = HYBRID::ymax_IAA[iModel];
                         }
                     }
+                    else if (correlation.compare("iaa_ptBin5") == 0) {
+                        for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
+                            x_hybrid[iModel] = HYBRID::x_IAA_ptBin5[iModel];
+                            ymin_hybrid[iModel] = HYBRID::ymin_IAA_ptBin5[iModel];
+                            ymax_hybrid[iModel] = HYBRID::ymax_IAA_ptBin5[iModel];
+                        }
+                    }
                     else if (correlation.compare("iaa_ptBin6") == 0) {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
-                            x_hybrid[iModel] = HYBRID::x_IAA2[iModel];
-                            ymin_hybrid[iModel] = HYBRID::ymin_IAA2[iModel];
-                            ymax_hybrid[iModel] = HYBRID::ymax_IAA2[iModel];
+                            x_hybrid[iModel] = HYBRID::x_IAA_ptBin6[iModel];
+                            ymin_hybrid[iModel] = HYBRID::ymin_IAA_ptBin6[iModel];
+                            ymax_hybrid[iModel] = HYBRID::ymax_IAA_ptBin6[iModel];
                         }
                     }
                     if (x_hybrid[0].size() > 0 && plotTheoryHI) {
