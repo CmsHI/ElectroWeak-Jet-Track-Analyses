@@ -34,17 +34,21 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+       if (!configInput.isValid) {
+           std::cout << "Input configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+       if (!configCuts.isValid) {
+           std::cout << "Cut configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+
        // input configuration
-       int collisionType;
-       std::string treePath;
-       if (configInput.isValid) {
-           collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
-           treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
-       }
-       else {
-           collisionType = COLL::kPP;
-           treePath = "ggHiNtuplizer/EventTree";
-       }
+       int collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
+       std::string treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
+
        // set default values
        if (treePath.size() == 0)  treePath = "ggHiNtuplizer/EventTree";
 
@@ -56,31 +60,13 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
-       float cut_vz;
-       int cut_pcollisionEventSelection;
-       int cut_pPAprimaryVertexFilter;
-       int cut_pBeamScrapingFilter;
-       
-       int cut_nEle;
-       int doCorrection;
-       if (configCuts.isValid) {
-           cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-           cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
-           cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
-           cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+       float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+       int cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+       int cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
+       int cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
 
-           cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
-           doCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
-       }
-       else {
-           cut_vz = 15;
-           cut_pcollisionEventSelection = 1;
-           cut_pPAprimaryVertexFilter = 1;
-           cut_pBeamScrapingFilter = 1;
-
-           cut_nEle = 2;
-           doCorrection = 0;
-       }
+       int cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
+       int doCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_doCorrection];
 
        // bool isMC = collisionIsMC((COLL::TYPE)collisionType);
        bool isHI = collisionIsHI((COLL::TYPE)collisionType);

@@ -48,65 +48,41 @@ void photonMatchFakeRatio(const TString configFile, const TString inputFile, con
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     // input configuration
     // input for TTree
-    std::string treePath;
-    int collisionType;
+    std::string treePath = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+
+    int collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
 
     // input for TH1
-    std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
-    float titleOffsetX;
-    float titleOffsetY;
-    float yMin;         // min. y-axis value of matching efficiency / fake rate histogram, default : 0
-    float yMax;         // max. y-axis value of matching efficiency / fake rate histogram, default : 1.2
+    // nBins, xLow, xUp for the TH1D histogram
+    std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    float titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+    float titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+    // min. y-axis value of matching efficiency / fake rate histogram, default : 0
+    float yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
+    // max. y-axis value of matching efficiency / fake rate histogram, default : 1.2
+    float yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
 
     // input for TCanvas
-    int windowWidth;
-    int windowHeight;
-    float leftMargin;
-    float rightMargin;
-    float bottomMargin;
-    float topMargin;
+    int windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
+    int windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
+    float leftMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+    float rightMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+    float bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+    float topMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
 
-    if (configInput.isValid) {
-        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-    
-        collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
-
-        TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
-        titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
-        titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
-        yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
-        yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
-
-        windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
-        windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
-        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
-        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
-        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
-        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
-    }
-    else {
-        treePath = "";
-    
-        collisionType = COLL::kPP;
-
-        TH1D_Bins_List.resize(3);
-        TH1D_Bins_List[0].push_back(12);     // nBins
-        TH1D_Bins_List[1].push_back(-2.4);   // xLow
-        TH1D_Bins_List[2].push_back(2.4);    // xUp
-        titleOffsetX = 1;
-        titleOffsetY = 1;
-        yMin = 0;
-        yMax = -1;
-
-        windowWidth = 0;
-        windowHeight = 0;
-        leftMargin = 0.1;
-        rightMargin = 0.1;
-        bottomMargin = 0.1;
-        topMargin = 0.1;
-    }
     // set default values
     if (treePath.size() == 0) treePath = "ggHiNtuplizer/EventTree";
 
@@ -181,69 +157,36 @@ void photonMatchFakeRatio(const TString configFile, const TString inputFile, con
                                             // list of pt cuts for RECO photons
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
+    bins_eta[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
+    bins_eta[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_lt]);
+    bins_genPt[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_gt]);
+    bins_genPt[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_lt]);
+    bins_recoPt[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
+    bins_recoPt[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
+    bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+    bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
     // RECO photon cuts
-    float cut_phoHoverE;
-    float cut_pho_ecalClusterIsoR4;
-    float cut_pho_hcalRechitIsoR4;
-    float cut_pho_trackIsoR4PtCut20;
-    float cut_phoSigmaIEtaIEta_2012;
-    float cut_sumIso;
+    float cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+    float cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
+    float cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
+    float cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
+    float cut_phoSigmaIEtaIEta_2012 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_2012];
+    float cut_sumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
 
     // GEN photon cuts
-    float cut_mcCalIsoDR04;
-    float cut_mcTrkIsoDR04;
-    float cut_mcSumIso;
+    float cut_mcCalIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcCalIsoDR04];
+    float cut_mcTrkIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcTrkIsoDR04];
+    float cut_mcSumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcSumIso];
 
-    if (configCuts.isValid) {
-        bins_eta[0] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
-        bins_eta[1] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_lt]);
-        bins_genPt[0] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_gt]);
-        bins_genPt[1] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_lt]);
-        bins_recoPt[0] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
-        bins_recoPt[1] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
-        bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
-        bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
-
-        cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
-        cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
-        cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
-        cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
-        cut_phoSigmaIEtaIEta_2012 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_2012];
-        cut_sumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
-
-        cut_mcCalIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcCalIsoDR04];
-        cut_mcTrkIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcTrkIsoDR04];
-        cut_mcSumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcSumIso];
-    }
-    else {
-        bins_eta[0].push_back(0);
-        bins_eta[1].push_back(2.4);
-        bins_genPt[0].push_back(0);
-        bins_genPt[1].push_back(-1);
-        bins_recoPt[0].push_back(0);
-        bins_recoPt[1].push_back(-1);
-        bins_hiBin[0].push_back(0);
-        bins_hiBin[1].push_back(-1);
-
-        cut_phoHoverE = 0.1;
-        cut_pho_ecalClusterIsoR4 = 4.2;
-        cut_pho_hcalRechitIsoR4 = 2.2;
-        cut_pho_trackIsoR4PtCut20 = 2;
-        cut_phoSigmaIEtaIEta_2012 = 0.01;
-        cut_sumIso = 6;
-
-        cut_mcCalIsoDR04 = 5;
-        cut_mcTrkIsoDR04 = 5;
-        cut_mcSumIso = 0;
-    }
     // set default values
     if (bins_eta[0].size() == 0) {
         bins_eta[0].push_back(0);

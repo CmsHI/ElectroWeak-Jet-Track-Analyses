@@ -32,17 +32,21 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+       if (!configInput.isValid) {
+           std::cout << "Input configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+       if (!configCuts.isValid) {
+           std::cout << "Cut configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+
        // input configuration
-       int isMC;
-       std::string treePath;
-       if (configInput.isValid) {
-           isMC = configInput.proc[INPUT::kSKIM].i[INPUT::k_isMC];
-           treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
-       }
-       else {
-           isMC = 0;
-           treePath = "ggHiNtuplizer/EventTree";
-       }
+       int isMC = configInput.proc[INPUT::kSKIM].i[INPUT::k_isMC];
+       std::string treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
+
        // set default values
        if (treePath.size() == 0)  treePath = "ggHiNtuplizer/EventTree";
 
@@ -52,28 +56,12 @@ void diphotonSkim(const TString configFile, const TString inputFile, const TStri
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
-       int cut_nPho;
-       float cut_phoSigmaIEtaIEta_spike;
-       float cut_pho_swissCrx;
-       float cut_pho_seedTime;
+       int cut_nPho = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_nPhotons];
+       float cut_phoSigmaIEtaIEta_spike = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_spike];
+       float cut_pho_swissCrx = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_swissCrx];
+       float cut_pho_seedTime = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_seedTime];
 
-       int cut_nEle;
-       if (configCuts.isValid) {
-           cut_nPho = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_nPhotons];
-           cut_phoSigmaIEtaIEta_spike = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_spike];
-           cut_pho_swissCrx = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_swissCrx];
-           cut_pho_seedTime = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_seedTime];
-
-           cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
-       }
-       else {
-           cut_nPho = 2;
-           cut_phoSigmaIEtaIEta_spike = 0.002;
-           cut_pho_swissCrx = 0.9;
-           cut_pho_seedTime = 3;
-
-           cut_nEle = 2;
-       }
+       int cut_nEle = configCuts.proc[CUTS::kSKIM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_nEle];
 
        // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;

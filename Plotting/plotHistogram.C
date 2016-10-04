@@ -37,249 +37,118 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     // input for TH1
-    std::vector<std::string> TH1_paths;      // paths of TH1D histograms
-    std::string title;
-    std::string titleX;
-    std::string titleY;
-    float titleOffsetX;
-    float titleOffsetY;
-    int centerTitleX;
-    int centerTitleY;
-    std::vector<float> TH1_scales;
-    std::vector<int> TH1_rebins;
-    std::vector<float> TH1_norms;
-    float xMin;
-    float xMax;
-    float yMin;
-    float yMax;
-    float markerSize;
-    int drawSame;
-    int drawNormalized;
-    std::vector<std::string> drawOptions;
-    std::vector<std::string> markerStyles;
-    std::vector<std::string> lineStyles;
-    std::vector<std::string> fillStyles;
-    std::vector<std::string> colors;
-    std::vector<std::string> fillColors;
-    std::vector<std::string> lineColors;
-    int lineWidth;
-    int fitTH1;
+    // paths of TH1D histograms
+    std::vector<std::string> TH1_paths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_path]);
+    std::string title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_title]);
+    std::string titleX = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleX]);
+    std::string titleY = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY]);
+    float titleOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetX];
+    float titleOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetY];
+    int centerTitleX = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleX];
+    int centerTitleY = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleY];
+    std::vector<float> TH1_scales = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
+    std::vector<int> TH1_rebins = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
+    std::vector<float> TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
+    float xMin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_xMin];
+    float xMax = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_xMax];
+    float yMin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMin];
+    float yMax = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMax];
+    float markerSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_markerSize];
+    int drawSame = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawSame];
+    int drawNormalized = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawNormalized];
+    std::vector<std::string> drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_drawOption]);
+    std::vector<std::string> markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_markerStyle]);
+    std::vector<std::string> lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineStyle]);
+    std::vector<std::string> fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillStyle]);
+    std::vector<std::string> colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_color]);
+    std::vector<std::string> fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillColor]);
+    std::vector<std::string> lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineColor]);
+    int lineWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_lineWidth];
+    int fitTH1 = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_fitTH1];
 
     // input for TF1
-    std::vector<std::string> TF1_formulas;
-    std::vector<std::vector<double>> TF1_ranges;
-    std::vector<std::string> fitOptions;
-    std::vector<std::string> fitColors;
+    std::vector<std::string> TF1_formulas = ConfigurationParser::ParseListTF1Formula(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1]);
+    std::vector<std::vector<double>> TF1_ranges = ConfigurationParser::ParseListTF1Range(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1]);
+    std::vector<std::string> fitOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitOption]);
+    std::vector<std::string> fitColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitColor]);
 
     // input for TLegend
-    std::vector<std::string> legendEntryLabels;
-    std::string legendPosition;
-    float legendOffsetX;
-    float legendOffsetY;
-    int legendBorderSize;
-    float legendWidth;
-    float legendHeight;
-    float legendTextSize;
+    std::vector<std::string> legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_legendEntryLabel]));
+    std::string legendPosition = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_legendPosition];
+    float legendOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
+    float legendOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
+    int legendBorderSize = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
+    float legendWidth = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
+    float legendHeight = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
+    float legendTextSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
 
     // input for text objects
-    std::vector<std::string> textLines;
-    int textFont;
-    float textSize;
-    std::string textPosition;
-    float textOffsetX;
-    float textOffsetY;
+    std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_text]);
+    std::vector<std::string> textLines = ConfigurationParser::ParseList(tmpText);
+    int textFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textFont];
+    float textSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textSize];
+    std::string textPosition = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textPosition];
+    float textOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetX];
+    float textOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetY];
 
-    std::vector<std::string> textsOverPad;
-    std::vector<std::string> textsOverPadAlignments;
-    int textAbovePadFont;
-    float textAbovePadSize;
-    float textAbovePadOffsetX;
-    float textAbovePadOffsetY;
+    std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePad]);
+    std::vector<std::string> textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
+    std::vector<std::string> textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePadAlign]);
+    int textAbovePadFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textAbovePadFont];
+    float textAbovePadSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadSize];
+    float textAbovePadOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetX];
+    float textAbovePadOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetY];
 
     // input for TLine
-    std::vector<float> TLines_horizontal;               // y-axis positions of the horizontal lines to be drawn
-    std::vector<std::string> lineStyles_horizontal;     // styles of the horizontal lines to be drawn
-    std::vector<float> TLines_vertical;                 // x-axis positions of the vertical lines to be drawn
-    std::vector<std::string> lineStyles_vertical;       // styles of the vertical lines to be drawn
+    // y-axis positions of the horizontal lines to be drawn
+    std::vector<float> TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_horizontal]);
+    std::vector<std::string> lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_horizontal]);
+    // x-axis positions of the vertical lines to be drawn
+    std::vector<float> TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_vertical]);
+    std::vector<std::string> lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_vertical]);
 
     // input for lower pad
-    int drawRatio;
-    int drawDiff;
-    float windowHeightFraction;
-    std::string titleY_lowerPad;
-    float yMin_lowerPad;
-    float yMax_lowerPad;
-    std::vector<float> TLines_horizontal_lowerPad;               // y-axis positions of the horizontal lines to be drawn in the lower pad
-    std::vector<std::string> lineStyles_horizontal_lowerPad;     // styles of the horizontal lines to be drawn in the lower pad
-    std::vector<float> TLines_vertical_lowerPad;                 // x-axis positions of the vertical lines to be drawn in the lower pad
-    std::vector<std::string> lineStyles_vertical_lowerPad;       // styles of the vertical lines to be drawn in the lower pad
+    int drawRatio = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawRatio];
+    int drawDiff  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawDiff];
+    float windowHeightFraction = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_windowHeightFraction];
+    std::string titleY_lowerPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY_lowerPad]);
+    float yMin_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMin_lowerPad];
+    float yMax_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMax_lowerPad];
+    // y-axis positions of the horizontal lines to be drawn in the lower pad
+    std::vector<float> TLines_horizontal_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_horizontal_lowerPad]);
+    std::vector<std::string> lineStyles_horizontal_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_horizontal_lowerPad]);
+    // x-axis positions of the vertical lines to be drawn in the lower pad
+    std::vector<float> TLines_vertical_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_vertical_lowerPad]);
+    std::vector<std::string> lineStyles_vertical_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_vertical_lowerPad]);
     // input for TF1 in lowerPad
-    int fitTH1_lowerPad;
-    std::vector<std::string> TF1_formulas_lowerPad;
-    std::vector<std::vector<double>> TF1_ranges_lowerPad;
-    std::vector<std::string> fitOptions_lowerPad;
-    std::vector<std::string> fitColors_lowerPad;
+    int fitTH1_lowerPad = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_fitTH1_lowerPad];
+    std::vector<std::string> TF1_formulas_lowerPad = ConfigurationParser::ParseListTF1Formula(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1_lowerPad]);
+    std::vector<std::vector<double>> TF1_ranges_lowerPad = ConfigurationParser::ParseListTF1Range(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1_lowerPad]);
+    std::vector<std::string> fitOptions_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitOption_lowerPad]);
+    std::vector<std::string> fitColors_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitColor_lowerPad]);
 
     // input for TCanvas
-    int windowWidth;
-    int windowHeight;
-    float leftMargin;
-    float rightMargin;
-    float bottomMargin;
-    float topMargin;
-    int setLogx;
-    int setLogy;
+    int windowWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
+    int windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
+    float leftMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
+    float rightMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
+    float bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
+    float topMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
+    int setLogx = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogx];
+    int setLogy = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogy];
 
-    if (configInput.isValid) {
-        TH1_paths   = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_path]);
-        title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_title]);
-        titleX = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleX]);
-        titleY = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY]);
-        titleOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetX];
-        titleOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_titleOffsetY];
-        centerTitleX = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleX];
-        centerTitleY = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_centerTitleY];
-        TH1_scales  = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
-        TH1_rebins  = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
-        TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
-        xMin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_xMin];
-        xMax = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_xMax];
-        yMin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMin];
-        yMax = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMax];
-        markerSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_markerSize];
-        drawSame = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawSame];
-        drawNormalized = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawNormalized];
-        drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_drawOption]);
-        markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_markerStyle]);
-        lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineStyle]);
-        fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillStyle]);
-        colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_color]);
-        fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillColor]);
-        lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineColor]);
-        lineWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_lineWidth];
-        fitTH1 = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_fitTH1];
-
-        TF1_formulas = ConfigurationParser::ParseListTF1Formula(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1]);
-        TF1_ranges   = ConfigurationParser::ParseListTF1Range(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1]);
-        fitOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitOption]);
-        fitColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitColor]);
-
-        legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_legendEntryLabel]));
-        legendPosition    = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_legendPosition];
-        legendOffsetX     = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetX];
-        legendOffsetY     = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendOffsetY];
-        legendBorderSize  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_legendBorderSize];
-        legendWidth       = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendWidth];
-        legendHeight      = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendHeight];
-        legendTextSize    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_legendTextSize];
-
-        std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_text]);
-        textLines = ConfigurationParser::ParseList(tmpText);
-        textFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textFont];
-        textSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textSize];
-        textPosition = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textPosition];
-        textOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetX];
-        textOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textOffsetY];
-
-        std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePad]);
-        textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
-        textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePadAlign]);
-        textAbovePadFont = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_textAbovePadFont];
-        textAbovePadSize = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadSize];
-        textAbovePadOffsetX = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetX];
-        textAbovePadOffsetY = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_textAbovePadOffsetY];
-
-        TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_horizontal]);
-        lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_horizontal]);
-        TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_vertical]);
-        lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_vertical]);
-
-        // lower pad objects
-        drawRatio = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawRatio];
-        drawDiff  = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawDiff];
-        windowHeightFraction = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_windowHeightFraction];
-        titleY_lowerPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY_lowerPad]);
-        yMin_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMin_lowerPad];
-        yMax_lowerPad = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_TH1_yMax_lowerPad];
-        TLines_horizontal_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_horizontal_lowerPad]);
-        lineStyles_horizontal_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_horizontal_lowerPad]);
-        TLines_vertical_lowerPad = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TLine_vertical_lowerPad]);
-        lineStyles_vertical_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_vertical_lowerPad]);
-        // input for TF1 in lowerPad
-        fitTH1_lowerPad = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_fitTH1_lowerPad];
-        TF1_formulas_lowerPad = ConfigurationParser::ParseListTF1Formula(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1_lowerPad]);
-        TF1_ranges_lowerPad = ConfigurationParser::ParseListTF1Range(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TF1_lowerPad]);
-        fitOptions_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitOption_lowerPad]);
-        fitColors_lowerPad = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fitColor_lowerPad]);
-
-        windowWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
-        windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
-        leftMargin   = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
-        rightMargin  = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
-        bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
-        topMargin    = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_topMargin];
-        setLogx = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogx];
-        setLogy = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_setLogy];
-    }
-    else {
-        title = "";
-        titleX = "";
-        titleY = "";
-        titleOffsetX = 1;
-        titleOffsetY = 1;
-        centerTitleX = 0;
-        centerTitleY = 0;
-        xMin = 0;
-        xMax = -1;
-        yMin = 0;
-        yMax = -1;
-        markerSize = 1;
-        drawSame = 0;
-        drawNormalized = 0;
-        lineWidth = 0;
-        fitTH1 = 0;
-
-        drawRatio = 0;
-        drawDiff = 0;
-        windowHeightFraction = 0;
-        titleY_lowerPad = "";
-
-        legendPosition = "";
-        legendOffsetX = 0;
-        legendOffsetY = 0;
-        legendBorderSize = 0;
-        legendWidth = 0;
-        legendHeight = 0;
-        legendTextSize = 0;
-
-        textFont = 0;
-        textSize = 0;
-        textPosition = "";
-        textOffsetX = 0;
-        textOffsetY = 0;
-
-        textAbovePadFont = 0;
-        textAbovePadSize = 0;
-        textAbovePadOffsetX = 0;
-        textAbovePadOffsetY = 0;
-
-        drawRatio = 0;
-        drawDiff = 0;
-        windowHeightFraction = 0;
-        yMin_lowerPad = 0;
-        yMax_lowerPad = -1;
-        fitTH1_lowerPad = 0;
-
-        windowWidth = 0;
-        windowHeight = 0;
-        leftMargin = 0.1;
-        rightMargin = 0.1;
-        bottomMargin = 0.1;
-        topMargin = 0.1;
-        setLogx = 0;
-        setLogy = 0;
-    }
     // set default values
     if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
     if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
@@ -564,13 +433,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "topMargin    = " << topMargin << std::endl;
     std::cout << "setLogx  = " << setLogx << std::endl;
     std::cout << "setLogy  = " << setLogy << std::endl;
-
-    if (configCuts.isValid) {
-
-    }
-    else {
-
-    }
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;

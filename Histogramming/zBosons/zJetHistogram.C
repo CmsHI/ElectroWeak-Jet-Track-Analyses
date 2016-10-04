@@ -34,14 +34,20 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     // input configuration
-    int collision;
-    if (configInput.isValid) {
-        collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
-    }
-    else {
-        collision = COLL::kPP;
-    }
+    int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
+
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
@@ -51,195 +57,87 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     bool isHI = collisionIsHI((COLL::TYPE)collision);
     bool isPP = collisionIsPP((COLL::TYPE)collision);
 
+    // cut configuration
     // observable bins
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+    bins_pt[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
+    bins_pt[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_lt]);
+    bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+    bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+
     // event cuts/weights
-    int doEventWeight;
-    std::string eventWeight;    // weight to be used for histogram entries
-                                // current purpose of this variable is for weighting events from MC samples.
-    // Z Boson cuts
-    int doDiElectron;
-    int doDiMuon;
-    float massMin;
-    float massMax;
-    int doDiElectron_reweightCent;
+    int doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+    // weight to be used for histogram entries
+    // current purpose of this variable is for weighting events from MC samples.
+    std::string eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
+
+    int doDiElectron = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron];
+    int doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
+    float massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
+    float massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
+    int doDiElectron_reweightCent = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron_reweightCent];
+
     // electron cuts
-    std::vector<std::string> triggersEle;   // triggers will be "OR"ed
-    float elePt;
-    float eleSigmaIEtaIEta_2012_EB;
-    float eledEtaAtVtx_abs_EB;
-    float eledPhiAtVtx_abs_EB;
-    float eleHoverE_EB;
-    float eleEoverPInv_EB;
-    float eleD0_abs_EB;
-    float eleDz_abs_EB;
-    int   eleMissHits_EB;
-    float eleSigmaIEtaIEta_2012_EE;
-    float eledEtaAtVtx_abs_EE;
-    float eledPhiAtVtx_abs_EE;
-    float eleHoverE_EE;
-    float eleEoverPInv_EE;
-    float eleD0_abs_EE;
-    float eleDz_abs_EE;
-    int   eleMissHits_EE;
+    // triggers will be "OR"ed
+    std::vector<std::string> triggersEle = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str());
+    float elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
+
+    // Barrel
+    float eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
+    float eledEtaAtVtx_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledEtaAtVtx_abs_EB];
+    float eledPhiAtVtx_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledPhiAtVtx_abs_EB];
+    float eleHoverE_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EB];
+    float eleEoverPInv_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleEoverPInv_EB];
+    float eleD0_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleD0_abs_EB];
+    float eleDz_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleDz_abs_EB];
+    int eleMissHits_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EB];
+
+    // Endcap
+    float eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
+    float eledEtaAtVtx_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledEtaAtVtx_abs_EE];
+    float eledPhiAtVtx_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledPhiAtVtx_abs_EE];
+    float eleHoverE_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EE];
+    float eleEoverPInv_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleEoverPInv_EE];
+    float eleD0_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleD0_abs_EE];
+    float eleDz_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleDz_abs_EE];
+    int eleMissHits_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EE];
+
     // muon cuts
-    std::vector<std::string> triggersMu;    // triggers will be "OR"ed
-    float muPt;
-    float muChi2NDF;
-    float muInnerD0;
-    float muInnerDz;
-    int muMuonHits;
-    int muStations;
-    int muTrkLayers;
-    int muPixelHits;
+    // triggers will be "OR"ed
+    std::vector<std::string> triggersMu = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].s[CUTS::MUO::k_trigger]);
+    float muPt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muPt];
+
+    float muChi2NDF = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muChi2NDF];
+    float muInnerD0 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerD0];
+    float muInnerDz = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerDz];
+    int muMuonHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muMuonHits];
+    int muStations = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muStations];
+    int muTrkLayers = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muTrkLayers];
+    int muPixelHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muPixelHits];
 
     // jet cuts
-    std::string jetCollection;
-    int doCorrectionMatchingEff;
-    int doCorrectionJetID;
-    float cut_jetpt;
-    float cut_jeteta;
-    int   cut_jetID;
-    int   doSubid;
+    std::string jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
+    int doCorrectionMatchingEff = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionMatchingEfficiency];
+    int doCorrectionJetID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionJetID];
+    float cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
+    float cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
+    int cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
+    int doSubid  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doSubid];
+
     // zJet cuts
-    float cut_awayRange;
-    float cut_awayRange_lt;
-    float cut_dR;
+    float cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange];
+    float cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange_lt];
+    float cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_dR];
+
     // process cuts
-    int nEventsToMix;
-    int nSmear;
-    if (configCuts.isValid) {
-        bins_pt[0] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
-        bins_pt[1] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_lt]);
-        bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
-        bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+    int nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nEventsToMix];
+    int nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
 
-        doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
-        eventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight].c_str();
-
-        doDiElectron = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron];
-        doDiMuon = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiMuon];
-        massMin = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMin];
-        massMax = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].f[CUTS::ZBO::k_massMax];
-        doDiElectron_reweightCent = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].i[CUTS::ZBO::k_doDiElectron_reweightCent];
-
-        triggersEle = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].s[CUTS::ELE::k_trigger].c_str());
-        elePt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_elePt];
-
-        // Barrel
-        eleSigmaIEtaIEta_2012_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EB];
-        eledEtaAtVtx_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledEtaAtVtx_abs_EB];
-        eledPhiAtVtx_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledPhiAtVtx_abs_EB];
-        eleHoverE_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EB];
-        eleEoverPInv_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleEoverPInv_EB];
-        eleD0_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleD0_abs_EB];
-        eleDz_abs_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleDz_abs_EB];
-        eleMissHits_EB = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EB];
-
-        // Endcap
-        eleSigmaIEtaIEta_2012_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleSigmaIEtaIEta_2012_EE];
-        eledEtaAtVtx_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledEtaAtVtx_abs_EE];
-        eledPhiAtVtx_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eledPhiAtVtx_abs_EE];
-        eleHoverE_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleHoverE_EE];
-        eleEoverPInv_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleEoverPInv_EE];
-        eleD0_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleD0_abs_EE];
-        eleDz_abs_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].f[CUTS::ELE::k_eleDz_abs_EE];
-        eleMissHits_EE = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kELECTRON].i[CUTS::ELE::k_eleMissHits_EE];
-
-        triggersMu = ConfigurationParser::ParseList(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].s[CUTS::MUO::k_trigger]);
-        muPt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muPt];
-
-        muChi2NDF = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muChi2NDF];
-        muInnerD0 = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerD0];
-        muInnerDz = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].f[CUTS::MUO::k_muInnerDz];
-        muMuonHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muMuonHits];
-        muStations = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muStations];
-        muTrkLayers = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muTrkLayers];
-        muPixelHits = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kMUON].i[CUTS::MUO::k_muPixelHits];
-
-        jetCollection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
-        doCorrectionMatchingEff = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionMatchingEfficiency];
-        doCorrectionJetID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionJetID];
-        cut_jetpt  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
-        cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
-        cut_jetID  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
-        doSubid  = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_doSubid];
-
-        cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange];
-        cut_awayRange_lt = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_awayRange_lt];
-        cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZJET].f[CUTS::ZJT::k_dR];
-
-        nEventsToMix = configCuts.proc[CUTS::kSKIM].obj[CUTS::kZJET].i[CUTS::ZJT::k_nEventsToMix];
-        nSmear = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmear];
-    }
-    else {  // default configuration
-        bins_pt[0].push_back(60);
-        bins_pt[1].push_back(999999);
-        bins_hiBin[0].push_back(0);
-        bins_hiBin[0].push_back(0);
-        bins_hiBin[1].push_back(200);
-        bins_hiBin[1].push_back(60);
-
-        doEventWeight = 0;
-
-        doDiElectron = 1;
-        doDiMuon = 0;
-        massMin = 60;
-        massMax = 120;
-        doDiElectron_reweightCent = 1;
-
-        elePt = 10;
-
-        // Barrel
-        eleSigmaIEtaIEta_2012_EB = 0.012;
-        eledEtaAtVtx_abs_EB = 0.0126;
-        eledPhiAtVtx_abs_EB = 0.107;
-        eleHoverE_EB = 0.186;
-        eleEoverPInv_EB = 0.239;
-        eleD0_abs_EB = 0.0621;
-        eleDz_abs_EB = 0.613;
-        eleMissHits_EB = 2;
-
-        // Endcap
-        eleSigmaIEtaIEta_2012_EE = 0.0339;
-        eledEtaAtVtx_abs_EE = 0.0109;
-        eledPhiAtVtx_abs_EE = 0.219;
-        eleHoverE_EE = 0.0962;
-        eleEoverPInv_EE = 0.141;
-        eleD0_abs_EE = 0.279;
-        eleDz_abs_EE = 0.947;
-        eleMissHits_EE = 3;
-
-        muPt = 0;
-        muChi2NDF = 10;
-        muInnerD0 = 0.2;
-        muInnerDz = 0.5;
-        muMuonHits = 0;
-        muStations = 1;
-        muTrkLayers = 5;
-        muPixelHits = 0;
-
-        jetCollection = "akPu3PFJetAnalyzer";
-        doCorrectionMatchingEff = 0;
-        doCorrectionJetID = 0;
-        cut_jetpt = 40;
-        cut_jeteta = 1.6;
-        cut_jetID = 0;      // jetID >= 0
-        doSubid = 0;
-
-        cut_awayRange = 2./3.;
-        cut_awayRange_lt = 1;
-        cut_dR = 0.4;
-
-        nEventsToMix = 1;
-        nSmear = 0;
-        doEventWeight = 0;
-    }
     // default values
     if (eventWeight.size() == 0) eventWeight = "1";
     if (cut_awayRange_lt == 0) cut_awayRange_lt = 1;

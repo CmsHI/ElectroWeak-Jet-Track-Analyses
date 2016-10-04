@@ -38,25 +38,28 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     // input configuration
-    int collision;
-
+    int collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
     // input for TH1
-    std::vector<std::string> TH1_paths;      // paths of TH1D histograms
+    // paths of TH1D histograms
+    std::vector<std::string> TH1_paths = ConfigurationParser::ParseList(configInput.proc[INPUT::kHISTOGRAM].s[INPUT::k_TH1_path]);
 
-    if (configInput.isValid) {
-        collision = configInput.proc[INPUT::kHISTOGRAM].i[INPUT::k_collisionType];
-
-        TH1_paths   = ConfigurationParser::ParseList(configInput.proc[INPUT::kHISTOGRAM].s[INPUT::k_TH1_path]);
-    }
-    else {
-        collision = COLL::kPP;
-    }
     const char* collisionName =  getCollisionTypeName((COLL::TYPE)collision).c_str();
     int nTH1_Paths = TH1_paths.size();
 
     // verbose about input configuration
-    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "Input Configuration :" <<std::endl;
     std::cout << "collision = " << collisionName << std::endl;
     std::cout << "nTH1_Paths = " << nTH1_Paths << std::endl;
     for (int i = 0; i<nTH1_Paths; ++i) {
@@ -66,24 +69,20 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
     bool isMC = collisionIsMC((COLL::TYPE)collision);
     bool isHI = collisionIsHI((COLL::TYPE)collision);
 
+    // cut configuration
     // observable bins
     // for zJetHistogramSum.C, the whole purpose of "pt" and "hiBin" bins is to get the number of bins used.
     std::vector<float> bins_pt[2];          // array of vectors for eta bins, each array element is a vector.
     std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
+    bins_pt[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
+    bins_pt[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_lt]);
+    bins_hiBin[0] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+    bins_hiBin[1] = ConfigurationParser::ParseListInteger(
+            configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
-    if (configCuts.isValid) {
-        bins_pt[0] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_gt]);
-        bins_pt[1] = ConfigurationParser::ParseListFloat(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kZBOSON].s[CUTS::ZBO::k_bins_pt_lt]);
-        bins_hiBin[0] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
-        bins_hiBin[1] = ConfigurationParser::ParseListInteger(
-                configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
-    }
-    else {
-
-    }
     // default values
 
     int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.

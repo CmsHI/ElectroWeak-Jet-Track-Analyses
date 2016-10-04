@@ -30,14 +30,20 @@ void trackJetSkim(const TString configFile, const TString inputFile, const TStri
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+       if (!configInput.isValid) {
+           std::cout << "Input configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+       if (!configCuts.isValid) {
+           std::cout << "Cut configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+
        // input configuration
-       int collisionType;
-       if (configInput.isValid) {
-           collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
-       }
-       else {
-           collisionType = COLL::kPP;
-       }
+       int collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
+
        // verbose about input configuration
        std::cout<<"Input Configuration :"<<std::endl;
        std::cout << "collisionType = " << collisionType << std::endl;
@@ -45,76 +51,31 @@ void trackJetSkim(const TString configFile, const TString inputFile, const TStri
        std::cout << "collision = " << collisionName << std::endl;
 
        // cut configuration
-       float cut_vz;
-       int cut_pcollisionEventSelection;
-       int cut_pPAprimaryVertexFilter;
-       int cut_pBeamScrapingFilter;
+       float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+       int cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+       int cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
+       int cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+
        // track cuts
-       float trkPt;
-       float trkEta;
-       float trkMVA;
-       float trkPtErrorOverPt;
-       float trkDz1OverError1;
-       float trkDxy1OverError1;
-       int   trkNHit;
-       int   highPurity;        // quality cut
-       int   loose;             // quality cut
-       int   tight;             // quality cut
+       float trkPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkPt];
+       float trkEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkEta];
+       float trkMVA = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkMVA];
+       float trkPtErrorOverPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkPtErrorOverPt];
+       float trkDz1OverError1 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkDz1OverError1];
+       float trkDxy1OverError1 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkDxy1OverError1];
+       int trkNHit = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_trkNHit];
+       int highPurity = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_highPurity];
+       int loose = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_loose];
+       int tight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_tight];
+
        // jet cuts
-       std::vector<std::string> jetCollections;
-       float jetpt;
-       float jeteta;
-       int jetType;
+       std::vector<std::string> jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+       float jetpt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
+       float jeteta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
+       int jetType = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetType];
+
        // track-jet cuts
-       float dR;
-
-       if (configCuts.isValid) {
-           cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-           cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
-           cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
-           cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
-
-           trkPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkPt];
-           trkEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkEta];
-           trkMVA = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkMVA];
-           trkPtErrorOverPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkPtErrorOverPt];
-           trkDz1OverError1 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkDz1OverError1];
-           trkDxy1OverError1 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].f[CUTS::TRK::k_trkDxy1OverError1];
-           trkNHit = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_trkNHit];
-           highPurity = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_highPurity];
-           loose = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_loose];
-           tight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACK].i[CUTS::TRK::k_tight];
-
-           jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
-           jetpt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_pt];
-           jeteta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
-           jetType = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_jetType];
-
-           dR = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACKJET].f[CUTS::TJT::k_dR];
-       }
-       else {
-           cut_vz = 15;
-           cut_pcollisionEventSelection = 1;
-           cut_pPAprimaryVertexFilter = 1;
-           cut_pBeamScrapingFilter = 1;
-
-           trkPt = 4;
-           trkEta = 3;
-           trkMVA = 0.5;
-           trkPtErrorOverPt = 0.3;
-           trkDz1OverError1 = 3;
-           trkDxy1OverError1 = 3;
-           trkNHit = 8;
-           highPurity = 0;
-           loose = 0;
-           tight = 0;
-
-           jetpt = 30;
-           jeteta = 1.6;
-           jetType = 0;
-
-           dR = 0.3;
-       }
+       float dR = configCuts.proc[CUTS::kSKIM].obj[CUTS::kTRACKJET].f[CUTS::TJT::k_dR];
        int nJetCollections = jetCollections.size();
 
        bool isMC = collisionIsMC((COLL::TYPE)collisionType);

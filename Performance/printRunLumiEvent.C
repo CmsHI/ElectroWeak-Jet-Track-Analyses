@@ -37,25 +37,24 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
-    std::string formula;    // formula for run,lumi,event
-    std::string selection;
-
-    std::string treePath;
-    std::vector<std::string> treeFriendsPath;
-
-    if (configInput.isValid) {
-        formula = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula];
-        selection = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection];
-
-        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
     }
-    else {
-        formula = "";
-        selection = "0";
-
-        treePath = "";
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
     }
+
+    // formula for run,lumi,event
+    std::string formula = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula];
+    std::string selection = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection];
+
+    std::string treePath = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+    std::vector<std::string> treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
+
     if (formula.size() == 0) formula = "run:lumis:event";   // default formula, taken from ggHiNtuplizer/EventTree
 
     int nFriends = treeFriendsPath.size();
@@ -68,12 +67,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
         std::cout << Form("treeFriends[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
     }
 
-    if (configCuts.isValid) {
-
-    }
-    else {
-
-    }
+    // cut configuration
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;

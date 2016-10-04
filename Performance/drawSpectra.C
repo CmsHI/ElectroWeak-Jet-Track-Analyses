@@ -39,6 +39,17 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     /*
      * drawing behavior :
      *      1. If N = # formulas and N = # selections, then N histograms will be drawn,
@@ -47,200 +58,85 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
      *      4. else, exit.
      */
     // input for mode
-    int mode;
+    int mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
 
     // input for TTree
-    std::vector<std::string> treePaths;
-    std::vector<std::string> treeFriendsPath;
-    std::vector<std::string> treeFriendsPathIndividual;
-    std::vector<std::string> formulas;
-    std::string selectionBase;
-    std::vector<std::string> selections;
-    std::vector<std::string> selectionSplitter;
-    std::vector<std::string> weights;
+    std::vector<std::string> treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
+    std::vector<std::string> treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
+    std::vector<std::string> treeFriendsPathIndividual = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPathIndividual]);
+    std::vector<std::string> formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
+    std::string selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
+    std::vector<std::string> selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
+    std::vector<std::string> selectionSplitter = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionSplitter]);
+    std::vector<std::string> weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
 
     // input for TH1
-    std::vector<std::string>  titles;
-    std::vector<std::string>  titlesX;
-    std::vector<std::string>  titlesY;
-    std::vector<std::vector<float>> TH1D_Bins_List;      // nBins, xLow, xUp for the TH1D histogram
-    float titleOffsetX;
-    float titleOffsetY;
-    float yMin;
-    float yMax;
-    float markerSize;
-    int drawSame;
-    int drawNormalized;
-    std::vector<std::string> drawOptions;
-    std::vector<std::string> markerStyles;
-    std::vector<std::string> lineStyles;
-    int lineWidth;
-    std::vector<std::string> fillStyles;
-    std::vector<std::string> colors;
-    std::vector<std::string> fillColors;
-    std::vector<std::string> lineColors;
+    std::vector<std::string> titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
+    std::vector<std::string> titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
+    std::vector<std::string> titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
+    // nBins, xLow, xUp for the TH1D histogram
+    std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    float titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+    float titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+    float yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
+    float yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
+    float markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
+    int drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
+    int drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
+    std::vector<std::string> drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
+    std::vector<std::string> markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
+    std::vector<std::string> lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
+    std::vector<std::string> fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
+    std::vector<std::string> colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
+    std::vector<std::string> fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
+    std::vector<std::string> lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
+    int lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
 
     // input for TLegend
-    std::vector<std::string> legendEntryLabels;
-    std::string legendPosition;
-    float legendOffsetX;
-    float legendOffsetY;
-    int legendBorderSize;
-    float legendWidth;
-    float legendHeight;
-    float legendTextSize;
+    std::vector<std::string> legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
+    std::string legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
+    float legendOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
+    float legendOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+    int legendBorderSize = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_legendBorderSize];
+    float legendWidth = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendWidth];
+    float legendHeight = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendHeight];
+    float legendTextSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendTextSize];
 
     // input for text objects
-    std::vector<std::string> textLines;
-    int textFont;
-    float textSize;
-    std::string textPosition;
-    float textOffsetX;
-    float textOffsetY;
+    std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
+    std::vector<std::string> textLines = ConfigurationParser::ParseList(tmpText);
+    int textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
+    float textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
+    std::string textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
+    float textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
+    float textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
 
-    std::vector<std::string> textsOverPad;
-    std::vector<std::string> textsOverPadAlignments;
-    int textAbovePadFont;
-    float textAbovePadSize;
-    float textAbovePadOffsetX;
-    float textAbovePadOffsetY;
+    std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
+    std::vector<std::string> textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
+    std::vector<std::string> textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
+    int textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
+    float textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
+    float textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
+    float textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
 
     // input for TLine
-    std::vector<float> TLines_horizontal;               // y-axis positions of the horizontal lines to be drawn
-    std::vector<std::string> lineStyles_horizontal;     // styles of the horizontal lines to be drawn
-    std::vector<float> TLines_vertical;                 // x-axis positions of the vertical lines to be drawn
-    std::vector<std::string> lineStyles_vertical;       // styles of the vertical lines to be drawn
+    // y-axis positions of the horizontal lines to be drawn
+    std::vector<float> TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
+    std::vector<std::string> lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
+    // x-axis positions of the vertical lines to be drawn
+    std::vector<float> TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
+    std::vector<std::string> lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
 
     // input for TCanvas
-    int windowWidth;
-    int windowHeight;
-    float leftMargin;
-    float rightMargin;
-    float bottomMargin;
-    float topMargin;
-    int setLogx;
-    int setLogy;
-
-    if (configInput.isValid) {
-        mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
-
-        treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
-        treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
-        treeFriendsPathIndividual = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPathIndividual]);
-        formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
-        selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
-        selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
-        selectionSplitter = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionSplitter]);
-        weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
-
-        titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
-        titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
-        titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
-        TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
-        titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
-        titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
-        yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
-        yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
-        markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
-        drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
-        drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
-        drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
-        markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
-        lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
-        fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
-        colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
-        fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
-        lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
-        lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
-
-        legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
-        legendPosition    = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
-        legendOffsetX     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
-        legendOffsetY     = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
-        legendBorderSize  = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_legendBorderSize];
-        legendWidth       = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendWidth];
-        legendHeight      = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendHeight];
-        legendTextSize    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendTextSize];
-
-        std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
-        textLines = ConfigurationParser::ParseList(tmpText);
-        textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
-        textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
-        textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
-        textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
-        textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
-
-        std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
-        textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
-        textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
-        textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
-        textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
-        textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
-        textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
-
-        TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
-        lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
-        TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
-        lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
-
-        windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
-        windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
-        leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
-        rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
-        bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
-        topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
-        setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
-        setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
-    }
-    else {
-        mode = 0;
-
-        treePaths.push_back("dummyTREE");
-        formulas.push_back("Entry$");
-        selectionBase = "";
-        selections.push_back("1 == 1");
-        weights.push_back("1");
-
-        TH1D_Bins_List.resize(3);
-        TH1D_Bins_List[0].push_back(100);    // nBins
-        TH1D_Bins_List[1].push_back(0);      // xLow
-        TH1D_Bins_List[2].push_back(100);    // xUp
-        titleOffsetX = 1;
-        titleOffsetY = 1;
-        yMin = 0;
-        yMax = -1;
-        markerSize = 1;
-        drawSame = 0;
-        drawNormalized = 0;
-        lineWidth = 0;
-        
-        legendEntryLabels.push_back("");
-        legendPosition = "";
-        legendOffsetX = 0;
-        legendOffsetY = 0;
-        legendBorderSize = 0;
-        legendWidth = 0;
-        legendHeight = 0;
-        legendTextSize = 0;
-
-        textFont = 0;
-        textSize = 0;
-        textPosition = "";
-        textOffsetX = 0;
-        textOffsetY = 0;
-
-        windowWidth = 0;
-        windowHeight = 0;
-        leftMargin = 0.1;
-        rightMargin = 0.1;
-        bottomMargin = 0.1;
-        topMargin = 0.1;
-        setLogx = 0;
-        setLogy = 0;
-
-	textAbovePadFont = 20;
-	textAbovePadSize = 18;
-    }
+    int windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
+    int windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
+    float leftMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+    float rightMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+    float bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+    float topMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
+    int setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
+    int setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
+    
     // set default values
     if (selections.size() == 0) selections.push_back("1");
     if (weights.size() == 0)    weights.push_back(INPUT_DEFAULT::TH1_weight.c_str());   // default weight = 1.
@@ -458,12 +354,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout << "setLogx = " << setLogx << std::endl;
     std::cout << "setLogy = " << setLogy << std::endl;
 
-    if (configCuts.isValid) {
-
-    }
-    else {
-
-    }
+    // cut configuration
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;

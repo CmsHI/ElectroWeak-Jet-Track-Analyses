@@ -34,14 +34,20 @@ void diGenParticleSkim(const TString configFile, const TString inputFile, const 
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
        CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+       if (!configInput.isValid) {
+           std::cout << "Input configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+       if (!configCuts.isValid) {
+           std::cout << "Cut configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+
        // input configuration
-       std::string treePath;
-       if (configInput.isValid) {
-           treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
-       }
-       else {
-           treePath = "ggHiNtuplizer/EventTree";
-       }
+       std::string treePath = configInput.proc[INPUT::kSKIM].s[INPUT::k_treePath];
+
        // set default values
        if (treePath.size() == 0)  treePath = "ggHiNtuplizer/EventTree";
 
@@ -50,29 +56,16 @@ void diGenParticleSkim(const TString configFile, const TString inputFile, const 
        std::cout << "treePath = " << treePath.c_str() << std::endl;
 
        // cut configuration
-       float cut_mcPt;
-       float cut_mcEta;
-       int cut_nMC;
-       std::vector<int> mcPIDs;
-       std::vector<int> mcMomPIDs;
-       if (configCuts.isValid) {
+       float cut_mcPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].f[CUTS::GEN::k_mcPt];
+       float cut_mcEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].f[CUTS::GEN::k_mcEta];
 
-           cut_mcPt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].f[CUTS::GEN::k_mcPt];
-           cut_mcEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].f[CUTS::GEN::k_mcEta];
+       int cut_nMC = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].i[CUTS::GEN::k_nMC];
 
-           cut_nMC = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].i[CUTS::GEN::k_nMC];
+       std::vector<int> mcPIDs  = ConfigurationParser::ParseListInteger(
+               configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].s[CUTS::GEN::k_mcPID_List]);
+       std::vector<int> mcMomPIDs  = ConfigurationParser::ParseListInteger(
+               configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].s[CUTS::GEN::k_mcMomPID_List]);
 
-           mcPIDs  = ConfigurationParser::ParseListInteger(
-                   configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].s[CUTS::GEN::k_mcPID_List]);
-           mcMomPIDs  = ConfigurationParser::ParseListInteger(
-                   configCuts.proc[CUTS::kSKIM].obj[CUTS::kGENPARTICLE].s[CUTS::GEN::k_mcMomPID_List]);
-       }
-       else {
-           cut_mcPt = 0;
-           cut_mcEta = 0;
-
-           cut_nMC = 2;
-       }
        bool do_cut_mcPt = (cut_mcPt > 0);
        bool do_cut_mcEta = (cut_mcEta > 0);
 

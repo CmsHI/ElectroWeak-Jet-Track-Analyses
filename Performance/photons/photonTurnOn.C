@@ -44,31 +44,30 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     // input configuration
-    // input for TTree
-    std::string treePath;
-    int collisionType;
 
     // input for TH1
-    std::vector<float> TH1D_Bins;      // nBins, xLow, xUp for the TH1D histogram
-    std::string legendPosition;
-    if (configInput.isValid) {
-        treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
+    // input for TTree
+    std::string treePath = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
 
-        collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
-        TH1D_Bins = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    int collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
 
-        legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
-    }
-    else {
-        treePath = "";
-        collisionType = 0;
+    // input for TH1
+    // nBins, xLow, xUp for the TH1D histogram
+    std::vector<float> TH1D_Bins = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
 
-        TH1D_Bins.push_back(40);    // nBins
-        TH1D_Bins.push_back(0);     // xLow
-        TH1D_Bins.push_back(80);    // xUp
-        legendPosition = "SE";
-    }
+    std::string legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
 
     int nTH1D_Bins = TH1D_Bins.size();
     int nBins = (int)TH1D_Bins.at(0);
@@ -90,31 +89,16 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     bool isHI = collisionIsHI((COLL::TYPE)collisionType);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
-    float cutPhoEta;
-    std::vector<std::string> triggerBranchesNum;        // triggers that go into numerator
-    std::vector<std::string> triggerBranchesDenom;      // triggers that go into denominator
+    // cut configuration
+    float cutPhoEta = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
+    // triggers that go into numerator
+    std::vector<std::string> triggerBranchesNum = ConfigurationParser::ParseList(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
+    // triggers that go into denominator
+    std::vector<std::string> triggerBranchesDenom = ConfigurationParser::ParseList(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
     // These triggers will be "OR"ed.
-    // this vector must be empty not to use any triggers in the denominator
-    if (configCuts.isValid) {
-        cutPhoEta = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
-        triggerBranchesNum = ConfigurationParser::ParseList(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
-        triggerBranchesDenom = ConfigurationParser::ParseList(
-                configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
-    }
-    else {
-        cutPhoEta = 1.5;
-
-        triggerBranchesNum.push_back("HLT_HISinglePhoton10_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton15_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton20_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton30_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton40_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton50_Eta1p5_v1");
-        triggerBranchesNum.push_back("HLT_HISinglePhoton60_Eta1p5_v1");
-
-        // default : no triggers in the denominator
-    }
+    // This vector must be empty not to use any triggers in the denominator.
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;

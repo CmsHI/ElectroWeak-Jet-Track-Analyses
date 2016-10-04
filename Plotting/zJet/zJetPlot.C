@@ -51,6 +51,11 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
         std::cout << "exiting" << std::endl;
         return;
     }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
 
     // input for mode
     /* mode = 0 : plot no systematics and no theory model
@@ -163,12 +168,6 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
     std::cout << "topMargin    = " << topMargin << std::endl;
     std::cout << "setLogx  = " << setLogx << std::endl;
     std::cout << "setLogy  = " << setLogy << std::endl;
-
-    if (!configCuts.isValid) {
-        std::cout << "Cut configuration is invalid." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
 
     // cuts in this macro are only used for adding text to the plots
     std::vector<float> bins_pt = ConfigurationParser::ParseListFloat(

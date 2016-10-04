@@ -30,41 +30,33 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
        std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-       CutConfiguration config = CutConfigurationParser::Parse(configFile.Data());
        InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+       CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
-       // input configuration
        if (!configInput.isValid) {
-	 std::cout << "Invalid input configuration" << std::endl;
-	 return;
+           std::cout << "Input configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
+       }
+       if (!configCuts.isValid) {
+           std::cout << "Cut configuration is invalid." << std::endl;
+           std::cout << "exiting" << std::endl;
+           return;
        }
 
-       if (!config.isValid) {
-	 std::cout << "Invalid cut configuration" << std::endl;
-	 return;
-       }
+       // cut configuration
+       float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+       int cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
 
-       float cut_vz;
-       int cut_pcollisionEventSelection;
-
-       std::vector<std::string> jetCollections;
-       int nMaxEvents_minBiasMixing;
-       int nCentralityBins;
-       int nVertexBins;
-       int nEventPlaneBins;
-
-       cut_vz = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-       cut_pcollisionEventSelection = config.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
-
-       jetCollections = ConfigurationParser::ParseList(config.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
-       nMaxEvents_minBiasMixing = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
-       nCentralityBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
-       nVertexBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
-       nEventPlaneBins = config.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
+       std::vector<std::string> jetCollections = ConfigurationParser::ParseList(configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection]);
+       int nMaxEvents_minBiasMixing = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nMaxEvents_minBiasMixing];
+       int nCentralityBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nCentralityBins];
+       int nVertexBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nVertexBins];
+       int nEventPlaneBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kGAMMAJET].i[CUTS::GJT::k_nEventPlaneBins];
 
        int nJetCollections = jetCollections.size();
 
-       // verbose about configuration
+       // verbose about cut configuration
        std::cout<<"Cut Configuration :"<<std::endl;
        std::cout<<"cut_vz = "<< cut_vz <<std::endl;
        std::cout<<"cut_pcollisionEventSelection = "<< cut_pcollisionEventSelection <<std::endl;
@@ -76,7 +68,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
        std::cout<<"nMaxEvents_minBiasMixing = "<< nMaxEvents_minBiasMixing <<std::endl;
        std::cout<<"nCentralityBins          = "<< nCentralityBins <<std::endl;
        std::cout<<"nVertexBins              = "<< nVertexBins <<std::endl;
-       std::cout<<"nEventPlaneBins              = "<< nEventPlaneBins <<std::endl;
+       std::cout<<"nEventPlaneBins          = "<< nEventPlaneBins <<std::endl;
 
        std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
@@ -195,7 +187,7 @@ void minBiasJetSkim(const TString configFile, const TString inputFile, const TSt
 
        TFile* output = new TFile(outputFile,"RECREATE");
 
-       TTree *configTree = setupConfigurationTreeForWriting(config);
+       TTree *configTree = setupConfigurationTreeForWriting(configCuts);
 
        int centBinWidth = 200/nCentralityBins;  // number of "hiBin"s that a centrality bin covers
        int vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
