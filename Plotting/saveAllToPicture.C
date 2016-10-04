@@ -24,7 +24,7 @@ void saveAllToPicture(std::string fileName, std::string pictureType, std::string
    std::cout<< "begin : saving graphics" <<std::endl;
 
    std::string directoryToBeSavedIn;
-   if(directory.compare("")==0)   { // no input directory was given.
+   if(directory == "")   { // no input directory was given.
 
        TString dirName(file->GetName());
        dirName.ReplaceAll(".root","");

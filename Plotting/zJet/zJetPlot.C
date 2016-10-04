@@ -501,7 +501,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
 
         int nTMP = correlationHistNamesTMP.size();
         for (int i2 = 0; i2 < nTMP ; ++i2) {
-            if (correlationHistNamesTMP.at(i2).compare(correlationHistNames.at(i).c_str()) == 0)
+            if (correlationHistNamesTMP.at(i2) == correlationHistNames.at(i))
             {
                 plotSYSfromFIT[COLL::kHI].at(i) = false;
                 plotSYSfromFIT[COLL::kPP].at(i) = false;
@@ -576,21 +576,21 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                 std::string tmpName = Form("%s_ptBin%d_hiBin%d_jet%s_%s", correlation.c_str(), iPt, iHiBin,
                         jetRegion.at(i).c_str(), versionSuffix.at(i).c_str());
                 // special cases
-                if (correlation.compare("rjz") == 0 || correlation.compare("rjz_zNum") == 0 ) {
+                if (correlation == "rjz" || correlation == "rjz_zNum") {
                     if (iPt > 0)  continue;
                     tmpName = Form("%s_ptBinAll_hiBin%d", correlation.c_str(), iHiBin);
                 }
-                else if (correlation.compare("xjz_mean") == 0) {
+                else if (correlation == "xjz_mean") {
                     if (iPt > 0)  continue;
                     tmpName = Form("%s_ptBinAll_hiBin%d_jet%s", correlation.c_str(), iHiBin, jetRegion.at(i).c_str());
                 }
-                else if (correlation.compare("iaa_ptBin5") == 0 || correlation.compare("iaa_ptBin6") == 0) {
+                else if (correlation == "iaa_ptBin5" || correlation == "iaa_ptBin6") {
                     if (iPt > 0)  continue;
-                    if (correlation.compare("iaa_ptBin5") == 0 ) {
+                    if (correlation == "iaa_ptBin5" ) {
                         tmpName = Form("%s_ptBin%d_hiBin%d_jet%s_%s", "iaa", 5, iHiBin,
                                 jetRegion.at(i).c_str(), versionSuffix.at(i).c_str());
                     }
-                    if (correlation.compare("iaa_ptBin6") == 0 ) {
+                    if (correlation == "iaa_ptBin6" ) {
                         tmpName = Form("%s_ptBin%d_hiBin%d_jet%s_%s", "iaa", 6, iHiBin,
                                 jetRegion.at(i).c_str(), versionSuffix.at(i).c_str());
                     }
@@ -616,7 +616,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         tmpHistNameColl = tmpHistNamePP.c_str();
                         tmpHistName_nums = tmpHistName_numsPP.c_str();
 
-                        if (correlation.compare("xjz_mean") == 0 && iColl == COLL::kPPMC) {
+                        if (correlation == "xjz_mean" && iColl == COLL::kPPMC) {
                             tmpNameColl = replaceAll(tmpNameColl, "_jetSIG", "_jetRAW");
                             tmpHistNameColl = replaceAll(tmpHistNameColl, "_jetSIG", "_jetRAW");
                         }
@@ -642,7 +642,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         useRelUnc = false;
 
                         std::string tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_0", tmpNameColl.c_str());
-                        if (correlation.compare("xjz") == 0)  {
+                        if (correlation == "xjz")  {
                             tmpHistSysName = Form("h1D_%s_uncTot_diff_rel", tmpNameColl.c_str());
                             useRelUnc = true;
                         }
@@ -651,15 +651,15 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                             tmpHistSysName = Form("h1D_%s_uncTot_diff_rel", replaceAll(tmpNameColl.c_str(), correlation.c_str(), "xjz").c_str());
                             useRelUnc = true;
                         }
-                        if (correlation.compare("dphi_rebin") == 0 || correlation.compare("dphi_rebin_normJZ") == 0)  {
+                        if (correlation == "dphi_rebin" || correlation == "dphi_rebin_normJZ")  {
                             tmpHistSysName = Form("h1D_%s_uncTot_diff", tmpNameColl.c_str());
                             if (iColl == COLL::kHI)  tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_2", tmpNameColl.c_str());
                         }
-                        if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0)  {
+                        if (correlation == "rjz" || correlation == "xjz_mean")  {
                             tmpHistSysName = Form("h1D_fnc_%s_uncTot_diff_pol_1_rel", tmpNameColl.c_str());
                             useRelUnc = true;
                         }
-                        if (correlation.compare("ptJet") == 0)  {
+                        if (correlation == "ptJet")  {
                             tmpHistSysName = Form("h1D_%s_uncTot_diff_rel", tmpNameColl.c_str());
                             useRelUnc = true;
                         }
@@ -727,9 +727,9 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     setTH1StyleSample(h1D[COLL::kHI][i], COLL::kHI);
                     setTH1_diLepton(h1D[COLL::kHI][i]);
                     if (ish1D_xjz) setTH1_xjz(h1D[COLL::kHI][i]);
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kHI][i]);
-                    if (correlation.compare("ptJet") == 0 || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kHI][i]);
-                    if (correlation.compare(diLeptonM.c_str()) == 0) setTH1_diLeptonM(h1D[COLL::kHI][i]);
+                    if (correlation == "dphi" || correlation == "dphi_rebin") setTH1_dphi(h1D[COLL::kHI][i]);
+                    if (correlation == "ptJet" || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kHI][i]);
+                    if (correlation == diLeptonM) setTH1_diLeptonM(h1D[COLL::kHI][i]);
 
                     h1D[COLL::kHI][i]->SetMarkerSize(markerSize);
 
@@ -744,7 +744,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     leg->AddEntry(hLegend, Form("PbPb, %d-%d %%", cent_low, cent_up), "pf");
                     
                     // special cases
-                    if (correlation.compare("ptJet") == 0 && jetRegion.at(i).compare("RAW") == 0 && !plotHIMC.at(i))
+                    if (correlation == "ptJet" && jetRegion.at(i) == "RAW" && !plotHIMC.at(i))
                     {
                         std::string hTmpName = replaceAll(h1D[COLL::kHI][i]->GetName(), "_jetRAW", "_jetBKG");
                         inputDir[COLL::kHI]->GetObject(hTmpName.c_str(), hTmp);
@@ -760,9 +760,9 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     setTH1StyleSample(h1D[COLL::kPP][i], COLL::kPP);
                     setTH1_diLepton(h1D[COLL::kPP][i]);
                     if (ish1D_xjz) setTH1_xjz(h1D[COLL::kPP][i]);
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kPP][i]);
-                    if (correlation.compare("ptJet") == 0 || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kPP][i]);
-                    if (correlation.compare(diLeptonM.c_str()) == 0) setTH1_diLeptonM(h1D[COLL::kPP][i]);
+                    if (correlation == "dphi" || correlation == "dphi_rebin") setTH1_dphi(h1D[COLL::kPP][i]);
+                    if (correlation == "ptJet" || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kPP][i]);
+                    if (correlation == diLeptonM) setTH1_diLeptonM(h1D[COLL::kPP][i]);
 
                     h1D[COLL::kPP][i]->SetMarkerSize(markerSize);
                     if (!plotHI.at(i))   h1D[COLL::kPP][i]->SetMarkerStyle(kFullCircle);
@@ -785,9 +785,9 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     setTH1StyleSample(h1D[COLL::kHIMC][i], COLL::kHIMC);
                     setTH1_diLepton(h1D[COLL::kHIMC][i]);
                     if (ish1D_xjz) setTH1_xjz(h1D[COLL::kHIMC][i]);
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kHIMC][i]);
-                    if (correlation.compare("ptJet") == 0 || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kHIMC][i]);
-                    if (correlation.compare(diLeptonM.c_str()) == 0) setTH1_diLeptonM(h1D[COLL::kHIMC][i]);
+                    if (correlation == "dphi" || correlation == "dphi_rebin") setTH1_dphi(h1D[COLL::kHIMC][i]);
+                    if (correlation == "ptJet" || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kHIMC][i]);
+                    if (correlation == diLeptonM) setTH1_diLeptonM(h1D[COLL::kHIMC][i]);
 
                     h1D[COLL::kHIMC][i]->SetMarkerSize(markerSize);
 
@@ -801,9 +801,9 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     setTH1StyleSample(h1D[COLL::kPPMC][i], COLL::kPPMC);
                     setTH1_diLepton(h1D[COLL::kPPMC][i]);
                     if (ish1D_xjz) setTH1_xjz(h1D[COLL::kPPMC][i]);
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) setTH1_dphi(h1D[COLL::kPPMC][i]);
-                    if (correlation.compare("ptJet") == 0 || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kPPMC][i]);
-                    if (correlation.compare(diLeptonM.c_str()) == 0) setTH1_diLeptonM(h1D[COLL::kPPMC][i]);
+                    if (correlation == "dphi" || correlation == "dphi_rebin") setTH1_dphi(h1D[COLL::kPPMC][i]);
+                    if (correlation == "ptJet" || correlation.find("iaa") == 0) setTH1_ptJet(h1D[COLL::kPPMC][i]);
+                    if (correlation == diLeptonM) setTH1_diLeptonM(h1D[COLL::kPPMC][i]);
 
                     h1D[COLL::kPPMC][i]->SetMarkerSize(markerSize);
 
@@ -848,7 +848,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         histMin = -0.05;
                     }
                 }
-                else if (correlation.compare("dphi_rebin") == 0) {
+                else if (correlation == "dphi_rebin") {
                     histMax = 3;
                     histMin = -0.2;
                     // zPt > 40
@@ -859,16 +859,16 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
 
                     if (setLogy > 0) histMax = 5;
                 }
-                else if (correlation.compare("dphi_rebin_normJZ") == 0) { histMax = 0.76; histMin = -0.05; }
-                else if (correlation.compare("rjz") == 0)       {
+                else if (correlation == "dphi_rebin_normJZ") { histMax = 0.76; histMin = -0.05; }
+                else if (correlation == "rjz")       {
                     histMax = 1; histMin = 0;
                     if (plotTheory)  histMax = 1.2;
                 }
-                else if (correlation.compare("xjz_mean") == 0)  {histMax = 1.1; histMin = 0.6;}
-                else if (correlation.compare("rjz_zNum") == 0)  histMax = 1.1;
-                else if (correlation.compare("ptJet") == 0)  histMax = 0.06;
-                else if (correlation.compare("jteta") == 0)     histMax = histMax+TMath::Abs(histMax)*0.4*TMath::Power(10,setLogy);
-                else if (correlation.compare("jtphi") == 0)     histMax = histMax+TMath::Abs(histMax)*0.6*TMath::Power(10,setLogy);
+                else if (correlation == "xjz_mean")  {histMax = 1.1; histMin = 0.6;}
+                else if (correlation == "rjz_zNum")  histMax = 1.1;
+                else if (correlation == "ptJet")  histMax = 0.06;
+                else if (correlation == "jteta")     histMax = histMax+TMath::Abs(histMax)*0.4*TMath::Power(10,setLogy);
+                else if (correlation == "jtphi")     histMax = histMax+TMath::Abs(histMax)*0.6*TMath::Power(10,setLogy);
                 else if (correlation.find("iaa") == 0)       {histMax = 3.0; histMin = 0;}
                 else    histMax = histMax+TMath::Abs(histMax)*0.6*TMath::Power(10,setLogy);
 
@@ -906,7 +906,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     if (h1DSysIsValid[COLL::kPP][i]) {
                         h1D[COLL::kPP][i]->Draw("e same");
                         double binWidth = -1;
-                        //if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0)  binWidth = 10;
+                        //if (correlation == "rjz" || correlation == "xjz_mean")  binWidth = 10;
                         drawSysUncBoxes(grPP, h1D[COLL::kPP][i], h1DSys[COLL::kPP][i], useRelUnc, binWidth);
                     }
                     h1D[COLL::kPP][i]->Draw("e same");
@@ -920,7 +920,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     if (h1DSysIsValid[COLL::kHI][i]) {
                         h1D[COLL::kHI][i]->Draw("e same");
                         double binWidth = -1;
-                        // if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0)  binWidth = 10;
+                        // if (correlation == "rjz" || correlation == "xjz_mean")  binWidth = 10;
                         drawSysUncBoxes(gr, h1D[COLL::kHI][i], h1DSys[COLL::kHI][i], useRelUnc, binWidth);
 
                         h1D[COLL::kHI][i]->SetLineWidth(3);
@@ -931,7 +931,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     h1D[COLL::kHI][i]->Write(writeName.c_str(), TObject::kOverwrite);
 
                     // special cases
-                    if (correlation.compare("ptJet") == 0 && jetRegion.at(i).compare("RAW") == 0 && !plotHIMC.at(i))
+                    if (correlation == "ptJet" && jetRegion.at(i) == "RAW" && !plotHIMC.at(i))
                     {
                         if (hTmp) {
                             hTmp->Draw("e same");
@@ -944,13 +944,13 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                 std::vector<std::string> textLines;
                 int zPt = (int)bins_pt.at(iPt);
                 std::string zPtLine = Form("p_{T}^{Z} > %d GeV/c", zPt);
-                if (correlation.compare("iaa_ptBin5") == 0)  zPtLine = "60 < p_{T}^{Z} < 80 GeV/c";
-                if (correlation.compare("iaa_ptBin6") == 0)  zPtLine = "p_{T}^{Z} > 80 GeV/c";
+                if (correlation == "iaa_ptBin5")  zPtLine = "60 < p_{T}^{Z} < 80 GeV/c";
+                if (correlation == "iaa_ptBin6")  zPtLine = "p_{T}^{Z} > 80 GeV/c";
                 if (textWriteZPt.at(i))  textLines.push_back(zPtLine.c_str());
                 textLines.push_back(Form("%d < M^{%s%s} < %d GeV/c^{2}", (int)massMin, leptonSymbol.c_str(), leptonSymbol.c_str(), (int)massMax));
 
-                bool writeLeptonInfo = !(correlation.compare("rjz") == 0 || correlation.compare("rjz_zNum") == 0 ||
-                                         correlation.compare("xjz_mean") == 0 || correlation.find("iaa") == 0);
+                bool writeLeptonInfo = !(correlation == "rjz" || correlation == "rjz_zNum" ||
+                                         correlation == "xjz_mean" || correlation.find("iaa") == 0);
                 bool useLeptonSymbol = false;
                 if (writeLeptonInfo) {
                     if (useLeptonSymbol)
@@ -996,16 +996,16 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     latex->SetTextSize(textSize);
                     setTextAlignment(latex, textPosition.c_str());
                     float tmpTextOffsetY = textOffsetY;
-                    if (textPosition.compare(legendPositions.at(i).c_str()) != 0) {
+                    if (textPosition != legendPositions.at(i)) {
                           if (textPosition.find("N") != std::string::npos)  tmpTextOffsetY = 0.08;
                     }
-                    else if (legendPositions.at(i).compare("NW") == 0 && drawLatexCMS)  {   // leave space for latexCMS
+                    else if (legendPositions.at(i) == "NW" && drawLatexCMS)  {   // leave space for latexCMS
                         tmpTextOffsetY = textOffsetY+0.11;
-                        if (!writeExtraLatexCMS && (correlation.compare("xjz") == 0 || correlation.find("xjz_binJER") == 0))  {
+                        if (!writeExtraLatexCMS && (correlation == "xjz" || correlation.find("xjz_binJER") == 0))  {
                             tmpTextOffsetY = textOffsetY+0.07;
                         }
                     }
-                    if ((correlation.compare("xjz") == 0 || correlation.find("xjz_binJER") == 0) && plotTheory) {   // push text below to leave space for JEWEL legend
+                    if ((correlation == "xjz" || correlation.find("xjz_binJER") == 0) && plotTheory) {   // push text below to leave space for JEWEL legend
                         tmpTextOffsetY = tmpTextOffsetY+0.16;
                     }
                     if (correlation.find("dphi") == 0 && plotTheory) {   // push text below to leave space for JEWEL legend
@@ -1062,7 +1062,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     setTextAlignment(latexCMS, "NW");
                     float posX_ = c->GetLeftMargin() + 0.04;
                     float posY_ = 1 - c->GetTopMargin() - 0.08;
-                    if (correlation.compare("xjz_mean") == 0) {
+                    if (correlation == "xjz_mean") {
                         posX_ += 0.08;
                     }
                     latexCMS->DrawLatexNDC(posX_, posY_, cmsText);
@@ -1083,7 +1083,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                 if (legendWidth != 0)  width = legendWidth;
                 std::string legendPosition = legendPositions.at(i).c_str();
                 float tmpLegendOffsetY = legendOffsetY;
-                if (legendPosition.compare("NW") == 0 && drawLatexCMS)  {   // leave space for latexCMS
+                if (legendPosition == "NW" && drawLatexCMS)  {   // leave space for latexCMS
                     tmpLegendOffsetY = legendOffsetY+0.11;
                     if (!writeExtraLatexCMS && (ish1D_xjz))  {
                         tmpLegendOffsetY = legendOffsetY+0.07;
@@ -1124,7 +1124,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP = HYBRID::y_xjz_PP;
                         yerrPP = HYBRID::yerr_xjz_PP;
                     }
-                    else if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) {
+                    else if (correlation == "dphi" || correlation == "dphi_rebin") {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_dphi;
                             ymin_hybrid[iModel] = HYBRID::ymin_dphi[iModel];
@@ -1134,7 +1134,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP = HYBRID::y_dphi_PP;
                         yerrPP = HYBRID::yerr_dphi_PP;
                     }
-                    else if (correlation.compare("rjz") == 0) {
+                    else if (correlation == "rjz") {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_rjz;
                             ymin_hybrid[iModel] = HYBRID::ymin_rjz[iModel];
@@ -1144,21 +1144,21 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP = HYBRID::y_rjz_PP;
                         yerrPP = HYBRID::yerr_rjz_PP;
                     }
-                    else if (correlation.compare("iaa") == 0) {
+                    else if (correlation == "iaa") {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_IAA[iModel];
                             ymin_hybrid[iModel] = HYBRID::ymin_IAA[iModel];
                             ymax_hybrid[iModel] = HYBRID::ymax_IAA[iModel];
                         }
                     }
-                    else if (correlation.compare("iaa_ptBin5") == 0) {
+                    else if (correlation == "iaa_ptBin5") {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_IAA_ptBin5[iModel];
                             ymin_hybrid[iModel] = HYBRID::ymin_IAA_ptBin5[iModel];
                             ymax_hybrid[iModel] = HYBRID::ymax_IAA_ptBin5[iModel];
                         }
                     }
-                    else if (correlation.compare("iaa_ptBin6") == 0) {
+                    else if (correlation == "iaa_ptBin6") {
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
                             x_hybrid[iModel] = HYBRID::x_IAA_ptBin6[iModel];
                             ymin_hybrid[iModel] = HYBRID::ymin_IAA_ptBin6[iModel];
@@ -1191,7 +1191,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         grErr->SetLineColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
                         grErr->SetLineWidth(2);
                         std::string ppRefPlotOption = "lp";
-                        if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0) ppRefPlotOption = "p";
+                        if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "p";
                         grErr->DrawClone(ppRefPlotOption.c_str());
                         legTheoryHybrid->AddEntry(grErr->Clone(), HYBRID::legendEntryPP.c_str(), ppRefPlotOption.c_str());
                     }
@@ -1207,13 +1207,13 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                     // put "legTheory" below "leg"
                     legTheoryHybrid->SetX1(leg->GetX1NDC());
                     legTheoryHybrid->SetY2(leg->GetY1NDC());
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0 || correlation.compare("rjz") == 0) {
+                    if (correlation == "dphi" || correlation == "dphi_rebin" || correlation == "rjz") {
                         // put "legTheory" to the right of "leg"*
                         legTheoryHybrid->SetX1(leg->GetX2NDC()*1.0);
                         legTheoryHybrid->SetY2(leg->GetY2NDC());
                     }
                     widthFactor = 1.5;
-                    if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0) widthFactor = 1.5;
+                    if (correlation == "rjz" || correlation == "xjz_mean") widthFactor = 1.5;
                     if (!(plotTheoryHI && plotTheoryPP))  widthFactor = 1.7;
                     legTheoryHybrid->SetX2(legTheoryHybrid->GetX1NDC() + width*widthFactor);
                     legTheoryHybrid->SetY1(legTheoryHybrid->GetY2NDC() - heightTheory);
@@ -1238,7 +1238,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP_jewel = JEWEL::y_xjz_PP;
                         yerrPP_jewel = JEWEL::yerr_xjz_PP;
                     }
-                    else if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) {
+                    else if (correlation == "dphi" || correlation == "dphi_rebin") {
                         x_jewel = JEWEL::x_dphi;
                         xPP_jewel =  JEWEL::x_dphi;
                         y_jewel = JEWEL::y_dphi;
@@ -1246,7 +1246,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP_jewel = JEWEL::y_dphi_PP;
                         yerrPP_jewel = JEWEL::yerr_dphi_PP;
                     }
-                    else if (correlation.compare("rjz") == 0) {
+                    else if (correlation == "rjz") {
                         x_jewel = JEWEL::x_rjz;
                         xPP_jewel =  JEWEL::x_rjz;
                         y_jewel = JEWEL::y_rjz;
@@ -1254,7 +1254,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         yPP_jewel = JEWEL::y_rjz_PP;
                         yerrPP_jewel = JEWEL::yerr_rjz_PP;
                     }
-                    else if (correlation.compare("xjz_mean") == 0) {
+                    else if (correlation == "xjz_mean") {
                         x_jewel = JEWEL::x_xjz_mean;
                         xPP_jewel =  JEWEL::x_xjz_mean;
                         y_jewel = JEWEL::y_xjz_mean;
@@ -1274,7 +1274,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         grErr->SetLineColorAlpha(kYellow+3, falpha_theory_jewel);
                         grErr->SetLineWidth(2);
                         std::string ppRefPlotOption = "lp";
-                        if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0) ppRefPlotOption = "p";
+                        if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "p";
                         grErr->DrawClone(ppRefPlotOption.c_str());
                         legTheoryJewel->AddEntry(grErr->Clone(), "PbPb", ppRefPlotOption.c_str());
 
@@ -1291,7 +1291,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         grErr->SetLineColorAlpha(kCyan+3, falpha_theory_PP);
                         grErr->SetLineWidth(2);
                         std::string ppRefPlotOption = "lp";
-                        if (correlation.compare("rjz") == 0 || correlation.compare("xjz_mean") == 0) ppRefPlotOption = "p";
+                        if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "p";
                         grErr->DrawClone(ppRefPlotOption.c_str());
                         legTheoryJewel->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), ppRefPlotOption.c_str());
                     }
@@ -1312,12 +1312,12 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                         legTheoryJewel->SetX1(leg->GetX2NDC()*1.3);
                         legTheoryJewel->SetY2(leg->GetY2NDC());
                     }
-                    else if (correlation.compare("xjz_mean") == 0) {
+                    else if (correlation == "xjz_mean") {
                         // put "legTheory" to the left of "leg"
                         legTheoryJewel->SetX1(leg->GetX1NDC() - width);
                         legTheoryJewel->SetY2(leg->GetY2NDC());
                     }
-                    else if (correlation.compare("rjz") == 0) {
+                    else if (correlation == "rjz") {
                         // put "legTheory" below "leg"
                         legTheoryJewel->SetX1(leg->GetX1NDC());
                         legTheoryJewel->SetY2(leg->GetY1NDC());
@@ -1332,12 +1332,12 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
 
                 // special cases
                 // draw a horizontal line at y = 0 for xjz and dphi.
-                if (ish1D_xjz || correlation.compare("dphi_rebin") == 0 || correlation.compare("dphi_rebin_normJZ") == 0) {
+                if (ish1D_xjz || correlation == "dphi_rebin" || correlation == "dphi_rebin_normJZ") {
                     lineTmp = new TLine(xmin, 0, xmax, 0);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
                 }
-                if (correlation.find("iaa") == 0 ) {
+                if (correlation.find("iaa") == 0) {
                     lineTmp = new TLine(xmin, 1, xmax, 1);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
@@ -1400,7 +1400,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                             // ratio histogram
                             double yMin = 0;
                             double yMax = -1;
-                            if (correlation.compare("dphi_rebin") == 0)
+                            if (correlation == "dphi_rebin")
                             {
                                 plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
@@ -1408,7 +1408,7 @@ void zJetPlot(const TString configFile, const TString inputFile, const TString o
                                 if (plotLowerPad_PP_MC) yMin = 0.2;
                                 yMax = 1.6;
                             }
-                            if (correlation.compare("xjz") == 0 || correlation.find("xjz_binJER") == 0) {
+                            if (correlation == "xjz" || correlation.find("xjz_binJER") == 0) {
                                 plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 yMin = 0;

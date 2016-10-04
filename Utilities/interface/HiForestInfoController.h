@@ -45,7 +45,7 @@ public:
             std::string tmp(charArr);
 
             if (j_entry > 0) {
-                if (tmp.compare(value.c_str()) != 0) {
+                if (tmp != value) {
                     std::cout << "WARNING : value of the branch is not the same across HiForestInfo tree"<< std::endl;
                     std::cout << "branch : " << branchName.c_str()<< std::endl;
                     std::cout << "tree has " << entries << " entries" << std::endl;

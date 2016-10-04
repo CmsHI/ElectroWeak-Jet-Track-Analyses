@@ -549,7 +549,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     // no additional selection for jets. just use different trees.
     std::cout<<"####################"<<std::endl;
     std::cout<<"tzj->GetEntries() = "<<tzj->GetEntries()<<std::endl;
-    if (trigger.compare("") != 0 && !isMC) {
+    if (trigger != "" && !isMC) {
         std::cout<<"tzj->GetEntries(trigger==1) = "<<tzj->GetEntries(Form("%s == 1",trigger.c_str()))<<std::endl;
     }
     else {

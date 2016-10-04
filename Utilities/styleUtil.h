@@ -154,25 +154,25 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
     if (width>0.50) legend->SetMargin(0.075);     // if the legend is wide, then keep the length of the line not wide.
     else if (width>0.25) legend->SetMargin(0.15);     // if the legend is wide, then keep the length of the line not wide.
     // TLegend::SetMargin() helps to set the length of the line in the legend entry.
-    if (position.compare("NW") == 0) { // upper-left corner
+    if (position == "NW") { // upper-left corner
         legend->SetX1(c->GetLeftMargin() + offsetX);
         legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
         legend->SetX2(c->GetLeftMargin() + width + offsetX);
         legend->SetY2(1 - c->GetTopMargin() - offsetY);
     }
-    else if (position.compare("NE") == 0) { // upper-right corner
+    else if (position == "NE") { // upper-right corner
         legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
         legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
         legend->SetX2(1 - c->GetRightMargin() - offsetX);
         legend->SetY2(1 - c->GetTopMargin() - offsetY);
     }
-    else if (position.compare("SW") == 0) { // lower-left corner
+    else if (position == "SW") { // lower-left corner
         legend->SetX1(c->GetLeftMargin() + offsetX);
         legend->SetY1(c->GetBottomMargin() + offsetY);
         legend->SetX2(c->GetLeftMargin() + width + offsetX);
         legend->SetY2(c->GetBottomMargin() + height + offsetY);
     }
-    else if (position.compare("SE") == 0) { // lower-right corner
+    else if (position == "SE") { // lower-right corner
         legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
         legend->SetY1(c->GetBottomMargin() + offsetY);
         legend->SetX2(1 - c->GetRightMargin() - offsetX);
@@ -183,10 +183,10 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
 void setTextAlignment(TLatex* latex, std::string position)
 {
     int verticalAlign = latex->GetTextAlign() % 10;
-    if (position.compare("NW") == 0 || position.compare("SW") == 0) { // left corner
+    if (position == "NW" || position == "SW") { // left corner
         latex->SetTextAlign(10 + verticalAlign);    // horizontal alignment is left
     }
-    else if (position.compare("NE") == 0 || position.compare("SE") == 0) { // right corner
+    else if (position == "NE" || position == "SE") { // right corner
         latex->SetTextAlign(30 + verticalAlign);    // horizontal alignment is right
     }
 }
@@ -212,19 +212,19 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
 {
     float x = 0.1;
     float y = 0.1;
-    if (position.compare("NW") == 0) { // upper-left corner
+    if (position == "NW") { // upper-left corner
         x = c->GetLeftMargin() + offsetX;
         y = 1 - c->GetTopMargin() - offsetY;
     }
-    else if (position.compare("NE") == 0) { // upper-right corner
+    else if (position == "NE") { // upper-right corner
         x = 1 - c->GetRightMargin() - offsetX;
         y = 1 - c->GetTopMargin() - offsetY;
     }
-    else if (position.compare("SW") == 0) { // lower-left corner
+    else if (position == "SW") { // lower-left corner
         x = c->GetLeftMargin() + offsetX;
         y = c->GetBottomMargin() + offsetY;
     }
-    else if (position.compare("SE") == 0) { // lower-right corner
+    else if (position == "SE") { // lower-right corner
         x = 1 - c->GetRightMargin() - offsetX;
         y = c->GetBottomMargin() + offsetY;
     }
@@ -273,7 +273,7 @@ double calcTLegendWidth(TLegend* legend, double offset, double ratio, double thr
     double w = 0;
     while (( entry = (TLegendEntry*)iter.Next() )) {
         std::string label = entry->GetLabel();
-        if (legend->GetHeader() != NULL && label.compare(legend->GetHeader()) == 0)  continue;    // in this case, assume that the entry is actually the header
+        if (legend->GetHeader() != NULL && label == legend->GetHeader())  continue;    // in this case, assume that the entry is actually the header
 
         double c = 1;
         if (label.length() > 50) c = 1.5;
@@ -339,7 +339,7 @@ void setCanvas_InvMass(TCanvas* c, float px, float py, const char* collision, co
   latexEta->Draw();
 
   std::string str = extra;
-  if (str.compare("") != 0)
+  if (str != "")
   {
       pyNew = pyNew-0.05;
       TLatex *latexExtra = new TLatex(px, pyNew, extra);

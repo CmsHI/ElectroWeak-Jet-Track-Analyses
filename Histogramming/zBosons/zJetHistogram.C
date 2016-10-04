@@ -762,7 +762,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
         std::string pathFileMC_num   = "";
         std::string pathFileMC_denom = "";
 
-        if (jetCollection.compare("akPu3PFJetAnalyzer") == 0)
+        if (jetCollection == "akPu3PFJetAnalyzer")
         {
             pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_vJetIDCorr.root";
             pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_SYS_noJetID_vJetIDCorr.root";
@@ -772,7 +772,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                 pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_0505_SYS_noJetID_vJetIDCorr_jteta16.root";
             }
         }
-        else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0)
+        else if (jetCollection == "akCs3PFJetAnalyzer")
         {
             pathFileMC_num   = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_2904_CS_vJetIDCorr.root";
             pathFileMC_denom = "zJetHistogram_Pythia8_Z30mumuJet_Hydjet_MB_2904_CS_SYS_noJetID_vJetIDCorr.root";
@@ -1125,7 +1125,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         for(int iHist = 0; iHist<nCorrHist; ++iHist)
                         {
                             std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                            if (tmpObservable.compare("hiBin") == 0) {
+                            if (tmpObservable == "hiBin") {
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(hiBin, eventWeightAll);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(hiBin, eventWeightAll);
                             }
@@ -1149,7 +1149,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
                         if (cut_jetID > 0) {
                             bool passedJetID = true;
-                            if (jetCollection.compare("akPu3PFJetAnalyzer") == 0) {
+                            if (jetCollection == "akPu3PFJetAnalyzer") {
                                 /* |jteta| < 2
                                 passedJetID = (
                                         (jets[iCorr].neutralMax[i]/jets[iCorr].rawpt[i]*(0.085)+
@@ -1170,7 +1170,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                          jets[iCorr].chargedSum[i]/jets[iCorr].rawpt[i]*(-0.378)) > -0.7);
                                 if (!passedJetID)  continue;
                             }
-                            else if (jetCollection.compare("akCs3PFJetAnalyzer") == 0) {
+                            else if (jetCollection == "akCs3PFJetAnalyzer") {
                                 passedJetID = (
                                         (jets[iCorr].photonMax[i]/jets[iCorr].rawpt[i]*(+0.024)+
                                         jets[iCorr].neutralMax[i]/jets[iCorr].rawpt[i]*(-0.068)+
@@ -1232,15 +1232,15 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(TMath::Abs(zJets[iCorr].dphi->at(i)), w);
                             }
-                            else if (tmpObservable.compare("ptJet") == 0) {
+                            else if (tmpObservable == "ptJet") {
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtpt[i], w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtpt[i], w);
                             }
-                            else if (tmpObservable.compare("jteta") == 0) {
+                            else if (tmpObservable == "jteta") {
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(jets[iCorr].jteta[i], w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(jets[iCorr].jteta[i], w);
                             }
-                            else if (tmpObservable.compare("jtphi") == 0) {
+                            else if (tmpObservable == "jtphi") {
                                 corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
                                 corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(jets[iCorr].jtphi[i], w);
                             }
@@ -1264,23 +1264,23 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                                 if (!doSingleJet.at(iHist))  continue;
 
                                 std::string tmpObservable = correlationHistNames.at(iHist).c_str();
-                                if (tmpObservable.compare("zM") == 0) {
+                                if (tmpObservable == "zM") {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(zMass, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(zMass, w);
                                 }
-                                else if (tmpObservable.compare("zPt") == 0) {
+                                else if (tmpObservable == "zPt") {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(zPt, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(zPt, w);
                                 }
-                                else if (tmpObservable.compare("zEta") == 0) {
+                                else if (tmpObservable == "zEta") {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(zEta, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(zEta, w);
                                 }
-                                else if (tmpObservable.compare("zPhi") == 0) {
+                                else if (tmpObservable == "zPhi") {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][CORR::kRAW]->Fill(zPhi, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][CORR::kRAW]->Fill(zPhi, w);
                                 }
-                                else if (tmpObservable.compare("nJet") == 0) {
+                                else if (tmpObservable == "nJet") {
                                     corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr]->Fill(nJet, w);
                                     corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr]->Fill(nJet, w);
                                 }
@@ -1320,7 +1320,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                         int nTmpVec = tmpVec.size();
                         for (int iTMP = 0; iTMP<nTmpVec ; ++iTMP)
                         {
-                            if (tmpObservable.compare(tmpVec.at(iTMP).c_str()) == 0) {
+                            if (tmpObservable == tmpVec.at(iTMP)) {
                                 scaleBinContentErrors(corrHists[iHist][iPt][iHiBin].h1D[CORR::kRAW][iCorr], scaleContent4Smear, scaleError4Smear);
                                 scaleBinContentErrors(corrHists[iHist][iPt][iHiBin].h1D_final[CORR::kRAW][iCorr], scaleContent4Smear, scaleError4Smear);
                             }
@@ -1337,7 +1337,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
     for(int iHist = 0; iHist<nCorrHist; ++iHist)
     {
         std::string correlationName = correlationHistNames.at(iHist).c_str();
-        if (correlationName.compare("xjz") != 0) continue;
+        if (correlationName != "xjz") continue;
 
         for (int iPt=0; iPt<nBins_pt; ++iPt) {
             for (int iHiBin=0; iHiBin<nBins_hiBin; ++iHiBin) {
@@ -1788,7 +1788,7 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
 
                     // 1. integral of dphi : CDF (dphi)
                     // 2. integral of dphi : CDF (dphi) - with variable binning
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0)
+                    if (correlation == "dphi" || correlation == "dphi_rebin")
                     {
                         // histogram name excluding the "h1D" prefix
                         tmpH1D_name_calc = Form("%s_final_norm", tmpH1D_name.c_str());
@@ -1860,12 +1860,12 @@ void zJetHistogram(const TString configFile, const TString inputFile, const TStr
                     std::string tf1Formula = "pol0";
                     int parIndex = 0;
                     std::vector<double> parInit = {};
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) {
+                    if (correlation == "dphi" || correlation == "dphi_rebin") {
                         tf1Formula = "[0]*exp(-(TMath::Pi()-x)*[1])+[2]";
                         parIndex = 1;
                         parInit = {0, 0.01, 0};
                     }
-                    else if (correlation.compare("dphi_normJZ") == 0 || correlation.compare("dphi_rebin_normJZ") == 0) {
+                    else if (correlation == "dphi_normJZ" || correlation == "dphi_rebin_normJZ") {
                         tf1Formula = "exp(-(TMath::Pi()-x)/[0])/([0]*(1-exp(-TMath::Pi()/[0])))";
                         parIndex = 0;
                         parInit = {0.01};

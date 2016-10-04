@@ -648,21 +648,21 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (normalization > 0)  h[i]->Scale(normalization/h[i]->Integral());
 
         // overwrite histogram titles, if there are explicitly specified titles
-        if (title.compare(CONFIGPARSER::nullInput) == 0) h[i]->SetTitle("");   // title is explicitly specified to be empty.
+        if (title == CONFIGPARSER::nullInput) h[i]->SetTitle("");   // title is explicitly specified to be empty.
         else if (title.size() > 0)  h[i]->SetTitle(title.c_str());  // title is specified.
 
-        if (titleX.compare(CONFIGPARSER::nullInput) == 0) h[i]->SetXTitle("");
+        if (titleX == CONFIGPARSER::nullInput) h[i]->SetXTitle("");
         else if (titleX.size() > 0) h[i]->SetXTitle(titleX.c_str());
 
-        if (titleY.compare(CONFIGPARSER::nullInput) == 0) h[i]->SetYTitle("");
+        if (titleY == CONFIGPARSER::nullInput) h[i]->SetYTitle("");
         else if (titleY.size() > 0) h[i]->SetYTitle(titleY.c_str());
 
         std::string drawOption = "";
         if (nDrawOptions == 1) {
-            if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
+            if (drawOptions.at(0) != CONFIGPARSER::nullInput)  drawOption = drawOptions.at(0).c_str();
         }
         else if (nDrawOptions == nHistos) {
-            if (drawOptions.at(i).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i).c_str();
+            if (drawOptions.at(i) != CONFIGPARSER::nullInput)  drawOption = drawOptions.at(i).c_str();
         }
         if (drawOption.size() > 0)  drawOptions.at(i) = drawOption.c_str();     // overwrite drawing options
         if (drawOption.find("hist") != std::string::npos) {
@@ -739,7 +739,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             int fitColor = INPUT_DEFAULT::fitColor;
             if (nFitColors == 1) fitColor = GraphicsConfigurationParser::ParseColor(fitColors.at(0));
             else if (nFitColors == nHistos) {
-                if (fitColors.at(i).compare(CONFIGPARSER::nullInput) != 0)
+                if (fitColors.at(i) != CONFIGPARSER::nullInput)
                     fitColor = GraphicsConfigurationParser::ParseColor(fitColors.at(i));
             }
 
@@ -927,7 +927,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
             std::string label = legendEntryLabels.at(0).c_str();
             if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
-            if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
+            if (label == CONFIGPARSER::nullInput)  continue;
 
             std::string legendOption = "lpf";
             if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
@@ -1060,7 +1060,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                     int fitColor_lowerPad = INPUT_DEFAULT::fitColor;
                     if (nFitColors == 1) fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(0));
                     else if (nFitColors_lowerPad == nHistos_lowerPad) {
-                        if (fitColors_lowerPad.at(i).compare(CONFIGPARSER::nullInput) != 0)
+                        if (fitColors_lowerPad.at(i) != CONFIGPARSER::nullInput)
                             fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(i));
                     }
 

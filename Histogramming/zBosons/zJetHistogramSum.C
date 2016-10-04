@@ -709,7 +709,7 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
             // search through histograms that are created by summing dielectron and dimuon channels
             for (int iHist = 0; iHist < nTH1; ++iHist)
             {
-                if (tmpHistName.compare(hSIGNorm[iHist]->GetName()) == 0) {
+                if (tmpHistName == hSIGNorm[iHist]->GetName()) {
 
                     int nBinsX = hSIGNorm[iHist]->GetNbinsX();
                     double val;
@@ -853,15 +853,15 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                     bool found = false;
                     for (int iHist2 = 0; iHist2 < nTH1; ++iHist2)
                     {
-                        if (tmpHistName.compare(hNorm[iHist2]->GetName()) == 0) {
+                        if (tmpHistName == hNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hNorm[iHist2]->Clone();
                             found = true;
                         }
-                        else if (isHI && tmpHistName.compare(hBKGNorm[iHist2]->GetName()) == 0) {
+                        else if (isHI && tmpHistName == hBKGNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hBKGNorm[iHist2]->Clone();
                             found = true;
                         }
-                        else if (tmpHistName.compare(hSIGNorm[iHist2]->GetName()) == 0) {
+                        else if (tmpHistName == hSIGNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hSIGNorm[iHist2]->Clone();
                             found = true;
                         }
@@ -870,7 +870,7 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
 
                     // 1. integral of dphi : CDF (dphi)
                     // 2. integral of dphi : CDF (dphi) - with variable binning
-                    if (tmpObservable.compare("dphi") == 0)
+                    if (tmpObservable == "dphi")
                     {
                         // histogram name excluding the "h1D" prefix
                         tmpH1D_name_calc = replaceAll(tmpH1D_name, "dphi_", "dphi_CDF_");
@@ -924,12 +924,12 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                         std::string tf1Formula = "pol0";
                         int parIndex = 0;
                         std::vector<double> parInit = {};
-                        if (tmpObservable.compare("dphi") == 0 || tmpObservable.compare("dphi_rebin") == 0) {
+                        if (tmpObservable == "dphi" || tmpObservable == "dphi_rebin") {
                             tf1Formula = "[0]+[1]*exp((x-TMath::Pi())/[2])";
                             parIndex = 2;
                             parInit = {0.01, 0.5, 0.3};
                         }
-                        else if (tmpObservable.compare("dphi_normJZ") == 0 || tmpObservable.compare("dphi_rebin_normJZ") == 0) {
+                        else if (tmpObservable == "dphi_normJZ" || tmpObservable == "dphi_rebin_normJZ") {
                             tf1Formula = "exp(-(TMath::Pi()-x)/[0])/([0]*(1-exp(-TMath::Pi()/[0])))";
                             parIndex = 0;
                             parInit = {0.25};
@@ -999,15 +999,15 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                     bool found = false;
                     for (int iHist2 = 0; iHist2 < nTH1; ++iHist2)
                     {
-                        if (jCorr == CORR::kRAW && tmpHistName.compare(hNorm[iHist2]->GetName()) == 0) {
+                        if (jCorr == CORR::kRAW && tmpHistName == hNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hNorm[iHist2]->Clone();
                             found = true;
                         }
-                        else if (jCorr == CORR::kBKG && isHI && tmpHistName.compare(hBKGNorm[iHist2]->GetName()) == 0) {
+                        else if (jCorr == CORR::kBKG && isHI && tmpHistName == hBKGNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hBKGNorm[iHist2]->Clone();
                             found = true;
                         }
-                        else if (jCorr == CORR::kSIG && tmpHistName.compare(hSIGNorm[iHist2]->GetName()) == 0) {
+                        else if (jCorr == CORR::kSIG && tmpHistName == hSIGNorm[iHist2]->GetName()) {
                             hTmp = (TH1D*)hSIGNorm[iHist2]->Clone();
                             found = true;
                         }
@@ -1019,12 +1019,12 @@ void zJetHistogramSum(const TString configFile, const TString inputFileDiEle, co
                     std::string tf1Formula = "pol0";
                     int parIndex = 0;
                     std::vector<double> parInit = {};
-                    if (correlation.compare("dphi") == 0 || correlation.compare("dphi_rebin") == 0) {
+                    if (correlation == "dphi" || correlation == "dphi_rebin") {
                         tf1Formula = "[0]*exp(-(TMath::Pi()-x)*[1])+[2]";
                         parIndex = 1;
                         parInit = {0, 0.01, 0};
                     }
-                    else if (correlation.compare("dphi_normJZ") == 0 || correlation.compare("dphi_rebin_normJZ") == 0) {
+                    else if (correlation == "dphi_normJZ" || correlation == "dphi_rebin_normJZ") {
                         tf1Formula = "exp(-(TMath::Pi()-x)/[0])/([0]*(1-exp(-TMath::Pi()/[0])))";
                         parIndex = 0;
                         parInit = {0.01};

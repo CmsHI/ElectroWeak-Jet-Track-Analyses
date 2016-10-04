@@ -142,10 +142,10 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
 
     TChain* treeHLT = new TChain("hltanalysis/HltTree");
     TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
-    if (isHI && treePath.compare("ggHiNtuplizer/EventTree") != 0) {
+    if (isHI && treePath != "ggHiNtuplizer/EventTree") {
         std::cout << "WARNING : Collision is HI. But the photon tree is not set to ggHiNtuplizer/EventTree" << std::endl;
     }
-    else if (isPP && treePath.compare("ggHiNtuplizerGED/EventTree") != 0) {
+    else if (isPP && treePath != "ggHiNtuplizerGED/EventTree") {
         std::cout << "WARNING : Collision is PP. But the photon tree is not set to ggHiNtuplizerGED/EventTree" << std::endl;
     }
 
