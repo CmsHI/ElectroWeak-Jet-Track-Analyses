@@ -138,6 +138,12 @@ const std::string legendEntries[kN_MODEL] = {
         "radiative",
         "collisional"
 };
+const std::string modelTAG[kN_MODEL] = {
+        "strong",
+        "rad",
+        "coll"
+};
+
 const std::string legendEntryPP = "smeared pp";
 
 const std::vector<double> ymin_xjz[kN_MODEL] = {
@@ -329,17 +335,27 @@ enum MODEL{
     kN_MODEL
 };
 
-const std::vector<double> ymin_xjz[kN_MODEL] = {
-        y_xjz_COLL,
-        y_xjz_NOCOLL
-};
-
 // legend entries to be used in a plot
 const std::string legendEntries[kN_MODEL] = {
         "with collisional E-loss",
         "without collisional E-loss"
 };
+const std::string modelTAG[kN_MODEL] = {
+        "coll",
+        "noColl"
+};
+
 const std::string legendEntryPP = "smeared pp";
+
+const std::vector<double> y_xjz[kN_MODEL] = {
+        y_xjz_COLL,
+        y_xjz_NOCOLL
+};
+
+const double xjz_mean[kN_MODEL] = {
+        xjz_mean_COLL,
+        xjz_mean_NOCOLL
+};
 
 };
 

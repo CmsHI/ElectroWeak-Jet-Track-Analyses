@@ -5,6 +5,7 @@
 #include <TH1.h>
 #include <TH1D.h>
 #include <TF1.h>
+#include <TGraph.h>
 #include <TGraphAsymmErrors.h>
 #include <TGraph.h>
 #include <TBox.h>
@@ -21,7 +22,7 @@
 
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
-TH1* Graph2Histogram(TGraphAsymmErrors* graph);
+TH1* Graph2Histogram(TGraph* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
@@ -100,7 +101,7 @@ std::string summaryTH1(TH1* h)
  * TMath::Sqrt(0.5*(elow*elow + ehigh*ehigh))  which is returned by graph->GetErrorY(i)
  * https://root.cern.ch/root/html/src/TGraphAsymmErrors.cxx.html#rBLO5D
  */
-TH1* Graph2Histogram(TGraphAsymmErrors* graph)
+TH1* Graph2Histogram(TGraph* graph)
 {
     int fNpoints = graph->GetN();
     double* fX   = graph->GetX();
