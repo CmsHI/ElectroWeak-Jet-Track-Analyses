@@ -11,10 +11,18 @@ Data/photons/DUMMY.root
 Data/photons/Hybrid.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
+Data/photons/DUMMY.root
+Data/photons/HybridRad.root
+Data/photons/DUMMY.root
+Data/photons/HybridColl.root
 # Systematics
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
 Data/photons/gammaJetSystematics.root
+Data/photons/DUMMY.root
+Data/photons/DUMMY.root
+Data/photons/DUMMY.root
+Data/photons/DUMMY.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root
 Data/photons/DUMMY.root

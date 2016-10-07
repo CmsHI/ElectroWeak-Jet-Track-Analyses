@@ -47,8 +47,12 @@ typedef struct box_t {
 #define _HYBRID_REF 9
 #define _IVITEV 10
 #define _IVITEV_REF 11
-#define _NPLOTS 12
-#define _WCEL 13
+#define _HYBRIDRAD 12
+#define _HYBRIDRAD_REF 13
+#define _HYBRIDCOLL 14
+#define _HYBRIDCOLL_REF 15
+#define _NPLOTS 16
+#define _WCEL 17
 
 const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
 
@@ -151,32 +155,38 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         hist_file_valid[_LBT_REF] = false;
         hist_file_valid[_HYBRID_REF] = false;
         hist_file_valid[_IVITEV_REF] = false;
+        hist_file_valid[_HYBRIDRAD_REF] = false;
+        hist_file_valid[_HYBRIDCOLL_REF] = false;
     }
 
     std::string suffix[_NPLOTS] = {
         "PbPb_Data", "PbPb_MC", "pp_Data", "pp_MC",
-        "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref", "Hybrid", "Hybrid_ppref", "pQCD", "pQCD_ppref"
+        "JEWEL", "JEWEL_ppref", "LBT", "LBT_ppref", "Hybrid", "Hybrid_ppref", "pQCD", "pQCD_ppref",
+        "HybridRad", "HybridRad_ppref", "HybridColl", "HybridColl_ppref"
     };
     std::string draw_options[_NPLOTS] = {
         "same e x0", "same hist e x0", "same e x0", "same hist e x0",
-        "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0", "same l x0", "same l x0"
+        "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0", "same l x0", "same l x0",
+        "same l hist x0", "same l hist x0", "same l hist x0", "same l hist x0"
     };
     std::string sys_draw_options[_NPLOTS] = {
         "same e x0", "same hist e x0", "same e x0", "same hist e x0",
-        "", "", "", "", "", "", "", ""
+        "", "", "", "", "", "", "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
         "same p z", "same l z", "same p z", " same l z",
-        "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z", "same l z", "same l z"
+        "same l z", "same l z", "same l z", "same l z", "same l e3", "same l z", "same l z", "same l z",
+        "same l e3", "same l z", "same l e3", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
         "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))",
-        "Hybrid Model", "pp (Hybrid Model)", "pQCD jet E-loss", "pp (pQCD jet E-loss)"
+        "Hybrid Strong Coupling", "pp (Hybrid Strong Coupling)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
+        "Hybrid dE/dx #alpha T^{3}", "pp (Hybrid dE/dx #alpha T^{3})", "Hybrid dE/dx #alpha T^{2}", "pp (Hybrid dE/dx #alpha T^{2})"
     };
-    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l"};
+    std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l", "f", "l", "f", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
+    int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRIDRAD_REF, _HYBRIDRAD, _HYBRIDCOLL_REF, _HYBRIDCOLL, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
     for (int i=0; i<_NPLOTS; ++i) {
         int j = draw_order[i];
         if (hist_file_valid[j]) {
@@ -248,7 +258,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
-                if (k != _HYBRID && ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos)) {
+                if (k != _HYBRID && k != _HYBRIDRAD && k != _HYBRIDCOLL && ((k != _JEWEL && k != _JEWEL_REF) || hist_type.find("centBinAll") == std::string::npos)) {
                     h1[i][j][k] = (TH1D*)hist_files[k]->Get(hist_name.c_str());
                     if (!h1[i][j][k])
                         continue;
@@ -279,17 +289,17 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
 
-                    if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF) && hist_type == "dphi")
+                    if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type == "dphi")
                         h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
-                    if (k == _JEWEL || k == _JEWEL_REF || (k == _HYBRID_REF && hist_type.find("centBinAll") == std::string::npos))
+                    if (k == _JEWEL || k == _JEWEL_REF || ((k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type.find("centBinAll") == std::string::npos))
                         h1[i][j][k]->Draw("same e x0");
 
                     if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) ||
                         ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
-                        if (k == _HYBRID_REF) {HIST_MINUS_N_PTS_TO_NPART_GRAPH(h1[i][j][k], g1[i][j][k], 1);}
+                        if (k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) {HIST_MINUS_N_PTS_TO_NPART_GRAPH(h1[i][j][k], g1[i][j][k], 1);}
                         else if (k == _LBT || k == _LBT_REF || k == _IVITEV) {HIST_MINUS_N_PTS_TO_GRAPH(h1[i][j][k], g1[i][j][k], 3);}
                         else {HIST_MINUS_N_PTS_TO_NPART_GRAPH(h1[i][j][k], g1[i][j][k], 0);}
                         set_graph_style(g1[i][j][k], k);
@@ -316,7 +326,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         continue;
 
                     set_graph_style(g1[i][j][k], k);
-                    if ((k == _HYBRID || k == _HYBRID_REF) && hist_type == "dphi")
+                    if ((k == _HYBRID || k == _HYBRID_REF || k == _HYBRIDRAD || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL || k == _HYBRIDCOLL_REF) && hist_type == "dphi")
                         g1[i][j][k]->SetLineWidth(line_width);
 
                     g1[i][j][k]->Draw(graph_draw_options[k].c_str());
@@ -372,7 +382,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
                     for (int k=0; k<_NPLOTS; ++k) {
                         if (hist_file_valid[k]) {
-                            if (k == _HYBRID || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
+                            if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
                                 if (g1[i][j][k])
                                     l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
                             } else {
@@ -754,6 +764,26 @@ void set_hist_style(TH1D* h1, int k) {
             break;
         case _IVITEV_REF:
             break;
+        case _HYBRIDRAD:
+            break;
+        case _HYBRIDRAD_REF:
+            h1->SetLineColor(39);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(line_width);
+            h1->SetMarkerColor(39);
+            h1->SetMarkerStyle(20);
+            h1->SetMarkerSize(0);
+            break;
+        case _HYBRIDCOLL:
+            break;
+        case _HYBRIDCOLL_REF:
+            h1->SetLineColor(kPink+1);
+            h1->SetLineStyle(1);
+            h1->SetLineWidth(line_width);
+            h1->SetMarkerColor(kPink+1);
+            h1->SetMarkerStyle(20);
+            h1->SetMarkerSize(0);
+            break;
         default:
             break;
     }
@@ -810,6 +840,30 @@ void set_graph_style(TGraphErrors* g1, int k) {
             g1->SetLineStyle(1);
             g1->SetLineWidth(line_width);
             g1->SetMarkerSize(0);
+            break;
+        case _HYBRIDRAD:
+            g1->SetLineColorAlpha(39, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(0);
+            g1->SetFillColor(39);
+            g1->SetFillColorAlpha(39, 0.7);
+            break;
+        case _HYBRIDRAD_REF:
+            g1->SetLineColorAlpha(39, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
+            break;
+        case _HYBRIDCOLL:
+            g1->SetLineColorAlpha(kPink+1, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(0);
+            g1->SetFillColor(kPink+1);
+            g1->SetFillColorAlpha(kPink+1, 0.7);
+            break;
+        case _HYBRIDCOLL_REF:
+            g1->SetLineColorAlpha(kPink+1, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(line_width);
             break;
         case _WCEL:
             g1->SetLineColorAlpha(kMagenta+1, 0.7);
