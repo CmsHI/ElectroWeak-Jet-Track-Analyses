@@ -35,6 +35,10 @@ void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<d
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(TH1* h);
+TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize = false);
+TH1* getPullHistogram(TH1* h, TH1* hRef);
+TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
+TH1* getPullHistogram(TH1* h, TF1* fRef);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
@@ -279,6 +283,96 @@ std::vector<double> getTH1xBins(TH1* h) {
     }
 
     return bins;
+}
+
+
+/*
+ * returns a TH1* which is the residual of "h" wrt. "hRef"
+ * calculation is based on what is done for RooHist, where the reference object is unbinned, (e.g. curve, graph)
+ * https://root.cern.ch/doc/master/RooHist_8cxx_source.html#l00701
+ */
+TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize)
+{
+    TH1* hRes = (TH1*)h->Clone(Form("%s_Residual", h->GetName()));
+
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i)
+    {
+        double y = h->GetBinContent(i);
+
+        double x = h->GetXaxis()->GetBinCenter(i);
+        double iRef = hRef->FindBin(x);
+        double yRef = hRef->GetBinContent(iRef);
+
+        double dy = y-yRef;
+        double dyErr = h->GetBinError(i);
+
+        if (normalize) {
+            double norm = dyErr;
+            if (norm == 0) {
+                dy = 0;
+                dyErr = 0;
+            }
+            else {
+                dy /= norm;
+                dyErr /= norm;
+            }
+        }
+
+        hRes->SetBinContent(i, dy);
+        hRes->SetBinError(i, dyErr);
+    }
+
+    return hRes;
+}
+
+TH1* getPullHistogram(TH1* h, TH1* hRef)
+{
+    return getResidualHistogram(h, hRef, true);
+}
+
+/*
+ * returns a TH1* which is the residual of "h" wrt. "fRef"
+ * calculation is based on what is done for RooHist, where the reference object is unbinned, (e.g. curve, graph)
+ * https://root.cern.ch/doc/master/RooHist_8cxx_source.html#l00701
+ */
+TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize)
+{
+    TH1* hRes = (TH1*)h->Clone(Form("%s_Residual", h->GetName()));
+
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i)
+    {
+        double y = h->GetBinContent(i);
+
+        double x = h->GetXaxis()->GetBinCenter(i);
+        double yRef = fRef->Eval(x);
+
+        double dy = y-yRef;
+        double dyErr = h->GetBinError(i);
+
+        if (normalize) {
+            double norm = dyErr;
+            if (norm == 0) {
+                dy = 0;
+                dyErr = 0;
+            }
+            else {
+                dy /= norm;
+                dyErr /= norm;
+            }
+        }
+
+        hRes->SetBinContent(i, dy);
+        hRes->SetBinError(i, dyErr);
+    }
+
+    return hRes;
+}
+
+TH1* getPullHistogram(TH1* h, TF1* fRef)
+{
+    return getResidualHistogram(h, fRef, true);
 }
 
 void fillTH1fromTF1(TH1* h, TF1* f)
