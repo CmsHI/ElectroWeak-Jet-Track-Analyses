@@ -8,6 +8,7 @@
 #include <TH1.h>
 #include <TTree.h>
 #include <TH1D.h>
+#include <TGraph.h>
 #include <TCanvas.h>
 
 #include <vector>
@@ -42,8 +43,8 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern)
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keys=new TList();
-    TList* newKeys=new TList();
+    TList* keys = new TList();
+    TList* newKeys = 0;
     TString keyName = "";
 
     while ((key=(TKey*)iter->Next())) {
@@ -55,10 +56,10 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern)
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfSOMEKeys(subdir, pattern.c_str());
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfSOMEKeys(subdir, pattern.c_str());
             keys->AddAll(newKeys);
         }
     }
@@ -77,8 +78,8 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern, std::string t
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keys=new TList();
-    TList* newKeys=new TList();
+    TList* keys = new TList();
+    TList* newKeys = 0;
     TString keyName = "";
 
     while ((key=(TKey*)iter->Next())) {
@@ -90,10 +91,10 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern, std::string t
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfSOMEKeys(subdir, pattern, type);
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfSOMEKeys(subdir, pattern, type);
             keys->AddAll(newKeys);
         }
     }
@@ -110,8 +111,8 @@ TList* getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keys=new TList();
-    TList* newKeys=new TList();
+    TList* keys = new TList();
+    TList* newKeys = 0;
     TString keyName = "";
 
     while ((key=(TKey*)iter->Next())) {
@@ -126,10 +127,10 @@ TList* getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfGIVENKeys(subdir, keyNames);
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfGIVENKeys(subdir, keyNames);
             keys->AddAll(newKeys);
         }
     }
@@ -144,18 +145,18 @@ TList* getListOfALLKeys(TDirectoryFile* dir)
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keys=new TList();
-    TList *newKeys=new TList();
+    TList* keys = new TList();
+    TList* newKeys = 0;
 
     while ((key=(TKey*)iter->Next())) {
 
         keys->Add(key);
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfALLKeys(subdir);
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfALLKeys(subdir);
             keys->AddAll(newKeys);
         }
     }
@@ -172,8 +173,8 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type)
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keysOfType=new TList();
-    TList *newKeys=new TList();
+    TList* keysOfType = new TList();
+    TList* newKeys = 0;
 
     while ((key=(TKey*)iter->Next())) {
 
@@ -184,10 +185,10 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type)
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfALLKeys(subdir, type);
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfALLKeys(subdir, type);
             keysOfType->AddAll(newKeys);
         }
     }
@@ -211,8 +212,8 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom
 
     TDirectoryFile* subdir = 0;
     TKey*  key = 0;
-    TList* keysOfType=new TList();
-    TList *newKeys=new TList();
+    TList* keysOfType = new TList();
+    TList* newKeys = 0;
 
     while ((key=(TKey*)iter->Next())) {
 
@@ -222,10 +223,10 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder())
+        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
         {
-            subdir=(TDirectoryFile*)key->ReadObj();
-            newKeys=getListOfALLKeys(subdir, type);
+            subdir = (TDirectoryFile*)key->ReadObj();
+            newKeys = getListOfALLKeys(subdir, type);
             keysOfType->AddAll(newKeys);
         }
     }
