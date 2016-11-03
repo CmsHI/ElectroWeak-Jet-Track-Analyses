@@ -16,8 +16,9 @@ int         replaceStringInFile(std::string file, std::string oldString, std::st
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
+std::vector<std::string> split(std::string str, std::string delimiter);
 bool endsWith(std::string str, std::string suffix);
-int         findPositionInVector(std::vector<std::string> v, std::string str);
+int  findPositionInVector(std::vector<std::string> v, std::string str);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -40,8 +41,14 @@ bool fileExists(std::string filename)
 int replaceStringInFile(std::string file, std::string oldString, std::string newString)
 {
     std::ifstream inFile(file.c_str());      // file to be updated
-    const char* tmpFilePath = Form("%sTEMP", file.c_str());
-    std::ofstream outFile(tmpFilePath);  // temporary output file
+
+    std::string strTmp = "TEMP";
+    char* charTmp = new char[file.length() + strTmp.length()];
+    sprintf(charTmp, "%s%s", file.c_str(), strTmp.c_str());
+
+    std::string tmpFilePath = charTmp;
+    delete[] charTmp;
+    std::ofstream outFile(tmpFilePath.c_str());  // temporary output file
 
     std::string strLine;
     if (inFile.is_open() && outFile.is_open())
@@ -58,7 +65,7 @@ int replaceStringInFile(std::string file, std::string oldString, std::string new
     outFile.close();
 
     // overwrite the original file.
-    return rename(tmpFilePath , file.c_str());
+    return rename(tmpFilePath.c_str() , file.c_str());
 }
 
 /*
@@ -100,6 +107,32 @@ std::string toLowerCase(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
     return str;
+}
+
+/*
+ * split the string wrt. a delimiter and return a vector of substrings.
+ * delimiter can be longer than a single character.
+ * empty substrings are included.
+ * if the delimiter is not found, return an empty vector.
+ */
+std::vector<std::string> split(std::string str, std::string delimiter)
+{
+    std::vector<std::string> v;
+
+     size_t posStart = 0;
+     size_t pos = str.find(delimiter);
+     bool finished = (pos == std::string::npos);
+     while (!finished) {
+
+         pos = str.find(delimiter, posStart);
+         std::string substr = str.substr(posStart, pos-posStart);
+         v.push_back(substr);
+         posStart = pos + delimiter.length();
+
+         finished = (pos == std::string::npos);
+     }
+
+     return v;
 }
 
 /*
