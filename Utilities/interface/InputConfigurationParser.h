@@ -365,11 +365,12 @@ class InputConfigurationParser : public ConfigurationParser {
 
     static bool isROOTfile(TString fileName);
     static bool isROOTfile(std::string fileName);
-    static bool isFileList(TString fileName);
-    static bool isFileList(std::string fileName);
+    static bool isList(TString fileName);
+    static bool isList(std::string fileName);
     static bool isConfigurationFile(TString fileName);
     static bool isConfigurationFile(std::string fileName);
     static std::vector<std::string> ParseFiles(std::string fileName);
+    static std::vector<std::string> ParseEvents(std::string fileName);
     static std::vector<std::string> ParseFileArgument(std::string fileArgument);
     static void copyConfiguration(InputConfiguration& config, InputConfiguration configCopy);
     static InputConfiguration Parse(std::string inFile);
@@ -384,13 +385,13 @@ bool InputConfigurationParser::isROOTfile(std::string fileName) {
     return isROOTfile(tstr);
 }
 
-bool InputConfigurationParser::isFileList(TString fileName) {
+bool InputConfigurationParser::isList(TString fileName) {
     return (fileName.EndsWith(".txt") || fileName.EndsWith(".list"));
 }
 
-bool InputConfigurationParser::isFileList(std::string fileName) {
+bool InputConfigurationParser::isList(std::string fileName) {
     TString tstr = fileName.c_str();
-    return isFileList(tstr);
+    return isList(tstr);
 }
 
 bool InputConfigurationParser::isConfigurationFile(TString fileName) {
@@ -407,7 +408,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
 
     if (isROOTfile(fileName)) {
         fileNames.push_back(fileName);
-    } else if (isFileList(fileName)) {
+    } else if (isList(fileName)) {
 
         // assumes there is exactly one file per line,
         // no empty line should be entered.
@@ -450,6 +451,54 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
     }
 
     return fileNames;
+}
+
+std::vector<std::string> InputConfigurationParser::ParseEvents(std::string fileName) {
+    std::vector<std::string> eventList;
+
+    if (isList(fileName)) {
+
+        // assumes there is exactly one event info per line,
+        // no empty line should be entered.
+        // any line containing a "#" will be skipped.
+        std::ifstream inFile(fileName.c_str());
+        std::string strLine;
+        if (inFile.is_open()) {
+            while (getline(inFile,strLine)) {
+                if (trim(strLine).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+
+                size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+                std::string in = trim(strLine.substr(0, posLast));
+                // assume this line contains event info
+                eventList.push_back(in);
+            }
+        }
+    } else if (isConfigurationFile(fileName)) {
+        // assumes there is exactly one event info per line,
+        // no empty line should be entered.
+        // any line containing a "#" will be skipped.
+        std::ifstream inFile(fileName.c_str());
+        std::string strLine;
+        if (inFile.is_open()) {
+            bool eventListFound = false;
+            std::string startSignal = "#EVENTLIST#";
+            std::string endSignal = "#EVENTLIST-END#";
+            while (getline(inFile,strLine)) {
+                if (strLine.find(startSignal) != std::string::npos) eventListFound = true;
+                else if (strLine.find(endSignal) != std::string::npos) break;
+
+                if (!eventListFound) continue;
+                if (trim(strLine).find(CONFIGPARSER::comment.c_str()) == 0) continue;  //skip all lines starting with comment sign #
+
+                size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+                std::string in = trim(strLine.substr(0, posLast));
+                // assume this line contains event info
+                eventList.push_back(in);
+            }
+        }
+    }
+
+    return eventList;
 }
 
 std::vector<std::string> InputConfigurationParser::ParseFileArgument(std::string fileArgument) {

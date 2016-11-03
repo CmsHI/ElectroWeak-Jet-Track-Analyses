@@ -23,6 +23,12 @@ const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
 const std::string varDefinition = "var.";
 const std::string varDefinitionString = "var.string";
+
+struct RunLumiEvent {
+  unsigned int run, lumi;
+  unsigned long long event;
+};
+
 }
 
 class ConfigurationParser {
@@ -45,6 +51,10 @@ public :
     static std::vector<std::string> ParseListWithoutBracket(std::string strList);
     static std::vector<int> ParseListInteger(std::string strList);
     static std::vector<float> ParseListFloat(std::string strList);
+    static CONFIGPARSER::RunLumiEvent ParseRunLumiEvent(std::string strRunLumiEvent);
+    static unsigned int ParseRunNumber(std::string strRunLumiEvent);
+    static unsigned int ParseLumiNumber(std::string strRunLumiEvent);
+    static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
     static std::string ParseLatex(std::string str);
@@ -344,6 +354,74 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
     }
 
     return list;
+}
+
+/*
+ * parse a string with run, lumi, and event info
+ */
+CONFIGPARSER::RunLumiEvent ConfigurationParser::ParseRunLumiEvent(std::string strRunLumiEvent)
+{
+    CONFIGPARSER::RunLumiEvent rle;
+    rle.run = 0;
+    rle.lumi = 0;
+    rle.event = 0;
+
+    if(strRunLumiEvent.empty())
+        return rle;
+
+    // by default run, lumi, and event are separated by " "
+    std::string separator = " ";
+    // if the string contains ":", then it becomes the default separator.
+    if (strRunLumiEvent.find(":") != std::string::npos)  separator = ":";
+
+    std::vector<std::string> vRunLumiEvent = split(strRunLumiEvent, separator);
+
+    int vSize = vRunLumiEvent.size();
+    unsigned int run, lumi;
+    unsigned long long event;
+    if (vSize == 3) {
+        std::istringstream sin0(vRunLumiEvent.at(0));
+        std::istringstream sin1(vRunLumiEvent.at(1));
+        std::istringstream sin2(vRunLumiEvent.at(2));
+
+        sin0 >> run;
+        sin1 >> lumi;
+        sin2 >> event;
+
+        rle.run = run;
+        rle.lumi = lumi;
+        rle.event = event;
+    }
+    else if (vSize == 2) {
+        std::istringstream sin0(vRunLumiEvent.at(0));
+        std::istringstream sin1(vRunLumiEvent.at(1));
+
+        // if there are 2 numbers, then assume those are run and event numbers
+        sin0 >> run;
+        sin1 >> event;
+
+        rle.run = run;
+        rle.event = event;
+    }
+
+    return rle;
+}
+
+unsigned int ConfigurationParser::ParseRunNumber(std::string strRunLumiEvent)
+{
+    CONFIGPARSER::RunLumiEvent rle = ParseRunLumiEvent(strRunLumiEvent);
+    return rle.run;
+}
+
+unsigned int ConfigurationParser::ParseLumiNumber(std::string strRunLumiEvent)
+{
+    CONFIGPARSER::RunLumiEvent rle = ParseRunLumiEvent(strRunLumiEvent);
+    return rle.lumi;
+}
+
+unsigned long long ConfigurationParser::ParseEventNumber(std::string strRunLumiEvent){
+    CONFIGPARSER::RunLumiEvent rle = ParseRunLumiEvent(strRunLumiEvent);
+    return rle.event;
 }
 
 /*
