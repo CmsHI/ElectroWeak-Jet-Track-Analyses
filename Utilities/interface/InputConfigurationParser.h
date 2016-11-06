@@ -365,8 +365,8 @@ class InputConfigurationParser : public ConfigurationParser {
 
     static bool isROOTfile(TString fileName);
     static bool isROOTfile(std::string fileName);
-    static bool isList(TString fileName);
-    static bool isList(std::string fileName);
+    static bool isListFile(TString fileName);
+    static bool isListFile(std::string fileName);
     static bool isConfigurationFile(TString fileName);
     static bool isConfigurationFile(std::string fileName);
     static std::vector<std::string> ParseFiles(std::string fileName);
@@ -385,13 +385,13 @@ bool InputConfigurationParser::isROOTfile(std::string fileName) {
     return isROOTfile(tstr);
 }
 
-bool InputConfigurationParser::isList(TString fileName) {
+bool InputConfigurationParser::isListFile(TString fileName) {
     return (fileName.EndsWith(".txt") || fileName.EndsWith(".list"));
 }
 
-bool InputConfigurationParser::isList(std::string fileName) {
+bool InputConfigurationParser::isListFile(std::string fileName) {
     TString tstr = fileName.c_str();
-    return isList(tstr);
+    return isListFile(tstr);
 }
 
 bool InputConfigurationParser::isConfigurationFile(TString fileName) {
@@ -408,7 +408,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
 
     if (isROOTfile(fileName)) {
         fileNames.push_back(fileName);
-    } else if (isList(fileName)) {
+    } else if (isListFile(fileName)) {
 
         // assumes there is exactly one file per line,
         // no empty line should be entered.
@@ -456,7 +456,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
 std::vector<std::string> InputConfigurationParser::ParseEvents(std::string fileName) {
     std::vector<std::string> eventList;
 
-    if (isList(fileName)) {
+    if (isListFile(fileName)) {
 
         // assumes there is exactly one event info per line,
         // no empty line should be entered.
