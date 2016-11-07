@@ -57,6 +57,8 @@ enum TYPE_I {
     k_fitTH1_lowerPad,
     k_centerTitleX,
     k_centerTitleY,
+    k_rows,
+    k_columns,
     kN_TYPES_I
 };
 
@@ -86,7 +88,9 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
     "fitTH1",
     "fitTH1_lowerPad",
     "centerTitleX",
-    "centerTitleY"
+    "centerTitleY",
+    "rows",
+    "columns"
 };
 
 enum TYPE_F {
@@ -99,6 +103,8 @@ enum TYPE_F {
     k_rightMargin,
     k_bottomMargin,
     k_topMargin,
+    k_xMargin,                  // horizontal margin between pads
+    k_yMargin,                  // vertical margin between pads
     k_titleOffsetX,
     k_titleOffsetY,
     k_TH1_xMin,
@@ -133,6 +139,8 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "rightMargin",
     "bottomMargin",
     "topMargin",
+    "xMargin",
+    "yMargin",
     "titleOffsetX",
     "titleOffsetY",
     "TH1_xMin",
@@ -334,11 +342,15 @@ const int textFont = 43;
 const int textAbovePadFont = 43;
 const int lineWidth = 1;
 const int fitColor = EColor::kRed;
+const int rows = 1;
+const int columns = 1;
 
 const float leftMargin = 0.1;
 const float rightMargin = 0.1;
 const float bottomMargin = 0.1;
 const float topMargin = 0.1;
+const float xMargin = 0.01;
+const float yMargin = 0.01;
 const float titleOffsetX = 1;
 const float titleOffsetY = 1;
 const float markerSize = 1;
