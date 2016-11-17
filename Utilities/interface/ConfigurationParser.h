@@ -24,6 +24,10 @@ const std::string importCutStatement = "import.cut";
 const std::string varDefinition = "var.";
 const std::string varDefinitionString = "var.string";
 
+const std::string separator1 = ",";
+const std::string separator2 = ";;";        // separator used as alternative to separator1
+const std::string separator3 = ";;;";       // separator used for list of lists
+
 struct RunLumiEvent {
   unsigned int run, lumi;
   unsigned long long event;
@@ -35,6 +39,7 @@ class ConfigurationParser {
 
 public :
     static bool isList(std::string str);
+    static bool isListOfList(std::string str);
     static bool isComment(std::string line);
     static bool isCommand(std::string line);
     static bool isImportStatement(std::string line);
@@ -42,15 +47,32 @@ public :
     static bool isImportCutStatement(std::string line);
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
+    static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex);
+    static std::vector<int> getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex);
+    static std::vector<float> getVecFloat(std::vector<std::pair<float, int>> vecFloatIndex);
+    static std::vector<int> getVecIndex(std::vector<std::pair<std::string, int>> vecStringIndex);
+    static std::vector<int> getVecIndex(std::vector<std::pair<int, int>> vecIntegerIndex);
+    static std::vector<int> getVecIndex(std::vector<std::pair<float, int>> vecFloatIndex);
     static std::string varReference(std::string varName);
     static std::string trimComment(std::string line);
     static std::string ReadValue(std::ifstream& fin, std::string value);
     static std::string substituteVarString(std::string value, std::map<std::string, std::string> mapVarString);
     static std::pair<std::string, std::string> ParseVarDefinitionString(std::string command, std::string value);
-    static std::vector<std::string> ParseList(std::string strList);
-    static std::vector<std::string> ParseListWithoutBracket(std::string strList);
+    static std::vector<std::string> ParseList(std::string strList, std::string separator = "");
+    static std::vector<std::string> ParseListOrString(std::string strListOrString);
+    static std::vector<std::string> ParseListWithoutBracket(std::string strList, std::string separator = "");
+    static std::vector<int> ParseListWithoutBracketInteger(std::string strList, std::string separator = "");
+    static std::vector<float> ParseListWithoutBracketFloat(std::string strList, std::string separator = "");
     static std::vector<int> ParseListInteger(std::string strList);
+    static std::vector<int> ParseListOrInteger(std::string strListOrInteger);
     static std::vector<float> ParseListFloat(std::string strList);
+    static std::vector<float> ParseListOrFloat(std::string strListOrFloat);
+    static std::vector<std::pair<std::string, int>> ParseListOfList(std::string strListOfList);
+    static std::vector<std::pair<std::string, int>> ParseListOfList(std::vector<std::string> listStrList);
+    static std::vector<std::pair<int, int>> ParseListOfListInteger(std::string strListOfList);
+    static std::vector<std::pair<int, int>> ParseListOfListInteger(std::vector<std::string> listStrList);
+    static std::vector<std::pair<float, int>> ParseListOfListFloat(std::string strListOfList);
+    static std::vector<std::pair<float, int>> ParseListOfListFloat(std::vector<std::string> listStrList);
     static CONFIGPARSER::RunLumiEvent ParseRunLumiEvent(std::string strRunLumiEvent);
     static unsigned int ParseRunNumber(std::string strRunLumiEvent);
     static unsigned int ParseLumiNumber(std::string strRunLumiEvent);
@@ -58,7 +80,7 @@ public :
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
     static std::string ParseLatex(std::string str);
-    static std::vector<std::string> ParseListLatex(std::string strList);
+    static std::vector<std::string> ParseListLatex(std::string strList, std::string separator = "");
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
     static std::vector<std::string> ParseListTF1Formula(std::string strList);
     static std::vector<std::vector<double>> ParseListTF1Range(std::string strList);
@@ -72,6 +94,16 @@ bool ConfigurationParser::isList(std::string str)
 {
     std::string tmp = trim(str);
     return (tmp.find("{") == 0 && tmp.rfind("}") == tmp.size()-1);
+}
+
+/*
+ * return true if the string is a list of lists, not a list of elements
+ */
+bool ConfigurationParser::isListOfList(std::string str)
+{
+    bool tmpIsList = isList(str);
+    bool hasListOfListSeparator = str.find(CONFIGPARSER::separator3.c_str()) != std::string::npos;
+    return (tmpIsList && hasListOfListSeparator);
 }
 
 bool ConfigurationParser::isComment(std::string line)
@@ -112,6 +144,78 @@ bool ConfigurationParser::isVarDefinitionString(std::string line)
 {
     std::string tmp = trim(line);
     return (tmp.find(CONFIGPARSER::varDefinitionString.c_str()) == 0);
+}
+
+std::vector<std::string> ConfigurationParser::getVecString(std::vector<std::pair<std::string, int>> vecStringIndex)
+{
+    std::vector<std::string> list;
+
+    int n = vecStringIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecStringIndex.at(i).first.c_str());
+    }
+
+    return list;
+}
+
+std::vector<int> ConfigurationParser::getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex)
+{
+    std::vector<int> list;
+
+    int n = vecIntegerIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecIntegerIndex.at(i).first);
+    }
+
+    return list;
+}
+
+std::vector<float> ConfigurationParser::getVecFloat(std::vector<std::pair<float, int>> vecFloatIndex)
+{
+    std::vector<float> list;
+
+    int n = vecFloatIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecFloatIndex.at(i).first);
+    }
+
+    return list;
+}
+
+std::vector<int> ConfigurationParser::getVecIndex(std::vector<std::pair<std::string, int>> vecStringIndex)
+{
+    std::vector<int> list;
+
+    int n = vecStringIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecStringIndex.at(i).second);
+    }
+
+    return list;
+}
+
+std::vector<int> ConfigurationParser::getVecIndex(std::vector<std::pair<int, int>> vecIntegerIndex)
+{
+    std::vector<int> list;
+
+    int n = vecIntegerIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecIntegerIndex.at(i).second);
+    }
+
+    return list;
+}
+
+std::vector<int> ConfigurationParser::getVecIndex(std::vector<std::pair<float, int>> vecFloatIndex)
+{
+    std::vector<int> list;
+
+    int n = vecFloatIndex.size();
+    for (int i = 0; i < n; ++i) {
+        list.push_back(vecFloatIndex.at(i).second);
+    }
+
+    return list;
 }
 
 /*
@@ -177,7 +281,7 @@ std::pair<std::string, std::string> ConfigurationParser::ParseVarDefinitionStrin
     return (std::pair<std::string, std::string>(varName, value));
 }
 
-std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
+std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std::string separator)
 {
     std::vector<std::string> list;
 
@@ -190,11 +294,15 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
     size_t posEnd   = strList.rfind("}");     // a valid list starts with '{' and ends with '}'
     if (posEnd == std::string::npos) return list;
 
-    // by default, elements of the list are separated by ","
-    std::string separator = ",";
-    // allow "," to be a list element
-    // if one wants to use comma inside a list element, then one should use ";;" as element separator
-    if (strList.find(";;") != std::string::npos)  separator = ";;";
+    if (separator.size() == 0) {
+        // by default, elements of the list are separated by ","
+        separator = CONFIGPARSER::separator1.c_str();
+        // allow "," to be a list element
+        // if one wants to use comma inside a list element, then one should use ";;" as element separator
+        if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
+        // if one wants to use ";;" inside a list element for lower-level separation, then one should use ";;;" as element separator
+        if (strList.find(CONFIGPARSER::separator3.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator3.c_str();
+    }
 
     size_t pos;
     bool listFinished = false;
@@ -228,9 +336,26 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList)
 }
 
 /*
+ * if the string is a list that starts with '{' and ends with '}', then parse it as list.
+ * Otherwise, return a vector whose only element is the string itself.
+ *
+ * This function is to be used for configurations that can be a string or a list
+ * Ex.
+ * input.plotting.legendPosition = NE             # string
+ * input.plotting.legendPosition = {NE, SW, NW}   # list
+ */
+std::vector<std::string> ConfigurationParser::ParseListOrString(std::string strListOrString)
+{
+    if (!isList(strListOrString))
+        return {strListOrString};
+    else
+        return ParseList(strListOrString);
+}
+
+/*
  * parse a list of strings where the list is not enclosed with brackets.
  */
-std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::string strList)
+std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::string strList, std::string separator)
 {
     std::vector<std::string> list;
 
@@ -240,11 +365,15 @@ std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::strin
     size_t posStart = 0;
     size_t posEnd   = strList.size();
 
-    // by default, elements of the list are separated by ","
-    std::string separator = ",";
-    // allow "," to be a list element
-    // if one wants to use comma inside a list element, then one should use ";;" as element separator
-    if (strList.find(";;") != std::string::npos)  separator = ";;";
+    if (separator.size() == 0) {
+        // by default, elements of the list are separated by ","
+        separator = CONFIGPARSER::separator1.c_str();
+        // allow "," to be a list element
+        // if one wants to use comma inside a list element, then one should use ";;" as element separator
+        if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
+        // if one wants to use ";;" inside a list element for lower-level separation, then one should use ";;;" as element separator
+        if (strList.find(CONFIGPARSER::separator3.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator3.c_str();
+    }
 
     size_t pos;
     bool listFinished = false;
@@ -271,6 +400,51 @@ std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::strin
 
         if(element.size() >0 ) list.push_back(element.c_str());
         posStart = pos + separator.size();
+    }
+
+    return list;
+}
+
+
+/*
+ * parse a list of integers where the list is not enclosed with brackets.
+ */
+std::vector<int> ConfigurationParser::ParseListWithoutBracketInteger(std::string strList, std::string separator)
+{
+    std::vector<int> list;
+    std::vector<std::string> listStr = ParseListWithoutBracket(strList, separator);
+
+    for (std::vector<std::string>::const_iterator it = listStr.begin(); it < listStr.end(); ++it) {
+
+        std::string element = trim((*it).c_str());
+        std::istringstream sin(element);
+
+        int val;
+        sin >> val;
+
+        list.push_back(val);
+    }
+
+    return list;
+}
+
+/*
+ * parse a list of floats where the list is not enclosed with brackets.
+ */
+std::vector<float> ConfigurationParser::ParseListWithoutBracketFloat(std::string strList, std::string separator)
+{
+    std::vector<float> list;
+    std::vector<std::string> listStr = ParseListWithoutBracket(strList, separator);
+
+    for (std::vector<std::string>::const_iterator it = listStr.begin(); it < listStr.end(); ++it) {
+
+        std::string element = trim((*it).c_str());
+        std::istringstream sin(element);
+
+        float val;
+        sin >> val;
+
+        list.push_back(val);
     }
 
     return list;
@@ -316,6 +490,18 @@ std::vector<int> ConfigurationParser::ParseListInteger(std::string strList)
     return list;
 }
 
+std::vector<int> ConfigurationParser::ParseListOrInteger(std::string strListOrInteger)
+{
+    if (!isList(strListOrInteger)) {
+        std::istringstream sin(strListOrInteger);
+        int val;
+        sin >> val;
+        return {val};
+    }
+    else
+        return ParseListInteger(strListOrInteger);
+}
+
 std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
 {
     std::vector<float> list;
@@ -354,6 +540,96 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
     }
 
     return list;
+}
+
+std::vector<float> ConfigurationParser::ParseListOrFloat(std::string strListOrFloat)
+{
+    if (!isList(strListOrFloat)) {
+        std::istringstream sin(strListOrFloat);
+        float val;
+        sin >> val;
+        return {val};
+    }
+    else
+        return ParseListFloat(strListOrFloat);
+}
+
+std::vector<std::pair<std::string, int>> ConfigurationParser::ParseListOfList(std::string strListOfList)
+{
+    // strListOfList is a list of lists where lists are separated by separator3
+    std::vector<std::string> strList = ParseList(strListOfList, CONFIGPARSER::separator3);
+
+    return ParseListOfList(strList);
+}
+
+std::vector<std::pair<std::string, int>> ConfigurationParser::ParseListOfList(std::vector<std::string> listStrList)
+{
+    std::vector<std::pair<std::string, int>> listStringIndex;
+
+    int nLists = listStrList.size();
+    for (int i = 0; i < nLists; ++i) {
+
+        std::vector<std::string> tmpList = ConfigurationParser::ParseListWithoutBracket(listStrList.at(i).c_str());
+        int nElements = tmpList.size();
+
+        for (int j = 0; j < nElements; ++j) {
+            listStringIndex.push_back(std::pair<std::string, int>(tmpList.at(j).c_str(), i));
+        }
+    }
+
+    return listStringIndex;
+}
+
+std::vector<std::pair<int, int>> ConfigurationParser::ParseListOfListInteger(std::string strListOfList)
+{
+    // strListOfList is a list of lists where lists are separated by separator3
+    std::vector<std::string> strList = ParseList(strListOfList, CONFIGPARSER::separator3);
+
+    return ParseListOfListInteger(strList);
+}
+
+std::vector<std::pair<int, int>> ConfigurationParser::ParseListOfListInteger(std::vector<std::string> listStrList)
+{
+    std::vector<std::pair<int, int>> listIntegerIndex;
+
+    int nLists = listStrList.size();
+    for (int i = 0; i < nLists; ++i) {
+
+        std::vector<int> tmpList = ConfigurationParser::ParseListWithoutBracketInteger(listStrList.at(i).c_str());
+        int nElements = tmpList.size();
+
+        for (int j = 0; j < nElements; ++j) {
+            listIntegerIndex.push_back(std::pair<int, int>(tmpList.at(j), i));
+        }
+    }
+
+    return listIntegerIndex;
+}
+
+std::vector<std::pair<float, int>> ConfigurationParser::ParseListOfListFloat(std::string strListOfList)
+{
+    // strListOfList is a list of lists where lists are separated by separator3
+    std::vector<std::string> strList = ParseList(strListOfList, CONFIGPARSER::separator3);
+
+    return ParseListOfListFloat(strList);
+}
+
+std::vector<std::pair<float, int>> ConfigurationParser::ParseListOfListFloat(std::vector<std::string> listStrList)
+{
+    std::vector<std::pair<float, int>> listFloatIndex;
+
+    int nLists = listStrList.size();
+    for (int i = 0; i < nLists; ++i) {
+
+        std::vector<float> tmpList = ConfigurationParser::ParseListWithoutBracketFloat(listStrList.at(i).c_str());
+        int nElements = tmpList.size();
+
+        for (int j = 0; j < nElements; ++j) {
+            listFloatIndex.push_back(std::pair<float, int>(tmpList.at(j), i));
+        }
+    }
+
+    return listFloatIndex;
 }
 
 /*
@@ -486,7 +762,7 @@ std::string ConfigurationParser::ParseLatex(std::string str)
 /*
  * parse a list of Latex strings
  */
-std::vector<std::string> ConfigurationParser::ParseListLatex(std::string strList)
+std::vector<std::string> ConfigurationParser::ParseListLatex(std::string strList, std::string separator)
 {
     std::vector<std::string> list;
 
@@ -496,11 +772,15 @@ std::vector<std::string> ConfigurationParser::ParseListLatex(std::string strList
     size_t posStart = 0;
     size_t posEnd   = strList.size();
 
-    // by default, elements of the list are separated by ","
-    std::string separator = ",";
-    // allow "," to be a list element
-    // if one wants to use comma inside a list element, then one should use ";;" as element separator
-    if (strList.find(";;") != std::string::npos)  separator = ";;";
+    if (separator.size() == 0) {
+        // by default, elements of the list are separated by ","
+        separator = CONFIGPARSER::separator1.c_str();
+        // allow "," to be a list element
+        // if one wants to use comma inside a list element, then one should use ";;" as element separator
+        if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
+        // if one wants to use ";;" inside a list element for lower-level separation, then one should use ";;;" as element separator
+        if (strList.find(CONFIGPARSER::separator3.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator3.c_str();
+    }
 
     size_t pos;
     bool listFinished = false;
