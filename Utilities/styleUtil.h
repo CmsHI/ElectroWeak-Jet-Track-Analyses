@@ -21,15 +21,21 @@
 
 void setCanvasFinal(TCanvas* c, int logx = 0, int logy = 0, int logz = 0);
 void setCanvasMargin(TCanvas* c, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
+void setCanvasSizeMargin(TCanvas* c, double normWidth = 1, double normHeight = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
+void divideCanvas(TCanvas* c, int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
+void divideCanvas(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
 void setPadFinal(TPad* pad, int logx = 0, int logy = 0, int logz = 0);
 void setTH1Final (TH1* h);
 void setTH1Ratio (TH1* h, TH1* hBase, double factor);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
+void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX = 0, double offsetY = 0);
 void setTextAlignment(TLatex* latex, std::string position);
 void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
+double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
+double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
@@ -60,16 +66,94 @@ void setCanvasFinal(TCanvas* c, int logx, int logy, int logz)
 void setCanvasMargin(TCanvas* c, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
 {
     float defaultMargin = 0.1;
-    UInt_t width = c->GetWindowWidth();
-    UInt_t height = c->GetWindowHeight();
+    double normWidth  = (1 - defaultMargin*2 + leftMargin + rightMargin);
+    double normHeight = (1 - defaultMargin*2 + bottomMargin + topMargin);
+
+    setCanvasSizeMargin(c, normWidth, normHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+}
+
+/*
+ * modifies canvas size and margins such that size of the original figure inside for a 1x1 Canvas does not change.
+ */
+void setCanvasSizeMargin(TCanvas* c, double normWidth, double normHeight, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+{
+    // https://root.cern.ch/doc/master/TCanvas_8h_source.html#l00058
+    UInt_t width = c->GetWindowWidth();     // fWindowWidth  : Width of window (including borders, etc.)
+    UInt_t height = c->GetWindowHeight();   // fWindowHeight : Height of window (including menubar, borders, etc.)
 
     // assume the function is called in batch mode, so use SetCanvasSize() instead of SetWindowSize()
-    c->SetCanvasSize(width* (1 - defaultMargin*2 + leftMargin + rightMargin),
-                     height*(1 - defaultMargin*2 + bottomMargin + topMargin));
+    c->SetCanvasSize(width* normWidth, height*normHeight);
     c->SetLeftMargin(leftMargin);
     c->SetRightMargin(rightMargin);
     c->SetBottomMargin(bottomMargin);
     c->SetTopMargin(topMargin);
+}
+
+void divideCanvas(TCanvas* c, int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+{
+    TPad* pads[rows*columns];
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
+}
+
+void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+{
+    c->Clear();
+
+    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
+    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
+
+    float x_min[columns], x_max[columns];
+    x_min[0] = 0;
+    x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
+    for (int i = 1; i < columns; ++i) {
+        x_min[i] = x_max[i-1];
+        x_max[i] = x_max[i-1] + normPadWidth;
+    }
+    x_max[columns-1] += rightMargin - xMargin/2;
+
+    float y_min[rows], y_max[rows];
+    y_min[rows-1] = yMinOffset;
+    y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
+    for (int i = rows - 2; i >= 0; --i) {
+        y_min[i] = y_max[i+1]+yMinOffset;
+        y_max[i] = y_min[i] + normPadHeight;
+    }
+    y_max[0] += topMargin - yMargin/2;
+
+    double normCanvasWidth = x_max[columns-1];
+    double normCanvasHeight = y_max[0];
+    // normalize the coordinates such that x_max[columns-1] = 1 and y_max[0] = 1
+    for (int i = 0; i < columns; ++i) {
+        x_min[i] /= normCanvasWidth;
+        x_max[i] /= normCanvasWidth;
+    }
+    for (int i = 0; i < rows; ++i) {
+        y_min[i] /= normCanvasHeight;
+        y_max[i] /= normCanvasHeight;
+    }
+
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<columns; j++) {
+            c->cd();
+            int ij = i*columns+j;
+            pads[ij] = new TPad(Form("pad_%d_%d", i, j), Form("pad_%d_%d", i, j), x_min[j], y_min[i], x_max[j], y_max[i]);
+
+            if (i == 0) pads[ij]->SetTopMargin(topMargin);
+            else pads[ij]->SetTopMargin(yMargin/2);
+            if (i == rows - 1) pads[ij]->SetBottomMargin(bottomMargin);
+            else pads[ij]->SetBottomMargin(yMargin/2);
+            if (j == 0) pads[ij]->SetLeftMargin(leftMargin);
+            else pads[ij]->SetLeftMargin(xMargin/2);
+            if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin);
+            else pads[ij]->SetRightMargin(xMargin/2);
+
+            pads[ij]->Draw();
+            pads[ij]->cd();
+            pads[ij]->SetNumber(ij+1);
+
+            setPadFinal(pads[ij]);
+        }
+    }
 }
 
 void setPadFinal(TPad* pad, int logx, int logy, int logz)
@@ -151,32 +235,42 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c)
  */
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX, double offsetY)
 {
+    setLegendPosition(legend, position, (TPad*)c, height, width, offsetX, offsetY);
+}
+
+/*
+ * offsetX and offsetY are the distances of the legend from the corresponding corner.
+ * Ex. If position = NE, then the legend will be put such that the upper-right corner of the legend
+ *     has distance of offsetX and offsetY to the upper-right corner of the canvas
+ */
+void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX, double offsetY)
+{
     if (width>0.50) legend->SetMargin(0.075);     // if the legend is wide, then keep the length of the line not wide.
     else if (width>0.25) legend->SetMargin(0.15);     // if the legend is wide, then keep the length of the line not wide.
     // TLegend::SetMargin() helps to set the length of the line in the legend entry.
     if (position == "NW") { // upper-left corner
-        legend->SetX1(c->GetLeftMargin() + offsetX);
-        legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
-        legend->SetX2(c->GetLeftMargin() + width + offsetX);
-        legend->SetY2(1 - c->GetTopMargin() - offsetY);
+        legend->SetX1(pad->GetLeftMargin() + offsetX);
+        legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
+        legend->SetX2(pad->GetLeftMargin() + width + offsetX);
+        legend->SetY2(1 - pad->GetTopMargin() - offsetY);
     }
     else if (position == "NE") { // upper-right corner
-        legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
-        legend->SetY1(1 - c->GetTopMargin() - height - offsetY);
-        legend->SetX2(1 - c->GetRightMargin() - offsetX);
-        legend->SetY2(1 - c->GetTopMargin() - offsetY);
+        legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
+        legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
+        legend->SetX2(1 - pad->GetRightMargin() - offsetX);
+        legend->SetY2(1 - pad->GetTopMargin() - offsetY);
     }
     else if (position == "SW") { // lower-left corner
-        legend->SetX1(c->GetLeftMargin() + offsetX);
-        legend->SetY1(c->GetBottomMargin() + offsetY);
-        legend->SetX2(c->GetLeftMargin() + width + offsetX);
-        legend->SetY2(c->GetBottomMargin() + height + offsetY);
+        legend->SetX1(pad->GetLeftMargin() + offsetX);
+        legend->SetY1(pad->GetBottomMargin() + offsetY);
+        legend->SetX2(pad->GetLeftMargin() + width + offsetX);
+        legend->SetY2(pad->GetBottomMargin() + height + offsetY);
     }
     else if (position == "SE") { // lower-right corner
-        legend->SetX1(1 - c->GetRightMargin() - width - offsetX);
-        legend->SetY1(c->GetBottomMargin() + offsetY);
-        legend->SetX2(1 - c->GetRightMargin() - offsetX);
-        legend->SetY2(c->GetBottomMargin() + height + offsetY);
+        legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
+        legend->SetY1(pad->GetBottomMargin() + offsetY);
+        legend->SetX2(1 - pad->GetRightMargin() - offsetX);
+        legend->SetY2(pad->GetBottomMargin() + height + offsetY);
     }
 }
 
@@ -237,6 +331,46 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
     }
 
     return coordinatesNDC;
+}
+
+/*
+ * calculate the width of a TCanvas in a normalization scheme where the width is 1 for
+ * a canvas with a columns = 1, bottomMargin + topMargin = 2*defaultMargin and xMargin = 0
+ */
+double calcNormCanvasWidth(int columns, float leftMargin, float rightMargin, float xMargin)
+{
+    double defaultMargin = 0.1;
+    double padWidth = (1 - defaultMargin*2 + xMargin);
+
+    float x_max[columns];
+    x_max[0] = padWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
+    for (int i = 1; i < columns; ++i) {
+        x_max[i] = x_max[i-1] + padWidth;
+    }
+    x_max[columns-1] += rightMargin - xMargin/2;
+
+    return x_max[columns-1];
+}
+
+/*
+ * calculate the height of a TCanvas in a normalization scheme where the height is 1 for
+ * a canvas with a rows = 1, bottomMargin + topMargin = 2*defaultMargin and yMargin = 0
+ */
+double calcNormCanvasHeight(int rows, float bottomMargin, float topMargin, float yMargin)
+{
+    double defaultMargin = 0.1;
+    double padHeight = (1 - defaultMargin*2 + yMargin);
+
+    float y_min[rows], y_max[rows];
+    y_min[rows-1] = 0;
+    y_max[rows-1] = padHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
+    for (int i = rows - 2; i >= 0; --i) {
+        y_min[i] = y_max[i+1];
+        y_max[i] = y_min[i] + padHeight;
+    }
+    y_max[0] += topMargin - yMargin/2;
+
+    return y_max[0];
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
