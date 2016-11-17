@@ -26,6 +26,8 @@ struct ProcessInputs {
     std::vector<int> i;
     std::vector<float> f;
     std::vector<std::string> s;
+    std::vector<std::string> str_i;     // string version of the integer input
+    std::vector<std::string> str_f;     // string version of the float input
 
     std::vector<char*> c; // this is a c-string copy of s
 };
@@ -355,13 +357,18 @@ const float titleOffsetX = 1;
 const float titleOffsetY = 1;
 const float markerSize = 1;
 const float textSize = 20;
+const float textOffsetX = 0;
+const float textOffsetY = 0;
 const float textAbovePadSize = 20;
+const float textAbovePadOffsetX = 0;
+const float textAbovePadOffsetY = 0;
 const float xMin = 0.001;   // for logScale histograms
 const float yMin = 0.001;   // for logScale histograms
 const float windowHeightFraction = 0.25;
 
 const std::string TH1_weight = "1";
 const std::string fitOption = "R L M";
+const std::string textPosition = "NE";
 };
 
 struct InputConfiguration : public Configuration {
@@ -526,12 +533,16 @@ std::vector<std::string> InputConfigurationParser::ParseFileArgument(std::string
 void InputConfigurationParser::copyConfiguration(InputConfiguration& config, InputConfiguration configCopy) {
     for (int i = 0 ; i < INPUT::kN_PROCESSES; ++i) {
         for (int j = 0 ; j < INPUT::kN_TYPES_I; ++j) {
-            if (config.proc[i].i[j] == 0)
+            if (config.proc[i].i[j] == 0) {
                 config.proc[i].i[j] = configCopy.proc[i].i[j];
+                config.proc[i].str_i[j] = configCopy.proc[i].str_i[j];
+            }
         }
         for (int j = 0 ; j < INPUT::kN_TYPES_F; ++j) {
-            if (config.proc[i].f[j] == 0)
+            if (config.proc[i].f[j] == 0) {
                 config.proc[i].f[j] = configCopy.proc[i].f[j];
+                config.proc[i].str_f[j] = configCopy.proc[i].str_f[j];
+            }
         }
         for (int j = 0 ; j < INPUT::kN_TYPES_S; ++j) {
             if (config.proc[i].s[j].size() == 0) {
@@ -553,6 +564,8 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
         config.proc[i].i.resize(INPUT::kN_TYPES_I);
         config.proc[i].f.resize(INPUT::kN_TYPES_F);
         config.proc[i].s.resize(INPUT::kN_TYPES_S);
+        config.proc[i].str_i.resize(INPUT::kN_TYPES_I);
+        config.proc[i].str_f.resize(INPUT::kN_TYPES_F);
         config.proc[i].c.resize(INPUT::kN_TYPES_S);
     }
 
@@ -607,6 +620,7 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
                 int in;
                 sin >> in;
                 config.proc[proc].i[j] = in;
+                config.proc[proc].str_i[j] = trim(sin.str());
                 success = true;
                 break;
             }
@@ -618,6 +632,7 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
                 float in;
                 sin >> in;
                 config.proc[proc].f[j] = in;
+                config.proc[proc].str_f[j] = trim(sin.str());
                 success = true;
                 break;
             }

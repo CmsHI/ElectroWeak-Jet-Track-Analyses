@@ -32,6 +32,8 @@ struct ObjectCuts {
   std::vector<float> f;
   std::vector<int> i;
   std::vector<std::string> s;
+  std::vector<std::string> str_i;     // string version of the integer input
+  std::vector<std::string> str_f;     // string version of the float input
 
   std::vector<char*> c; // this is a c-string copy of s
 };
@@ -182,12 +184,16 @@ void CutConfigurationParser::copyConfiguration(CutConfiguration& config, CutConf
   for (int i = 0 ; i < CUTS::kN_PROCESSES; ++i) {
     for (int j = 0; j < CUTS::kN_OBJECTS; ++j) {
       for (int k = 0; k < CUTS::SUMMARY_INFO_I[j]; ++k) {
-        if (config.proc[i].obj[j].i[k] == 0)
-          config.proc[i].obj[j].i[k] = configCopy.proc[i].obj[j].i[k];
+        if (config.proc[i].obj[j].i[k] == 0) {
+            config.proc[i].obj[j].i[k] = configCopy.proc[i].obj[j].i[k];
+            config.proc[i].obj[j].str_i[k] = configCopy.proc[i].obj[j].str_i[k];
+        }
       }
       for (int k = 0; k < CUTS::SUMMARY_INFO_F[j]; ++k) {
-        if (config.proc[i].obj[j].f[k] == 0)
-          config.proc[i].obj[j].f[k] = configCopy.proc[i].obj[j].f[k];
+        if (config.proc[i].obj[j].f[k] == 0) {
+            config.proc[i].obj[j].f[k] = configCopy.proc[i].obj[j].f[k];
+            config.proc[i].obj[j].str_f[k] = configCopy.proc[i].obj[j].str_f[k];
+        }
       }
       for (int k = 0; k < CUTS::SUMMARY_INFO_S[j]; ++k) {
         if (config.proc[i].obj[j].s[k].size() == 0) {
@@ -212,6 +218,8 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile) {
       config.proc[i].obj[j].i.resize(SUMMARY_INFO_I[j]);
       config.proc[i].obj[j].f.resize(SUMMARY_INFO_F[j]);
       config.proc[i].obj[j].s.resize(SUMMARY_INFO_S[j]);
+      config.proc[i].obj[j].str_i.resize(SUMMARY_INFO_I[j]);
+      config.proc[i].obj[j].str_f.resize(SUMMARY_INFO_F[j]);
       config.proc[i].obj[j].c.resize(SUMMARY_INFO_S[j]);
     }
   }
@@ -269,6 +277,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile) {
             int in;
             sin >> in;
             config.proc[proc].obj[obj].i[j] = in;
+            config.proc[proc].obj[obj].str_i[j] = trim(sin.str());
             success = true;
             break;
           }
@@ -279,6 +288,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile) {
             float in;
             sin >> in;
             config.proc[proc].obj[obj].f[j] = in;
+            config.proc[proc].obj[obj].str_f[j] = trim(sin.str());
             success = true;
             break;
           }
