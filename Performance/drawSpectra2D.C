@@ -24,6 +24,7 @@
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/interface/HiForestInfoController.h"
+#include "../Utilities/fileUtil.h"
 #include "../Utilities/styleUtil.h"
 #include "../Utilities/th1Util.h"
 
@@ -551,16 +552,10 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
             fileTmp = new TFile(inputPath.c_str(), "READ");
 
             // check if the file is usable, if not skip the file.
-            bool isGood = true;
-            if (fileTmp->IsZombie()) {
-                isGood = false;
-                std::cout << "File is zombie. skipping file." << std::endl;
+            if (isGoodFile(fileTmp) != 0) {
+                std::cout << "File is not good. skipping file." << std::endl;
+                continue;
             }
-            if (fileTmp->TestBits(TFile::kRecovered)) {
-                isGood = false;
-                std::cout << "File has kRecovered flag. skipping file." << std::endl;
-            }
-            if (!isGood)  continue;
 
             for (int i=0; i<nTrees; ++i) {
                 trees[i][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());

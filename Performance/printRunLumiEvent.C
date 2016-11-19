@@ -25,6 +25,7 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/HiForestInfoController.h"
+#include "../Utilities/fileUtil.h"
 
 void printRunLumiEvent(const TString configFile, const TString inputFile, const TString outputFile = "printRunLumiEvent.txt");
 
@@ -121,16 +122,10 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
         fileTmp = new TFile(inputPath.c_str(), "READ");
 
         // check if the file is usable, if not skip the file.
-        bool isGood = true;
-        if (fileTmp->IsZombie()) {
-            isGood = false;
-            std::cout << "File is zombie. skipping file." << std::endl;
+        if (isGoodFile(fileTmp) != 0) {
+            std::cout << "File is not good. skipping file." << std::endl;
+            continue;
         }
-        if (fileTmp->TestBits(TFile::kRecovered)) {
-            isGood = false;
-            std::cout << "File has kRecovered flag. skipping file." << std::endl;
-        }
-        if (!isGood)  continue;
 
        tree = (TTree*)fileTmp->Get(treePath.c_str());
        for (int i=0; i<nFriends; ++i) {

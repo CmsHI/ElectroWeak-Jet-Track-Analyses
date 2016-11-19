@@ -2,6 +2,7 @@
  * utilities related to TDirectoryFile objects.
  */
 
+#include <TFile.h>
 #include <TDirectoryFile.h>
 #include <TList.h>
 #include <TKey.h>
@@ -13,9 +14,12 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #ifndef FILEUTIL_H_
 #define FILEUTIL_H_
+
+int isGoodFile(TFile* file, bool verbose = false);
 
 TList*   getListOfSOMEKeys (TDirectoryFile* dir, std::string pattern);
 TList*   getListOfSOMEKeys (TDirectoryFile* dir, std::string pattern, std::string type);
@@ -31,6 +35,25 @@ TList*   getListOfALLCanvases(TDirectoryFile* dir);
 void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
+
+/*
+ * return 0 , if the file is good to read.
+ * otherwise, return a nonzero number.
+ */
+int isGoodFile(TFile* file, bool verbose)
+{
+    int res = 0;
+    if (file->IsZombie()) {
+        res = 1;
+        if (verbose) std::cout << "File is zombie." << std::endl;
+    }
+    if (file->TestBits(TFile::kRecovered)) {
+        res = TFile::kRecovered;    // TFile::kRecovered == 1024
+        if (verbose) std::cout << "File has kRecovered flag." << std::endl;
+    }
+
+    return res;
+}
 
 /*
  * get list of all keys under a directory "dir" whose name contains "pattern"
