@@ -5,7 +5,7 @@
  */
 
 #include <TFile.h>
-#include <TChain.h>
+#include <TTree.h>
 #include <TH1.h>
 #include <TH1D.h>
 #include <TCanvas.h>
@@ -24,6 +24,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/fileUtil.h"
 #include "../../Utilities/styleUtil.h"
 
 void photonTurnOn(const TString configFile, const TString inputFile, const TString outputFile = "photonTurnOn.root", const TString outputFigureName = "");
@@ -124,8 +125,6 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* treeHLT = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
     if (isHI && treePath != "ggHiNtuplizer/EventTree") {
         std::cout << "WARNING : Collision is HI. But the photon tree is not set to ggHiNtuplizer/EventTree" << std::endl;
     }
@@ -133,65 +132,9 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
         std::cout << "WARNING : Collision is PP. But the photon tree is not set to ggHiNtuplizerGED/EventTree" << std::endl;
     }
 
-    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-       treeHLT->Add((*it).c_str());
-       treeggHiNtuplizer->Add((*it).c_str());
-       treeHiForestInfo->Add((*it).c_str());
-    }
-
-    HiForestInfoController hfic(treeHiForestInfo);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
-
-    treeHLT->SetBranchStatus("*",0);     // disable all branches
-    std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
-    Int_t triggersNum[nTriggersNum];
-    for (int i=0; i < nTriggersNum; ++i) {
-        std::string branch = triggerBranchesNum.at(i).c_str();
-        std::cout << "branch : " << branch.c_str() <<std::endl;
-        if (treeHLT->GetBranch(branch.c_str())) {
-            treeHLT->SetBranchStatus(branch.c_str(),1);
-            treeHLT->SetBranchAddress(branch.c_str(),&(triggersNum[i]));
-        }
-        else {
-            std::cout<<"could not GetBranch() : "<<branch.c_str()<<std::endl;
-            std::cout<<"default value set to  : "<<branch.c_str()<<" = 1"<<std::endl;
-            triggersNum[i] = 1;
-        }
-    }
-
-    std::cout<<"set branch addresses for triggers that go into denominator"<<std::endl;
-    Int_t triggersDenom[nTriggersDenom];
-    for (int i=0; i < nTriggersDenom; ++i) {
-        std::string branch = triggerBranchesDenom.at(i).c_str();
-        std::cout << "branch : " << branch.c_str() <<std::endl;
-        if (treeHLT->GetBranch(branch.c_str())) {
-            treeHLT->SetBranchStatus(branch.c_str(),1);
-            treeHLT->SetBranchAddress(branch.c_str(),&(triggersDenom[i]));
-        }
-        else {
-            std::cout<<"could not GetBranch() : "<<branch.c_str()<<std::endl;
-            std::cout<<"default value set to  : "<<branch.c_str()<<" = 1"<<std::endl;
-            triggersDenom[i] = 1;
-        }
-    }
-
-    treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-    treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
-    treeggHiNtuplizer->SetBranchStatus("event",1);
-    treeggHiNtuplizer->SetBranchStatus("lumis",1);
-
-    treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
-    treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-    ggHiNtuplizer ggHi;
-    ggHi.setupTreeForReading(treeggHiNtuplizer);
-
     TH1::SetDefaultSumw2();
     TH1D* h_pt = new TH1D("h_pt","Denominator;p_{T}^{#gamma} (GeV/c);", nBins, xLow, xUp);
-    TH1D*     h_pt_accepted[nTriggersNum];
+    TH1D* h_pt_accepted[nTriggersNum];
     for (int i=0; i<nTriggersNum; ++i)
     {
         h_pt_accepted[i] = (TH1D*)h_pt->Clone(Form("%s_accepted_%d", h_pt->GetName(), i));
@@ -199,96 +142,176 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     }
     TH1D* h_pt_allpho = new TH1D("h_pt_allpho","all photon that pass at least one of the triggers ;p_{T}^{#gamma} (GeV/c);", nBins, xLow, xUp);
 
+    TTree* treeHLT;
+    TTree* treePhoton;
+    TTree* treeHiForestInfo;
+
+    int nFiles = inputFiles.size();
+    TFile* fileTmp = 0;
+
+    std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
+    // read the first file only to get the HiForest info
+    std::string inputPath = inputFiles.at(0).c_str();
+    fileTmp = new TFile(inputPath.c_str(), "READ");
+
+    if (nFiles == 1) {
+        // read one tree only to get the number of entries
+        treePhoton = (TTree*)fileTmp->Get(treePath.c_str());
+        Long64_t entriesTmp = treePhoton->GetEntries();
+        std::cout << "entries = " << entriesTmp << std::endl;
+    }
+
+    treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+    HiForestInfoController hfic(treeHiForestInfo);
+    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    hfic.printHiForestInfo();
+    std::cout<<"###"<< std::endl;
+
+    fileTmp->Close();
+    // done with initial reading
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
-    Long64_t entries = treeggHiNtuplizer->GetEntries();
-    Long64_t entriesAnalyzed = 0;
+    Long64_t entries = 0;
     Long64_t entriesPassedDenom = 0;
-    std::cout << "entries = " << entries << std::endl;
+    Long64_t entriesAnalyzed = 0;
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
-    for (Long64_t j_entry = 0; j_entry < entries; ++j_entry)
-    {
-        if (j_entry % 2000 == 0)  {
-          std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
-        }
+    for (int iFile = 0; iFile < nFiles; ++iFile) {
 
-        treeHLT->GetEntry(j_entry);
-        treeggHiNtuplizer->GetEntry(j_entry);
+        std::string inputPath = inputFiles.at(iFile).c_str();
+        std::cout <<"iFile = " << iFile << " , " ;
+        std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+        fileTmp = new TFile(inputPath.c_str(), "READ");
 
-        bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
-        if(!eventAdded) // this event is duplicate, skip this one.
-        {
-            duplicateEntries++;
+        // check if the file is usable, if not skip the file.
+        if (isGoodFile(fileTmp) != 0) {
+            std::cout << "File is not good. skipping file." << std::endl;
             continue;
         }
 
-        bool passedDenom = false;
-        if (nTriggersDenom == 0) passedDenom = true;
-        else {
-            // triggers in the denominator are "OR"ed.
-            for (int i = 0; i<nTriggersDenom; ++i)
+        treeHLT = (TTree*)fileTmp->Get("hltanalysis/HltTree");
+        treeHLT->SetBranchStatus("*",0);     // disable all branches
+        Int_t triggersNum[nTriggersNum];
+        for (int i=0; i < nTriggersNum; ++i) {
+
+            std::string branch = triggerBranchesNum.at(i).c_str();
+            if (treeHLT->GetBranch(branch.c_str())) {
+                treeHLT->SetBranchStatus(branch.c_str(),1);
+                treeHLT->SetBranchAddress(branch.c_str(),&(triggersNum[i]));
+            }
+            else {
+                std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
+                std::cout<<"could not GetBranch() : "<<branch.c_str()<<std::endl;
+                std::cout<<"default value set to  : "<<branch.c_str()<<" = 1"<<std::endl;
+                triggersNum[i] = 1;
+            }
+        }
+
+        Int_t triggersDenom[nTriggersDenom];
+        for (int i=0; i < nTriggersDenom; ++i) {
+
+            std::string branch = triggerBranchesDenom.at(i).c_str();
+            if (treeHLT->GetBranch(branch.c_str())) {
+                treeHLT->SetBranchStatus(branch.c_str(),1);
+                treeHLT->SetBranchAddress(branch.c_str(),&(triggersDenom[i]));
+            }
+            else {
+                std::cout<<"set branch addresses for triggers that go into denominator"<<std::endl;
+                std::cout<<"could not GetBranch() : "<<branch.c_str()<<std::endl;
+                std::cout<<"default value set to  : "<<branch.c_str()<<" = 1"<<std::endl;
+                triggersDenom[i] = 1;
+            }
+        }
+
+        treePhoton = (TTree*)fileTmp->Get(treePath.c_str());
+        treePhoton->SetBranchStatus("*",0);     // disable all branches
+        treePhoton->SetBranchStatus("run",1);    // enable event information
+        treePhoton->SetBranchStatus("event",1);
+        treePhoton->SetBranchStatus("lumis",1);
+
+        treePhoton->SetBranchStatus("nPho",1);     // enable photon branches
+        treePhoton->SetBranchStatus("pho*",1);     // enable photon branches
+
+        ggHiNtuplizer ggHi;
+        ggHi.setupTreeForReading(treePhoton);
+
+        Long64_t entriesTmp = treePhoton->GetEntries();
+        entries += entriesTmp;
+        std::cout << "entries in File = " << entriesTmp << std::endl;
+
+        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+        {
+            if (j_entry % 20000 == 0)  {
+              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+            }
+
+            treeHLT->GetEntry(j_entry);
+            treePhoton->GetEntry(j_entry);
+
+            bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
+            if(!eventAdded) // this event is duplicate, skip this one.
             {
-                if (triggersDenom[i] == 1) {
-                    passedDenom = true;
-                    break;
+                duplicateEntries++;
+                continue;
+            }
+
+            bool passedDenom = false;
+            if (nTriggersDenom == 0) passedDenom = true;
+            else {
+                // triggers in the denominator are "OR"ed.
+                for (int i = 0; i<nTriggersDenom; ++i)
+                {
+                    if (triggersDenom[i] == 1) {
+                        passedDenom = true;
+                        break;
+                    }
                 }
             }
-        }
-        if (!passedDenom) continue;
-        entriesPassedDenom++;
-       
-        // is this event passing at least one of the triggers?
-        bool passTrigger = false;
-        if (nTriggersNum==7) {
-                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1 || triggersNum[5]==1 || triggersNum[6]==1) passTrigger=true;
-        } else if(nTriggersNum==6) {
-                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1 || triggersNum[5]==1) passTrigger=true;
-        } else if(nTriggersNum==5) {
-                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1 || triggersNum[4]==1) passTrigger=true;
-        } else if(nTriggersNum==4) {
-                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1 || triggersNum[3]==1) passTrigger=true;
-        } else if(nTriggersNum==3) {
-                if(triggersNum[0]==1 || triggersNum[1]==1 || triggersNum[2]==1) passTrigger=true;
-        } else if(nTriggersNum==2) {
-                if(triggersNum[0]==1 || triggersNum[1]==1) passTrigger=true;
-        } else if(nTriggersNum==1) {
-                if(triggersNum[0]==1) passTrigger=true;
-        }
+            if (!passedDenom) continue;
+            entriesPassedDenom++;
 
-
-        float maxPt = -1;
-        for (int i=0; i<ggHi.nPho; ++i) {
-
-            if (!(TMath::Abs(ggHi.phoEta->at(i)) < cutPhoEta)) continue;
-            if (!(ggHi.phoSigmaIEtaIEta->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
-            if (doHoverE) {
-                if (!(ggHi.phoHoverE->at(i) < 0.1)) continue;
+            // is this event passing at least one of the triggers
+            bool passedNumOR = false;
+            for (int i = 0; i < nTriggersNum; ++i) {
+                if (triggersNum[i] == 1) passedNumOR = true;
             }
-            if (doEcalNoiseMask) {
-                if (((ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
-                        (ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03) &&
-                    ((ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) > 1./3.-0.03 &&
-                        (ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) < 1./3.+0.03) &&
-                    ((ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
-                        (ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03)) continue;
+
+            float maxPt = -1;
+            for (int i=0; i<ggHi.nPho; ++i) {
+
+                if (!(TMath::Abs(ggHi.phoEta->at(i)) < cutPhoEta)) continue;
+                if (!(ggHi.phoSigmaIEtaIEta->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
+                if (doHoverE) {
+                    if (!(ggHi.phoHoverE->at(i) < 0.1)) continue;
+                }
+                if (doEcalNoiseMask) {
+                    if (((ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
+                            (ggHi.phoE3x3->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03) &&
+                        ((ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) > 1./3.-0.03 &&
+                            (ggHi.phoE1x5->at(i))/(ggHi.phoE5x5->at(i)) < 1./3.+0.03) &&
+                        ((ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) > 2./3.-0.03 &&
+                            (ggHi.phoE2x5->at(i))/(ggHi.phoE5x5->at(i)) < 2./3.+0.03)) continue;
+                }
+                if (passedNumOR) h_pt_allpho->Fill(ggHi.phoEt->at(i));
+
+                if (ggHi.phoEt->at(i) > maxPt) {
+                    maxPt = ggHi.phoEt->at(i);
+                }
             }
-            if (passTrigger) h_pt_allpho->Fill(ggHi.phoEt->at(i));
-            
-            if (ggHi.phoEt->at(i) > maxPt) {
-                maxPt = ggHi.phoEt->at(i);
+
+            // leading photon goes into histograms
+            if(maxPt == -1) continue;
+            entriesAnalyzed++;
+
+            h_pt->Fill(maxPt);
+
+            for (int i=0; i<nTriggersNum; ++i) {
+                if (triggersNum[i] == 1)  h_pt_accepted[i]->Fill(maxPt);
             }
         }
 
-        // leading photon goes into histograms
-        if(maxPt == -1) continue;
-        entriesAnalyzed++;
-
-        h_pt->Fill(maxPt);
-
-        for (int i=0; i<nTriggersNum; ++i) {
-            if (triggersNum[i] == 1)  h_pt_accepted[i]->Fill(maxPt);
-        }
+        fileTmp->Close();
     }
     std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
