@@ -10,7 +10,7 @@
  */
 
 #include <TFile.h>
-#include <TChain.h>
+#include <TTree.h>
 #include <TH1.h>
 #include <TCut.h>
 #include <TEventList.h>
@@ -19,6 +19,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>      // ifstream, ofstream
+#include <ios>      // ifstream, ofstream
 
 #include "../TreeHeaders/CutConfigurationTree.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
@@ -81,50 +82,92 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* tree = new TChain(treePath.c_str());
-    TChain* treeFriends[nFriends];
-    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-    for (int i=0; i<nFriends; ++i) {
-        treeFriends[i] = new TChain(treeFriendsPath.at(i).c_str());
-        tree->AddFriend(treeFriends[i], Form("t%d", i));
+    TTree* tree;
+    TTree* treeFriends[nFriends];
+    TTree* treeHiForestInfo;
+
+    int nFiles = inputFiles.size();
+    TFile* fileTmp = 0;
+    Long64_t entries = 0;
+    Long64_t entriesSelected = 0;
+
+    std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
+    // read the first file only to get the HiForest info
+    std::string inputPath = inputFiles.at(0).c_str();
+    fileTmp = new TFile(inputPath.c_str(), "READ");
+
+    if (nFiles == 1) {
+        // read one tree only to get the number of entries
+        tree = (TTree*)fileTmp->Get(treePath.c_str());
+        entries = tree->GetEntries();
+        std::cout << "entries = " << entries << std::endl;
     }
 
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-       tree->Add((*it).c_str());
-       for (int i=0; i<nFriends; ++i) {
-           treeFriends[i]->Add((*it).c_str());
-       }
-       treeHiForestInfo->Add((*it).c_str());
-    }
-
+    treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
     HiForestInfoController hfic(treeHiForestInfo);
     std::cout<<"### HiForestInfo Tree ###"<< std::endl;
     hfic.printHiForestInfo();
     std::cout<<"###"<< std::endl;
 
-    Long64_t entries = tree->GetEntries();
-    std::cout << "entries = " << entries << std::endl;
+    fileTmp->Close();
+    // done with initial reading
+
     std::cout << "TTree::Draw() : " << treePath.c_str() <<std::endl;
-    tree->Draw(formula.c_str(), Form("Sum$(%s) > 0", selection.c_str()), "goff");
+    for (int iFile = 0; iFile < nFiles; ++iFile) {
 
-    std::cout <<  "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
+        std::string inputPath = inputFiles.at(iFile).c_str();
+        std::cout <<"iFile = " << iFile << " , " ;
+        std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+        fileTmp = new TFile(inputPath.c_str(), "READ");
 
-    int nentries = (Int_t)tree->GetSelectedRows();
-    std::vector<UInt_t> vecRun   (tree->GetV1(), tree->GetV1()+nentries);
-    std::vector<UInt_t> vecLumis (tree->GetV2(), tree->GetV2()+nentries);
-    std::vector<UInt_t> vecEvent (tree->GetV3(), tree->GetV3()+nentries);
-
-    std::cout << "selected entries = " << nentries << std::endl;
-
-    std::cout << "opening file : " << outputFile.Data() << std::endl;
-    std::ofstream outFileStream(outputFile.Data());
-    if (outFileStream.is_open()) {
-        outFileStream << "# run lumis event" << std::endl;
-        for (int i = 0; i<nentries; ++i) {
-            outFileStream << vecRun.at(i) << " " << vecLumis.at(i) << " " << vecEvent.at(i) << std::endl;
+        // check if the file is usable, if not skip the file.
+        bool isGood = true;
+        if (fileTmp->IsZombie()) {
+            isGood = false;
+            std::cout << "File is zombie. skipping file." << std::endl;
         }
+        if (fileTmp->TestBits(TFile::kRecovered)) {
+            isGood = false;
+            std::cout << "File has kRecovered flag. skipping file." << std::endl;
+        }
+        if (!isGood)  continue;
+
+       tree = (TTree*)fileTmp->Get(treePath.c_str());
+       for (int i=0; i<nFriends; ++i) {
+           treeFriends[i] =(TTree*)fileTmp->Get(treeFriendsPath.at(i).c_str());
+           tree->AddFriend(treeFriends[i], Form("t%d", i));
+       }
+
+       Long64_t entriesTmp = tree->GetEntries();
+       entries += entriesTmp;
+       std::cout << "entries in File = " << entriesTmp << std::endl;
+       tree->Draw(formula.c_str(), Form("Sum$(%s) > 0", selection.c_str()), "goff");
+
+       int nentriesTmp = (Int_t)tree->GetSelectedRows();
+       entriesSelected += nentriesTmp;
+       std::cout << "selected entries in File = " << nentriesTmp << std::endl;
+       std::vector<UInt_t> vecRun   (tree->GetV1(), tree->GetV1()+nentriesTmp);
+       std::vector<UInt_t> vecLumis (tree->GetV2(), tree->GetV2()+nentriesTmp);
+       std::vector<UInt_t> vecEvent (tree->GetV3(), tree->GetV3()+nentriesTmp);
+
+       // std::cout << "opening file : " << outputFile.Data() << std::endl;
+       std::ios_base::openmode openMode = std::ios_base::out | std::ios_base::trunc;    // default mode, overwrites existing file
+       if (iFile > 0)  openMode = std::ios_base::app | std::ios_base::out;      // append mode
+       std::ofstream outFileStream(outputFile.Data(), openMode);
+
+       if (outFileStream.is_open()) {
+           if (iFile == 0) outFileStream << "# run lumis event" << std::endl;
+           for (int i = 0; i<nentriesTmp; ++i) {
+               outFileStream << vecRun.at(i) << " " << vecLumis.at(i) << " " << vecEvent.at(i) << std::endl;
+           }
+       }
+       outFileStream.close();
+
+       fileTmp->Close();
     }
-    outFileStream.close();
+    std::cout << "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
+    std::cout << "entries = " << entries <<std::endl;
+    std::cout << "entriesSelected = " << entriesSelected <<std::endl;
     std::cout << "wrote file   : " << outputFile.Data() << std::endl;
 }
 

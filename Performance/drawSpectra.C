@@ -5,7 +5,7 @@
  */
 
 #include <TFile.h>
-#include <TChain.h>
+#include <TTree.h>
 #include <TH1.h>
 #include <TH1D.h>
 #include <TCut.h>
@@ -514,8 +514,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         }
 
         // read the first file only to get the HiForest info
-        std::string filePath = inputFiles[iInFileArg].at(0).c_str();
-        fileTmp = new TFile(filePath.c_str(), "READ");
+        std::string inputPath = inputFiles[iInFileArg].at(0).c_str();
+        fileTmp = new TFile(inputPath.c_str(), "READ");
 
         if (nFiles[iInFileArg] == 1) {
             // read one tree only to get the number of entries
@@ -544,10 +544,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         entries[iInFileArg] = 0;
         for (int iFile = 0; iFile < nFiles[iInFileArg]; ++iFile) {
 
-            std::string filePath = inputFiles[iInFileArg].at(iFile).c_str();
+            std::string inputPath = inputFiles[iInFileArg].at(iFile).c_str();
             std::cout <<"iFile = " << iFile << " , " ;
-            std::cout <<"reading input file : " << filePath.c_str() << std::endl;
-            fileTmp = new TFile(filePath.c_str(), "READ");
+            std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+            fileTmp = new TFile(inputPath.c_str(), "READ");
 
             // check if the file is usable, if not skip the file.
             bool isGood = true;
