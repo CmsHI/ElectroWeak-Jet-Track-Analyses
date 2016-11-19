@@ -408,64 +408,6 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         return;
     }
 
-    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
-    // so in that case : 1.) the "TChain*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
-    TChain* trees[nTrees][nInputFileArguments];
-    TChain* treeFriends[nFriends][nInputFileArguments];
-    TChain* treeFriendsIndividual[nFriendsIndividual][nInputFileArguments];
-    TChain* treeHiForestInfo[nInputFileArguments];
-    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
-        for (int i=0; i < nTrees; ++i) {
-            std::string treePath = treePaths.at(i).c_str();
-            trees[i][iInFileArg] = new TChain(treePath.c_str());
-        }
-        // initialize friend trees
-        for (int i=0; i<nFriends; ++i) {
-            treeFriends[i][iInFileArg] = new TChain(treeFriendsPath.at(i).c_str());
-        }
-        // add friends
-        for (int i=0; i<nTrees; ++i) {
-            for (int j=0; j<nFriends; ++j) {
-                trees[i][iInFileArg]->AddFriend(treeFriends[j][iInFileArg], Form("t%d", j));
-            }
-        }
-
-        // initialize individual friend trees
-        for (int i=0; i < nFriendsIndividual; ++i) {
-            if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
-                treeFriendsIndividual[i][iInFileArg] = new TChain(treeFriendsPathIndividual.at(i).c_str());
-        }
-        // add individual friends
-        if (nFriendsIndividual > 0) {
-            for (int i=0; i<nTrees; ++i) {
-                if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
-                    trees[i][iInFileArg]->AddFriend(treeFriendsIndividual[i][iInFileArg], Form("tSelf%d", i));
-            }
-        }
-
-        treeHiForestInfo[iInFileArg] = new TChain("HiForest/HiForestInfo");
-        for (std::vector<std::string>::iterator it = inputFiles[iInFileArg].begin() ; it != inputFiles[iInFileArg].end(); ++it) {
-
-            for (int i=0; i<nTrees; ++i) {
-                trees[i][iInFileArg]->Add((*it).c_str());
-            }
-            for (int i=0; i<nFriends; ++i) {
-                treeFriends[i][iInFileArg]->Add((*it).c_str());
-            }
-            for (int i=0; i < nFriendsIndividual; ++i) {
-                if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0)
-                    treeFriendsIndividual[i][iInFileArg]->Add((*it).c_str());
-            }
-            treeHiForestInfo[iInFileArg]->Add((*it).c_str());
-        }
-
-        HiForestInfoController hfic(treeHiForestInfo[iInFileArg]);
-        if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-        else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
-        hfic.printHiForestInfo();
-        std::cout<<"###"<< std::endl;
-    }
-
     if (nSelectionSplitter == 1) {
         std::cout << "nSelectionSplitter = "<< nSelectionSplitter << std::endl;
         std::cout << "selectionSplitter has been set to have exactly one selection"<< std::endl;
@@ -505,6 +447,9 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << "exiting " << std::endl;
         return;
     }
+    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
+    output->cd();
+
     int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     std::cout << "nHistos = " << nHistos << std::endl;
     TH2D* h[nHistos];
@@ -546,10 +491,140 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
 
         h[i] = new TH2D(Form("h2D_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBinsx, xLow, xUp, nBinsy, yLow, yUp);
     }
+
+    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
+    // so in that case : 1.) the "TTree*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
+    TTree* trees[nTrees][nInputFileArguments];
+    TTree* treeFriends[nFriends][nInputFileArguments];
+    TTree* treeFriendsIndividual[nFriendsIndividual][nInputFileArguments];
+    TTree* treeHiForestInfo[nInputFileArguments];
+
     Long64_t entries[nInputFileArguments];
     Long64_t entriesSelected[nHistos];
+    std::fill_n(entriesSelected, nHistos, 0);
+
+    int nFiles[nInputFileArguments];
+    TFile* fileTmp = 0;
+
+    std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
+    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
+
+        nFiles[iInFileArg] = inputFiles[iInFileArg].size();
+        if (nInputFileArguments > 1) {
+            std::cout <<"iInFileArg = " << iInFileArg << " , "<< std::endl;
+        }
+
+        // read the first file only to get the HiForest info
+        std::string filePath = inputFiles[iInFileArg].at(0).c_str();
+        fileTmp = new TFile(filePath.c_str(), "READ");
+
+        if (nFiles[iInFileArg] == 1) {
+            // read one tree only to get the number of entries
+            trees[0][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(0).c_str());
+            entries[iInFileArg] = trees[0][iInFileArg]->GetEntries();
+            std::cout << "entries = " << entries[iInFileArg] << std::endl;
+        }
+
+        treeHiForestInfo[0] = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+        HiForestInfoController hfic(treeHiForestInfo[0]);
+        if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+        else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
+        hfic.printHiForestInfo();
+        std::cout<<"###"<< std::endl;
+
+        fileTmp->Close();
+    }
+
+    std::cout << "TTree::Draw()" <<std::endl;
+    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
+
+        if (nInputFileArguments > 1) {
+            std::cout <<"iInFileArg = " << iInFileArg << std::endl;
+        }
+
+        entries[iInFileArg] = 0;
+        for (int iFile = 0; iFile < nFiles[iInFileArg]; ++iFile) {
+
+            std::string filePath = inputFiles[iInFileArg].at(iFile).c_str();
+            std::cout <<"iFile = " << iFile << " , " ;
+            std::cout <<"reading input file : " << filePath.c_str() << std::endl;
+            fileTmp = new TFile(filePath.c_str(), "READ");
+
+            for (int i=0; i<nTrees; ++i) {
+                trees[i][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());
+            }
+            for (int i=0; i<nFriends; ++i) {
+                treeFriends[i][iInFileArg] = (TTree*)fileTmp->Get(treeFriendsPath.at(i).c_str());
+            }
+            // add friends
+            for (int i=0; i<nTrees; ++i) {
+                for (int j=0; j<nFriends; ++j) {
+                    trees[i][iInFileArg]->AddFriend(treeFriends[j][iInFileArg], Form("t%d", j));
+                }
+            }
+            for (int i=0; i < nFriendsIndividual; ++i) {
+                if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0) {
+                    treeFriendsIndividual[i][iInFileArg] = (TTree*)fileTmp->Get(treeFriendsPathIndividual.at(i).c_str());
+                }
+            }
+            if (nFriendsIndividual > 0) {
+                for (int i=0; i<nTrees; ++i) {
+                    if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0) {
+                        trees[i][0]->AddFriend(treeFriendsIndividual[i][0], Form("tSelf%d", i));
+                    }
+                }
+            }
+
+            Long64_t entriesTmp = trees[0][iInFileArg]->GetEntries();      // assume all the trees have same number of entries
+            entries[iInFileArg] += entriesTmp;
+
+            if (nInputFileArguments == 1)  {
+                std::cout << "entries in File = " << entriesTmp << std::endl;
+            }
+            else {
+                std::cout << Form("entries[%d] = ", iInFileArg) << entriesTmp << std::endl;
+            }
+
+            output->cd();
+            for (int i=0; i<nHistos; ++i) {
+
+                int treeIndex = 0;
+                if (nHistosInput == nTrees)  treeIndex = i%nTrees;
+                // std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
+
+                int iInFileArg = 0;
+                if (mode == INPUT_MODE::k_comparison) {
+                    iInFileArg = i%nInputFileArguments;
+                    std::cout << "iInFileArg = " << iInFileArg << ", ";
+                }
+
+                std::string formula = formulas.at(0).c_str();
+                std::string selection = selections.at(0).c_str();
+                std::string weight = weights.at(0).c_str();
+                if (nHistosInput == nFormulas)  formula = formulas.at(i%nFormulas).c_str();
+                if (nHistosInput == nSelections)  selection = selections.at(i%nSelections).c_str();
+                if (nHistosInput == nWeights)  weight = weights.at(i%nWeights).c_str();
+
+                std::string selectionSplit = "";
+                if (nSelectionSplitter > 1)  selectionSplit = selectionSplitter.at(i/ (nHistos/nSelectionSplitter)).c_str();
+
+                // std::cout << "drawing histogram i = " << i << ", ";
+
+                TCut selectionFinal = selectionBase.c_str();
+                selectionFinal = selectionFinal && selection.c_str();
+                if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
+                Long64_t entriesSelectedTmp = trees[treeIndex][iInFileArg]->GetEntries(selectionFinal.GetTitle());
+                // std::cout << "entriesSelected in file = " << entriesSelectedTmp << std::endl;
+                entriesSelected[i] += entriesSelectedTmp;
+
+                TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
+                trees[treeIndex][iInFileArg]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
+            }
+            fileTmp->Close();
+        }
+    }
+    std::cout << "TTree::Draw() ENDED" <<std::endl;
     for (int i = 0; i < nInputFileArguments; ++i) {
-        entries[i] = trees[0][i]->GetEntries();      // assume all the trees have same number of entries
 
         if (nInputFileArguments == 1)  {
             std::cout << "entries = " << entries[0] << std::endl;
@@ -558,41 +633,17 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
             std::cout << Form("entries[%d] = ", i) << entries[i] << std::endl;
         }
     }
-    std::cout << "TTree::Draw()" <<std::endl;
-    for (int i=0; i<nHistos; ++i) {
+    std::cout << "### selected entries" << std::endl;
+    for (int i = 0; i < nHistos; ++i) {
 
+        std::cout << "TH1D i = " << i << ", ";
         int treeIndex = 0;
         if (nHistosInput == nTrees)  treeIndex = i%nTrees;
         std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
-        int iInFileArg = 0;
-        if (mode == INPUT_MODE::k_comparison) {
-            iInFileArg = i%nInputFileArguments;
-            std::cout << "iInFileArg = " << iInFileArg << ", ";
-        }
-
-        std::string formula = formulas.at(0).c_str();
-        std::string selection = selections.at(0).c_str();
-        std::string weight = weights.at(0).c_str();
-        if (nHistosInput == nFormulas)  formula = formulas.at(i%nFormulas).c_str();
-        if (nHistosInput == nSelections)  selection = selections.at(i%nSelections).c_str();
-        if (nHistosInput == nWeights)  weight = weights.at(i%nWeights).c_str();
-
-        std::string selectionSplit = "";
-        if (nSelectionSplitter > 1)  selectionSplit = selectionSplitter.at(i/ (nHistos/nSelectionSplitter)).c_str();
-
-        std::cout << "drawing histogram i = " << i << ", ";
-
-        TCut selectionFinal = selectionBase.c_str();
-        selectionFinal = selectionFinal && selection.c_str();
-        if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
-        entriesSelected[i] = trees[treeIndex][iInFileArg]->GetEntries(selectionFinal.GetTitle());
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
-
-        TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
-        trees[treeIndex][iInFileArg]->Draw(Form("%s >> %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
     }
-    std::cout << "TTree::Draw() ENDED" <<std::endl;
+    std::cout << "###" << std::endl;
 
     // print info about histograms
     for (int i=0; i<nHistos; ++i) {
@@ -602,7 +653,6 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << summary.c_str() << std::endl;
     }
 
-    TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
     TH2D* h_normInt[nHistos];
@@ -765,123 +815,123 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         h_normEvents[i]->SetMarkerSize(markerSize);
     }
 
-    // save histograms as picture if a figure name is provided.
-    // for now 2D canvases are not drawn on top, they are drawn separately.
-    if (!outputFigureName.EqualTo("")) {
-        TH1D* h_draw[nHistos];
-        for (int i=0; i<nHistos; ++i) {
-            if (drawNormalized == INPUT_TH1::k_normInt) {
-                h_draw[i] = (TH1D*)h_normInt[i]->Clone(Form("h_%d_draw", i));
-            }
-            else if (drawNormalized == INPUT_TH1::k_normEvents) {
-                h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
-            }
-            else {  // no normalization
-                h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
+    TH1D* h_draw[nHistos];
+    for (int i=0; i<nHistos; ++i) {
+        if (drawNormalized == INPUT_TH1::k_normInt) {
+            h_draw[i] = (TH1D*)h_normInt[i]->Clone(Form("h_%d_draw", i));
+        }
+        else if (drawNormalized == INPUT_TH1::k_normEvents) {
+            h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
+        }
+        else {  // no normalization
+            h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
+        }
+    }
+
+    for (int i = 0; i<nHistos; ++i) {
+
+        c = new TCanvas(Form("cnv_drawSpectra2D_%d", i),"",windowWidth,windowHeight);
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
+        c->cd();
+        TLegend* leg = new TLegend();
+
+        std::string drawOption = "";
+        if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+        else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
+
+        h_draw[i]->Draw(drawOption.c_str());
+
+        if (nLegendEntryLabels == nHistosInput) {
+            std::string label = legendEntryLabels.at(i%nLegendEntryLabels).c_str();
+            std::string legendOption = "lpf";
+            if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
+            if (label.compare(CONFIGPARSER::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
+        }
+
+        if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
+        leg->SetBorderSize(legendBorderSize);
+        double height = calcTLegendHeight(leg);
+        double width = calcTLegendWidth(leg);
+        if (legendHeight != 0)  height = legendHeight;
+        if (legendWidth != 0)  width = legendWidth;
+        if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
+            setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
+            leg->Draw();
+        }
+
+        // add Text
+        TLatex* latex = 0;
+        if (nTextLines > 0) {
+            latex = new TLatex();
+            latex->SetTextFont(textFont);
+            latex->SetTextSize(textSize);
+            setTextAlignment(latex, textPosition);
+            std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
+            for (int i = 0; i<nTextLines; ++i){
+                float x = textCoordinates.at(i).first;
+                float y = textCoordinates.at(i).second;
+                latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
             }
         }
 
-        for (int i = 0; i<nHistos; ++i) {
+        // add Text above the pad
+        TLatex* latexOverPad = 0;
+        if (nTextsOverPad > 0) {
+            latexOverPad = new TLatex();
+            latexOverPad->SetTextFont(textAbovePadFont);
+            latexOverPad->SetTextSize(textAbovePadSize);
+            for (int i = 0; i < nTextsOverPad; ++i) {
+                int textOverPadAlignment = GRAPHICS::textAlign;
+                if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+                else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
 
-            c = new TCanvas(Form("cnv_drawSpectra2D_%d", i),"",windowWidth,windowHeight);
-			setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy, setLogz);
-            c->cd();
-            TLegend* leg = new TLegend();
+                latexOverPad->SetTextAlign(textOverPadAlignment);
+                setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
 
-            std::string drawOption = "";
-            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
-
-            h_draw[i]->Draw(drawOption.c_str());
-
-            if (nLegendEntryLabels == nHistosInput) {
-                std::string label = legendEntryLabels.at(i%nLegendEntryLabels).c_str();
-                std::string legendOption = "lpf";
-                if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
-                if (label.compare(CONFIGPARSER::nullInput) != 0)  leg->AddEntry(h_draw[i], label.c_str(), legendOption.c_str());
+                latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
             }
+        }
 
-            if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
-            leg->SetBorderSize(legendBorderSize);
-            double height = calcTLegendHeight(leg);
-            double width = calcTLegendWidth(leg);
-            if (legendHeight != 0)  height = legendHeight;
-            if (legendWidth != 0)  width = legendWidth;
-            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
-                setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
-                leg->Draw();
-            }
+        // add TLine
+        TLine* line_horizontal[nTLines_horizontal];
+        for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
+            // draw horizontal line
+            double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
+            double xmax = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetLast()+1);
 
-            // add Text
-            TLatex* latex;
-            if (nTextLines > 0) {
-                latex = new TLatex();
-                latex->SetTextFont(textFont);
-                latex->SetTextSize(textSize);
-                setTextAlignment(latex, textPosition);
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLines; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
-                }
-            }
-            
-            // add Text above the pad
-            TLatex* latexOverPad;
-            if (nTextsOverPad > 0) {
-                latexOverPad = new TLatex();
-                latexOverPad->SetTextFont(textAbovePadFont);
-                latexOverPad->SetTextSize(textAbovePadSize);
-                for (int i = 0; i < nTextsOverPad; ++i) {
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
-                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
+            int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+            if (nLineStyles_horizontal == 1)
+                lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+            else if (nLineStyles_horizontal == nTLines_horizontal)
+                lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
 
-                    latexOverPad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+            line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
+            line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line_horizontal[iLine]->Draw();
+        }
+        // add TLine
+        TLine* line_vertical[nTLines_vertical];
+        for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
+            // draw vertical line
+            double ymin = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetFirst());
+            double ymax = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetLast()+1);
 
-                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
-                }
-            }
-            
-            // add TLine
-            TLine* line_horizontal[nTLines_horizontal];
-            for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
-                // draw horizontal line
-                double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
-                double xmax = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetLast()+1);
+            int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+            if (nLineStyles_vertical == 1)
+                lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+            else if (nLineStyles_vertical == nTLines_vertical)
+                lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
 
-                int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                if (nLineStyles_horizontal == 1)
-                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                else if (nLineStyles_horizontal == nTLines_horizontal)
-                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
+            line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
+            line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line_vertical[iLine]->Draw();
+        }
+        c->Write();
 
-                line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
-                line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line_horizontal[iLine]->Draw();
-            }
-            // add TLine
-            TLine* line_vertical[nTLines_vertical];
-            for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
-                // draw vertical line
-                double ymin = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetFirst());
-                double ymax = h[i]->GetYaxis()->GetBinLowEdge(h[i]->GetYaxis()->GetLast()+1);
-
-                int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                if (nLineStyles_vertical == 1)
-                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                else if (nLineStyles_vertical == nTLines_vertical)
-                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
-
-                line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
-                line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line_vertical[iLine]->Draw();
-            }
-
-            // saving histogram
+        // save histograms as picture if a figure name is provided.
+        // for now 2D canvases are not drawn on top, they are drawn separately.
+        if (!outputFigureName.EqualTo("")) {
             std::string tmpOutputFigureName = outputFigureName.Data();
             if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
                 if (nHistos > 1) {
@@ -903,12 +953,11 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
                 c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
                 c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
             }
-
-            leg->Delete();
-            c->Close();
         }
-    }
 
+        leg->Delete();
+        c->Close();
+    }
 
     output->Close();
 }
