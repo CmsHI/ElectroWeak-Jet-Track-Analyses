@@ -550,6 +550,18 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
             std::cout <<"reading input file : " << filePath.c_str() << std::endl;
             fileTmp = new TFile(filePath.c_str(), "READ");
 
+            // check if the file is usable, if not skip the file.
+            bool isGood = true;
+            if (fileTmp->IsZombie()) {
+                isGood = false;
+                std::cout << "File is zombie. skipping file." << std::endl;
+            }
+            if (fileTmp->TestBits(TFile::kRecovered)) {
+                isGood = false;
+                std::cout << "File has kRecovered flag. skipping file." << std::endl;
+            }
+            if (!isGood)  continue;
+
             for (int i=0; i<nTrees; ++i) {
                 trees[i][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());
             }
