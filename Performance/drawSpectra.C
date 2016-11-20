@@ -556,12 +556,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 continue;
             }
 
+            bool treeExists = true;
             for (int i=0; i<nTrees; ++i) {
                 trees[i][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());
+                if (!trees[i][iInFileArg]) {
+                    std::cout << "tree is not found in the path : "<< treePaths.at(i).c_str() <<". skipping file." << std::endl;
+                    treeExists = false;
+                }
             }
             for (int i=0; i<nFriends; ++i) {
                 treeFriends[i][iInFileArg] = (TTree*)fileTmp->Get(treeFriendsPath.at(i).c_str());
+                if (!treeFriends[i][iInFileArg]) {
+                    std::cout << "tree is not found in the path : "<< treeFriendsPath.at(i).c_str() <<". skipping file." << std::endl;
+                    treeExists = false;
+                }
             }
+            if (!treeExists)  continue;
+
             // add friends
             for (int i=0; i<nTrees; ++i) {
                 for (int j=0; j<nFriends; ++j) {
