@@ -519,19 +519,34 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::string inputPath = inputFiles[iInFileArg].at(0).c_str();
         fileTmp = new TFile(inputPath.c_str(), "READ");
 
+        bool treeExists = true;
         if (nFiles[iInFileArg] == 1) {
             // read one tree only to get the number of entries
             trees[0][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(0).c_str());
-            entries[iInFileArg] = trees[0][iInFileArg]->GetEntries();
-            std::cout << "entries = " << entries[iInFileArg] << std::endl;
+            if (!trees[0][iInFileArg]) {
+                std::cout << "tree is not found in the path : "<< treePaths.at(0).c_str() <<". skipping file." << std::endl;
+                treeExists = false;
+            }
+            if (treeExists) {
+                entries[iInFileArg] = trees[0][iInFileArg]->GetEntries();
+                std::cout << "entries = " << entries[iInFileArg] << std::endl;
+            }
         }
 
-        treeHiForestInfo[0] = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
-        HiForestInfoController hfic(treeHiForestInfo[0]);
-        if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-        else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
-        hfic.printHiForestInfo();
-        std::cout<<"###"<< std::endl;
+        if (treeExists) {
+            treeHiForestInfo[0] = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+            if (!treeHiForestInfo[0]) {
+                std::cout << "HiForest/HiForestInfo tree is not found." << std::endl;
+                treeExists = false;
+            }
+            if (treeExists) {
+                HiForestInfoController hfic(treeHiForestInfo[0]);
+                if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+                else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
+                hfic.printHiForestInfo();
+                std::cout<<"###"<< std::endl;
+            }
+        }
 
         fileTmp->Close();
     }

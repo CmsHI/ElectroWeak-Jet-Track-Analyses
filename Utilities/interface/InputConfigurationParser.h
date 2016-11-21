@@ -329,7 +329,7 @@ namespace INPUT_MODE {
 
 enum TYPE_MODE {
     k_noMode,         // no mode, just a place holder
-    k_comparison,     // normalization by the total number of entries, histogram integral will be 1.
+    k_comparison,
     kN_TYPE_MODE      // must come last in enum
 };
 
