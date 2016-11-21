@@ -154,6 +154,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
            if (iFile == 0) outFileStream << "# run lumis event" << std::endl;
            for (int i = 0; i<nentriesTmp; ++i) {
                outFileStream << vecRun.at(i) << " " << vecLumis.at(i) << " " << vecEvent.at(i) << std::endl;
+               std::cout << vecRun.at(i) << " " << vecLumis.at(i) << " " << vecEvent.at(i) << std::endl;
            }
        }
        outFileStream.close();
