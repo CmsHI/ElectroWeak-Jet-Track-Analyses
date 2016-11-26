@@ -5,8 +5,9 @@
 #ifndef SYSTEMUTIL_H_
 #define SYSTEMUTIL_H_
 
-#include <vector>
 #include <string>
+#include <vector>
+#include <set>
 #include <iostream>
 #include <fstream>      // ifstream, ofstream
 #include <algorithm>    // std::transform
@@ -18,7 +19,9 @@ std::string trim(std::string str);
 std::string toLowerCase(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter);
 bool endsWith(std::string str, std::string suffix);
-int  findPositionInVector(std::vector<std::string> v, std::string str);
+int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
+std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
+std::vector<std::string> vectorUnique(std::vector<std::string> v);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -148,11 +151,39 @@ bool endsWith(std::string str, std::string suffix)
  * return the index of a std::string in a std::vector
  * return -1 if not found.
  */
-int findPositionInVector(std::vector<std::string> v, std::string str)
+int findPositionInVector(std::vector<std::string> vSearch, std::string str)
 {
-    std::vector<std::string>::iterator it = std::find(v.begin(), v.end(), str.c_str());
-    if (it != v.end())  return int(it - v.begin());
+    std::vector<std::string>::iterator it = std::find(vSearch.begin(), vSearch.end(), str.c_str());
+    if (it != vSearch.end())  return int(it - vSearch.begin());
     else                return -1;
+}
+
+/*
+ * return a vector of unique elements
+ */
+std::vector<std::string> vectorUnique(std::vector<std::string> v)
+{
+    std::set<std::string> strSet;
+    for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        strSet.insert((*it));
+    }
+
+    return std::vector<std::string>(strSet.begin(), strSet.end());
+}
+
+/*
+ * search in each string from on vSearch and return its position in vSearch
+ * returns a vector where vector[i] is the (first) position of v[i] in vSearch
+ */
+std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v)
+{
+    std::vector<int> res;
+    for (std::vector<std::string>::const_iterator it = v.begin(); it != v.end(); ++it) {
+        int pos = findPositionInVector(vSearch, (*it));
+        res.push_back(pos);
+    }
+
+    return res;
 }
 
 #endif
