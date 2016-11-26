@@ -34,6 +34,7 @@ void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double 
 void setTextAlignment(TLatex* latex, std::string position);
 void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
+void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
 double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
@@ -331,6 +332,19 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
     }
 
     return coordinatesNDC;
+}
+
+void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX, double offsetY, float lineOffset)
+{
+    std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(lines, position, (TCanvas*)pad, offsetX, offsetY);
+    int nLines = lines.size();
+
+    for (int i = 0; i<nLines; ++i){
+        float x = textCoordinates.at(i).first;
+        float y = textCoordinates.at(i).second;
+        if (lines.at(i) != CONFIGPARSER::nullInput.c_str())
+            latex->DrawLatexNDC(x, y, lines.at(i).c_str());
+    }
 }
 
 /*
