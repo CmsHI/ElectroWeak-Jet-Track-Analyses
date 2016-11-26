@@ -328,7 +328,7 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std
             element = replaceAll(tmp, CONFIGPARSER::noTrim, "");
         }
 
-        if(element.size() >0 ) list.push_back(element.c_str());
+        if(element.size() > 0 ) list.push_back(element.c_str());
         posStart = pos + separator.size();
     }
 
@@ -398,7 +398,7 @@ std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::strin
             element = replaceAll(tmp, CONFIGPARSER::noTrim, "");
         }
 
-        if(element.size() >0 ) list.push_back(element.c_str());
+        if(element.size() > 0 ) list.push_back(element.c_str());
         posStart = pos + separator.size();
     }
 
@@ -483,7 +483,7 @@ std::vector<int> ConfigurationParser::ParseListInteger(std::string strList)
         int val;
         sin >> val;
 
-        if(element.size() >0 ) list.push_back(val);
+        if(element.size() > 0 ) list.push_back(val);
         posStart = pos + 1;
     }
 
