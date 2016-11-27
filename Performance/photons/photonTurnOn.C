@@ -324,9 +324,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     h_pt->Write();
     h_pt_allpho->Write();
 
-    TCanvas* c = new TCanvas();
-    c->SetName("cnv_photonTurnOn");
-    c->SetTitle("");
+    TCanvas* c = new TCanvas("cnv_photonTurnOn", "", 800, 800);
     c->cd();
 
     // base histogram on which other histograms will be plotted.
@@ -336,7 +334,7 @@ void photonTurnOn(const TString configFile, const TString inputFile, const TStri
     h_dummy->SetTitle("");
     h_dummy->GetYaxis()->SetTitle("Efficiency");
     h_dummy->SetMinimum(0);
-    h_dummy->SetMaximum(1.2);
+    h_dummy->SetMaximum(1.4);
     h_dummy->SetStats(false);
     h_dummy->GetXaxis()->CenterTitle();
     h_dummy->GetYaxis()->CenterTitle();
