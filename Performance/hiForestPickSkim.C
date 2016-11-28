@@ -1,11 +1,9 @@
 /*
  * macro to pick events from HiForest and/or to skim a subset of the HiForest trees.
- *
  */
 
 #include <TKey.h>
 #include <TFile.h>
-#include <TChain.h>
 #include <TTree.h>
 
 #include <string>
@@ -83,84 +81,7 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TFile* tmpInputFile = new TFile(inputFiles.at(0).c_str(), "READ");
-    TList* listTTree = (TList*)getListOfALLKeys(tmpInputFile, "TTree");
-
-    TFile* output = new TFile(outputFile, "RECREATE");
-    int nTrees = listTTree->GetSize();
-
-    std::vector<std::string> directoryPaths;
-    std::vector<std::string> directoryTitles;
-
-    TChain* inputTrees[nTrees];
-    TTree* outputTrees[nTrees];
-    int indexHiForestInfo = -1;
-
-    TKey* key = 0;
-    for (int iKey = 0; iKey < nTrees; ++iKey)
-    {
-        key = (TKey*)listTTree->At(iKey);
-        std::string keyName = key->GetName();
-        outputTrees[iKey] = new TChain(keyName.c_str());
-
-        // get the directory where the TTree is.
-        std::string directoryPath = key->GetMotherDir()->GetPath();
-        std::string directoryTitle = key->GetMotherDir()->GetTitle();
-        std::string filePath = key->GetFile()->GetPath();
-
-        directoryPath = replaceAll(directoryPath, filePath, "");
-        directoryPaths.push_back(directoryPath);
-        directoryTitles.push_back(directoryTitle);
-
-        std::string treePathTmp = Form("%s/%s", directoryPath.c_str(), keyName.c_str());
-        if (treePathTmp == "HiForest/HiForestInfo") indexHiForestInfo = iKey;
-
-        // read input
-        inputTrees[iKey] = new TChain(treePathTmp.c_str());
-        for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-            inputTrees[iKey]->Add((*it).c_str());
-        }
-
-        // prepare output directories / trees
-        output->cd();
-        if (directoryPath != "") {
-            if (!output->GetKey(directoryPath.c_str())) output->mkdir(directoryPath.c_str(), directoryTitle.c_str());
-
-            output->cd(directoryPath.c_str());
-        }
-
-        // copy the trees for output
-        outputTrees[iKey] = inputTrees[iKey]->CloneTree(0);
-    }
-    // tree to read event info
-    std::string treePathEvent = treePath.c_str();
-    TChain* inputTreeEvent = new TChain(treePathEvent.c_str());
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        inputTreeEvent->Add((*it).c_str());
-    }
-    if (inputTreeEvent == 0) {
-        std::cout << Form("Error : tree with event information not found on the path %s", treePathEvent.c_str()) << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-
-    inputTreeEvent->SetBranchStatus("*",0);     // disable all branches
-    inputTreeEvent->SetBranchStatus("run",1);    // enable event information
-    inputTreeEvent->SetBranchStatus("event",1);
-    inputTreeEvent->SetBranchStatus("lumis",1);
-
-    UInt_t    run;
-    UInt_t    lumis;
-    ULong64_t event;
-    inputTreeEvent->SetBranchAddress("run", &run);
-    inputTreeEvent->SetBranchAddress("lumis", &lumis);
-    inputTreeEvent->SetBranchAddress("event", &event);
-
-    HiForestInfoController hfic(inputTrees[indexHiForestInfo]);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
-
+    std::cout << "### Event list info ###" << std::endl;
     std::vector<std::string> vecRunLumiEvent = InputConfigurationParser::ParseEvents(eventList.Data());
     int nRunLumiEvent = vecRunLumiEvent.size();
     if (nRunLumiEvent == 0) {
@@ -192,36 +113,164 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
         em->addEvent(vecRun[i], vecLumi[i], vecEvent[i], i);
     }
 
-    Long64_t entries = inputTreeEvent->GetEntries();
-    Long64_t entriesSelected = 0;
-    std::cout << "entries = " << entries << std::endl;
-    std::cout<< "Loop : " << treePath.c_str() <<std::endl;
+    TFile* fileTmp = 0;
+    // read the first file in order to
+    // 1. extract the list of trees
+    // 2 to get the HiForest info
+    std::cout << "initial reading to get the list of trees and HiForest info" << std::endl;
+    fileTmp = TFile::Open(inputFiles.at(0).c_str(), "READ");
+    TList* listTTree = (TList*)getListOfALLKeys(fileTmp, "TTree");
 
-    for (Long64_t j_entry=0; j_entry<entries; ++j_entry)
+    TTree* treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+    if (!treeHiForestInfo) {
+        std::cout << "HiForest/HiForestInfo tree is not found." << std::endl;
+    }
+    else {
+        HiForestInfoController hfic(treeHiForestInfo);
+        std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+        hfic.printHiForestInfo();
+        std::cout<<"###"<< std::endl;
+    }
+
+    TFile* output = new TFile(outputFile, "RECREATE");
+    int nTrees = listTTree->GetSize();
+
+    std::cout << "nTrees = " << nTrees << std::endl;
+
+    std::vector<std::string> directoryPaths(nTrees);
+    std::vector<std::string> directoryTitles(nTrees);
+    std::vector<std::string> treePaths(nTrees);
+
+    TTree* inputTrees[nTrees];
+    TTree* inputTreeEvent = 0;
+    TTree* outputTrees[nTrees];
+
+    // determine the tree paths and initialize output paths
+    TKey* key = 0;
+    for (int iKey = 0; iKey < nTrees; ++iKey)
     {
-        if (j_entry % 20000 == 0)  {
-            std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
-        }
+        key = (TKey*)listTTree->At(iKey);
+        std::string keyName = key->GetName();
 
-        inputTreeEvent->GetEntry(j_entry);
+        // get the directory where the TTree is.
+        std::string directoryPath = key->GetMotherDir()->GetPath();
+        std::string directoryTitle = key->GetMotherDir()->GetTitle();
+        std::string filePath = key->GetFile()->GetPath();
 
-        // remove the events that are selected so that a smaller map is checked in the next iteration.
-        // if the event cannot be removed, then it is not in the event list.
-        if (!em->removeEvent(run, lumis, event))  continue;
+        directoryPath = replaceAll(directoryPath, filePath, "");
+        directoryPaths.at(iKey) = directoryPath;
+        directoryTitles.at(iKey) = directoryTitle;
 
-        entriesSelected++;
-        // read entries only for events that are selected.
-        for (int iTree = 0; iTree < nTrees; ++iTree) {
-            inputTrees[iTree]->GetEntry(j_entry);
-        }
+        std::string treePathTmp = Form("%s/%s", directoryPath.c_str(), keyName.c_str());
+        treePaths.at(iKey) = treePathTmp;
 
-        for (int iTree = 0; iTree < nTrees; ++iTree) {
-            outputTrees[iTree]->Fill();
+        // prepare output directories / trees
+        output->cd();
+        if (directoryPath != "") {
+            if (!output->GetKey(directoryPath.c_str())) output->mkdir(directoryPath.c_str(), directoryTitle.c_str());
         }
     }
+    fileTmp->Close();
+
+    int nFiles = inputFiles.size();
+    Long64_t entries = 0;
+    Long64_t entriesSelected = 0;
+    std::cout<< "Loop : " << treePath.c_str() <<std::endl;
+    for (int iFile = 0; iFile < nFiles; ++iFile) {
+
+        std::string inputPath = inputFiles.at(iFile).c_str();
+        std::cout <<"iFile = " << iFile << " , " ;
+        std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+        fileTmp = TFile::Open(inputPath.c_str(), "READ");
+
+        // check if the file is usable, if not skip the file.
+        if (isGoodFile(fileTmp) != 0) {
+            std::cout << "File is not good. skipping file." << std::endl;
+            continue;
+        }
+
+        bool treeExists = true;
+        for (int iTree = 0; iTree < nTrees; ++iTree) {
+            std::string treePathTmp = treePaths.at(iTree).c_str();
+            inputTrees[iTree] = (TTree*)fileTmp->Get(treePathTmp.c_str());
+
+            if (!inputTrees[iTree]) {
+                std::cout << "tree is not found in the path : "<< treePathTmp.c_str() <<". skipping file." << std::endl;
+                treeExists = false;
+            }
+        }
+        if (!treeExists)  continue;
+
+        output->cd();
+        // copy the trees for output
+        for (int iTree = 0; iTree < nTrees; ++iTree) {
+            std::string directoryPath = directoryPaths.at(iTree).c_str();
+
+            // directories in output file were initialized before.
+            output->cd(directoryPath.c_str());
+
+            if (iFile == 0)  outputTrees[iTree] = inputTrees[iTree]->CloneTree(0);
+            else             inputTrees[iTree]->CopyAddresses(outputTrees[iTree]);
+        }
+
+
+        // tree to read event info
+        std::string treePathEvent = treePath.c_str();
+        inputTreeEvent = (TTree*)fileTmp->Get(treePathEvent.c_str());
+        if (!inputTreeEvent) {
+            std::cout << Form("Error : tree with event information not found on the path %s", treePathEvent.c_str()) << std::endl;
+            std::cout <<". skipping file." << std::endl;
+            treeExists = false;
+        }
+        if (!treeExists)  continue;
+
+        inputTreeEvent->SetBranchStatus("*",0);     // disable all branches
+        inputTreeEvent->SetBranchStatus("run",1);    // enable event information
+        inputTreeEvent->SetBranchStatus("event",1);
+        inputTreeEvent->SetBranchStatus("lumis",1);
+
+        UInt_t    run;
+        UInt_t    lumis;
+        ULong64_t event;
+        inputTreeEvent->SetBranchAddress("run", &run);
+        inputTreeEvent->SetBranchAddress("lumis", &lumis);
+        inputTreeEvent->SetBranchAddress("event", &event);
+
+        Long64_t entriesTmp = inputTreeEvent->GetEntries();
+        entries += entriesTmp;
+        std::cout << "entries in File = " << entriesTmp << std::endl;
+
+        for (Long64_t j_entry=0; j_entry<entriesTmp; ++j_entry)
+        {
+            if (j_entry % 20000 == 0)  {
+                std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+            }
+
+            inputTreeEvent->GetEntry(j_entry);
+
+            // remove the events that are selected so that a smaller map is checked in the next iteration.
+            // if the event cannot be removed, then it is not in the event list.
+            if (!em->removeEvent(run, lumis, event))  continue;
+
+            entriesSelected++;
+            // read entries only for events that are selected.
+            for (int iTree = 0; iTree < nTrees; ++iTree) {
+                inputTrees[iTree]->GetEntry(j_entry);
+            }
+
+            for (int iTree = 0; iTree < nTrees; ++iTree) {
+                outputTrees[iTree]->Fill();
+            }
+        }
+
+        fileTmp->Close();
+    }
+    Long64_t entriesNotFound = em->getSize();
+
     std::cout<< "Loop ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "entriesSelected    = " << entriesSelected << std::endl;
+    std::cout << "entriesNotFound    = " << entriesNotFound << std::endl;
     for (int iTree = 0; iTree < nTrees; ++iTree) {
 
         std::string treePath = outputTrees[iTree]->GetName();
@@ -234,6 +283,7 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
     }
 
     output->Write("", TObject::kOverwrite);
+    std::cout<<"Closing the output file."<<std::endl;
     output->Close();
 
     std::cout<<"hiForestPickSkim() - END"   <<std::endl;

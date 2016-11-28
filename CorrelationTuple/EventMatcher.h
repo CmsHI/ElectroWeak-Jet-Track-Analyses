@@ -48,6 +48,10 @@ public:
         return (getEntry(run, lumi, event) == -1) ? false : true;
     }
 
+    long long getSize() {
+        return map_.size();
+    }
+
 private:
 
     struct Key {
