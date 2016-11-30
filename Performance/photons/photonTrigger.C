@@ -431,6 +431,9 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
     };
 
     TH1::SetDefaultSumw2();
+    TH1D* hTmp = 0;
+    TH2D* h2DTmp = 0;
+
     TH1D* h[kN_EFF_DEP][nBins_eta][nNum];     // denominator
     TH1D* h_Num[kN_EFF_DEP][nBins_eta][nNum];  // numerator
 
@@ -582,13 +585,58 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
         h2D_scaleHLT[iNum][1]->SetTitle(Form("%s - 1.56 < |#eta| < 2.4", titleNum.c_str()));
     }
 
+    enum PHOVAR_DEP {   // TH2D plot types
+        kSCEtaWidth,
+        kSCPhiWidth,
+        kSCBrem,
+        kR9,
+        ksumIso,
+        kN_PHOVAR_DEP
+    };
+    std::vector<std::string> phoVar_Dep_xAxisTitles {"SCEtaWidth", "SCPhiWidth", "SCBrem", "R9", "sumIso"};
+    std::vector<int> phoVar_Dep_nBinsX    {40, 40, 40, 40,  40};
+    std::vector<double> phoVar_Dep_xLow   {0,   0,  0,  0, -20};
+    std::vector<double> phoVar_Dep_xUp    {0.03, 0.05,  20,  1, 20};
+
+    // HLT energy scale as func. of offline pt
+    TH2D* h2D_scaleHLT_phoVar[nTriggersNum][kN_PHOVAR_DEP][2];
+    for (int iNum = 0; iNum < nTriggersNum; ++iNum) {
+        for (int iDep = 0; iDep < kN_PHOVAR_DEP; ++iDep) {
+
+            std::string xTitle = phoVar_Dep_xAxisTitles.at(iDep);
+            std::string titleNum = triggerBranchesNum.at(iNum).c_str();
+
+            int nBinsx  = (int)phoVar_Dep_nBinsX.at(iDep);
+            float xLowTmp = phoVar_Dep_xLow.at(iDep);
+            float xUpTmp  = phoVar_Dep_xUp.at(iDep);
+            int nBinsy  = (int)TH2D_Bins_List[3].at(0);
+            float yLowTmp = TH2D_Bins_List[4].at(0);
+            float yUpTmp  = TH2D_Bins_List[5].at(0);
+
+            h2D_scaleHLT_phoVar[iNum][iDep][0] = new TH2D(Form("h2D_scaleHLT_%s_Num%d_EB", xTitle.c_str(), iNum), "", nBinsx, xLowTmp, xUpTmp, nBinsy, yLowTmp, yUpTmp);
+            h2D_scaleHLT_phoVar[iNum][iDep][0]->SetTitle(Form("%s - |#eta| < 1.44", titleNum.c_str()));
+            h2D_scaleHLT_phoVar[iNum][iDep][0]->SetXTitle(xTitle.c_str());
+            h2D_scaleHLT_phoVar[iNum][iDep][0]->SetYTitle(Form("HLT p_{T}/offline p_{T}"));
+
+            h2D_scaleHLT_phoVar[iNum][iDep][1] = (TH2D*)h2D_scaleHLT_phoVar[iNum][iDep][0]->Clone(Form("h2D_scaleHLT_%s_Num%d_EE", xTitle.c_str(), iNum));
+            h2D_scaleHLT_phoVar[iNum][iDep][1]->SetTitle(Form("%s - 1.56 < |#eta| < 2.4", titleNum.c_str()));
+            // special cases
+            if (iDep == PHOVAR_DEP::kSCEtaWidth)  {
+                xUpTmp = 0.05;
+                h2D_scaleHLT_phoVar[iNum][iDep][1]->GetXaxis()->Set(nBins, xLowTmp, xUpTmp);
+            }
+        }
+    }
+
     TTree* treeHLT = 0;
     TTree* treePhoton = 0;
     TTree* treeHiForestInfo = 0;
     TTree* treeHLTObject[nTriggersNum];
 
-    bool doHLTObject = (mode == 1);
+    bool doHLTObject = (mode == 1 || mode == 2);
+    bool doHLTObject_phoVar = (mode == 2);
     std::cout << "doHLTObject = " << doHLTObject << std::endl;
+    std::cout << "doHLTObject_phoVar = " << doHLTObject_phoVar << std::endl;
     std::vector<std::string> hltObjectPaths(nTriggersNum);
     if (doHLTObject) {
         for (int i = 0; i < nTriggersNum; ++i) {
@@ -870,6 +918,7 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
                 noPrescaleNum[i] = (prescalesNum[iPrescale] == 1);
             }
 
+            int phoIndex = -1;
             float maxPt = -1;
             float phoEta = -999;
             float phoPhi = -999;
@@ -943,6 +992,7 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
                 }
 
                 if ((*ggHi.phoEt)[i] > maxPt) {
+                    phoIndex = i;
                     maxPt = (*ggHi.phoEt)[i];
                     phoEta = (*ggHi.phoEta)[i];
                     phoPhi = (*ggHi.phoPhi)[i];
@@ -1068,6 +1118,20 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
                             double dR = getDR(phoEta, phoPhi, eta_HLT, phi_HLT);
                             if (dR < 0.1) {
                                 h2D_scaleHLT[iHLT][subdet]->Fill(maxPt, pt_HLT/maxPt);
+
+                                if (doHLTObject_phoVar) {
+                                    h2D_scaleHLT_phoVar[iHLT][PHOVAR_DEP::kSCEtaWidth][subdet]->Fill(
+                                            (*ggHi.phoSCEtaWidth)[phoIndex], pt_HLT/maxPt);
+                                    h2D_scaleHLT_phoVar[iHLT][PHOVAR_DEP::kSCPhiWidth][subdet]->Fill(
+                                            (*ggHi.phoSCPhiWidth)[phoIndex], pt_HLT/maxPt);
+                                    h2D_scaleHLT_phoVar[iHLT][PHOVAR_DEP::kSCBrem][subdet]->Fill(
+                                            (*ggHi.phoSCBrem)[phoIndex], pt_HLT/maxPt);
+                                    h2D_scaleHLT_phoVar[iHLT][PHOVAR_DEP::kR9][subdet]->Fill(
+                                            (*ggHi.phoR9)[phoIndex], pt_HLT/maxPt);
+                                    h2D_scaleHLT_phoVar[iHLT][PHOVAR_DEP::ksumIso][subdet]->Fill(
+                                            ((*ggHi.pho_ecalClusterIsoR4)[phoIndex] + (*ggHi.pho_hcalRechitIsoR4)[phoIndex] + (*ggHi.pho_trackIsoR4PtCut20)[phoIndex]),
+                                            pt_HLT/maxPt);
+                                }
                             }
                         }
                     }
@@ -1096,7 +1160,6 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
         }
     }
 
-    // save TH2D
     TH2D* h2D_etaphi_Num_ratio[nNum];
     for (int i = 0; i < nNum; ++i) {
         std::string tmpHistName = Form("%s_ratio", h2D_etaphi_Num[i]->GetName());
@@ -1116,9 +1179,70 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
         h2D_etaphi_Num[i]->Write("",TObject::kOverwrite);
         h2D_etaphi_Num_ratio[i]->Write("",TObject::kOverwrite);
     }
+
     for (int i = 0; i < nTriggersNum; ++i) {
-        h2D_scaleHLT[i][0]->Write("",TObject::kOverwrite);
-        h2D_scaleHLT[i][1]->Write("",TObject::kOverwrite);
+        for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+            h2D_scaleHLT[i][iSubdet]->Write("",TObject::kOverwrite);
+        }
+    }
+
+    if (doHLTObject_phoVar) {
+        for (int i = 0; i < nTriggersNum; ++i) {
+            for (int iDep = 0; iDep < PHOVAR_DEP::kN_PHOVAR_DEP; ++iDep) {
+                for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+                    h2D_scaleHLT_phoVar[i][iDep][iSubdet]->Write("",TObject::kOverwrite);
+                }
+            }
+        }
+    }
+
+    // create 1D versions of energy scale histograms
+    TH1D* h_scaleHLT_projY[nTriggersNum][2];
+    TH1D* h_scaleHLT_eScale[nTriggersNum][2];
+    TH1D* h_scaleHLT_eRes[nTriggersNum][2];
+    for (int i = 0; i < nTriggersNum; ++i) {
+        for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+
+            std::string tmpRefName = h2D_scaleHLT[i][iSubdet]->GetName();
+            std::string tmpTitle = h2D_scaleHLT[i][iSubdet]->GetTitle();
+            double tmpYmin = h2D_scaleHLT[i][iSubdet]->GetYaxis()->GetXmin();
+            double tmpYmax = h2D_scaleHLT[i][iSubdet]->GetYaxis()->GetXmax();
+            std::string tmpHistName = "";
+            std::string yTitle = "";
+            // h_scaleHLT_projY[][]
+            tmpHistName = replaceAll(tmpRefName, "h2D_", "h_");
+            tmpHistName += "_projY";
+            h_scaleHLT_projY[i][iSubdet] = (TH1D*)h2D_scaleHLT[i][iSubdet]->ProjectionY(tmpHistName.c_str());
+            h_scaleHLT_projY[i][iSubdet]->SetMarkerStyle(kFullCircle);
+
+            h_scaleHLT_projY[i][iSubdet]->Write("",TObject::kOverwrite);
+
+            // h_scaleHLT_eScale[][]
+            TObjArray aSlices;
+            int nBinsX = h2D_scaleHLT[i][iSubdet]->GetXaxis()->GetNbins();
+            int binsXmerge = nBinsX/4;
+            h2DTmp = (TH2D*)h2D_scaleHLT[i][iSubdet]->RebinX(binsXmerge, Form("%s_tmp", tmpRefName.c_str()));
+            h2DTmp->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
+
+            tmpHistName = replaceAll(tmpRefName, "h2D_", "h_eScale_");
+            h_scaleHLT_eScale[i][iSubdet] = (TH1D*)aSlices.At(1)->Clone(tmpHistName.c_str());
+            h_scaleHLT_eScale[i][iSubdet]->SetTitle(tmpTitle.c_str());
+            yTitle = Form ("< %s >", h2D_scaleHLT[i][iSubdet]->GetYaxis()->GetTitle());
+            h_scaleHLT_eScale[i][iSubdet]->SetYTitle(yTitle.c_str());
+            h_scaleHLT_eScale[i][iSubdet]->SetAxisRange(tmpYmin, tmpYmax, "Y");
+            h_scaleHLT_eScale[i][iSubdet]->SetMarkerStyle(kFullCircle);
+            h_scaleHLT_eScale[i][iSubdet]->Write("",TObject::kOverwrite);
+
+            // h_scaleHLT_eRes[][]
+            tmpHistName = replaceAll(tmpRefName, "h2D_", "h_eRes_");
+            h_scaleHLT_eRes[i][iSubdet] = (TH1D*)aSlices.At(2)->Clone(tmpHistName.c_str());
+            h_scaleHLT_eRes[i][iSubdet]->SetTitle(tmpTitle.c_str());
+            yTitle = Form ("#sigma(  %s )", h2D_scaleHLT[i][iSubdet]->GetYaxis()->GetTitle());
+            h_scaleHLT_eRes[i][iSubdet]->SetYTitle(yTitle.c_str());
+            h_scaleHLT_eRes[i][iSubdet]->SetAxisRange(0, 0.45, "Y");
+            h_scaleHLT_eRes[i][iSubdet]->SetMarkerStyle(kFullCircle);
+            h_scaleHLT_eRes[i][iSubdet]->Write("",TObject::kOverwrite);
+        }
     }
 
     // create efficiency graphs
@@ -1152,9 +1276,8 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
         }
     }
 
-    // plotting
+    ///// plotting /////
     TCanvas* c = 0;
-    TH1D* hTmp = 0;
     TLegend* leg = 0;
     TLine* line = 0;
     TLatex* latex = 0;
@@ -1367,6 +1490,202 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
             line->DrawClone();
         }
 
+        // extract fraction of entries with energy scale < 1.
+        double integral = h2D_scaleHLT[i][iSubdet]->Integral();
+        double binYequals1 = h2D_scaleHLT[i][iSubdet]->GetYaxis()->FindBin(1);
+        double fractionBelow1 = h2D_scaleHLT[i][iSubdet]->Integral(0, -1, 1, binYequals1) / integral;
+
+        latex = new TLatex();
+
+        setTextAlignment(latex, "NE");
+
+        std::string textTmp = Form ("#frac{y < 1}{total} = %.0f%%", fractionBelow1*100);
+        std::vector<std::string> textLinesTmp;
+        textLinesTmp.push_back(textTmp);
+
+        latex->SetTextSize(latex->GetTextSize()*0.5);
+        float textOffsetXTmp = 0.04;
+        float textOffsetYTmp = 0.08;
+        drawTextLines(latex, c, textLinesTmp, "NE", textOffsetXTmp, textOffsetYTmp);
+
+        c->Write("",TObject::kOverwrite);
+
+        // save canvas as picture if a figure name is provided.
+        if (! outputFigureName.EqualTo("")) {
+
+            c->SaveAs(Form("%s.C", outputFigureName.Data()));
+            c->SaveAs(Form("%s.png", outputFigureName.Data()));
+            c->SaveAs(Form("%s.pdf", outputFigureName.Data()));
+        }
+        c->Close();
+    }
+    }
+
+    if (doHLTObject_phoVar) {
+    for (int i = 0; i < nTriggersNum; ++i) {
+        for (int iDep = 0; iDep < PHOVAR_DEP::kN_PHOVAR_DEP; ++iDep) {
+            for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+                c = new TCanvas("cnv_","",windowWidth,windowHeight);
+                setCanvasMargin(c, leftMargin, 0.15, bottomMargin, 0.15);
+                setCanvasFinal(c);
+                c->cd();
+
+                std::string tmpHistName = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->GetName();
+                std::string tmpCanvasName = Form("cvn_%s", tmpHistName.substr(4).c_str());
+                c->SetName(tmpCanvasName.c_str());
+
+                // do not offset title for the TH2D canvas
+                setTH1_photonTrigger(h2D_scaleHLT_phoVar[i][iDep][iSubdet], c);
+                h2D_scaleHLT_phoVar[i][iDep][iSubdet]->SetTitleOffset(1.25, "X");
+                h2D_scaleHLT_phoVar[i][iDep][iSubdet]->SetTitleOffset(1.25, "Y");
+                // h2D_scaleHLT[i][iSubdet]->Scale(1./(double)h2D_scaleHLT[i][iSubdet]->Integral());
+                h2D_scaleHLT_phoVar[i][iDep][iSubdet]->Draw("colz");
+
+                // draw line at energy scale = 1
+                double xMin_h2D = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->GetXaxis()->GetXmin();
+                double xMax_h2D = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->GetXaxis()->GetXmax();
+
+                line = new TLine(xMin_h2D, 1, xMax_h2D, 1);
+                line->SetLineStyle(kDashed);
+                line->SetLineWidth(lineWidth);
+                line->DrawClone();
+
+                // draw line above which the integral is the 95% of the total integral
+                std::vector<float> fractions{0.95, 0.99};
+                for (std::vector<float>::const_iterator itFrac = fractions.begin(); itFrac !=fractions.end(); ++itFrac) {
+
+                    int binFrac = getBin4IntegralFraction(h2D_scaleHLT_phoVar[i][iDep][iSubdet], (*itFrac), "Y");
+                    if (binFrac < 0) continue;
+                    double yFrac = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->GetYaxis()->GetBinLowEdge(binFrac);
+
+                    line = new TLine(xMin_h2D, yFrac, xMax_h2D, yFrac);
+                    line->SetLineStyle(kDotted);
+                    line->SetLineWidth(lineWidth);
+                    line->DrawClone();
+                }
+
+                // extract fraction of entries with energy scale < 1.
+                double integral = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->Integral();
+                double binYequals1 = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->GetYaxis()->FindBin(1);
+                double fractionBelow1 = h2D_scaleHLT_phoVar[i][iDep][iSubdet]->Integral(0, -1, 1, binYequals1) / integral;
+
+                latex = new TLatex();
+
+                setTextAlignment(latex, "NE");
+
+                std::string textTmp = Form ("#frac{y < 1}{total} = %.0f%%", fractionBelow1*100);
+                std::vector<std::string> textLinesTmp;
+                textLinesTmp.push_back(textTmp);
+
+                latex->SetTextSize(latex->GetTextSize()*0.5);
+                float textOffsetXTmp = 0.04;
+                float textOffsetYTmp = 0.08;
+                drawTextLines(latex, c, textLinesTmp, "NE", textOffsetXTmp, textOffsetYTmp);
+
+                c->Write("",TObject::kOverwrite);
+
+                // save canvas as picture if a figure name is provided.
+                if (! outputFigureName.EqualTo("")) {
+
+                    c->SaveAs(Form("%s.C", outputFigureName.Data()));
+                    c->SaveAs(Form("%s.png", outputFigureName.Data()));
+                    c->SaveAs(Form("%s.pdf", outputFigureName.Data()));
+                }
+                c->Close();
+            }
+        }
+    }
+    }
+
+    // h_scaleHLT_projY[][]
+    for (int i = 0; i < nTriggersNum; ++i) {
+        for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+        c = new TCanvas("cnv_","",windowWidth,windowHeight);
+        setCanvasMargin(c, leftMargin, 0.15, bottomMargin, 0.15);
+        setCanvasFinal(c);
+        c->cd();
+
+        std::string tmpHistName = h_scaleHLT_projY[i][iSubdet]->GetName();
+        std::string tmpCanvasName = Form("cvn_%s", tmpHistName.substr(2).c_str());
+        c->SetName(tmpCanvasName.c_str());
+
+        // do not offset title for the TH2D canvas
+        setTH1_photonTrigger(h_scaleHLT_projY[i][iSubdet], c);
+        h_scaleHLT_projY[i][iSubdet]->SetTitleOffset(1.25, "X");
+        h_scaleHLT_projY[i][iSubdet]->SetTitleOffset(1.25, "Y");
+        h_scaleHLT_projY[i][iSubdet]->Draw("e");
+
+        c->Write("",TObject::kOverwrite);
+
+        // save canvas as picture if a figure name is provided.
+        if (! outputFigureName.EqualTo("")) {
+
+            c->SaveAs(Form("%s.C", outputFigureName.Data()));
+            c->SaveAs(Form("%s.png", outputFigureName.Data()));
+            c->SaveAs(Form("%s.pdf", outputFigureName.Data()));
+        }
+        c->Close();
+    }
+    }
+
+    //TH1D* h_scaleHLT_eScale[nTriggersNum][2];
+    for (int i = 0; i < nTriggersNum; ++i) {
+        for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+        c = new TCanvas("cnv_","",windowWidth,windowHeight);
+        setCanvasMargin(c, leftMargin, 0.15, bottomMargin, 0.15);
+        setCanvasFinal(c);
+        c->cd();
+
+        std::string tmpHistName = h_scaleHLT_eScale[i][iSubdet]->GetName();
+        std::string tmpCanvasName = Form("cvn_%s", tmpHistName.substr(2).c_str());
+        c->SetName(tmpCanvasName.c_str());
+
+        // do not offset title for the TH2D canvas
+        setTH1_photonTrigger(h_scaleHLT_eScale[i][iSubdet], c);
+        h_scaleHLT_eScale[i][iSubdet]->SetTitleOffset(1.25, "X");
+        h_scaleHLT_eScale[i][iSubdet]->SetTitleOffset(1.25, "Y");
+        h_scaleHLT_eScale[i][iSubdet]->Draw("e");
+
+        // draw line at energy scale = 1
+        double xMin_h2D = h_scaleHLT_eScale[i][iSubdet]->GetXaxis()->GetXmin();
+        double xMax_h2D = h_scaleHLT_eScale[i][iSubdet]->GetXaxis()->GetXmax();
+
+        line = new TLine(xMin_h2D, 1, xMax_h2D, 1);
+        line->SetLineStyle(kDashed);
+        line->SetLineWidth(lineWidth);
+        line->DrawClone();
+
+        c->Write("",TObject::kOverwrite);
+
+        // save canvas as picture if a figure name is provided.
+        if (! outputFigureName.EqualTo("")) {
+
+            c->SaveAs(Form("%s.C", outputFigureName.Data()));
+            c->SaveAs(Form("%s.png", outputFigureName.Data()));
+            c->SaveAs(Form("%s.pdf", outputFigureName.Data()));
+        }
+        c->Close();
+    }
+    }
+
+    //TH1D* h_scaleHLT_eRes[nTriggersNum][2];
+    for (int i = 0; i < nTriggersNum; ++i) {
+        for (int iSubdet = 0; iSubdet < 2; ++iSubdet) {
+        c = new TCanvas("cnv_","",windowWidth,windowHeight);
+        setCanvasMargin(c, leftMargin, 0.15, bottomMargin, 0.15);
+        setCanvasFinal(c);
+        c->cd();
+
+        std::string tmpHistName = h_scaleHLT_eRes[i][iSubdet]->GetName();
+        std::string tmpCanvasName = Form("cvn_%s", tmpHistName.substr(2).c_str());
+        c->SetName(tmpCanvasName.c_str());
+
+        // do not offset title for the TH2D canvas
+        setTH1_photonTrigger(h_scaleHLT_eRes[i][iSubdet], c);
+        h_scaleHLT_eRes[i][iSubdet]->SetTitleOffset(1.25, "X");
+        h_scaleHLT_eRes[i][iSubdet]->SetTitleOffset(1.25, "Y");
+        h_scaleHLT_eRes[i][iSubdet]->Draw("e");
+
         c->Write("",TObject::kOverwrite);
 
         // save canvas as picture if a figure name is provided.
@@ -1449,9 +1768,9 @@ std::string prepareTextEta(float etaLow, float etaUp)
 {
     std::string str = "";
     if (etaLow <= 0 && etaUp > 0)
-        str  = Form("|#eta| < %.1f", etaUp);
+        str  = Form("|#eta| < %.2f", etaUp);
     else if (etaLow > 0 && etaUp > 0)
-        str  = Form("%.1f < |#eta| < %.1f", etaLow, etaUp);
+        str  = Form("%.2f < |#eta| < %.2f", etaLow, etaUp);
 
     return str;
 }
