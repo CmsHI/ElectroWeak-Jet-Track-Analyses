@@ -75,6 +75,7 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
     /*
      * mode = 0 : default mode
      * mode = 1 : default mode + do HLT energy scale
+     * mode = 2 : default mode + do HLT energy scale + do HLT energy scale as fnc. of photon variables
      */
     // input for mode
     int mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
