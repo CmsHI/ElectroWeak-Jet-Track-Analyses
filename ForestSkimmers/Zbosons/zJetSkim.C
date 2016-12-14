@@ -1,7 +1,7 @@
 #include <TFile.h>
 #include <TTree.h>
-#include <TChain.h>
 #include <TRandom3.h>
+#include <TMath.h>
 
 #include <vector>
 #include <string>
@@ -15,6 +15,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/fileUtil.h"
 #include "../../Corrections/electrons/electronCorrector.h"
 #include "../../Corrections/jets/jetCorrector.h"
 #include "../../Corrections/jets/L2L3/L2L3ResidualWFits.h"
@@ -203,184 +204,6 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
        }
        std::cout<<"##### END #####"<< std::endl;
 
-       TChain* treeHLT   = new TChain("hltanalysis/HltTree");
-       TChain* treeggHiNtuplizer  = new TChain("ggHiNtuplizer/EventTree");
-       TChain* treeEvent = new TChain("ggHiNtuplizer/EventTree");
-       TChain* treeJet[nJetCollections];
-       for (int i=0; i<nJetCollections; ++i) {
-           treeJet[i] = new TChain(Form("%s/t", jetCollections.at(i).c_str()));
-       }
-       TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
-       TChain* treeSkim  = new TChain("skimanalysis/HltTree");
-       TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-
-       for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-          treeHLT->Add((*it).c_str());
-          treeggHiNtuplizer->Add((*it).c_str());
-          treeEvent->Add((*it).c_str());
-          for (int i=0; i<nJetCollections; ++i) {
-              treeJet[i]->Add((*it).c_str());
-          }
-          treeHiEvt->Add((*it).c_str());
-          treeSkim->Add((*it).c_str());
-          treeHiForestInfo->Add((*it).c_str());
-       }
-
-       HiForestInfoController hfic(treeHiForestInfo);
-       std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-       hfic.printHiForestInfo();
-       std::cout<<"###"<< std::endl;
-
-       treeHLT->SetBranchStatus("*",0);     // disable all branches
-       treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*v1*",1);     // enable photon branches
-       treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
-       //treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                   // no such branch
-       treeHLT->SetBranchStatus("HLT_HIL2Mu*",1);                     // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL3Mu*",1);                     // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL1DoubleMu*",1);                     // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL2DoubleMu*",1);                     // enable muon branches
-       treeHLT->SetBranchStatus("HLT_HIL3DoubleMu*",1);                     // enable muon branches
-
-       treeEvent->SetBranchStatus("*",0);
-       treeEvent->SetBranchStatus("run",1);
-       treeEvent->SetBranchStatus("event",1);
-       treeEvent->SetBranchStatus("lumis",1);
-
-       for (int i=0; i<nJetCollections; ++i) {
-           treeJet[i]->SetBranchStatus("*",0);        // disable all branches
-           treeJet[i]->SetBranchStatus("nref",1);     // enable jet branches
-           treeJet[i]->SetBranchStatus("rawpt",1);    // enable jet branches
-           treeJet[i]->SetBranchStatus("jtpt",1);     // enable jet branches
-           treeJet[i]->SetBranchStatus("jteta",1);    // enable jet branches
-           treeJet[i]->SetBranchStatus("jtphi",1);    // enable jet branches
-           treeJet[i]->SetBranchStatus("jtpu",1);     // enable jet branches
-           treeJet[i]->SetBranchStatus("track*",1);
-           treeJet[i]->SetBranchStatus("charged*",1);
-           treeJet[i]->SetBranchStatus("photon*",1);
-           treeJet[i]->SetBranchStatus("neutral*",1);
-           treeJet[i]->SetBranchStatus("eMax*",1);
-           treeJet[i]->SetBranchStatus("eSum*",1);
-           treeJet[i]->SetBranchStatus("eN*",1);
-           treeJet[i]->SetBranchStatus("muMax*",1);
-           treeJet[i]->SetBranchStatus("muSum*",1);
-           treeJet[i]->SetBranchStatus("muN*",1);
-           if (isMC) {
-               treeJet[i]->SetBranchStatus("ref*",1);
-               treeJet[i]->SetBranchStatus("matchedPt",1);
-               treeJet[i]->SetBranchStatus("matchedR",1);
-               treeJet[i]->SetBranchStatus("beamId1",1);
-               treeJet[i]->SetBranchStatus("beamId2",1);
-               treeJet[i]->SetBranchStatus("pthat",1);
-               treeJet[i]->SetBranchStatus("ngen",1);
-               treeJet[i]->SetBranchStatus("gen*",1);
-               treeJet[i]->SetBranchStatus("signalChargedSum",1);
-               treeJet[i]->SetBranchStatus("signalHardSum",1);
-               treeJet[i]->SetBranchStatus("subid",1);
-               treeJet[i]->SetBranchStatus("smpt",1);
-               treeJet[i]->SetBranchStatus("fr01Chg",1);
-               treeJet[i]->SetBranchStatus("fr01EM",1);
-               treeJet[i]->SetBranchStatus("fr01",1);
-           }
-       }
-
-       // specify explicitly which branches to store, do not use wildcard
-       treeHiEvt->SetBranchStatus("*",0);
-       treeHiEvt->SetBranchStatus("run",1);
-       treeHiEvt->SetBranchStatus("evt",1);
-       treeHiEvt->SetBranchStatus("lumi",1);
-       treeHiEvt->SetBranchStatus("vz",1);
-       treeHiEvt->SetBranchStatus("hiBin",1);
-       treeHiEvt->SetBranchStatus("hiHF",1);
-       treeHiEvt->SetBranchStatus("hiHFplus",1);
-       treeHiEvt->SetBranchStatus("hiHFminus",1);
-       treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
-       treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
-       treeHiEvt->SetBranchStatus("hiNevtPlane",1);
-       if (isMC) {
-           treeHiEvt->SetBranchStatus("Npart",1);
-           treeHiEvt->SetBranchStatus("Ncoll",1);
-           treeHiEvt->SetBranchStatus("Nhard",1);
-           treeHiEvt->SetBranchStatus("ProcessID",1);
-           treeHiEvt->SetBranchStatus("pthat",1);
-           treeHiEvt->SetBranchStatus("weight",1);
-           treeHiEvt->SetBranchStatus("alphaQCD",1);
-           treeHiEvt->SetBranchStatus("alphaQED",1);
-           treeHiEvt->SetBranchStatus("qScale",1);
-           treeHiEvt->SetBranchStatus("npus",1);        // store pileup info
-           treeHiEvt->SetBranchStatus("tnpus",1);       // store pileup info
-       }
-
-       float vz;
-       Int_t hiBin;
-
-       treeHiEvt->SetBranchAddress("vz",&vz);
-       treeHiEvt->SetBranchAddress("hiBin",&hiBin);
-
-       // specify explicitly which branches to store, do not use wildcard
-       treeSkim->SetBranchStatus("*",0);
-
-       Int_t pcollisionEventSelection;  // this filter is used for HI.
-       if (isHI) {
-           treeSkim->SetBranchStatus("pcollisionEventSelection",1);
-           if (treeSkim->GetBranch("pcollisionEventSelection")) {
-               treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
-           }
-           else {   // overwrite to default
-               pcollisionEventSelection = 1;
-               std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
-               std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
-           }
-       }
-       else {
-           pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
-       }
-       Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
-       if (isPP) {
-           treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
-           if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
-               treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
-           }
-           else {   // overwrite to default
-               pPAprimaryVertexFilter = 1;
-               std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
-               std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
-           }
-       }
-       else {
-           pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
-       }
-       Int_t pBeamScrapingFilter;   // this filter is used for PP.
-       if (isPP) {
-           treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
-           if (treeSkim->GetBranch("pBeamScrapingFilter")) {
-               treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
-           }
-           else {   // overwrite to default
-               pBeamScrapingFilter = 1;
-               std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
-               std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
-           }
-       }
-       else {
-           pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
-       }
-
-       // event information
-       UInt_t run, lumis;
-       ULong64_t event;
-       treeEvent->SetBranchAddress("run", &run);
-       treeEvent->SetBranchAddress("event", &event);
-       treeEvent->SetBranchAddress("lumis", &lumis);
-
-       // objects for z-jet correlations
-       ggHiNtuplizer ggHi;
-       ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
-       std::vector<Jets> jets(nJetCollections);
-       for (int i=0; i<nJetCollections; ++i) {
-           jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
-       }
-
        // correctors
        electronCorrector correctorEle;
        if (doCorrectionEle > 0 && doDiElectron > 0) {
@@ -510,7 +333,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            vertexBinWidth = 30/nVertexBins;     // number of "vz"s    that a vertex     bin covers
                                                 // accepted vz range is -15 to 15.
 
-           inputMB = new TFile(minBiasJetSkimFile, "READ");
+           inputMB = TFile::Open(minBiasJetSkimFile, "READ");
 
            TRandom3 rand(12345);    // random number seed should be fixed or reproducible
            std::cout <<"Tree initialization for MinBias mixing" << std::endl;
@@ -546,61 +369,25 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
-       TFile* output = new TFile(outputFile,"RECREATE");
+       TFile* output = TFile::Open(outputFile,"RECREATE");
        TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
        // output tree variables
-       TTree* outputTreeHLT    = treeHLT->CloneTree(0);
-       outputTreeHLT->SetName("hltTree");
-       outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
-       TTree* outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+       TTree* outputTreeHLT = 0;
+       TTree* outputTreeggHiNtuplizer = 0;
        TTree* outputTreeJet[nJetCollections];
-       for (int i=0; i<nJetCollections; ++i) {
-           outputTreeJet[i] = treeJet[i]->CloneTree(0);
-
-           // pick a unique, but also not complicated name for jet Trees
-           // jet collection names which are complicated will be put into tree title
-           std::string treeJetName = jetCollections.at(i).c_str();
-           std::string treeJetTitle = jetCollections.at(i).c_str();
-           std::string currentTitle = outputTreeJet[i]->GetTitle();
-           // do not lose the current title
-           if (currentTitle.size() > 0) treeJetTitle = Form("%s - %s", treeJetTitle.c_str(), currentTitle.c_str());
-
-           outputTreeJet[i]->SetName(treeJetName.c_str());
-           outputTreeJet[i]->SetTitle(treeJetTitle.c_str());
-       }
-       TTree* outputTreeHiEvt = treeHiEvt->CloneTree(0);
-       outputTreeHiEvt->SetName("HiEvt");
-       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
-       TTree* outputTreeSkim   = treeSkim->CloneTree(0);
-       outputTreeSkim->SetName("skim");
-       outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
-//       TTree* outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-//       outputTreeHiForestInfo->SetName("HiForestInfo");
-//       outputTreeHiForestInfo->SetTitle("first entry of HiForest/HiForestInfo");
-
-       outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
-       outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
-       for (int i=0; i<nJetCollections; ++i) {
-           outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
-       }
-       outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
-//       outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-//
-//       // write HiForestInfo
-//       treeHiForestInfo->GetEntry(0);
-//       outputTreeHiForestInfo->Fill();
+       TTree* outputTreeHiEvt = 0;
+       TTree* outputTreeSkim = 0;
 
        // trees for diLepton pairs
-       TTree* diElectronTree=0;
+       TTree* diElectronTree = 0;
        // construct dielectron pairs during zJet skim
        if (doDiElectron > 0)
        {
            diElectronTree = new TTree("dielectron","electron pairs");
            diElectronTree->SetMaxTreeSize(MAXTREESIZE);
        }
-       TTree* diMuonTree =0;
+       TTree* diMuonTree = 0;
        // construct dimuon pairs during zJet skim
        if (doDiMuon > 0)
        {
@@ -664,436 +451,694 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            }
        }
 
+       int nFiles = inputFiles.size();
+
+       TFile* fileTmp = 0;
+       std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
+       // read the first file only to get the HiForest info
+       std::string inputPath = inputFiles.at(0).c_str();
+       fileTmp = TFile::Open(inputPath.c_str(), "READ");
+
+       TTree* treeHLT = 0;
+       TTree* treeggHiNtuplizer = 0;
+       TTree* treeEvent = 0;
+       TTree* treeJet[nJetCollections];
+       TTree* treeHiEvt = 0;
+       TTree* treeSkim  = 0;
+       TTree* treeHiForestInfo = 0;
+
+       if (nFiles == 1) {
+           // read one tree only to get the number of entries
+           treeEvent = (TTree*)fileTmp->Get("ggHiNtuplizer/EventTree");
+           Long64_t entriesTmp = treeEvent->GetEntries();
+           std::cout << "entries = " << entriesTmp << std::endl;
+       }
+
+       treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+       HiForestInfoController hfic(treeHiForestInfo);
+       std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+       hfic.printHiForestInfo();
+       std::cout<<"###"<< std::endl;
+
+       fileTmp->Close();
+       // done with initial reading
+
        EventMatcher* em = new EventMatcher();
        Long64_t duplicateEntries = 0;
 
        const double zMassConst = 91.18;
-       Long64_t entries = treeEvent->GetEntries();
+       Long64_t entries = 0;
        Long64_t entriesPassedEventSelection = 0;
        Long64_t entriesAnalyzed = 0;
-       std::cout << "entries = " << entries << std::endl;
+
        std::cout<< "Loop : ggHiNtuplizer/EventTree" <<std::endl;
-       for (Long64_t j_entry=0; j_entry<entries; ++j_entry)
-       {
-           if (j_entry % 2000 == 0)  {
-             std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
-           }
+       for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
-           treeHLT->GetEntry(j_entry);
-           treeggHiNtuplizer->GetEntry(j_entry);
-           treeEvent->GetEntry(j_entry);
-           for (int i=0; i<nJetCollections; ++i) {
-               treeJet[i]->GetEntry(j_entry);
-           }
-           treeSkim->GetEntry(j_entry);
-           treeHiEvt->GetEntry(j_entry);
+           std::string inputPath = inputFiles.at(iFile).c_str();
+           std::cout <<"iFile = " << iFile << " , " ;
+           std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+           fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
-           bool eventAdded = em->addEvent(run,lumis,event,j_entry);
-           if(!eventAdded) // this event is duplicate, skip this one.
-           {
-               duplicateEntries++;
+           // check if the file is usable, if not skip the file.
+           if (isGoodFile(fileTmp) != 0) {
+               std::cout << "File is not good. skipping file." << std::endl;
                continue;
            }
 
-           // event selection
-           if (!(TMath::Abs(vz) < cut_vz))  continue;
-           if (isHI) {
-               if ((pcollisionEventSelection < cut_pcollisionEventSelection))  continue;
+           treeHLT   = (TTree*)fileTmp->Get("hltanalysis/HltTree");
+           treeggHiNtuplizer  = (TTree*)fileTmp->Get("ggHiNtuplizer/EventTree");
+           treeEvent = (TTree*)fileTmp->Get("ggHiNtuplizer/EventTree");
+           for (int i=0; i<nJetCollections; ++i) {
+               treeJet[i] = (TTree*)fileTmp->Get(Form("%s/t", jetCollections.at(i).c_str()));
            }
-           else {
-               if (pPAprimaryVertexFilter < cut_pPAprimaryVertexFilter || pBeamScrapingFilter < cut_pBeamScrapingFilter)  continue;
-           }
-           entriesPassedEventSelection++;
+           treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
+           treeSkim  = (TTree*)fileTmp->Get("skimanalysis/HltTree");
 
-           int zIdx = -1;     // index of the leading z
+           treeHLT->SetBranchStatus("*",0);     // disable all branches
+           treeHLT->SetBranchStatus("HLT_*SinglePhoton*Eta*v*",1);     // enable photon branches
+           treeHLT->SetBranchStatus("HLT_*DoublePhoton*Eta*v*",1);     // enable photon branches
+           treeHLT->SetBranchStatus("*DoubleMu*",1);                      // enable muon branches
+           //treeHLT->SetBranchStatus("HLT_HIL1Mu*",1);                   // no such branch
+           treeHLT->SetBranchStatus("HLT_*L2Mu*",1);                     // enable muon branches
+           treeHLT->SetBranchStatus("HLT_*L3Mu*",1);                     // enable muon branches
+           treeHLT->SetBranchStatus("HLT_*L1DoubleMu*",1);                     // enable muon branches
+           treeHLT->SetBranchStatus("HLT_*L2DoubleMu*",1);                     // enable muon branches
+           treeHLT->SetBranchStatus("HLT_*L3DoubleMu*",1);                     // enable muon branches
 
-           // dielectron block
-           if (doDiElectron > 0) {
-               // skip if there are no electron pairs to study
-               if(ggHi.nEle < cut_nEle)  continue;
-
-               if(doCorrectionEle > 0)
-               {
-                   // correct the pt of electrons
-                   // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
-                   if (isHI)  correctorEle.correctPtsregressionTMVA(ggHi, hiBin);
-                   else if (isPP) correctorEle.correctPtsregressionGBR(ggHi);
-               }
-               if (energyScaleEle != 0 && energyScaleEle != 1)
-               {
-                   correctorEle.applyEnergyScale(ggHi, energyScaleEle);
-               }
-
-               // construct dielectron pairs during zJet skim
-               diEle.makeDiElectronPairs(ggHi);
-
-               // Zee-jet block
-               // find leading z from dielectron
-               // double maxZPt = -1;
-               double minDiffZMass = 9999;
-               for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
-               {
-                   if (smearZ > 0)
-                   {
-                       diEle.diElePt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
-                   }
-
-                   bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
-                   bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
-                   bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
-                   // bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
-
-                   if (failedPtCut)          continue;
-                   if (failedEtaCut)         continue;
-                   if (failedMassWindow)     continue;
-                   // if (failedOppositeCh)     continue;
-
-                   // some extra and rather loose cuts based on eta region
-                   // electron 1
-                   if (TMath::Abs(diEle.eleEta_1_out.at(i)) < 1.4791) {
-                       if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
-                       if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EB)                          continue;
-                   }
-                   else if (TMath::Abs(diEle.eleEta_1_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_1_out.at(i)) < 2.4) {
-                       if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
-                       if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
-                   }
-                   if (diEle.elePt_1_out.at(i) <= elePt)  continue;
-                   // electron 2
-                   if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
-                       if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
-                       if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EB)                          continue;
-                   }
-                   else if (TMath::Abs(diEle.eleEta_2_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_2_out.at(i)) < 2.4) {
-                       if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
-                       if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
-                   }
-                   if (diEle.elePt_2_out.at(i) <= elePt)  continue;
-
-                   /*
-                   if (diEle.diElePt_out.at(i) > maxZPt)
-                   {
-                       maxZPt = diEle.diElePt_out.at(i);
-                       zIdx = i;
-                   }
-                   */
-
-                   if (TMath::Abs(diEle.diEleM_out.at(i) - zMassConst) < minDiffZMass)
-                   {
-                       minDiffZMass = TMath::Abs(diEle.diEleM_out.at(i) - zMassConst);
-                       zIdx = i;
-                   }
-               }
-           }
-
-           // dimuon block
-           if (doDiMuon > 0) {
-               // skip if there are no muon pairs to study
-               if(ggHi.nMu < cut_nMu)  continue;
-
-               // construct dimuon pairs during zJet skim
-               diMu.makeDiMuonPairs(ggHi);
-
-               // Zmumu-jet block
-               // find leading z from dimuon
-               // double maxZPt = -1;
-               double minDiffZMass = 9999;
-               for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
-               {
-                   if (smearZ > 0)
-                   {
-                       diMu.diMuPt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
-                   }
-
-                   bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
-                   bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
-                   bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
-                   // bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
-
-                   if (failedPtCut)          continue;
-                   if (failedEtaCut)         continue;
-                   if (failedMassWindow)     continue;
-                   // if (failedOppositeCh)     continue;
-
-                   // some extra and rather loose cuts
-                   // muon 1
-                   if (diMu.muChi2NDF_1_out.at(i) > muChi2NDF) continue;
-                   if (TMath::Abs(diMu.muInnerD0_1_out.at(i)) > muInnerD0) continue;
-                   if (TMath::Abs(diMu.muInnerDz_1_out.at(i)) > muInnerDz) continue;
-                   if (diMu.muMuonHits_1_out.at(i) < muMuonHits) continue;
-                   if (diMu.muStations_1_out.at(i) < muStations) continue;
-                   if (diMu.muTrkLayers_1_out.at(i) < muTrkLayers) continue;
-                   if (diMu.muPixelHits_1_out.at(i) < muPixelHits) continue;
-                   if (diMu.muPt_1_out.at(i) <= muPt)  continue;
-
-                   // muon 2
-                   if (diMu.muChi2NDF_2_out.at(i) > muChi2NDF) continue;
-                   if (TMath::Abs(diMu.muInnerD0_2_out.at(i)) > muInnerD0) continue;
-                   if (TMath::Abs(diMu.muInnerDz_2_out.at(i)) > muInnerDz) continue;
-                   if (diMu.muMuonHits_2_out.at(i) < muMuonHits) continue;
-                   if (diMu.muStations_2_out.at(i) < muStations) continue;
-                   if (diMu.muTrkLayers_2_out.at(i) < muTrkLayers) continue;
-                   if (diMu.muPixelHits_2_out.at(i) < muPixelHits) continue;
-                   if (diMu.muPt_2_out.at(i) <= muPt)  continue;
-
-                   /*
-                   if (diMu.diMuPt_out.at(i) > maxZPt)
-                   {
-                       maxZPt = diMu.diMuPt_out.at(i);
-                       zIdx = i;
-                   }
-                   */
-
-                   if (TMath::Abs(diMu.diMuM_out.at(i) - zMassConst) < minDiffZMass)
-                   {
-                       minDiffZMass = TMath::Abs(diMu.diMuM_out.at(i) - zMassConst);
-                       zIdx = i;
-                   }
-               }
-           }
-
-           if (zIdx == -1) continue;
-           entriesAnalyzed++;
-
-           // jet corrections
-           if (isHI) {
-
-               if (doCorrectionResidual > 0) {
-                   for (int i=0; i < nJetCollections; ++i) {
-                       for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
-                       {
-                           if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
-                           {
-                               correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jets.at(i));
-                               break;
-                           }
-                       }
-                   }
-               }
-               if (doCorrectionL2L3 > 0)
-               {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
-                   }
-               }
-               if (nSmear > 0 && nSmear != 1)
-               {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       jets.at(i).replicateJets(nSmear);
-                   }
-               }
-               if (smearingResJetPhi > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
-                   }
-               }
-               if (smearingResJet > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
-                   }
-               }
-           }
-           else if (isPP) {
-
-               if (doCorrectionL2L3 > 0)
-               {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
-                   }
-               }
-
-               if (nSmear > 0 && nSmear != 1)
-               {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       jets.at(i).replicateJets(nSmear);
-                   }
-               }
-
-               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
-               {
-                   if (doCorrectionSmearingPhi > 0) {
-                       for (int i=0; i<nJetCollections; ++i) {
-                           correctorsJetSmear.at(i).applyPhisSmearing(jets.at(i));
-                       }
-                   }
-                   if (doCorrectionSmearing > 0) {
-                       for (int i=0; i<nJetCollections; ++i) {
-                           correctorsJetSmear.at(i).applyPtsSmearing(jets.at(i));
-                       }
-                   }
-               }
-               if (smearingResJetPhi > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
-                   }
-               }
-               if (smearingResJet > 0) {
-                   for (int i=0; i<nJetCollections; ++i) {
-                       correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
-                   }
-               }
-           }
-           // apply JES after corrections
-           if (energyScaleJet > 0 && energyScaleJet != 1)
-           {
-               for (int i=0; i<nJetCollections; ++i) {
-                   correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
-               }
-           }
+           treeggHiNtuplizer->SetBranchStatus("*",1);
+           treeEvent->SetBranchStatus("*",1);
+           treeEvent->SetBranchStatus("run",1);
+           treeEvent->SetBranchStatus("event",1);
+           treeEvent->SetBranchStatus("lumis",1);
 
            for (int i=0; i<nJetCollections; ++i) {
-               // z-jet correlation
-               // leading z Boson from dielectron is correlated to each jet in the event.
-               if (doDiElectron > 0)  zjet.at(i).makeZeeJetPairs(diEle, jets.at(i), zIdx, true);
-
-               // z-jet correlation
-               // leading z Boson from dimuon is correlated to each jet in the event.
-               if (doDiMuon > 0)  zjet.at(i).makeZmmJetPairs(diMu, jets.at(i), zIdx, true);
-           }
-
-           if(doMix > 0)
-           {
-               int centBin = hiBin / centBinWidth;
-               int vzBin   = (vz+15) / vertexBinWidth;
-               for (int k = 0; k < nJetCollections; ++k) {
-                   jetsMBoutput.at(k).nref = 0;
-
-                   zjetMB.at(k).clearZJetPairs(zIdx);
-                   if (nMB[centBin][vzBin][k] >= nEventsToMix)
-                   {
-                       for (int iMB=0; iMB<nEventsToMix; ++iMB)
-                       {
-                           Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
-                           treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
-
-                           // jet corrections for MB events
-                           if (isHI) {
-
-                               if (doCorrectionResidual > 0) {
-                                   for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
-                                   {
-                                       if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
-                                       {
-                                           correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jetsMB.at(k));
-                                           break;
-                                       }
-                                   }
-                               }
-                               if (doCorrectionL2L3 > 0)
-                               {
-                                   correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
-                               }
-                               if (nSmear > 0 && nSmear != 1)
-                               {
-                                   jetsMB.at(k).replicateJets(nSmear);
-                               }
-                               if (smearingResJetPhi > 0) {
-                                   correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
-                               }
-                               if (smearingResJet > 0) {
-                                   correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
-                               }
-                           }
-                           else if (isPP) {
-
-                               if (doCorrectionL2L3 > 0)
-                               {
-                                   correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
-                               }
-                               if (nSmear > 0 && nSmear != 1)
-                               {
-                                   jetsMB.at(k).replicateJets(nSmear);
-                               }
-                               if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
-                               {
-                                   if (doCorrectionSmearingPhi > 0) {
-                                       correctorsJetSmear.at(k).applyPhisSmearing(jetsMB.at(k));
-                                   }
-                                   if (doCorrectionSmearing > 0) {
-                                       correctorsJetSmear.at(k).applyPtsSmearing(jetsMB.at(k));
-                                   }
-                               }
-                               if (smearingResJetPhi > 0) {
-                                   correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
-                               }
-                               if (smearingResJet > 0) {
-                                   correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
-                               }
-                           }
-                           // apply JES after corrections
-                           if (energyScaleJet != 0 && energyScaleJet != 1)
-                           {
-                               correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
-                           }
-
-                           if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);
-                           if (doDiMuon > 0)     zjetMB.at(k).makeZmmJetPairsMB(diMu,  jetsMB.at(k), zIdx, true);
-
-                           // write jets from minBiasJetSkimFile to outputFile
-                           for(int j = 0; j < jetsMB.at(k).nref; ++j)
-                           {
-                               jetsMBoutput.at(k).rawpt[jetsMBoutput.at(k).nref] = jetsMB.at(k).rawpt[j];
-                               jetsMBoutput.at(k).jtpt [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpt[j];
-                               jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
-                               jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
-                               jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
-                               jetsMBoutput.at(k).jtpu [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpu[j];
-                               jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
-                               // jet ID variables
-                               jetsMBoutput.at(k).trackMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackMax[j];
-                               jetsMBoutput.at(k).trackSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackSum[j];
-                               jetsMBoutput.at(k).trackN [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackN[j];
-                               jetsMBoutput.at(k).chargedMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedMax[j];
-                               jetsMBoutput.at(k).chargedSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedSum[j];
-                               jetsMBoutput.at(k).chargedN [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedN[j];
-                               jetsMBoutput.at(k).photonMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonMax[j];
-                               jetsMBoutput.at(k).photonSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonSum[j];
-                               jetsMBoutput.at(k).photonN [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonN[j];
-                               jetsMBoutput.at(k).neutralMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralMax[j];
-                               jetsMBoutput.at(k).neutralSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralSum[j];
-                               jetsMBoutput.at(k).neutralN [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralN[j];
-                               jetsMBoutput.at(k).eMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).eMax[j];
-                               jetsMBoutput.at(k).eSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).eSum[j];
-                               jetsMBoutput.at(k).eN [jetsMBoutput.at(k).nref] = jetsMB.at(k).eN[j];
-                               jetsMBoutput.at(k).muMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).muMax[j];
-                               jetsMBoutput.at(k).muSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).muSum[j];
-                               jetsMBoutput.at(k).muN [jetsMBoutput.at(k).nref] = jetsMB.at(k).muN[j];
-
-                               jetsMBoutput.at(k).nref++;
-                           }
-
-                           // increase iterator
-                           iterMB[centBin][vzBin][k]++;
-                           if (iterMB[centBin][vzBin][k] == nMB[centBin][vzBin][k])  iterMB[centBin][vzBin][k] = 0;  // reset if necessary
-                       }
-                   }
-                   else {
-                       std::cout << "WARNING : the event lacks necessary number of MB events to mix." << std::endl;
-                       std::cout << Form("{run, lumis, event, j_entry} = %d, %d, %llu, %lld", run, lumis, event, j_entry) << std::endl;
-                       std::cout << Form("{hiBin, vz} = %d, %f", hiBin, vz) << std::endl;
-                       std::cout << "centBin = "<<centBin<<", vzBin = "<<vzBin<<", jetCollection index = "<<k<<std::endl;
-                       std::cout << "nMB[centBin][vzBin][jetCollection] = "<<nMB[centBin][vzBin][k]<<std::endl;
-                   }
-                   jetsMBoutput.at(k).b = -1;   // this branch is not an array.
-
-                   zJetTreeMB[k]->Fill();
-                   outputTreeJetMB[k]->Fill();
+               treeJet[i]->SetBranchStatus("*",0);        // disable all branches
+               treeJet[i]->SetBranchStatus("nref",1);     // enable jet branches
+               treeJet[i]->SetBranchStatus("rawpt",1);    // enable jet branches
+               treeJet[i]->SetBranchStatus("jtpt",1);     // enable jet branches
+               treeJet[i]->SetBranchStatus("jteta",1);    // enable jet branches
+               treeJet[i]->SetBranchStatus("jtphi",1);    // enable jet branches
+               treeJet[i]->SetBranchStatus("jtpu",1);     // enable jet branches
+               treeJet[i]->SetBranchStatus("track*",1);
+               treeJet[i]->SetBranchStatus("charged*",1);
+               treeJet[i]->SetBranchStatus("photon*",1);
+               treeJet[i]->SetBranchStatus("neutral*",1);
+               treeJet[i]->SetBranchStatus("eMax*",1);
+               treeJet[i]->SetBranchStatus("eSum*",1);
+               treeJet[i]->SetBranchStatus("eN*",1);
+               treeJet[i]->SetBranchStatus("muMax*",1);
+               treeJet[i]->SetBranchStatus("muSum*",1);
+               treeJet[i]->SetBranchStatus("muN*",1);
+               if (isMC) {
+                   treeJet[i]->SetBranchStatus("ref*",1);
+                   treeJet[i]->SetBranchStatus("matchedPt",1);
+                   treeJet[i]->SetBranchStatus("matchedR",1);
+                   treeJet[i]->SetBranchStatus("beamId1",1);
+                   treeJet[i]->SetBranchStatus("beamId2",1);
+                   treeJet[i]->SetBranchStatus("pthat",1);
+                   treeJet[i]->SetBranchStatus("ngen",1);
+                   treeJet[i]->SetBranchStatus("gen*",1);
+                   treeJet[i]->SetBranchStatus("signalChargedSum",1);
+                   treeJet[i]->SetBranchStatus("signalHardSum",1);
+                   treeJet[i]->SetBranchStatus("subid",1);
+                   treeJet[i]->SetBranchStatus("smpt",1);
+                   treeJet[i]->SetBranchStatus("fr01Chg",1);
+                   treeJet[i]->SetBranchStatus("fr01EM",1);
+                   treeJet[i]->SetBranchStatus("fr01",1);
                }
            }
 
-           outputTreeHLT->Fill();
-           outputTreeggHiNtuplizer->Fill();
-           for (int i = 0; i < nJetCollections; ++i) {
-               outputTreeJet[i]->Fill();
+           // specify explicitly which branches to store, do not use wildcard
+           treeHiEvt->SetBranchStatus("*",0);
+           treeHiEvt->SetBranchStatus("run",1);
+           treeHiEvt->SetBranchStatus("evt",1);
+           treeHiEvt->SetBranchStatus("lumi",1);
+           treeHiEvt->SetBranchStatus("vz",1);
+           treeHiEvt->SetBranchStatus("hiBin",1);
+           treeHiEvt->SetBranchStatus("hiHF",1);
+           treeHiEvt->SetBranchStatus("hiHFplus",1);
+           treeHiEvt->SetBranchStatus("hiHFminus",1);
+           treeHiEvt->SetBranchStatus("hiHFplusEta4",1);
+           treeHiEvt->SetBranchStatus("hiHFminusEta4",1);
+           treeHiEvt->SetBranchStatus("hiNevtPlane",1);
+           if (isMC) {
+               treeHiEvt->SetBranchStatus("Npart",1);
+               treeHiEvt->SetBranchStatus("Ncoll",1);
+               treeHiEvt->SetBranchStatus("Nhard",1);
+               treeHiEvt->SetBranchStatus("ProcessID",1);
+               treeHiEvt->SetBranchStatus("pthat",1);
+               treeHiEvt->SetBranchStatus("weight",1);
+               treeHiEvt->SetBranchStatus("alphaQCD",1);
+               treeHiEvt->SetBranchStatus("alphaQED",1);
+               treeHiEvt->SetBranchStatus("qScale",1);
+               treeHiEvt->SetBranchStatus("npus",1);        // store pileup info
+               treeHiEvt->SetBranchStatus("tnpus",1);       // store pileup info
            }
-           outputTreeHiEvt->Fill();
-           outputTreeSkim->Fill();
-           
-           if (doDiElectron > 0)  diElectronTree->Fill();
-           if (doDiMuon > 0)      diMuonTree->Fill();
-           for (int i = 0; i < nJetCollections; ++i) {
-               zJetTree[i]->Fill();
+
+           float vz;
+           Int_t hiBin;
+
+           treeHiEvt->SetBranchAddress("vz",&vz);
+           treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+
+           // specify explicitly which branches to store, do not use wildcard
+           treeSkim->SetBranchStatus("*",0);
+
+           Int_t pcollisionEventSelection;  // this filter is used for HI.
+           if (isHI) {
+               treeSkim->SetBranchStatus("pcollisionEventSelection",1);
+               if (treeSkim->GetBranch("pcollisionEventSelection")) {
+                   treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+               }
+               else {   // overwrite to default
+                   pcollisionEventSelection = 1;
+                   std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
+                   std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
+               }
            }
+           else {
+               pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
+           }
+           Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+           if (isPP) {
+               treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
+               if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
+                   treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
+               }
+               else {   // overwrite to default
+                   pPAprimaryVertexFilter = 1;
+                   std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
+                   std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
+               }
+           }
+           else {
+               pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
+           }
+           Int_t pBeamScrapingFilter;   // this filter is used for PP.
+           if (isPP) {
+               treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
+               if (treeSkim->GetBranch("pBeamScrapingFilter")) {
+                   treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
+               }
+               else {   // overwrite to default
+                   pBeamScrapingFilter = 1;
+                   std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
+                   std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
+               }
+           }
+           else {
+               pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
+           }
+
+           // event information
+           UInt_t run, lumis;
+           ULong64_t event;
+           /*
+           treeEvent->SetBranchAddress("run", &run);
+           treeEvent->SetBranchAddress("event", &event);
+           treeEvent->SetBranchAddress("lumis", &lumis);
+           */
+
+           // objects for z-jet correlations
+           ggHiNtuplizer ggHi;
+           ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
+           std::vector<Jets> jets(nJetCollections);
+           for (int i=0; i<nJetCollections; ++i) {
+               jets.at(i).setupTreeForReading(treeJet[i]);   // treeJet is input
+           }
+
+           output->cd();
+           // output tree variables
+           if (iFile == 0)  outputTreeHLT = treeHLT->CloneTree(0);
+           else             treeHLT->CopyAddresses(outputTreeHLT);
+           outputTreeHLT->SetName("hltTree");
+           outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
+           if (iFile == 0)  outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+           else             treeggHiNtuplizer->CopyAddresses(outputTreeggHiNtuplizer);
+           for (int i=0; i<nJetCollections; ++i) {
+               if (iFile == 0)  outputTreeJet[i] = treeJet[i]->CloneTree(0);
+               else             treeJet[i]->CopyAddresses(outputTreeJet[i]);
+
+               // pick a unique, but also not complicated name for jet Trees
+               // jet collection names which are complicated will be put into tree title
+               std::string treeJetName = jetCollections.at(i).c_str();
+               std::string treeJetTitle = jetCollections.at(i).c_str();
+               std::string currentTitle = outputTreeJet[i]->GetTitle();
+               // do not lose the current title
+               if (currentTitle.size() > 0) treeJetTitle = Form("%s - %s", treeJetTitle.c_str(), currentTitle.c_str());
+
+               outputTreeJet[i]->SetName(treeJetName.c_str());
+               outputTreeJet[i]->SetTitle(treeJetTitle.c_str());
+           }
+           if (iFile == 0)  outputTreeHiEvt = treeHiEvt->CloneTree(0);
+           else             treeHiEvt->CopyAddresses(outputTreeHiEvt);
+           outputTreeHiEvt->SetName("HiEvt");
+           outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+           if (iFile == 0)  outputTreeSkim = treeSkim->CloneTree(0);
+           else             treeSkim->CopyAddresses(outputTreeSkim);
+           outputTreeSkim->SetName("skim");
+           outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
+
+           if (iFile == 0) {
+               outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
+               outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
+               outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
+               for (int i=0; i<nJetCollections; ++i) {
+                   outputTreeJet[i]->SetMaxTreeSize(MAXTREESIZE);
+               }
+               outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
+           }
+
+           Long64_t entriesTmp = treeEvent->GetEntries();
+           entries += entriesTmp;
+           std::cout << "entries in File = " << entriesTmp << std::endl;
+           for (Long64_t j_entry=0; j_entry<entriesTmp; ++j_entry)
+           {
+               if (j_entry % 2000 == 0)  {
+                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+               }
+
+               treeHLT->GetEntry(j_entry);
+               treeggHiNtuplizer->GetEntry(j_entry);
+               treeEvent->GetEntry(j_entry);
+               for (int i=0; i<nJetCollections; ++i) {
+                   treeJet[i]->GetEntry(j_entry);
+               }
+               treeSkim->GetEntry(j_entry);
+               treeHiEvt->GetEntry(j_entry);
+
+               run = ggHi.run;
+               lumis = ggHi.lumis;
+               event = ggHi.event;
+
+               bool eventAdded = em->addEvent(run, lumis, event,j_entry);
+               if(!eventAdded) // this event is duplicate, skip this one.
+               {
+                   duplicateEntries++;
+                   continue;
+               }
+
+               // event selection
+               if (!(TMath::Abs(vz) < cut_vz))  continue;
+               if (isHI) {
+                   if ((pcollisionEventSelection < cut_pcollisionEventSelection))  continue;
+               }
+               else {
+                   if (pPAprimaryVertexFilter < cut_pPAprimaryVertexFilter || pBeamScrapingFilter < cut_pBeamScrapingFilter)  continue;
+               }
+               entriesPassedEventSelection++;
+
+               int zIdx = -1;     // index of the leading z
+
+               // dielectron block
+               if (doDiElectron > 0) {
+                   // skip if there are no electron pairs to study
+                   if(ggHi.nEle < cut_nEle)  continue;
+
+                   if(doCorrectionEle > 0)
+                   {
+                       // correct the pt of electrons
+                       // note that "elePt" branch of "outputTreeggHiNtuplizer" will be corrected as well.
+                       if (isHI)  correctorEle.correctPtsregressionTMVA(ggHi, hiBin);
+                       else if (isPP) correctorEle.correctPtsregressionGBR(ggHi);
+                   }
+                   if (energyScaleEle != 0 && energyScaleEle != 1)
+                   {
+                       correctorEle.applyEnergyScale(ggHi, energyScaleEle);
+                   }
+
+                   // construct dielectron pairs during zJet skim
+                   diEle.makeDiElectronPairs(ggHi);
+
+                   // Zee-jet block
+                   // find leading z from dielectron
+                   // double maxZPt = -1;
+                   double minDiffZMass = 9999;
+                   for(unsigned int i=0; i<(unsigned)diEle.diEleM_out.size(); ++i)
+                   {
+                       if (smearZ > 0)
+                       {
+                           diEle.diElePt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
+                       }
+
+                       bool failedPtCut  = (diEle.diElePt_out.at(i) < cutZPt) ;
+                       bool failedEtaCut = (TMath::Abs(diEle.diEleEta_out.at(i)) > cutZEta) ;
+                       bool failedMassWindow = (diEle.diEleM_out.at(i) < cutZMassMin || diEle.diEleM_out.at(i) > cutZMassMax);
+                       // bool failedOppositeCh = (diEle.eleCharge_1_out.at(i) == diEle.eleCharge_2_out.at(i));
+
+                       if (failedPtCut)          continue;
+                       if (failedEtaCut)         continue;
+                       if (failedMassWindow)     continue;
+                       // if (failedOppositeCh)     continue;
+
+                       // some extra and rather loose cuts based on eta region
+                       // electron 1
+                       if (TMath::Abs(diEle.eleEta_1_out.at(i)) < 1.4791) {
+                           if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                           if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EB)                          continue;
+                       }
+                       else if (TMath::Abs(diEle.eleEta_1_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_1_out.at(i)) < 2.4) {
+                           if (diEle.eleSigmaIEtaIEta_2012_1_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                           if (diEle.eleHoverE_1_out.at(i) > eleHoverE_EE)                          continue;
+                       }
+                       if (diEle.elePt_1_out.at(i) <= elePt)  continue;
+                       // electron 2
+                       if (TMath::Abs(diEle.eleEta_2_out.at(i)) < 1.4791) {
+                           if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EB)  continue;
+                           if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EB)                          continue;
+                       }
+                       else if (TMath::Abs(diEle.eleEta_2_out.at(i)) >= 1.4791 && TMath::Abs(diEle.eleEta_2_out.at(i)) < 2.4) {
+                           if (diEle.eleSigmaIEtaIEta_2012_2_out.at(i) > eleSigmaIEtaIEta_2012_EE)  continue;
+                           if (diEle.eleHoverE_2_out.at(i) > eleHoverE_EE)                          continue;
+                       }
+                       if (diEle.elePt_2_out.at(i) <= elePt)  continue;
+
+                       /*
+                       if (diEle.diElePt_out.at(i) > maxZPt)
+                       {
+                           maxZPt = diEle.diElePt_out.at(i);
+                           zIdx = i;
+                       }
+                       */
+
+                       if (TMath::Abs(diEle.diEleM_out.at(i) - zMassConst) < minDiffZMass)
+                       {
+                           minDiffZMass = TMath::Abs(diEle.diEleM_out.at(i) - zMassConst);
+                           zIdx = i;
+                       }
+                   }
+               }
+
+               // dimuon block
+               if (doDiMuon > 0) {
+                   // skip if there are no muon pairs to study
+                   if(ggHi.nMu < cut_nMu)  continue;
+
+                   // construct dimuon pairs during zJet skim
+                   diMu.makeDiMuonPairs(ggHi);
+
+                   // Zmumu-jet block
+                   // find leading z from dimuon
+                   // double maxZPt = -1;
+                   double minDiffZMass = 9999;
+                   for(unsigned int i=0; i<(unsigned)diMu.diMuM_out.size(); ++i)
+                   {
+                       if (smearZ > 0)
+                       {
+                           diMu.diMuPt_out.at(i) *= randSmearZ.Gaus(1, smearZ);
+                       }
+
+                       bool failedPtCut  = (diMu.diMuPt_out.at(i) < cutZPt) ;
+                       bool failedEtaCut = (TMath::Abs(diMu.diMuEta_out.at(i)) > cutZEta) ;
+                       bool failedMassWindow = (diMu.diMuM_out.at(i) < cutZMassMin || diMu.diMuM_out.at(i) > cutZMassMax);
+                       // bool failedOppositeCh = (diMu.muCharge_1_out.at(i) == diMu.muCharge_2_out.at(i));
+
+                       if (failedPtCut)          continue;
+                       if (failedEtaCut)         continue;
+                       if (failedMassWindow)     continue;
+                       // if (failedOppositeCh)     continue;
+
+                       // some extra and rather loose cuts
+                       // muon 1
+                       if (diMu.muChi2NDF_1_out.at(i) > muChi2NDF) continue;
+                       if (TMath::Abs(diMu.muInnerD0_1_out.at(i)) > muInnerD0) continue;
+                       if (TMath::Abs(diMu.muInnerDz_1_out.at(i)) > muInnerDz) continue;
+                       if (diMu.muMuonHits_1_out.at(i) < muMuonHits) continue;
+                       if (diMu.muStations_1_out.at(i) < muStations) continue;
+                       if (diMu.muTrkLayers_1_out.at(i) < muTrkLayers) continue;
+                       if (diMu.muPixelHits_1_out.at(i) < muPixelHits) continue;
+                       if (diMu.muPt_1_out.at(i) <= muPt)  continue;
+
+                       // muon 2
+                       if (diMu.muChi2NDF_2_out.at(i) > muChi2NDF) continue;
+                       if (TMath::Abs(diMu.muInnerD0_2_out.at(i)) > muInnerD0) continue;
+                       if (TMath::Abs(diMu.muInnerDz_2_out.at(i)) > muInnerDz) continue;
+                       if (diMu.muMuonHits_2_out.at(i) < muMuonHits) continue;
+                       if (diMu.muStations_2_out.at(i) < muStations) continue;
+                       if (diMu.muTrkLayers_2_out.at(i) < muTrkLayers) continue;
+                       if (diMu.muPixelHits_2_out.at(i) < muPixelHits) continue;
+                       if (diMu.muPt_2_out.at(i) <= muPt)  continue;
+
+                       /*
+                       if (diMu.diMuPt_out.at(i) > maxZPt)
+                       {
+                           maxZPt = diMu.diMuPt_out.at(i);
+                           zIdx = i;
+                       }
+                       */
+
+                       if (TMath::Abs(diMu.diMuM_out.at(i) - zMassConst) < minDiffZMass)
+                       {
+                           minDiffZMass = TMath::Abs(diMu.diMuM_out.at(i) - zMassConst);
+                           zIdx = i;
+                       }
+                   }
+               }
+
+               if (zIdx == -1) continue;
+               entriesAnalyzed++;
+
+               // jet corrections
+               if (isHI) {
+
+                   if (doCorrectionResidual > 0) {
+                       for (int i=0; i < nJetCollections; ++i) {
+                           for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                           {
+                               if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                               {
+                                   correctorsJetResidual.at(i*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jets.at(i));
+                                   break;
+                               }
+                           }
+                       }
+                   }
+                   if (doCorrectionL2L3 > 0)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+                       }
+                   }
+                   if (nSmear > 0 && nSmear != 1)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           jets.at(i).replicateJets(nSmear);
+                       }
+                   }
+                   if (smearingResJetPhi > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
+                       }
+                   }
+                   if (smearingResJet > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
+                       }
+                   }
+               }
+               else if (isPP) {
+
+                   if (doCorrectionL2L3 > 0)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsL2L3.at(i).correctPtsL2L3(jets.at(i));
+                       }
+                   }
+
+                   if (nSmear > 0 && nSmear != 1)
+                   {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           jets.at(i).replicateJets(nSmear);
+                       }
+                   }
+
+                   if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+                   {
+                       if (doCorrectionSmearingPhi > 0) {
+                           for (int i=0; i<nJetCollections; ++i) {
+                               correctorsJetSmear.at(i).applyPhisSmearing(jets.at(i));
+                           }
+                       }
+                       if (doCorrectionSmearing > 0) {
+                           for (int i=0; i<nJetCollections; ++i) {
+                               correctorsJetSmear.at(i).applyPtsSmearing(jets.at(i));
+                           }
+                       }
+                   }
+                   if (smearingResJetPhi > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).applyPhisResolution(jets.at(i), smearingResJetPhi);
+                       }
+                   }
+                   if (smearingResJet > 0) {
+                       for (int i=0; i<nJetCollections; ++i) {
+                           correctorsJetSmear.at(i).applyPtsResolution(jets.at(i), smearingResJet);
+                       }
+                   }
+               }
+               // apply JES after corrections
+               if (energyScaleJet > 0 && energyScaleJet != 1)
+               {
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetJES.at(i).applyEnergyScale(jets.at(i), energyScaleJet);
+                   }
+               }
+
+               for (int i=0; i<nJetCollections; ++i) {
+                   // z-jet correlation
+                   // leading z Boson from dielectron is correlated to each jet in the event.
+                   if (doDiElectron > 0)  zjet.at(i).makeZeeJetPairs(diEle, jets.at(i), zIdx, true);
+
+                   // z-jet correlation
+                   // leading z Boson from dimuon is correlated to each jet in the event.
+                   if (doDiMuon > 0)  zjet.at(i).makeZmmJetPairs(diMu, jets.at(i), zIdx, true);
+               }
+
+               if(doMix > 0)
+               {
+                   int centBin = hiBin / centBinWidth;
+                   int vzBin   = (vz+15) / vertexBinWidth;
+                   for (int k = 0; k < nJetCollections; ++k) {
+                       jetsMBoutput.at(k).nref = 0;
+
+                       zjetMB.at(k).clearZJetPairs(zIdx);
+                       if (nMB[centBin][vzBin][k] >= nEventsToMix)
+                       {
+                           for (int iMB=0; iMB<nEventsToMix; ++iMB)
+                           {
+                               Long64_t entryMB = iterMB[centBin][vzBin][k] % nMB[centBin][vzBin][k];     // roll back to the beginning if out of range
+                               treeJetMB[centBin][vzBin][k]->GetEntry(entryMB);
+
+                               // jet corrections for MB events
+                               if (isHI) {
+
+                                   if (doCorrectionResidual > 0) {
+                                       for (int iHibin = 0; iHibin < nHiBins_residual; ++iHibin)
+                                       {
+                                           if (hiBins_residual.at(iHibin) <= hiBin && hiBin < hiBins_residual.at(iHibin+1))
+                                           {
+                                               correctorsJetResidual.at(k*nHiBins_residual + iHibin).correctPtsResidual(f1Residual[iHibin], jetsMB.at(k));
+                                               break;
+                                           }
+                                       }
+                                   }
+                                   if (doCorrectionL2L3 > 0)
+                                   {
+                                       correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+                                   }
+                                   if (nSmear > 0 && nSmear != 1)
+                                   {
+                                       jetsMB.at(k).replicateJets(nSmear);
+                                   }
+                                   if (smearingResJetPhi > 0) {
+                                       correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
+                                   }
+                                   if (smearingResJet > 0) {
+                                       correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
+                                   }
+                               }
+                               else if (isPP) {
+
+                                   if (doCorrectionL2L3 > 0)
+                                   {
+                                       correctorsL2L3.at(k).correctPtsL2L3(jetsMB.at(k));
+                                   }
+                                   if (nSmear > 0 && nSmear != 1)
+                                   {
+                                       jetsMB.at(k).replicateJets(nSmear);
+                                   }
+                                   if (doCorrectionSmearing > 0 || doCorrectionSmearingPhi > 0)
+                                   {
+                                       if (doCorrectionSmearingPhi > 0) {
+                                           correctorsJetSmear.at(k).applyPhisSmearing(jetsMB.at(k));
+                                       }
+                                       if (doCorrectionSmearing > 0) {
+                                           correctorsJetSmear.at(k).applyPtsSmearing(jetsMB.at(k));
+                                       }
+                                   }
+                                   if (smearingResJetPhi > 0) {
+                                       correctorsJetSmear.at(k).applyPhisResolution(jetsMB.at(k), smearingResJetPhi);
+                                   }
+                                   if (smearingResJet > 0) {
+                                       correctorsJetSmear.at(k).applyPtsResolution(jetsMB.at(k), smearingResJet);
+                                   }
+                               }
+                               // apply JES after corrections
+                               if (energyScaleJet != 0 && energyScaleJet != 1)
+                               {
+                                   correctorsJetJES.at(k).applyEnergyScale(jetsMB.at(k), energyScaleJet);
+                               }
+
+                               if (doDiElectron > 0) zjetMB.at(k).makeZeeJetPairsMB(diEle, jetsMB.at(k), zIdx, true);
+                               if (doDiMuon > 0)     zjetMB.at(k).makeZmmJetPairsMB(diMu,  jetsMB.at(k), zIdx, true);
+
+                               // write jets from minBiasJetSkimFile to outputFile
+                               for(int j = 0; j < jetsMB.at(k).nref; ++j)
+                               {
+                                   jetsMBoutput.at(k).rawpt[jetsMBoutput.at(k).nref] = jetsMB.at(k).rawpt[j];
+                                   jetsMBoutput.at(k).jtpt [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpt[j];
+                                   jetsMBoutput.at(k).jteta[jetsMBoutput.at(k).nref] = jetsMB.at(k).jteta[j];
+                                   jetsMBoutput.at(k).jty  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jty[j];
+                                   jetsMBoutput.at(k).jtphi[jetsMBoutput.at(k).nref] = jetsMB.at(k).jtphi[j];
+                                   jetsMBoutput.at(k).jtpu [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtpu[j];
+                                   jetsMBoutput.at(k).jtm  [jetsMBoutput.at(k).nref] = jetsMB.at(k).jtm[j];
+                                   // jet ID variables
+                                   jetsMBoutput.at(k).trackMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackMax[j];
+                                   jetsMBoutput.at(k).trackSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackSum[j];
+                                   jetsMBoutput.at(k).trackN [jetsMBoutput.at(k).nref] = jetsMB.at(k).trackN[j];
+                                   jetsMBoutput.at(k).chargedMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedMax[j];
+                                   jetsMBoutput.at(k).chargedSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedSum[j];
+                                   jetsMBoutput.at(k).chargedN [jetsMBoutput.at(k).nref] = jetsMB.at(k).chargedN[j];
+                                   jetsMBoutput.at(k).photonMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonMax[j];
+                                   jetsMBoutput.at(k).photonSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonSum[j];
+                                   jetsMBoutput.at(k).photonN [jetsMBoutput.at(k).nref] = jetsMB.at(k).photonN[j];
+                                   jetsMBoutput.at(k).neutralMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralMax[j];
+                                   jetsMBoutput.at(k).neutralSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralSum[j];
+                                   jetsMBoutput.at(k).neutralN [jetsMBoutput.at(k).nref] = jetsMB.at(k).neutralN[j];
+                                   jetsMBoutput.at(k).eMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).eMax[j];
+                                   jetsMBoutput.at(k).eSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).eSum[j];
+                                   jetsMBoutput.at(k).eN [jetsMBoutput.at(k).nref] = jetsMB.at(k).eN[j];
+                                   jetsMBoutput.at(k).muMax [jetsMBoutput.at(k).nref] = jetsMB.at(k).muMax[j];
+                                   jetsMBoutput.at(k).muSum [jetsMBoutput.at(k).nref] = jetsMB.at(k).muSum[j];
+                                   jetsMBoutput.at(k).muN [jetsMBoutput.at(k).nref] = jetsMB.at(k).muN[j];
+
+                                   jetsMBoutput.at(k).nref++;
+                               }
+
+                               // increase iterator
+                               iterMB[centBin][vzBin][k]++;
+                               if (iterMB[centBin][vzBin][k] == nMB[centBin][vzBin][k])  iterMB[centBin][vzBin][k] = 0;  // reset if necessary
+                           }
+                       }
+                       else {
+                           std::cout << "WARNING : the event lacks necessary number of MB events to mix." << std::endl;
+                           std::cout << Form("{run, lumis, event, j_entry} = %d, %d, %llu, %lld", run, lumis, event, j_entry) << std::endl;
+                           std::cout << Form("{hiBin, vz} = %d, %f", hiBin, vz) << std::endl;
+                           std::cout << "centBin = "<<centBin<<", vzBin = "<<vzBin<<", jetCollection index = "<<k<<std::endl;
+                           std::cout << "nMB[centBin][vzBin][jetCollection] = "<<nMB[centBin][vzBin][k]<<std::endl;
+                       }
+                       jetsMBoutput.at(k).b = -1;   // this branch is not an array.
+
+                       zJetTreeMB[k]->Fill();
+                       outputTreeJetMB[k]->Fill();
+                   }
+               }
+
+               outputTreeHLT->Fill();
+               outputTreeggHiNtuplizer->Fill();
+               for (int i = 0; i < nJetCollections; ++i) {
+                   outputTreeJet[i]->Fill();
+               }
+               outputTreeHiEvt->Fill();
+               outputTreeSkim->Fill();
+
+               if (doDiElectron > 0)  diElectronTree->Fill();
+               if (doDiMuon > 0)      diMuonTree->Fill();
+               for (int i = 0; i < nJetCollections; ++i) {
+                   zJetTree[i]->Fill();
+               }
+           }
+           fileTmp->Close();
        }
        std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
        std::cout << "entries            = " << entries << std::endl;
@@ -1124,9 +1169,15 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
   
        configTree->Write("",TObject::kOverwrite);
 
+       std::cout<<"Writing the output file."<<std::endl;
        output->Write("",TObject::kOverwrite);
+       std::cout<<"Closing the output file."<<std::endl;
        output->Close();
-       if (doMix > 0 && inputMB) inputMB->Close();
+
+       if (doMix > 0 && inputMB) {
+           std::cout<<"Closing the inputMB file."<<std::endl;
+           inputMB->Close();
+       }
 
        std::cout<<"zJetSkim() - END"<<std::endl;
 }
