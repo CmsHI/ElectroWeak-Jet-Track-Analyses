@@ -152,6 +152,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v1", 1);
     tHlt->SetBranchStatus("HLT_HISinglePhoton50_Eta3p1_v2", 1);
     tHlt->SetBranchStatus("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", 1);
+    tHlt->SetBranchStatus("HLT_PASinglePhoton40_Eta3p1_v1", 1);
 
     TTree* tPho = (TTree*)input->Get("EventTree");    // photons
     tPho->SetBranchStatus("*", 0);
@@ -219,6 +220,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tHlt->SetBranchAddress("HLT_HISinglePhoton50_Eta3p1_v1", &HLT_HISinglePhoton50_Eta3p1_v1);
     tHlt->SetBranchAddress("HLT_HISinglePhoton50_Eta3p1_v2", &HLT_HISinglePhoton50_Eta3p1_v2);
     tHlt->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", &HLT_HISinglePhoton40_Eta1p5ForPPRef_v1);
+
+    Int_t HLT_PASinglePhoton40_Eta3p1_v1;
+    tHlt->SetBranchAddress("HLT_PASinglePhoton40_Eta3p1_v1", &HLT_PASinglePhoton40_Eta3p1_v1);
 
     TTree* gammaJetTree[nSmearBins+1];
     gammaJetTree[0] = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
@@ -403,11 +407,13 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
         tHlt->GetEntry(jentry);
         // event selection
-        if (!isMC && !HLT_HISinglePhoton40_Eta1p5_v1)
-            continue;
-        if (isHI && isMC && !HLT_HISinglePhoton40_Eta1p5_v2)
-            continue;
-        if (!isHI && isMC && !HLT_HISinglePhoton40_Eta1p5ForPPRef_v1)
+        // if (!isMC && !HLT_HISinglePhoton40_Eta1p5_v1)
+        //     continue;
+        // if (isHI && isMC && !HLT_HISinglePhoton40_Eta1p5_v2)
+        //     continue;
+        // if (!isHI && isMC && !HLT_HISinglePhoton40_Eta1p5ForPPRef_v1)
+        //     continue;
+        if (!HLT_PASinglePhoton40_Eta3p1_v1)
             continue;
 
         tPho->GetEntry(jentry);

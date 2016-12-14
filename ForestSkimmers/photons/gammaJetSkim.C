@@ -464,9 +464,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizer/EventTree");
     else
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizerGED/EventTree");
-    // treeggHiNtuplizer->SetBranchStatus("pho_sumIsoCorrected",0);
-    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected",0);
-    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected_sys",0);
 
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i)
@@ -475,8 +472,13 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     TTree* treeSkim  = (TTree*)inFile->Get("skimanalysis/HltTree");
 
     treeHLT->SetBranchStatus("*", 0);     // disable all branches
-    treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*", 1);     // enable photon branches
-    treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*", 1);     // enable photon branches
+    // Enable HI/pp ref triggers
+    // treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*", 1);
+    // treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*", 1);
+    // Enable pA triggers
+    treeHLT->SetBranchStatus("HLT_PAPhoton*_Eta*_PPStyle_v*", 1);
+    treeHLT->SetBranchStatus("HLT_PASinglePhoton*_Eta*_v*", 1);
+    treeHLT->SetBranchStatus("HLT_PASingleIsoPhoton*_Eta*_v*", 1);
 
     // objects for gamma-jet correlations
     ggHiNtuplizer ggHi;
@@ -537,7 +539,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     treeHiEvt->SetBranchStatus("hiHFminus", 1);
     treeHiEvt->SetBranchStatus("hiHFplusEta4", 1);
     treeHiEvt->SetBranchStatus("hiHFminusEta4", 1);
-    // treeHiEvt->SetBranchStatus("hiNevtPlane", 1);
     treeHiEvt->SetBranchStatus("hiEvtPlanes", 1);
     if (isMC) {
       treeHiEvt->SetBranchStatus("Npart", 1);
@@ -545,7 +546,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeHiEvt->SetBranchStatus("Nhard", 1);
       treeHiEvt->SetBranchStatus("ProcessID", 1);
       treeHiEvt->SetBranchStatus("pthat", 1);
-      //treeHiEvt->SetBranchStatus("weight", 1); // set a new weight, don't use the old one
       treeHiEvt->SetBranchStatus("alphaQCD", 1);
       treeHiEvt->SetBranchStatus("alphaQED", 1);
       treeHiEvt->SetBranchStatus("qScale", 1);
@@ -553,7 +553,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
     float vz;
     Int_t hiBin;
-    Float_t hiEvtPlanes[29];   //[hiNevtPlane]
+    Float_t hiEvtPlanes[29]; // [hiNevtPlane]
     UInt_t run, lumis;
     ULong64_t event;
     float pthat;
@@ -688,8 +688,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       phoEtCorrected.clear();
       phoEtCorrected_sys.clear();
       pho_sumIsoCorrected.clear();
-      // ggHi.phoEtCorrected->clear();
-      // ggHi.phoEtCorrected_sys->clear();
 
       treeHLT->GetEntry(jentry);
       treeggHiNtuplizer->GetEntry(jentry);
@@ -771,7 +769,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           // Data 30 - 100% Z mass: 9.064840e+01
           phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
           phoEtCorrected_sys.push_back(phoEt_corrected);
-          // ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
         } else {
           phoEtCorrected.push_back((*ggHi.phoEt)[i]);
           pho_sumIsoCorrected.push_back(sumIso);
