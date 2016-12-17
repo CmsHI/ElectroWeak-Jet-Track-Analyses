@@ -9,8 +9,13 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TMath.h>
+#include <TObjArray.h>
+#include <TPad.h>
+#include <TCanvas.h>
 
 #include <string>
+
+#include "../../Utilities/th1Util.h"
 
 namespace ENERGYSCALE {
 
@@ -41,6 +46,16 @@ public :
         }
 
         name = "";
+        title = "";
+        titleX = "";
+        titleOffsetX = 1;
+        titleOffsetY = 1;
+
+        xMin = 0;
+        xMax = -1;
+        yMin = 0;
+        yMax = -1;
+
         h2Dinitialized = false;
         hInitialized = false;
         h2DcorrInitialized = false;
@@ -54,6 +69,9 @@ public :
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
 
     void prepareTitle();
+
+    void postLoop();
+    void writeObjects(TCanvas* c);
 
     TH2D* h2D;
     TH1D* h1D[2];       // h1D[0] = energy scale histogram
@@ -69,6 +87,13 @@ public :
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix
     std::string title;
     std::string titleX;
+    float titleOffsetX;
+    float titleOffsetY;
+
+    double xMin;
+    double xMax;
+    double yMin;
+    double yMax;
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
@@ -77,20 +102,20 @@ public :
 
 void energyScaleHist::FillH2D(double energyScale, double x, float eta, float genPt, float recoPt, int hiBin)
 {
-    if (insideRange(eta, genPt, recoPt, hiBin))
+    if (h2Dinitialized && insideRange(eta, genPt, recoPt, hiBin))
         h2D->Fill(x, energyScale);
 }
 
 void energyScaleHist::FillH(double energyScale, float eta, float genPt, float recoPt, int hiBin)
 {
     // make sure to fill the histogram if no explicit kinematic range is specified.
-    if (insideRange(eta, genPt, recoPt, hiBin))
+    if (hInitialized && insideRange(eta, genPt, recoPt, hiBin))
         h->Fill(energyScale);
 }
 
 void energyScaleHist::FillH2Dcorr(float genPt, float recoPt, float eta, int hiBin)
 {
-    if (insideRange(eta, -1, -1, hiBin))
+    if (h2DcorrInitialized && insideRange(eta, -1, -1, hiBin))
         h2Dcorr->Fill(genPt, recoPt);
 }
 
@@ -167,6 +192,97 @@ void energyScaleHist::prepareTitle()
     if(h2DcorrInitialized) {
         h2Dcorr->SetTitle(title.c_str());
     }
+}
+
+void energyScaleHist::postLoop()
+{
+    if (hInitialized) {
+        h->SetMarkerStyle(kFullCircle);
+    }
+
+    if (!h2Dinitialized) return;
+
+    TObjArray aSlices;
+    h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
+
+    // energy scale
+    h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
+    h1D[0]->SetTitle(title.c_str());
+    h1D[0]->SetXTitle(titleX.c_str());
+    setTH1_energyScale(h1D[0], titleOffsetX, titleOffsetY);
+    if (yMax > yMin)
+        h1D[0]->SetAxisRange(yMin, yMax, "Y");
+
+    // width of energy scale
+    h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
+    h1D[1]->SetTitle(title.c_str());
+    h1D[1]->SetXTitle(titleX.c_str());
+    setTH1_energyWidth(h1D[1], titleOffsetX, titleOffsetY);
+}
+
+/*
+ * use "c" as a template
+ */
+void energyScaleHist::writeObjects(TCanvas* c)
+{
+    // write histograms with a particular dependence
+    if (hInitialized) {
+        h->SetMarkerStyle(kFullCircle);
+        h->Write();
+    }
+    if (h2DcorrInitialized)
+        h2Dcorr->Write();
+
+    if (!h2Dinitialized) return;
+
+    // extract information from "c"
+    int windowWidth = c->GetWw();
+    int windowHeight = c->GetWh();
+    double leftMargin = c->GetLeftMargin();
+    double rightMargin = c->GetRightMargin();
+    double bottomMargin = c->GetBottomMargin();
+    double topMargin = c->GetTopMargin();
+
+    std::string canvasName = "";
+    canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+    c->cd();
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h2D->SetStats(false);
+    h2D->Draw("colz");
+    h2D->Write("",TObject::kOverwrite);
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
+
+    // energy scale
+    canvasName = Form("cnv_eScale_%s", name.c_str());
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+    c->cd();
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h1D[0]->Draw("e");
+    h1D[0]->Write("",TObject::kOverwrite);
+
+    // draw line y = 1
+    float x1 = h1D[0]->GetXaxis()->GetXmin();
+    float x2 = h1D[0]->GetXaxis()->GetXmax();
+    TLine line(x1, 1, x2,1);
+    line.SetLineStyle(kDashed);
+    line.Draw();
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
+
+    // width of energy scale
+    canvasName = Form("cnv_eRes_%s", name.c_str());
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+    c->cd();
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h1D[1]->Draw("e");
+    h1D[1]->Write("",TObject::kOverwrite);
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
 }
 
 #endif

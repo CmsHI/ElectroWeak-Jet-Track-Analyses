@@ -432,6 +432,16 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         // set histogram title
                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].prepareTitle();
                     }
+
+                    for (int iEScale = 0; iEScale < ENERGYSCALE::kN_ENERGYSCALE_DEP; ++iEScale) {
+                        if (hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
+                            hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].yMin = yMin;
+                            hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].yMax = yMax;
+
+                            hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].titleOffsetX = titleOffsetX;
+                            hist[iEScale][iEta][iGenPt][iRecoPt][iHibin].titleOffsetY = titleOffsetY;
+                        }
+                    }
                 }
             }
         }
@@ -533,36 +543,19 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
                 if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
 
-                if (hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
-                }
-                if (hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-                }
+                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
+                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
 
-                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
-                }
-                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-                }
-                if (hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized) {
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2Dcorr(genPt, pt, eta, hiBin);
-                }
+                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
 
-                if (hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
-                }
-                if (hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-                }
+                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2Dcorr(genPt, pt, eta, hiBin);
 
-                if (hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) {
-                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
-                }
-                if (hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
-                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-                }
+                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
+                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+
+                hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
+                hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
 
             }}}}
 
@@ -578,7 +571,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
     // declaration of graphics objects.
     // the idea is to initialize each Graphics object right before its use, then to delete it right after they are saved/written.
-    TCanvas* c;
+    TCanvas* c = 0;
     for (int iEta = 0; iEta < nBins_eta; ++iEta) {
         for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
             for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
@@ -600,72 +593,13 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         if (indices.at(iEScale) == 0)
                         {
                             int eScaleDep = eScale.at(iEScale);
-                            // write histograms with a particular dependence
-                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].hInitialized) {
-                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h->SetMarkerStyle(kFullCircle);
-                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h->Write();
-                            }
-                            if (hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2DcorrInitialized)
-                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dcorr->Write();
 
-                            if (!hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2Dinitialized) continue;
-
-                            std::string canvasName = "";
-                            canvasName = replaceAll(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->GetName(), "h2D", "cnv2D");
-                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-                            c->cd();
-                            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->SetStats(false);
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->Draw("colz");
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->Write();
-                            setCanvasFinal(c);
-                            c->Write();
-                            c->Close();         // do not use Delete() for TCanvas.
-
-                            TObjArray aSlices;
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
-
-                            std::string name = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].name.c_str();
-                            std::string title = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].title.c_str();
-                            std::string titleX = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].titleX.c_str();
-                            // energy scale
-                            canvasName = Form("cnv_eScale_%s", name.c_str());
-                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-                            c->cd();
+                            c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
                             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetTitle(title.c_str());
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetXTitle(titleX.c_str());
-                            setTH1_energyScale(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0], titleOffsetX, titleOffsetY);
-                            if (yMax > yMin)
-                                hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->SetAxisRange(yMin, yMax, "Y");
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->Draw("e");
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->Write();
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].postLoop();
+                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].writeObjects(c);
 
-                            // draw line y = 1
-                            float x1 = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->GetXaxis()->GetXmin();
-                            float x2 = hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[0]->GetXaxis()->GetXmax();
-                            TLine line(x1, 1, x2,1);
-                            line.SetLineStyle(kDashed);
-                            line.Draw();
-                            setCanvasFinal(c);
-                            c->Write();
-                            c->Close();         // do not use Delete() for TCanvas.
-
-                            // width of energy scale
-                            canvasName = Form("cnv_eRes_%s", name.c_str());
-                            c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-                            c->cd();
-                            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->SetTitle(title.c_str());
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->SetXTitle(titleX.c_str());
-                            setTH1_energyWidth(hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1], titleOffsetX, titleOffsetY);
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->Draw("e");
-                            hist[eScaleDep][iEta][iGenPt][iRecoPt][iHibin].h1D[1]->Write();
-                            setCanvasFinal(c);
-                            c->Write();
                             c->Close();         // do not use Delete() for TCanvas.
                         }
                     }
