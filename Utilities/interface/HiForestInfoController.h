@@ -35,7 +35,10 @@ public:
         char* charArr = new char[CHARARRAYSIZE];   // branches are of type char array
         // https://github.com/CmsHI/cmssw/blob/4c644639d7a75dbf15cbcdd6bce6313fa446836c/HeavyIonsAnalysis/JetAnalysis/src/HiForestInfo.cc#L125-L127
 
-        tree->SetBranchAddress(branchName.c_str(), charArr);
+        // https://root.cern.ch/doc/master/TTree_8h_source.html#l00230
+        int tmpSetBranchAddressStatus = tree->SetBranchAddress(branchName.c_str(), charArr);
+        if (tmpSetBranchAddressStatus != TTree::kMatch)  return "";
+
         std::string value = "";
         Long64_t entries = tree->GetEntries();
         for (Long64_t j_entry=0; j_entry<entries; ++j_entry) {
@@ -56,6 +59,7 @@ public:
 
             value = tmp.c_str();
         }
+        memset(charArr, 0, CHARARRAYSIZE * (sizeof charArr[0]));
         delete[] charArr;
 
         return value;

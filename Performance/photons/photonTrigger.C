@@ -665,6 +665,7 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
         treePhoton = (TTree*)fileTmp->Get(treePath.c_str());
         Long64_t entriesTmp = treePhoton->GetEntries();
         std::cout << "entries = " << entriesTmp << std::endl;
+        treePhoton->Delete();
     }
 
     treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
@@ -1147,7 +1148,7 @@ void photonTrigger(const TString configFile, const TString inputFile, const TStr
     std::cout << "entriesPassedDenomGlobal = " << entriesPassedDenomGlobal << std::endl;
     std::cout << "entriesAnalyzed          = " << entriesAnalyzed << std::endl;
 
-    TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
+    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
     // save histograms

@@ -472,6 +472,7 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
            treeEvent = (TTree*)fileTmp->Get("ggHiNtuplizer/EventTree");
            Long64_t entriesTmp = treeEvent->GetEntries();
            std::cout << "entries = " << entriesTmp << std::endl;
+           treeEvent->Delete();
        }
 
        treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
