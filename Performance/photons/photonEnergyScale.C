@@ -11,7 +11,7 @@
  */
 
 #include <TFile.h>
-#include <TChain.h>
+#include <TTree.h>
 #include <TH1.h>
 #include <TH1D.h>
 #include <TH2D.h>
@@ -32,6 +32,7 @@
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
+#include "../../Utilities/fileUtil.h"
 #include "../interface/energyScaleHist.h"
 
 
@@ -265,45 +266,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TChain* treeggHiNtuplizer = new TChain(treePath.c_str());
-    TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
-    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-       treeggHiNtuplizer->Add((*it).c_str());
-       treeHiEvt->Add((*it).c_str());
-       treeHiForestInfo->Add((*it).c_str());
-    }
-
-    HiForestInfoController hfic(treeHiForestInfo);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
-
-    treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-    treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
-    treeggHiNtuplizer->SetBranchStatus("event",1);
-    treeggHiNtuplizer->SetBranchStatus("lumis",1);
-
-    treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
-    treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-    treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
-    treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
-    // check existence of genMatching branch
-    if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
-        std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
-    }
-
-    // specify explicitly which branches to use, do not use wildcard
-    Int_t hiBin;
-    treeHiEvt->SetBranchStatus("*",0);
-    treeHiEvt->SetBranchStatus("hiBin",1);
-
-    treeHiEvt->SetBranchAddress("hiBin",&hiBin);
-
-    ggHiNtuplizer ggHi;
-    ggHi.setupTreeForReading(treeggHiNtuplizer);
-
     TH1::SetDefaultSumw2();
     // object for set of all possible energy scale histograms
     energyScaleHist hist[ENERGYSCALE::kN_ENERGYSCALE_DEP][nBins_eta][nBins_genPt][nBins_recoPt][nBins_hiBin];
@@ -447,126 +409,199 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         }
     }
 
+    TTree* treeggHiNtuplizer = 0;
+    TTree* treeHiEvt = 0;
+    TTree* treeHiForestInfo = 0;
+
+    int nFiles = inputFiles.size();
+    TFile* fileTmp = 0;
+
+    std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
+    // read the first file only to get the HiForest info
+    std::string inputPath = inputFiles.at(0).c_str();
+    fileTmp = TFile::Open(inputPath.c_str(), "READ");
+    fileTmp->cd();
+
+    if (nFiles == 1) {
+        // read one tree only to get the number of entries
+        treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
+        Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
+        std::cout << "entries = " << entriesTmp << std::endl;
+        treeggHiNtuplizer->Delete();
+    }
+
+    treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+    HiForestInfoController hfic(treeHiForestInfo);
+    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    hfic.printHiForestInfo();
+    std::cout<<"###"<< std::endl;
+
+    fileTmp->Close();
+    // done with initial reading
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
-    Long64_t entries = treeggHiNtuplizer->GetEntries();
+    Long64_t entries = 0;
     Long64_t entriesAnalyzed = 0;
-    std::cout << "entries = " << entries << std::endl;
+
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
-    for (Long64_t j_entry = 0; j_entry < entries; ++j_entry)
-    {
-        if (j_entry % 2000 == 0)  {
-          std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
-        }
+    for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
-        treeggHiNtuplizer->GetEntry(j_entry);
-        treeHiEvt->GetEntry(j_entry);
+        std::string inputPath = inputFiles.at(iFile).c_str();
+        std::cout <<"iFile = " << iFile << " , " ;
+        std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+        fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
-        bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
-        if(!eventAdded) // this event is duplicate, skip this one.
-        {
-            duplicateEntries++;
+        // check if the file is usable, if not skip the file.
+        if (isGoodFile(fileTmp) != 0) {
+            std::cout << "File is not good. skipping file." << std::endl;
             continue;
         }
 
-        entriesAnalyzed++;
+        treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
+        treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
+        treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
+        treeggHiNtuplizer->SetBranchStatus("event",1);
+        treeggHiNtuplizer->SetBranchStatus("lumis",1);
 
-        // energy scale
-        for (int i=0; i<ggHi.nPho; ++i) {
-
-            // selections on GEN particle
-            int genMatchedIndex = ggHi.pho_genMatchedIndex->at(i);
-            if (genMatchedIndex < 0)   continue;    // is matched
-            if (ggHi.mcPID->at(genMatchedIndex) != 22)   continue;    // is matched to a photon
-
-            double genPt = ggHi.mcPt->at(genMatchedIndex);
-            if (genPt <= 0)   continue;
-
-            if (isHI) {
-                if (cut_mcCalIsoDR04 != 0) {
-                    if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
-                }
-                if (cut_mcTrkIsoDR04 != 0) {
-                    if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
-                }
-                if (cut_mcSumIso != 0) {
-                    if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
-                           ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
-                }
-            }
-            else {
-                if (cut_mcCalIsoDR04 != 0) {
-                    if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
-                }
-                if (cut_mcTrkIsoDR04 != 0) {
-                    if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
-                }
-                if (cut_mcSumIso != 0) {
-                    if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
-                           ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
-                }
-            }
-
-            // selections on RECO particle
-            if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
-
-            if (cut_phoHoverE != 0) {
-                if (!(ggHi.phoHoverE->at(i) < cut_phoHoverE))   continue;
-            }
-            if (cut_pho_ecalClusterIsoR4 != 0) {
-                if (!(ggHi.pho_ecalClusterIsoR4->at(i) < cut_pho_ecalClusterIsoR4))   continue;
-            }
-            if (cut_pho_hcalRechitIsoR4 != 0) {
-                if (!(ggHi.pho_hcalRechitIsoR4->at(i) < cut_pho_hcalRechitIsoR4))   continue;
-            }
-            if (cut_pho_trackIsoR4PtCut20 != 0) {
-                if (!(ggHi.pho_trackIsoR4PtCut20->at(i) < cut_pho_trackIsoR4PtCut20))   continue;
-            }
-            if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) < cut_phoSigmaIEtaIEta_2012))   continue;
-            }
-            if (cut_sumIso != 0) {
-                if (!((ggHi.pho_ecalClusterIsoR4->at(i) +
-                        ggHi.pho_hcalRechitIsoR4->at(i)  +
-                        ggHi.pho_trackIsoR4PtCut20->at(i)) < cut_sumIso))   continue;
-            }
-
-            double eta = ggHi.phoEta->at(i);
-            double pt  = ggHi.phoEt->at(i);
-            double energyScale = pt/genPt;
-
-            for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
-            for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
-            for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
-            for (int iHibin = 0;  iHibin < nBins_hiBin; ++iHibin) {
-
-                if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
-
-                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
-                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-
-                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
-
-                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2Dcorr(genPt, pt, eta, hiBin);
-
-                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
-                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-
-                hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
-                hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
-
-            }}}}
-
+        treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
+        treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
+        treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
+        treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+        // check existence of genMatching branch
+        if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
+            std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
         }
+
+        // specify explicitly which branches to use, do not use wildcard
+        Int_t hiBin;
+        treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
+        treeHiEvt->SetBranchStatus("*",0);
+        treeHiEvt->SetBranchStatus("hiBin",1);
+        treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+
+        ggHiNtuplizer ggHi;
+        ggHi.setupTreeForReading(treeggHiNtuplizer);
+
+        Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
+        entries += entriesTmp;
+        std::cout << "entries in File = " << entriesTmp << std::endl;
+        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+        {
+            if (j_entry % 2000 == 0)  {
+              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+            }
+
+            treeggHiNtuplizer->GetEntry(j_entry);
+            treeHiEvt->GetEntry(j_entry);
+
+            bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
+            if(!eventAdded) // this event is duplicate, skip this one.
+            {
+                duplicateEntries++;
+                continue;
+            }
+
+            entriesAnalyzed++;
+
+            // energy scale
+            for (int i=0; i<ggHi.nPho; ++i) {
+
+                // selections on GEN particle
+                int genMatchedIndex = ggHi.pho_genMatchedIndex->at(i);
+                if (genMatchedIndex < 0)   continue;    // is matched
+                if (ggHi.mcPID->at(genMatchedIndex) != 22)   continue;    // is matched to a photon
+
+                double genPt = ggHi.mcPt->at(genMatchedIndex);
+                if (genPt <= 0)   continue;
+
+                if (isHI) {
+                    if (cut_mcCalIsoDR04 != 0) {
+                        if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
+                    }
+                    if (cut_mcTrkIsoDR04 != 0) {
+                        if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
+                    }
+                    if (cut_mcSumIso != 0) {
+                        if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
+                               ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
+                    }
+                }
+                else {
+                    if (cut_mcCalIsoDR04 != 0) {
+                        if (!(ggHi.mcCalIsoDR04->at(genMatchedIndex) < cut_mcCalIsoDR04))   continue;
+                    }
+                    if (cut_mcTrkIsoDR04 != 0) {
+                        if (!(ggHi.mcTrkIsoDR04->at(genMatchedIndex) < cut_mcTrkIsoDR04))   continue;
+                    }
+                    if (cut_mcSumIso != 0) {
+                        if (!((ggHi.mcCalIsoDR04->at(genMatchedIndex) +
+                               ggHi.mcTrkIsoDR04->at(genMatchedIndex)) < cut_mcSumIso))   continue;
+                    }
+                }
+
+                // selections on RECO particle
+                if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) > 0.002 && ggHi.pho_swissCrx->at(i) < 0.9 && TMath::Abs(ggHi.pho_seedTime->at(i)) < 3)) continue;
+
+                if (cut_phoHoverE != 0) {
+                    if (!(ggHi.phoHoverE->at(i) < cut_phoHoverE))   continue;
+                }
+                if (cut_pho_ecalClusterIsoR4 != 0) {
+                    if (!(ggHi.pho_ecalClusterIsoR4->at(i) < cut_pho_ecalClusterIsoR4))   continue;
+                }
+                if (cut_pho_hcalRechitIsoR4 != 0) {
+                    if (!(ggHi.pho_hcalRechitIsoR4->at(i) < cut_pho_hcalRechitIsoR4))   continue;
+                }
+                if (cut_pho_trackIsoR4PtCut20 != 0) {
+                    if (!(ggHi.pho_trackIsoR4PtCut20->at(i) < cut_pho_trackIsoR4PtCut20))   continue;
+                }
+                if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                    if (!(ggHi.phoSigmaIEtaIEta_2012->at(i) < cut_phoSigmaIEtaIEta_2012))   continue;
+                }
+                if (cut_sumIso != 0) {
+                    if (!((ggHi.pho_ecalClusterIsoR4->at(i) +
+                            ggHi.pho_hcalRechitIsoR4->at(i)  +
+                            ggHi.pho_trackIsoR4PtCut20->at(i)) < cut_sumIso))   continue;
+                }
+
+                double eta = ggHi.phoEta->at(i);
+                double pt  = ggHi.phoEt->at(i);
+                double energyScale = pt/genPt;
+
+                for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
+                for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
+                for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                for (int iHibin = 0;  iHibin < nBins_hiBin; ++iHibin) {
+
+                    if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHibin > 0)  continue;
+
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
+
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHibin].FillH2Dcorr(genPt, pt, eta, hiBin);
+
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHibin].FillH(energyScale, eta, genPt, pt, hiBin);
+
+                }}}}
+
+            }
+        }
+        fileTmp->Close();
     }
     std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
 
-    TFile *output = TFile::Open(outputFile.Data(),"RECREATE");
+    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
     // declaration of graphics objects.
