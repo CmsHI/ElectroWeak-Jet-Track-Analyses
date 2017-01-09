@@ -35,6 +35,7 @@ void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<d
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(TH1* h);
+std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TH1* hRef);
 TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
@@ -285,6 +286,26 @@ std::vector<double> getTH1xBins(TH1* h) {
     return bins;
 }
 
+/*
+ * calculate the set of bins where the bins are spaced uniformly in log scale.
+ * Ex.
+ *      calcBinsLogScale(0.001, 100) will return {0.001, 0.01, 0.1, 1, 10, 100}
+ *      calcBinsLogScale(4, 64, 5) will return {4, 8, 16, 32, 64}
+ */
+std::vector<double> calcBinsLogScale(double min, double max, double nBins)
+{
+    std::vector<double> bins;
+
+    double binWidth = TMath::Log10(max/min) / (nBins-1);
+
+    bins.push_back(min);
+    for (int i = 1; i < nBins-1; ++i) {
+        bins.push_back(min * TMath::Power(10, i*binWidth));
+    }
+    bins.push_back(max);
+
+    return bins;
+}
 
 /*
  * returns a TH1* which is the residual of "h" wrt. "hRef"
