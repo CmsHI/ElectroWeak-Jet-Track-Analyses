@@ -288,18 +288,21 @@ std::vector<double> getTH1xBins(TH1* h) {
 
 /*
  * calculate the set of bins where the bins are spaced uniformly in log scale.
+ * size of the vector is nBins+1.
+ * ith element is the lower edge of bin i.
+ * last element is the upper edge of the last bin.
  * Ex.
- *      calcBinsLogScale(0.001, 100) will return {0.001, 0.01, 0.1, 1, 10, 100}
- *      calcBinsLogScale(4, 64, 5) will return {4, 8, 16, 32, 64}
+ *      calcBinsLogScale(0.001, 100, 5) will return {0.001, 0.01, 0.1, 1, 10, 100}
+ *      calcBinsLogScale(4, 256, 6) will return {4, 8, 16, 32, 64, 128, 256}
  */
 std::vector<double> calcBinsLogScale(double min, double max, double nBins)
 {
     std::vector<double> bins;
 
-    double binWidth = TMath::Log10(max/min) / (nBins-1);
+    double binWidth = TMath::Log10(max/min) / nBins;
 
     bins.push_back(min);
-    for (int i = 1; i < nBins-1; ++i) {
+    for (int i = 1; i < nBins; ++i) {
         bins.push_back(min * TMath::Power(10, i*binWidth));
     }
     bins.push_back(max);
