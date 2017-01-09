@@ -77,6 +77,8 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
     // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     std::vector<std::vector<float>> TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
+    float binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
+    float binsLogScaleY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleY];
     float titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
     float titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
     float markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
@@ -246,6 +248,8 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
         std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
     }
+    std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
+    std::cout << "binsLogScaleY = " << binsLogScaleY << std::endl;
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
     std::cout << "markerSize = " << markerSize << std::endl;
@@ -491,6 +495,21 @@ void drawSpectra2D(const TString configFile, const TString inputFile, const TStr
         else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
 
         h[i] = new TH2D(Form("h2D_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBinsx, xLow, xUp, nBinsy, yLow, yUp);
+
+        if (binsLogScaleX > 0) {
+            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBinsx);
+            double binsArrTmp[nBinsx+1];
+            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
+
+            h[i]->GetXaxis()->Set(nBinsx, binsArrTmp);
+        }
+        if (binsLogScaleY > 0) {
+            std::vector<double> binsVecTmp = calcBinsLogScale(yLow, yUp, nBinsy);
+            double binsArrTmp[nBinsy+1];
+            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
+
+            h[i]->GetYaxis()->Set(nBinsy, binsArrTmp);
+        }
     }
 
     // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.

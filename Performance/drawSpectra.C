@@ -78,6 +78,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::vector<std::string> titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
     // nBins, xLow, xUp for the TH1D histogram
     std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    float binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
     float titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
     float titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
     float yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
@@ -247,6 +248,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
         std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
     }
+    std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
     std::cout << "yMin = " << yMin << std::endl;
@@ -488,6 +490,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
 
         h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
+
+        if (binsLogScaleX > 0) {
+            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBins);
+            double binsArrTmp[nBins+1];
+            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
+
+            h[i]->GetXaxis()->Set(nBins, binsArrTmp);
+        }
 
         if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
     }
