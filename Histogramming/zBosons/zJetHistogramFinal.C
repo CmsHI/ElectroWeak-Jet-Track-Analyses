@@ -137,17 +137,21 @@ void zJetHistogramFinal(const TString configFile, const TString inputFile, const
 
     std::vector<std::string> correlationHistNames {"xjz", "dphi", "dphi_rebin", "dphi_normJZ", "dphi_rebin_normJZ",
                                                           "ptJet", "zM",
+                                                          "rjz", "xjz_mean", "rjz_zNum", "xjz_mean",
                                                           "zPt", "zEta", "zPhi", "jteta", "jtphi",
                                                           "nJet", "hiBin"};
     std::vector<std::string> versionSuffix {"final_norm", "final_norm", "final_norm", "final_norm", "final_norm",
                                                      "final_norm", "final_norm",
+                                                     "", "", "", "",
                                                      "final_norm", "final_norm", "final_norm", "final_norm", "final_norm",
                                                      "final_norm", "final_norm"};
     std::vector<std::string> jetRegion    {"SIG", "SIG", "SIG", "SIG", "SIG",
                                                   "SIG", "RAW",
+                                                  "", "SIG", "", "RAW",
                                                   "RAW", "RAW", "RAW", "SIG", "SIG",
                                                   "RAW", "RAW"};
     std::vector<std::string> jetRegionBKG {"BKG", "BKG", "BKG", "BKG", "BKG",
+                                                  "BKG", "BKG", "BKG", "BKG",
                                                   "BKG", "BKG",
                                                   "BKG", "BKG", "BKG", "BKG", "BKG",
                                                   "BKG", "BKG"};
@@ -175,11 +179,11 @@ void zJetHistogramFinal(const TString configFile, const TString inputFile, const
                 // special cases
                 if (correlation == "rjz" || correlation == "rjz_zNum" ) {
                     if (iPt > 0)  continue;
-                    tmpName = Form("%s_ptBinAll_hiBin%d", correlationHistNames.at(i).c_str(), iHiBin);
+                    tmpName = Form("%s_ptBinAll_hiBin%d", correlation.c_str(), iHiBin);
                 }
                 else if (correlation == "xjz_mean") {
                     if (iPt > 0)  continue;
-                    tmpName = Form("%s_ptBinAll_hiBin%d_jet%s", correlationHistNames.at(i).c_str(), iHiBin, jetRegion.at(i).c_str());
+                    tmpName = Form("%s_ptBinAll_hiBin%d_jet%s", correlation.c_str(), iHiBin, jetRegion.at(i).c_str());
                 }
 
                 std::string tmpHistName = Form("h1D_%s", tmpName.c_str());
@@ -212,9 +216,9 @@ void zJetHistogramFinal(const TString configFile, const TString inputFile, const
                     if (h1D[iColl][i])  h1DisValid[iColl][i] = true;
                 }
 
-                // create I_AA histogram
                 std::string tmpNameCalc = "";
                 std::string tmpHistNameCalc = "";
+                // create I_AA histogram
                 if (correlation == "ptJet") {
 
                     tmpNameCalc = replaceAll(tmpName, "ptJet", "iaa");
@@ -247,6 +251,43 @@ void zJetHistogramFinal(const TString configFile, const TString inputFile, const
                     h1D_calc->Divide(h1D_calc2);
 
                     h1D_calc->SetYTitle("Jet I_{AA}");
+
+                    c->SetName(Form("cnv_%s",tmpNameCalc.c_str()));
+                    c->cd();
+                    h1D_calc->Draw("e");
+                    h1D_calc->Write("",TObject::kOverwrite);
+                    c->Write("",TObject::kOverwrite);
+                    c->Clear();
+
+                    std::cout<<"wrote histogram : "<< h1D_calc->GetName() <<std::endl;
+                }
+                // create <xjz> ratio and rjz ratio histogram
+                if (correlation == "xjz_mean" || correlation == "rjz") {
+
+                    if (correlation == "xjz_mean")  tmpNameCalc = replaceAll(tmpName, "xjz_mean", "xjz_mean_ratio");
+                    else if (correlation == "rjz")  tmpNameCalc = replaceAll(tmpName, "rjz", "rjz_ratio");
+                    tmpHistNameCalc = Form("h1D_%s", tmpNameCalc.c_str());
+
+                    if (h1DisValid[COLL::kHI][i] && (h1DisValid[COLL::kPP][i]))
+                    {
+                        h1D_calc = (TH1D*)h1D[COLL::kHI][i]->Clone(tmpHistNameCalc.c_str());
+                        h1D_calc2 = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_2", tmpHistNameCalc.c_str()));
+                    }
+                    else if (h1DisValid[COLL::kHIMC][i] && h1DisValid[COLL::kPPMC][i])
+                    {
+                        h1D_calc = (TH1D*)h1D[COLL::kHIMC][i]->Clone(tmpHistNameCalc.c_str());
+                        h1D_calc2 = (TH1D*)h1D[COLL::kPPMC][i]->Clone(Form("%s_2", tmpHistNameCalc.c_str()));
+                    }
+                    else if (h1DisValid[COLL::kHIMC][i] && h1DisValid[COLL::kPP][i])
+                    {
+                        h1D_calc = (TH1D*)h1D[COLL::kHIMC][i]->Clone(tmpHistNameCalc.c_str());
+                        h1D_calc2 = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_2", tmpHistNameCalc.c_str()));
+                    }
+
+                    h1D_calc->Divide(h1D_calc2);
+
+                    if (correlation == "xjz_mean")  h1D_calc->SetYTitle("#frac{<x_{jZ}> (PbPb)}{<x_{jZ}> (pp)}");
+                    else if (correlation == "rjz")  h1D_calc->SetYTitle("#frac{R_{jZ} (PbPb)}{R_{jZ} (pp)}");
 
                     c->SetName(Form("cnv_%s",tmpNameCalc.c_str()));
                     c->cd();
