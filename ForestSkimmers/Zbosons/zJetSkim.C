@@ -946,6 +946,11 @@ void zJetSkim(const TString configFile, const TString inputFile, const TString o
                        }
                    }
 
+                   // apply constant residual correction for pp
+                   for (int i=0; i<nJetCollections; ++i) {
+                       correctorsJetJES.at(i).applyEnergyScale(jets.at(i), 0.985);
+                   }
+
                    if (nSmear > 0 && nSmear != 1)
                    {
                        for (int i=0; i<nJetCollections; ++i) {
