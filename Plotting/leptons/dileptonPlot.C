@@ -320,19 +320,20 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
             std::string tmpHistNameSameCharge = Form("h1D_%s", tmpNameSameCharge.c_str());
 
             std::vector<std::string> textLines;
-            if (doDiElectron > 0) textLines.push_back("Z #rightarrow ee");
-            else if (doDiMuon > 0) textLines.push_back("Z #rightarrow #mu#mu");
-            std::string line_pt = Form("p^{%s#pm}_{T} > %d", leptonSymbol.c_str(), bins_pt[0].at(iPt));
+            std::vector<std::string> textLinesChannel;
+            if (doDiElectron > 0) textLinesChannel.push_back("Z #rightarrow ee");
+            else if (doDiMuon > 0) textLinesChannel.push_back("Z #rightarrow #mu#mu");
+            std::string line_pt = Form("p^{%s#pm}_{T} > %d GeV/c", leptonSymbol.c_str(), bins_pt[0].at(iPt));
             if (bins_pt[1].at(iPt) >= 0)  line_pt = Form("%d < p^{%s#pm}_{T} < %d", bins_pt[0].at(iPt), leptonSymbol.c_str(), bins_pt[1].at(iPt));
 
-            std::string line_eta = Form("|#eta^{%s#pm}| < %.2f", leptonSymbol.c_str(), bins_eta_lt[iEta]);
-            if (bins_eta_gt[iEta] >= 0)  line_eta = Form("%.2f< |#eta^{%s#pm}| <%.1f", bins_eta_gt[iEta], leptonSymbol.c_str(), bins_eta_lt[iEta]);
+            std::string line_eta = Form("|#eta^{%s#pm}| < %.1f", leptonSymbol.c_str(), bins_eta_lt[iEta]);
+            if (bins_eta_gt[iEta] >= 0)  line_eta = Form("%.1f< |#eta^{%s#pm}| <%.1f", bins_eta_gt[iEta], leptonSymbol.c_str(), bins_eta_lt[iEta]);
 
             std::string line_pt_eta = Form("%s, %s", line_pt.c_str(), line_eta.c_str());
 
             std::string line_hiBin = "";
             if (!(bins_hiBin[0].at(iHiBin) == 0 && bins_hiBin[1].at(iHiBin) == 200))
-                line_hiBin = Form("%d-%d %%", bins_hiBin[0].at(iHiBin)/2, bins_hiBin[1].at(iHiBin)/2);
+                line_hiBin = Form("Cent. %d-%d %%", bins_hiBin[0].at(iHiBin)/2, bins_hiBin[1].at(iHiBin)/2);
 
             if (observable == "M") {
                 if (line_pt.size() > 0)  textLines.push_back(line_pt);
@@ -342,10 +343,11 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 if (line_pt_eta.size() > 0)  textLines.push_back(line_pt_eta);
                 textLines.push_back(Form("%d < M^{%s%s} < %d GeV/c^{2}", (int)massMin, leptonSymbol.c_str(), leptonSymbol.c_str(), (int)massMax));
             }
-            if (zPt > 0)                 textLines.push_back(Form("p_{T}^{Z} > %.0f GeV/c", zPt));
-            if (line_hiBin.size() > 0)   textLines.push_back(line_hiBin);
+            if (line_hiBin.size() > 0)   textLinesChannel.push_back(line_hiBin);
+            if (zPt > 0)  textLinesChannel.push_back(Form("p_{T}^{Z} > %.0f GeV/c", zPt));
 
             int nTextLines = textLines.size();
+            int nTextLinesChannel = textLinesChannel.size();
 
             // read histograms
             std::cout<<"reading histogram : "<< tmpHistName.c_str() <<std::endl;
@@ -366,6 +368,41 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
 
                 h1DsameChargeisValid[iColl] = false;
                 if (h1DsameCharge[iColl] && plotSameCharge.at(i))  h1DsameChargeisValid[iColl] = true;
+            }
+
+            // special cases
+            // add pair count into TLegend
+            bool writePairCount = (observable == "M");
+            int count_OS = -1;
+            int count_SS = -1;
+            bool massPlotSetAxis = writePairCount;
+            double massMin_count = 70;
+            double massMax_count = 110;
+            int binLow_count = -1;
+            int binUp_count = -1;
+            if (writePairCount) {
+                if (h1DisValid[COLL::kHI] && plotHI.at(i)){
+                    binLow_count = h1D[COLL::kHI]->FindBin(massMin_count);
+                    binUp_count = h1D[COLL::kHI]->FindBin(massMax_count) - 1;
+
+                    count_OS = (int)h1D[COLL::kHI]->Integral(binLow_count, binUp_count);
+                    if (h1DsameChargeisValid[COLL::kHI] && plotSameCharge.at(i)) {
+                        count_SS = (int)h1DsameCharge[COLL::kHI]->Integral(binLow_count, binUp_count);
+                    }
+                }
+                else if (h1DisValid[COLL::kPP] && plotPP.at(i)) {
+                    binLow_count = h1D[COLL::kPP]->FindBin(massMin_count);
+                    binUp_count = h1D[COLL::kPP]->FindBin(massMax_count) - 1;
+
+                    count_OS = (int)h1D[COLL::kPP]->Integral(binLow_count, binUp_count);
+                    if (h1DsameChargeisValid[COLL::kPP] && plotSameCharge.at(i)) {
+                        count_SS = (int)h1DsameCharge[COLL::kPP]->Integral(binLow_count, binUp_count);
+                    }
+                }
+                if (count_OS > -1) {
+                    textLinesChannel.push_back(Form("OS pairs : %d", count_OS));
+                    if (count_SS > -1)  textLinesChannel.push_back(Form("LS pairs : %d", count_SS));
+                }
             }
 
             // set canvas
@@ -389,7 +426,13 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
 
                 h1D[COLL::kHI]->SetMarkerSize(markerSize);
 
-                leg->AddEntry(h1D[COLL::kHI], "opposite charge", "lpf");
+                std::string strLeg = "Opposite sign";
+                // special cases
+                if (writePairCount && count_OS > -1)  strLeg = Form ("Opposite sign (%d counts)", count_OS);
+                leg->AddEntry(h1D[COLL::kHI], strLeg.c_str(), "lpf");
+
+                // special cases
+                if (massPlotSetAxis) h1D[COLL::kHI]->GetXaxis()->SetRange(binLow_count, binUp_count);
 
                 if (h1DsameChargeisValid[COLL::kHI] && plotSameCharge.at(i)) {
                     setTH1StyleSample(h1DsameCharge[COLL::kHI], COLL::kHI);
@@ -397,7 +440,10 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
 
                     h1DsameCharge[COLL::kHI]->SetMarkerSize(markerSize);
 
-                    leg->AddEntry(h1DsameCharge[COLL::kHI], "same charge", "lpf");
+                    std::string strLegSameCharge = "Same sign";
+                    // special cases
+                    if (writePairCount && count_SS > -1)  strLegSameCharge = Form ("Same sign (%d counts)", count_SS);
+                    leg->AddEntry(h1DsameCharge[COLL::kHI], strLegSameCharge.c_str(), "lpf");
                 }
             }
             if (h1DisValid[COLL::kPP] && plotPP.at(i)) {
@@ -406,7 +452,13 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
 
                 h1D[COLL::kPP]->SetMarkerSize(markerSize);
 
-                leg->AddEntry(h1D[COLL::kPP], "opposite charge", "lpf");
+                std::string strLeg = "Opposite sign";
+                // special cases
+                if (writePairCount && count_OS > -1)  strLeg = Form ("Opposite sign (%d counts)", count_OS);
+                leg->AddEntry(h1D[COLL::kPP], strLeg.c_str(), "lpf");
+
+                // special cases
+                if (massPlotSetAxis) h1D[COLL::kPP]->GetXaxis()->SetRange(binLow_count, binUp_count);
 
                 if (h1DsameChargeisValid[COLL::kPP] && plotSameCharge.at(i)) {
                     setTH1StyleSample(h1DsameCharge[COLL::kPP], COLL::kPP);
@@ -414,7 +466,10 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
 
                     h1DsameCharge[COLL::kPP]->SetMarkerSize(markerSize);
 
-                    leg->AddEntry(h1DsameCharge[COLL::kPP], "same charge", "lpf");
+                    std::string strLegSameCharge = "Same sign";
+                    // special cases
+                    if (writePairCount && count_SS > -1)  strLegSameCharge = Form ("Same sign (%d counts)", count_SS);
+                    leg->AddEntry(h1DsameCharge[COLL::kPP], strLegSameCharge.c_str(), "lpf");
                 }
             }
             if (h1DisValid[COLL::kHIMC] && plotHIMC.at(i)) {
@@ -424,7 +479,10 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 setTH1StyleSample(h1D[COLL::kHIMC], COLL::kHIMC);
                 setTH1_diLepton(h1D[COLL::kHIMC]);
 
-                leg->AddEntry(h1D[COLL::kHIMC], "Pythia+Hydjet", "lf");
+                leg->AddEntry(h1D[COLL::kHIMC], "PYTHIA+HYDJET", "lf");
+
+                // special cases
+                if (massPlotSetAxis) h1D[COLL::kHIMC]->GetXaxis()->SetRange(binLow_count, binUp_count);
             }
             if (h1DisValid[COLL::kPPMC] && plotPPMC.at(i)) {
                 // scale MC histogram
@@ -433,7 +491,10 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 setTH1StyleSample(h1D[COLL::kPPMC], COLL::kPPMC);
                 setTH1_diLepton(h1D[COLL::kPPMC]);
 
-                leg->AddEntry(h1D[COLL::kPPMC], "Pythia", "lf");
+                leg->AddEntry(h1D[COLL::kPPMC], "PYTHIA", "lf");
+
+                // special cases
+                if (massPlotSetAxis) h1D[COLL::kPPMC]->GetXaxis()->SetRange(binLow_count, binUp_count);
             }
             // set maximum/minimum of y-axis
             double histMin = -1;
@@ -449,6 +510,7 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
             //if (setLogy == 0) histMin = histMin-TMath::Abs(histMin)*0.1;
             if (setLogy == 0) histMin = 0;
             histMax = histMax+TMath::Abs(histMax)*0.2*TMath::Power(10,setLogy);
+            if (observable == "M") histMax *= 1.15;
             if (observable == "Eta" || observable == "Phi" ) histMax *= 1.4;
 
             if (h1DisValid[COLL::kHIMC] && plotHIMC.at(i)) {
@@ -537,6 +599,8 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
             ////////// latexCMS //////////
             bool drawLatexCMS = true;
             drawLatexCMS = (observable == "M");
+            float posCMSX = 1 - c->GetRightMargin();
+            float posCMSY = 1 - c->GetTopMargin();
             if (drawLatexCMS) {      // if theory models are plotted, then there is no place to add big CMS preliminary Latex.
                 TLatex* latexCMS = new TLatex();
                 TString cmsText     = "CMS";
@@ -559,8 +623,10 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 latexCMS->SetTextFont(cmsTextFont);
                 latexCMS->SetTextSize(cmsTextSize*c->GetTopMargin()*scaleLatexCMS);
                 setTextAlignment(latexCMS, "NW");
-                float posX_ = 1 - c->GetRightMargin() - 0.24;
+                float posX_ = 1 - c->GetRightMargin() - 0.26;
                 float posY_ = 1 - c->GetTopMargin() - 0.08;
+                posCMSX = posX_;
+                posCMSY = posY_;
                 latexCMS->DrawLatexNDC(posX_, posY_, cmsText);
                 if( writeExtraText )
                 {
@@ -570,6 +636,18 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 }
             }
             ////////// latexCMS - END //////////
+            TLatex* latexChannel = 0;
+            if (nTextLinesChannel > 0) {
+                latexChannel = new TLatex();
+                latexChannel->SetTextFont(textFont);
+                latexChannel->SetTextSize(textSize);
+                // setTextAlignment(latexChannel, textPosition.c_str());
+                for (int i = 0; i<nTextLinesChannel; ++i){
+                    float x = posCMSX;
+                    float y = posCMSY - 0.06 - i*0.05;
+                    latexChannel->DrawLatexNDC(x, y , textLinesChannel.at(i).c_str());
+                }
+            }
 
             if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
             leg->SetBorderSize(legendBorderSize);
@@ -645,7 +723,7 @@ void setTH1_diLepton(TH1* h, bool sameCharge) {
     h->SetTitleOffset(1.7, "Y");
 
     if (sameCharge) {
-        h->SetMarkerStyle(kOpenCircle);
+        h->SetMarkerStyle(kOpenSquare);
     }
 }
 
