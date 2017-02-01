@@ -798,7 +798,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         if (nDrawOptions == 1) {
             if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
         }
-        else if (nDrawOptions == nHistosInput) {
+        else if (!drawSameAcrossSplits && nDrawOptions == nHistosInput) {
             if (drawOptions.at(i%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
         }
         else if (drawSameAcrossSplits && nDrawOptions == nSplits) {
@@ -809,7 +809,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int markerStyle = GRAPHICS::markerStyle;
         if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
-        else if (nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
+        else if (!drawSameAcrossSplits && nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
         else if (drawSameAcrossSplits && nMarkerStyles == nSplits) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at((i/nHistosInput)%nMarkerStyles));
         h[i]->SetMarkerStyle(markerStyle);
         h_normInt[i]->SetMarkerStyle(markerStyle);
@@ -817,7 +817,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int lineStyle = GRAPHICS::lineStyle;
         if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
-        else if (nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
+        else if (!drawSameAcrossSplits && nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
         else if (drawSameAcrossSplits && nLineStyles == nSplits)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at((i/nHistosInput)%nLineStyles));
         h[i]->SetLineStyle(lineStyle);
         h_normInt[i]->SetLineStyle(lineStyle);
@@ -825,7 +825,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int fillStyle = GRAPHICS::fillStyle;
         if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
-        else if (nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
+        else if (!drawSameAcrossSplits && nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
         else if (drawSameAcrossSplits && nFillStyles == nSplits)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at((i/nHistosInput)%nFillStyles));
         h[i]->SetFillStyle(fillStyle);
         h_normInt[i]->SetFillStyle(fillStyle);
@@ -833,7 +833,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int color = GRAPHICS::colors[i];
         if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
-        else if (nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
+        else if (!drawSameAcrossSplits && nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
         else if (drawSameAcrossSplits && nColors == nSplits) color = GraphicsConfigurationParser::ParseColor(colors.at((i/nHistosInput)%nColors));
         h[i]->SetMarkerColor(color);
         h[i]->SetLineColor(color);
@@ -844,7 +844,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int fillColor = -1;
         if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
-        else if (nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
+        else if (!drawSameAcrossSplits && nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
         else if (drawSameAcrossSplits && nFillColors == nSplits) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at((i/nHistosInput)%nFillColors));
         if (fillColor != -1)
         {
@@ -855,7 +855,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         int lineColor = -1;
         if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
-        else if (nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
+        else if (!drawSameAcrossSplits && nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
         else if (drawSameAcrossSplits && nLineColors == nSplits) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at((i/nHistosInput)%nLineColors));
         if (nLineColors != -1)
         {
