@@ -101,7 +101,7 @@ void dimuonSkim(const TString configFile, const TString inputFile, const TString
        TTree* outputTreeHiEvt = 0;
        TTree* outputTreeSkim = 0;
 
-       TTree *diMuonTree = new TTree("dimuon","muon pairs");
+       TTree* diMuonTree = new TTree("dimuon","muon pairs");
        diMuonTree->SetMaxTreeSize(MAXTREESIZE);
 
        dimuon diMu;
