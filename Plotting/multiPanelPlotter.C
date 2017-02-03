@@ -16,7 +16,7 @@
 #include <string>
 
 #define HIST_MINUS_N_PTS_TO_NPART_GRAPH(h_name, g_name, n)                      \
-    int npoints = h_name->GetNbinsX();                                          \
+    int npoints = h_name->GetNbinsX() - n;                                      \
     g_name = new TGraphErrors(npoints);                                         \
     for (int p=0; p<npoints; ++p) {                                             \
         g_name->SetPoint(p, ncoll_w_npart[p+n], h_name->GetBinContent(p+1+n));  \
@@ -75,7 +75,9 @@ static float axis_label_cover_size;
 void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
 void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
 void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_graph_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
 void set_legend_style(TLegend* l1);
 void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
@@ -180,13 +182,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     };
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
-        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT (CCNU-LBNL)", "pp (LBT (CCNU-LBNL))",
-        "Hybrid Strong Coupling", "pp (Hybrid Strong Coupling)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
+        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT 2017", "pp (LBT 2017)",
+        "Hybrid Model", "pp (Hybrid Model)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
         "Hybrid dE/dx #alpha T^{3}", "pp (Hybrid dE/dx #alpha T^{3})", "Hybrid dE/dx #alpha T^{2}", "pp (Hybrid dE/dx #alpha T^{2})"
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l", "f", "l", "f", "l"};
 
-    int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRIDRAD_REF, _HYBRIDRAD, _HYBRIDCOLL_REF, _HYBRIDCOLL, _HYBRID_REF, _HYBRID, _IVITEV_REF, _IVITEV};
+    int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _HYBRID_REF, _HYBRID, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRIDRAD_REF, _HYBRIDRAD, _HYBRIDCOLL_REF, _HYBRIDCOLL, _IVITEV_REF, _IVITEV};
     for (int i=0; i<_NPLOTS; ++i) {
         int j = draw_order[i];
         if (hist_file_valid[j]) {
@@ -337,25 +339,25 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "dphi")
                         h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total_fit", hist_name.c_str()));
 
-                    TBox* sys_box = new TBox();
-                    sys_box->SetFillStyle(1001);
+                    TGraph* sys_gr = new TGraph();
+                    sys_gr->SetFillStyle(1001);
                     if (k == _PBPB_DATA)
-                        sys_box->SetFillColorAlpha(46, 0.7);
+                        sys_gr->SetFillColorAlpha(46, 0.7);
                     else if (k == _PP_DATA)
-                        sys_box->SetFillColorAlpha(30, 0.7);
+                        sys_gr->SetFillColorAlpha(30, 0.7);
 
                     if (hist_type.find("centBinAll") == std::string::npos) {
                         if (hist_type == "dphi" && set_log_scale[i])
-                            draw_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k], 13);
+                            draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k], 13);
                         else
-                            draw_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k]);
+                            draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
                         h1[i][j][k]->Draw(sys_draw_options[k].c_str());
                     } else {
-                        draw_graph_sys_unc(sys_box, h1[i][j][k], h1_sys[i][j][k]);
+                        draw_graph_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
                         g1[i][j][k]->Draw(graph_draw_options[k].c_str());
                     }
 
-                    h1[i][j][k]->SetFillColor(sys_box->GetFillColor());
+                    h1[i][j][k]->SetFillColor(sys_gr->GetFillColor());
                     h1[i][j][k]->SetFillStyle(1001);
                 }
             }
@@ -380,7 +382,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 }
 
                 if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
-                    for (int k=0; k<_NPLOTS; ++k) {
+                    for (int p=0; p<_NPLOTS; ++p) {
+                        int k = draw_order[p];
                         if (hist_file_valid[k]) {
                             if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
                                 if (g1[i][j][k])
@@ -416,7 +419,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
-                if (hist_type == "xjg_mean_ptBinAll" && inputFile.Contains("data"))
+                if (hist_type == "xjg_mean_ptBinAll")
                     cms_box.x1 = 0.2;
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
@@ -425,7 +428,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexPrelim->SetTextFont(53);
                 latexPrelim->SetTextSize(13);
                 box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
-                if (hist_type == "xjg_mean_ptBinAll" && inputFile.Contains("data"))
+                if (hist_type == "xjg_mean_ptBinAll")
                     prelim_box.x1 = 0.2;
                 adjust_coordinates(prelim_box, margin, edge, i, j);
                 latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
@@ -437,6 +440,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     if (columns == 1 && hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
                         plotInfo.push_back("#Delta#phi_{J#gamma} > #frac{7#pi}{8}");
+                }
+                if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
+                    plotInfo.push_back("p_{T}^{Jet} > 30 GeV/c");
+                    plotInfo.push_back("anti-k_{T} Jet R = 0.3");
+                    plotInfo.erase(plotInfo.begin() + 1);
+                    plotInfo.erase(plotInfo.begin() + 1);
                 }
             }
 
@@ -476,7 +485,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     line_pos = 0.5 - l * latex_spacing;
                 }
                 if (i == 0 && j == 2 && canvas_title == "xjg" && configFile.Contains("theory_pp")) {
-                    line_pos = 0.59 - l * latex_spacing;
+                    line_pos = 0.64 - l * latex_spacing;
                 }
                 box_t info_box = (box_t) {0, 0, i_x[i], line_pos};
                 adjust_coordinates(info_box, margin, edge, i, j);
@@ -658,6 +667,29 @@ void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge)
     }
 }
 
+void draw_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
+    int nBins = h1->GetNbinsX();
+    for (int i=first_bin; i<=nBins; ++i) {
+        if (h1->GetBinError(i) == 0) continue;
+        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
+        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
+
+        double x = h1->GetBinCenter(i);
+        int sys_bin = h1_sys->FindBin(x);
+        double bin_width = h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
+
+        double val = h1->GetBinContent(i);
+        double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
+
+        gr->SetPoint(0, x - (bin_width/2), std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(1, x + (bin_width/2), std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(2, x + (bin_width/2), std::min(val + error, h1->GetMaximum()));
+        gr->SetPoint(3, x - (bin_width/2), std::min(val + error, h1->GetMaximum()));
+
+        gr->DrawClone("f");
+    }
+}
+
 void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
     for (int i=first_bin; i<=nBins; ++i) {
@@ -678,6 +710,28 @@ void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
         box->SetY2(std::min(val + error, h1->GetMaximum()));
 
         box->DrawClone();
+    }
+}
+
+void draw_graph_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
+    int nBins = h1->GetNbinsX();
+    for (int i=first_bin; i<=nBins; ++i) {
+        if (h1->GetBinError(i) == 0) continue;
+        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
+        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
+
+        double x = ncoll_w_npart[i-first_bin];
+        int sys_bin = h1_sys->FindBin(x);
+
+        double val = h1->GetBinContent(i);
+        double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
+
+        gr->SetPoint(0, x - 16, std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(1, x + 16, std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(2, x + 16, std::min(val + error, h1->GetMaximum()));
+        gr->SetPoint(3, x - 16, std::min(val + error, h1->GetMaximum()));
+
+        gr->DrawClone("f");
     }
 }
 
@@ -897,6 +951,7 @@ void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_of
         x_axis->SetTitleOffset(x_axis_offset);
         x_axis->CenterTitle();
     } else {
+        x_axis->SetLabelOffset(999);
         x_axis->SetTitleOffset(999);
         x_axis->SetTitle("");
     }
@@ -905,6 +960,7 @@ void set_axis_style(TH1D* h1, int i, int j, float x_axis_offset, float y_axis_of
         y_axis->SetTitleOffset(y_axis_offset);
         y_axis->CenterTitle();
     } else {
+        y_axis->SetLabelOffset(999);
         y_axis->SetTitleOffset(999);
         y_axis->SetTitle("");
     }
@@ -991,7 +1047,7 @@ void cover_axis(std::string hist_type, float margin, float edge) {
 
     float axis_label_cover_size_wide = (hist_type.find("BinAll") != std::string::npos) ? 0.025 : axis_label_cover_size;
     for (int p=1; p<columns; ++p) {
-        x_covers[p] = new TPad(Form("x_cover_%d", p), Form("x_cover_%d", p), x_min[p]-axis_label_cover_size_wide, y_min[rows-1]-0.05, x_min[p]+axis_label_cover_size_wide, y_min[rows-1]-0.0024);
+        x_covers[p] = new TPad(Form("x_cover_%d", p), Form("x_cover_%d", p), x_min[p]-axis_label_cover_size_wide, y_min[rows-1]-0.05, x_min[p]+axis_label_cover_size_wide, y_min[rows-1]-0.005);
         x_covers[p]->Draw();
     }
 }

@@ -11,9 +11,9 @@ Data/photons/Hybrid.root
 Data/photons/DUMMY.root
 Data/photons/pQCDjetEloss.root
 Data/photons/DUMMY.root
-Data/photons/HybridRad.root
+Data/photons/DUMMY.root #Data/photons/HybridRad.root
 Data/photons/DUMMY.root
-Data/photons/HybridColl.root
+Data/photons/DUMMY.root #Data/photons/HybridColl.root
 Data/photons/DUMMY.root
 # Systematics
 Data/photons/gammaJetSystematics.root
