@@ -117,7 +117,7 @@ void dielectronSkim(const TString configFile, const TString inputFile, const TSt
        TTree* outputTreeHiEvt = 0;
        TTree* outputTreeSkim = 0;
 
-       TTree *diElectronTree = new TTree("dielectron","electron pairs");
+       TTree* diElectronTree = new TTree("dielectron","electron pairs");
        diElectronTree->SetMaxTreeSize(MAXTREESIZE);
 
        dielectron diEle;

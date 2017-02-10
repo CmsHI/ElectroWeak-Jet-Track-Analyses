@@ -83,7 +83,7 @@ void setCanvasSizeMargin(TCanvas* c, double normWidth, double normHeight, float 
     UInt_t height = c->GetWindowHeight();   // fWindowHeight : Height of window (including menubar, borders, etc.)
 
     // assume the function is called in batch mode, so use SetCanvasSize() instead of SetWindowSize()
-    c->SetCanvasSize(width* normWidth, height*normHeight);
+    c->SetCanvasSize(width*normWidth, height*normHeight);
     c->SetLeftMargin(leftMargin);
     c->SetRightMargin(rightMargin);
     c->SetBottomMargin(bottomMargin);
