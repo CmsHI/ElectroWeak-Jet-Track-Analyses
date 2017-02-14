@@ -447,6 +447,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
   float eventWeight;
   std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIsoCorrected;
+  Int_t pho_isEle, pho_is2015Noise;
   Int_t pcollisionEventSelection;  // this filter is used for HI.
   Int_t HBHENoiseFilterResultRun2Loose;
   Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
@@ -464,9 +465,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizer/EventTree");
     else
       treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizerGED/EventTree");
-    // treeggHiNtuplizer->SetBranchStatus("pho_sumIsoCorrected",0);
-    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected",0);
-    // treeggHiNtuplizer->SetBranchStatus("phoEtCorrected_sys",0);
 
     TTree* treeJet[nJetCollections];
     for (int i=0; i<nJetCollections; ++i)
@@ -545,7 +543,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       treeHiEvt->SetBranchStatus("Nhard", 1);
       treeHiEvt->SetBranchStatus("ProcessID", 1);
       treeHiEvt->SetBranchStatus("pthat", 1);
-      //treeHiEvt->SetBranchStatus("weight", 1); // set a new weight, don't use the old one
       treeHiEvt->SetBranchStatus("alphaQCD", 1);
       treeHiEvt->SetBranchStatus("alphaQED", 1);
       treeHiEvt->SetBranchStatus("qScale", 1);
@@ -633,6 +630,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       outputTreeggHiNtuplizer->Branch("phoEtCorrected", &phoEtCorrected);
       outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &phoEtCorrected_sys);
       outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
+      outputTreeggHiNtuplizer->Branch("pho_isEle", &pho_isEle);
+      outputTreeggHiNtuplizer->Branch("pho_is2015Noise", &pho_is2015Noise);
       outputTreeHiEvt = treeHiEvt->CloneTree(0);
       outputTreeHiEvt->SetName("HiEvt");
       outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
@@ -688,8 +687,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       phoEtCorrected.clear();
       phoEtCorrected_sys.clear();
       pho_sumIsoCorrected.clear();
-      // ggHi.phoEtCorrected->clear();
-      // ggHi.phoEtCorrected_sys->clear();
 
       treeHLT->GetEntry(jentry);
       treeggHiNtuplizer->GetEntry(jentry);
@@ -771,7 +768,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           // Data 30 - 100% Z mass: 9.064840e+01
           phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
           phoEtCorrected_sys.push_back(phoEt_corrected);
-          // ggHi.phoEtCorrected_sys->push_back(phoEt_corrected);
         } else {
           phoEtCorrected.push_back((*ggHi.phoEt)[i]);
           pho_sumIsoCorrected.push_back(sumIso);
@@ -801,6 +797,33 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
       if (phoIdx == -1)
         continue;
+
+      // fill noise variable
+      pho_is2015Noise = 0;
+      if (((*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2./3.-0.03 &&
+           (*ggHi.phoE3x3)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2./3.+0.03) &&
+          ((*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 1./3.-0.03 &&
+           (*ggHi.phoE1x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 1./3.+0.03) &&
+          ((*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] > 2./3.-0.03 &&
+           (*ggHi.phoE2x5)[phoIdx]/(*ggHi.phoE5x5)[phoIdx] < 2./3.+0.03)) {
+          pho_is2015Noise = 1;
+      }
+
+      pho_isEle = 0;
+      float eleEpTemp = 100.0;
+      for (int ie=0; ie<ggHi.nEle; ++ie) {
+          if ((*ggHi.elePt)[ie] < 10)
+              continue;
+          if (abs((*ggHi.eleEta)[ie] - (*ggHi.phoEta)[phoIdx]) > 0.03) // deta
+              continue;
+          if (abs(getDPHI((*ggHi.elePhi)[ie], (*ggHi.phoPhi)[phoIdx])) > 0.03) // dphi
+              continue;
+          if (eleEpTemp < (*ggHi.eleEoverP)[ie])
+              continue;
+
+          pho_isEle = 1;
+          break;
+      }
 
       entriesAnalyzed++;
 

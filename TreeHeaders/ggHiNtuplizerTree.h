@@ -401,6 +401,8 @@ public :
   std::vector<float>   *phoR9;
   std::vector<float>   *phoHoverE;
   std::vector<float>   *phoSigmaIEtaIEta;
+  Int_t pho_isEle;
+  Int_t pho_is2015Noise;
   //std::vector<float>   *phoE1x3;
   //std::vector<float>   *phoE2x2;
   //std::vector<float>   *phoE2x5Max;
@@ -672,6 +674,8 @@ public :
   TBranch        *b_phoR9;   //!
   TBranch        *b_phoHoverE;   //!
   TBranch        *b_phoSigmaIEtaIEta;   //!
+  TBranch *b_pho_isEle;
+  TBranch *b_pho_is2015Noise;
   //TBranch        *b_phoE1x3;   //!
   //TBranch        *b_phoE2x2;   //!
   //TBranch        *b_phoE2x5Max;   //!
@@ -944,6 +948,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
+    if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
+    if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
     //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
     //if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
     //if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);

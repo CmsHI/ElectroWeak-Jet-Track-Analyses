@@ -109,7 +109,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const bool doSmearingRes = (smearingResJet > 0);
     const int sysUncFactor = 100;
     TRandom3 rand(12345);
-    
+
     const int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
 
     const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -551,7 +551,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         // dphi = 1
                         corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gammaJet[smearBin].dphi)[ijet]), weight);
                         corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
-                        
+
                         //apply dphi cuts now
                         if (TMath::Abs((*gammaJet[smearBin].dphi)[ijet]) <= cut_awayRange)
                             continue;
