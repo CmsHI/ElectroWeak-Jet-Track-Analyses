@@ -63,6 +63,9 @@ void TH1D_from_TF1(TH1D* h, TF1* f) {
         h->SetBinContent(i, f->Eval(h->GetBinCenter(i)));
 }
 
+#define _N_REBIN 10
+Double_t xjg_rebin[_N_REBIN + 1] = {0, 0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2};
+
 class TotalSysVar;
 
 class SysVar {
@@ -135,6 +138,45 @@ public:
 
         h1D_ratio_abs = (TH1D*)h1D_ratio->Clone(Form("h1D_%s_ratio_abs_%s", hist_name.c_str(), sys_type.c_str()));
         TH1D_AbsRatio(h1D_ratio_abs);
+    }
+
+    void rebin_and_calc_sys() {
+        TH1D* h1D_nominal_rebin = (TH1D*)h1D_nominal->Rebin(_N_REBIN, Form("h1D_%s_nominal_%s_rebin", hist_name.c_str(), sys_type.c_str()), xjg_rebin);
+        TH1D* h1D_varied_rebin = (TH1D*)h1D_varied->Rebin(_N_REBIN, Form("h1D_%s_varied_%s_rebin", hist_name.c_str(), sys_type.c_str()), xjg_rebin);
+
+        TH1D* h1D_diff_rebin = (TH1D*)h1D_varied_rebin->Clone(Form("h1D_%s_diff_%s_rebin", hist_name.c_str(), sys_type.c_str()));
+        h1D_diff_rebin->Add(h1D_nominal_rebin, -1);
+
+        TH1D* h1D_diff_abs_rebin = (TH1D*)h1D_diff_rebin->Clone(Form("h1D_%s_diff_abs_%s_rebin", hist_name.c_str(), sys_type.c_str()));
+        TH1D_Abs(h1D_diff_abs_rebin);
+
+        TH1D* h1D_ratio_rebin = (TH1D*)h1D_varied_rebin->Clone(Form("h1D_%s_ratio_%s_rebin", hist_name.c_str(), sys_type.c_str()));
+        h1D_ratio_rebin->Divide(h1D_nominal_rebin);
+
+        TH1D* h1D_ratio_abs_rebin = (TH1D*)h1D_ratio_rebin->Clone(Form("h1D_%s_ratio_abs_%s_rebin", hist_name.c_str(), sys_type.c_str()));
+        TH1D_AbsRatio(h1D_ratio_abs_rebin);
+
+        h1D_diff = (TH1D*)h1D_varied->Clone(Form("h1D_%s_diff_%s", hist_name.c_str(), sys_type.c_str()));
+        h1D_diff_abs = (TH1D*)h1D_diff->Clone(Form("h1D_%s_diff_abs_%s", hist_name.c_str(), sys_type.c_str()));
+        h1D_ratio = (TH1D*)h1D_varied->Clone(Form("h1D_%s_ratio_%s", hist_name.c_str(), sys_type.c_str()));
+        h1D_ratio_abs = (TH1D*)h1D_ratio->Clone(Form("h1D_%s_ratio_abs_%s", hist_name.c_str(), sys_type.c_str()));
+
+        rebin_sys(h1D_diff, h1D_diff_rebin);
+        rebin_sys(h1D_diff_abs, h1D_diff_abs_rebin);
+        rebin_sys(h1D_ratio, h1D_ratio_rebin);
+        rebin_sys(h1D_ratio_abs, h1D_ratio_abs_rebin);
+    }
+
+    // warning: no error checking done
+    void rebin_sys(TH1D* h_orig, TH1D* h_rebinned) {
+        int i_rebin = 1;
+        for (int i=1; i<=h_orig->GetNbinsX(); ++i) {
+            float rebin_factor = h_orig->GetBinWidth(i) / h_rebinned->GetBinWidth(i_rebin);
+            h_orig->SetBinContent(i, rebin_factor * h_rebinned->GetBinContent(i_rebin));
+            h_orig->SetBinError(i, rebin_factor * h_rebinned->GetBinContent(i_rebin));
+            if (h_orig->GetBinLowEdge(i + 1) == h_rebinned->GetBinLowEdge(i_rebin + 1))
+                ++i_rebin;
+        }
     }
 
     void scale_sys(double scale_factor) {

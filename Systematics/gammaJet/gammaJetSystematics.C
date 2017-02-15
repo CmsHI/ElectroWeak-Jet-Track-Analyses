@@ -175,7 +175,11 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
                         SysVar* sys_hists = new SysVar(hist_full_name, sys_types[m]);
                         sys_hists->init(h1D_nominal, h1D_varied);
-                        sys_hists->calc_sys();
+
+                        if (hist_types[i] == "xjg" && sys_types[m] == "JER")
+                            sys_hists->rebin_and_calc_sys();
+                        else
+                            sys_hists->calc_sys();
 
                         if (sys_types[m] == "ele_rejection")
                             sys_hists->scale_sys(0.55);
