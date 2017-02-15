@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS += -Wall -Werror -O2 -Wextra
+CXXFLAGS += -Wall -Werror -Wextra -O2
 ROOTFLAGS := `root-config --cflags --libs`
 EXTRAFLAGS := -lTMVA -lRooFitCore -lRooFit
 
@@ -21,7 +21,7 @@ all: $(EXES)
 
 %.exe: %.C
 	@mkdir -p $(BUILD_DIR)/$(@D)
-	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) $(EXTRAFLAGS) -MMD -MF $(BUILD_DIR)/$(@D)/$(*F).d -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) $(EXTRAFLAGS) -MMD -MF $(BUILD_DIR)/$(@D)/$(*F).d $< -o $@
 
 clean:
 	@$(RM) $(EXES) $(DEPS)
