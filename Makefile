@@ -1,24 +1,30 @@
 CXX = g++
+CXXFLAGS += -Wall -Werror -O2 -Wextra
 ROOTFLAGS := `root-config --cflags --libs`
 EXTRAFLAGS := -lTMVA -lRooFitCore -lRooFit
-CXXFLAGS = -Wall -O2 -Werror -Wextra $(ROOTFLAGS) $(EXTRAFLAGS)
+
 GCCVERSION := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 6)
 ifeq "$(GCCVERSION)" "1"
-  CXXFLAGS += -Wno-error=misleading-indentation
+	CXXFLAGS += -Wno-error=misleading-indentation
 endif
-SRCS_C := $(wildcard */*.C)
-PROGS_C := $(patsubst %.C,%.exe,$(SRCS_C))
-SRCS_cc := $(wildcard */*/*.C)
-PROGS_cc := $(patsubst %.C,%.exe,$(SRCS_cc))
 
-all: $(PROGS_C) $(PROGS_cc)
+BUILD_DIR = ./build
+
+SRCS = $(wildcard */*.C)
+SRCS += $(wildcard */*/*.C)
+EXES = $(patsubst %.C,%.exe,$(SRCS))
+DEPS = $(patsubst %.C,$(BUILD_DIR)/%.d,$(SRCS))
+
+.PHONY: all clean
+
+all: $(EXES)
 
 %.exe: %.C
-	$(CXX) $(CXXFLAGS)  -o $@ $<
-
-%.exe: %.cc
-	$(CXX) $(CXXFLAGS)  -o $@ $<
+	@mkdir -p $(BUILD_DIR)/$(@D)
+	$(CXX) $(CXXFLAGS) $(ROOTFLAGS) $(EXTRAFLAGS) -MMD -MF $(BUILD_DIR)/$(@D)/$(*F).d -c $< -o $@
 
 clean:
-	rm */*.exe || true
-	rm */*/*.exe || true
+	@$(RM) $(EXES) $(DEPS)
+	@rm -rf $(BUILD_DIR)/*
+
+-include $(DEPS)
