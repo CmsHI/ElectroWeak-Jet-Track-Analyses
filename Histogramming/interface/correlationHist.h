@@ -56,6 +56,8 @@ public :
             for (int j = 0; j < CORR::kN_CORRFNC; ++j) {
                 nEntries[i][j] = 0;
                 nEntriesPho[i][j] = 0;
+                nEntriesRaw[i][j] = 0;
+                nEntriesPhoRaw[i][j] = 0;
             }
         }
     };
@@ -76,6 +78,8 @@ public :
     TCut  selections[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
     float   nEntries[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
     float   nEntriesPho[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
+    float   nEntriesRaw[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
+    float   nEntriesPhoRaw[CORR::kN_CORRFNC][CORR::kN_CORRFNC];
 };
 
 #endif

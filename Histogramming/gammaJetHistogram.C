@@ -110,8 +110,6 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const int sysUncFactor = 100;
     TRandom3 rand(12345);
 
-    const int dphi_check = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_dphi_check];
-
     const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     const int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     // verbose about cut configuration
@@ -489,8 +487,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             for (int j=0; j<nBins_hiBin; ++j) {
                 if (isHI && (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j]))
                     continue;
-                for (int iHist = 0; iHist < nCorrHist; iHist++)
+                for (int iHist = 0; iHist < nCorrHist; iHist++) {
                     corrHists[iHist][i][j].nEntriesPho[phoType][CORR::kRAW] += weight;
+                    ++corrHists[iHist][i][j].nEntriesPhoRaw[phoType][CORR::kRAW];
+                }
             }
         }
 
@@ -551,6 +551,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         // dphi = 1
                         corrHists[1][i][j].h1D[phoType][CORR::kRAW]->Fill(TMath::Abs((*gammaJet[smearBin].dphi)[ijet]), weight);
                         corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                        ++corrHists[1][i][j].nEntriesRaw[phoType][CORR::kRAW];
 
                         //apply dphi cuts now
                         if (TMath::Abs((*gammaJet[smearBin].dphi)[ijet]) <= cut_awayRange)
@@ -563,102 +564,73 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         }
                         corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                         corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                        ++corrHists[0][i][j].nEntriesRaw[phoType][CORR::kRAW];
                         corrHists[2][i][j].h1D[phoType][CORR::kRAW]->Fill(jetpt, weight);
                         corrHists[2][i][j].nEntries[phoType][CORR::kRAW] += weight;
+                        ++corrHists[2][i][j].nEntriesRaw[phoType][CORR::kRAW];
                     }
                 }
             }
         }
 
-        if (dphi_check && isHI) {
-            for (int ijet = 0; ijet < jet.nref; ijet++) {
-                for (int j=0; j<nBins_hiBin; ++j) {
-                    if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+        if (hasJetsMB && hasGammaJetMB) {
+            jetTreeMB->GetEntry(jentry);
+            gammaJetTreeMB->GetEntry(jentry);
+
+            for (int ijet = 0; ijet < jetMB.nref; ijet++) {
+                int multiplyJets = 1;
+                if(doSmearingRes)
+                    multiplyJets = sysUncFactor;
+                for(int iResSmear = 0; iResSmear < multiplyJets; iResSmear++){
+                    float jetpt = jetMB.jtpt[ijet];
+                    float smearFactor = 1;
+                    if(doSmearingRes) {
+                        //smearFactor = rand.Gaus(1,smearingResJet);
+                        float SF = 1 + smearingResJet;
+                        int resolutionBin = 0;
+                        resolutionBin = getResolutionBin(evt.hiBin);
+                        float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
+                        smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
+                        jetpt *= smearFactor;
+                    }
+
+                    // jet cuts
+                    if ((*gammaJetMB.dR)[ijet] < cut_dR)
                         continue;
-                    if (jet.jtpt[ijet] < cut_jetpt)
+                    // jteta cut moved to skim
+                    // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
+                    if (jetpt < cut_jetpt)
                         continue;
-                    if ((*gammaJet[0].dR)[ijet] < cut_dR)
+                    if ((*gammaJetMB.jetID)[ijet] < cut_jetID)
                         continue;
 
                     for (int i=0; i<nBins_pt; ++i) {
-                        if ((*pho.phoEtCorrected)[gammaJet[0].phoIdx] <  bins_pt[0][i] ||
-                            (*pho.phoEtCorrected)[gammaJet[0].phoIdx] >= bins_pt[1][i]) continue;
+                        if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
+                            (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
+                        for (int j=0; j<nBins_hiBin; ++j) {
+                            if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+                                continue;
 
-                        float lower_sideband = 1;
-                        float upper_sideband = TMath::Pi()/2;
-                        float sideband_width = upper_sideband - lower_sideband;
-
-                        // select dphi sideband region
-                        if (TMath::Abs((*gammaJet[0].dphi)[ijet]) > upper_sideband || TMath::Abs((*gammaJet[0].dphi)[ijet]) < lower_sideband)
-                            continue;
-
-                        corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill((TMath::Abs((*gammaJet[0].dphi)[ijet])-lower_sideband)*(TMath::Pi()/sideband_width), weight*40*(TMath::Pi()/sideband_width));
-                        corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/sideband_width);
-
-                        corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill((*gammaJet[0].xjgCorrected)[ijet], weight*40*(TMath::Pi()/8/sideband_width));
-                        corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
-                        corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jet.jtpt[ijet], weight*40*(TMath::Pi()/8/sideband_width));
-                        corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight*40*(TMath::Pi()/8/sideband_width);
-                    }
-                }
-            }
-        } else {
-            if (hasJetsMB && hasGammaJetMB) {
-                jetTreeMB->GetEntry(jentry);
-                gammaJetTreeMB->GetEntry(jentry);
-
-                for (int ijet = 0; ijet < jetMB.nref; ijet++) {
-                    int multiplyJets = 1;
-                    if(doSmearingRes)
-                        multiplyJets = sysUncFactor;
-                    for(int iResSmear = 0; iResSmear < multiplyJets; iResSmear++){
-                        float jetpt = jetMB.jtpt[ijet];
-                        float smearFactor = 1;
-                        if(doSmearingRes) {
-                            //smearFactor = rand.Gaus(1,smearingResJet);
-                            float SF = 1 + smearingResJet;
-                            int resolutionBin = 0;
-                            resolutionBin = getResolutionBin(evt.hiBin);
-                            float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
-                            smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
-                            jetpt *= smearFactor;
-                        }
-
-                        // jet cuts
-                        if ((*gammaJetMB.dR)[ijet] < cut_dR)
-                            continue;
-                        // jteta cut moved to skim
-                        // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
-                        if (jetpt < cut_jetpt)
-                            continue;
-                        if ((*gammaJetMB.jetID)[ijet] < cut_jetID)
-                            continue;
-
-                        for (int i=0; i<nBins_pt; ++i) {
-                            if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
-                                (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
-                            for (int j=0; j<nBins_hiBin; ++j) {
-                                if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
-                                    continue;
-
-                                // fill histograms
-                                // dphi = 1
-                                corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gammaJetMB.dphi)[ijet]), weight);
-                                corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                                // apply dphi cuts now
-                                if (TMath::Abs((*gammaJetMB.dphi)[ijet]) <= cut_awayRange)
-                                    continue;
-                                // xjg = 0
-                                // jtpt = 2
-                                float xjg = doPhotonEnergyScaleSystematics ? (*gammaJetMB.xjgCorrected_sys)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
-                                if(doSmearingRes){
-                                    xjg *= smearFactor;
-                                }
-                                corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
-                                corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
-                                corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jetpt, weight);
-                                corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            // fill histograms
+                            // dphi = 1
+                            corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gammaJetMB.dphi)[ijet]), weight);
+                            corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            ++corrHists[1][i][j].nEntriesRaw[phoType][CORR::kBKG];
+                            // apply dphi cuts now
+                            if (TMath::Abs((*gammaJetMB.dphi)[ijet]) <= cut_awayRange)
+                                continue;
+                            // xjg = 0
+                            // jtpt = 2
+                            float xjg = doPhotonEnergyScaleSystematics ? (*gammaJetMB.xjgCorrected_sys)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
+                            if(doSmearingRes){
+                                xjg *= smearFactor;
                             }
+                            corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
+                            corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            ++corrHists[0][i][j].nEntriesRaw[phoType][CORR::kBKG];
+                            corrHists[2][i][j].h1D[phoType][CORR::kBKG]->Fill(jetpt, weight);
+                            corrHists[2][i][j].nEntries[phoType][CORR::kBKG] += weight;
+                            ++corrHists[2][i][j].nEntriesRaw[phoType][CORR::kBKG];
                         }
                     }
                 }
@@ -671,7 +643,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         for (int i=0; i<nBins_pt; ++i) {
             for (int j=0; j<nBins_hiBin; ++j) {
                 corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
+                corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kRAW][CORR::kRAW];
                 corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW];
+                corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kBKG][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kBKG][CORR::kRAW];
 
                 if (h_nPho[i][j][CORR::kRAW]->GetBinContent(1) == 0) {
                     h_nPho[i][j][CORR::kRAW]->SetBinContent(1, corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW]);
@@ -683,10 +657,14 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     h_nPho[i][j][CORR::kBKG]->Write("", TObject::kOverwrite);
                 }
 
-                std::cout << "nEntries[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW] << std::endl;
-                std::cout << "nEntries[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].nEntries[CORR::kBKG][CORR::kRAW] << std::endl;
-                std::cout << "nEntriesPho[CORR::kRAW][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW] << std::endl;
-                std::cout << "nEntriesPho[CORR::kBKG][CORR::kRAW] = " << corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW] << std::endl;
+                printf("ptBin: %i, hiBin: %i, nEntries[CORR::kRAW][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntries[CORR::kRAW][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntries[CORR::kBKG][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntries[CORR::kBKG][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesRaw[CORR::kRAW][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesRaw[CORR::kRAW][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesRaw[CORR::kBKG][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesRaw[CORR::kBKG][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesPho[CORR::kRAW][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesPho[CORR::kBKG][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesPhoRaw[CORR::kRAW][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kRAW][CORR::kRAW]);
+                printf("ptBin: %i, hiBin: %i, nEntriesPhoRaw[CORR::kBKG][CORR::kRAW] = %f\n", i, j, corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kBKG][CORR::kRAW]);
 
                 std::string histoTitle;
                 if (bins_pt[1][i] == 9999 && bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200)
