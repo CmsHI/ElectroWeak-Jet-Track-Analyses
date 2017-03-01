@@ -126,17 +126,17 @@ enum MODEL{
 
 // fill colors to be used in a plot
 const int fillColors[kN_MODEL] = {
-        kMagenta+2,
-        kBlue+2,
-        kOrange+2
+        kTeal+9,    //kMagenta+2
+        39,         //kBlue+2
+        kPink+1     //kOrange+2
 };
-const int fillColorPP = 34;
+const int fillColorPP = kPink+1;   //34
 
 // legend entries to be used in a plot
 const std::string legendEntries[kN_MODEL] = {
-        "strong coupling",
-        "radiative",
-        "collisional"
+        "Hybrid Strong Coupling",      //"strong coupling"
+        "Hybrid dE/dx #alpha T^{3}",   //"radiative"
+        "Hybrid dE/dx #alpha T^{2}"    //"collisional"
 };
 const std::string modelTAG[kN_MODEL] = {
         "strong",
@@ -144,7 +144,7 @@ const std::string modelTAG[kN_MODEL] = {
         "coll"
 };
 
-const std::string legendEntryPP = "smeared pp";
+const std::string legendEntryPP = "Hybrid";   //"smeared pp"
 
 const std::vector<double> ymin_xjz[kN_MODEL] = {
         ymin_xjz_STRONG,
@@ -298,7 +298,11 @@ const std::vector<double> yerr_xjz_mean = {0.1111712, 0.04514933, 0.02058386, 0.
 const std::vector<double> y_xjz_mean_PP    = {0.9347126,  0.8099350,  0.8616110,  0.8125114};
 const std::vector<double> yerr_xjz_mean_PP = {0.06997798, 0.07184345, 0.02075788, 0.009971107};
 
-const std::string legendEntryPP = "smeared pp";
+const int color = 9;    // kYellow+3
+const int colorPP = 9;  // kCyan+3
+
+const std::string legendEntry = "JEWEL+PYTHIA";
+const std::string legendEntryPP = "JEWEL+PYTHIA";     //"smeared pp"
 
 };
 
