@@ -764,10 +764,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     int cent_up  = (int)(bins_hiBin[1].at(iHiBin)/2);
                     if (h1DSysIsValid[COLL::kHI][i]) {  // for TLegend purposes only
                         h1D[COLL::kHI][i]->SetFillColor(boxColor);
-                        h1D[COLL::kHI][i]->SetFillStyle(kFSolid_ColorAlpha);
+                        //h1D[COLL::kHI][i]->SetFillStyle(kFSolid_ColorAlpha);
+                        h1D[COLL::kHI][i]->SetFillColorAlpha(boxColor, falpha);
                     }
                     hLegend = (TH1D*)h1D[COLL::kHI][i]->Clone(Form("%s_legend", h1D[COLL::kHI][i]->GetName()));
                     hLegend->SetLineWidth(0);
+
                     leg->AddEntry(hLegend, Form("PbPb, %d-%d %%", cent_low, cent_up), "pf");
                     
                     // special cases
@@ -808,7 +810,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (plotHI.at(i)) ppEntry = "Smeared pp";
                     if (h1DSysIsValid[COLL::kPP][i]) {  // for TLegend purposes only
                         h1D[COLL::kPP][i]->SetFillColor(boxColorPP);
-                        h1D[COLL::kPP][i]->SetFillStyle(kFSolid_ColorAlpha);
+                        // h1D[COLL::kPP][i]->SetFillStyle(kFSolid_ColorAlpha);
+                        h1D[COLL::kPP][i]->SetFillColorAlpha(boxColorPP, falpha);
                     }
 
                     hLegend = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_legend", h1D[COLL::kPP][i]->GetName()));
@@ -983,7 +986,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                     if (ish1D_xjz || ish1D_dphi)
                     {
-                        // redraw pp data so that pp points are hidden in the background.
+                        // redraw pp data so that pp points are not hidden in the background.
                         if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
                             if (h1DSysIsValid[COLL::kPP][i]) {
                                 h1D[COLL::kPP][i]->Draw("e same");
