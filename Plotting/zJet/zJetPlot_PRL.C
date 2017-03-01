@@ -1118,8 +1118,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     TGraph* gr = new TGraph();
                     TGraphErrors* grErr = new TGraphErrors();
 
-                    TLegend* legTheoryHybrid = (TLegend*)leg->Clone("legTheoryHybrid");
-                    legTheoryHybrid->Clear();
+                    TLegend* legTheory = (TLegend*)leg->Clone("legTheory");
+                    legTheory->Clear();
                     double widthFactor = 1.0;
                     double heightFactor = 1.0;
 
@@ -1182,53 +1182,32 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (x_hybrid[0].size() > 0 && plotTheoryHI) {
 
                         gr->SetLineWidth(0);
-
                         // models for PbPb
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
 
-                            int colorTmp = -1;
-                            std::string textTmpModel = "";
-                            if (iModel == HYBRID::kSTRONG) {
-                                colorTmp = kTeal+9;
-                                textTmpModel = "Hybrid Strong Coupling";
-                            }
-                            else if (iModel == HYBRID::kRAD) {
-                                colorTmp = 39;
-                                textTmpModel = "Hybrid dE/dx #alpha T^{3}";
-                            }
-                            else if (iModel == HYBRID::kCOLL) {
-                                colorTmp = kPink+1;
-                                textTmpModel = "Hybrid dE/dx #alpha T^{2}";
-                            }
-
                             setTGraphBand(gr, x_hybrid[iModel], ymin_hybrid[iModel], ymax_hybrid[iModel]);
-                            //gr->SetFillColorAlpha(HYBRID::fillColors[iModel], falpha_theory);
-                            gr->SetFillColorAlpha(colorTmp, falpha_theory);
+                            gr->SetFillColorAlpha(HYBRID::fillColors[iModel], falpha_theory);
                             gr->SetFillStyle(kFSolid_ColorAlpha_theory);
                             gr->DrawClone("f");
-                            //legTheoryHybrid->AddEntry(gr->Clone(), HYBRID::legendEntries[iModel].c_str(), "f");
-                            legTheoryHybrid->AddEntry(gr->Clone(), textTmpModel.c_str(), "f");
+                            legTheory->AddEntry(gr->Clone(), HYBRID::legendEntries[iModel].c_str(), "f");
                         }
                     }
                     if (xPP.size() > 0 && plotTheoryPP)
                     {
                         gr->SetLineWidth(0);
-                        int colorTmp = kPink+1;
-                        std::string textTmpModel = "Hybrid";
 
                         // pp ref
                         setTGraphErrors(grErr, xPP, yPP, yerrPP);
-                        grErr->SetMarkerColorAlpha(colorTmp, falpha_theory_PP);     // HYBRID::fillColorPP
+                        grErr->SetMarkerColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
                         //grErr->SetMarkerStyle(kFullTriangleUp);
                         //grErr->SetMarkerSize(2.5);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(colorTmp, falpha_theory_PP);   // HYBRID::fillColorPP
+                        grErr->SetLineColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
                         grErr->SetLineWidth(3);     // 2
                         std::string ppRefPlotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
                         grErr->DrawClone(ppRefPlotOption.c_str());
-                        //legTheoryHybrid->AddEntry(grErr->Clone(), HYBRID::legendEntryPP.c_str(), ppRefPlotOption.c_str());
-                        legTheoryHybrid->AddEntry(grErr->Clone(), textTmpModel.c_str(), ppRefPlotOption.c_str());
+                        legTheory->AddEntry(grErr->Clone(), HYBRID::legendEntryPP.c_str(), ppRefPlotOption.c_str());
                     }
 
                     // set "legTheory" properly by taking "leg" as reference
@@ -1241,7 +1220,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         else if (ish1D_xjz) heightFactor = 1.5;
                         else heightFactor = 1.6;
                     }
-                    double heightTheory = (height*legTheoryHybrid->GetNRows()/leg->GetNRows()*heightFactor);
+                    double heightTheory = (height*legTheory->GetNRows()/leg->GetNRows()*heightFactor);
 
                     if (correlation == "xjz_mean") heightTheory = height;
 
@@ -1249,15 +1228,15 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     // 20170124 : no header
                     // legTheoryHybrid->SetHeader("Hybrid");   // "Casalderrey-Solana et al."
                     // put "legTheory" below "leg"
-                    legTheoryHybrid->SetX1(leg->GetX1NDC());
-                    legTheoryHybrid->SetY2(leg->GetY1NDC());
+                    legTheory->SetX1(leg->GetX1NDC());
+                    legTheory->SetY2(leg->GetY1NDC());
                     if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI)) {
                         // put "legTheory" to the right of "leg"*
                         //legTheoryHybrid->SetX1(leg->GetX2NDC()*1.0);
-                        legTheoryHybrid->SetX1(leg->GetX1NDC()+0.33);
+                        legTheory->SetX1(leg->GetX1NDC()+0.33);
                         //legTheoryHybrid->SetY2(leg->GetY2NDC());
-                        if (correlation == "rjz") legTheoryHybrid->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
-                        else if ((ish1D_xjz && plotTheoryHI)) legTheoryHybrid->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
+                        if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
+                        else if ((ish1D_xjz && plotTheoryHI)) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                     }
                     widthFactor = 1.0;
                     if (plotTheoryHI)  widthFactor = 0.83;
@@ -1265,8 +1244,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.0;
 
-                    legTheoryHybrid->SetX2(legTheoryHybrid->GetX1NDC() + legendWidth*widthFactor);
-                    legTheoryHybrid->SetY1(legTheoryHybrid->GetY2NDC() - heightTheory);
+                    legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
+                    legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
                     //legTheoryHybrid->Draw();
 
                     // JEWEL
@@ -1315,47 +1294,35 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (x_jewel.size() > 0 && plotTheoryHI) {
                         gr->SetLineWidth(0);
 
-                        int colorTmp = 9;
-                        std::string textTmpModel = "JEWEL+PYTHIA";
-
                         // model for PbPb
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, x_jewel, y_jewel, yerr_jewel);
-                        grErr->SetMarkerColorAlpha(colorTmp, falpha_theory_jewel);  // kYellow+3
+                        grErr->SetMarkerColorAlpha(JEWEL::color, falpha_theory_jewel);
                         //grErr->SetMarkerStyle(kFullCross);
                         //grErr->SetMarkerSize(2.5);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(colorTmp, falpha_theory_jewel);
+                        grErr->SetLineColorAlpha(JEWEL::color, falpha_theory_jewel);
                         grErr->SetLineWidth(3);     // 2
-                        std::string ppRefPlotOption = "lp";
-                        if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
-                        grErr->DrawClone(ppRefPlotOption.c_str());
-                        //legTheoryJewel->AddEntry(grErr->Clone(), "PbPb", ppRefPlotOption.c_str());
-                        // legTheoryJewel->AddEntry(grErr->Clone(), textTmpModel.c_str(), ppRefPlotOption.c_str());
-                        legTheoryHybrid->AddEntry(grErr->Clone(), textTmpModel.c_str(), ppRefPlotOption.c_str());
-
+                        std::string plotOption = "lp";
+                        grErr->DrawClone(plotOption.c_str());
+                        legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntry.c_str(), plotOption.c_str());
                     }
                     if (xPP_jewel.size() > 0 && plotTheoryPP) {
                         gr->SetLineWidth(0);
 
-                        int colorTmp = 9;
-                        std::string textTmpModel = "JEWEL+PYTHIA";
-
                         // pp ref
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, xPP_jewel, yPP_jewel, yerrPP_jewel);
-                        grErr->SetMarkerColorAlpha(colorTmp, falpha_theory_PP);      // kCyan+3
+                        grErr->SetMarkerColorAlpha(JEWEL::colorPP, falpha_theory_PP);
                         //grErr->SetMarkerStyle(kFullTriangleDown);
                         //grErr->SetMarkerSize(2.5);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(colorTmp, falpha_theory_PP);
+                        grErr->SetLineColorAlpha(JEWEL::colorPP, falpha_theory_PP);
                         grErr->SetLineWidth(3);      // 2
-                        std::string ppRefPlotOption = "lp";
-                        if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
-                        grErr->DrawClone(ppRefPlotOption.c_str());
-                        //legTheoryJewel->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), ppRefPlotOption.c_str());
-                        //legTheoryJewel->AddEntry(grErr->Clone(), textTmpModel.c_str(), ppRefPlotOption.c_str());
-                        legTheoryHybrid->AddEntry(grErr->Clone(), textTmpModel.c_str(), ppRefPlotOption.c_str());
+                        std::string plotOption = "lp";
+                        if (correlation == "rjz" || correlation == "xjz_mean") plotOption = "lp";   // "p"
+                        grErr->DrawClone(plotOption.c_str());
+                        legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
                     }
 
                     // set "legTheory" properly by taking "leg" as reference
@@ -1367,9 +1334,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     //double width = calcTLegendWidth(leg);
                     // 20170124 : no header
                     // legTheoryJewel->SetHeader("JEWEL");
-                    // put "legTheory" below "legTheoryHybrid"
-                    legTheoryJewel->SetX1(legTheoryHybrid->GetX1NDC());
-                    legTheoryJewel->SetY2(legTheoryHybrid->GetY1NDC());
+                    // put "legTheory" below "legTheory"
+                    legTheoryJewel->SetX1(legTheory->GetX1NDC());
+                    legTheoryJewel->SetY2(legTheory->GetY1NDC());
                     if (ish1D_xjz) {
                         /*
                         // put "legTheory" to the right of "leg"
@@ -1395,7 +1362,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     legTheoryJewel->SetX2(legTheoryJewel->GetX1NDC() + width*widthFactor);
                     legTheoryJewel->SetY1(legTheoryJewel->GetY2NDC() - heightTheory);
                     //legTheoryJewel->Draw();
-                    legTheoryHybrid->Draw();
+                    legTheory->Draw();
                 }
                 // replot data points after theory plots
                 if (plotTheory) {
@@ -1406,6 +1373,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (h1DisValid[COLL::kHI][i] && plotHI.at(i)) {
 
                         h1D[COLL::kHI][i]->Draw("e same");
+                    }
+                    if ((ish1D_xjz || ish1D_dphi) && !plotTheoryPP)
+                    {
+                        // redraw pp data so that pp points are not hidden in the background.
+                        if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
+                            h1D[COLL::kPP][i]->Draw("e same");
+                        }
                     }
                 }
                 ////////// plot theory model - END //////////
