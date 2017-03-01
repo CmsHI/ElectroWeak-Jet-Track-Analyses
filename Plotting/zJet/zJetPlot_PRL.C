@@ -353,36 +353,36 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     const std::vector<std::string> legendEntryLabels_const {"PbPb DATA", "PbPb MC", "pp DATA", "pp MC"};
 
     std::vector<std::string> correlationHistNames   {"xjz", "xjz", "xjz_rebin", "dphi_rebin", "dphi_rebin", "dphi_rebin", "dphi_rebin", "dphi_rebin_normJZ", "ptJet", diLeptonM.c_str(), diLeptonPt.c_str(),
-                                                     "rjz", "xjz_mean", "rjz_zNum", "xjz_mean", "iaa", "iaa_ptBin5", "iaa_ptBin6", "xjz_binJER", "xjz_binJER2", "xjz_binJER",
+                                                     "rjz", "xjz_mean", "rjz_zNum", "xjz_mean", "iaa", "iaa_ptBin5", "iaa_ptBin6", "xjz_binJER", "xjz_binJER2", "xjz_binJER", "rjz_ratio", "xjz_mean_ratio",
                                                      "zEta", "zPhi", "jteta", "jtphi", "ptJet"};
 
     std::vector<std::string> versionSuffix {"final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final", "final_norm",
-                                            "", "", "", "", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm",
+                                            "", "", "", "", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "final_norm", "", "",
                                             "final_norm", "final_norm", "final_norm", "final_norm", "final_norm"};
     std::vector<std::string> jetRegion {"SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "RAW", "RAW",
-                                           "", "SIG", "", "RAW", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG",
+                                           "", "SIG", "", "RAW", "SIG", "SIG", "SIG", "SIG", "SIG", "SIG", "", "SIG",
                                            "RAW", "RAW", "RAW", "RAW", "RAW"};
     std::vector<std::string> legendPositions {"NE", "NW", "NE", "NW", "NW", "NW", "NW", "NW", "NW", "NE", "NE",
-                                            "NW", "NE", "NW", "NE", "NW", "NW", "NW", "NE", "NE", "NE",
+                                            "NW", "NE", "NW", "NE", "NW", "NW", "NW", "NE", "NE", "NE", "NW", "NW",
                                             "NW", "NW", "NW", "NW", "NE"};
     std::vector<std::string> textPositions   {"NE", "NE", "NE", "NW", "NW", "NW", "NW", "NW", "NE", "NW", "NE",
-                                              "SE", "NE", "SE", "NE", "NE", "NE", "NE", "NE", "NE", "NE",
+                                              "SE", "NE", "SE", "NE", "NE", "NE", "NE", "NE", "NE", "NE", "NE", "NE",
                                               "NE", "NE", "NE", "NE", "NE" };
     std::vector<bool> textWriteZPt    {true, true, true, true,  true,  true,  true,  true,  true, true, true,
-                                              false, false, false, false, true, true, true, true, true, true,
+                                              false, false, false, false, true, true, true, true, true, true, false, false,
                                               true, true, true, true, true};
     std::vector<bool> textWriteDphi   {true, true, true, false, false, false, false, false, true, true, true,
-                                              true, true, true, true, true, true, true, true, true, true,
+                                              true, true, true, true, true, true, true, true, true, true, true, true,
                                               true, true, true, true, true};
     std::vector<bool> textWritejetPtEtaSeparate
                                       {true, true, true, true, true, true, true, true, false, true, false,
-                                              true, true, true, true, false, false, false, true, true, true,
+                                              true, true, true, true, false, false, false, true, true, true, true, true,
                                               false, false, false, false, false};
     std::vector<std::string> drawOptionsMC   {"hist", "hist", "hist", "hist", "hist", "hist", "hist", "hist", "hist", "hist", "hist",
-                                              "e", "e", "e", "e", "e", "e", "e", "hist", "hist", "hist",
+                                              "e", "e", "e", "e", "e", "e", "e", "hist", "hist", "hist", "e", "e",
                                               "hist", "hist", "hist", "hist", "hist"};
     std::vector<std::string> legEntriesMC    {"lf",   "lf",   "lf",   "lf",   "lf",   "lf",   "lf",   "lf",   "lf",   "lf",   "lf",
-                                              "lfp", "lfp", "lfp", "lfp", "lfp", "lfp", "lfp", "lf", "lf", "lf",
+                                              "lfp", "lfp", "lfp", "lfp", "lfp", "lfp", "lfp", "lf", "lf", "lf", "lfp", "lfp",
                                               "lfp", "lfp", "lfp", "lfp", "lfp"};
 
     // decided on which collision to be plotted based on the existence of the histogram files
@@ -392,7 +392,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
     std::vector<bool> do_PLOT = vecFalse;
     // select the list of observables for which plots will be made.
-    std::vector<std::string> correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet", "iaa", "iaa_ptBin5", "iaa_ptBin6"};  // , "zM", "zPt", "zEta", "zPhi"
+    std::vector<std::string> correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet", "iaa", "iaa_ptBin5", "iaa_ptBin6", "rjz_ratio", "xjz_mean_ratio"};  // , "zM", "zPt", "zEta", "zPhi"
     int sizeTODO = correlationHistNamesTODO.size();
     for (int i = 0; i < sizeTODO; ++i) {
 
@@ -444,7 +444,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
         plotPP = vecTrue;
 
         std::vector<std::string> correlationHistNamesTMP =
-        {diLeptonM.c_str(), diLeptonPt.c_str(), "zEta", "zPhi", "jteta", "jtphi", "iaa", "iaa_ptBin5", "iaa_ptBin6"};
+        {diLeptonM.c_str(), diLeptonPt.c_str(), "zEta", "zPhi", "jteta", "jtphi", "iaa", "iaa_ptBin5", "iaa_ptBin6", "rjz_ratio", "xjz_mean_ratio"};
 
         int sizeTMP = correlationHistNamesTMP.size();
         for (int i = 0; i < sizeTMP; ++i) {
@@ -587,6 +587,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     tmpName = Form("%s_ptBinAll_hiBin%d", correlation.c_str(), iHiBin);
                 }
                 else if (correlation == "xjz_mean") {
+                    if (iPt > 0)  continue;
+                    tmpName = Form("%s_ptBinAll_hiBin%d_jet%s", correlation.c_str(), iHiBin, jetRegion.at(i).c_str());
+                }
+                else if (correlation == "rjz_ratio") {
+                    if (iPt > 0)  continue;
+                    tmpName = Form("%s_ptBinAll_hiBin%d", correlation.c_str(), iHiBin);
+                }
+                else if (correlation == "xjz_mean_ratio") {
                     if (iPt > 0)  continue;
                     tmpName = Form("%s_ptBinAll_hiBin%d_jet%s", correlation.c_str(), iHiBin, jetRegion.at(i).c_str());
                 }
@@ -796,8 +804,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     h1D[COLL::kPP][i]->SetMarkerSize(markerSize);
                     if (!plotHI.at(i))   h1D[COLL::kPP][i]->SetMarkerStyle(kFullCircle);
 
-                    std::string ppEntry = "smeared pp";
-                    if (plotHI.at(i)) ppEntry = "smeared pp";
+                    std::string ppEntry = "Smeared pp";
+                    if (plotHI.at(i)) ppEntry = "Smeared pp";
                     if (h1DSysIsValid[COLL::kPP][i]) {  // for TLegend purposes only
                         h1D[COLL::kPP][i]->SetFillColor(boxColorPP);
                         h1D[COLL::kPP][i]->SetFillStyle(kFSolid_ColorAlpha);
@@ -903,6 +911,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 else if (correlation == "jteta")     histMax = histMax+TMath::Abs(histMax)*0.4*TMath::Power(10,setLogy);
                 else if (correlation == "jtphi")     histMax = histMax+TMath::Abs(histMax)*0.6*TMath::Power(10,setLogy);
                 else if (correlation.find("iaa") == 0)       {histMax = 3.0; histMin = 0;}
+                else if (correlation.find("rjz_ratio") == 0)       {histMax = 2.0; histMin = 0;}
+                else if (correlation.find("xjz_mean_ratio") == 0)       {histMax = 1.6; histMin = 0.5;}
                 else    histMax = histMax+TMath::Abs(histMax)*0.6*TMath::Power(10,setLogy);
 
                 if (setLogy > 0)  histMin = 0.01;
@@ -1008,9 +1018,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 }
 
                 bool writeLeptonInfo = !(ish1D_xjz ||
-                                         correlation.find("dphi_rebin") == 0 ||
+                                         ish1D_dphi ||
                                          correlation == "rjz" || correlation == "rjz_zNum" ||
-                                         correlation == "xjz_mean" || correlation.find("iaa") == 0);
+                                         correlation == "xjz_mean" || correlation.find("iaa") == 0 ||
+                                         correlation == "rjz_ratio" || correlation == "xjz_mean_ratio");
                 bool useLeptonSymbol = false;
                 if (writeLeptonInfo) {
                     if (useLeptonSymbol)
@@ -1404,6 +1415,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     lineTmp->Draw();
                 }
                 if (correlation.find("iaa") == 0 ) {
+                    lineTmp = new TLine(xmin, 1, xmax, 1);
+                    lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    lineTmp->Draw();
+                }
+                if (correlation == "rjz_ratio" || correlation == "xjz_mean_ratio") {
                     lineTmp = new TLine(xmin, 1, xmax, 1);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
