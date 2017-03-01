@@ -1246,13 +1246,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
                     legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
-                    //legTheoryHybrid->Draw();
 
                     // JEWEL
-                    // TH1D* h1D_jewel = new TH1D();
-                    TLegend* legTheoryJewel = (TLegend*)leg->Clone("legTheoryJewel");
-                    legTheoryJewel->Clear();
-
                     std::vector<double> x_jewel;
                     std::vector<double> y_jewel;
                     std::vector<double> yerr_jewel;
@@ -1325,43 +1320,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
                     }
 
-                    // set "legTheory" properly by taking "leg" as reference
-                    //double height = calcTLegendHeight(legTheory);
-                    // use the same height per bin
-                    heightFactor = 1.0;
-                    if (!plotTheoryHI && plotTheoryPP)  heightFactor = 1.0;
-                    heightTheory = (height*legTheoryJewel->GetNRows()/leg->GetNRows()*heightFactor);
-                    //double width = calcTLegendWidth(leg);
-                    // 20170124 : no header
-                    // legTheoryJewel->SetHeader("JEWEL");
-                    // put "legTheory" below "legTheory"
-                    legTheoryJewel->SetX1(legTheory->GetX1NDC());
-                    legTheoryJewel->SetY2(legTheory->GetY1NDC());
-                    if (ish1D_xjz) {
-                        /*
-                        // put "legTheory" to the right of "leg"
-                        legTheoryJewel->SetX1(leg->GetX2NDC()*1.3);
-                        legTheoryJewel->SetY2(leg->GetY2NDC());
-                        */
-                        //// put "legTheory" below "leg"
-                        // legTheoryJewel->SetX1(leg->GetX1NDC());
-                        // legTheoryJewel->SetY2(leg->GetY1NDC());
-                    }
-                    if (correlation == "xjz_mean") {
-                        // put "legTheory" to the left of "leg"
-                        legTheoryJewel->SetX1(leg->GetX1NDC() - width);
-                        legTheoryJewel->SetY2(leg->GetY2NDC());
-                    }
-                    else if (correlation == "rjz") {
-                        // put "legTheory" below "leg"
-                        legTheoryJewel->SetX1(leg->GetX1NDC());
-                        legTheoryJewel->SetY2(leg->GetY1NDC());
-                    }
-                    widthFactor = 0.7;
-                    if (!(plotTheoryHI && plotTheoryPP))  widthFactor = 1.2;
-                    legTheoryJewel->SetX2(legTheoryJewel->GetX1NDC() + width*widthFactor);
-                    legTheoryJewel->SetY1(legTheoryJewel->GetY2NDC() - heightTheory);
-                    //legTheoryJewel->Draw();
                     legTheory->Draw();
                 }
                 // replot data points after theory plots
