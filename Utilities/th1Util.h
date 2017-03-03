@@ -1,6 +1,8 @@
 /*
  * utilities related to TH1 objects.
  */
+#ifndef TH1UTIL_H_
+#define TH1UTIL_H_
 
 #include <TH1.h>
 #include <TH1D.h>
@@ -11,14 +13,13 @@
 #include <TBox.h>
 #include <TString.h>
 #include <TMath.h>
+#include <TCanvas.h>
+#include <TPad.h>
 
 #include <string>
 #include <vector>
 
 #include "interface/InputConfigurationParser.h"
-
-#ifndef TH1UTIL_H_
-#define TH1UTIL_H_
 
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
@@ -53,6 +54,9 @@ void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, d
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+// plotting
+void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D);
+void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -618,6 +622,25 @@ void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWid
 
         setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
         gr->DrawClone("f");
+    }
+}
+
+
+void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D)
+{
+    drawSameTH1D((TPad*)c, vecTH1D);
+}
+
+/*
+ * draw a list of histograms onto the same pad
+ */
+void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D)
+{
+    pad->cd();
+    int n = vecTH1D.size();
+    for (int i = 0; i < n; ++i) {
+        if (i == 0)  vecTH1D[i]->Draw();
+        else         vecTH1D[i]->Draw("same");
     }
 }
 
