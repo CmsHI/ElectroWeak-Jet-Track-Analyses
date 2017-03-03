@@ -1344,17 +1344,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                 // special cases
                 // draw a horizontal line at y = 0 for xjz and dphi.
-                if (ish1D_xjz || correlation == "dphi_rebin" || correlation == "dphi_rebin_normJZ") {
+                if (ish1D_xjz || ish1D_dphi) {
                     lineTmp = new TLine(xmin, 0, xmax, 0);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
                 }
-                if (correlation.find("iaa") == 0 ) {
-                    lineTmp = new TLine(xmin, 1, xmax, 1);
-                    lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    lineTmp->Draw();
-                }
-                if (correlation == "rjz_ratio" || correlation == "xjz_mean_ratio") {
+                if (correlation.find("iaa") == 0  || correlation == "rjz_ratio" || correlation == "xjz_mean_ratio") {
                     lineTmp = new TLine(xmin, 1, xmax, 1);
                     lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
                     lineTmp->Draw();
@@ -1420,7 +1415,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             // ratio histogram
                             double yMin = 0;
                             double yMax = -1;
-                            if (correlation == "dphi_rebin")
+                            if (ish1D_dphi)
                             {
                                 plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
@@ -1428,7 +1423,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                                 if (plotLowerPad_PP_MC) yMin = 0.2;
                                 yMax = 1.6;
                             }
-                            if (correlation == "xjz" || correlation.find("xjz_binJER") == 0) {
+                            if (ish1D_xjz) {
                                 plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
                                 yMin = 0;
@@ -1500,12 +1495,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     configTree->Write("",TObject::kOverwrite);
 
     output->Write("",TObject::kOverwrite);
+    std::cout<<"Closing the input files."<<std::endl;
     for (int i = 0; i<nInputFiles; ++i) {
         if (inputExists[i])  {
             inputDir[i]->Close();
             input[i]->Close();
         }
     }
+    std::cout<<"Closing the output file."<<std::endl;
     output->Close();
 
     std::cout<<"zJetPlot_PRL() - END"<<std::endl;
