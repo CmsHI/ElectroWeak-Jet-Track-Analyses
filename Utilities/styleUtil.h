@@ -34,6 +34,7 @@ void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double 
 void setTextAlignment(TLatex* latex, std::string position);
 void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
+std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TPad* pad, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX = 0, double offsetY = 0);
 double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
 double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
@@ -305,23 +306,28 @@ void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX, double offsetY)
 
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX, double offsetY, float lineOffset)
 {
+    return calcTextCoordinates(lines, position, (TPad*)c, offsetX, offsetY, lineOffset);
+}
+
+std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TPad* pad, double offsetX, double offsetY, float lineOffset)
+{
     float x = 0.1;
     float y = 0.1;
     if (position == "NW") { // upper-left corner
-        x = c->GetLeftMargin() + offsetX;
-        y = 1 - c->GetTopMargin() - offsetY;
+        x = pad->GetLeftMargin() + offsetX;
+        y = 1 - pad->GetTopMargin() - offsetY;
     }
     else if (position == "NE") { // upper-right corner
-        x = 1 - c->GetRightMargin() - offsetX;
-        y = 1 - c->GetTopMargin() - offsetY;
+        x = 1 - pad->GetRightMargin() - offsetX;
+        y = 1 - pad->GetTopMargin() - offsetY;
     }
     else if (position == "SW") { // lower-left corner
-        x = c->GetLeftMargin() + offsetX;
-        y = c->GetBottomMargin() + offsetY;
+        x = pad->GetLeftMargin() + offsetX;
+        y = pad->GetBottomMargin() + offsetY;
     }
     else if (position == "SE") { // lower-right corner
-        x = 1 - c->GetRightMargin() - offsetX;
-        y = c->GetBottomMargin() + offsetY;
+        x = 1 - pad->GetRightMargin() - offsetX;
+        y = pad->GetBottomMargin() + offsetY;
     }
 
     std::vector<std::pair<float, float>> coordinatesNDC;
