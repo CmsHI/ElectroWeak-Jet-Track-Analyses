@@ -23,7 +23,6 @@ namespace CUTS {
         k_pBeamScrapingFilter,            // for pp
         k_pHBHENoiseFilterResultProducer,
         k_HBHEIsoNoiseFilterResult,
-        k_dphi_check,
         kN_I_CUTS
     };
 
@@ -36,8 +35,7 @@ namespace CUTS {
             "pPAprimaryVertexFilter",
             "pBeamScrapingFilter",
             "pHBHENoiseFilterResultProducer",
-            "HBHEIsoNoiseFilterResult",
-            "dphi_check"
+            "HBHEIsoNoiseFilterResult"
     };
 
     enum S_CUTS{

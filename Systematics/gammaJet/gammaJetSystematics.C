@@ -13,7 +13,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 
-int gammaJetSystematics(const TString configFile, const TString inputList, const TString outputFile) {
+int gammaJetSystematics(const TString configFile, const TString inputList, const TString outputFile, bool rebin_xjg_jers = 1) {
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
@@ -176,7 +176,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         SysVar* sys_hists = new SysVar(hist_full_name, sys_types[m]);
                         sys_hists->init(h1D_nominal, h1D_varied);
 
-                        if (hist_types[i] == "xjg" && sys_types[m] == "JER")
+                        if (rebin_xjg_jers && hist_types[i] == "xjg" && (sys_types[m] == "JER" || sys_types[m] == "JES_up" || sys_types[m] == "JES_down"))
                             sys_hists->rebin_and_calc_sys();
                         else
                             sys_hists->calc_sys();
@@ -266,6 +266,8 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 int main(int argc, char* argv[]) {
     if (argc == 4)
         return gammaJetSystematics(argv[1], argv[2], argv[3]);
+    else if (argc == 5)
+        return gammaJetSystematics(argv[1], argv[2], argv[3], atoi(argv[4]));
     else
         printf("Usage : \n"
                "./gammaJetSystematics.exe <configFile> <inputList> <outputFile>\n");
