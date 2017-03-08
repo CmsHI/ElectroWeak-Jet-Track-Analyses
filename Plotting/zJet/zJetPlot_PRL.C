@@ -70,6 +70,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
      * mode = 3 : plot systematics and theory model
      * mode = 4 : plot HI only, plot systematics and theory model
      * mode = 5 : plot PP only, plot systematics and theory model
+     * mode = 6 : plot PP only, plot systematics, theory model and PPMC
      */
     int mode = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mode];
 
@@ -241,11 +242,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     // 4. PP MC
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
-    bool plotSystematics = (mode == 1 || mode == 3 || mode == 4 || mode == 5);
+    bool plotSystematics = (mode == 1 || mode == 3 || mode == 4 || mode == 5 || mode == 6);
     std::cout << "plotSystematics = " << plotSystematics << std::endl;
-    bool plotTheory =  (mode == 2 || mode == 3 || mode == 4 || mode == 5);
+    bool plotTheory =  (mode == 2 || mode == 3 || mode == 4 || mode == 5 || mode == 6);
     bool plotTheoryHI = (mode == 2 || mode == 3 || mode == 4);
-    bool plotTheoryPP = (mode == 2 || mode == 3 || mode == 5);
+    bool plotTheoryPP = (mode == 2 || mode == 3 || mode == 5 || mode == 6);
     std::cout << "plotTheory = " << plotTheory << std::endl;
     std::cout << "plotTheoryHI = " << plotTheoryHI << std::endl;
     std::cout << "plotTheoryPP = " << plotTheoryPP << std::endl;
@@ -314,6 +315,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
             inputSysDir[i] = (TDirectoryFile*)inputSys[i]->GetDirectory(dirName.c_str());
         }
     }
+
+    // special cases
+    if (!inputExists[COLL::kHI] && inputExists[COLL::kHIMC]) {
+        inputDir[COLL::kHIMC] = (TDirectoryFile*)input[COLL::kHIMC]->GetDirectory("PPMC");
+    }
+    // special cases - END
+    bool isUnsmearedPP = (std::string(input[COLL::kPP]->GetName()).find("noCorrJetSmearALL") != std::string::npos);
 
     TFile* output = new TFile(outputFile, "RECREATE");
     TTree *configTree = setupConfigurationTreeForWriting(configCuts);
@@ -452,7 +460,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
         if (inputExists[COLL::kHIMC])  plotPP_hist = vecFalse;
     }
-    if (inputExists[COLL::kPPMC] && !inputExists[COLL::kHIMC])
+    if (inputExists[COLL::kPPMC])
     {
         plotPPMC = vecTrue;
 
@@ -551,6 +559,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
     // no horizontal error bars
     gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
 
     bool useRelUnc = false;
 
@@ -763,7 +772,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (!plotHI.at(i))   h1D[COLL::kPP][i]->SetMarkerStyle(kFullCircle);
 
                     std::string ppEntry = "pp";
-                    if (plotHI.at(i)) ppEntry = "Smeared pp";
+                    if (isUnsmearedPP) ppEntry = "pp";
+                    else if (plotHI.at(i) || plotTheoryPP) ppEntry = "Smeared pp";
                     if (h1DSysIsValid[COLL::kPP][i]) {
                         h1D[COLL::kPP][i]->SetFillColor(boxColorPP);
                         h1D[COLL::kPP][i]->SetFillColorAlpha(boxColorPP, falpha);
@@ -774,6 +784,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     hLegend->SetLineWidth(0);
                     leg->AddEntry(hLegend, ppEntry.c_str(), "pf");
                 }
+                std::cout << "ipt = " << iPt << std::endl;
+                std::cout << "ihibin = " << iHiBin << std::endl;
+                std::cout << "h1DisValid[COLL::kHIMC][i] = " << h1DisValid[COLL::kHIMC][i] << std::endl;
+                std::cout << "plotHIMC = " << plotHIMC.at(i) << std::endl;
                 if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
 
                     if (scaleHIMC.at(i))  h1D[COLL::kHIMC][i]->Scale(h1D[COLL::kHI][i]->Integral() / h1D[COLL::kHIMC][i]->Integral());
@@ -822,6 +836,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 if (ish1D_xjz)  {
                     histMax = 1.0;
                     if (plotTheory)  histMax = 1.3;
+                    if (plotTheory && plotPPMC.at(i))  histMax = 1.2;
                     histMin = -0.05;
                     // zPt > 40
                     if (iPt == 1 ) {
@@ -837,9 +852,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 else if (correlation == "dphi_rebin") {
                     histMax = 3;
                     histMin = -0.2;
-                    if (plotTheory) {
-                        histMax = 3.1;
-                    }
+                    if (plotTheory)  histMax = 3.1;
+                    if (plotTheory && plotPPMC.at(i))  histMax = 2.8;
                     // zPt > 40
                     if (iPt == 1 )  {
                         histMax = 3;
@@ -1015,8 +1029,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             tmpTextOffsetY = textOffsetY+0.07;
                         }
                     }
-                    if (ish1D_xjz && plotTheory) {   // push text below to leave space for JEWEL legend
-                        tmpTextOffsetY = tmpTextOffsetY+0.10;
+                    if (ish1D_xjz && plotTheory) {   // push text below to leave space for VITEV legend
+                        tmpTextOffsetY = tmpTextOffsetY+0.14;
+                        if (plotPPMC.at(i))  tmpTextOffsetY = tmpTextOffsetY-0.06;
                     }
                     if (correlation.find("dphi") == 0 && plotTheory && !(plotTheoryHI && plotTheoryPP)) {   // push text below to leave space for JEWEL legend
                         tmpTextOffsetY = tmpTextOffsetY+0.14;
@@ -1210,43 +1225,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         legTheory->AddEntry(grErr->Clone(), HYBRID::legendEntryPP.c_str(), ppRefPlotOption.c_str());
                     }
 
-                    // set "legTheory" properly by taking "leg" as reference
-                    //double height = calcTLegendHeight(legTheory);
-                    // use the same height per bin
-                    heightFactor = 1.0;
-                    if (plotTheoryHI) heightFactor = 1.1;
-                    else if (plotTheoryPP)  {
-                        if (ish1D_dphi) heightFactor = 1.9;
-                        else if (ish1D_xjz) heightFactor = 1.5;
-                        else heightFactor = 1.6;
-                    }
-                    double heightTheory = (height*legTheory->GetNRows()/leg->GetNRows()*heightFactor);
-
-                    if (correlation == "xjz_mean") heightTheory = height;
-
-                    //double width = calcTLegendWidth(leg);
-                    // 20170124 : no header
-                    // legTheoryHybrid->SetHeader("Hybrid");   // "Casalderrey-Solana et al."
-                    // put "legTheory" below "leg"
-                    legTheory->SetX1(leg->GetX1NDC());
-                    legTheory->SetY2(leg->GetY1NDC());
-                    if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI)) {
-                        // put "legTheory" to the right of "leg"*
-                        //legTheoryHybrid->SetX1(leg->GetX2NDC()*1.0);
-                        legTheory->SetX1(leg->GetX1NDC()+0.33);
-                        //legTheoryHybrid->SetY2(leg->GetY2NDC());
-                        if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
-                        else if ((ish1D_xjz && plotTheoryHI)) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
-                    }
-                    widthFactor = 1.0;
-                    if (plotTheoryHI)  widthFactor = 0.83;
-                    else if (plotTheoryPP)  widthFactor = 1.2;
-
-                    if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.0;
-
-                    legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
-                    legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
-
                     // JEWEL
                     std::vector<double> x_jewel;
                     std::vector<double> y_jewel;
@@ -1369,6 +1347,39 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->DrawClone(plotOption.c_str());
                         legTheory->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
                     }
+
+                    // set "legTheory" properly by taking "leg" as reference
+                    heightFactor = 1.0;                      // by default use the same height per entry
+                    if (plotTheoryHI) {
+                        heightFactor = 1.1*0.75;
+                        if (ish1D_xjz) heightFactor = 0.75;
+                    }
+                    else if (plotTheoryPP)  {
+                        if (ish1D_dphi) heightFactor = 1.9*0.75;
+                        else if (ish1D_xjz) heightFactor = 0.75;
+                        else heightFactor = 1.2;
+                    }
+                    double heightTheory = (height*legTheory->GetNRows()/leg->GetNRows()*heightFactor);
+
+                    if (correlation == "xjz_mean") heightTheory = height;
+
+                    // put "legTheory" below "leg"
+                    legTheory->SetX1(leg->GetX1NDC());
+                    legTheory->SetY2(leg->GetY1NDC());
+                    if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI)) {
+                        // put "legTheory" to the right of "leg"*
+                        legTheory->SetX1(leg->GetX1NDC()+0.33);
+                        if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
+                        else if ((ish1D_xjz && plotTheoryHI)) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
+                    }
+                    widthFactor = 1.0;
+                    if (plotTheoryHI)  widthFactor = 0.83;
+                    else if (plotTheoryPP)  widthFactor = 1.2;
+
+                    if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.0;
+
+                    legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
+                    legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
 
                     legTheory->Draw();
                 }
@@ -1596,8 +1607,9 @@ std::string parseMCreference(int iColl, std::string fileName) {
     else if (iColl == COLL::kPPMC) {
         if (fileName.find("Pythia") != std::string::npos)  mcReference = "Pythia";
         if (fileName.find("Pyquen") != std::string::npos)  mcReference = "Pyquen";
-        if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "Madgraph";
+        //if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "Madgraph";
     }
+    if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "Madgraph";
 
     return mcReference;
 }
@@ -1626,10 +1638,18 @@ void setTH1(TH1 *h, COLL::TYPE collisionType) {
     }
     else if (collisionType == COLL::kHIMC)
     {
-        h->SetLineWidth(2);
+        h->SetLineWidth(3);
         h->SetLineColor(kOrange+7);     // kOrange=800
         h->SetFillColor(90);            // Higgs style
         h->SetMarkerColor(kOrange-2);
+
+        h->SetLineColor(kBlue+2);     // kOrange=800
+        h->SetFillColor(kBlue);            // Higgs style
+        h->SetFillColorAlpha(kBlue, 1);
+        h->SetFillStyle(kFHatched1);
+        
+        h->SetMarkerColor(h->GetLineColor());
+        h->SetMarkerStyle(kFullTriangleDown);
     }
     else if (collisionType == COLL::kPP) {
         h->SetLineWidth(2);
@@ -1638,10 +1658,13 @@ void setTH1(TH1 *h, COLL::TYPE collisionType) {
         h->SetMarkerColor(kBlack);
     }
     else if (collisionType == COLL::kPPMC) {
-        h->SetLineWidth(2);
+        h->SetLineWidth(3);
         h->SetLineColor(kOrange+7);     // kOrange=800
-        h->SetFillColor(90);            // Higgs style
-        h->SetMarkerColor(kOrange-2);
+        //h->SetFillColorAlpha(90, 0.55);         // Higgs style
+        h->SetFillColorAlpha(kOrange+7, 1);
+        h->SetFillStyle(kFHatched1+1);
+        h->SetMarkerColor(h->GetLineColor());
+        h->SetMarkerStyle(kFullTriangleUp);
     }
 }
 
