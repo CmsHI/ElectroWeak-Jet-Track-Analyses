@@ -199,7 +199,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
    output->mkdir(dirName.c_str(), dirTitle.c_str());
    output->cd(dirName.c_str());
 
-   std::vector<std::string> observables_VITEV {"xjz", "xjz_mean"};
+   std::vector<std::string> observables_VITEV {"xjz"};
    int nObservables_VITEV = observables_VITEV.size();
    for (int i = 0; i < nObservables_VITEV; ++i) {
 
@@ -219,13 +219,6 @@ void zJet_saveModelDataPoints(const TString outputFile)
                y[iModel] = VITEV::y_xjz[iModel];
                xPP =  VITEV::x_xjz;
                yPP = VITEV::y_xjz_PP;
-           }
-           // this is a single data point
-           else if (observable == "xjz_mean") {
-               x[iModel] = {60};
-               y[iModel] = {VITEV::xjz_mean[iModel]};
-               xPP = {60};
-               yPP = {VITEV::xjz_mean_PP};
            }
 
            if (x[iModel].size() > 0) {
