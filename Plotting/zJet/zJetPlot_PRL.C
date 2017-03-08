@@ -1320,6 +1320,56 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
                     }
 
+                    // VITEV
+                    std::vector<double> x_VITEV[HYBRID::kN_MODEL];
+                    std::vector<double> y_VITEV[HYBRID::kN_MODEL];
+                    std::vector<double> xPP_VITEV;
+                    std::vector<double> yPP_VITEV;
+                    if (ish1D_xjz) {
+                        for (int iModel = 0; iModel < VITEV::kN_MODEL; ++iModel) {
+                            x_VITEV[iModel] = VITEV::x_xjz;
+                            y_VITEV[iModel] = VITEV::y_xjz[iModel];
+                        }
+                        xPP_VITEV = VITEV::x_xjz;
+                        yPP_VITEV = VITEV::y_xjz_PP;
+                    }
+                    if (x_VITEV[0].size() > 0 && plotTheoryHI) {
+
+                        gr->SetLineWidth(0);
+                        // models for PbPb
+                        for (int iModel = 0; iModel < VITEV::kN_MODEL; ++iModel) {
+
+                            grErr = new TGraphErrors();
+                            int n_x = x_VITEV[iModel].size();
+                            setTGraphErrors(grErr, x_VITEV[iModel], y_VITEV[iModel], std::vector<double>(n_x, 0));
+                            grErr->SetMarkerColorAlpha(VITEV::fillColors[iModel], falpha_theory);     // HYBRID::fillColorPP
+                            grErr->SetMarkerSize(0);
+                            grErr->SetLineColorAlpha(VITEV::fillColors[iModel], falpha_theory);   // HYBRID::fillColorPP
+                            grErr->SetLineWidth(3);     // 2
+                            grErr->SetLineStyle(kDashed);
+                            std::string plotOption = "lp";
+                            grErr->DrawClone(plotOption.c_str());
+                            legTheory->AddEntry(grErr->Clone(), VITEV::legendEntries[iModel].c_str(), plotOption.c_str());
+                        }
+                    }
+                    if (xPP_VITEV.size() > 0 && plotTheoryPP)
+                    {
+                        gr->SetLineWidth(0);
+
+                        // pp ref
+                        grErr = new TGraphErrors();
+                        int n_x = xPP_VITEV.size();
+                        setTGraphErrors(grErr, xPP_VITEV, yPP_VITEV, std::vector<double>(n_x, 0));
+                        grErr->SetMarkerColorAlpha(VITEV::fillColorPP, falpha_theory);     // HYBRID::fillColorPP
+                        grErr->SetMarkerSize(0);
+                        grErr->SetLineColorAlpha(VITEV::fillColorPP, falpha_theory);   // HYBRID::fillColorPP
+                        grErr->SetLineWidth(3);     // 2
+                        grErr->SetLineStyle(kDashed);
+                        std::string plotOption = "lp";
+                        grErr->DrawClone(plotOption.c_str());
+                        legTheory->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
+                    }
+
                     legTheory->Draw();
                 }
                 // replot data points after theory plots
@@ -1408,71 +1458,71 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 }
 
                 if (plotRatio.at(i)) {
-                            c->cd(2);
+                    c->cd(2);
 
-                            bool plotLowerPad_HI_PP = false;
-                            bool plotLowerPad_PP_MC = false;
-                            // ratio histogram
-                            double yMin = 0;
-                            double yMax = -1;
-                            if (ish1D_dphi)
-                            {
-                                plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
-                                plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
-                                if (plotLowerPad_HI_PP) yMin = 0;
-                                if (plotLowerPad_PP_MC) yMin = 0.2;
-                                yMax = 1.6;
-                            }
-                            if (ish1D_xjz) {
-                                plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
-                                plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
-                                yMin = 0;
-                                yMax = 2;
-                            }
+                    bool plotLowerPad_HI_PP = false;
+                    bool plotLowerPad_PP_MC = false;
+                    // ratio histogram
+                    double yMin = 0;
+                    double yMax = -1;
+                    if (ish1D_dphi)
+                    {
+                        plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
+                        plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
+                        if (plotLowerPad_HI_PP) yMin = 0;
+                        if (plotLowerPad_PP_MC) yMin = 0.2;
+                        yMax = 1.6;
+                    }
+                    if (ish1D_xjz) {
+                        plotLowerPad_HI_PP = (h1DisValid[COLL::kHI][i] && plotHI.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
+                        plotLowerPad_PP_MC = (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) && (h1DisValid[COLL::kPP][i] && plotPP.at(i));
+                        yMin = 0;
+                        yMax = 2;
+                    }
 
-                            if (plotLowerPad_HI_PP)
-                            {
-                                std::string tmpName = h1D[COLL::kHI][i]->GetName();
-                                hTmp = (TH1D*)h1D[COLL::kHI][i]->Clone();
-                                hTmp_lowerPad = (TH1D*)h1D[COLL::kHI][i]->Clone(Form("%s_ratio", tmpName.c_str()));
-                                hTmp_lowerPad->Divide(h1D[COLL::kPP][i]);
+                    if (plotLowerPad_HI_PP)
+                    {
+                        std::string tmpName = h1D[COLL::kHI][i]->GetName();
+                        hTmp = (TH1D*)h1D[COLL::kHI][i]->Clone();
+                        hTmp_lowerPad = (TH1D*)h1D[COLL::kHI][i]->Clone(Form("%s_ratio", tmpName.c_str()));
+                        hTmp_lowerPad->Divide(h1D[COLL::kPP][i]);
 
-                                setTH1(hTmp_lowerPad, COLL::kHI);
+                        setTH1(hTmp_lowerPad, COLL::kHI);
 
-                                double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
-                                setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
+                        double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
+                        setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
 
-                                hTmp_lowerPad->SetAxisRange(yMin, yMax, "Y");
-                                hTmp_lowerPad->SetYTitle("PbPb / pp");
+                        hTmp_lowerPad->SetAxisRange(yMin, yMax, "Y");
+                        hTmp_lowerPad->SetYTitle("PbPb / pp");
 
-                                hTmp_lowerPad->Draw("e same");
+                        hTmp_lowerPad->Draw("e same");
 
-                                lineTmp = new TLine(xmin, 1, xmax, 1);
-                                lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                                lineTmp->Draw();
-                            }
+                        lineTmp = new TLine(xmin, 1, xmax, 1);
+                        lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                        lineTmp->Draw();
+                    }
 
-                            if (plotLowerPad_PP_MC)
-                            {
-                                std::string tmpName = h1D[COLL::kPP][i]->GetName();
-                                hTmp = (TH1D*)h1D[COLL::kPP][i]->Clone();
-                                hTmp_lowerPad = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_ratio", tmpName.c_str()));
-                                hTmp_lowerPad->Divide(h1D[COLL::kPPMC][i]);
+                    if (plotLowerPad_PP_MC)
+                    {
+                        std::string tmpName = h1D[COLL::kPP][i]->GetName();
+                        hTmp = (TH1D*)h1D[COLL::kPP][i]->Clone();
+                        hTmp_lowerPad = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_ratio", tmpName.c_str()));
+                        hTmp_lowerPad->Divide(h1D[COLL::kPPMC][i]);
 
-                                setTH1(hTmp_lowerPad, COLL::kHI);
+                        setTH1(hTmp_lowerPad, COLL::kHI);
 
-                                double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
-                                setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
+                        double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
+                        setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
 
-                                hTmp_lowerPad->SetAxisRange(yMin, yMax, "Y");
-                                hTmp_lowerPad->SetYTitle("DATA / MC");
+                        hTmp_lowerPad->SetAxisRange(yMin, yMax, "Y");
+                        hTmp_lowerPad->SetYTitle("DATA / MC");
 
-                                hTmp_lowerPad->Draw("e same");
+                        hTmp_lowerPad->Draw("e same");
 
-                                lineTmp = new TLine(xmin, 1, xmax, 1);
-                                lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                                lineTmp->Draw();
-                            }
+                        lineTmp = new TLine(xmin, 1, xmax, 1);
+                        lineTmp->SetLineStyle(kDashed);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                        lineTmp->Draw();
+                    }
                 }
                 c->cd(1);
 
