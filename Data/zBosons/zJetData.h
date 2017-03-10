@@ -130,7 +130,7 @@ const int fillColors[kN_MODEL] = {
         39,         //kBlue+2
         kPink+1     //kOrange+2
 };
-const int fillColorPP = kPink+1;   //34
+const int fillColorPP = kViolet;   //34
 
 // legend entries to be used in a plot
 const std::string legendEntries[kN_MODEL] = {
@@ -299,7 +299,7 @@ const std::vector<double> y_xjz_mean_PP    = {0.9347126,  0.8099350,  0.8616110,
 const std::vector<double> yerr_xjz_mean_PP = {0.06997798, 0.07184345, 0.02075788, 0.009971107};
 
 const int color = 9;    // kYellow+3
-const int colorPP = 9;  // kCyan+3
+const int colorPP = 36;  // kCyan+3
 
 const std::string legendEntry = "JEWEL+PYTHIA";
 const std::string legendEntryPP = "JEWEL+PYTHIA";     //"smeared pp"
@@ -342,7 +342,11 @@ const int fillColors[kN_MODEL] = {
         kTeal+9,
         kBlue+2
 };
-const int fillColorPP = kViolet+1;
+const int lineStyles[kN_MODEL] = {
+        8,
+        kDashed
+};
+const int fillColorPP = kRed;
 
 // legend entries to be used in a plot
 const std::string legendEntries[kN_MODEL] = {

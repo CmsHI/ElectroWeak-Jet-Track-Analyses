@@ -30,7 +30,7 @@
 
 void zJetPlot_PRL(const TString configFile, const TString inputFile, const TString outputFile = "zJetPlot_PRL.root", const TString outputFigurePrefix = "");
 std::string parseMCreference(int iColl, std::string fileName);
-void setTH1(TH1 *h, COLL::TYPE collisionType);
+void setTH1(TH1 *h, COLL::TYPE collisionType, int mode = 0);
 void setTH1_correlation(std::string correlation, TH1* h);
 void setTH1_xjz(TH1* h);
 void setTH1_dphi(TH1* h);
@@ -736,8 +736,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 bool ish1D_dphi = is_dphi(correlation);
 
                 if (h1DisValid[COLL::kHI][i] && plotHI.at(i)) {
-                    setTH1(h1D[COLL::kHI][i], COLL::kHI);
                     h1D[COLL::kHI][i]->SetMarkerSize(markerSize);
+                    setTH1(h1D[COLL::kHI][i], COLL::kHI, mode);
                     setTH1_correlation(correlation, h1D[COLL::kHI][i]);
 
                     if (h1DSysIsValid[COLL::kHI][i]) {
@@ -757,7 +757,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     {
                         std::string hTmpName = replaceAll(h1D[COLL::kHI][i]->GetName(), "_jetRAW", "_jetBKG");
                         inputDir[COLL::kHI]->GetObject(hTmpName.c_str(), hTmp);
-                        setTH1(hTmp, COLL::kHI);
+                        setTH1(hTmp, COLL::kHI, mode);
 
                         hTmp->SetMarkerStyle(kOpenCircle);
                         hTmp->SetMarkerSize(markerSize);
@@ -766,11 +766,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                 }
                 if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
-                    setTH1(h1D[COLL::kPP][i], COLL::kPP);
                     h1D[COLL::kPP][i]->SetMarkerSize(markerSize);
+                    setTH1(h1D[COLL::kPP][i], COLL::kPP, mode);
                     setTH1_correlation(correlation, h1D[COLL::kPP][i]);
 
                     if (!plotHI.at(i))   h1D[COLL::kPP][i]->SetMarkerStyle(kFullCircle);
+                    if (mode == 6)   h1D[COLL::kPP][i]->SetMarkerStyle(kOpenCircle);
 
                     std::string ppEntry = "pp";
                     if (isUnsmearedPP) ppEntry = "pp";
@@ -790,8 +791,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     if (scaleHIMC.at(i))  h1D[COLL::kHIMC][i]->Scale(h1D[COLL::kHI][i]->Integral() / h1D[COLL::kHIMC][i]->Integral());
 
-                    setTH1(h1D[COLL::kHIMC][i], COLL::kHIMC);
                     h1D[COLL::kHIMC][i]->SetMarkerSize(markerSize);
+                    setTH1(h1D[COLL::kHIMC][i], COLL::kHIMC, mode);
                     setTH1_correlation(correlation, h1D[COLL::kHIMC][i]);
 
                     std::string legEntryMC = legEntriesMC.at(i).c_str();
@@ -802,8 +803,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     if (scalePPMC.at(i))  h1D[COLL::kPPMC][i]->Scale(h1D[COLL::kPP][i]->Integral() / h1D[COLL::kPPMC][i]->Integral());
 
-                    setTH1(h1D[COLL::kPPMC][i], COLL::kPPMC);
                     h1D[COLL::kPPMC][i]->SetMarkerSize(markerSize);
+                    setTH1(h1D[COLL::kPPMC][i], COLL::kPPMC, mode);
                     setTH1_correlation(correlation, h1D[COLL::kPPMC][i]);
 
                     std::string legEntryMC = legEntriesMC.at(i).c_str();
@@ -896,7 +897,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         h1D[COLL::kHIMC][i]->Draw("e1 same");
                         h1D[COLL::kHIMC][i]->SetFillStyle(0);
                         h1D[COLL::kHIMC][i]->SetFillColor(0);
-                        h1D[COLL::kHIMC][i]->SetLineWidth(2);
                         drawOptionMC = "l hist";
                     }
                     h1D[COLL::kHIMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
@@ -912,7 +912,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         h1D[COLL::kPPMC][i]->Draw("e1 same");
                         h1D[COLL::kPPMC][i]->SetFillStyle(0);
                         h1D[COLL::kPPMC][i]->SetFillColor(0);
-                        h1D[COLL::kPPMC][i]->SetLineWidth(2);
                         drawOptionMC = "l hist";
                     }
                     h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
@@ -1045,8 +1044,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         }
                     }
                     if ((ish1D_xjz && (plotTheory)) || (ish1D_xjz && (plotPPMC.at(i) && plotHIMC.at(i)))) {   // push text below to leave space for VITEV legend
-                        tmpTextOffsetY = tmpTextOffsetY+0.14;
-                        if (!plotTheoryPP && plotPPMC.at(i))  tmpTextOffsetY = tmpTextOffsetY-0.06;
+                        tmpTextOffsetY = textOffsetY+0.14;
+                        if (mode == 4) tmpTextOffsetY = textOffsetY+0.15;
+                        if (!plotTheoryPP && plotPPMC.at(i))  tmpTextOffsetY = textOffsetY-0.06;
                     }
                     if (correlation.find("dphi") == 0 && plotTheory && !(plotTheoryHI && plotTheoryPP)) {   // push text below to leave space for JEWEL legend
                         tmpTextOffsetY = tmpTextOffsetY+0.14;
@@ -1244,12 +1244,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                         // pp ref
                         setTGraphErrors(grErr, xPP, yPP, yerrPP);
-                        grErr->SetMarkerColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
+                        grErr->SetMarkerColorAlpha(HYBRID::fillColorPP, 1);
                         //grErr->SetMarkerStyle(kFullTriangleUp);
                         //grErr->SetMarkerSize(2.5);
                         grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
-                        grErr->SetLineWidth(3);     // 2
+                        grErr->SetLineWidth(3);
+                        grErr->SetLineStyle(kDashed);
                         std::string ppRefPlotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
                         grErr->DrawClone(ppRefPlotOption.c_str());
@@ -1302,11 +1303,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, x_jewel, y_jewel, yerr_jewel);
                         grErr->SetMarkerColorAlpha(JEWEL::color, falpha_theory_jewel);
-                        //grErr->SetMarkerStyle(kFullCross);
-                        //grErr->SetMarkerSize(2.5);
+                        //grErr->SetMarkerStyle(kFullStar);
+                        //grErr->SetMarkerSize(markerSize*1.5);
                         grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(JEWEL::color, falpha_theory_jewel);
                         grErr->SetLineWidth(3);     // 2
+                        grErr->SetLineStyle(kSolid);
                         std::string plotOption = "lp";
                         grErr->DrawClone(plotOption.c_str());
                         legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntry.c_str(), plotOption.c_str());
@@ -1317,12 +1319,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         // pp ref
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, xPP_jewel, yPP_jewel, yerrPP_jewel);
-                        grErr->SetMarkerColorAlpha(JEWEL::colorPP, falpha_theory_PP);
-                        //grErr->SetMarkerStyle(kFullTriangleDown);
-                        //grErr->SetMarkerSize(2.5);
+                        grErr->SetMarkerColorAlpha(JEWEL::colorPP, falpha_theory_PP*8/7);
+                        //grErr->SetMarkerStyle(kFullStar);
+                        //grErr->SetMarkerSize(markerSize*1.5);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(JEWEL::colorPP, falpha_theory_PP);
+                        grErr->SetLineColorAlpha(JEWEL::colorPP, falpha_theory_PP*8/7);
                         grErr->SetLineWidth(3);      // 2
+                        grErr->SetLineStyle(kSolid);
                         std::string plotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") plotOption = "lp";   // "p"
                         grErr->DrawClone(plotOption.c_str());
@@ -1355,7 +1358,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             grErr->SetMarkerSize(0);
                             grErr->SetLineColorAlpha(VITEV::fillColors[iModel], falpha_theory);   // HYBRID::fillColorPP
                             grErr->SetLineWidth(3);     // 2
-                            grErr->SetLineStyle(kDashed);
+                            grErr->SetLineStyle(VITEV::lineStyles[iModel]);
                             std::string plotOption = "lp";
                             grErr->DrawClone(plotOption.c_str());
                             legTheory->AddEntry(grErr->Clone(), VITEV::legendEntries[iModel].c_str(), plotOption.c_str());
@@ -1373,7 +1376,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(VITEV::fillColorPP, falpha_theory);   // HYBRID::fillColorPP
                         grErr->SetLineWidth(3);     // 2
-                        grErr->SetLineStyle(kDashed);
+                        grErr->SetLineStyle(8);
                         std::string plotOption = "lp";
                         grErr->DrawClone(plotOption.c_str());
                         legTheory->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
@@ -1425,6 +1428,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
 
                         h1D[COLL::kPP][i]->Draw("e same");
+                        if (mode == 6 &&
+                           (h1D[COLL::kPP][i]->GetMarkerStyle() == kOpenCircle || h1D[COLL::kPP][i]->GetMarkerStyle() == kOpenSquare)) {
+                            // draw one more time to make the marker thicker
+                            h1D[COLL::kPP][i]->Draw("e same");
+                            h1D[COLL::kPP][i]->Draw("e same");
+                        }
                     }
                     if (h1DisValid[COLL::kHI][i] && plotHI.at(i)) {
 
@@ -1535,7 +1544,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         hTmp_lowerPad = (TH1D*)h1D[COLL::kHI][i]->Clone(Form("%s_ratio", tmpName.c_str()));
                         hTmp_lowerPad->Divide(h1D[COLL::kPP][i]);
 
-                        setTH1(hTmp_lowerPad, COLL::kHI);
+                        setTH1(hTmp_lowerPad, COLL::kHI, mode);
 
                         double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
                         setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
@@ -1557,7 +1566,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         hTmp_lowerPad = (TH1D*)h1D[COLL::kPP][i]->Clone(Form("%s_ratio", tmpName.c_str()));
                         hTmp_lowerPad->Divide(h1D[COLL::kPPMC][i]);
 
-                        setTH1(hTmp_lowerPad, COLL::kHI);
+                        setTH1(hTmp_lowerPad, COLL::kHI, mode);
 
                         double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
                         setTH1Ratio(hTmp_lowerPad, hTmp, axisSizeRatio);
@@ -1650,7 +1659,7 @@ std::string parseMCreference(int iColl, std::string fileName) {
     return mcReference;
 }
 
-void setTH1(TH1 *h, COLL::TYPE collisionType) {
+void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
 
     h->GetXaxis()->CenterTitle();
     h->GetYaxis()->CenterTitle();
@@ -1680,12 +1689,17 @@ void setTH1(TH1 *h, COLL::TYPE collisionType) {
         h->SetMarkerColor(kOrange-2);
 
         h->SetLineColor(kBlue+2);     // kOrange=800
-        h->SetFillColor(kBlue);            // Higgs style
         h->SetFillColorAlpha(kBlue, 1);
         h->SetFillStyle(kFHatched1);
         
+        if (mode == 6) {
+            h->SetMarkerSize(h->GetMarkerSize()*1.2);
+            h->SetMarkerStyle(kFullTriangleDown);
+            h->SetLineColor(kBlue+2);
+            h->SetFillColorAlpha(kBlue, 1);
+        }
+
         h->SetMarkerColor(h->GetLineColor());
-        h->SetMarkerStyle(kFullTriangleDown);
     }
     else if (collisionType == COLL::kPP) {
         h->SetLineWidth(2);
@@ -1696,11 +1710,10 @@ void setTH1(TH1 *h, COLL::TYPE collisionType) {
     else if (collisionType == COLL::kPPMC) {
         h->SetLineWidth(3);
         h->SetLineColor(kOrange+7);     // kOrange=800
-        //h->SetFillColorAlpha(90, 0.55);         // Higgs style
         h->SetFillColorAlpha(kOrange+7, 1);
         h->SetFillStyle(kFHatched1+1);
         h->SetMarkerColor(h->GetLineColor());
-        h->SetMarkerStyle(kFullTriangleUp);
+        h->SetMarkerStyle(kFullSquare);
     }
 }
 
