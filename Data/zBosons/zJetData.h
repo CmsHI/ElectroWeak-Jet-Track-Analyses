@@ -127,16 +127,28 @@ enum MODEL{
 // fill colors to be used in a plot
 const int fillColors[kN_MODEL] = {
         kTeal+9,    //kMagenta+2
-        39,         //kBlue+2
-        kPink+1     //kOrange+2
+        kCyan,         //kBlue+2
+        kOrange+1     //kOrange+2
 };
 const int fillColorPP = kViolet;   //34
 
+const double falpha = 1.0;
+const double falpha_PP = 0.8;
+
+// fill colors to be used in a plot
+const int fillStyles[kN_MODEL] = {
+        3305,    //kMagenta+2
+        3345,
+        3354
+};
+
 // legend entries to be used in a plot
+const std::string legendHeader = "Hybrid";
+
 const std::string legendEntries[kN_MODEL] = {
-        "Hybrid Strong Coupling",      //"strong coupling"
-        "Hybrid dE/dx #alpha T^{3}",   //"radiative"
-        "Hybrid dE/dx #alpha T^{2}"    //"collisional"
+        "Strong Coupling",      //"strong coupling"
+        "dE/dx #alpha T^{3}",   //"radiative"
+        "dE/dx #alpha T^{2}"    //"collisional"
 };
 const std::string modelTAG[kN_MODEL] = {
         "strong",
@@ -298,8 +310,11 @@ const std::vector<double> yerr_xjz_mean = {0.1111712, 0.04514933, 0.02058386, 0.
 const std::vector<double> y_xjz_mean_PP    = {0.9347126,  0.8099350,  0.8616110,  0.8125114};
 const std::vector<double> yerr_xjz_mean_PP = {0.06997798, 0.07184345, 0.02075788, 0.009971107};
 
-const int color = 9;    // kYellow+3
+const int color = 36;    // kYellow+3
 const int colorPP = 36;  // kCyan+3
+
+const double falpha = 0.85;
+const double falpha_PP = 0.85;
 
 const std::string legendEntry = "JEWEL+PYTHIA";
 const std::string legendEntryPP = "JEWEL+PYTHIA";     //"smeared pp"
@@ -339,7 +354,7 @@ const std::vector<double> y_xjz[kN_MODEL] = {
 
 // fill colors to be used in a plot
 const int fillColors[kN_MODEL] = {
-        kTeal+9,
+        kMagenta,
         kBlue+2
 };
 const int lineStyles[kN_MODEL] = {
@@ -348,17 +363,22 @@ const int lineStyles[kN_MODEL] = {
 };
 const int fillColorPP = kRed;
 
+const double falpha = 0.7;
+const double falpha_PP = 0.7;
+
 // legend entries to be used in a plot
+const std::string legendHeader = "GLV Rad.+Col.";
+
 const std::string legendEntries[kN_MODEL] = {
-        "Vitev et al. g = 2.0",
-        "Vitev et al. g = 2.2"
+        "g = 2.0",
+        "g = 2.2"
 };
 const std::string modelTAG[kN_MODEL] = {
         "g2p0",
         "g2p2"
 };
 
-const std::string legendEntryPP = "Vitev et al.";
+const std::string legendEntryPP = "GLV, PYTHIA";
 
 };
 

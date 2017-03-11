@@ -526,6 +526,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     TPad* pad2 = 0;
     TLegend* leg = 0;
     TLegend* legTheory = 0;
+    TLegend* legTheory2 = 0;
 
     double falpha = 0.70;
     int kFSolid_ColorAlpha = 1001;  // transparency does not work with kFSolid, must use 1001.
@@ -771,7 +772,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     setTH1_correlation(correlation, h1D[COLL::kPP][i]);
 
                     if (!plotHI.at(i))   h1D[COLL::kPP][i]->SetMarkerStyle(kFullCircle);
-                    if (mode == 6)   h1D[COLL::kPP][i]->SetMarkerStyle(kOpenCircle);
 
                     std::string ppEntry = "pp";
                     if (isUnsmearedPP) ppEntry = "pp";
@@ -917,6 +917,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
                     std::string writeName = Form("%s_PPMC", h1D[COLL::kPPMC][i]->GetName());
                     h1D[COLL::kPPMC][i]->Write(writeName.c_str(), TObject::kOverwrite);
+                    if (mode == 6) {
+                        if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
+                            h1D[COLL::kHIMC][i]->Draw(Form("e1 same"));
+                        }
+                    }
                 }
                 if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
                     h1D[COLL::kPP][i]->SetMinimum(histMin);
@@ -924,9 +929,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     if (h1DSysIsValid[COLL::kPP][i]) {
                         h1D[COLL::kPP][i]->Draw("e same");
-                        // if (!(ish1D_xjz || ish1D_dphi) && !plotTheoryPP)  drawSysUncBoxes(grPP, h1D[COLL::kPP][i], h1DSys[COLL::kPP][i], useRelUnc);
-                        // else if (plotTheoryPP) drawSysUncBoxes(grPP, h1D[COLL::kPP][i], h1DSys[COLL::kPP][i], useRelUnc);
-                        drawSysUncBoxes(grPP, h1D[COLL::kPP][i], h1DSys[COLL::kPP][i], useRelUnc);
+                        if ((!(ish1D_xjz || ish1D_dphi) && !plotTheoryPP) ||
+                                         plotTheoryPP || (!plotTheoryPP && plotPPMC.at(i)))  {
+                            drawSysUncBoxes(grPP, h1D[COLL::kPP][i], h1DSys[COLL::kPP][i], useRelUnc);
+                        }
                     }
                     h1D[COLL::kPP][i]->Draw("e same");
                     std::string writeName = Form("%s_PP", h1D[COLL::kPP][i]->GetName());
@@ -1045,8 +1051,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                     if ((ish1D_xjz && (plotTheory)) || (ish1D_xjz && (plotPPMC.at(i) && plotHIMC.at(i)))) {   // push text below to leave space for VITEV legend
                         tmpTextOffsetY = textOffsetY+0.14;
-                        if (mode == 4) tmpTextOffsetY = textOffsetY+0.15;
-                        if (!plotTheoryPP && plotPPMC.at(i))  tmpTextOffsetY = textOffsetY-0.06;
+                        if (mode == 4) tmpTextOffsetY = textOffsetY+0.23;
+                        if (!plotTheoryPP && plotPPMC.at(i))  tmpTextOffsetY = textOffsetY+0.08;
                     }
                     if (correlation.find("dphi") == 0 && plotTheory && !(plotTheoryHI && plotTheoryPP)) {   // push text below to leave space for JEWEL legend
                         tmpTextOffsetY = tmpTextOffsetY+0.14;
@@ -1134,7 +1140,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 if (ish1D_xjz && (plotTheory && !plotTheoryPP))  legendPosition = "NW";
                 if (ish1D_xjz && (mode == 6))  legendPosition = "NW";
                 if (legendPosition == "NE") {
-                    if (mode == 6)  tmpLegendOffsetX -= 0.15;
+                    if (mode == 6)  tmpLegendOffsetX -= 0.17;
                     else            tmpLegendOffsetX -= 0.11;
                 }
                 if (legendPosition == "NW" && drawLatexCMS)  {   // leave space for latexCMS, shift legend down
@@ -1149,6 +1155,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                 ////////// plot theory model //////////
                 legTheory = 0;
+                legTheory2 = 0;
                 if ((plotTheory && (iHiBin == 1 && iPt == 0)) || (plotTheoryPP && (iHiBin == 0 && iPt == 0))) {
                     TGraph* gr = new TGraph();
                     TGraphErrors* grErr = new TGraphErrors();
@@ -1170,9 +1177,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
 
                     // hybrid model
-                    double falpha_theory = 0.7;
-                    double falpha_theory_jewel = 0.7;
-                    double falpha_theory_PP = 0.7;
                     int kFSolid_ColorAlpha_theory = kFSolid_ColorAlpha;
 
                     std::vector<double> x_hybrid[HYBRID::kN_MODEL];
@@ -1229,11 +1233,15 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                         gr->SetLineWidth(0);
                         // models for PbPb
+                        //legTheory->AddEntry((TObject*)0, HYBRID::legendHeader.c_str(), "");
+                        legTheory->SetHeader(HYBRID::legendHeader.c_str());
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
 
                             setTGraphBand(gr, x_hybrid[iModel], ymin_hybrid[iModel], ymax_hybrid[iModel]);
-                            gr->SetFillColorAlpha(HYBRID::fillColors[iModel], falpha_theory);
+                            gr->SetFillColorAlpha(HYBRID::fillColors[iModel], HYBRID::falpha);
                             gr->SetFillStyle(kFSolid_ColorAlpha_theory);
+                            gStyle->SetHatchesLineWidth(2);
+                            gr->SetFillStyle(HYBRID::fillStyles[iModel]);
                             gr->DrawClone("f");
                             legTheory->AddEntry(gr->Clone(), HYBRID::legendEntries[iModel].c_str(), "f");
                         }
@@ -1248,8 +1256,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         //grErr->SetMarkerStyle(kFullTriangleUp);
                         //grErr->SetMarkerSize(2.5);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(HYBRID::fillColorPP, falpha_theory_PP);
-                        grErr->SetLineWidth(3);
+                        grErr->SetLineColorAlpha(HYBRID::fillColorPP, HYBRID::falpha_PP);
+                        grErr->SetLineWidth(4);
                         grErr->SetLineStyle(kDashed);
                         std::string ppRefPlotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
@@ -1302,11 +1310,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         // model for PbPb
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, x_jewel, y_jewel, yerr_jewel);
-                        grErr->SetMarkerColorAlpha(JEWEL::color, falpha_theory_jewel);
-                        //grErr->SetMarkerStyle(kFullStar);
-                        //grErr->SetMarkerSize(markerSize*1.5);
-                        grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(JEWEL::color, falpha_theory_jewel);
+                        grErr->SetMarkerColorAlpha(JEWEL::color, JEWEL::falpha);
+                        grErr->SetMarkerStyle(kFullStar);
+                        grErr->SetMarkerSize(markerSize*1.4);
+                        //grErr->SetMarkerSize(0);
+                        grErr->SetLineColorAlpha(JEWEL::color, JEWEL::falpha);
                         grErr->SetLineWidth(3);     // 2
                         grErr->SetLineStyle(kSolid);
                         std::string plotOption = "lp";
@@ -1319,11 +1327,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         // pp ref
                         grErr = new TGraphErrors();
                         setTGraphErrors(grErr, xPP_jewel, yPP_jewel, yerrPP_jewel);
-                        grErr->SetMarkerColorAlpha(JEWEL::colorPP, falpha_theory_PP*8/7);
-                        //grErr->SetMarkerStyle(kFullStar);
-                        //grErr->SetMarkerSize(markerSize*1.5);
-                        grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(JEWEL::colorPP, falpha_theory_PP*8/7);
+                        grErr->SetMarkerColorAlpha(JEWEL::colorPP, JEWEL::falpha_PP);
+                        grErr->SetMarkerStyle(kFullStar);
+                        grErr->SetMarkerSize(markerSize*1.4);
+                        //grErr->SetMarkerSize(0);
+                        grErr->SetLineColorAlpha(JEWEL::colorPP, JEWEL::falpha_PP);
                         grErr->SetLineWidth(3);      // 2
                         grErr->SetLineStyle(kSolid);
                         std::string plotOption = "lp";
@@ -1333,6 +1341,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
 
                     // VITEV
+                    bool useNewLegTheory = (legTheory->GetHeader() != nullptr && std::string(legTheory->GetHeader()).size() > 0);
+                    if (useNewLegTheory) {
+                        if (legTheory2 == 0)  legTheory2 = (TLegend*)legTheory->Clone("legTheory2");
+                        legTheory2->Clear();
+                    }
+                    else legTheory2 = legTheory;
+
                     std::vector<double> x_VITEV[HYBRID::kN_MODEL];
                     std::vector<double> y_VITEV[HYBRID::kN_MODEL];
                     std::vector<double> xPP_VITEV;
@@ -1349,19 +1364,20 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                         gr->SetLineWidth(0);
                         // models for PbPb
+                        legTheory2->SetHeader(VITEV::legendHeader.c_str());
                         for (int iModel = 0; iModel < VITEV::kN_MODEL; ++iModel) {
 
                             grErr = new TGraphErrors();
                             int n_x = x_VITEV[iModel].size();
                             setTGraphErrors(grErr, x_VITEV[iModel], y_VITEV[iModel], std::vector<double>(n_x, 0));
-                            grErr->SetMarkerColorAlpha(VITEV::fillColors[iModel], falpha_theory);     // HYBRID::fillColorPP
+                            grErr->SetMarkerColorAlpha(VITEV::fillColors[iModel], VITEV::falpha);
                             grErr->SetMarkerSize(0);
-                            grErr->SetLineColorAlpha(VITEV::fillColors[iModel], falpha_theory);   // HYBRID::fillColorPP
+                            grErr->SetLineColorAlpha(VITEV::fillColors[iModel], VITEV::falpha);
                             grErr->SetLineWidth(3);     // 2
                             grErr->SetLineStyle(VITEV::lineStyles[iModel]);
                             std::string plotOption = "lp";
                             grErr->DrawClone(plotOption.c_str());
-                            legTheory->AddEntry(grErr->Clone(), VITEV::legendEntries[iModel].c_str(), plotOption.c_str());
+                            legTheory2->AddEntry(grErr->Clone(), VITEV::legendEntries[iModel].c_str(), plotOption.c_str());
                         }
                     }
                     if (xPP_VITEV.size() > 0 && plotTheoryPP)
@@ -1372,14 +1388,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr = new TGraphErrors();
                         int n_x = xPP_VITEV.size();
                         setTGraphErrors(grErr, xPP_VITEV, yPP_VITEV, std::vector<double>(n_x, 0));
-                        grErr->SetMarkerColorAlpha(VITEV::fillColorPP, falpha_theory);     // HYBRID::fillColorPP
+                        grErr->SetMarkerColorAlpha(VITEV::fillColorPP, VITEV::falpha_PP);
                         grErr->SetMarkerSize(0);
-                        grErr->SetLineColorAlpha(VITEV::fillColorPP, falpha_theory);   // HYBRID::fillColorPP
-                        grErr->SetLineWidth(3);     // 2
+                        grErr->SetLineColorAlpha(VITEV::fillColorPP, VITEV::falpha_PP);
+                        grErr->SetLineWidth(4);     // 2
                         grErr->SetLineStyle(8);
                         std::string plotOption = "lp";
                         grErr->DrawClone(plotOption.c_str());
-                        legTheory->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
+                        legTheory2->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
                     }
 
                     // set "legTheory" properly by taking "leg" as reference
@@ -1405,35 +1421,45 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     legTheory->SetY2(leg->GetY1NDC());
                     if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && mode == 6)) {
                         // put "legTheory" to the right of "leg"*
-                        legTheory->SetX1(leg->GetX1NDC()+0.33);
-                        if (ish1D_xjz && mode == 6) legTheory->SetX1(leg->GetX1NDC()+0.36);
+                        legTheory->SetX1(leg->GetX1NDC()+0.36);
+                        if (ish1D_xjz && mode == 6) legTheory->SetX1(leg->GetX1NDC()+0.35);
 
                         if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
                         else if (ish1D_xjz && plotTheoryHI) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                         else if (ish1D_xjz && mode == 6) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                     }
                     widthFactor = 1.0;
-                    if (plotTheoryHI)  widthFactor = 0.83;
+                    if (plotTheoryHI && !ish1D_xjz)  widthFactor = 0.95;
                     else if (plotTheoryPP)  widthFactor = 1.2;
 
-                    if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.0;
+                    if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
+                    if (mode == 6) widthFactor = 1.3;
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
                     legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
 
                     legTheory->Draw();
+                    if (useNewLegTheory && (legTheory != legTheory2)) {
+
+                        legTheory2->SetX1(legTheory->GetX1NDC());
+                        legTheory2->SetX2(legTheory->GetX2NDC());
+
+                        legTheory2->SetY2(legTheory->GetY1NDC());
+
+                        int nRows = legTheory->GetNRows();
+                        int nRows2 = legTheory2->GetNRows();
+
+                        double heightLegTheory = legTheory->GetY2NDC() - legTheory->GetY1NDC();
+                        legTheory2->SetY1(legTheory2->GetY2NDC() - heightLegTheory*nRows2/nRows);
+
+                        legTheory2->Draw();
+                    }
                 }
                 // replot data points after theory plots
                 if (plotTheory) {
                     if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
 
                         h1D[COLL::kPP][i]->Draw("e same");
-                        if (mode == 6 &&
-                           (h1D[COLL::kPP][i]->GetMarkerStyle() == kOpenCircle || h1D[COLL::kPP][i]->GetMarkerStyle() == kOpenSquare)) {
-                            // draw one more time to make the marker thicker
-                            h1D[COLL::kPP][i]->Draw("e same");
-                            h1D[COLL::kPP][i]->Draw("e same");
-                        }
                     }
                     if (h1DisValid[COLL::kHI][i] && plotHI.at(i)) {
 
@@ -1693,10 +1719,12 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
         h->SetFillStyle(kFHatched1);
         
         if (mode == 6) {
-            h->SetMarkerSize(h->GetMarkerSize()*1.2);
-            h->SetMarkerStyle(kFullTriangleDown);
-            h->SetLineColor(kBlue+2);
-            h->SetFillColorAlpha(kBlue, 1);
+            h->SetMarkerSize(h->GetMarkerSize()*1.4);
+            h->SetMarkerStyle(kFullDiamond);
+            h->SetLineColorAlpha(kBlue+2, 0.8);
+            h->SetFillColorAlpha(kBlue, 0.8);
+            h->SetMarkerColorAlpha(kBlue, 0.8);
+            h->SetLineStyle(9);
         }
 
         h->SetMarkerColor(h->GetLineColor());
@@ -1709,11 +1737,14 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
     }
     else if (collisionType == COLL::kPPMC) {
         h->SetLineWidth(3);
-        h->SetLineColor(kOrange+7);     // kOrange=800
-        h->SetFillColorAlpha(kOrange+7, 1);
+        h->SetLineColorAlpha(kOrange+8, 0.8);     // kOrange=800
+        h->SetFillColorAlpha(kOrange+8, 1);
         h->SetFillStyle(kFHatched1+1);
-        h->SetMarkerColor(h->GetLineColor());
+        h->SetMarkerColorAlpha(h->GetLineColor(), 1.0);
         h->SetMarkerStyle(kFullSquare);
+        if (mode == 6) {
+            h->SetMarkerSize(h->GetMarkerSize()*1.1);
+        }
     }
 }
 
