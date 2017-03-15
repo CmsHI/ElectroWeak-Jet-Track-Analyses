@@ -156,7 +156,7 @@ const std::string modelTAG[kN_MODEL] = {
         "coll"
 };
 
-const std::string legendEntryPP = "Hybrid";   //"smeared pp"
+const std::string legendEntryPP = "Hybrid, PYTHIA 8";   //"smeared pp"
 
 const std::vector<double> ymin_xjz[kN_MODEL] = {
         ymin_xjz_STRONG,
@@ -316,8 +316,8 @@ const int colorPP = 36;  // kCyan+3
 const double falpha = 0.85;
 const double falpha_PP = 0.85;
 
-const std::string legendEntry = "JEWEL+PYTHIA";
-const std::string legendEntryPP = "JEWEL+PYTHIA";     //"smeared pp"
+const std::string legendEntry = "JEWEL+PYTHIA 6.4";
+const std::string legendEntryPP = "JEWEL+PYTHIA 6.4";     //"smeared pp"
 
 };
 
@@ -383,7 +383,7 @@ const std::string modelTAG[kN_MODEL] = {
         "g2p2"
 };
 
-const std::string legendEntryPP = "GLV, PYTHIA";
+const std::string legendEntryPP = "GLV, PYTHIA 8";
 
 };
 

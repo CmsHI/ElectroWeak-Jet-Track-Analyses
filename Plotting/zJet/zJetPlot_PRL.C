@@ -1408,7 +1408,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         if (ish1D_dphi) heightFactor = 1.9*0.75;
                         else if (ish1D_xjz) {
                             heightFactor = 0.75;
-                            if (mode == 6)  heightFactor = 0.6;
+                            if (mode == 6)  heightFactor = 0.68;
                         }
                         else heightFactor = 1.2;
                     }
@@ -1428,12 +1428,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         else if (ish1D_xjz && plotTheoryHI) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                         else if (ish1D_xjz && mode == 6) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                     }
-                    widthFactor = 1.0;
-                    if (plotTheoryHI && !ish1D_xjz)  widthFactor = 0.95;
+                    widthFactor = 0.85;
+                    if (plotTheoryHI && !ish1D_xjz)  widthFactor = 0.8;
                     else if (plotTheoryPP)  widthFactor = 1.2;
 
                     if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
-                    if (mode == 6) widthFactor = 1.3;
+                    if (mode == 6) widthFactor = 0.8;
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
                     legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
@@ -1670,17 +1670,17 @@ std::string parseMCreference(int iColl, std::string fileName) {
     if (iColl == COLL::kHIMC) {
         if (fileName.find("Pythia") != std::string::npos && fileName.find("PYTHIA") != std::string::npos)
             mcReference = "PYTHIA+HYDJET";
-        else if (fileName.find("Pythia") != std::string::npos)  mcReference = "PYTHIA";
+        else if (fileName.find("Pythia") != std::string::npos)  mcReference = "#splitline{PYTHIA 8.212}{tune CUETP8M1}";
 
         if (fileName.find("Pyquen") != std::string::npos && fileName.find("Hydjet") != std::string::npos)
             mcReference = "PYQUEN+HYDJET";
         else if (fileName.find("Pyquen") != std::string::npos)  mcReference = "PYQUEN";
     }
     else if (iColl == COLL::kPPMC) {
-        if (fileName.find("Pythia") != std::string::npos)  mcReference = "PYTHIA";
+        if (fileName.find("Pythia") != std::string::npos)  mcReference = "#splitline{PYTHIA 8.212}{tune CUETP8M1}";
         if (fileName.find("Pyquen") != std::string::npos)  mcReference = "PYQUEN";
     }
-    if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "MADGRAPH";
+    if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "MADGRAPH5";   // MG5_aMC_v2.3.3
 
     return mcReference;
 }
