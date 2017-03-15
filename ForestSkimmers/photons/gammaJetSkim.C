@@ -91,14 +91,16 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   etaBins[1] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_lt]);
   int nEtaBins = etaBins[0].size();
 
-  TFile* energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
+  TFile* energyCorrectionFile = 0;
   TH1D* photonEnergyCorrections[nCentBins][nEtaBins] = {0};
   TH1D* photonEnergyCorrections_pp[nEtaBins] = {0};
   if (isHI) {
+    energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
     for (int i=0; i<nCentBins; ++i)
       for (int j=0; j<nEtaBins; ++j)
         photonEnergyCorrections[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
   } else {
+    energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file_pp].c_str());
     for (int i=0; i<nEtaBins; ++i)
       photonEnergyCorrections_pp[i] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_eta%i", i));
   }
