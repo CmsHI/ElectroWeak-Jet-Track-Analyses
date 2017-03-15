@@ -30,6 +30,11 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
     if (!jetCollections.size())
         return 1;
 
+    std::vector<int> centBins[2];
+    centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+    centBins[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+    int nCentBins = centBins[0].size();
+
     TFile* f_input = new TFile(inputFile, "read");
     TTree* t_photon = (TTree*)f_input->Get("EventTree");
     TTree* t_gj = (TTree*)f_input->Get(Form("gamma_%s", jetCollections[0].c_str()));
@@ -53,12 +58,15 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
     float hiEvtPlanes[29];
     t_event->SetBranchStatus("hiEvtPlanes", 1);
     t_event->SetBranchAddress("hiEvtPlanes", hiEvtPlanes);
+    _SET_BRANCH_VAR(t_event, int, hiBin);
 
     gStyle->SetOptStat(0);
 
     TFile* f_output = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str(), "recreate");
 
-    TH2D* h2D_sumIso_angle = new TH2D("h2D_sumIso_angle", "", 80, 0, 1.6, 800, -200, 200);
+    TH2D* h2D_sumIso_angle[nCentBins] = {0};
+    for (int j=0; j<nCentBins; ++j)
+        h2D_sumIso_angle[j] = new TH2D(Form("h2D_sumIso_angle_cent%i", j), "", 80, 0, 1.6, 800, -200, 200);
 
     uint64_t nentries = t_photon->GetEntries();
     for (uint64_t i=0; i<nentries; ++i) {
@@ -78,17 +86,25 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
         double sumIso = (*pho_ecalClusterIsoR4)[phoIdx] + (*pho_hcalRechitIsoR4)[phoIdx] + (*pho_trackIsoR4PtCut20)[phoIdx];
         double angle = getAngleToEP(fabs((*phoPhi)[phoIdx] - hiEvtPlanes[8]));
 
-        h2D_sumIso_angle->Fill(angle, sumIso);
+        int icent = 0;
+        for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
+
+        h2D_sumIso_angle[icent]->Fill(angle, sumIso);
     }
 
-    double meanSumIso = h2D_sumIso_angle->GetMean(2);
+    double meanSumIso[nCentBins];
+    TProfile* h1D_meanSumIso_angle[nCentBins] = {0};
+    TH1D* sumIsoCorrections[nCentBins] = {0};
 
-    TProfile* h1D_meanSumIso_angle = (TProfile*)h2D_sumIso_angle->ProfileX("h1D_meanSumIso_angle");
-    h1D_meanSumIso_angle->RebinX(4);
+    for (int j=0; j<nCentBins; ++j) {
+        meanSumIso[j] = h2D_sumIso_angle[j]->GetMean(2);
+        h1D_meanSumIso_angle[j] = (TProfile*)h2D_sumIso_angle[j]->ProfileX(Form("h1D_meanSumIso_angle_cent%i", j));
+        h1D_meanSumIso_angle[j]->RebinX(4);
 
-    TH1D* sumIsoCorrections = new TH1D("sumIsoCorrections", "", 20, 0, 1.6);
-    for (int i=1; i<sumIsoCorrections->GetSize()-1; ++i)
-        sumIsoCorrections->SetBinContent(i, h1D_meanSumIso_angle->GetBinContent(i) - meanSumIso);
+        sumIsoCorrections[j] = new TH1D(Form("sumIsoCorrections_cent%i", j), "", 20, 0, 1.6);
+        for (int k=1; k<=sumIsoCorrections[j]->GetNbinsX(); ++k)
+            sumIsoCorrections[j]->SetBinContent(k, h1D_meanSumIso_angle[j]->GetBinContent(k) - meanSumIso[j]);
+    }
 
     f_output->Write("", TObject::kOverwrite);
     f_output->Close();
