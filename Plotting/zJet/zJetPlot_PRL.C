@@ -894,12 +894,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     std::string drawOptionMC = drawOptionsMC.at(i).c_str();
                     if (mode == 6)  {
+                        h1D[COLL::kHIMC][i]->SetMarkerColorAlpha(h1D[COLL::kHIMC][i]->GetMarkerColor(), 0);
                         h1D[COLL::kHIMC][i]->Draw("e1 same");
+                        h1D[COLL::kHIMC][i]->SetMarkerColorAlpha(h1D[COLL::kHIMC][i]->GetMarkerColor(), 0.8);
                         h1D[COLL::kHIMC][i]->SetFillStyle(0);
                         h1D[COLL::kHIMC][i]->SetFillColor(0);
                         drawOptionMC = "l hist";
                     }
-                    h1D[COLL::kHIMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
+                    if (mode != 6)  h1D[COLL::kHIMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
                     std::string writeName = Form("%s_HIMC", h1D[COLL::kHIMC][i]->GetName());
                     h1D[COLL::kHIMC][i]->Write(writeName.c_str(), TObject::kOverwrite);
                 }
@@ -909,12 +911,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     std::string drawOptionMC = drawOptionsMC.at(i).c_str();
                     if (mode == 6)  {
+                        h1D[COLL::kPPMC][i]->SetMarkerColorAlpha(h1D[COLL::kPPMC][i]->GetMarkerColor(), 0);
                         h1D[COLL::kPPMC][i]->Draw("e1 same");
+                        h1D[COLL::kPPMC][i]->SetMarkerColorAlpha(h1D[COLL::kPPMC][i]->GetMarkerColor(), 1.0);
                         h1D[COLL::kPPMC][i]->SetFillStyle(0);
                         h1D[COLL::kPPMC][i]->SetFillColor(0);
                         drawOptionMC = "l hist";
                     }
-                    h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
+                    if (mode != 6)  h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
                     std::string writeName = Form("%s_PPMC", h1D[COLL::kPPMC][i]->GetName());
                     h1D[COLL::kPPMC][i]->Write(writeName.c_str(), TObject::kOverwrite);
                     if (mode == 6) {
@@ -1159,6 +1163,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 if ((plotTheory && (iHiBin == 1 && iPt == 0)) || (plotTheoryPP && (iHiBin == 0 && iPt == 0))) {
                     TGraph* gr = new TGraph();
                     TGraphErrors* grErr = new TGraphErrors();
+                    TGraphErrors* grErr2 = 0;
 
                     if (legTheory == 0)  legTheory = (TLegend*)leg->Clone("legTheory");
                     legTheory->Clear();
@@ -1166,13 +1171,16 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     double heightFactor = 1.0;
 
                     if (mode == 6) {    // put the MC plots into the same legend
-                        if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
-                            std::string legEntryMC = "lp";
-                            legTheory->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
-                        }
                         if (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) {
                             std::string legEntryMC = "lp";
                             legTheory->AddEntry(h1D[COLL::kPPMC][i], Form("%s", mcReferencePP.c_str()), legEntryMC.c_str());
+                            h1D[COLL::kPPMC][i]->Draw("e1 same");   // marker symbols should lie over systematics band
+                            h1D[COLL::kPPMC][i]->Draw("l hist same");
+                        }
+                        if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
+                            std::string legEntryMC = "lp";
+                            legTheory->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
+                            // h1D[COLL::kHIMC][i]->Draw("e1 same");
                         }
                     }
 
@@ -1336,8 +1344,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetLineStyle(kSolid);
                         std::string plotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") plotOption = "lp";   // "p"
-                        grErr->DrawClone(plotOption.c_str());
                         legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
+                        if (mode == 6) plotOption = "l";
+                        grErr->DrawClone(plotOption.c_str());
+
+                        if (mode == 6) grErr2 = (TGraphErrors*)grErr->Clone(Form("%s_2", grErr->GetName()));
                     }
 
                     // VITEV
@@ -1396,6 +1407,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         std::string plotOption = "lp";
                         grErr->DrawClone(plotOption.c_str());
                         legTheory2->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
+                    }
+                    if (mode == 6 && xPP_VITEV.size() > 0 && grErr2 != 0) {
+                        grErr2->Draw("p");
+                        if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
+                            h1D[COLL::kHIMC][i]->Draw("e1 same");
+                            h1D[COLL::kHIMC][i]->Draw("l hist same");
+                        }
                     }
 
                     // set "legTheory" properly by taking "leg" as reference
