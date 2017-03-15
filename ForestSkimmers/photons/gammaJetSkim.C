@@ -77,6 +77,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   const int doResidualCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doResidualCorrection];
   const std::string jetResidualCorrectionFile = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_residualCorrectionFile];
 
+  const bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+  const bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+
   // binning for photon energy correction
   std::vector<int> centBins[2];
   centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
@@ -89,13 +92,21 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   int nEtaBins = etaBins[0].size();
 
   TFile* energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
-  TH1D* photonEnergyCorrections[nCentBins][nEtaBins];
-  for (int i=0; i<nCentBins; ++i)
-    for (int j=0; j<nEtaBins; ++j)
-      photonEnergyCorrections[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
+  TH1D* photonEnergyCorrections[nCentBins][nEtaBins] = {0};
+  TH1D* photonEnergyCorrections_pp[nEtaBins] = {0};
+  if (isHI) {
+    for (int i=0; i<nCentBins; ++i)
+      for (int j=0; j<nEtaBins; ++j)
+        photonEnergyCorrections[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
+  } else {
+    for (int i=0; i<nEtaBins; ++i)
+      photonEnergyCorrections_pp[i] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_eta%i", i));
+  }
 
   TFile* sumIsoCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str());
-  TH1D* sumIsoCorrections = (TH1D*)sumIsoCorrectionFile->Get("sumIsoCorrections");
+  TH1D* sumIsoCorrections[nCentBins] = {0};
+  for (int i=0; i<nCentBins; ++i)
+    sumIsoCorrections[i] = (TH1D*)sumIsoCorrectionFile->Get(Form("sumIsoCorrections_cent%i", i));
 
   for (std::size_t i=0; i<mcPthatWeights.size(); ++i)
     std::cout << mcPthatWeights[i] << " ";
@@ -108,9 +119,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     std::cout << "But mixing was requested, aborting." << std::endl;
     return 1;
   }
-
-  const bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-  const bool isHI = collisionIsHI((COLL::TYPE)collisionType);
 
   // verbose about cut configuration
   std::cout << "Cut Configuration :" << std::endl;
@@ -745,21 +753,21 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       double maxPhoEt = -1;
 
       for (int i=0; i<ggHi.nPho; ++i) {
+        int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
+
         // apply corrections to every photon
         double sumIso = (*ggHi.pho_ecalClusterIsoR4)[i] + (*ggHi.pho_hcalRechitIsoR4)[i] + (*ggHi.pho_trackIsoR4PtCut20)[i];
+        double phoEt_corrected = 0;
 
         if (isHI) {
           int icent = 0;
           for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
 
-          int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
-
-          double phoEt_corrected = 0;
           if ((*ggHi.phoEt)[i] > 20)
             phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
 
           phoEtCorrected.push_back(phoEt_corrected);
-          pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections->GetBinContent(sumIsoCorrections->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+          pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections[icent]->GetBinContent(sumIsoCorrections[icent]->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
           // systematic variations
           // MC   0 - 30%   Z mass: 9.094649e+01
@@ -769,7 +777,10 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
           phoEtCorrected_sys.push_back(phoEt_corrected);
         } else {
-          phoEtCorrected.push_back((*ggHi.phoEt)[i]);
+          if ((*ggHi.phoEt)[i] > 20)
+            phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->GetBinContent(photonEnergyCorrections_pp[ieta]->FindBin((*ggHi.phoEt)[i]));
+
+          phoEtCorrected.push_back(phoEt_corrected);
           pho_sumIsoCorrected.push_back(sumIso);
 
           // no correction applied to pp

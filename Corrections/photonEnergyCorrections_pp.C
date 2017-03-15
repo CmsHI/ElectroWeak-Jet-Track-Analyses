@@ -28,7 +28,7 @@
 float dR(float eta1, float eta2, float phi1, float phi2);
 
 int photonEnergyCorrections_pp(const TString configFile = "CutConfigurations/gammaJet_pp.conf",
-                            const char* fn_Zee = "") {
+                            const char* fn_Zee = "/mnt/hadoop/cms/store/user/tatar/official/Pythia8_Z30eeJet/HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3_ext1-v1-FOREST/0.root") {
     TFile* f_Zee = new TFile(fn_Zee, "read");
     TTree* t_photon = (TTree*)f_Zee->Get("ggHiNtuplizer/EventTree");
     TTree* t_event = (TTree*)f_Zee->Get("hiEvtAnalyzer/HiTree");

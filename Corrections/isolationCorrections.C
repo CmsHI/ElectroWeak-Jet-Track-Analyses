@@ -99,9 +99,9 @@ int isolationCorrections(const TString configFile, const char* inputFile) {
     for (int j=0; j<nCentBins; ++j) {
         meanSumIso[j] = h2D_sumIso_angle[j]->GetMean(2);
         h1D_meanSumIso_angle[j] = (TProfile*)h2D_sumIso_angle[j]->ProfileX(Form("h1D_meanSumIso_angle_cent%i", j));
-        h1D_meanSumIso_angle[j]->RebinX(4);
+        h1D_meanSumIso_angle[j]->RebinX(8);
 
-        sumIsoCorrections[j] = new TH1D(Form("sumIsoCorrections_cent%i", j), "", 20, 0, 1.6);
+        sumIsoCorrections[j] = new TH1D(Form("sumIsoCorrections_cent%i", j), "", 10, 0, 1.6);
         for (int k=1; k<=sumIsoCorrections[j]->GetNbinsX(); ++k)
             sumIsoCorrections[j]->SetBinContent(k, h1D_meanSumIso_angle[j]->GetBinContent(k) - meanSumIso[j]);
     }
