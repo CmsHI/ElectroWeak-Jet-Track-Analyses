@@ -71,6 +71,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
      * mode = 4 : plot HI only, plot systematics and theory model
      * mode = 5 : plot PP only, plot systematics and theory model
      * mode = 6 : plot PP only, plot systematics, theory model and PPMC
+     * mode = 7 : plot PP only, plot systematics, theory model and PPMC. PPMC will be plotted with markers only.
+     * mode = 8 : plot PP only, plot systematics, theory model and PPMC. PPMC will be plotted with histograms.
      */
     int mode = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mode];
 
@@ -242,11 +244,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     // 4. PP MC
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
-    bool plotSystematics = (mode == 1 || mode == 3 || mode == 4 || mode == 5 || mode == 6);
+    bool plotSystematics = (mode == 1 || mode == 3 || mode == 4 || mode == 5 || mode == 6 || mode == 7 || mode == 8);
     std::cout << "plotSystematics = " << plotSystematics << std::endl;
-    bool plotTheory =  (mode == 2 || mode == 3 || mode == 4 || mode == 5 || mode == 6);
+    bool plotTheory =  (mode == 2 || mode == 3 || mode == 4 || mode == 5 || mode == 6 || mode == 7 || mode == 8);
     bool plotTheoryHI = (mode == 2 || mode == 3 || mode == 4);
-    bool plotTheoryPP = (mode == 2 || mode == 3 || mode == 5 || mode == 6);
+    bool plotTheoryPP = (mode == 2 || mode == 3 || mode == 5 || mode == 6 || mode == 7 || mode == 8);
     std::cout << "plotTheory = " << plotTheory << std::endl;
     std::cout << "plotTheoryHI = " << plotTheoryHI << std::endl;
     std::cout << "plotTheoryPP = " << plotTheoryPP << std::endl;
@@ -562,6 +564,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     // no horizontal error bars
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
+    if (mode == 8) gStyle->SetHatchesLineWidth(1);
 
     bool useRelUnc = false;
 
@@ -797,6 +800,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     std::string legEntryMC = legEntriesMC.at(i).c_str();
                     if (mode == 6)  legEntryMC = "lp";
+                    else if (mode == 7)  legEntryMC = "p";
+                    else if (mode == 8)  legEntryMC = "lf";
                     else leg->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
                 }
                 if (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) {
@@ -809,6 +814,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     std::string legEntryMC = legEntriesMC.at(i).c_str();
                     if (mode == 6)  legEntryMC = "lp";
+                    else if (mode == 7)  legEntryMC = "p";
+                    else if (mode == 8)  legEntryMC = "lf";
                     else leg->AddEntry(h1D[COLL::kPPMC][i], Form("%s", mcReferencePP.c_str()), legEntryMC.c_str());
                 }
 
@@ -893,7 +900,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     h1D[COLL::kHIMC][i]->SetMaximum(histMax);
 
                     std::string drawOptionMC = drawOptionsMC.at(i).c_str();
-                    if (mode == 6)  {
+                    if (mode == 6 || mode == 7)  {
+                        // points will be plotted later on
                         h1D[COLL::kHIMC][i]->SetMarkerColorAlpha(h1D[COLL::kHIMC][i]->GetMarkerColor(), 0);
                         h1D[COLL::kHIMC][i]->Draw("e1 same");
                         h1D[COLL::kHIMC][i]->SetMarkerColorAlpha(h1D[COLL::kHIMC][i]->GetMarkerColor(), 0.8);
@@ -901,7 +909,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         h1D[COLL::kHIMC][i]->SetFillColor(0);
                         drawOptionMC = "l hist";
                     }
-                    if (mode != 6)  h1D[COLL::kHIMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
+                    if (mode != 6 && mode != 7)
+                        h1D[COLL::kHIMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
                     std::string writeName = Form("%s_HIMC", h1D[COLL::kHIMC][i]->GetName());
                     h1D[COLL::kHIMC][i]->Write(writeName.c_str(), TObject::kOverwrite);
                 }
@@ -910,7 +919,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     h1D[COLL::kPPMC][i]->SetMaximum(histMax);
 
                     std::string drawOptionMC = drawOptionsMC.at(i).c_str();
-                    if (mode == 6)  {
+                    if (mode == 6 || mode == 7)  {
+                        // points will be plotted later on
                         h1D[COLL::kPPMC][i]->SetMarkerColorAlpha(h1D[COLL::kPPMC][i]->GetMarkerColor(), 0);
                         h1D[COLL::kPPMC][i]->Draw("e1 same");
                         h1D[COLL::kPPMC][i]->SetMarkerColorAlpha(h1D[COLL::kPPMC][i]->GetMarkerColor(), 1.0);
@@ -918,14 +928,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         h1D[COLL::kPPMC][i]->SetFillColor(0);
                         drawOptionMC = "l hist";
                     }
-                    if (mode != 6)  h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
+                    if (mode != 6 && mode != 7)
+                        h1D[COLL::kPPMC][i]->Draw(Form("%s same", drawOptionMC.c_str()));  // first draw "hist" option
                     std::string writeName = Form("%s_PPMC", h1D[COLL::kPPMC][i]->GetName());
                     h1D[COLL::kPPMC][i]->Write(writeName.c_str(), TObject::kOverwrite);
-                    if (mode == 6) {
-                        if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
-                            h1D[COLL::kHIMC][i]->Draw(Form("e1 same"));
-                        }
-                    }
                 }
                 if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
                     h1D[COLL::kPP][i]->SetMinimum(histMin);
@@ -1142,9 +1148,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 float tmpLegendOffsetY = legendOffsetY;
                 float tmpLegendOffsetX = legendOffsetX;
                 if (ish1D_xjz && (plotTheory && !plotTheoryPP))  legendPosition = "NW";
-                if (ish1D_xjz && (mode == 6))  legendPosition = "NW";
+                if (ish1D_xjz && (mode == 6 || mode == 7 || mode == 8))  legendPosition = "NW";
                 if (legendPosition == "NE") {
-                    if (mode == 6)  tmpLegendOffsetX -= 0.17;
+                    if (mode == 6 || mode == 7 || mode == 8)  tmpLegendOffsetX -= 0.17;
                     else            tmpLegendOffsetX -= 0.11;
                 }
                 if (legendPosition == "NW" && drawLatexCMS)  {   // leave space for latexCMS, shift legend down
@@ -1170,15 +1176,27 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     double widthFactor = 1.0;
                     double heightFactor = 1.0;
 
-                    if (mode == 6) {    // put the MC plots into the same legend
+                    if (mode == 6 || mode == 7 || mode == 8) {    // put the MC plots into the same legend
                         if (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) {
                             std::string legEntryMC = "lp";
+                            if (mode == 7) legEntryMC = "p";
+                            else if (mode == 8) legEntryMC = "lf";
                             legTheory->AddEntry(h1D[COLL::kPPMC][i], Form("%s", mcReferencePP.c_str()), legEntryMC.c_str());
-                            h1D[COLL::kPPMC][i]->Draw("e1 same");   // marker symbols should lie over systematics band
-                            h1D[COLL::kPPMC][i]->Draw("l hist same");
+                            if (mode == 6) {
+                                h1D[COLL::kPPMC][i]->Draw("e1 same");   // marker symbols should lie over systematics band
+                                h1D[COLL::kPPMC][i]->Draw("l hist same");
+                            }
+                            else if (mode == 7) {
+                                h1D[COLL::kPPMC][i]->Draw("e same");   // marker symbols should lie over systematics band
+                            }
+                            else if (mode == 8) {
+                                h1D[COLL::kPPMC][i]->Draw("hist same");
+                            }
                         }
                         if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
                             std::string legEntryMC = "lp";
+                            if (mode == 7) legEntryMC = "p";
+                            else if (mode == 8) legEntryMC = "lf";
                             legTheory->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
                             // h1D[COLL::kHIMC][i]->Draw("e1 same");
                         }
@@ -1345,10 +1363,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         std::string plotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") plotOption = "lp";   // "p"
                         legTheory->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
-                        if (mode == 6) plotOption = "l";
+                        if (mode == 6 || mode == 7 || mode == 8) plotOption = "l";
                         grErr->DrawClone(plotOption.c_str());
 
-                        if (mode == 6) grErr2 = (TGraphErrors*)grErr->Clone(Form("%s_2", grErr->GetName()));
+                        if (mode == 6 || mode == 7 || mode == 8)
+                            grErr2 = (TGraphErrors*)grErr->Clone(Form("%s_2", grErr->GetName()));
                     }
 
                     // VITEV
@@ -1408,11 +1427,19 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->DrawClone(plotOption.c_str());
                         legTheory2->AddEntry(grErr->Clone(), VITEV::legendEntryPP.c_str(), plotOption.c_str());
                     }
-                    if (mode == 6 && xPP_VITEV.size() > 0 && grErr2 != 0) {
+
+                    if ((mode == 6 || mode == 7 || mode == 8) && xPP_VITEV.size() > 0 && grErr2 != 0) {
+                        // plot JEWEL+PYTHIA points after Ivan Vitev points
                         grErr2->Draw("p");
+                        // plot Pythia PPMC points after JEWEL and Ivan Vitev points
                         if (h1DisValid[COLL::kHIMC][i] && plotHIMC.at(i)) {
-                            h1D[COLL::kHIMC][i]->Draw("e1 same");
-                            h1D[COLL::kHIMC][i]->Draw("l hist same");
+                            if (mode == 6) {
+                                h1D[COLL::kHIMC][i]->Draw("e1 same");
+                                h1D[COLL::kHIMC][i]->Draw("l hist same");
+                            }
+                            else if (mode == 7) {
+                                h1D[COLL::kHIMC][i]->Draw("e same");
+                            }
                         }
                     }
 
@@ -1425,10 +1452,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     else if (plotTheoryPP)  {
                         if (ish1D_dphi) heightFactor = 1.9*0.75;
                         else if (ish1D_xjz) {
-                            heightFactor = 0.75;
-                            if (mode == 6)  heightFactor = 0.6;
+                            heightFactor = 0.85;
+                            if (mode == 6 || mode == 7 || mode == 8)  heightFactor = 0.75;
                         }
-                        else heightFactor = 1.2;
+                        else heightFactor = 1.1;
                     }
                     double heightTheory = (height*legTheory->GetNRows()/leg->GetNRows()*heightFactor);
 
@@ -1437,21 +1464,22 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     // put "legTheory" below "leg"
                     legTheory->SetX1(leg->GetX1NDC());
                     legTheory->SetY2(leg->GetY1NDC());
-                    if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && mode == 6)) {
+                    if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && (mode == 6 || mode == 7 || mode == 8))) {
                         // put "legTheory" to the right of "leg"*
                         legTheory->SetX1(leg->GetX1NDC()+0.36);
-                        if (ish1D_xjz && mode == 6) legTheory->SetX1(leg->GetX1NDC()+0.35);
+                        if (ish1D_xjz && (mode == 6 || mode == 7 || mode == 8)) legTheory->SetX1(leg->GetX1NDC()+0.35);
 
                         if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
                         else if (ish1D_xjz && plotTheoryHI) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
-                        else if (ish1D_xjz && mode == 6) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
+                        else if (ish1D_xjz &&
+                                (mode == 6 || mode == 7 || mode == 8)) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
                     }
                     widthFactor = 1.0;
                     if (plotTheoryHI && !ish1D_xjz)  widthFactor = 0.95;
                     else if (plotTheoryPP)  widthFactor = 1.2;
 
                     if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
-                    if (mode == 6) widthFactor = 0.86;
+                    if ((mode == 6 || mode == 7 || mode == 8)) widthFactor = 0.86;
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
                     legTheory->SetY1(legTheory->GetY2NDC() - heightTheory);
@@ -1734,9 +1762,9 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
 
         h->SetLineColor(kBlue+2);     // kOrange=800
         h->SetFillColorAlpha(kBlue, 1);
-        h->SetFillStyle(kFHatched1);
+        h->SetFillStyle(3754);
         
-        if (mode == 6) {
+        if (mode == 6 || mode == 7) {
             h->SetMarkerSize(h->GetMarkerSize()*1.4);
             h->SetMarkerStyle(kFullDiamond);
             h->SetLineColorAlpha(kBlue+2, 0.8);
@@ -1757,10 +1785,10 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
         h->SetLineWidth(3);
         h->SetLineColorAlpha(kOrange+8, 0.8);     // kOrange=800
         h->SetFillColorAlpha(kOrange+8, 1);
-        h->SetFillStyle(kFHatched1+1);
+        h->SetFillStyle(3745);
         h->SetMarkerColorAlpha(h->GetLineColor(), 1.0);
         h->SetMarkerStyle(kFullSquare);
-        if (mode == 6) {
+        if (mode == 6 || mode == 7) {
             h->SetMarkerSize(h->GetMarkerSize()*1.1);
         }
     }
