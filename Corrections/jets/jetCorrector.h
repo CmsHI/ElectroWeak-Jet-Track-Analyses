@@ -41,17 +41,26 @@ public :
         CSN_phi_PP.push_back(0.024497);
         CSN_phi_PP.push_back(-0.170472);
         CSN_phi_PP.push_back(-0.000188492);
+
+        doEtaBins = false;
+        etaBins = {};
+        nEtaBins = 0;
+        p0_etaBins = {};
+        p1_etaBins = {};
+        p2_etaBins = {};
     };
     ~jetCorrector(){};
     double getMatchingEfficiency(Jets &tJets, int i);
     double getMatchingEfficiencyCorrection(Jets &tJets, int i);
     double getResidualCorrection(Jets &tJets, int i);
+    double getResidualCorrection(Jets &tJets, int i, int iEta);
     double getResidualCorrection(TF1* f1, Jets &tJets, int i);
     double getSmearingPt(Jets &tJets, int i);
     double getSmearingPhi(Jets &tJets, int i);
     double getResolutionHI(Jets &tJets, int i);
     double getResolutionHI(double jtpt);
     void  correctPtResidual(Jets &tJets, int i);
+    void  correctPtResidual(Jets &tJets, int i, int iEta);
     void  correctPtResidual(TF1* f1, Jets &tJets, int i);
     void  correctPtsResidual(Jets &tJets);
     void  correctPtsResidual(TF1* f1, Jets &tJets);
@@ -67,6 +76,7 @@ public :
     void  applyPtsResolution(Jets &tJets, double resolutionRel);
     void  applyPhiResolution(Jets &tJets, int i, double resolutionRel);
     void  applyPhisResolution(Jets &tJets, double resolutionRel);
+    void  setEtaBins(std::vector<double> etas);
 
     void applyPtSmearingToVector(Jets &tJets, std::vector<float>* jtpt_smeared);
     void applyPhiSmearingToVector(Jets &tJets, std::vector<float>* jtphi_smeared);
@@ -80,6 +90,13 @@ public :
     double p0;
     double p1;
     double p2;
+    // residual correction function parameters for eta bins
+    bool doEtaBins;
+    std::vector<double> etaBins;
+    int nEtaBins;
+    std::vector<double> p0_etaBins;
+    std::vector<double> p1_etaBins;
+    std::vector<double> p2_etaBins;
     // pp smearing : sigma_rel = sqrt( (C_HI^2 - C_PP^2) + (S_HI^2 - S_PP^2) / pt + (N_HI^2 - N_PP^2)/pt^2 )
     double sigma_rel_Var;   // variation of sigma_rel for systematics studies
     double sigmaPhi_rel_Var;   // variation of sigma_rel for systematics studies
@@ -114,6 +131,12 @@ double jetCorrector::getMatchingEfficiencyCorrection(Jets &tJets, int i)
 double jetCorrector::getResidualCorrection(Jets &tJets, int i)
 {
     double result = 1./(p0 + p1/TMath::Sqrt(tJets.jtpt[i]) + p2/tJets.jtpt[i]);
+    return result;
+}
+
+double jetCorrector::getResidualCorrection(Jets &tJets, int i, int iEta)
+{
+    double result = 1./(p0_etaBins[iEta] + p1_etaBins[iEta]/TMath::Sqrt(tJets.jtpt[i]) + p2_etaBins[iEta]/tJets.jtpt[i]);
     return result;
 }
 
@@ -173,6 +196,11 @@ void jetCorrector::correctPtResidual(Jets &tJets, int i)
     tJets.jtpt[i] *= getResidualCorrection(tJets, i);
 }
 
+void jetCorrector::correctPtResidual(Jets &tJets, int i, int iEta)
+{
+    tJets.jtpt[i] *= getResidualCorrection(tJets, i, iEta);
+}
+
 void jetCorrector::correctPtResidual(TF1* f1, Jets &tJets, int i)
 {
     tJets.jtpt[i] *= getResidualCorrection(f1, tJets, i);
@@ -180,8 +208,20 @@ void jetCorrector::correctPtResidual(TF1* f1, Jets &tJets, int i)
 
 void jetCorrector::correctPtsResidual(Jets &tJets)
 {
-    for (int i = 0; i<tJets.nref; ++i) {
-        correctPtResidual(tJets, i);
+    if (doEtaBins) {
+        for (int i = 0; i<tJets.nref; ++i) {
+            for (int iEta = 0; iEta < nEtaBins; ++iEta) {
+                if(TMath::Abs(tJets.jteta[i]) < etaBins[iEta]) {
+                    correctPtResidual(tJets, i, iEta);
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        for (int i = 0; i<tJets.nref; ++i) {
+            correctPtResidual(tJets, i);
+        }
     }
 }
 
@@ -269,6 +309,16 @@ void  jetCorrector::applyPhisResolution(Jets &tJets, double resolutionRel)
     for (int i = 0; i<tJets.nref; ++i) {
         applyPhiResolution(tJets, i, resolutionRel);
     }
+}
+
+void  jetCorrector::setEtaBins(std::vector<double> etas)
+{
+    etaBins = etas;
+    nEtaBins = etaBins.size();
+
+    p0_etaBins = std::vector<double>(nEtaBins, 0);
+    p1_etaBins = std::vector<double>(nEtaBins, 0);
+    p2_etaBins = std::vector<double>(nEtaBins, 0);
 }
 
 void jetCorrector::applyPtSmearingToVector(Jets &tJets, std::vector<float>* jtpt_smeared) {
