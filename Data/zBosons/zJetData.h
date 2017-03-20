@@ -142,6 +142,8 @@ const int fillStyles[kN_MODEL] = {
         3354
 };
 
+const int lineStylePP = kDashed;
+
 // legend entries to be used in a plot
 const std::string legendHeader = "Hybrid";
 
@@ -316,6 +318,9 @@ const int colorPP = 36;  // kCyan+3
 const double falpha = 0.85;
 const double falpha_PP = 0.85;
 
+const int lineStyle = kSolid;
+const int lineStylePP = kSolid;
+
 const std::string legendEntry = "JEWEL+PYTHIA";
 const std::string legendEntryPP = "PYTHIA 6 (JEWEL tune)";     //"smeared pp"
 
@@ -366,6 +371,8 @@ const int lineStyles[kN_MODEL] = {
         8,
         kDashed
 };
+const int lineStylePP = 8;
+
 const int fillColorPP = kRed;
 
 const double falpha = 0.7;
