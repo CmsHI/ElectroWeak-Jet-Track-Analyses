@@ -29,6 +29,7 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/eventUtil.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
@@ -130,6 +131,9 @@ std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, eac
 // list of pt cuts for RECO photons
 std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
+// event cuts/weights
+int doEventWeight;
+
 // RECO photon cuts
 float cut_phoHoverE;
 float cut_pho_ecalClusterIsoR4;
@@ -217,7 +221,9 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
     fileTmp->Close();
     // done with initial reading
 
+    bool isMC = collisionIsMC((COLL::TYPE)collisionType);
     bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -247,11 +253,13 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
         treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-        treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
-        treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
-        // check existence of genMatching branch
-        if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
-            std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+        if (isMC) {
+            treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
+            treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+            // check existence of genMatching branch
+            if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
+                std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+            }
         }
 
         // specify explicitly which branches to use, do not use wildcard
@@ -259,9 +267,18 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         Int_t hiBin;
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
         treeHiEvt->SetBranchStatus("*",0);
-        treeHiEvt->SetBranchStatus("hiBin",1);
+        treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchAddress("vz",&vz);
+        treeHiEvt->SetBranchStatus("hiBin",1);
         treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+        float weight_HiEvt;
+        if (doEventWeight > 0) {
+            treeHiEvt->SetBranchStatus("weight", 1);
+            treeHiEvt->SetBranchAddress("weight", &weight_HiEvt);
+        }
+        else {
+            weight_HiEvt = 1;
+        }
 
         treeSkim  = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         Int_t pcollisionEventSelection;  // this filter is used for HI.
@@ -280,7 +297,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
         }
         Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
-        if (!isHI) {
+        if (isPP) {
             treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
             if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
                 treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
@@ -295,7 +312,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
         }
         Int_t pBeamScrapingFilter;   // this filter is used for PP.
-        if (!isHI) {
+        if (isPP) {
             treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
             if (treeSkim->GetBranch("pBeamScrapingFilter")) {
                 treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
@@ -339,7 +356,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             if (isHI) {
                 if ((pcollisionEventSelection < 1))  continue;
             }
-            else {
+            else if (isPP) {
                 if (pPAprimaryVertexFilter < 1 || pBeamScrapingFilter < 1)  continue;
             }
 
@@ -351,16 +368,19 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                 phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled = false;
             }}}}}
 
-            std::vector<int> iHiBinsPassed;
-            for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
-                if (phoAna[0][0][0][0][iHiBin].insideHiBinRange(hiBin))  iHiBinsPassed.push_back(iHiBin);
+            double w = 1;
+            if (doEventWeight > 0) {
+                w = weight_HiEvt;
+                double vertexWeight = 1;
+                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((vz-0.30709)/7.41379, 2));  // 02.04.2016
+                double centWeight = 1;
+                if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                w *= vertexWeight * centWeight;
             }
-            int nHiBinsPassed = iHiBinsPassed.size();
 
             for (int i=0; i<ggHi.nPho; ++i) {
 
-                if (isHI) {
-
+                if (isHI && !isMC) {
                     bool failedNoiseCut =  ((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
                             (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03) &&
                            ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1./3.-0.03 &&
@@ -416,26 +436,25 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                 double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
 
-                for (int iPt = 0; iPt < nBins_pt; ++iPt) {
-                    if (!phoAna[0][0][0][iPt][0].insidePtRange(pt)) continue;
-
-                for (int iEta = 0; iEta < nBins_eta; ++iEta) {
-                    if (!phoAna[0][0][iEta][0][0].insideEtaRange(TMath::Abs(eta))) continue;
-
                 for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
                     if (!runSelection.at(iSel))  continue;
                     if (!passedSel[iSel]) continue;
+
+                for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+                    if (!phoAna[0][iSel][0][iPt][0].insidePtRange(pt)) continue;
+
+                for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                    if (!phoAna[0][iSel][iEta][0][0].insideEtaRange(TMath::Abs(eta))) continue;
+
+                for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
+                    if (!phoAna[0][iSel][0][0][iHiBin].insideHiBinRange(hiBin)) continue;
 
                     std::vector<double> phoVars = photonAnalyzer::getPhoVars(ggHi, i);
                 for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
                     double val = phoVars[iDist];
 
-                    for (int iTmp = 0; iTmp < nHiBinsPassed; ++iTmp) {
-
-                        int iHiBin = iHiBinsPassed[iTmp];
-
                         if (phoAna[iDist][iSel][iEta][iPt][iHiBin].hInitialized) {
-                            phoAna[iDist][iSel][iEta][iPt][iHiBin].h->Fill(val);
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].h->Fill(val, w);
 
                             if (!phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled) {
                                 phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled = true;
@@ -659,6 +678,9 @@ int readConfiguration(const TString configFile)
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+    // event cuts/weights
+    doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
     cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
@@ -853,6 +875,8 @@ void printConfiguration()
             std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
         }
 
+        std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
+
         std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
         std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
         std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
@@ -889,7 +913,7 @@ int  preLoop(TFile* input, bool makeNew)
                         std::string selectionLabel = PHOTONANA::SEL_LABELS[iSel];
                         std::string tmpName = Form("%s_%s_etaBin%d_ptBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt);
                         if (nBins_hiBin > 1)
-                            tmpName = Form("%s_%s_etaBin%d_ptBin%d_iHiBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt, iHiBin);
+                            tmpName = Form("%s_%s_etaBin%d_ptBin%d_hiBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt, iHiBin);
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].name = tmpName.c_str();
 
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangeEta(bins_eta[0].at(iEta), bins_eta[1].at(iEta));
@@ -989,6 +1013,15 @@ int postLoop()
             }
 
             // plot distributions from different hiBin bins
+            for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
+                if (!runSelection.at(iSel))  continue;
+                for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                    for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+
+                        drawSamePhotonAna(c, iDist, iSel, iEta, iPt, -1, iNorm);
+                    }
+                }
+            }
 
             // plot distributions from different photon selections
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
@@ -1095,8 +1128,8 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
 
         int iHist = iBin;
         if (iEta == -1) iHist = PHOTONANA::SEL::kN_SEL + iBin;
-        else if (iPt == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_pt + iBin;
-        else if (iHiBin == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_pt + nBins_hiBin + iBin;
+        else if (iPt == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_eta + iBin;
+        else if (iHiBin == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_eta +  nBins_pt + iBin;
         setTH1(hTmp, iHist);
         vecTmp.push_back(hTmp);
 
