@@ -149,7 +149,7 @@ int nBins_pt;
 int nBins_hiBin;
 /// configuration variables - END
 std::vector<bool> runSelection;
-photonAnalyzer phoAna[PHOTONANA::DIST::kN_DIST][PHOTONANA::SEL::kN_SEL][5][5];
+photonAnalyzer phoAna[PHOTONANA::DIST::kN_DIST][PHOTONANA::SEL::kN_SEL][5][5][7];
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -157,7 +157,7 @@ void printConfiguration();
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 std::vector<bool> getSelectionsToRun(std::string mode);
-void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iNorm);
+void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iHiBin, int iNorm);
 void setTH1(TH1D* h, int iHist);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg = 0);
@@ -347,8 +347,15 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
             for (int iPt = 0; iPt < nBins_pt; ++iPt) {
-                phoAna[iDist][iSel][iEta][iPt].hFilled = false;
-            }}}}
+            for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
+                phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled = false;
+            }}}}}
+
+            std::vector<int> iHiBinsPassed;
+            for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
+                if (phoAna[0][0][0][0][iHiBin].insideHiBinRange(hiBin))  iHiBinsPassed.push_back(iHiBin);
+            }
+            int nHiBinsPassed = iHiBinsPassed.size();
 
             for (int i=0; i<ggHi.nPho; ++i) {
 
@@ -410,10 +417,10 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                 double pt  = (*ggHi.phoEt)[i];
 
                 for (int iPt = 0; iPt < nBins_pt; ++iPt) {
-                    if (!phoAna[0][0][0][iPt].insidePtRange(pt)) continue;
+                    if (!phoAna[0][0][0][iPt][0].insidePtRange(pt)) continue;
 
                 for (int iEta = 0; iEta < nBins_eta; ++iEta) {
-                    if (!phoAna[0][0][iEta][0].insideEtaRange(TMath::Abs(eta))) continue;
+                    if (!phoAna[0][0][iEta][0][0].insideEtaRange(TMath::Abs(eta))) continue;
 
                 for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
                     if (!runSelection.at(iSel))  continue;
@@ -423,15 +430,19 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                 for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
                     double val = phoVars[iDist];
 
-                    if (phoAna[iDist][iSel][iEta][iPt].hInitialized) {
-                        phoAna[iDist][iSel][iEta][iPt].h->Fill(val);
+                    for (int iTmp = 0; iTmp < nHiBinsPassed; ++iTmp) {
 
-                        if (!phoAna[iDist][iSel][iEta][iPt].hFilled) {
-                            phoAna[iDist][iSel][iEta][iPt].hFilled = true;
-                            phoAna[iDist][iSel][iEta][iPt].hNevents++;
+                        int iHiBin = iHiBinsPassed[iTmp];
+
+                        if (phoAna[iDist][iSel][iEta][iPt][iHiBin].hInitialized) {
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].h->Fill(val);
+
+                            if (!phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled) {
+                                phoAna[iDist][iSel][iEta][iPt][iHiBin].hFilled = true;
+                                phoAna[iDist][iSel][iEta][iPt][iHiBin].hNevents++;
+                            }
                         }
                     }
-
                 }}}}
             }
         }
@@ -872,40 +883,45 @@ int  preLoop(TFile* input, bool makeNew)
             if (!runSelection.at(iSel))  continue;
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
                 for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                    std::string distLabel = PHOTONANA::DIST_LABELS[iDist];
-                    std::string selectionLabel = PHOTONANA::SEL_LABELS[iSel];
-                    std::string tmpName = Form("%s_%s_etaBin%d_ptBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt);
-                    phoAna[iDist][iSel][iEta][iPt].name = tmpName.c_str();
+                        std::string distLabel = PHOTONANA::DIST_LABELS[iDist];
+                        std::string selectionLabel = PHOTONANA::SEL_LABELS[iSel];
+                        std::string tmpName = Form("%s_%s_etaBin%d_ptBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt);
+                        if (nBins_hiBin > 1)
+                            tmpName = Form("%s_%s_etaBin%d_ptBin%d_iHiBin%d", distLabel.c_str(), selectionLabel.c_str(), iEta, iPt, iHiBin);
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].name = tmpName.c_str();
 
-                    phoAna[iDist][iSel][iEta][iPt].setRangeEta(bins_eta[0].at(iEta), bins_eta[1].at(iEta));
-                    phoAna[iDist][iSel][iEta][iPt].setRangePt(bins_recoPt[0].at(iPt), bins_recoPt[1].at(iPt));
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangeEta(bins_eta[0].at(iEta), bins_eta[1].at(iEta));
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangePt(bins_recoPt[0].at(iPt), bins_recoPt[1].at(iPt));
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangeHiBin(bins_hiBin[0].at(iHiBin), bins_hiBin[1].at(iHiBin));
 
-                    int nBinsx = PHOTONANA::DIST_AXIS[iDist][0];
-                    float xLow = PHOTONANA::DIST_AXIS[iDist][1];
-                    float xUp  = PHOTONANA::DIST_AXIS[iDist][2];
-                    phoAna[iDist][iSel][iEta][iPt].xMin = xLow;
-                    phoAna[iDist][iSel][iEta][iPt].xMax = xUp;
-                    phoAna[iDist][iSel][iEta][iPt].selectionIndex = iSel;
+                        int nBinsx = PHOTONANA::DIST_AXIS[iDist][0];
+                        float xLow = PHOTONANA::DIST_AXIS[iDist][1];
+                        float xUp  = PHOTONANA::DIST_AXIS[iDist][2];
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].xMin = xLow;
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].xMax = xUp;
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].selectionIndex = iSel;
 
-                    std::string tmpHistName = Form("h_%s", tmpName.c_str());
-                    std::string tmpTitleX = PHOTONANA::DIST_TITLES[iDist];
-                    phoAna[iDist][iSel][iEta][iPt].titleX = tmpTitleX;
+                        std::string tmpHistName = Form("h_%s", tmpName.c_str());
+                        std::string tmpTitleX = PHOTONANA::DIST_TITLES[iDist];
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].titleX = tmpTitleX;
 
-                    if (makeNew) {
-                        phoAna[iDist][iSel][iEta][iPt].h =
-                                new TH1D(tmpHistName.c_str(), Form(";%s;Entries", tmpTitleX.c_str()), nBinsx, xLow, xUp);
+                        if (makeNew) {
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].h =
+                                    new TH1D(tmpHistName.c_str(), Form(";%s;Entries", tmpTitleX.c_str()), nBinsx, xLow, xUp);
 
-                        phoAna[iDist][iSel][iEta][iPt].hInitialized = true;
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].hInitialized = true;
+                        }
+                        else {
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].h = (TH1D*)input->Get(tmpHistName.c_str());
+
+                            phoAna[iDist][iSel][iEta][iPt][iHiBin].hInitialized = (!phoAna[iDist][iSel][iEta][iPt][iHiBin].h->IsZombie());
+                        }
+
+                        // set histogram title
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].prepareTitle();
                     }
-                    else {
-                        phoAna[iDist][iSel][iEta][iPt].h = (TH1D*)input->Get(tmpHistName.c_str());
-
-                        phoAna[iDist][iSel][iEta][iPt].hInitialized = (!phoAna[iDist][iSel][iEta][iPt].h->IsZombie());
-                    }
-
-                    // set histogram title
-                    phoAna[iDist][iSel][iEta][iPt].prepareTitle();
                 }
             }
         }
@@ -925,14 +941,16 @@ int postLoop()
 
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
                 for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                    c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
-                    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+                        c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
+                        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
-                    phoAna[iDist][iSel][iEta][iPt].postLoop();
-                    phoAna[iDist][iSel][iEta][iPt].writeObjects(c);
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].postLoop();
+                        phoAna[iDist][iSel][iEta][iPt][iHiBin].writeObjects(c);
 
-                    c->Close();         // do not use Delete() for TCanvas.
+                        c->Close();         // do not use Delete() for TCanvas.
+                    }
                 }
             }
         }
@@ -952,8 +970,10 @@ int postLoop()
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
                 if (!runSelection.at(iSel))  continue;
                 for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                    drawSamePhotonAna(c, iDist, iSel, -1, iPt, iNorm);
+                        drawSamePhotonAna(c, iDist, iSel, -1, iPt, iHiBin, iNorm);
+                    }
                 }
             }
 
@@ -961,16 +981,22 @@ int postLoop()
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
                 if (!runSelection.at(iSel))  continue;
                 for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                    drawSamePhotonAna(c, iDist, iSel, iEta, -1, iNorm);
+                        drawSamePhotonAna(c, iDist, iSel, iEta, -1, iHiBin, iNorm);
+                    }
                 }
             }
+
+            // plot distributions from different hiBin bins
 
             // plot distributions from different photon selections
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
                 for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                    drawSamePhotonAna(c, iDist, -1, iEta, iPt, iNorm);
+                        drawSamePhotonAna(c, iDist, -1, iEta, iPt, iHiBin, iNorm);
+                    }
                 }
             }
 
@@ -998,7 +1024,7 @@ std::vector<bool> getSelectionsToRun(std::string mode)
     return res;
 }
 
-void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iNorm)
+void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iHiBin, int iNorm)
 {
     TH1D* hTmp = 0;
 
@@ -1009,22 +1035,28 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
     int nBins = 0;
     int iTmp = std::distance(runSelection.begin(), std::find(runSelection.begin(), runSelection.end(), true));   // find the first valid photon selection
     if (iSel == -1) {
-        tmpName = phoAna[iDist][iTmp][iEta][iPt].name.c_str();
+        tmpName = phoAna[iDist][iTmp][iEta][iPt][iHiBin].name.c_str();
         strBin = PHOTONANA::SEL_LABELS[iTmp].c_str();
         strBin2 = "selAll";
         nBins = PHOTONANA::SEL::kN_SEL;
     }
     else if (iEta == -1) {
-        tmpName = phoAna[iDist][iSel][0][iPt].name.c_str();
+        tmpName = phoAna[iDist][iSel][0][iPt][iHiBin].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iPt == -1) {
-        tmpName = phoAna[iDist][iSel][iEta][0].name.c_str();
+        tmpName = phoAna[iDist][iSel][iEta][0][iHiBin].name.c_str();
         strBin = "ptBin";
         strBin2 = "ptBinAll";
         nBins = nBins_pt;
+    }
+    else if (iHiBin == -1) {
+        tmpName = phoAna[iDist][iSel][iEta][iPt][0].name.c_str();
+        strBin = "hiBin";
+        strBin2 = "hiBinAll";
+        nBins = nBins_hiBin;
     }
     else return;
 
@@ -1053,16 +1085,18 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
 
         if (iSel == -1)  {
             if (!runSelection.at(iBin))  continue;
-            hTmp = (TH1D*)phoAna[iDist][iBin][iEta][iPt].getTH1(iNorm)->Clone();
+            hTmp = (TH1D*)phoAna[iDist][iBin][iEta][iPt][iHiBin].getTH1(iNorm)->Clone();
         }
-        else if (iEta == -1) hTmp = (TH1D*)phoAna[iDist][iSel][iBin][iPt].getTH1(iNorm)->Clone();
-        else if (iPt == -1) hTmp = (TH1D*)phoAna[iDist][iSel][iEta][iBin].getTH1(iNorm)->Clone();
+        else if (iEta == -1) hTmp = (TH1D*)phoAna[iDist][iSel][iBin][iPt][iHiBin].getTH1(iNorm)->Clone();
+        else if (iPt == -1) hTmp = (TH1D*)phoAna[iDist][iSel][iEta][iBin][iHiBin].getTH1(iNorm)->Clone();
+        else if (iHiBin == -1) hTmp = (TH1D*)phoAna[iDist][iSel][iEta][iPt][iBin].getTH1(iNorm)->Clone();
 
         hTmp->SetTitle("");
 
         int iHist = iBin;
         if (iEta == -1) iHist = PHOTONANA::SEL::kN_SEL + iBin;
         else if (iPt == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_pt + iBin;
+        else if (iHiBin == -1) iHist = PHOTONANA::SEL::kN_SEL + nBins_pt + nBins_hiBin + iBin;
         setTH1(hTmp, iHist);
         vecTmp.push_back(hTmp);
 
@@ -1070,10 +1104,11 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
         std::string legendText = "";
         if (iSel == -1)  {
             if (!runSelection.at(iBin))  continue;
-            legendText = phoAna[iDist][iBin][iEta][iPt].getSelectionText();
+            legendText = phoAna[iDist][iBin][iEta][iPt][iHiBin].getSelectionText();
         }
-        else if (iEta == -1) legendText = phoAna[iDist][iSel][iBin][iPt].getRangeTextEta();
-        else if (iPt == -1) legendText = phoAna[iDist][iSel][iEta][iBin].getRangeTextPt();
+        else if (iEta == -1) legendText = phoAna[iDist][iSel][iBin][iPt][iHiBin].getRangeTextEta();
+        else if (iPt == -1) legendText = phoAna[iDist][iSel][iEta][iBin][iHiBin].getRangeTextPt();
+        else if (iHiBin == -1) legendText = phoAna[iDist][iSel][iEta][iPt][iBin].getRangeTextHiBin();
 
         leg->AddEntry(hTmp, legendText.c_str(), legendOption.c_str());
     }
@@ -1092,17 +1127,46 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
             textLinesTmp.push_back(textLines.at(iLine).c_str());
     }
 
+    std::string textLineTmp;
     if (iSel == -1) {
-        textLinesTmp.push_back(phoAna[iDist][iTmp][iEta][iPt].getRangeTextEta().c_str());
-        textLinesTmp.push_back(phoAna[iDist][iTmp][iEta][iPt].getRangeTextPt().c_str());
+        textLineTmp = phoAna[iDist][iTmp][iEta][iPt][iHiBin].getRangeTextHiBin().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iTmp][iEta][iPt][iHiBin].getRangeTextEta().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iTmp][iEta][iPt][iHiBin].getRangeTextPt().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
     }
     else if (iEta == -1) {
-        textLinesTmp.push_back(PHOTONANA::SEL_TITLES[iSel].c_str());
-        textLinesTmp.push_back(phoAna[iDist][iSel][0][iPt].getRangeTextPt().c_str());
+        textLineTmp = PHOTONANA::SEL_TITLES[iSel].c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][0][iPt][iHiBin].getRangeTextHiBin().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][0][iPt][iHiBin].getRangeTextPt().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
     }
     else if (iPt == -1) {
-        textLinesTmp.push_back(PHOTONANA::SEL_TITLES[iSel].c_str());
-        textLinesTmp.push_back(phoAna[iDist][iSel][iEta][0].getRangeTextEta().c_str());
+        textLineTmp = PHOTONANA::SEL_TITLES[iSel].c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][iEta][0][iHiBin].getRangeTextHiBin().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][iEta][0][iHiBin].getRangeTextEta().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+    }
+    else if (iHiBin == -1) {
+        textLineTmp = PHOTONANA::SEL_TITLES[iSel].c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][iEta][iPt][0].getRangeTextEta().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+
+        textLineTmp = phoAna[iDist][iSel][iEta][iPt][0].getRangeTextPt().c_str();
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
     }
 
     setLatex(c, latex, iDist, textLinesTmp, leg);
@@ -1123,7 +1187,7 @@ void setTH1(TH1D* h, int iHist)
     float titleOffsetY = titleOffsetsX.at(0);
     h->SetTitleOffset(titleOffsetY, "Y");
 
-    int nBinsTot = PHOTONANA::SEL::kN_SEL + nBins_eta + nBins_pt;
+    int nBinsTot = PHOTONANA::SEL::kN_SEL + nBins_eta + nBins_pt + nBins_hiBin;
 
     int markerStyle = GRAPHICS::markerStyle;
     if (nMarkerStyles == nBinsTot) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(iHist));

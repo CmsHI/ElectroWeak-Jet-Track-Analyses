@@ -219,6 +219,7 @@ public :
     bool insideRange(double val, int iBin);
     bool insidePtRange(double val);
     bool insideEtaRange(double val);
+    bool insideHiBinRange(double val);
 
     void setRange(float min, float max, int iBin);
     void setRangeEta(float min = 0, float max = -1);
@@ -320,6 +321,14 @@ bool photonAnalyzer::insideEtaRange(double val)
     return insideRange(val, PHOTONANA::BINS::kETA);
 }
 
+/*
+ * check if the given eta lies inside the given eta bin
+ */
+bool photonAnalyzer::insideHiBinRange(double val)
+{
+    return insideRange(val, PHOTONANA::BINS::kHIBIN);
+}
+
 
 void photonAnalyzer::setRange(float min, float max, int iBin)
 {
@@ -402,7 +411,7 @@ std::string photonAnalyzer::getRangeTextHiBin()
     std::string res = "";
 
     if (ranges[PHOTONANA::BINS::kHIBIN][0] >= 0 && ranges[PHOTONANA::BINS::kHIBIN][1] > 0)
-        res = Form("hiBin:%.0f-%.0f", ranges[PHOTONANA::BINS::kHIBIN][0], ranges[PHOTONANA::BINS::kHIBIN][1]);
+        res = Form("Cent:%.0f-%.0f%%", ranges[PHOTONANA::BINS::kHIBIN][0]/2, ranges[PHOTONANA::BINS::kHIBIN][1]/2);
 
     return res;
 }
