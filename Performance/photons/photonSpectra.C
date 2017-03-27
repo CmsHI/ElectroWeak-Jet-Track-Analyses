@@ -189,6 +189,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
     TTree* treeHiForestInfo = 0;
+    TTree* treeSkim = 0;
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -215,6 +216,8 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
     fileTmp->Close();
     // done with initial reading
+
+    bool isHI = collisionIsHI((COLL::TYPE)collisionType);
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -252,11 +255,60 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         }
 
         // specify explicitly which branches to use, do not use wildcard
+        float vz;
         Int_t hiBin;
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
         treeHiEvt->SetBranchStatus("*",0);
         treeHiEvt->SetBranchStatus("hiBin",1);
+        treeHiEvt->SetBranchAddress("vz",&vz);
         treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+
+        treeSkim  = (TTree*)fileTmp->Get("skimanalysis/HltTree");
+        Int_t pcollisionEventSelection;  // this filter is used for HI.
+        if (isHI) {
+            treeSkim->SetBranchStatus("pcollisionEventSelection",1);
+            if (treeSkim->GetBranch("pcollisionEventSelection")) {
+                treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
+            }
+            else {   // overwrite to default
+                pcollisionEventSelection = 1;
+                std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
+                std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
+            }
+        }
+        else {
+            pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
+        }
+        Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+        if (!isHI) {
+            treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
+            if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
+                treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
+            }
+            else {   // overwrite to default
+                pPAprimaryVertexFilter = 1;
+                std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
+                std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
+            }
+        }
+        else {
+            pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
+        }
+        Int_t pBeamScrapingFilter;   // this filter is used for PP.
+        if (!isHI) {
+            treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
+            if (treeSkim->GetBranch("pBeamScrapingFilter")) {
+                treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
+            }
+            else {   // overwrite to default
+                pBeamScrapingFilter = 1;
+                std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
+                std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
+            }
+        }
+        else {
+            pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
+        }
 
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
@@ -282,6 +334,15 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
             entriesAnalyzed++;
 
+            // event selection
+            if (!(TMath::Abs(vz) < 15))  continue;
+            if (isHI) {
+                if ((pcollisionEventSelection < 1))  continue;
+            }
+            else {
+                if (pPAprimaryVertexFilter < 1 || pBeamScrapingFilter < 1)  continue;
+            }
+
             for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
@@ -290,6 +351,36 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             }}}}
 
             for (int i=0; i<ggHi.nPho; ++i) {
+
+                if (isHI) {
+
+                    bool failedNoiseCut =  ((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                            (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03) &&
+                           ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1./3.-0.03 &&
+                            (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1./3.+0.03) &&
+                           ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                           (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03);
+                    if (failedNoiseCut)  continue;
+                }
+
+                /*
+                float eleEpTemp = 100.0;
+                bool passed = true;
+                for (int ie=0; ie<ggHi.nEle; ++ie) {
+                  if ((*ggHi.elePt)[ie] < 10)
+                    continue;
+                  if (abs((*ggHi.eleEta)[ie] - (*ggHi.phoEta)[i]) > 0.03) // deta
+                    continue;
+                  if (abs(acos(cos((*ggHi.elePhi)[ie] - (*ggHi.phoPhi)[i]))) > 0.03) // dphi
+                    continue;
+                  if (eleEpTemp < (*ggHi.eleEoverP)[ie])
+                    continue;
+
+                  passed = false;
+                  break;
+                }
+                if (!passed)  continue;
+                */
 
                 bool passedSpikeReject = ((*ggHi.phoSigmaIEtaIEta)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3);
                 bool passedHoverE = passedSpikeReject && ((*ggHi.phoHoverE)[i] < 0.1);
@@ -919,7 +1010,7 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
     int iTmp = std::distance(runSelection.begin(), std::find(runSelection.begin(), runSelection.end(), true));   // find the first valid photon selection
     if (iSel == -1) {
         tmpName = phoAna[iDist][iTmp][iEta][iPt].name.c_str();
-        strBin = PHOTONANA::SEL_LABELS[0].c_str();
+        strBin = PHOTONANA::SEL_LABELS[iTmp].c_str();
         strBin2 = "selAll";
         nBins = PHOTONANA::SEL::kN_SEL;
     }
