@@ -341,6 +341,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
+            treeSkim->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -679,7 +680,7 @@ int readConfiguration(const TString configFile)
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
     // event cuts/weights
-    doEventWeight = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+    doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
 
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
@@ -747,6 +748,40 @@ void printConfiguration()
 
         std::cout << "treePath = " << treePath.c_str() << std::endl;
         std::cout << "collision = " << collisionName.c_str() << std::endl;
+
+        // verbose about cut configuration
+        std::cout<<"Cut Configuration :"<<std::endl;
+        std::cout << "nBins_eta = " << nBins_eta << std::endl;
+        for (int i=0; i<nBins_eta; ++i) {
+            std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
+        }
+        std::cout << "nBins_genPt = " << nBins_genPt << std::endl;
+        for (int i=0; i<nBins_genPt; ++i) {
+            std::cout << Form("bins_genPt[%d] = [%f, %f)", i, bins_genPt[0].at(i), bins_genPt[1].at(i)) << std::endl;
+        }
+        std::cout << "nBins_pt = " << nBins_pt << std::endl;
+        for (int i=0; i<nBins_pt; ++i) {
+            std::cout << Form("bins_recoPt[%d] = [%f, %f)", i, bins_recoPt[0].at(i), bins_recoPt[1].at(i)) << std::endl;
+        }
+        std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
+        for (int i=0; i<nBins_hiBin; ++i) {
+            std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
+        }
+
+        std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
+
+        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
+        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
+        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
+        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
+        std::cout<<"cut_phoSigmaIEtaIEta_2012 = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
+        std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
+
+        std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
+        std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
+        std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
+
+        std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
 
         std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
         for (int i=0; i<nTH1D_Bins_List; ++i) {
@@ -855,38 +890,6 @@ void printConfiguration()
         std::cout << "rightMargin  = " << rightMargin << std::endl;
         std::cout << "bottomMargin = " << bottomMargin << std::endl;
         std::cout << "topMargin    = " << topMargin << std::endl;
-
-        // verbose about cut configuration
-        std::cout<<"Cut Configuration :"<<std::endl;
-        std::cout << "nBins_eta = " << nBins_eta << std::endl;
-        for (int i=0; i<nBins_eta; ++i) {
-            std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_genPt = " << nBins_genPt << std::endl;
-        for (int i=0; i<nBins_genPt; ++i) {
-            std::cout << Form("bins_genPt[%d] = [%f, %f)", i, bins_genPt[0].at(i), bins_genPt[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_pt = " << nBins_pt << std::endl;
-        for (int i=0; i<nBins_pt; ++i) {
-            std::cout << Form("bins_recoPt[%d] = [%f, %f)", i, bins_recoPt[0].at(i), bins_recoPt[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
-        for (int i=0; i<nBins_hiBin; ++i) {
-            std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
-        }
-
-        std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
-
-        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
-        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
-        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
-        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
-        std::cout<<"cut_phoSigmaIEtaIEta_2012 = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
-        std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
-
-        std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
-        std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
-        std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
 }
 
 /*
@@ -1013,12 +1016,14 @@ int postLoop()
             }
 
             // plot distributions from different hiBin bins
-            for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
-                if (!runSelection.at(iSel))  continue;
-                for (int iEta = 0; iEta < nBins_eta; ++iEta) {
-                    for (int iPt = 0; iPt < nBins_pt; ++iPt) {
+            if (nBins_hiBin > 1) {
+                for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
+                    if (!runSelection.at(iSel))  continue;
+                    for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                        for (int iPt = 0; iPt < nBins_pt; ++iPt) {
 
-                        drawSamePhotonAna(c, iDist, iSel, iEta, iPt, -1, iNorm);
+                            drawSamePhotonAna(c, iDist, iSel, iEta, iPt, -1, iNorm);
+                        }
                     }
                 }
             }
@@ -1085,7 +1090,7 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
         strBin2 = "ptBinAll";
         nBins = nBins_pt;
     }
-    else if (iHiBin == -1) {
+    else if (iHiBin == -1 && nBins_hiBin > 1) {
         tmpName = phoAna[iDist][iSel][iEta][iPt][0].name.c_str();
         strBin = "hiBin";
         strBin2 = "hiBinAll";
