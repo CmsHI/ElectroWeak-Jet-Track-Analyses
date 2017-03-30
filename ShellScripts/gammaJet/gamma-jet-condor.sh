@@ -22,7 +22,7 @@ cp Corrections/jets/merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRu
 BINARIES="gammaJetSkim.exe,gammaJetHistogram.exe"
 FILESTOCOPY="merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root,L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root,photonEnergyCorrections.root,photonEnergyCorrections_pp.root,sumIsoCorrections_Data.root,sumIsoCorrections_MC.root,PbPb_MC_weights.root,pp_MC_weights.root"
 BASECONFS="gammaJet.conf,gammaJet_JER.conf,gammaJet_JES_DOWN.conf,gammaJet_JES_UP.conf"
-BASELISTS="PbPb_Data_HiForest.list,PbPb_MC_HiForest.list,pp_MC_HiForest.list"
+BASELISTS="PbPb_Data_HiForest.list,PbPb_MC_Flt30_HiForest.list,pp_MC_HiForest.list"
 
 cat > $now/skim-gamma-jet.condor <<EOF
 Universe     = vanilla
