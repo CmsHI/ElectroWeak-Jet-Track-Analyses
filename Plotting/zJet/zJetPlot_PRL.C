@@ -404,6 +404,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     std::vector<std::string> correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet", "iaa", "iaa_ptBin5", "iaa_ptBin6", "rjz_ratio", "xjz_mean_ratio"};  // , "zM", "zPt", "zEta", "zPhi"
     if (plotTheoryPP)  correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet"};
     if (mode == 10) correlationHistNamesTODO = {"xjz_binJER"};
+    // minimal plotting
+    correlationHistNamesTODO = {"xjz_binJER"};
     int sizeTODO = correlationHistNamesTODO.size();
     for (int i = 0; i < sizeTODO; ++i) {
 
@@ -603,6 +605,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
             for (int iHiBin=0; iHiBin < nBins_hiBin; ++iHiBin){
 
                 if (!do_PLOT.at(i))  continue;
+                // minimal plotting
+                if (iPt != 0) continue;
+                if (inputExists[COLL::kHI] && iHiBin != 1) continue;
+                else if (isMode69 && iHiBin != 0) continue;
 
                 std::string correlation = correlationHistNames.at(i).c_str();
                 std::cout<<"##### "<< correlation.c_str() <<" #####"<<std::endl;
