@@ -40,7 +40,6 @@ void setTH1_xjz_mean(TH1* h);
 void setTH1_rjz(TH1* h);
 bool is_xjz(std::string correlation);
 bool is_dphi(std::string correlation);
-float get_txt_size(TVirtualPad *pad, float pix_size);
 
 void zJetPlot_PRL(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigurePrefix)
 {
@@ -2159,15 +2158,4 @@ bool is_xjz(std::string correlation)
 bool is_dphi(std::string correlation)
 {
     return (correlation == "dphi" || correlation == "dphi_rebin");
-}
-
-float get_txt_size(TVirtualPad *pad, float pix_size) {
-  if (pad->UtoPixel(1) > pad->VtoPixel(0)) {
-    // 'Horizontal pad'
-    return pix_size/pad->VtoPixel(0);
-  }
-  else {
-    // 'Vertical pad'
-    return pix_size/pad->UtoPixel(1);
-  }
 }
