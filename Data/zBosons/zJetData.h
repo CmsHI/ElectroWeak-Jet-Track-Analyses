@@ -132,7 +132,7 @@ const int fillColors[kN_MODEL] = {
 };
 const int fillColorPP = kViolet;   //34
 
-const double falpha = 1.0;
+const double falpha = 0.7;
 const double falpha_PP = 0.8;
 
 // fill colors to be used in a plot
@@ -142,7 +142,7 @@ const int fillStyles[kN_MODEL] = {
         3354
 };
 
-const int lineStylePP = kDashed;
+const int lineStylePP = 14;
 
 // legend entries to be used in a plot
 const std::string legendHeader = "Hybrid";
@@ -158,7 +158,7 @@ const std::string modelTAG[kN_MODEL] = {
         "coll"
 };
 
-const std::string legendEntryPP = "PYTHIA 8 (Hybrid tune)";   //"smeared pp"
+const std::string legendEntryPP = "Hybrid";   //"PYTHIA 8 (Hybrid tune)"
 
 const std::vector<double> ymin_xjz[kN_MODEL] = {
         ymin_xjz_STRONG,
@@ -321,8 +321,8 @@ const double falpha_PP = 0.85;
 const int lineStyle = kSolid;
 const int lineStylePP = kSolid;
 
-const std::string legendEntry = "JEWEL+PYTHIA";
-const std::string legendEntryPP = "PYTHIA 6 (JEWEL tune)";     //"smeared pp"
+const std::string legendEntry = "JEWEL";
+const std::string legendEntryPP = "JEWEL";     //"PYTHIA 6 (JEWEL tune)"
 
 };
 
@@ -364,22 +364,23 @@ const std::vector<double> y_xjz[kN_MODEL] = {
 
 // fill colors to be used in a plot
 const int fillColors[kN_MODEL] = {
-        kMagenta,
+        kBlue+2,
         kBlue+2
 };
-const int lineStyles[kN_MODEL] = {
-        8,
-        kDashed
-};
-const int lineStylePP = 8;
 
-const int fillColorPP = kRed;
+const int lineStyles[kN_MODEL] = {
+        12,
+        13
+};
+const int lineStylePP = 11;
+
+const int fillColorPP = kBlue+2;
 
 const double falpha = 0.7;
 const double falpha_PP = 0.7;
 
 // legend entries to be used in a plot
-const std::string legendHeader = "GLV Rad.+Col.";
+const std::string legendHeader = "GLV";     // "GLV Rad.+Col."
 
 const std::string legendEntries[kN_MODEL] = {
         "g = 2.0",
@@ -390,7 +391,7 @@ const std::string modelTAG[kN_MODEL] = {
         "g2p2"
 };
 
-const std::string legendEntryPP = "PYTHIA 8 (default tune, GLV)";
+const std::string legendEntryPP = "GLV";    // "PYTHIA 8 (4C tune, GLV)"
 
 };
 
