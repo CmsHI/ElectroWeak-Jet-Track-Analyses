@@ -40,6 +40,7 @@ void setTH1_xjz_mean(TH1* h);
 void setTH1_rjz(TH1* h);
 bool is_xjz(std::string correlation);
 bool is_dphi(std::string correlation);
+float get_txt_size(TVirtualPad *pad, float pix_size);
 
 void zJetPlot_PRL(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigurePrefix)
 {
@@ -1403,9 +1404,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             setTGraphBand(gr, x_hybrid[iModel], ymin_hybrid[iModel], ymax_hybrid[iModel]);
                             gr->SetFillColorAlpha(HYBRID::fillColors[iModel], HYBRID::falpha);
                             gr->SetFillStyle(kFSolid_ColorAlpha_theory);
-                            gStyle->SetHatchesLineWidth(2);
-                            if (mode == 10)  gStyle->SetHatchesLineWidth(1);
-                            gr->SetFillStyle(HYBRID::fillStyles[iModel]);
+                            // uncomment the following 3 lines to get back to hatch filling
+                            //gStyle->SetHatchesLineWidth(2);
+                            //if (mode == 10)  gStyle->SetHatchesLineWidth(1);
+                            //gr->SetFillStyle(HYBRID::fillStyles[iModel]);
                             if (mode == 10) c->cd(2);
                             gr->DrawClone("f");
                             legTheory->AddEntry(gr->Clone(), HYBRID::legendEntries[iModel].c_str(), "f");
@@ -1654,8 +1656,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && isMode69)) {
                         // put "legTheory" to the right of "leg"*
                         legTheory->SetX1(leg->GetX1NDC()+0.36);
-                        if (mode == 10)  legTheory->SetX1(leg->GetX1NDC()+0.36);
-                        if (ish1D_xjz && isMode69) legTheory->SetX1(leg->GetX1NDC()+0.35);
+                        if (mode == 10)  legTheory->SetX1(leg->GetX1NDC()+0.37);
+                        if (ish1D_xjz && isMode69) legTheory->SetX1(leg->GetX1NDC()+0.36);
 
                         if (correlation == "rjz") legTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
                         else if (ish1D_xjz && plotTheoryHI) legTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
@@ -1667,7 +1669,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
                     if (mode == 6 || mode == 7 || mode == 8) widthFactor = 0.86;
-                    if (mode == 9) widthFactor = 0.84;
+                    if (mode == 9) widthFactor = 0.8;
                     if (mode == 10) widthFactor = 1.15;
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
@@ -1717,10 +1719,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         // put "legPPTheory" below "legPP"
                         legPPTheory->SetX1(legPP->GetX1NDC());
                         legPPTheory->SetY2(legPP->GetY1NDC());
-                        if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && isMode69)) {
+                        if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && (isMode69 || mode == 10))) {
                             // put "legPPTheory" to the right of "legPP"*
                             legPPTheory->SetX1(legPP->GetX1NDC()+0.34);
-                            if (ish1D_xjz && isMode69) legPPTheory->SetX1(legPP->GetX1NDC()+0.35);
+                            if (mode == 10)  legPPTheory->SetX1(legPP->GetX1NDC()+0.36);
+                            if (ish1D_xjz && isMode69) legPPTheory->SetX1(legPP->GetX1NDC()+0.38);
 
                             if (correlation == "rjz") legPPTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
                             else if (ish1D_xjz && plotTheoryHI) legPPTheory->SetY2(1 - c->GetTopMargin() - 0.04);    // push a little bit upwards.
@@ -1732,8 +1735,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                         if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
                         if (mode == 6 || mode == 7 || mode == 8) widthFactor = 0.86;
-                        if (mode == 9) widthFactor = 0.82;
-                        if (mode == 10) widthFactor = 1.05;
+                        if (mode == 9) widthFactor = 0.84;
+                        if (mode == 10) widthFactor = 0.90;
 
                         legPPTheory->SetX2(legPPTheory->GetX1NDC() + legendWidth*widthFactor);
                         legPPTheory->SetY1(legPPTheory->GetY2NDC() - heightTheory);
@@ -2017,7 +2020,8 @@ std::string parseMCreference(int iColl, std::string fileName) {
         if (fileName.find("Pythia") != std::string::npos)  mcReference = "PYTHIA 8 (CUETP8M1 tune)";
         if (fileName.find("Pyquen") != std::string::npos)  mcReference = "PYQUEN";
     }
-    if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "MADGRAPH5_AMC@NLO";   // MG5_aMC_v2.3.3
+    //if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "MADGRAPH5_AMC@NLO";   // MG5_aMC_v2.3.3
+    if (fileName.find("DYJetsToLL") != std::string::npos)  mcReference = "MG5_AMC@NLO";   // MG5_aMC_v2.3.3
 
     return mcReference;
 }
@@ -2155,4 +2159,15 @@ bool is_xjz(std::string correlation)
 bool is_dphi(std::string correlation)
 {
     return (correlation == "dphi" || correlation == "dphi_rebin");
+}
+
+float get_txt_size(TVirtualPad *pad, float pix_size) {
+  if (pad->UtoPixel(1) > pad->VtoPixel(0)) {
+    // 'Horizontal pad'
+    return pix_size/pad->VtoPixel(0);
+  }
+  else {
+    // 'Vertical pad'
+    return pix_size/pad->UtoPixel(1);
+  }
 }
