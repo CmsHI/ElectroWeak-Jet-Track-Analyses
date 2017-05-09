@@ -1143,7 +1143,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                     std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition.c_str(), c, textOffsetX, tmpTextOffsetY);
                     for (int i = 0; i<nTextLines; ++i){
-                        float x = textCoordinates.at(i).first +0.04;
+                        float x = textCoordinates.at(i).first;
+                        if (mode == 10) x+=0.03;
                         float y = textCoordinates.at(i).second*(1-i*0.01);
                         std::string textLine = textLines.at(i).c_str();
                         if (ish1D_dphi && textLine.find("|#eta^{jet}|") == 0) {
@@ -1173,10 +1174,13 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             if (textsOverPad.at(i).c_str() == CONFIGPARSER::nullInput)  continue;
 
                             latexOverPad->SetTextAlign(textOverPadAlignment);
+                            float textAbovePadOffsetXTmp = textAbovePadOffsetX;
+                            if (textOverPadAlignment == 31) textAbovePadOffsetXTmp = 0.01; // text at the right edge
+
                             if (i <= 1)
-                                setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+                                setTextAbovePad(latexOverPad, c, textAbovePadOffsetXTmp, textAbovePadOffsetY);
                             else
-                                setTextAbovePad(latexOverPad, pad2, textAbovePadOffsetX, textAbovePadOffsetY);
+                                setTextAbovePad(latexOverPad, pad2, textAbovePadOffsetXTmp, textAbovePadOffsetY);
 
                             latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
                         }
@@ -1224,7 +1228,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         posX += 0.08;
                     }
 		    // added by cm
-		    if(mode == 10) posX += 0.02;
+		    if(mode == 10) posX += 0.03;
 		    //-------------
                     latexCMS->DrawLatexNDC(posX, posY, cmsText);
                     if( drawLatexCMSExtra )
@@ -1283,7 +1287,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                     if (legendPosition == "NW" && drawLatexCMS)  {   // leave space for latexCMS, shift legend down
                         tmpLegendOffsetY = legendOffsetY+0.11;
-			tmpLegendOffsetX = 0.05;
+                        tmpLegendOffsetX = 0.065;
                         if (!drawLatexCMSExtra && (ish1D_xjz))  {
                             tmpLegendOffsetY = legendOffsetY+0.07;
                         }
@@ -1767,7 +1771,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && (isMode69 || mode == 10))) {
                             // put "legPPTheory" to the right of "legPP"*
                             legPPTheory->SetX1(legPP->GetX1NDC()+0.34);
-                            if (mode == 10)  legPPTheory->SetX1(legPP->GetX1NDC()+0.39);//changed by cm from 0.34
+                            if (mode == 10)  legPPTheory->SetX1(legPP->GetX1NDC()+0.37);//changed by cm from 0.34
                             if (ish1D_xjz && isMode69) legPPTheory->SetX1(legPP->GetX1NDC()+0.38);
 
                             if (correlation == "rjz") legPPTheory->SetY2(1 - c->GetTopMargin() - 0.03);    // push a little bit upwards.
