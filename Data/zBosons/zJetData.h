@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <TColor.h>
 
 namespace HYBRID {
 
@@ -118,19 +119,20 @@ const std::vector<double> ymin_IAA_ptBin6_COLL = {1.01515, 1.00435, 0.739984, 0.
 const std::vector<double> ymax_IAA_ptBin6_COLL = {1.03824, 1.04631, 0.811429, 0.739145};
 
 enum MODEL{
-    kSTRONG,
-    kRAD,
     kCOLL,
+    kRAD,
+    kSTRONG,
     kN_MODEL
 };
 
 // fill colors to be used in a plot
+//fall color scheme
 const int fillColors[kN_MODEL] = {
-        kTeal+9,    //kMagenta+2
-        kCyan,         //kBlue+2
-        kOrange+1     //kOrange+2
+        TColor::GetColor("#A0522D"), // T2
+        TColor::GetColor("#DAA520"),
+        TColor::GetColor("#F4A460")   //strong coupling, 1st in legend, lowest in figure
 };
-const int fillColorPP = kViolet;   //34
+const int fillColorPP = TColor::GetColor("#A0522D");//kViolet;   //34
 
 const double falpha = 0.7;
 const double falpha_PP = 0.8;
@@ -148,106 +150,115 @@ const int lineStylePP = 14;
 const std::string legendHeader = "Hybrid";
 
 const std::string legendEntries[kN_MODEL] = {
-        "Strong Coupling",      //"strong coupling"
+        "dE/dx #alpha T^{2}",    //"collisional"
         "dE/dx #alpha T^{3}",   //"radiative"
-        "dE/dx #alpha T^{2}"    //"collisional"
-};
-const std::string modelTAG[kN_MODEL] = {
-        "strong",
-        "rad",
-        "coll"
+        "Strong Coupling"     //"strong coupling"
+
 };
 
-const std::string legendEntryPP = "Hybrid";   //"PYTHIA 8 (Hybrid tune)"
+/* const std::string legendEntries[kN_MODEL] = { */
+/*   "Collisional",    //"collisional" */
+/*   "Radiative",   //"radiative" */
+/*   "Strong Coupling"     //"strong coupling" */
+
+/* }; */
+
+const std::string modelTAG[kN_MODEL] = {
+        "coll",
+        "rad",
+        "strong"
+};
+
+const std::string legendEntryPP = "Hybrid ref.";   //"PYTHIA 8 (Hybrid tune)"
 
 const std::vector<double> ymin_xjz[kN_MODEL] = {
-        ymin_xjz_STRONG,
+        ymin_xjz_COLL,
         ymin_xjz_RAD,
-        ymin_xjz_COLL
+        ymin_xjz_STRONG
 };
 
 const std::vector<double> ymax_xjz[kN_MODEL] = {
-        ymax_xjz_STRONG,
+        ymax_xjz_COLL,
         ymax_xjz_RAD,
-        ymax_xjz_COLL
+        ymax_xjz_STRONG
 };
 
 const std::vector<double> ymin_dphi[kN_MODEL] = {
-        ymin_dphi_STRONG,
+        ymin_dphi_COLL,
         ymin_dphi_RAD,
-        ymin_dphi_COLL
+        ymin_dphi_STRONG
 };
 
 const std::vector<double> ymax_dphi[kN_MODEL] = {
-        ymax_dphi_STRONG,
+        ymax_dphi_COLL,
         ymax_dphi_RAD,
-        ymax_dphi_COLL
+        ymax_dphi_STRONG
 };
 
 const std::vector<double> ymin_rjz[kN_MODEL] = {
-        ymin_rjz_STRONG,
+        ymin_rjz_COLL,
         ymin_rjz_RAD,
-        ymin_rjz_COLL
+        ymin_rjz_STRONG
 };
 
 const std::vector<double> ymax_rjz[kN_MODEL] = {
-        ymax_rjz_STRONG,
+        ymax_rjz_COLL,
         ymax_rjz_RAD,
-        ymax_rjz_COLL
+        ymax_rjz_STRONG
 };
 
 const std::vector<double> x_IAA[kN_MODEL] = {
-        x_IAA_STRONG,
+        x_IAA_COLL,
         x_IAA_RAD,
-        x_IAA_COLL
+        x_IAA_STRONG
 };
 
 const std::vector<double> ymin_IAA[kN_MODEL] = {
-        ymin_IAA_STRONG,
+        ymin_IAA_COLL,
         ymin_IAA_RAD,
-        ymin_IAA_COLL
+        ymin_IAA_STRONG
 };
 
 const std::vector<double> ymax_IAA[kN_MODEL] = {
-        ymax_IAA_STRONG,
+        ymax_IAA_COLL,
         ymax_IAA_RAD,
-        ymax_IAA_COLL
+        ymax_IAA_STRONG
 };
 
 const std::vector<double> x_IAA_ptBin5[kN_MODEL] = {
-        x_IAA_ptBin5_STRONG,
+        x_IAA_ptBin5_COLL,
         x_IAA_ptBin5_RAD,
-        x_IAA_ptBin5_COLL
+        x_IAA_ptBin5_STRONG
 };
 
 const std::vector<double> ymin_IAA_ptBin5[kN_MODEL] = {
-        ymin_IAA_ptBin5_STRONG,
+        ymin_IAA_ptBin5_COLL,
         ymin_IAA_ptBin5_RAD,
-        ymin_IAA_ptBin5_COLL
+        ymin_IAA_ptBin5_STRONG
 };
 
 const std::vector<double> ymax_IAA_ptBin5[kN_MODEL] = {
-        ymax_IAA_ptBin5_STRONG,
+        ymax_IAA_ptBin5_COLL,
         ymax_IAA_ptBin5_RAD,
-        ymax_IAA_ptBin5_COLL
+        ymax_IAA_ptBin5_STRONG
 };
 
 const std::vector<double> x_IAA_ptBin6[kN_MODEL] = {
-        x_IAA_ptBin6_STRONG,
+        x_IAA_ptBin6_COLL,
         x_IAA_ptBin6_RAD,
-        x_IAA_ptBin6_COLL
+        x_IAA_ptBin6_STRONG
 };
 
 const std::vector<double> ymin_IAA_ptBin6[kN_MODEL] = {
-        ymin_IAA_ptBin6_STRONG,
+        ymin_IAA_ptBin6_COLL,
         ymin_IAA_ptBin6_RAD,
-        ymin_IAA_ptBin6_COLL
+        ymin_IAA_ptBin6_STRONG
 };
 
 const std::vector<double> ymax_IAA_ptBin6[kN_MODEL] = {
-        ymax_IAA_ptBin6_STRONG,
+        ymax_IAA_ptBin6_COLL,
         ymax_IAA_ptBin6_RAD,
-        ymax_IAA_ptBin6_COLL
+        ymax_IAA_ptBin6_STRONG
 };
 
 };
@@ -265,15 +276,15 @@ namespace JEWEL {
 
 // xjz points
 const int n_xjz = 16;
-const std::vector<double> x_xjz = {0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375, 1.0625, 1.1875, 1.3125, 1.4375, 1.5625, 1.6875};
-const std::vector<double> x_xjz_PP = {0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375, 1.0625, 1.1875, 1.3125, 1.4375, 1.5625, 1.6875, 1.8125, 1.9375};
+const std::vector<double> x_xjz     = {0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375, 1.0625, 1.1875, 1.3125, 1.4375, 1.5625, 1.6875};
+const std::vector<double> x_xjz_PP   = {0.0625, 0.1875, 0.3125, 0.4375, 0.5625, 0.6875, 0.8125, 0.9375, 1.0625, 1.1875, 1.3125, 1.4375, 1.5625, 1.6875, 1.8125, 1.9375};
 const std::vector<double> x_xjz_low = {0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.0, 1.125, 1.250, 1.375, 1.500, 1.625};
 const std::vector<double> x_xjz_up  = {0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.0, 1.125, 1.250, 1.375, 1.500, 1.625, 1.750};
 
-const std::vector<double> y_xjz =    {0.02291148,  0.2484096,  0.5738543,  0.7470694,  0.8140488,  0.6692568,  0.4340828,  0.1908817,  0.1066594,  0.03799797,  0.01936494,  0.004432283,  0.002174007};
-const std::vector<double> yerr_xjz = {0.002084357, 0.02754472, 0.03648541, 0.04139489, 0.04977742, 0.03684065, 0.03549587, 0.01865503, 0.01797712, 0.008233660, 0.006611463, 0.001331190,  0.0007250199};
+const std::vector<double> y_xjz       =    {0.02291148,  0.2484096,  0.5738543,  0.7470694,  0.8140488,  0.6692568,  0.4340828,  0.1908817,  0.1066594,  0.03799797,  0.01936494,  0.004432283,  0.002174007};
+const std::vector<double> yerr_xjz    = {0.002084357, 0.02754472, 0.03648541, 0.04139489, 0.04977742, 0.03684065, 0.03549587, 0.01865503, 0.01797712, 0.008233660, 0.006611463, 0.001331190,  0.0007250199};
 
-const std::vector<double> y_xjz_PP =    {0, 0.002847023,  0.05708221,  0.3091131,  0.6711203,  0.9013256,  1.139810,   1.100711,   0.5673296,  0.2940010,  0.08982424, 0.06205845, 0.01471836,  0.008852848, 0.004953986, 0.001412555};
+const std::vector<double> y_xjz_PP    = {0, 0.002847023,  0.05708221,  0.3091131,  0.6711203,  0.9013256,  1.139810,   1.100711,   0.5673296,  0.2940010,  0.08982424, 0.06205845, 0.01471836,  0.008852848, 0.004953986, 0.001412555};
 const std::vector<double> yerr_xjz_PP = {0, 0.0009544396, 0.008018108, 0.04709293, 0.06275363, 0.06575365, 0.08107233, 0.06548313, 0.04075253, 0.04150607, 0.01684868, 0.01414269, 0.003900187, 0.004068555, 0.002208277, 0.0004786352};
 
 // rjz points
@@ -312,17 +323,17 @@ const std::vector<double> yerr_xjz_mean = {0.1111712, 0.04514933, 0.02058386, 0.
 const std::vector<double> y_xjz_mean_PP    = {0.9347126,  0.8099350,  0.8616110,  0.8125114};
 const std::vector<double> yerr_xjz_mean_PP = {0.06997798, 0.07184345, 0.02075788, 0.009971107};
 
-const int color = 36;    // kYellow+3
-const int colorPP = 36;  // kCyan+3
+const int color   = TColor::GetColor("#1034A6");//36;
+const int colorPP = TColor::GetColor("#1034A6"); //36;
 
 const double falpha = 0.85;
 const double falpha_PP = 0.85;
 
-const int lineStyle = kSolid;
+const int lineStyle   = kSolid;
 const int lineStylePP = kSolid;
 
 const std::string legendEntry = "JEWEL";
-const std::string legendEntryPP = "JEWEL";     //"PYTHIA 6 (JEWEL tune)"
+const std::string legendEntryPP = "JEWEL ref.";     //"PYTHIA 6 (JEWEL tune)"
 
 };
 
@@ -364,8 +375,8 @@ const std::vector<double> y_xjz[kN_MODEL] = {
 
 // fill colors to be used in a plot
 const int fillColors[kN_MODEL] = {
-        kBlue+2,
-        kBlue+2
+        TColor::GetColor("#138808"),  // kBlue+2,
+        TColor::GetColor("#138808")   //  kBlue+2
 };
 
 const int lineStyles[kN_MODEL] = {
@@ -374,7 +385,7 @@ const int lineStyles[kN_MODEL] = {
 };
 const int lineStylePP = 11;
 
-const int fillColorPP = kBlue+2;
+const int fillColorPP = TColor::GetColor("#138808");//kBlue+2;
 
 const double falpha = 0.7;
 const double falpha_PP = 0.7;
@@ -391,7 +402,7 @@ const std::string modelTAG[kN_MODEL] = {
         "g2p2"
 };
 
-const std::string legendEntryPP = "GLV";    // "PYTHIA 8 (4C tune, GLV)"
+const std::string legendEntryPP = "GLV ref.";    // "PYTHIA 8 (4C tune, GLV)"
 
 };
 
