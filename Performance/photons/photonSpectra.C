@@ -25,6 +25,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
@@ -263,22 +264,12 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         }
 
         // specify explicitly which branches to use, do not use wildcard
-        float vz;
-        Int_t hiBin;
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
-        treeHiEvt->SetBranchStatus("*",0);
+        treeHiEvt->SetBranchStatus("*",0);     // disable all branches
         treeHiEvt->SetBranchStatus("vz",1);
-        treeHiEvt->SetBranchAddress("vz",&vz);
         treeHiEvt->SetBranchStatus("hiBin",1);
-        treeHiEvt->SetBranchAddress("hiBin",&hiBin);
-        float weight_HiEvt;
-        if (doEventWeight > 0) {
+        if (doEventWeight > 0)
             treeHiEvt->SetBranchStatus("weight", 1);
-            treeHiEvt->SetBranchAddress("weight", &weight_HiEvt);
-        }
-        else {
-            weight_HiEvt = 1;
-        }
 
         treeSkim  = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         Int_t pcollisionEventSelection;  // this filter is used for HI.
@@ -330,6 +321,9 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
 
+        hiEvt hiEvt;
+        hiEvt.setupTreeForReading(treeHiEvt);
+
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
@@ -353,7 +347,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             entriesAnalyzed++;
 
             // event selection
-            if (!(TMath::Abs(vz) < 15))  continue;
+            if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
             if (isHI) {
                 if ((pcollisionEventSelection < 1))  continue;
             }
@@ -371,11 +365,11 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
             double w = 1;
             if (doEventWeight > 0) {
-                w = weight_HiEvt;
+                w = hiEvt.weight;
                 double vertexWeight = 1;
-                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((vz-0.30709)/7.41379, 2));  // 02.04.2016
+                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
                 double centWeight = 1;
-                if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                if (isHI && isMC)  centWeight = findNcoll(hiEvt.hiBin);
                 w *= vertexWeight * centWeight;
             }
 
@@ -448,7 +442,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                     if (!phoAna[0][iSel][iEta][0][0].insideEtaRange(TMath::Abs(eta))) continue;
 
                 for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
-                    if (!phoAna[0][iSel][0][0][iHiBin].insideHiBinRange(hiBin)) continue;
+                    if (!phoAna[0][iSel][0][0][iHiBin].insideHiBinRange(hiEvt.hiBin)) continue;
 
                     std::vector<double> phoVars = photonAnalyzer::getPhoVars(ggHi, i);
                 for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
