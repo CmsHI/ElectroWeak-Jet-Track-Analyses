@@ -36,7 +36,7 @@ enum DIST {
 
 const float DIST_AXIS[kN_DIST][3] = {
   {60, 0, 150},
-  {40, -3.0, 3.0},
+  {40, -2.5, 2.5},
   {40, -3.1415, 3.1415},
   {40, 0, 1},
   {40, -20, 20},
@@ -52,7 +52,7 @@ const std::string DIST_LABELS[kN_DIST] = {
         "eta",
         "phi",
         "hovere",
-        "sumIso",
+        "sumiso",
         "ecaliso",
         "hcaliso",
         "trkiso",

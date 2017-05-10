@@ -923,9 +923,14 @@ int  preLoop(TFile* input, bool makeNew)
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangePt(bins_recoPt[0].at(iPt), bins_recoPt[1].at(iPt));
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].setRangeHiBin(bins_hiBin[0].at(iHiBin), bins_hiBin[1].at(iHiBin));
 
-                        int nBinsx = PHOTONANA::DIST_AXIS[iDist][0];
-                        float xLow = PHOTONANA::DIST_AXIS[iDist][1];
-                        float xUp  = PHOTONANA::DIST_AXIS[iDist][2];
+                        int nBinsx = TH1D_Bins_List[0].at(iDist);
+                        float xLow = TH1D_Bins_List[1].at(iDist);
+                        float xUp  = TH1D_Bins_List[2].at(iDist);
+                        if (nBinsx == 0) {
+                            nBinsx = PHOTONANA::DIST_AXIS[iDist][0];
+                            xLow = PHOTONANA::DIST_AXIS[iDist][1];
+                            xUp  = PHOTONANA::DIST_AXIS[iDist][2];
+                        }
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].xMin = xLow;
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].xMax = xUp;
                         phoAna[iDist][iSel][iEta][iPt][iHiBin].selectionIndex = iSel;
