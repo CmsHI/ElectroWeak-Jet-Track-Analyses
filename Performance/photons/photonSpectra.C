@@ -26,6 +26,7 @@
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
+#include "../../TreeHeaders/skimAnalysisTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
@@ -268,54 +269,18 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         treeHiEvt->SetBranchStatus("*",0);     // disable all branches
         treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
-        if (doEventWeight > 0)
+        if (doEventWeight > 0) {
             treeHiEvt->SetBranchStatus("weight", 1);
+        }
 
-        treeSkim  = (TTree*)fileTmp->Get("skimanalysis/HltTree");
-        Int_t pcollisionEventSelection;  // this filter is used for HI.
+        treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
+        treeSkim->SetBranchStatus("*",0);     // disable all branches
         if (isHI) {
             treeSkim->SetBranchStatus("pcollisionEventSelection",1);
-            if (treeSkim->GetBranch("pcollisionEventSelection")) {
-                treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
-            }
-            else {   // overwrite to default
-                pcollisionEventSelection = 1;
-                std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
-                std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
-            }
         }
-        else {
-            pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
-        }
-        Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
-        if (isPP) {
+        else if (isPP) {
             treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
-            if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
-                treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
-            }
-            else {   // overwrite to default
-                pPAprimaryVertexFilter = 1;
-                std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
-                std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
-            }
-        }
-        else {
-            pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
-        }
-        Int_t pBeamScrapingFilter;   // this filter is used for PP.
-        if (isPP) {
             treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
-            if (treeSkim->GetBranch("pBeamScrapingFilter")) {
-                treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
-            }
-            else {   // overwrite to default
-                pBeamScrapingFilter = 1;
-                std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
-                std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
-            }
-        }
-        else {
-            pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
         }
 
         ggHiNtuplizer ggHi;
@@ -323,6 +288,10 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
         hiEvt hiEvt;
         hiEvt.setupTreeForReading(treeHiEvt);
+
+        skimAnalysis skimAna;
+        skimAna.setupTreeForReading(treeSkim);
+        skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
@@ -349,10 +318,11 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
             if (isHI) {
-                if ((pcollisionEventSelection < 1))  continue;
+                if (skimAna.has_pcollisionEventSelection && skimAna.pcollisionEventSelection < 1)  continue;
             }
             else if (isPP) {
-                if (pPAprimaryVertexFilter < 1 || pBeamScrapingFilter < 1)  continue;
+                if ((skimAna.has_pPAprimaryVertexFilter && skimAna.pPAprimaryVertexFilter < 1) ||
+                    (skimAna.has_pBeamScrapingFilter && skimAna.pBeamScrapingFilter < 1))  continue;
             }
 
             for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
