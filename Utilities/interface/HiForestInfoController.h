@@ -10,7 +10,7 @@
 #include <string>
 #include <iostream>
 
-const int CHARARRAYSIZE = 5000;
+const int CHARARRAYSIZE = 50;
 
 class HiForestInfoController {
 public:
