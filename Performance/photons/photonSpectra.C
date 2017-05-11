@@ -690,7 +690,7 @@ int readConfiguration(const TString configFile)
 
     nBins_eta = bins_eta[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_genPt = bins_genPt[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
-    nBins_pt = bins_recoPt[0].size();   // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_pt = bins_recoPt[0].size();       // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
     return 0;
@@ -1184,14 +1184,14 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
     leg->Delete();
     latex->Delete();
     c->Close();         // do not use Delete() for TCanvas.
-    hTmp->Delete();
+    if (hTmp != 0)  hTmp->Delete();
 }
 
 void setTH1(TH1D* h, int iHist)
 {
     float titleOffsetX = titleOffsetsX.at(0);
     h->SetTitleOffset(titleOffsetX, "X");
-    float titleOffsetY = titleOffsetsX.at(0);
+    float titleOffsetY = titleOffsetsY.at(0);
     h->SetTitleOffset(titleOffsetY, "Y");
 
     int nBinsTot = PHOTONANA::SEL::kN_SEL + nBins_eta + nBins_pt + nBins_hiBin;

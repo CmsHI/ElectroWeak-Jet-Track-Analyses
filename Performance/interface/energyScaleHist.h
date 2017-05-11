@@ -19,20 +19,29 @@
 
 namespace ENERGYSCALE {
 
-enum ENERGYSCALE_DEP {   // energy scale dependencies
+enum DEPS {   // energy scale dependencies
     kETA,
     kGENPT,
     kRECOPT,
     kHIBIN,
-    kN_ENERGYSCALE_DEP
+    kN_DEPS
 };
 
-std::string ENERGYSCALE_DEP_LABELS[kN_ENERGYSCALE_DEP] = {
+const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
         "ETA",
         "GENPT",
         "RECOPT",
         "HIBIN"
 };
+
+// observables
+enum OBS {
+    kESCALE,    // energy scale
+    kERES,      // energy resolution
+    kN_OBS
+};
+
+const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes"};
 
 };
 
@@ -40,7 +49,7 @@ class energyScaleHist {
 public :
     energyScaleHist(){
 
-        for (int i=0; i<ENERGYSCALE::kN_ENERGYSCALE_DEP; ++i) {
+        for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
             ranges[i][0] = 0;
             ranges[i][1] = -1;  // no upper bound
         }
@@ -51,10 +60,10 @@ public :
         titleOffsetX = 1;
         titleOffsetY = 1;
 
-        xMin = 0;
-        xMax = -1;
-        yMin = 0;
-        yMax = -1;
+        xMin = {0, 0};
+        xMax = {-1, -1};
+        yMin = {0, 0};
+        yMax = {-1, -1};
 
         h2Dinitialized = false;
         hInitialized = false;
@@ -67,6 +76,11 @@ public :
     void FillH2Dcorr(float genPt, float recoPt, float eta = -999, int hiBin = -1);
 
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+
+    std::string getRangeTextEta();
+    std::string getRangeTextGenPt();
+    std::string getRangeTextRecoPt();
+    std::string getRangeTextHiBin();
 
     void prepareTitle();
 
@@ -90,14 +104,14 @@ public :
     float titleOffsetX;
     float titleOffsetY;
 
-    double xMin;
-    double xMax;
-    double yMin;
-    double yMax;
+    std::vector<float> xMin;
+    std::vector<float> xMax;
+    std::vector<float> yMin;
+    std::vector<float> yMax;
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
-    float ranges[ENERGYSCALE::kN_ENERGYSCALE_DEP][2];
+    float ranges[ENERGYSCALE::kN_DEPS][2];
 };
 
 void energyScaleHist::FillH2D(double energyScale, double x, float eta, float genPt, float recoPt, int hiBin)
@@ -141,6 +155,56 @@ bool energyScaleHist::insideRange(float eta, float genPt, float recoPt, int hiBi
             return true;
     }}}}
     return false;
+}
+
+std::string energyScaleHist::getRangeTextEta()
+{
+    std::string res = "";
+
+    if (ranges[ENERGYSCALE::DEPS::kETA][0] <= 0 && ranges[ENERGYSCALE::DEPS::kETA][1] > 0)
+        res  = Form("|#eta|<%.2f", ranges[ENERGYSCALE::DEPS::kETA][1]);
+    else if (ranges[ENERGYSCALE::DEPS::kETA][0] > 0 && ranges[ENERGYSCALE::DEPS::kETA][1] > 0)
+        res  = Form("%.2f<|#eta|<%.2f", ranges[ENERGYSCALE::DEPS::kETA][0], ranges[ENERGYSCALE::DEPS::kETA][1]);
+
+    return res;
+}
+
+std::string energyScaleHist::getRangeTextGenPt()
+{
+    std::string res = "";
+
+    if (ranges[ENERGYSCALE::DEPS::kGENPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] <= -1)
+        res  = Form("p_{T}^{gen}>%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][0]);
+    else if (ranges[ENERGYSCALE::DEPS::kGENPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] > 0)
+        res  = Form("%.0f<p_{T}^{gen}<%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][0], ranges[ENERGYSCALE::DEPS::kGENPT][1]);
+    else if (ranges[ENERGYSCALE::DEPS::kGENPT][0] <= 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] > 0)
+        res  = Form("p_{T}^{gen}<%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][1]);
+
+    return res;
+}
+
+std::string energyScaleHist::getRangeTextRecoPt()
+{
+    std::string res = "";
+
+    if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] <= -1)
+        res  = Form("p_{T}^{reco}>%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][0]);
+    else if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] > 0)
+        res = Form("%.0f<p_{T}^{reco}<%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][0], ranges[ENERGYSCALE::DEPS::kRECOPT][1]);
+    else if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] <= 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] > 0)
+        res = Form("p_{T}^{reco}<%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][1]);
+
+    return res;
+}
+
+std::string energyScaleHist::getRangeTextHiBin()
+{
+    std::string res = "";
+
+    if (ranges[ENERGYSCALE::DEPS::kHIBIN][0] >= 0 && ranges[ENERGYSCALE::DEPS::kHIBIN][1] > 0)
+        res = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::DEPS::kHIBIN][0]/2, ranges[ENERGYSCALE::DEPS::kHIBIN][1]/2);
+
+    return res;
 }
 
 /*
@@ -206,18 +270,20 @@ void energyScaleHist::postLoop()
     h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
 
     // energy scale
-    h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_eScale_%s", name.c_str()));
+    h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
     h1D[0]->SetTitle(title.c_str());
     h1D[0]->SetXTitle(titleX.c_str());
     setTH1_energyScale(h1D[0], titleOffsetX, titleOffsetY);
-    if (yMax > yMin)
-        h1D[0]->SetAxisRange(yMin, yMax, "Y");
+    if (yMax.at(ENERGYSCALE::kESCALE) > yMin.at(ENERGYSCALE::kESCALE))
+        h1D[0]->SetAxisRange(yMin.at(ENERGYSCALE::kESCALE), yMax.at(ENERGYSCALE::kESCALE), "Y");
 
     // width of energy scale
-    h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_eRes_%s", name.c_str()));
+    h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
     h1D[1]->SetTitle(title.c_str());
     h1D[1]->SetXTitle(titleX.c_str());
     setTH1_energyWidth(h1D[1], titleOffsetX, titleOffsetY);
+    if (yMax.at(ENERGYSCALE::kERES) > yMin.at(ENERGYSCALE::kERES))
+        h1D[1]->SetAxisRange(yMin.at(ENERGYSCALE::kERES), yMax.at(ENERGYSCALE::kERES), "Y");
 }
 
 /*
@@ -248,6 +314,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h2D->SetTitleOffset(titleOffsetX, "X");
+    h2D->SetTitleOffset(titleOffsetY, "Y");
     h2D->SetStats(false);
     h2D->Draw("colz");
     h2D->Write("",TObject::kOverwrite);
@@ -256,10 +324,12 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c->Close();         // do not use Delete() for TCanvas.
 
     // energy scale
-    canvasName = Form("cnv_eScale_%s", name.c_str());
+    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str());
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    float markerSize = (float)windowWidth/600;
+    h1D[0]->SetMarkerSize(markerSize);
     h1D[0]->Draw("e");
     h1D[0]->Write("",TObject::kOverwrite);
 
@@ -274,10 +344,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c->Close();         // do not use Delete() for TCanvas.
 
     // width of energy scale
-    canvasName = Form("cnv_eRes_%s", name.c_str());
+    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str());
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h1D[1]->SetMarkerSize(markerSize);
     h1D[1]->Draw("e");
     h1D[1]->Write("",TObject::kOverwrite);
     setCanvasFinal(c);
