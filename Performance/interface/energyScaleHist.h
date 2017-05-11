@@ -71,9 +71,9 @@ public :
     };
     ~energyScaleHist(){};
 
-    void FillH2D(double energyScale, double x, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillH(double energyScale, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillH2Dcorr(float genPt, float recoPt, float eta = -999, int hiBin = -1);
+    void FillH2D(double energyScale, double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int hiBin = -1);
 
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
 
@@ -114,23 +114,23 @@ public :
     float ranges[ENERGYSCALE::kN_DEPS][2];
 };
 
-void energyScaleHist::FillH2D(double energyScale, double x, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int hiBin)
 {
     if (h2Dinitialized && insideRange(eta, genPt, recoPt, hiBin))
-        h2D->Fill(x, energyScale);
+        h2D->Fill(x, energyScale, w);
 }
 
-void energyScaleHist::FillH(double energyScale, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int hiBin)
 {
     // make sure to fill the histogram if no explicit kinematic range is specified.
     if (hInitialized && insideRange(eta, genPt, recoPt, hiBin))
-        h->Fill(energyScale);
+        h->Fill(energyScale, w);
 }
 
-void energyScaleHist::FillH2Dcorr(float genPt, float recoPt, float eta, int hiBin)
+void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int hiBin)
 {
     if (h2DcorrInitialized && insideRange(eta, -1, -1, hiBin))
-        h2Dcorr->Fill(genPt, recoPt);
+        h2Dcorr->Fill(genPt, recoPt, w);
 }
 
 /*

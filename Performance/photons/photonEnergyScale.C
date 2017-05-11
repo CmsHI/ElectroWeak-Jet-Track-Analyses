@@ -31,10 +31,13 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../TreeHeaders/hiEvtTree.h"
+#include "../../TreeHeaders/skimAnalysisTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/eventUtil.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
@@ -138,6 +141,9 @@ std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, eac
 // list of pt cuts for RECO photons
 std::vector<int>   bins_hiBin[2];       // array of vectors for hiBin bins, each array element is a vector.
 
+// event cuts/weights
+int doEventWeight;
+
 // RECO photon cuts
 float cut_phoHoverE;
 float cut_pho_ecalClusterIsoR4;
@@ -197,6 +203,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
     TTree* treeHiForestInfo = 0;
+    TTree* treeSkim = 0;
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -224,7 +231,16 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
     fileTmp->Close();
     // done with initial reading
 
+    bool isMC = collisionIsMC((COLL::TYPE)collisionType);
     bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
+
+    if (!isMC) {
+        std::cout << "This macro runs on simulation samples only." << std::endl;
+        std::cout << "Change the collisionType to a simulated collisions." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -262,14 +278,33 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         }
 
         // specify explicitly which branches to use, do not use wildcard
-        Int_t hiBin;
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
-        treeHiEvt->SetBranchStatus("*",0);
+        treeHiEvt->SetBranchStatus("*",0);     // disable all branches
+        treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
-        treeHiEvt->SetBranchAddress("hiBin",&hiBin);
+        if (doEventWeight > 0) {
+            treeHiEvt->SetBranchStatus("weight", 1);
+        }
+
+        treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
+        treeSkim->SetBranchStatus("*",0);     // disable all branches
+        if (isHI) {
+            treeSkim->SetBranchStatus("pcollisionEventSelection",1);
+        }
+        else if (isPP) {
+            treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
+            treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
+        }
 
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
+
+        hiEvt hiEvt;
+        hiEvt.setupTreeForReading(treeHiEvt);
+
+        skimAnalysis skimAna;
+        skimAna.setupTreeForReading(treeSkim);
+        skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
@@ -282,6 +317,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
+            treeSkim->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -291,6 +327,27 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             }
 
             entriesAnalyzed++;
+
+            // event selection
+            if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
+            if (isHI) {
+                if (skimAna.has_pcollisionEventSelection && skimAna.pcollisionEventSelection < 1)  continue;
+            }
+            else if (isPP) {
+                if ((skimAna.has_pPAprimaryVertexFilter && skimAna.pPAprimaryVertexFilter < 1) ||
+                    (skimAna.has_pBeamScrapingFilter && skimAna.pBeamScrapingFilter < 1))  continue;
+            }
+
+            double w = 1;
+            int hiBin = hiEvt.hiBin;
+            if (doEventWeight > 0) {
+                w = hiEvt.weight;
+                double vertexWeight = 1;
+                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
+                double centWeight = 1;
+                if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                w *= vertexWeight * centWeight;
+            }
 
             // energy scale
             for (int i=0; i<ggHi.nPho; ++i) {
@@ -363,20 +420,19 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
                     if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
 
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, eta, eta, genPt, pt, hiBin);
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, eta, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
 
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, genPt, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, genPt, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
 
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, eta, genPt, pt, hiBin);
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2Dcorr(genPt, pt, eta, hiBin);
+                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2Dcorr(genPt, pt, w, eta, hiBin);
 
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, pt, eta, genPt, pt, hiBin);
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, pt, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
 
-                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, hiBin, eta, genPt, pt, hiBin);
-                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, eta, genPt, pt, hiBin);
-
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, hiBin, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
                 }}}}
 
             }
@@ -610,6 +666,9 @@ int readConfiguration(const TString configFile)
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+    // event cuts/weights
+    doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
     cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
@@ -689,6 +748,8 @@ void printConfiguration()
         for (int i=0; i<nBins_hiBin; ++i) {
             std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0].at(i), bins_hiBin[1].at(i)) << std::endl;
         }
+
+        std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
 
         std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
         std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
