@@ -18,7 +18,9 @@ std::string replaceAll(std::string str, std::string oldString, std::string newSt
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter);
-bool endsWith(std::string str, std::string suffix);
+bool startsWith(std::string str, std::string substr);
+bool endsWith(std::string str, std::string substr);
+int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
@@ -139,12 +141,35 @@ std::vector<std::string> split(std::string str, std::string delimiter)
 }
 
 /*
- * return true if string "str" ends with "suffix"
+ * return true if string "str" ends with "substr"
  */
-bool endsWith(std::string str, std::string suffix)
+bool startsWith(std::string str, std::string substr)
 {
-    if (str.size() < suffix.size()) return false;
-    return str.compare(str.size() - suffix.size(), suffix.size(), suffix.c_str()) == 0;
+    if (str.size() < substr.size()) return false;
+    return str.compare(0, substr.size(), substr.c_str()) == 0;
+}
+
+/*
+ * return true if string "str" ends with "substr"
+ */
+bool endsWith(std::string str, std::string substr)
+{
+    if (str.size() < substr.size()) return false;
+    return str.compare(str.size() - substr.size(), substr.size(), substr.c_str()) == 0;
+}
+
+/*
+ * count the number of times a substring appears in a string
+ */
+int countOccurances(std::string str, std::string substr)
+{
+    int n = 0;
+    size_t pos = 0;
+    while ((pos = str.find(substr, pos)) != std::string::npos) {
+        ++n;
+        pos += substr.length();
+    }
+    return n;
 }
 
 /*
