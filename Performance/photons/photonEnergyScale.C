@@ -895,206 +895,146 @@ int  preLoop(TFile* input, bool makeNew)
         input->cd();
     }
 
-    for (int iEta = 0; iEta < nBins_eta; ++iEta) {
-         for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
-             for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
-                 for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
+    for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
+        for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+            for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
+                for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                    for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
 
-                     if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
+                        if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
 
-                     // histogram ranges
-                     for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
+                        // histogram ranges
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kETA][0] = bins_eta[0].at(iEta);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kETA][1] = bins_eta[1].at(iEta);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kGENPT][0] = bins_genPt[0].at(iGenPt);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kGENPT][1] = bins_genPt[1].at(iGenPt);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kHIBIN][0] = bins_hiBin[0].at(iHiBin);
+                        hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kHIBIN][1] = bins_hiBin[1].at(iHiBin);
 
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kETA][0] = bins_eta[0].at(iEta);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kETA][1] = bins_eta[1].at(iEta);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kGENPT][0] = bins_genPt[0].at(iGenPt);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kGENPT][1] = bins_genPt[1].at(iGenPt);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kHIBIN][0] = bins_hiBin[0].at(iHiBin);
-                         hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[ENERGYSCALE::kHIBIN][1] = bins_hiBin[1].at(iHiBin);
-                     }
+                        // for histograms with a particular dependence,
+                        // a single index is used in the multidimensional array of energyScaleHist objects is used.
+                        // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
+                        // with different eta ranges.
+                        // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iHiBin]
+                        // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iHiBin]
+                        // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iHiBin] such that iEta, iGenpT, iRecoPt, iHiBin > 0
 
-                     // for histograms with a particular dependence,
-                     // a single index is used in the multidimensional array of energyScaleHist objects is used.
-                     // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
-                     // with different eta ranges.
-                     // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iHiBin]
-                     // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iHiBin]
-                     // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iHiBin] such that iEta, iGenpT, iRecoPt, iHiBin > 0
+                        int nBinsx2D = TH2D_Bins_List[0].at(0);    // nBinsx
+                        float xLow2D = TH2D_Bins_List[1].at(0);    // xLow
+                        float xUp2D  = TH2D_Bins_List[2].at(0);    // xUp
+                        int nBinsy2D = TH2D_Bins_List[3].at(0);    // nBinsy
+                        float yLow2D = TH2D_Bins_List[4].at(0);    // yLow
+                        float yUp2D  = TH2D_Bins_List[5].at(0);    // yUp
 
-                     int nBinsx = TH2D_Bins_List[0].at(0);    // nBinsx
-                     float xLow = TH2D_Bins_List[1].at(0);    // xLow
-                     float xUp  = TH2D_Bins_List[2].at(0);    // xUp
-                     int nBinsy = TH2D_Bins_List[3].at(0);    // nBinsy
-                     float yLow = TH2D_Bins_List[4].at(0);    // yLow
-                     float yUp  = TH2D_Bins_List[5].at(0);    // yUp
+                        float nBins = TH1D_Bins_List[0].at(iDep);   // nBins
+                        float xLow  = TH1D_Bins_List[1].at(iDep);   // xLow
+                        float xUp   = TH1D_Bins_List[2].at(iDep);   // xUp
 
-                     // initialize histograms with eta dependence
-                     if (iEta == 0)  {
-                         std::string tmpName = Form("depEta_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHiBin);
-                         hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].name = tmpName.c_str();
+                        std::string strDep = "";
+                        std::string xTitle = "";
+                        bool makeObject = false;
+                        if (iEta == 0 && iDep == ENERGYSCALE::kETA) {
+                            strDep = "depEta";
+                            xTitle = "photon #eta";
+                            makeObject = true;
+                        }
+                        else if (iGenPt == 0 && iDep == ENERGYSCALE::kGENPT && nBins_genPt > 1) {
+                            strDep = "depGenPt";
+                            xTitle = "Gen p_{T} (GeV/c)";
+                            makeObject = true;
+                        }
+                        else if (iRecoPt == 0 && iDep == ENERGYSCALE::kRECOPT) {
+                            strDep = "depRecoPt";
+                            xTitle = "Reco p_{T} (GeV/c)";
+                            makeObject = true;
+                        }
+                        else if (iHiBin == 0 && iDep == ENERGYSCALE::kHIBIN) {
+                            strDep = "depHiBin";
+                            xTitle = "Hibin";
+                            makeObject = true;
+                        }
 
-                         float nBinsEta = TH1D_Bins_List[0].at(0);   // nBins
-                         float xLowEta  = TH1D_Bins_List[1].at(0);   // xLow
-                         float xUpEta   = TH1D_Bins_List[2].at(0);   // xUp
-                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                         std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
+                        if (makeObject) {
+                            std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iHiBin);
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].name = tmpName.c_str();
 
-                         if (makeNew) {
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                     new TH2D(tmpHistName.c_str(), ";photon #eta;Reco p_{T} / Gen p_{T}", nBinsEta, xLowEta, xUpEta, 100, 0, 2);
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h =
-                                     new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
+                            std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
+                            std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
 
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
-                         }
-                         else {
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(tmpHistName.c_str());
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h = (TH1D*)input->Get(tmpHistName1D.c_str());
+                            // disable the cuts/ranges for this dependence
+                            // Ex. If the dependence is GenPt (GenPt is the x-axis),
+                            // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
+                            // The x-axis bins will set the cuts.
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][0] = 0;
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][1] = -1;
 
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized =
-                                     (!hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
-                             hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
-                                     (!hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
-                         }
+                            if (makeNew) {
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D =
+                                        new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, xLow, xUp, 100, 0, 2);
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h =
+                                        new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
 
-                         // set histogram title
-                         hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
-                     }
-                     // initialize histograms with gen pt dependence
-                     if (iGenPt == 0 && nBins_genPt > 1)  {
-                         std::string tmpName = Form("depGenPt_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHiBin);
-                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].name = tmpName.c_str();
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
+                            }
+                            else {
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(tmpHistName.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h = (TH1D*)input->Get(tmpHistName1D.c_str());
 
-                         // pt dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
-                         double arr[nBins_genPt];
-                         std::copy(bins_genPt[0].begin(), bins_genPt[0].end(), arr);
-                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                         std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
-                         std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized =
+                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
+                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
+                            }
 
-                         if (makeNew) {
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                     new TH2D(tmpHistName.c_str(), ";Gen p_{T};Reco p_{T} / Gen p_{T}", nBins_genPt-1, arr, 100, 0, 2);
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h =
-                                     new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr =
-                                     new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx, xLow, xUp, nBinsy, yLow, yUp);
-                             // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
-                             // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
+                            // special cases
+                            if (iDep == ENERGYSCALE::kGENPT) {
+                                std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
 
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2DcorrInitialized = true;
-                         }
-                         else {
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(tmpHistName.c_str());
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h = (TH1D*)input->Get(tmpHistName1D.c_str());
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr = (TH2D*)input->Get(tmpHistNameCorr.c_str());
-                             // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
-                             // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
+                                if (makeNew) {
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr =
+                                            new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, xLow2D, xUp2D, nBinsy2D, yLow2D, yUp2D);
+                                    // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
+                                    // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
 
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized =
-                                     (!hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
-                                     (!hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
-                             hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2DcorrInitialized =
-                                     (!hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr->IsZombie());
-                         }
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2DcorrInitialized = true;
+                                }
+                                else {
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr = (TH2D*)input->Get(tmpHistNameCorr.c_str());
+                                    // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
+                                    // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
 
-                         // set histogram title
-                         hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
-                     }
-                     // initialize histograms with reco pt dependence
-                     if (iRecoPt == 0 && nBins_recoPt > 1)  {
-                         std::string tmpName = Form("depRecoPt_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHiBin);
-                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].name = tmpName.c_str();
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2DcorrInitialized =
+                                            (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr->IsZombie());
+                                }
+                            }
 
-                         // pt dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
-                         double arr[nBins_recoPt];
-                         std::copy(bins_recoPt[0].begin(), bins_recoPt[0].end(), arr);
-                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                         std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
+                            // set histogram title
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
+                        }
 
-                         if (makeNew) {
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                     new TH2D(tmpHistName.c_str(), ";Reco p_{T};Reco p_{T} / Gen p_{T}", nBins_recoPt-1, arr, 100, 0, 2);
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h =
-                                     new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
+                        if (hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized) {
 
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
-                         }
-                         else {
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(tmpHistName.c_str());
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h = (TH1D*)input->Get(tmpHistName1D.c_str());
+                            if (nyMin == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin[0] = yMin[0];
+                            else if (nyMin == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin = yMin;
 
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized =
-                                     (!hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
-                             hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
-                                     (!hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
-                         }
+                            if (nyMax == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax[0] = yMax[0];
+                            else if (nyMax == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax = yMax;
 
-                         // set histogram title
-                         hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
-                     }
-                     // initialize histograms with centrality dependence
-                     if (iHiBin == 0 && nBins_hiBin > 1)  {
-                         std::string tmpName = Form("depHiBin_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", iEta, iGenPt, iRecoPt, iHiBin);
-                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].name = tmpName.c_str();
-
-                         // centrality dependent histograms do not have uniform binning. They are binned using the pt gt/lt list.
-                         double arr[nBins_hiBin];
-                         std::copy(bins_hiBin[0].begin(), bins_hiBin[0].end(), arr);
-                         std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
-                         std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
-
-                         if (makeNew) {
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                     new TH2D(tmpHistName.c_str(), ";Hibin;Reco p_{T} / Gen p_{T}", nBins_hiBin-1, arr, 100, 0, 2);
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h =
-                                     new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
-
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
-                         }
-                         else {
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(tmpHistName.c_str());
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h = (TH1D*)input->Get(tmpHistName1D.c_str());
-
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized =
-                                     (!hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
-                             hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
-                                     (!hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
-                         }
-
-                         // set histogram title
-                         hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
-                     }
-
-                     for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
-                         if (hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized) {
-
-                             if (nyMin == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin[0] = yMin[0];
-                             else if (nyMin == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin = yMin;
-
-                             if (nyMax == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax[0] = yMax[0];
-                             else if (nyMax == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax = yMax;
-
-                             float titleOffsetXTmp = titleOffsetsX.at(0);
-                             float titleOffsetYTmp = titleOffsetsY.at(0);
-                             if (nTitleOffsetX == ENERGYSCALE::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
-                             if (nTitleOffsetY == ENERGYSCALE::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
-                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].titleOffsetX = titleOffsetXTmp;
-                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].titleOffsetY = titleOffsetYTmp;
-                         }
-                     }
-                 }
-             }
-         }
-     }
+                            float titleOffsetXTmp = titleOffsetsX.at(0);
+                            float titleOffsetYTmp = titleOffsetsY.at(0);
+                            if (nTitleOffsetX == ENERGYSCALE::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
+                            if (nTitleOffsetY == ENERGYSCALE::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].titleOffsetX = titleOffsetXTmp;
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].titleOffsetY = titleOffsetYTmp;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     return 0;
 }
