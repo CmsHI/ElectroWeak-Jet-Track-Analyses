@@ -18,6 +18,8 @@ const std::string comment = "#";
 const std::string nullInput = "$NULL$";    // explicit specification of no input
 const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from the line.
 const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
+const std::string multiLineBegin = "$MLB$";   // sign the beginning of a multi line value
+const std::string multiLineEnd = "$MLE$";     // sign the end of a multi line value
 const std::string importStatement = "import.";
 const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
@@ -233,22 +235,58 @@ std::string ConfigurationParser::trimComment(std::string line)
 }
 
 /*
- * read the value over multiple lines as long as the lines finish with "CONFIGPARSER::newLine" key.
+ * read the value over multiple lines
+ * 1. as long as the lines finish with "CONFIGPARSER::newLine" key.
+ * OR
+ * 2. if the value has started with "CONFIGPARSER::multiLineBegin", then read over multiple lines until "CONFIGPARSER::multiLineEnd" is found.
  */
 std::string ConfigurationParser::ReadValue(std::ifstream& fin, std::string value)
 {
     std::string result = trim(value);
-    if (endsWith(result, CONFIGPARSER::newLine.c_str())) {
+    // ends with newLine
+    bool endsWithNL = endsWith(result, CONFIGPARSER::newLine.c_str());
+
+    // started with multiLineBegin
+    bool startedWithMLB = startsWith(result, CONFIGPARSER::multiLineBegin.c_str());
+    bool endsWithMLE = endsWith(result, CONFIGPARSER::multiLineEnd.c_str());
+
+    if (endsWithNL || (startedWithMLB && !endsWithMLE)) {
+
         result = replaceAll(result, CONFIGPARSER::newLine.c_str(), "");
+        result = replaceAll(result, CONFIGPARSER::multiLineBegin.c_str(), "");
+        result = trim(result);  // need to trim the line again after removing newLine string
         std::string nextLine;
         while(getline(fin, nextLine)) {
             std::string trimmedLine = trimComment(nextLine);
             trimmedLine = trim(trimmedLine);
             if (trimmedLine.size() == 0) continue;  //skip all empty lines or the ones starting with comment sign
-            std::string tmpValue = replaceAll(trimmedLine, CONFIGPARSER::newLine.c_str(), "");
-            result.append(tmpValue);
-            if(! endsWith(trimmedLine, CONFIGPARSER::newLine.c_str())) {
+
+            endsWithNL = endsWith(trimmedLine, CONFIGPARSER::newLine.c_str());
+            trimmedLine = replaceAll(trimmedLine, CONFIGPARSER::newLine.c_str(), "");
+            trimmedLine = trim(trimmedLine);  // need to trim the line again after removing newLine string
+
+            endsWithMLE = endsWith(trimmedLine, CONFIGPARSER::multiLineEnd.c_str());
+            trimmedLine = replaceAll(trimmedLine, CONFIGPARSER::multiLineEnd.c_str(), "");
+            trimmedLine = trim(trimmedLine);  // need to trim the line again after removing multiLineEnd string
+
+            result.append(trimmedLine);
+            if(!startedWithMLB && !endsWithNL) {
                 break;
+                /*
+                 * input.someField = AAA    $NEWLINE$
+                                     BBB    $NEWLINE$
+                                     CCC
+                    ==> someField = AAABBBCCC
+                 */
+            }
+            else if (startedWithMLB && endsWithMLE) {
+                break;
+                /*
+                 * input.someField = $MLB$ AAA
+                                           BBB
+                                           CCC $MLE$
+                    ==> someField = AAABBBCCC
+                 */
             }
         }
     }
