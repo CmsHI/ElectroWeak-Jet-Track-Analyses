@@ -11,6 +11,7 @@
 #include <utility>      // std::pair
 
 #include "../systemUtil.h"
+#include "../th1Util.h"
 
 namespace CONFIGPARSER{
 
@@ -35,6 +36,22 @@ struct RunLumiEvent {
   unsigned long long event;
 };
 
+/*
+ * object for reading TH1 axis information from configuration file
+ */
+struct TH1Axis {
+    TH1Axis() : nBins(0), xLow(0), xUp(-1), bins({}), binsAreFromUser(false) {}
+    void setBins() {
+        bins = getTH1xBins(nBins, xLow, xUp);
+    }
+
+    int nBins;
+    double xLow;
+    double xUp;
+    std::vector<double> bins;   // vector of size nBins+1
+    bool binsAreFromUser;
+};
+
 }
 
 class ConfigurationParser {
@@ -49,6 +66,7 @@ public :
     static bool isImportCutStatement(std::string line);
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
+    static bool isTH1D_BinsArray(std::string str);
     static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex);
     static std::vector<int> getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex);
     static std::vector<float> getVecFloat(std::vector<std::pair<float, int>> vecFloatIndex);
@@ -80,7 +98,9 @@ public :
     static unsigned int ParseLumiNumber(std::string strRunLumiEvent);
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
+    static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
+    static std::string verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis);
     static std::string ParseLatex(std::string str);
     static std::vector<std::string> ParseListLatex(std::string strList, std::string separator = "");
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
@@ -146,6 +166,15 @@ bool ConfigurationParser::isVarDefinitionString(std::string line)
 {
     std::string tmp = trim(line);
     return (tmp.find(CONFIGPARSER::varDefinitionString.c_str()) == 0);
+}
+
+/*
+ * a string is an array of TH1D bins if it starts with "[" and ends with "]"
+ */
+bool ConfigurationParser::isTH1D_BinsArray(std::string str)
+{
+    std::string tmp = trim(str);
+    return (tmp.find("[") == 0 && tmp.rfind("]") == tmp.size()-1);
 }
 
 std::vector<std::string> ConfigurationParser::getVecString(std::vector<std::pair<std::string, int>> vecStringIndex)
@@ -760,6 +789,52 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::str
     return list;
 }
 
+std::vector<CONFIGPARSER::TH1Axis> ConfigurationParser::ParseListTH1D_Axis(std::string strList)
+{
+    std::vector<CONFIGPARSER::TH1Axis> list;
+
+    // split TH1D bin information by ";;"
+    std::vector<std::string> strListTH1D_Axis = ParseList(strList, CONFIGPARSER::separator2.c_str());
+
+    for (std::vector<std::string>::iterator it = strListTH1D_Axis.begin() ; it != strListTH1D_Axis.end(); ++it) {
+
+        std::string strTH1D_Axis = (*it);
+
+        CONFIGPARSER::TH1Axis th1Axis;
+
+        if (isTH1D_BinsArray(strTH1D_Axis)) {
+            strTH1D_Axis = replaceAll(strTH1D_Axis, "[", "{");
+            strTH1D_Axis = replaceAll(strTH1D_Axis, "]", "}");
+            // listBinEdges is an array of nBins+1 numbers where
+            // 1. the first "nBins" of elements are bin low edges
+            // 2. the last element is the last bin upper edges.
+            std::vector<float> listFloat = ParseListFloat(strTH1D_Axis);
+            std::vector<double> listBinEdges(listFloat.begin(), listFloat.end());
+
+            th1Axis.nBins = listBinEdges.size()-1;
+            th1Axis.xLow = listBinEdges.at(0);
+            th1Axis.xUp = listBinEdges.at(listBinEdges.size()-1);
+            th1Axis.bins = listBinEdges;
+            th1Axis.binsAreFromUser = true;
+        }
+        else {
+            std::vector<float> listTmp = ParseListWithoutBracketFloat(strTH1D_Axis);
+            if (listTmp.size() == 3) {  // listTmp = { nBins, xLow, xUp }
+
+                th1Axis.nBins = listTmp[0];
+                th1Axis.xLow = listTmp[1];
+                th1Axis.xUp = listTmp[2];
+                th1Axis.binsAreFromUser = false;
+                th1Axis.setBins();
+            }
+        }
+
+        list.push_back(th1Axis);
+    }
+
+    return list;
+}
+
 /*
  * list[0].at(i);   nBinsx for the ith TH2D histogram
  * list[1].at(i);   xLow   for the ith TH2D histogram
@@ -786,6 +861,29 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::str
     }
 
     return list;
+}
+
+std::string ConfigurationParser::verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis)
+{
+    std::string res;
+
+    if (th1Axis.nBins > 0) {
+        res.append(Form("{ %d, ", th1Axis.nBins));
+        res.append(Form("%f, ", th1Axis.xLow));
+        res.append(Form("%f }", th1Axis.xUp));
+
+        if (th1Axis.binsAreFromUser) {
+
+            res.append(", [ ");
+
+            for (int iBin=0; iBin < th1Axis.nBins; ++iBin) {
+                res.append(Form("%.2f, ", th1Axis.bins.at(iBin)));
+            }
+            res.append(Form("%.2f ]", th1Axis.bins.at(th1Axis.nBins)));
+        }
+    }
+
+    return res;
 }
 
 /*

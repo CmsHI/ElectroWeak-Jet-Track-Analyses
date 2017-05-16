@@ -19,8 +19,6 @@
 #include <string>
 #include <vector>
 
-#include "interface/InputConfigurationParser.h"
-
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
 TH1* Graph2Histogram(TGraph* graph);
@@ -35,6 +33,7 @@ void setBinContents(TH1* h, std::vector<double> binContents);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
+std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize = false);
@@ -65,10 +64,10 @@ float resetTH1axisMin4LogScale(float axisMin, std::string axis)
 {
     float result = axisMin;
     if (ToLower(axis.c_str()).EqualTo("x")) {
-        if (result <= 0)   result = INPUT_DEFAULT::xMin;
+        if (result <= 0)   result = 0.001;
     }
     else if (ToLower(axis.c_str()).EqualTo("y")) {
-        if (result <= 0)   result = INPUT_DEFAULT::yMin;
+        if (result <= 0)   result = 0.001;
     }
     return result;
 }
@@ -269,6 +268,20 @@ void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
         h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
         h->SetBinError(i,   h->GetBinError(i)*scaleError);
     }
+}
+
+/*
+ * returns the bins along x-axis as a std::vector. creates a temporary TH1 object for this.
+ * size of the vector is nBins+1.
+ * ith element is the lower edge of bin i.
+ * last element is the upper edge of the last bin.
+ */
+std::vector<double> getTH1xBins(int nBins, double xLow, double xUp)
+{
+    TH1D hTmp("hTmp_getTH1xBins", "", nBins, xLow, xUp);
+
+    std::vector<double> res = getTH1xBins(&hTmp);
+    return res;
 }
 
 /*

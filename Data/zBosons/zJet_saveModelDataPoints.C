@@ -16,6 +16,7 @@
 #include "zJetData.h"
 #include "../../Utilities/tgraphUtil.h"
 #include "../../Utilities/th1Util.h"
+#include "../../Utilities/systemUtil.h"
 
 void zJet_saveModelDataPoints(const TString outputFile = "Data/zBosons/model_zJet_5TeV.root");
 
