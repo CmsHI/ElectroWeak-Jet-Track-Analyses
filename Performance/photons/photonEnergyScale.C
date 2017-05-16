@@ -53,7 +53,7 @@ int collisionType;
 // input for TH1
 // nBins, xLow, xUp for the TH1D histogram
 // this bin list will be used for histograms where x-axis is eta.
-std::vector<std::vector<float>> TH1D_Bins_List;
+std::vector<CONFIGPARSER::TH1Axis> TH1D_Axis_List;
 // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
 // this bin list will be used for gen pt - reco pt correlation histogram.
 std::vector<std::vector<float>> TH2D_Bins_List;
@@ -104,7 +104,7 @@ float bottomMargin;
 float topMargin;
 
 std::string collisionName;
-int nTH1D_Bins_List;
+int nTH1D_Axis_List;
 int nTH2D_Bins_List;
 
 int nTitleOffsetX;
@@ -534,7 +534,7 @@ int readConfiguration(const TString configFile)
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
     // this bin list will be used for histograms where x-axis is eta.
-    TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    TH1D_Axis_List = ConfigurationParser::ParseListTH1D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
     // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     // this bin list will be used for gen pt - reco pt correlation histogram.
     TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
@@ -587,10 +587,12 @@ int readConfiguration(const TString configFile)
     // set default values
     if (treePath.size() == 0) treePath = "ggHiNtuplizer/EventTree";
 
-    if (TH1D_Bins_List[0].size() == 0) {
-        TH1D_Bins_List[0].push_back(12);     // nBins
-        TH1D_Bins_List[1].push_back(-2.4);   // xLow
-        TH1D_Bins_List[2].push_back(2.4);    // xUp
+    if (TH1D_Axis_List.size() == 0) {
+        CONFIGPARSER::TH1Axis th1Axis;
+        th1Axis.nBins = 12;
+        th1Axis.xLow = -2.4;
+        th1Axis.xUp = 2.4;
+        TH1D_Axis_List.push_back(th1Axis);
     }
     if (TH2D_Bins_List[0].size() == 0) {
         TH2D_Bins_List[0].push_back(120);    // nBinsx
@@ -629,7 +631,7 @@ int readConfiguration(const TString configFile)
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
-    nTH1D_Bins_List = TH1D_Bins_List[0].size();
+    nTH1D_Axis_List = TH1D_Axis_List.size();
     nTH2D_Bins_List = TH2D_Bins_List[0].size();
 
     nLegendEntryLabels = legendEntryLabels.size();
@@ -764,13 +766,12 @@ void printConfiguration()
 
         std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
 
-        std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
-        for (int i=0; i<nTH1D_Bins_List; ++i) {
-            std::cout << Form("TH1D_Bins_List[%d] = { ", i);
-            std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
-            std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
-            std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
+        std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
+        for (int i=0; i<nTH1D_Axis_List; ++i) {
+            std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Axis_List.at(i));
+            std::cout << Form("TH1D_Axis_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
         }
+
         std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;  // for this program nTH2D_Bins_List must be 1.
         for (int i=0; i<nTH2D_Bins_List; ++i) {
             std::cout << Form("TH2D_Bins_List[%d] = { ", i);
@@ -921,17 +922,6 @@ int  preLoop(TFile* input, bool makeNew)
                         // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iHiBin]
                         // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iHiBin] such that iEta, iGenpT, iRecoPt, iHiBin > 0
 
-                        int nBinsx2D = TH2D_Bins_List[0].at(0);    // nBinsx
-                        float xLow2D = TH2D_Bins_List[1].at(0);    // xLow
-                        float xUp2D  = TH2D_Bins_List[2].at(0);    // xUp
-                        int nBinsy2D = TH2D_Bins_List[3].at(0);    // nBinsy
-                        float yLow2D = TH2D_Bins_List[4].at(0);    // yLow
-                        float yUp2D  = TH2D_Bins_List[5].at(0);    // yUp
-
-                        float nBins = TH1D_Bins_List[0].at(iDep);   // nBins
-                        float xLow  = TH1D_Bins_List[1].at(iDep);   // xLow
-                        float xUp   = TH1D_Bins_List[2].at(iDep);   // xUp
-
                         std::string strDep = "";
                         std::string xTitle = "";
                         bool makeObject = false;
@@ -970,9 +960,22 @@ int  preLoop(TFile* input, bool makeNew)
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][0] = 0;
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][1] = -1;
 
+                            int nBinsx2D = TH2D_Bins_List[0].at(0);    // nBinsx
+                            float xLow2D = TH2D_Bins_List[1].at(0);    // xLow
+                            float xUp2D  = TH2D_Bins_List[2].at(0);    // xUp
+                            int nBinsy2D = TH2D_Bins_List[3].at(0);    // nBinsy
+                            float yLow2D = TH2D_Bins_List[4].at(0);    // yLow
+                            float yUp2D  = TH2D_Bins_List[5].at(0);    // yUp
+
+                            int nBins = TH1D_Axis_List[iDep].nBins;  // nBins
+                            std::vector<double> bins = TH1D_Axis_List[iDep].bins;
+
+                            double arr[nBins+1];
+                            std::copy(bins.begin(), bins.end(), arr);
+
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                        new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, xLow, xUp, 100, 0, 2);
+                                        new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr, 100, 0, 2);
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h =
                                         new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
 
