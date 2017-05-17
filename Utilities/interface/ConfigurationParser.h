@@ -52,6 +52,16 @@ struct TH1Axis {
     bool binsAreFromUser;
 };
 
+/*
+ * object for reading TH2D axis information from configuration file
+ */
+struct TH2DAxis {
+    TH2DAxis() {}
+
+    TH1Axis axisX;
+    TH1Axis axisY;
+};
+
 }
 
 class ConfigurationParser {
@@ -100,7 +110,9 @@ public :
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
+    static std::vector<CONFIGPARSER::TH2DAxis> ParseListTH2D_Axis(std::string strList);
     static std::string verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis);
+    static std::string verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxis);
     static std::string ParseLatex(std::string str);
     static std::vector<std::string> ParseListLatex(std::string strList, std::string separator = "");
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
@@ -793,7 +805,7 @@ std::vector<CONFIGPARSER::TH1Axis> ConfigurationParser::ParseListTH1D_Axis(std::
 {
     std::vector<CONFIGPARSER::TH1Axis> list;
 
-    // split TH1D bin information by ";;"
+    // split TH1D axis information by ";;"
     std::vector<std::string> strListTH1D_Axis = ParseList(strList, CONFIGPARSER::separator2.c_str());
 
     for (std::vector<std::string>::iterator it = strListTH1D_Axis.begin() ; it != strListTH1D_Axis.end(); ++it) {
@@ -863,6 +875,36 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH2D_Bins(std::str
     return list;
 }
 
+/*
+ * assumes that different TH2DAxis info is split by ";;;"
+ * assumes that xAxis and yAxis info is split by ";;"
+ */
+std::vector<CONFIGPARSER::TH2DAxis> ConfigurationParser::ParseListTH2D_Axis(std::string strList)
+{
+    std::vector<CONFIGPARSER::TH2DAxis> list;
+
+    // split TH2D axis information by ";;;"
+    std::vector<std::string> strListTH2D_Axis = ParseList(strList, CONFIGPARSER::separator3.c_str());
+
+    for (std::vector<std::string>::iterator it = strListTH2D_Axis.begin() ; it != strListTH2D_Axis.end(); ++it) {
+
+        std::string strTH2D_Axis = (*it);
+
+        // change the string such that it is a list of 2 TH1Axis objects
+        std::vector<CONFIGPARSER::TH1Axis> listTH1Axis = ParseListTH1D_Axis(Form("{ %s }", strTH2D_Axis.c_str()));
+
+        CONFIGPARSER::TH2DAxis th2DAxis;
+        if (listTH1Axis.size() == 2) {
+            th2DAxis.axisX = listTH1Axis.at(0);
+            th2DAxis.axisY = listTH1Axis.at(1);
+        }
+
+        list.push_back(th2DAxis);
+    }
+
+    return list;
+}
+
 std::string ConfigurationParser::verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis)
 {
     std::string res;
@@ -882,6 +924,16 @@ std::string ConfigurationParser::verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis)
             res.append(Form("%.2f ]", th1Axis.bins.at(th1Axis.nBins)));
         }
     }
+
+    return res;
+}
+
+std::string ConfigurationParser::verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxis)
+{
+    std::string resX = verboseTH1D_Axis(th2DAxis.axisX);
+    std::string resY = verboseTH1D_Axis(th2DAxis.axisY);
+
+    std::string res = Form("xAxis : %s, yAxis :%s", resX.c_str(), resY.c_str());
 
     return res;
 }
