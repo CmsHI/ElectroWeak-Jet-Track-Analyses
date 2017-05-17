@@ -56,7 +56,7 @@ int collisionType;
 std::vector<CONFIGPARSER::TH1Axis> TH1D_Axis_List;
 // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
 // this bin list will be used for gen pt - reco pt correlation histogram.
-std::vector<std::vector<float>> TH2D_Bins_List;
+std::vector<CONFIGPARSER::TH2DAxis> TH2D_Axis_List;
 
 std::vector<float> titleOffsetsX;
 std::vector<float> titleOffsetsY;
@@ -105,7 +105,7 @@ float topMargin;
 
 std::string collisionName;
 int nTH1D_Axis_List;
-int nTH2D_Bins_List;
+int nTH2D_Axis_List;
 
 int nTitleOffsetX;
 int nTitleOffsetY;
@@ -537,7 +537,7 @@ int readConfiguration(const TString configFile)
     TH1D_Axis_List = ConfigurationParser::ParseListTH1D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
     // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     // this bin list will be used for gen pt - reco pt correlation histogram.
-    TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
+    TH2D_Axis_List = ConfigurationParser::ParseListTH2D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
 
     titleOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_titleOffsetX]);
     titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_titleOffsetY]);
@@ -594,13 +594,17 @@ int readConfiguration(const TString configFile)
         th1Axis.xUp = 2.4;
         TH1D_Axis_List.push_back(th1Axis);
     }
-    if (TH2D_Bins_List[0].size() == 0) {
-        TH2D_Bins_List[0].push_back(120);    // nBinsx
-        TH2D_Bins_List[1].push_back(0);      // xLow
-        TH2D_Bins_List[2].push_back(120);    // xUp
-        TH2D_Bins_List[3].push_back(120);    // nBinsy
-        TH2D_Bins_List[4].push_back(0);      // yLow
-        TH2D_Bins_List[5].push_back(120);    // yUp
+    if (TH2D_Axis_List.size() == 0) {
+        CONFIGPARSER::TH2DAxis th2DAxis;
+
+        th2DAxis.axisX.nBins = 120;
+        th2DAxis.axisX.xLow = 0;
+        th2DAxis.axisX.xUp = 120;
+        th2DAxis.axisY.nBins = 120;
+        th2DAxis.axisY.xLow = 0;
+        th2DAxis.axisY.xUp = 120;
+
+        TH2D_Axis_List.push_back(th2DAxis);
     }
     
     if (titleOffsetsX.size() == 0) titleOffsetsX = {1.25};
@@ -632,7 +636,7 @@ int readConfiguration(const TString configFile)
 
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nTH1D_Axis_List = TH1D_Axis_List.size();
-    nTH2D_Bins_List = TH2D_Bins_List[0].size();
+    nTH2D_Axis_List = TH2D_Axis_List.size();
 
     nLegendEntryLabels = legendEntryLabels.size();
     nLegendPositions = legendPositions.size();
@@ -771,18 +775,12 @@ void printConfiguration()
             std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Axis_List.at(i));
             std::cout << Form("TH1D_Axis_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
         }
-
-        std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;  // for this program nTH2D_Bins_List must be 1.
-        for (int i=0; i<nTH2D_Bins_List; ++i) {
-            std::cout << Form("TH2D_Bins_List[%d] = { ", i);
-            std::cout << Form("%.0f, ", TH2D_Bins_List[0].at(i));
-            std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
-            std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
-            std::cout << " { ";
-            std::cout << Form("%.0f, ", TH2D_Bins_List[3].at(i));
-            std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
-            std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
+        std::cout << "nTH2D_Axis_List = " << nTH2D_Axis_List << std::endl;  // for this program nTH2D_Bins_List must be 1.
+        for (int i=0; i<nTH2D_Axis_List; ++i) {
+            std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Axis_List.at(i));
+            std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
         }
+
         std::cout << "nTitleOffsetX = " << nTitleOffsetX << std::endl;
         for (int i = 0; i<nTitleOffsetX; ++i) {
             std::cout << Form("titleOffsetsX[%d] = %f", i, titleOffsetsX.at(i)) << std::endl;
@@ -960,13 +958,6 @@ int  preLoop(TFile* input, bool makeNew)
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][0] = 0;
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][1] = -1;
 
-                            int nBinsx2D = TH2D_Bins_List[0].at(0);    // nBinsx
-                            float xLow2D = TH2D_Bins_List[1].at(0);    // xLow
-                            float xUp2D  = TH2D_Bins_List[2].at(0);    // xUp
-                            int nBinsy2D = TH2D_Bins_List[3].at(0);    // nBinsy
-                            float yLow2D = TH2D_Bins_List[4].at(0);    // yLow
-                            float yUp2D  = TH2D_Bins_List[5].at(0);    // yUp
-
                             int nBins = TH1D_Axis_List[iDep].nBins;  // nBins
                             std::vector<double> bins = TH1D_Axis_List[iDep].bins;
 
@@ -996,9 +987,20 @@ int  preLoop(TFile* input, bool makeNew)
                             if (iDep == ENERGYSCALE::kGENPT) {
                                 std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
 
+                                int nBinsx2D = TH2D_Axis_List[0].axisX.nBins;    // nBinsx
+                                int nBinsy2D = TH2D_Axis_List[0].axisY.nBins;    // nBinsy
+
+                                std::vector<double> binsx2D = TH2D_Axis_List[0].axisX.bins;
+                                std::vector<double> binsy2D = TH2D_Axis_List[0].axisY.bins;
+
+                                double arrX[nBinsx2D+1];
+                                std::copy(binsx2D.begin(), binsx2D.end(), arrX);
+                                double arrY[nBinsy2D+1];
+                                std::copy(binsy2D.begin(), binsy2D.end(), arrY);
+
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr =
-                                            new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, xLow2D, xUp2D, nBinsy2D, yLow2D, yUp2D);
+                                            new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
                                     // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                                     // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
 
