@@ -32,6 +32,8 @@ TList*   getListOfGIVENHistograms(TDirectoryFile* dir, std::vector<std::string> 
 TList*   getListOfALLHistograms(TDirectoryFile* dir);
 TList*   getListOfALLCanvases(TDirectoryFile* dir);
 
+std::string getKeyPath(TKey* key);
+
 void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
@@ -79,7 +81,7 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern)
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
+        if(key->IsFolder() && std::string(key->GetClassName()) == "TDirectoryFile")
         {
             subdir = (TDirectoryFile*)key->ReadObj();
             newKeys = getListOfSOMEKeys(subdir, pattern.c_str());
@@ -108,13 +110,13 @@ TList* getListOfSOMEKeys(TDirectoryFile* dir, std::string pattern, std::string t
     while ((key=(TKey*)iter->Next())) {
 
         keyName=key->GetName();
-        if(keyName.Contains(pattern.c_str()) && strcmp(key->GetClassName(), type.c_str()) == 0)
+        if(keyName.Contains(pattern.c_str()) && std::string(key->GetClassName()) == type.c_str())
         {
             keys->Add(key);
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
+        if(key->IsFolder() && std::string(key->GetClassName()) == "TDirectoryFile")
         {
             subdir = (TDirectoryFile*)key->ReadObj();
             newKeys = getListOfSOMEKeys(subdir, pattern, type);
@@ -150,7 +152,7 @@ TList* getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
+        if(key->IsFolder() && std::string(key->GetClassName()) == "TDirectoryFile")
         {
             subdir = (TDirectoryFile*)key->ReadObj();
             newKeys = getListOfGIVENKeys(subdir, keyNames);
@@ -163,27 +165,7 @@ TList* getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNames
 
 TList* getListOfALLKeys(TDirectoryFile* dir)
 {
-    TList* keysInDir = dir->GetListOfKeys();
-    TIter* iter = new TIter(keysInDir);
-
-    TDirectoryFile* subdir = 0;
-    TKey*  key = 0;
-    TList* keys = new TList();
-    TList* newKeys = 0;
-
-    while ((key=(TKey*)iter->Next())) {
-
-        keys->Add(key);
-
-        // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
-        {
-            subdir = (TDirectoryFile*)key->ReadObj();
-            newKeys = getListOfALLKeys(subdir);
-            keys->AddAll(newKeys);
-        }
-    }
-    return keys;
+    return getListOfALLKeys(dir, "");
 }
 
 /*
@@ -191,32 +173,7 @@ TList* getListOfALLKeys(TDirectoryFile* dir)
  */
 TList* getListOfALLKeys(TDirectoryFile* dir, std::string type)
 {
-    TList* keysInDir = dir->GetListOfKeys();
-    TIter* iter = new TIter(keysInDir);
-
-    TDirectoryFile* subdir = 0;
-    TKey*  key = 0;
-    TList* keysOfType = new TList();
-    TList* newKeys = 0;
-
-    while ((key=(TKey*)iter->Next())) {
-
-        //      http://www.cplusplus.com/reference/cstring/strcmp/
-        if(strcmp(key->GetClassName(), type.c_str()) == 0)
-        {
-            keysOfType->Add(key);
-        }
-
-        // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
-        {
-            subdir = (TDirectoryFile*)key->ReadObj();
-            newKeys = getListOfALLKeys(subdir, type);
-            keysOfType->AddAll(newKeys);
-        }
-    }
-
-    return keysOfType;
+    return getListOfALLKeys(dir, type, false);
 }
 
 /*
@@ -238,25 +195,33 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom
     TList* keysOfType = new TList();
     TList* newKeys = 0;
 
+    bool checkType = (type.size() > 0);
+
     while ((key=(TKey*)iter->Next())) {
 
-        if(key->ReadObj()->InheritsFrom(type.c_str()))
-        {
+        if (checkType) {
+            if(!inheritsFrom && key->GetClassName() == type.c_str())  {
+                keysOfType->Add(key);
+            }
+            else if(inheritsFrom && key->ReadObj()->InheritsFrom(type.c_str()))  {
+                keysOfType->Add(key);
+            }
+        }
+        else {
             keysOfType->Add(key);
         }
 
         // traverse directories in a DFS manner (recursively)
-        if(key->IsFolder() && strcmp(key->GetClassName(), "TDirectoryFile") == 0)
+        if(key->IsFolder() && std::string(key->GetClassName()) == "TDirectoryFile")
         {
             subdir = (TDirectoryFile*)key->ReadObj();
-            newKeys = getListOfALLKeys(subdir, type);
+            newKeys = getListOfALLKeys(subdir, type, inheritsFrom);
             keysOfType->AddAll(newKeys);
         }
     }
 
     return keysOfType;
 }
-
 
 /*
  * get list of histograms under a directory "dir" for objects of a given "type"
@@ -329,6 +294,25 @@ TList* getListOfALLCanvases(TDirectoryFile* dir)
     }
 
     return canvases;
+}
+
+/*
+ * return the path of the Key inside file.
+ */
+std::string getKeyPath(TKey* key)
+{
+    TDirectory* dir = key->GetMotherDir();
+    std::string dirPath = dir->GetPath();
+
+    size_t indexStart = dirPath.find(":/")+2;
+    if (indexStart == std::string::npos)  indexStart = 0;
+    dirPath = dirPath.substr(indexStart, dirPath.size());
+
+    if (dirPath.size() > 0) {
+        return Form("%s/%s", dirPath.c_str(), key->GetName());
+    }
+    else
+        return key->GetName();
 }
 
 /*
