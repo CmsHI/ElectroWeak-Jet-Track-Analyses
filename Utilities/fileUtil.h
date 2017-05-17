@@ -16,6 +16,8 @@
 #include <string>
 #include <iostream>
 
+#include "systemUtil.h"
+
 #ifndef FILEUTIL_H_
 #define FILEUTIL_H_
 
@@ -27,6 +29,7 @@ TList*   getListOfGIVENKeys(TDirectoryFile* dir, std::vector<std::string> keyNam
 TList*   getListOfALLKeys (TDirectoryFile* dir);
 TList*   getListOfALLKeys (TDirectoryFile* dir, std::string type);
 TList*   getListOfALLKeys (TDirectoryFile* dir, std::string type, bool inheritsFrom);
+TList*   getListOfMatchedKeys (TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom);
 TList*   getListOfHistograms     (TDirectoryFile* dir, std::string pattern="");
 TList*   getListOfGIVENHistograms(TDirectoryFile* dir, std::vector<std::string> histoNames);
 TList*   getListOfALLHistograms(TDirectoryFile* dir);
@@ -35,8 +38,11 @@ TList*   getListOfALLCanvases(TDirectoryFile* dir);
 std::string getKeyPath(TKey* key);
 
 void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
+void     saveHistogramsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
 void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
+void     saveGraphsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
 void     saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
+void     saveCanvasesToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="");
 
 /*
  * return 0 , if the file is good to read.
@@ -184,6 +190,11 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type)
  */
 TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom)
 {
+    return getListOfMatchedKeys(dir, "", type, inheritsFrom);
+}
+
+TList* getListOfMatchedKeys(TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom)
+{
     if(!inheritsFrom)
         return getListOfALLKeys(dir, type);
 
@@ -199,16 +210,23 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom
 
     while ((key=(TKey*)iter->Next())) {
 
-        if (checkType) {
-            if(!inheritsFrom && key->GetClassName() == type.c_str())  {
+        std::string keyPath = getKeyPath(key);
+
+        bool matched = true;
+        if (regex.size() > 0)  matched = matchesRegex(keyPath, regex);
+
+        if (matched) {
+            if (checkType) {
+                if(!inheritsFrom && key->GetClassName() == type.c_str())  {
+                    keysOfType->Add(key);
+                }
+                else if(inheritsFrom && key->ReadObj()->InheritsFrom(type.c_str()))  {
+                    keysOfType->Add(key);
+                }
+            }
+            else {
                 keysOfType->Add(key);
             }
-            else if(inheritsFrom && key->ReadObj()->InheritsFrom(type.c_str()))  {
-                keysOfType->Add(key);
-            }
-        }
-        else {
-            keysOfType->Add(key);
         }
 
         // traverse directories in a DFS manner (recursively)
@@ -318,9 +336,14 @@ std::string getKeyPath(TKey* key)
 /*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType /* ="gif" */, std::string directoryToBeSavedIn /* ="" */, int styleIndex /* =0 */, int rebin /* =1 */)
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int styleIndex, int rebin)
 {
-    TList* keysHisto = getListOfALLKeys(dir, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
+    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, styleIndex, rebin);
+}
+
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int styleIndex, int rebin)
+{
+    TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
     TH1*  h = 0;
     TKey*  key = 0;
@@ -364,9 +387,14 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType /* ="g
 /*
  * save recursively all the graphs inside a TDirectoryFile "dir" to images
  */
-void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType /* ="gif" */, std::string directoryToBeSavedIn /* ="" */, int styleIndex /* =0 */)
+void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int styleIndex)
 {
-    TList* keysGraph = getListOfALLKeys(dir, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
+    saveGraphsToPicture(dir, "", fileType, directoryToBeSavedIn, styleIndex);
+}
+
+void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int styleIndex)
+{
+    TList* keysGraph = getListOfMatchedKeys(dir, regex, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
 
     TGraph* graph = 0;
     TKey*  key = 0;
@@ -397,9 +425,14 @@ void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType /* ="gif" 
     c1->Close();
 }
 
-void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType /* ="gif" */, std::string directoryToBeSavedIn /* ="" */)
+void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
 {
-    TList* keysCanvas = getListOfALLKeys(dir, "TCanvas", true);  // all canvases that inherit from "TCanvas" will be saved to picture.
+    saveCanvasesToPicture(dir, "", fileType, directoryToBeSavedIn);
+}
+
+void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
+{
+    TList* keysCanvas = getListOfMatchedKeys(dir, regex,"TCanvas", true);  // all canvases that inherit from "TCanvas" will be saved to picture.
 
     TCanvas* c = new TCanvas();
     TKey*  key = 0;
