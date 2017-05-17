@@ -18,6 +18,8 @@
 namespace ARGUMENTPARSER{
 
 const std::string noLoop = "--noLoop";
+const std::string wildCard = "--wc";
+const std::string format = "--format";
 
 }
 
@@ -26,6 +28,8 @@ class ArgumentParser {
 public :
     static std::vector<std::string> ParseParameters(int argc, char** argv);
     static std::vector<std::string> ParseOptions(int argc, char** argv);
+    static std::vector<std::string> ParseOptionInput(std::string optionType, std::string option);
+    static std::vector<std::string> ParseOptionInput(std::string optionType, std::vector<std::string> options);
 };
 
 /*
@@ -61,6 +65,42 @@ std::vector<std::string> ArgumentParser::ParseOptions(int argc, char** argv)
     }
 
     return list;
+}
+
+/*
+ * Some options come with an input, parse the input
+ * Ex. optionType = "--wc"
+ *     value = "--wc=AAA*BB*,123?ABC*"
+ *     returns {AAA*BB*, 123?ABC*}
+ * Ex. optionType = "--noLoop"
+ *     value = "--noLoop"   // there is no input for this option
+ *     returns {}           // return empty list
+ */
+std::vector<std::string> ArgumentParser::ParseOptionInput(std::string optionType, std::string option)
+{
+    if (option.find(Form("%s=", optionType.c_str())) != std::string::npos)
+        option = replaceAll(option, Form("%s=", optionType.c_str()), "");
+    else
+        return {};
+
+    if (optionType == ARGUMENTPARSER::wildCard) {
+        if (option.find(",") != std::string::npos) return split(option, ",");
+        else                                       return {option};
+    }
+    else {
+        return {option};
+    }
+}
+
+std::vector<std::string> ArgumentParser::ParseOptionInput(std::string optionType, std::vector<std::string> options)
+{
+    for (std::vector<std::string>::const_iterator it = options.begin() ; it != options.end(); ++it){
+        if ((*it).find(optionType.c_str()) != std::string::npos) {
+            return ParseOptionInput(optionType, (*it));
+        }
+    }
+
+    return {};
 }
 
 #endif
