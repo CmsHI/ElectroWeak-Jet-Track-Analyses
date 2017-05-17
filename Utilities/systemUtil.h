@@ -11,15 +11,19 @@
 #include <iostream>
 #include <fstream>      // ifstream, ofstream
 #include <algorithm>    // std::transform
+#include <regex>
 
 bool        fileExists(std::string filename);
 int         replaceStringInFile(std::string file, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
+std::string wildCard2Regex(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter);
 bool startsWith(std::string str, std::string substr);
 bool endsWith(std::string str, std::string substr);
+bool matchesRegex(std::string str, std::string regexStr);
+bool matchesWildCard(std::string str, std::string wcStr);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
@@ -115,6 +119,31 @@ std::string toLowerCase(std::string str)
 }
 
 /*
+ * convert a "wildcard" expression to "regex" expression
+ */
+std::string wildCard2Regex(std::string str)
+{
+    str = replaceAll(str, "\\", "\\\\");
+    str = replaceAll(str, "^", "\\^");
+    str = replaceAll(str, ".", "\\.");
+    str = replaceAll(str, "$", "\\$");
+    str = replaceAll(str, "|", "\\|");
+    str = replaceAll(str, "(", "\\(");
+    str = replaceAll(str, ")", "\\)");
+    str = replaceAll(str, "[", "\\[");
+    str = replaceAll(str, "]", "\\]");
+    str = replaceAll(str, "*", "\\*");
+    str = replaceAll(str, "+", "\\+");
+    str = replaceAll(str, "?", "\\?");
+    str = replaceAll(str, "/", "\\/");
+    // Convert chars '*?' back to their regex equivalents
+    str = replaceAll(str, "\\?", ".");
+    str = replaceAll(str, "\\*", ".*");
+
+    return str;
+}
+
+/*
  * split the string wrt. a delimiter and return a vector of substrings.
  * delimiter can be longer than a single character.
  * empty substrings are included.
@@ -156,6 +185,24 @@ bool endsWith(std::string str, std::string substr)
 {
     if (str.size() < substr.size()) return false;
     return str.compare(str.size() - substr.size(), substr.size(), substr.c_str()) == 0;
+}
+
+/*
+ * return true if string "str" matches the regex "strRegex"
+ */
+bool matchesRegex(std::string str, std::string regexStr)
+{
+    std::regex regexTmp(regexStr.c_str());
+
+    return regex_match(str, regexTmp);
+}
+
+/*
+ * return true if string "str" matches the wildcard "wcStr"
+ */
+bool matchesWildCard(std::string str, std::string wcStr)
+{
+    return matchesRegex(str, wildCard2Regex(wcStr));
 }
 
 /*
