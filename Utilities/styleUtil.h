@@ -38,6 +38,8 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
 void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX = 0, double offsetY = 0);
 double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
 double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
+int    calcNrows(int nPads);
+int    calcNcolumns(int nPads);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
@@ -391,6 +393,51 @@ double calcNormCanvasHeight(int rows, float bottomMargin, float topMargin, float
     y_max[0] += topMargin - yMargin/2;
 
     return y_max[0];
+}
+
+/*
+ * for a given number of pads calculate the number of rows that would give a visually fine multipanel canvas.
+ */
+int calcNrows(int nPads)
+{
+    int columns = calcNcolumns(nPads);
+    int x = (int)nPads/columns;
+    if (x*columns == nPads)
+        return x;
+    else
+        return x+1;
+}
+
+/*
+ * for a given number of pads calculate the number of columns that would give a visually fine multipanel canvas.
+ */
+int calcNcolumns(int nPads)
+{
+    if (nPads > 4) {
+        int x = (int)TMath::Sqrt(nPads);
+        if (x*x == nPads) {   // nPads is perfect square.
+            return x;         // Ex. nPads = 9;16 cols = 3;4
+        }
+        else {
+            // prefer more columns than more rows
+            x+=1;
+            // make sure the number of pads in the last row is not less than half of the columns
+            int r = (int)nPads/x;
+            if (r*x == nPads)
+                return x;   // Ex. nPads = 12, cols = 4, rows = 3
+            else {
+                int nPadsLastRow = nPads % x;
+                if ((x+1)*r == nPads)
+                    return x+1;     // Ex. nPads = 8;10 --> x = 3;4, r = 2;4 --> cols = 4;5
+                else if (nPadsLastRow > 0 && nPadsLastRow <= x/2)
+                    return x+1;     // Ex. nPads = 7 --> x = 3, r = 2 --> nPadsLastRow = 1 --> cols = 4
+                else
+                    return x;       // Ex. nPads = 6 --> x = 3, r = 2 --> nPadsLastRow = 0 --> cols = 3
+            }
+        }
+    }
+    else
+        return nPads;
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
