@@ -54,6 +54,8 @@ public :
             ranges[i][1] = -1;  // no upper bound
         }
 
+        dep = -1;
+
         name = "";
         title = "";
         titleX = "";
@@ -82,14 +84,22 @@ public :
     std::string getRangeTextRecoPt();
     std::string getRangeTextHiBin();
 
+    std::string getBinEdgeText(int binLow, int binUp);
+
     void prepareTitle();
 
     void postLoop();
     void writeObjects(TCanvas* c);
 
     TH2D* h2D;
-    TH1D* h1D[2];       // h1D[0] = energy scale histogram
-                        // h1D[1] = energy resolution histogram
+    TH1D* h1D[4];       // h1D[0] = energy scale histogram, mean for a Gaussian fit
+                        // h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
+                        // h1D[2] = Constant for Gaussian fit
+                        // h1D[3] = chi2/ndf for Gaussian fit
+
+    std::vector<TH1D*> h1DsliceY;   // energy scale distribution for each bin along x-axis
+    std::vector<TF1*>  f1sliceY;    // Gaussian fit function for each histogram in h1DsliceY
+    std::vector<TF1*>  f1sliceYv2;  // Gaussian fit function for each histogram seeded by f1sliceY
 
     TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -97,6 +107,8 @@ public :
     bool h2Dinitialized;
     bool hInitialized;
     bool h2DcorrInitialized;
+
+    int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
 
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix
     std::string title;
@@ -208,6 +220,39 @@ std::string energyScaleHist::getRangeTextHiBin()
 }
 
 /*
+ * get range for histograms in "h1DsliceY"
+ *
+ * Ex. dep = ENERGYSCALE::kGENPT
+ *     x-axis of h2D = {20,30,40,50,70,100}
+ *     then
+ *     getBinEdgeText(1, 1) returns "20<p_{T}^{gen}<30"
+ *     getBinEdgeText(2, 2) returns "30<p_{T}^{gen}<40"
+ *     getBinEdgeText(3, 4) returns "40<p_{T}^{gen}<70"
+ */
+std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
+{
+    std::string res = "";
+
+    double xLow = h2D->GetXaxis()->GetBinLowEdge(binLow);
+    double xUp = h2D->GetXaxis()->GetBinUpEdge(binUp);
+
+    if (dep == ENERGYSCALE::kETA) {
+        res  = Form("%.2f < #eta < %.2f", xLow, xUp);
+    }
+    else if (dep == ENERGYSCALE::kGENPT) {
+        res  = Form("%.0f <p_{T}^{gen}< %.0f", xLow, xUp);
+    }
+    else if (dep == ENERGYSCALE::kRECOPT) {
+        res = Form("%.0f <p_{T}^{reco}< %.0f", xLow, xUp);
+    }
+    else if (dep == ENERGYSCALE::kHIBIN) {
+        res = Form("Cent:%.0f-%.0f%%", xLow/2, xUp/2);
+    }
+
+    return res;
+}
+
+/*
  * prepare the object title using the given ranges
  */
 void energyScaleHist::prepareTitle()
@@ -267,7 +312,7 @@ void energyScaleHist::postLoop()
     if (!h2Dinitialized) return;
 
     TObjArray aSlices;
-    h2D->FitSlicesY(0,0,-1,0,"Q LL m", &aSlices);
+    h2D->FitSlicesY(0,0,-1,0,"Q LL M", &aSlices);
 
     // energy scale
     h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
@@ -284,14 +329,64 @@ void energyScaleHist::postLoop()
     setTH1_energyWidth(h1D[1], titleOffsetX, titleOffsetY);
     if (yMax.at(ENERGYSCALE::kERES) > yMin.at(ENERGYSCALE::kERES))
         h1D[1]->SetAxisRange(yMin.at(ENERGYSCALE::kERES), yMax.at(ENERGYSCALE::kERES), "Y");
+
+    // Constant for Gaussian fit
+    h1D[2] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+    h1D[2]->SetTitle(title.c_str());
+    h1D[2]->SetXTitle(titleX.c_str());
+    h1D[2]->SetYTitle("Constant for Gaussian fit");
+    h1D[2]->SetStats(false);
+    h1D[2]->SetMarkerStyle(kFullCircle);
+
+    // chi2/ndf for Gaussian fit
+    h1D[3] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+    h1D[3]->SetTitle(title.c_str());
+    h1D[3]->SetXTitle(titleX.c_str());
+    h1D[3]->SetYTitle("chi2/ndf for Gaussian fit");
+    h1D[3]->SetStats(false);
+    h1D[3]->SetMarkerStyle(kFullCircle);
+
+    // reco pt / gen pt distributions and fits
+    TH1D* hTmp = 0;
+    TF1* fTmp1 = 0;
+    TF1* fTmp2 = 0;
+    int nBinsX = h2D->GetXaxis()->GetNbins();
+    for (int i=1; i<=nBinsX; ++i) {
+        hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
+        hTmp->SetTitleOffset(titleOffsetX, "X");
+        hTmp->SetStats(false);
+        hTmp->SetMarkerStyle(kFullCircle);
+        h1DsliceY.push_back(hTmp);
+
+        fTmp1 = new TF1(Form("f1_projYbin%d_%s", i, name.c_str()), "gaus", 0, 2);
+        double p0 = h1D[2]->GetBinContent(i);   // constant
+        double p1 = h1D[0]->GetBinContent(i);   // mean
+        double p2 = h1D[1]->GetBinContent(i);   // StdDev
+        fTmp1->SetParameters(p0, p1, p2);
+        fTmp1->SetLineColor(kBlue);
+        //        double chi2ndf = h1D[3]->GetBinContent(i);
+        //        f1Tmp->SetChisquare(chi2ndf*100);
+        //        f1Tmp->SetNDF(100);
+        f1sliceY.push_back(fTmp1);
+
+        fTmp2 = (TF1*)fTmp1->Clone(Form("f1_bin%d_%s", i, name.c_str()));
+        fTmp2->SetRange(0.6, 1.5);
+        fTmp2->SetLineColor(kRed);
+        hTmp->Fit(fTmp2, "Q M R N");
+        // option = "N", Do not store the graphics function as part of the histogram and do not draw with the histogram
+        f1sliceYv2.push_back(fTmp2);
+    }
 }
 
 /*
+ * write histograms with a particular dependence
  * use "c" as a template
+ *
+ * The objects in h1DsliceY, f1sliceY, f1sliceYv2 will not be written so as not to inflate output file size.
+ * But they will be plotted on an multipanel canvas and that canvas will be written.
  */
 void energyScaleHist::writeObjects(TCanvas* c)
 {
-    // write histograms with a particular dependence
     if (hInitialized) {
         h->SetMarkerStyle(kFullCircle);
         h->Write();
@@ -336,9 +431,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
     // draw line y = 1
     float x1 = h1D[0]->GetXaxis()->GetXmin();
     float x2 = h1D[0]->GetXaxis()->GetXmax();
-    TLine line(x1, 1, x2,1);
-    line.SetLineStyle(kDashed);
-    line.Draw();
+    TLine* line = new TLine();
+    line = new TLine(x1, 1, x2, 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -353,6 +449,57 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[1]->Write("",TObject::kOverwrite);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
+
+    // plot 1D reco pt / gen pt distribution for each bin along x-axis
+    int nH1DsliceY = h1DsliceY.size();
+    int columns = calcNcolumns(nH1DsliceY);
+    int rows = calcNrows(nH1DsliceY);
+
+    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, 0);
+    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, 0);
+    c = new TCanvas(Form("cnv_projY_%s", name.c_str()),"",windowWidth,windowHeight);
+    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+    setCanvasFinal(c);
+    c->cd();
+
+    int nPads = rows * columns;
+    TPad* pads[nPads];
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
+
+    TLatex* latex = new TLatex();
+    for (int i = 0; i < nH1DsliceY; ++i) {
+        c->cd(i+1);
+
+        h1DsliceY[i]->SetMarkerSize(markerSize);
+        //h1DsliceY[i]->Draw("axis");     // for now draw only axis, points will be plotted after the fit functions
+        h1DsliceY[i]->Draw("e");
+
+        pads[i]->Update();
+        float y1 = gPad->GetUymin();
+        float y2 = gPad->GetUymax();
+
+        line = new TLine(1, y1, 1, y2);
+        line->SetLineStyle(kDashed);
+        line->Draw();
+
+        f1sliceY[i]->Draw("same");
+        f1sliceYv2[i]->Draw("same");
+        h1DsliceY[i]->Draw("e same");   // points should line above functions
+
+        std::vector<std::string> textLinesTmp;
+        std::string textLineTmp = getBinEdgeText(i+1, i+1);
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+    }
+    c->Write("",TObject::kOverwrite);
+    // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
+
+    line->Delete();
+    latex->Delete();
+    for (int i = 0; i < nPads; ++i) {
+        if (pads[i] != 0)  pads[i]->Delete();
+    }
     c->Close();         // do not use Delete() for TCanvas.
 }
 

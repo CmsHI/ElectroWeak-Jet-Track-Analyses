@@ -951,6 +951,8 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
                             std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
 
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].dep = iDep;
+
                             // disable the cuts/ranges for this dependence
                             // Ex. If the dependence is GenPt (GenPt is the x-axis),
                             // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
@@ -1225,10 +1227,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     std::vector<std::string> textLinesTmp;
 
-    bool writeTextEta = (iDep != ENERGYSCALE::DEPS::kETA);
-    bool writeTextGenPt = (iDep != ENERGYSCALE::DEPS::kGENPT);
-    bool writeTextRecoPt = (iDep != ENERGYSCALE::DEPS::kRECOPT);
-    bool writeTextHiBin = (iDep != ENERGYSCALE::DEPS::kHIBIN);
+    bool writeTextEta = (iDep != ENERGYSCALE::kETA);
+    bool writeTextGenPt = (iDep != ENERGYSCALE::kGENPT);
+    bool writeTextRecoPt = (iDep != ENERGYSCALE::kRECOPT);
+    bool writeTextHiBin = (iDep != ENERGYSCALE::kHIBIN);
 
     std::string textLineTmp;
     if (iEta == -1) {
