@@ -36,6 +36,10 @@ void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
+std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction = "LR");
+int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
+int getRightBin4IntegralFraction(TH1D* h, int binStart, double fraction);
+std::vector<int> getLeftRightBins4IntegralFraction(TH1D* h, int binStart, double fraction);
 TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TH1* hRef);
 TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
@@ -325,6 +329,103 @@ std::vector<double> calcBinsLogScale(double min, double max, double nBins)
     bins.push_back(max);
 
     return bins;
+}
+
+/*
+ * start from binStart and return the shortest range [bin1, bin2] which contains "fraction" of the integral.
+ * "direction" can take 3 values :
+ * "L" : look at the bins to the left of binStart, by definition bin2 = binStart
+ * "R" : look at the bins to the right of binStart, by definition bin1 = binStart
+ * "LR" : look at the bins to the left and right of binStart, in that case binStart sits at the center
+ */
+std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction)
+{
+    double intTot = h->Integral();
+    double intFrac = intTot*fraction;
+
+    if (direction == "L") {
+        int bin = binStart;
+
+        while (h->Integral(bin, binStart) < intFrac && bin >= 0) {
+            --bin;
+
+            if (h->Integral(bin, binStart) >= intFrac) {
+                return {bin, binStart};
+            }
+        }
+
+        return {bin, binStart};
+    }
+    else if (direction == "R") {
+        int bin = binStart;
+        int n = h->GetNbinsX();
+
+        while (h->Integral(binStart, bin) < intFrac && bin <= n+1) {
+            ++bin;
+
+            if (h->Integral(binStart, bin) >= intFrac) {
+                return {binStart, bin};
+            }
+        }
+
+        return {binStart, bin};
+    }
+    else if (direction == "LR") {
+        int bin1 = binStart;
+        int bin2 = binStart;
+
+        while (h->Integral(bin1, bin2) < intFrac) {
+
+            double f1 = h->Integral(bin1-1, bin2);
+            double f2 = h->Integral(bin1, bin2+1);
+
+            // choose the bin range that is just above the fraction
+            if (f1 >= intFrac && f2 >= intFrac) {
+                if (f1 < f2) return {bin1-1, bin2};
+                else         return {bin1, bin2+1};
+            }
+            else if (f1 >= intFrac) {
+                return {bin1-1, bin2};
+            }
+            else if (f2 >= intFrac) {
+                return {bin1, bin2+1};
+            }
+            else {
+                --bin1;
+                ++bin2;
+            }
+        }
+
+        return {bin1, bin2};
+    }
+    else {
+        return {-1, -1};
+    }
+}
+
+/*
+ * start from binStart, go left and return the closest bin such that range [bin, binStart] contains "fraction" of the integral.
+ */
+int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction)
+{
+    return getBinRange4IntegralFraction(h, binStart, fraction, "L").at(0);
+}
+
+/*
+ * start from binStart, go right and return the closest bin such that range [binStart, bin] contains "fraction" of the integral.
+ */
+int getRightBin4IntegralFraction(TH1D* h, int binStart, double fraction)
+{
+    return getBinRange4IntegralFraction(h, binStart, fraction, "R").at(1);
+}
+
+/*
+ * start from binStart, go left/right and return the shortest range [bin1, bin2] which contains "fraction" of the integral.
+ * binStart sits at the center
+ */
+std::vector<int> getLeftRightBins4IntegralFraction(TH1D* h, int binStart, double fraction)
+{
+    return getBinRange4IntegralFraction(h, binStart, fraction, "LR");
 }
 
 /*
