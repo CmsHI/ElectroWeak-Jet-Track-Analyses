@@ -65,11 +65,11 @@ public :
         yMin = {0, 0};
         yMax = {-1, -1};
 
-        fitFncs = {"gaus"};
-        fitOptions = {"Q M R N"};
-        fitFncs_xMin = {0.6};
-        fitFncs_xMax = {1.5};
-        fitColors = {kRed};
+        fitFncs = {};        // {"gaus"};
+        fitOptions = {};     // {"Q M R N"};
+        fitFncs_xMin = {};
+        fitFncs_xMax = {};
+        fitColors = {};
 
         for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
             ranges[i][0] = 0;
@@ -105,9 +105,14 @@ public :
                         // h1D[3] = chi2/ndf for Gaussian fit
 
     std::vector<TH1D*> h1DsliceY;   // energy scale distribution for each bin along x-axis
-    std::vector<TF1*>  f1sliceY;    // Gaussian fit function for each histogram in h1DsliceY
-    std::vector<std::vector<TF1*>>  f1s;  // Fit functions for each histogram in h1DsliceY, seed by f1sliceY if a function is Gaussian.
-    // f1s is 2D vector with [nBinsX][nFitFncs]
+    std::vector<std::vector<TF1*>>  f1s;    // Fit functions for each histogram in h1DsliceY
+                                            // f1s is 2D vector with [nBinsX][nFitFncs]
+                                            // f1s[i][0] = initial fit from TH2::FitSlicesY
+                                            // f1s[i][1] = fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
+                                            // f1s[i][2] = fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
+    std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
+                                            // They are seed by f1sliceY if a function is Gaussian.
+                                            // f1sv2 is 2D vector with [nBinsX][nFitFncs]
 
     TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -130,7 +135,7 @@ public :
     std::vector<float> yMax;
 
     // fit functions for reco pt / gen pt distributiıon
-    // These functions are in addition to the one invoked by TH2::FitSlicesY
+    // These functions are in these functions are input from user.
     std::vector<std::string> fitFncs;
     std::vector<std::string> fitOptions;
     std::vector<double> fitFncs_xMin;
@@ -278,25 +283,25 @@ void energyScaleHist::updateFncs()
 
     if (nFitFncs > nFitOptions) {
         for (int i = 0; i < nFitFncs-nFitOptions; ++i) {
-            fitOptions.push_back(fitOptions.at(0).c_str());
+            fitOptions.push_back(fitOptions[0].c_str());
         }
     }
 
     if (nFitFncs > nFitFncs_xMin) {
         for (int i = 0; i < nFitFncs-nFitFncs_xMin; ++i) {
-            fitFncs_xMin.push_back(fitFncs_xMin.at(0));
+            fitFncs_xMin.push_back(fitFncs_xMin[0]);
         }
     }
 
     if (nFitFncs > nFitFncs_xMax) {
         for (int i = 0; i < nFitFncs-nFitFncs_xMax; ++i) {
-            fitFncs_xMax.push_back(fitFncs_xMax.at(0));
+            fitFncs_xMax.push_back(fitFncs_xMax[0]);
         }
     }
 
     if (nFitFncs > nFitColors) {
         for (int i = 0; i < nFitFncs-nFitColors; ++i) {
-            fitColors.push_back(fitColors.at(0));
+            fitColors.push_back(fitColors[0]);
         }
     }
 }
@@ -361,23 +366,23 @@ void energyScaleHist::postLoop()
     if (!h2Dinitialized) return;
 
     TObjArray aSlices;
-    h2D->FitSlicesY(0,0,-1,0,"Q LL M", &aSlices);
+    h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
     // energy scale
     h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
     h1D[0]->SetTitle(title.c_str());
     h1D[0]->SetXTitle(titleX.c_str());
     setTH1_energyScale(h1D[0], titleOffsetX, titleOffsetY);
-    if (yMax.at(ENERGYSCALE::kESCALE) > yMin.at(ENERGYSCALE::kESCALE))
-        h1D[0]->SetAxisRange(yMin.at(ENERGYSCALE::kESCALE), yMax.at(ENERGYSCALE::kESCALE), "Y");
+    if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
+        h1D[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
     // width of energy scale
     h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
     h1D[1]->SetTitle(title.c_str());
     h1D[1]->SetXTitle(titleX.c_str());
     setTH1_energyWidth(h1D[1], titleOffsetX, titleOffsetY);
-    if (yMax.at(ENERGYSCALE::kERES) > yMin.at(ENERGYSCALE::kERES))
-        h1D[1]->SetAxisRange(yMin.at(ENERGYSCALE::kERES), yMax.at(ENERGYSCALE::kERES), "Y");
+    if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+        h1D[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
     // Constant for Gaussian fit
     h1D[2] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
@@ -407,8 +412,11 @@ void energyScaleHist::postLoop()
         hTmp->SetMarkerStyle(kFullCircle);
         h1DsliceY.push_back(hTmp);
 
-        // fit from TH2::FitSlicesY
-        f1Tmp = new TF1(Form("f1_projYbin%d_%s", i, name.c_str()), "gaus", 0, 2);
+        // fit functions for that bin along x-axis
+        std::vector<TF1*> f1sTmp;
+
+        // initial fit from TH2::FitSlicesY
+        f1Tmp = new TF1(Form("f1_bin%d_fnc0_%s", i, name.c_str()), "gaus", 0, 2);
         double p0 = h1D[2]->GetBinContent(i);   // constant
         double p1 = h1D[0]->GetBinContent(i);   // mean
         double p2 = h1D[1]->GetBinContent(i);   // StdDev
@@ -417,27 +425,54 @@ void energyScaleHist::postLoop()
         //        double chi2ndf = h1D[3]->GetBinContent(i);
         //        f1Tmp->SetChisquare(chi2ndf*100);
         //        f1Tmp->SetNDF(100);
-        f1sliceY.push_back(f1Tmp);
+        f1sTmp.push_back(f1Tmp);
 
-        int nFitFncs = fitFncs.size();
-        std::vector<TF1*> f1sTmp;   // fit functions for that bin along x-axis
-        for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
-            std::string f1Name = Form("f1_bin%d_fnc%d_%s", i, iFnc+1, name.c_str());
-            if (nFitFncs == 1)  f1Name = Form("f1_bin%d_%s", i, name.c_str());
+        int binMax = hTmp->GetMaximumBin();
+        int nBinsTmp = hTmp->GetNbinsX();
+        std::string option = "Q M R N";
 
-            std::string fitFnc = fitFncs.at(iFnc);
-            f1Tmp = new TF1(f1Name.c_str(), fitFnc.c_str(), fitFncs_xMin.at(iFnc), fitFncs_xMax.at(iFnc));
+        // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
+        // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
+        std::vector<std::string> fncFormulas = {"gaus", "gaus"};
+        std::vector<double> fractions = {0.98, 0.95};
+        std::vector<int> fncColors = {kViolet, kRed};
 
-            if (fitFnc == "gaus") {
+        int nFnc = fncFormulas.size();
+        for (int iFnc = 0; iFnc < nFnc; ++iFnc) {
+
+            std::vector<int> range = getLeftRightBins4IntegralFraction(h, binMax, fractions[iFnc]);
+            int binLow = std::max(range[0], 1);
+            int binUp = std::min(range[1], nBinsTmp);
+            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc+1, name.c_str()), fncFormulas[iFnc].c_str(), hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
+            f1Tmp->SetLineColor(fncColors[iFnc]);
+            if (fncFormulas[iFnc] == "gaus") {
                 // use the fit from TH2::FitSlicesY as seed
                 f1Tmp->SetParameters(p0, p1, p2);
             }
-            f1Tmp->SetLineColor(fitColors.at(iFnc));
-
-            hTmp->Fit(f1Tmp, fitOptions.at(iFnc).c_str());
+            hTmp->Fit(f1Tmp, option.c_str());
             f1sTmp.push_back(f1Tmp);
         }
         f1s.push_back(f1sTmp);
+
+        int nFncsv2 = fitFncs.size();
+        // fit functions for that bin along x-axis
+        std::vector<TF1*> f1sv2Tmp;
+        for (int iFnc = 0; iFnc < nFncsv2; ++iFnc) {
+            std::string f1Name = Form("f1_bin%d_fncv2%d_%s", i, iFnc+1, name.c_str());
+
+            std::string formulaTmp = fitFncs[iFnc];
+            f1Tmp = new TF1(f1Name.c_str(), formulaTmp.c_str(), fitFncs_xMin[iFnc], fitFncs_xMax[iFnc]);
+
+            if (formulaTmp == "gaus") {
+                // use the fit from TH2::FitSlicesY as seed
+                f1Tmp->SetParameters(p0, p1, p2);
+            }
+            f1Tmp->SetLineColor(fitColors[iFnc]);
+
+            hTmp->Fit(f1Tmp, fitOptions[iFnc].c_str());
+            f1sv2Tmp.push_back(f1Tmp);
+        }
+        f1sv2.push_back(f1sv2Tmp);
     }
 }
 
@@ -546,11 +581,16 @@ void energyScaleHist::writeObjects(TCanvas* c)
         line->SetLineStyle(kDashed);
         line->Draw();
 
-        f1sliceY[i]->Draw("same");
         int nFitFncs = f1s[i].size();
         for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
-            f1s[i].at(iFnc)->Draw("same");
+            f1s[i][iFnc]->Draw("same");
         }
+
+        int nFitFncsv2 = f1sv2[i].size();
+        for (int iFnc = 0; iFnc < nFitFncsv2; ++iFnc) {
+            f1sv2[i][iFnc]->Draw("same");
+        }
+
         h1DsliceY[i]->Draw("e same");   // points should line above functions
 
         std::vector<std::string> textLinesTmp;
