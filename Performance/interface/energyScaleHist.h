@@ -48,11 +48,9 @@ const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes"};
 class energyScaleHist {
 public :
     energyScaleHist(){
-
-        for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
-            ranges[i][0] = 0;
-            ranges[i][1] = -1;  // no upper bound
-        }
+        h2Dinitialized = false;
+        hInitialized = false;
+        h2DcorrInitialized = false;
 
         dep = -1;
 
@@ -67,9 +65,16 @@ public :
         yMin = {0, 0};
         yMax = {-1, -1};
 
-        h2Dinitialized = false;
-        hInitialized = false;
-        h2DcorrInitialized = false;
+        fitFncs = {"gaus"};
+        fitOptions = {"Q M R N"};
+        fitFncs_xMin = {0.6};
+        fitFncs_xMax = {1.5};
+        fitColors = {kRed};
+
+        for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
+            ranges[i][0] = 0;
+            ranges[i][1] = -1;  // no upper bound
+        }
     };
     ~energyScaleHist(){};
 
@@ -86,6 +91,8 @@ public :
 
     std::string getBinEdgeText(int binLow, int binUp);
 
+    void updateFncs();
+
     void prepareTitle();
 
     void postLoop();
@@ -99,7 +106,8 @@ public :
 
     std::vector<TH1D*> h1DsliceY;   // energy scale distribution for each bin along x-axis
     std::vector<TF1*>  f1sliceY;    // Gaussian fit function for each histogram in h1DsliceY
-    std::vector<TF1*>  f1sliceYv2;  // Gaussian fit function for each histogram seeded by f1sliceY
+    std::vector<std::vector<TF1*>>  f1s;  // Fit functions for each histogram in h1DsliceY, seed by f1sliceY if a function is Gaussian.
+    // f1s is 2D vector with [nBinsX][nFitFncs]
 
     TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -120,6 +128,14 @@ public :
     std::vector<float> xMax;
     std::vector<float> yMin;
     std::vector<float> yMax;
+
+    // fit functions for reco pt / gen pt distributiıon
+    // These functions are in addition to the one invoked by TH2::FitSlicesY
+    std::vector<std::string> fitFncs;
+    std::vector<std::string> fitOptions;
+    std::vector<double> fitFncs_xMin;
+    std::vector<double> fitFncs_xMax;
+    std::vector<int> fitColors;
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
@@ -252,6 +268,39 @@ std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
     return res;
 }
 
+void energyScaleHist::updateFncs()
+{
+    int nFitFncs = fitFncs.size();
+    int nFitOptions = fitOptions.size();
+    int nFitFncs_xMin = fitFncs_xMin.size();
+    int nFitFncs_xMax = fitFncs_xMax.size();
+    int nFitColors = fitColors.size();
+
+    if (nFitFncs > nFitOptions) {
+        for (int i = 0; i < nFitFncs-nFitOptions; ++i) {
+            fitOptions.push_back(fitOptions.at(0).c_str());
+        }
+    }
+
+    if (nFitFncs > nFitFncs_xMin) {
+        for (int i = 0; i < nFitFncs-nFitFncs_xMin; ++i) {
+            fitFncs_xMin.push_back(fitFncs_xMin.at(0));
+        }
+    }
+
+    if (nFitFncs > nFitFncs_xMax) {
+        for (int i = 0; i < nFitFncs-nFitFncs_xMax; ++i) {
+            fitFncs_xMax.push_back(fitFncs_xMax.at(0));
+        }
+    }
+
+    if (nFitFncs > nFitColors) {
+        for (int i = 0; i < nFitFncs-nFitColors; ++i) {
+            fitColors.push_back(fitColors.at(0));
+        }
+    }
+}
+
 /*
  * prepare the object title using the given ranges
  */
@@ -348,8 +397,8 @@ void energyScaleHist::postLoop()
 
     // reco pt / gen pt distributions and fits
     TH1D* hTmp = 0;
-    TF1* fTmp1 = 0;
-    TF1* fTmp2 = 0;
+    TF1* f1Tmp = 0;
+    updateFncs();
     int nBinsX = h2D->GetXaxis()->GetNbins();
     for (int i=1; i<=nBinsX; ++i) {
         hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
@@ -358,23 +407,37 @@ void energyScaleHist::postLoop()
         hTmp->SetMarkerStyle(kFullCircle);
         h1DsliceY.push_back(hTmp);
 
-        fTmp1 = new TF1(Form("f1_projYbin%d_%s", i, name.c_str()), "gaus", 0, 2);
+        // fit from TH2::FitSlicesY
+        f1Tmp = new TF1(Form("f1_projYbin%d_%s", i, name.c_str()), "gaus", 0, 2);
         double p0 = h1D[2]->GetBinContent(i);   // constant
         double p1 = h1D[0]->GetBinContent(i);   // mean
         double p2 = h1D[1]->GetBinContent(i);   // StdDev
-        fTmp1->SetParameters(p0, p1, p2);
-        fTmp1->SetLineColor(kBlue);
+        f1Tmp->SetParameters(p0, p1, p2);
+        f1Tmp->SetLineColor(kBlue);
         //        double chi2ndf = h1D[3]->GetBinContent(i);
         //        f1Tmp->SetChisquare(chi2ndf*100);
         //        f1Tmp->SetNDF(100);
-        f1sliceY.push_back(fTmp1);
+        f1sliceY.push_back(f1Tmp);
 
-        fTmp2 = (TF1*)fTmp1->Clone(Form("f1_bin%d_%s", i, name.c_str()));
-        fTmp2->SetRange(0.6, 1.5);
-        fTmp2->SetLineColor(kRed);
-        hTmp->Fit(fTmp2, "Q M R N");
-        // option = "N", Do not store the graphics function as part of the histogram and do not draw with the histogram
-        f1sliceYv2.push_back(fTmp2);
+        int nFitFncs = fitFncs.size();
+        std::vector<TF1*> f1sTmp;   // fit functions for that bin along x-axis
+        for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
+            std::string f1Name = Form("f1_bin%d_fnc%d_%s", i, iFnc+1, name.c_str());
+            if (nFitFncs == 1)  f1Name = Form("f1_bin%d_%s", i, name.c_str());
+
+            std::string fitFnc = fitFncs.at(iFnc);
+            f1Tmp = new TF1(f1Name.c_str(), fitFnc.c_str(), fitFncs_xMin.at(iFnc), fitFncs_xMax.at(iFnc));
+
+            if (fitFnc == "gaus") {
+                // use the fit from TH2::FitSlicesY as seed
+                f1Tmp->SetParameters(p0, p1, p2);
+            }
+            f1Tmp->SetLineColor(fitColors.at(iFnc));
+
+            hTmp->Fit(f1Tmp, fitOptions.at(iFnc).c_str());
+            f1sTmp.push_back(f1Tmp);
+        }
+        f1s.push_back(f1sTmp);
     }
 }
 
@@ -484,7 +547,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
         line->Draw();
 
         f1sliceY[i]->Draw("same");
-        f1sliceYv2[i]->Draw("same");
+        int nFitFncs = f1s[i].size();
+        for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
+            f1s[i].at(iFnc)->Draw("same");
+        }
         h1DsliceY[i]->Draw("e same");   // points should line above functions
 
         std::vector<std::string> textLinesTmp;
