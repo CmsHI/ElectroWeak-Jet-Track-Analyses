@@ -58,6 +58,13 @@ std::vector<CONFIGPARSER::TH1Axis> TH1D_Axis_List;
 // this bin list will be used for gen pt - reco pt correlation histogram.
 std::vector<CONFIGPARSER::TH2DAxis> TH2D_Axis_List;
 
+// input for TF1
+std::vector<std::string> TF1_formulas;
+std::vector<std::vector<double>> TF1_ranges;
+std::vector<std::string> fitOptions;
+std::vector<std::string> fitColors;
+std::vector<int> fitColorsInt;
+
 std::vector<float> titleOffsetsX;
 std::vector<float> titleOffsetsY;
 
@@ -106,6 +113,10 @@ float topMargin;
 std::string collisionName;
 int nTH1D_Axis_List;
 int nTH2D_Axis_List;
+
+int nTF1_formulas;
+int nFitOptions;
+int nFitColors;
 
 int nTitleOffsetX;
 int nTitleOffsetY;
@@ -547,6 +558,15 @@ int readConfiguration(const TString configFile)
     // max. y-axis value of energy Scale histogram default : 1.5
     yMax = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_TH1_yMax]);
 
+    // input for TF1
+    TF1_formulas = ConfigurationParser::ParseListTF1Formula(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TF1]);
+    TF1_ranges = ConfigurationParser::ParseListTF1Range(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TF1]);
+    fitOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fitOption]);
+    fitColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fitColor]);
+    for (std::vector<std::string>::const_iterator it = fitColors.begin(); it != fitColors.end(); ++it) {
+        fitColorsInt.push_back(GraphicsConfigurationParser::ParseColor((*it)));
+    }
+
     // input for TH1
     markerSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_markerSize]);
     markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
@@ -637,6 +657,10 @@ int readConfiguration(const TString configFile)
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nTH1D_Axis_List = TH1D_Axis_List.size();
     nTH2D_Axis_List = TH2D_Axis_List.size();
+
+    nTF1_formulas = TF1_formulas.size();    // assume TF1_formulas.size() = TF1_ranges[0].size()
+    nFitOptions = fitOptions.size();
+    nFitColors = fitColors.size();
 
     nLegendEntryLabels = legendEntryLabels.size();
     nLegendPositions = legendPositions.size();
@@ -779,6 +803,24 @@ void printConfiguration()
         for (int i=0; i<nTH2D_Axis_List; ++i) {
             std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Axis_List.at(i));
             std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
+        }
+
+        std::cout << "nTF1_formulas = " << nTF1_formulas << std::endl;
+        std::cout << "nFitOptions = " << nFitOptions << std::endl;
+        std::cout << "nFitColors = " << nFitColors << std::endl;
+        for (int i = 0; i<nTF1_formulas; ++i) {
+            std::cout << Form("TF1_list[%d] = { ", i);
+            std::cout << Form("%s, ", TF1_formulas.at(i).c_str());
+            std::cout << Form("%f, ", TF1_ranges[0].at(i));
+            std::cout << Form("%f }", TF1_ranges[1].at(i));
+
+            std::cout<<std::endl;
+        }
+        for (int i = 0; i<nFitOptions; ++i) {
+            std::cout << Form("fitOptions[%d] = %s", i, fitOptions.at(i).c_str()) << std::endl;
+        }
+        for (int i = 0; i<nFitColors; ++i) {
+            std::cout << Form("fitColors[%d] = %s", i, fitColors.at(i).c_str()) << std::endl;
         }
 
         std::cout << "nTitleOffsetX = " << nTitleOffsetX << std::endl;
@@ -952,6 +994,12 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
 
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].dep = iDep;
+
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].fitFncs = TF1_formulas;
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].fitOptions = fitOptions;
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].fitFncs_xMin = TF1_ranges[0];
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].fitFncs_xMax = TF1_ranges[1];
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].fitColors = fitColorsInt;
 
                             // disable the cuts/ranges for this dependence
                             // Ex. If the dependence is GenPt (GenPt is the x-axis),
