@@ -609,6 +609,10 @@ int readConfiguration(const TString configFile)
 
     if (TH1D_Axis_List.size() == 0) {
         CONFIGPARSER::TH1Axis th1Axis;
+        th1Axis.nBins = 200;
+        th1Axis.xLow = 0;
+        th1Axis.xUp = 2;
+        TH1D_Axis_List.push_back(th1Axis);
         th1Axis.nBins = 12;
         th1Axis.xLow = -2.4;
         th1Axis.xUp = 2.4;
@@ -1008,17 +1012,23 @@ int  preLoop(TFile* input, bool makeNew)
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][0] = 0;
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].ranges[iDep][1] = -1;
 
-                            int nBins = TH1D_Axis_List[iDep].nBins;  // nBins
-                            std::vector<double> bins = TH1D_Axis_List[iDep].bins;
+                            // extract the x-axis bin information for energy scale distribution
+                            CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[0];
+
+                            int iAxis = iDep+1;
+                            int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
+                            std::vector<double> bins = TH1D_Axis_List[iAxis].bins;
 
                             double arr[nBins+1];
                             std::copy(bins.begin(), bins.end(), arr);
 
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D =
-                                        new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr, 100, 0, 2);
+                                        new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
+                                                axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h =
-                                        new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};", 100, 0, 2);
+                                        new TH1D(tmpHistName1D.c_str(), ";Reco p_{T} / Gen p_{T};",
+                                                axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
 
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized = true;
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hInitialized = true;
