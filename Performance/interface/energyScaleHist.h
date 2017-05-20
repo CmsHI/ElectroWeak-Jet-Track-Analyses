@@ -45,6 +45,58 @@ const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes"};
 
 };
 
+/*
+ * class to organize the analysis of the 1D energy scale distribution
+ */
+class eScaleAna {
+public :
+    eScaleAna(){
+        hInitialized = false;
+        f1Initialized = false;
+        hPullInitialized = false;
+
+        fitOption = "Q M R N";
+    };
+    ~eScaleAna(){};
+
+    bool fit() {
+        if (hInitialized && f1Initialized) {
+            h->Fit(f1, fitOption.c_str());
+            return true;
+        }
+        return false;
+    };
+    bool makePull() {
+        if (hInitialized && f1Initialized) {
+            hPull = (TH1D*)getPullHistogram(h, f1);
+            hPullInitialized = true;
+
+            setPullTH1D();
+            return true;
+        }
+        return false;
+    };
+    void setPullTH1D() {
+        if (hPullInitialized) {
+            hPull->SetYTitle("Pull");
+            hPull->SetMarkerStyle(kFullCircle);
+            if (f1Initialized) {
+                hPull->SetMarkerColor(f1->GetLineColor());
+            }
+        }
+    }
+
+    TH1D* h;       // energy scale distribution
+    TF1*  f1;      // fit function
+    TH1D* hPull;   // pull distribution for the fit
+
+    std::string fitOption;
+
+    bool hInitialized;
+    bool f1Initialized;
+    bool hPullInitialized;
+};
+
 class energyScaleHist {
 public :
     energyScaleHist(){
@@ -104,7 +156,7 @@ public :
                         // h1D[2] = Constant for Gaussian fit
                         // h1D[3] = chi2/ndf for Gaussian fit
 
-    std::vector<TH1D*> h1DsliceY;   // energy scale distribution for each bin along x-axis
+    std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
     std::vector<std::vector<TF1*>>  f1s;    // Fit functions for each histogram in h1DsliceY
                                             // f1s is 2D vector with [nBinsX][nFitFncs]
                                             // f1s[i][0] = initial fit from TH2::FitSlicesY
@@ -113,6 +165,8 @@ public :
     std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
                                             // They are seed by f1sliceY if a function is Gaussian.
                                             // f1sv2 is 2D vector with [nBinsX][nFitFncs]
+
+    std::vector<std::vector<eScaleAna>> esa;    // analyzers for 1D energy scale distribution
 
     TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -405,6 +459,10 @@ void energyScaleHist::postLoop()
     TF1* f1Tmp = 0;
     updateFncs();
     int nBinsX = h2D->GetXaxis()->GetNbins();
+    esa.resize(nBinsX);
+    f1s.resize(nBinsX);
+    f1sv2.resize(nBinsX);
+
     for (int i=1; i<=nBinsX; ++i) {
         hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
         hTmp->SetTitleOffset(titleOffsetX, "X");
@@ -421,7 +479,7 @@ void energyScaleHist::postLoop()
         double p1 = h1D[0]->GetBinContent(i);   // mean
         double p2 = h1D[1]->GetBinContent(i);   // StdDev
         f1Tmp->SetParameters(p0, p1, p2);
-        f1Tmp->SetLineColor(kBlue);
+        f1Tmp->SetLineColor(kGreen);
         //        double chi2ndf = h1D[3]->GetBinContent(i);
         //        f1Tmp->SetChisquare(chi2ndf*100);
         //        f1Tmp->SetNDF(100);
@@ -435,14 +493,17 @@ void energyScaleHist::postLoop()
         // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
         std::vector<std::string> fncFormulas = {"gaus", "gaus"};
         std::vector<double> fractions = {0.98, 0.95};
-        std::vector<int> fncColors = {kViolet, kRed};
+        std::vector<int> fncColors = {kBlue, kRed};
+
+        std::cout << "name= " << name.c_str() << std::endl;
+        std::cout << "nbins = " << nBinsX << " i = " << i << std::endl;
 
         int nFnc = fncFormulas.size();
         for (int iFnc = 0; iFnc < nFnc; ++iFnc) {
 
-            std::vector<int> range = getLeftRightBins4IntegralFraction(h, binMax, fractions[iFnc]);
-            int binLow = std::max(range[0], 1);
-            int binUp = std::min(range[1], nBinsTmp);
+            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(h, binMax, fractions[iFnc]);
+            int binLow = std::max(fncRange[0], 1);
+            int binUp = std::min(fncRange[1], nBinsTmp);
             f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc+1, name.c_str()), fncFormulas[iFnc].c_str(), hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
             f1Tmp->SetLineColor(fncColors[iFnc]);
             if (fncFormulas[iFnc] == "gaus") {
@@ -452,7 +513,22 @@ void energyScaleHist::postLoop()
             hTmp->Fit(f1Tmp, option.c_str());
             f1sTmp.push_back(f1Tmp);
         }
-        f1s.push_back(f1sTmp);
+        f1s[i-1] = f1sTmp;
+
+        int nF1s = f1s[i-1].size();
+        std::vector<eScaleAna> esaTmp(nF1s);
+        for (int j = 0; j < nF1s; ++j) {
+            esaTmp[j].h = hTmp;
+            esaTmp[j].hInitialized = true;
+            esaTmp[j].f1 = f1sTmp[j];
+            esaTmp[j].f1Initialized = true;
+
+            esaTmp[j].makePull();
+            esaTmp[j].hPullInitialized = true;
+            std::string hpullName = replaceAll(esaTmp[j].f1->GetName(), "f1_", "hpull");
+            esaTmp[j].hPull->SetName(hpullName.c_str());
+        }
+        esa[i-1] = esaTmp;
 
         int nFncsv2 = fitFncs.size();
         // fit functions for that bin along x-axis
@@ -472,7 +548,7 @@ void energyScaleHist::postLoop()
             hTmp->Fit(f1Tmp, fitOptions[iFnc].c_str());
             f1sv2Tmp.push_back(f1Tmp);
         }
-        f1sv2.push_back(f1sv2Tmp);
+        f1sv2[i-1] = f1sv2Tmp;
     }
 }
 
@@ -600,6 +676,46 @@ void energyScaleHist::writeObjects(TCanvas* c)
     }
     c->Write("",TObject::kOverwrite);
     // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
+
+    // plot pull distributions for energy scale fits
+    c = new TCanvas(Form("cnv_projYPull_%s", name.c_str()),"",windowWidth,windowHeight);
+    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+    setCanvasFinal(c);
+    c->cd();
+
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
+
+    for (int i = 0; i < nH1DsliceY; ++i) {
+        c->cd(i+1);
+
+        int nEsa = esa[i].size();
+        int j1 = 1;
+
+        for (int j = j1; j < nEsa; ++j) {
+            if (esa[i][j].hPullInitialized)  {
+
+                std::string drawOption = "e same";
+                if (j == j1)  drawOption = "e";
+                esa[i][j].hPull->Draw(drawOption.c_str());
+            }
+        }
+
+        if (nEsa > 0 && esa[i][j1].hInitialized) {
+            float x1 = esa[i][j1].hPull->GetXaxis()->GetXmin();
+            float x2 = esa[i][j1].hPull->GetXaxis()->GetXmax();
+
+            line = new TLine(x1, 0, x2, 0);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+        }
+
+        std::vector<std::string> textLinesTmp;
+        std::string textLineTmp = getBinEdgeText(i+1, i+1);
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+    }
+    c->Write("",TObject::kOverwrite);
+    // plot pull distributions for energy scale fits - END
 
     line->Delete();
     latex->Delete();
