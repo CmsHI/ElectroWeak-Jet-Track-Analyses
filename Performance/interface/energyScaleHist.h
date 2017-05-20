@@ -83,6 +83,12 @@ public :
             if (f1Initialized) {
                 hPull->SetMarkerColor(f1->GetLineColor());
             }
+
+            // set maximum and minimum of the pull distributions symmetric about y = 0
+            double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
+            extremum *= 1.1;
+            hPull->SetMaximum(extremum);
+            hPull->SetMinimum(-1*extremum);
         }
     }
 
@@ -495,9 +501,6 @@ void energyScaleHist::postLoop()
         std::vector<double> fractions = {0.98, 0.95};
         std::vector<int> fncColors = {kBlue, kRed};
 
-        std::cout << "name= " << name.c_str() << std::endl;
-        std::cout << "nbins = " << nBinsX << " i = " << i << std::endl;
-
         int nFnc = fncFormulas.size();
         for (int iFnc = 0; iFnc < nFnc; ++iFnc) {
 
@@ -694,6 +697,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         for (int j = j1; j < nEsa; ++j) {
             if (esa[i][j].hPullInitialized)  {
 
+                esa[i][j].hPull->SetMarkerSize(markerSize);
+
                 std::string drawOption = "e same";
                 if (j == j1)  drawOption = "e";
                 esa[i][j].hPull->Draw(drawOption.c_str());
@@ -705,8 +710,24 @@ void energyScaleHist::writeObjects(TCanvas* c)
             float x2 = esa[i][j1].hPull->GetXaxis()->GetXmax();
 
             line = new TLine(x1, 0, x2, 0);
-            line->SetLineStyle(kDashed);
+            line->SetLineStyle(kSolid);
             line->Draw();
+
+            pads[i]->Update();
+            float yPadMin = gPad->GetUymin();
+            float yPadMax = gPad->GetUymax();
+
+            if (yPadMax > 2) {
+                line = new TLine(x1, 2, x2, 2);
+                line->SetLineStyle(kDashed);
+                line->Draw();
+            }
+
+            if (yPadMin < -2) {
+                line = new TLine(x1, -2, x2, -2);
+                line->SetLineStyle(kDashed);
+                line->Draw();
+            }
         }
 
         std::vector<std::string> textLinesTmp;
