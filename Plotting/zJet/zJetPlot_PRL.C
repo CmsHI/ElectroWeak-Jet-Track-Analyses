@@ -403,9 +403,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
     // select the list of observables for which plots will be made.
     std::vector<std::string> correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet", "iaa", "iaa_ptBin5", "iaa_ptBin6", "rjz_ratio", "xjz_mean_ratio"};  // , "zM", "zPt", "zEta", "zPhi"
     if (plotTheoryPP)  correlationHistNamesTODO = {"xjz", "dphi_rebin", "dphi_rebin_normJZ", "rjz", "xjz_mean", "xjz_binJER", "xjz_binJER2", "ptJet"};
-    if (mode == 10) correlationHistNamesTODO = {"xjz_binJER"};
+    if (mode == 4) correlationHistNamesTODO = {"dphi_rebin", "xjz_binJER", "rjz", "xjz_mean"};
+    else if (mode == 9) correlationHistNamesTODO = {"dphi_rebin", "xjz_binJER", "rjz", "xjz_mean"};
+    else if (mode == 10) correlationHistNamesTODO = {"xjz_binJER"};
     // minimal plotting
-    correlationHistNamesTODO = {"xjz_binJER"};
     int sizeTODO = correlationHistNamesTODO.size();
     for (int i = 0; i < sizeTODO; ++i) {
 
@@ -908,7 +909,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     histMax = 3;
                     histMin = -0.2;
                     if (plotTheory)  histMax = 3.1;
-                    if (plotTheory && plotPPMC.at(i))  histMax = 2.8;
+                    //if (plotTheory && plotPPMC.at(i))  histMax = 2.8;
                     // zPt > 40
                     if (iPt == 1 )  {
                         histMax = 3;
@@ -940,7 +941,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                     h1D[COLL::kPP][i]->SetFillColor(90);
                     h1D[COLL::kPP][i]->SetLineWidth(2);
-                    if (mode == 10)  h1D[COLL::kPP][i]->SetLineWidth(1);
+                    if (mode == 9)  h1D[COLL::kPP][i]->SetLineWidth(3);
+                    else if (mode == 10)  h1D[COLL::kPP][i]->SetLineWidth(1);
                     if (mode == 10) c->cd(1);
                     h1D[COLL::kPP][i]->Draw("hist same");
                 }
@@ -1022,8 +1024,6 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         else h1D[COLL::kHI][i]->Draw("e same");
                         drawSysUncBoxes(gr, h1D[COLL::kHI][i], h1DSys[COLL::kHI][i], useRelUnc);
 
-                        h1D[COLL::kHI][i]->SetLineWidth(3);
-                        if (mode == 10)  h1D[COLL::kHI][i]->SetLineWidth(2);
                         h1D[COLL::kHI][i]->SetLineColor(h1D[COLL::kHI][i]->GetFillColor());
                     }
                     if (mode == 10) c->cd(2);
@@ -1132,14 +1132,17 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     }
                     if ((ish1D_xjz && (plotTheory)) || (ish1D_xjz && (plotPPMC.at(i) && plotHIMC.at(i)))) {   // push text below to leave space for VITEV legend
                         tmpTextOffsetY = textOffsetY+0.14;
-                        if (mode == 4) tmpTextOffsetY = textOffsetY+0.23;
+                        if (mode == 4) tmpTextOffsetY = textOffsetY+0.26;
                         if (!plotTheoryPP && plotPPMC.at(i))  tmpTextOffsetY = textOffsetY+0.08;
                     }
-                    if (correlation.find("dphi") == 0 && plotTheory && !(plotTheoryHI && plotTheoryPP)) {   // push text below to leave space for JEWEL legend
-                        tmpTextOffsetY = tmpTextOffsetY+0.14;
-                    }
-                    else if (correlation.find("dphi") == 0 && plotTheory) {   // push text below to leave space for JEWEL legend
+                    if (ish1D_dphi && plotTheory && !(plotTheoryHI && plotTheoryPP)) {   // push text below to leave space for JEWEL legend
                         tmpTextOffsetY = tmpTextOffsetY+0.18;
+                    }
+                    else if (ish1D_dphi && plotTheory) {   // push text below to leave space for JEWEL legend
+                        tmpTextOffsetY = tmpTextOffsetY+0.18;
+                    }
+                    else if (correlation == "xjz_mean" && plotTheory) {   // push text below to leave space theory legends
+                        tmpTextOffsetY = tmpTextOffsetY+0.02;
                     }
                     std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition.c_str(), c, textOffsetX, tmpTextOffsetY);
                     for (int i = 0; i<nTextLines; ++i){
@@ -1227,16 +1230,16 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (correlation == "xjz_mean") {    // shift latexCMS to right to avoid overlap with data points
                         posX += 0.08;
                     }
-		    // added by cm
-		    if(mode == 10) posX += 0.03;
-		    //-------------
+                    // added by cm
+                    if(mode == 10) posX += 0.03;
+                    //-------------
                     latexCMS->DrawLatexNDC(posX, posY, cmsText);
                     if( drawLatexCMSExtra )
-                      {
+                    {
                         latexCMS->SetTextFont(extraTextFont);
                         latexCMS->SetTextSize(extraOverCmsTextSize*cmsTextSize*c->GetTopMargin());
                         latexCMS->DrawLatexNDC(posX, posY- 1.2*cmsTextSize*c->GetTopMargin(), extraText);
-                      }
+                    }
                 }
                 ////////// latexCMS - END //////////
 
@@ -1252,8 +1255,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                 if (ish1D_xjz && (plotTheory && !plotTheoryPP))  legendPosition = "NW";
                 if (ish1D_xjz && (isMode69 || mode == 10))  legendPosition = "NW";
                 if (legendPosition == "NE") {
-                    if (isMode69 || mode == 10)  tmpLegendOffsetX -= 0.17;
-                    else            tmpLegendOffsetX -= 0.11;
+                    if (isMode69 || mode == 10 || mode == 4)  tmpLegendOffsetX -= 0.11;
+                    else                                      tmpLegendOffsetX -= 0.11;
                 }
                 if (legendPosition == "NW" && drawLatexCMS)  {   // leave space for latexCMS, shift legend down
                     tmpLegendOffsetY = legendOffsetY+0.11;
@@ -1319,7 +1322,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     double heightFactor = 1.0;
                     if (createLegPP)  legPPTheory = (TLegend*)legTheory->Clone("legPPTheory");
                     else              legPPTheory = legTheory;
-		    //-----------------------
+                    //-----------------------
                     // if (isMode69 || mode == 10) {    // put the MC plots into the same legend
                     //     if (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) {
                     //         std::string legEntryMC = "lp";
@@ -1342,7 +1345,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     //             h1D[COLL::kPPMC][i]->Draw("l hist same");
                     //         }
                     //         else if (mode == 10) {
-		    // 	      h1D[COLL::kPPMC][i]->SetLineWidth(3);
+                    // 	      h1D[COLL::kPPMC][i]->SetLineWidth(3);
                     //             h1D[COLL::kPPMC][i]->Draw("l hist same");
                     //         }
                     //     }
@@ -1353,7 +1356,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     //         if (mode != 9 && mode != 10) legPPTheory->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
                     //     }
                     // }
-		    // //----------- separate legend for
+                    // //----------- separate legend for
 		    
                     // hybrid model
                     int kFSolid_ColorAlpha_theory = kFSolid_ColorAlpha;
@@ -1412,8 +1415,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
                         gr->SetLineWidth(0);
                         // models for PbPb
-			// legTheory->AddEntry((TObject*)0, HYBRID::legendHeader.c_str(), "");
-		        legTheory->SetHeader(Form("        %s",HYBRID::legendHeader.c_str()));
+                        // legTheory->AddEntry((TObject*)0, HYBRID::legendHeader.c_str(), "");
+                        if (ish1D_xjz)  legTheory->SetHeader(Form("        %s",HYBRID::legendHeader.c_str()));
+                        if (ish1D_dphi)  legTheory->SetHeader(Form("      %s",HYBRID::legendHeader.c_str()));
                         for (int iModel = 0; iModel < HYBRID::kN_MODEL; ++iModel) {
 
                             setTGraphBand(gr, x_hybrid[iModel], ymin_hybrid[iModel], ymax_hybrid[iModel]);
@@ -1440,7 +1444,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(HYBRID::fillColorPP, HYBRID::falpha_PP);
                         grErr->SetLineWidth(3);
-                        if (mode == 10) grErr->SetLineWidth(3);
+                        if (mode == 9) grErr->SetLineWidth(5);
+                        else if (mode == 10) grErr->SetLineWidth(3);
                         grErr->SetLineStyle(HYBRID::lineStylePP);
                         std::string ppRefPlotOption = "l";
                         if (correlation == "rjz" || correlation == "xjz_mean") ppRefPlotOption = "lp";   // "p"
@@ -1466,6 +1471,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         legPPJewel->Clear();
                     }
                     else legPPJewel = legPPTheory;
+                    bool plotTheoryAfterData = (correlation == "xjz_mean" && mode == 4);
+                    plotTheoryAfterData = false;    // turn off for now
 
                     std::vector<double> x_jewel;
                     std::vector<double> y_jewel;
@@ -1514,15 +1521,24 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetMarkerColorAlpha(JEWEL::color, JEWEL::falpha);
                         grErr->SetMarkerStyle(kFullStar);
                         grErr->SetMarkerSize(markerSize*1.4);
-                        if (mode == 10) grErr->SetMarkerSize(markerSize*1.6);
+                        if (mode == 4) grErr->SetMarkerSize(markerSize*1.6);
+                        else if (mode == 10) grErr->SetMarkerSize(markerSize*1.6);
                         //grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(JEWEL::color, JEWEL::falpha);
                         grErr->SetLineWidth(3);     // 2
-                        if (mode == 10) grErr->SetLineWidth(2);
+                        if (mode == 4) grErr->SetLineWidth(4);
+                        else if (mode == 10) grErr->SetLineWidth(2);
                         grErr->SetLineStyle(JEWEL::lineStyle);
                         std::string plotOption = "lp";
                         if (mode == 10) c->cd(2);
-                        grErr->DrawClone(plotOption.c_str());
+                        if (plotTheoryAfterData)  {
+                            grErr->DrawClone("l");
+                            grErr2 = (TGraphErrors*)grErr->Clone(Form("%s_2", grErr->GetName()));
+                            grErr2->SetDrawOption("p");
+                        }
+                        else {
+                            grErr->DrawClone(plotOption.c_str());
+                        }
                         legJewel->AddEntry(grErr->Clone(), JEWEL::legendEntry.c_str(), plotOption.c_str());
                     }
                     if (xPP_jewel.size() > 0 && plotTheoryPP) {
@@ -1534,16 +1550,18 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetMarkerColorAlpha(JEWEL::colorPP, JEWEL::falpha_PP);
                         grErr->SetMarkerStyle(kFullStar);
                         grErr->SetMarkerSize(markerSize*1.4);
-                        if (mode == 10) grErr->SetMarkerSize(markerSize*1.6);
+                        if (mode == 9) grErr->SetMarkerSize(markerSize*1.6);
+                        else if (mode == 10) grErr->SetMarkerSize(markerSize*1.6);
                         //grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(JEWEL::colorPP, JEWEL::falpha_PP);
                         grErr->SetLineWidth(3);      // 2
-                        if (mode == 10) grErr->SetLineWidth(2);
+                        if (mode == 9) grErr->SetLineWidth(4);
+                        else if (mode == 10) grErr->SetLineWidth(2);
                         grErr->SetLineStyle(JEWEL::lineStylePP);
                         std::string plotOption = "lp";
                         if (correlation == "rjz" || correlation == "xjz_mean") plotOption = "lp";   // "p"
                         legPPJewel->AddEntry(grErr->Clone(), JEWEL::legendEntryPP.c_str(), plotOption.c_str());
-                        if (isMode69 || mode == 10) plotOption = "l";
+                        if ((isMode69 || mode == 10) && ish1D_xjz) plotOption = "l";
                         if (mode == 10) c->cd(1);
                         grErr->DrawClone(plotOption.c_str());
 
@@ -1602,7 +1620,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             grErr->SetMarkerSize(0);
                             grErr->SetLineColorAlpha(VITEV::fillColors[iModel], VITEV::falpha);
                             grErr->SetLineWidth(3);     // 2
-                            if (mode == 10) grErr->SetLineWidth(3);
+                            if (mode == 4) grErr->SetLineWidth(5);
+                            else if (mode == 10) grErr->SetLineWidth(3);
                             grErr->SetLineStyle(VITEV::lineStyles[iModel]);
                             std::string plotOption = "l";
                             if (mode == 10) c->cd(2);
@@ -1622,7 +1641,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         grErr->SetMarkerSize(0);
                         grErr->SetLineColorAlpha(VITEV::fillColorPP, VITEV::falpha_PP);
                         grErr->SetLineWidth(3);     // 2
-                        if (mode == 10) grErr->SetLineWidth(3);
+                        if (mode == 9) grErr->SetLineWidth(5);
+                        else if (mode == 10) grErr->SetLineWidth(3);
                         grErr->SetLineStyle(VITEV::lineStylePP);
                         std::string plotOption = "l";
                         if (mode == 10) c->cd(1);
@@ -1645,7 +1665,7 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             }
                         }
                     }
-		       if (isMode69 || mode == 10) {    // put the MC plots into the same legend
+                    if (isMode69 || mode == 10) {    // put the MC plots into the same legend
                         if (h1DisValid[COLL::kPPMC][i] && plotPPMC.at(i)) {
                             std::string legEntryMC = "lp";
                             if (mode == 7) legEntryMC = "lp";
@@ -1664,10 +1684,11 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                                 h1D[COLL::kPPMC][i]->Draw("hist same");
                             }
                             else if (mode == 9) {
+                                h1D[COLL::kPPMC][i]->SetLineWidth(5);
                                 h1D[COLL::kPPMC][i]->Draw("l hist same");
                             }
                             else if (mode == 10) {
-			      h1D[COLL::kPPMC][i]->SetLineWidth(3);
+                                h1D[COLL::kPPMC][i]->SetLineWidth(3);
                                 h1D[COLL::kPPMC][i]->Draw("l hist same");
                             }
                         }
@@ -1678,30 +1699,52 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                             if (mode != 9 && mode != 10) legPPTheory->AddEntry(h1D[COLL::kHIMC][i], Form("%s", mcReferenceHI.c_str()), legEntryMC.c_str());
                         }
                     }
-		    //-----------changed by cm: put madgraph aat the end 
+                    //-----------changed by cm: put madgraph aat the end
 
                     // set "legTheory" properly by taking "leg" as reference
                     heightFactor = 1.0;                      // by default use the same height per entry
                     if (plotTheoryHI) {
                         heightFactor = 1.1*0.75;
                         if (ish1D_xjz) heightFactor = 0.75;
+                        if (ish1D_dphi) {
+                            if (mode == 4)  heightFactor = 0.8;
+                        }
+                        else if (correlation == "xjz_mean") {
+                            heightFactor = 1;
+                        }
+                        else if (correlation == "rjz") {
+                            heightFactor = 0.75;
+                        }
                     }
                     else if (plotTheoryPP)  {
-                        if (ish1D_dphi) heightFactor = 1.9*0.75;
+                        if (ish1D_dphi) {
+                            heightFactor = 1.9*0.75;
+                            if (isMode69) heightFactor = 0.75;
+                        }
                         else if (ish1D_xjz) {
                             heightFactor = 0.85;
-                            if (isMode69)  heightFactor = 0.78;
+                            if (isMode69)  heightFactor = 0.75;
+                        }
+                        else if (correlation == "xjz_mean") {
+                            heightFactor = 1.9*0.75;
+                            if (isMode69) heightFactor = 0.75;
+                        }
+                        else if (correlation == "rjz") {
+                            heightFactor = 1.9*0.75;
+                            if (isMode69) heightFactor = 0.7;
                         }
                         else heightFactor = 1.1;
                     }
-                    if (mode == 10) heightFactor = 0.6;
+                    if (mode == 10) {
+                        heightFactor = 0.6;
+                    }
                     double heightTheory = (height*legTheory->GetNRows()/leg->GetNRows()*heightFactor);
-
-                    if (correlation == "xjz_mean") heightTheory = height;
 
                     // put "legTheory" below "leg"
                     legTheory->SetX1(leg->GetX1NDC());
                     legTheory->SetY2(leg->GetY1NDC());
+                    if (ish1D_dphi && (mode == 4 || isMode69))  legTheory->SetY2(leg->GetY1NDC()-0.01);
+
                     if ((correlation == "rjz") || (ish1D_xjz && plotTheoryHI) || (ish1D_xjz && isMode69)) {
                         // put "legTheory" to the right of "leg"*
                         legTheory->SetX1(leg->GetX1NDC()+0.36);
@@ -1716,9 +1759,10 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                     if (plotTheoryHI && !ish1D_xjz)  widthFactor = 0.95;
                     else if (plotTheoryPP)  widthFactor = 1.2;
 
+                    if (mode == 4) widthFactor = 1.1;
                     if (ish1D_dphi || correlation == "xjz_mean" || (ish1D_xjz && plotTheoryPP)) widthFactor = 1.05;
                     if (mode == 6 || mode == 7 || mode == 8) widthFactor = 0.86;
-                    if (mode == 9) widthFactor = 0.8;
+                    if (mode == 9) widthFactor = 1.05;
                     if (mode == 10) widthFactor = 1.5;
 
                     legTheory->SetX2(legTheory->GetX1NDC() + legendWidth*widthFactor);
@@ -1730,6 +1774,9 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         legJewel->SetX2(legTheory->GetX2NDC());
 
                         legJewel->SetY2(legTheory->GetY2NDC()+0.015);
+                        if (ish1D_dphi) {
+                            if (mode == 4)  legJewel->SetY2(legTheory->GetY2NDC());
+                        }
 
                         int nRows = legTheory->GetNRows();
                         int nRows2 = legJewel->GetNRows();
@@ -1830,9 +1877,8 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         if (mode == 10) c->cd(1);
                         legPPTheory->Draw();
                     }
-                }
-                // replot data points after theory plots
-                if (plotTheory) {
+
+                    // replot data points after theory plots
                     if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
 
                         if (mode == 10) c->cd(1);
@@ -1849,6 +1895,12 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
                         if (h1DisValid[COLL::kPP][i] && plotPP.at(i)) {
                             if (mode == 10) c->cd(1);
                             h1D[COLL::kPP][i]->Draw("e same");
+                        }
+                    }
+
+                    if (plotTheoryAfterData) {
+                        if ((correlation == "xjz_mean" && mode == 4)) {
+                            if (grErr2 != 0)  grErr2->Draw("p");
                         }
                     }
                 }
@@ -2018,10 +2070,14 @@ void zJetPlot_PRL(const TString configFile, const TString inputFile, const TStri
 
     output->Write("",TObject::kOverwrite);
     std::cout<<"Closing the input files."<<std::endl;
-    for (int i = 0; i<nInputFiles; ++i) {
+    for (int i = 0; i<nCollisions; ++i) {
         if (inputExists[i])  {
             inputDir[i]->Close();
             input[i]->Close();
+        }
+        if (inputSysExists[i])  {
+            inputSysDir[i]->Close();
+            inputSys[i]->Close();
         }
     }
     std::cout<<"Closing the output file."<<std::endl;
@@ -2092,8 +2148,9 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
 
     if (collisionType == COLL::kHI)
     {
-        h->SetLineWidth(2);
-        if (mode == 10)  h->SetLineWidth(2);
+        h->SetLineWidth(3);
+        if (mode == 4)  h->SetLineWidth(4);
+        else if (mode == 10)  h->SetLineWidth(2);
         h->SetLineColor(kBlack);
         h->SetMarkerStyle(kFullCircle);
         h->SetMarkerColor(kBlack);
@@ -2128,7 +2185,8 @@ void setTH1(TH1 *h, COLL::TYPE collisionType, int mode) {
     }
     else if (collisionType == COLL::kPP) {
         h->SetLineWidth(2);
-        if (mode == 10)  h->SetLineWidth(2);
+        if (mode == 9)  h->SetLineWidth(4);
+        else if (mode == 10)  h->SetLineWidth(2);
         h->SetLineColor(kBlack);
         h->SetMarkerStyle(kOpenSquare);
         h->SetMarkerColor(kBlack);
