@@ -41,9 +41,13 @@ int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
 int getRightBin4IntegralFraction(TH1D* h, int binStart, double fraction);
 std::vector<int> getLeftRightBins4IntegralFraction(TH1D* h, int binStart, double fraction);
 TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize = false);
+TH1* getResidualHistogram(TH1* h, TH1* hRef, double xMin, double xMax, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TH1* hRef);
+TH1* getPullHistogram(TH1* h, TH1* hRef, double xMin, double xMax);
 TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
+TH1* getResidualHistogram(TH1* h, TF1* fRef, double xMin, double xMax, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TF1* fRef);
+TH1* getPullHistogram(TH1* h, TF1* fRef, double xMin, double xMax);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
@@ -332,6 +336,7 @@ std::vector<double> calcBinsLogScale(double min, double max, double nBins)
 }
 
 /*
+ * function for extracting the bin range which covers a given fraction of the total integral.
  * start from binStart and return the shortest range [bin1, bin2] which contains "fraction" of the integral.
  * "direction" can take 3 values :
  * "L" : look at the bins to the left of binStart, by definition bin2 = binStart
@@ -435,7 +440,21 @@ std::vector<int> getLeftRightBins4IntegralFraction(TH1D* h, int binStart, double
  */
 TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize)
 {
+    double xMin = h->GetXaxis()->GetBinCenter(1);
+    double xMax = h->GetXaxis()->GetBinCenter(h->GetNbinsX());
+
+    return getResidualHistogram(h, hRef, xMin, xMax, normalize);
+}
+
+/*
+ * returns a TH1* which is the residual of "h" wrt. "hRef" inside range [xMin, xMax]
+ * calculation is based on what is done for RooHist, where the reference object is unbinned, (e.g. curve, graph)
+ * https://root.cern.ch/doc/master/RooHist_8cxx_source.html#l00701
+ */
+TH1* getResidualHistogram(TH1* h, TH1* hRef, double xMin, double xMax, bool normalize)
+{
     TH1* hRes = (TH1*)h->Clone(Form("%s_Residual", h->GetName()));
+    hRes->Reset();
 
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i)
@@ -443,6 +462,8 @@ TH1* getResidualHistogram(TH1* h, TH1* hRef, bool normalize)
         double y = h->GetBinContent(i);
 
         double x = h->GetXaxis()->GetBinCenter(i);
+        if (x < xMin || x > xMax)  continue;
+
         double iRef = hRef->FindBin(x);
         double yRef = hRef->GetBinContent(iRef);
 
@@ -473,6 +494,11 @@ TH1* getPullHistogram(TH1* h, TH1* hRef)
     return getResidualHistogram(h, hRef, true);
 }
 
+TH1* getPullHistogram(TH1* h, TH1* hRef, double xMin, double xMax)
+{
+    return getResidualHistogram(h, hRef, xMin, xMax, true);
+}
+
 /*
  * returns a TH1* which is the residual of "h" wrt. "fRef"
  * calculation is based on what is done for RooHist, where the reference object is unbinned, (e.g. curve, graph)
@@ -480,7 +506,21 @@ TH1* getPullHistogram(TH1* h, TH1* hRef)
  */
 TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize)
 {
+    double xMin = h->GetXaxis()->GetBinCenter(1);
+    double xMax = h->GetXaxis()->GetBinCenter(h->GetNbinsX());
+
+    return getResidualHistogram(h, fRef, xMin, xMax, normalize);
+}
+
+/*
+ * returns a TH1* which is the residual of "h" wrt. "fRef" inside range [xMin, xMax]
+ * calculation is based on what is done for RooHist, where the reference object is unbinned, (e.g. curve, graph)
+ * https://root.cern.ch/doc/master/RooHist_8cxx_source.html#l00701
+ */
+TH1* getResidualHistogram(TH1* h, TF1* fRef, double xMin, double xMax, bool normalize)
+{
     TH1* hRes = (TH1*)h->Clone(Form("%s_Residual", h->GetName()));
+    hRes->Reset();
 
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i)
@@ -488,6 +528,8 @@ TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize)
         double y = h->GetBinContent(i);
 
         double x = h->GetXaxis()->GetBinCenter(i);
+        if (x < xMin || x > xMax)  continue;
+
         double yRef = fRef->Eval(x);
 
         double dy = y-yRef;
@@ -515,6 +557,11 @@ TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize)
 TH1* getPullHistogram(TH1* h, TF1* fRef)
 {
     return getResidualHistogram(h, fRef, true);
+}
+
+TH1* getPullHistogram(TH1* h, TF1* fRef, double xMin, double xMax)
+{
+    return getResidualHistogram(h, fRef, xMin, xMax, true);
 }
 
 void fillTH1fromTF1(TH1* h, TF1* f)
