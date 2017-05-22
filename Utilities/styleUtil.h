@@ -10,6 +10,7 @@
 #include <TIterator.h>
 #include <TH1.h>
 #include <TH1D.h>
+#include <TAxis.h>
 #include <TAttFill.h>
 
 #include <string>
@@ -43,6 +44,9 @@ int    calcNcolumns(int nPads);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
+double getXNDC(TPad* pad, double xUser);
+double getYNDC(TPad* pad, double yUser);
+void copyAxisTitle(TAxis* axis, TAxis* axisRef);
 
 void setCanvasTLatex(TCanvas* c, float px, float py, std::vector<std::string> lines, float pyOffset = 0.05);
 
@@ -589,6 +593,58 @@ void setCanvas_InvMass_Histo2Legend(TCanvas* c, TH1* h1, TH1* h2)
     legend->AddEntry(h2, "same charge", "p");
 
     legend->Draw();
+}
+
+/*
+ * convert user X coordinate (number on X-axis) to NDC
+ * NOTE :
+ * If axis scale is linear, then
+ * pad->GetX1() returns x-coordinate at xNDC = 0
+ * pad->GetX2() returns x-coordinate at xNDC = 1
+ * If axis scale is log, then
+ * pad->GetX1() returns log10 of x-coordinate at xNDC = 0
+ * pad->GetX2() returns log10 of x-coordinate at xNDC = 1
+ */
+double getXNDC(TPad* pad, double xUser) {
+
+  pad->Update();
+  if (pad->GetLogx() == 1) {
+      xUser = TMath::Log10(xUser);
+  }
+  return (xUser - pad->GetX1()) / (pad->GetX2()-pad->GetX1());
+}
+
+/*
+ * convert user Y coordinate (number on Y-axis) to NDC
+ * NOTE :
+ * If axis scale is linear, then
+ * pad->GetY1() returns y-coordinate at yNDC = 0
+ * pad->GetY2() returns y-coordinate at yNDC = 1
+ * If axis scale is log, then
+ * pad->GetY1() returns log10 of y-coordinate at yNDC = 0
+ * pad->GetY2() returns log10 of y-coordinate at yNDC = 1
+ */
+double getYNDC(TPad* pad, double yUser) {
+
+    pad->Update();
+    if (pad->GetLogy() == 1) {
+        yUser = TMath::Log10(yUser);
+    }
+    return (yUser - pad->GetY1()) / (pad->GetY2()-pad->GetY1());
+}
+
+/*
+ * copy axis title properties of "axisRef" to "axis"
+ */
+void copyAxisTitle(TAxis* axis, TAxis* axisRef)
+{
+    axis->SetTitle(axisRef->GetTitle());
+    axis->SetTitleColor(axisRef->GetTitleColor());
+    axis->SetTitleFont(axisRef->GetTitleFont());
+    axis->SetTitleOffset(axisRef->GetTitleOffset());
+    axis->SetTitleSize(axisRef->GetTitleSize());
+    axis->CenterTitle(axisRef->GetCenterTitle());
+    axis->RotateTitle(axisRef->GetRotateTitle());
 }
 
 #endif /* STYLEUTIL_H_ */
