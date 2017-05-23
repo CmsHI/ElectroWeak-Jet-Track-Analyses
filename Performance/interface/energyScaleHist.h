@@ -45,6 +45,18 @@ enum OBS {
 
 const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith"};
 
+enum FNCS {
+    kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
+    kGAUS_95,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
+    kGAUS_98,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
+    kN_FNCS
+};
+
+const std::string fncFormulas[kN_FNCS] = {"gaus", "gaus", "gaus"};
+const double intFractions[kN_FNCS] = {1, 0.95, 0.98};
+const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue};
+const std::string fitOption = "Q M R N";
+
 };
 
 /*
@@ -127,6 +139,8 @@ public :
     energyScaleHist(){
         nBinsX = 0;
 
+        indexFnc = ENERGYSCALE::kGAUS_95;
+
         h2Dinitialized = false;
         hInitialized = false;
         h2DcorrInitialized = false;
@@ -172,12 +186,12 @@ public :
 
     void updateFncs();
     void updateH1DsliceY();
+    void updateH1D();
 
     void prepareTitle();
 
     void postLoop();
     void fitRecoGen();
-    void calcArithmetic();
     void writeObjects(TCanvas* c);
 
     TH2D* h2D;
@@ -197,10 +211,13 @@ public :
      * analyzers for 1D energy scale distribution histograms in h1DsliceY
      * esa is 2D vector with [nBinsX][nFitFncs]
      * esa[i][0] : initial fit from TH2::FitSlicesY
-     * esa[i][1] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
-     * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 95% of the integral
+     * esa[i][1] : fit is seeded by FitSlicesY, uses bin range that covers 95% of the integral
+     * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
      */
     std::vector<std::vector<eScaleAna>> esa;
+    int indexFnc;    // index of the fit function to set the bins of h1D[0], h1D[1]
+                     // function whose results will be shown in the final plots
+
     std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
                                             // They are seed by f1sliceY if a function is Gaussian.
                                             // f1sv2 is 2D vector with [nBinsX][nFitFncs]
@@ -415,6 +432,38 @@ void energyScaleHist::updateH1DsliceY()
     }
 }
 
+void energyScaleHist::updateH1D()
+{
+    for (int i = 1; i <= nBinsX; ++i) {
+
+        if (esa[i-1][indexFnc].hInitialized && esa[i-1][indexFnc].f1Initialized) {
+
+            h1D[0]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
+            h1D[0]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
+
+            h1D[1]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
+            h1D[1]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
+
+            h1D[4]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
+            h1D[4]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
+
+            h1D[5]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
+            h1D[5]->SetBinError(i, 0);
+        }
+
+        // arithmetic mean and std dev of energy scale distributions
+        double mean = h1DsliceY[i-1]->GetMean();
+        double meanErr = h1DsliceY[i-1]->GetMeanError();
+        h1D[2]->SetBinContent(i, mean);
+        h1D[2]->SetBinError(i, meanErr);
+
+        double stdDev = h1DsliceY[i-1]->GetStdDev();
+        double stdDevErr = h1DsliceY[i-1]->GetStdDevError();;
+        h1D[3]->SetBinContent(i, stdDev);
+        h1D[3]->SetBinContent(i, stdDevErr);
+    }
+}
+
 /*
  * prepare the object title using the given ranges
  */
@@ -513,9 +562,6 @@ void energyScaleHist::postLoop()
     if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
         h1D[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES]/20, "Y");
 
-    updateH1DsliceY();
-    calcArithmetic();
-
     // Constant for Gaussian fit
     h1D[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
     h1D[4]->SetTitle(title.c_str());
@@ -532,7 +578,11 @@ void energyScaleHist::postLoop()
     h1D[5]->SetStats(false);
     h1D[5]->SetMarkerStyle(kFullCircle);
 
+    updateH1DsliceY();
+
     fitRecoGen();
+    // up to this point bins of h1D[0], h1D[1], h1D[4], h1D[5] are set by the initial fit from TH2::FitSlicesY
+    updateH1D();
 }
 
 /*
@@ -556,43 +606,47 @@ void energyScaleHist::fitRecoGen()
 
         hTmp = h1DsliceY[i-1];
 
-        // fit functions for that bin along x-axis of h2D
-        std::vector<TF1*> f1sTmp;
-
-        // initial fit from TH2::FitSlicesY
-        f1Tmp = new TF1(Form("f1_bin%d_fnc0_%s", i, name.c_str()), "gaus", 0, 2);
         double p0 = h1D[4]->GetBinContent(i);   // constant
+        double p0Err = h1D[4]->GetBinError(i);
+
         double p1 = h1D[0]->GetBinContent(i);   // mean
+        double p1Err = h1D[0]->GetBinError(i);
+
         double p2 = h1D[1]->GetBinContent(i);   // StdDev
-        f1Tmp->SetParameters(p0, p1, p2);
-        f1Tmp->SetLineColor(kGreen);
-        //        double chi2ndf = h1D[5]->GetBinContent(i);
-        //        f1Tmp->SetChisquare(chi2ndf*100);
-        //        f1Tmp->SetNDF(100);
-        f1sTmp.push_back(f1Tmp);
+        double p2Err = h1D[1]->GetBinError(i);
 
         int binMax = hTmp->GetMaximumBin();
         int nBinsTmp = hTmp->GetNbinsX();
-        std::string option = "Q M R N";
 
-        // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
-        // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
-        std::vector<std::string> fncFormulas = {"gaus", "gaus"};
-        std::vector<double> fractions = {0.98, 0.95};
-        std::vector<int> fncColors = {kBlue, kRed};
+        // fit functions for that bin along x-axis of h2D
+        std::vector<TF1*> f1sTmp;
+        for (int iFnc = 0; iFnc < ENERGYSCALE::kN_FNCS; ++iFnc) {
 
-        int nFnc = fncFormulas.size();
-        for (int iFnc = 0; iFnc < nFnc; ++iFnc) {
+            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), ENERGYSCALE::fncFormulas[iFnc].c_str());
 
-            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(h, binMax, fractions[iFnc]);
+            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(h, binMax, ENERGYSCALE::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
-            int binUp = std::min(fncRange[1], nBinsTmp);
-            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc+1, name.c_str()), fncFormulas[iFnc].c_str(), hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
-            f1Tmp->SetLineColor(fncColors[iFnc]);
-            if (fncFormulas[iFnc] == "gaus") {
-                // use the fit from TH2::FitSlicesY as seed
+            int binUp  = std::min(fncRange[1], nBinsTmp);
+            f1Tmp->SetRange(hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
+
+            f1Tmp->SetLineColor(ENERGYSCALE::fncColors[iFnc]);
+
+            if (iFnc == ENERGYSCALE::kGAUS_FitSlicesY) {
+                // initial fit from TH2::FitSlicesY
                 f1Tmp->SetParameters(p0, p1, p2);
+                double parErr[3] = {p0Err, p1Err, p2Err};
+                f1Tmp->SetParErrors(parErr);
+                //        double chi2ndf = h1D[5]->GetBinContent(i);
+                //        f1Tmp->SetChisquare(chi2ndf*100);
+                //        f1Tmp->SetNDF(100);
             }
+            else {
+                if (ENERGYSCALE::fncFormulas[iFnc] == "gaus") {
+                    // use the fit from TH2::FitSlicesY as seed
+                    f1Tmp->SetParameters(p0, p1, p2);
+                }
+            }
+
             f1sTmp.push_back(f1Tmp);
         }
 
@@ -604,7 +658,7 @@ void energyScaleHist::fitRecoGen()
             esaTmp[j].f1 = f1sTmp[j];
             esaTmp[j].f1Initialized = true;
 
-            esaTmp[j].fitOption = option;
+            esaTmp[j].fitOption = ENERGYSCALE::fitOption;
             // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
             if (j > 0)  esaTmp[j].fit();
 
@@ -636,25 +690,6 @@ void energyScaleHist::fitRecoGen()
             f1sv2Tmp.push_back(f1Tmp);
         }
         f1sv2[i-1] = f1sv2Tmp;
-    }
-}
-
-/*
- * arithmetic mean and std dev of energy scale distributions
- */
-void energyScaleHist::calcArithmetic()
-{
-    for (int i = 1; i <= nBinsX; ++i) {
-
-        double mean = h1DsliceY[i-1]->GetMean();
-        double meanErr = h1DsliceY[i-1]->GetMeanError();
-        h1D[2]->SetBinContent(i, mean);
-        h1D[2]->SetBinError(i, meanErr);
-
-        double stdDev = h1DsliceY[i-1]->GetStdDev();
-        double stdDevErr = h1DsliceY[i-1]->GetStdDevError();;
-        h1D[3]->SetBinContent(i, stdDev);
-        h1D[3]->SetBinContent(i, stdDevErr);
     }
 }
 
