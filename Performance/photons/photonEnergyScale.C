@@ -1233,13 +1233,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
-    TLegend* leg = new TLegend();
-    // make legend transparent
-    leg->SetFillColor(-1);
-    leg->SetFillStyle(4000);
-
     std::vector<TH1D*> vecTmp;
-
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].h1D[iObs]->Clone();
@@ -1256,18 +1250,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         else if (iHiBin == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
         setTH1(hTmp, iHist);
         vecTmp.push_back(hTmp);
-
-        std::string legendOption = "lpf";
-        std::string legendText = "";
-        if (iEta == -1) legendText = hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].getRangeTextEta();
-        else if (iGenPt == -1) legendText = hist[iDep][iEta][iBin][iRecoPt][iHiBin].getRangeTextGenPt();
-        else if (iRecoPt == -1) legendText = hist[iDep][iEta][iGenPt][iBin][iHiBin].getRangeTextRecoPt();
-        else if (iHiBin == -1) legendText = hist[iDep][iEta][iGenPt][iRecoPt][iBin].getRangeTextHiBin();
-
-        leg->AddEntry(hTmp, legendText.c_str(), legendOption.c_str());
     }
 
     drawSameTH1D(c, vecTmp);
+    c->Modified();
 
     TLine* line = new TLine();
     if (iObs == ENERGYSCALE::OBS::kESCALE || iObs == ENERGYSCALE::OBS::kESCALEARITH) {
@@ -1277,6 +1263,43 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         line = new TLine(x1, 1, x2,1);
         line->SetLineStyle(kDashed);
         line->Draw();
+    }
+
+    /*
+    if (iDep == ENERGYSCALE::kETA) {
+        // draw line for EE-EB transition
+        double ECAL_boundary_1 = 1.4442;
+        double ECAL_boundary_2 = 1.566;
+
+        double yMinTmp = c->GetUymin();
+        double yMaxTmp = c->GetUymax();
+
+        // draw lines for ECAL transition region
+        std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
+        for (std::vector<double>::const_iterator itLine = lineXvalues.begin(); itLine !=lineXvalues.end(); ++itLine) {
+
+            line = new TLine((*itLine), yMinTmp, (*itLine), yMaxTmp);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+        }
+    }
+    */
+
+    TLegend* leg = new TLegend();
+    // make legend transparent
+    leg->SetFillColor(-1);
+    leg->SetFillStyle(4000);
+
+    for (int iBin = 0; iBin < nBins; ++iBin) {
+
+        std::string legendOption = "lpf";
+        std::string legendText = "";
+        if (iEta == -1) legendText = hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].getRangeTextEta();
+        else if (iGenPt == -1) legendText = hist[iDep][iEta][iBin][iRecoPt][iHiBin].getRangeTextGenPt();
+        else if (iRecoPt == -1) legendText = hist[iDep][iEta][iGenPt][iBin][iHiBin].getRangeTextRecoPt();
+        else if (iHiBin == -1) legendText = hist[iDep][iEta][iGenPt][iRecoPt][iBin].getRangeTextHiBin();
+
+        leg->AddEntry(vecTmp[iBin], legendText.c_str(), legendOption.c_str());
     }
 
     setLegend(c, leg, iDep);

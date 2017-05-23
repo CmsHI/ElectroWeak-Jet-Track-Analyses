@@ -194,6 +194,8 @@ public :
     void fitRecoGen();
     void writeObjects(TCanvas* c);
 
+    void setPad4Observable(TPad* p, int iObs);
+
     TH2D* h2D;
     int nBinsX;
     /*
@@ -735,6 +737,29 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
 
+    if (h2DcorrInitialized) {
+        canvasName = replaceAll(h2Dcorr->GetName(), "h2Dcorr", "cnv2Dcorr");
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h2Dcorr->SetTitleOffset(titleOffsetX, "X");
+        h2Dcorr->SetTitleOffset(titleOffsetY, "Y");
+        h2Dcorr->SetStats(false);
+        h2Dcorr->Draw("colz");
+        h2Dcorr->Write("",TObject::kOverwrite);
+
+        // draw y = x correlation line
+        c->Update();
+        line = new TLine(c->GetUxmin(), c->GetUymin(), c->GetUxmax(), c->GetUymax());
+        line->SetLineStyle(kDashed);
+        line->SetLineWidth(line->GetLineWidth()*2);
+        line->Draw();
+
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+
     // energy scale
     canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str());
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
@@ -744,13 +769,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[0]->SetMarkerSize(markerSize);
     h1D[0]->Draw("e");
     h1D[0]->Write("",TObject::kOverwrite);
-
-    // draw line y = 1
-    float x1 = h1D[0]->GetXaxis()->GetXmin();
-    float x2 = h1D[0]->GetXaxis()->GetXmax();
-    line = new TLine(x1, 1, x2, 1);
-    line->SetLineStyle(kDashed);
-    line->Draw();
+    setPad4Observable((TPad*) c, 0);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -763,6 +782,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[1]->SetMarkerSize(markerSize);
     h1D[1]->Draw("e");
     h1D[1]->Write("",TObject::kOverwrite);
+    setPad4Observable((TPad*) c, 1);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -776,13 +796,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[2]->SetMarkerSize(markerSize);
     h1D[2]->Draw("e");
     h1D[2]->Write("",TObject::kOverwrite);
-
-    // draw line y = 1
-    x1 = h1D[2]->GetXaxis()->GetXmin();
-    x2 = h1D[2]->GetXaxis()->GetXmax();
-    line = new TLine(x1, 1, x2, 1);
-    line->SetLineStyle(kDashed);
-    line->Draw();
+    setPad4Observable((TPad*) c, 2);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -795,6 +809,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[3]->SetMarkerSize(markerSize);
     h1D[3]->Draw("e");
     h1D[3]->Write("",TObject::kOverwrite);
+    setPad4Observable((TPad*) c, 3);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -925,6 +940,40 @@ void energyScaleHist::writeObjects(TCanvas* c)
         if (pads[i] != 0)  pads[i]->Delete();
     }
     c->Close();         // do not use Delete() for TCanvas.
+}
+
+void energyScaleHist::setPad4Observable(TPad* p, int iObs)
+{
+    TLine* line = 0;
+
+    p->Update();
+    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH) {
+
+        // draw line y = 1
+        double x1 = p->GetUxmin();
+        double x2 = p->GetUxmax();
+        line = new TLine(x1, 1, x2, 1);
+        line->SetLineStyle(kDashed);
+        line->Draw();
+    }
+
+    if (dep == ENERGYSCALE::kETA) {
+        // draw line for EE-EB transition
+        double ECAL_boundary_1 = 1.4442;
+        double ECAL_boundary_2 = 1.566;
+
+        double yMin = p->GetUymin();
+        double yMax = p->GetUymax();
+
+        // draw lines for ECAL transition region
+        std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
+        for (std::vector<double>::const_iterator itLine = lineXvalues.begin(); itLine !=lineXvalues.end(); ++itLine) {
+
+            line = new TLine((*itLine), yMin, (*itLine), yMax);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+        }
+    }
 }
 
 #endif
