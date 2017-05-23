@@ -851,6 +851,14 @@ void energyScaleHist::writeObjects(TCanvas* c)
         drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
     }
     c->Write("",TObject::kOverwrite);
+    // plot the same canvas in log-scale as well
+    for (int i = 0; i < nH1DsliceY; ++i) {
+        pads[i]->SetLogy(1);
+        pads[i]->Update();
+    }
+    canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+    c->SetName(canvasName.c_str());
+    c->Write("",TObject::kOverwrite);
     // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
 
     // plot pull distributions for energy scale fits
