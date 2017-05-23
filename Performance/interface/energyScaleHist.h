@@ -38,10 +38,12 @@ const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
 enum OBS {
     kESCALE,    // energy scale
     kERES,      // energy resolution
+    kESCALEARITH,    // energy scale
+    kERESARITH,      // energy resolution
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes"};
+const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith"};
 
 };
 
@@ -56,6 +58,9 @@ public :
         hPullInitialized = false;
 
         fitOption = "Q M R N";
+
+        hMean = -1;
+        hStdDev = -1;
     };
     ~eScaleAna(){};
 
@@ -90,7 +95,16 @@ public :
             hPull->SetMaximum(extremum);
             hPull->SetMinimum(-1*extremum);
         }
-    }
+    };
+    void update() {
+        if (hInitialized) {
+            hMean = h->GetMean();
+            hMeanErr = h->GetMeanError();
+
+            hStdDev = h->GetStdDev();
+            hStdDevErr = h->GetStdDevError();
+        }
+    };
 
     TH1D* h;       // energy scale distribution
     TF1*  f1;      // fit function
@@ -101,11 +115,18 @@ public :
     bool hInitialized;
     bool f1Initialized;
     bool hPullInitialized;
+
+    double hMean;    // histogram (arithmetic) mean of h, used as cross-check for the mean extracted from fit
+    double hMeanErr;
+    double hStdDev;   // histogram (arithmetic) std dev of h, used as cross-check for the width extracted from fit
+    double hStdDevErr;
 };
 
 class energyScaleHist {
 public :
     energyScaleHist(){
+        nBinsX = 0;
+
         h2Dinitialized = false;
         hInitialized = false;
         h2DcorrInitialized = false;
@@ -150,18 +171,26 @@ public :
     std::string getBinEdgeText(int binLow, int binUp);
 
     void updateFncs();
+    void updateH1DsliceY();
 
     void prepareTitle();
 
     void postLoop();
     void fitRecoGen();
+    void calcArithmetic();
     void writeObjects(TCanvas* c);
 
     TH2D* h2D;
-    TH1D* h1D[4];       // h1D[0] = energy scale histogram, mean for a Gaussian fit
-                        // h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
-                        // h1D[2] = Constant for Gaussian fit
-                        // h1D[3] = chi2/ndf for Gaussian fit
+    int nBinsX;
+    /*
+     * h1D[0] = energy scale histogram, mean for a Gaussian fit
+     * h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
+     * h1D[2] = energy scale histogram, mean from histogram mean of 1D distribution
+     * h1D[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
+     * h1D[4] = Constant for Gaussian fit
+     * h1D[5] = chi2/ndf for Gaussian fit
+     */
+    TH1D* h1D[6];
 
     std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
     /*
@@ -368,6 +397,24 @@ void energyScaleHist::updateFncs()
     }
 }
 
+void energyScaleHist::updateH1DsliceY()
+{
+    h1DsliceY.clear();
+    h1DsliceY.resize(nBinsX);
+
+    // reco pt / gen pt distributions
+    TH1D* hTmp = 0;
+
+    for (int i=1; i<=nBinsX; ++i) {
+
+        hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
+        hTmp->SetTitleOffset(titleOffsetX, "X");
+        hTmp->SetStats(false);
+        hTmp->SetMarkerStyle(kFullCircle);
+        h1DsliceY[i-1] = hTmp;
+    }
+}
+
 /*
  * prepare the object title using the given ranges
  */
@@ -427,6 +474,8 @@ void energyScaleHist::postLoop()
 
     if (!h2Dinitialized) return;
 
+    nBinsX = h2D->GetXaxis()->GetNbins();
+
     TObjArray aSlices;
     h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
@@ -446,21 +495,42 @@ void energyScaleHist::postLoop()
     if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
         h1D[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
-    // Constant for Gaussian fit
-    h1D[2] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+    // energy scale with arithmetic mean
+    h1D[2] = (TH1D*)h1D[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
     h1D[2]->SetTitle(title.c_str());
     h1D[2]->SetXTitle(titleX.c_str());
-    h1D[2]->SetYTitle("Constant for Gaussian fit");
-    h1D[2]->SetStats(false);
-    h1D[2]->SetMarkerStyle(kFullCircle);
+    setTH1_energyScale(h1D[2], titleOffsetX, titleOffsetY);
+    h1D[2]->SetYTitle(Form("%s (Arith)", h1D[2]->GetYaxis()->GetTitle()));
+    if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
+        h1D[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
-    // chi2/ndf for Gaussian fit
-    h1D[3] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+    // width of energy scale with arithmetic std dev
+    h1D[3] = (TH1D*)h1D[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
     h1D[3]->SetTitle(title.c_str());
     h1D[3]->SetXTitle(titleX.c_str());
-    h1D[3]->SetYTitle("chi2/ndf for Gaussian fit");
-    h1D[3]->SetStats(false);
-    h1D[3]->SetMarkerStyle(kFullCircle);
+    setTH1_energyWidth(h1D[3], titleOffsetX, titleOffsetY);
+    h1D[3]->SetYTitle(Form("%s (Arith)", h1D[3]->GetYaxis()->GetTitle()));
+    if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+        h1D[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES]/20, "Y");
+
+    updateH1DsliceY();
+    calcArithmetic();
+
+    // Constant for Gaussian fit
+    h1D[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+    h1D[4]->SetTitle(title.c_str());
+    h1D[4]->SetXTitle(titleX.c_str());
+    h1D[4]->SetYTitle("Constant for Gaussian fit");
+    h1D[4]->SetStats(false);
+    h1D[4]->SetMarkerStyle(kFullCircle);
+
+    // chi2/ndf for Gaussian fit
+    h1D[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+    h1D[5]->SetTitle(title.c_str());
+    h1D[5]->SetXTitle(titleX.c_str());
+    h1D[5]->SetYTitle("chi2/ndf for Gaussian fit");
+    h1D[5]->SetStats(false);
+    h1D[5]->SetMarkerStyle(kFullCircle);
 
     fitRecoGen();
 }
@@ -475,28 +545,28 @@ void energyScaleHist::fitRecoGen()
     TH1D* hTmp = 0;
     TF1* f1Tmp = 0;
     updateFncs();
-    int nBinsX = h2D->GetXaxis()->GetNbins();
+
+    esa.clear();
     esa.resize(nBinsX);
+
+    f1sv2.clear();
     f1sv2.resize(nBinsX);
 
     for (int i=1; i<=nBinsX; ++i) {
-        hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
-        hTmp->SetTitleOffset(titleOffsetX, "X");
-        hTmp->SetStats(false);
-        hTmp->SetMarkerStyle(kFullCircle);
-        h1DsliceY.push_back(hTmp);
+
+        hTmp = h1DsliceY[i-1];
 
         // fit functions for that bin along x-axis of h2D
         std::vector<TF1*> f1sTmp;
 
         // initial fit from TH2::FitSlicesY
         f1Tmp = new TF1(Form("f1_bin%d_fnc0_%s", i, name.c_str()), "gaus", 0, 2);
-        double p0 = h1D[2]->GetBinContent(i);   // constant
+        double p0 = h1D[4]->GetBinContent(i);   // constant
         double p1 = h1D[0]->GetBinContent(i);   // mean
         double p2 = h1D[1]->GetBinContent(i);   // StdDev
         f1Tmp->SetParameters(p0, p1, p2);
         f1Tmp->SetLineColor(kGreen);
-        //        double chi2ndf = h1D[3]->GetBinContent(i);
+        //        double chi2ndf = h1D[5]->GetBinContent(i);
         //        f1Tmp->SetChisquare(chi2ndf*100);
         //        f1Tmp->SetNDF(100);
         f1sTmp.push_back(f1Tmp);
@@ -523,7 +593,6 @@ void energyScaleHist::fitRecoGen()
                 // use the fit from TH2::FitSlicesY as seed
                 f1Tmp->SetParameters(p0, p1, p2);
             }
-            hTmp->Fit(f1Tmp, option.c_str());
             f1sTmp.push_back(f1Tmp);
         }
 
@@ -535,10 +604,16 @@ void energyScaleHist::fitRecoGen()
             esaTmp[j].f1 = f1sTmp[j];
             esaTmp[j].f1Initialized = true;
 
+            esaTmp[j].fitOption = option;
+            // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
+            if (j > 0)  esaTmp[j].fit();
+
             esaTmp[j].makePull();
             esaTmp[j].hPullInitialized = true;
             std::string hpullName = replaceAll(esaTmp[j].f1->GetName(), "f1_", "hpull");
             esaTmp[j].hPull->SetName(hpullName.c_str());
+
+            esaTmp[j].update();
         }
         esa[i-1] = esaTmp;
 
@@ -561,6 +636,25 @@ void energyScaleHist::fitRecoGen()
             f1sv2Tmp.push_back(f1Tmp);
         }
         f1sv2[i-1] = f1sv2Tmp;
+    }
+}
+
+/*
+ * arithmetic mean and std dev of energy scale distributions
+ */
+void energyScaleHist::calcArithmetic()
+{
+    for (int i = 1; i <= nBinsX; ++i) {
+
+        double mean = h1DsliceY[i-1]->GetMean();
+        double meanErr = h1DsliceY[i-1]->GetMeanError();
+        h1D[2]->SetBinContent(i, mean);
+        h1D[2]->SetBinError(i, meanErr);
+
+        double stdDev = h1DsliceY[i-1]->GetStdDev();
+        double stdDevErr = h1DsliceY[i-1]->GetStdDevError();;
+        h1D[3]->SetBinContent(i, stdDev);
+        h1D[3]->SetBinContent(i, stdDevErr);
     }
 }
 
@@ -590,6 +684,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
     double bottomMargin = c->GetBottomMargin();
     double topMargin = c->GetTopMargin();
 
+    TLine* line = 0;
+
     std::string canvasName = "";
     canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
@@ -617,7 +713,6 @@ void energyScaleHist::writeObjects(TCanvas* c)
     // draw line y = 1
     float x1 = h1D[0]->GetXaxis()->GetXmin();
     float x2 = h1D[0]->GetXaxis()->GetXmax();
-    TLine* line = new TLine();
     line = new TLine(x1, 1, x2, 1);
     line->SetLineStyle(kDashed);
     line->Draw();
@@ -633,6 +728,38 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h1D[1]->SetMarkerSize(markerSize);
     h1D[1]->Draw("e");
     h1D[1]->Write("",TObject::kOverwrite);
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
+
+    // energy scale from histogram mean
+    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str());
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+    c->cd();
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    markerSize = (float)windowWidth/600;
+    h1D[2]->SetMarkerSize(markerSize);
+    h1D[2]->Draw("e");
+    h1D[2]->Write("",TObject::kOverwrite);
+
+    // draw line y = 1
+    x1 = h1D[2]->GetXaxis()->GetXmin();
+    x2 = h1D[2]->GetXaxis()->GetXmax();
+    line = new TLine(x1, 1, x2, 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    c->Close();         // do not use Delete() for TCanvas.
+
+    // width of energy scale from histogram std dev
+    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str());
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+    c->cd();
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h1D[3]->SetMarkerSize(markerSize);
+    h1D[3]->Draw("e");
+    h1D[3]->Write("",TObject::kOverwrite);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.

@@ -1083,10 +1083,10 @@ int  preLoop(TFile* input, bool makeNew)
                         if (hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dinitialized) {
 
                             if (nyMin == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin[0] = yMin[0];
-                            else if (nyMin == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin = yMin;
+                            else if (nyMin == 2)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMin = yMin;
 
                             if (nyMax == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax[0] = yMax[0];
-                            else if (nyMax == ENERGYSCALE::OBS::kN_OBS)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax = yMax;
+                            else if (nyMax == 2)  hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].yMax = yMax;
 
                             float titleOffsetXTmp = titleOffsetsX.at(0);
                             float titleOffsetYTmp = titleOffsetsY.at(0);
@@ -1151,6 +1151,8 @@ int postLoop()
      */
     // iObs = 0 is energy scale
     // iObs = 1 is energy resolution
+    // iObs = 2 is energy scale from histogram mean
+    // iObs = 3 is energy resolution from histogram std dev
     for (int iObs = 0; iObs < ENERGYSCALE::OBS::kN_OBS; ++iObs) {
         for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
 
@@ -1268,7 +1270,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     drawSameTH1D(c, vecTmp);
 
     TLine* line = new TLine();
-    if (iObs == ENERGYSCALE::OBS::kESCALE) {
+    if (iObs == ENERGYSCALE::OBS::kESCALE || iObs == ENERGYSCALE::OBS::kESCALEARITH) {
         // draw line y = 1
         float x1 = vecTmp[0]->GetXaxis()->GetXmin();
         float x2 = vecTmp[0]->GetXaxis()->GetXmax();
