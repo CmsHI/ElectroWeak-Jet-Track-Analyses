@@ -164,16 +164,17 @@ public :
                         // h1D[3] = chi2/ndf for Gaussian fit
 
     std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
-    std::vector<std::vector<TF1*>>  f1s;    // Fit functions for each histogram in h1DsliceY
-                                            // f1s is 2D vector with [nBinsX][nFitFncs]
-                                            // f1s[i][0] = initial fit from TH2::FitSlicesY
-                                            // f1s[i][1] = fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
-                                            // f1s[i][2] = fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
+    /*
+     * analyzers for 1D energy scale distribution histograms in h1DsliceY
+     * esa is 2D vector with [nBinsX][nFitFncs]
+     * esa[i][0] : initial fit from TH2::FitSlicesY
+     * esa[i][1] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
+     * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 95% of the integral
+     */
+    std::vector<std::vector<eScaleAna>> esa;
     std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
                                             // They are seed by f1sliceY if a function is Gaussian.
                                             // f1sv2 is 2D vector with [nBinsX][nFitFncs]
-
-    std::vector<std::vector<eScaleAna>> esa;    // analyzers for 1D energy scale distribution
 
     TH1D* h;            // energy scale distribution
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -476,7 +477,6 @@ void energyScaleHist::fitRecoGen()
     updateFncs();
     int nBinsX = h2D->GetXaxis()->GetNbins();
     esa.resize(nBinsX);
-    f1s.resize(nBinsX);
     f1sv2.resize(nBinsX);
 
     for (int i=1; i<=nBinsX; ++i) {
@@ -486,7 +486,7 @@ void energyScaleHist::fitRecoGen()
         hTmp->SetMarkerStyle(kFullCircle);
         h1DsliceY.push_back(hTmp);
 
-        // fit functions for that bin along x-axis
+        // fit functions for that bin along x-axis of h2D
         std::vector<TF1*> f1sTmp;
 
         // initial fit from TH2::FitSlicesY
@@ -526,9 +526,8 @@ void energyScaleHist::fitRecoGen()
             hTmp->Fit(f1Tmp, option.c_str());
             f1sTmp.push_back(f1Tmp);
         }
-        f1s[i-1] = f1sTmp;
 
-        int nF1s = f1s[i-1].size();
+        int nF1s = f1sTmp.size();
         std::vector<eScaleAna> esaTmp(nF1s);
         for (int j = 0; j < nF1s; ++j) {
             esaTmp[j].h = hTmp;
@@ -670,9 +669,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
         line->SetLineStyle(kDashed);
         line->Draw();
 
-        int nFitFncs = f1s[i].size();
+        int nFitFncs = esa[i].size();
         for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
-            f1s[i][iFnc]->Draw("same");
+            if (esa[i][iFnc].f1Initialized) {
+                esa[i][iFnc].f1->Draw("same");
+            }
         }
 
         int nFitFncsv2 = f1sv2[i].size();
