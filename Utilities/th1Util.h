@@ -348,6 +348,14 @@ std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double frac
     double intTot = h->Integral();
     double intFrac = intTot*fraction;
 
+    int n = h->GetNbinsX();
+    if (fraction >= 1) {
+        if (direction == "L")  return {1, binStart};
+        else if (direction == "L")  return {binStart, n};
+        else if (direction == "LR") return {1, n};
+        else                        return {-1, -1};
+    }
+
     if (direction == "L") {
         int bin = binStart;
 
@@ -363,7 +371,6 @@ std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double frac
     }
     else if (direction == "R") {
         int bin = binStart;
-        int n = h->GetNbinsX();
 
         while (h->Integral(binStart, bin) < intFrac && bin <= n+1) {
             ++bin;
