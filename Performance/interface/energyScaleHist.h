@@ -154,6 +154,7 @@ public :
     void prepareTitle();
 
     void postLoop();
+    void fitRecoGen();
     void writeObjects(TCanvas* c);
 
     TH2D* h2D;
@@ -460,6 +461,15 @@ void energyScaleHist::postLoop()
     h1D[3]->SetStats(false);
     h1D[3]->SetMarkerStyle(kFullCircle);
 
+    fitRecoGen();
+}
+
+/*
+ * fit distributions that compare reco-level and gen-level objects
+ * Ex. fit reco pt / gen pt distribution
+ */
+void energyScaleHist::fitRecoGen()
+{
     // reco pt / gen pt distributions and fits
     TH1D* hTmp = 0;
     TF1* f1Tmp = 0;
