@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 
 if [ $# -lt 4 ]; then
     echo -e "Usage: ./ShellScipts/gammaJet/run-gamma-jet.sh [0/1] [0/1] [label] [mixing dir]"
@@ -7,6 +6,8 @@ if [ $# -lt 4 ]; then
     echo -e "[0: results, 1: systematics]"
     exit 1
 fi
+
+set -x
 
 LABEL=$3
 
@@ -17,7 +18,7 @@ mkdir -p $H_INDIR
 
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/PbPb_MC_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/gammaJet/pp_MC_HiForest.list)
-NJOBS=(200 10 200 5)
+NJOBS=(200 100 200 5)
 MIXINGSAMPLE=(${4}/PbPb_Data_minbiasJetSkim.root ${4}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 CONFSUFFIXES=("" _mc _pp _pp_mc)
 

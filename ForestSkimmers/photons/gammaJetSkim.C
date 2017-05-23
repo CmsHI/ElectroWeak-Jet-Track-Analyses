@@ -186,6 +186,8 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
     }
   }
 
+  float jec_fix = isHI ? 0.98 : 0.99;
+
   // mixed-event block
   int centBinWidth = 0;
   int vertexBinWidth = 0;
@@ -796,7 +798,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         if (failedEtaCut)
           continue;
         bool failedSpikeRejection;
-        failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
+        failedSpikeRejection = (ggHi.phoSigmaIEtaIEta_2012->at(i) < 0.002 ||
                                 ggHi.pho_swissCrx->at(i)     > 0.9   ||
                                 TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
         if (failedSpikeRejection)
@@ -862,6 +864,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           for (int k=0; k<jets[i].nref; ++k) {
             if (jets[i].jtpt[k]<xmin || jets[i].jtpt[k]>xmax) continue;
             jets[i].jtpt[k] /= jetResidualFunction[centBin]->Eval(jets[i].jtpt[k]);
+            jets[i].jtpt[k] *= jec_fix;
           }
         }
 
@@ -997,6 +1000,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
                 for (int k=0; k<jetsMB[i].nref; ++k) {
                   if (jetsMB[i].jtpt[k]<xmin || jetsMB[i].jtpt[k]>xmax) continue;
                   jetsMB[i].jtpt[k] /= jetResidualFunction[rcentBin]->Eval(jetsMB[i].jtpt[k]);
+                  jetsMB[i].jtpt[k] *= jec_fix;
                 }
               }
 
