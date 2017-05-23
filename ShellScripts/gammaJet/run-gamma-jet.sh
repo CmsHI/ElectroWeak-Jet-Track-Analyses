@@ -17,7 +17,7 @@ H_INDIR=/mnt/hadoop/cms/store/user/biran/gamma-jet/${LABEL}/
 mkdir -p $H_INDIR
 
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
-INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/PbPb_MC_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/gammaJet/pp_MC_HiForest.list)
+INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/PbPb_MC_Flt30_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/gammaJet/pp_MC_HiForest.list)
 NJOBS=(200 100 200 5)
 MIXINGSAMPLE=(${4}/PbPb_Data_minbiasJetSkim.root ${4}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 CONFSUFFIXES=("" _mc _pp _pp_mc)
