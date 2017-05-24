@@ -455,6 +455,100 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 }}}}
 
             }
+
+            // matching efficiency
+            for (int i=0; i<ggHi.nPho; ++i) {
+
+                // selections on GEN particle
+                int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                bool isMatched = (genMatchedIndex >= 0);
+                bool isMatched2Photon = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
+
+                double genPt = -1;
+                if (isMatched2Photon) {
+                    genPt = (*ggHi.mcPt)[genMatchedIndex];
+                    if (genPt <= 0)   continue;
+
+                    if (isHI) {
+                        if (cut_mcCalIsoDR04 != 0) {
+                            if (!((*ggHi.mcCalIsoDR04)[genMatchedIndex] < cut_mcCalIsoDR04))   continue;
+                        }
+                        if (cut_mcTrkIsoDR04 != 0) {
+                            if (!((*ggHi.mcTrkIsoDR04)[genMatchedIndex] < cut_mcTrkIsoDR04))   continue;
+                        }
+                        if (cut_mcSumIso != 0) {
+                            if (!(((*ggHi.mcCalIsoDR04)[genMatchedIndex] +
+                                    (*ggHi.mcTrkIsoDR04)[genMatchedIndex]) < cut_mcSumIso))   continue;
+                        }
+                    }
+                    else {
+                        if (cut_mcCalIsoDR04 != 0) {
+                            if (!((*ggHi.mcCalIsoDR04)[genMatchedIndex] < cut_mcCalIsoDR04))   continue;
+                        }
+                        if (cut_mcTrkIsoDR04 != 0) {
+                            if (!((*ggHi.mcTrkIsoDR04)[genMatchedIndex] < cut_mcTrkIsoDR04))   continue;
+                        }
+                        if (cut_mcSumIso != 0) {
+                            if (!(((*ggHi.mcCalIsoDR04)[genMatchedIndex] +
+                                    (*ggHi.mcTrkIsoDR04)[genMatchedIndex]) < cut_mcSumIso))   continue;
+                        }
+                    }
+                }
+
+                // selections on RECO particle
+                if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                if (cut_phoHoverE != 0) {
+                    if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                }
+                if (cut_pho_ecalClusterIsoR4 != 0) {
+                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
+                }
+                if (cut_pho_hcalRechitIsoR4 != 0) {
+                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
+                }
+                if (cut_pho_trackIsoR4PtCut20 != 0) {
+                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
+                }
+                if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
+                }
+                if (cut_sumIso != 0) {
+                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
+                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                            (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
+                }
+
+                double eta = (*ggHi.phoEta)[i];
+                double pt  = (*ggHi.phoEt)[i];
+                double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                        (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                        (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+
+                for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
+                    for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
+                        for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                            for (int iHiBin = 0;  iHiBin < nBins_hiBin; ++iHiBin) {
+
+                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(eta, w, eta, genPt, pt, hiBin);
+                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(genPt, w, eta, genPt, pt, hiBin);
+                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(pt, w, eta, genPt, pt, hiBin);
+                                hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(hiBin, w, eta, genPt, pt, hiBin);
+                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(sumIso, w, eta, genPt, pt, hiBin);
+                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillHDenom(sieie, w, eta, genPt, pt, hiBin);
+
+                                if (isMatched2Photon) {
+                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(eta, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(genPt, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(pt, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(hiBin, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(sumIso, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillHNum(sieie, w, eta, genPt, pt, hiBin);
+                                }
+                            }}}}
+            }
+
         }
         fileTmp->Close();
     }
@@ -1014,6 +1108,8 @@ int  preLoop(TFile* input, bool makeNew)
 
                             std::string tmpHistName = Form("h2D_%s", tmpName.c_str());
                             std::string tmpHistName1D = Form("h_%s", tmpName.c_str());
+                            std::string tmpHistNameNum = Form("hNum_%s", tmpName.c_str());
+                            std::string tmpHistNameDenom = Form("hDenom_%s", tmpName.c_str());
 
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].dep = iDep;
 
@@ -1040,6 +1136,7 @@ int  preLoop(TFile* input, bool makeNew)
                             double arr[nBins+1];
                             std::copy(bins.begin(), bins.end(), arr);
 
+                            // energy scale
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D =
                                         new TH2D(tmpHistName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
@@ -1059,6 +1156,26 @@ int  preLoop(TFile* input, bool makeNew)
                                         (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hInitialized =
                                         (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h->IsZombie());
+                            }
+
+                            // matching efficiency
+                            if (makeNew) {
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum =
+                                        new TH1D(tmpHistNameNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom =
+                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum->Clone(tmpHistNameDenom.c_str());
+
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumInitialized = true;
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomInitialized = true;
+                            }
+                            else {
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum = (TH1D*)input->Get(tmpHistNameNum.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom = (TH1D*)input->Get(tmpHistNameDenom.c_str());
+
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumInitialized =
+                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomInitialized =
+                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom->IsZombie());
                             }
 
                             // special cases
