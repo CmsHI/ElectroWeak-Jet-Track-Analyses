@@ -1273,7 +1273,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     }
 
     drawSameTH1D(c, vecTmp);
-    c->Modified();
+    c->Update();
 
     TLine* line = new TLine();
     if (iObs == ENERGYSCALE::OBS::kESCALE || iObs == ENERGYSCALE::OBS::kESCALEARITH) {
@@ -1286,7 +1286,6 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         line->Draw();
     }
 
-    /*
     if (iDep == ENERGYSCALE::kETA) {
         // draw line for EE-EB transition
         double ECAL_boundary_1 = 1.4442;
@@ -1304,7 +1303,6 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
             line->Draw();
         }
     }
-    */
 
     TLegend* leg = new TLegend();
     // make legend transparent
@@ -1473,7 +1471,7 @@ void setLegend(TPad* pad, TLegend* leg, int iLeg)
     if (nLegendOffsetsY == 1) legendOffsetY = legendOffsetsY.at(0);
     else if (nLegendOffsetsY == ENERGYSCALE::kN_DEPS) legendOffsetY = legendOffsetsY.at(iLeg);
 
-    setLegendPosition(leg, legendPosition, pad, height, width, legendOffsetX, legendOffsetY);
+    setLegendPosition(leg, legendPosition, pad, height, width, legendOffsetX, legendOffsetY, true);
 }
 
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg)
