@@ -22,6 +22,7 @@
 float resetTH1axisMin4LogScale(float axisMin, std::string axis);
 std::string  summaryTH1(TH1* h);
 TH1* Graph2Histogram(TGraph* graph);
+void fillTH1fromTGraph(TH1* h, TGraph* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
@@ -144,6 +145,24 @@ TH1* Graph2Histogram(TGraph* graph)
     }
 
     return h;
+}
+
+void fillTH1fromTGraph(TH1* h, TGraph* graph)
+{
+    h->Reset();
+
+    int fNpoints = graph->GetN();
+    double* fX   = graph->GetX();
+    double* fY   = graph->GetY();
+
+    for (int i=0; i<fNpoints; ++i)  {
+
+        double x = fX[i];
+        int iBin = h->FindBin(x);
+
+        h->SetBinContent(iBin, fY[i]);
+        h->SetBinError(iBin, graph->GetErrorY(i));
+    }
 }
 
 void setTH1_energyScale(TH1* h, float titleOffsetX, float titleOffsetY) {
