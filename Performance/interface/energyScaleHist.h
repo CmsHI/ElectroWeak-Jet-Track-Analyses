@@ -24,6 +24,8 @@ enum DEPS {   // energy scale dependencies
     kGENPT,
     kRECOPT,
     kHIBIN,
+    kSUMISO,
+    kSIEIE,
     kN_DEPS
 };
 
@@ -31,7 +33,9 @@ const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
         "ETA",
         "GENPT",
         "RECOPT",
-        "HIBIN"
+        "HIBIN",
+        "SUMISO",
+        "SIEIE"
 };
 
 // observables
@@ -379,6 +383,12 @@ std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
     else if (dep == ENERGYSCALE::kHIBIN) {
         res = Form("Cent:%.0f-%.0f%%", xLow/2, xUp/2);
     }
+    else if (dep == ENERGYSCALE::kSUMISO) {
+        res = Form("%.1f < sumIso < %.1f", xLow, xUp);
+    }
+    else if (dep == ENERGYSCALE::kSIEIE) {
+        res = Form("%.3f < #sigma_{#eta#eta} < %.3f", xLow, xUp);
+    }
 
     return res;
 }
@@ -429,6 +439,8 @@ void energyScaleHist::updateH1DsliceY()
         hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
         hTmp->SetTitleOffset(titleOffsetX, "X");
         hTmp->SetStats(false);
+        hTmp->GetXaxis()->CenterTitle();
+        hTmp->GetYaxis()->CenterTitle();
         hTmp->SetMarkerStyle(kFullCircle);
         h1DsliceY[i-1] = hTmp;
     }
@@ -733,6 +745,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     h2D->SetStats(false);
     h2D->Draw("colz");
     h2D->Write("",TObject::kOverwrite);
+    setPad4Observable((TPad*) c, 0);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();         // do not use Delete() for TCanvas.
@@ -895,6 +908,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
                 esa[i][j].hPull->SetMarkerSize(markerSize);
 
+                if (j != indexFnc)  esa[i][j].hPull->SetMarkerStyle(kOpenSquare);
+
                 std::string drawOption = "e same";
                 if (j == j1)  drawOption = "e";
                 esa[i][j].hPull->Draw(drawOption.c_str());
@@ -954,6 +969,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
         double x2 = p->GetUxmax();
         line = new TLine(x1, 1, x2, 1);
         line->SetLineStyle(kDashed);
+        line->SetLineWidth(line->GetLineWidth()*2);
         line->Draw();
     }
 

@@ -422,14 +422,16 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
                 double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
+                double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                 double energyScale = pt/genPt;
 
                 for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
                 for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                 for (int iHiBin = 0;  iHiBin < nBins_hiBin; ++iHiBin) {
-
-                    if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
 
                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, eta, w, eta, genPt, pt, hiBin);
                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
@@ -444,6 +446,12 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
                     hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, hiBin, w, eta, genPt, pt, hiBin);
                     hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
+
+                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, sumIso, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
+
+                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillH2D(energyScale, sieie, w, eta, genPt, pt, hiBin);
+                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillH(energyScale, w, eta, genPt, pt, hiBin);
                 }}}}
 
             }
@@ -989,6 +997,16 @@ int  preLoop(TFile* input, bool makeNew)
                             xTitle = "Hibin";
                             makeObject = true;
                         }
+                        else if (iDep == ENERGYSCALE::kSUMISO) {
+                            strDep = "depSumIso";
+                            xTitle = "sumIso";
+                            makeObject = true;
+                        }
+                        else if (iDep == ENERGYSCALE::kSIEIE) {
+                            strDep = "depSieie";
+                            xTitle = "#sigma_{#eta#eta}";
+                            makeObject = true;
+                        }
 
                         if (makeObject) {
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_hiBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iHiBin);
@@ -1121,7 +1139,9 @@ int postLoop()
                         if (iDep == ENERGYSCALE::kRECOPT && iRecoPt != 0) continue;
                         if (iDep == ENERGYSCALE::kHIBIN && iHiBin != 0) continue;
 
-                        if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
+                        if (iDep != ENERGYSCALE::kSUMISO && iDep != ENERGYSCALE::kSIEIE) {
+                            if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iHiBin > 0)  continue;
+                        }
                         // for histograms with a particular dependence,
                         // a single index is used in the multidimensional array of energyScaleHist objects.
                         // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
@@ -1262,6 +1282,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         float x2 = vecTmp[0]->GetXaxis()->GetXmax();
         line = new TLine(x1, 1, x2,1);
         line->SetLineStyle(kDashed);
+        line->SetLineWidth(line->GetLineWidth()*2);
         line->Draw();
     }
 
