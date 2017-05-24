@@ -30,8 +30,8 @@ void setTH1Final (TH1* h);
 void setTH1Ratio (TH1* h, TH1* hBase, double factor);
 void setLegendFinal(TLegend* legend);
 void setLegendPosition(TLegend* legend, std::string position, TCanvas* c);
-void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0);
-void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX = 0, double offsetY = 0);
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX = 0, double offsetY = 0, bool useNDC = false);
+void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX = 0, double offsetY = 0, bool useNDC = false);
 void setTextAlignment(TLatex* latex, std::string position);
 void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offsetY = 0);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
@@ -241,9 +241,9 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c)
  * Ex. If position = NE, then the legend will be put such that the upper-right corner of the legend
  *     has distance of offsetX and offsetY to the upper-right corner of the canvas
  */
-void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX, double offsetY)
+void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double height, double width, double offsetX, double offsetY, bool useNDC)
 {
-    setLegendPosition(legend, position, (TPad*)c, height, width, offsetX, offsetY);
+    setLegendPosition(legend, position, (TPad*)c, height, width, offsetX, offsetY, useNDC);
 }
 
 /*
@@ -251,34 +251,62 @@ void setLegendPosition(TLegend* legend, std::string position, TCanvas* c, double
  * Ex. If position = NE, then the legend will be put such that the upper-right corner of the legend
  *     has distance of offsetX and offsetY to the upper-right corner of the canvas
  */
-void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX, double offsetY)
+void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double height, double width, double offsetX, double offsetY, bool useNDC)
 {
     if (width>0.50) legend->SetMargin(0.075);     // if the legend is wide, then keep the length of the line not wide.
     else if (width>0.25) legend->SetMargin(0.15);     // if the legend is wide, then keep the length of the line not wide.
     // TLegend::SetMargin() helps to set the length of the line in the legend entry.
-    if (position == "NW") { // upper-left corner
-        legend->SetX1(pad->GetLeftMargin() + offsetX);
-        legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
-        legend->SetX2(pad->GetLeftMargin() + width + offsetX);
-        legend->SetY2(1 - pad->GetTopMargin() - offsetY);
+    if (!useNDC) {
+        if (position == "NW") { // upper-left corner
+            legend->SetX1(pad->GetLeftMargin() + offsetX);
+            legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
+            legend->SetX2(pad->GetLeftMargin() + width + offsetX);
+            legend->SetY2(1 - pad->GetTopMargin() - offsetY);
+        }
+        else if (position == "NE") { // upper-right corner
+            legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
+            legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
+            legend->SetX2(1 - pad->GetRightMargin() - offsetX);
+            legend->SetY2(1 - pad->GetTopMargin() - offsetY);
+        }
+        else if (position == "SW") { // lower-left corner
+            legend->SetX1(pad->GetLeftMargin() + offsetX);
+            legend->SetY1(pad->GetBottomMargin() + offsetY);
+            legend->SetX2(pad->GetLeftMargin() + width + offsetX);
+            legend->SetY2(pad->GetBottomMargin() + height + offsetY);
+        }
+        else if (position == "SE") { // lower-right corner
+            legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
+            legend->SetY1(pad->GetBottomMargin() + offsetY);
+            legend->SetX2(1 - pad->GetRightMargin() - offsetX);
+            legend->SetY2(pad->GetBottomMargin() + height + offsetY);
+        }
     }
-    else if (position == "NE") { // upper-right corner
-        legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
-        legend->SetY1(1 - pad->GetTopMargin() - height - offsetY);
-        legend->SetX2(1 - pad->GetRightMargin() - offsetX);
-        legend->SetY2(1 - pad->GetTopMargin() - offsetY);
-    }
-    else if (position == "SW") { // lower-left corner
-        legend->SetX1(pad->GetLeftMargin() + offsetX);
-        legend->SetY1(pad->GetBottomMargin() + offsetY);
-        legend->SetX2(pad->GetLeftMargin() + width + offsetX);
-        legend->SetY2(pad->GetBottomMargin() + height + offsetY);
-    }
-    else if (position == "SE") { // lower-right corner
-        legend->SetX1(1 - pad->GetRightMargin() - width - offsetX);
-        legend->SetY1(pad->GetBottomMargin() + offsetY);
-        legend->SetX2(1 - pad->GetRightMargin() - offsetX);
-        legend->SetY2(pad->GetBottomMargin() + height + offsetY);
+    else {
+        if (position == "NW") { // upper-left corner
+            legend->SetX1NDC(pad->GetLeftMargin() + offsetX);
+            legend->SetY1NDC(1 - pad->GetTopMargin() - height - offsetY);
+            legend->SetX2NDC(pad->GetLeftMargin() + width + offsetX);
+            legend->SetY2NDC(1 - pad->GetTopMargin() - offsetY);
+        }
+        else if (position == "NE") { // upper-right corner
+            legend->SetX1NDC(1 - pad->GetRightMargin() - width - offsetX);
+            legend->SetY1NDC(1 - pad->GetTopMargin() - height - offsetY);
+            legend->SetX2NDC(1 - pad->GetRightMargin() - offsetX);
+            legend->SetY2NDC(1 - pad->GetTopMargin() - offsetY);
+        }
+        else if (position == "SW") { // lower-left corner
+            legend->SetX1NDC(pad->GetLeftMargin() + offsetX);
+            legend->SetY1NDC(pad->GetBottomMargin() + offsetY);
+            legend->SetX2NDC(pad->GetLeftMargin() + width + offsetX);
+            legend->SetY2NDC(pad->GetBottomMargin() + height + offsetY);
+        }
+        else if (position == "SE") { // lower-right corner
+            legend->SetX1NDC(1 - pad->GetRightMargin() - width - offsetX);
+            legend->SetY1NDC(pad->GetBottomMargin() + offsetY);
+            legend->SetX2NDC(1 - pad->GetRightMargin() - offsetX);
+            legend->SetY2NDC(pad->GetBottomMargin() + height + offsetY);
+        }
     }
 }
 
