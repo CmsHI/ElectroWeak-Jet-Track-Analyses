@@ -149,6 +149,11 @@ public :
         hInitialized = false;
         h2DcorrInitialized = false;
 
+        hNumInitialized = false;
+        hDenomInitialized = false;
+        hRatioInitialized = false;
+        gRatioInitialized = false;
+
         dep = -1;
 
         name = "";
@@ -179,6 +184,9 @@ public :
     void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
     void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int hiBin = -1);
 
+    void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
 
     std::string getRangeTextEta();
@@ -196,6 +204,7 @@ public :
 
     void postLoop();
     void fitRecoGen();
+    void calcRatio();
     void writeObjects(TCanvas* c);
 
     void setPad4Observable(TPad* p, int iObs);
@@ -234,6 +243,17 @@ public :
     bool h2Dinitialized;
     bool hInitialized;
     bool h2DcorrInitialized;
+
+    // objects for efficiency
+    TH1D* hNum;
+    TH1D* hDenom;
+    TH1D* hRatio;
+    TGraphAsymmErrors* gRatio;
+
+    bool hNumInitialized;
+    bool hDenomInitialized;
+    bool hRatioInitialized;
+    bool gRatioInitialized;
 
     int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
 
@@ -278,6 +298,18 @@ void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float e
 {
     if (h2DcorrInitialized && insideRange(eta, -1, -1, hiBin))
         h2Dcorr->Fill(genPt, recoPt, w);
+}
+
+void energyScaleHist::FillHNum(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+{
+    if (hNumInitialized && insideRange(eta, genPt, recoPt, hiBin))
+        hNum->Fill(x, w);
+}
+
+void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+{
+    if (hDenomInitialized && insideRange(eta, genPt, recoPt, hiBin))
+        hDenom->Fill(x, w);
 }
 
 /*
@@ -527,6 +559,18 @@ void energyScaleHist::prepareTitle()
     if(h2DcorrInitialized) {
         h2Dcorr->SetTitle(title.c_str());
     }
+    if(hNumInitialized) {
+        hNum->SetTitle(title.c_str());
+    }
+    if(hDenomInitialized) {
+        hDenom->SetTitle(title.c_str());
+    }
+    if(gRatioInitialized) {
+        gRatio->SetTitle(title.c_str());
+    }
+    if(hRatioInitialized) {
+        hRatio->SetTitle(title.c_str());
+    }
 }
 
 void energyScaleHist::postLoop()
@@ -597,6 +641,8 @@ void energyScaleHist::postLoop()
     fitRecoGen();
     // up to this point bins of h1D[0], h1D[1], h1D[4], h1D[5] are set by the initial fit from TH2::FitSlicesY
     updateH1D();
+
+    calcRatio();
 }
 
 /*
@@ -705,6 +751,36 @@ void energyScaleHist::fitRecoGen()
         }
         f1sv2[i-1] = f1sv2Tmp;
     }
+}
+
+void energyScaleHist::calcRatio()
+{
+    if (!hNumInitialized || !hDenomInitialized) return;
+
+    if (gRatioInitialized) {
+        gRatio->Delete();
+        gRatioInitialized = false;
+    }
+
+    gRatio = new TGraphAsymmErrors();
+    gRatio->SetName(Form("gRatio_%s", name.c_str()));
+    gRatio->BayesDivide(hNum, hDenom);
+    gRatio->SetTitle(title.c_str());
+    gRatio->GetXaxis()->SetTitle(titleX.c_str());
+
+    gRatioInitialized = true;
+
+    if (hRatioInitialized) {
+        hRatio->Delete();
+        hRatioInitialized = false;
+    }
+
+    hRatio = (TH1D*)hNum->Clone(Form("hRatio_%s", name.c_str()));
+    fillTH1fromTGraph(hRatio, gRatio);
+    hRatio->SetTitle(title.c_str());
+    hRatio->SetXTitle(titleX.c_str());
+
+    hRatioInitialized = true;
 }
 
 /*
@@ -955,6 +1031,24 @@ void energyScaleHist::writeObjects(TCanvas* c)
         if (pads[i] != 0)  pads[i]->Delete();
     }
     c->Close();         // do not use Delete() for TCanvas.
+
+    // efficiency objects
+    if (hNumInitialized) {
+        hNum->SetMarkerStyle(kFullCircle);
+        hNum->Write("",TObject::kOverwrite);
+    }
+    if (hDenomInitialized) {
+        hDenom->SetMarkerStyle(kFullCircle);
+        hDenom->Write("",TObject::kOverwrite);
+    }
+    if (hRatioInitialized) {
+        hRatio->SetMarkerStyle(kFullCircle);
+        hRatio->Write("",TObject::kOverwrite);
+    }
+    if (gRatioInitialized) {
+        gRatio->SetMarkerStyle(kFullCircle);
+        gRatio->Write("",TObject::kOverwrite);
+    }
 }
 
 void energyScaleHist::setPad4Observable(TPad* p, int iObs)
