@@ -151,6 +151,8 @@ void setTH1_energyScale(TH1* h, float titleOffsetX, float titleOffsetY) {
     h->SetYTitle("< Reco p_{T} / Gen p_{T} >");
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
     h->SetAxisRange(0.8,1.5,"Y");
     h->SetStats(false);
     h->SetMarkerStyle(kFullCircle);
@@ -161,6 +163,8 @@ void setTH1_energyWidth(TH1* h, float titleOffsetX, float titleOffsetY) {
     h->SetYTitle("#sigma( Reco p_{T} / Gen p_{T} )");
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
     h->SetAxisRange(0,0.5,"Y");
     h->SetStats(false);
     h->SetMarkerStyle(kFullCircle);
