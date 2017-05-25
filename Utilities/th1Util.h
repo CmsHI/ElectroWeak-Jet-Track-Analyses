@@ -65,6 +65,8 @@ void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, doubl
 // plotting
 void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D);
 void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D);
+void drawSameTGraph(TCanvas* c, std::vector<TGraph*> vecTGraph);
+void drawSameTGraph(TPad* pad, std::vector<TGraph*> vecTGraph);
 
 /*
  * reset the lower limit of an axis in case the plot will be drawn log scale and the relevant lower limit is non-positive.
@@ -834,6 +836,24 @@ void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D)
     for (int i = 0; i < n; ++i) {
         if (i == 0)  vecTH1D[i]->Draw();
         else         vecTH1D[i]->Draw("same");
+    }
+}
+
+void drawSameTGraph(TCanvas* c, std::vector<TGraph*> vecTGraph)
+{
+    drawSameTGraph((TPad*)c, vecTGraph);
+}
+
+/*
+ * draw a list of graphs onto the same pad
+ */
+void drawSameTGraph(TPad* pad, std::vector<TGraph*> vecTGraph)
+{
+    pad->cd();
+    int n = vecTGraph.size();
+    for (int i = 0; i < n; ++i) {
+        if (i == 0)  vecTGraph[i]->Draw("p e");
+        else         vecTGraph[i]->Draw("p e");
     }
 }
 
