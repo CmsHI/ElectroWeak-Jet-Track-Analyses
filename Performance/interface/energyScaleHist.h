@@ -44,12 +44,11 @@ enum OBS {
     kERES,      // energy resolution
     kESCALEARITH,    // energy scale
     kERESARITH,      // energy resolution
+    kEff,            // matching efficiency
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith"};
-
-const int kMatchEff = 11;
+const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eff"};
 
 enum FNCS {
     kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
@@ -209,7 +208,9 @@ public :
     void calcRatio();
     void writeObjects(TCanvas* c);
 
+    static void setPad4Observable(TPad* p, int iObs, int iDep);
     void setPad4Observable(TPad* p, int iObs);
+    void drawLine4PtRange(TPad* p, int iObs, int lineColor = kBlack);
 
     TH2D* h2D;
     int nBinsX;
@@ -1074,31 +1075,34 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (hRatioInitialized) {
-        canvasName = Form("cnv_hRatio_%s", name.c_str());
+        int iObs = ENERGYSCALE::kEff;
+        canvasName = Form("cnv_%sH1D_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         hRatio->SetMarkerSize(markerSize);
         hRatio->Draw("e");
         hRatio->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, ENERGYSCALE::kMatchEff);
+        setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (hRatioInitialized && gRatioInitialized) {
-        canvasName = Form("cnv_gRatio_%s", name.c_str());
+        int iObs = ENERGYSCALE::kEff;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        // histogram to be used as template for the graph
+        // dummy histogram to be used as template for the graph
         TH1D* hTmp = (TH1D*)hRatio->Clone("hTmp");
         hTmp->Reset();
         hTmp->Draw();
         gRatio->SetMarkerSize(markerSize);
         gRatio->Draw("p e");
         gRatio->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, ENERGYSCALE::kMatchEff);
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtRange((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -1106,7 +1110,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
     }
 }
 
-void energyScaleHist::setPad4Observable(TPad* p, int iObs)
+void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
 {
     TLine* line = 0;
 
@@ -1122,13 +1126,24 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
         line->Draw();
     }
 
-    if (dep == ENERGYSCALE::kETA) {
+    if (iObs == ENERGYSCALE::kEff) {
+        // draw line y = 1
+        double x1 = p->GetUxmin();
+        double x2 = p->GetUxmax();
+        line = new TLine(x1, 1, x2, 1);
+        line->SetLineStyle(kDashed);
+        line->SetLineWidth(line->GetLineWidth()*2);
+        line->Draw();
+    }
+
+    if (iDep == ENERGYSCALE::kETA) {
         // draw line for EE-EB transition
         double ECAL_boundary_1 = 1.4442;
         double ECAL_boundary_2 = 1.566;
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
+        if (iObs == ENERGYSCALE::kEff)  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
@@ -1139,56 +1154,68 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
             line->Draw();
         }
     }
+}
 
-    if (iObs == ENERGYSCALE::kMatchEff) {
+void energyScaleHist::setPad4Observable(TPad* p, int iObs)
+{
+    setPad4Observable(p, iObs, dep);
+}
 
-        // draw line y = 1
-        double x1 = p->GetUxmin();
-        double x2 = p->GetUxmax();
-        line = new TLine(x1, 1, x2, 1);
-        line->SetLineStyle(kDashed);
-        line->SetLineWidth(line->GetLineWidth()*2);
-        line->Draw();
+/*
+ * draw vertical lines for the pt range
+ * Ex. x-axis axis is reco pt and the gen Pt range is 10<pt<30, then it draws vertical lines at x=10 and x=30.
+ * Ex. x-axis axis is gen pt and the reco Pt range is pt>20, then it draws vertical line at x=20.
+ */
+void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
+{
+    TLine* line = 0;
 
-        if (dep == ENERGYSCALE::kGENPT) {
+    p->Update();
+    double x1 = p->GetUxmin();
+    double x2 = p->GetUxmax();
 
-            // draw vertical lines for reco pt range
-            if (ranges[ENERGYSCALE::kRECOPT][0] > 0 &&
-                ranges[ENERGYSCALE::kRECOPT][0] > x1 && ranges[ENERGYSCALE::kRECOPT][0] < x2) {
+    if (dep == ENERGYSCALE::kGENPT) {
 
-                line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], 0, ranges[ENERGYSCALE::kRECOPT][0], 1);
-                line->SetLineStyle(kDotted);
-                line->SetLineWidth(line->GetLineWidth()*2);
-                line->Draw();
-            }
-            if (ranges[ENERGYSCALE::kRECOPT][1] > 0 &&
-                ranges[ENERGYSCALE::kRECOPT][1] > x1 && ranges[ENERGYSCALE::kRECOPT][1] < x2) {
+        // vertical lines for reco pt range
+        if (ranges[ENERGYSCALE::kRECOPT][0] > 0 &&
+            ranges[ENERGYSCALE::kRECOPT][0] > x1 && ranges[ENERGYSCALE::kRECOPT][0] < x2) {
 
-                line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], 0, ranges[ENERGYSCALE::kRECOPT][1], 1);
-                line->SetLineStyle(kDotted);
-                line->SetLineWidth(line->GetLineWidth()*2);
-                line->Draw();
-            }
+            line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], 0, ranges[ENERGYSCALE::kRECOPT][0], 1);
+            line->SetLineStyle(kDotted);
+            line->SetLineColor(lineColor);
+            line->SetLineWidth(line->GetLineWidth()*3);
+            line->Draw();
         }
-        else if (dep == ENERGYSCALE::kRECOPT) {
+        if (ranges[ENERGYSCALE::kRECOPT][1] > 0 &&
+            ranges[ENERGYSCALE::kRECOPT][1] > x1 && ranges[ENERGYSCALE::kRECOPT][1] < x2) {
 
-            // draw vertical lines for gen pt range
-            if (ranges[ENERGYSCALE::kGENPT][0] > 0 &&
-                ranges[ENERGYSCALE::kGENPT][0] > x1 && ranges[ENERGYSCALE::kGENPT][0] < x2) {
+            line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], 0, ranges[ENERGYSCALE::kRECOPT][1], 1);
+            line->SetLineStyle(kDotted);
+            line->SetLineColor(lineColor);
+            line->SetLineWidth(line->GetLineWidth()*3);
+            line->Draw();
+        }
+    }
+    else if (dep == ENERGYSCALE::kRECOPT) {
 
-                line = new TLine(ranges[ENERGYSCALE::kGENPT][0], 0, ranges[ENERGYSCALE::kGENPT][0], 1);
-                line->SetLineStyle(kDotted);
-                line->SetLineWidth(line->GetLineWidth()*2);
-                line->Draw();
-            }
-            if (ranges[ENERGYSCALE::kGENPT][1] > 0 &&
-                ranges[ENERGYSCALE::kGENPT][1] > x1 && ranges[ENERGYSCALE::kGENPT][1] < x2) {
+        // vertical lines for gen pt range
+        if (ranges[ENERGYSCALE::kGENPT][0] > 0 &&
+            ranges[ENERGYSCALE::kGENPT][0] > x1 && ranges[ENERGYSCALE::kGENPT][0] < x2) {
 
-                line = new TLine(ranges[ENERGYSCALE::kGENPT][1], 0, ranges[ENERGYSCALE::kGENPT][1], 1);
-                line->SetLineStyle(kDotted);
-                line->SetLineWidth(line->GetLineWidth()*2);
-                line->Draw();
-            }
+            line = new TLine(ranges[ENERGYSCALE::kGENPT][0], 0, ranges[ENERGYSCALE::kGENPT][0], 1);
+            line->SetLineStyle(kDotted);
+            line->SetLineColor(lineColor);
+            line->SetLineWidth(line->GetLineWidth()*3);
+            line->Draw();
+        }
+        if (ranges[ENERGYSCALE::kGENPT][1] > 0 &&
+            ranges[ENERGYSCALE::kGENPT][1] > x1 && ranges[ENERGYSCALE::kGENPT][1] < x2) {
+
+            line = new TLine(ranges[ENERGYSCALE::kGENPT][1], 0, ranges[ENERGYSCALE::kGENPT][1], 1);
+            line->SetLineStyle(kDotted);
+            line->SetLineColor(lineColor);
+            line->SetLineWidth(line->GetLineWidth()*3);
+            line->Draw();
         }
     }
 }

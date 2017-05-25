@@ -184,6 +184,7 @@ int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iHiBin);
 void setTH1(TH1D* h, int iHist);
+void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root");
@@ -1290,6 +1291,7 @@ int postLoop()
     // iObs = 1 is energy resolution
     // iObs = 2 is energy scale from histogram mean
     // iObs = 3 is energy resolution from histogram std dev
+    // iObs = 4 is matching efficiency
     for (int iObs = 0; iObs < ENERGYSCALE::OBS::kN_OBS; ++iObs) {
         for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
 
@@ -1329,6 +1331,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     if (iDep == ENERGYSCALE::kHIBIN && iHiBin != 0) return;
 
     TH1D* hTmp = 0;
+    TGraphAsymmErrors* gTmp = 0;
 
     // decide which bins will be plotted on top.
     std::string tmpName = "";
@@ -1370,54 +1373,82 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
-    std::vector<TH1D*> vecTmp;
+    std::vector<TH1D*> vecH1D;
+    std::vector<TGraph*> vecGraph;
+    std::vector<TObject*> vecObj;
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
-        if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].h1D[iObs]->Clone();
-        else if (iGenPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iBin][iRecoPt][iHiBin].h1D[iObs]->Clone();
-        else if (iRecoPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iBin][iHiBin].h1D[iObs]->Clone();
-        else if (iHiBin == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[iObs]->Clone();
+        if (iObs == ENERGYSCALE::kEff) {
+            if (iEta == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].gRatio->Clone();
+            else if (iGenPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iBin][iRecoPt][iHiBin].gRatio->Clone();
+            else if (iRecoPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iBin][iHiBin].gRatio->Clone();
+            else if (iHiBin == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].gRatio->Clone();
 
-        hTmp->SetTitle("");
+            if (iBin == 0) {
+                // dummy histogram to be used as template for the graph
+                if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].hRatio->Clone();
+                else if (iGenPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iBin][iRecoPt][iHiBin].hRatio->Clone();
+                else if (iRecoPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iBin][iHiBin].hRatio->Clone();
+                else if (iHiBin == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].hRatio->Clone();
 
-        int iHist = iBin;
-        if (iEta == -1) iHist = iBin;
-        else if (iGenPt == -1) iHist = nBins_eta + iBin;
-        else if (iRecoPt == -1) iHist = nBins_eta + nBins_genPt + iBin;
-        else if (iHiBin == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
-        setTH1(hTmp, iHist);
-        vecTmp.push_back(hTmp);
+                hTmp->SetTitle("");
+                hTmp->Reset();
+                hTmp->SetMaximum(1.6);
+                hTmp->Draw();
+            }
+
+            int iGraph = iBin;
+            if (iEta == -1) iGraph = iBin;
+            else if (iGenPt == -1) iGraph = nBins_eta + iBin;
+            else if (iRecoPt == -1) iGraph = nBins_eta + nBins_genPt + iBin;
+            else if (iHiBin == -1) iGraph = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
+
+            setTGraph(gTmp, iGraph);
+            vecGraph.push_back(gTmp);
+            vecObj.push_back(gTmp);
+        }
+        else {
+            if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].h1D[iObs]->Clone();
+            else if (iGenPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iBin][iRecoPt][iHiBin].h1D[iObs]->Clone();
+            else if (iRecoPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iBin][iHiBin].h1D[iObs]->Clone();
+            else if (iHiBin == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[iObs]->Clone();
+
+            hTmp->SetTitle("");
+
+            int iHist = iBin;
+            if (iEta == -1) iHist = iBin;
+            else if (iGenPt == -1) iHist = nBins_eta + iBin;
+            else if (iRecoPt == -1) iHist = nBins_eta + nBins_genPt + iBin;
+            else if (iHiBin == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
+
+            setTH1(hTmp, iHist);
+            vecH1D.push_back(hTmp);
+            vecObj.push_back(hTmp);
+        }
     }
 
-    drawSameTH1D(c, vecTmp);
+    if (iObs == ENERGYSCALE::kEff) {
+        drawSameTGraph(c, vecGraph);
+    }
+    else {
+        drawSameTH1D(c, vecH1D);
+    }
     c->Update();
 
     TLine* line = new TLine();
-    if (iObs == ENERGYSCALE::OBS::kESCALE || iObs == ENERGYSCALE::OBS::kESCALEARITH) {
-        // draw line y = 1
-        float x1 = vecTmp[0]->GetXaxis()->GetXmin();
-        float x2 = vecTmp[0]->GetXaxis()->GetXmax();
-        line = new TLine(x1, 1, x2,1);
-        line->SetLineStyle(kDashed);
-        line->SetLineWidth(line->GetLineWidth()*2);
-        line->Draw();
-    }
+    energyScaleHist::setPad4Observable((TPad*)c, iObs, iDep);
 
-    if (iDep == ENERGYSCALE::kETA) {
-        // draw line for EE-EB transition
-        double ECAL_boundary_1 = 1.4442;
-        double ECAL_boundary_2 = 1.566;
-
-        double yMinTmp = c->GetUymin();
-        double yMaxTmp = c->GetUymax();
-
-        // draw lines for ECAL transition region
-        std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
-        for (std::vector<double>::const_iterator itLine = lineXvalues.begin(); itLine !=lineXvalues.end(); ++itLine) {
-
-            line = new TLine((*itLine), yMinTmp, (*itLine), yMaxTmp);
-            line->SetLineStyle(kDashed);
-            line->Draw();
+    // vertical lines for pt ranges
+    for (int iBin = 0; iBin < nBins; ++iBin) {
+        if (iObs == ENERGYSCALE::kEff) {
+            if (iEta == -1)
+                hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].drawLine4PtRange(c, iObs, vecGraph[iBin]->GetMarkerColor());
+            else if (iGenPt == -1)
+                hist[iDep][iEta][iBin][iRecoPt][iHiBin].drawLine4PtRange(c, iObs, vecGraph[iBin]->GetMarkerColor());
+            else if (iRecoPt == -1)
+                hist[iDep][iEta][iGenPt][iBin][iHiBin].drawLine4PtRange(c, iObs, vecGraph[iBin]->GetMarkerColor());
+            else if (iHiBin == -1)
+                hist[iDep][iEta][iGenPt][iRecoPt][iBin].drawLine4PtRange(c, iObs, vecGraph[iBin]->GetMarkerColor());
         }
     }
 
@@ -1429,13 +1460,14 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         std::string legendOption = "lpf";
+        if (iObs == ENERGYSCALE::kEff)  legendOption = "lp";
         std::string legendText = "";
         if (iEta == -1) legendText = hist[iDep][iBin][iGenPt][iRecoPt][iHiBin].getRangeTextEta();
         else if (iGenPt == -1) legendText = hist[iDep][iEta][iBin][iRecoPt][iHiBin].getRangeTextGenPt();
         else if (iRecoPt == -1) legendText = hist[iDep][iEta][iGenPt][iBin][iHiBin].getRangeTextRecoPt();
         else if (iHiBin == -1) legendText = hist[iDep][iEta][iGenPt][iRecoPt][iBin].getRangeTextHiBin();
 
-        leg->AddEntry(vecTmp[iBin], legendText.c_str(), legendOption.c_str());
+        leg->AddEntry(vecObj[iBin], legendText.c_str(), legendOption.c_str());
     }
 
     setLegend(c, leg, iDep);
@@ -1527,6 +1559,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     latex->Delete();
     c->Close();         // do not use Delete() for TCanvas.
     if (hTmp != 0)  hTmp->Delete();
+    if (gTmp != 0)  gTmp->Delete();
 }
 
 void setTH1(TH1D* h, int iHist)
@@ -1550,6 +1583,24 @@ void setTH1(TH1D* h, int iHist)
     float markerSize = markerSizes.at(0);
     if (nMarkerSizes == nBinsTot) markerSize = markerSizes.at(iHist);
     h->SetMarkerSize(markerSize);
+}
+
+void setTGraph(TGraph* g, int iGraph)
+{
+    TH1D* hTmp = 0;
+    hTmp = new TH1D("hTmp_setTGraph", "", 1, 0, 1);
+    setTH1(hTmp, iGraph);
+
+    // copy properties from the dummy histogram
+    g->GetXaxis()->SetTitleOffset(hTmp->GetTitleOffset("X"));
+    g->GetYaxis()->SetTitleOffset(hTmp->GetTitleOffset("Y"));
+
+    g->SetMarkerStyle(hTmp->GetMarkerStyle());
+    g->SetMarkerColor(hTmp->GetMarkerColor());
+    g->SetLineColor(hTmp->GetLineColor());
+    g->SetMarkerSize(hTmp->GetMarkerSize());
+
+    if (hTmp != 0) hTmp->Delete();
 }
 
 void setLegend(TPad* pad, TLegend* leg, int iLeg)
