@@ -44,11 +44,12 @@ enum OBS {
     kERES,      // energy resolution
     kESCALEARITH,    // energy scale
     kERESARITH,      // energy resolution
-    kEff,            // matching efficiency
+    kEFF,            // matching efficiency
+    kFAKE,            // fake rate
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eff"};
+const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eff", "fakeRate"};
 
 enum FNCS {
     kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
@@ -155,6 +156,11 @@ public :
         hRatioInitialized = false;
         gRatioInitialized = false;
 
+        hNumFakeInitialized = false;
+        hDenomFakeInitialized = false;
+        hRatioFakeInitialized = false;
+        gRatioFakeInitialized = false;
+
         dep = -1;
 
         name = "";
@@ -187,6 +193,8 @@ public :
 
     void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
     void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillHNumFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillHDenomFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
 
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
 
@@ -206,21 +214,32 @@ public :
     void postLoop();
     void fitRecoGen();
     void calcRatio();
+    void calcRatioFake();
     void writeObjects(TCanvas* c);
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
     void setPad4Observable(TPad* p, int iObs);
-    void drawLine4PtRange(TPad* p, int iObs, int lineColor = kBlack);
+    void drawLine4PtRange(TPad* p, int lineColor = kBlack);
 
     TH2D* h2D;
     int nBinsX;
+    /*
+     * h1DeScale[0] = energy scale histogram, mean for a Gaussian fit
+     * h1DeScale[1] = energy resolution histogram, StdDev for a Gaussian fit
+     * h1DeScale[2] = energy scale histogram, mean from histogram mean of 1D distribution
+     * h1DeScale[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
+     * h1DeScale[4] = Constant for Gaussian fit
+     * h1DeScale[5] = chi2/ndf for Gaussian fit
+     */
+    TH1D* h1DeScale[6];
+
     /*
      * h1D[0] = energy scale histogram, mean for a Gaussian fit
      * h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
      * h1D[2] = energy scale histogram, mean from histogram mean of 1D distribution
      * h1D[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
-     * h1D[4] = Constant for Gaussian fit
-     * h1D[5] = chi2/ndf for Gaussian fit
+     * h1D[4] = matching efficiency
+     * h1D[5] = fake rate
      */
     TH1D* h1D[6];
 
@@ -233,14 +252,14 @@ public :
      * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
      */
     std::vector<std::vector<eScaleAna>> esa;
-    int indexFnc;    // index of the fit function to set the bins of h1D[0], h1D[1]
+    int indexFnc;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
                      // function whose results will be shown in the final plots
 
     std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
                                             // They are seed by f1sliceY if a function is Gaussian.
                                             // f1sv2 is 2D vector with [nBinsX][nFitFncs]
 
-    TH1D* h;            // energy scale distribution
+    TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
 
     bool h2Dinitialized;
@@ -257,6 +276,17 @@ public :
     bool hDenomInitialized;
     bool hRatioInitialized;
     bool gRatioInitialized;
+
+    // objects for fake rate
+    TH1D* hNumFake;
+    TH1D* hDenomFake;
+    TH1D* hRatioFake;
+    TGraphAsymmErrors* gRatioFake;
+
+    bool hNumFakeInitialized;
+    bool hDenomFakeInitialized;
+    bool hRatioFakeInitialized;
+    bool gRatioFakeInitialized;
 
     int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
 
@@ -294,7 +324,7 @@ void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt
 {
     // make sure to fill the histogram if no explicit kinematic range is specified.
     if (hInitialized && insideRange(eta, genPt, recoPt, hiBin))
-        h->Fill(energyScale, w);
+        hEscale->Fill(energyScale, w);
 }
 
 void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int hiBin)
@@ -313,6 +343,18 @@ void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, flo
 {
     if (hDenomInitialized && insideRange(eta, genPt, recoPt, hiBin))
         hDenom->Fill(x, w);
+}
+
+void energyScaleHist::FillHNumFake(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+{
+    if (hNumFakeInitialized && insideRange(eta, genPt, recoPt, hiBin))
+        hNumFake->Fill(x, w);
+}
+
+void energyScaleHist::FillHDenomFake(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+{
+    if (hDenomFakeInitialized && insideRange(eta, genPt, recoPt, hiBin))
+        hDenomFake->Fill(x, w);
 }
 
 /*
@@ -487,29 +529,29 @@ void energyScaleHist::updateH1D()
 
         if (esa[i-1][indexFnc].hInitialized && esa[i-1][indexFnc].f1Initialized) {
 
-            h1D[0]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
-            h1D[0]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
+            h1DeScale[0]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
+            h1DeScale[0]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
 
-            h1D[1]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
-            h1D[1]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
+            h1DeScale[1]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
+            h1DeScale[1]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
 
-            h1D[4]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
-            h1D[4]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
+            h1DeScale[4]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
+            h1DeScale[4]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
 
-            h1D[5]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
-            h1D[5]->SetBinError(i, 0);
+            h1DeScale[5]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
+            h1DeScale[5]->SetBinError(i, 0);
         }
 
         // arithmetic mean and std dev of energy scale distributions
         double mean = h1DsliceY[i-1]->GetMean();
         double meanErr = h1DsliceY[i-1]->GetMeanError();
-        h1D[2]->SetBinContent(i, mean);
-        h1D[2]->SetBinError(i, meanErr);
+        h1DeScale[2]->SetBinContent(i, mean);
+        h1DeScale[2]->SetBinError(i, meanErr);
 
         double stdDev = h1DsliceY[i-1]->GetStdDev();
         double stdDevErr = h1DsliceY[i-1]->GetStdDevError();;
-        h1D[3]->SetBinContent(i, stdDev);
-        h1D[3]->SetBinContent(i, stdDevErr);
+        h1DeScale[3]->SetBinContent(i, stdDev);
+        h1DeScale[3]->SetBinContent(i, stdDevErr);
     }
 }
 
@@ -557,7 +599,7 @@ void energyScaleHist::prepareTitle()
         titleX = h2D->GetXaxis()->GetTitle();
     }
     if (hInitialized) {
-        h->SetTitle(title.c_str());
+        hEscale->SetTitle(title.c_str());
     }
     if(h2DcorrInitialized) {
         h2Dcorr->SetTitle(title.c_str());
@@ -579,7 +621,7 @@ void energyScaleHist::prepareTitle()
 void energyScaleHist::postLoop()
 {
     if (hInitialized) {
-        h->SetMarkerStyle(kFullCircle);
+        hEscale->SetMarkerStyle(kFullCircle);
     }
 
     if (!h2Dinitialized) return;
@@ -590,62 +632,72 @@ void energyScaleHist::postLoop()
     h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
     // energy scale
-    h1D[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
-    h1D[0]->SetTitle(title.c_str());
-    h1D[0]->SetXTitle(titleX.c_str());
-    setTH1_energyScale(h1D[0], titleOffsetX, titleOffsetY);
+    h1DeScale[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
+    h1DeScale[0]->SetTitle(title.c_str());
+    h1DeScale[0]->SetXTitle(titleX.c_str());
+    setTH1_energyScale(h1DeScale[0], titleOffsetX, titleOffsetY);
     if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-        h1D[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        h1DeScale[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
     // width of energy scale
-    h1D[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
-    h1D[1]->SetTitle(title.c_str());
-    h1D[1]->SetXTitle(titleX.c_str());
-    setTH1_energyWidth(h1D[1], titleOffsetX, titleOffsetY);
+    h1DeScale[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
+    h1DeScale[1]->SetTitle(title.c_str());
+    h1DeScale[1]->SetXTitle(titleX.c_str());
+    setTH1_energyWidth(h1DeScale[1], titleOffsetX, titleOffsetY);
     if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-        h1D[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        h1DeScale[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
     // energy scale with arithmetic mean
-    h1D[2] = (TH1D*)h1D[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
-    h1D[2]->SetTitle(title.c_str());
-    h1D[2]->SetXTitle(titleX.c_str());
-    setTH1_energyScale(h1D[2], titleOffsetX, titleOffsetY);
-    h1D[2]->SetYTitle(Form("%s (Arith)", h1D[2]->GetYaxis()->GetTitle()));
+    h1DeScale[2] = (TH1D*)h1DeScale[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
+    h1DeScale[2]->SetTitle(title.c_str());
+    h1DeScale[2]->SetXTitle(titleX.c_str());
+    setTH1_energyScale(h1DeScale[2], titleOffsetX, titleOffsetY);
+    h1DeScale[2]->SetYTitle(Form("%s (Arith)", h1DeScale[2]->GetYaxis()->GetTitle()));
     if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-        h1D[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        h1DeScale[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
     // width of energy scale with arithmetic std dev
-    h1D[3] = (TH1D*)h1D[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
-    h1D[3]->SetTitle(title.c_str());
-    h1D[3]->SetXTitle(titleX.c_str());
-    setTH1_energyWidth(h1D[3], titleOffsetX, titleOffsetY);
-    h1D[3]->SetYTitle(Form("%s (Arith)", h1D[3]->GetYaxis()->GetTitle()));
+    h1DeScale[3] = (TH1D*)h1DeScale[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
+    h1DeScale[3]->SetTitle(title.c_str());
+    h1DeScale[3]->SetXTitle(titleX.c_str());
+    setTH1_energyWidth(h1DeScale[3], titleOffsetX, titleOffsetY);
+    h1DeScale[3]->SetYTitle(Form("%s (Arith)", h1DeScale[3]->GetYaxis()->GetTitle()));
     if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-        h1D[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES]/20, "Y");
+        h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES]/20, "Y");
 
     // Constant for Gaussian fit
-    h1D[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
-    h1D[4]->SetTitle(title.c_str());
-    h1D[4]->SetXTitle(titleX.c_str());
-    h1D[4]->SetYTitle("Constant for Gaussian fit");
-    h1D[4]->SetStats(false);
-    h1D[4]->SetMarkerStyle(kFullCircle);
+    h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+    h1DeScale[4]->SetTitle(title.c_str());
+    h1DeScale[4]->SetXTitle(titleX.c_str());
+    h1DeScale[4]->SetYTitle("Constant for Gaussian fit");
+    h1DeScale[4]->SetStats(false);
+    h1DeScale[4]->SetMarkerStyle(kFullCircle);
 
     // chi2/ndf for Gaussian fit
-    h1D[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
-    h1D[5]->SetTitle(title.c_str());
-    h1D[5]->SetXTitle(titleX.c_str());
-    h1D[5]->SetYTitle("chi2/ndf for Gaussian fit");
-    h1D[5]->SetStats(false);
-    h1D[5]->SetMarkerStyle(kFullCircle);
+    h1DeScale[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+    h1DeScale[5]->SetTitle(title.c_str());
+    h1DeScale[5]->SetXTitle(titleX.c_str());
+    h1DeScale[5]->SetYTitle("chi2/ndf for Gaussian fit");
+    h1DeScale[5]->SetStats(false);
+    h1DeScale[5]->SetMarkerStyle(kFullCircle);
 
     updateH1DsliceY();
 
     fitRecoGen();
-    // up to this point bins of h1D[0], h1D[1], h1D[4], h1D[5] are set by the initial fit from TH2::FitSlicesY
+    // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[4], h1DeScale[5] are set by the initial fit from TH2::FitSlicesY
     updateH1D();
 
     calcRatio();
+    calcRatioFake();
+
+    // Final histograms point to observables
+    h1D[ENERGYSCALE::kESCALE] = h1DeScale[ENERGYSCALE::kESCALE];
+    h1D[ENERGYSCALE::kERES] = h1DeScale[ENERGYSCALE::kERES];
+    h1D[ENERGYSCALE::kESCALEARITH] = h1DeScale[ENERGYSCALE::kESCALEARITH];
+    h1D[ENERGYSCALE::kERESARITH] = h1DeScale[ENERGYSCALE::kERESARITH];
+
+    if (hRatioInitialized)  h1D[ENERGYSCALE::kEFF] = hRatio;
+    if (hRatioFakeInitialized)  h1D[ENERGYSCALE::kFAKE] = hRatioFake;
 }
 
 /*
@@ -669,14 +721,14 @@ void energyScaleHist::fitRecoGen()
 
         hTmp = h1DsliceY[i-1];
 
-        double p0 = h1D[4]->GetBinContent(i);   // constant
-        double p0Err = h1D[4]->GetBinError(i);
+        double p0 = h1DeScale[4]->GetBinContent(i);   // constant
+        double p0Err = h1DeScale[4]->GetBinError(i);
 
-        double p1 = h1D[0]->GetBinContent(i);   // mean
-        double p1Err = h1D[0]->GetBinError(i);
+        double p1 = h1DeScale[0]->GetBinContent(i);   // mean
+        double p1Err = h1DeScale[0]->GetBinError(i);
 
-        double p2 = h1D[1]->GetBinContent(i);   // StdDev
-        double p2Err = h1D[1]->GetBinError(i);
+        double p2 = h1DeScale[1]->GetBinContent(i);   // StdDev
+        double p2Err = h1DeScale[1]->GetBinError(i);
 
         int binMax = hTmp->GetMaximumBin();
         int nBinsTmp = hTmp->GetNbinsX();
@@ -687,7 +739,7 @@ void energyScaleHist::fitRecoGen()
 
             f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), ENERGYSCALE::fncFormulas[iFnc].c_str());
 
-            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(h, binMax, ENERGYSCALE::intFractions[iFnc]);
+            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, ENERGYSCALE::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
             int binUp  = std::min(fncRange[1], nBinsTmp);
             f1Tmp->SetRange(hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
@@ -699,7 +751,7 @@ void energyScaleHist::fitRecoGen()
                 f1Tmp->SetParameters(p0, p1, p2);
                 double parErr[3] = {p0Err, p1Err, p2Err};
                 f1Tmp->SetParErrors(parErr);
-                //        double chi2ndf = h1D[5]->GetBinContent(i);
+                //        double chi2ndf = h1DeScale[5]->GetBinContent(i);
                 //        f1Tmp->SetChisquare(chi2ndf*100);
                 //        f1Tmp->SetNDF(100);
             }
@@ -800,6 +852,50 @@ void energyScaleHist::calcRatio()
     hRatioInitialized = true;
 }
 
+void energyScaleHist::calcRatioFake()
+{
+    if (!hNumFakeInitialized || !hDenomFakeInitialized) return;
+
+    hNumFake->SetTitle(title.c_str());
+    hNumFake->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hNumFake, titleOffsetX, titleOffsetY);
+
+    hDenomFake->SetTitle(title.c_str());
+    hDenomFake->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hDenomFake, titleOffsetX, titleOffsetY);
+
+    if (gRatioFakeInitialized) {
+        gRatioFake->Delete();
+        gRatioFakeInitialized = false;
+    }
+
+    gRatioFake = new TGraphAsymmErrors();
+    gRatioFake->SetName(Form("gRatioFake_%s", name.c_str()));
+    gRatioFake->BayesDivide(hNumFake, hDenomFake);
+    gRatioFake->SetTitle(title.c_str());
+    gRatioFake->GetXaxis()->SetTitle(titleX.c_str());
+    gRatioFake->GetYaxis()->SetTitle("Efficiency");
+    gRatioFake->SetMarkerStyle(kFullCircle);
+
+    gRatioFakeInitialized = true;
+
+    if (hRatioFakeInitialized) {
+        hRatioFake->Delete();
+        hRatioFakeInitialized = false;
+    }
+
+    hRatioFake = (TH1D*)hNumFake->Clone(Form("hRatioFake_%s", name.c_str()));
+    fillTH1fromTGraph(hRatioFake, gRatioFake);
+    setTH1_efficiency(hDenomFake, titleOffsetX, titleOffsetY);
+    hRatioFake->SetTitle(title.c_str());
+    hRatioFake->SetXTitle(titleX.c_str());
+    hRatioFake->SetYTitle("Fake Rate");
+    hRatioFake->SetMinimum(0);
+    hRatioFake->SetMaximum(1.2);
+
+    hRatioFakeInitialized = true;
+}
+
 /*
  * write histograms with a particular dependence
  * use "c" as a template
@@ -810,8 +906,8 @@ void energyScaleHist::calcRatio()
 void energyScaleHist::writeObjects(TCanvas* c)
 {
     if (hInitialized) {
-        h->SetMarkerStyle(kFullCircle);
-        h->Write();
+        hEscale->SetMarkerStyle(kFullCircle);
+        hEscale->Write();
     }
     if (h2DcorrInitialized)
         h2Dcorr->Write();
@@ -872,9 +968,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     float markerSize = (float)windowWidth/600;
-    h1D[0]->SetMarkerSize(markerSize);
-    h1D[0]->Draw("e");
-    h1D[0]->Write("",TObject::kOverwrite);
+    h1DeScale[0]->SetMarkerSize(markerSize);
+    h1DeScale[0]->Draw("e");
+    h1DeScale[0]->Write("",TObject::kOverwrite);
     setPad4Observable((TPad*) c, 0);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
@@ -885,9 +981,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h1D[1]->SetMarkerSize(markerSize);
-    h1D[1]->Draw("e");
-    h1D[1]->Write("",TObject::kOverwrite);
+    h1DeScale[1]->SetMarkerSize(markerSize);
+    h1DeScale[1]->Draw("e");
+    h1DeScale[1]->Write("",TObject::kOverwrite);
     setPad4Observable((TPad*) c, 1);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
@@ -899,9 +995,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     markerSize = (float)windowWidth/600;
-    h1D[2]->SetMarkerSize(markerSize);
-    h1D[2]->Draw("e");
-    h1D[2]->Write("",TObject::kOverwrite);
+    h1DeScale[2]->SetMarkerSize(markerSize);
+    h1DeScale[2]->Draw("e");
+    h1DeScale[2]->Write("",TObject::kOverwrite);
     setPad4Observable((TPad*) c, 2);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
@@ -912,9 +1008,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
     c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
     c->cd();
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h1D[3]->SetMarkerSize(markerSize);
-    h1D[3]->Draw("e");
-    h1D[3]->Write("",TObject::kOverwrite);
+    h1DeScale[3]->SetMarkerSize(markerSize);
+    h1DeScale[3]->Draw("e");
+    h1DeScale[3]->Write("",TObject::kOverwrite);
     setPad4Observable((TPad*) c, 3);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
@@ -1075,7 +1171,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (hRatioInitialized) {
-        int iObs = ENERGYSCALE::kEff;
+        int iObs = ENERGYSCALE::kEFF;
         canvasName = Form("cnv_%sH1D_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1084,12 +1180,13 @@ void energyScaleHist::writeObjects(TCanvas* c)
         hRatio->Draw("e");
         hRatio->Write("",TObject::kOverwrite);
         setPad4Observable((TPad*) c, iObs);
+        drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (hRatioInitialized && gRatioInitialized) {
-        int iObs = ENERGYSCALE::kEff;
+        int iObs = ENERGYSCALE::kEFF;
         canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1102,7 +1199,67 @@ void energyScaleHist::writeObjects(TCanvas* c)
         gRatio->Draw("p e");
         gRatio->Write("",TObject::kOverwrite);
         setPad4Observable((TPad*) c, iObs);
-        drawLine4PtRange((TPad*) c, iObs);
+        drawLine4PtRange((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+        hTmp->Delete();
+    }
+    // fake rate objects
+    if (hNumFakeInitialized) {
+        canvasName = Form("cnv_NumFake_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hNumFake->SetMarkerSize(markerSize);
+        hNumFake->Draw("e");
+        hNumFake->Write("",TObject::kOverwrite);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (hDenomFakeInitialized) {
+        canvasName = Form("cnv_DenomFake_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hDenomFake->SetMarkerSize(markerSize);
+        hDenomFake->Draw("e");
+        hDenomFake->Write("",TObject::kOverwrite);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (hRatioFakeInitialized) {
+        int iObs = ENERGYSCALE::kFAKE;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hRatioFake->SetMarkerSize(markerSize);
+        hRatioFake->Draw("e");
+        hRatioFake->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtRange((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (hRatioFakeInitialized && gRatioFakeInitialized) {
+        int iObs = ENERGYSCALE::kFAKE;
+        canvasName = Form("cnv_%sgraph_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        // dummy histogram to be used as template for the graph
+        TH1D* hTmp = (TH1D*)hRatioFake->Clone("hTmp");
+        hTmp->Reset();
+        hTmp->Draw();
+        gRatioFake->SetMarkerSize(markerSize);
+        gRatioFake->Draw("p e");
+        gRatioFake->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -1115,25 +1272,20 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
     TLine* line = 0;
 
     p->Update();
-    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH) {
+    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH ||
+        iObs == ENERGYSCALE::kEFF || iObs == ENERGYSCALE::kFAKE) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
         double x2 = p->GetUxmax();
-        line = new TLine(x1, 1, x2, 1);
-        line->SetLineStyle(kDashed);
-        line->SetLineWidth(line->GetLineWidth()*2);
-        line->Draw();
-    }
-
-    if (iObs == ENERGYSCALE::kEff) {
-        // draw line y = 1
-        double x1 = p->GetUxmin();
-        double x2 = p->GetUxmax();
-        line = new TLine(x1, 1, x2, 1);
-        line->SetLineStyle(kDashed);
-        line->SetLineWidth(line->GetLineWidth()*2);
-        line->Draw();
+        double y1 = p->GetUymin();
+        double y2 = p->GetUymax();
+        if (y1 < 1 && 1 < y2) {
+            line = new TLine(x1, 1, x2, 1);
+            line->SetLineStyle(kDashed);
+            line->SetLineWidth(line->GetLineWidth()*2);
+            line->Draw();
+        }
     }
 
     if (iDep == ENERGYSCALE::kETA) {
@@ -1143,7 +1295,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (iObs == ENERGYSCALE::kEff)  yMax = 1;
+        if (iObs == ENERGYSCALE::kEFF)  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
@@ -1166,13 +1318,16 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
  * Ex. x-axis axis is reco pt and the gen Pt range is 10<pt<30, then it draws vertical lines at x=10 and x=30.
  * Ex. x-axis axis is gen pt and the reco Pt range is pt>20, then it draws vertical line at x=20.
  */
-void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
+void energyScaleHist::drawLine4PtRange(TPad* p, int lineColor)
 {
     TLine* line = 0;
 
     p->Update();
     double x1 = p->GetUxmin();
     double x2 = p->GetUxmax();
+    double y1 = p->GetUymin();
+    double y2 = p->GetUymax();
+    if (y2 > 1)  y2 = 1;        // vertical rises to at most y = 1
 
     if (dep == ENERGYSCALE::kGENPT) {
 
@@ -1180,7 +1335,7 @@ void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
         if (ranges[ENERGYSCALE::kRECOPT][0] > 0 &&
             ranges[ENERGYSCALE::kRECOPT][0] > x1 && ranges[ENERGYSCALE::kRECOPT][0] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], 0, ranges[ENERGYSCALE::kRECOPT][0], 1);
+            line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], y1, ranges[ENERGYSCALE::kRECOPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
@@ -1189,7 +1344,7 @@ void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
         if (ranges[ENERGYSCALE::kRECOPT][1] > 0 &&
             ranges[ENERGYSCALE::kRECOPT][1] > x1 && ranges[ENERGYSCALE::kRECOPT][1] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], 0, ranges[ENERGYSCALE::kRECOPT][1], 1);
+            line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], y1, ranges[ENERGYSCALE::kRECOPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
@@ -1202,7 +1357,7 @@ void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
         if (ranges[ENERGYSCALE::kGENPT][0] > 0 &&
             ranges[ENERGYSCALE::kGENPT][0] > x1 && ranges[ENERGYSCALE::kGENPT][0] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kGENPT][0], 0, ranges[ENERGYSCALE::kGENPT][0], 1);
+            line = new TLine(ranges[ENERGYSCALE::kGENPT][0], y1, ranges[ENERGYSCALE::kGENPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
@@ -1211,7 +1366,7 @@ void energyScaleHist::drawLine4PtRange(TPad* p, int iObs, int lineColor)
         if (ranges[ENERGYSCALE::kGENPT][1] > 0 &&
             ranges[ENERGYSCALE::kGENPT][1] > x1 && ranges[ENERGYSCALE::kGENPT][1] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kGENPT][1], 0, ranges[ENERGYSCALE::kGENPT][1], 1);
+            line = new TLine(ranges[ENERGYSCALE::kGENPT][1], y1, ranges[ENERGYSCALE::kGENPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
