@@ -193,6 +193,8 @@ void setTH1_efficiency(TH1* h, float titleOffsetX, float titleOffsetY) {
 
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
     h->SetStats(false);
     h->SetMarkerStyle(kFullCircle);
 }

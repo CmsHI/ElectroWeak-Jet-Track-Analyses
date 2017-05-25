@@ -49,6 +49,8 @@ enum OBS {
 
 const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith"};
 
+const int kMatchEff = 11;
+
 enum FNCS {
     kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
     kGAUS_95,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
@@ -757,6 +759,14 @@ void energyScaleHist::calcRatio()
 {
     if (!hNumInitialized || !hDenomInitialized) return;
 
+    hNum->SetTitle(title.c_str());
+    hNum->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hNum, titleOffsetX, titleOffsetY);
+
+    hDenom->SetTitle(title.c_str());
+    hDenom->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hDenom, titleOffsetX, titleOffsetY);
+
     if (gRatioInitialized) {
         gRatio->Delete();
         gRatioInitialized = false;
@@ -767,6 +777,8 @@ void energyScaleHist::calcRatio()
     gRatio->BayesDivide(hNum, hDenom);
     gRatio->SetTitle(title.c_str());
     gRatio->GetXaxis()->SetTitle(titleX.c_str());
+    gRatio->GetYaxis()->SetTitle("Efficiency");
+    gRatio->SetMarkerStyle(kFullCircle);
 
     gRatioInitialized = true;
 
@@ -777,8 +789,12 @@ void energyScaleHist::calcRatio()
 
     hRatio = (TH1D*)hNum->Clone(Form("hRatio_%s", name.c_str()));
     fillTH1fromTGraph(hRatio, gRatio);
+    setTH1_efficiency(hDenom, titleOffsetX, titleOffsetY);
     hRatio->SetTitle(title.c_str());
     hRatio->SetXTitle(titleX.c_str());
+    hRatio->SetYTitle("Efficiency");
+    hRatio->SetMinimum(0);
+    hRatio->SetMaximum(1.2);
 
     hRatioInitialized = true;
 }
@@ -1034,20 +1050,59 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
     // efficiency objects
     if (hNumInitialized) {
-        hNum->SetMarkerStyle(kFullCircle);
+        canvasName = Form("cnv_Num_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hNum->SetMarkerSize(markerSize);
+        hNum->Draw("e");
         hNum->Write("",TObject::kOverwrite);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
     }
     if (hDenomInitialized) {
-        hDenom->SetMarkerStyle(kFullCircle);
+        canvasName = Form("cnv_Denom_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hDenom->SetMarkerSize(markerSize);
+        hDenom->Draw("e");
         hDenom->Write("",TObject::kOverwrite);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
     }
     if (hRatioInitialized) {
-        hRatio->SetMarkerStyle(kFullCircle);
+        canvasName = Form("cnv_hRatio_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hRatio->SetMarkerSize(markerSize);
+        hRatio->Draw("e");
         hRatio->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, ENERGYSCALE::kMatchEff);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
     }
-    if (gRatioInitialized) {
-        gRatio->SetMarkerStyle(kFullCircle);
+    if (hRatioInitialized && gRatioInitialized) {
+        canvasName = Form("cnv_gRatio_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        // histogram to be used as template for the graph
+        TH1D* hTmp = (TH1D*)hRatio->Clone("hTmp");
+        hTmp->Reset();
+        hTmp->Draw();
+        gRatio->SetMarkerSize(markerSize);
+        gRatio->Draw("p e");
         gRatio->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, ENERGYSCALE::kMatchEff);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+        hTmp->Delete();
     }
 }
 
@@ -1082,6 +1137,58 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
             line = new TLine((*itLine), yMin, (*itLine), yMax);
             line->SetLineStyle(kDashed);
             line->Draw();
+        }
+    }
+
+    if (iObs == ENERGYSCALE::kMatchEff) {
+
+        // draw line y = 1
+        double x1 = p->GetUxmin();
+        double x2 = p->GetUxmax();
+        line = new TLine(x1, 1, x2, 1);
+        line->SetLineStyle(kDashed);
+        line->SetLineWidth(line->GetLineWidth()*2);
+        line->Draw();
+
+        if (dep == ENERGYSCALE::kGENPT) {
+
+            // draw vertical lines for reco pt range
+            if (ranges[ENERGYSCALE::kRECOPT][0] > 0 &&
+                ranges[ENERGYSCALE::kRECOPT][0] > x1 && ranges[ENERGYSCALE::kRECOPT][0] < x2) {
+
+                line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], 0, ranges[ENERGYSCALE::kRECOPT][0], 1);
+                line->SetLineStyle(kDotted);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
+            if (ranges[ENERGYSCALE::kRECOPT][1] > 0 &&
+                ranges[ENERGYSCALE::kRECOPT][1] > x1 && ranges[ENERGYSCALE::kRECOPT][1] < x2) {
+
+                line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], 0, ranges[ENERGYSCALE::kRECOPT][1], 1);
+                line->SetLineStyle(kDotted);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
+        }
+        else if (dep == ENERGYSCALE::kRECOPT) {
+
+            // draw vertical lines for gen pt range
+            if (ranges[ENERGYSCALE::kGENPT][0] > 0 &&
+                ranges[ENERGYSCALE::kGENPT][0] > x1 && ranges[ENERGYSCALE::kGENPT][0] < x2) {
+
+                line = new TLine(ranges[ENERGYSCALE::kGENPT][0], 0, ranges[ENERGYSCALE::kGENPT][0], 1);
+                line->SetLineStyle(kDotted);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
+            if (ranges[ENERGYSCALE::kGENPT][1] > 0 &&
+                ranges[ENERGYSCALE::kGENPT][1] > x1 && ranges[ENERGYSCALE::kGENPT][1] < x2) {
+
+                line = new TLine(ranges[ENERGYSCALE::kGENPT][1], 0, ranges[ENERGYSCALE::kGENPT][1], 1);
+                line->SetLineStyle(kDotted);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
         }
     }
 }
