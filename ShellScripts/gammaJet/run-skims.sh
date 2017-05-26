@@ -14,19 +14,21 @@ HADOOPDIR=$3
 mkdir -p $HADOOPDIR
 OUTDIR=$4
 mkdir -p $OUTDIR
+MIXDIR=$5
 
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/PbPb_MC_Flt30_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/gammaJet/pp_MC_HiForest.list)
+MIXINGSAMPLE=(${MIXDIR}/PbPb_Data_minbiasJetSkim.root ${MIXDIR}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 NJOBS=(200 100 200 5)
-MIXINGSAMPLE=(${4}/PbPb_Data_minbiasJetSkim.root ${4}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
-CONFSUFFIXES=("" _mc _pp _pp_mc)
+
+SAM_SUFFIX=("" _mc _pp _pp_mc)
 
 if [ $2 -eq 0 ]; then
     NSYS=0
-    SYSTEMATIC=("")
+    SYS_SUFFIX=("")
 elif [ $2 -eq 1 ]; then
     NSYS=1
-    SYSTEMATIC=(_JES_UP _JES_DOWN)
+    SYS_SUFFIX=(_JES_UP _JES_DOWN)
 fi
 
 if [ $1 -eq 0 ]; then
@@ -34,9 +36,9 @@ if [ $1 -eq 0 ]; then
     do
         for ITERSYS in $(seq 0 $NSYS)
         do
-            CONFSUFFIX=${CONFSUFFIXES[ITERSAM]}${SYSTEMATIC[ITERSYS]}
-            mkdir -p $HADOOPDIR/${SAMPLE[ITERSAM]}${SYSTEMATIC[ITERSYS]}_unmerged/
-            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}${SYSTEMATIC[ITERSYS]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
+            CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}${SYS_SUFFIX[ITERSYS]}
+            mkdir -p $HADOOPDIR/${SAMPLE[ITERSAM]}${SYS_SUFFIX[ITERSYS]}_unmerged/
+            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}${SYS_SUFFIX[ITERSYS]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
         done
     done
 fi
@@ -51,11 +53,11 @@ if [ $1 -eq 1 ]; then
     do
         for ITERSAM in 0 1 2 3
         do
-            hadd $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram${SYSTEMATIC[ITERSYS]}.root $HADOOPDIR/${SAMPLE[ITERSAM]}${SYSTEMATIC[ITERSYS]}_unmerged/gammaJetHistogram*.root
-            CONFSUFFIX=${CONFSUFFIXES[ITERSAM]}${SYSTEMATIC[ITERSYS]}
-            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram${SYSTEMATIC[ITERSYS]}.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic${SYSTEMATIC[ITERSYS]}.root
+            hadd $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram${SYS_SUFFIX[ITERSYS]}.root $HADOOPDIR/${SAMPLE[ITERSAM]}${SYS_SUFFIX[ITERSYS]}_unmerged/gammaJetHistogram*.root
+            CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}${SYS_SUFFIX[ITERSYS]}
+            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram${SYS_SUFFIX[ITERSYS]}.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic${SYS_SUFFIX[ITERSYS]}.root
         done
 
-        ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet${SYSTEMATIC[ITERSYS]}.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic${SYSTEMATIC[ITERSYS]}.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic${SYSTEMATIC[ITERSYS]}.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic${SYSTEMATIC[ITERSYS]}.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic${SYSTEMATIC[ITERSYS]}.root ${OUTDIR}/gammaJetHistograms${SYSTEMATIC[ITERSYS]}.root
+        ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet${SYS_SUFFIX[ITERSYS]}.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic${SYS_SUFFIX[ITERSYS]}.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic${SYS_SUFFIX[ITERSYS]}.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic${SYS_SUFFIX[ITERSYS]}.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic${SYS_SUFFIX[ITERSYS]}.root ${OUTDIR}/gammaJetHistograms${SYS_SUFFIX[ITERSYS]}.root
     done
 fi
