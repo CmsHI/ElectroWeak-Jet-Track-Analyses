@@ -46,7 +46,9 @@ EOF
 
 cat > $now/skim-gamma-jet.sh <<EOF
 #!/bin/bash
+
 set -x
+
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
 mv gammaJet*.conf CutConfigurations/
@@ -57,13 +59,16 @@ mv *.root Corrections/
 mv Corrections/merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root Corrections/jets/
 mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Corrections/jets/L2L3/
 
-#run gammaJetSkim
+# run gammaJetSkim
 ./gammaJetSkim.exe \$1 \$2 gammaJetSkim_\${4}.root \${5} $4 \${4}
 
-#run gammaJetHistogram
+# run gammaJetHistogram
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
-mv *.root \$3
+if [[ \$? -eq 0 ]]; then
+  mv *.root \$3
+fi
+
 rm *.root
 EOF
 
