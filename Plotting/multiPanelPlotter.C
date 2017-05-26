@@ -291,8 +291,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
 
-                    if ((k == _JEWEL || k == _JEWEL_REF || k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type == "dphi")
-                        h1[i][j][k]->Scale(1/h1[i][j][k]->Integral());
+                    // normalize dphi correctly
+                    if ((k == _LBT || k == _LBT_REF || k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL) && hist_type == "dphi")
+                        h1[i][j][k]->Scale(1/h1[i][j][k]->GetBinWidth(h1[i][j][k]->GetNbinsX()));
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
@@ -363,6 +364,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw legend
+            // (should move to config file)
             if ((i + j == 0 && (canvas_title != "dphi_log" || configFile.Contains("data")) && (canvas_title != "xjg_cent" || !configFile.Contains("theory_pp")) && (canvas_title != "ptJet" || configFile.Contains("data")) && (canvas_title != "xjg" || configFile.Contains("data"))) ||
                 (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) ||
                 (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp")) ||
@@ -454,6 +456,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             latexInfo->SetTextSize(latex_font_size);
             if (columns == 5) latexInfo->SetTextSize(latex_font_size - 1);
 
+            // (should move to config file)
             if (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) {
                 i_x[i] = 0.96;
                 i_y[i] = 0.18;

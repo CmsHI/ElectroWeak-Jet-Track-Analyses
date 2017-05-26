@@ -348,7 +348,7 @@ int gammaJetHistogramArithmetic(const TString configFile, const TString inputFil
 
         // correct dphi normalization
         if (iHist == 1) {
-          corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Integral());
+          corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Scale(1./corrHists[iHist][i][j].h1D_final_norm[CORR::kSIG][CORR::kSIG]->Integral(), "width");
         }
 
         // FINAL_NORM  RAWSIG
