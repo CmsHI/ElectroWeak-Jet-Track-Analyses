@@ -2,12 +2,14 @@
 # nominal
 Data/photons/gammaJetHistograms.root
 # systematic variations
-Data/photons/gammaJetHistograms_JES_UP.root
-Data/photons/gammaJetHistograms_JES_DOWN.root
-Data/photons/gammaJetHistograms_purityUP.root
-Data/photons/gammaJetHistograms_purityDOWN.root
-Data/photons/gammaJetHistograms_JER.root
-Data/photons/gammaJetHistograms_sysEleRej.root
-Data/photons/gammaJetHistograms_sysPES.root
+# Data/photons/gammaJetHistograms_JES_UP.root
+# Data/photons/gammaJetHistograms_JES_DOWN.root
 Data/photons/DUMMY.root
-Data/photons/gammaJetHistograms_sysIso.root
+Data/photons/DUMMY.root
+Data/photons/gammaJetHistograms_PURITY_UP.root
+Data/photons/gammaJetHistograms_PURITY_DOWN.root
+Data/photons/gammaJetHistograms_JER.root
+Data/photons/gammaJetHistograms_ELE_REJ.root
+Data/photons/gammaJetHistograms_PES.root
+Data/photons/DUMMY.root
+Data/photons/gammaJetHistograms_ISO.root
