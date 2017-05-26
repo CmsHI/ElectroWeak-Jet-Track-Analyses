@@ -32,6 +32,7 @@
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
+#include "../../TreeHeaders/hiGenParticleTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
@@ -42,6 +43,7 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
 #include "../interface/energyScaleHist.h"
+#include "../../Plotting/commonUtility.h"
 
 ///// global variables
 /// configuration variables
@@ -214,6 +216,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
+    TTree* treeHiGenParticle = 0;
     TTree* treeHiForestInfo = 0;
     TTree* treeSkim = 0;
 
@@ -298,6 +301,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             treeHiEvt->SetBranchStatus("weight", 1);
         }
 
+        // specify explicitly which branches to use, do not use wildcard
+        treeHiGenParticle = (TTree*)fileTmp->Get("HiGenParticleAna/hi");
+        treeHiGenParticle->SetBranchStatus("*",1);     // enable all branches
+
         treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         treeSkim->SetBranchStatus("*",0);     // disable all branches
         if (isHI) {
@@ -314,6 +321,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         hiEvt hiEvt;
         hiEvt.setupTreeForReading(treeHiEvt);
 
+        hiGenParticle hiGen;
+        hiGen.setupTreeForReading(treeHiGenParticle);
+
         skimAnalysis skimAna;
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
@@ -329,6 +339,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
+            treeHiGenParticle->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
@@ -520,8 +531,8 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                             (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
                 }
 
-                double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
+                double eta = (*ggHi.phoEta)[i];
                 double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
                         (*ggHi.pho_hcalRechitIsoR4)[i]  +
                         (*ggHi.pho_trackIsoR4PtCut20)[i]);
@@ -553,17 +564,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             // fake rate
             for (int i=0; i<ggHi.nPho; ++i) {
 
-                // selections on GEN particle
-                int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
-                bool isMatched = (genMatchedIndex >= 0);
-                bool isMatched2Photon = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
-
-                double genPt = -1;
-                if (isMatched2Photon) {
-                    genPt = (*ggHi.mcPt)[genMatchedIndex];
-                    if (genPt <= 0)   continue;
-                }
-
                 // selections on RECO particle
                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
@@ -588,12 +588,56 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                             (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
                 }
 
-                double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
+                double eta = (*ggHi.phoEta)[i];
+                double phi = (*ggHi.phoPhi)[i];
                 double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
                         (*ggHi.pho_hcalRechitIsoR4)[i]  +
                         (*ggHi.pho_trackIsoR4PtCut20)[i]);
                 double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+
+                // selections on GEN particle
+                int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                bool isMatched = (genMatchedIndex >= 0);
+                bool isMatched2Photon = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
+
+                double genPt = -1;
+                if (isMatched2Photon) {
+                    genPt = (*ggHi.mcPt)[genMatchedIndex];
+                    if (genPt <= 0)   continue;
+                }
+
+                int fakePDG = 0;
+                if (!isMatched2Photon) {
+
+                    // identify GEN-level particle that matches the fake at RECO-level
+                    double genPtTmp = -1;
+                    double deltaR = 0.15;
+
+                    bool useggHiMC = false;
+                    if (useggHiMC) {
+                        for (int iMC = 0; iMC < ggHi.nMC; ++iMC) {
+                            if ((*ggHi.mcStatus)[iMC] == 1 &&
+                                    getDR(eta, phi, (*ggHi.mcEta)[iMC], (*ggHi.mcPhi)[iMC]) < deltaR &&
+                                    (*ggHi.mcPt)[iMC] > genPtTmp) {
+
+                                genPtTmp = (*ggHi.mcPt)[iMC];
+                                fakePDG = (*ggHi.mcPID)[iMC];
+                            }
+                        }
+                    }
+                    else {
+                        for (int iMC = 0; iMC < hiGen.mult; ++iMC) {
+                            if (getDR(eta, phi, (*hiGen.eta)[iMC], (*hiGen.phi)[iMC]) < deltaR &&
+                                    (*hiGen.pt)[iMC] > genPtTmp) {
+
+                                genPtTmp = (*hiGen.pt)[iMC];
+                                fakePDG = (*hiGen.pdg)[iMC];
+                            }
+                        }
+                    }
+                    fakePDG = TMath::Abs(fakePDG);
+                }
 
                 for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
                     for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
@@ -614,6 +658,13 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                     hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillHNumFake(hiBin, w, eta, genPt, pt, hiBin);
                                     hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillHNumFake(sumIso, w, eta, genPt, pt, hiBin);
                                     hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillHNumFake(sieie, w, eta, genPt, pt, hiBin);
+
+                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(pt, fakePDG, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kHIBIN][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(hiBin, fakePDG, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(sumIso, fakePDG, w, eta, genPt, pt, hiBin);
+                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iHiBin].FillHFakeParticle(sieie, fakePDG, w, eta, genPt, pt, hiBin);
                                 }
                             }}}}
             }
@@ -1248,6 +1299,7 @@ int  preLoop(TFile* input, bool makeNew)
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomInitialized =
                                         (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom->IsZombie());
                             }
+
                             // fake rate
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumFake =
@@ -1266,6 +1318,28 @@ int  preLoop(TFile* input, bool makeNew)
                                         (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumFake->IsZombie());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomFakeInitialized =
                                         (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomFake->IsZombie());
+                            }
+
+                            // fake rate composition
+                            int nFakePDG = hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].nFakePDGs;
+                            for (int iPDG = 0; iPDG < nFakePDG; ++iPDG) {
+
+                                int pdg = hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].getFakePDG(iPDG);
+                                std::string histNameFakePDG = Form("hFakePDG%d_%s", pdg, tmpName.c_str());
+
+                                if (makeNew) {
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG] =
+                                            new TH1D(histNameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticleInitialized[iPDG] = true;
+                                }
+                                else {
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG] =
+                                            (TH1D*)input->Get(histNameFakePDG.c_str());
+
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticleInitialized[iPDG] =
+                                            (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG]->IsZombie());
+                                }
                             }
 
                             // special cases
