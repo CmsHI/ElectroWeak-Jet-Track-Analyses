@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -ne 3 ]]; then
-    echo -e "Usage: ./ShellScipts/gammaJet/run-histograms.sh [input dir] [output dir] [0/1]"
+    echo -e "Usage: ./ShellScipts/gammaJet/run-nominal.sh [input dir] [output dir] [0/1]"
     echo -e "arg 3: [0: all, 1: arithmetic only]"
     echo -e "[input dir] should contain skim files"
     echo -e "[output dir] will contain histogram and arithmetic files"

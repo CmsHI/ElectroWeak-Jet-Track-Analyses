@@ -54,10 +54,9 @@ fi
 
 for ITERSAM in 1 3
 do
+    CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}_ISO
     ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram_ISO.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic_ISO.root &> $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic_ISO.log &
 done
 wait
 
-./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_ISO.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_ISO.root ${OUTDIR}/gammaJetHistograms_ISO.root &> ${OUTDIR}/gammaJetHistograms_ISO.log &
-
-# calculate systematics
+./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic_ISO.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic_ISO.root ${OUTDIR}/gammaJetHistograms_ISO.root &> ${OUTDIR}/gammaJetHistograms_ISO.log
