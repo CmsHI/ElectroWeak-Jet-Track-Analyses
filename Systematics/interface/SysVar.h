@@ -87,12 +87,6 @@ public:
         h1D_ratio = sys.h1D_ratio;
         h1D_ratio_abs = sys.h1D_ratio_abs;
 
-        fit_diff_abs = sys.fit_diff_abs;
-        fit_ratio_abs = sys.fit_ratio_abs;
-
-        h1D_diff_abs_fit = sys.h1D_diff_abs_fit;
-        h1D_ratio_abs_fit = sys.h1D_ratio_abs_fit;
-
         ave_sys = sys.ave_sys;
     }
 
@@ -105,12 +99,6 @@ public:
         h1D_diff_abs->Reset("ICES");
         h1D_ratio->Reset("ICES");
         h1D_ratio_abs->Reset("ICES");
-
-        fit_diff_abs->Delete();
-        fit_ratio_abs->Delete();
-
-        h1D_diff_abs_fit->Reset("ICES");
-        h1D_ratio_abs_fit->Reset("ICES");
 
         ave_sys = 0;
     }
@@ -184,32 +172,6 @@ public:
         h1D_ratio_abs->Scale(scale_factor);
     }
 
-    void fit_sys(std::string diff_fit_function, std::string ratio_fit_function) {
-        std::string diff_fit_name = Form("fit_%s_diff_%s", hist_name.c_str(), sys_type.c_str());
-        TF1* diff_fit = new TF1(diff_fit_name.c_str(), diff_fit_function.c_str());
-        diff_fit->SetRange(h1D_diff_abs->GetBinLowEdge(1), h1D_diff_abs->GetBinLowEdge(h1D_diff_abs->GetNbinsX() + 1));
-
-        h1D_diff_abs->Fit(diff_fit_name.c_str(), "Q0");
-        fit_diff_abs = h1D_diff_abs->GetFunction(diff_fit_name.c_str());
-        fit_diff_abs->Write("", TObject::kOverwrite);
-
-        std::string ratio_fit_name = Form("fit_%s_ratio_%s", hist_name.c_str(), sys_type.c_str());
-        TF1* ratio_fit = new TF1(ratio_fit_name.c_str(), ratio_fit_function.c_str());
-        ratio_fit->SetRange(h1D_ratio_abs->GetBinLowEdge(1), h1D_ratio_abs->GetBinLowEdge(h1D_ratio_abs->GetNbinsX() + 1));
-
-        h1D_ratio_abs->Fit(ratio_fit_name.c_str(), "Q0");
-        fit_ratio_abs = h1D_ratio_abs->GetFunction(ratio_fit_name.c_str());
-        fit_ratio_abs->Write("", TObject::kOverwrite);
-
-        h1D_diff_abs_fit = (TH1D*)h1D_diff_abs->Clone(Form("h1D_%s_diff_abs_%s_fit", hist_name.c_str(), sys_type.c_str()));
-        h1D_ratio_abs_fit = (TH1D*)h1D_ratio_abs->Clone(Form("h1D_%s_ratio_abs_%s_fit", hist_name.c_str(), sys_type.c_str()));
-
-        TH1D_from_TF1(h1D_diff_abs_fit, fit_diff_abs);
-        TH1D_from_TF1(h1D_ratio_abs_fit, fit_ratio_abs);
-
-        calc_average();
-    }
-
     std::string get_hist_name() {return hist_name;}
     std::string get_sys_type() {return sys_type;}
     TH1D* get_ratio() {return h1D_ratio;}
@@ -225,12 +187,6 @@ private:
     TH1D* h1D_diff_abs = 0;
     TH1D* h1D_ratio = 0;
     TH1D* h1D_ratio_abs = 0;
-
-    TF1* fit_diff_abs = 0;
-    TF1* fit_ratio_abs = 0;
-
-    TH1D* h1D_diff_abs_fit = 0;
-    TH1D* h1D_ratio_abs_fit = 0;
 
     double ave_sys = 0;
 
@@ -262,23 +218,15 @@ public:
 
         h1D_diff = new TH1D();
         h1D_ratio = new TH1D();
-        h1D_diff_fit = new TH1D();
-        h1D_ratio_fit = new TH1D();
 
         up->h1D_diff_abs->Copy(*h1D_diff);
         up->h1D_ratio_abs->Copy(*h1D_ratio);
-        up->h1D_diff_abs_fit->Copy(*h1D_diff_fit);
-        up->h1D_ratio_abs_fit->Copy(*h1D_ratio_fit);
 
         h1D_diff->SetName(Form("h1D_%s_diff_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
         h1D_ratio->SetName(Form("h1D_%s_ratio_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
-        h1D_diff_fit->SetName(Form("h1D_%s_diff_%s_%s_total_fit", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
-        h1D_ratio_fit->SetName(Form("h1D_%s_ratio_%s_%s_total_fit", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
 
         TH1D_Max(h1D_diff, down->h1D_diff_abs);
         TH1D_Max(h1D_ratio, down->h1D_ratio_abs);
-        TH1D_Max(h1D_diff_fit, down->h1D_diff_abs_fit);
-        TH1D_Max(h1D_ratio_fit, down->h1D_ratio_abs_fit);
 
         calc_average();
     }
@@ -293,8 +241,6 @@ public:
 
         h1D_diff = sys.h1D_diff;
         h1D_ratio = sys.h1D_ratio;
-        h1D_diff_fit = sys.h1D_diff_fit;
-        h1D_ratio_fit = sys.h1D_ratio_fit;
 
         ave_sys = sys.ave_sys;
     }
@@ -309,8 +255,6 @@ public:
 
         h1D_diff->Reset("ICES");
         h1D_ratio->Reset("ICES");
-        h1D_diff_fit->Reset("ICES");
-        h1D_ratio_fit->Reset("ICES");
 
         ave_sys = 0;
     }
@@ -323,23 +267,15 @@ public:
 
             h1D_diff = new TH1D();
             h1D_ratio = new TH1D();
-            h1D_diff_fit = new TH1D();
-            h1D_ratio_fit = new TH1D();
 
             sys->h1D_diff_abs->Copy(*h1D_diff);
             sys->h1D_ratio_abs->Copy(*h1D_ratio);
-            sys->h1D_diff_abs_fit->Copy(*h1D_diff_fit);
-            sys->h1D_ratio_abs_fit->Copy(*h1D_ratio_fit);
 
             h1D_diff->SetName(Form("h1D_%s_diff_total", hist_name.c_str()));
             h1D_ratio->SetName(Form("h1D_%s_ratio_total", hist_name.c_str()));
-            h1D_diff_fit->SetName(Form("h1D_%s_diff_total_fit", hist_name.c_str()));
-            h1D_ratio_fit->SetName(Form("h1D_%s_ratio_total_fit", hist_name.c_str()));
         } else {
             TH1D_SqrtSumofSquares(h1D_diff, sys->h1D_diff_abs);
             TH1D_SqrtSumofSquares(h1D_ratio, sys->h1D_ratio_abs);
-            TH1D_SqrtSumofSquares(h1D_diff_fit, sys->h1D_diff_abs_fit);
-            TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_abs_fit);
         }
 
         SysVar_objects.push_back(sys);
@@ -353,23 +289,15 @@ public:
 
             h1D_diff = new TH1D();
             h1D_ratio = new TH1D();
-            h1D_diff_fit = new TH1D();
-            h1D_ratio_fit = new TH1D();
 
             sys->h1D_diff->Copy(*h1D_diff);
             sys->h1D_ratio->Copy(*h1D_ratio);
-            sys->h1D_diff_fit->Copy(*h1D_diff_fit);
-            sys->h1D_ratio_fit->Copy(*h1D_ratio_fit);
 
             h1D_diff->SetName(Form("h1D_%s_diff_total", hist_name.c_str()));
             h1D_ratio->SetName(Form("h1D_%s_ratio_total", hist_name.c_str()));
-            h1D_diff_fit->SetName(Form("h1D_%s_diff_total_fit", hist_name.c_str()));
-            h1D_ratio_fit->SetName(Form("h1D_%s_ratio_total_fit", hist_name.c_str()));
         } else {
             TH1D_SqrtSumofSquares(h1D_diff, sys->h1D_diff);
             TH1D_SqrtSumofSquares(h1D_ratio, sys->h1D_ratio);
-            TH1D_SqrtSumofSquares(h1D_diff_fit, sys->h1D_diff_fit);
-            TH1D_SqrtSumofSquares(h1D_ratio_fit, sys->h1D_ratio_fit);
         }
 
         TotalSysVar_objects.push_back(sys);
@@ -407,8 +335,6 @@ private:
 
     TH1D* h1D_diff = 0;
     TH1D* h1D_ratio = 0;
-    TH1D* h1D_diff_fit = 0;
-    TH1D* h1D_ratio_fit = 0;
 
     double ave_sys = 0;
 

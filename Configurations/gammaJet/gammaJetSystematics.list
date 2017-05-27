@@ -1,4 +1,3 @@
-# ./Systematics/gammaJet/gammaJetSystematics.exe CutConfigurations/gammaJet.conf Configurations/gammaJet/gammaJetSystematics.list Data/photons/gammaJetSystematics.root
 # nominal
 Data/photons/gammaJetHistograms.root
 # systematic variations
@@ -9,5 +8,4 @@ Data/photons/gammaJetHistograms_PURITY_DOWN.root
 Data/photons/gammaJetHistograms_JER.root
 Data/photons/gammaJetHistograms_ELE_REJ.root
 Data/photons/gammaJetHistograms_PES.root
-Data/photons/DUMMY.root
 Data/photons/gammaJetHistograms_ISO.root

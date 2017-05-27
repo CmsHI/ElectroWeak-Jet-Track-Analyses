@@ -41,12 +41,12 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 #define _JES_DOWN    2
 #define _PURITY_UP   3
 #define _PURITY_DOWN 4
-#define _PHOTON_ISO  9
+#define _PHOTON_ISO  8
 
     std::vector<std::string> sys_types {
         "nominal",
         "JES_up", "JES_down", "purity_up", "purity_down",
-        "JER", "ele_rejection", "photon_energy", "jet_residual",
+        "JER", "ele_rejection", "photon_energy",
         "photon_iso"                                                // photon isolation _must_ be the last in this list
     };
     int n_sys_types = sys_types.size();
@@ -68,7 +68,6 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
     sys_names["ele_rejection"] = "Electron Contamination";
     sys_names["photon_energy"] = "Photon Energy Scale";
     sys_names["photon_iso"] = "Photon Isolation";
-    sys_names["jet_residual"] = "Jet Residual Correction";
 
     TFile* input_files[n_input_files] = {0};
     std::vector<bool> valid_input(n_input_files, false);
@@ -90,33 +89,6 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
         "xjg_mean_ptBinAll", "xjg_mean_centBinAll", "dphi_width_ptBinAll", "dphi_width_centBinAll", "iaa"
     };
     int n_hist_types = hist_types.size();
-
-     // fit_funcs[hist_type][sys_type]
-    std::vector< std::vector<std::string> > fit_funcs_diff {
-        {"", "gaus", "gaus", "gaus", "gaus", "gaus", "gaus", "gaus", "gaus", "gaus"},
-        {"", "pol1", "pol1", "pol1", "pol1", "pol1", "expo", "pol4", "pol2", "pol2"},
-        {"", "expo", "expo", "expo", "expo", "expo", "expo", "expo", "expo", "expo"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"}
-    };
-
-    std::vector< std::vector<std::string> > fit_funcs_ratio {
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "expo", "expo", "expo", "expo", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol1", "pol1", "pol1", "pol1", "pol1", "pol1", "pol1", "pol1", "pol1"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"},
-        {"", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2", "pol2"}
-    };
 
     TFile* output = new TFile(outputFile, "recreate");
 
@@ -184,8 +156,6 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         if (sys_types[m] == "ele_rejection")
                             sys_hists->scale_sys(0.55);
 
-                        sys_hists->fit_sys(fit_funcs_diff[i][m], fit_funcs_ratio[i][m]);
-
                         systematics[i][j][k][l].push_back(sys_hists);
                     }
                 }
@@ -198,11 +168,9 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
                         systematics[i][j][k][0].back()->init_with_ratio(h1D_nominal_PbPb, systematics[i][j][k][1].back()->get_ratio());
                         systematics[i][j][k][0].back()->calc_sys();
-                        systematics[i][j][k][0].back()->fit_sys(fit_funcs_diff[i][_PHOTON_ISO], fit_funcs_ratio[i][_PHOTON_ISO]);
 
                         systematics[i][j][k][2].back()->init_with_ratio(h1D_nominal_pp, systematics[i][j][k][3].back()->get_ratio());
                         systematics[i][j][k][2].back()->calc_sys();
-                        systematics[i][j][k][2].back()->fit_sys(fit_funcs_diff[i][_PHOTON_ISO], fit_funcs_ratio[i][_PHOTON_ISO]);
                     } else {
                         // no jet iaa in MC yet
                         systematics[i][j][k][0].pop_back();
@@ -249,7 +217,6 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
                     if (total_sys_hists->non_zero()) {
                         total_sys.push_back(total_sys_hists);
-                        total_sys_hists->print_latex(sys_names);
                     }
                 }
             }
