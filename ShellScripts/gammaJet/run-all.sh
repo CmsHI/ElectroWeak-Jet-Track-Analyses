@@ -5,6 +5,7 @@ if [[ $# -ne 3 ]]; then
     echo -e "arg 3: [0: all, 1: arithmetic only]"
     echo -e "[input dir] should contain skim files"
     echo -e "[output dir] will contain histogram/arithmetic files"
+    echo -e "[output dir] should contain histogram files (if running arithmetic only)"
     exit 1
 fi
 
