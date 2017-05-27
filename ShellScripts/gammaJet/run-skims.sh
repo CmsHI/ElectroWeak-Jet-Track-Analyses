@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -ne 5 ]]; then
-    echo -e "Usage: ./ShellScipts/gammaJet/run-skims.sh [hadoop dir] [output dir] [mixing dir] [0/1] [0/1/2]"
+    echo -e "Usage: ./ShellScipts/gammaJet/run-skims.sh [hadoop dir] [output dir] [mixing dir] [0/1/2] [0/1/2]"
     echo -e "arg 4: [0: skim, 1: merge + arithmetic, 2: arithmetic only]"
     echo -e "arg 5: [0: all, 1: nominal only, 2: jes only]"
     echo -e "[hadoop dir] will contain condor output"
