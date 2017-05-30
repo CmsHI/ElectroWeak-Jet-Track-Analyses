@@ -128,6 +128,8 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         hist_full_name = Form("%s_rebin", hist_name.c_str());
                     } else if (hist_types[i] == "ptJet" && (l == 0 || l == 2)) {
                         hist_full_name = Form("%s_%s_rebin", hist_name.c_str(), data_types[l].c_str());
+                    } else if (hist_types[i] == "dphi") {
+                        hist_full_name = Form("%s_%s_rebin", hist_name.c_str(), data_types[l].c_str());
                     } else {
                         hist_full_name = Form("%s_%s", hist_name.c_str(), data_types[l].c_str());
                     }
@@ -163,8 +165,16 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                 // photon isolation
                 if (valid_input.back()) {
                     if (hist_types[i] != "iaa") {
-                        TH1D* h1D_nominal_PbPb = (TH1D*)input_files[0]->Get(Form("h1D_%s_PbPb_Data", hist_name.c_str()));
-                        TH1D* h1D_nominal_pp = (TH1D*)input_files[0]->Get(Form("h1D_%s_pp_Data", hist_name.c_str()));
+                        TH1D* h1D_nominal_PbPb = 0;
+                        TH1D* h1D_nominal_pp = 0;
+
+                        if (hist_types[i] == "dphi") {
+                            h1D_nominal_PbPb = (TH1D*)input_files[0]->Get(Form("h1D_%s_PbPb_Data_rebin", hist_name.c_str()));
+                            h1D_nominal_pp = (TH1D*)input_files[0]->Get(Form("h1D_%s_pp_Data_rebin", hist_name.c_str()));
+                        } else {
+                            h1D_nominal_PbPb = (TH1D*)input_files[0]->Get(Form("h1D_%s_PbPb_Data", hist_name.c_str()));
+                            h1D_nominal_pp = (TH1D*)input_files[0]->Get(Form("h1D_%s_pp_Data", hist_name.c_str()));
+                        }
 
                         systematics[i][j][k][0].back()->init_with_ratio(h1D_nominal_PbPb, systematics[i][j][k][1].back()->get_ratio());
                         systematics[i][j][k][0].back()->calc_sys();

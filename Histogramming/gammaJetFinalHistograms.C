@@ -7,7 +7,7 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 
-void renorm(TH1D* h1, int* iaa_nbins);
+void renorm(TH1D* h1, int* nbins);
 
 int gammaJetFinalHistograms(const TString configFile,
                             const TString PbPb_Data_Filename, const TString PbPb_MC_Filename,
@@ -44,6 +44,17 @@ int gammaJetFinalHistograms(const TString configFile,
     TH1D* h_dphi_PbPb_MC[nPtBins][nCentBins];
     TH1D* h_dphi_pp_Data[nPtBins][nCentBins];
     TH1D* h_dphi_pp_MC[nPtBins][nCentBins];
+
+    const int n_dphi_bins = 12;
+    double dphi_bins[n_dphi_bins] = {
+        0, TMath::Pi()*3./10., TMath::Pi()/2., TMath::Pi()*3./5.,
+        TMath::Pi()*13./20., TMath::Pi()*7./10., TMath::Pi()*3./4., TMath::Pi()*4./5.,
+        TMath::Pi()*17./20., TMath::Pi()*9./10., TMath::Pi()*19./20., TMath::Pi()};
+    int dphi_nbins[n_dphi_bins - 1] = {6, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1};
+    TH1D* h_dphi_PbPb_Data_rebin[nPtBins][nCentBins];
+    TH1D* h_dphi_PbPb_MC_rebin[nPtBins][nCentBins];
+    TH1D* h_dphi_pp_Data_rebin[nPtBins][nCentBins];
+    TH1D* h_dphi_pp_MC_rebin[nPtBins][nCentBins];
 
     TF1* f_dphi_PbPb_Data[nPtBins][nCentBins];
     TF1* f_dphi_PbPb_MC[nPtBins][nCentBins];
@@ -97,6 +108,16 @@ int gammaJetFinalHistograms(const TString configFile,
             h_dphi_PbPb_MC[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_PbPb_MC", i, j), TObject::kOverwrite);
             h_dphi_pp_Data[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_pp_Data", i, j), TObject::kOverwrite);
             h_dphi_pp_MC[i][j]->Write(Form("h1D_dphi_ptBin%i_hiBin%i_pp_MC", i, j), TObject::kOverwrite);
+
+            h_dphi_PbPb_Data_rebin[i][j] = (TH1D*)h_dphi_PbPb_Data[i][j]->Rebin(n_dphi_bins - 1, Form("h1D_dphi_ptBin%i_hiBin%i_PbPb_Data_rebin", i, j), dphi_bins);
+            h_dphi_PbPb_MC_rebin[i][j] = (TH1D*)h_dphi_PbPb_MC[i][j]->Rebin(n_dphi_bins - 1, Form("h1D_dphi_ptBin%i_hiBin%i_PbPb_MC_rebin", i, j), dphi_bins);
+            h_dphi_pp_Data_rebin[i][j] = (TH1D*)h_dphi_pp_Data[i][j]->Rebin(n_dphi_bins - 1, Form("h1D_dphi_ptBin%i_hiBin%i_pp_Data_rebin", i, j), dphi_bins);
+            h_dphi_pp_MC_rebin[i][j] = (TH1D*)h_dphi_pp_MC[i][j]->Rebin(n_dphi_bins - 1, Form("h1D_dphi_ptBin%i_hiBin%i_pp_MC_rebin", i, j), dphi_bins);
+
+            renorm(h_dphi_PbPb_Data_rebin[i][j], dphi_nbins);
+            renorm(h_dphi_PbPb_MC_rebin[i][j], dphi_nbins);
+            renorm(h_dphi_pp_Data_rebin[i][j], dphi_nbins);
+            renorm(h_dphi_pp_MC_rebin[i][j], dphi_nbins);
 
             f_dphi_PbPb_Data[i][j] = (TF1*)PbPb_Data_file->Get(Form("HI/fit_dphi_ptBin%i_hiBin%i", i, j));
             f_dphi_PbPb_MC[i][j] = (TF1*)PbPb_MC_file->Get(Form("HIMC/fit_dphi_ptBin%i_hiBin%i", i, j));
@@ -283,10 +304,10 @@ int gammaJetFinalHistograms(const TString configFile,
     return 0;
 }
 
-void renorm(TH1D* h1, int* iaa_nbins) {
+void renorm(TH1D* h1, int* nbins) {
     for (int i=1; i<=h1->GetNbinsX(); ++i) {
-        h1->SetBinContent(i, h1->GetBinContent(i) / iaa_nbins[i-1]);
-        h1->SetBinError(i, h1->GetBinError(i) / iaa_nbins[i-1]);
+        h1->SetBinContent(i, h1->GetBinContent(i) / nbins[i-1]);
+        h1->SetBinError(i, h1->GetBinError(i) / nbins[i-1]);
     }
 }
 

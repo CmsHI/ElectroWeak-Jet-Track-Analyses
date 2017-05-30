@@ -240,12 +240,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     continue;
 
                 std::string hist_name;
-                if (hist_type == "xjg" || hist_type == "dphi") {
+                if (hist_type == "xjg") {
                     if (cent_based_plots)
                         hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
                         hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], cent_bin_numbers[i], suffix[k].c_str());
-                } else if (hist_type == "ptJet") {
+                } else if (hist_type == "dphi" || hist_type == "ptJet") {
                     if (cent_based_plots)
                         hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s_rebin", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
@@ -358,8 +358,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                 if (sys_file_valid[k]) {
                     h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total", hist_name.c_str()));
-                    if (hist_type == "dphi")
-                        h1_sys[i][j][k] = (TH1D*)sys_files[k]->Get(Form("%s_diff_total_fit", hist_name.c_str()));
 
                     TGraph* sys_gr = new TGraph();
                     sys_gr->SetFillStyle(1001);
@@ -1063,7 +1061,7 @@ void cover_axis(std::string hist_type, float margin, float edge) {
         y_min[i] = y_min[i-1] - pad_height;
 
     float axis_label_cover_size_tall = (hist_type == "ptJet") ? 0.02 : axis_label_cover_size;
-    float axis_label_cover_size_upper = (hist_type == "xjg") ? 0 : axis_label_cover_size_tall;
+    float axis_label_cover_size_upper = (hist_type == "xjg" || hist_type == "dphi") ? 0 : axis_label_cover_size_tall;
     for (int p=0; p<rows-1; ++p) {
         y_covers[p] = new TPad(Form("y_cover_%d", p), Form("y_cover_%d", p), x_min[0]-0.05, y_min[p]-axis_label_cover_size_tall, x_min[0]-0.0018, y_min[p]+axis_label_cover_size_upper);
         y_covers[p]->Draw();
