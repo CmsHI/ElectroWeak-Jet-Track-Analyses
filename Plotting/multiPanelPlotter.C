@@ -214,9 +214,18 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     TCanvas* c1 = new TCanvas(Form("canvas_%s", canvas_title.c_str()), "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
 
-    TH1D* h1[rows][columns][_NPLOTS] = {0};
-    TH1D* h1_sys[rows][columns][_NPLOTS] = {0};
-    TGraphErrors* g1[rows][columns][_NPLOTS] = {0};
+    TH1D* h1[rows][columns][_NPLOTS];
+    TH1D* h1_sys[rows][columns][_NPLOTS];
+    TGraphErrors* g1[rows][columns][_NPLOTS];
+    for (int iRows = 0; iRows < rows; ++iRows) {
+        for (int iCols = 0; iCols < columns; ++iCols) {
+            for (int iPlot = 0; iPlot < _NPLOTS; ++iPlot) {
+                h1[iRows][iCols][iPlot] = 0;
+                h1_sys[iRows][iCols][iPlot] = 0;
+                g1[iRows][iCols][iPlot] = 0;
+            }
+        }
+    }
 
     for (int i=0; i<rows; ++i) {
         for (int j=0; j<columns; ++j) {
@@ -265,16 +274,28 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (!h1[i][j][k])
                         continue;
 
+                    if (hist_type == "xjg") {
+                        h1[i][j][k]->SetXTitle("x_{j#gamma} = p^{jet}_{T}/p^{#gamma}_{T}");
+                        h1[i][j][k]->SetYTitle("#frac{1}{N_{#gamma}} #frac{dN_{j#gamma}}{dx_{j#gamma}}");
+                    }
                     if (hist_type == "dphi_width_centBinAll" || hist_type == "dphi_width_ptBinAll")
-                        h1[i][j][k]->SetYTitle("#sigma (#Delta#phi_{J#gamma})");
-                    if (hist_type == "iaa")
-                        h1[i][j][k]->SetYTitle("Jet I_{AA}");
-                    if (hist_type == "ptJet" || hist_type == "iaa")
-                        h1[i][j][k]->SetXTitle("p^{Jet}_{T} (GeV/c)");
-                    if (hist_type == "dphi")
-                        h1[i][j][k]->SetYTitle("#frac{1}{N_{J#gamma}} #frac{dN_{J#gamma}}{d#Delta#phi_{J#gamma}}");
+                        h1[i][j][k]->SetYTitle("#sigma (#Delta#phi_{j#gamma})");
+                    if (hist_type == "iaa") {
+                        h1[i][j][k]->SetXTitle("p^{jet}_{T} (GeV/c)");
+                        h1[i][j][k]->SetYTitle("jet I_{AA}");
+                    }
+                    if (hist_type == "ptJet") {
+                        h1[i][j][k]->SetXTitle("p^{jet}_{T} (GeV/c)");
+                        h1[i][j][k]->SetYTitle("#frac{1}{N_{#gamma}} #frac{dN_{j#gamma}}{dp^{jet}_{T}}");
+                    }
+                    if (hist_type == "dphi") {
+                        h1[i][j][k]->SetXTitle("#Delta#phi_{j#gamma}");
+                        h1[i][j][k]->SetYTitle("#frac{1}{N_{j#gamma}} #frac{dN_{j#gamma}}{d#Delta#phi_{j#gamma}}");
+                    }
                     if (hist_type.find("xjg_mean") != std::string::npos)
-                        h1[i][j][k]->SetYTitle("<x_{J#gamma}>");
+                        h1[i][j][k]->SetYTitle("<x_{j#gamma}>");
+                    if (hist_type == "rjg_ptBinAll" || hist_type == "rjg_centBinAll")
+                        h1[i][j][k]->SetYTitle("R_{j#gamma}");
                     if (hist_type.find("centBinAll") != std::string::npos)
                         h1[i][j][k]->SetXTitle("N_{coll}-weighted <N_{part}>");
 
@@ -436,16 +457,16 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
 
                 if (columns < 4) {
-                    plotInfo.push_back("anti-k_{T} Jet R = 0.3");
-                    plotInfo.push_back("p_{T}^{Jet} > 30 GeV/c");
-                    plotInfo.push_back("#left|#eta^{Jet}#right| < 1.6");
+                    plotInfo.push_back("anti-k_{T} jet R = 0.3");
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                    plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
 
                     if (columns == 1 && hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-                        plotInfo.push_back("#Delta#phi_{J#gamma} > #frac{7#pi}{8}");
+                        plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
                 }
                 if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
-                    plotInfo.push_back("p_{T}^{Jet} > 30 GeV/c");
-                    plotInfo.push_back("anti-k_{T} Jet R = 0.3");
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                    plotInfo.push_back("anti-k_{T} jet R = 0.3");
                     plotInfo.erase(plotInfo.begin() + 1);
                     plotInfo.erase(plotInfo.begin() + 1);
                 }
@@ -545,12 +566,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     std::string commonInfo;
     if (columns > 3) {
-        commonInfo = "anti-k_{T} Jet R = 0.3, p_{T}^{Jet} > 30 GeV/c, #left|#eta^{Jet}#right| < 1.6";
+        commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-            commonInfo += ", #Delta#phi_{J#gamma} > #frac{7#pi}{8}";
+            commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     } else if (columns > 1) {
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-            commonInfo = "#Delta#phi_{J#gamma} > #frac{7#pi}{8}";
+            commonInfo = "#Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
 
     TLatex* infoLatex = new TLatex();
