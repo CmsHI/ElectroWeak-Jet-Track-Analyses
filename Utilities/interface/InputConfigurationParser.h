@@ -61,6 +61,7 @@ enum TYPE_I {
     k_centerTitleY,
     k_rows,
     k_columns,
+    k_mpp_l_panel,
     kN_TYPES_I
 };
 
@@ -92,7 +93,8 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
     "centerTitleX",
     "centerTitleY",
     "rows",
-    "columns"
+    "columns",
+    "mpp_l_panel"
 };
 
 enum TYPE_F {
