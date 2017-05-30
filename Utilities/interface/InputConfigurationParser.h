@@ -62,6 +62,7 @@ enum TYPE_I {
     k_rows,
     k_columns,
     k_mpp_l_panel,
+    k_mpp_set_log_scale,
     kN_TYPES_I
 };
 
@@ -94,7 +95,8 @@ const std::string TYPE_I_LABELS[kN_TYPES_I] = {
     "centerTitleY",
     "rows",
     "columns",
-    "mpp_l_panel"
+    "mpp_l_panel",
+    "mpp_set_log_scale"
 };
 
 enum TYPE_F {
@@ -132,6 +134,12 @@ enum TYPE_F {
     k_mpp_edge,
     k_mpp_x_axis_offset,
     k_mpp_y_axis_offset,
+    k_mpp_l_x1,
+    k_mpp_l_y1,
+    k_mpp_l_x2,
+    k_mpp_l_y2,
+    k_mpp_y_max,
+    k_mpp_y_min,
     kN_TYPES_F
 };
 
@@ -169,7 +177,13 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "mpp_margin",
     "mpp_edge",
     "mpp_x_axis_offset",
-    "mpp_y_axis_offset"
+    "mpp_y_axis_offset",
+    "mpp_l_x1",
+    "mpp_l_y1",
+    "mpp_l_x2",
+    "mpp_l_y2",
+    "mpp_y_max",
+    "mpp_y_min"
 };
 
 enum TYPE_S {
@@ -220,13 +234,6 @@ enum TYPE_S {
     k_LineStyle_vertical_lowerPad,       // styles of the vertical lines to be drawn in the lower pad
     k_mpp_hist_type,
     k_mpp_plot_type,
-    k_mpp_set_log_scale,
-    k_mpp_y_max,
-    k_mpp_y_min,
-    k_mpp_l_x1,
-    k_mpp_l_y1,
-    k_mpp_l_x2,
-    k_mpp_l_y2,
     k_mpp_i_x,
     k_mpp_i_y,
     k_mpp_canvas_title,
@@ -281,13 +288,6 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
     "lineStyle_vertical_lowerPad",
     "mpp_hist_type",
     "mpp_plot_type",
-    "mpp_set_log_scale",
-    "mpp_y_max",
-    "mpp_y_min",
-    "mpp_l_x1",
-    "mpp_l_y1",
-    "mpp_l_x2",
-    "mpp_l_y2",
     "mpp_i_x",
     "mpp_i_y",
     "mpp_canvas_title"

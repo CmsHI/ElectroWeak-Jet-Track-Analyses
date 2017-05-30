@@ -115,16 +115,16 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string hist_type = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_hist_type];
     std::string plot_type = configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_plot_type];
 
-    std::vector<int> set_log_scale = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_set_log_scale]);
+    int set_log_scale = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mpp_set_log_scale];
 
-    std::vector<float> y_max = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_y_max]);
-    std::vector<float> y_min = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_y_min]);
+    float y_max = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_max];
+    float y_min = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_min];
 
     int l_panel = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mpp_l_panel];
-    std::vector<float> l_x1 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_l_x1]);
-    std::vector<float> l_y1 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_l_y1]);
-    std::vector<float> l_x2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_l_x2]);
-    std::vector<float> l_y2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_l_y2]);
+    float l_x1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x1];
+    float l_y1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_y1];
+    float l_x2 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x2];
+    float l_y2 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_y2];
 
     std::vector<float> i_x = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_x]);
     std::vector<float> i_y = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_y]);
@@ -209,9 +209,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     float pad_width = hist_width * column_scale_factor;
     float pad_height = hist_height * row_scale_factor;
 
-    if (!set_log_scale.size())
-        set_log_scale = std::vector<int>(rows, 0);
-
     TCanvas* c1 = new TCanvas(Form("canvas_%s", canvas_title.c_str()), "", pad_width, pad_height);
     divide_canvas(c1, rows, columns, margin, edge);
 
@@ -231,7 +228,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     for (int i=0; i<rows; ++i) {
         for (int j=0; j<columns; ++j) {
             c1->cd(i*columns+j+1);
-            if (set_log_scale[i])
+            if (set_log_scale)
                 gPad->SetLogy();
 
             // Draw histograms
@@ -303,11 +300,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     set_hist_style(h1[i][j][k], k);
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
 
-                    h1[i][j][k]->SetAxisRange(y_min[i], y_max[i], "Y");
-                    h1[i][j][k]->SetMaximum(y_max[i]);
-                    h1[i][j][k]->SetMinimum(y_min[i]);
+                    h1[i][j][k]->SetAxisRange(y_min, y_max, "Y");
+                    h1[i][j][k]->SetMaximum(y_max);
+                    h1[i][j][k]->SetMinimum(y_min);
 
-                    if (hist_type == "dphi" && set_log_scale[i])
+                    if (hist_type == "dphi" && set_log_scale)
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
 
                     if (hist_type == "xjg")
@@ -368,7 +365,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         sys_gr->SetFillColorAlpha(30, 0.7);
 
                     if (hist_type.find("centBinAll") == std::string::npos) {
-                        if (hist_type == "dphi" && set_log_scale[i])
+                        if (hist_type == "dphi" && set_log_scale)
                             draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k], 13);
                         else
                             draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
@@ -385,7 +382,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             // Draw legend
             if (i * columns + j == l_panel - 1) {
-                box_t l_box = (box_t) {l_x1[i], l_y1[i], l_x2[i], l_y2[i]};
+                box_t l_box = (box_t) {l_x1, l_y1, l_x2, l_y2};
                 adjust_coordinates(l_box, margin, edge, i, j);
                 TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
                 set_legend_style(l1);
@@ -470,61 +467,16 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (columns == 5) latexInfo->SetTextSize(latex_font_size - 1);
 
             // (should move to config file)
-            if (i == 0 && j == 4 && canvas_title == "dphi_log" && configFile.Contains("theory")) {
-                i_x[i] = 0.96;
-                i_y[i] = 0.18;
-            }
-            if (i == 1 && j == 4 && canvas_title == "iaa") {
-                i_x[i] = 0.04;
-            }
-
-            if (i_x[i] > 0.8)
+            if (i_x[i * columns + j] > 0.8)
                 latexInfo->SetTextAlign(31);
             else
                 latexInfo->SetTextAlign(11);
 
-            if (i_x[i] < 0.05 && hist_type == "dphi" && i + j > 0) {i_y[i] = 0.9;}
-            else if (i_x[i] < 0.05 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
-            else if (i_x[i] > 0.95 && i_y[i] > 0.45 && i + j > 0) {i_y[i] = 0.9;}
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
-                float line_pos = i_y[i] - l * latex_spacing;
-                if (i == 0 && j == 1 && canvas_title == "xjg_cent" && configFile.Contains("theory_pp")) {
-                    line_pos = 0.64 - l * latex_spacing;
-                }
-                if (i == 0 && j == 1 && canvas_title == "ptJet" && configFile.Contains("theory_pp")) {
-                    line_pos = 0.56 - l * latex_spacing;
-                }
-                if (i == 1 && j == 0 && canvas_title == "ptJet" && configFile.Contains("theory_PbPb")) {
-                    line_pos = 0.6 - l * latex_spacing;
-                }
-                if (i == 0 && j == 1 && canvas_title == "xjg" && configFile.Contains("theory_PbPb")) {
-                    line_pos = 0.5 - l * latex_spacing;
-                }
-                if (i == 0 && j == 2 && canvas_title == "xjg" && configFile.Contains("theory_pp")) {
-                    line_pos = 0.64 - l * latex_spacing;
-                }
-                box_t info_box = (box_t) {0, 0, i_x[i], line_pos};
+                float line_pos = i_y[i * columns + j] - l * latex_spacing;
+                box_t info_box = (box_t) {0, 0, i_x[i * columns + j], line_pos};
                 adjust_coordinates(info_box, margin, edge, i, j);
                 latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
-            }
-
-            // Draw arrow for xjg mean
-            const std::vector<int> show_xjg_arrow = {};
-            const std::vector<int> xjg_arrow_colour = {46, 30};
-            // Don't draw arrows if comparing against theory
-            if (hist_type == "xjg" && hist_file_valid[_PBPB_DATA] && hist_file_valid[_PP_DATA]) {
-                for (std::size_t n=0; n<show_xjg_arrow.size(); ++n) {
-                    if (hist_file_valid[show_xjg_arrow[n]]) {
-                        TArrow* arrow = new TArrow();
-                        arrow->SetArrowSize(0.01);
-                        arrow->SetLineColor(xjg_arrow_colour[n]);
-                        arrow->SetFillColor(xjg_arrow_colour[n]);
-
-                        double arrow_x = h1[i][j][show_xjg_arrow[n]]->GetMean();
-                        double arrow_y = h1[i][j][show_xjg_arrow[n]]->GetMaximum()*0.12;
-                        arrow->DrawArrow(arrow_x, arrow_y, arrow_x, 0);
-                    }
-                }
             }
 
             // Draw line at 1 for Jet IAA
