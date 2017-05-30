@@ -540,6 +540,20 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 line->SetLineWidth(1);
                 line->DrawLine(h1[i][j][_PBPB_DATA]->GetXaxis()->GetXmin(), 1, h1[i][j][_PBPB_DATA]->GetXaxis()->GetXmax(), 1);
             }
+
+            // Draw line at y = 0 for dphi and xjg
+            if ((hist_type == "dphi" || hist_type == "xjg") && hist_file_valid[_PBPB_DATA]) {
+                TLine* line = new TLine();
+                line->SetLineStyle(kDashed);
+                line->SetLineWidth(1);
+                gPad->Update();
+                double xMin = gPad->GetUxmin();
+                double xMax = gPad->GetUxmax();
+                double yMin = gPad->GetUymin();
+                double yMax = gPad->GetUymax();
+                if (yMin < 0 && 0 < yMax)
+                    line->DrawLine(xMin, 0, xMax, 0);
+            }
         }
     }
 
