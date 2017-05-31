@@ -322,8 +322,8 @@ public :
 
     void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
     void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillHNumFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillHDenomFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHNumFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
+    void FillHDenomFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
     void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
 
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
@@ -480,7 +480,6 @@ void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta,
 
 void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int cent)
 {
-    // make sure to fill the histogram if no explicit kinematic range is specified.
     if (isValid_hEscale && insideRange(eta, genPt, recoPt, cent))
         hEscale->Fill(energyScale, w);
 }
@@ -502,16 +501,24 @@ void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, flo
     if (isValid_hDenom && insideRange(eta, genPt, recoPt, cent))
         hDenom->Fill(x, w);
 }
-
-void energyScaleHist::FillHNumFake(double x, double w, float eta, float genPt, float recoPt, int cent)
+/*
+ * fill numerator for fake rate
+ * no GEN-level selection is applied
+ */
+void energyScaleHist::FillHNumFake(double x, double w, float eta, float recoPt, int cent)
 {
-    if (isValid_hNumFake && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_hNumFake && insideRange(eta, -1, recoPt, cent)) {
         hNumFake->Fill(x, w);
+    }
 }
 
-void energyScaleHist::FillHDenomFake(double x, double w, float eta, float genPt, float recoPt, int cent)
+/*
+ * fill denominator for fake rate
+ * no GEN-level selection is applied
+ */
+void energyScaleHist::FillHDenomFake(double x, double w, float eta, float recoPt, int cent)
 {
-    if (isValid_hDenomFake && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_hDenomFake && insideRange(eta, -1, recoPt, cent))
         hDenomFake->Fill(x, w);
 }
 

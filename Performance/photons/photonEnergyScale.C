@@ -480,7 +480,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 double genPt = -1;
                 if (isMatched2Photon) {
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
-                    if (genPt <= 0)   continue;
 
                     if (isHI) {
                         if (cut_mcCalIsoDR04 != 0) {
@@ -544,12 +543,12 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(eta, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, eta, genPt, pt, cent);
+                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(eta, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, eta, pt, cent);
 
                                 if (isMatched2Photon) {
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(eta, w, eta, genPt, pt, cent);
@@ -605,7 +604,6 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 double genPt = -1;
                 if (isMatched2Photon) {
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
-                    if (genPt <= 0)   continue;
                 }
 
                 int fakePDG = 0;
@@ -645,20 +643,20 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, genPt, pt, cent);
-                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, genPt, pt, cent);
+                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, pt, cent);
+                                //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
 
                                 if (!isMatched2Photon) {
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, genPt, pt, cent);
+                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
+                                    //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, pt, cent);
 
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, cent);
@@ -1438,7 +1436,7 @@ int postLoop()
                 }
             }
 
-            // plot from different genGt bins
+            // plot from different genPt bins
             for (int iEta = 0; iEta < nBins_eta; ++iEta) {
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
