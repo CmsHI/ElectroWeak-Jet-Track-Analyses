@@ -74,10 +74,8 @@ static float axis_label_cover_size;
 
 void set_global_style();
 void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge);
-void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
-void draw_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
-void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin = 1);
-void draw_graph_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_graph_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
 void set_legend_style(TLegend* l1);
 void set_hist_style(TH1D* h1, int k);
 void set_graph_style(TGraphErrors* g1, int k);
@@ -366,12 +364,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     if (hist_type.find("centBinAll") == std::string::npos) {
                         if (hist_type == "dphi" && set_log_scale)
-                            draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k], 13);
+                            draw_sys_unc(sys_gr, h1[i][j][k], h1_sys[i][j][k], 4);
                         else
-                            draw_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
+                            draw_sys_unc(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
                         h1[i][j][k]->Draw(sys_draw_options[k].c_str());
                     } else {
-                        draw_graph_sys_unc_new(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
+                        draw_graph_sys_unc(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
                         g1[i][j][k]->Draw(graph_draw_options[k].c_str());
                     }
 
@@ -649,7 +647,7 @@ void divide_canvas(TCanvas* c1, int rows, int columns, float margin, float edge)
     }
 }
 
-void draw_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
     for (int i=first_bin; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
@@ -672,30 +670,7 @@ void draw_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
     }
 }
 
-void draw_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
-    int nBins = h1->GetNbinsX();
-    for (int i=first_bin; i<=nBins; ++i) {
-        if (h1->GetBinError(i) == 0) continue;
-        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
-        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
-
-        double x = h1->GetBinCenter(i);
-        int sys_bin = h1_sys->FindBin(x);
-        double bin_width = h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
-
-        double val = h1->GetBinContent(i);
-        double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
-
-        box->SetX1(x - (bin_width/2));
-        box->SetX2(x + (bin_width/2));
-        box->SetY1(std::max(val - error, h1->GetMinimum()));
-        box->SetY2(std::min(val + error, h1->GetMaximum()));
-
-        box->DrawClone();
-    }
-}
-
-void draw_graph_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
+void draw_graph_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
     for (int i=first_bin; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
@@ -714,28 +689,6 @@ void draw_graph_sys_unc_new(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
         gr->SetPoint(3, x - 16, std::min(val + error, h1->GetMaximum()));
 
         gr->DrawClone("f");
-    }
-}
-
-void draw_graph_sys_unc(TBox* box, TH1* h1, TH1* h1_sys, int first_bin) {
-    int nBins = h1->GetNbinsX();
-    for (int i=first_bin; i<=nBins; ++i) {
-        if (h1->GetBinError(i) == 0) continue;
-        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
-        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
-
-        double x = ncoll_w_npart[i-first_bin];
-        int sys_bin = h1_sys->FindBin(x);
-
-        double val = h1->GetBinContent(i);
-        double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
-
-        box->SetX1(x - 16);
-        box->SetX2(x + 16);
-        box->SetY1(std::max(val - error, h1->GetMinimum()));
-        box->SetY2(std::min(val + error, h1->GetMaximum()));
-
-        box->DrawClone();
     }
 }
 
