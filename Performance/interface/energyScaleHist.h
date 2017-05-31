@@ -136,6 +136,9 @@ const particle particles[kN_FakeCand] =
 class eScaleAna {
 public :
     eScaleAna(){
+        h = 0;
+        f1 = 0;
+        hPull = 0;
         isValid_h = false;
         isValid_f1 = false;
         isValid_hPull = false;
@@ -180,6 +183,11 @@ public :
         }
     };
     void update() {
+
+        isValid_h = (h != 0 && !h->IsZombie());
+        isValid_f1 = (f1 != 0 && !f1->IsZombie());
+        isValid_hPull = (hPull != 0 && !hPull->IsZombie());
+
         if (isValid_h) {
             hMean = h->GetMean();
             hMeanErr = h->GetMeanError();
@@ -209,22 +217,42 @@ class energyScaleHist {
 public :
     energyScaleHist(){
         nBinsX = 0;
+        h2D = 0;
+
+        for (int i = 0; i < 6; ++i) {
+            h1DeScale[i] = 0;
+        }
+        for (int i = 0; i < 6; ++i) {
+            h1D[i] = 0;
+        }
+        hEscale = 0;
+        h2Dcorr = 0;
+
+        isValid_h2D = false;
+        isValid_hEscale = false;
+        isValid_h2Dcorr = false;
 
         indexFnc = ENERGYSCALE::kGAUS_95;
 
-        isValid_h2D = false;
-        isValid_h = false;
-        isValid_h2Dcorr = false;
-
+        hNum = 0;
+        hDenom = 0;
+        hRatio = 0;
+        gRatio = 0;
         isValid_hNum = false;
         isValid_hDenom = false;
         isValid_hRatio = false;
         isValid_gRatio = false;
 
+        hNumFake = 0;
+        hDenomFake = 0;
+        hRatioFake = 0;
+        gRatioFake = 0;
+        hRatioFakeOther = 0;
         isValid_hNumFake = false;
         isValid_hDenomFake = false;
         isValid_hRatioFake = false;
         isValid_gRatioFake = false;
+        isValid_hRatioFakeOther = false;
 
         fakeIndices = {
                 ENERGYSCALE::FAKECAND::k_unknown,       // always the first element
@@ -253,13 +281,14 @@ public :
             int index = fakeIndices.at(i);
             fakePDGs[i] = ENERGYSCALE::particles[index].PDG;
 
+            hFakeParticle[i] = 0;
+            hRatioFakeParticle[i] = 0;
+
             isValid_hFakeParticle[i] = false;
             isValid_hRatioFakeParticle[i] = false;
             passedMinFakeFraction[i] = false;
         }
-        isValid_hRatioFakeOther = false;
         minFakeFraction = 0.05;
-
 
         dep = -1;
 
@@ -306,9 +335,10 @@ public :
 
     std::string getBinEdgeText(int binLow, int binUp);
 
+    void updateTH1();
     void updateFncs();
     void updateH1DsliceY();
-    void updateH1D();
+    void updateH1DeScale();
     int getFakePDG(int iPDG);
 
     void prepareTitle();
@@ -324,8 +354,8 @@ public :
     void setPad4Observable(TPad* p, int iObs);
     void drawLine4PtRange(TPad* p, int lineColor = kBlack);
 
-    TH2D* h2D;
     int nBinsX;
+    TH2D* h2D;
     /*
      * h1DeScale[0] = energy scale histogram, mean for a Gaussian fit
      * h1DeScale[1] = energy resolution histogram, StdDev for a Gaussian fit
@@ -366,7 +396,7 @@ public :
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
 
     bool isValid_h2D;
-    bool isValid_h;
+    bool isValid_hEscale;
     bool isValid_h2Dcorr;
 
     // objects for efficiency
@@ -451,7 +481,7 @@ void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta,
 void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int hiBin)
 {
     // make sure to fill the histogram if no explicit kinematic range is specified.
-    if (isValid_h && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hEscale && insideRange(eta, genPt, recoPt, hiBin))
         hEscale->Fill(energyScale, w);
 }
 
@@ -611,6 +641,32 @@ std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
     return res;
 }
 
+void energyScaleHist::updateTH1()
+{
+    isValid_h2D = (h2D != 0 && !h2D->IsZombie());
+    if (isValid_h2D) {
+        nBinsX = h2D->GetXaxis()->GetNbins();
+    }
+    isValid_hEscale = (hEscale != 0 && !hEscale->IsZombie());
+    isValid_h2Dcorr = (h2Dcorr != 0 && !h2Dcorr->IsZombie());
+
+    isValid_hNum = (hNum != 0 && !hNum->IsZombie());
+    isValid_hDenom = (hDenom != 0 && !hDenom->IsZombie());
+    isValid_hRatio = (hRatio != 0 && !hRatio->IsZombie());
+    isValid_gRatio = (gRatio != 0 && !gRatio->IsZombie());
+
+    isValid_hNumFake = (hNumFake != 0 && !hNumFake->IsZombie());
+    isValid_hDenomFake = (hDenomFake != 0 && !hDenomFake->IsZombie());
+    isValid_hRatioFake = (hRatioFake != 0 && !hRatioFake->IsZombie());
+    isValid_gRatioFake = (gRatioFake != 0 && !gRatioFake->IsZombie());
+    isValid_hRatioFakeOther = (hRatioFakeOther != 0 && !hRatioFakeOther->IsZombie());
+
+    for (int i = 0; i < nFakePDGs; ++i) {
+        isValid_hFakeParticle[i] = (hFakeParticle[i] != 0 && !hFakeParticle[i]->IsZombie());
+        isValid_hRatioFakeParticle[i] = (hRatioFakeParticle[i] != 0 && !hRatioFakeParticle[i]->IsZombie());
+    }
+}
+
 void energyScaleHist::updateFncs()
 {
     int nFitFncs = fitFncs.size();
@@ -664,7 +720,7 @@ void energyScaleHist::updateH1DsliceY()
     }
 }
 
-void energyScaleHist::updateH1D()
+void energyScaleHist::updateH1DeScale()
 {
     for (int i = 1; i <= nBinsX; ++i) {
 
@@ -745,7 +801,7 @@ void energyScaleHist::prepareTitle()
         h2D->SetTitle(title.c_str());
         titleX = h2D->GetXaxis()->GetTitle();
     }
-    if (isValid_h) {
+    if (isValid_hEscale) {
         hEscale->SetTitle(title.c_str());
     }
     if(isValid_h2Dcorr) {
@@ -767,13 +823,11 @@ void energyScaleHist::prepareTitle()
 
 void energyScaleHist::postLoop()
 {
-    if (isValid_h) {
+    if (isValid_hEscale) {
         hEscale->SetMarkerStyle(kFullCircle);
     }
 
     if (!isValid_h2D) return;
-
-    nBinsX = h2D->GetXaxis()->GetNbins();
 
     TObjArray aSlices;
     h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
@@ -832,7 +886,7 @@ void energyScaleHist::postLoop()
 
     fitRecoGen();
     // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[4], h1DeScale[5] are set by the initial fit from TH2::FitSlicesY
-    updateH1D();
+    updateH1DeScale();
 
     calcRatio();
     calcRatioFake();
@@ -926,7 +980,6 @@ void energyScaleHist::fitRecoGen()
             if (j > 0)  esaTmp[j].fit();
 
             esaTmp[j].makePull();
-            esaTmp[j].isValid_hPull = true;
             std::string hpullName = replaceAll(esaTmp[j].f1->GetName(), "f1_", "hpull");
             esaTmp[j].hPull->SetName(hpullName.c_str());
 
@@ -1105,7 +1158,7 @@ void energyScaleHist::calcRatioFakeParticle()
  */
 void energyScaleHist::writeObjects(TCanvas* c)
 {
-    if (isValid_h) {
+    if (isValid_hEscale) {
         hEscale->SetMarkerStyle(kFullCircle);
         hEscale->Write();
     }

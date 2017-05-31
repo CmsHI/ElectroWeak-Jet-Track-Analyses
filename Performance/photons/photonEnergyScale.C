@@ -1266,18 +1266,10 @@ int  preLoop(TFile* input, bool makeNew)
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hEscale =
                                         new TH1D(histName.c_str(), ";Reco p_{T} / Gen p_{T};",
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h2D = true;
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h = true;
                             }
                             else {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D = (TH2D*)input->Get(h2DName.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hEscale = (TH1D*)input->Get(histName.c_str());
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h2D =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2D->IsZombie());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hEscale->IsZombie());
                             }
 
                             // matching efficiency
@@ -1286,18 +1278,10 @@ int  preLoop(TFile* input, bool makeNew)
                                         new TH1D(histNameNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom =
                                         (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum->Clone(histNameDenom.c_str());
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hNum = true;
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hDenom = true;
                             }
                             else {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum = (TH1D*)input->Get(histNameNum.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom = (TH1D*)input->Get(histNameDenom.c_str());
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hNum =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNum->IsZombie());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hDenom =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenom->IsZombie());
                             }
 
                             // fake rate
@@ -1306,18 +1290,10 @@ int  preLoop(TFile* input, bool makeNew)
                                         new TH1D(histNameNumFake.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomFake =
                                         (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumFake->Clone(histNameDenomFake.c_str());
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hNumFake = true;
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hDenomFake = true;
                             }
                             else {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumFake = (TH1D*)input->Get(histNameNumFake.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomFake = (TH1D*)input->Get(histNameDenomFake.c_str());
-
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hNumFake =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hNumFake->IsZombie());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hDenomFake =
-                                        (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hDenomFake->IsZombie());
                             }
 
                             // fake rate composition
@@ -1330,15 +1306,10 @@ int  preLoop(TFile* input, bool makeNew)
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG] =
                                             new TH1D(histNameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hFakeParticle[iPDG] = true;
                                 }
                                 else {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG] =
                                             (TH1D*)input->Get(histNameFakePDG.c_str());
-
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_hFakeParticle[iPDG] =
-                                            (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].hFakeParticle[iPDG]->IsZombie());
                                 }
                             }
 
@@ -1362,19 +1333,15 @@ int  preLoop(TFile* input, bool makeNew)
                                             new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
                                     // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                                     // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
-
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h2Dcorr = true;
                                 }
                                 else {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr = (TH2D*)input->Get(tmpHistNameCorr.c_str());
                                     // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                                     // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kHIBIN] objects would be redundant.
-
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].isValid_h2Dcorr =
-                                            (!hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].h2Dcorr->IsZombie());
                                 }
                             }
 
+                            hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].updateTH1();
                             // set histogram title
                             hist[iDep][iEta][iGenPt][iRecoPt][iHiBin].prepareTitle();
                         }
