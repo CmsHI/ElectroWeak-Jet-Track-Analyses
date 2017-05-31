@@ -45,6 +45,8 @@ float findNpart(int hiBin);
 float findNpartAverage(int hiBinLow, int hiBinHigh);
 std::vector<float> findNpartAverages(std::vector<int> hiBins);
 std::vector<float> NpartAveragestoLowEdges(std::vector<float> NpartAverages);
+std::vector<int> hiBin2centrality(std::vector<int> hiBins);
+std::vector<int> centrality2hiBin(std::vector<int> centralities);
 
 std::string getCollisionTypeName (COLL::TYPE collision) {
   if (collision >=0 && collision < COLL::kN_COLL) return COLL::LABELS[collision];
@@ -179,6 +181,30 @@ std::vector<float> NpartAveragestoLowEdges(std::vector<float> NpartAverages) {
     NpartLowEdges.push_back(401.99);     // upper edge of the last bin
 
     return NpartLowEdges;
+}
+
+std::vector<int> hiBin2centrality(std::vector<int> hiBins)
+{
+    std::vector<int> res;
+    for (std::vector<int>::iterator it = hiBins.begin(); it != hiBins.end(); it++) {
+        int tmp = (*it);
+        if ((*it) >= 0) tmp = (*it)/2;
+        res.push_back(tmp);
+    }
+
+    return res;
+}
+
+std::vector<int> centrality2hiBin(std::vector<int> centralities)
+{
+    std::vector<int> res;
+    for (std::vector<int>::iterator it = centralities.begin(); it != centralities.end(); it++) {
+        int tmp = (*it);
+        if ((*it) >= 0) tmp = (*it)*2;
+        res.push_back(tmp);
+    }
+
+    return res;
 }
 
 #endif /* EVENTUTILS_H_ */
