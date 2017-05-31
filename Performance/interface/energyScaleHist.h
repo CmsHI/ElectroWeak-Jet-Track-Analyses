@@ -27,7 +27,7 @@ enum DEPS {   // energy scale dependencies
     kETA,
     kGENPT,
     kRECOPT,
-    kHIBIN,
+    kCENT,
     kSUMISO,
     kSIEIE,
     kN_DEPS
@@ -37,7 +37,7 @@ const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
         "ETA",
         "GENPT",
         "RECOPT",
-        "HIBIN",
+        "CENT",
         "SUMISO",
         "SIEIE"
 };
@@ -316,22 +316,22 @@ public :
     };
     ~energyScaleHist(){};
 
-    void FillH2D(double energyScale, double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int hiBin = -1);
+    void FillH2D(double energyScale, double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int cent = -1);
 
-    void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillHNumFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillHDenomFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
-    void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHNumFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHDenomFake(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
 
-    bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int hiBin = -1);
+    bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
 
     std::string getRangeTextEta();
     std::string getRangeTextGenPt();
     std::string getRangeTextRecoPt();
-    std::string getRangeTextHiBin();
+    std::string getRangeTextCent();
 
     std::string getBinEdgeText(int binLow, int binUp);
 
@@ -472,52 +472,52 @@ public :
     float ranges[ENERGYSCALE::kN_DEPS][2];
 };
 
-void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (isValid_h2D && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_h2D && insideRange(eta, genPt, recoPt, cent))
         h2D->Fill(x, energyScale, w);
 }
 
-void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int cent)
 {
     // make sure to fill the histogram if no explicit kinematic range is specified.
-    if (isValid_hEscale && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hEscale && insideRange(eta, genPt, recoPt, cent))
         hEscale->Fill(energyScale, w);
 }
 
-void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int hiBin)
+void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int cent)
 {
-    if (isValid_h2Dcorr && insideRange(eta, -1, -1, hiBin))
+    if (isValid_h2Dcorr && insideRange(eta, -1, -1, cent))
         h2Dcorr->Fill(genPt, recoPt, w);
 }
 
-void energyScaleHist::FillHNum(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillHNum(double x, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (isValid_hNum && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hNum && insideRange(eta, genPt, recoPt, cent))
         hNum->Fill(x, w);
 }
 
-void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (isValid_hDenom && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hDenom && insideRange(eta, genPt, recoPt, cent))
         hDenom->Fill(x, w);
 }
 
-void energyScaleHist::FillHNumFake(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillHNumFake(double x, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (isValid_hNumFake && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hNumFake && insideRange(eta, genPt, recoPt, cent))
         hNumFake->Fill(x, w);
 }
 
-void energyScaleHist::FillHDenomFake(double x, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillHDenomFake(double x, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (isValid_hDenomFake && insideRange(eta, genPt, recoPt, hiBin))
+    if (isValid_hDenomFake && insideRange(eta, genPt, recoPt, cent))
         hDenomFake->Fill(x, w);
 }
 
-void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, float genPt, float recoPt, int hiBin)
+void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, float genPt, float recoPt, int cent)
 {
-    if (insideRange(eta, genPt, recoPt, hiBin)) {
+    if (insideRange(eta, genPt, recoPt, cent)) {
 
         std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
         int iPDG = (it == fakePDGs.end()) ? 0 : int(it - fakePDGs.begin());
@@ -531,13 +531,13 @@ void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, 
 /*
  * check if the given variables lie inside the kinematic range defined for this object.
  */
-bool energyScaleHist::insideRange(float eta, float genPt, float recoPt, int hiBin)
+bool energyScaleHist::insideRange(float eta, float genPt, float recoPt, int cent)
 {
     // make sure to pass the selection if no explicit kinematic range is specified.
     if (eta == -999)  eta = ranges[ENERGYSCALE::kETA][0];
     if (genPt == -1) genPt = ranges[ENERGYSCALE::kGENPT][0];
     if (recoPt == -1)  recoPt = ranges[ENERGYSCALE::kRECOPT][0];
-    if (hiBin == -1)  hiBin = ranges[ENERGYSCALE::kHIBIN][0];
+    if (cent == -1)  cent = ranges[ENERGYSCALE::kCENT][0];
 
     if(ranges[ENERGYSCALE::kETA][0] <= TMath::Abs(eta) &&
        (ranges[ENERGYSCALE::kETA][1] == -1 || ranges[ENERGYSCALE::kETA][1] > TMath::Abs(eta))){
@@ -545,8 +545,8 @@ bool energyScaleHist::insideRange(float eta, float genPt, float recoPt, int hiBi
        (ranges[ENERGYSCALE::kGENPT][1] == -1  || ranges[ENERGYSCALE::kGENPT][1] > genPt)) {
     if(ranges[ENERGYSCALE::kRECOPT][0] <= recoPt       &&
        (ranges[ENERGYSCALE::kRECOPT][1] == -1 || ranges[ENERGYSCALE::kRECOPT][1] > recoPt)) {
-    if(ranges[ENERGYSCALE::kHIBIN][0] <= hiBin         &&
-       (ranges[ENERGYSCALE::kHIBIN][1] == -1  || ranges[ENERGYSCALE::kHIBIN][1] > hiBin)) {
+    if(ranges[ENERGYSCALE::kCENT][0] <= cent         &&
+       (ranges[ENERGYSCALE::kCENT][1] == -1  || ranges[ENERGYSCALE::kCENT][1] > cent)) {
             return true;
     }}}}
     return false;
@@ -592,12 +592,12 @@ std::string energyScaleHist::getRangeTextRecoPt()
     return res;
 }
 
-std::string energyScaleHist::getRangeTextHiBin()
+std::string energyScaleHist::getRangeTextCent()
 {
     std::string res = "";
 
-    if (ranges[ENERGYSCALE::DEPS::kHIBIN][0] >= 0 && ranges[ENERGYSCALE::DEPS::kHIBIN][1] > 0)
-        res = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::DEPS::kHIBIN][0]/2, ranges[ENERGYSCALE::DEPS::kHIBIN][1]/2);
+    if (ranges[ENERGYSCALE::DEPS::kCENT][0] >= 0 && ranges[ENERGYSCALE::DEPS::kCENT][1] > 0)
+        res = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::DEPS::kCENT][0], ranges[ENERGYSCALE::DEPS::kCENT][1]);
 
     return res;
 }
@@ -628,8 +628,8 @@ std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
     else if (dep == ENERGYSCALE::kRECOPT) {
         res = Form("%.0f <p_{T}^{reco}< %.0f", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kHIBIN) {
-        res = Form("Cent:%.0f-%.0f%%", xLow/2, xUp/2);
+    else if (dep == ENERGYSCALE::kCENT) {
+        res = Form("Cent:%.0f-%.0f%%", xLow, xUp);
     }
     else if (dep == ENERGYSCALE::kSUMISO) {
         res = Form("%.1f < sumIso < %.1f", xLow, xUp);
@@ -767,7 +767,7 @@ void energyScaleHist::prepareTitle()
     std::string etaStr  = "";       // whole detector
     std::string genPtStr  = "";     // whole pT range
     std::string recoPtStr = "";     // whole pT range
-    std::string hiBinStr  = "";     // whole centrality range
+    std::string centStr  = "";      // whole centrality range
 
     // special cases
     if (ranges[ENERGYSCALE::kETA][0] <= 0 && ranges[ENERGYSCALE::kETA][1] > 0)
@@ -785,16 +785,16 @@ void energyScaleHist::prepareTitle()
     else if (ranges[ENERGYSCALE::kRECOPT][0] > 0 && ranges[ENERGYSCALE::kRECOPT][1] > 0)
         recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[ENERGYSCALE::kRECOPT][0], ranges[ENERGYSCALE::kRECOPT][1]);
 
-    if (ranges[ENERGYSCALE::kHIBIN][0] <= 0 && ranges[ENERGYSCALE::kHIBIN][1] <= -1)
-        hiBinStr = "";
-    else if (ranges[ENERGYSCALE::kHIBIN][0] >= 0 && ranges[ENERGYSCALE::kHIBIN][1] > 0)
-        hiBinStr  = Form("hiBin:%.0f-%.0f", ranges[ENERGYSCALE::kHIBIN][0], ranges[ENERGYSCALE::kHIBIN][1]);
+    if (ranges[ENERGYSCALE::kCENT][0] <= 0 && ranges[ENERGYSCALE::kCENT][1] <= -1)
+        centStr = "";
+    else if (ranges[ENERGYSCALE::kCENT][0] >= 0 && ranges[ENERGYSCALE::kCENT][1] > 0)
+        centStr  = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::kCENT][0], ranges[ENERGYSCALE::kCENT][1]);
 
     std::string tmpHistTitle = "";
     if (etaStr.size() > 0)  tmpHistTitle.append(Form("%s", etaStr.c_str()));
     if (genPtStr.size() > 0)  tmpHistTitle.append(Form(" %s", genPtStr.c_str()));
     if (recoPtStr.size() > 0) tmpHistTitle.append(Form(" %s", recoPtStr.c_str()));
-    if (hiBinStr.size() > 0)  tmpHistTitle.append(Form(" %s", hiBinStr.c_str()));
+    if (centStr.size() > 0)  tmpHistTitle.append(Form(" %s", centStr.c_str()));
 
     title = tmpHistTitle.c_str();
     if(isValid_h2D) {
