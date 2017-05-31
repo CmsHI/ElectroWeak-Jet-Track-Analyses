@@ -40,8 +40,10 @@ namespace CUTS {
 
     enum S_CUTS{
         k_eventWeight,
-        k_bins_hiBin_gt,      // the current centrality bin is greater or equal to these centrality bins
-        k_bins_hiBin_lt,      // the current centrality bin is less than these centrality bins
+        k_bins_hiBin_gt,      // bins_cent_gt in terms of hiBin
+        k_bins_hiBin_lt,      // bins_cent_lt in terms of hiBin
+        k_bins_cent_gt,      // the current centrality bin is greater or equal to these centrality bins
+        k_bins_cent_lt,      // the current centrality bin is less than these centrality bins
         k_bins_eta_gt,
         k_bins_eta_lt,
         k_weights_file,
@@ -52,6 +54,8 @@ namespace CUTS {
             "eventWeight",
             "bins_hiBin_gt",     // label starts with "bins_". this means the input will be a list of strings
             "bins_hiBin_lt",
+            "bins_cent_gt",      // label starts with "bins_". this means the input will be a list of strings
+            "bins_cent_lt",
             "bins_eta_gt",
             "bins_eta_lt",
             "weights_file"
