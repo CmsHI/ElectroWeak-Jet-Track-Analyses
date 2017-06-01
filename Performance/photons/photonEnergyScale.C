@@ -1441,6 +1441,9 @@ int postLoop()
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
+                        // there is no genPt bin for fake rate
+                        if (iObs == ENERGYSCALE::kFAKE)  continue;
+
                         if (!hist[iDep][iEta][0][iRecoPt][iCent].isValid_h2D)  continue;
                         drawSame(c, iObs, iDep, iEta, -1, iRecoPt, iCent);
                     }
@@ -1604,7 +1607,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     std::vector<std::string> textLinesTmp;
 
     bool writeTextEta = (iDep != ENERGYSCALE::kETA);
-    bool writeTextGenPt = (iDep != ENERGYSCALE::kGENPT);
+    bool writeTextGenPt = (iDep != ENERGYSCALE::kGENPT && iObs != ENERGYSCALE::kFAKE);
     bool writeTextRecoPt = (iDep != ENERGYSCALE::kRECOPT);
     bool writeTextCent = (iDep != ENERGYSCALE::kCENT);
 
