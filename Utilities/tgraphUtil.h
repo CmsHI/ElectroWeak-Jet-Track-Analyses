@@ -21,6 +21,10 @@ int getMinimumBinIndex(TGraph* gr, double minval = -FLT_MAX);
 int getMaximumBinIndex(TGraph* gr, double maxval = +FLT_MAX);
 double getMinimum(TGraph* gr, double minval = -FLT_MAX);
 double getMaximum(TGraph* gr, double maxval = +FLT_MAX);
+int getMinimumTGraphindex(std::vector<TGraph*> vecGr, double minval = -FLT_MAX);
+int getMaximumTGraphindex(std::vector<TGraph*> vecGr, double maxval = +FLT_MAX);
+double getMinimumTGraphContent(std::vector<TGraph*> vecGr, double minval = -FLT_MAX);
+double getMaximumTGraphContent(std::vector<TGraph*> vecGr, double maxval = +FLT_MAX);
 void setTGraphBand(TGraph* gr, std::vector<double> x, std::vector<double> ymin, std::vector<double> ymax);
 void setTGraphErrors(TGraphErrors* gr, std::vector<double> x, std::vector<double> y, std::vector<double> yerr);
 
@@ -80,6 +84,64 @@ double getMaximum(TGraph* gr, double maxval)
 {
     int i = getMaximumBinIndex(gr, maxval);
     return (i != -1) ? gr->GetY()[i] : +FLT_MAX;
+}
+
+/*
+ * find the graph with the minimum content greater than minval
+ */
+int getMinimumTGraphindex(std::vector<TGraph*> vecGr, double minval)
+{
+    int nGraph = vecGr.size();
+    int res = -1;
+    double minTmp = +FLT_MAX;
+    for (int i = 0; i < nGraph; ++i) {
+
+        double content = getMinimum(vecGr[i], minval);
+        if (content < minTmp) {
+            minTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * find the graph with the maximum content smaller than minval
+ */
+int getMaximumTGraphindex(std::vector<TGraph*> vecGr, double maxval)
+{
+    int nGraph = vecGr.size();
+    int res = -1;
+    double maxTmp = -FLT_MAX;
+    for (int i = 0; i < nGraph; ++i) {
+
+        double content = getMaximum(vecGr[i], maxval);
+        if (content > maxTmp) {
+            maxTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * from the list of graphs, get the overall minimum content greater than minval
+ */
+double getMinimumTGraphContent(std::vector<TGraph*> vecGr, double minval)
+{
+    int i = getMinimumTGraphindex(vecGr, minval);
+    return getMinimum(vecGr[i], minval);
+}
+
+/*
+ * from the list of graphs, get the overall maximum content smaller than maxval
+ */
+double getMaximumTGraphContent(std::vector<TGraph*> vecGr, double maxval)
+{
+    int i = getMaximumTGraphindex(vecGr, maxval);
+    return getMaximum(vecGr[i], maxval);
 }
 
 /*
