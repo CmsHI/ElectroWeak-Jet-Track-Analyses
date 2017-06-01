@@ -274,7 +274,15 @@ public :
 
         isValid_hFakeParticle.resize(nFakePDGs);
         isValid_hRatioFakeParticle.resize(nFakePDGs);
+
+        hFakeParticleGenPt.resize(nFakePDGs);
+        hRatioFakeParticleGenPt.resize(nFakePDGs);
+
+        isValid_hFakeParticleGenPt.resize(nFakePDGs);
+        isValid_hRatioFakeParticleGenPt.resize(nFakePDGs);
+
         passedMinFakeFraction.resize(nFakePDGs);
+        passedMinFakeFractionGenPt.resize(nFakePDGs);
 
         for (int i = 0; i < nFakePDGs; ++i) {
 
@@ -283,10 +291,24 @@ public :
 
             hFakeParticle[i] = 0;
             hRatioFakeParticle[i] = 0;
+            hRatioFakeOther = 0;
 
             isValid_hFakeParticle[i] = false;
             isValid_hRatioFakeParticle[i] = false;
+            isValid_hRatioFakeOther = false;
+
+            hFakeParticleGenPt[i] = 0;
+            hAllFakeParticlesGenPt = 0;
+            hRatioFakeParticleGenPt[i] = 0;
+            hRatioFakeOtherGenPt = 0;
+
+            isValid_hFakeParticleGenPt[i] = false;
+            isValid_hAllFakeParticlesGenPt = false;
+            isValid_hRatioFakeParticleGenPt[i] = false;
+            isValid_hRatioFakeOtherGenPt = false;
+
             passedMinFakeFraction[i] = false;
+            passedMinFakeFractionGenPt[i] = false;
         }
         minFakeFraction = 0.05;
 
@@ -325,6 +347,7 @@ public :
     void FillHNumFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
     void FillHDenomFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
     void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta = -999, float recoPt = -1, int cent = -1);
 
     bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
 
@@ -348,6 +371,7 @@ public :
     void calcRatio();
     void calcRatioFake();
     void calcRatioFakeParticle();
+    void calcRatioFakeParticleGenPt();
     void writeObjects(TCanvas* c);
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
@@ -431,6 +455,17 @@ public :
     std::vector<TH1D*> hRatioFakeParticle;
     TH1D* hRatioFakeOther;
 
+    // objects for particle composition of fake rate as function of GEN-level particle pt
+    std::vector<TH1D*> hFakeParticleGenPt;
+    /*
+     * hRatioFakeParticleGenPt = hFakeParticleGenPt / hAllFakeParticlesGenPt
+     * NOTE : x-axis of these histograms is the pt of the GEN-level particles that fake the RECO-level particle,
+     * not necessarily the same as "dep".
+     */
+    TH1D* hAllFakeParticlesGenPt;
+    std::vector<TH1D*> hRatioFakeParticleGenPt;
+    TH1D* hRatioFakeOtherGenPt;
+
     bool isValid_hNumFake;
     bool isValid_hDenomFake;
     bool isValid_hRatioFake;
@@ -438,6 +473,10 @@ public :
     std::vector<bool> isValid_hFakeParticle;
     std::vector<bool> isValid_hRatioFakeParticle;
     bool isValid_hRatioFakeOther;
+    std::vector<bool> isValid_hFakeParticleGenPt;
+    std::vector<bool> isValid_hRatioFakeParticleGenPt;
+    bool isValid_hAllFakeParticlesGenPt;
+    bool isValid_hRatioFakeOtherGenPt;
 
     /*
      * Ex. minFakeFraction = 0.05 and there is particle a which makes up less 5% of the fakes for each bin along x-axis
@@ -445,6 +484,7 @@ public :
      */
     double minFakeFraction;
     std::vector<bool> passedMinFakeFraction;
+    std::vector<bool> passedMinFakeFractionGenPt;
 
     int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
 
@@ -531,6 +571,23 @@ void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, 
 
         if (isValid_hFakeParticle[iPDG]) {
             hFakeParticle[iPDG]->Fill(x, w);
+        }
+    }
+}
+
+void energyScaleHist::FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta, float recoPt, int cent)
+{
+    if (insideRange(eta, -1, recoPt, cent)) {
+
+        if (isValid_hAllFakeParticlesGenPt) {
+            hAllFakeParticlesGenPt->Fill(genPt, w);
+        }
+
+        std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
+        int iPDG = (it == fakePDGs.end()) ? 0 : int(it - fakePDGs.begin());
+
+        if (isValid_hFakeParticleGenPt[iPDG]) {
+            hFakeParticleGenPt[iPDG]->Fill(genPt, w);
         }
     }
 }
@@ -667,10 +724,22 @@ void energyScaleHist::updateTH1()
     isValid_hRatioFake = (hRatioFake != 0 && !hRatioFake->IsZombie());
     isValid_gRatioFake = (gRatioFake != 0 && !gRatioFake->IsZombie());
     isValid_hRatioFakeOther = (hRatioFakeOther != 0 && !hRatioFakeOther->IsZombie());
+    isValid_hRatioFakeOtherGenPt = (hRatioFakeOtherGenPt != 0 && !hRatioFakeOtherGenPt->IsZombie());
 
     for (int i = 0; i < nFakePDGs; ++i) {
         isValid_hFakeParticle[i] = (hFakeParticle[i] != 0 && !hFakeParticle[i]->IsZombie());
         isValid_hRatioFakeParticle[i] = (hRatioFakeParticle[i] != 0 && !hRatioFakeParticle[i]->IsZombie());
+
+        isValid_hFakeParticleGenPt[i] = (hFakeParticleGenPt[i] != 0 && !hFakeParticleGenPt[i]->IsZombie());
+        isValid_hRatioFakeParticleGenPt[i] = (hRatioFakeParticleGenPt[i] != 0 && !hRatioFakeParticleGenPt[i]->IsZombie());
+    }
+
+    for (int i = 0; i < nFakePDGs; ++i) {
+        if (isValid_hFakeParticleGenPt[i]) {
+            hAllFakeParticlesGenPt = (TH1D*)hFakeParticleGenPt[i]->Clone(Form("hAllFakeParticlesGenPt_%s", name.c_str()));
+            isValid_hAllFakeParticlesGenPt = true;
+            break;
+        }
     }
 }
 
@@ -898,6 +967,7 @@ void energyScaleHist::postLoop()
     calcRatio();
     calcRatioFake();
     calcRatioFakeParticle();
+    calcRatioFakeParticleGenPt();
 
     // Final histograms point to observables
     h1D[ENERGYSCALE::kESCALE] = h1DeScale[ENERGYSCALE::kESCALE];
@@ -1152,6 +1222,58 @@ void energyScaleHist::calcRatioFakeParticle()
 
         if (isValid_hRatioFakeOther && !passedMinFakeFraction[i]) {
             hRatioFakeOther->Add(hRatioFakeParticle[i]);
+        }
+    }
+}
+
+void energyScaleHist::calcRatioFakeParticleGenPt()
+{
+    if (isValid_hAllFakeParticlesGenPt) {
+        hRatioFakeOtherGenPt = (TH1D*)hAllFakeParticlesGenPt->Clone(Form("hRatioFakeOtherGenPt_%s", name.c_str()));
+        hRatioFakeOtherGenPt->Reset();
+
+        setTH1_efficiency(hRatioFakeOtherGenPt, titleOffsetX, titleOffsetY);
+        hRatioFakeOtherGenPt->SetTitle(title.c_str());
+        hRatioFakeOtherGenPt->SetXTitle(titleX.c_str());
+        hRatioFakeOtherGenPt->SetYTitle("Contribution to Fakes, Other");
+        hRatioFakeOtherGenPt->SetMinimum(0);
+        hRatioFakeOtherGenPt->SetMaximum(1.5);
+
+        isValid_hRatioFakeOtherGenPt = true;
+    }
+
+    for (int i = 0; i < nFakePDGs; ++i) {
+        if (!isValid_hFakeParticleGenPt[i])  continue;
+
+        hFakeParticleGenPt[i]->SetTitle(title.c_str());
+        hFakeParticleGenPt[i]->SetXTitle("Gen p_{T} (GeV/c)");
+        setTH1_efficiency(hFakeParticleGenPt[i], titleOffsetX, titleOffsetY);
+
+        if (isValid_hRatioFakeParticleGenPt[i]) {
+            hRatioFakeParticleGenPt[i]->Delete();
+            isValid_hRatioFakeParticleGenPt[i] = false;
+        }
+
+        if (!isValid_hAllFakeParticlesGenPt)  continue;
+
+        std::string label = ENERGYSCALE::particles[i].label;
+        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), "FakePDG", "RatioFakePDG");
+        hRatioFakeParticleGenPt[i] = (TH1D*)hFakeParticleGenPt[i]->Clone(tmpHistName.c_str());
+        hRatioFakeParticleGenPt[i]->Divide(hAllFakeParticlesGenPt);
+        setTH1_efficiency(hRatioFakeParticleGenPt[i], titleOffsetX, titleOffsetY);
+        hRatioFakeParticleGenPt[i]->SetTitle(title.c_str());
+        hRatioFakeParticleGenPt[i]->SetXTitle("Gen p_{T} (GeV/c)");
+        hRatioFakeParticleGenPt[i]->SetYTitle(Form("Contribution to Fakes, %s", label.c_str()));
+        hRatioFakeParticleGenPt[i]->SetMinimum(0);
+        hRatioFakeParticleGenPt[i]->SetMaximum(1.5);
+
+        isValid_hRatioFakeParticleGenPt[i] = true;
+
+        double maxContent = hRatioFakeParticleGenPt[i]->GetBinContent(hRatioFakeParticleGenPt[i]->GetMaximumBin());
+        passedMinFakeFractionGenPt[i] = (maxContent >= minFakeFraction);
+
+        if (isValid_hRatioFakeOtherGenPt && !passedMinFakeFractionGenPt[i]) {
+            hRatioFakeOtherGenPt->Add(hRatioFakeParticleGenPt[i]);
         }
     }
 }
@@ -1593,6 +1715,74 @@ void energyScaleHist::writeObjects(TCanvas* c)
         leg->Delete();
         if (hTmp != 0)  hTmp->Delete();
     }
+    // particle composition of fake rate as function of GEN-level particle pt
+     for (int i = 0; i < nFakePDGs; ++i) {
+
+         if (!isValid_hFakeParticleGenPt[i])  continue;
+         hFakeParticleGenPt[i]->Write("",TObject::kOverwrite);
+
+         if (!isValid_hRatioFakeParticleGenPt[i])  continue;
+         hRatioFakeParticleGenPt[i]->Write("",TObject::kOverwrite);
+     }
+     if (isValid_hAllFakeParticlesGenPt) {
+
+         int iObs = ENERGYSCALE::kFAKE;
+         canvasName = Form("cnv_%sGenPtPDGs_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+         c->cd();
+         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+         TH1D* hTmp = 0;
+
+         if (isValid_hRatioFakeOtherGenPt) {
+             // dummy histogram to be used as template
+             hTmp = (TH1D*)hRatioFakeOtherGenPt->Clone("hTmp");
+             hTmp->Reset();
+             hTmp->SetYTitle("Fake Composition");
+             hTmp->SetMaximum(1.5);
+             hTmp->Draw();
+         }
+
+         TLegend* leg = new TLegend();
+         for (int i = 1; i < nFakePDGs; ++i) {
+
+             if (!isValid_hRatioFakeParticleGenPt[i])  continue;
+             if (!passedMinFakeFractionGenPt[i])  continue;
+
+             hRatioFakeParticleGenPt[i]->SetMarkerSize(markerSize);
+             hRatioFakeParticleGenPt[i]->SetMarkerColor(GRAPHICS::colors[i%13]);
+             hRatioFakeParticleGenPt[i]->Draw("e same");
+
+             int index = fakeIndices[i];
+             std::string label = ENERGYSCALE::particles[index].label;
+             leg->AddEntry(hRatioFakeParticleGenPt[i], label.c_str(), "lpf");
+         }
+
+         if (isValid_hRatioFakeOtherGenPt) {
+             hRatioFakeOtherGenPt->Draw("e same");
+             leg->AddEntry(hRatioFakeOtherGenPt, "Other", "lpf");
+         }
+         double legHeight = calcTLegendHeight(leg);
+         double legWidth = calcTLegendWidth(leg);
+         int nLegRows = leg->GetNRows();
+         if (nLegRows >= 6) {
+             leg->SetNColumns(2);
+             legHeight /= 2;
+             legWidth *= 1.4;
+         }
+         setLegendPosition(leg, "NW", c, legHeight, legWidth, 0.04, 0.04, true);
+         leg->SetFillColor(-1);
+         leg->SetFillStyle(4000);
+         leg->SetBorderSize(0);
+         leg->Draw();
+
+         setPad4Observable((TPad*) c, iObs);
+         drawLine4PtRange((TPad*) c);
+         setCanvasFinal(c);
+         c->Write("",TObject::kOverwrite);
+         c->Close();         // do not use Delete() for TCanvas.
+         leg->Delete();
+         if (hTmp != 0)  hTmp->Delete();
+     }
 }
 
 void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)

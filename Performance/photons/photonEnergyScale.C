@@ -475,10 +475,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 // selections on GEN particle
                 int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
                 bool isMatched = (genMatchedIndex >= 0);
-                bool isMatched2Photon = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
+                bool isMatched2GenPhoton = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
 
                 double genPt = -1;
-                if (isMatched2Photon) {
+                if (isMatched2GenPhoton) {
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
 
                     if (isHI) {
@@ -550,7 +550,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, eta, pt, cent);
                                 hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, eta, pt, cent);
 
-                                if (isMatched2Photon) {
+                                if (isMatched2GenPhoton) {
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(eta, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(pt, w, eta, genPt, pt, cent);
@@ -599,18 +599,18 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 // selections on GEN particle
                 int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
                 bool isMatched = (genMatchedIndex >= 0);
-                bool isMatched2Photon = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
+                bool isMatched2GenPhoton = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
 
                 double genPt = -1;
-                if (isMatched2Photon) {
+                if (isMatched2GenPhoton) {
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
                 }
 
                 int fakePDG = 0;
-                if (!isMatched2Photon) {
+                double fakeGenPt = -1;
+                if (!isMatched2GenPhoton) {
 
                     // identify GEN-level particle that matches the fake at RECO-level
-                    double genPtTmp = -1;
                     double deltaR = 0.15;
 
                     bool useggHiMC = false;
@@ -618,9 +618,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iMC = 0; iMC < ggHi.nMC; ++iMC) {
                             if ((*ggHi.mcStatus)[iMC] == 1 &&
                                     getDR(eta, phi, (*ggHi.mcEta)[iMC], (*ggHi.mcPhi)[iMC]) < deltaR &&
-                                    (*ggHi.mcPt)[iMC] > genPtTmp) {
+                                    (*ggHi.mcPt)[iMC] > fakeGenPt) {
 
-                                genPtTmp = (*ggHi.mcPt)[iMC];
+                                fakeGenPt = (*ggHi.mcPt)[iMC];
                                 fakePDG = (*ggHi.mcPID)[iMC];
                             }
                         }
@@ -628,9 +628,9 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                     else {
                         for (int iMC = 0; iMC < hiGen.mult; ++iMC) {
                             if (getDR(eta, phi, (*hiGen.eta)[iMC], (*hiGen.phi)[iMC]) < deltaR &&
-                                    (*hiGen.pt)[iMC] > genPtTmp) {
+                                    (*hiGen.pt)[iMC] > fakeGenPt) {
 
-                                genPtTmp = (*hiGen.pt)[iMC];
+                                fakeGenPt = (*hiGen.pt)[iMC];
                                 fakePDG = (*hiGen.pdg)[iMC];
                             }
                         }
@@ -650,7 +650,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
                                 hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
 
-                                if (!isMatched2Photon) {
+                                if (!isMatched2GenPhoton) {
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
                                     //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
                                     hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
@@ -664,6 +664,8 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                     hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(cent, fakePDG, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sumIso, fakePDG, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sieie, fakePDG, w, eta, genPt, pt, cent);
+
+                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, eta, pt, cent);
                                 }
                             }}}}
             }
@@ -1309,6 +1311,19 @@ int  preLoop(TFile* input, bool makeNew)
                                 else {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
                                             (TH1D*)input->Get(histNameFakePDG.c_str());
+                                }
+
+                                // special cases
+                                if (iDep == ENERGYSCALE::kGENPT) {
+                                    std::string histNameFakeGenPtPDG = Form("hFakeGenPtPDG%d_%s", pdg, tmpName.c_str());
+                                    if (makeNew) {
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
+                                                new TH1D(histNameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"), 20, 0, 50);
+                                    }
+                                    else {
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
+                                                (TH1D*)input->Get(histNameFakeGenPtPDG.c_str());
+                                    }
                                 }
                             }
 
