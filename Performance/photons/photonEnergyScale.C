@@ -1521,7 +1521,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     }
     else return;
 
-    c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
+    std::string canvasName = "cnvTmp";
+    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
 
     // replace myBinX with name myBinAll
     size_t indexStart = tmpName.find(strBin.c_str());
@@ -1705,6 +1706,22 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
+
+    if (iObs == ENERGYSCALE::kFAKE) {
+
+        // plot fake rate in log-scale as well
+        double minContent = getMinimumTH1DContent(vecH1D, 0);
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        for (int i = 0; i < nBins; ++i) {
+            vecH1D[i]->SetMinimum(TMath::Power(10, logYmin));
+            vecH1D[i]->SetMaximum(40);
+        }
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+    }
 
     leg->Delete();
     line->Delete();

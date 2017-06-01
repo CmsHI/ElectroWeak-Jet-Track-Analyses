@@ -20,6 +20,7 @@
 #include <map>
 
 #include "../../Utilities/th1Util.h"
+#include "../../Utilities/tgraphUtil.h"
 
 namespace ENERGYSCALE {
 
@@ -1625,6 +1626,18 @@ void energyScaleHist::writeObjects(TCanvas* c)
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
+
+        // plot fake rate in log-scale as well
+        double minContent = hRatioFake->GetBinContent(getMinimumBin(hRatioFake, 0));
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        hRatioFake->SetMinimum(TMath::Power(10, logYmin));
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+        hRatioFake->SetMinimum(0);  // restore the minimum after log-scale canvas.
+
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hRatioFake && isValid_gRatioFake) {
@@ -1644,6 +1657,17 @@ void energyScaleHist::writeObjects(TCanvas* c)
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
+
+        // plot fake rate in log-scale as well
+        double minContent = getMinimum(gRatioFake, 0);
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        hTmp->SetMinimum(TMath::Power(10, logYmin));
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+
         c->Close();         // do not use Delete() for TCanvas.
         hTmp->Delete();
     }
