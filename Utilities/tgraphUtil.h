@@ -70,8 +70,7 @@ int getMaximumBinIndex(TGraph* gr, double maxval)
 double getMinimum(TGraph* gr, double minval)
 {
     int i = getMinimumBinIndex(gr, minval);
-    if (i == -1)  return -999;
-    else return gr->GetY()[i];
+    return (i != -1) ? gr->GetY()[i] : -FLT_MAX;
 }
 
 /*
@@ -80,8 +79,7 @@ double getMinimum(TGraph* gr, double minval)
 double getMaximum(TGraph* gr, double maxval)
 {
     int i = getMaximumBinIndex(gr, maxval);
-    if (i == -1)  return -999;
-    else return gr->GetY()[i];
+    return (i != -1) ? gr->GetY()[i] : +FLT_MAX;
 }
 
 /*

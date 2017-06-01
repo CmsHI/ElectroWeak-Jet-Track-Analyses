@@ -38,6 +38,8 @@ std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
 int getMinimumBin(TH1D* h, double minval = -FLT_MAX);
 int getMaximumBin(TH1D* h, double maxval = +FLT_MAX);
+double getMinimum(TH1D* h, double minval = -FLT_MAX);
+double getMaximum(TH1D* h, double maxval = +FLT_MAX);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction = "LR");
 int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
@@ -380,6 +382,18 @@ int getMaximumBin(TH1D* h, double maxval)
     }
 
     return res;
+}
+
+double getMinimum(TH1D* h, double minval)
+{
+    int i = getMinimumBin(h, minval);
+    return (i != -1) ? h->GetBinContent(i) : -FLT_MAX;
+}
+
+double getMaximum(TH1D* h, double maxval)
+{
+    int i = getMaximumBin(h, maxval);
+    return (i != -1) ? h->GetBinContent(i) : +FLT_MAX;
 }
 
 /*
