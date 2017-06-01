@@ -17,8 +17,72 @@
 #ifndef TGRAPHUTIL_H_
 #define TGRAPHUTIL_H_
 
+int getMinimumBinIndex(TGraph* gr, double minval = -FLT_MAX);
+int getMaximumBinIndex(TGraph* gr, double maxval = +FLT_MAX);
+double getMinimum(TGraph* gr, double minval = -FLT_MAX);
+double getMaximum(TGraph* gr, double maxval = +FLT_MAX);
 void setTGraphBand(TGraph* gr, std::vector<double> x, std::vector<double> ymin, std::vector<double> ymax);
 void setTGraphErrors(TGraphErrors* gr, std::vector<double> x, std::vector<double> y, std::vector<double> yerr);
+
+/*
+ * get the index of the bin with the minimum content greater than minval
+ */
+int getMinimumBinIndex(TGraph* gr, double minval)
+{
+    int fNpoints = gr->GetN();
+    double* fY   = gr->GetY();
+    int res = -1;
+    double minTmp = +FLT_MAX;
+    for (int i=0; i<fNpoints; ++i)
+    {
+        if (fY[i] > minval && fY[i] < minTmp) {
+            minTmp = fY[i];
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * get the index of the bin with the maximum content smaller than maxval
+ */
+int getMaximumBinIndex(TGraph* gr, double maxval)
+{
+    int fNpoints = gr->GetN();
+    double* fY   = gr->GetY();
+    int res = -1;
+    double maxTmp = -FLT_MAX;
+    for (int i=0; i<fNpoints; ++i)
+    {
+        if (fY[i] < maxval && fY[i] > maxTmp) {
+            maxTmp = fY[i];
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * get the minimum content greater than minval
+ */
+double getMinimum(TGraph* gr, double minval)
+{
+    int i = getMinimumBinIndex(gr, minval);
+    if (i == -1)  return -999;
+    else return gr->GetY()[i];
+}
+
+/*
+ * get the maximum content smaller than maxval
+ */
+double getMaximum(TGraph* gr, double maxval)
+{
+    int i = getMaximumBinIndex(gr, maxval);
+    if (i == -1)  return -999;
+    else return gr->GetY()[i];
+}
 
 /*
  * set a TGraph object such that it contains a band (a curve with a thickness)
