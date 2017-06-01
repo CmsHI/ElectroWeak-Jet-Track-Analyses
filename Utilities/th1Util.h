@@ -36,6 +36,8 @@ void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
+int getMinimumBin(TH1D* h, double minval = -FLT_MAX);
+int getMaximumBin(TH1D* h, double maxval = +FLT_MAX);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction = "LR");
 int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
@@ -336,6 +338,48 @@ std::vector<double> getTH1xBins(TH1* h) {
     }
 
     return bins;
+}
+
+/*
+ * get the bin with the minimum content greater than minval
+ * A similar function is TH1::GetMinimum(Double_t minval = -FLT_MAX), but it is useless if TH1::SetMinimum() was used before.
+ */
+int getMinimumBin(TH1D* h, double minval)
+{
+    int nBins = h->GetNbinsX();
+    int res = -1;
+    double minTmp = +FLT_MAX;
+    for ( int i = 1; i <= nBins; i++)
+    {
+        double content = h->GetBinContent(i);
+        if (content > minval && content < minTmp) {
+            minTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * get the bin with the maximum content smaller than maxval
+ * A similar function is TH1::GetMaximum(Double_t maxval = FLT_MAX), but it is useless if TH1::SetMaximum() was used before.
+ */
+int getMaximumBin(TH1D* h, double maxval)
+{
+    int nBins = h->GetNbinsX();
+    int res = -1;
+    double maxTmp = -FLT_MAX;
+    for ( int i = 1; i <= nBins; i++)
+    {
+        double content = h->GetBinContent(i);
+        if (content < maxval && content > maxTmp) {
+            maxTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
 }
 
 /*
