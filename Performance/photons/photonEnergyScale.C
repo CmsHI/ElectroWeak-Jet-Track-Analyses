@@ -832,10 +832,6 @@ int readConfiguration(const TString configFile)
 
     if (TH1D_Axis_List.size() == 0) {
         CONFIGPARSER::TH1Axis th1Axis;
-        th1Axis.nBins = 200;
-        th1Axis.xLow = 0;
-        th1Axis.xUp = 2;
-        TH1D_Axis_List.push_back(th1Axis);
         th1Axis.nBins = 12;
         th1Axis.xLow = -2.4;
         th1Axis.xUp = 2.4;
@@ -1021,12 +1017,12 @@ void printConfiguration()
 
         std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
 
-        std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;  // for this program nTH1D_Bins_List must be 1.
+        std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
         for (int i=0; i<nTH1D_Axis_List; ++i) {
             std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Axis_List.at(i));
             std::cout << Form("TH1D_Axis_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
         }
-        std::cout << "nTH2D_Axis_List = " << nTH2D_Axis_List << std::endl;  // for this program nTH2D_Bins_List must be 1.
+        std::cout << "nTH2D_Axis_List = " << nTH2D_Axis_List << std::endl;
         for (int i=0; i<nTH2D_Axis_List; ++i) {
             std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Axis_List.at(i));
             std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
@@ -1249,12 +1245,17 @@ int  preLoop(TFile* input, bool makeNew)
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][0] = 0;
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][1] = -1;
 
-                            // extract the x-axis bin information for energy scale distribution
-                            CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[0];
-
-                            int iAxis = iDep+1;
+                            int iAxis = iDep;
                             int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
                             std::vector<double> bins = TH1D_Axis_List[iAxis].bins;
+
+                            // extract the x-axis bin information for energy scale distribution
+                            int iAxisEscale = ENERGYSCALE::kN_DEPS;
+                            CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[iAxisEscale];
+
+                            // extract the x-axis bin information for fake rate composition as function of genPt
+                            int iAxisFakeGenPt = ENERGYSCALE::kN_DEPS+1;
+                            CONFIGPARSER::TH1Axis axisFakeGenPt = TH1D_Axis_List[iAxisFakeGenPt];
 
                             double arr[nBins+1];
                             std::copy(bins.begin(), bins.end(), arr);
@@ -1316,9 +1317,17 @@ int  preLoop(TFile* input, bool makeNew)
                                 // special cases
                                 if (iDep == ENERGYSCALE::kGENPT) {
                                     std::string histNameFakeGenPtPDG = Form("hFakeGenPtPDG%d_%s", pdg, tmpName.c_str());
+
+                                    int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
+                                    std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
+
+                                    double arrFakeGenPt[nBinsFakeGenPt+1];
+                                    std::copy(binsFakeGenPt.begin(), binsFakeGenPt.end(), arrFakeGenPt);
+
                                     if (makeNew) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
-                                                new TH1D(histNameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"), 20, 0, 50);
+                                                new TH1D(histNameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
+                                                        nBinsFakeGenPt, arrFakeGenPt);
                                     }
                                     else {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
