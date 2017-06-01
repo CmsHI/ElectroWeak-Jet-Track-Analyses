@@ -40,6 +40,10 @@ int getMinimumBin(TH1D* h, double minval = -FLT_MAX);
 int getMaximumBin(TH1D* h, double maxval = +FLT_MAX);
 double getMinimum(TH1D* h, double minval = -FLT_MAX);
 double getMaximum(TH1D* h, double maxval = +FLT_MAX);
+int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval = -FLT_MAX);
+int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval = +FLT_MAX);
+double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval = -FLT_MAX);
+double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval = +FLT_MAX);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction = "LR");
 int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
@@ -394,6 +398,64 @@ double getMaximum(TH1D* h, double maxval)
 {
     int i = getMaximumBin(h, maxval);
     return (i != -1) ? h->GetBinContent(i) : +FLT_MAX;
+}
+
+/*
+ * find the histogram with the minimum content greater than minval
+ */
+int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval)
+{
+    int nHist = vecH.size();
+    int res = -1;
+    double minTmp = +FLT_MAX;
+    for (int i = 0; i < nHist; ++i) {
+
+        double content = getMinimum(vecH[i], minval);
+        if (content < minTmp) {
+            minTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * find the histogram with the maximum content smaller than maxval
+ */
+int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval)
+{
+    int nHist = vecH.size();
+    int res = -1;
+    double maxTmp = -FLT_MAX;
+    for (int i = 0; i < nHist; ++i) {
+
+        double content = getMaximum(vecH[i], maxval);
+        if (content > maxTmp) {
+            maxTmp = content;
+            res = i;
+        }
+    }
+
+    return res;
+}
+
+/*
+ * from the list of histograms, get the overall minimum content greater than minval
+ */
+double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval)
+{
+    int i = getMinimumTH1Dindex(vecH, minval);
+    return getMinimum(vecH[i], minval);
+}
+
+/*
+ * from the list of histograms, get the overall maximum content smaller than maxval
+ */
+double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval)
+{
+    int i = getMaximumTH1Dindex(vecH, maxval);
+    return getMaximum(vecH[i], maxval);
 }
 
 /*
