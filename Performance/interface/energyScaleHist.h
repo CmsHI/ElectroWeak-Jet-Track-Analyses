@@ -343,8 +343,8 @@ public :
     void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
     void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int cent = -1);
 
-    void FillHNum(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillHDenom(double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHNum(double x, double w, float genEta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    void FillHDenom(double x, double w, float genEta = -999, float genPt = -1, int cent = -1);
     void FillHNumFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
     void FillHDenomFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
     void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
@@ -531,15 +531,15 @@ void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float e
         h2Dcorr->Fill(genPt, recoPt, w);
 }
 
-void energyScaleHist::FillHNum(double x, double w, float eta, float genPt, float recoPt, int cent)
+void energyScaleHist::FillHNum(double x, double w, float genEta, float genPt, float recoPt, int cent)
 {
-    if (isValid_hNum && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_hNum && insideRange(genEta, genPt, recoPt, cent))
         hNum->Fill(x, w);
 }
 
-void energyScaleHist::FillHDenom(double x, double w, float eta, float genPt, float recoPt, int cent)
+void energyScaleHist::FillHDenom(double x, double w, float genEta, float genPt, int cent)
 {
-    if (isValid_hDenom && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_hDenom && insideRange(genEta, genPt, -1, cent))
         hDenom->Fill(x, w);
 }
 /*

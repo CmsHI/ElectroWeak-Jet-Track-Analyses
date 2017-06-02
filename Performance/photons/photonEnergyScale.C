@@ -470,93 +470,94 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             }
 
             // matching efficiency
-            for (int i=0; i<ggHi.nPho; ++i) {
+            for (int i=0; i<ggHi.nMC; ++i) {
 
-                // selections on GEN particle
-                int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
-                bool isMatched = (genMatchedIndex >= 0);
-                bool isMatched2GenPhoton = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
+                if ((*ggHi.mcPID)[i] != 22)   continue;    // consider only GEN-level photons
+                double genPt = (*ggHi.mcPt)[i];
+                double genEta = (*ggHi.mcEta)[i];
 
-                double genPt = -1;
-                if (isMatched2GenPhoton) {
-                    genPt = (*ggHi.mcPt)[genMatchedIndex];
+                // look for matching RECO particle
+                int j = -1;
+                for (int iReco = 0; iReco < ggHi.nPho; ++iReco) {
 
-                    if (isHI) {
-                        if (cut_mcCalIsoDR04 != 0) {
-                            if (!((*ggHi.mcCalIsoDR04)[genMatchedIndex] < cut_mcCalIsoDR04))   continue;
-                        }
-                        if (cut_mcTrkIsoDR04 != 0) {
-                            if (!((*ggHi.mcTrkIsoDR04)[genMatchedIndex] < cut_mcTrkIsoDR04))   continue;
-                        }
-                        if (cut_mcSumIso != 0) {
-                            if (!(((*ggHi.mcCalIsoDR04)[genMatchedIndex] +
-                                    (*ggHi.mcTrkIsoDR04)[genMatchedIndex]) < cut_mcSumIso))   continue;
-                        }
+                    if (i == (*ggHi.pho_genMatchedIndex)[iReco]) {
+                        j = iReco;
                     }
-                    else {
-                        if (cut_mcCalIsoDR04 != 0) {
-                            if (!((*ggHi.mcCalIsoDR04)[genMatchedIndex] < cut_mcCalIsoDR04))   continue;
-                        }
-                        if (cut_mcTrkIsoDR04 != 0) {
-                            if (!((*ggHi.mcTrkIsoDR04)[genMatchedIndex] < cut_mcTrkIsoDR04))   continue;
-                        }
-                        if (cut_mcSumIso != 0) {
-                            if (!(((*ggHi.mcCalIsoDR04)[genMatchedIndex] +
-                                    (*ggHi.mcTrkIsoDR04)[genMatchedIndex]) < cut_mcSumIso))   continue;
-                        }
+                }
+                bool matched2RECO = (j > -1);
+
+                if (isHI) {
+                    if (cut_mcCalIsoDR04 != 0) {
+                        if (!((*ggHi.mcCalIsoDR04)[i] < cut_mcCalIsoDR04))   continue;
+                    }
+                    if (cut_mcTrkIsoDR04 != 0) {
+                        if (!((*ggHi.mcTrkIsoDR04)[i] < cut_mcTrkIsoDR04))   continue;
+                    }
+                    if (cut_mcSumIso != 0) {
+                        if (!(((*ggHi.mcCalIsoDR04)[i] +
+                                (*ggHi.mcTrkIsoDR04)[i]) < cut_mcSumIso))   continue;
+                    }
+                }
+                else {
+                    if (cut_mcCalIsoDR04 != 0) {
+                        if (!((*ggHi.mcCalIsoDR04)[i] < cut_mcCalIsoDR04))   continue;
+                    }
+                    if (cut_mcTrkIsoDR04 != 0) {
+                        if (!((*ggHi.mcTrkIsoDR04)[i] < cut_mcTrkIsoDR04))   continue;
+                    }
+                    if (cut_mcSumIso != 0) {
+                        if (!(((*ggHi.mcCalIsoDR04)[i] +
+                                (*ggHi.mcTrkIsoDR04)[i]) < cut_mcSumIso))   continue;
                     }
                 }
 
                 // selections on RECO particle
-                if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                if (matched2RECO) {
+                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] > 0.002 && (*ggHi.pho_swissCrx)[j] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[j]) < 3)) continue;
 
-                if (cut_phoHoverE != 0) {
-                    if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                    if (cut_phoHoverE != 0) {
+                        if (!((*ggHi.phoHoverE)[j] < cut_phoHoverE))   continue;
+                    }
+                    if (cut_pho_ecalClusterIsoR4 != 0) {
+                        if (!((*ggHi.pho_ecalClusterIsoR4)[j] < cut_pho_ecalClusterIsoR4))   continue;
+                    }
+                    if (cut_pho_hcalRechitIsoR4 != 0) {
+                        if (!((*ggHi.pho_hcalRechitIsoR4)[j] < cut_pho_hcalRechitIsoR4))   continue;
+                    }
+                    if (cut_pho_trackIsoR4PtCut20 != 0) {
+                        if (!((*ggHi.pho_trackIsoR4PtCut20)[j] < cut_pho_trackIsoR4PtCut20))   continue;
+                    }
+                    if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] < cut_phoSigmaIEtaIEta_2012))   continue;
+                    }
+                    if (cut_sumIso != 0) {
+                        if (!(((*ggHi.pho_ecalClusterIsoR4)[j] +
+                                (*ggHi.pho_hcalRechitIsoR4)[j]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[j]) < cut_sumIso))   continue;
+                    }
                 }
-                if (cut_pho_ecalClusterIsoR4 != 0) {
-                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
-                }
-                if (cut_pho_hcalRechitIsoR4 != 0) {
-                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
-                }
-                if (cut_pho_trackIsoR4PtCut20 != 0) {
-                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
-                }
-                if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
-                }
-                if (cut_sumIso != 0) {
-                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
-                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                            (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
-                }
-
-                double pt  = (*ggHi.phoEt)[i];
-                double eta = (*ggHi.phoEta)[i];
-                double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                        (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                        (*ggHi.pho_trackIsoR4PtCut20)[i]);
-                double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
 
                 for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
                     for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(eta, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genEta, w, genEta, genPt, cent);
+                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, genEta, genPt, cent);
+                                //hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, genEta, genPt, cent);
+                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, genEta, genPt, cent);
+                                //hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, genEta, genPt, cent);
+                                //hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, genEta, genPt, cent);
 
-                                if (isMatched2GenPhoton) {
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(eta, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(pt, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNum(cent, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNum(sumIso, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNum(sieie, w, eta, genPt, pt, cent);
+                                if (matched2RECO) {
+                                    double pt  = (*ggHi.phoEt)[j];
+
+                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(genEta, w, genEta, genPt, pt, cent);
+                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, genEta, genPt, pt, cent);
+                                    //hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(pt, w, genEta, genPt, pt, cent);
+                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNum(cent, w, genEta, genPt, pt, cent);
+                                    //hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNum(sumIso, w, genEta, genPt, pt, cent);
+                                    //hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNum(sieie, w, genEta, genPt, pt, cent);
                                 }
                             }}}}
             }
