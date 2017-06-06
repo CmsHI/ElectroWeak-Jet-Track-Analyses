@@ -735,13 +735,7 @@ void energyScaleHist::updateTH1()
         isValid_hRatioFakeParticleGenPt[i] = (hRatioFakeParticleGenPt[i] != 0 && !hRatioFakeParticleGenPt[i]->IsZombie());
     }
 
-    for (int i = 0; i < nFakePDGs; ++i) {
-        if (isValid_hFakeParticleGenPt[i]) {
-            hAllFakeParticlesGenPt = (TH1D*)hFakeParticleGenPt[i]->Clone(Form("hAllFakeParticlesGenPt_%s", name.c_str()));
-            isValid_hAllFakeParticlesGenPt = true;
-            break;
-        }
-    }
+    isValid_hAllFakeParticlesGenPt = (hAllFakeParticlesGenPt != 0 && !hAllFakeParticlesGenPt->IsZombie());
 }
 
 void energyScaleHist::updateFncs()
@@ -1220,9 +1214,34 @@ void energyScaleHist::calcRatioFakeParticle()
 
         double maxContent = hRatioFakeParticle[i]->GetBinContent(hRatioFakeParticle[i]->GetMaximumBin());
         passedMinFakeFraction[i] = (maxContent >= minFakeFraction);
+        if (i == 0)  passedMinFakeFraction[i] = false;    // by definition
 
         if (isValid_hRatioFakeOther && !passedMinFakeFraction[i]) {
             hRatioFakeOther->Add(hRatioFakeParticle[i]);
+        }
+    }
+
+    // check if bin contents sum up to 1
+    if (isValid_hRatioFakeOther) {
+        for (int iBin = 1; iBin<=hRatioFakeOther->GetNbinsX(); ++iBin) {
+            double content = 0;
+
+            for (int i = 0; i < nFakePDGs; ++i) {
+                if (isValid_hRatioFakeParticle[i] && passedMinFakeFraction[i]) {
+                    content += hRatioFakeParticle[i]->GetBinContent(iBin);
+                }
+            }
+
+            if (isValid_hRatioFakeOther) {
+                content += hRatioFakeOther->GetBinContent(iBin);
+            }
+
+            if (content < 0.99 || content > 1.01) {
+                std::cout << "WARNING : bin contents do not sum up to 1." << name.c_str() << std::endl;
+                std::cout << "name = " << name.c_str() << std::endl;
+                std::cout << "hRatioFakeParticle" << std::endl;
+                std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
+            }
         }
     }
 }
@@ -1258,7 +1277,7 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
         if (!isValid_hAllFakeParticlesGenPt)  continue;
 
         std::string label = ENERGYSCALE::particles[i].label;
-        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), "FakePDG", "RatioFakePDG");
+        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), "FakeGenPtPDG", "RatioFakeGenPtPDG");
         hRatioFakeParticleGenPt[i] = (TH1D*)hFakeParticleGenPt[i]->Clone(tmpHistName.c_str());
         hRatioFakeParticleGenPt[i]->Divide(hAllFakeParticlesGenPt);
         setTH1_efficiency(hRatioFakeParticleGenPt[i], titleOffsetX, titleOffsetY);
@@ -1272,9 +1291,34 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
 
         double maxContent = hRatioFakeParticleGenPt[i]->GetBinContent(hRatioFakeParticleGenPt[i]->GetMaximumBin());
         passedMinFakeFractionGenPt[i] = (maxContent >= minFakeFraction);
+        if (i == 0)  passedMinFakeFractionGenPt[i] = false;    // by definition
 
         if (isValid_hRatioFakeOtherGenPt && !passedMinFakeFractionGenPt[i]) {
             hRatioFakeOtherGenPt->Add(hRatioFakeParticleGenPt[i]);
+        }
+    }
+
+    // check if bin contents sum up to 1
+    if (isValid_hRatioFakeOtherGenPt) {
+        for (int iBin = 1; iBin<=hRatioFakeOtherGenPt->GetNbinsX(); ++iBin) {
+            double content = 0;
+
+            for (int i = 0; i < nFakePDGs; ++i) {
+                if (isValid_hRatioFakeParticleGenPt[i] && passedMinFakeFractionGenPt[i]) {
+                    content += hRatioFakeParticleGenPt[i]->GetBinContent(iBin);
+                }
+            }
+
+            if (isValid_hRatioFakeOtherGenPt) {
+                content += hRatioFakeOtherGenPt->GetBinContent(iBin);
+            }
+
+            if (content < 0.99 || content > 1.01) {
+                std::cout << "WARNING : bin contents do not sum up to 1." << name.c_str() << std::endl;
+                std::cout << "name = " << name.c_str() << std::endl;
+                std::cout << "hRatioFakeParticleGenPt" << std::endl;
+                std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
+            }
         }
     }
 }
@@ -1750,6 +1794,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
      }
      if (isValid_hAllFakeParticlesGenPt) {
 
+         hAllFakeParticlesGenPt->Write("",TObject::kOverwrite);
+
          int iObs = ENERGYSCALE::kFAKE;
          canvasName = Form("cnv_%sGenPtPDGs_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
          c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
@@ -1782,6 +1828,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
          }
 
          if (isValid_hRatioFakeOtherGenPt) {
+             hRatioFakeOtherGenPt->SetMarkerSize(markerSize);
              hRatioFakeOtherGenPt->Draw("e same");
              leg->AddEntry(hRatioFakeOtherGenPt, "Other", "lpf");
          }
