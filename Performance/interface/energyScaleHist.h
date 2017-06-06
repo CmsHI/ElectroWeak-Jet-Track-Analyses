@@ -256,7 +256,6 @@ public :
         isValid_hRatioFakeOther = false;
 
         fakeIndices = {
-                ENERGYSCALE::FAKECAND::k_unknown,       // always the first element
                 ENERGYSCALE::FAKECAND::k_kaonS,
                 ENERGYSCALE::FAKECAND::k_pionch,
                 ENERGYSCALE::FAKECAND::k_kaonL,
@@ -568,9 +567,9 @@ void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, 
     if (insideRange(eta, genPt, recoPt, cent)) {
 
         std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
-        int iPDG = (it == fakePDGs.end()) ? 0 : int(it - fakePDGs.begin());
+        int iPDG = (it == fakePDGs.end()) ? -1 : int(it - fakePDGs.begin());
 
-        if (isValid_hFakeParticle[iPDG]) {
+        if (iPDG > -1 && isValid_hFakeParticle[iPDG]) {
             hFakeParticle[iPDG]->Fill(x, w);
         }
     }
@@ -585,9 +584,9 @@ void energyScaleHist::FillHFakeParticleGenPt(double genPt, int pdg, double w, fl
         }
 
         std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
-        int iPDG = (it == fakePDGs.end()) ? 0 : int(it - fakePDGs.begin());
+        int iPDG = (it == fakePDGs.end()) ? -1 : int(it - fakePDGs.begin());
 
-        if (isValid_hFakeParticleGenPt[iPDG]) {
+        if (iPDG > -1 && isValid_hFakeParticleGenPt[iPDG]) {
             hFakeParticleGenPt[iPDG]->Fill(genPt, w);
         }
     }
@@ -1214,7 +1213,6 @@ void energyScaleHist::calcRatioFakeParticle()
 
         double maxContent = hRatioFakeParticle[i]->GetBinContent(hRatioFakeParticle[i]->GetMaximumBin());
         passedMinFakeFraction[i] = (maxContent >= minFakeFraction);
-        if (i == 0)  passedMinFakeFraction[i] = false;    // by definition
 
         if (isValid_hRatioFakeOther && !passedMinFakeFraction[i]) {
             hRatioFakeOther->Add(hRatioFakeParticle[i]);
@@ -1291,7 +1289,6 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
 
         double maxContent = hRatioFakeParticleGenPt[i]->GetBinContent(hRatioFakeParticleGenPt[i]->GetMaximumBin());
         passedMinFakeFractionGenPt[i] = (maxContent >= minFakeFraction);
-        if (i == 0)  passedMinFakeFractionGenPt[i] = false;    // by definition
 
         if (isValid_hRatioFakeOtherGenPt && !passedMinFakeFractionGenPt[i]) {
             hRatioFakeOtherGenPt->Add(hRatioFakeParticleGenPt[i]);
@@ -1743,13 +1740,13 @@ void energyScaleHist::writeObjects(TCanvas* c)
         }
 
         TLegend* leg = new TLegend();
-        for (int i = 1; i < nFakePDGs; ++i) {
+        for (int i = 0; i < nFakePDGs; ++i) {
 
             if (!isValid_hRatioFakeParticle[i])  continue;
             if (!passedMinFakeFraction[i])  continue;
 
             hRatioFakeParticle[i]->SetMarkerSize(markerSize);
-            hRatioFakeParticle[i]->SetMarkerColor(GRAPHICS::colors[i%13]);
+            hRatioFakeParticle[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
             hRatioFakeParticle[i]->Draw("e same");
 
             int index = fakeIndices[i];
@@ -1813,13 +1810,13 @@ void energyScaleHist::writeObjects(TCanvas* c)
          }
 
          TLegend* leg = new TLegend();
-         for (int i = 1; i < nFakePDGs; ++i) {
+         for (int i = 0; i < nFakePDGs; ++i) {
 
              if (!isValid_hRatioFakeParticleGenPt[i])  continue;
              if (!passedMinFakeFractionGenPt[i])  continue;
 
              hRatioFakeParticleGenPt[i]->SetMarkerSize(markerSize);
-             hRatioFakeParticleGenPt[i]->SetMarkerColor(GRAPHICS::colors[i%13]);
+             hRatioFakeParticleGenPt[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
              hRatioFakeParticleGenPt[i]->Draw("e same");
 
              int index = fakeIndices[i];
