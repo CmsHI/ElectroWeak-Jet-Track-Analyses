@@ -475,16 +475,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 if ((*ggHi.mcPID)[i] != 22)   continue;    // consider only GEN-level photons
                 double genPt = (*ggHi.mcPt)[i];
                 double genEta = (*ggHi.mcEta)[i];
-
-                // look for matching RECO particle
-                int j = -1;
-                for (int iReco = 0; iReco < ggHi.nPho; ++iReco) {
-
-                    if (i == (*ggHi.pho_genMatchedIndex)[iReco]) {
-                        j = iReco;
-                    }
-                }
-                bool matched2RECO = (j > -1);
+                double genPhi = (*ggHi.mcPhi)[i];
 
                 if (isHI) {
                     if (cut_mcCalIsoDR04 != 0) {
@@ -511,8 +502,12 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                     }
                 }
 
-                // selections on RECO particle
-                if (matched2RECO) {
+                // look for matching RECO particle
+                double deltaR = 0.15;
+                int iReco = -1;
+                double recoPt = -1;
+                for (int j = 0; j < ggHi.nPho; ++j) {
+
                     if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] > 0.002 && (*ggHi.pho_swissCrx)[j] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[j]) < 3)) continue;
 
                     if (cut_phoHoverE != 0) {
@@ -535,7 +530,13 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 (*ggHi.pho_hcalRechitIsoR4)[j]  +
                                 (*ggHi.pho_trackIsoR4PtCut20)[j]) < cut_sumIso))   continue;
                     }
+
+                    if (getDR((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR && (*ggHi.phoEt)[j] > recoPt ) {
+                        iReco = j;
+                        recoPt = (*ggHi.phoEt)[j];
+                    }
                 }
+                bool matched2RECO = (iReco > -1);
 
                 for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
                     for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
@@ -550,7 +551,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 //hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, genEta, genPt, cent);
 
                                 if (matched2RECO) {
-                                    double pt  = (*ggHi.phoEt)[j];
+                                    double pt  = (*ggHi.phoEt)[iReco];
 
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(genEta, w, genEta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, genEta, genPt, pt, cent);
