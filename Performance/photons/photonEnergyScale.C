@@ -1166,7 +1166,9 @@ int  preLoop(TFile* input, bool makeNew)
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
+                        if (iDep != ENERGYSCALE::kSUMISO && iDep != ENERGYSCALE::kSIEIE) {
+                            if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
+                        }
 
                         // histogram ranges
                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kETA][0] = bins_eta[0].at(iEta);
@@ -1329,10 +1331,20 @@ int  preLoop(TFile* input, bool makeNew)
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
                                                 new TH1D(histNameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
                                                         nBinsFakeGenPt, arrFakeGenPt);
+
+                                        if (iPDG == 0) {
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt->Reset();
+                                        }
                                     }
                                     else {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
                                                 (TH1D*)input->Get(histNameFakeGenPtPDG.c_str());
+                                        if (iPDG == 0) {
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
+                                                    (TH1D*)input->Get(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
+                                        }
                                     }
                                 }
                             }
@@ -1471,6 +1483,18 @@ int postLoop()
 
                         if (!hist[iDep][iEta][0][iRecoPt][iCent].isValid_h2D)  continue;
                         drawSame(c, iObs, iDep, iEta, -1, iRecoPt, iCent);
+                    }
+                }
+            }
+
+            // plot from different recoPt bins
+            for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
+                    for (int iCent = 0; iCent < nBins_cent; ++iCent) {
+
+                        if (!hist[iDep][iEta][iGenPt][0][iCent].isValid_h2D)  continue;
+
+                        drawSame(c, iObs, iDep, iEta, iGenPt, -1, iCent);
                     }
                 }
             }
