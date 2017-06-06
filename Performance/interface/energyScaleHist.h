@@ -325,12 +325,6 @@ public :
         yMin = {0, 0};
         yMax = {-1, -1};
 
-        fitFncs = {};        // {"gaus"};
-        fitOptions = {};     // {"Q M R N"};
-        fitFncs_xMin = {};
-        fitFncs_xMax = {};
-        fitColors = {};
-
         for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
             ranges[i][0] = 0;
             ranges[i][1] = -1;  // no upper bound
@@ -411,10 +405,6 @@ public :
     std::vector<std::vector<eScaleAna>> esa;
     int indexFnc;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
                      // function whose results will be shown in the final plots
-
-    std::vector<std::vector<TF1*>>  f1sv2;  // Fit functions for each histogram in h1DsliceY, these functions are input from user.
-                                            // They are seed by f1sliceY if a function is Gaussian.
-                                            // f1sv2 is 2D vector with [nBinsX][nFitFncs]
 
     TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -987,9 +977,6 @@ void energyScaleHist::fitRecoGen()
     esa.clear();
     esa.resize(nBinsX);
 
-    f1sv2.clear();
-    f1sv2.resize(nBinsX);
-
     for (int i=1; i<=nBinsX; ++i) {
 
         hTmp = h1DsliceY[i-1];
@@ -1057,26 +1044,6 @@ void energyScaleHist::fitRecoGen()
             esaTmp[j].update();
         }
         esa[i-1] = esaTmp;
-
-        int nFncsv2 = fitFncs.size();
-        // fit functions for that bin along x-axis
-        std::vector<TF1*> f1sv2Tmp;
-        for (int iFnc = 0; iFnc < nFncsv2; ++iFnc) {
-            std::string f1Name = Form("f1_bin%d_fncv2%d_%s", i, iFnc+1, name.c_str());
-
-            std::string formulaTmp = fitFncs[iFnc];
-            f1Tmp = new TF1(f1Name.c_str(), formulaTmp.c_str(), fitFncs_xMin[iFnc], fitFncs_xMax[iFnc]);
-
-            if (formulaTmp == "gaus") {
-                // use the fit from TH2::FitSlicesY as seed
-                f1Tmp->SetParameters(p0, p1, p2);
-            }
-            f1Tmp->SetLineColor(fitColors[iFnc]);
-
-            hTmp->Fit(f1Tmp, fitOptions[iFnc].c_str());
-            f1sv2Tmp.push_back(f1Tmp);
-        }
-        f1sv2[i-1] = f1sv2Tmp;
     }
 }
 
@@ -1234,9 +1201,8 @@ void energyScaleHist::calcRatioFakeParticle()
                 content += hRatioFakeOther->GetBinContent(iBin);
             }
 
-            if (content < 0.99 || content > 1.01) {
-                std::cout << "WARNING : bin contents do not sum up to 1." << name.c_str() << std::endl;
-                std::cout << "name = " << name.c_str() << std::endl;
+            if ((content < 0.99 || content > 1.01) && content > 0.00001) {
+                std::cout << "WARNING : bin contents do not sum up to 1 : " << name.c_str() << std::endl;
                 std::cout << "hRatioFakeParticle" << std::endl;
                 std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
             }
@@ -1310,9 +1276,8 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
                 content += hRatioFakeOtherGenPt->GetBinContent(iBin);
             }
 
-            if (content < 0.99 || content > 1.01) {
-                std::cout << "WARNING : bin contents do not sum up to 1." << name.c_str() << std::endl;
-                std::cout << "name = " << name.c_str() << std::endl;
+            if ((content < 0.99 || content > 1.01) && content > 0.00001) {
+                std::cout << "WARNING : bin contents do not sum up to 1 : " << name.c_str() << std::endl;
                 std::cout << "hRatioFakeParticleGenPt" << std::endl;
                 std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
             }
@@ -1477,11 +1442,6 @@ void energyScaleHist::writeObjects(TCanvas* c)
             if (esa[i][iFnc].isValid_f1) {
                 esa[i][iFnc].f1->Draw("same");
             }
-        }
-
-        int nFitFncsv2 = f1sv2[i].size();
-        for (int iFnc = 0; iFnc < nFitFncsv2; ++iFnc) {
-            f1sv2[i][iFnc]->Draw("same");
         }
 
         h1DsliceY[i]->Draw("e same");   // points should line above functions
