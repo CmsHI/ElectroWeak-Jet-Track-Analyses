@@ -72,7 +72,8 @@ set -x
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
 if [[ \$? -eq 0 ]]; then
-  gfal-copy *.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+  gfal-copy gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+  gfal-copy gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
 fi
 
 rm *.root
