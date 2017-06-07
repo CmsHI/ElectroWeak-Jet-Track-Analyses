@@ -3,7 +3,7 @@ if [[ $# -ne 5 ]]; then
   exit 1
 fi
 
-PROXYFILE=$(ls /tmp/ -lr | grep $USER | grep -m 1 x509 | awk '{print $NF}')
+PROXYFILE=$(ls /tmp/ -lt | grep $USER | grep -m 1 x509 | awk '{print $NF}')
 
 now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
