@@ -285,7 +285,6 @@ public :
         isValid_hDenomFake = false;
         isValid_hRatioFake = false;
         isValid_gRatioFake = false;
-        isValid_hRatioFakeOther = false;
 
         fakeIndices = {
                 ENERGYSCALE::FAKECAND::k_kaonS,
@@ -303,13 +302,11 @@ public :
 
         hFakeParticle.resize(nFakeParticles);
         hRatioFakeParticle.resize(nFakeParticles);
-
         isValid_hFakeParticle.resize(nFakeParticles);
         isValid_hRatioFakeParticle.resize(nFakeParticles);
 
         hFakeParticleGenPt.resize(nFakeParticles);
         hRatioFakeParticleGenPt.resize(nFakeParticles);
-
         isValid_hFakeParticleGenPt.resize(nFakeParticles);
         isValid_hRatioFakeParticleGenPt.resize(nFakeParticles);
 
@@ -323,26 +320,29 @@ public :
 
             hFakeParticle[i] = 0;
             hRatioFakeParticle[i] = 0;
-
             isValid_hFakeParticle[i] = false;
             isValid_hRatioFakeParticle[i] = false;
 
             hFakeParticleGenPt[i] = 0;
             hRatioFakeParticleGenPt[i] = 0;
-
             isValid_hFakeParticleGenPt[i] = false;
-            isValid_hAllFakeParticlesGenPt = false;
             isValid_hRatioFakeParticleGenPt[i] = false;
 
             passedMinFakeFraction[i] = false;
             passedMinFakeFractionGenPt[i] = false;
         }
+        hFakeOther = 0;
+        hRatioFakeOther = 0;
+        isValid_hFakeOther = false;
+        isValid_hRatioFakeOther = false;
+
         hFakeOtherGenPt = 0;
         hRatioFakeOtherGenPt = 0;
         isValid_hFakeOtherGenPt = false;
         isValid_hRatioFakeOtherGenPt = false;
 
         hAllFakeParticlesGenPt = 0;
+        isValid_hAllFakeParticlesGenPt = false;
 
         minFakeFraction = 0.05;
 
@@ -466,6 +466,7 @@ public :
     TH1D* hDenomFake;
     TH1D* hRatioFake;
     TGraphAsymmErrors* gRatioFake;
+
     // particles to be used for fake rate composition
     std::vector<int> fakeIndices;
     std::vector<ENERGYSCALE::particle> fakeParticles;
@@ -499,13 +500,15 @@ public :
     bool isValid_hDenomFake;
     bool isValid_hRatioFake;
     bool isValid_gRatioFake;
+
     std::vector<bool> isValid_hFakeParticle;
     std::vector<bool> isValid_hRatioFakeParticle;
     bool isValid_hFakeOther;
     bool isValid_hRatioFakeOther;
+
     std::vector<bool> isValid_hFakeParticleGenPt;
-    bool isValid_hFakeOtherGenPt;
     std::vector<bool> isValid_hRatioFakeParticleGenPt;
+    bool isValid_hFakeOtherGenPt;
     bool isValid_hRatioFakeOtherGenPt;
     bool isValid_hAllFakeParticlesGenPt;
 
@@ -758,10 +761,6 @@ void energyScaleHist::updateTH1()
     isValid_hDenomFake = (hDenomFake != 0 && !hDenomFake->IsZombie());
     isValid_hRatioFake = (hRatioFake != 0 && !hRatioFake->IsZombie());
     isValid_gRatioFake = (gRatioFake != 0 && !gRatioFake->IsZombie());
-    isValid_hFakeOther = (hFakeOther != 0 && !hFakeOther->IsZombie());
-    isValid_hRatioFakeOther = (hRatioFakeOther != 0 && !hRatioFakeOther->IsZombie());
-    isValid_hFakeOtherGenPt = (hFakeOtherGenPt != 0 && !hFakeOtherGenPt->IsZombie());
-    isValid_hRatioFakeOtherGenPt = (hRatioFakeOtherGenPt != 0 && !hRatioFakeOtherGenPt->IsZombie());
 
     for (int i = 0; i < nFakeParticles; ++i) {
         isValid_hFakeParticle[i] = (hFakeParticle[i] != 0 && !hFakeParticle[i]->IsZombie());
@@ -770,6 +769,11 @@ void energyScaleHist::updateTH1()
         isValid_hFakeParticleGenPt[i] = (hFakeParticleGenPt[i] != 0 && !hFakeParticleGenPt[i]->IsZombie());
         isValid_hRatioFakeParticleGenPt[i] = (hRatioFakeParticleGenPt[i] != 0 && !hRatioFakeParticleGenPt[i]->IsZombie());
     }
+    isValid_hFakeOther = (hFakeOther != 0 && !hFakeOther->IsZombie());
+    isValid_hRatioFakeOther = (hRatioFakeOther != 0 && !hRatioFakeOther->IsZombie());
+
+    isValid_hFakeOtherGenPt = (hFakeOtherGenPt != 0 && !hFakeOtherGenPt->IsZombie());
+    isValid_hRatioFakeOtherGenPt = (hRatioFakeOtherGenPt != 0 && !hRatioFakeOtherGenPt->IsZombie());
     isValid_hAllFakeParticlesGenPt = (hAllFakeParticlesGenPt != 0 && !hAllFakeParticlesGenPt->IsZombie());
 }
 
