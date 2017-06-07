@@ -160,9 +160,9 @@ photonAnalyzer phoAna[PHOTONANA::DIST::kN_DIST][PHOTONANA::SEL::kN_SEL][5][5][7]
 
 int  readConfiguration(const TString configFile);
 void printConfiguration();
+std::vector<bool> parseMode(std::string mode);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
-std::vector<bool> getSelectionsToRun(std::string mode);
 void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iHiBin, int iNorm);
 void setTH1(TH1D* h, int iHist);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
@@ -334,12 +334,13 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
             }}}}}
 
             double w = 1;
+            int hiBin = hiEvt.hiBin;
             if (doEventWeight > 0) {
                 w = hiEvt.weight;
                 double vertexWeight = 1;
                 if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
                 double centWeight = 1;
-                if (isHI && isMC)  centWeight = findNcoll(hiEvt.hiBin);
+                if (isHI && isMC)  centWeight = findNcoll(hiBin);
                 w *= vertexWeight * centWeight;
             }
 
@@ -412,7 +413,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                     if (!phoAna[0][iSel][iEta][0][0].insideEtaRange(TMath::Abs(eta))) continue;
 
                 for (int iHiBin = 0; iHiBin < nBins_hiBin; ++iHiBin) {
-                    if (!phoAna[0][iSel][0][0][iHiBin].insideHiBinRange(hiEvt.hiBin)) continue;
+                    if (!phoAna[0][iSel][0][0][iHiBin].insideHiBinRange(hiBin)) continue;
 
                     std::vector<double> phoVars = photonAnalyzer::getPhoVars(ggHi, i);
                 for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
@@ -447,6 +448,9 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
     std::cout<<"running photonSpectra() - END"<<std::endl;
 }
 
+/*
+ * run the macro without going through event loop, things done before and after the loop
+ */
 void photonSpectraNoLoop(const TString configFile, const TString inputFile, const TString outputFile)
 {
     std::cout<<"running photonSpectra()"<<std::endl;
@@ -518,7 +522,7 @@ int readConfiguration(const TString configFile)
 
     // input configuration
     mode = configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_mode];
-    runSelection = getSelectionsToRun(mode);
+    runSelection = parseMode(mode);
 
     // input for TTree
     treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
@@ -856,6 +860,24 @@ void printConfiguration()
         std::cout << "topMargin    = " << topMargin << std::endl;
 }
 
+std::vector<bool> parseMode(std::string mode)
+{
+    std::vector<bool> res(PHOTONANA::SEL::kN_SEL, false);
+
+    int len = mode.size();
+    if (len != PHOTONANA::SEL::kN_SEL) return res;
+
+    for (int i = 0; i < len; ++i) {
+
+        std::istringstream sin(mode.substr(i, 1));
+        int in;
+        sin >> in;
+        if (in > 0) res.at(i) = true;
+    }
+
+    return res;
+}
+
 /*
  * initialize/read/modify the analysis objects before the loop.
  * Objects are eg. TH1, TGraph, ...
@@ -1011,24 +1033,6 @@ int postLoop()
     }
 
     return 0;
-}
-
-std::vector<bool> getSelectionsToRun(std::string mode)
-{
-    std::vector<bool> res(PHOTONANA::SEL::kN_SEL, false);
-
-    int len = mode.size();
-    if (len != PHOTONANA::SEL::kN_SEL) return res;
-
-    for (int i = 0; i < len; ++i) {
-
-        std::istringstream sin(mode.substr(i, 1));
-        int in;
-        sin >> in;
-        if (in > 0) res.at(i) = true;
-    }
-
-    return res;
 }
 
 void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int iHiBin, int iNorm)
