@@ -236,7 +236,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     continue;
 
                 std::string hist_name;
-                if (hist_type == "xjg") {
+                if (hist_type == "xjg" || (hist_type == "dphi" && k > _PP_MC)) {
                     if (cent_based_plots)
                         hist_name = Form("h1D_%s_ptBin%d_hiBin%d_%s", hist_type.c_str(), pt_bin_numbers[i], cent_bin_numbers[j], suffix[k].c_str());
                     else
@@ -310,7 +310,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     // normalize dphi correctly
                     if ((k == _LBT || k == _LBT_REF || k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL) && hist_type == "dphi")
-                        h1[i][j][k]->Scale(1/h1[i][j][k]->GetBinWidth(h1[i][j][k]->GetNbinsX()));
+                        h1[i][j][k]->Scale(1./h1[i][j][k]->Integral(), "width");
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
