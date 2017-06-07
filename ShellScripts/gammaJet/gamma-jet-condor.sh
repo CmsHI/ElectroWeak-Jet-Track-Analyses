@@ -3,11 +3,13 @@ if [[ $# -ne 5 ]]; then
   exit 1
 fi
 
+PROXYFILE=$(ls /tmp/ -lr | grep $USER | grep -m 1 x509 | awk '{print $NF}')
+
 now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-mkdir -p $3
+gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
 
@@ -36,9 +38,10 @@ Error        = \$(Process).err
 Log          = \$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
+requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = $BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
+transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
 
 Queue $4
 
@@ -47,7 +50,8 @@ EOF
 cat > $now/skim-gamma-jet.sh <<EOF
 #!/bin/bash
 
-set -x
+# setup grid proxy
+export X509_USER_PROXY=\${PWD}/$PROXYFILE
 
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
@@ -59,6 +63,8 @@ mv *.root Corrections/
 mv Corrections/merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root Corrections/jets/
 mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Corrections/jets/L2L3/
 
+set -x
+
 # run gammaJetSkim
 ./gammaJetSkim.exe \$1 \$2 gammaJetSkim_\${4}.root \${5} $4 \${4}
 
@@ -66,10 +72,10 @@ mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Correc
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
 if [[ \$? -eq 0 ]]; then
-  mv *.root \$3
+  gfal-copy *.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
 fi
 
 rm *.root
 EOF
 
-condor_submit $now/skim-gamma-jet.condor
+condor_submit $now/skim-gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
