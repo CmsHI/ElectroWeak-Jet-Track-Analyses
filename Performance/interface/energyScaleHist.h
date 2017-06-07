@@ -469,11 +469,11 @@ public :
     TH1D* hRatioFake;
     TGraphAsymmErrors* gRatioFake;
 
-    // particles to be used for fake rate composition
+    // particles to be used for fake composition
     std::vector<int> fakeIndices;
     std::vector<ENERGYSCALE::particle> fakeParticles;
     int nFakeParticles;
-    // objects for each particle in fake rate composition
+    // objects for each particle in fake composition
     /*
      * If the GEN-level particle matches the RECO-level fake, then fill hFakeParticle.
      */
@@ -1812,7 +1812,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         if (!isValid_hRatioFakeParticle[i])  continue;
         hRatioFakeParticle[i]->Write("",TObject::kOverwrite);
     }
-    if (isValid_hNumFake) {
+    if (isValid_hNumFake && isValid_hRatioFakeOther) {
 
         int iObs = ENERGYSCALE::kFAKE;
         canvasName = Form("cnv_%sPDGs_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
@@ -1821,14 +1821,12 @@ void energyScaleHist::writeObjects(TCanvas* c)
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         TH1D* hTmp = 0;
 
-        if (isValid_hRatioFakeOther) {
-            // dummy histogram to be used as template
-            hTmp = (TH1D*)hRatioFakeOther->Clone("hTmp");
-            hTmp->Reset();
-            hTmp->SetYTitle("Fake Composition");
-            hTmp->SetMaximum(1.5);
-            hTmp->Draw();
-        }
+        // dummy histogram to be used as template
+        hTmp = (TH1D*)hRatioFakeOther->Clone("hTmp");
+        hTmp->Reset();
+        hTmp->SetYTitle("Fake Composition");
+        hTmp->SetMaximum(1.5);
+        hTmp->Draw();
 
         TLegend* leg = new TLegend();
         for (int i = 0; i < nFakeParticles; ++i) {
@@ -1883,7 +1881,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
          if (!isValid_hRatioFakeParticleGenPt[i])  continue;
          hRatioFakeParticleGenPt[i]->Write("",TObject::kOverwrite);
      }
-     if (isValid_hAllFakeParticlesGenPt) {
+     if (isValid_hAllFakeParticlesGenPt && isValid_hRatioFakeOtherGenPt) {
 
          hAllFakeParticlesGenPt->Write("",TObject::kOverwrite);
 
@@ -1894,14 +1892,12 @@ void energyScaleHist::writeObjects(TCanvas* c)
          setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
          TH1D* hTmp = 0;
 
-         if (isValid_hRatioFakeOtherGenPt) {
-             // dummy histogram to be used as template
-             hTmp = (TH1D*)hRatioFakeOtherGenPt->Clone("hTmp");
-             hTmp->Reset();
-             hTmp->SetYTitle("Fake Composition");
-             hTmp->SetMaximum(1.5);
-             hTmp->Draw();
-         }
+         // dummy histogram to be used as template
+         hTmp = (TH1D*)hRatioFakeOtherGenPt->Clone("hTmp");
+         hTmp->Reset();
+         hTmp->SetYTitle("Fake Composition");
+         hTmp->SetMaximum(1.5);
+         hTmp->Draw();
 
          TLegend* leg = new TLegend();
          for (int i = 0; i < nFakeParticles; ++i) {

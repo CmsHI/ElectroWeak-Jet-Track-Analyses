@@ -48,6 +48,12 @@
 ///// global variables
 /// configuration variables
 // input configuration
+/*
+* mode is a string of bits.
+* If bit j = 0, then do not run the corresponding mode
+*/
+std::string mode;
+
 // input for TTree
 std::string treePath;
 int collisionType;
@@ -164,6 +170,15 @@ int nBins_genPt;
 int nBins_recoPt;
 int nBins_cent;
 /// configuration variables - END
+enum MODES {
+    kEnergyScale,
+    kMatchEff,
+    kFakeRate,
+    kFakeComposition,
+    kN_MODES
+};
+const string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
+std::vector<bool> runMode;
 // object for set of all possible energy scale histograms
 energyScaleHist hist[ENERGYSCALE::kN_DEPS][10][10][10][10];
 // energyScaleHist hist[ENERGYSCALE::kN_ENERGYSCALE_DEP][nBins_eta][nBins_genPt][nBins_recoPt][nBins_cent];
@@ -171,6 +186,7 @@ energyScaleHist hist[ENERGYSCALE::kN_DEPS][10][10][10][10];
 
 int  readConfiguration(const TString configFile);
 void printConfiguration();
+std::vector<bool> parseMode(std::string mode);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent);
@@ -363,6 +379,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
             }
 
             // energy scale
+            if (runMode[MODES::kEnergyScale]) {
             for (int i=0; i<ggHi.nPho; ++i) {
 
                 // selections on GEN particle
@@ -457,8 +474,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 }}}}
 
             }
+            }
 
             // matching efficiency
+            if (runMode[MODES::kMatchEff]) {
             for (int i=0; i<ggHi.nMC; ++i) {
 
                 if ((*ggHi.mcPID)[i] != 22)   continue;    // consider only GEN-level photons
@@ -551,8 +570,10 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 }
                             }}}}
             }
+            }
 
             // fake rate
+            if (runMode[MODES::kFakeRate]) {
             for (int i=0; i<ggHi.nPho; ++i) {
 
                 // selections on RECO particle
@@ -597,6 +618,30 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
                 }
 
+                for (int iEta = 0;  iEta < nBins_eta; ++iEta) {
+                    for (int iGenPt = 0;  iGenPt < nBins_genPt; ++iGenPt) {
+                        for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+                            for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
+
+                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, pt, cent);
+                                //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
+                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
+
+                                if (!isMatched2GenPhoton) {
+                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
+                                    //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, pt, cent);
+                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, pt, cent);
+                                }
+                            }}}}
+
+                // fake composition
+                if (runMode[MODES::kFakeComposition]) {
                 int fakePDG = 0;
                 double fakeGenPt = -1;
                 if (!isMatched2GenPhoton) {
@@ -634,20 +679,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, pt, cent);
-                                //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
-
                                 if (!isMatched2GenPhoton) {
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
-                                    //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, pt, cent);
 
                                     hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, cent);
                                     hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, cent);
@@ -659,6 +691,8 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                     hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, eta, pt, cent);
                                 }
                             }}}}
+                }
+            }
             }
 
         }
@@ -752,6 +786,9 @@ int readConfiguration(const TString configFile)
     }
 
     // input configuration
+    mode = configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_mode];
+    runMode = parseMode(mode);
+
     // input for TTree
     treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
     collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
@@ -958,6 +995,11 @@ void printConfiguration()
 {
     // verbose about input configuration
         std::cout<<"Input Configuration :"<<std::endl;
+        std::cout << "mode = " << mode.c_str() << std::endl;
+        for (int i = 0; i < (int)runMode.size(); ++i) {
+            std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
+        }
+
         std::cout << "treePath = " << treePath.c_str() << std::endl;
         std::cout << "collision = " << collisionName.c_str() << std::endl;
 
@@ -1106,6 +1148,28 @@ void printConfiguration()
         std::cout << "topMargin    = " << topMargin << std::endl;
 }
 
+std::vector<bool> parseMode(std::string mode)
+{
+    std::vector<bool> res(MODES::kN_MODES, false);
+
+    int len = mode.size();
+    if (len != MODES::kN_MODES) return res;
+
+    for (int i = 0; i < len; ++i) {
+
+        std::istringstream sin(mode.substr(i, 1));
+        int in;
+        sin >> in;
+        if (in > 0) res.at(i) = true;
+    }
+
+    // special cases
+    // If "fake composition" is to be run, then "fake rate" must be run as well.
+    if (res[MODES::kFakeComposition])  res[MODES::kFakeRate] = true;
+
+    return res;
+}
+
 /*
  * initialize/read/modify the analysis objects before the loop.
  * Objects are eg. TH1, TGraph, ...
@@ -1209,7 +1273,7 @@ int  preLoop(TFile* input, bool makeNew)
                             int iAxisEscale = ENERGYSCALE::kN_DEPS;
                             CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[iAxisEscale];
 
-                            // extract the x-axis bin information for fake rate composition as function of genPt
+                            // extract the x-axis bin information for fake composition as function of genPt
                             int iAxisFakeGenPt = ENERGYSCALE::kN_DEPS+1;
                             CONFIGPARSER::TH1Axis axisFakeGenPt = TH1D_Axis_List[iAxisFakeGenPt];
 
@@ -1217,6 +1281,7 @@ int  preLoop(TFile* input, bool makeNew)
                             std::copy(bins.begin(), bins.end(), arr);
 
                             // energy scale
+                            if (runMode[MODES::kEnergyScale]) {
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D =
                                         new TH2D(h2DName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
@@ -1229,8 +1294,10 @@ int  preLoop(TFile* input, bool makeNew)
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(h2DName.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(histName.c_str());
                             }
+                            }
 
                             // matching efficiency
+                            if (runMode[MODES::kMatchEff]) {
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNum =
                                         new TH1D(histNameNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
@@ -1241,8 +1308,10 @@ int  preLoop(TFile* input, bool makeNew)
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNum = (TH1D*)input->Get(histNameNum.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenom = (TH1D*)input->Get(histNameDenom.c_str());
                             }
+                            }
 
                             // fake rate
+                            if (runMode[MODES::kFakeRate]) {
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNumFake =
                                         new TH1D(histNameNumFake.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
@@ -1253,8 +1322,10 @@ int  preLoop(TFile* input, bool makeNew)
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNumFake = (TH1D*)input->Get(histNameNumFake.c_str());
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenomFake = (TH1D*)input->Get(histNameDenomFake.c_str());
                             }
+                            }
 
-                            // fake rate composition
+                            // fake composition
+                            if (runMode[MODES::kFakeComposition]) {
                             int nFakeParticles = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
                             for (int iPDG = 0; iPDG < nFakeParticles; ++iPDG) {
 
@@ -1319,6 +1390,7 @@ int  preLoop(TFile* input, bool makeNew)
                                         }
                                     }
                                 }
+                            }
                             }
 
                             // special cases
@@ -1478,6 +1550,12 @@ int postLoop()
 
 void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent)
 {
+    if ((iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kERES ||
+         iObs == ENERGYSCALE::kESCALEARITH || iObs == ENERGYSCALE::kERESARITH ) &&
+            !runMode[MODES::kEnergyScale]) return;
+    if (iObs == ENERGYSCALE::kEFF && !runMode[MODES::kMatchEff]) return;
+    if (iObs == ENERGYSCALE::kFAKE && !runMode[MODES::kFakeRate]) return;
+
     // if the dependency is GenPt (the x-axis is GenPt), then it must be iGenPt = 0
     if (iDep == ENERGYSCALE::kETA && iEta != 0) return;
     if (iDep == ENERGYSCALE::kGENPT && iGenPt != 0) return;
