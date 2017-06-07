@@ -92,8 +92,19 @@ enum FAKECAND {
 
 struct particle
 {
-    particle() : name(""), label(""), PDG(0), m(0), charge(0) {}
-    particle(std::string name = "", std::string label = "", int PDG = 0, double m = 0, int charge = 0) {
+    particle() {
+        this->name = "";
+        this->label = "";
+        this->PDG.clear();
+        this->PDG.push_back(0);
+        this->m.clear();
+        this->m.push_back(0);
+        this->charge.clear();
+        this->charge.push_back(0);
+    }
+    particle(std::string name, std::string label, std::vector<int> PDG = std::vector<int>({0}),
+                                                  std::vector<double> m = std::vector<double>({0}),
+                                                  std::vector<int> charge = std::vector<int>({0})) {
         this->name = name;
         this->label = label;
         this->PDG = PDG;
@@ -103,30 +114,30 @@ struct particle
 
     std::string name;
     std::string label;
-    int PDG;
-    double m;
-    int charge;
+    std::vector<int> PDG;
+    std::vector<double> m;
+    std::vector<int> charge;
 };
 
 const particle particles[kN_FakeCand] =
 {
-   particle("unknown", "other", 0),
-   particle("electron", "e^{#pm}", 11),
-   particle("eneutrino", "#nu_{e}", 12),
-   particle("muon", "#mu^{#pm}", 13),
-   particle("muneutrino", "#nu_{#mu}", 14),
-   particle("tau", "#tau^{#pm}", 16),
-   particle("kaonL", "K^{0}_{L}", 130),
-   particle("pionch", "#pi^{#pm}", 211),
-   particle("kaonS", "K^{0}_{S}", 310),
-   particle("kaonch", "K^{#pm}", 321),
-   particle("neutron", "n", 2112),
-   particle("proton", "p", 2212),
-   particle("sigmaM", "#Sigma^{-}", 3112),
-   particle("lambda", "#Lambda", 3122),
-   particle("sigmaP", "#Sigma^{+}", 3222),
-   particle("cascadeM", "#Xi^{-}", 3312),
-   particle("cascade0", "#Xi^{0}", 3322)
+   particle("unknown", "other", {0}),
+   particle("electron", "e^{#pm}", {11}),
+   particle("eneutrino", "#nu_{e}", {12}),
+   particle("muon", "#mu^{#pm}", {13}),
+   particle("muneutrino", "#nu_{#mu}", {14}),
+   particle("tau", "#tau^{#pm}", {16}),
+   particle("kaonL", "K^{0}_{L}", {130}),
+   particle("pionch", "#pi^{#pm}", {211}),
+   particle("kaonS", "K^{0}_{S}", {310}),
+   particle("kaonch", "K^{#pm}", {321}),
+   particle("neutron", "n", {2112}),
+   particle("proton", "p", {2212}),
+   particle("sigmaM", "#Sigma^{-}", {3112}),
+   particle("lambda", "#Lambda", {3122}),
+   particle("sigmaP", "#Sigma^{+}", {3222}),
+   particle("cascadeM", "#Xi^{-}", {3312}),
+   particle("cascade0", "#Xi^{0}", {3322})
 };
 
 };
@@ -266,50 +277,52 @@ public :
                 ENERGYSCALE::FAKECAND::k_lambda,
         };
 
-        nFakePDGs = fakeIndices.size();
-        fakePDGs.resize(nFakePDGs);
+        nFakeParticles = fakeIndices.size();
+        fakeParticles.resize(nFakeParticles);
 
-        hFakeParticle.resize(nFakePDGs);
-        hRatioFakeParticle.resize(nFakePDGs);
+        hFakeParticle.resize(nFakeParticles);
+        hRatioFakeParticle.resize(nFakeParticles);
 
-        isValid_hFakeParticle.resize(nFakePDGs);
-        isValid_hRatioFakeParticle.resize(nFakePDGs);
+        isValid_hFakeParticle.resize(nFakeParticles);
+        isValid_hRatioFakeParticle.resize(nFakeParticles);
 
-        hFakeParticleGenPt.resize(nFakePDGs);
-        hRatioFakeParticleGenPt.resize(nFakePDGs);
+        hFakeParticleGenPt.resize(nFakeParticles);
+        hRatioFakeParticleGenPt.resize(nFakeParticles);
 
-        isValid_hFakeParticleGenPt.resize(nFakePDGs);
-        isValid_hRatioFakeParticleGenPt.resize(nFakePDGs);
+        isValid_hFakeParticleGenPt.resize(nFakeParticles);
+        isValid_hRatioFakeParticleGenPt.resize(nFakeParticles);
 
-        passedMinFakeFraction.resize(nFakePDGs);
-        passedMinFakeFractionGenPt.resize(nFakePDGs);
+        passedMinFakeFraction.resize(nFakeParticles);
+        passedMinFakeFractionGenPt.resize(nFakeParticles);
 
-        for (int i = 0; i < nFakePDGs; ++i) {
+        for (int i = 0; i < nFakeParticles; ++i) {
 
             int index = fakeIndices.at(i);
-            fakePDGs[i] = ENERGYSCALE::particles[index].PDG;
+            fakeParticles[i] = ENERGYSCALE::particles[index];
 
             hFakeParticle[i] = 0;
             hRatioFakeParticle[i] = 0;
-            hRatioFakeOther = 0;
 
             isValid_hFakeParticle[i] = false;
             isValid_hRatioFakeParticle[i] = false;
-            isValid_hRatioFakeOther = false;
 
             hFakeParticleGenPt[i] = 0;
-            hAllFakeParticlesGenPt = 0;
             hRatioFakeParticleGenPt[i] = 0;
-            hRatioFakeOtherGenPt = 0;
 
             isValid_hFakeParticleGenPt[i] = false;
             isValid_hAllFakeParticlesGenPt = false;
             isValid_hRatioFakeParticleGenPt[i] = false;
-            isValid_hRatioFakeOtherGenPt = false;
 
             passedMinFakeFraction[i] = false;
             passedMinFakeFractionGenPt[i] = false;
         }
+        hFakeOtherGenPt = 0;
+        hRatioFakeOtherGenPt = 0;
+        isValid_hFakeOtherGenPt = false;
+        isValid_hRatioFakeOtherGenPt = false;
+
+        hAllFakeParticlesGenPt = 0;
+
         minFakeFraction = 0.05;
 
         dep = -1;
@@ -356,7 +369,10 @@ public :
     void updateFncs();
     void updateH1DsliceY();
     void updateH1DeScale();
-    int getFakePDG(int iPDG);
+
+    int getParticleIndex(int pdg);
+    int getFakePDG(int iParticle);
+    std::string getFakePDGstr(int iParticle);
 
     void prepareTitle();
 
@@ -431,13 +447,14 @@ public :
     TGraphAsymmErrors* gRatioFake;
     // particles to be used for fake rate composition
     std::vector<int> fakeIndices;
-    std::vector<int> fakePDGs;
-    int nFakePDGs;
+    std::vector<ENERGYSCALE::particle> fakeParticles;
+    int nFakeParticles;
     // objects for each particle in fake rate composition
     /*
      * If the GEN-level particle matches the RECO-level fake, then fill hFakeParticle.
      */
     std::vector<TH1D*> hFakeParticle;
+    TH1D* hFakeOther;
     /*
      * hRatioFakeParticle = hFakeParticle / hNumFake
      * hRatioFakeParticle is contribution of this particle to the total fake rate.
@@ -447,14 +464,15 @@ public :
 
     // objects for particle composition of fake rate as function of GEN-level particle pt
     std::vector<TH1D*> hFakeParticleGenPt;
+    TH1D* hFakeOtherGenPt;
     /*
      * hRatioFakeParticleGenPt = hFakeParticleGenPt / hAllFakeParticlesGenPt
      * NOTE : x-axis of these histograms is the pt of the GEN-level particles that fake the RECO-level particle,
      * not necessarily the same as "dep".
      */
-    TH1D* hAllFakeParticlesGenPt;
     std::vector<TH1D*> hRatioFakeParticleGenPt;
     TH1D* hRatioFakeOtherGenPt;
+    TH1D* hAllFakeParticlesGenPt;
 
     bool isValid_hNumFake;
     bool isValid_hDenomFake;
@@ -462,11 +480,13 @@ public :
     bool isValid_gRatioFake;
     std::vector<bool> isValid_hFakeParticle;
     std::vector<bool> isValid_hRatioFakeParticle;
+    bool isValid_hFakeOther;
     bool isValid_hRatioFakeOther;
     std::vector<bool> isValid_hFakeParticleGenPt;
+    bool isValid_hFakeOtherGenPt;
     std::vector<bool> isValid_hRatioFakeParticleGenPt;
-    bool isValid_hAllFakeParticlesGenPt;
     bool isValid_hRatioFakeOtherGenPt;
+    bool isValid_hAllFakeParticlesGenPt;
 
     /*
      * Ex. minFakeFraction = 0.05 and there is particle a which makes up less 5% of the fakes for each bin along x-axis
@@ -556,11 +576,13 @@ void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, 
 {
     if (insideRange(eta, genPt, recoPt, cent)) {
 
-        std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
-        int iPDG = (it == fakePDGs.end()) ? -1 : int(it - fakePDGs.begin());
+        int iParticle = getParticleIndex(pdg);
 
-        if (iPDG > -1 && isValid_hFakeParticle[iPDG]) {
-            hFakeParticle[iPDG]->Fill(x, w);
+        if (iParticle > -1 && isValid_hFakeParticle[iParticle]) {
+            hFakeParticle[iParticle]->Fill(x, w);
+        }
+        else if (isValid_hFakeOther){
+            hFakeOther->Fill(x, w);
         }
     }
 }
@@ -573,11 +595,13 @@ void energyScaleHist::FillHFakeParticleGenPt(double genPt, int pdg, double w, fl
             hAllFakeParticlesGenPt->Fill(genPt, w);
         }
 
-        std::vector<int>::iterator it = std::find(fakePDGs.begin(), fakePDGs.end(), pdg);
-        int iPDG = (it == fakePDGs.end()) ? -1 : int(it - fakePDGs.begin());
+        int iParticle = getParticleIndex(pdg);
 
-        if (iPDG > -1 && isValid_hFakeParticleGenPt[iPDG]) {
-            hFakeParticleGenPt[iPDG]->Fill(genPt, w);
+        if (iParticle > -1 && isValid_hFakeParticleGenPt[iParticle]) {
+            hFakeParticleGenPt[iParticle]->Fill(genPt, w);
+        }
+        else if (isValid_hFakeOtherGenPt){
+            hFakeOtherGenPt->Fill(genPt, w);
         }
     }
 }
@@ -713,17 +737,18 @@ void energyScaleHist::updateTH1()
     isValid_hDenomFake = (hDenomFake != 0 && !hDenomFake->IsZombie());
     isValid_hRatioFake = (hRatioFake != 0 && !hRatioFake->IsZombie());
     isValid_gRatioFake = (gRatioFake != 0 && !gRatioFake->IsZombie());
+    isValid_hFakeOther = (hFakeOther != 0 && !hFakeOther->IsZombie());
     isValid_hRatioFakeOther = (hRatioFakeOther != 0 && !hRatioFakeOther->IsZombie());
+    isValid_hFakeOtherGenPt = (hFakeOtherGenPt != 0 && !hFakeOtherGenPt->IsZombie());
     isValid_hRatioFakeOtherGenPt = (hRatioFakeOtherGenPt != 0 && !hRatioFakeOtherGenPt->IsZombie());
 
-    for (int i = 0; i < nFakePDGs; ++i) {
+    for (int i = 0; i < nFakeParticles; ++i) {
         isValid_hFakeParticle[i] = (hFakeParticle[i] != 0 && !hFakeParticle[i]->IsZombie());
         isValid_hRatioFakeParticle[i] = (hRatioFakeParticle[i] != 0 && !hRatioFakeParticle[i]->IsZombie());
 
         isValid_hFakeParticleGenPt[i] = (hFakeParticleGenPt[i] != 0 && !hFakeParticleGenPt[i]->IsZombie());
         isValid_hRatioFakeParticleGenPt[i] = (hRatioFakeParticleGenPt[i] != 0 && !hRatioFakeParticleGenPt[i]->IsZombie());
     }
-
     isValid_hAllFakeParticlesGenPt = (hAllFakeParticlesGenPt != 0 && !hAllFakeParticlesGenPt->IsZombie());
 }
 
@@ -812,10 +837,43 @@ void energyScaleHist::updateH1DeScale()
     }
 }
 
-int energyScaleHist::getFakePDG(int iPDG)
+/*
+ * return the first particle that contains the given PDG
+ */
+int energyScaleHist::getParticleIndex(int pdg)
 {
-    if (iPDG < nFakePDGs)  return fakePDGs[iPDG];
+    for (int i = 0; i < nFakeParticles; ++i) {
+
+        std::vector<int> PDGs = fakeParticles[i].PDG;
+        std::vector<int>::iterator it = std::find(PDGs.begin(), PDGs.end(), pdg);
+
+        if (it != PDGs.end())  return i;
+    }
+
+    return -1;
+}
+
+int energyScaleHist::getFakePDG(int iParticle)
+{
+    if (iParticle < nFakeParticles)  return fakeParticles[iParticle].PDG[0];
     else                   return 0;
+}
+
+std::string energyScaleHist::getFakePDGstr(int iParticle)
+{
+    std::string res = "";
+    if (iParticle < nFakeParticles)  {
+
+        int nPDGs = fakeParticles[iParticle].PDG.size();
+        if (nPDGs >= 1) {
+            res = Form("%d", fakeParticles[iParticle].PDG[0]);
+            for (int i = 1; i < nPDGs; ++i) {
+                res.append(Form("_%d", fakeParticles[iParticle].PDG[i]));
+            }
+        }
+    }
+
+    return res;
 }
 
 /*
@@ -1137,10 +1195,9 @@ void energyScaleHist::calcRatioFake()
 
 void energyScaleHist::calcRatioFakeParticle()
 {
-    if (isValid_hNumFake) {
-        hRatioFakeOther = (TH1D*)hNumFake->Clone(Form("hRatioFakeOther_%s", name.c_str()));
-        hRatioFakeOther->Reset();
-
+    if (isValid_hFakeOther) {
+        std::string tmpHistName = replaceAll(hFakeOther->GetName(), "FakeOther", "RatioFakeOther");
+        hRatioFakeOther = (TH1D*)hFakeOther->Clone(tmpHistName.c_str());
         setTH1_efficiency(hRatioFakeOther, titleOffsetX, titleOffsetY);
         hRatioFakeOther->SetTitle(title.c_str());
         hRatioFakeOther->SetXTitle(titleX.c_str());
@@ -1148,10 +1205,14 @@ void energyScaleHist::calcRatioFakeParticle()
         hRatioFakeOther->SetMinimum(0);
         hRatioFakeOther->SetMaximum(1.5);
 
+        if (isValid_hNumFake) {
+            hRatioFakeOther->Divide(hNumFake);
+        }
+
         isValid_hRatioFakeOther = true;
     }
 
-    for (int i = 0; i < nFakePDGs; ++i) {
+    for (int i = 0; i < nFakeParticles; ++i) {
         if (!isValid_hFakeParticle[i])  continue;
 
         hFakeParticle[i]->SetTitle(title.c_str());
@@ -1165,7 +1226,7 @@ void energyScaleHist::calcRatioFakeParticle()
 
         if (!isValid_hNumFake)  continue;
 
-        std::string label = ENERGYSCALE::particles[i].label;
+        std::string label = fakeParticles[i].label;
         std::string tmpHistName = replaceAll(hFakeParticle[i]->GetName(), "FakePDG", "RatioFakePDG");
         hRatioFakeParticle[i] = (TH1D*)hFakeParticle[i]->Clone(tmpHistName.c_str());
         hRatioFakeParticle[i]->Divide(hNumFake);
@@ -1191,7 +1252,7 @@ void energyScaleHist::calcRatioFakeParticle()
         for (int iBin = 1; iBin<=hRatioFakeOther->GetNbinsX(); ++iBin) {
             double content = 0;
 
-            for (int i = 0; i < nFakePDGs; ++i) {
+            for (int i = 0; i < nFakeParticles; ++i) {
                 if (isValid_hRatioFakeParticle[i] && passedMinFakeFraction[i]) {
                     content += hRatioFakeParticle[i]->GetBinContent(iBin);
                 }
@@ -1212,10 +1273,10 @@ void energyScaleHist::calcRatioFakeParticle()
 
 void energyScaleHist::calcRatioFakeParticleGenPt()
 {
-    if (isValid_hAllFakeParticlesGenPt) {
-        hRatioFakeOtherGenPt = (TH1D*)hAllFakeParticlesGenPt->Clone(Form("hRatioFakeOtherGenPt_%s", name.c_str()));
-        hRatioFakeOtherGenPt->Reset();
+    if (isValid_hFakeOtherGenPt) {
 
+        std::string tmpHistName = replaceAll(hFakeOtherGenPt->GetName(), "FakeOtherGenPt", "RatioFakeOtherGenPt");
+        hRatioFakeOtherGenPt = (TH1D*)hFakeOtherGenPt->Clone(tmpHistName.c_str());
         setTH1_efficiency(hRatioFakeOtherGenPt, titleOffsetX, titleOffsetY);
         hRatioFakeOtherGenPt->SetTitle(title.c_str());
         hRatioFakeOtherGenPt->SetXTitle(titleX.c_str());
@@ -1223,10 +1284,14 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
         hRatioFakeOtherGenPt->SetMinimum(0);
         hRatioFakeOtherGenPt->SetMaximum(1.5);
 
+        if (isValid_hAllFakeParticlesGenPt) {
+            hRatioFakeOtherGenPt->Divide(hAllFakeParticlesGenPt);
+        }
+
         isValid_hRatioFakeOtherGenPt = true;
     }
 
-    for (int i = 0; i < nFakePDGs; ++i) {
+    for (int i = 0; i < nFakeParticles; ++i) {
         if (!isValid_hFakeParticleGenPt[i])  continue;
 
         hFakeParticleGenPt[i]->SetTitle(title.c_str());
@@ -1240,7 +1305,7 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
 
         if (!isValid_hAllFakeParticlesGenPt)  continue;
 
-        std::string label = ENERGYSCALE::particles[i].label;
+        std::string label = fakeParticles[i].label;
         std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), "FakeGenPtPDG", "RatioFakeGenPtPDG");
         hRatioFakeParticleGenPt[i] = (TH1D*)hFakeParticleGenPt[i]->Clone(tmpHistName.c_str());
         hRatioFakeParticleGenPt[i]->Divide(hAllFakeParticlesGenPt);
@@ -1266,7 +1331,7 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
         for (int iBin = 1; iBin<=hRatioFakeOtherGenPt->GetNbinsX(); ++iBin) {
             double content = 0;
 
-            for (int i = 0; i < nFakePDGs; ++i) {
+            for (int i = 0; i < nFakeParticles; ++i) {
                 if (isValid_hRatioFakeParticleGenPt[i] && passedMinFakeFractionGenPt[i]) {
                     content += hRatioFakeParticleGenPt[i]->GetBinContent(iBin);
                 }
@@ -1673,13 +1738,16 @@ void energyScaleHist::writeObjects(TCanvas* c)
         hTmp->Delete();
     }
     // particle composition of fake rate
-    for (int i = 0; i < nFakePDGs; ++i) {
+    for (int i = 0; i < nFakeParticles; ++i) {
 
         if (!isValid_hFakeParticle[i])  continue;
         hFakeParticle[i]->Write("",TObject::kOverwrite);
 
         if (!isValid_hRatioFakeParticle[i])  continue;
         hRatioFakeParticle[i]->Write("",TObject::kOverwrite);
+    }
+    if (isValid_hFakeOther) {
+        hFakeOther->Write("",TObject::kOverwrite);
     }
     if (isValid_hNumFake) {
 
@@ -1700,7 +1768,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         }
 
         TLegend* leg = new TLegend();
-        for (int i = 0; i < nFakePDGs; ++i) {
+        for (int i = 0; i < nFakeParticles; ++i) {
 
             if (!isValid_hRatioFakeParticle[i])  continue;
             if (!passedMinFakeFraction[i])  continue;
@@ -1709,12 +1777,12 @@ void energyScaleHist::writeObjects(TCanvas* c)
             hRatioFakeParticle[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
             hRatioFakeParticle[i]->Draw("e same");
 
-            int index = fakeIndices[i];
-            std::string label = ENERGYSCALE::particles[index].label;
+            std::string label = fakeParticles[i].label;
             leg->AddEntry(hRatioFakeParticle[i], label.c_str(), "lpf");
         }
 
         if (isValid_hRatioFakeOther) {
+            hRatioFakeOther->SetMarkerSize(markerSize);
             hRatioFakeOther->Draw("e same");
             leg->AddEntry(hRatioFakeOther, "Other", "lpf");
         }
@@ -1741,13 +1809,16 @@ void energyScaleHist::writeObjects(TCanvas* c)
         if (hTmp != 0)  hTmp->Delete();
     }
     // particle composition of fake rate as function of GEN-level particle pt
-     for (int i = 0; i < nFakePDGs; ++i) {
+     for (int i = 0; i < nFakeParticles; ++i) {
 
          if (!isValid_hFakeParticleGenPt[i])  continue;
          hFakeParticleGenPt[i]->Write("",TObject::kOverwrite);
 
          if (!isValid_hRatioFakeParticleGenPt[i])  continue;
          hRatioFakeParticleGenPt[i]->Write("",TObject::kOverwrite);
+     }
+     if (isValid_hFakeOtherGenPt) {
+         hFakeOtherGenPt->Write("",TObject::kOverwrite);
      }
      if (isValid_hAllFakeParticlesGenPt) {
 
@@ -1770,7 +1841,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
          }
 
          TLegend* leg = new TLegend();
-         for (int i = 0; i < nFakePDGs; ++i) {
+         for (int i = 0; i < nFakeParticles; ++i) {
 
              if (!isValid_hRatioFakeParticleGenPt[i])  continue;
              if (!passedMinFakeFractionGenPt[i])  continue;
@@ -1779,8 +1850,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
              hRatioFakeParticleGenPt[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
              hRatioFakeParticleGenPt[i]->Draw("e same");
 
-             int index = fakeIndices[i];
-             std::string label = ENERGYSCALE::particles[index].label;
+             std::string label = fakeParticles[i].label;
              leg->AddEntry(hRatioFakeParticleGenPt[i], label.c_str(), "lpf");
          }
 
@@ -1841,7 +1911,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (iObs == ENERGYSCALE::kEFF)  yMax = 1;
+        if (iObs == ENERGYSCALE::kEFF || iObs == ENERGYSCALE::kFAKE)  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};

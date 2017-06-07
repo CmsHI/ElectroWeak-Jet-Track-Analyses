@@ -1255,8 +1255,8 @@ int  preLoop(TFile* input, bool makeNew)
                             }
 
                             // fake rate composition
-                            int nFakePDG = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakePDGs;
-                            for (int iPDG = 0; iPDG < nFakePDG; ++iPDG) {
+                            int nFakeParticles = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
+                            for (int iPDG = 0; iPDG < nFakeParticles; ++iPDG) {
 
                                 int pdg = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDG(iPDG);
                                 std::string histNameFakePDG = Form("hFakePDG%d_%s", pdg, tmpName.c_str());
@@ -1264,10 +1264,21 @@ int  preLoop(TFile* input, bool makeNew)
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
                                             new TH1D(histNameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+
+                                    if (iPDG == 0) {
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
+                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG]->Clone(Form("hFakeOther_%s", tmpName.c_str()));
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
+                                    }
                                 }
                                 else {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
                                             (TH1D*)input->Get(histNameFakePDG.c_str());
+
+                                    if (iPDG == 0) {
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
+                                                (TH1D*)input->Get(Form("hFakeOther_%s", tmpName.c_str()));
+                                    }
                                 }
 
                                 // special cases
@@ -1286,6 +1297,10 @@ int  preLoop(TFile* input, bool makeNew)
                                                         nBinsFakeGenPt, arrFakeGenPt);
 
                                         if (iPDG == 0) {
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
+
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
                                                     (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt->Reset();
@@ -1294,7 +1309,11 @@ int  preLoop(TFile* input, bool makeNew)
                                     else {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
                                                 (TH1D*)input->Get(histNameFakeGenPtPDG.c_str());
+
                                         if (iPDG == 0) {
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
+                                                    (TH1D*)input->Get(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
+
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
                                                     (TH1D*)input->Get(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
                                         }
