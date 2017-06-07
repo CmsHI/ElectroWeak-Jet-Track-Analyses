@@ -156,13 +156,12 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   std::cout << "jetResidualCorrectionFile = " << jetResidualCorrectionFile << std::endl;
 
   TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
-  TH2D* h_weights_PbPb = 0;
-  TH1D* h_weights_pp = 0;
+  TH1D* hweights_vz = 0;
+  TH1D* hweights_cent = 0;
   if (isMC) {
+    hweights_vz = (TH1D*)weightsFile->Get("hvz");
     if (isHI)
-      h_weights_PbPb = (TH2D*)weightsFile->Get("h_weights");
-    else
-      h_weights_pp = (TH1D*)weightsFile->Get("h_weights");
+      hweights_cent = (TH1D*)weightsFile->Get("hcent");
   }
 
   std::vector<L2L3ResidualWFits> correctorsL2L3(nJetCollections);
@@ -724,10 +723,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
         }
 
+        eventWeight *= hweights_vz->GetBinContent(hweights_vz->FindBin(vz));
         if (isHI)
-          eventWeight *= h_weights_PbPb->GetBinContent(h_weights_PbPb->FindBin(hiBin, vz));
-        else
-          eventWeight *= h_weights_pp->GetBinContent(h_weights_pp->FindBin(vz));
+          eventWeight *= hweights_cent->GetBinContent(hweights_cent->FindBin(hiBin));
       }
 
       bool eventAdded = em->addEvent(run, lumis, event, jentry);
