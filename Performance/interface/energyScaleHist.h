@@ -140,6 +140,27 @@ const particle particles[kN_FakeCand] =
    particle("cascade0", "#Xi^{0}", {3322})
 };
 
+const int particlesColor[kN_FakeCand] =
+{
+   kBlack,      // unknown
+   kCyan+1,     // electron
+   kCyan,     // eneutrino
+   kOrange+3,   // muon
+   kOrange+1,   // muneutrino
+   kOrange+2,    // tau
+   kGreen+3,   // kaonL
+   kRed+1,      // pionch
+   kOrange-1,   // kaonS
+   kBlue+1,     // kaonch
+   kYellow+2,  // neutron
+   38,   // proton
+   kRed+1,       // sigmaM
+   kViolet,      // lambda
+   kRed+2,    // sigmaP
+   kAzure+1,     // cascadeM
+   kAzure+2      // cascade0
+};
+
 };
 
 /*
@@ -1774,7 +1795,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
             if (!passedMinFakeFraction[i])  continue;
 
             hRatioFakeParticle[i]->SetMarkerSize(markerSize);
-            hRatioFakeParticle[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
+
+            int markerColor = ENERGYSCALE::particlesColor[fakeIndices[i]];
+            hRatioFakeParticle[i]->SetLineColor(markerColor);
+            hRatioFakeParticle[i]->SetMarkerColor(markerColor);
             hRatioFakeParticle[i]->Draw("e same");
 
             std::string label = fakeParticles[i].label;
@@ -1847,7 +1871,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
              if (!passedMinFakeFractionGenPt[i])  continue;
 
              hRatioFakeParticleGenPt[i]->SetMarkerSize(markerSize);
-             hRatioFakeParticleGenPt[i]->SetMarkerColor(GRAPHICS::colors[(i+1)%13]);
+
+             int markerColor = ENERGYSCALE::particlesColor[fakeIndices[i]];
+             hRatioFakeParticleGenPt[i]->SetLineColor(markerColor);
+             hRatioFakeParticleGenPt[i]->SetMarkerColor(markerColor);
              hRatioFakeParticleGenPt[i]->Draw("e same");
 
              std::string label = fakeParticles[i].label;
