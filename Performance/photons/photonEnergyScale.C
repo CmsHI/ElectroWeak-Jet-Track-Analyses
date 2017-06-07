@@ -1258,8 +1258,8 @@ int  preLoop(TFile* input, bool makeNew)
                             int nFakeParticles = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
                             for (int iPDG = 0; iPDG < nFakeParticles; ++iPDG) {
 
-                                int pdg = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDG(iPDG);
-                                std::string histNameFakePDG = Form("hFakePDG%d_%s", pdg, tmpName.c_str());
+                                std::string pdgStr = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iPDG);
+                                std::string histNameFakePDG = Form("hFakePDG%s_%s", pdgStr.c_str(), tmpName.c_str());
 
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
@@ -1283,7 +1283,7 @@ int  preLoop(TFile* input, bool makeNew)
 
                                 // special cases
                                 if (iDep == ENERGYSCALE::kGENPT) {
-                                    std::string histNameFakeGenPtPDG = Form("hFakeGenPtPDG%d_%s", pdg, tmpName.c_str());
+                                    std::string histNameFakeGenPtPDG = Form("hFakeGenPtPDG%s_%s", pdgStr.c_str(), tmpName.c_str());
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
