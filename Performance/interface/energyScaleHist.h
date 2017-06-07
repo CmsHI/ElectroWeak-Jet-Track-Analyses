@@ -82,6 +82,7 @@ enum FAKECAND {
     k_kaonch,
     k_neutron,
     k_proton,
+    k_nucleon,
     k_sigmaM,
     k_lambda,
     k_sigmaP,
@@ -133,6 +134,7 @@ const particle particles[kN_FakeCand] =
    particle("kaonch", "K^{#pm}", {321}),
    particle("neutron", "n", {2112}),
    particle("proton", "p", {2212}),
+   particle("nucleon", "p/n", {2112, 2212}),
    particle("sigmaM", "#Sigma^{-}", {3112}),
    particle("lambda", "#Lambda", {3122}),
    particle("sigmaP", "#Sigma^{+}", {3222}),
@@ -154,6 +156,7 @@ const int particlesColor[kN_FakeCand] =
    kBlue+1,     // kaonch
    kYellow+2,  // neutron
    38,   // proton
+   38,   // nucleon
    kRed+1,       // sigmaM
    kViolet,      // lambda
    kRed+2,    // sigmaP
@@ -292,8 +295,7 @@ public :
                 ENERGYSCALE::FAKECAND::k_kaonL,
                 ENERGYSCALE::FAKECAND::k_kaonch,
                 ENERGYSCALE::FAKECAND::k_electron,
-                ENERGYSCALE::FAKECAND::k_neutron,
-                ENERGYSCALE::FAKECAND::k_proton,
+                ENERGYSCALE::FAKECAND::k_nucleon,
                 ENERGYSCALE::FAKECAND::k_lambda,
         };
 
