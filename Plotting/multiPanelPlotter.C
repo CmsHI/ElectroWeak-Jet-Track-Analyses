@@ -302,7 +302,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     h1[i][j][k]->SetMaximum(y_max);
                     h1[i][j][k]->SetMinimum(y_min);
 
-                    if (hist_type == "dphi" && set_log_scale)
+                    if (canvas_title == "dphi_log" && set_log_scale)
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
 
                     if (hist_type == "xjg")
@@ -363,7 +363,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         sys_gr->SetFillColorAlpha(30, 0.7);
 
                     if (hist_type.find("centBinAll") == std::string::npos) {
-                        if (hist_type == "dphi" && set_log_scale)
+                        if (canvas_title == "dphi_log" && set_log_scale)
                             draw_sys_unc(sys_gr, h1[i][j][k], h1_sys[i][j][k], 4);
                         else
                             draw_sys_unc(sys_gr, h1[i][j][k], h1_sys[i][j][k]);
