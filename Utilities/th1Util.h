@@ -36,14 +36,14 @@ void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
-int getMinimumBin(TH1D* h, double minval = -FLT_MAX);
-int getMaximumBin(TH1D* h, double maxval = +FLT_MAX);
-double getMinimum(TH1D* h, double minval = -FLT_MAX);
-double getMaximum(TH1D* h, double maxval = +FLT_MAX);
-int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval = -FLT_MAX);
-int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval = +FLT_MAX);
-double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval = -FLT_MAX);
-double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval = +FLT_MAX);
+int getMinimumBin(TH1D* h, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
+int getMaximumBin(TH1D* h, double maxval = +FLT_MAX, int binFirst = 1, int binLast = -1);
+double getMinimum(TH1D* h, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
+double getMaximum(TH1D* h, double maxval = +FLT_MAX, int binFirst = 1, int binLast = -1);
+int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
+int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval = +FLT_MAX, int binFirst = 1, int binLast = -1);
+double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
+double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval = +FLT_MAX, int binFirst = 1, int binLast = -1);
 std::vector<double> calcBinsLogScale(double min, double max, double nBins);
 std::vector<int> getBinRange4IntegralFraction(TH1D* h, int binStart, double fraction, std::string direction = "LR");
 int getLeftBin4IntegralFraction(TH1D* h, int binStart, double fraction);
@@ -348,14 +348,15 @@ std::vector<double> getTH1xBins(TH1* h) {
 
 /*
  * get the bin with the minimum content greater than minval
+ * Do the search for bin range [binFirst, binLast]
  * A similar function is TH1::GetMinimum(Double_t minval = -FLT_MAX), but it is useless if TH1::SetMinimum() was used before.
  */
-int getMinimumBin(TH1D* h, double minval)
+int getMinimumBin(TH1D* h, double minval, int binFirst, int binLast)
 {
-    int nBins = h->GetNbinsX();
+    if (binLast == -1)  binLast = h->GetNbinsX();
     int res = -1;
     double minTmp = +FLT_MAX;
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = binFirst; i <= binLast; i++)
     {
         double content = h->GetBinContent(i);
         if (content > minval && content < minTmp) {
@@ -369,14 +370,15 @@ int getMinimumBin(TH1D* h, double minval)
 
 /*
  * get the bin with the maximum content smaller than maxval
+ * Do the search for bin range [binFirst, binLast]
  * A similar function is TH1::GetMaximum(Double_t maxval = FLT_MAX), but it is useless if TH1::SetMaximum() was used before.
  */
-int getMaximumBin(TH1D* h, double maxval)
+int getMaximumBin(TH1D* h, double maxval, int binFirst, int binLast)
 {
-    int nBins = h->GetNbinsX();
+    if (binLast == -1)  binLast = h->GetNbinsX();
     int res = -1;
     double maxTmp = -FLT_MAX;
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = binFirst; i <= binLast; i++)
     {
         double content = h->GetBinContent(i);
         if (content < maxval && content > maxTmp) {
@@ -388,29 +390,29 @@ int getMaximumBin(TH1D* h, double maxval)
     return res;
 }
 
-double getMinimum(TH1D* h, double minval)
+double getMinimum(TH1D* h, double minval, int binFirst, int binLast)
 {
-    int i = getMinimumBin(h, minval);
+    int i = getMinimumBin(h, minval, binFirst, binLast);
     return (i != -1) ? h->GetBinContent(i) : -FLT_MAX;
 }
 
-double getMaximum(TH1D* h, double maxval)
+double getMaximum(TH1D* h, double maxval, int binFirst, int binLast)
 {
-    int i = getMaximumBin(h, maxval);
+    int i = getMaximumBin(h, maxval, binFirst, binLast);
     return (i != -1) ? h->GetBinContent(i) : +FLT_MAX;
 }
 
 /*
  * find the histogram with the minimum content greater than minval
  */
-int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval)
+int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval, int binFirst, int binLast)
 {
     int nHist = vecH.size();
     int res = -1;
     double minTmp = +FLT_MAX;
     for (int i = 0; i < nHist; ++i) {
 
-        double content = getMinimum(vecH[i], minval);
+        double content = getMinimum(vecH[i], minval, binFirst, binLast);
         if (content < minTmp) {
             minTmp = content;
             res = i;
@@ -423,14 +425,14 @@ int getMinimumTH1Dindex(std::vector<TH1D*> vecH, double minval)
 /*
  * find the histogram with the maximum content smaller than maxval
  */
-int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval)
+int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval, int binFirst, int binLast)
 {
     int nHist = vecH.size();
     int res = -1;
     double maxTmp = -FLT_MAX;
     for (int i = 0; i < nHist; ++i) {
 
-        double content = getMaximum(vecH[i], maxval);
+        double content = getMaximum(vecH[i], maxval, binFirst, binLast);
         if (content > maxTmp) {
             maxTmp = content;
             res = i;
@@ -443,19 +445,19 @@ int getMaximumTH1Dindex(std::vector<TH1D*> vecH, double maxval)
 /*
  * from the list of histograms, get the overall minimum content greater than minval
  */
-double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval)
+double getMinimumTH1DContent(std::vector<TH1D*> vecH, double minval, int binFirst, int binLast)
 {
-    int i = getMinimumTH1Dindex(vecH, minval);
-    return getMinimum(vecH[i], minval);
+    int i = getMinimumTH1Dindex(vecH, minval, binFirst, binLast);
+    return getMinimum(vecH[i], minval, binFirst, binLast);
 }
 
 /*
  * from the list of histograms, get the overall maximum content smaller than maxval
  */
-double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval)
+double getMaximumTH1DContent(std::vector<TH1D*> vecH, double maxval, int binFirst, int binLast)
 {
-    int i = getMaximumTH1Dindex(vecH, maxval);
-    return getMaximum(vecH[i], maxval);
+    int i = getMaximumTH1Dindex(vecH, maxval, binFirst, binLast);
+    return getMaximum(vecH[i], maxval, binFirst, binLast);
 }
 
 /*
