@@ -1028,66 +1028,66 @@ void energyScaleHist::postLoop()
         hEscale->SetMarkerStyle(kFullCircle);
     }
 
-    if (!isValid_h2D) return;
+    if (isValid_h2D) {
+        TObjArray aSlices;
+        h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
-    TObjArray aSlices;
-    h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
+        // energy scale
+        h1DeScale[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
+        h1DeScale[0]->SetTitle(title.c_str());
+        h1DeScale[0]->SetXTitle(titleX.c_str());
+        setTH1_energyScale(h1DeScale[0], titleOffsetX, titleOffsetY);
+        if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
+            h1DeScale[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
-    // energy scale
-    h1DeScale[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
-    h1DeScale[0]->SetTitle(title.c_str());
-    h1DeScale[0]->SetXTitle(titleX.c_str());
-    setTH1_energyScale(h1DeScale[0], titleOffsetX, titleOffsetY);
-    if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-        h1DeScale[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        // width of energy scale
+        h1DeScale[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
+        h1DeScale[1]->SetTitle(title.c_str());
+        h1DeScale[1]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[1], titleOffsetX, titleOffsetY);
+        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+            h1DeScale[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
-    // width of energy scale
-    h1DeScale[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
-    h1DeScale[1]->SetTitle(title.c_str());
-    h1DeScale[1]->SetXTitle(titleX.c_str());
-    setTH1_energyWidth(h1DeScale[1], titleOffsetX, titleOffsetY);
-    if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-        h1DeScale[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        // energy scale with arithmetic mean
+        h1DeScale[2] = (TH1D*)h1DeScale[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
+        h1DeScale[2]->SetTitle(title.c_str());
+        h1DeScale[2]->SetXTitle(titleX.c_str());
+        setTH1_energyScale(h1DeScale[2], titleOffsetX, titleOffsetY);
+        h1DeScale[2]->SetYTitle(Form("%s (Arith)", h1DeScale[2]->GetYaxis()->GetTitle()));
+        if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
+            h1DeScale[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
-    // energy scale with arithmetic mean
-    h1DeScale[2] = (TH1D*)h1DeScale[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
-    h1DeScale[2]->SetTitle(title.c_str());
-    h1DeScale[2]->SetXTitle(titleX.c_str());
-    setTH1_energyScale(h1DeScale[2], titleOffsetX, titleOffsetY);
-    h1DeScale[2]->SetYTitle(Form("%s (Arith)", h1DeScale[2]->GetYaxis()->GetTitle()));
-    if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-        h1DeScale[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        // width of energy scale with arithmetic std dev
+        h1DeScale[3] = (TH1D*)h1DeScale[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
+        h1DeScale[3]->SetTitle(title.c_str());
+        h1DeScale[3]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[3], titleOffsetX, titleOffsetY);
+        h1DeScale[3]->SetYTitle(Form("%s (Arith)", h1DeScale[3]->GetYaxis()->GetTitle()));
+        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+            h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
-    // width of energy scale with arithmetic std dev
-    h1DeScale[3] = (TH1D*)h1DeScale[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
-    h1DeScale[3]->SetTitle(title.c_str());
-    h1DeScale[3]->SetXTitle(titleX.c_str());
-    setTH1_energyWidth(h1DeScale[3], titleOffsetX, titleOffsetY);
-    h1DeScale[3]->SetYTitle(Form("%s (Arith)", h1DeScale[3]->GetYaxis()->GetTitle()));
-    if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-        h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        // Constant for Gaussian fit
+        h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+        h1DeScale[4]->SetTitle(title.c_str());
+        h1DeScale[4]->SetXTitle(titleX.c_str());
+        h1DeScale[4]->SetYTitle("Constant for Gaussian fit");
+        h1DeScale[4]->SetStats(false);
+        h1DeScale[4]->SetMarkerStyle(kFullCircle);
 
-    // Constant for Gaussian fit
-    h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
-    h1DeScale[4]->SetTitle(title.c_str());
-    h1DeScale[4]->SetXTitle(titleX.c_str());
-    h1DeScale[4]->SetYTitle("Constant for Gaussian fit");
-    h1DeScale[4]->SetStats(false);
-    h1DeScale[4]->SetMarkerStyle(kFullCircle);
+        // chi2/ndf for Gaussian fit
+        h1DeScale[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+        h1DeScale[5]->SetTitle(title.c_str());
+        h1DeScale[5]->SetXTitle(titleX.c_str());
+        h1DeScale[5]->SetYTitle("chi2/ndf for Gaussian fit");
+        h1DeScale[5]->SetStats(false);
+        h1DeScale[5]->SetMarkerStyle(kFullCircle);
 
-    // chi2/ndf for Gaussian fit
-    h1DeScale[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
-    h1DeScale[5]->SetTitle(title.c_str());
-    h1DeScale[5]->SetXTitle(titleX.c_str());
-    h1DeScale[5]->SetYTitle("chi2/ndf for Gaussian fit");
-    h1DeScale[5]->SetStats(false);
-    h1DeScale[5]->SetMarkerStyle(kFullCircle);
+        updateH1DsliceY();
 
-    updateH1DsliceY();
-
-    fitRecoGen();
-    // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[4], h1DeScale[5] are set by the initial fit from TH2::FitSlicesY
-    updateH1DeScale();
+        fitRecoGen();
+        // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[4], h1DeScale[5] are set by the initial fit from TH2::FitSlicesY
+        updateH1DeScale();
+    }
 
     calcRatio();
     calcRatioFake();
@@ -1482,14 +1482,13 @@ void energyScaleHist::calcRatioFakeParticleGenPt()
 void energyScaleHist::writeObjects(TCanvas* c)
 {
     if (isValid_hEscale) {
-        hEscale->SetMarkerStyle(kFullCircle);
         hEscale->Write();
     }
-    if (isValid_h2Dcorr)
+    if (isValid_h2Dcorr) {
         h2Dcorr->Write();
+    }
 
-    if (!isValid_h2D) return;
-
+    std::string canvasName = "";
     // extract information from "c"
     int windowWidth = c->GetWw();
     int windowHeight = c->GetWh();
@@ -1497,23 +1496,200 @@ void energyScaleHist::writeObjects(TCanvas* c)
     double rightMargin = c->GetRightMargin();
     double bottomMargin = c->GetBottomMargin();
     double topMargin = c->GetTopMargin();
+    float markerSize = (float)windowWidth/600;
 
     TLine* line = 0;
+    TLatex* latex = new TLatex();
 
-    std::string canvasName = "";
-    canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
-    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-    c->cd();
-    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h2D->SetTitleOffset(titleOffsetX, "X");
-    h2D->SetTitleOffset(titleOffsetY, "Y");
-    h2D->SetStats(false);
-    h2D->Draw("colz");
-    h2D->Write("",TObject::kOverwrite);
-    setPad4Observable((TPad*) c, 0);
-    setCanvasFinal(c);
-    c->Write("",TObject::kOverwrite);
-    c->Close();         // do not use Delete() for TCanvas.
+    if (isValid_h2D) {
+        canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h2D->SetTitleOffset(titleOffsetX, "X");
+        h2D->SetTitleOffset(titleOffsetY, "Y");
+        h2D->SetStats(false);
+        h2D->Draw("colz");
+        h2D->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, 0);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // energy scale
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1DeScale[0]->SetMarkerSize(markerSize);
+        h1DeScale[0]->Draw("e");
+        h1DeScale[0]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, 0);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // width of energy scale
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1DeScale[1]->SetMarkerSize(markerSize);
+        h1DeScale[1]->Draw("e");
+        h1DeScale[1]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, 1);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // energy scale from histogram mean
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        markerSize = (float)windowWidth/600;
+        h1DeScale[2]->SetMarkerSize(markerSize);
+        h1DeScale[2]->Draw("e");
+        h1DeScale[2]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, 2);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // width of energy scale from histogram std dev
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1DeScale[3]->SetMarkerSize(markerSize);
+        h1DeScale[3]->Draw("e");
+        h1DeScale[3]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, 3);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // plot 1D reco pt / gen pt distribution for each bin along x-axis
+        int nH1DsliceY = h1DsliceY.size();
+        int columns = calcNcolumns(nH1DsliceY);
+        int rows = calcNrows(nH1DsliceY);
+
+        double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, 0);
+        double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, 0);
+        c = new TCanvas(Form("cnv_projY_%s", name.c_str()),"",windowWidth,windowHeight);
+        setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c);
+        c->cd();
+
+        int nPads = rows * columns;
+        TPad* pads[nPads];
+        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
+
+        for (int i = 0; i < nH1DsliceY; ++i) {
+            c->cd(i+1);
+
+            h1DsliceY[i]->SetMarkerSize(markerSize);
+            //h1DsliceY[i]->Draw("axis");     // for now draw only axis, points will be plotted after the fit functions
+            h1DsliceY[i]->Draw("e");
+
+            pads[i]->Update();
+            float y1 = gPad->GetUymin();
+            float y2 = gPad->GetUymax();
+
+            line = new TLine(1, y1, 1, y2);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+
+            int nFitFncs = esa[i].size();
+            for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
+                if (esa[i][iFnc].isValid_f1) {
+                    esa[i][iFnc].f1->Draw("same");
+                }
+            }
+
+            h1DsliceY[i]->Draw("e same");   // points should line above functions
+
+            std::vector<std::string> textLinesTmp;
+            std::string textLineTmp = getBinEdgeText(i+1, i+1);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+        }
+        c->Write("",TObject::kOverwrite);
+        // plot the same canvas in log-scale as well
+        for (int i = 0; i < nH1DsliceY; ++i) {
+            pads[i]->SetLogy(1);
+            pads[i]->Update();
+        }
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+        // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
+
+        // plot pull distributions for energy scale fits
+        c = new TCanvas(Form("cnv_projYPull_%s", name.c_str()),"",windowWidth,windowHeight);
+        setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c);
+        c->cd();
+
+        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
+
+        for (int i = 0; i < nH1DsliceY; ++i) {
+            c->cd(i+1);
+
+            int nEsa = esa[i].size();
+            int j1 = 1;
+
+            for (int j = j1; j < nEsa; ++j) {
+                if (esa[i][j].isValid_hPull)  {
+
+                    esa[i][j].hPull->SetMarkerSize(markerSize);
+
+                    if (j != indexFnc)  esa[i][j].hPull->SetMarkerStyle(kOpenSquare);
+
+                    std::string drawOption = "e same";
+                    if (j == j1)  drawOption = "e";
+                    esa[i][j].hPull->Draw(drawOption.c_str());
+                }
+            }
+
+            if (nEsa > 0 && esa[i][j1].isValid_h) {
+                float x1 = esa[i][j1].hPull->GetXaxis()->GetXmin();
+                float x2 = esa[i][j1].hPull->GetXaxis()->GetXmax();
+
+                line = new TLine(x1, 0, x2, 0);
+                line->SetLineStyle(kSolid);
+                line->Draw();
+
+                pads[i]->Update();
+                float yPadMin = gPad->GetUymin();
+                float yPadMax = gPad->GetUymax();
+
+                if (yPadMax > 2) {
+                    line = new TLine(x1, 2, x2, 2);
+                    line->SetLineStyle(kDashed);
+                    line->Draw();
+                }
+
+                if (yPadMin < -2) {
+                    line = new TLine(x1, -2, x2, -2);
+                    line->SetLineStyle(kDashed);
+                    line->Draw();
+                }
+            }
+
+            std::vector<std::string> textLinesTmp;
+            std::string textLineTmp = getBinEdgeText(i+1, i+1);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+        }
+        c->Write("",TObject::kOverwrite);
+        // plot pull distributions for energy scale fits - END
+
+        for (int i = 0; i < nPads; ++i) {
+            if (pads[i] != 0)  pads[i]->Delete();
+        }
+        c->Close();         // do not use Delete() for TCanvas.
+    }
 
     if (isValid_h2Dcorr) {
         canvasName = replaceAll(h2Dcorr->GetName(), "h2Dcorr", "cnv2Dcorr");
@@ -1537,184 +1713,6 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
     }
-
-    // energy scale
-    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str());
-    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-    c->cd();
-    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    float markerSize = (float)windowWidth/600;
-    h1DeScale[0]->SetMarkerSize(markerSize);
-    h1DeScale[0]->Draw("e");
-    h1DeScale[0]->Write("",TObject::kOverwrite);
-    setPad4Observable((TPad*) c, 0);
-    setCanvasFinal(c);
-    c->Write("",TObject::kOverwrite);
-    c->Close();         // do not use Delete() for TCanvas.
-
-    // width of energy scale
-    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str());
-    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-    c->cd();
-    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h1DeScale[1]->SetMarkerSize(markerSize);
-    h1DeScale[1]->Draw("e");
-    h1DeScale[1]->Write("",TObject::kOverwrite);
-    setPad4Observable((TPad*) c, 1);
-    setCanvasFinal(c);
-    c->Write("",TObject::kOverwrite);
-    c->Close();         // do not use Delete() for TCanvas.
-
-    // energy scale from histogram mean
-    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str());
-    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-    c->cd();
-    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    markerSize = (float)windowWidth/600;
-    h1DeScale[2]->SetMarkerSize(markerSize);
-    h1DeScale[2]->Draw("e");
-    h1DeScale[2]->Write("",TObject::kOverwrite);
-    setPad4Observable((TPad*) c, 2);
-    setCanvasFinal(c);
-    c->Write("",TObject::kOverwrite);
-    c->Close();         // do not use Delete() for TCanvas.
-
-    // width of energy scale from histogram std dev
-    canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str());
-    c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-    c->cd();
-    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h1DeScale[3]->SetMarkerSize(markerSize);
-    h1DeScale[3]->Draw("e");
-    h1DeScale[3]->Write("",TObject::kOverwrite);
-    setPad4Observable((TPad*) c, 3);
-    setCanvasFinal(c);
-    c->Write("",TObject::kOverwrite);
-    c->Close();         // do not use Delete() for TCanvas.
-
-    // plot 1D reco pt / gen pt distribution for each bin along x-axis
-    int nH1DsliceY = h1DsliceY.size();
-    int columns = calcNcolumns(nH1DsliceY);
-    int rows = calcNrows(nH1DsliceY);
-
-    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, 0);
-    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, 0);
-    c = new TCanvas(Form("cnv_projY_%s", name.c_str()),"",windowWidth,windowHeight);
-    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
-    setCanvasFinal(c);
-    c->cd();
-
-    int nPads = rows * columns;
-    TPad* pads[nPads];
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
-
-    TLatex* latex = new TLatex();
-    for (int i = 0; i < nH1DsliceY; ++i) {
-        c->cd(i+1);
-
-        h1DsliceY[i]->SetMarkerSize(markerSize);
-        //h1DsliceY[i]->Draw("axis");     // for now draw only axis, points will be plotted after the fit functions
-        h1DsliceY[i]->Draw("e");
-
-        pads[i]->Update();
-        float y1 = gPad->GetUymin();
-        float y2 = gPad->GetUymax();
-
-        line = new TLine(1, y1, 1, y2);
-        line->SetLineStyle(kDashed);
-        line->Draw();
-
-        int nFitFncs = esa[i].size();
-        for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
-            if (esa[i][iFnc].isValid_f1) {
-                esa[i][iFnc].f1->Draw("same");
-            }
-        }
-
-        h1DsliceY[i]->Draw("e same");   // points should line above functions
-
-        std::vector<std::string> textLinesTmp;
-        std::string textLineTmp = getBinEdgeText(i+1, i+1);
-        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-        drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
-    }
-    c->Write("",TObject::kOverwrite);
-    // plot the same canvas in log-scale as well
-    for (int i = 0; i < nH1DsliceY; ++i) {
-        pads[i]->SetLogy(1);
-        pads[i]->Update();
-    }
-    canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
-    c->SetName(canvasName.c_str());
-    c->Write("",TObject::kOverwrite);
-    // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
-
-    // plot pull distributions for energy scale fits
-    c = new TCanvas(Form("cnv_projYPull_%s", name.c_str()),"",windowWidth,windowHeight);
-    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
-    setCanvasFinal(c);
-    c->cd();
-
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
-
-    for (int i = 0; i < nH1DsliceY; ++i) {
-        c->cd(i+1);
-
-        int nEsa = esa[i].size();
-        int j1 = 1;
-
-        for (int j = j1; j < nEsa; ++j) {
-            if (esa[i][j].isValid_hPull)  {
-
-                esa[i][j].hPull->SetMarkerSize(markerSize);
-
-                if (j != indexFnc)  esa[i][j].hPull->SetMarkerStyle(kOpenSquare);
-
-                std::string drawOption = "e same";
-                if (j == j1)  drawOption = "e";
-                esa[i][j].hPull->Draw(drawOption.c_str());
-            }
-        }
-
-        if (nEsa > 0 && esa[i][j1].isValid_h) {
-            float x1 = esa[i][j1].hPull->GetXaxis()->GetXmin();
-            float x2 = esa[i][j1].hPull->GetXaxis()->GetXmax();
-
-            line = new TLine(x1, 0, x2, 0);
-            line->SetLineStyle(kSolid);
-            line->Draw();
-
-            pads[i]->Update();
-            float yPadMin = gPad->GetUymin();
-            float yPadMax = gPad->GetUymax();
-
-            if (yPadMax > 2) {
-                line = new TLine(x1, 2, x2, 2);
-                line->SetLineStyle(kDashed);
-                line->Draw();
-            }
-
-            if (yPadMin < -2) {
-                line = new TLine(x1, -2, x2, -2);
-                line->SetLineStyle(kDashed);
-                line->Draw();
-            }
-        }
-
-        std::vector<std::string> textLinesTmp;
-        std::string textLineTmp = getBinEdgeText(i+1, i+1);
-        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-        drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
-    }
-    c->Write("",TObject::kOverwrite);
-    // plot pull distributions for energy scale fits - END
-
-    line->Delete();
-    latex->Delete();
-    for (int i = 0; i < nPads; ++i) {
-        if (pads[i] != 0)  pads[i]->Delete();
-    }
-    c->Close();         // do not use Delete() for TCanvas.
 
     // efficiency objects
     if (isValid_hNum) {
@@ -1776,6 +1774,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
         hTmp->Delete();
     }
+
     // fake rate objects
     if (isValid_hNumFake) {
         canvasName = Form("cnv_NumFake_%s", name.c_str());
@@ -1859,6 +1858,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
         hTmp->Delete();
     }
+
     // particle composition of fake rate
     for (int i = 0; i < nFakeParticles; ++i) {
 
@@ -1928,6 +1928,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         leg->Delete();
         if (hTmp != 0)  hTmp->Delete();
     }
+
     // particle composition of fake rate as function of GEN-level particle pt
      for (int i = 0; i < nFakeParticles; ++i) {
 
@@ -1999,6 +2000,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
          leg->Delete();
          if (hTmp != 0)  hTmp->Delete();
      }
+
+     if (line != 0)  line->Delete();
+     latex->Delete();
 }
 
 void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
