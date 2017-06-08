@@ -336,7 +336,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < 5000; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
@@ -1249,12 +1249,12 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
 
-                            std::string h2DName = Form("h2D_%s", tmpName.c_str());
-                            std::string histName = Form("h_%s", tmpName.c_str());
-                            std::string histNameNum = Form("hNum_%s", tmpName.c_str());
-                            std::string histNameDenom = Form("hDenom_%s", tmpName.c_str());
-                            std::string histNameNumFake = Form("hNumFake_%s", tmpName.c_str());
-                            std::string histNameDenomFake = Form("hDenomFake_%s", tmpName.c_str());
+                            std::string nameH2D = Form("h2D_%s", tmpName.c_str());
+                            std::string nameEscale = Form("h_%s", tmpName.c_str());
+                            std::string nameMatchNum = Form("hMatchNum_%s", tmpName.c_str());
+                            std::string nameMatchDenom = Form("hMatchDenom_%s", tmpName.c_str());
+                            std::string nameFakeNum = Form("hFakeNum_%s", tmpName.c_str());
+                            std::string nameFakeDenom = Form("hFakeDenom_%s", tmpName.c_str());
 
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
 
@@ -1284,43 +1284,43 @@ int  preLoop(TFile* input, bool makeNew)
                             if (runMode[MODES::kEnergyScale]) {
                             if (makeNew) {
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D =
-                                        new TH2D(h2DName.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
+                                        new TH2D(nameH2D.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
                                 hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale =
-                                        new TH1D(histName.c_str(), ";Reco p_{T} / Gen p_{T};",
+                                        new TH1D(nameEscale.c_str(), ";Reco p_{T} / Gen p_{T};",
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(h2DName.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(histName.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(nameH2D.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(nameEscale.c_str());
                             }
                             }
 
                             // matching efficiency
                             if (runMode[MODES::kMatchEff]) {
                             if (makeNew) {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNum =
-                                        new TH1D(histNameNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenom =
-                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNum->Clone(histNameDenom.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum =
+                                        new TH1D(nameMatchNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom =
+                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum->Clone(nameMatchDenom.c_str());
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNum = (TH1D*)input->Get(histNameNum.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenom = (TH1D*)input->Get(histNameDenom.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum = (TH1D*)input->Get(nameMatchNum.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom = (TH1D*)input->Get(nameMatchDenom.c_str());
                             }
                             }
 
                             // fake rate
                             if (runMode[MODES::kFakeRate]) {
                             if (makeNew) {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNumFake =
-                                        new TH1D(histNameNumFake.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenomFake =
-                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNumFake->Clone(histNameDenomFake.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum =
+                                        new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom =
+                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum->Clone(nameFakeDenom.c_str());
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hNumFake = (TH1D*)input->Get(histNameNumFake.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hDenomFake = (TH1D*)input->Get(histNameDenomFake.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
+                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
                             }
                             }
 
@@ -1354,7 +1354,7 @@ int  preLoop(TFile* input, bool makeNew)
 
                                 // special cases
                                 if (iDep == ENERGYSCALE::kGENPT) {
-                                    std::string histNameFakeGenPtPDG = Form("hFakeGenPtPDG%s_%s", pdgStr.c_str(), tmpName.c_str());
+                                    std::string nameFakeGenPtPDG = Form("hFakeGenPtPDG%s_%s", pdgStr.c_str(), tmpName.c_str());
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
@@ -1364,7 +1364,7 @@ int  preLoop(TFile* input, bool makeNew)
 
                                     if (makeNew) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
-                                                new TH1D(histNameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
+                                                new TH1D(nameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
                                                         nBinsFakeGenPt, arrFakeGenPt);
 
                                         if (iPDG == 0) {
@@ -1372,21 +1372,21 @@ int  preLoop(TFile* input, bool makeNew)
                                                     (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
 
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt->Reset();
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hFakeAllGenPt_%s", tmpName.c_str()));
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
                                         }
                                     }
                                     else {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
-                                                (TH1D*)input->Get(histNameFakeGenPtPDG.c_str());
+                                                (TH1D*)input->Get(nameFakeGenPtPDG.c_str());
 
                                         if (iPDG == 0) {
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
                                                     (TH1D*)input->Get(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
 
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hAllFakeParticlesGenPt =
-                                                    (TH1D*)input->Get(Form("hAllFakeParticlesGenPt_%s", tmpName.c_str()));
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
+                                                    (TH1D*)input->Get(Form("hFakeAllGenPt_%s", tmpName.c_str()));
                                         }
                                     }
                                 }
@@ -1395,7 +1395,7 @@ int  preLoop(TFile* input, bool makeNew)
 
                             // special cases
                             if (iDep == ENERGYSCALE::kGENPT) {
-                                std::string tmpHistNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                                std::string tmpNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
 
                                 int nBinsx2D = TH2D_Axis_List[0].axisX.nBins;    // nBinsx
                                 int nBinsy2D = TH2D_Axis_List[0].axisY.nBins;    // nBinsy
@@ -1410,12 +1410,12 @@ int  preLoop(TFile* input, bool makeNew)
 
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr =
-                                            new TH2D(tmpHistNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
+                                            new TH2D(tmpNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
                                     // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                                     // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kCENT] objects would be redundant.
                                 }
                                 else {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr = (TH2D*)input->Get(tmpHistNameCorr.c_str());
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
                                     // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
                                     // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kCENT] objects would be redundant.
                                 }
@@ -1618,10 +1618,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
 
         if (iObs == ENERGYSCALE::kEFF) {
-            if (iEta == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iBin][iGenPt][iRecoPt][iCent].gRatio->Clone();
-            else if (iGenPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iBin][iRecoPt][iCent].gRatio->Clone();
-            else if (iRecoPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iBin][iCent].gRatio->Clone();
-            else if (iCent == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].gRatio->Clone();
+            if (iEta == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iBin][iGenPt][iRecoPt][iCent].gMatchEff->Clone();
+            else if (iGenPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iBin][iRecoPt][iCent].gMatchEff->Clone();
+            else if (iRecoPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iBin][iCent].gMatchEff->Clone();
+            else if (iCent == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].gMatchEff->Clone();
 
             if (iBin == 0) {
                 // dummy histogram to be used as template for the graph
