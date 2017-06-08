@@ -182,7 +182,13 @@ public :
         fitOption = "Q M R N";
 
         hMean = -1;
+        hMeanErr = -1;
         hStdDev = -1;
+        hStdDevErr = -1;
+        sigmaEff = -1;
+        sigmaEffErr = -1;
+        sigmaHM = -1;
+        sigmaHMErr = -1;
     };
     ~eScaleAna(){};
 
@@ -218,6 +224,49 @@ public :
             hPull->SetMinimum(-1*extremum);
         }
     };
+    void calcSigmaEff() {
+
+        if (!isValid_h)  return;
+
+        int binMax = h->GetMaximumBin();
+
+        double fraction = 0.6827;
+
+        std::vector<int> binRange = getLeftRightBins4IntegralFraction(h, binMax, fraction);
+        double fracFromBinEdges = h->Integral(binRange[0], binRange[1]) / h->Integral();
+
+        double x1 = h->GetBinLowEdge(binRange[0]);
+        double x2 = h->GetBinLowEdge(binRange[1]+1);
+        double width = x2-x1;
+
+        // by definition fracFromBinEdges >= fraction
+        // scale the width to remove any residual deviation from 0.6827 due to binned data.
+        width *= fraction / fracFromBinEdges;
+
+        sigmaEff = width / 2;
+        sigmaEffErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
+    };
+    void calcSigmaHM() {
+
+        if (!isValid_h)  return;
+
+        int binMax = h->GetMaximumBin();
+        double maxContent = h->GetBinContent(binMax);
+
+        double halfMax = maxContent/2;
+
+        int binLeft = getMaximumBin(h, halfMax, 1, binMax);
+        int binRight = getMaximumBin(h, halfMax, binMax);
+
+        double x1 = h->GetBinLowEdge(binLeft);
+        double x2 = h->GetBinLowEdge(binRight+1);
+        double width = x2-x1;
+
+        // For a Gaussian distribution
+        // full-width-at-half-maximum = 2.355 * sigma
+        sigmaHM = width / 2.355;
+        sigmaHMErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
+    };
     void update() {
 
         isValid_h = (h != 0 && !h->IsZombie());
@@ -231,6 +280,9 @@ public :
             hStdDev = h->GetStdDev();
             hStdDevErr = h->GetStdDevError();
         }
+
+        calcSigmaEff();
+        calcSigmaHM();
     };
 
     TH1D* h;       // energy scale distribution
@@ -247,6 +299,10 @@ public :
     double hMeanErr;
     double hStdDev;   // histogram (arithmetic) std dev of h, used as cross-check for the width extracted from fit
     double hStdDevErr;
+    double sigmaEff;  // half-width of the narrowest interval containing 68.27% of the distribution
+    double sigmaEffErr;
+    double sigmaHM;   // full-width-at-half-maximum (FWHM) of the distribution divided by 2.355
+    double sigmaHMErr;
 };
 
 class energyScaleHist {
@@ -852,15 +908,15 @@ void energyScaleHist::updateH1DeScale()
         }
 
         // arithmetic mean and std dev of energy scale distributions
-        double mean = h1DsliceY[i-1]->GetMean();
-        double meanErr = h1DsliceY[i-1]->GetMeanError();
+        double mean = esa[i-1][indexFnc].hMean;
+        double meanErr = esa[i-1][indexFnc].hMeanErr;
         h1DeScale[2]->SetBinContent(i, mean);
         h1DeScale[2]->SetBinError(i, meanErr);
 
-        double stdDev = h1DsliceY[i-1]->GetStdDev();
-        double stdDevErr = h1DsliceY[i-1]->GetStdDevError();;
+        double stdDev = esa[i-1][indexFnc].hStdDev;
+        double stdDevErr = esa[i-1][indexFnc].hStdDevErr;
         h1DeScale[3]->SetBinContent(i, stdDev);
-        h1DeScale[3]->SetBinContent(i, stdDevErr);
+        h1DeScale[3]->SetBinError(i, stdDevErr);
     }
 }
 
@@ -1009,7 +1065,7 @@ void energyScaleHist::postLoop()
     setTH1_energyWidth(h1DeScale[3], titleOffsetX, titleOffsetY);
     h1DeScale[3]->SetYTitle(Form("%s (Arith)", h1DeScale[3]->GetYaxis()->GetTitle()));
     if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-        h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES]/20, "Y");
+        h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
     // Constant for Gaussian fit
     h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
