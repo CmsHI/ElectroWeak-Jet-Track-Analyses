@@ -427,8 +427,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
   std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
 
-  for (std::size_t i=0; i<inputFiles.size(); ++i)
-    std::cout << inputFiles[i] << std::endl;
   std::cout << "input ROOT files : num = " << inputFiles.size() << std::endl;
   std::cout << "#####" << std::endl;
 
