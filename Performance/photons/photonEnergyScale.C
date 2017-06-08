@@ -1249,12 +1249,17 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
 
+                            std::string strMatchNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strMatchNum;
+                            std::string strMatchDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strMatchDenom;
+                            std::string strFakeNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeNum;
+                            std::string strFakeDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeDenom;
+
                             std::string nameH2D = Form("h2D_%s", tmpName.c_str());
                             std::string nameEscale = Form("h_%s", tmpName.c_str());
-                            std::string nameMatchNum = Form("hMatchNum_%s", tmpName.c_str());
-                            std::string nameMatchDenom = Form("hMatchDenom_%s", tmpName.c_str());
-                            std::string nameFakeNum = Form("hFakeNum_%s", tmpName.c_str());
-                            std::string nameFakeDenom = Form("hFakeDenom_%s", tmpName.c_str());
+                            std::string nameMatchNum = Form("h%s_%s", strMatchNum.c_str(), tmpName.c_str());
+                            std::string nameMatchDenom = Form("h%s_%s", strMatchDenom.c_str(), tmpName.c_str());
+                            std::string nameFakeNum = Form("h%s_%s", strFakeNum.c_str(), tmpName.c_str());
+                            std::string nameFakeDenom = Form("h%s_%s", strFakeDenom.c_str(), tmpName.c_str());
 
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
 
@@ -1330,31 +1335,46 @@ int  preLoop(TFile* input, bool makeNew)
                             for (int iPDG = 0; iPDG < nFakeParticles; ++iPDG) {
 
                                 std::string pdgStr = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iPDG);
-                                std::string histNameFakePDG = Form("hFakePDG%s_%s", pdgStr.c_str(), tmpName.c_str());
+                                std::string strFakeParticle = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeParticle;
+                                std::string nameFakePDG = Form("h%s%s_%s", strFakeParticle.c_str(),
+                                                                           pdgStr.c_str(), tmpName.c_str());
+
+                                std::string strFakeOther = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeOther;
+                                std::string nameFakeOther = Form("h%s_%s", strFakeOther.c_str(), tmpName.c_str());
 
                                 if (makeNew) {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
-                                            new TH1D(histNameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                                            new TH1D(nameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
 
                                     if (iPDG == 0) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
-                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG]->Clone(Form("hFakeOther_%s", tmpName.c_str()));
+                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG]->Clone(nameFakeOther.c_str());
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
                                     }
                                 }
                                 else {
                                     hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
-                                            (TH1D*)input->Get(histNameFakePDG.c_str());
+                                            (TH1D*)input->Get(nameFakePDG.c_str());
 
                                     if (iPDG == 0) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
-                                                (TH1D*)input->Get(Form("hFakeOther_%s", tmpName.c_str()));
+                                                (TH1D*)input->Get(nameFakeOther.c_str());
                                     }
                                 }
 
                                 // special cases
                                 if (iDep == ENERGYSCALE::kGENPT) {
-                                    std::string nameFakeGenPtPDG = Form("hFakeGenPtPDG%s_%s", pdgStr.c_str(), tmpName.c_str());
+                                    std::string strFakeParticleGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeParticleGenPt;
+                                    std::string nameFakeGenPtPDG = Form("h%s%s_%s", strFakeParticleGenPt.c_str(),
+                                                                                    pdgStr.c_str(), tmpName.c_str());
+
+                                    std::string strFakeOtherGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeOtherGenPt;
+                                    std::string nameFakeOtherGenPt = Form("h%s_%s", strFakeOtherGenPt.c_str(),
+                                                                                    tmpName.c_str());
+
+                                    std::string strFakeAllGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeAllGenPt;
+                                    std::string nameFakeAllGenPt = Form("h%s_%s", strFakeAllGenPt.c_str(),
+                                                                                  tmpName.c_str());
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
@@ -1369,11 +1389,12 @@ int  preLoop(TFile* input, bool makeNew)
 
                                         if (iPDG == 0) {
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(nameFakeOtherGenPt.c_str());
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
 
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(Form("hFakeAllGenPt_%s", tmpName.c_str()));
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(
+                                                            nameFakeAllGenPt.c_str());
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
                                         }
                                     }
@@ -1383,10 +1404,10 @@ int  preLoop(TFile* input, bool makeNew)
 
                                         if (iPDG == 0) {
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
-                                                    (TH1D*)input->Get(Form("hFakeOtherGenPt_%s", tmpName.c_str()));
+                                                    (TH1D*)input->Get(nameFakeOtherGenPt.c_str());
 
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
-                                                    (TH1D*)input->Get(Form("hFakeAllGenPt_%s", tmpName.c_str()));
+                                                    (TH1D*)input->Get(nameFakeAllGenPt.c_str());
                                         }
                                     }
                                 }
