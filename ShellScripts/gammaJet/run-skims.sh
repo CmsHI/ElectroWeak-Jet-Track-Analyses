@@ -21,7 +21,7 @@ mkdir -p $OUTDIR
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/PbPb_MC_Flt30_HiForest.list /mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root ./ShellScripts/gammaJet/pp_MC_HiForest.list)
 MIXINGSAMPLE=(${MIXDIR}/PbPb_Data_minbiasJetSkim.root ${MIXDIR}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
-NJOBS=(200 100 200 5)
+NJOBS=(400 100 200 5)
 
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 SYS_SUFFIX=(_JES_UP _JES_DOWN)

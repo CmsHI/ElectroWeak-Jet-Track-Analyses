@@ -50,6 +50,8 @@ EOF
 cat > $now/skim-gamma-jet.sh <<EOF
 #!/bin/bash
 
+echo \$HOSTNAME
+
 # setup grid proxy
 export X509_USER_PROXY=\${PWD}/$PROXYFILE
 
@@ -72,8 +74,8 @@ set -x
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
 if [[ \$? -eq 0 ]]; then
-  gfal-copy gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-  gfal-copy gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+  gfal-copy file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+  gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
 fi
 
 rm *.root
