@@ -126,6 +126,8 @@ public:
 
         h1D_ratio_abs = (TH1D*)h1D_ratio->Clone(Form("h1D_%s_ratio_abs_%s", hist_name.c_str(), sys_type.c_str()));
         TH1D_AbsRatio(h1D_ratio_abs);
+
+        calc_average();
     }
 
     void rebin_and_calc_sys() {

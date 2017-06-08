@@ -227,6 +227,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
                     if (total_sys_hists->non_zero()) {
                         total_sys.push_back(total_sys_hists);
+                        total_sys_hists->print_latex(sys_names);
                     }
                 }
             }

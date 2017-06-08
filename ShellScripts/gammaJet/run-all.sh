@@ -33,4 +33,4 @@ echo -e "${OUTDIR}/gammaJetHistograms_ELE_REJ.root" >> $SYSLIST
 echo -e "${OUTDIR}/gammaJetHistograms_PES.root" >> $SYSLIST
 echo -e "${OUTDIR}/gammaJetHistograms_ISO.root" >> $SYSLIST
 
-./Systematics/gammaJet/gammaJetSystematics.exe CutConfigurations/gammaJet.conf ${OUTDIR}/gammaJetSystematics.list ${OUTDIR}/gammaJetSystematics.root
+./Systematics/gammaJet/gammaJetSystematics.exe CutConfigurations/gammaJet.conf ${OUTDIR}/gammaJetSystematics.list ${OUTDIR}/gammaJetSystematics.root > ${OUTDIR}/gammaJetSystematics.log
