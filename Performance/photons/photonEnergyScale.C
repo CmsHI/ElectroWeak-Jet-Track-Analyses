@@ -1706,6 +1706,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     std::vector<std::string> textLinesTmp;
 
+    for (int i = 0; i < nTextLines; ++i) {
+        textLinesTmp.push_back(textLines.at(i));
+    }
+
     bool writeTextEta = (iDep != ENERGYSCALE::kETA);
     bool writeTextGenPt = (iDep != ENERGYSCALE::kGENPT && iObs != ENERGYSCALE::kFAKE);
     bool writeTextRecoPt = (iDep != ENERGYSCALE::kRECOPT);
