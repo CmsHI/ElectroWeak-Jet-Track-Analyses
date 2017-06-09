@@ -330,9 +330,6 @@ public :
         hMatchDenom = 0;
         hMatchEff = 0;
         gMatchEff = 0;
-        strMatchNum = "MatchNum";
-        strMatchDenom = "MatchDenom";
-        strMatchEff = "MatchEff";
         isValid_hMatchNum = false;
         isValid_hMatchDenom = false;
         isValid_hMatchEff = false;
@@ -343,9 +340,6 @@ public :
         hFakeRatio = 0;
         gFakeRatio = 0;
         hFakeOtherRatio = 0;
-        strFakeNum = "FakeNum";
-        strFakeDenom = "FakeDenom";
-        strFakeRatio = "FakeRatio";
         isValid_hFakeNum = false;
         isValid_hFakeDenom = false;
         isValid_hFakeRatio = false;
@@ -399,20 +393,11 @@ public :
         hFakeOtherRatio = 0;
         isValid_hFakeOther = false;
         isValid_hFakeOtherRatio = false;
-        strFakeParticle = "FakePDG";
-        strFakeParticleRatio = "FakeRatioPDG";
-        strFakeOther = "FakeOther";
-        strFakeOtherRatio = "FakeOtherRatio";
 
         hFakeOtherGenPt = 0;
         hFakeOtherRatioGenPt = 0;
         isValid_hFakeOtherGenPt = false;
         isValid_hFakeOtherRatioGenPt = false;
-        strFakeParticleGenPt = "FakeGenPtPDG";
-        strFakeParticleRatioGenPt = "FakeRatioGenPtPDG";
-        strFakeOtherGenPt = "FakeOtherGenPt";
-        strFakeOtherRatioGenPt = "FakeOtherRatioGenPt";
-        strFakeAllGenPt = "FakeAllGenPt";
 
         hFakeAllGenPt = 0;
         isValid_hFakeAllGenPt = false;
@@ -467,6 +452,9 @@ public :
     int getParticleIndex(int pdg);
     int getFakePDG(int iParticle);
     std::string getFakePDGstr(int iParticle);
+    static std::string getObjectStr(int iObj);
+    static std::string getTObjectStr(int iTObj);
+    std::string getObjectName(int iObj, int iTObj = 0);
 
     void prepareTitle();
 
@@ -529,10 +517,6 @@ public :
     TH1D* hMatchEff;
     TGraphAsymmErrors* gMatchEff;
 
-    std::string strMatchNum;
-    std::string strMatchDenom;
-    std::string strMatchEff;
-
     bool isValid_hMatchNum;
     bool isValid_hMatchDenom;
     bool isValid_hMatchEff;
@@ -543,10 +527,6 @@ public :
     TH1D* hFakeDenom;
     TH1D* hFakeRatio;
     TGraphAsymmErrors* gFakeRatio;
-
-    std::string strFakeNum;
-    std::string strFakeDenom;
-    std::string strFakeRatio;
 
     bool isValid_hFakeNum;
     bool isValid_hFakeDenom;
@@ -570,11 +550,6 @@ public :
     std::vector<TH1D*> hFakeParticleRatio;
     TH1D* hFakeOtherRatio;
 
-    std::string strFakeParticle;
-    std::string strFakeParticleRatio;
-    std::string strFakeOther;
-    std::string strFakeOtherRatio;
-
     std::vector<bool> isValid_hFakeParticle;
     std::vector<bool> isValid_hFakeParticleRatio;
     bool isValid_hFakeOther;
@@ -592,12 +567,6 @@ public :
     TH1D* hFakeOtherRatioGenPt;
     TH1D* hFakeAllGenPt;
 
-    std::string strFakeParticleGenPt;
-    std::string strFakeParticleRatioGenPt;
-    std::string strFakeOtherGenPt;
-    std::string strFakeOtherRatioGenPt;
-    std::string strFakeAllGenPt;
-
     std::vector<bool> isValid_hFakeParticleGenPt;
     std::vector<bool> isValid_hFakeParticleRatioGenPt;
     bool isValid_hFakeOtherGenPt;
@@ -611,6 +580,32 @@ public :
     double minFakeFraction;
     std::vector<bool> passedMinFakeFraction;
     std::vector<bool> passedMinFakeFractionGenPt;
+
+    enum OBJ{
+        kMatchNum,
+        kMatchDenom,
+        kMatchEff,
+        kFakeNum,
+        kFakeDenom,
+        kFakeRatio,
+        kFakeParticle,
+        kFakeParticleRatio,
+        kFakeOther,
+        kFakeOtherRatio,
+        kFakeParticleGenPt,
+        kFakeParticleRatioGenPt,
+        kFakeOtherGenPt,
+        kFakeOtherRatioGenPt,
+        kFakeAllGenPt,
+        kN_OBJ
+    };
+
+    enum TOBJ{
+        kTH1D,
+        kTH2D,
+        kTGraph,
+        kN_TOBJ
+    };
 
     int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
 
@@ -993,6 +988,70 @@ std::string energyScaleHist::getFakePDGstr(int iParticle)
     return res;
 }
 
+std::string energyScaleHist::getObjectStr(int iObj)
+{
+    switch (iObj) {
+    case energyScaleHist::OBJ::kMatchNum :
+        return "MatchNum";
+    case energyScaleHist::OBJ::kMatchDenom :
+        return "MatchDenom";
+    case energyScaleHist::OBJ::kMatchEff :
+        return "MatchEff";
+    case energyScaleHist::OBJ::kFakeNum :
+        return "FakeNum";
+    case energyScaleHist::OBJ::kFakeDenom :
+        return "FakeDenom";
+    case energyScaleHist::OBJ::kFakeRatio :
+        return "FakeRatio";
+    case energyScaleHist::OBJ::kFakeParticle :
+        return "FakePDG";
+    case energyScaleHist::OBJ::kFakeParticleRatio :
+        return "FakeRatioPDG";
+    case energyScaleHist::OBJ::kFakeOther :
+        return "FakeOther";
+    case energyScaleHist::OBJ::kFakeOtherRatio :
+        return "FakeOtherRatio";
+    case energyScaleHist::OBJ::kFakeParticleGenPt :
+        return "FakeGenPtPDG";
+    case energyScaleHist::OBJ::kFakeParticleRatioGenPt :
+        return "FakeRatioGenPtPDG";
+    case energyScaleHist::OBJ::kFakeOtherGenPt :
+        return "FakeOtherGenPt";
+    case energyScaleHist::OBJ::kFakeOtherRatioGenPt :
+        return "FakeOtherRatioGenPt";
+    case energyScaleHist::OBJ::kFakeAllGenPt :
+        return "FakeAllGenPt";
+    default :
+        return "";
+    }
+
+    return "";
+}
+
+std::string energyScaleHist::getTObjectStr(int iTObj)
+{
+    switch (iTObj) {
+    case energyScaleHist::TOBJ::kTH1D :
+        return "h";
+    case energyScaleHist::TOBJ::kTH2D :
+        return "h2D_";
+    case energyScaleHist::TOBJ::kTGraph :
+        return "g";
+    default :
+        return "";
+    }
+
+    return "";
+}
+
+std::string energyScaleHist::getObjectName(int iObj, int iTObj)
+{
+    std::string objStr =  energyScaleHist::getObjectStr(iObj);
+    std::string tObjStr = energyScaleHist::getTObjectStr(iTObj);
+
+    return Form("%s%s_%s", tObjStr.c_str(), objStr.c_str(), name.c_str());
+}
+
 /*
  * prepare the object title using the given ranges
  */
@@ -1226,6 +1285,8 @@ void energyScaleHist::calcMatchEff()
 {
     if (!isValid_hMatchNum || !isValid_hMatchDenom) return;
 
+    std::string tmpName;
+
     hMatchNum->SetTitle(title.c_str());
     hMatchNum->SetXTitle(titleX.c_str());
     setTH1_efficiency(hMatchNum, titleOffsetX, titleOffsetY);
@@ -1240,7 +1301,8 @@ void energyScaleHist::calcMatchEff()
     }
 
     gMatchEff = new TGraphAsymmErrors();
-    gMatchEff->SetName(Form("g%s_%s", strMatchEff.c_str(), name.c_str()));
+    tmpName = getObjectName(energyScaleHist::OBJ::kMatchEff, energyScaleHist::TOBJ::kTGraph);
+    gMatchEff->SetName(tmpName.c_str());
     gMatchEff->BayesDivide(hMatchNum, hMatchDenom);
     gMatchEff->SetTitle(title.c_str());
     gMatchEff->GetXaxis()->SetTitle(titleX.c_str());
@@ -1254,7 +1316,8 @@ void energyScaleHist::calcMatchEff()
         isValid_hMatchEff = false;
     }
 
-    hMatchEff = (TH1D*)hMatchNum->Clone(Form("h%s_%s", strMatchEff.c_str(), name.c_str()));
+    tmpName = getObjectName(energyScaleHist::OBJ::kMatchEff, energyScaleHist::TOBJ::kTH1D);
+    hMatchEff = (TH1D*)hMatchNum->Clone(tmpName.c_str());
     fillTH1fromTGraph(hMatchEff, gMatchEff);
     setTH1_efficiency(hMatchDenom, titleOffsetX, titleOffsetY);
     hMatchEff->SetTitle(title.c_str());
@@ -1270,6 +1333,8 @@ void energyScaleHist::calcFakeRatio()
 {
     if (!isValid_hFakeNum || !isValid_hFakeDenom) return;
 
+    std::string nameTmp;
+
     hFakeNum->SetTitle(title.c_str());
     hFakeNum->SetXTitle(titleX.c_str());
     setTH1_efficiency(hFakeNum, titleOffsetX, titleOffsetY);
@@ -1284,7 +1349,8 @@ void energyScaleHist::calcFakeRatio()
     }
 
     gFakeRatio = new TGraphAsymmErrors();
-    gFakeRatio->SetName(Form("g%s_%s", strFakeRatio.c_str(), name.c_str()));
+    nameTmp = getObjectName(energyScaleHist::OBJ::kFakeRatio, energyScaleHist::TOBJ::kTGraph);
+    gFakeRatio->SetName(nameTmp.c_str());
     gFakeRatio->BayesDivide(hFakeNum, hFakeDenom);
     gFakeRatio->SetTitle(title.c_str());
     gFakeRatio->GetXaxis()->SetTitle(titleX.c_str());
@@ -1298,7 +1364,8 @@ void energyScaleHist::calcFakeRatio()
         isValid_hFakeRatio = false;
     }
 
-    hFakeRatio = (TH1D*)hFakeNum->Clone(Form("h%s_%s", strFakeRatio.c_str(), name.c_str()));
+    nameTmp = getObjectName(energyScaleHist::OBJ::kFakeRatio, energyScaleHist::TOBJ::kTH1D);
+    hFakeRatio = (TH1D*)hFakeNum->Clone(nameTmp.c_str());
     fillTH1fromTGraph(hFakeRatio, gFakeRatio);
     setTH1_efficiency(hFakeDenom, titleOffsetX, titleOffsetY);
     hFakeRatio->SetTitle(title.c_str());
@@ -1341,8 +1408,7 @@ void energyScaleHist::calcFakeParticleRatio()
 
     if (isValid_hFakeOther) {
 
-        std::string tmpHistName = replaceAll(hFakeOther->GetName(), strFakeOther.c_str(),
-                                                                    strFakeOtherRatio.c_str());
+        std::string tmpHistName = getObjectName(energyScaleHist::OBJ::kFakeOtherRatio, energyScaleHist::TOBJ::kTH1D);
         hFakeOtherRatio = (TH1D*)hFakeOther->Clone(tmpHistName.c_str());
         if (isValid_hFakeNum) {
             hFakeOtherRatio->Divide(hFakeNum);
@@ -1370,8 +1436,8 @@ void energyScaleHist::calcFakeParticleRatio()
         }
 
         std::string label = fakeParticles[i].label;
-        std::string tmpHistName = replaceAll(hFakeParticle[i]->GetName(), strFakeParticle.c_str(),
-                                                                          strFakeParticleRatio.c_str());
+        std::string tmpHistName = replaceAll(hFakeParticle[i]->GetName(), getObjectStr(energyScaleHist::OBJ::kFakeParticle).c_str(),
+                                                                          getObjectStr(energyScaleHist::OBJ::kFakeParticleRatio).c_str());
         hFakeParticleRatio[i] = (TH1D*)hFakeParticle[i]->Clone(tmpHistName.c_str());
         if (isValid_hFakeNum) {
             hFakeParticleRatio[i]->Divide(hFakeNum);
@@ -1403,7 +1469,7 @@ void energyScaleHist::calcFakeParticleRatio()
 
             if ((content < 0.99 || content > 1.01) && content > 0.00001) {
                 std::cout << "WARNING : bin contents do not sum up to 1 : " << name.c_str() << std::endl;
-                std::cout << strFakeParticleRatio.c_str() << std::endl;
+                std::cout << "calcFakeParticleRatio()" << std::endl;
                 std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
             }
         }
@@ -1441,8 +1507,7 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
 
     if (isValid_hFakeOtherGenPt) {
 
-        std::string tmpHistName = replaceAll(hFakeOtherGenPt->GetName(), strFakeOtherGenPt.c_str(),
-                                                                         strFakeOtherRatioGenPt.c_str());
+        std::string tmpHistName = getObjectName(energyScaleHist::OBJ::kFakeOtherRatioGenPt, energyScaleHist::TOBJ::kTH1D);
         hFakeOtherRatioGenPt = (TH1D*)hFakeOtherGenPt->Clone(tmpHistName.c_str());
         if (isValid_hFakeAllGenPt) {
             hFakeOtherRatioGenPt->Divide(hFakeAllGenPt);
@@ -1470,8 +1535,8 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
         }
 
         std::string label = fakeParticles[i].label;
-        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), strFakeParticleGenPt.c_str(),
-                                                                               strFakeParticleRatioGenPt.c_str());
+        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), getObjectStr(energyScaleHist::OBJ::kFakeParticleGenPt).c_str(),
+                                                                               getObjectStr(energyScaleHist::OBJ::kFakeParticleRatioGenPt).c_str());
         hFakeParticleRatioGenPt[i] = (TH1D*)hFakeParticleGenPt[i]->Clone(tmpHistName.c_str());
         if (isValid_hFakeAllGenPt) {
             hFakeParticleRatioGenPt[i]->Divide(hFakeAllGenPt);
@@ -1503,7 +1568,7 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
 
             if ((content < 0.99 || content > 1.01) && content > 0.00001) {
                 std::cout << "WARNING : bin contents do not sum up to 1 : " << name.c_str() << std::endl;
-                std::cout << strFakeParticleRatioGenPt.c_str() << std::endl;
+                std::cout << "calcFakeParticleRatioGenPt()" << std::endl;
                 std::cout << Form("bin, content = %d, %f", iBin, content) << std::endl;
             }
         }
@@ -1754,7 +1819,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
     // efficiency objects
     if (isValid_hMatchNum) {
-        canvasName = Form("cnv_%s_%s", strMatchNum.c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kMatchNum).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1766,7 +1831,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hMatchDenom) {
-        canvasName = Form("cnv_%s_%s", strMatchDenom.c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kMatchDenom).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1815,7 +1880,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
     // fake rate objects
     if (isValid_hFakeNum) {
-        canvasName = Form("cnv_%s_%s", strFakeNum.c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kFakeNum).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1827,7 +1892,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hFakeDenom) {
-        canvasName = Form("cnv_%s_%s", strFakeDenom.c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kFakeDenom).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);

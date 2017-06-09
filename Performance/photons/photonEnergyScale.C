@@ -336,7 +336,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < 5000; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
@@ -1249,17 +1249,12 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
 
-                            std::string strMatchNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strMatchNum;
-                            std::string strMatchDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strMatchDenom;
-                            std::string strFakeNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeNum;
-                            std::string strFakeDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeDenom;
-
                             std::string nameH2D = Form("h2D_%s", tmpName.c_str());
                             std::string nameEscale = Form("h_%s", tmpName.c_str());
-                            std::string nameMatchNum = Form("h%s_%s", strMatchNum.c_str(), tmpName.c_str());
-                            std::string nameMatchDenom = Form("h%s_%s", strMatchDenom.c_str(), tmpName.c_str());
-                            std::string nameFakeNum = Form("h%s_%s", strFakeNum.c_str(), tmpName.c_str());
-                            std::string nameFakeDenom = Form("h%s_%s", strFakeDenom.c_str(), tmpName.c_str());
+                            std::string nameMatchNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kMatchNum);
+                            std::string nameMatchDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kMatchDenom);
+                            std::string nameFakeNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeNum);
+                            std::string nameFakeDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeDenom);
 
                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
 
@@ -1332,31 +1327,31 @@ int  preLoop(TFile* input, bool makeNew)
                             // fake composition
                             if (runMode[MODES::kFakeComposition]) {
                             int nFakeParticles = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
-                            for (int iPDG = 0; iPDG < nFakeParticles; ++iPDG) {
+                            for (int iParticle = 0; iParticle < nFakeParticles; ++iParticle) {
 
-                                std::string pdgStr = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iPDG);
-                                std::string strFakeParticle = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeParticle;
-                                std::string nameFakePDG = Form("h%s%s_%s", strFakeParticle.c_str(),
-                                                                           pdgStr.c_str(), tmpName.c_str());
+                                std::string pdgStr = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iParticle);
+                                std::string nameFakeParticle =
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeParticle);
+                                nameFakeParticle = replaceAll(nameFakeParticle, "PDG", Form("PDG%s", pdgStr.c_str()));
 
-                                std::string strFakeOther = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeOther;
-                                std::string nameFakeOther = Form("h%s_%s", strFakeOther.c_str(), tmpName.c_str());
+                                std::string nameFakeOther =
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeOther);
 
                                 if (makeNew) {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
-                                            new TH1D(nameFakePDG.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                            new TH1D(nameFakeParticle.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
 
-                                    if (iPDG == 0) {
+                                    if (iParticle == 0) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
-                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG]->Clone(nameFakeOther.c_str());
+                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle]->Clone(nameFakeOther.c_str());
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
                                     }
                                 }
                                 else {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iPDG] =
-                                            (TH1D*)input->Get(nameFakePDG.c_str());
+                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                            (TH1D*)input->Get(nameFakeParticle.c_str());
 
-                                    if (iPDG == 0) {
+                                    if (iParticle == 0) {
                                         hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
                                                 (TH1D*)input->Get(nameFakeOther.c_str());
                                     }
@@ -1364,17 +1359,15 @@ int  preLoop(TFile* input, bool makeNew)
 
                                 // special cases
                                 if (iDep == ENERGYSCALE::kGENPT) {
-                                    std::string strFakeParticleGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeParticleGenPt;
-                                    std::string nameFakeGenPtPDG = Form("h%s%s_%s", strFakeParticleGenPt.c_str(),
-                                                                                    pdgStr.c_str(), tmpName.c_str());
+                                    std::string nameFakeParticleGenPt =
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeParticleGenPt);
+                                    nameFakeParticleGenPt = replaceAll(nameFakeParticleGenPt, "PDG", Form("PDG%s", pdgStr.c_str()));
 
-                                    std::string strFakeOtherGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeOtherGenPt;
-                                    std::string nameFakeOtherGenPt = Form("h%s_%s", strFakeOtherGenPt.c_str(),
-                                                                                    tmpName.c_str());
+                                    std::string nameFakeOtherGenPt =
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeOtherGenPt);
 
-                                    std::string strFakeAllGenPt = hist[iDep][iEta][iGenPt][iRecoPt][iCent].strFakeAllGenPt;
-                                    std::string nameFakeAllGenPt = Form("h%s_%s", strFakeAllGenPt.c_str(),
-                                                                                  tmpName.c_str());
+                                    std::string nameFakeAllGenPt =
+                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeAllGenPt);
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
@@ -1383,26 +1376,26 @@ int  preLoop(TFile* input, bool makeNew)
                                     std::copy(binsFakeGenPt.begin(), binsFakeGenPt.end(), arrFakeGenPt);
 
                                     if (makeNew) {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
-                                                new TH1D(nameFakeGenPtPDG.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                                new TH1D(nameFakeParticleGenPt.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
                                                         nBinsFakeGenPt, arrFakeGenPt);
 
-                                        if (iPDG == 0) {
+                                        if (iParticle == 0) {
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(nameFakeOtherGenPt.c_str());
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(nameFakeOtherGenPt.c_str());
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
 
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG]->Clone(
+                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(
                                                             nameFakeAllGenPt.c_str());
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
                                         }
                                     }
                                     else {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iPDG] =
-                                                (TH1D*)input->Get(nameFakeGenPtPDG.c_str());
+                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                                (TH1D*)input->Get(nameFakeParticleGenPt.c_str());
 
-                                        if (iPDG == 0) {
+                                        if (iParticle == 0) {
                                             hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
                                                     (TH1D*)input->Get(nameFakeOtherGenPt.c_str());
 
