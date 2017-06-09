@@ -923,11 +923,11 @@ void energyScaleHist::updateH1DeScale()
 
         if (esa[i-1][indexFnc].isValid_h && esa[i-1][indexFnc].isValid_f1) {
 
-            h1DeScale[0]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
-            h1DeScale[0]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
 
-            h1DeScale[1]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
-            h1DeScale[1]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
+            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
+            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
 
             h1DeScale[4]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
             h1DeScale[4]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
@@ -939,13 +939,13 @@ void energyScaleHist::updateH1DeScale()
         // arithmetic mean and std dev of energy scale distributions
         double mean = esa[i-1][indexFnc].hMean;
         double meanErr = esa[i-1][indexFnc].hMeanErr;
-        h1DeScale[2]->SetBinContent(i, mean);
-        h1DeScale[2]->SetBinError(i, meanErr);
+        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinContent(i, mean);
+        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinError(i, meanErr);
 
         double stdDev = esa[i-1][indexFnc].hStdDev;
         double stdDevErr = esa[i-1][indexFnc].hStdDevErr;
-        h1DeScale[3]->SetBinContent(i, stdDev);
-        h1DeScale[3]->SetBinError(i, stdDevErr);
+        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinContent(i, stdDev);
+        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinError(i, stdDevErr);
     }
 }
 
@@ -1126,38 +1126,46 @@ void energyScaleHist::postLoop()
         h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
         // energy scale
-        h1DeScale[0] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str()));
-        h1DeScale[0]->SetTitle(title.c_str());
-        h1DeScale[0]->SetXTitle(titleX.c_str());
-        setTH1_energyScale(h1DeScale[0], titleOffsetX, titleOffsetY);
-        if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-            h1DeScale[0]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        int iObs = ENERGYSCALE::kESCALE;
+        std::string label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyScale(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        if (yMax[iObs] > yMin[iObs])
+            h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
         // width of energy scale
-        h1DeScale[1] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str()));
-        h1DeScale[1]->SetTitle(title.c_str());
-        h1DeScale[1]->SetXTitle(titleX.c_str());
-        setTH1_energyWidth(h1DeScale[1], titleOffsetX, titleOffsetY);
-        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-            h1DeScale[1]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        iObs = ENERGYSCALE::kERES;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        if (yMax[iObs] > yMin[iObs])
+            h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
         // energy scale with arithmetic mean
-        h1DeScale[2] = (TH1D*)h1DeScale[0]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str()));
-        h1DeScale[2]->SetTitle(title.c_str());
-        h1DeScale[2]->SetXTitle(titleX.c_str());
-        setTH1_energyScale(h1DeScale[2], titleOffsetX, titleOffsetY);
-        h1DeScale[2]->SetYTitle(Form("%s (Arith)", h1DeScale[2]->GetYaxis()->GetTitle()));
+        iObs = ENERGYSCALE::kESCALEARITH;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kESCALE]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyScale(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-            h1DeScale[2]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
 
         // width of energy scale with arithmetic std dev
-        h1DeScale[3] = (TH1D*)h1DeScale[1]->Clone(Form("h1D_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str()));
-        h1DeScale[3]->SetTitle(title.c_str());
-        h1DeScale[3]->SetXTitle(titleX.c_str());
-        setTH1_energyWidth(h1DeScale[3], titleOffsetX, titleOffsetY);
-        h1DeScale[3]->SetYTitle(Form("%s (Arith)", h1DeScale[3]->GetYaxis()->GetTitle()));
+        iObs = ENERGYSCALE::kERESARITH;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-            h1DeScale[3]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
         // Constant for Gaussian fit
         h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
@@ -1218,11 +1226,11 @@ void energyScaleHist::fitRecoGen()
         double p0 = h1DeScale[4]->GetBinContent(i);   // constant
         double p0Err = h1DeScale[4]->GetBinError(i);
 
-        double p1 = h1DeScale[0]->GetBinContent(i);   // mean
-        double p1Err = h1DeScale[0]->GetBinError(i);
+        double p1 = h1DeScale[ENERGYSCALE::kESCALE]->GetBinContent(i);   // mean
+        double p1Err = h1DeScale[ENERGYSCALE::kESCALE]->GetBinError(i);
 
-        double p2 = h1DeScale[1]->GetBinContent(i);   // StdDev
-        double p2Err = h1DeScale[1]->GetBinError(i);
+        double p2 = h1DeScale[ENERGYSCALE::kERES]->GetBinContent(i);   // StdDev
+        double p2Err = h1DeScale[ENERGYSCALE::kERES]->GetBinError(i);
 
         int binMax = hTmp->GetMaximumBin();
         int nBinsTmp = hTmp->GetNbinsX();
@@ -1620,54 +1628,57 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // energy scale
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[0].c_str(), name.c_str());
+        int iObs = ENERGYSCALE::kESCALE;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h1DeScale[0]->SetMarkerSize(markerSize);
-        h1DeScale[0]->Draw("e");
-        h1DeScale[0]->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, 0);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[1].c_str(), name.c_str());
+        iObs = ENERGYSCALE::kERES;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h1DeScale[1]->SetMarkerSize(markerSize);
-        h1DeScale[1]->Draw("e");
-        h1DeScale[1]->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, 1);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
         // energy scale from histogram mean
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[2].c_str(), name.c_str());
+        iObs = ENERGYSCALE::kESCALEARITH;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        markerSize = (float)windowWidth/600;
-        h1DeScale[2]->SetMarkerSize(markerSize);
-        h1DeScale[2]->Draw("e");
-        h1DeScale[2]->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, 2);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale from histogram std dev
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[3].c_str(), name.c_str());
+        iObs = ENERGYSCALE::kERESARITH;
+        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h1DeScale[3]->SetMarkerSize(markerSize);
-        h1DeScale[3]->Draw("e");
-        h1DeScale[3]->Write("",TObject::kOverwrite);
-        setPad4Observable((TPad*) c, 3);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
