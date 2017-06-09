@@ -2281,6 +2281,28 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
         }
     }
 
+    if (iObs == ENERGYSCALE::kERES || iObs == ENERGYSCALE::kERESARITH ||
+        iObs == ENERGYSCALE::kERESEFF || iObs == ENERGYSCALE::kERESHM) {
+
+        // draw horizontal lines
+        std::vector<double> linesH = {0.05, 0.1, 0.2};
+        for (int i = 0; i < (int)linesH.size(); ++i) {
+
+            double y = linesH.at(i);
+
+            double x1 = p->GetUxmin();
+            double x2 = p->GetUxmax();
+            double y1 = p->GetUymin();
+            double y2 = p->GetUymax();
+            if (y1 < y && y < y2) {
+                line = new TLine(x1, y, x2, y);
+                line->SetLineStyle(kDashed);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
+        }
+    }
+
     if (iDep == ENERGYSCALE::kETA) {
         // draw line for EE-EB transition
         double ECAL_boundary_1 = 1.4442;
