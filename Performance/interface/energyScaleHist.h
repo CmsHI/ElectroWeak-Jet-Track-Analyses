@@ -1202,7 +1202,7 @@ void energyScaleHist::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
-        h1DeScale[iObs]->SetYTitle(Form("%s (HM)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
+        h1DeScale[iObs]->SetYTitle(Form("%s (FWHM / 2.35)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
             h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
@@ -1653,7 +1653,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
     float markerSize = (float)windowWidth/600;
 
     TLine* line = 0;
+    TLegend* leg = 0;
     TLatex* latex = new TLatex();
+
+    double legHeight = -1;
+    double legWidth = -1;
 
     if (isValid_h2D) {
         canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
@@ -1759,6 +1763,66 @@ void energyScaleHist::writeObjects(TCanvas* c)
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
+
+        // plot mean from Gaussian fit and histogram mean together
+        canvasName = Form("cnv_eScaleAll_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        leg = new TLegend();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        std::vector<int> tmpIndices = {ENERGYSCALE::kESCALE, ENERGYSCALE::kESCALEARITH};
+        std::vector<std::string> tmpLabels = {"Gaussian Fit", "Arithmetic"};
+        std::vector<int> tmpColors = {kBlack, kGreen+2};
+        int nTmp = tmpIndices.size();
+        for (int j = 0; j < nTmp; ++j) {
+            h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
+            h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
+            if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
+            else        h1DeScale[tmpIndices[j]]->Draw("e same");
+            leg->AddEntry(h1DeScale[tmpIndices[j]], tmpLabels[j].c_str(), "lpf");
+        }
+        legHeight = calcTLegendHeight(leg);
+        legWidth = 0.56;
+        setLegendPosition(leg, "NW", c, legHeight, legWidth, 0.04, 0.04, true);
+        leg->SetFillColor(-1);
+        leg->SetFillStyle(4000);
+        leg->SetBorderSize(0);
+        leg->Draw();
+        setPad4Observable((TPad*) c, ENERGYSCALE::kESCALE);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+        if (leg != 0)  leg->Delete();
+
+        // plot resolution from Gaussian fit, histogram stdDev, sigmaEff and sigmaHM together
+        canvasName = Form("cnv_eResAll_%s", name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        leg = new TLegend();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        tmpIndices = {ENERGYSCALE::kERES, ENERGYSCALE::kERESARITH, ENERGYSCALE::kERESEFF, ENERGYSCALE::kERESHM};
+        tmpLabels = {"Gaussian Fit", "Arithmetic", "Effective (#pm#sigma #rightarrow 68.3%)", "FWHM / 2.35"};
+        tmpColors = {kBlack, kGreen+2, kRed+1, kBlue};
+        nTmp = tmpIndices.size();
+        for (int j = 0; j < nTmp; ++j) {
+            h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
+            h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
+            if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
+            else        h1DeScale[tmpIndices[j]]->Draw("e same");
+            leg->AddEntry(h1DeScale[tmpIndices[j]], tmpLabels[j].c_str(), "lpf");
+        }
+        legHeight = calcTLegendHeight(leg);
+        legWidth = 0.56;
+        setLegendPosition(leg, "NW", c, legHeight, legWidth, 0.04, 0.04, true);
+        leg->SetFillColor(-1);
+        leg->SetFillStyle(4000);
+        leg->SetBorderSize(0);
+        leg->Draw();
+        setPad4Observable((TPad*) c, ENERGYSCALE::kERES);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+        if (leg != 0)  leg->Delete();
 
         // plot 1D reco pt / gen pt distribution for each bin along x-axis
         int nH1DsliceY = h1DsliceY.size();
@@ -2075,7 +2139,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         hTmp->SetMaximum(1.5);
         hTmp->Draw();
 
-        TLegend* leg = new TLegend();
+        leg = new TLegend();
         for (int i = 0; i < nFakeParticles; ++i) {
 
             if (!isValid_hFakeParticleRatio[i])  continue;
@@ -2116,7 +2180,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
-        leg->Delete();
+        if (leg != 0)  leg->Delete();
         if (hTmp != 0)  hTmp->Delete();
     }
 
