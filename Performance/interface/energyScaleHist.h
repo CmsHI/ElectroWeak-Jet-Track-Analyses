@@ -49,12 +49,14 @@ enum OBS {
     kERES,      // energy resolution
     kESCALEARITH,    // energy scale
     kERESARITH,      // energy resolution
+    kERESEFF,      // energy resolution from sigmaEff
+    kERESHM,      // energy resolution from sigmaHM
     kEFF,            // matching efficiency
     kFAKE,            // fake rate
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "matchEff", "fakeRatio"};
+const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eResEff", "eResHM", "matchEff", "fakeRatio"};
 
 enum FNCS {
     kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
@@ -311,10 +313,10 @@ public :
         nBinsX = 0;
         h2D = 0;
 
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 8; ++i) {
             h1DeScale[i] = 0;
         }
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 8; ++i) {
             h1D[i] = 0;
         }
         hEscale = 0;
@@ -477,20 +479,24 @@ public :
      * h1DeScale[1] = energy resolution histogram, StdDev for a Gaussian fit
      * h1DeScale[2] = energy scale histogram, mean from histogram mean of 1D distribution
      * h1DeScale[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
-     * h1DeScale[4] = Constant for Gaussian fit
-     * h1DeScale[5] = chi2/ndf for Gaussian fit
+     * h1DeScale[4] = energy resolution histogram, sigmaEff of 1D distribution
+     * h1DeScale[5] = energy resolution histogram, sigmaHM of 1D distribution
+     * h1DeScale[6] = Constant for Gaussian fit
+     * h1DeScale[7] = chi2/ndf for Gaussian fit
      */
-    TH1D* h1DeScale[6];
+    TH1D* h1DeScale[8];
 
     /*
      * h1D[0] = energy scale histogram, mean for a Gaussian fit
      * h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
      * h1D[2] = energy scale histogram, mean from histogram mean of 1D distribution
      * h1D[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
-     * h1D[4] = matching efficiency
-     * h1D[5] = fake rate
+     * h1D[4] = energy resolution histogram, sigmaEff of 1D distribution
+     * h1D[5] = energy resolution histogram, sigmaHM of 1D distribution
+     * h1D[6] = matching efficiency
+     * h1D[7] = fake rate
      */
-    TH1D* h1D[6];
+    TH1D* h1D[8];
 
     std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
     /*
@@ -921,31 +927,42 @@ void energyScaleHist::updateH1DeScale()
 {
     for (int i = 1; i <= nBinsX; ++i) {
 
-        if (esa[i-1][indexFnc].isValid_h && esa[i-1][indexFnc].isValid_f1) {
+        if (!esa[i-1][indexFnc].isValid_h) continue;
 
+        if (esa[i-1][indexFnc].isValid_f1) {
             h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
             h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
 
             h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
             h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
 
-            h1DeScale[4]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
-            h1DeScale[4]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
+            h1DeScale[6]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
+            h1DeScale[6]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
 
-            h1DeScale[5]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
-            h1DeScale[5]->SetBinError(i, 0);
+            h1DeScale[7]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
+            h1DeScale[7]->SetBinError(i, 0);
         }
 
         // arithmetic mean and std dev of energy scale distributions
-        double mean = esa[i-1][indexFnc].hMean;
-        double meanErr = esa[i-1][indexFnc].hMeanErr;
-        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinContent(i, mean);
-        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinError(i, meanErr);
+        double y = esa[i-1][indexFnc].hMean;
+        double yErr = esa[i-1][indexFnc].hMeanErr;
+        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinContent(i, y);
+        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinError(i, yErr);
 
-        double stdDev = esa[i-1][indexFnc].hStdDev;
-        double stdDevErr = esa[i-1][indexFnc].hStdDevErr;
-        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinContent(i, stdDev);
-        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinError(i, stdDevErr);
+        y= esa[i-1][indexFnc].hStdDev;
+        yErr = esa[i-1][indexFnc].hStdDevErr;
+        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinContent(i, y);
+        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinError(i, yErr);
+
+        y = esa[i-1][indexFnc].sigmaEff;
+        yErr = esa[i-1][indexFnc].sigmaEffErr;
+        h1DeScale[ENERGYSCALE::kERESEFF]->SetBinContent(i, y);
+        h1DeScale[ENERGYSCALE::kERESEFF]->SetBinError(i, yErr);
+
+        y = esa[i-1][indexFnc].sigmaHM;
+        yErr = esa[i-1][indexFnc].sigmaHMErr;
+        h1DeScale[ENERGYSCALE::kERESHM]->SetBinContent(i, y);
+        h1DeScale[ENERGYSCALE::kERESHM]->SetBinError(i, yErr);
     }
 }
 
@@ -1167,26 +1184,48 @@ void energyScaleHist::postLoop()
         if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
             h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
 
+        // width of energy scale with sigmaEff
+        iObs = ENERGYSCALE::kERESEFF;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(Form("%s (Effective)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
+        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+
+        // width of energy scale with sigmaHM
+        iObs = ENERGYSCALE::kERESHM;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        h1DeScale[iObs]->SetTitle(title.c_str());
+        h1DeScale[iObs]->SetXTitle(titleX.c_str());
+        setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(Form("%s (HM)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
+        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
+            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+
         // Constant for Gaussian fit
-        h1DeScale[4] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
-        h1DeScale[4]->SetTitle(title.c_str());
-        h1DeScale[4]->SetXTitle(titleX.c_str());
-        h1DeScale[4]->SetYTitle("Constant for Gaussian fit");
-        h1DeScale[4]->SetStats(false);
-        h1DeScale[4]->SetMarkerStyle(kFullCircle);
+        h1DeScale[6] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
+        h1DeScale[6]->SetTitle(title.c_str());
+        h1DeScale[6]->SetXTitle(titleX.c_str());
+        h1DeScale[6]->SetYTitle("Constant for Gaussian fit");
+        h1DeScale[6]->SetStats(false);
+        h1DeScale[6]->SetMarkerStyle(kFullCircle);
 
         // chi2/ndf for Gaussian fit
-        h1DeScale[5] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
-        h1DeScale[5]->SetTitle(title.c_str());
-        h1DeScale[5]->SetXTitle(titleX.c_str());
-        h1DeScale[5]->SetYTitle("chi2/ndf for Gaussian fit");
-        h1DeScale[5]->SetStats(false);
-        h1DeScale[5]->SetMarkerStyle(kFullCircle);
+        h1DeScale[7] = (TH1D*)aSlices.At(3)->Clone(Form("h1D_gausChi2ndf_%s", name.c_str()));
+        h1DeScale[7]->SetTitle(title.c_str());
+        h1DeScale[7]->SetXTitle(titleX.c_str());
+        h1DeScale[7]->SetYTitle("chi2/ndf for Gaussian fit");
+        h1DeScale[7]->SetStats(false);
+        h1DeScale[7]->SetMarkerStyle(kFullCircle);
 
         updateH1DsliceY();
 
         fitRecoGen();
-        // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[4], h1DeScale[5] are set by the initial fit from TH2::FitSlicesY
+        // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[6], h1DeScale[7] are set by the initial fit from TH2::FitSlicesY
         updateH1DeScale();
     }
 
@@ -1196,10 +1235,14 @@ void energyScaleHist::postLoop()
     calcFakeParticleRatioGenPt();
 
     // Final histograms point to observables
-    h1D[ENERGYSCALE::kESCALE] = h1DeScale[ENERGYSCALE::kESCALE];
-    h1D[ENERGYSCALE::kERES] = h1DeScale[ENERGYSCALE::kERES];
-    h1D[ENERGYSCALE::kESCALEARITH] = h1DeScale[ENERGYSCALE::kESCALEARITH];
-    h1D[ENERGYSCALE::kERESARITH] = h1DeScale[ENERGYSCALE::kERESARITH];
+    if (isValid_h2D) {
+        h1D[ENERGYSCALE::kESCALE] = h1DeScale[ENERGYSCALE::kESCALE];
+        h1D[ENERGYSCALE::kERES] = h1DeScale[ENERGYSCALE::kERES];
+        h1D[ENERGYSCALE::kESCALEARITH] = h1DeScale[ENERGYSCALE::kESCALEARITH];
+        h1D[ENERGYSCALE::kERESARITH] = h1DeScale[ENERGYSCALE::kERESARITH];
+        h1D[ENERGYSCALE::kERESEFF] = h1DeScale[ENERGYSCALE::kERESEFF];
+        h1D[ENERGYSCALE::kERESHM] = h1DeScale[ENERGYSCALE::kERESHM];
+    }
 
     if (isValid_hMatchEff)  h1D[ENERGYSCALE::kEFF] = hMatchEff;
     if (isValid_hFakeRatio)  h1D[ENERGYSCALE::kFAKE] = hFakeRatio;
@@ -1223,8 +1266,8 @@ void energyScaleHist::fitRecoGen()
 
         hTmp = h1DsliceY[i-1];
 
-        double p0 = h1DeScale[4]->GetBinContent(i);   // constant
-        double p0Err = h1DeScale[4]->GetBinError(i);
+        double p0 = h1DeScale[6]->GetBinContent(i);   // constant
+        double p0Err = h1DeScale[6]->GetBinError(i);
 
         double p1 = h1DeScale[ENERGYSCALE::kESCALE]->GetBinContent(i);   // mean
         double p1Err = h1DeScale[ENERGYSCALE::kESCALE]->GetBinError(i);
@@ -1253,7 +1296,7 @@ void energyScaleHist::fitRecoGen()
                 f1Tmp->SetParameters(p0, p1, p2);
                 double parErr[3] = {p0Err, p1Err, p2Err};
                 f1Tmp->SetParErrors(parErr);
-                //        double chi2ndf = h1DeScale[5]->GetBinContent(i);
+                //        double chi2ndf = h1DeScale[7]->GetBinContent(i);
                 //        f1Tmp->SetChisquare(chi2ndf*100);
                 //        f1Tmp->SetNDF(100);
             }
@@ -1629,7 +1672,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
         // energy scale
         int iObs = ENERGYSCALE::kESCALE;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
+        std::string label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1643,7 +1687,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
         // width of energy scale
         iObs = ENERGYSCALE::kERES;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1657,7 +1702,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
         // energy scale from histogram mean
         iObs = ENERGYSCALE::kESCALEARITH;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1671,7 +1717,38 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
         // width of energy scale from histogram std dev
         iObs = ENERGYSCALE::kERESARITH;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), name.c_str());
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // width of energy scale from histogram sigmaEff
+        iObs = ENERGYSCALE::kERESEFF;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1DeScale[iObs]->SetMarkerSize(markerSize);
+        h1DeScale[iObs]->Draw("e");
+        h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        setPad4Observable((TPad*) c, iObs);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // width of energy scale from histogram sigmaHM
+        iObs = ENERGYSCALE::kERESHM;
+        label = ENERGYSCALE::OBS_LABELS[iObs];
+        canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
