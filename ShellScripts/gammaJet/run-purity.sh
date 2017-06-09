@@ -26,4 +26,12 @@ do
         ./Performance/printPurity.exe CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INDIR}/${DATA_SAMPLE[ITERSAM]}_gammaJetSkim.root ${INDIR}/${MC_SAMPLE[ITERSAM]}_gammaJetSkim.root 1 &> ${OUTDIR}/${DATA_SAMPLE[ITERSAM]}_purity${SYS_SUFFIX[ITERSYS]}.log &
     done
     wait
+
+    for ITERSAM in 0 1 2 3
+    do
+        CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}${SYS_SUFFIX[ITERSYS]}
+        PURITY=$(tail -n1 ${OUTDIR}/${DATA_SAMPLE[ITERSAM]}_purity${SYS_SUFFIX[ITERSYS]}.log)
+
+        sed -i "s/histogram.photon.purity = .*/${PURITY}/g" CutConfigurations/gammaJet${CONFSUFFIX}.conf
+    done
 done

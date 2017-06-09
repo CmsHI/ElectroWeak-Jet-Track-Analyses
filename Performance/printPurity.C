@@ -220,12 +220,15 @@ int printPurity(const TString configFile, const TString inputFile, const TString
   inputMCFile->Close();
   /// End Purity Block ///
 
+  printf("histogram.photon.purity = {");
   for (int i = 0; i<nBins_pt; ++i) {
     for (int j = 0; j<nBins_hiBin; ++j) {
-      std::cout << purity[i][j] << ", ";
+      printf("%.6f", std::min(1.0, purity[i][j]));
+      if (i != nBins_pt - 1 || j != nBins_hiBin - 1)
+        printf(", ");
     }
   }
-  std::cout << std::endl;
+  printf("}\n");
 
   return 0;
 }
