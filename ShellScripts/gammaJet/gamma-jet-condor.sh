@@ -55,6 +55,10 @@ echo \$HOSTNAME
 # setup grid proxy
 export X509_USER_PROXY=\${PWD}/$PROXYFILE
 
+# set hadoop directory path for xrdcp
+PREFIX="/mnt/hadoop/cms/"
+XRDCP_PATH=\${3#\${PREFIX}}
+
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
 mv gammaJet*.conf CutConfigurations/
@@ -76,6 +80,16 @@ set -x
 if [[ \$? -eq 0 ]]; then
   gfal-copy file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
   gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+
+  if [[ \$? -ne 0 ]]; then
+    xrdcp gammaJetSkim_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
+    xrdcp gammaJetHistogram_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
+
+    if [[ \$? -ne 0 ]]; then
+      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+    fi
+  fi
 fi
 
 rm *.root
