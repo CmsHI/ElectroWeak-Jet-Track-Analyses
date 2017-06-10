@@ -3,13 +3,10 @@ if [[ $# -ne 5 ]]; then
   exit 1
 fi
 
-PROXYFILE=$(ls /tmp/ -lt | grep $USER | grep -m 1 x509 | awk '{print $NF}')
-
 now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-# gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
 mkdir -p $3
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
@@ -39,10 +36,9 @@ Error        = \$(Process).err
 Log          = \$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
-requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
+transfer_input_files = $BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
 
 Queue $4
 
@@ -52,13 +48,6 @@ cat > $now/skim-gamma-jet.sh <<EOF
 #!/bin/bash
 
 echo \$HOSTNAME
-
-# setup grid proxy
-export X509_USER_PROXY=\${PWD}/$PROXYFILE
-
-# set hadoop directory path for xrdcp
-PREFIX="/mnt/hadoop/cms/"
-XRDCP_PATH=\${3#\${PREFIX}}
 
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
@@ -78,22 +67,10 @@ set -x
 # run gammaJetHistogram
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
-if [[ \$? -eq 0 ]]; then
-  gfal-copy file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-  gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-
-  if [[ \$? -ne 0 ]]; then
-    xrdcp gammaJetSkim_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
-    xrdcp gammaJetHistogram_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
-
-    if [[ \$? -ne 0 ]]; then
-      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-    fi
-  fi
-fi
+mv gammaJetSkim_\${4}.root $3
+mv gammaJetHistogram_\${4}.root $3
 
 rm *.root
 EOF
 
-condor_submit $now/skim-gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
+condor_submit $now/skim-gamma-jet.condor
