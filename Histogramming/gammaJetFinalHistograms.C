@@ -47,9 +47,10 @@ int gammaJetFinalHistograms(const TString configFile,
 
     const int n_dphi_bins = 12;
     double dphi_bins[n_dphi_bins] = {
-        0, TMath::Pi()*3./10., TMath::Pi()/2., TMath::Pi()*3./5.,
-        TMath::Pi()*13./20., TMath::Pi()*7./10., TMath::Pi()*3./4., TMath::Pi()*4./5.,
-        TMath::Pi()*17./20., TMath::Pi()*9./10., TMath::Pi()*19./20., TMath::Pi()};
+        0, TMath::Pi() * 3. / 10., TMath::Pi() / 2., TMath::Pi() * 3. / 5.,
+        TMath::Pi() * 13. / 20., TMath::Pi() * 7. / 10., TMath::Pi() * 3. / 4., TMath::Pi() * 4. / 5.,
+        TMath::Pi() * 17. / 20., TMath::Pi() * 9. / 10., TMath::Pi() * 19. / 20., TMath::Pi()
+    };
     int dphi_nbins[n_dphi_bins - 1] = {6, 4, 2, 1, 1, 1, 1, 1, 1, 1, 1};
     TH1D* h_dphi_PbPb_Data_rebin[nPtBins][nCentBins];
     TH1D* h_dphi_PbPb_MC_rebin[nPtBins][nCentBins];
@@ -87,8 +88,8 @@ int gammaJetFinalHistograms(const TString configFile,
 
     TH1D* h_IAA[nPtBins][nCentBins];
 
-    for (int i=0; i<nPtBins; ++i) {
-        for (int j=0; j<nCentBins; ++j) {
+    for (int i = 0; i < nPtBins; ++i) {
+        for (int j = 0; j < nCentBins; ++j) {
             h_xjg_PbPb_Data[i][j] = (TH1D*)PbPb_Data_file->Get(Form("HI/h1D_xjg_ptBin%i_hiBin%i_phoSIG_jetSIG_final_norm", i, j));
             h_xjg_PbPb_MC[i][j] = (TH1D*)PbPb_MC_file->Get(Form("HIMC/h1D_xjg_ptBin%i_hiBin%i_phoSIG_jetSIG_final_norm", i, j));
             h_xjg_pp_Data[i][j] = (TH1D*)pp_Data_file->Get(Form("PP/h1D_xjg_ptBin%i_hiBin%i_phoSIG_jetSIG_final_norm", i, j));
@@ -153,10 +154,10 @@ int gammaJetFinalHistograms(const TString configFile,
             h_ptJet_pp_MC_rebin[i][j]->Write("", TObject::kOverwrite);
 
             h_IAA[i][j] = (TH1D*)h_ptJet_PbPb_Data_rebin[i][j]->Clone(Form("h1D_iaa_ptBin%i_hiBin%i_rebin", i, j));
-            h_IAA[i][j]->SetTitle(Form("%.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %%", ptBins[0][i], ptBins[1][i], centBins[0][j]/2, centBins[1][j]/2));
+            h_IAA[i][j]->SetTitle(Form("%.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %%", ptBins[0][i], ptBins[1][i], centBins[0][j] / 2, centBins[1][j] / 2));
             h_IAA[i][j]->Divide(h_ptJet_pp_Data_rebin[i][j]);
 
-            for (int k=iaa_bin_cutoff[i][j]; k<=h_IAA[i][j]->GetNbinsX(); ++k) {
+            for (int k = iaa_bin_cutoff[i][j]; k <= h_IAA[i][j]->GetNbinsX(); ++k) {
                 h_IAA[i][j]->SetBinContent(k, 0);
                 h_IAA[i][j]->SetBinError(k, 0);
                 h_ptJet_PbPb_Data_rebin[i][j]->SetBinContent(k, 0);
@@ -189,7 +190,7 @@ int gammaJetFinalHistograms(const TString configFile,
     TH1D* h_dphi_pedestal_cent_pp_Data[nPtBins];
     TH1D* h_dphi_pedestal_cent_pp_MC[nPtBins];
 
-    for (int i=0; i<nPtBins; ++i) {
+    for (int i = 0; i < nPtBins; ++i) {
         h_rjg_centBinAll_PbPb_Data[i] = (TH1D*)PbPb_Data_file->Get(Form("HI/h1D_rjg_centBinAll_ptBin%i_phoSIG_jetSIG", i));
         h_rjg_centBinAll_PbPb_MC[i] = (TH1D*)PbPb_MC_file->Get(Form("HIMC/h1D_rjg_centBinAll_ptBin%i_phoSIG_jetSIG", i));
         h_rjg_centBinAll_pp_Data[i] = (TH1D*)pp_Data_file->Get(Form("PP/h1D_rjg_centBinAll_ptBin%i_phoSIG_jetSIG", i));
@@ -251,7 +252,7 @@ int gammaJetFinalHistograms(const TString configFile,
     TH1D* h_dphi_pedestal_pt_pp_Data[nCentBins];
     TH1D* h_dphi_pedestal_pt_pp_MC[nCentBins];
 
-    for (int i=0; i<nCentBins; ++i) {
+    for (int i = 0; i < nCentBins; ++i) {
         h_rjg_ptBinAll_PbPb_Data[i] = (TH1D*)PbPb_Data_file->Get(Form("HI/h1D_rjg_ptBinAll_hiBin%i_phoSIG_jetSIG", i));
         h_rjg_ptBinAll_PbPb_MC[i] = (TH1D*)PbPb_MC_file->Get(Form("HIMC/h1D_rjg_ptBinAll_hiBin%i_phoSIG_jetSIG", i));
         h_rjg_ptBinAll_pp_Data[i] = (TH1D*)pp_Data_file->Get(Form("PP/h1D_rjg_ptBinAll_hiBin%i_phoSIG_jetSIG", i));
@@ -305,9 +306,9 @@ int gammaJetFinalHistograms(const TString configFile,
 }
 
 void renorm(TH1D* h1, int* nbins) {
-    for (int i=1; i<=h1->GetNbinsX(); ++i) {
-        h1->SetBinContent(i, h1->GetBinContent(i) / nbins[i-1]);
-        h1->SetBinError(i, h1->GetBinError(i) / nbins[i-1]);
+    for (int i = 1; i <= h1->GetNbinsX(); ++i) {
+        h1->SetBinContent(i, h1->GetBinContent(i) / nbins[i - 1]);
+        h1->SetBinError(i, h1->GetBinError(i) / nbins[i - 1]);
     }
 }
 

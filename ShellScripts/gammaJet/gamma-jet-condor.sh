@@ -29,7 +29,7 @@ BASELISTS="PbPb_Data_HiForest.list,PbPb_MC_Flt30_HiForest.list,pp_MC_HiForest.li
 cat > $now/skim-gamma-jet.condor <<EOF
 Universe     = vanilla
 Initialdir   = $PWD/$now
-#Request_memory = 4096
+# Request_memory = 4096
 Notification = Error
 Executable   = $PWD/$now/skim-gamma-jet.sh
 Arguments    = $1 $2 $3 \$(Process) $5
