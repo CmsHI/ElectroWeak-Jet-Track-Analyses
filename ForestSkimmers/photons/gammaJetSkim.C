@@ -73,7 +73,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   const int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
   const int doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
   const int doCorrectionL2L3 = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doCorrectionL2L3];
-  const float energyScaleJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
   const int doResidualCorrection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_doResidualCorrection];
   const std::string jetResidualCorrectionFile = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].s[CUTS::JET::k_residualCorrectionFile];
 
@@ -267,8 +266,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       }
     }
   }
-
-  std::vector<jetCorrector> correctorsJetJES(nJetCollections);
 
   // smearing set up block
   jetCorrector correctorsJetSmear[nJetCollections][nSmearBins + 1];
@@ -867,10 +864,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
         if (doCorrectionL2L3 > 0)
           correctorsL2L3[i].correctPtsL2L3(jets[i]);
 
-        // apply JES after corrections
-        if (energyScaleJet > 0 && energyScaleJet != 1)
-          correctorsJetJES.at(i).applyEnergyScale(jets[i], energyScaleJet);
-
         if (smearingResJetPhi > 0)
           correctorsJetSmear[i][0].applyPhisResolution(jets[i], smearingResJetPhi);
         if (smearingResJet > 0)
@@ -1002,10 +995,6 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
 
               if (doCorrectionL2L3 > 0)
                 correctorsL2L3[i].correctPtsL2L3(jetsMB[i]);
-
-              // apply JES after corrections
-              if (energyScaleJet > 0 && energyScaleJet != 1)
-                correctorsJetJES.at(i).applyEnergyScale(jetsMB[i], energyScaleJet);
 
               if (smearingResJetPhi > 0)
                 correctorsJetSmear[i][0].applyPhisResolution(jetsMB[i], smearingResJetPhi);
