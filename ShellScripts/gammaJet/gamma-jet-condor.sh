@@ -5,11 +5,10 @@ fi
 
 PROXYFILE=$(ls /tmp/ -lt | grep $USER | grep -m 1 x509 | awk '{print $NF}')
 
-now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
+now="/work/${USER}/$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-# gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
 mkdir -p $3
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
@@ -28,10 +27,10 @@ BASELISTS="PbPb_Data_HiForest.list,PbPb_MC_Flt30_HiForest.list,pp_MC_HiForest.li
 
 cat > $now/skim-gamma-jet.condor <<EOF
 Universe     = vanilla
-Initialdir   = $PWD/$now
+Initialdir   = $now
 # Request_memory = 4096
 Notification = Error
-Executable   = $PWD/$now/skim-gamma-jet.sh
+Executable   = $now/skim-gamma-jet.sh
 Arguments    = $1 $2 $3 \$(Process) $5
 GetEnv       = True
 Output       = \$(Process).out
@@ -45,7 +44,6 @@ when_to_transfer_output = ON_EXIT
 transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
 
 Queue $4
-
 EOF
 
 cat > $now/skim-gamma-jet.sh <<EOF
@@ -96,4 +94,4 @@ fi
 rm *.root
 EOF
 
-condor_submit $now/skim-gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
+condor_submit $now/skim-gamma-jet.condor
