@@ -95,7 +95,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const float cut_jeteta = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].f[CUTS::JET::k_eta];
     const int   cut_jetID = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].i[CUTS::JET::k_jetID];
 
-    // gammaJet cuts
+    // gamma-jet cuts
     const float cut_awayRange = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_awayRange] * TMath::Pi();
     const float cut_dR = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kGAMMAJET].f[CUTS::GJT::k_dR];
 
@@ -104,21 +104,27 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const bool doElectronRejection = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doElectronRejection];
     const bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     const bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
+    const float smearingRes = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
+    const float energyScale = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
-    const float smearingResJet = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
-    const bool doSmearingRes = (smearingResJet > 0);
-    const int sysUncFactor = 100;
+    const bool doResolutionSmearing = (smearingRes > 0);
+    const int nsmear = doResolutionSmearing ? 100 : 1;
+
+    const bool doJetEnergyScaling = (energyScale != 1 && energyScale != 0);
+    const float JES_factor = energyScale;
+
     TRandom3 rand(12345);
 
     const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     const int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+
     // verbose about cut configuration
     std::cout << "Cut Configuration :" << std::endl;
     std::cout << "nBins_pt = " << nBins_pt << std::endl;
-    for (int i=0; i<nBins_pt; ++i)
+    for (int i = 0; i < nBins_pt; ++i)
         std::cout << Form("bins_pt[%d] = [%.1f, %.1f)", i, bins_pt[0][i], bins_pt[1][i]) << std::endl;
     std::cout << "nBins_hiBin = " << nBins_hiBin << std::endl;
-    for (int i=0; i<nBins_hiBin; ++i)
+    for (int i = 0; i < nBins_hiBin; ++i)
         std::cout << Form("bins_hiBin[%d] = [%d, %d)", i, bins_hiBin[0][i], bins_hiBin[1][i]) << std::endl;
 
     std::cout << "trigger    = " << trigger.c_str() << std::endl;
@@ -137,8 +143,13 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     std::cout << "cut_dR                    = " << cut_dR << std::endl;
 
     std::cout << "doPhotonEnergyScaleSystematics = " << doPhotonEnergyScaleSystematics << std::endl;
-    std::cout << "doSmearingRes = " << doSmearingRes << std::endl;
-    std::cout << "smearingResJet = " << smearingResJet << std::endl;
+    std::cout << "doElectronRejection = " << doElectronRejection << std::endl;
+    std::cout << "doPhotonIsolationSys = " << doPhotonIsolationSys << std::endl;
+    std::cout << "useCorrectedSumIso = " << useCorrectedSumIso << std::endl;
+    std::cout << "doResolutionSmearing = " << doResolutionSmearing << std::endl;
+    if (doResolutionSmearing) std::cout << "smearingRes = " << smearingRes << std::endl;
+    std::cout << "doJetEnergyScaling = " << doJetEnergyScaling << std::endl;
+    if (doJetEnergyScaling) std::cout << "JES_factor = " << JES_factor << std::endl;
 
     /// Input Bookkeeping block ///
     TFile* input = TFile::Open(inputFile);
@@ -218,13 +229,13 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     tHlt->SetBranchAddress("HLT_HISinglePhoton50_Eta3p1_v2", &HLT_HISinglePhoton50_Eta3p1_v2);
     tHlt->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5ForPPRef_v1", &HLT_HISinglePhoton40_Eta1p5ForPPRef_v1);
 
-    TTree* gammaJetTree[nSmearBins+1];
+    TTree* gammaJetTree[nSmearBins + 1];
     gammaJetTree[0] = (TTree*)input->Get(Form("gamma_%s", jetCollection.c_str()));
-    for (int i=0; i<nSmearBins; i++)
-        gammaJetTree[i+1] = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), i));
+    for (int i = 0; i < nSmearBins; i++)
+        gammaJetTree[i + 1] = (TTree*)input->Get(Form("gamma_%s_smearBin%i", jetCollection.c_str(), i));
 
-    GammaJet gammaJet[nSmearBins+1];
-    for (int i=0; i<nSmearBins+1; i++)
+    GammaJet gammaJet[nSmearBins + 1];
+    for (int i = 0; i < nSmearBins + 1; i++)
         gammaJet[i].setupGammaJetTree(gammaJetTree[i]);
 
     TTree* jetTreeMB = 0;
@@ -262,10 +273,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
     // smear 0-10 %
     std::vector<double> CSN_HI_cent0010 = {0.06, 1.23, 8.38};
-    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781/10000000, 0.125911, 2.23898};
+    std::vector<double> CSN_phi_HI_cent0010 = {-3.18781 / 10000000, 0.125911, 2.23898};
     // smear 10-30 %
     std::vector<double> CSN_HI_cent1030 = {0.06, 1.23, 5.88};
-    std::vector<double> CSN_phi_HI_cent1030 = {1.14344/100000, 0.179847, 1.56128};
+    std::vector<double> CSN_phi_HI_cent1030 = {1.14344 / 100000, 0.179847, 1.56128};
     // smear 30-50 %
     std::vector<double> CSN_HI_cent3050 = {0.06, 1.23, 3.24};
     std::vector<double> CSN_phi_HI_cent3050 = {0.0145775, 0.1222, 1.21751};
@@ -276,40 +287,40 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     // 0-30 and 30-100 are necessary only for smeared pp JER computation
     // smear 0-30 %
     std::vector<double> CSN_HI_cent0030 = {0.06, 1.23, 7.38};
-    std::vector<double> CSN_phi_HI_cent0030 = {-1.303/1000000, 0.1651, 1.864};
+    std::vector<double> CSN_phi_HI_cent0030 = {-1.303 / 1000000, 0.1651, 1.864};
     // smear 30-100 %
     std::vector<double> CSN_HI_cent30100 = {0.06, 1.23, 2.1};
-    std::vector<double> CSN_phi_HI_cent30100 = {-2.013/100000000, 0.1646, 1.04};
+    std::vector<double> CSN_phi_HI_cent30100 = {-2.013 / 100000000, 0.1646, 1.04};
 
 
-    for (int i=0; i<6; ++i) {
+    for (int i = 0; i < 6; ++i) {
         resolutionJetSmear[i].rand = rand;
 
         switch (i) {
-        case 0: //0-10
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent0010;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0010;
-            break;
-        case 1: //10-30
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent1030;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent1030;
-            break;
-        case 2: //30-50
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent3050;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent3050;
-            break;
-        case 3: //50-100
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent50100;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent50100;
-            break;
-        case 4: // 0-30, for smeared pp only
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent0030;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0030;
-            break;
-        case 5: // 30-100, for smeared pp only
-            resolutionJetSmear[i].CSN_HI = CSN_HI_cent30100;
-            resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent30100;
-            break;
+            case 0: //0-10
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent0010;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0010;
+                break;
+            case 1: //10-30
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent1030;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent1030;
+                break;
+            case 2: //30-50
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent3050;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent3050;
+                break;
+            case 3: //50-100
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent50100;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent50100;
+                break;
+            case 4: // 0-30, for smeared pp only
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent0030;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent0030;
+                break;
+            case 5: // 30-100, for smeared pp only
+                resolutionJetSmear[i].CSN_HI = CSN_HI_cent30100;
+                resolutionJetSmear[i].CSN_phi_HI = CSN_phi_HI_cent30100;
+                break;
         }
     }
 
@@ -322,15 +333,15 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     output->cd(collisionName);
     std::cout << "histograms will be put under directory : " << collisionName << std::endl;
 
-    TTree *configTree = setupConfigurationTreeForWriting(configCuts);
+    TTree* configTree = setupConfigurationTreeForWriting(configCuts);
 
     int nCorrHist = correlationHistNames.size();
     correlationHist corrHists[nCorrHist][nBins_pt][nBins_hiBin];
 
     // prepare histogram names for xjg, abs(dphi) and jet pt
-    for (int iHist=0; iHist<nCorrHist; ++iHist) {
-        for (int i=0; i<nBins_pt; ++i) {
-            for (int j=0; j<nBins_hiBin; ++j) {
+    for (int iHist = 0; iHist < nCorrHist; ++iHist) {
+        for (int i = 0; i < nBins_pt; ++i) {
+            for (int j = 0; j < nBins_hiBin; ++j) {
                 corrHists[iHist][i][j].name = Form("%s_ptBin%d_hiBin%d", correlationHistNames[iHist].c_str(), i, j);
 
                 for (int iCorr = 0; iCorr < CORR::kN_CORRFNC; ++iCorr) {
@@ -353,8 +364,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     // those histograms have a single bin whose content is the number of photon events
     // they are just a tool to store number.
     TH1D* h_nPho[nBins_pt][nBins_hiBin][2];
-    for (int i=0; i<nBins_pt; ++i) {
-        for (int j=0; j<nBins_hiBin; ++j) {
+    for (int i = 0; i < nBins_pt; ++i) {
+        for (int j = 0; j < nBins_hiBin; ++j) {
             std::string histNamePhoRAW = Form("h_nPho_ptBin%d_hiBin%d_%s", i, j, CORR::CORR_PHO_LABELS[CORR::kRAW].c_str());
             h_nPho[i][j][CORR::kRAW] = new TH1D(histNamePhoRAW.c_str(), "", 1, 0, 1);
 
@@ -385,9 +396,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             return 1;
         }
 
-        firstEntry = floor(nentries/nJobs)*jobNum;
-        lastEntry = floor(nentries/nJobs)*(jobNum+1);
-        if (jobNum == nJobs-1)
+        firstEntry = floor(nentries / nJobs) * jobNum;
+        lastEntry = floor(nentries / nJobs) * (jobNum + 1);
+        if (jobNum == nJobs - 1)
             lastEntry = nentries;
 
         std::cout << "For this job " << jobNum << std::endl;
@@ -397,7 +408,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
     for (long long jentry = firstEntry; jentry < lastEntry; jentry++) {
         if (jentry % 2000 == 0 && nJobs == -1)
-            printf("current entry = %lli out of %lli : %3f%%\n", jentry, nentries, (double)jentry/nentries*100);
+            printf("current entry = %lli out of %lli : %3f%%\n", jentry, nentries, (double)jentry / nentries * 100);
 
         tHlt->GetEntry(jentry);
         // event selection
@@ -415,12 +426,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         // if (TMath::Abs((*pho.phoEta)[gammaJet[0].phoIdx]) > 1.44) continue;
 
         // noise cut
-        if (((*pho.phoE3x3)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 2./3.-0.03 &&
-             (*pho.phoE3x3)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 2./3.+0.03) &&
-            ((*pho.phoE1x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 1./3.-0.03 &&
-             (*pho.phoE1x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 1./3.+0.03) &&
-            ((*pho.phoE2x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] > 2./3.-0.03 &&
-             (*pho.phoE2x5)[gammaJet[0].phoIdx]/(*pho.phoE5x5)[gammaJet[0].phoIdx] < 2./3.+0.03)) continue;
+        if (((*pho.phoE3x3)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] > 2. / 3. - 0.03 &&
+                (*pho.phoE3x3)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] < 2. / 3. + 0.03) &&
+                ((*pho.phoE1x5)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] > 1. / 3. - 0.03 &&
+                 (*pho.phoE1x5)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] < 1. / 3. + 0.03) &&
+                ((*pho.phoE2x5)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] > 2. / 3. - 0.03 &&
+                 (*pho.phoE2x5)[gammaJet[0].phoIdx] / (*pho.phoE5x5)[gammaJet[0].phoIdx] < 2. / 3. + 0.03)) continue;
 
         // isolation cut
         if (useCorrectedSumIso) {
@@ -449,7 +460,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         bool isEle = false;
         if (doElectronRejection) {
             float eleEpTemp = 100.0;
-            for (int ie=0; ie<pho.nEle; ++ie) {
+            for (int ie = 0; ie < pho.nEle; ++ie) {
                 if ((*pho.elePt)[ie] < 10)
                     continue;
                 if (abs((*pho.eleEta)[ie] - (*pho.phoEta)[gammaJet[0].phoIdx]) > 0.03) // deta
@@ -468,7 +479,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
         // photon isolation systematic part (gen matching & genIso condition)
         if (isMC && doPhotonIsolationSys) {
-            if (!(((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx]!=-1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx])<5.0))) {
+            if (!(((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx] != -1) && (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx]) < 5.0))) {
                 // std::cout << "failedGenIso : mcCalIso = " << (pho.mcCalIsoDR04->at((*pho.pho_genMatchedIndex)[gammaJet[0].phoIdx]))<< std::endl;
                 continue;
             }
@@ -481,10 +492,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         float phoEt = doPhotonEnergyScaleSystematics ? (*pho.phoEtCorrected_sys)[gammaJet[0].phoIdx] : (*pho.phoEtCorrected)[gammaJet[0].phoIdx];
 
         // handle nEntriesPho separate from jet loop
-        for (int i=0; i<nBins_pt; ++i) {
+        for (int i = 0; i < nBins_pt; ++i) {
             if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
                 continue;
-            for (int j=0; j<nBins_hiBin; ++j) {
+            for (int j = 0; j < nBins_hiBin; ++j) {
                 if (isHI && (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j]))
                     continue;
                 for (int iHist = 0; iHist < nCorrHist; iHist++) {
@@ -494,10 +505,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             }
         }
 
-        if(doSmearingRes)
-            weight /= sysUncFactor;
+        weight /= nsmear;
 
-        for (int j=0; j<nBins_hiBin; ++j) {
+        for (int j = 0; j < nBins_hiBin; ++j) {
             int smearBin = 0;
             if (isHI) {
                 if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
@@ -514,36 +524,37 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             }
 
             for (int ijet = 0; ijet < jet.nref; ijet++) {
-                int multiplyJets = 1;
-                if(doSmearingRes)
-                    multiplyJets = sysUncFactor;
-                for(int iResSmear = 0; iResSmear < multiplyJets; iResSmear++){
+                for (int ismear = 0; ismear < nsmear; ismear++) {
                     float jetpt = (*jet.jtpt_smeared)[smearBin][ijet];
-                    float smearFactor = 1;
-                    if(doSmearingRes) {
-                        //smearFactor = rand.Gaus(1,smearingResJet);
-                        float SF = 1 + smearingResJet;
+
+                    // JER systematics
+                    float JER_factor = 1;
+                    if (doResolutionSmearing) {
+                        float smear_factor = 1 + smearingRes;
                         int resolutionBin = 0;
-                        if(isHI) {
+                        if (isHI) {
                             resolutionBin = getResolutionBin(evt.hiBin);
                         } else {
                             resolutionBin = getResolutionBinPP(smearBin);
                         }
                         float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
-                        smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
-                        jetpt *= smearFactor;
+                        JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
+                        jetpt *= JER_factor;
                     }
+
+                    // JES systematics
+                    if (doJetEnergyScaling) {
+                        jetpt *= JES_factor;
+                    }
+
                     // jet cuts
+                    if ((*gammaJet[smearBin].dR)[ijet] < cut_dR) continue;
+                    if (jetpt < cut_jetpt) continue;
                     // jteta cut moved to skim
                     // if (TMath::Abs(jet.jteta[ijet]) > cut_jeteta) continue;
-                    if ((*gammaJet[0].jetID)[ijet] < cut_jetID)
-                        continue;
-                    if (jetpt < cut_jetpt)
-                        continue;
-                    if ((*gammaJet[smearBin].dR)[ijet] < cut_dR)
-                        continue;
+                    if ((*gammaJet[0].jetID)[ijet] < cut_jetID) continue;
 
-                    for (int i=0; i<nBins_pt; ++i) {
+                    for (int i = 0; i < nBins_pt; ++i) {
                         if (phoEt <  bins_pt[0][i] || phoEt >= bins_pt[1][i])
                             continue;
 
@@ -553,15 +564,16 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         corrHists[1][i][j].nEntries[phoType][CORR::kRAW] += weight;
                         ++corrHists[1][i][j].nEntriesRaw[phoType][CORR::kRAW];
 
-                        //apply dphi cuts now
+                        // apply dphi cuts now
                         if (TMath::Abs((*gammaJet[smearBin].dphi)[ijet]) <= cut_awayRange)
                             continue;
-                        // xjg = 0
-                        // jtpt = 2
+
+                        // xjg = 0, jtpt = 2
                         float xjg = doPhotonEnergyScaleSystematics ? (*gammaJet[smearBin].xjgCorrected_sys)[ijet] : (*gammaJet[smearBin].xjgCorrected)[ijet];
-                        if(doSmearingRes){
-                            xjg *= smearFactor;
-                        }
+                        // JER, JES systematics
+                        if (doResolutionSmearing) { xjg *= JER_factor; }
+                        if (doJetEnergyScaling) { xjg *= JES_factor; }
+
                         corrHists[0][i][j].h1D[phoType][CORR::kRAW]->Fill(xjg, weight);
                         corrHists[0][i][j].nEntries[phoType][CORR::kRAW] += weight;
                         ++corrHists[0][i][j].nEntriesRaw[phoType][CORR::kRAW];
@@ -578,36 +590,36 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             gammaJetTreeMB->GetEntry(jentry);
 
             for (int ijet = 0; ijet < jetMB.nref; ijet++) {
-                int multiplyJets = 1;
-                if(doSmearingRes)
-                    multiplyJets = sysUncFactor;
-                for(int iResSmear = 0; iResSmear < multiplyJets; iResSmear++){
+                for (int ismear = 0; ismear < nsmear; ismear++) {
                     float jetpt = jetMB.jtpt[ijet];
-                    float smearFactor = 1;
-                    if(doSmearingRes) {
-                        //smearFactor = rand.Gaus(1,smearingResJet);
-                        float SF = 1 + smearingResJet;
+
+                    // JER systematics
+                    float JER_factor = 1;
+                    if (doResolutionSmearing) {
+                        float smear_factor = 1 + smearingRes;
                         int resolutionBin = 0;
                         resolutionBin = getResolutionBin(evt.hiBin);
                         float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
-                        smearFactor = rand.Gaus(1, SF * initialResolution * sqrt(SF*SF - 1));
-                        jetpt *= smearFactor;
+                        JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
+                        jetpt *= JER_factor;
+                    }
+
+                    // JES systematics
+                    if (doJetEnergyScaling) {
+                        jetpt *= JES_factor;
                     }
 
                     // jet cuts
-                    if ((*gammaJetMB.dR)[ijet] < cut_dR)
-                        continue;
-                    // jteta cut moved to skim
+                    if ((*gammaJetMB.dR)[ijet] < cut_dR) continue;
+                    if (jetpt < cut_jetpt) continue;
+                    // jteta cut applied in skim
                     // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
-                    if (jetpt < cut_jetpt)
-                        continue;
-                    if ((*gammaJetMB.jetID)[ijet] < cut_jetID)
-                        continue;
+                    if ((*gammaJetMB.jetID)[ijet] < cut_jetID) continue;
 
-                    for (int i=0; i<nBins_pt; ++i) {
+                    for (int i = 0; i < nBins_pt; ++i) {
                         if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
-                            (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
-                        for (int j=0; j<nBins_hiBin; ++j) {
+                                (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
+                        for (int j = 0; j < nBins_hiBin; ++j) {
                             if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
                                 continue;
 
@@ -616,15 +628,18 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                             corrHists[1][i][j].h1D[phoType][CORR::kBKG]->Fill(TMath::Abs((*gammaJetMB.dphi)[ijet]), weight);
                             corrHists[1][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             ++corrHists[1][i][j].nEntriesRaw[phoType][CORR::kBKG];
+
                             // apply dphi cuts now
                             if (TMath::Abs((*gammaJetMB.dphi)[ijet]) <= cut_awayRange)
                                 continue;
-                            // xjg = 0
-                            // jtpt = 2
+
+                            // xjg = 0, jtpt = 2
                             float xjg = doPhotonEnergyScaleSystematics ? (*gammaJetMB.xjgCorrected_sys)[ijet] : (*gammaJetMB.xjgCorrected)[ijet];
-                            if(doSmearingRes){
-                                xjg *= smearFactor;
-                            }
+
+                            // JER, JES systematics
+                            if (doResolutionSmearing) { xjg *= JER_factor; }
+                            if (doJetEnergyScaling) { xjg *= JES_factor; }
+
                             corrHists[0][i][j].h1D[phoType][CORR::kBKG]->Fill(xjg, weight);
                             corrHists[0][i][j].nEntries[phoType][CORR::kBKG] += weight;
                             ++corrHists[0][i][j].nEntriesRaw[phoType][CORR::kBKG];
@@ -640,8 +655,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
     /// Histogram arithmetic (no reading I/O)
     for (int iHist = 0; iHist < nCorrHist; iHist++) {
-        for (int i=0; i<nBins_pt; ++i) {
-            for (int j=0; j<nBins_hiBin; ++j) {
+        for (int i = 0; i < nBins_pt; ++i) {
+            for (int j = 0; j < nBins_hiBin; ++j) {
                 corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kRAW][CORR::kRAW];
                 corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kRAW][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPhoRaw[CORR::kRAW][CORR::kRAW];
                 corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kBKG] = corrHists[iHist][i][j].nEntriesPho[CORR::kBKG][CORR::kRAW];
@@ -668,17 +683,17 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
                 std::string histoTitle;
                 if (bins_pt[1][i] == 9999 && bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200)
-                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName , bins_pt[0][i]);
+                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c", collisionName, bins_pt[0][i]);
                 else if (bins_hiBin[0][j] <= 0 && bins_hiBin[1][j] >= 200)
-                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName , bins_pt[0][i], bins_pt[1][i]);
+                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c", collisionName, bins_pt[0][i], bins_pt[1][i]);
                 else if (bins_pt[1][i] == 9999)
-                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c, %d-%d %% ", collisionName , bins_pt[0][i], bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
+                    histoTitle = Form("%s , p^{#gamma}_{T} > %.0f GeV/c, %d-%d %% ", collisionName, bins_pt[0][i], bins_hiBin[0][j] / 2, bins_hiBin[1][j] / 2);
                 else
-                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %% ", collisionName , bins_pt[0][i], bins_pt[1][i], bins_hiBin[0][j]/2, bins_hiBin[1][j]/2);
+                    histoTitle = Form("%s , %.0f < p^{#gamma}_{T} < %.0f GeV/c, %d-%d %% ", collisionName, bins_pt[0][i], bins_pt[1][i], bins_hiBin[0][j] / 2, bins_hiBin[1][j] / 2);
 
                 // histograms for RAW and BKG regions
-                for (int iCorr = 0; iCorr < CORR::kN_CORRFNC-1; ++iCorr) {
-                    for (int jCorr = 0; jCorr < CORR::kN_CORRFNC-1; ++jCorr) {
+                for (int iCorr = 0; iCorr < CORR::kN_CORRFNC - 1; ++iCorr) {
+                    for (int jCorr = 0; jCorr < CORR::kN_CORRFNC - 1; ++jCorr) {
                         if (jCorr == CORR::kBKG && !isHI) continue;      // no jet background for non-HI
 
                         std::string titleX = corrHists[iHist][i][j].h1D_titleX[iCorr][jCorr].c_str();
@@ -706,34 +721,34 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     return 0;
 }
 
-int getResolutionBin(int hiBin){
+int getResolutionBin(int hiBin) {
     int boundaries[4] = {20, 60, 100, 200};
-    for(int i = 0; i < 4; ++i){
-        if(hiBin < boundaries[i])
+    for (int i = 0; i < 4; ++i) {
+        if (hiBin < boundaries[i])
             return i;
     }
     std::cout << "Warning, getResolutionBin out of bounds." << std::endl;
     return 0;
 }
 
-int getResolutionBinPP(int smearBin){
-    switch(smearBin){
-    case 0: // no smearing? make something up...
-        return 0;
-    case 1: // 0-30%
-        return 4;
-    case 2: // 30-100%
-        return 5;
-    case 3: // 0-10%
-        return 0;
-    case 4: // 10-30%
-        return 1;
-    case 5: // 30-50%
-        return 2;
-    case 6: // 50-100%
-        return 3;
-    case 7: //sys ? make something up...
-        return 0;
+int getResolutionBinPP(int smearBin) {
+    switch (smearBin) {
+        case 0: // no smearing? make something up...
+            return 0;
+        case 1: // 0-30%
+            return 4;
+        case 2: // 30-100%
+            return 5;
+        case 3: // 0-10%
+            return 0;
+        case 4: // 10-30%
+            return 1;
+        case 5: // 30-50%
+            return 2;
+        case 6: // 50-100%
+            return 3;
+        case 7: //sys ? make something up...
+            return 0;
     }
     std::cout << "Warning, getResolutionBinPP out of bounds." << std::endl;
     return 0;
