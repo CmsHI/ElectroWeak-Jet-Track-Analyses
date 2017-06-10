@@ -9,7 +9,8 @@ now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
+# gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
+mkdir -p $3
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
 

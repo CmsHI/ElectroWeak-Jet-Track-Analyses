@@ -15,7 +15,6 @@ set -x
 HADOOPDIR=$1
 OUTDIR=$2
 MIXDIR=$3
-gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$HADOOPDIR
 mkdir -p $OUTDIR
 
 SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
@@ -31,7 +30,6 @@ if [[ $4 -eq 0 ]]; then
     do
         if [[ $5 -ne 2 ]]; then
             CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
-            gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/
             ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
         fi
 
@@ -39,7 +37,6 @@ if [[ $4 -eq 0 ]]; then
             for ITERSYS in 0 1
             do
                 CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}${SYS_SUFFIX[ITERSYS]}
-                gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$HADOOPDIR/${SAMPLE[ITERSAM]}${SYS_SUFFIX[ITERSYS]}_unmerged/
                 ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}${SYS_SUFFIX[ITERSYS]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
             done
         fi
