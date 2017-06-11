@@ -25,7 +25,7 @@ enum MATCHRATIO_DEP {   // matching efficiency / fake ratio dependencies
     kN_MATCHRATIO_DEP
 };
 
-std::string MATCHRATIO_DEP_LABELS[kN_MATCHRATIO_DEP] = {
+const std::string MATCHRATIO_DEP_LABELS[kN_MATCHRATIO_DEP] = {
         "ETA",
         "GENPT",
         "RECOPT",

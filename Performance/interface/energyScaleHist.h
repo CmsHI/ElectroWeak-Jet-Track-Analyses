@@ -2290,6 +2290,27 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
         }
     }
 
+    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH) {
+
+        // draw horizontal lines
+        std::vector<double> linesH = {0.96, 1.04, 1.1};
+        for (int i = 0; i < (int)linesH.size(); ++i) {
+
+            double y = linesH.at(i);
+
+            double x1 = p->GetUxmin();
+            double x2 = p->GetUxmax();
+            double y1 = p->GetUymin();
+            double y2 = p->GetUymax();
+            if (y1 < y && y < y2) {
+                line = new TLine(x1, y, x2, y);
+                line->SetLineStyle(kDotted);
+                line->SetLineWidth(line->GetLineWidth()*2);
+                line->Draw();
+            }
+        }
+    }
+
     if (iObs == ENERGYSCALE::kERES || iObs == ENERGYSCALE::kERESARITH ||
         iObs == ENERGYSCALE::kERESEFF || iObs == ENERGYSCALE::kERESHM) {
 
