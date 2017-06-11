@@ -17,6 +17,7 @@
 #include <TCanvas.h>
 
 #include <string>
+#include <vector>
 #include <map>
 
 #include "../../Utilities/th1Util.h"
@@ -1777,6 +1778,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
         for (int j = 0; j < nTmp; ++j) {
             h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
             h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
+            if (j == 0) {
+                h1DeScale[tmpIndices[j]]->SetMarkerStyle(kFullSquare);
+                h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.3);
+            }
             if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
             else        h1DeScale[tmpIndices[j]]->Draw("e same");
             leg->AddEntry(h1DeScale[tmpIndices[j]], tmpLabels[j].c_str(), "lpf");
@@ -1807,6 +1812,10 @@ void energyScaleHist::writeObjects(TCanvas* c)
         for (int j = 0; j < nTmp; ++j) {
             h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
             h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
+            if (j == 0) {
+                h1DeScale[tmpIndices[j]]->SetMarkerStyle(kFullSquare);
+                h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.3);
+            }
             if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
             else        h1DeScale[tmpIndices[j]]->Draw("e same");
             leg->AddEntry(h1DeScale[tmpIndices[j]], tmpLabels[j].c_str(), "lpf");
@@ -2161,8 +2170,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
             hFakeOtherRatio->Draw("e same");
             leg->AddEntry(hFakeOtherRatio, "Other", "lpf");
         }
-        double legHeight = calcTLegendHeight(leg);
-        double legWidth = calcTLegendWidth(leg);
+        legHeight = calcTLegendHeight(leg);
+        legWidth = calcTLegendWidth(leg);
         int nLegRows = leg->GetNRows();
         if (nLegRows >= 6) {
             leg->SetNColumns(2);
@@ -2233,8 +2242,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
              hFakeOtherRatioGenPt->Draw("e same");
              leg->AddEntry(hFakeOtherRatioGenPt, "Other", "lpf");
          }
-         double legHeight = calcTLegendHeight(leg);
-         double legWidth = calcTLegendWidth(leg);
+         legHeight = calcTLegendHeight(leg);
+         legWidth = calcTLegendWidth(leg);
          int nLegRows = leg->GetNRows();
          if (nLegRows >= 6) {
              leg->SetNColumns(2);
