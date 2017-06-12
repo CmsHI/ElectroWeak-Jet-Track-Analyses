@@ -1219,7 +1219,7 @@ int  preLoop(TFile* input, bool makeNew)
                             xTitle = "photon #eta";
                             makeObject = true;
                         }
-                        else if (iGenPt == 0 && iDep == ENERGYSCALE::kGENPT && nBins_genPt > 1) {
+                        else if (iGenPt == 0 && iDep == ENERGYSCALE::kGENPT) {
                             strDep = "depGenPt";
                             xTitle = "Gen p_{T} (GeV/c)";
                             makeObject = true;
@@ -1803,7 +1803,11 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     if (iObs == ENERGYSCALE::kFAKE) {
 
         // plot fake rate in log-scale as well
-        double minContent = getMinimumTH1DContent(vecH1D, 0);
+        int minTH1Dindex = getMinimumTH1Dindex(vecH1D, 0);
+        int minBin = -1;
+        if (minTH1Dindex > -1) minBin = getMinimumBin(vecH1D[minTH1Dindex], 0);
+        double minContent = 0.001;
+        if (minTH1Dindex > -1 && minBin > -1) minContent = vecH1D[minTH1Dindex]->GetBinContent(minBin);
         double logYmin = TMath::Floor(TMath::Log10(minContent));
         for (int i = 0; i < nBins; ++i) {
             vecH1D[i]->SetMinimum(TMath::Power(10, logYmin));

@@ -2079,7 +2079,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Write("",TObject::kOverwrite);
 
         // plot fake rate in log-scale as well
-        double minContent = hFakeRatio->GetBinContent(getMinimumBin(hFakeRatio, 0));
+        int minBin = getMinimumBin(hFakeRatio, 0);
+        double minContent = 0.001;
+        if (minBin > -1) minContent = hFakeRatio->GetBinContent(minBin);
         double logYmin = TMath::Floor(TMath::Log10(minContent));
         hFakeRatio->SetMinimum(TMath::Power(10, logYmin));
         c->SetLogy(1);
@@ -2110,7 +2112,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Write("",TObject::kOverwrite);
 
         // plot fake rate in log-scale as well
-        double minContent = getMinimum(gFakeRatio, 0);
+        int minBinIndex = getMinimumBinIndex(gFakeRatio, 0);
+        double minContent = 0.001;
+        if (minBinIndex > -1) minContent = getMinimum(gFakeRatio, 0);
         double logYmin = TMath::Floor(TMath::Log10(minContent));
         hTmp->SetMinimum(TMath::Power(10, logYmin));
         c->SetLogy(1);
