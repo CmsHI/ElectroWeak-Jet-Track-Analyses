@@ -9,6 +9,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TF1.h>
+#include <TFormula.h>
 #include <TGraph.h>
 #include <TGraphAsymmErrors.h>
 #include <TMath.h>
@@ -192,6 +193,13 @@ public :
         sigmaEffErr = -1;
         sigmaHM = -1;
         sigmaHMErr = -1;
+
+        f1Mean = -1;
+        f1MeanErr = -1;
+        f1Sigma = -1;
+        f1SigmaErr = -1;
+        f1Chi2 = -1;
+        f1Ndf = -1;
     };
     ~eScaleAna(){};
 
@@ -286,6 +294,18 @@ public :
 
         calcSigmaEff();
         calcSigmaHM();
+
+        if (isValid_f1) {
+            if (f1->GetExpFormula() == "[Constant]*exp(-0.5*((x-[Mean])/[Sigma])*((x-[Mean])/[Sigma]))") {
+
+                f1Mean = f1->GetParameter(1);
+                f1MeanErr = f1->GetParError(1);
+                f1Sigma = f1->GetParameter(2);
+                f1SigmaErr = f1->GetParError(2);
+                f1Chi2 = f1->GetChisquare();
+                f1Ndf = f1->GetNDF();
+            }
+        }
     };
 
     TH1D* h;       // energy scale distribution
@@ -306,6 +326,14 @@ public :
     double sigmaEffErr;
     double sigmaHM;   // full-width-at-half-maximum (FWHM) of the distribution divided by 2.355
     double sigmaHMErr;
+
+    // Function parameters for a "gaus" function
+    double f1Mean;
+    double f1MeanErr;
+    double f1Sigma;
+    double f1SigmaErr;
+    double f1Chi2;
+    int    f1Ndf;
 };
 
 class energyScaleHist {
@@ -891,16 +919,16 @@ void energyScaleHist::updateH1DeScale()
         if (!esa[i-1][indexFncFinal].isValid_h) continue;
 
         if (esa[i-1][indexFncFinal].isValid_f1) {
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(1));
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(1));
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFncFinal].f1Mean);
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFncFinal].f1MeanErr);
 
-            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(2));
-            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(2));
+            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFncFinal].f1Sigma);
+            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFncFinal].f1SigmaErr);
 
             h1DeScale[6]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(0));
             h1DeScale[6]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(0));
 
-            h1DeScale[7]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetChisquare()/esa[i-1][indexFncFinal].f1->GetNDF());
+            h1DeScale[7]->SetBinContent(i, esa[i-1][indexFncFinal].f1Chi2/esa[i-1][indexFncFinal].f1Ndf);
             h1DeScale[7]->SetBinError(i, 0);
         }
 
@@ -1811,6 +1839,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
+            // show title only for histograms in the 1st row
+            if (i >= columns) {
+                h1DsliceY[i]->SetTitle("");
+            }
+
             h1DsliceY[i]->SetMarkerSize(markerSize);
             //h1DsliceY[i]->Draw("axis");     // for now draw only axis, points will be plotted after the fit functions
             h1DsliceY[i]->Draw("e");
@@ -1855,11 +1888,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
             // mean values and resolutions from fit
             if (esa[i][indexFncFinal].isValid_f1) {
                 textLinesTmp.clear();
-                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(1), esa[i][indexFncFinal].f1->GetParError(1));
+                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1Mean, esa[i][indexFncFinal].f1MeanErr);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(2), esa[i][indexFncFinal].f1->GetParError(2));
+                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1Sigma, esa[i][indexFncFinal].f1SigmaErr);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1->GetChisquare());
+                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1Chi2);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
                 int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
                 latex->SetTextColor(lineColor);
@@ -1901,6 +1934,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
                     esa[i][iFnc].hPull->SetMarkerSize(markerSize);
 
                     if (iFnc != indexFncFinal)  esa[i][iFnc].hPull->SetMarkerStyle(kOpenSquare);
+
+                    // show title only for histograms in the 1st row
+                    if (i >= columns) {
+                        esa[i][iFnc].hPull->SetTitle("");
+                    }
 
                     std::string drawOption = "e same";
                     if (iFnc == 1)  drawOption = "e";
@@ -1953,11 +1991,11 @@ void energyScaleHist::writeObjects(TCanvas* c)
             // mean values and resolutions from fit
             if (esa[i][indexFncFinal].isValid_f1) {
                 textLinesTmp.clear();
-                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(1), esa[i][indexFncFinal].f1->GetParError(1));
+                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1Mean, esa[i][indexFncFinal].f1MeanErr);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(2), esa[i][indexFncFinal].f1->GetParError(2));
+                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1Sigma, esa[i][indexFncFinal].f1SigmaErr);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1->GetChisquare());
+                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1Chi2);
                 if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
                 int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
                 latex->SetTextColor(lineColor);
