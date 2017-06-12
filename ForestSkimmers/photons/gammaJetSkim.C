@@ -9,7 +9,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/gammaJetTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../Plotting/commonUtility.h"
+#include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"

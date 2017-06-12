@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "ggHiNtuplizerTree.h"
-#include "../Plotting/commonUtility.h"
+#include "../Utilities/physicsUtil.h"
 
 class diphoton {
 public :

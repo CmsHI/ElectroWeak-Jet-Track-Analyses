@@ -42,8 +42,8 @@
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
+#include "../../Utilities/physicsUtil.h"
 #include "../interface/energyScaleHist.h"
-#include "../../Plotting/commonUtility.h"
 
 ///// global variables
 /// configuration variables
@@ -177,7 +177,7 @@ enum MODES {
     kFakeComposition,
     kN_MODES
 };
-const string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
+const std::string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
 std::vector<bool> runMode;
 // object for set of all possible energy scale histograms
 energyScaleHist hist[ENERGYSCALE::kN_DEPS][10][10][10][10];
@@ -511,7 +511,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 }
 
                 // look for matching RECO particle
-                double deltaR = 0.15;
+                double deltaR2 = 0.15*0.15;
                 int iReco = -1;
                 double recoPt = -1;
                 for (int j = 0; j < ggHi.nPho; ++j) {
@@ -539,7 +539,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                                 (*ggHi.pho_trackIsoR4PtCut20)[j]) < cut_sumIso))   continue;
                     }
 
-                    if (getDR((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR && (*ggHi.phoEt)[j] > recoPt ) {
+                    if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
                         iReco = j;
                         recoPt = (*ggHi.phoEt)[j];
                     }
@@ -647,13 +647,13 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 if (!isMatched2GenPhoton) {
 
                     // identify GEN-level particle that matches the fake at RECO-level
-                    double deltaR = 0.15;
+                    double deltaR2 = 0.15*0.15;
 
                     bool useggHiMC = false;
                     if (useggHiMC) {
                         for (int iMC = 0; iMC < ggHi.nMC; ++iMC) {
                             if ((*ggHi.mcStatus)[iMC] == 1 &&
-                                    getDR(eta, phi, (*ggHi.mcEta)[iMC], (*ggHi.mcPhi)[iMC]) < deltaR &&
+                                    getDR2(eta, phi, (*ggHi.mcEta)[iMC], (*ggHi.mcPhi)[iMC]) < deltaR2 &&
                                     (*ggHi.mcPt)[iMC] > fakeGenPt) {
 
                                 fakeGenPt = (*ggHi.mcPt)[iMC];
@@ -663,7 +663,7 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                     }
                     else {
                         for (int iMC = 0; iMC < hiGen.mult; ++iMC) {
-                            if (getDR(eta, phi, (*hiGen.eta)[iMC], (*hiGen.phi)[iMC]) < deltaR &&
+                            if (getDR2(eta, phi, (*hiGen.eta)[iMC], (*hiGen.phi)[iMC]) < deltaR2 &&
                                     (*hiGen.pt)[iMC] > fakeGenPt) {
 
                                 fakeGenPt = (*hiGen.pt)[iMC];

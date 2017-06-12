@@ -30,7 +30,7 @@
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/styleUtil.h"
-#include "../../Plotting/commonUtility.h"
+#include "../../Utilities/physicsUtil.h"
 
 void photonTrigger(const TString configFile, const TString inputFile, const TString outputFile = "photonTrigger.root", const TString outputFigureName = "");
 int setBranchAdressTrigger(TTree* tree, std::string branch, int & branchVal);

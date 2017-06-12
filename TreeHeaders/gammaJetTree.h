@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "../Plotting/commonUtility.h"
+#include "../Utilities/physicsUtil.h"
 #include "ggHiNtuplizerTree.h"
 #include "JetTree.h"
 

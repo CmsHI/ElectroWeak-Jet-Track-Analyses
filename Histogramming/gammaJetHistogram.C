@@ -14,7 +14,7 @@
 #include "../TreeHeaders/gammaJetTree.h"
 #include "../TreeHeaders/hiEvtTree.h"
 #include "../TreeHeaders/ggHiNtuplizerTree.h"
-#include "../Plotting/commonUtility.h"
+#include "../Utilities/physicsUtil.h"
 #include "../Utilities/eventUtil.h"
 #include "../Corrections/jets/jetCorrector.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
