@@ -1,9 +1,9 @@
 /*
- * general purpose class for energy scale histograms
+ * general purpose class for reconstruction analysis
  */
 
-#ifndef PERFORMANCE_INTERFACE_ENERGYSCALEHIST_H_
-#define PERFORMANCE_INTERFACE_ENERGYSCALEHIST_H_
+#ifndef PERFORMANCE_INTERFACE_RECOANALYZER_H_
+#define PERFORMANCE_INTERFACE_RECOANALYZER_H_
 
 #include <TH1.h>
 #include <TH1D.h>
@@ -24,9 +24,9 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/tgraphUtil.h"
 
-namespace ENERGYSCALE {
+namespace RECOANA {
 
-enum DEPS {   // energy scale dependencies
+enum DEPS {   // reco performance dependencies
     kETA,
     kGENPT,
     kRECOPT,
@@ -173,9 +173,9 @@ const int particlesColor[kN_FakeCand] =
 /*
  * class to organize the analysis of the 1D energy scale distribution
  */
-class eScaleAna {
+class eScaleAnalyzer {
 public :
-    eScaleAna(){
+    eScaleAnalyzer(){
         h = 0;
         f1 = 0;
         hPull = 0;
@@ -201,7 +201,7 @@ public :
         f1Chi2 = -1;
         f1Ndf = -1;
     };
-    ~eScaleAna(){};
+    ~eScaleAnalyzer(){};
 
     bool fit() {
         if (isValid_h && isValid_f1) {
@@ -296,7 +296,8 @@ public :
         calcSigmaHM();
 
         if (isValid_f1) {
-            if (f1->GetExpFormula() == "[Constant]*exp(-0.5*((x-[Mean])/[Sigma])*((x-[Mean])/[Sigma]))") {
+            if (f1->GetExpFormula() == "gaus" ||
+                f1->GetExpFormula() == "[Constant]*exp(-0.5*((x-[Mean])/[Sigma])*((x-[Mean])/[Sigma]))") {
 
                 f1Mean = f1->GetParameter(1);
                 f1MeanErr = f1->GetParError(1);
@@ -336,9 +337,9 @@ public :
     int    f1Ndf;
 };
 
-class energyScaleHist {
+class recoAnalyzer {
 public :
-    energyScaleHist(){
+    recoAnalyzer(){
         nBinsX = 0;
         h2D = 0;
 
@@ -355,8 +356,8 @@ public :
         isValid_hEscale = false;
         isValid_h2Dcorr = false;
 
-        indexFncFinal = ENERGYSCALE::kGAUS_95;
-        indicesFnc = {ENERGYSCALE::kGAUS_95};
+        indexFncFinal = RECOANA::kGAUS_95;
+        indicesFnc = {RECOANA::kGAUS_95};
 
         hMatchNum = 0;
         hMatchDenom = 0;
@@ -378,13 +379,13 @@ public :
         isValid_gFakeRatio = false;
 
         fakeIndices = {
-                ENERGYSCALE::FAKECAND::k_kaonS,
-                ENERGYSCALE::FAKECAND::k_pionch,
-                ENERGYSCALE::FAKECAND::k_kaonL,
-                ENERGYSCALE::FAKECAND::k_kaonch,
-                ENERGYSCALE::FAKECAND::k_electron,
-                ENERGYSCALE::FAKECAND::k_nucleon,
-                ENERGYSCALE::FAKECAND::k_lambda,
+                RECOANA::FAKECAND::k_kaonS,
+                RECOANA::FAKECAND::k_pionch,
+                RECOANA::FAKECAND::k_kaonL,
+                RECOANA::FAKECAND::k_kaonch,
+                RECOANA::FAKECAND::k_electron,
+                RECOANA::FAKECAND::k_nucleon,
+                RECOANA::FAKECAND::k_lambda,
         };
 
         nFakeParticles = fakeIndices.size();
@@ -406,7 +407,7 @@ public :
         for (int i = 0; i < nFakeParticles; ++i) {
 
             int index = fakeIndices.at(i);
-            fakeParticles[i] = ENERGYSCALE::particles[index];
+            fakeParticles[i] = RECOANA::particles[index];
 
             hFakeParticle[i] = 0;
             hFakeParticleRatio[i] = 0;
@@ -449,12 +450,12 @@ public :
         yMin = {0, 0};
         yMax = {-1, -1};
 
-        for (int i=0; i<ENERGYSCALE::kN_DEPS; ++i) {
+        for (int i=0; i<RECOANA::kN_DEPS; ++i) {
             ranges[i][0] = 0;
             ranges[i][1] = -1;  // no upper bound
         }
     };
-    ~energyScaleHist(){};
+    ~recoAnalyzer(){};
 
     void FillH2D(double energyScale, double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
     void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
@@ -535,7 +536,7 @@ public :
      * esa[i][1] : fit is seeded by FitSlicesY, uses bin range that covers 95% of the integral
      * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
      */
-    std::vector<std::vector<eScaleAna>> esa;
+    std::vector<std::vector<eScaleAnalyzer>> esa;
     int indexFncFinal;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
                           // function whose results will be the final fit results
     std::vector<int> indicesFnc;    // indices of the fit functions to be shown in the 1D energy scale plots
@@ -571,7 +572,7 @@ public :
 
     // particles to be used for fake composition
     std::vector<int> fakeIndices;
-    std::vector<ENERGYSCALE::particle> fakeParticles;
+    std::vector<RECOANA::particle> fakeParticles;
     int nFakeParticles;
     // objects for each particle in fake composition
     /*
@@ -643,7 +644,7 @@ public :
         kN_TOBJ
     };
 
-    int dep;            // If the x-axis is eta, then dep = ENERGYSCALE::kETA
+    int dep;            // If the x-axis is eta, then dep = RECOANA::kETA
 
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix
     std::string title;
@@ -658,34 +659,34 @@ public :
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
-    float ranges[ENERGYSCALE::kN_DEPS][2];
+    float ranges[RECOANA::kN_DEPS][2];
 };
 
-void energyScaleHist::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int cent)
 {
     if (isValid_h2D && insideRange(eta, genPt, recoPt, cent))
         h2D->Fill(x, energyScale, w);
 }
 
-void energyScaleHist::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int cent)
 {
     if (isValid_hEscale && insideRange(eta, genPt, recoPt, cent))
         hEscale->Fill(energyScale, w);
 }
 
-void energyScaleHist::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int cent)
+void recoAnalyzer::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int cent)
 {
     if (isValid_h2Dcorr && insideRange(eta, -1, -1, cent))
         h2Dcorr->Fill(genPt, recoPt, w);
 }
 
-void energyScaleHist::FillHNum(double x, double w, float genEta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillHNum(double x, double w, float genEta, float genPt, float recoPt, int cent)
 {
     if (isValid_hMatchNum && insideRange(genEta, genPt, recoPt, cent))
         hMatchNum->Fill(x, w);
 }
 
-void energyScaleHist::FillHDenom(double x, double w, float genEta, float genPt, int cent)
+void recoAnalyzer::FillHDenom(double x, double w, float genEta, float genPt, int cent)
 {
     if (isValid_hMatchDenom && insideRange(genEta, genPt, -1, cent))
         hMatchDenom->Fill(x, w);
@@ -694,7 +695,7 @@ void energyScaleHist::FillHDenom(double x, double w, float genEta, float genPt, 
  * fill numerator for fake rate
  * no GEN-level selection is applied
  */
-void energyScaleHist::FillHNumFake(double x, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHNumFake(double x, double w, float eta, float recoPt, int cent)
 {
     if (isValid_hFakeNum && insideRange(eta, -1, recoPt, cent)) {
         hFakeNum->Fill(x, w);
@@ -705,13 +706,13 @@ void energyScaleHist::FillHNumFake(double x, double w, float eta, float recoPt, 
  * fill denominator for fake rate
  * no GEN-level selection is applied
  */
-void energyScaleHist::FillHDenomFake(double x, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHDenomFake(double x, double w, float eta, float recoPt, int cent)
 {
     if (isValid_hFakeDenom && insideRange(eta, -1, recoPt, cent))
         hFakeDenom->Fill(x, w);
 }
 
-void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillHFakeParticle(double x, int pdg, double w, float eta, float genPt, float recoPt, int cent)
 {
     if (insideRange(eta, genPt, recoPt, cent)) {
 
@@ -726,7 +727,7 @@ void energyScaleHist::FillHFakeParticle(double x, int pdg, double w, float eta, 
     }
 }
 
-void energyScaleHist::FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta, float recoPt, int cent)
 {
     if (insideRange(eta, -1, recoPt, cent)) {
 
@@ -748,73 +749,73 @@ void energyScaleHist::FillHFakeParticleGenPt(double genPt, int pdg, double w, fl
 /*
  * check if the given variables lie inside the kinematic range defined for this object.
  */
-bool energyScaleHist::insideRange(float eta, float genPt, float recoPt, int cent)
+bool recoAnalyzer::insideRange(float eta, float genPt, float recoPt, int cent)
 {
     // make sure to pass the selection if no explicit kinematic range is specified.
-    if (eta == -999)  eta = ranges[ENERGYSCALE::kETA][0];
-    if (genPt == -1) genPt = ranges[ENERGYSCALE::kGENPT][0];
-    if (recoPt == -1)  recoPt = ranges[ENERGYSCALE::kRECOPT][0];
-    if (cent == -1)  cent = ranges[ENERGYSCALE::kCENT][0];
+    if (eta == -999)  eta = ranges[RECOANA::kETA][0];
+    if (genPt == -1) genPt = ranges[RECOANA::kGENPT][0];
+    if (recoPt == -1)  recoPt = ranges[RECOANA::kRECOPT][0];
+    if (cent == -1)  cent = ranges[RECOANA::kCENT][0];
 
-    if(ranges[ENERGYSCALE::kETA][0] <= TMath::Abs(eta) &&
-       (ranges[ENERGYSCALE::kETA][1] == -1 || ranges[ENERGYSCALE::kETA][1] > TMath::Abs(eta))){
-    if(ranges[ENERGYSCALE::kGENPT][0] <= genPt         &&
-       (ranges[ENERGYSCALE::kGENPT][1] == -1  || ranges[ENERGYSCALE::kGENPT][1] > genPt)) {
-    if(ranges[ENERGYSCALE::kRECOPT][0] <= recoPt       &&
-       (ranges[ENERGYSCALE::kRECOPT][1] == -1 || ranges[ENERGYSCALE::kRECOPT][1] > recoPt)) {
-    if(ranges[ENERGYSCALE::kCENT][0] <= cent         &&
-       (ranges[ENERGYSCALE::kCENT][1] == -1  || ranges[ENERGYSCALE::kCENT][1] > cent)) {
+    if(ranges[RECOANA::kETA][0] <= TMath::Abs(eta) &&
+       (ranges[RECOANA::kETA][1] == -1 || ranges[RECOANA::kETA][1] > TMath::Abs(eta))){
+    if(ranges[RECOANA::kGENPT][0] <= genPt         &&
+       (ranges[RECOANA::kGENPT][1] == -1  || ranges[RECOANA::kGENPT][1] > genPt)) {
+    if(ranges[RECOANA::kRECOPT][0] <= recoPt       &&
+       (ranges[RECOANA::kRECOPT][1] == -1 || ranges[RECOANA::kRECOPT][1] > recoPt)) {
+    if(ranges[RECOANA::kCENT][0] <= cent         &&
+       (ranges[RECOANA::kCENT][1] == -1  || ranges[RECOANA::kCENT][1] > cent)) {
             return true;
     }}}}
     return false;
 }
 
-std::string energyScaleHist::getRangeTextEta()
+std::string recoAnalyzer::getRangeTextEta()
 {
     std::string res = "";
 
-    if (ranges[ENERGYSCALE::DEPS::kETA][0] <= 0 && ranges[ENERGYSCALE::DEPS::kETA][1] > 0)
-        res  = Form("|#eta|<%.2f", ranges[ENERGYSCALE::DEPS::kETA][1]);
-    else if (ranges[ENERGYSCALE::DEPS::kETA][0] > 0 && ranges[ENERGYSCALE::DEPS::kETA][1] > 0)
-        res  = Form("%.2f<|#eta|<%.2f", ranges[ENERGYSCALE::DEPS::kETA][0], ranges[ENERGYSCALE::DEPS::kETA][1]);
+    if (ranges[RECOANA::DEPS::kETA][0] <= 0 && ranges[RECOANA::DEPS::kETA][1] > 0)
+        res  = Form("|#eta|<%.2f", ranges[RECOANA::DEPS::kETA][1]);
+    else if (ranges[RECOANA::DEPS::kETA][0] > 0 && ranges[RECOANA::DEPS::kETA][1] > 0)
+        res  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::DEPS::kETA][0], ranges[RECOANA::DEPS::kETA][1]);
 
     return res;
 }
 
-std::string energyScaleHist::getRangeTextGenPt()
+std::string recoAnalyzer::getRangeTextGenPt()
 {
     std::string res = "";
 
-    if (ranges[ENERGYSCALE::DEPS::kGENPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] <= -1)
-        res  = Form("p_{T}^{gen}>%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][0]);
-    else if (ranges[ENERGYSCALE::DEPS::kGENPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] > 0)
-        res  = Form("%.0f<p_{T}^{gen}<%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][0], ranges[ENERGYSCALE::DEPS::kGENPT][1]);
-    else if (ranges[ENERGYSCALE::DEPS::kGENPT][0] <= 0 && ranges[ENERGYSCALE::DEPS::kGENPT][1] > 0)
-        res  = Form("p_{T}^{gen}<%.0f", ranges[ENERGYSCALE::DEPS::kGENPT][1]);
+    if (ranges[RECOANA::DEPS::kGENPT][0] > 0 && ranges[RECOANA::DEPS::kGENPT][1] <= -1)
+        res  = Form("p_{T}^{gen}>%.0f", ranges[RECOANA::DEPS::kGENPT][0]);
+    else if (ranges[RECOANA::DEPS::kGENPT][0] > 0 && ranges[RECOANA::DEPS::kGENPT][1] > 0)
+        res  = Form("%.0f<p_{T}^{gen}<%.0f", ranges[RECOANA::DEPS::kGENPT][0], ranges[RECOANA::DEPS::kGENPT][1]);
+    else if (ranges[RECOANA::DEPS::kGENPT][0] <= 0 && ranges[RECOANA::DEPS::kGENPT][1] > 0)
+        res  = Form("p_{T}^{gen}<%.0f", ranges[RECOANA::DEPS::kGENPT][1]);
 
     return res;
 }
 
-std::string energyScaleHist::getRangeTextRecoPt()
+std::string recoAnalyzer::getRangeTextRecoPt()
 {
     std::string res = "";
 
-    if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] <= -1)
-        res  = Form("p_{T}^{reco}>%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][0]);
-    else if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] > 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] > 0)
-        res = Form("%.0f<p_{T}^{reco}<%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][0], ranges[ENERGYSCALE::DEPS::kRECOPT][1]);
-    else if (ranges[ENERGYSCALE::DEPS::kRECOPT][0] <= 0 && ranges[ENERGYSCALE::DEPS::kRECOPT][1] > 0)
-        res = Form("p_{T}^{reco}<%.0f", ranges[ENERGYSCALE::DEPS::kRECOPT][1]);
+    if (ranges[RECOANA::DEPS::kRECOPT][0] > 0 && ranges[RECOANA::DEPS::kRECOPT][1] <= -1)
+        res  = Form("p_{T}^{reco}>%.0f", ranges[RECOANA::DEPS::kRECOPT][0]);
+    else if (ranges[RECOANA::DEPS::kRECOPT][0] > 0 && ranges[RECOANA::DEPS::kRECOPT][1] > 0)
+        res = Form("%.0f<p_{T}^{reco}<%.0f", ranges[RECOANA::DEPS::kRECOPT][0], ranges[RECOANA::DEPS::kRECOPT][1]);
+    else if (ranges[RECOANA::DEPS::kRECOPT][0] <= 0 && ranges[RECOANA::DEPS::kRECOPT][1] > 0)
+        res = Form("p_{T}^{reco}<%.0f", ranges[RECOANA::DEPS::kRECOPT][1]);
 
     return res;
 }
 
-std::string energyScaleHist::getRangeTextCent()
+std::string recoAnalyzer::getRangeTextCent()
 {
     std::string res = "";
 
-    if (ranges[ENERGYSCALE::DEPS::kCENT][0] >= 0 && ranges[ENERGYSCALE::DEPS::kCENT][1] > 0)
-        res = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::DEPS::kCENT][0], ranges[ENERGYSCALE::DEPS::kCENT][1]);
+    if (ranges[RECOANA::DEPS::kCENT][0] >= 0 && ranges[RECOANA::DEPS::kCENT][1] > 0)
+        res = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::DEPS::kCENT][0], ranges[RECOANA::DEPS::kCENT][1]);
 
     return res;
 }
@@ -822,43 +823,43 @@ std::string energyScaleHist::getRangeTextCent()
 /*
  * get range for histograms in "h1DsliceY"
  *
- * Ex. dep = ENERGYSCALE::kGENPT
+ * Ex. dep = RECOANA::kGENPT
  *     x-axis of h2D = {20,30,40,50,70,100}
  *     then
  *     getBinEdgeText(1, 1) returns "20<p_{T}^{gen}<30"
  *     getBinEdgeText(2, 2) returns "30<p_{T}^{gen}<40"
  *     getBinEdgeText(3, 4) returns "40<p_{T}^{gen}<70"
  */
-std::string energyScaleHist::getBinEdgeText(int binLow, int binUp)
+std::string recoAnalyzer::getBinEdgeText(int binLow, int binUp)
 {
     std::string res = "";
 
     double xLow = h2D->GetXaxis()->GetBinLowEdge(binLow);
     double xUp = h2D->GetXaxis()->GetBinUpEdge(binUp);
 
-    if (dep == ENERGYSCALE::kETA) {
+    if (dep == RECOANA::kETA) {
         res  = Form("%.2f < #eta < %.2f", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kGENPT) {
+    else if (dep == RECOANA::kGENPT) {
         res  = Form("%.0f <p_{T}^{gen}< %.0f", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kRECOPT) {
+    else if (dep == RECOANA::kRECOPT) {
         res = Form("%.0f <p_{T}^{reco}< %.0f", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kCENT) {
+    else if (dep == RECOANA::kCENT) {
         res = Form("Cent:%.0f-%.0f%%", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kSUMISO) {
+    else if (dep == RECOANA::kSUMISO) {
         res = Form("%.1f < sumIso < %.1f", xLow, xUp);
     }
-    else if (dep == ENERGYSCALE::kSIEIE) {
+    else if (dep == RECOANA::kSIEIE) {
         res = Form("%.3f < #sigma_{#eta#eta} < %.3f", xLow, xUp);
     }
 
     return res;
 }
 
-void energyScaleHist::updateTH1()
+void recoAnalyzer::updateTH1()
 {
     isValid_h2D = (h2D != 0 && !h2D->IsZombie());
     if (isValid_h2D) {
@@ -892,7 +893,7 @@ void energyScaleHist::updateTH1()
     isValid_hFakeAllGenPt = (hFakeAllGenPt != 0 && !hFakeAllGenPt->IsZombie());
 }
 
-void energyScaleHist::updateH1DsliceY()
+void recoAnalyzer::updateH1DsliceY()
 {
     h1DsliceY.clear();
     h1DsliceY.resize(nBinsX);
@@ -912,18 +913,18 @@ void energyScaleHist::updateH1DsliceY()
     }
 }
 
-void energyScaleHist::updateH1DeScale()
+void recoAnalyzer::updateH1DeScale()
 {
     for (int i = 1; i <= nBinsX; ++i) {
 
         if (!esa[i-1][indexFncFinal].isValid_h) continue;
 
         if (esa[i-1][indexFncFinal].isValid_f1) {
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFncFinal].f1Mean);
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFncFinal].f1MeanErr);
+            h1DeScale[RECOANA::kESCALE]->SetBinContent(i, esa[i-1][indexFncFinal].f1Mean);
+            h1DeScale[RECOANA::kESCALE]->SetBinError(i, esa[i-1][indexFncFinal].f1MeanErr);
 
-            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFncFinal].f1Sigma);
-            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFncFinal].f1SigmaErr);
+            h1DeScale[RECOANA::kERES]->SetBinContent(i, esa[i-1][indexFncFinal].f1Sigma);
+            h1DeScale[RECOANA::kERES]->SetBinError(i, esa[i-1][indexFncFinal].f1SigmaErr);
 
             h1DeScale[6]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(0));
             h1DeScale[6]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(0));
@@ -935,30 +936,30 @@ void energyScaleHist::updateH1DeScale()
         // arithmetic mean and std dev of energy scale distributions
         double y = esa[i-1][indexFncFinal].hMean;
         double yErr = esa[i-1][indexFncFinal].hMeanErr;
-        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinContent(i, y);
-        h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinError(i, yErr);
+        h1DeScale[RECOANA::kESCALEARITH]->SetBinContent(i, y);
+        h1DeScale[RECOANA::kESCALEARITH]->SetBinError(i, yErr);
 
         y= esa[i-1][indexFncFinal].hStdDev;
         yErr = esa[i-1][indexFncFinal].hStdDevErr;
-        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinContent(i, y);
-        h1DeScale[ENERGYSCALE::kERESARITH]->SetBinError(i, yErr);
+        h1DeScale[RECOANA::kERESARITH]->SetBinContent(i, y);
+        h1DeScale[RECOANA::kERESARITH]->SetBinError(i, yErr);
 
         y = esa[i-1][indexFncFinal].sigmaEff;
         yErr = esa[i-1][indexFncFinal].sigmaEffErr;
-        h1DeScale[ENERGYSCALE::kERESEFF]->SetBinContent(i, y);
-        h1DeScale[ENERGYSCALE::kERESEFF]->SetBinError(i, yErr);
+        h1DeScale[RECOANA::kERESEFF]->SetBinContent(i, y);
+        h1DeScale[RECOANA::kERESEFF]->SetBinError(i, yErr);
 
         y = esa[i-1][indexFncFinal].sigmaHM;
         yErr = esa[i-1][indexFncFinal].sigmaHMErr;
-        h1DeScale[ENERGYSCALE::kERESHM]->SetBinContent(i, y);
-        h1DeScale[ENERGYSCALE::kERESHM]->SetBinError(i, yErr);
+        h1DeScale[RECOANA::kERESHM]->SetBinContent(i, y);
+        h1DeScale[RECOANA::kERESHM]->SetBinError(i, yErr);
     }
 }
 
 /*
  * return the first particle that contains the given PDG
  */
-int energyScaleHist::getParticleIndex(int pdg)
+int recoAnalyzer::getParticleIndex(int pdg)
 {
     for (int i = 0; i < nFakeParticles; ++i) {
 
@@ -971,13 +972,13 @@ int energyScaleHist::getParticleIndex(int pdg)
     return -1;
 }
 
-int energyScaleHist::getFakePDG(int iParticle)
+int recoAnalyzer::getFakePDG(int iParticle)
 {
     if (iParticle < nFakeParticles)  return fakeParticles[iParticle].PDG[0];
     else                   return 0;
 }
 
-std::string energyScaleHist::getFakePDGstr(int iParticle)
+std::string recoAnalyzer::getFakePDGstr(int iParticle)
 {
     std::string res = "";
     if (iParticle < nFakeParticles)  {
@@ -994,38 +995,38 @@ std::string energyScaleHist::getFakePDGstr(int iParticle)
     return res;
 }
 
-std::string energyScaleHist::getObjectStr(int iObj)
+std::string recoAnalyzer::getObjectStr(int iObj)
 {
     switch (iObj) {
-    case energyScaleHist::OBJ::kMatchNum :
+    case recoAnalyzer::OBJ::kMatchNum :
         return "MatchNum";
-    case energyScaleHist::OBJ::kMatchDenom :
+    case recoAnalyzer::OBJ::kMatchDenom :
         return "MatchDenom";
-    case energyScaleHist::OBJ::kMatchEff :
+    case recoAnalyzer::OBJ::kMatchEff :
         return "MatchEff";
-    case energyScaleHist::OBJ::kFakeNum :
+    case recoAnalyzer::OBJ::kFakeNum :
         return "FakeNum";
-    case energyScaleHist::OBJ::kFakeDenom :
+    case recoAnalyzer::OBJ::kFakeDenom :
         return "FakeDenom";
-    case energyScaleHist::OBJ::kFakeRatio :
+    case recoAnalyzer::OBJ::kFakeRatio :
         return "FakeRatio";
-    case energyScaleHist::OBJ::kFakeParticle :
+    case recoAnalyzer::OBJ::kFakeParticle :
         return "FakePDG";
-    case energyScaleHist::OBJ::kFakeParticleRatio :
+    case recoAnalyzer::OBJ::kFakeParticleRatio :
         return "FakeRatioPDG";
-    case energyScaleHist::OBJ::kFakeOther :
+    case recoAnalyzer::OBJ::kFakeOther :
         return "FakeOther";
-    case energyScaleHist::OBJ::kFakeOtherRatio :
+    case recoAnalyzer::OBJ::kFakeOtherRatio :
         return "FakeOtherRatio";
-    case energyScaleHist::OBJ::kFakeParticleGenPt :
+    case recoAnalyzer::OBJ::kFakeParticleGenPt :
         return "FakeGenPtPDG";
-    case energyScaleHist::OBJ::kFakeParticleRatioGenPt :
+    case recoAnalyzer::OBJ::kFakeParticleRatioGenPt :
         return "FakeRatioGenPtPDG";
-    case energyScaleHist::OBJ::kFakeOtherGenPt :
+    case recoAnalyzer::OBJ::kFakeOtherGenPt :
         return "FakeOtherGenPt";
-    case energyScaleHist::OBJ::kFakeOtherRatioGenPt :
+    case recoAnalyzer::OBJ::kFakeOtherRatioGenPt :
         return "FakeOtherRatioGenPt";
-    case energyScaleHist::OBJ::kFakeAllGenPt :
+    case recoAnalyzer::OBJ::kFakeAllGenPt :
         return "FakeAllGenPt";
     default :
         return "";
@@ -1034,14 +1035,14 @@ std::string energyScaleHist::getObjectStr(int iObj)
     return "";
 }
 
-std::string energyScaleHist::getTObjectStr(int iTObj)
+std::string recoAnalyzer::getTObjectStr(int iTObj)
 {
     switch (iTObj) {
-    case energyScaleHist::TOBJ::kTH1D :
+    case recoAnalyzer::TOBJ::kTH1D :
         return "h";
-    case energyScaleHist::TOBJ::kTH2D :
+    case recoAnalyzer::TOBJ::kTH2D :
         return "h2D_";
-    case energyScaleHist::TOBJ::kTGraph :
+    case recoAnalyzer::TOBJ::kTGraph :
         return "g";
     default :
         return "";
@@ -1050,10 +1051,10 @@ std::string energyScaleHist::getTObjectStr(int iTObj)
     return "";
 }
 
-std::string energyScaleHist::getObjectName(int iObj, int iTObj)
+std::string recoAnalyzer::getObjectName(int iObj, int iTObj)
 {
-    std::string objStr =  energyScaleHist::getObjectStr(iObj);
-    std::string tObjStr = energyScaleHist::getTObjectStr(iTObj);
+    std::string objStr =  recoAnalyzer::getObjectStr(iObj);
+    std::string tObjStr = recoAnalyzer::getTObjectStr(iTObj);
 
     return Form("%s%s_%s", tObjStr.c_str(), objStr.c_str(), name.c_str());
 }
@@ -1061,7 +1062,7 @@ std::string energyScaleHist::getObjectName(int iObj, int iTObj)
 /*
  * prepare the object title using the given ranges
  */
-void energyScaleHist::prepareTitle()
+void recoAnalyzer::prepareTitle()
 {
     // prepare histogram title
     std::string etaStr  = "";       // whole detector
@@ -1070,25 +1071,25 @@ void energyScaleHist::prepareTitle()
     std::string centStr  = "";      // whole centrality range
 
     // special cases
-    if (ranges[ENERGYSCALE::kETA][0] <= 0 && ranges[ENERGYSCALE::kETA][1] > 0)
-        etaStr  = Form("|#eta|<%.2f", ranges[ENERGYSCALE::kETA][1]);
-    else if (ranges[ENERGYSCALE::kETA][0] > 0 && ranges[ENERGYSCALE::kETA][1] > 0)
-        etaStr  = Form("%.2f<|#eta|<%.2f", ranges[ENERGYSCALE::kETA][0], ranges[ENERGYSCALE::kETA][1]);
+    if (ranges[RECOANA::kETA][0] <= 0 && ranges[RECOANA::kETA][1] > 0)
+        etaStr  = Form("|#eta|<%.2f", ranges[RECOANA::kETA][1]);
+    else if (ranges[RECOANA::kETA][0] > 0 && ranges[RECOANA::kETA][1] > 0)
+        etaStr  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::kETA][0], ranges[RECOANA::kETA][1]);
 
-    if (ranges[ENERGYSCALE::kGENPT][0] > 0 && ranges[ENERGYSCALE::kGENPT][1] <= -1)
-        genPtStr  = Form("p_{T}^{GEN}>%.0f", ranges[ENERGYSCALE::kGENPT][0]);
-    else if (ranges[ENERGYSCALE::kGENPT][0] > 0 && ranges[ENERGYSCALE::kGENPT][1] > 0)
-        genPtStr  = Form("%.0f<p_{T}^{GEN}<%.0f", ranges[ENERGYSCALE::kGENPT][0], ranges[ENERGYSCALE::kGENPT][1]);
+    if (ranges[RECOANA::kGENPT][0] > 0 && ranges[RECOANA::kGENPT][1] <= -1)
+        genPtStr  = Form("p_{T}^{GEN}>%.0f", ranges[RECOANA::kGENPT][0]);
+    else if (ranges[RECOANA::kGENPT][0] > 0 && ranges[RECOANA::kGENPT][1] > 0)
+        genPtStr  = Form("%.0f<p_{T}^{GEN}<%.0f", ranges[RECOANA::kGENPT][0], ranges[RECOANA::kGENPT][1]);
 
-    if (ranges[ENERGYSCALE::kRECOPT][0] > 0 && ranges[ENERGYSCALE::kRECOPT][1] <= -1)
-        recoPtStr  = Form("p_{T}^{RECO}>%.0f", ranges[ENERGYSCALE::kRECOPT][0]);
-    else if (ranges[ENERGYSCALE::kRECOPT][0] > 0 && ranges[ENERGYSCALE::kRECOPT][1] > 0)
-        recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[ENERGYSCALE::kRECOPT][0], ranges[ENERGYSCALE::kRECOPT][1]);
+    if (ranges[RECOANA::kRECOPT][0] > 0 && ranges[RECOANA::kRECOPT][1] <= -1)
+        recoPtStr  = Form("p_{T}^{RECO}>%.0f", ranges[RECOANA::kRECOPT][0]);
+    else if (ranges[RECOANA::kRECOPT][0] > 0 && ranges[RECOANA::kRECOPT][1] > 0)
+        recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[RECOANA::kRECOPT][0], ranges[RECOANA::kRECOPT][1]);
 
-    if (ranges[ENERGYSCALE::kCENT][0] <= 0 && ranges[ENERGYSCALE::kCENT][1] <= -1)
+    if (ranges[RECOANA::kCENT][0] <= 0 && ranges[RECOANA::kCENT][1] <= -1)
         centStr = "";
-    else if (ranges[ENERGYSCALE::kCENT][0] >= 0 && ranges[ENERGYSCALE::kCENT][1] > 0)
-        centStr  = Form("Cent:%.0f-%.0f%%", ranges[ENERGYSCALE::kCENT][0], ranges[ENERGYSCALE::kCENT][1]);
+    else if (ranges[RECOANA::kCENT][0] >= 0 && ranges[RECOANA::kCENT][1] > 0)
+        centStr  = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::kCENT][0], ranges[RECOANA::kCENT][1]);
 
     std::string tmpHistTitle = "";
     if (etaStr.size() > 0)  tmpHistTitle.append(Form("%s", etaStr.c_str()));
@@ -1121,7 +1122,7 @@ void energyScaleHist::prepareTitle()
     }
 }
 
-void energyScaleHist::postLoop()
+void recoAnalyzer::postLoop()
 {
     if (isValid_hEscale) {
         hEscale->SetMarkerStyle(kFullCircle);
@@ -1132,8 +1133,8 @@ void energyScaleHist::postLoop()
         h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
 
         // energy scale
-        int iObs = ENERGYSCALE::kESCALE;
-        std::string label = ENERGYSCALE::OBS_LABELS[iObs];
+        int iObs = RECOANA::kESCALE;
+        std::string label = RECOANA::OBS_LABELS[iObs];
         h1DeScale[iObs] = (TH1D*)aSlices.At(1)->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
@@ -1142,8 +1143,8 @@ void energyScaleHist::postLoop()
             h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
         // width of energy scale
-        iObs = ENERGYSCALE::kERES;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kERES;
+        label = RECOANA::OBS_LABELS[iObs];
         h1DeScale[iObs] = (TH1D*)aSlices.At(2)->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
@@ -1152,48 +1153,48 @@ void energyScaleHist::postLoop()
             h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
         // energy scale with arithmetic mean
-        iObs = ENERGYSCALE::kESCALEARITH;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
-        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kESCALE]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        iObs = RECOANA::kESCALEARITH;
+        label = RECOANA::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[RECOANA::kESCALE]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyScale(h1DeScale[iObs], titleOffsetX, titleOffsetY);
         h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
-        if (yMax[ENERGYSCALE::kESCALE] > yMin[ENERGYSCALE::kESCALE])
-            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kESCALE], yMax[ENERGYSCALE::kESCALE], "Y");
+        if (yMax[RECOANA::kESCALE] > yMin[RECOANA::kESCALE])
+            h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kESCALE], yMax[RECOANA::kESCALE], "Y");
 
         // width of energy scale with arithmetic std dev
-        iObs = ENERGYSCALE::kERESARITH;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
-        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        iObs = RECOANA::kERESARITH;
+        label = RECOANA::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[RECOANA::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
         h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
-        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
+            h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
 
         // width of energy scale with sigmaEff
-        iObs = ENERGYSCALE::kERESEFF;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
-        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        iObs = RECOANA::kERESEFF;
+        label = RECOANA::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[RECOANA::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
         h1DeScale[iObs]->SetYTitle(Form("%s (Effective)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
-        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
+            h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
 
         // width of energy scale with sigmaHM
-        iObs = ENERGYSCALE::kERESHM;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
-        h1DeScale[iObs] = (TH1D*)h1DeScale[ENERGYSCALE::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
+        iObs = RECOANA::kERESHM;
+        label = RECOANA::OBS_LABELS[iObs];
+        h1DeScale[iObs] = (TH1D*)h1DeScale[RECOANA::kERES]->Clone(Form("h1D_%s_%s", label.c_str(), name.c_str()));
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
         h1DeScale[iObs]->SetYTitle(Form("%s (FWHM / 2.35)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
-        if (yMax[ENERGYSCALE::kERES] > yMin[ENERGYSCALE::kERES])
-            h1DeScale[iObs]->SetAxisRange(yMin[ENERGYSCALE::kERES], yMax[ENERGYSCALE::kERES], "Y");
+        if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
+            h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
 
         // Constant for Gaussian fit
         h1DeScale[6] = (TH1D*)aSlices.At(0)->Clone(Form("h1D_gausConst_%s", name.c_str()));
@@ -1225,23 +1226,23 @@ void energyScaleHist::postLoop()
 
     // Final histograms point to observables
     if (isValid_h2D) {
-        h1D[ENERGYSCALE::kESCALE] = h1DeScale[ENERGYSCALE::kESCALE];
-        h1D[ENERGYSCALE::kERES] = h1DeScale[ENERGYSCALE::kERES];
-        h1D[ENERGYSCALE::kESCALEARITH] = h1DeScale[ENERGYSCALE::kESCALEARITH];
-        h1D[ENERGYSCALE::kERESARITH] = h1DeScale[ENERGYSCALE::kERESARITH];
-        h1D[ENERGYSCALE::kERESEFF] = h1DeScale[ENERGYSCALE::kERESEFF];
-        h1D[ENERGYSCALE::kERESHM] = h1DeScale[ENERGYSCALE::kERESHM];
+        h1D[RECOANA::kESCALE] = h1DeScale[RECOANA::kESCALE];
+        h1D[RECOANA::kERES] = h1DeScale[RECOANA::kERES];
+        h1D[RECOANA::kESCALEARITH] = h1DeScale[RECOANA::kESCALEARITH];
+        h1D[RECOANA::kERESARITH] = h1DeScale[RECOANA::kERESARITH];
+        h1D[RECOANA::kERESEFF] = h1DeScale[RECOANA::kERESEFF];
+        h1D[RECOANA::kERESHM] = h1DeScale[RECOANA::kERESHM];
     }
 
-    if (isValid_hMatchEff)  h1D[ENERGYSCALE::kEFF] = hMatchEff;
-    if (isValid_hFakeRatio)  h1D[ENERGYSCALE::kFAKE] = hFakeRatio;
+    if (isValid_hMatchEff)  h1D[RECOANA::kEFF] = hMatchEff;
+    if (isValid_hFakeRatio)  h1D[RECOANA::kFAKE] = hFakeRatio;
 }
 
 /*
  * fit distributions that compare reco-level and gen-level objects
  * Ex. fit reco pt / gen pt distribution
  */
-void energyScaleHist::fitRecoGen()
+void recoAnalyzer::fitRecoGen()
 {
     // reco pt / gen pt distributions and fits
     TH1D* hTmp = 0;
@@ -1257,29 +1258,29 @@ void energyScaleHist::fitRecoGen()
         double p0 = h1DeScale[6]->GetBinContent(i);   // constant
         double p0Err = h1DeScale[6]->GetBinError(i);
 
-        double p1 = h1DeScale[ENERGYSCALE::kESCALE]->GetBinContent(i);   // mean
-        double p1Err = h1DeScale[ENERGYSCALE::kESCALE]->GetBinError(i);
+        double p1 = h1DeScale[RECOANA::kESCALE]->GetBinContent(i);   // mean
+        double p1Err = h1DeScale[RECOANA::kESCALE]->GetBinError(i);
 
-        double p2 = h1DeScale[ENERGYSCALE::kERES]->GetBinContent(i);   // StdDev
-        double p2Err = h1DeScale[ENERGYSCALE::kERES]->GetBinError(i);
+        double p2 = h1DeScale[RECOANA::kERES]->GetBinContent(i);   // StdDev
+        double p2Err = h1DeScale[RECOANA::kERES]->GetBinError(i);
 
         int binMax = hTmp->GetMaximumBin();
         int nBinsTmp = hTmp->GetNbinsX();
 
         // fit functions for that bin along x-axis of h2D
         std::vector<TF1*> f1sTmp;
-        for (int iFnc = 0; iFnc < ENERGYSCALE::kN_FNCS; ++iFnc) {
+        for (int iFnc = 0; iFnc < RECOANA::kN_FNCS; ++iFnc) {
 
-            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), ENERGYSCALE::fncFormulas[iFnc].c_str());
+            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), RECOANA::fncFormulas[iFnc].c_str());
 
-            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, ENERGYSCALE::intFractions[iFnc]);
+            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, RECOANA::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
             int binUp  = std::min(fncRange[1], nBinsTmp);
             f1Tmp->SetRange(hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
 
-            f1Tmp->SetLineColor(ENERGYSCALE::fncColors[iFnc]);
+            f1Tmp->SetLineColor(RECOANA::fncColors[iFnc]);
 
-            if (iFnc == ENERGYSCALE::kGAUS_FitSlicesY) {
+            if (iFnc == RECOANA::kGAUS_FitSlicesY) {
                 // initial fit from TH2::FitSlicesY
                 f1Tmp->SetParameters(p0, p1, p2);
                 double parErr[3] = {p0Err, p1Err, p2Err};
@@ -1289,7 +1290,7 @@ void energyScaleHist::fitRecoGen()
                 //        f1Tmp->SetNDF(100);
             }
             else {
-                if (ENERGYSCALE::fncFormulas[iFnc] == "gaus") {
+                if (RECOANA::fncFormulas[iFnc] == "gaus") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(p0, p1, p2);
                 }
@@ -1299,14 +1300,14 @@ void energyScaleHist::fitRecoGen()
         }
 
         int nF1s = f1sTmp.size();
-        std::vector<eScaleAna> esaTmp(nF1s);
+        std::vector<eScaleAnalyzer> esaTmp(nF1s);
         for (int j = 0; j < nF1s; ++j) {
             esaTmp[j].h = hTmp;
             esaTmp[j].isValid_h = true;
             esaTmp[j].f1 = f1sTmp[j];
             esaTmp[j].isValid_f1 = true;
 
-            esaTmp[j].fitOption = ENERGYSCALE::fitOption;
+            esaTmp[j].fitOption = RECOANA::fitOption;
             // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
             if (j > 0)  esaTmp[j].fit();
 
@@ -1320,7 +1321,7 @@ void energyScaleHist::fitRecoGen()
     }
 }
 
-void energyScaleHist::calcMatchEff()
+void recoAnalyzer::calcMatchEff()
 {
     if (!isValid_hMatchNum || !isValid_hMatchDenom) return;
 
@@ -1340,7 +1341,7 @@ void energyScaleHist::calcMatchEff()
     }
 
     gMatchEff = new TGraphAsymmErrors();
-    tmpName = getObjectName(energyScaleHist::OBJ::kMatchEff, energyScaleHist::TOBJ::kTGraph);
+    tmpName = getObjectName(recoAnalyzer::OBJ::kMatchEff, recoAnalyzer::TOBJ::kTGraph);
     gMatchEff->SetName(tmpName.c_str());
     gMatchEff->BayesDivide(hMatchNum, hMatchDenom);
     gMatchEff->SetTitle(title.c_str());
@@ -1355,7 +1356,7 @@ void energyScaleHist::calcMatchEff()
         isValid_hMatchEff = false;
     }
 
-    tmpName = getObjectName(energyScaleHist::OBJ::kMatchEff, energyScaleHist::TOBJ::kTH1D);
+    tmpName = getObjectName(recoAnalyzer::OBJ::kMatchEff, recoAnalyzer::TOBJ::kTH1D);
     hMatchEff = (TH1D*)hMatchNum->Clone(tmpName.c_str());
     fillTH1fromTGraph(hMatchEff, gMatchEff);
     setTH1_efficiency(hMatchDenom, titleOffsetX, titleOffsetY);
@@ -1368,7 +1369,7 @@ void energyScaleHist::calcMatchEff()
     isValid_hMatchEff = true;
 }
 
-void energyScaleHist::calcFakeRatio()
+void recoAnalyzer::calcFakeRatio()
 {
     if (!isValid_hFakeNum || !isValid_hFakeDenom) return;
 
@@ -1388,7 +1389,7 @@ void energyScaleHist::calcFakeRatio()
     }
 
     gFakeRatio = new TGraphAsymmErrors();
-    nameTmp = getObjectName(energyScaleHist::OBJ::kFakeRatio, energyScaleHist::TOBJ::kTGraph);
+    nameTmp = getObjectName(recoAnalyzer::OBJ::kFakeRatio, recoAnalyzer::TOBJ::kTGraph);
     gFakeRatio->SetName(nameTmp.c_str());
     gFakeRatio->BayesDivide(hFakeNum, hFakeDenom);
     gFakeRatio->SetTitle(title.c_str());
@@ -1403,7 +1404,7 @@ void energyScaleHist::calcFakeRatio()
         isValid_hFakeRatio = false;
     }
 
-    nameTmp = getObjectName(energyScaleHist::OBJ::kFakeRatio, energyScaleHist::TOBJ::kTH1D);
+    nameTmp = getObjectName(recoAnalyzer::OBJ::kFakeRatio, recoAnalyzer::TOBJ::kTH1D);
     hFakeRatio = (TH1D*)hFakeNum->Clone(nameTmp.c_str());
     fillTH1fromTGraph(hFakeRatio, gFakeRatio);
     setTH1_efficiency(hFakeDenom, titleOffsetX, titleOffsetY);
@@ -1416,7 +1417,7 @@ void energyScaleHist::calcFakeRatio()
     isValid_hFakeRatio = true;
 }
 
-void energyScaleHist::calcFakeParticleRatio()
+void recoAnalyzer::calcFakeParticleRatio()
 {
     // write hFakeOther now, before its content is modified.
     if (isValid_hFakeOther) {
@@ -1447,7 +1448,7 @@ void energyScaleHist::calcFakeParticleRatio()
 
     if (isValid_hFakeOther) {
 
-        std::string tmpHistName = getObjectName(energyScaleHist::OBJ::kFakeOtherRatio, energyScaleHist::TOBJ::kTH1D);
+        std::string tmpHistName = getObjectName(recoAnalyzer::OBJ::kFakeOtherRatio, recoAnalyzer::TOBJ::kTH1D);
         hFakeOtherRatio = (TH1D*)hFakeOther->Clone(tmpHistName.c_str());
         if (isValid_hFakeNum) {
             hFakeOtherRatio->Divide(hFakeNum);
@@ -1475,8 +1476,8 @@ void energyScaleHist::calcFakeParticleRatio()
         }
 
         std::string label = fakeParticles[i].label;
-        std::string tmpHistName = replaceAll(hFakeParticle[i]->GetName(), getObjectStr(energyScaleHist::OBJ::kFakeParticle).c_str(),
-                                                                          getObjectStr(energyScaleHist::OBJ::kFakeParticleRatio).c_str());
+        std::string tmpHistName = replaceAll(hFakeParticle[i]->GetName(), getObjectStr(recoAnalyzer::OBJ::kFakeParticle).c_str(),
+                                                                          getObjectStr(recoAnalyzer::OBJ::kFakeParticleRatio).c_str());
         hFakeParticleRatio[i] = (TH1D*)hFakeParticle[i]->Clone(tmpHistName.c_str());
         if (isValid_hFakeNum) {
             hFakeParticleRatio[i]->Divide(hFakeNum);
@@ -1515,7 +1516,7 @@ void energyScaleHist::calcFakeParticleRatio()
     }
 }
 
-void energyScaleHist::calcFakeParticleRatioGenPt()
+void recoAnalyzer::calcFakeParticleRatioGenPt()
 {
     // write hFakeOtherGenPt now, before its content is modified.
     if (isValid_hFakeOtherGenPt) {
@@ -1546,7 +1547,7 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
 
     if (isValid_hFakeOtherGenPt) {
 
-        std::string tmpHistName = getObjectName(energyScaleHist::OBJ::kFakeOtherRatioGenPt, energyScaleHist::TOBJ::kTH1D);
+        std::string tmpHistName = getObjectName(recoAnalyzer::OBJ::kFakeOtherRatioGenPt, recoAnalyzer::TOBJ::kTH1D);
         hFakeOtherRatioGenPt = (TH1D*)hFakeOtherGenPt->Clone(tmpHistName.c_str());
         if (isValid_hFakeAllGenPt) {
             hFakeOtherRatioGenPt->Divide(hFakeAllGenPt);
@@ -1574,8 +1575,8 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
         }
 
         std::string label = fakeParticles[i].label;
-        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), getObjectStr(energyScaleHist::OBJ::kFakeParticleGenPt).c_str(),
-                                                                               getObjectStr(energyScaleHist::OBJ::kFakeParticleRatioGenPt).c_str());
+        std::string tmpHistName = replaceAll(hFakeParticleGenPt[i]->GetName(), getObjectStr(recoAnalyzer::OBJ::kFakeParticleGenPt).c_str(),
+                                                                               getObjectStr(recoAnalyzer::OBJ::kFakeParticleRatioGenPt).c_str());
         hFakeParticleRatioGenPt[i] = (TH1D*)hFakeParticleGenPt[i]->Clone(tmpHistName.c_str());
         if (isValid_hFakeAllGenPt) {
             hFakeParticleRatioGenPt[i]->Divide(hFakeAllGenPt);
@@ -1621,7 +1622,7 @@ void energyScaleHist::calcFakeParticleRatioGenPt()
  * The objects in h1DsliceY, f1sliceY, f1sliceYv2 will not be written so as not to inflate output file size.
  * But they will be plotted on an multipanel canvas and that canvas will be written.
  */
-void energyScaleHist::writeObjects(TCanvas* c)
+void recoAnalyzer::writeObjects(TCanvas* c)
 {
     if (isValid_hEscale) {
         hEscale->Write();
@@ -1663,8 +1664,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // energy scale
-        int iObs = ENERGYSCALE::kESCALE;
-        std::string label = ENERGYSCALE::OBS_LABELS[iObs];
+        int iObs = RECOANA::kESCALE;
+        std::string label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1678,8 +1679,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale
-        iObs = ENERGYSCALE::kERES;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kERES;
+        label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1693,8 +1694,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // energy scale from histogram mean
-        iObs = ENERGYSCALE::kESCALEARITH;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kESCALEARITH;
+        label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1708,8 +1709,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale from histogram std dev
-        iObs = ENERGYSCALE::kERESARITH;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kERESARITH;
+        label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1723,8 +1724,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale from histogram sigmaEff
-        iObs = ENERGYSCALE::kERESEFF;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kERESEFF;
+        label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1738,8 +1739,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // width of energy scale from histogram sigmaHM
-        iObs = ENERGYSCALE::kERESHM;
-        label = ENERGYSCALE::OBS_LABELS[iObs];
+        iObs = RECOANA::kERESHM;
+        label = RECOANA::OBS_LABELS[iObs];
         canvasName = Form("cnv_%s_%s", label.c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
@@ -1758,7 +1759,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->cd();
         leg = new TLegend();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        std::vector<int> tmpIndices = {ENERGYSCALE::kESCALE, ENERGYSCALE::kESCALEARITH};
+        std::vector<int> tmpIndices = {RECOANA::kESCALE, RECOANA::kESCALEARITH};
         std::vector<std::string> tmpLabels = {"Gaussian Fit", "Arithmetic"};
         std::vector<int> tmpColors = {kBlack, kGreen+2};
         int nTmp = tmpIndices.size();
@@ -1780,7 +1781,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         leg->SetFillStyle(4000);
         leg->SetBorderSize(0);
         leg->Draw();
-        setPad4Observable((TPad*) c, ENERGYSCALE::kESCALE);
+        setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -1792,7 +1793,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->cd();
         leg = new TLegend();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        tmpIndices = {ENERGYSCALE::kERES, ENERGYSCALE::kERESARITH, ENERGYSCALE::kERESEFF, ENERGYSCALE::kERESHM};
+        tmpIndices = {RECOANA::kERES, RECOANA::kERESARITH, RECOANA::kERESEFF, RECOANA::kERESHM};
         tmpLabels = {"Gaussian Fit", "Arithmetic", "Effective (#pm#sigma #rightarrow 68.3%)", "FWHM / 2.35"};
         tmpColors = {kBlack, kGreen+2, kRed+1, kBlue};
         nTmp = tmpIndices.size();
@@ -1814,7 +1815,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         leg->SetFillStyle(4000);
         leg->SetBorderSize(0);
         leg->Draw();
-        setPad4Observable((TPad*) c, ENERGYSCALE::kERES);
+        setPad4Observable((TPad*) c, RECOANA::kERES);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -2037,7 +2038,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
     // efficiency objects
     if (isValid_hMatchNum) {
-        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kMatchNum).c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(recoAnalyzer::OBJ::kMatchNum).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2049,7 +2050,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hMatchDenom) {
-        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kMatchDenom).c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(recoAnalyzer::OBJ::kMatchDenom).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2061,8 +2062,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hMatchEff) {
-        int iObs = ENERGYSCALE::kEFF;
-        canvasName = Form("cnv_%sH1D_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        int iObs = RECOANA::kEFF;
+        canvasName = Form("cnv_%sH1D_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2076,8 +2077,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hMatchEff && isValid_gMatchEff) {
-        int iObs = ENERGYSCALE::kEFF;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        int iObs = RECOANA::kEFF;
+        canvasName = Form("cnv_%s_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2098,7 +2099,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
     // fake rate objects
     if (isValid_hFakeNum) {
-        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kFakeNum).c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(recoAnalyzer::OBJ::kFakeNum).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2110,7 +2111,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hFakeDenom) {
-        canvasName = Form("cnv_%s_%s", getObjectStr(energyScaleHist::OBJ::kFakeDenom).c_str(), name.c_str());
+        canvasName = Form("cnv_%s_%s", getObjectStr(recoAnalyzer::OBJ::kFakeDenom).c_str(), name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2122,8 +2123,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hFakeRatio) {
-        int iObs = ENERGYSCALE::kFAKE;
-        canvasName = Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        int iObs = RECOANA::kFAKE;
+        canvasName = Form("cnv_%s_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2151,8 +2152,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
     if (isValid_hFakeRatio && isValid_gFakeRatio) {
-        int iObs = ENERGYSCALE::kFAKE;
-        canvasName = Form("cnv_%sgraph_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        int iObs = RECOANA::kFAKE;
+        canvasName = Form("cnv_%sgraph_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2195,8 +2196,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
     }
     if (isValid_hFakeNum && isValid_hFakeOtherRatio) {
 
-        int iObs = ENERGYSCALE::kFAKE;
-        canvasName = Form("cnv_%sPDGs_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+        int iObs = RECOANA::kFAKE;
+        canvasName = Form("cnv_%sPDGs_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2217,7 +2218,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
             hFakeParticleRatio[i]->SetMarkerSize(markerSize);
 
-            int markerColor = ENERGYSCALE::particlesColor[fakeIndices[i]];
+            int markerColor = RECOANA::particlesColor[fakeIndices[i]];
             hFakeParticleRatio[i]->SetLineColor(markerColor);
             hFakeParticleRatio[i]->SetMarkerColor(markerColor);
             hFakeParticleRatio[i]->Draw("e same");
@@ -2267,8 +2268,8 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
          hFakeAllGenPt->Write("",TObject::kOverwrite);
 
-         int iObs = ENERGYSCALE::kFAKE;
-         canvasName = Form("cnv_%sGenPtPDGs_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str() , name.c_str());
+         int iObs = RECOANA::kFAKE;
+         canvasName = Form("cnv_%sGenPtPDGs_%s", RECOANA::OBS_LABELS[iObs].c_str() , name.c_str());
          c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
          c->cd();
          setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2289,7 +2290,7 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
              hFakeParticleRatioGenPt[i]->SetMarkerSize(markerSize);
 
-             int markerColor = ENERGYSCALE::particlesColor[fakeIndices[i]];
+             int markerColor = RECOANA::particlesColor[fakeIndices[i]];
              hFakeParticleRatioGenPt[i]->SetLineColor(markerColor);
              hFakeParticleRatioGenPt[i]->SetMarkerColor(markerColor);
              hFakeParticleRatioGenPt[i]->Draw("e same");
@@ -2330,13 +2331,13 @@ void energyScaleHist::writeObjects(TCanvas* c)
      latex->Delete();
 }
 
-void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
+void recoAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 {
     TLine* line = 0;
 
     p->Update();
-    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH ||
-        iObs == ENERGYSCALE::kEFF || iObs == ENERGYSCALE::kFAKE) {
+    if (iObs == RECOANA::kESCALE || iObs == RECOANA::kESCALEARITH ||
+        iObs == RECOANA::kEFF || iObs == RECOANA::kFAKE) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
@@ -2351,7 +2352,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
         }
     }
 
-    if (iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kESCALEARITH) {
+    if (iObs == RECOANA::kESCALE || iObs == RECOANA::kESCALEARITH) {
 
         // draw horizontal lines
         std::vector<double> linesH = {0.96, 1.04, 1.1};
@@ -2372,8 +2373,8 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
         }
     }
 
-    if (iObs == ENERGYSCALE::kERES || iObs == ENERGYSCALE::kERESARITH ||
-        iObs == ENERGYSCALE::kERESEFF || iObs == ENERGYSCALE::kERESHM) {
+    if (iObs == RECOANA::kERES || iObs == RECOANA::kERESARITH ||
+        iObs == RECOANA::kERESEFF || iObs == RECOANA::kERESHM) {
 
         // draw horizontal lines
         std::vector<double> linesH = {0.05, 0.1, 0.2};
@@ -2394,14 +2395,14 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
         }
     }
 
-    if (iDep == ENERGYSCALE::kETA) {
+    if (iDep == RECOANA::kETA) {
         // draw line for EE-EB transition
         double ECAL_boundary_1 = 1.4442;
         double ECAL_boundary_2 = 1.566;
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (iObs == ENERGYSCALE::kEFF || iObs == ENERGYSCALE::kFAKE)  yMax = 1;
+        if (iObs == RECOANA::kEFF || iObs == RECOANA::kFAKE)  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
@@ -2414,7 +2415,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs, int iDep)
     }
 }
 
-void energyScaleHist::setPad4Observable(TPad* p, int iObs)
+void recoAnalyzer::setPad4Observable(TPad* p, int iObs)
 {
     setPad4Observable(p, iObs, dep);
 }
@@ -2424,7 +2425,7 @@ void energyScaleHist::setPad4Observable(TPad* p, int iObs)
  * Ex. x-axis axis is reco pt and the gen Pt range is 10<pt<30, then it draws vertical lines at x=10 and x=30.
  * Ex. x-axis axis is gen pt and the reco Pt range is pt>20, then it draws vertical line at x=20.
  */
-void energyScaleHist::drawLine4PtRange(TPad* p, int lineColor)
+void recoAnalyzer::drawLine4PtRange(TPad* p, int lineColor)
 {
     TLine* line = 0;
 
@@ -2435,44 +2436,44 @@ void energyScaleHist::drawLine4PtRange(TPad* p, int lineColor)
     double y2 = p->GetUymax();
     if (y2 > 1)  y2 = 1;        // vertical rises to at most y = 1
 
-    if (dep == ENERGYSCALE::kGENPT) {
+    if (dep == RECOANA::kGENPT) {
 
         // vertical lines for reco pt range
-        if (ranges[ENERGYSCALE::kRECOPT][0] > 0 &&
-            ranges[ENERGYSCALE::kRECOPT][0] > x1 && ranges[ENERGYSCALE::kRECOPT][0] < x2) {
+        if (ranges[RECOANA::kRECOPT][0] > 0 &&
+            ranges[RECOANA::kRECOPT][0] > x1 && ranges[RECOANA::kRECOPT][0] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kRECOPT][0], y1, ranges[ENERGYSCALE::kRECOPT][0], y2);
+            line = new TLine(ranges[RECOANA::kRECOPT][0], y1, ranges[RECOANA::kRECOPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
             line->Draw();
         }
-        if (ranges[ENERGYSCALE::kRECOPT][1] > 0 &&
-            ranges[ENERGYSCALE::kRECOPT][1] > x1 && ranges[ENERGYSCALE::kRECOPT][1] < x2) {
+        if (ranges[RECOANA::kRECOPT][1] > 0 &&
+            ranges[RECOANA::kRECOPT][1] > x1 && ranges[RECOANA::kRECOPT][1] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kRECOPT][1], y1, ranges[ENERGYSCALE::kRECOPT][1], y2);
+            line = new TLine(ranges[RECOANA::kRECOPT][1], y1, ranges[RECOANA::kRECOPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
             line->Draw();
         }
     }
-    else if (dep == ENERGYSCALE::kRECOPT) {
+    else if (dep == RECOANA::kRECOPT) {
 
         // vertical lines for gen pt range
-        if (ranges[ENERGYSCALE::kGENPT][0] > 0 &&
-            ranges[ENERGYSCALE::kGENPT][0] > x1 && ranges[ENERGYSCALE::kGENPT][0] < x2) {
+        if (ranges[RECOANA::kGENPT][0] > 0 &&
+            ranges[RECOANA::kGENPT][0] > x1 && ranges[RECOANA::kGENPT][0] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kGENPT][0], y1, ranges[ENERGYSCALE::kGENPT][0], y2);
+            line = new TLine(ranges[RECOANA::kGENPT][0], y1, ranges[RECOANA::kGENPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
             line->Draw();
         }
-        if (ranges[ENERGYSCALE::kGENPT][1] > 0 &&
-            ranges[ENERGYSCALE::kGENPT][1] > x1 && ranges[ENERGYSCALE::kGENPT][1] < x2) {
+        if (ranges[RECOANA::kGENPT][1] > 0 &&
+            ranges[RECOANA::kGENPT][1] > x1 && ranges[RECOANA::kGENPT][1] < x2) {
 
-            line = new TLine(ranges[ENERGYSCALE::kGENPT][1], y1, ranges[ENERGYSCALE::kGENPT][1], y2);
+            line = new TLine(ranges[RECOANA::kGENPT][1], y1, ranges[RECOANA::kGENPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);

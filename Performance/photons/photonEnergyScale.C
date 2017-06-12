@@ -43,7 +43,7 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
-#include "../interface/energyScaleHist.h"
+#include "../interface/recoAnalyzer.h"
 
 ///// global variables
 /// configuration variables
@@ -180,8 +180,8 @@ enum MODES {
 const std::string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
 std::vector<bool> runMode;
 // object for set of all possible energy scale histograms
-energyScaleHist hist[ENERGYSCALE::kN_DEPS][10][10][10][10];
-// energyScaleHist hist[ENERGYSCALE::kN_ENERGYSCALE_DEP][nBins_eta][nBins_genPt][nBins_recoPt][nBins_cent];
+recoAnalyzer rAna[RECOANA::kN_DEPS][10][10][10][10];
+// recoAnalyzer rAna[RECOANA::kN_ENERGYSCALE_DEP][nBins_eta][nBins_genPt][nBins_recoPt][nBins_cent];
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -452,25 +452,25 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                 for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, eta, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, eta, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
 
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, genPt, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, genPt, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
 
-                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH2Dcorr(genPt, pt, w, eta, cent);
+                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillH2Dcorr(genPt, pt, w, eta, cent);
 
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, pt, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, pt, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
 
-                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, cent, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, cent, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
 
-                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, sumIso, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, sumIso, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
 
-                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, sieie, w, eta, genPt, pt, cent);
-                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillH2D(energyScale, sieie, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillH(energyScale, w, eta, genPt, pt, cent);
                 }}}}
 
             }
@@ -551,22 +551,22 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genEta, w, genEta, genPt, cent);
-                                hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, genEta, genPt, cent);
-                                //hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, genEta, genPt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, genEta, genPt, cent);
-                                //hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, genEta, genPt, cent);
-                                //hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, genEta, genPt, cent);
+                                rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genEta, w, genEta, genPt, cent);
+                                rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(genPt, w, genEta, genPt, cent);
+                                //rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(pt, w, genEta, genPt, cent);
+                                rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenom(cent, w, genEta, genPt, cent);
+                                //rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sumIso, w, genEta, genPt, cent);
+                                //rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenom(sieie, w, genEta, genPt, cent);
 
                                 if (matched2RECO) {
                                     double pt  = (*ggHi.phoEt)[iReco];
 
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(genEta, w, genEta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, genEta, genPt, pt, cent);
-                                    //hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(pt, w, genEta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNum(cent, w, genEta, genPt, pt, cent);
-                                    //hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNum(sumIso, w, genEta, genPt, pt, cent);
-                                    //hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNum(sieie, w, genEta, genPt, pt, cent);
+                                    rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNum(genEta, w, genEta, genPt, pt, cent);
+                                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(genPt, w, genEta, genPt, pt, cent);
+                                    //rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNum(pt, w, genEta, genPt, pt, cent);
+                                    rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNum(cent, w, genEta, genPt, pt, cent);
+                                    //rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNum(sumIso, w, genEta, genPt, pt, cent);
+                                    //rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNum(sieie, w, genEta, genPt, pt, cent);
                                 }
                             }}}}
             }
@@ -623,20 +623,20 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
                         for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                             for (int iCent = 0;  iCent < nBins_cent; ++iCent) {
 
-                                hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, pt, cent);
-                                //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
-                                hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
+                                rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(eta, w, eta, pt, cent);
+                                //rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(genPt, w, eta, pt, cent);
+                                rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(pt, w, eta, pt, cent);
+                                rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(cent, w, eta, pt, cent);
+                                rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sumIso, w, eta, pt, cent);
+                                rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHDenomFake(sieie, w, eta, pt, cent);
 
                                 if (!isMatched2GenPhoton) {
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
-                                    //hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, pt, cent);
-                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, pt, cent);
+                                    rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(eta, w, eta, pt, cent);
+                                    //rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(genPt, w, eta, pt, cent);
+                                    rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(pt, w, eta, pt, cent);
+                                    rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(cent, w, eta, pt, cent);
+                                    rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sumIso, w, eta, pt, cent);
+                                    rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHNumFake(sieie, w, eta, pt, cent);
                                 }
                             }}}}
 
@@ -681,14 +681,14 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
                                 if (!isMatched2GenPhoton) {
 
-                                    hist[ENERGYSCALE::kETA][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(pt, fakePDG, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(cent, fakePDG, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sumIso, fakePDG, w, eta, genPt, pt, cent);
-                                    hist[ENERGYSCALE::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sieie, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kETA][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kRECOPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(pt, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kCENT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(cent, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kSUMISO][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sumIso, fakePDG, w, eta, genPt, pt, cent);
+                                    rAna[RECOANA::kSIEIE][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticle(sieie, fakePDG, w, eta, genPt, pt, cent);
 
-                                    hist[ENERGYSCALE::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, eta, pt, cent);
+                                    rAna[RECOANA::kGENPT][iEta][iGenPt][iRecoPt][iCent].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, eta, pt, cent);
                                 }
                             }}}}
                 }
@@ -1183,63 +1183,63 @@ int  preLoop(TFile* input, bool makeNew)
         input->cd();
     }
 
-    for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
+    for (int iDep = 0; iDep < RECOANA::kN_DEPS; ++iDep) {
         for (int iEta = 0; iEta < nBins_eta; ++iEta) {
             for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (iDep != ENERGYSCALE::kSUMISO && iDep != ENERGYSCALE::kSIEIE) {
+                        if (iDep != RECOANA::kSUMISO && iDep != RECOANA::kSIEIE) {
                             if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
                         }
 
                         // histogram ranges
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kETA][0] = bins_eta[0].at(iEta);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kETA][1] = bins_eta[1].at(iEta);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kGENPT][0] = bins_genPt[0].at(iGenPt);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kGENPT][1] = bins_genPt[1].at(iGenPt);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kCENT][0] = bins_cent[0].at(iCent);
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[ENERGYSCALE::kCENT][1] = bins_cent[1].at(iCent);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kETA][0] = bins_eta[0].at(iEta);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kETA][1] = bins_eta[1].at(iEta);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kGENPT][0] = bins_genPt[0].at(iGenPt);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kGENPT][1] = bins_genPt[1].at(iGenPt);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kCENT][0] = bins_cent[0].at(iCent);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kCENT][1] = bins_cent[1].at(iCent);
 
                         // for histograms with a particular dependence,
-                        // a single index is used in the multidimensional array of energyScaleHist objects is used.
+                        // a single index is used in the multidimensional array of recoAnalyzer objects is used.
                         // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
                         // with different eta ranges.
-                        // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iCent]
-                        // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iCent]
-                        // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
+                        // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
+                        // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
+                        // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
 
                         std::string strDep = "";
                         std::string xTitle = "";
                         bool makeObject = false;
-                        if (iEta == 0 && iDep == ENERGYSCALE::kETA) {
+                        if (iEta == 0 && iDep == RECOANA::kETA) {
                             strDep = "depEta";
                             xTitle = "photon #eta";
                             makeObject = true;
                         }
-                        else if (iGenPt == 0 && iDep == ENERGYSCALE::kGENPT) {
+                        else if (iGenPt == 0 && iDep == RECOANA::kGENPT) {
                             strDep = "depGenPt";
                             xTitle = "Gen p_{T} (GeV/c)";
                             makeObject = true;
                         }
-                        else if (iRecoPt == 0 && iDep == ENERGYSCALE::kRECOPT) {
+                        else if (iRecoPt == 0 && iDep == RECOANA::kRECOPT) {
                             strDep = "depRecoPt";
                             xTitle = "Reco p_{T} (GeV/c)";
                             makeObject = true;
                         }
-                        else if (iCent == 0 && iDep == ENERGYSCALE::kCENT) {
+                        else if (iCent == 0 && iDep == RECOANA::kCENT) {
                             strDep = "depCent";
                             xTitle = "Centrality (%)";
                             makeObject = true;
                         }
-                        else if (iDep == ENERGYSCALE::kSUMISO) {
+                        else if (iDep == RECOANA::kSUMISO) {
                             strDep = "depSumIso";
                             xTitle = "sumIso";
                             makeObject = true;
                         }
-                        else if (iDep == ENERGYSCALE::kSIEIE) {
+                        else if (iDep == RECOANA::kSIEIE) {
                             strDep = "depSieie";
                             xTitle = "#sigma_{#eta#eta}";
                             makeObject = true;
@@ -1247,34 +1247,34 @@ int  preLoop(TFile* input, bool makeNew)
 
                         if (makeObject) {
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
 
                             std::string nameH2D = Form("h2D_%s", tmpName.c_str());
                             std::string nameEscale = Form("h_%s", tmpName.c_str());
-                            std::string nameMatchNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kMatchNum);
-                            std::string nameMatchDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kMatchDenom);
-                            std::string nameFakeNum = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeNum);
-                            std::string nameFakeDenom = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeDenom);
+                            std::string nameMatchNum = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kMatchNum);
+                            std::string nameMatchDenom = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kMatchDenom);
+                            std::string nameFakeNum = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeNum);
+                            std::string nameFakeDenom = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeDenom);
 
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
 
                             // disable the cuts/ranges for this dependence
                             // Ex. If the dependence is GenPt (GenPt is the x-axis),
                             // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
                             // The x-axis bins will set the cuts.
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][0] = 0;
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][1] = -1;
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][0] = 0;
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][1] = -1;
 
                             int iAxis = iDep;
                             int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
                             std::vector<double> bins = TH1D_Axis_List[iAxis].bins;
 
                             // extract the x-axis bin information for energy scale distribution
-                            int iAxisEscale = ENERGYSCALE::kN_DEPS;
+                            int iAxisEscale = RECOANA::kN_DEPS;
                             CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[iAxisEscale];
 
                             // extract the x-axis bin information for fake composition as function of genPt
-                            int iAxisFakeGenPt = ENERGYSCALE::kN_DEPS+1;
+                            int iAxisFakeGenPt = RECOANA::kN_DEPS+1;
                             CONFIGPARSER::TH1Axis axisFakeGenPt = TH1D_Axis_List[iAxisFakeGenPt];
 
                             double arr[nBins+1];
@@ -1283,91 +1283,91 @@ int  preLoop(TFile* input, bool makeNew)
                             // energy scale
                             if (runMode[MODES::kEnergyScale]) {
                             if (makeNew) {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D =
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2D =
                                         new TH2D(nameH2D.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale =
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale =
                                         new TH1D(nameEscale.c_str(), ";Reco p_{T} / Gen p_{T};",
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(nameH2D.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(nameEscale.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(nameH2D.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(nameEscale.c_str());
                             }
                             }
 
                             // matching efficiency
                             if (runMode[MODES::kMatchEff]) {
                             if (makeNew) {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum =
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum =
                                         new TH1D(nameMatchNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom =
-                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum->Clone(nameMatchDenom.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom =
+                                        (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum->Clone(nameMatchDenom.c_str());
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum = (TH1D*)input->Get(nameMatchNum.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom = (TH1D*)input->Get(nameMatchDenom.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum = (TH1D*)input->Get(nameMatchNum.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom = (TH1D*)input->Get(nameMatchDenom.c_str());
                             }
                             }
 
                             // fake rate
                             if (runMode[MODES::kFakeRate]) {
                             if (makeNew) {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum =
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum =
                                         new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom =
-                                        (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum->Clone(nameFakeDenom.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom =
+                                        (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum->Clone(nameFakeDenom.c_str());
                             }
                             else {
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
-                                hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
+                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
                             }
                             }
 
                             // fake composition
                             if (runMode[MODES::kFakeComposition]) {
-                            int nFakeParticles = hist[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
+                            int nFakeParticles = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
                             for (int iParticle = 0; iParticle < nFakeParticles; ++iParticle) {
 
-                                std::string pdgStr = hist[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iParticle);
+                                std::string pdgStr = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iParticle);
                                 std::string nameFakeParticle =
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeParticle);
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeParticle);
                                 nameFakeParticle = replaceAll(nameFakeParticle, "PDG", Form("PDG%s", pdgStr.c_str()));
 
                                 std::string nameFakeOther =
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeOther);
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeOther);
 
                                 if (makeNew) {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
                                             new TH1D(nameFakeParticle.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
 
                                     if (iParticle == 0) {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
-                                                (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle]->Clone(nameFakeOther.c_str());
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
+                                                (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle]->Clone(nameFakeOther.c_str());
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
                                     }
                                 }
                                 else {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
                                             (TH1D*)input->Get(nameFakeParticle.c_str());
 
                                     if (iParticle == 0) {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
                                                 (TH1D*)input->Get(nameFakeOther.c_str());
                                     }
                                 }
 
                                 // special cases
-                                if (iDep == ENERGYSCALE::kGENPT) {
+                                if (iDep == RECOANA::kGENPT) {
                                     std::string nameFakeParticleGenPt =
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeParticleGenPt);
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeParticleGenPt);
                                     nameFakeParticleGenPt = replaceAll(nameFakeParticleGenPt, "PDG", Form("PDG%s", pdgStr.c_str()));
 
                                     std::string nameFakeOtherGenPt =
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeOtherGenPt);
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeOtherGenPt);
 
                                     std::string nameFakeAllGenPt =
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(energyScaleHist::OBJ::kFakeAllGenPt);
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeAllGenPt);
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
@@ -1376,30 +1376,30 @@ int  preLoop(TFile* input, bool makeNew)
                                     std::copy(binsFakeGenPt.begin(), binsFakeGenPt.end(), arrFakeGenPt);
 
                                     if (makeNew) {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
                                                 new TH1D(nameFakeParticleGenPt.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
                                                         nBinsFakeGenPt, arrFakeGenPt);
 
                                         if (iParticle == 0) {
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(nameFakeOtherGenPt.c_str());
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
+                                                    (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(nameFakeOtherGenPt.c_str());
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
 
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
-                                                    (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
+                                                    (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(
                                                             nameFakeAllGenPt.c_str());
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
                                         }
                                     }
                                     else {
-                                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
                                                 (TH1D*)input->Get(nameFakeParticleGenPt.c_str());
 
                                         if (iParticle == 0) {
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
                                                     (TH1D*)input->Get(nameFakeOtherGenPt.c_str());
 
-                                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
+                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
                                                     (TH1D*)input->Get(nameFakeAllGenPt.c_str());
                                         }
                                     }
@@ -1408,7 +1408,7 @@ int  preLoop(TFile* input, bool makeNew)
                             }
 
                             // special cases
-                            if (iDep == ENERGYSCALE::kGENPT) {
+                            if (iDep == RECOANA::kGENPT) {
                                 std::string tmpNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
 
                                 int nBinsx2D = TH2D_Axis_List[0].axisX.nBins;    // nBinsx
@@ -1423,37 +1423,37 @@ int  preLoop(TFile* input, bool makeNew)
                                 std::copy(binsy2D.begin(), binsy2D.end(), arrY);
 
                                 if (makeNew) {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr =
+                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr =
                                             new TH2D(tmpNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
-                                    // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
-                                    // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kCENT] objects would be redundant.
+                                    // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
+                                    // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                                 }
                                 else {
-                                    hist[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
-                                    // h2Dcorr will be used only by hist[ENERGYSCALE::kGENPT] object.
-                                    // By definition, hist[ENERGYSCALE::kEta] and hist[ENERGYSCALE::kCENT] objects would be redundant.
+                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
+                                    // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
+                                    // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                                 }
                             }
 
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].updateTH1();
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].updateTH1();
                             // set histogram title
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].prepareTitle();
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].prepareTitle();
                         }
 
-                        if (hist[iDep][iEta][iGenPt][iRecoPt][iCent].isValid_h2D) {
+                        if (rAna[iDep][iEta][iGenPt][iRecoPt][iCent].isValid_h2D) {
 
-                            if (nyMin == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iCent].yMin[0] = yMin[0];
-                            else if (nyMin == 2)  hist[iDep][iEta][iGenPt][iRecoPt][iCent].yMin = yMin;
+                            if (nyMin == 1)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMin[0] = yMin[0];
+                            else if (nyMin == 2)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMin = yMin;
 
-                            if (nyMax == 1)  hist[iDep][iEta][iGenPt][iRecoPt][iCent].yMax[0] = yMax[0];
-                            else if (nyMax == 2)  hist[iDep][iEta][iGenPt][iRecoPt][iCent].yMax = yMax;
+                            if (nyMax == 1)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMax[0] = yMax[0];
+                            else if (nyMax == 2)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMax = yMax;
 
                             float titleOffsetXTmp = titleOffsetsX.at(0);
                             float titleOffsetYTmp = titleOffsetsY.at(0);
-                            if (nTitleOffsetX == ENERGYSCALE::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
-                            if (nTitleOffsetY == ENERGYSCALE::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetX = titleOffsetXTmp;
-                            hist[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetY = titleOffsetYTmp;
+                            if (nTitleOffsetX == RECOANA::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
+                            if (nTitleOffsetY == RECOANA::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetX = titleOffsetXTmp;
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetY = titleOffsetYTmp;
                         }
                     }
                 }
@@ -1470,33 +1470,33 @@ int postLoop()
     // the idea is to initialize each Graphics object right before its use, then to delete it right after they are saved/written.
     TCanvas* c = 0;
 
-    for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
+    for (int iDep = 0; iDep < RECOANA::kN_DEPS; ++iDep) {
         for (int iEta = 0; iEta < nBins_eta; ++iEta) {
             for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (iDep == ENERGYSCALE::kETA && iEta != 0) continue;
-                        if (iDep == ENERGYSCALE::kGENPT && iGenPt != 0) continue;
-                        if (iDep == ENERGYSCALE::kRECOPT && iRecoPt != 0) continue;
-                        if (iDep == ENERGYSCALE::kCENT && iCent != 0) continue;
+                        if (iDep == RECOANA::kETA && iEta != 0) continue;
+                        if (iDep == RECOANA::kGENPT && iGenPt != 0) continue;
+                        if (iDep == RECOANA::kRECOPT && iRecoPt != 0) continue;
+                        if (iDep == RECOANA::kCENT && iCent != 0) continue;
 
-                        if (iDep != ENERGYSCALE::kSUMISO && iDep != ENERGYSCALE::kSIEIE) {
+                        if (iDep != RECOANA::kSUMISO && iDep != RECOANA::kSIEIE) {
                             if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
                         }
                         // for histograms with a particular dependence,
-                        // a single index is used in the multidimensional array of energyScaleHist objects.
+                        // a single index is used in the multidimensional array of recoAnalyzer objects.
                         // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
                         // with different eta ranges.
-                        // There will be objects like : hist[ENERGYSCALE::kETA][0][iGenPt][iRecoPt][iCent]
-                        // but not like : hist[ENERGYSCALE::kETA][1][iGenPt][iRecoPt][iCent]
-                        // in general there will be no object hist[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
+                        // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
+                        // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
+                        // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
 
                         c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
                         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].postLoop();
-                        hist[iDep][iEta][iGenPt][iRecoPt][iCent].writeObjects(c);
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].postLoop();
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].writeObjects(c);
 
                         c->Close();         // do not use Delete() for TCanvas.
                     }
@@ -1517,15 +1517,15 @@ int postLoop()
     // iObs = 3 is energy resolution from histogram std dev
     // iObs = 4 is matching efficiency
     // iObs = 5 is fake rate
-    for (int iObs = 0; iObs < ENERGYSCALE::OBS::kN_OBS; ++iObs) {
-        for (int iDep = 0; iDep < ENERGYSCALE::kN_DEPS; ++iDep) {
+    for (int iObs = 0; iObs < RECOANA::OBS::kN_OBS; ++iObs) {
+        for (int iDep = 0; iDep < RECOANA::kN_DEPS; ++iDep) {
 
             // plot from different eta bins
             for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (!hist[iDep][0][iGenPt][iRecoPt][iCent].isValid_h2D)  continue;
+                        if (!rAna[iDep][0][iGenPt][iRecoPt][iCent].isValid_h2D)  continue;
                         drawSame(c, iObs, iDep, -1, iGenPt, iRecoPt, iCent);
                     }
                 }
@@ -1537,9 +1537,9 @@ int postLoop()
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
                         // there is no genPt bin for fake rate
-                        if (iObs == ENERGYSCALE::kFAKE)  continue;
+                        if (iObs == RECOANA::kFAKE)  continue;
 
-                        if (!hist[iDep][iEta][0][iRecoPt][iCent].isValid_h2D)  continue;
+                        if (!rAna[iDep][iEta][0][iRecoPt][iCent].isValid_h2D)  continue;
                         drawSame(c, iObs, iDep, iEta, -1, iRecoPt, iCent);
                     }
                 }
@@ -1550,7 +1550,7 @@ int postLoop()
                 for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (!hist[iDep][iEta][iGenPt][0][iCent].isValid_h2D)  continue;
+                        if (!rAna[iDep][iEta][iGenPt][0][iCent].isValid_h2D)  continue;
 
                         drawSame(c, iObs, iDep, iEta, iGenPt, -1, iCent);
                     }
@@ -1564,17 +1564,17 @@ int postLoop()
 
 void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent)
 {
-    if ((iObs == ENERGYSCALE::kESCALE || iObs == ENERGYSCALE::kERES ||
-         iObs == ENERGYSCALE::kESCALEARITH || iObs == ENERGYSCALE::kERESARITH ) &&
+    if ((iObs == RECOANA::kESCALE || iObs == RECOANA::kERES ||
+         iObs == RECOANA::kESCALEARITH || iObs == RECOANA::kERESARITH ) &&
             !runMode[MODES::kEnergyScale]) return;
-    if (iObs == ENERGYSCALE::kEFF && !runMode[MODES::kMatchEff]) return;
-    if (iObs == ENERGYSCALE::kFAKE && !runMode[MODES::kFakeRate]) return;
+    if (iObs == RECOANA::kEFF && !runMode[MODES::kMatchEff]) return;
+    if (iObs == RECOANA::kFAKE && !runMode[MODES::kFakeRate]) return;
 
     // if the dependency is GenPt (the x-axis is GenPt), then it must be iGenPt = 0
-    if (iDep == ENERGYSCALE::kETA && iEta != 0) return;
-    if (iDep == ENERGYSCALE::kGENPT && iGenPt != 0) return;
-    if (iDep == ENERGYSCALE::kRECOPT && iRecoPt != 0) return;
-    if (iDep == ENERGYSCALE::kCENT && iCent != 0) return;
+    if (iDep == RECOANA::kETA && iEta != 0) return;
+    if (iDep == RECOANA::kGENPT && iGenPt != 0) return;
+    if (iDep == RECOANA::kRECOPT && iRecoPt != 0) return;
+    if (iDep == RECOANA::kCENT && iCent != 0) return;
 
     TH1D* hTmp = 0;
     TGraphAsymmErrors* gTmp = 0;
@@ -1585,25 +1585,25 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     std::string strBin2 = "";
     int nBins = 0;
     if (iEta == -1) {
-        tmpName = hist[iDep][0][iGenPt][iRecoPt][iCent].name.c_str();
+        tmpName = rAna[iDep][0][iGenPt][iRecoPt][iCent].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iGenPt == -1) {
-        tmpName = hist[iDep][iEta][0][iRecoPt][iCent].name.c_str();
+        tmpName = rAna[iDep][iEta][0][iRecoPt][iCent].name.c_str();
         strBin = "genPtBin";
         strBin2 = "genPtBinAll";
         nBins = nBins_genPt;
     }
     else if (iRecoPt == -1) {
-        tmpName = hist[iDep][iEta][iGenPt][0][iCent].name.c_str();
+        tmpName = rAna[iDep][iEta][iGenPt][0][iCent].name.c_str();
         strBin = "recoPtBin";
         strBin2 = "recoPtBinAll";
         nBins = nBins_recoPt;
     }
     else if (iCent == -1 && nBins_cent > 1) {
-        tmpName = hist[iDep][iEta][iGenPt][iRecoPt][0].name.c_str();
+        tmpName = rAna[iDep][iEta][iGenPt][iRecoPt][0].name.c_str();
         strBin = "centBin";
         strBin2 = "centBinAll";
         nBins = nBins_cent;
@@ -1616,7 +1616,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     // replace myBinX with name myBinAll
     size_t indexStart = tmpName.find(strBin.c_str());
     tmpName.replace(indexStart, strBin.size()+1, strBin2.c_str());
-    c->SetName(Form("cnv_%s_%s", ENERGYSCALE::OBS_LABELS[iObs].c_str(), tmpName.c_str()));
+    c->SetName(Form("cnv_%s_%s", RECOANA::OBS_LABELS[iObs].c_str(), tmpName.c_str()));
 
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
@@ -1631,18 +1631,18 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         else if (iRecoPt == -1) iHist = nBins_eta + nBins_genPt + iBin;
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
 
-        if (iObs == ENERGYSCALE::kEFF) {
-            if (iEta == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iBin][iGenPt][iRecoPt][iCent].gMatchEff->Clone();
-            else if (iGenPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iBin][iRecoPt][iCent].gMatchEff->Clone();
-            else if (iRecoPt == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iBin][iCent].gMatchEff->Clone();
-            else if (iCent == -1) gTmp = (TGraphAsymmErrors*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].gMatchEff->Clone();
+        if (iObs == RECOANA::kEFF) {
+            if (iEta == -1) gTmp = (TGraphAsymmErrors*)rAna[iDep][iBin][iGenPt][iRecoPt][iCent].gMatchEff->Clone();
+            else if (iGenPt == -1) gTmp = (TGraphAsymmErrors*)rAna[iDep][iEta][iBin][iRecoPt][iCent].gMatchEff->Clone();
+            else if (iRecoPt == -1) gTmp = (TGraphAsymmErrors*)rAna[iDep][iEta][iGenPt][iBin][iCent].gMatchEff->Clone();
+            else if (iCent == -1) gTmp = (TGraphAsymmErrors*)rAna[iDep][iEta][iGenPt][iRecoPt][iBin].gMatchEff->Clone();
 
             if (iBin == 0) {
                 // dummy histogram to be used as template for the graph
-                if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iCent].h1D[ENERGYSCALE::kEFF]->Clone();
-                else if (iGenPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iBin][iRecoPt][iCent].h1D[ENERGYSCALE::kEFF]->Clone();
-                else if (iRecoPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iBin][iCent].h1D[ENERGYSCALE::kEFF]->Clone();
-                else if (iCent == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[ENERGYSCALE::kEFF]->Clone();
+                if (iEta == -1) hTmp = (TH1D*)rAna[iDep][iBin][iGenPt][iRecoPt][iCent].h1D[RECOANA::kEFF]->Clone();
+                else if (iGenPt == -1) hTmp = (TH1D*)rAna[iDep][iEta][iBin][iRecoPt][iCent].h1D[RECOANA::kEFF]->Clone();
+                else if (iRecoPt == -1) hTmp = (TH1D*)rAna[iDep][iEta][iGenPt][iBin][iCent].h1D[RECOANA::kEFF]->Clone();
+                else if (iCent == -1) hTmp = (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[RECOANA::kEFF]->Clone();
 
                 hTmp->SetTitle("");
                 hTmp->Reset();
@@ -1655,13 +1655,13 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
             vecObj.push_back(gTmp);
         }
         else {
-            if (iEta == -1) hTmp = (TH1D*)hist[iDep][iBin][iGenPt][iRecoPt][iCent].h1D[iObs]->Clone();
-            else if (iGenPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iBin][iRecoPt][iCent].h1D[iObs]->Clone();
-            else if (iRecoPt == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iBin][iCent].h1D[iObs]->Clone();
-            else if (iCent == -1) hTmp = (TH1D*)hist[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[iObs]->Clone();
+            if (iEta == -1) hTmp = (TH1D*)rAna[iDep][iBin][iGenPt][iRecoPt][iCent].h1D[iObs]->Clone();
+            else if (iGenPt == -1) hTmp = (TH1D*)rAna[iDep][iEta][iBin][iRecoPt][iCent].h1D[iObs]->Clone();
+            else if (iRecoPt == -1) hTmp = (TH1D*)rAna[iDep][iEta][iGenPt][iBin][iCent].h1D[iObs]->Clone();
+            else if (iCent == -1) hTmp = (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iBin].h1D[iObs]->Clone();
 
             hTmp->SetTitle("");
-            if (iObs == ENERGYSCALE::kFAKE)  hTmp->SetMaximum(1.6);
+            if (iObs == RECOANA::kFAKE)  hTmp->SetMaximum(1.6);
 
             setTH1(hTmp, iHist);
             vecH1D.push_back(hTmp);
@@ -1669,7 +1669,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         }
     }
 
-    if (iObs == ENERGYSCALE::kEFF) {
+    if (iObs == RECOANA::kEFF) {
         drawSameTGraph(c, vecGraph);
     }
     else {
@@ -1678,19 +1678,19 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     c->Update();
 
     TLine* line = new TLine();
-    energyScaleHist::setPad4Observable((TPad*)c, iObs, iDep);
+    recoAnalyzer::setPad4Observable((TPad*)c, iObs, iDep);
 
     // vertical lines for pt ranges
     for (int iBin = 0; iBin < nBins; ++iBin) {
-        if (iObs == ENERGYSCALE::kEFF) {
+        if (iObs == RECOANA::kEFF) {
             if (iEta == -1)
-                hist[iDep][iBin][iGenPt][iRecoPt][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
+                rAna[iDep][iBin][iGenPt][iRecoPt][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
             else if (iGenPt == -1)
-                hist[iDep][iEta][iBin][iRecoPt][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
+                rAna[iDep][iEta][iBin][iRecoPt][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
             else if (iRecoPt == -1)
-                hist[iDep][iEta][iGenPt][iBin][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
+                rAna[iDep][iEta][iGenPt][iBin][iCent].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
             else if (iCent == -1)
-                hist[iDep][iEta][iGenPt][iRecoPt][iBin].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
+                rAna[iDep][iEta][iGenPt][iRecoPt][iBin].drawLine4PtRange(c, vecGraph[iBin]->GetMarkerColor());
         }
     }
 
@@ -1702,12 +1702,12 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         std::string legendOption = "lpf";
-        if (iObs == ENERGYSCALE::kEFF)  legendOption = "lp";
+        if (iObs == RECOANA::kEFF)  legendOption = "lp";
         std::string legendText = "";
-        if (iEta == -1) legendText = hist[iDep][iBin][iGenPt][iRecoPt][iCent].getRangeTextEta();
-        else if (iGenPt == -1) legendText = hist[iDep][iEta][iBin][iRecoPt][iCent].getRangeTextGenPt();
-        else if (iRecoPt == -1) legendText = hist[iDep][iEta][iGenPt][iBin][iCent].getRangeTextRecoPt();
-        else if (iCent == -1) legendText = hist[iDep][iEta][iGenPt][iRecoPt][iBin].getRangeTextCent();
+        if (iEta == -1) legendText = rAna[iDep][iBin][iGenPt][iRecoPt][iCent].getRangeTextEta();
+        else if (iGenPt == -1) legendText = rAna[iDep][iEta][iBin][iRecoPt][iCent].getRangeTextGenPt();
+        else if (iRecoPt == -1) legendText = rAna[iDep][iEta][iGenPt][iBin][iCent].getRangeTextRecoPt();
+        else if (iCent == -1) legendText = rAna[iDep][iEta][iGenPt][iRecoPt][iBin].getRangeTextCent();
 
         leg->AddEntry(vecObj[iBin], legendText.c_str(), legendOption.c_str());
     }
@@ -1724,73 +1724,73 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         textLinesTmp.push_back(textLines.at(i));
     }
 
-    bool writeTextEta = (iDep != ENERGYSCALE::kETA);
-    bool writeTextGenPt = (iDep != ENERGYSCALE::kGENPT && iObs != ENERGYSCALE::kFAKE);
-    bool writeTextRecoPt = (iDep != ENERGYSCALE::kRECOPT);
-    bool writeTextCent = (iDep != ENERGYSCALE::kCENT);
+    bool writeTextEta = (iDep != RECOANA::kETA);
+    bool writeTextGenPt = (iDep != RECOANA::kGENPT && iObs != RECOANA::kFAKE);
+    bool writeTextRecoPt = (iDep != RECOANA::kRECOPT);
+    bool writeTextCent = (iDep != RECOANA::kCENT);
 
     std::string textLineTmp;
     if (iEta == -1) {
         if (writeTextCent) {
-            textLineTmp = hist[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = hist[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = hist[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][0][iGenPt][iRecoPt][iCent].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iGenPt == -1) {
         if (writeTextCent) {
-            textLineTmp = hist[iDep][iEta][0][iRecoPt][iCent].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][iEta][0][iRecoPt][iCent].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextEta) {
-            textLineTmp = hist[iDep][iEta][0][iRecoPt][iCent].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iEta][0][iRecoPt][iCent].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = hist[iDep][iEta][0][iRecoPt][iCent].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][iEta][0][iRecoPt][iCent].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iRecoPt == -1) {
         if (writeTextCent) {
-            textLineTmp = hist[iDep][iEta][iGenPt][0][iCent].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][0][iCent].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextEta) {
-            textLineTmp = hist[iDep][iEta][iGenPt][0][iCent].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][0][iCent].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = hist[iDep][iEta][iGenPt][0][iCent].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][0][iCent].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iCent == -1) {
         if (writeTextEta) {
-            textLineTmp = hist[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = hist[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = hist[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][iEta][iGenPt][iRecoPt][0].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
@@ -1800,7 +1800,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
 
-    if (iObs == ENERGYSCALE::kFAKE) {
+    if (iObs == RECOANA::kFAKE) {
 
         // plot fake rate in log-scale as well
         int minTH1Dindex = getMinimumTH1Dindex(vecH1D, 0);
@@ -1873,21 +1873,21 @@ void setLegend(TPad* pad, TLegend* leg, int iLeg)
 {
     float legendTextSize = 0;
     if (nLegendTextSizes == 1) legendTextSize = legendTextSizes.at(0);
-    else if (nLegendTextSizes == ENERGYSCALE::kN_DEPS) legendTextSize = legendTextSizes.at(iLeg);
+    else if (nLegendTextSizes == RECOANA::kN_DEPS) legendTextSize = legendTextSizes.at(iLeg);
     if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
 
     int legendBorderSize = 0;
     if (nLegendBorderSizes == 1) legendBorderSize = legendBorderSizes.at(0);
-    else if (nLegendBorderSizes == ENERGYSCALE::kN_DEPS) legendBorderSize = legendBorderSizes.at(iLeg);
+    else if (nLegendBorderSizes == RECOANA::kN_DEPS) legendBorderSize = legendBorderSizes.at(iLeg);
     leg->SetBorderSize(legendBorderSize);
 
     float legendHeight = 0;
     if (nLegendHeights == 1) legendHeight = legendHeights.at(0);
-    else if (nLegendHeights == ENERGYSCALE::kN_DEPS) legendHeight = legendHeights.at(iLeg);
+    else if (nLegendHeights == RECOANA::kN_DEPS) legendHeight = legendHeights.at(iLeg);
 
     float legendWidth = 0;
     if (nLegendWidths == 1) legendWidth = legendWidths.at(0);
-    else if (nLegendWidths == ENERGYSCALE::kN_DEPS) legendWidth = legendWidths.at(iLeg);
+    else if (nLegendWidths == RECOANA::kN_DEPS) legendWidth = legendWidths.at(iLeg);
 
     double height = calcTLegendHeight(leg);
     double width = calcTLegendWidth(leg);
@@ -1895,15 +1895,15 @@ void setLegend(TPad* pad, TLegend* leg, int iLeg)
     if (legendWidth != 0)  width = legendWidth;
 
     std::string legendPosition = legendPositions.at(0).c_str();
-    if (nLegendPositions == ENERGYSCALE::kN_DEPS)  legendPosition = legendPositions.at(iLeg).c_str();
+    if (nLegendPositions == RECOANA::kN_DEPS)  legendPosition = legendPositions.at(iLeg).c_str();
 
     float legendOffsetX = 0;
     if (nLegendOffsetsX == 1) legendOffsetX = legendOffsetsX.at(0);
-    else if (nLegendOffsetsX == ENERGYSCALE::kN_DEPS) legendOffsetX = legendOffsetsX.at(iLeg);
+    else if (nLegendOffsetsX == RECOANA::kN_DEPS) legendOffsetX = legendOffsetsX.at(iLeg);
 
     float legendOffsetY = 0;
     if (nLegendOffsetsY == 1) legendOffsetY = legendOffsetsY.at(0);
-    else if (nLegendOffsetsY == ENERGYSCALE::kN_DEPS) legendOffsetY = legendOffsetsY.at(iLeg);
+    else if (nLegendOffsetsY == RECOANA::kN_DEPS) legendOffsetY = legendOffsetsY.at(iLeg);
 
     setLegendPosition(leg, legendPosition, pad, height, width, legendOffsetX, legendOffsetY, true);
 }
@@ -1912,27 +1912,27 @@ void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> tex
 {
     std::string textPosition = "";
     if (nTextPositions == 1)  textPosition = textPositions.at(0);
-    else if (nTextPositions == ENERGYSCALE::kN_DEPS)  textPosition = textPositions.at(iLatex);
+    else if (nTextPositions == RECOANA::kN_DEPS)  textPosition = textPositions.at(iLatex);
     setTextAlignment(latex, textPosition);
 
     float textFont = textFonts.at(0);
-    if (nTextFonts == ENERGYSCALE::kN_DEPS) textFont = textFonts.at(iLatex);
+    if (nTextFonts == RECOANA::kN_DEPS) textFont = textFonts.at(iLatex);
     latex->SetTextFont(textFont);
 
     float textSize = textSizes.at(0);
-    if (nTextSizes == ENERGYSCALE::kN_DEPS) textSize = textSizes.at(iLatex);
+    if (nTextSizes == RECOANA::kN_DEPS) textSize = textSizes.at(iLatex);
     latex->SetTextSize(textSize);
 
     float textOffsetX = textOffsetsX.at(0);
-    if (nTextOffsetsX == ENERGYSCALE::kN_DEPS) textOffsetX = textOffsetsX.at(iLatex);
+    if (nTextOffsetsX == RECOANA::kN_DEPS) textOffsetX = textOffsetsX.at(iLatex);
 
     float textOffsetY = textOffsetsY.at(0);
-    if (nTextOffsetsY == ENERGYSCALE::kN_DEPS) textOffsetY = textOffsetsY.at(iLatex);
+    if (nTextOffsetsY == RECOANA::kN_DEPS) textOffsetY = textOffsetsY.at(iLatex);
 
     // update y offset if legend and latex will overlap
     if (leg != 0) {
         std::string legendPosition = legendPositions.at(0).c_str();
-        if (nLegendPositions == ENERGYSCALE::kN_DEPS)  legendPosition = legendPositions.at(iLatex).c_str();
+        if (nLegendPositions == RECOANA::kN_DEPS)  legendPosition = legendPositions.at(iLatex).c_str();
 
         if (textPosition.find("N") == 0 && textPosition == legendPosition) {
             textOffsetY += leg->GetY2NDC() - leg->GetY1NDC();
