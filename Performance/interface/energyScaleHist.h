@@ -1838,7 +1838,34 @@ void energyScaleHist::writeObjects(TCanvas* c)
             std::vector<std::string> textLinesTmp;
             std::string textLineTmp = getBinEdgeText(i+1, i+1);
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            latex = new TLatex();
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+
+            // mean values and resolutions from histogram mean and stdDev
+            textLinesTmp.clear();
+            textLineTmp = Form("#mu (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hMean, esa[i][indexFncFinal].hMeanErr);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = Form("#sigma (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hStdDev, esa[i][indexFncFinal].hStdDevErr);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            latex->SetLineColor(kBlack);
+            float textSizeTmp = latex->GetTextSize();
+            latex->SetTextSize(textSizeTmp*0.84);
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.18);
+
+            // mean values and resolutions from fit
+            if (esa[i][indexFncFinal].isValid_f1) {
+                textLinesTmp.clear();
+                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(1), esa[i][indexFncFinal].f1->GetParError(1));
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(2), esa[i][indexFncFinal].f1->GetParError(2));
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1->GetChisquare());
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
+                latex->SetTextColor(lineColor);
+                latex->SetTextSize(textSizeTmp*0.84);
+                drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.30);
+            }
         }
         c->Write("",TObject::kOverwrite);
         // plot the same canvas in log-scale as well
@@ -1909,7 +1936,34 @@ void energyScaleHist::writeObjects(TCanvas* c)
             std::vector<std::string> textLinesTmp;
             std::string textLineTmp = getBinEdgeText(i+1, i+1);
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            latex = new TLatex();
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+
+            // mean values and resolutions from histogram mean and stdDev
+            textLinesTmp.clear();
+            textLineTmp = Form("#mu (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hMean, esa[i][indexFncFinal].hMeanErr);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = Form("#sigma (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hStdDev, esa[i][indexFncFinal].hStdDevErr);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            latex->SetLineColor(kBlack);
+            float textSizeTmp = latex->GetTextSize();
+            latex->SetTextSize(textSizeTmp*0.84);
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.18);
+
+            // mean values and resolutions from fit
+            if (esa[i][indexFncFinal].isValid_f1) {
+                textLinesTmp.clear();
+                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(1), esa[i][indexFncFinal].f1->GetParError(1));
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1->GetParameter(2), esa[i][indexFncFinal].f1->GetParError(2));
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1->GetChisquare());
+                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
+                latex->SetTextColor(lineColor);
+                latex->SetTextSize(textSizeTmp*0.84);
+                drawTextLines(latex, pads[i], textLinesTmp, "SW", 0.04, 0.16);
+            }
         }
         c->Write("",TObject::kOverwrite);
         // plot pull distributions for energy scale fits - END
