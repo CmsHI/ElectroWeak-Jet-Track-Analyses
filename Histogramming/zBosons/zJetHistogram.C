@@ -12,7 +12,7 @@
 
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/zJetTree.h"
-#include "../../Plotting/commonUtility.h"
+#include "../../Utilities/physicsUtil.h"
 #include "../interface/correlationHist.h"
 #include "../../Performance/interface/ratioHist.h"
 #include "../../Utilities/eventUtil.h"
