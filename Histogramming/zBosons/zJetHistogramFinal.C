@@ -15,7 +15,6 @@
 #include <iostream>
 
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../Plotting/commonUtility.h"
 #include "../interface/correlationHist.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"

@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "ggHiNtuplizerTree.h"
-#include "../Plotting/commonUtility.h"
 
 class diMC {
 public :
