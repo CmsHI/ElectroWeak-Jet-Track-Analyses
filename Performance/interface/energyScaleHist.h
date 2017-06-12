@@ -448,7 +448,6 @@ public :
     std::string getBinEdgeText(int binLow, int binUp);
 
     void updateTH1();
-    void updateFncs();
     void updateH1DsliceY();
     void updateH1DeScale();
 
@@ -626,14 +625,6 @@ public :
     std::vector<float> xMax;
     std::vector<float> yMin;
     std::vector<float> yMax;
-
-    // fit functions for reco pt / gen pt distributiıon
-    // These functions are in these functions are input from user.
-    std::vector<std::string> fitFncs;
-    std::vector<std::string> fitOptions;
-    std::vector<double> fitFncs_xMin;
-    std::vector<double> fitFncs_xMax;
-    std::vector<int> fitColors;
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
@@ -869,39 +860,6 @@ void energyScaleHist::updateTH1()
     isValid_hFakeOtherGenPt = (hFakeOtherGenPt != 0 && !hFakeOtherGenPt->IsZombie());
     isValid_hFakeOtherRatioGenPt = (hFakeOtherRatioGenPt != 0 && !hFakeOtherRatioGenPt->IsZombie());
     isValid_hFakeAllGenPt = (hFakeAllGenPt != 0 && !hFakeAllGenPt->IsZombie());
-}
-
-void energyScaleHist::updateFncs()
-{
-    int nFitFncs = fitFncs.size();
-    int nFitOptions = fitOptions.size();
-    int nFitFncs_xMin = fitFncs_xMin.size();
-    int nFitFncs_xMax = fitFncs_xMax.size();
-    int nFitColors = fitColors.size();
-
-    if (nFitFncs > nFitOptions) {
-        for (int i = 0; i < nFitFncs-nFitOptions; ++i) {
-            fitOptions.push_back(fitOptions[0].c_str());
-        }
-    }
-
-    if (nFitFncs > nFitFncs_xMin) {
-        for (int i = 0; i < nFitFncs-nFitFncs_xMin; ++i) {
-            fitFncs_xMin.push_back(fitFncs_xMin[0]);
-        }
-    }
-
-    if (nFitFncs > nFitFncs_xMax) {
-        for (int i = 0; i < nFitFncs-nFitFncs_xMax; ++i) {
-            fitFncs_xMax.push_back(fitFncs_xMax[0]);
-        }
-    }
-
-    if (nFitFncs > nFitColors) {
-        for (int i = 0; i < nFitFncs-nFitColors; ++i) {
-            fitColors.push_back(fitColors[0]);
-        }
-    }
 }
 
 void energyScaleHist::updateH1DsliceY()
@@ -1258,7 +1216,6 @@ void energyScaleHist::fitRecoGen()
     // reco pt / gen pt distributions and fits
     TH1D* hTmp = 0;
     TF1* f1Tmp = 0;
-    updateFncs();
 
     esa.clear();
     esa.resize(nBinsX);
