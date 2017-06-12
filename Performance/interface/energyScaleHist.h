@@ -327,7 +327,8 @@ public :
         isValid_hEscale = false;
         isValid_h2Dcorr = false;
 
-        indexFnc = ENERGYSCALE::kGAUS_95;
+        indexFncFinal = ENERGYSCALE::kGAUS_95;
+        indicesFnc = {ENERGYSCALE::kGAUS_95};
 
         hMatchNum = 0;
         hMatchDenom = 0;
@@ -507,8 +508,9 @@ public :
      * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
      */
     std::vector<std::vector<eScaleAna>> esa;
-    int indexFnc;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
-                     // function whose results will be shown in the final plots
+    int indexFncFinal;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
+                          // function whose results will be the final fit results
+    std::vector<int> indicesFnc;    // indices of the fit functions to be shown in the 1D energy scale plots
 
     TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
     TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
@@ -886,40 +888,40 @@ void energyScaleHist::updateH1DeScale()
 {
     for (int i = 1; i <= nBinsX; ++i) {
 
-        if (!esa[i-1][indexFnc].isValid_h) continue;
+        if (!esa[i-1][indexFncFinal].isValid_h) continue;
 
-        if (esa[i-1][indexFnc].isValid_f1) {
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(1));
-            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(1));
+        if (esa[i-1][indexFncFinal].isValid_f1) {
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(1));
+            h1DeScale[ENERGYSCALE::kESCALE]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(1));
 
-            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(2));
-            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(2));
+            h1DeScale[ENERGYSCALE::kERES]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(2));
+            h1DeScale[ENERGYSCALE::kERES]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(2));
 
-            h1DeScale[6]->SetBinContent(i, esa[i-1][indexFnc].f1->GetParameter(0));
-            h1DeScale[6]->SetBinError(i, esa[i-1][indexFnc].f1->GetParError(0));
+            h1DeScale[6]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetParameter(0));
+            h1DeScale[6]->SetBinError(i, esa[i-1][indexFncFinal].f1->GetParError(0));
 
-            h1DeScale[7]->SetBinContent(i, esa[i-1][indexFnc].f1->GetChisquare()/esa[i-1][indexFnc].f1->GetNDF());
+            h1DeScale[7]->SetBinContent(i, esa[i-1][indexFncFinal].f1->GetChisquare()/esa[i-1][indexFncFinal].f1->GetNDF());
             h1DeScale[7]->SetBinError(i, 0);
         }
 
         // arithmetic mean and std dev of energy scale distributions
-        double y = esa[i-1][indexFnc].hMean;
-        double yErr = esa[i-1][indexFnc].hMeanErr;
+        double y = esa[i-1][indexFncFinal].hMean;
+        double yErr = esa[i-1][indexFncFinal].hMeanErr;
         h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinContent(i, y);
         h1DeScale[ENERGYSCALE::kESCALEARITH]->SetBinError(i, yErr);
 
-        y= esa[i-1][indexFnc].hStdDev;
-        yErr = esa[i-1][indexFnc].hStdDevErr;
+        y= esa[i-1][indexFncFinal].hStdDev;
+        yErr = esa[i-1][indexFncFinal].hStdDevErr;
         h1DeScale[ENERGYSCALE::kERESARITH]->SetBinContent(i, y);
         h1DeScale[ENERGYSCALE::kERESARITH]->SetBinError(i, yErr);
 
-        y = esa[i-1][indexFnc].sigmaEff;
-        yErr = esa[i-1][indexFnc].sigmaEffErr;
+        y = esa[i-1][indexFncFinal].sigmaEff;
+        yErr = esa[i-1][indexFncFinal].sigmaEffErr;
         h1DeScale[ENERGYSCALE::kERESEFF]->SetBinContent(i, y);
         h1DeScale[ENERGYSCALE::kERESEFF]->SetBinError(i, yErr);
 
-        y = esa[i-1][indexFnc].sigmaHM;
-        yErr = esa[i-1][indexFnc].sigmaHMErr;
+        y = esa[i-1][indexFncFinal].sigmaHM;
+        yErr = esa[i-1][indexFncFinal].sigmaHMErr;
         h1DeScale[ENERGYSCALE::kERESHM]->SetBinContent(i, y);
         h1DeScale[ENERGYSCALE::kERESHM]->SetBinError(i, yErr);
     }
@@ -1823,6 +1825,9 @@ void energyScaleHist::writeObjects(TCanvas* c)
 
             int nFitFncs = esa[i].size();
             for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
+
+                if (std::find(indicesFnc.begin(), indicesFnc.end(), iFnc) == indicesFnc.end()) continue;
+
                 if (esa[i][iFnc].isValid_f1) {
                     esa[i][iFnc].f1->Draw("same");
                 }
@@ -1857,25 +1862,28 @@ void energyScaleHist::writeObjects(TCanvas* c)
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
-            int nEsa = esa[i].size();
-            int j1 = 1;
+            int nFitFncs = esa[i].size();
 
-            for (int j = j1; j < nEsa; ++j) {
-                if (esa[i][j].isValid_hPull)  {
+            // the pull from iFnc = 0 is not to be shown.
+            for (int iFnc = 1; iFnc < nFitFncs; ++iFnc) {
 
-                    esa[i][j].hPull->SetMarkerSize(markerSize);
+                if (std::find(indicesFnc.begin(), indicesFnc.end(), iFnc) == indicesFnc.end()) continue;
 
-                    if (j != indexFnc)  esa[i][j].hPull->SetMarkerStyle(kOpenSquare);
+                if (esa[i][iFnc].isValid_hPull)  {
+
+                    esa[i][iFnc].hPull->SetMarkerSize(markerSize);
+
+                    if (iFnc != indexFncFinal)  esa[i][iFnc].hPull->SetMarkerStyle(kOpenSquare);
 
                     std::string drawOption = "e same";
-                    if (j == j1)  drawOption = "e";
-                    esa[i][j].hPull->Draw(drawOption.c_str());
+                    if (iFnc == 1)  drawOption = "e";
+                    esa[i][iFnc].hPull->Draw(drawOption.c_str());
                 }
             }
 
-            if (nEsa > 0 && esa[i][j1].isValid_h) {
-                float x1 = esa[i][j1].hPull->GetXaxis()->GetXmin();
-                float x2 = esa[i][j1].hPull->GetXaxis()->GetXmax();
+            if (nFitFncs > 0 && esa[i][indexFncFinal].isValid_h) {
+                float x1 = esa[i][indexFncFinal].hPull->GetXaxis()->GetXmin();
+                float x2 = esa[i][indexFncFinal].hPull->GetXaxis()->GetXmax();
 
                 line = new TLine(x1, 0, x2, 0);
                 line->SetLineStyle(kSolid);
