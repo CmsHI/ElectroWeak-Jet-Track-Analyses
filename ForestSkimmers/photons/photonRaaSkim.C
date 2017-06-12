@@ -11,7 +11,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../Plotting/commonUtility.h"
+#include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
@@ -127,7 +127,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
         if(isMC && (nfiles==0)) { 
             lowestPthatFileName = (*it).c_str(); 
             TString str(lowestPthatFileName);
-            cout << "lowestPthatFileName = " << lowestPthatFileName << endl;
+            std::cout << "lowestPthatFileName = " << lowestPthatFileName << std::endl;
             if(str.Contains("15")) {
                 float temp[] = {15,30,50,80,120,9999};          
                 for(int j=0;j<nPthat+1;j++){
@@ -147,7 +147,7 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     if(isMC) {
         for(int j=0; j<nPthat ; j++){
             tmpWeight[j] = xSecCal(lowestPthatFileName,treeHiEvt, pthatCut[j], pthatCut[j+1]);
-            cout << collisionName << ", pthatWeight of " << pthatCut[j] << " to " << pthatCut[j+1] << " = " << tmpWeight[j] << endl;
+            std::cout << collisionName << ", pthatWeight of " << pthatCut[j] << " to " << pthatCut[j+1] << " = " << tmpWeight[j] << std::endl;
         }
     }
 /*
@@ -439,11 +439,11 @@ float xSecCal(const char* fname_lowestPthat, TChain* mergedTree, float pthat_i, 
     TBranch *b_pthat_low, *b_pthat_merged;
     tlowest->SetBranchAddress("pthat",&pthat_low, &b_pthat_low);
     entries[0] = tlowest->GetEntries(Form("pthat>= %.3f && pthat< %.3f", pthat_i, pthat_f));
-    cout << "entries from the lowest pthat sample : " << entries[0] << endl;
+    std::cout << "entries from the lowest pthat sample : " << entries[0] << std::endl;
 
     mergedTree->SetBranchAddress("pthat",&pthat_merged, &b_pthat_merged);
     entries[1] = mergedTree->GetEntries(Form("pthat>= %.3f && pthat< %.3f", pthat_i, pthat_f));
-    cout << "entries from the merged sample : " << entries[1] << endl;
+    std::cout << "entries from the merged sample : " << entries[1] << std::endl;
 
     float weight = (double)entries[0]/(double)entries[1];
     return weight;
