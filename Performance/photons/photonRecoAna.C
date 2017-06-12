@@ -1,12 +1,10 @@
 /*
- * macro to draw eta, GEN Pt, RECO Pt and centrality dependent photon energy scale plots.
- * The macro can make 4 types of 1D energy scale  histograms
+ * macro to draw eta, GEN Pt, RECO Pt and centrality dependent photon reconstruction performance plots.
+ * The macro can make 4 types of plots
  *  1. x-axis is eta.
  *  2. x-axis is GEN Pt
  *  3. x-axis is RECO Pt.
  *  4. x-axis is centrality (hiBin/2)
- *  Each 1D energy scale histogram has a corresponding 1D energy width (resolution) histogram.
- *  The macro provides a RECO Pt vs. GEN Pt correlation histogram for each eta and centrality bin.
  * saves histograms to a .root file.
  */
 
@@ -194,12 +192,12 @@ void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
-void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root");
-void photonEnergyScaleNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "photonEnergyScale.root");
+void photonRecoAna(const TString configFile, const TString inputFile, const TString outputFile = "photonRecoAna.root");
+void photonRecoAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "photonRecoAna.root");
 
-void photonEnergyScale(const TString configFile, const TString inputFile, const TString outputFile)
+void photonRecoAna(const TString configFile, const TString inputFile, const TString outputFile)
 {
-    std::cout<<"running photonEnergyScale()"<<std::endl;
+    std::cout<<"running photonRecoAna()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
@@ -710,15 +708,15 @@ void photonEnergyScale(const TString configFile, const TString inputFile, const 
 
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
-    std::cout<<"running photonEnergyScale() - END"<<std::endl;
+    std::cout<<"running photonRecoAna() - END"<<std::endl;
 }
 
 /*
  * run the macro without going through event loop, things done before and after the loop
  */
-void photonEnergyScaleNoLoop(const TString configFile, const TString inputFile, const TString outputFile)
+void photonRecoAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile)
 {
-    std::cout<<"running photonEnergyScale()"<<std::endl;
+    std::cout<<"running photonRecoAna()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
@@ -740,7 +738,7 @@ void photonEnergyScaleNoLoop(const TString configFile, const TString inputFile, 
     input->Close();
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
-    std::cout<<"running photonEnergyScale() - END"<<std::endl;
+    std::cout<<"running photonRecoAna() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
@@ -752,18 +750,18 @@ int main(int argc, char** argv)
     bool noLoop = (findPositionInVector(argOptions, ARGUMENTPARSER::noLoop) >= 0);
 
     if (nArgStr == 4) {
-        if (noLoop) photonEnergyScaleNoLoop(argStr.at(1), argStr.at(2), argStr.at(3));
-        else        photonEnergyScale(argStr.at(1), argStr.at(2), argStr.at(3));
+        if (noLoop) photonRecoAnaNoLoop(argStr.at(1), argStr.at(2), argStr.at(3));
+        else        photonRecoAna(argStr.at(1), argStr.at(2), argStr.at(3));
         return 0;
     }
     else if (nArgStr == 3) {
-        if (noLoop) photonEnergyScaleNoLoop(argStr.at(1), argStr.at(2));
-        else        photonEnergyScale(argStr.at(1), argStr.at(2));
+        if (noLoop) photonRecoAnaNoLoop(argStr.at(1), argStr.at(2));
+        else        photonRecoAna(argStr.at(1), argStr.at(2));
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./photonEnergyScale.exe <configFile> <inputFile> <outputFile>"
+                "./photonRecoAna.exe <configFile> <inputFile> <outputFile>"
                 << std::endl;
         return 1;
     }
