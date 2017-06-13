@@ -80,6 +80,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     bins_hiBin[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     bins_hiBin[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
 
+    const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
+    const int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+
     const int nSmearBins = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].i[CUTS::JET::k_nSmearBins];
 
     // event cuts/weights
@@ -105,18 +108,32 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     const bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
     const float smearingRes = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
-    const float energyScale = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
+    float energyScale = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
     const bool doResolutionSmearing = (smearingRes > 0);
     const int nsmear = doResolutionSmearing ? 100 : 1;
 
     const bool doJetEnergyScaling = (energyScale != 1 && energyScale != 0);
-    const float JES_factor = energyScale;
+    if (!doJetEnergyScaling) energyScale = 1;
+
+    TF1* f_JES_Q[nBins_hiBin] = {0};
+    f_JES_Q[0] = new TF1("f_JES_Q_0", "0.011180+0.195313/sqrt(x)", 30, 300);
+    f_JES_Q[1] = new TF1("f_JES_Q_1", "0.011180+0.195313/sqrt(x)", 30, 300);
+    f_JES_Q[2] = new TF1("f_JES_Q_2", "0.014454+0.089004/sqrt(x)", 30, 300);
+    f_JES_Q[3] = new TF1("f_JES_Q_3", "0.011180+0.195313/sqrt(x)", 30, 300);
+    f_JES_Q[4] = new TF1("f_JES_Q_4", "0.014200+0.127950/sqrt(x)", 30, 300);
+    f_JES_Q[5] = new TF1("f_JES_Q_5", "0.014454+0.089004/sqrt(x)", 30, 300);
+    f_JES_Q[6] = new TF1("f_JES_Q_6", "0.010469+0.084808/sqrt(x)", 30, 300);
+    TF1* f_JES_G[nBins_hiBin] = {0};
+    f_JES_G[0] = new TF1("f_JES_G_0", "0.021607+0.458346/sqrt(x)", 30, 300);
+    f_JES_G[1] = new TF1("f_JES_G_1", "0.021607+0.458346/sqrt(x)", 30, 300);
+    f_JES_G[2] = new TF1("f_JES_G_2", "0.021607+0.295396/sqrt(x)", 30, 300);
+    f_JES_G[3] = new TF1("f_JES_G_3", "0.021607+0.458346/sqrt(x)", 30, 300);
+    f_JES_G[4] = new TF1("f_JES_G_4", "0.023489+0.313111/sqrt(x)", 30, 300);
+    f_JES_G[5] = new TF1("f_JES_G_5", "0.021607+0.295396/sqrt(x)", 30, 300);
+    f_JES_G[6] = new TF1("f_JES_G_6", "0.021607+0.213359/sqrt(x)", 30, 300);
 
     TRandom3 rand(12345);
-
-    const int nBins_pt = bins_pt[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
-    const int nBins_hiBin = bins_hiBin[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
     // verbose about cut configuration
     std::cout << "Cut Configuration :" << std::endl;
@@ -149,7 +166,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     std::cout << "doResolutionSmearing = " << doResolutionSmearing << std::endl;
     if (doResolutionSmearing) std::cout << "smearingRes = " << smearingRes << std::endl;
     std::cout << "doJetEnergyScaling = " << doJetEnergyScaling << std::endl;
-    if (doJetEnergyScaling) std::cout << "JES_factor = " << JES_factor << std::endl;
+    if (doJetEnergyScaling) std::cout << "energyScale = " << energyScale << std::endl;
 
     /// Input Bookkeeping block ///
     TFile* input = TFile::Open(inputFile);
@@ -543,7 +560,13 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     }
 
                     // JES systematics
+                    float JES_factor = energyScale;
                     if (doJetEnergyScaling) {
+                        if (isHI) {
+                            float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
+                            float JES_G_factor = f_JES_G[j]->Eval(jetpt);
+                            JES_factor = TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                        }
                         jetpt *= JES_factor;
                     }
 
@@ -589,39 +612,46 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             jetTreeMB->GetEntry(jentry);
             gammaJetTreeMB->GetEntry(jentry);
 
-            for (int ijet = 0; ijet < jetMB.nref; ijet++) {
-                for (int ismear = 0; ismear < nsmear; ismear++) {
-                    float jetpt = jetMB.jtpt[ijet];
+            for (int j = 0; j < nBins_hiBin; ++j) {
+                if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
+                    continue;
 
-                    // JER systematics
-                    float JER_factor = 1;
-                    if (doResolutionSmearing) {
-                        float smear_factor = 1 + smearingRes;
-                        int resolutionBin = 0;
-                        resolutionBin = getResolutionBin(evt.hiBin);
-                        float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
-                        JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
-                        jetpt *= JER_factor;
-                    }
+                for (int ijet = 0; ijet < jetMB.nref; ijet++) {
+                    for (int ismear = 0; ismear < nsmear; ismear++) {
+                        float jetpt = jetMB.jtpt[ijet];
 
-                    // JES systematics
-                    if (doJetEnergyScaling) {
-                        jetpt *= JES_factor;
-                    }
+                        // JER systematics
+                        float JER_factor = 1;
+                        if (doResolutionSmearing) {
+                            float smear_factor = 1 + smearingRes;
+                            int resolutionBin = 0;
+                            resolutionBin = getResolutionBin(evt.hiBin);
+                            float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
+                            JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
+                            jetpt *= JER_factor;
+                        }
 
-                    // jet cuts
-                    if ((*gammaJetMB.dR)[ijet] < cut_dR) continue;
-                    if (jetpt < cut_jetpt) continue;
-                    // jteta cut applied in skim
-                    // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
-                    if ((*gammaJetMB.jetID)[ijet] < cut_jetID) continue;
+                        // JES systematics
+                        float JES_factor = energyScale;
+                        if (doJetEnergyScaling) {
+                            if (isHI) {
+                                float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
+                                float JES_G_factor = f_JES_G[j]->Eval(jetpt);
+                                JES_factor = TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                            }
+                            jetpt *= JES_factor;
+                        }
 
-                    for (int i = 0; i < nBins_pt; ++i) {
-                        if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
-                                (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
-                        for (int j = 0; j < nBins_hiBin; ++j) {
-                            if (evt.hiBin <  bins_hiBin[0][j] || evt.hiBin >= bins_hiBin[1][j])
-                                continue;
+                        // jet cuts
+                        if ((*gammaJetMB.dR)[ijet] < cut_dR) continue;
+                        if (jetpt < cut_jetpt) continue;
+                        // jteta cut applied in skim
+                        // if (TMath::Abs(jetMB.jteta[ijet]) > cut_jeteta) continue;
+                        if ((*gammaJetMB.jetID)[ijet] < cut_jetID) continue;
+
+                        for (int i = 0; i < nBins_pt; ++i) {
+                            if ((*pho.phoEtCorrected)[gammaJetMB.phoIdx] <  bins_pt[0][i] ||
+                                    (*pho.phoEtCorrected)[gammaJetMB.phoIdx] >= bins_pt[1][i]) continue;
 
                             // fill histograms
                             // dphi = 1
