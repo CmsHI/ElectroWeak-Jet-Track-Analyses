@@ -1246,6 +1246,7 @@ int  preLoop(TFile* input, bool makeNew)
                         if (makeObject) {
                             std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
                             rAna[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleX = xTitle.c_str();
 
                             std::string nameH2D = Form("h2D_%s", tmpName.c_str());
                             std::string nameEscale = Form("h_%s", tmpName.c_str());
@@ -1513,8 +1514,10 @@ int postLoop()
     // iObs = 1 is energy resolution
     // iObs = 2 is energy scale from histogram mean
     // iObs = 3 is energy resolution from histogram std dev
-    // iObs = 4 is matching efficiency
-    // iObs = 5 is fake rate
+    // iObs = 4 is energy resolution from sigmaEff
+    // iObs = 5 is energy resolution from sigmaHM
+    // iObs = 6 is matching efficiency
+    // iObs = 7 is fake rate
     for (int iObs = 0; iObs < RECOANA::OBS::kN_OBS; ++iObs) {
         for (int iDep = 0; iDep < RECOANA::kN_DEPS; ++iDep) {
 
@@ -1523,7 +1526,7 @@ int postLoop()
                 for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (!rAna[iDep][0][iGenPt][iRecoPt][iCent].isValid_h2D)  continue;
+                        if (rAna[iDep][0][iGenPt][iRecoPt][iCent].name.size() == 0)  continue;
                         drawSame(c, iObs, iDep, -1, iGenPt, iRecoPt, iCent);
                     }
                 }
@@ -1537,7 +1540,7 @@ int postLoop()
                         // there is no genPt bin for fake rate
                         if (iObs == RECOANA::kFAKE)  continue;
 
-                        if (!rAna[iDep][iEta][0][iRecoPt][iCent].isValid_h2D)  continue;
+                        if (rAna[iDep][iEta][0][iRecoPt][iCent].name.size() == 0)  continue;
                         drawSame(c, iObs, iDep, iEta, -1, iRecoPt, iCent);
                     }
                 }
@@ -1548,7 +1551,7 @@ int postLoop()
                 for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
                     for (int iCent = 0; iCent < nBins_cent; ++iCent) {
 
-                        if (!rAna[iDep][iEta][iGenPt][0][iCent].isValid_h2D)  continue;
+                        if (rAna[iDep][iEta][iGenPt][0][iCent].name.size() == 0)  continue;
 
                         drawSame(c, iObs, iDep, iEta, iGenPt, -1, iCent);
                     }
@@ -1563,7 +1566,8 @@ int postLoop()
 void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent)
 {
     if ((iObs == RECOANA::kESCALE || iObs == RECOANA::kERES ||
-         iObs == RECOANA::kESCALEARITH || iObs == RECOANA::kERESARITH ) &&
+         iObs == RECOANA::kESCALEARITH || iObs == RECOANA::kERESARITH ||
+         iObs == RECOANA::kERESEFF || iObs == RECOANA::kERESHM) &&
             !runMode[MODES::kEnergyScale]) return;
     if (iObs == RECOANA::kEFF && !runMode[MODES::kMatchEff]) return;
     if (iObs == RECOANA::kFAKE && !runMode[MODES::kFakeRate]) return;

@@ -49,8 +49,8 @@ const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
 enum OBS {
     kESCALE,    // energy scale
     kERES,      // energy resolution
-    kESCALEARITH,    // energy scale
-    kERESARITH,      // energy resolution
+    kESCALEARITH,    // energy scale from histogram mean
+    kERESARITH,      // energy resolution from histogram std dev
     kERESEFF,      // energy resolution from sigmaEff
     kERESHM,      // energy resolution from sigmaHM
     kEFF,            // matching efficiency
@@ -1100,7 +1100,6 @@ void recoAnalyzer::prepareTitle()
     title = tmpHistTitle.c_str();
     if(isValid_h2D) {
         h2D->SetTitle(title.c_str());
-        titleX = h2D->GetXaxis()->GetTitle();
     }
     if (isValid_hEscale) {
         hEscale->SetTitle(title.c_str());
