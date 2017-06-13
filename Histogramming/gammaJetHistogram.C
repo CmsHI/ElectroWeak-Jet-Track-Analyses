@@ -108,13 +108,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const bool doPhotonIsolationSys = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doPhotonIsolationSys];
     const bool useCorrectedSumIso = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_useCorrectedSumIso];
     const float smearingRes = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_smearingRes];
-    float energyScale = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
+    const float energyScale = configCuts.proc[CUTS::kSKIM].obj[CUTS::kJET].f[CUTS::JET::k_energyScale];
 
     const bool doResolutionSmearing = (smearingRes > 0);
     const int nsmear = doResolutionSmearing ? 100 : 1;
 
-    const bool doJetEnergyScaling = (energyScale != 1 && energyScale != 0);
-    if (!doJetEnergyScaling) energyScale = 1;
+    const bool doJetEnergyScaling = energyScale != 0;
 
     TF1* f_JES_Q[nBins_hiBin] = {0};
     f_JES_Q[0] = new TF1("f_JES_Q_0", "0.011180+0.195313/sqrt(x)", 30, 300);
@@ -560,12 +559,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     }
 
                     // JES systematics
-                    float JES_factor = energyScale;
+                    float JES_factor = 1 + energyScale;
                     if (doJetEnergyScaling) {
                         if (isHI) {
                             float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
                             float JES_G_factor = f_JES_G[j]->Eval(jetpt);
-                            JES_factor = TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                            JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) * TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
                         }
                         jetpt *= JES_factor;
                     }
@@ -632,12 +631,12 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         }
 
                         // JES systematics
-                        float JES_factor = energyScale;
+                        float JES_factor = 1 + energyScale;
                         if (doJetEnergyScaling) {
                             if (isHI) {
                                 float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
                                 float JES_G_factor = f_JES_G[j]->Eval(jetpt);
-                                JES_factor = TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                                JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) * TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
                             }
                             jetpt *= JES_factor;
                         }
