@@ -59,7 +59,7 @@ export X509_USER_PROXY=\${PWD}/$PROXYFILE
 XRDCP_PREFIX="/mnt/hadoop/cms/"
 XRDCP_PATH=\${3#\${XRDCP_PREFIX}}
 SRM_PREFIX="/mnt/hadoop/"
-SRM_PATH=\${3#\$SRM_PREFIX}}
+SRM_PATH=\${3#\${SRM_PREFIX}}
 
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
