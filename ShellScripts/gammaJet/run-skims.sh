@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [[ $# -ne 5 ]]; then
+if [[ $# -ne 3 ]]; then
     echo -e "Usage: ./ShellScipts/gammaJet/run-skims.sh [hadoop dir] [output dir] [0/1]"
-    echo -e "arg 4: [0: skim, 1: merge + arithmetic]"
+    echo -e "arg 3: [0: skim, 1: merge + arithmetic]"
     echo -e "[hadoop dir] will contain condor output"
     echo -e "[output dir] will contain merged skims/histograms"
     exit 1

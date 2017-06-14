@@ -1,9 +1,8 @@
 #!/bin/bash
 
-if [ $# -ne 4 ]; then
-    echo -e "Usage: ./ShellScipts/gammaJet/run-systematics.sh [input dir] [output dir] [0/1/2] [0/1]"
+if [ $# -ne 3 ]; then
+    echo -e "Usage: ./ShellScipts/gammaJet/run-systematics.sh [input dir] [output dir] [0/1/2]"
     echo -e "arg 3: [0: histogram, 1: arithmetic, 2: final]"
-    echo -e "arg 4: [0: exclude jes, 1: all]"
     echo -e "[input dir] should contain input files"
     echo -e "[output dir] will contain output files up to final output"
     echo -e "note: [output dir] should also contain nominal data arithmetic files (for isolation systematics)"
@@ -24,7 +23,7 @@ SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 SYS_SUFFIX=(_JER _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _JES_UP _JES_DOWN)
 
-NSYS=$(( $4 == 0 ? 4 : 6))
+NSYS=6
 
 for ITERSYS in $(seq 0 $NSYS)
 do
