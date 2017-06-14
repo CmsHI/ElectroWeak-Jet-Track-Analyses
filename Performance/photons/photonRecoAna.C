@@ -1557,6 +1557,18 @@ int postLoop()
                     }
                 }
             }
+
+            // plot from different centrality bins
+            for (int iEta = 0; iEta < nBins_eta; ++iEta) {
+                for (int iGenPt = 0; iGenPt < nBins_genPt; ++iGenPt) {
+                    for (int iRecoPt = 0; iRecoPt < nBins_recoPt; ++iRecoPt) {
+
+                        if (rAna[iDep][iEta][iGenPt][iRecoPt][0].name.size() == 0)  continue;
+
+                        drawSame(c, iObs, iDep, iEta, iGenPt, iRecoPt, -1);
+                    }
+                }
+            }
         }
     }
 
