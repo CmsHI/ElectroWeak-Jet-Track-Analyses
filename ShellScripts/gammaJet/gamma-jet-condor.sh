@@ -9,7 +9,6 @@ now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-# gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
 mkdir -p $3
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
@@ -57,8 +56,10 @@ echo \$HOSTNAME
 export X509_USER_PROXY=\${PWD}/$PROXYFILE
 
 # set hadoop directory path for xrdcp
-PREFIX="/mnt/hadoop/cms/"
-XRDCP_PATH=\${3#\${PREFIX}}
+XRDCP_PREFIX="/mnt/hadoop/cms/"
+XRDCP_PATH=\${3#\${XRDCP_PREFIX}}
+SRM_PREFIX="/mnt/hadoop/"
+SRM_PATH=\${3#\$SRM_PREFIX}}
 
 # setup local folders with correct directory structure
 mkdir CutConfigurations/
@@ -79,21 +80,27 @@ set -x
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
 if [[ \$? -eq 0 ]]; then
-  gfal-copy file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-  gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+  mv gammaJetSkim_\${4}.root \$3
+  mv gammaJetHistogram_\${4}.root \$3
 
   if [[ \$? -ne 0 ]]; then
-    xrdcp gammaJetSkim_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
-    xrdcp gammaJetHistogram_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
+    gfal-copy file://\${PWD}/gammaJetSkim_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetSkim_\${4}.root
+    gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetHistogram_\${4}.root
 
     if [[ \$? -ne 0 ]]; then
-      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetSkim_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
-      lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetHistogram_\${4}.root srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=\$3
+      xrdcp gammaJetSkim_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
+      xrdcp gammaJetHistogram_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
+
+      if [[ \$? -ne 0 ]]; then
+        lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetSkim_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetSkim_\${4}.root
+        lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetHistogram_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetHistogram_\${4}.root
+      fi
     fi
   fi
 fi
 
-rm *.root
+rm -r CutConfigurations ShellScripts Corrections
+rm *.exe *.root
 EOF
 
 condor_submit $now/skim-gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
