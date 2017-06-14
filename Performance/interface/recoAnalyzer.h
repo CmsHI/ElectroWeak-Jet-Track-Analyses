@@ -238,6 +238,7 @@ public :
     void calcSigmaEff() {
 
         if (!isValid_h)  return;
+        if (h->GetEntries() == 0) return;
 
         int binMax = h->GetMaximumBin();
 
@@ -260,6 +261,7 @@ public :
     void calcSigmaHM() {
 
         if (!isValid_h)  return;
+        if (h->GetEntries() == 0) return;
 
         int binMax = h->GetMaximumBin();
         double maxContent = h->GetBinContent(binMax);
@@ -1765,9 +1767,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         for (int j = 0; j < nTmp; ++j) {
             h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
             h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
-            if (j == 0) {
+            if (tmpIndices[j] == RECOANA::kESCALE) {
                 h1DeScale[tmpIndices[j]]->SetMarkerStyle(kFullSquare);
-                h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.3);
+                h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.4);
             }
             if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
             else        h1DeScale[tmpIndices[j]]->Draw("e same");
@@ -1799,8 +1801,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         for (int j = 0; j < nTmp; ++j) {
             h1DeScale[tmpIndices[j]]->SetMarkerColor(tmpColors[j]);
             h1DeScale[tmpIndices[j]]->SetLineColor(tmpColors[j]);
-            if (j == 0) {
+            if (tmpIndices[j] == RECOANA::kERES) {
                 h1DeScale[tmpIndices[j]]->SetMarkerStyle(kFullSquare);
+                h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.4);
+            }
+            else if (tmpIndices[j] == RECOANA::kERESEFF) {
                 h1DeScale[tmpIndices[j]]->SetMarkerSize(h1DeScale[tmpIndices[j]]->GetMarkerSize()*1.3);
             }
             if (j == 0) h1DeScale[tmpIndices[j]]->Draw("e");
