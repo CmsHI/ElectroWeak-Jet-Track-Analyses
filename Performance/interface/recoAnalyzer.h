@@ -26,6 +26,27 @@
 
 namespace RECOANA {
 
+enum OBJS {   // reco objects
+    kMUON,
+    kELECTRON,
+    kPHOTON,
+    kZBOSON,
+    kJET,
+    kPFCAND,
+    kTRACK,
+    kN_OBJS
+};
+
+const std::string OBJ_LABELS[kN_OBJS] = {
+        "mu",
+        "ele",
+        "pho",
+        "zBoson",
+        "jet",
+        "pfCand",
+        "track"
+};
+
 enum DEPS {   // reco performance dependencies
     kETA,
     kGENPT,
@@ -36,7 +57,7 @@ enum DEPS {   // reco performance dependencies
     kN_DEPS
 };
 
-const std::string ENERGYSCALE_DEP_LABELS[kN_DEPS] = {
+const std::string DEP_LABELS[kN_DEPS] = {
         "ETA",
         "GENPT",
         "RECOPT",
@@ -439,6 +460,7 @@ public :
 
         minFakeFraction = 0.05;
 
+        recoObj = -1;
         dep = -1;
 
         name = "";
@@ -646,6 +668,7 @@ public :
         kN_TOBJ
     };
 
+    int recoObj;
     int dep;            // If the x-axis is eta, then dep = RECOANA::kETA
 
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix

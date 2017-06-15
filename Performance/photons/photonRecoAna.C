@@ -1255,6 +1255,7 @@ int  preLoop(TFile* input, bool makeNew)
                             std::string nameFakeNum = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeNum);
                             std::string nameFakeDenom = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeDenom);
 
+                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].recoObj = RECOANA::OBJS::kPHOTON;
                             rAna[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
 
                             // disable the cuts/ranges for this dependence
