@@ -562,9 +562,11 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     float JES_factor = 1 + energyScale;
                     if (doJetEnergyScaling) {
                         if (isHI) {
-                            float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
-                            float JES_G_factor = f_JES_G[j]->Eval(jetpt);
-                            JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) * TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                            float flavour_factor = 0;
+                            if (energyScale > 0) flavour_factor = f_JES_Q[j]->Eval(jetpt);
+                            if (energyScale < 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                            JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
+                                TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                         }
                         jetpt *= JES_factor;
                     }
@@ -634,9 +636,11 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         float JES_factor = 1 + energyScale;
                         if (doJetEnergyScaling) {
                             if (isHI) {
-                                float JES_Q_factor = f_JES_Q[j]->Eval(jetpt);
-                                float JES_G_factor = f_JES_G[j]->Eval(jetpt);
-                                JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) * TMath::Sqrt(energyScale * energyScale + JES_Q_factor * JES_Q_factor + JES_G_factor * JES_G_factor);
+                                float flavour_factor = 0;
+                                if (energyScale > 0) flavour_factor = f_JES_Q[j]->Eval(jetpt);
+                                if (energyScale < 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                                JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
+                                    TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                             }
                             jetpt *= JES_factor;
                         }

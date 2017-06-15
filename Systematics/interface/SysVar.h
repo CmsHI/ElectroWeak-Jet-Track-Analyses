@@ -63,8 +63,8 @@ void TH1D_from_TF1(TH1D* h, TF1* f) {
         h->SetBinContent(i, f->Eval(h->GetBinCenter(i)));
 }
 
-#define _N_REBIN 10
-Double_t xjg_rebin[_N_REBIN + 1] = {0, 0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2};
+#define _N_REBIN 8
+Double_t xjg_rebin[_N_REBIN + 1] = {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2};
 
 class TotalSysVar;
 
