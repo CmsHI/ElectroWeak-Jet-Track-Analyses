@@ -9,7 +9,10 @@ now="$(basename $1 .conf)_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
-gfal-mkdir -p srm://se01.cmsaf.mit.edu:8443/srm/v2/server?SFN=$3
+SRM_PREFIX="/mnt/hadoop/"
+SRM_PATH=${3#${SRM_PREFIX}}
+
+gfal-mkdir -p gsiftp://se01.cmsaf.mit.edu:2811/${SRM_PATH}
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
 
