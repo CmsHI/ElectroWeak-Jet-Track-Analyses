@@ -195,9 +195,6 @@ TList* getListOfALLKeys(TDirectoryFile* dir, std::string type, bool inheritsFrom
 
 TList* getListOfMatchedKeys(TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom)
 {
-    if(!inheritsFrom)
-        return getListOfALLKeys(dir, type);
-
     TList* keysInDir = dir->GetListOfKeys();
     TIter* iter = new TIter(keysInDir);
 
@@ -217,7 +214,7 @@ TList* getListOfMatchedKeys(TDirectoryFile* dir, std::string regex, std::string 
 
         if (matched) {
             if (checkType) {
-                if(!inheritsFrom && key->GetClassName() == type.c_str())  {
+                if(!inheritsFrom && strcmp(key->GetClassName(), type.c_str()) == 0)  {
                     keysOfType->Add(key);
                 }
                 else if(inheritsFrom && key->ReadObj()->InheritsFrom(type.c_str()))  {
@@ -233,7 +230,7 @@ TList* getListOfMatchedKeys(TDirectoryFile* dir, std::string regex, std::string 
         if(key->IsFolder() && std::string(key->GetClassName()) == "TDirectoryFile")
         {
             subdir = (TDirectoryFile*)key->ReadObj();
-            newKeys = getListOfALLKeys(subdir, type, inheritsFrom);
+            newKeys = getListOfMatchedKeys(subdir, regex, type, inheritsFrom);
             keysOfType->AddAll(newKeys);
         }
     }
