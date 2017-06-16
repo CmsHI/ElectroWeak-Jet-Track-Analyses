@@ -85,12 +85,19 @@ enum FNCS {
     kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
     kGAUS_95,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
     kGAUS_98,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
+    kCBALL_95,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
+    kCBALL_98,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 98% of the integral
     kN_FNCS
 };
 
-const std::string fncFormulas[kN_FNCS] = {"gaus", "gaus", "gaus"};
-const double intFractions[kN_FNCS] = {1, 0.95, 0.98};
-const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue};
+const std::string fncFormulas[kN_FNCS] = {
+        "gaus",
+        "gaus",
+        "gaus",
+        "crystalball",
+        "crystalball"};
+const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.98};
+const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kRed, kBlue};
 const std::string fitOption = "Q M R N";
 
 // list of particles that can fake RECO-level objects
@@ -329,6 +336,16 @@ public :
                 f1Chi2 = f1->GetChisquare();
                 f1Ndf = f1->GetNDF();
             }
+            else if (f1->GetExpFormula() == "crystalball" ||
+                     f1->GetExpFormula() == "[Constant]*ROOT::Math::crystalball_function(x,[Alpha],[N],[Sigma],[Mean])") {
+
+                f1Mean = f1->GetParameter(1);
+                f1MeanErr = f1->GetParError(1);
+                f1Sigma = f1->GetParameter(2);
+                f1SigmaErr = f1->GetParError(2);
+                f1Chi2 = f1->GetChisquare();
+                f1Ndf = f1->GetNDF();
+            }
         }
     };
 
@@ -379,8 +396,8 @@ public :
         isValid_hEscale = false;
         isValid_h2Dcorr = false;
 
-        indexFncFinal = RECOANA::kGAUS_95;
-        indicesFnc = {RECOANA::kGAUS_95};
+        indexFncFinal = RECOANA::kCBALL_98;
+        indicesFnc = {RECOANA::kGAUS_FitSlicesY, RECOANA::kGAUS_95, RECOANA::kCBALL_98};
 
         hMatchNum = 0;
         hMatchDenom = 0;
@@ -1316,7 +1333,11 @@ void recoAnalyzer::fitRecoGen()
             else {
                 if (RECOANA::fncFormulas[iFnc] == "gaus") {
                     // use the fit from TH2::FitSlicesY as seed
-                    f1Tmp->SetParameters(p0, p1, p2);
+                    f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2);
+                }
+                else if (RECOANA::fncFormulas[iFnc] == "crystalball") {
+                    // use the fit from TH2::FitSlicesY as seed
+                    f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1);
                 }
             }
 
