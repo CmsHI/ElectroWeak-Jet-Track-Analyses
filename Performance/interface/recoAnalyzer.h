@@ -90,12 +90,23 @@ enum FNCS {
     kN_FNCS
 };
 
+// labels to identify the function form
+const std::string fncLabels[kN_FNCS] = {
+        "gaus",
+        "gaus",
+        "gaus",
+        "crystalball",
+        "crystalball"
+};
+
 const std::string fncFormulas[kN_FNCS] = {
         "gaus",
         "gaus",
         "gaus",
         "crystalball",
-        "crystalball"};
+        "crystalball"
+};
+
 const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.98};
 const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kRed, kBlue};
 const std::string fitOption = "Q M R N";
@@ -212,6 +223,7 @@ public :
         isValid_hPull = false;
 
         fitOption = "Q M R N";
+        fncLabel = "";
 
         hMean = -1;
         hMeanErr = -1;
@@ -326,8 +338,7 @@ public :
         calcSigmaHM();
 
         if (isValid_f1) {
-            if (f1->GetExpFormula() == "gaus" ||
-                f1->GetExpFormula() == "[Constant]*exp(-0.5*((x-[Mean])/[Sigma])*((x-[Mean])/[Sigma]))") {
+            if (fncLabel == "gaus") {
 
                 f1Mean = f1->GetParameter(1);
                 f1MeanErr = f1->GetParError(1);
@@ -336,8 +347,7 @@ public :
                 f1Chi2 = f1->GetChisquare();
                 f1Ndf = f1->GetNDF();
             }
-            else if (f1->GetExpFormula() == "crystalball" ||
-                     f1->GetExpFormula() == "[Constant]*ROOT::Math::crystalball_function(x,[Alpha],[N],[Sigma],[Mean])") {
+            else if (fncLabel == "crystalball") {
 
                 f1Mean = f1->GetParameter(1);
                 f1MeanErr = f1->GetParError(1);
@@ -354,6 +364,7 @@ public :
     TH1D* hPull;   // pull distribution for the fit
 
     std::string fitOption;
+    std::string fncLabel;       // label to identify the function form
 
     bool isValid_h;
     bool isValid_f1;
@@ -1312,7 +1323,8 @@ void recoAnalyzer::fitRecoGen()
         std::vector<TF1*> f1sTmp;
         for (int iFnc = 0; iFnc < RECOANA::kN_FNCS; ++iFnc) {
 
-            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), RECOANA::fncFormulas[iFnc].c_str());
+            std::string formulaTmp = RECOANA::fncFormulas[iFnc];
+            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
 
             std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, RECOANA::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
@@ -1331,11 +1343,11 @@ void recoAnalyzer::fitRecoGen()
                 //        f1Tmp->SetNDF(100);
             }
             else {
-                if (RECOANA::fncFormulas[iFnc] == "gaus") {
+                if (RECOANA::fncLabels[iFnc] == "gaus") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2);
                 }
-                else if (RECOANA::fncFormulas[iFnc] == "crystalball") {
+                else if (RECOANA::fncLabels[iFnc] == "crystalball") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1);
                 }
@@ -1353,6 +1365,7 @@ void recoAnalyzer::fitRecoGen()
             esaTmp[j].isValid_f1 = true;
 
             esaTmp[j].fitOption = RECOANA::fitOption;
+            esaTmp[j].fncLabel = RECOANA::fncLabels[j];
             // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
             if (j > 0)  esaTmp[j].fit();
 
