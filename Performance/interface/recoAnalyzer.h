@@ -23,6 +23,7 @@
 
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/tgraphUtil.h"
+#include "../../Utilities/mathUtil.h"
 
 namespace RECOANA {
 
@@ -86,7 +87,9 @@ enum FNCS {
     kGAUS_95,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
     kGAUS_98,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
     kCBALL_95,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
-    kCBALL_98,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 98% of the integral
+    kCBALL_99,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
+    kDSCB_95,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
+    kDSCB_99,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
     kN_FNCS
 };
 
@@ -96,7 +99,9 @@ const std::string fncLabels[kN_FNCS] = {
         "gaus",
         "gaus",
         "crystalball",
-        "crystalball"
+        "crystalball",
+        "DSCB",
+        "DSCB"
 };
 
 const std::string fncFormulas[kN_FNCS] = {
@@ -104,11 +109,13 @@ const std::string fncFormulas[kN_FNCS] = {
         "gaus",
         "gaus",
         "crystalball",
-        "crystalball"
+        "crystalball",
+        "0",
+        "0"
 };
 
-const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.98};
-const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kRed, kBlue};
+const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.99, 0.95, 0.99};
+const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kOrange-1, kOrange+2, kRed+1, kBlue+1};
 const std::string fitOption = "Q M R N";
 
 // list of particles that can fake RECO-level objects
@@ -356,6 +363,15 @@ public :
                 f1Chi2 = f1->GetChisquare();
                 f1Ndf = f1->GetNDF();
             }
+            else if (fncLabel == "DSCB") {
+
+                f1Mean = f1->GetParameter(1);
+                f1MeanErr = f1->GetParError(1);
+                f1Sigma = f1->GetParameter(2);
+                f1SigmaErr = f1->GetParError(2);
+                f1Chi2 = f1->GetChisquare();
+                f1Ndf = f1->GetNDF();
+            }
         }
     };
 
@@ -407,8 +423,8 @@ public :
         isValid_hEscale = false;
         isValid_h2Dcorr = false;
 
-        indexFncFinal = RECOANA::kCBALL_98;
-        indicesFnc = {RECOANA::kGAUS_FitSlicesY, RECOANA::kGAUS_95, RECOANA::kCBALL_98};
+        indexFncFinal = RECOANA::kDSCB_99;
+        indicesFnc = {RECOANA::kGAUS_FitSlicesY, RECOANA::kGAUS_95, RECOANA::kCBALL_99, RECOANA::kDSCB_99};
 
         hMatchNum = 0;
         hMatchDenom = 0;
@@ -1323,8 +1339,13 @@ void recoAnalyzer::fitRecoGen()
         std::vector<TF1*> f1sTmp;
         for (int iFnc = 0; iFnc < RECOANA::kN_FNCS; ++iFnc) {
 
-            std::string formulaTmp = RECOANA::fncFormulas[iFnc];
-            f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
+            if (RECOANA::fncLabels[iFnc] == "DSCB") {
+                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, 7);
+            }
+            else {
+                std::string formulaTmp = RECOANA::fncFormulas[iFnc];
+                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
+            }
 
             std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, RECOANA::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
@@ -1350,6 +1371,10 @@ void recoAnalyzer::fitRecoGen()
                 else if (RECOANA::fncLabels[iFnc] == "crystalball") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1);
+                }
+                else if (RECOANA::fncLabels[iFnc] == "DSCB") {
+                    // use the fit from TH2::FitSlicesY as seed
+                    f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1, 1, 1);
                 }
             }
 
