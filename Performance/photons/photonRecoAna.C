@@ -1191,24 +1191,6 @@ int  preLoop(TFile* input, bool makeNew)
                             if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
                         }
 
-                        // histogram ranges
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kETA][0] = bins_eta[0].at(iEta);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kETA][1] = bins_eta[1].at(iEta);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kGENPT][0] = bins_genPt[0].at(iGenPt);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kGENPT][1] = bins_genPt[1].at(iGenPt);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kCENT][0] = bins_cent[0].at(iCent);
-                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[RECOANA::kCENT][1] = bins_cent[1].at(iCent);
-
-                        // for histograms with a particular dependence,
-                        // a single index is used in the multidimensional array of recoAnalyzer objects is used.
-                        // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
-                        // with different eta ranges.
-                        // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
-                        // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
-                        // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
-
                         std::string strDep = "";
                         std::string xTitle = "";
                         bool makeObject = false;
@@ -1243,116 +1225,136 @@ int  preLoop(TFile* input, bool makeNew)
                             makeObject = true;
                         }
 
-                        if (makeObject) {
-                            std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].name = tmpName.c_str();
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleX = xTitle.c_str();
+                        if (!makeObject)  continue;
 
-                            std::string nameH2D = Form("h2D_%s", tmpName.c_str());
-                            std::string nameEscale = Form("h_%s", tmpName.c_str());
-                            std::string nameMatchNum = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kMatchNum);
-                            std::string nameMatchDenom = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kMatchDenom);
-                            std::string nameFakeNum = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeNum);
-                            std::string nameFakeDenom = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeDenom);
+                        recoAnalyzer rAnaTmp;
+                        // histogram ranges
+                        rAnaTmp.ranges[RECOANA::kETA][0] = bins_eta[0].at(iEta);
+                        rAnaTmp.ranges[RECOANA::kETA][1] = bins_eta[1].at(iEta);
+                        rAnaTmp.ranges[RECOANA::kGENPT][0] = bins_genPt[0].at(iGenPt);
+                        rAnaTmp.ranges[RECOANA::kGENPT][1] = bins_genPt[1].at(iGenPt);
+                        rAnaTmp.ranges[RECOANA::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
+                        rAnaTmp.ranges[RECOANA::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
+                        rAnaTmp.ranges[RECOANA::kCENT][0] = bins_cent[0].at(iCent);
+                        rAnaTmp.ranges[RECOANA::kCENT][1] = bins_cent[1].at(iCent);
 
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].recoObj = RECOANA::OBJS::kPHOTON;
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].dep = iDep;
+                        // for histograms with a particular dependence,
+                        // a single index is used in the multidimensional array of recoAnalyzer objects is used.
+                        // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
+                        // with different eta ranges.
+                        // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
+                        // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
+                        // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
 
-                            // disable the cuts/ranges for this dependence
-                            // Ex. If the dependence is GenPt (GenPt is the x-axis),
-                            // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
-                            // The x-axis bins will set the cuts.
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][0] = 0;
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].ranges[iDep][1] = -1;
+                        std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
+                        rAnaTmp.name = tmpName.c_str();
+                        rAnaTmp.titleX = xTitle.c_str();
 
-                            int iAxis = iDep;
-                            int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
-                            std::vector<double> bins = TH1D_Axis_List[iAxis].bins;
+                        std::string nameH2D = Form("h2D_%s", tmpName.c_str());
+                        std::string nameEscale = Form("h_%s", tmpName.c_str());
+                        std::string nameMatchNum = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchNum);
+                        std::string nameMatchDenom = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchDenom);
+                        std::string nameFakeNum = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeNum);
+                        std::string nameFakeDenom = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeDenom);
 
-                            // extract the x-axis bin information for energy scale distribution
-                            int iAxisEscale = RECOANA::kN_DEPS;
-                            CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[iAxisEscale];
+                        rAnaTmp.recoObj = RECOANA::OBJS::kPHOTON;
+                        rAnaTmp.dep = iDep;
 
-                            // extract the x-axis bin information for fake composition as function of genPt
-                            int iAxisFakeGenPt = RECOANA::kN_DEPS+1;
-                            CONFIGPARSER::TH1Axis axisFakeGenPt = TH1D_Axis_List[iAxisFakeGenPt];
+                        // disable the cuts/ranges for this dependence
+                        // Ex. If the dependence is GenPt (GenPt is the x-axis),
+                        // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
+                        // The x-axis bins will set the cuts.
+                        rAnaTmp.ranges[iDep][0] = 0;
+                        rAnaTmp.ranges[iDep][1] = -1;
 
-                            double arr[nBins+1];
-                            std::copy(bins.begin(), bins.end(), arr);
+                        int iAxis = iDep;
+                        int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
+                        std::vector<double> bins = TH1D_Axis_List[iAxis].bins;
 
-                            // energy scale
-                            if (runMode[MODES::kEnergyScale]) {
+                        // extract the x-axis bin information for energy scale distribution
+                        int iAxisEscale = RECOANA::kN_DEPS;
+                        CONFIGPARSER::TH1Axis axisEscale = TH1D_Axis_List[iAxisEscale];
+
+                        // extract the x-axis bin information for fake composition as function of genPt
+                        int iAxisFakeGenPt = RECOANA::kN_DEPS+1;
+                        CONFIGPARSER::TH1Axis axisFakeGenPt = TH1D_Axis_List[iAxisFakeGenPt];
+
+                        double arr[nBins+1];
+                        std::copy(bins.begin(), bins.end(), arr);
+
+                        // energy scale
+                        if (runMode[MODES::kEnergyScale]) {
                             if (makeNew) {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2D =
+                                rAnaTmp.h2D =
                                         new TH2D(nameH2D.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale =
+                                rAnaTmp.hEscale =
                                         new TH1D(nameEscale.c_str(), ";Reco p_{T} / Gen p_{T};",
                                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
                             }
                             else {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2D = (TH2D*)input->Get(nameH2D.c_str());
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hEscale = (TH1D*)input->Get(nameEscale.c_str());
+                                rAnaTmp.h2D = (TH2D*)input->Get(nameH2D.c_str());
+                                rAnaTmp.hEscale = (TH1D*)input->Get(nameEscale.c_str());
                             }
-                            }
+                        }
 
-                            // matching efficiency
-                            if (runMode[MODES::kMatchEff]) {
+                        // matching efficiency
+                        if (runMode[MODES::kMatchEff]) {
                             if (makeNew) {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum =
+                                rAnaTmp.hMatchNum =
                                         new TH1D(nameMatchNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom =
-                                        (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum->Clone(nameMatchDenom.c_str());
+                                rAnaTmp.hMatchDenom =
+                                        (TH1D*)rAnaTmp.hMatchNum->Clone(nameMatchDenom.c_str());
                             }
                             else {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchNum = (TH1D*)input->Get(nameMatchNum.c_str());
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hMatchDenom = (TH1D*)input->Get(nameMatchDenom.c_str());
+                                rAnaTmp.hMatchNum = (TH1D*)input->Get(nameMatchNum.c_str());
+                                rAnaTmp.hMatchDenom = (TH1D*)input->Get(nameMatchDenom.c_str());
                             }
-                            }
+                        }
 
-                            // fake rate
-                            if (runMode[MODES::kFakeRate]) {
+                        // fake rate
+                        if (runMode[MODES::kFakeRate]) {
                             if (makeNew) {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum =
+                                rAnaTmp.hFakeNum =
                                         new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom =
-                                        (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum->Clone(nameFakeDenom.c_str());
+                                rAnaTmp.hFakeDenom =
+                                        (TH1D*)rAnaTmp.hFakeNum->Clone(nameFakeDenom.c_str());
                             }
                             else {
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
-                                rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
+                                rAnaTmp.hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
+                                rAnaTmp.hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
                             }
-                            }
+                        }
 
-                            // fake composition
-                            if (runMode[MODES::kFakeComposition]) {
-                            int nFakeParticles = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].nFakeParticles;
+                        // fake composition
+                        if (runMode[MODES::kFakeComposition]) {
+                            int nFakeParticles = rAnaTmp.nFakeParticles;
                             for (int iParticle = 0; iParticle < nFakeParticles; ++iParticle) {
 
-                                std::string pdgStr = rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getFakePDGstr(iParticle);
+                                std::string pdgStr = rAnaTmp.getFakePDGstr(iParticle);
                                 std::string nameFakeParticle =
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeParticle);
+                                        rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeParticle);
                                 nameFakeParticle = replaceAll(nameFakeParticle, "PDG", Form("PDG%s", pdgStr.c_str()));
 
                                 std::string nameFakeOther =
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeOther);
+                                        rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeOther);
 
                                 if (makeNew) {
-                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                    rAnaTmp.hFakeParticle[iParticle] =
                                             new TH1D(nameFakeParticle.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
 
                                     if (iParticle == 0) {
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
-                                                (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle]->Clone(nameFakeOther.c_str());
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther->Reset();
+                                        rAnaTmp.hFakeOther =
+                                                (TH1D*)rAnaTmp.hFakeParticle[iParticle]->Clone(nameFakeOther.c_str());
+                                        rAnaTmp.hFakeOther->Reset();
                                     }
                                 }
                                 else {
-                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticle[iParticle] =
+                                    rAnaTmp.hFakeParticle[iParticle] =
                                             (TH1D*)input->Get(nameFakeParticle.c_str());
 
                                     if (iParticle == 0) {
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOther =
+                                        rAnaTmp.hFakeOther =
                                                 (TH1D*)input->Get(nameFakeOther.c_str());
                                     }
                                 }
@@ -1360,14 +1362,14 @@ int  preLoop(TFile* input, bool makeNew)
                                 // special cases
                                 if (iDep == RECOANA::kGENPT) {
                                     std::string nameFakeParticleGenPt =
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeParticleGenPt);
+                                            rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeParticleGenPt);
                                     nameFakeParticleGenPt = replaceAll(nameFakeParticleGenPt, "PDG", Form("PDG%s", pdgStr.c_str()));
 
                                     std::string nameFakeOtherGenPt =
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeOtherGenPt);
+                                            rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeOtherGenPt);
 
                                     std::string nameFakeAllGenPt =
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].getObjectName(recoAnalyzer::OBJ::kFakeAllGenPt);
+                                            rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeAllGenPt);
 
                                     int nBinsFakeGenPt = axisFakeGenPt.nBins;  // nBins
                                     std::vector<double> binsFakeGenPt = axisFakeGenPt.bins;
@@ -1376,35 +1378,34 @@ int  preLoop(TFile* input, bool makeNew)
                                     std::copy(binsFakeGenPt.begin(), binsFakeGenPt.end(), arrFakeGenPt);
 
                                     if (makeNew) {
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                        rAnaTmp.hFakeParticleGenPt[iParticle] =
                                                 new TH1D(nameFakeParticleGenPt.c_str(), Form(";%s;Entries", "Gen p_{T} (GeV/c)"),
                                                         nBinsFakeGenPt, arrFakeGenPt);
 
                                         if (iParticle == 0) {
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
-                                                    (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(nameFakeOtherGenPt.c_str());
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt->Reset();
+                                            rAnaTmp.hFakeOtherGenPt =
+                                                    (TH1D*)rAnaTmp.hFakeParticleGenPt[iParticle]->Clone(nameFakeOtherGenPt.c_str());
+                                            rAnaTmp.hFakeOtherGenPt->Reset();
 
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
-                                                    (TH1D*)rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle]->Clone(
+                                            rAnaTmp.hFakeAllGenPt =
+                                                    (TH1D*)rAnaTmp.hFakeParticleGenPt[iParticle]->Clone(
                                                             nameFakeAllGenPt.c_str());
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt->Reset();
+                                            rAnaTmp.hFakeAllGenPt->Reset();
                                         }
                                     }
                                     else {
-                                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeParticleGenPt[iParticle] =
+                                        rAnaTmp.hFakeParticleGenPt[iParticle] =
                                                 (TH1D*)input->Get(nameFakeParticleGenPt.c_str());
 
                                         if (iParticle == 0) {
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeOtherGenPt =
+                                            rAnaTmp.hFakeOtherGenPt =
                                                     (TH1D*)input->Get(nameFakeOtherGenPt.c_str());
 
-                                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].hFakeAllGenPt =
+                                            rAnaTmp.hFakeAllGenPt =
                                                     (TH1D*)input->Get(nameFakeAllGenPt.c_str());
                                         }
                                     }
                                 }
-                            }
                             }
 
                             // special cases
@@ -1423,38 +1424,40 @@ int  preLoop(TFile* input, bool makeNew)
                                 std::copy(binsy2D.begin(), binsy2D.end(), arrY);
 
                                 if (makeNew) {
-                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr =
+                                    rAnaTmp.h2Dcorr =
                                             new TH2D(tmpNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
                                     // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
                                     // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                                 }
                                 else {
-                                    rAna[iDep][iEta][iGenPt][iRecoPt][iCent].h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
+                                    rAnaTmp.h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
                                     // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
                                     // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                                 }
                             }
 
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].updateTH1();
+                            rAnaTmp.updateTH1();
                             // set histogram title
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].prepareTitle();
+                            rAnaTmp.prepareTitle();
                         }
 
-                        if (rAna[iDep][iEta][iGenPt][iRecoPt][iCent].isValid_h2D) {
+                        if (rAnaTmp.isValid_h2D) {
 
-                            if (nyMin == 1)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMin[0] = yMin[0];
-                            else if (nyMin == 2)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMin = yMin;
+                            if (nyMin == 1)  rAnaTmp.yMin[0] = yMin[0];
+                            else if (nyMin == 2)  rAnaTmp.yMin = yMin;
 
-                            if (nyMax == 1)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMax[0] = yMax[0];
-                            else if (nyMax == 2)  rAna[iDep][iEta][iGenPt][iRecoPt][iCent].yMax = yMax;
+                            if (nyMax == 1)  rAnaTmp.yMax[0] = yMax[0];
+                            else if (nyMax == 2)  rAnaTmp.yMax = yMax;
 
                             float titleOffsetXTmp = titleOffsetsX.at(0);
                             float titleOffsetYTmp = titleOffsetsY.at(0);
                             if (nTitleOffsetX == RECOANA::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
                             if (nTitleOffsetY == RECOANA::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetX = titleOffsetXTmp;
-                            rAna[iDep][iEta][iGenPt][iRecoPt][iCent].titleOffsetY = titleOffsetYTmp;
+                            rAnaTmp.titleOffsetX = titleOffsetXTmp;
+                            rAnaTmp.titleOffsetY = titleOffsetYTmp;
                         }
+
+                        rAna[iDep][iEta][iGenPt][iRecoPt][iCent] = rAnaTmp;
                     }
                 }
             }
