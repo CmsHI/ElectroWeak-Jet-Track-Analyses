@@ -24,6 +24,7 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/tgraphUtil.h"
 #include "../../Utilities/mathUtil.h"
+#include "eScaleAnalyzer.h"
 
 namespace RECOANA {
 
@@ -81,52 +82,6 @@ enum OBS {
 };
 
 const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eResEff", "eResHM", "matchEff", "fakeRatio"};
-
-enum FNCS {
-    kGAUS_FitSlicesY,   // initial fit from TH2::FitSlicesY
-    kGAUS_95,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 95% of the integral
-    kGAUS_98,   // Gaus fit seeded by FitSlicesY, uses bin range that covers 98% of the integral
-    kCBALL_95,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
-    kCBALL_99,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
-    kDSCB_95,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
-    kDSCB_99,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
-    kN_FNCS
-};
-
-// labels to identify the function form
-const std::string FNC_LABELS[kN_FNCS] = {
-        "gaus",
-        "gaus",
-        "gaus",
-        "crystalball",
-        "crystalball",
-        "DSCB",
-        "DSCB"
-};
-
-const std::string FNC_TITLES[kN_FNCS] = {
-        "Gaussian",
-        "Gaussian",
-        "Gaussian",
-        "Crystal Ball",
-        "Crystal Ball",
-        "DSCB",
-        "DSCB"
-};
-
-const std::string FNC_FORMULAS[kN_FNCS] = {
-        "gaus",
-        "gaus",
-        "gaus",
-        "crystalball",
-        "crystalball",
-        "0",
-        "0"
-};
-
-const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.99, 0.95, 0.99};
-const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kOrange-1, kOrange+2, kRed+1, kBlue+1};
-const std::string fitOption = "Q M R N";
 
 // list of particles that can fake RECO-level objects
 enum FAKECAND {
@@ -226,242 +181,6 @@ const int particlesColor[kN_FakeCand] =
 
 };
 
-/*
- * class to organize the analysis of the 1D energy scale distribution
- */
-class eScaleAnalyzer {
-public :
-    eScaleAnalyzer(){
-        h = 0;
-        f1 = 0;
-        hPull = 0;
-        isValid_h = false;
-        isValid_f1 = false;
-        isValid_hPull = false;
-
-        fitOption = "Q M R N";
-        fncLabel = "";
-
-        hMean = -1;
-        hMeanErr = -1;
-        hStdDev = -1;
-        hStdDevErr = -1;
-        sigmaEff = -1;
-        sigmaEffErr = -1;
-        sigmaHM = -1;
-        sigmaHMErr = -1;
-
-        f1Mean = -1;
-        f1MeanErr = -1;
-        f1Sigma = -1;
-        f1SigmaErr = -1;
-        f1Chi2 = -1;
-        f1Ndf = -1;
-    };
-    ~eScaleAnalyzer(){};
-
-    bool fit() {
-        if (isValid_h && isValid_f1) {
-            h->Fit(f1, fitOption.c_str());
-            return true;
-        }
-        return false;
-    };
-    bool makePull() {
-        if (isValid_h && isValid_f1) {
-            hPull = (TH1D*)getPullHistogram(h, f1);
-            isValid_hPull = true;
-
-            setPullTH1D();
-            return true;
-        }
-        return false;
-    };
-    void setPullTH1D() {
-        if (isValid_hPull) {
-            hPull->SetYTitle("Pull");
-            hPull->SetMarkerStyle(kFullCircle);
-            if (isValid_f1) {
-                hPull->SetMarkerColor(f1->GetLineColor());
-            }
-
-            // set maximum and minimum of the pull distributions symmetric about y = 0
-            double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
-            extremum *= 1.3;
-            hPull->SetMaximum(extremum);
-            hPull->SetMinimum(-1*extremum);
-        }
-    };
-    void calcSigmaEff() {
-
-        if (!isValid_h)  return;
-        if (h->GetEntries() == 0) return;
-
-        int binMax = h->GetMaximumBin();
-
-        double fraction = 0.6827;
-
-        std::vector<int> binRange = getLeftRightBins4IntegralFraction(h, binMax, fraction);
-        double fracFromBinEdges = h->Integral(binRange[0], binRange[1]) / h->Integral();
-
-        double x1 = h->GetBinLowEdge(binRange[0]);
-        double x2 = h->GetBinLowEdge(binRange[1]+1);
-        double width = x2-x1;
-
-        // by definition fracFromBinEdges >= fraction
-        // scale the width to remove any residual deviation from 0.6827 due to binned data.
-        width *= fraction / fracFromBinEdges;
-
-        sigmaEff = width / 2;
-        sigmaEffErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
-    };
-    void calcSigmaHM() {
-
-        if (!isValid_h)  return;
-        if (h->GetEntries() == 0) return;
-
-        int binMax = h->GetMaximumBin();
-        double maxContent = h->GetBinContent(binMax);
-
-        double halfMax = maxContent/2;
-
-        int binLeft = getMaximumBin(h, halfMax, 1, binMax);
-        int binRight = getMaximumBin(h, halfMax, binMax);
-
-        double x1 = h->GetBinLowEdge(binLeft);
-        double x2 = h->GetBinLowEdge(binRight+1);
-        double width = x2-x1;
-
-        // For a Gaussian distribution
-        // full-width-at-half-maximum = 2.355 * sigma
-        sigmaHM = width / 2.355;
-        sigmaHMErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
-    };
-    void update() {
-
-        isValid_h = (h != 0 && !h->IsZombie());
-        isValid_f1 = (f1 != 0 && !f1->IsZombie());
-        isValid_hPull = (hPull != 0 && !hPull->IsZombie());
-
-        if (isValid_h) {
-            hMean = h->GetMean();
-            hMeanErr = h->GetMeanError();
-
-            hStdDev = h->GetStdDev();
-            hStdDevErr = h->GetStdDevError();
-        }
-
-        calcSigmaEff();
-        calcSigmaHM();
-
-        if (isValid_f1) {
-            if (fncLabel == "gaus") {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-            else if (fncLabel == "crystalball") {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-            else if (fncLabel == "DSCB") {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-        }
-    };
-    /*
-     * prepare text lines for mean values and resolutions from histogram mean and stdDev
-     */
-    std::vector<std::string> getTextLines4HistResult()
-        {
-        std::vector<std::string> res;
-
-        res.push_back(Form("#mu (Arith) = %.2f#pm%.3f", hMean, hMeanErr));
-        res.push_back(Form("#sigma (Arith) = %.2f#pm%.3f", hStdDev, hStdDevErr));
-
-        return res;
-        }
-    /*
-     * prepare text lines for results from fit, e.g. mean values and resolutions
-     */
-    std::vector<std::string> getTextLines4FitResult()
-    {
-        std::vector<std::string> res;
-
-        if (isValid_f1) {
-            if (fncLabel == "gaus") {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-            else if (fncLabel == "crystalball") {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#alpha = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
-                res.push_back(Form("n = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-            else if (fncLabel == "DSCB") {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
-                res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
-                res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
-                res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-        }
-
-        return res;
-    };
-
-    TH1D* h;       // energy scale distribution
-    TF1*  f1;      // fit function
-    TH1D* hPull;   // pull distribution for the fit
-
-    std::string fitOption;
-    std::string fncLabel;       // label to identify the function form
-
-    bool isValid_h;
-    bool isValid_f1;
-    bool isValid_hPull;
-
-    double hMean;    // histogram (arithmetic) mean of h, used as cross-check for the mean extracted from fit
-    double hMeanErr;
-    double hStdDev;   // histogram (arithmetic) std dev of h, used as cross-check for the width extracted from fit
-    double hStdDevErr;
-    double sigmaEff;  // half-width of the narrowest interval containing 68.27% of the distribution
-    double sigmaEffErr;
-    double sigmaHM;   // full-width-at-half-maximum (FWHM) of the distribution divided by 2.355
-    double sigmaHMErr;
-
-    // Function parameters for a "gaus" function
-    double f1Mean;
-    double f1MeanErr;
-    double f1Sigma;
-    double f1SigmaErr;
-    double f1Chi2;
-    int    f1Ndf;
-};
-
 class recoAnalyzer {
 public :
     recoAnalyzer(){
@@ -481,8 +200,8 @@ public :
         isValid_hEscale = false;
         isValid_h2Dcorr = false;
 
-        indexFncFinal = RECOANA::kDSCB_99;
-        indicesFnc = {RECOANA::kGAUS_FitSlicesY, RECOANA::kGAUS_95, RECOANA::kCBALL_99, RECOANA::kDSCB_99};
+        indexFncFinal = ESANA::kDSCB_95;
+        indicesFnc = {ESANA::kGAUS_95, ESANA::kCBALL_95, ESANA::kDSCB_95};
 
         hMatchNum = 0;
         hMatchDenom = 0;
@@ -1395,24 +1114,24 @@ void recoAnalyzer::fitRecoGen()
 
         // fit functions for that bin along x-axis of h2D
         std::vector<TF1*> f1sTmp;
-        for (int iFnc = 0; iFnc < RECOANA::kN_FNCS; ++iFnc) {
+        for (int iFnc = 0; iFnc < ESANA::kN_FNCS; ++iFnc) {
 
-            if (RECOANA::FNC_LABELS[iFnc] == "DSCB") {
+            if (ESANA::FNC_LABELS[iFnc] == "DSCB") {
                 f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, 7);
             }
             else {
-                std::string formulaTmp = RECOANA::FNC_FORMULAS[iFnc];
+                std::string formulaTmp = ESANA::FNC_FORMULAS[iFnc];
                 f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
             }
 
-            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, RECOANA::intFractions[iFnc]);
+            std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, ESANA::intFractions[iFnc]);
             int binLow = std::max(fncRange[0], 1);
             int binUp  = std::min(fncRange[1], nBinsTmp);
             f1Tmp->SetRange(hTmp->GetBinLowEdge(binLow), hTmp->GetBinLowEdge(binUp+1));
 
-            f1Tmp->SetLineColor(RECOANA::fncColors[iFnc]);
+            f1Tmp->SetLineColor(ESANA::fncColors[iFnc]);
 
-            if (iFnc == RECOANA::kGAUS_FitSlicesY) {
+            if (iFnc == ESANA::kGAUS_FitSlicesY) {
                 // initial fit from TH2::FitSlicesY
                 f1Tmp->SetParameters(p0, p1, p2);
                 double parErr[3] = {p0Err, p1Err, p2Err};
@@ -1422,15 +1141,15 @@ void recoAnalyzer::fitRecoGen()
                 //        f1Tmp->SetNDF(100);
             }
             else {
-                if (RECOANA::FNC_LABELS[iFnc] == "gaus") {
+                if (ESANA::FNC_LABELS[iFnc] == ESANA::labelGaus.c_str()) {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2);
                 }
-                else if (RECOANA::FNC_LABELS[iFnc] == "crystalball") {
+                else if (ESANA::FNC_LABELS[iFnc] == ESANA::labelCB.c_str()) {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1);
                 }
-                else if (RECOANA::FNC_LABELS[iFnc] == "DSCB") {
+                else if (ESANA::FNC_LABELS[iFnc] == ESANA::labelDSCB.c_str()) {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1, 1, 1);
                 }
@@ -1447,8 +1166,8 @@ void recoAnalyzer::fitRecoGen()
             esaTmp[j].f1 = f1sTmp[j];
             esaTmp[j].isValid_f1 = true;
 
-            esaTmp[j].fitOption = RECOANA::fitOption;
-            esaTmp[j].fncLabel = RECOANA::FNC_LABELS[j];
+            esaTmp[j].fitOption = ESANA::fitOption;
+            esaTmp[j].fncLabel = ESANA::FNC_LABELS[j];
             // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
             if (j > 0)  esaTmp[j].fit();
 
@@ -1901,7 +1620,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg = new TLegend();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         std::vector<int> tmpIndices = {RECOANA::kESCALE, RECOANA::kESCALEARITH};
-        std::string fncTitle = Form("%s Fit", RECOANA::FNC_TITLES[indexFncFinal].c_str());
+        std::string fncTitle = Form("%s Fit", ESANA::FNC_TITLES[indexFncFinal].c_str());
         std::vector<std::string> tmpLabels = {fncTitle.c_str(), "Arithmetic"};
         std::vector<int> tmpColors = {kBlack, kGreen+2};
         int nTmp = tmpIndices.size();
