@@ -28,20 +28,20 @@ double fnc_DSCB(double* xx, double* params)
     double sigma = params[2];
     // transition parameters
     double a1  = params[3];
-    double p1  = params[4];
+    double n1  = params[4];
     double a2  = params[5];
-    double p2  = params[6];
+    double n2  = params[6];
 
     double u   = (x-mean)/sigma;
-    double A1  = TMath::Power(p1/TMath::Abs(a1),p1)*TMath::Exp(-a1*a1/2);
-    double A2  = TMath::Power(p2/TMath::Abs(a2),p2)*TMath::Exp(-a2*a2/2);
-    double B1  = p1/TMath::Abs(a1) - TMath::Abs(a1);
-    double B2  = p2/TMath::Abs(a2) - TMath::Abs(a2);
+    double A1  = TMath::Power(n1/TMath::Abs(a1),n1)*TMath::Exp(-a1*a1/2);
+    double A2  = TMath::Power(n2/TMath::Abs(a2),n2)*TMath::Exp(-a2*a2/2);
+    double B1  = n1/TMath::Abs(a1) - TMath::Abs(a1);
+    double B2  = n2/TMath::Abs(a2) - TMath::Abs(a2);
 
     double res = N;
-    if      (u < -a1) res *= A1*TMath::Power(B1-u,-p1);
+    if      (u < -a1) res *= A1*TMath::Power(B1-u,-n1);
     else if (u < a2)  res *= TMath::Exp(-u*u/2);
-    else              res *= A2*TMath::Power(B2+u,-p2);
+    else              res *= A2*TMath::Power(B2+u,-n2);
     return res;
 }
 

@@ -94,7 +94,7 @@ enum FNCS {
 };
 
 // labels to identify the function form
-const std::string fncLabels[kN_FNCS] = {
+const std::string FNC_LABELS[kN_FNCS] = {
         "gaus",
         "gaus",
         "gaus",
@@ -104,7 +104,17 @@ const std::string fncLabels[kN_FNCS] = {
         "DSCB"
 };
 
-const std::string fncFormulas[kN_FNCS] = {
+const std::string FNC_TITLES[kN_FNCS] = {
+        "Gaussian",
+        "Gaussian",
+        "Gaussian",
+        "Crystal Ball",
+        "Crystal Ball",
+        "DSCB",
+        "DSCB"
+};
+
+const std::string FNC_FORMULAS[kN_FNCS] = {
         "gaus",
         "gaus",
         "gaus",
@@ -277,7 +287,7 @@ public :
 
             // set maximum and minimum of the pull distributions symmetric about y = 0
             double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
-            extremum *= 1.1;
+            extremum *= 1.3;
             hPull->SetMaximum(extremum);
             hPull->SetMinimum(-1*extremum);
         }
@@ -373,6 +383,54 @@ public :
                 f1Ndf = f1->GetNDF();
             }
         }
+    };
+    /*
+     * prepare text lines for mean values and resolutions from histogram mean and stdDev
+     */
+    std::vector<std::string> getTextLines4HistResult()
+        {
+        std::vector<std::string> res;
+
+        res.push_back(Form("#mu (Arith) = %.2f#pm%.3f", hMean, hMeanErr));
+        res.push_back(Form("#sigma (Arith) = %.2f#pm%.3f", hStdDev, hStdDevErr));
+
+        return res;
+        }
+    /*
+     * prepare text lines for results from fit, e.g. mean values and resolutions
+     */
+    std::vector<std::string> getTextLines4FitResult()
+    {
+        std::vector<std::string> res;
+
+        if (isValid_f1) {
+            if (fncLabel == "gaus") {
+
+                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+            }
+            else if (fncLabel == "crystalball") {
+
+                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+                res.push_back(Form("#alpha = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+                res.push_back(Form("n = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+            }
+            else if (fncLabel == "DSCB") {
+
+                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+                res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+                res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+                res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
+                res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
+                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+            }
+        }
+
+        return res;
     };
 
     TH1D* h;       // energy scale distribution
@@ -1339,11 +1397,11 @@ void recoAnalyzer::fitRecoGen()
         std::vector<TF1*> f1sTmp;
         for (int iFnc = 0; iFnc < RECOANA::kN_FNCS; ++iFnc) {
 
-            if (RECOANA::fncLabels[iFnc] == "DSCB") {
+            if (RECOANA::FNC_LABELS[iFnc] == "DSCB") {
                 f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, 7);
             }
             else {
-                std::string formulaTmp = RECOANA::fncFormulas[iFnc];
+                std::string formulaTmp = RECOANA::FNC_FORMULAS[iFnc];
                 f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
             }
 
@@ -1364,15 +1422,15 @@ void recoAnalyzer::fitRecoGen()
                 //        f1Tmp->SetNDF(100);
             }
             else {
-                if (RECOANA::fncLabels[iFnc] == "gaus") {
+                if (RECOANA::FNC_LABELS[iFnc] == "gaus") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2);
                 }
-                else if (RECOANA::fncLabels[iFnc] == "crystalball") {
+                else if (RECOANA::FNC_LABELS[iFnc] == "crystalball") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1);
                 }
-                else if (RECOANA::fncLabels[iFnc] == "DSCB") {
+                else if (RECOANA::FNC_LABELS[iFnc] == "DSCB") {
                     // use the fit from TH2::FitSlicesY as seed
                     f1Tmp->SetParameters(hTmp->GetBinContent(binMax), p1, p2, 1, 1, 1, 1);
                 }
@@ -1390,7 +1448,7 @@ void recoAnalyzer::fitRecoGen()
             esaTmp[j].isValid_f1 = true;
 
             esaTmp[j].fitOption = RECOANA::fitOption;
-            esaTmp[j].fncLabel = RECOANA::fncLabels[j];
+            esaTmp[j].fncLabel = RECOANA::FNC_LABELS[j];
             // j = 0 corresponds to fit initial from TH2::FitSlicesY, do not refit.
             if (j > 0)  esaTmp[j].fit();
 
@@ -1843,7 +1901,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg = new TLegend();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         std::vector<int> tmpIndices = {RECOANA::kESCALE, RECOANA::kESCALEARITH};
-        std::vector<std::string> tmpLabels = {"Gaussian Fit", "Arithmetic"};
+        std::string fncTitle = Form("%s Fit", RECOANA::FNC_TITLES[indexFncFinal].c_str());
+        std::vector<std::string> tmpLabels = {fncTitle.c_str(), "Arithmetic"};
         std::vector<int> tmpColors = {kBlack, kGreen+2};
         int nTmp = tmpIndices.size();
         for (int j = 0; j < nTmp; ++j) {
@@ -1877,7 +1936,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg = new TLegend();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         tmpIndices = {RECOANA::kERES, RECOANA::kERESARITH, RECOANA::kERESEFF, RECOANA::kERESHM};
-        tmpLabels = {"Gaussian Fit", "Arithmetic", "Effective (#pm#sigma #rightarrow 68.3%)", "FWHM / 2.35"};
+        tmpLabels = {fncTitle.c_str(), "Arithmetic", "Effective (#pm#sigma #rightarrow 68.3%)", "FWHM / 2.35"};
         tmpColors = {kBlack, kGreen+2, kRed+1, kBlue};
         nTmp = tmpIndices.size();
         for (int j = 0; j < nTmp; ++j) {
@@ -1962,11 +2021,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
 
             // mean values and resolutions from histogram mean and stdDev
-            textLinesTmp.clear();
-            textLineTmp = Form("#mu (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hMean, esa[i][indexFncFinal].hMeanErr);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-            textLineTmp = Form("#sigma (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hStdDev, esa[i][indexFncFinal].hStdDevErr);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLinesTmp = esa[i][indexFncFinal].getTextLines4HistResult();
             latex->SetLineColor(kBlack);
             float textSizeTmp = latex->GetTextSize();
             latex->SetTextSize(textSizeTmp*0.84);
@@ -1974,13 +2029,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
             // mean values and resolutions from fit
             if (esa[i][indexFncFinal].isValid_f1) {
-                textLinesTmp.clear();
-                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1Mean, esa[i][indexFncFinal].f1MeanErr);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1Sigma, esa[i][indexFncFinal].f1SigmaErr);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1Chi2);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLinesTmp = esa[i][indexFncFinal].getTextLines4FitResult();
                 int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
                 latex->SetTextColor(lineColor);
                 latex->SetTextSize(textSizeTmp*0.84);
@@ -2065,11 +2114,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
 
             // mean values and resolutions from histogram mean and stdDev
-            textLinesTmp.clear();
-            textLineTmp = Form("#mu (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hMean, esa[i][indexFncFinal].hMeanErr);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-            textLineTmp = Form("#sigma (Arith) = %.2f#pm%.3f", esa[i][indexFncFinal].hStdDev, esa[i][indexFncFinal].hStdDevErr);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLinesTmp = esa[i][indexFncFinal].getTextLines4HistResult();
             latex->SetLineColor(kBlack);
             float textSizeTmp = latex->GetTextSize();
             latex->SetTextSize(textSizeTmp*0.84);
@@ -2077,17 +2122,13 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
             // mean values and resolutions from fit
             if (esa[i][indexFncFinal].isValid_f1) {
-                textLinesTmp.clear();
-                textLineTmp = Form("#mu = %.2f#pm%.3f", esa[i][indexFncFinal].f1Mean, esa[i][indexFncFinal].f1MeanErr);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#sigma = %.2f#pm%.3f", esa[i][indexFncFinal].f1Sigma, esa[i][indexFncFinal].f1SigmaErr);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
-                textLineTmp = Form("#chi^{2} = %.4f", esa[i][indexFncFinal].f1Chi2);
-                if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+                textLinesTmp = esa[i][indexFncFinal].getTextLines4FitResult();
                 int lineColor = esa[i][indexFncFinal].f1->GetLineColor();
                 latex->SetTextColor(lineColor);
                 latex->SetTextSize(textSizeTmp*0.84);
-                drawTextLines(latex, pads[i], textLinesTmp, "SW", 0.04, 0.16);
+                int nTextLinesTmp = textLinesTmp.size();
+                if (nTextLinesTmp < 4)  drawTextLines(latex, pads[i], textLinesTmp, "SW", 0.04, 0.16);
+                //else                    drawTextLines(latex, pads[i], textLinesTmp, "SW", 0.04, 0.30);
             }
         }
         c->Write("",TObject::kOverwrite);
