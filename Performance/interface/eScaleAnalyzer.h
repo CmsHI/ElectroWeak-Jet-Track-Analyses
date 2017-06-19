@@ -102,178 +102,14 @@ public :
     };
     ~eScaleAnalyzer(){};
 
-    bool fit() {
-        if (isValid_h && isValid_f1) {
-            h->Fit(f1, fitOption.c_str());
-            return true;
-        }
-        return false;
-    };
-    bool makePull() {
-        if (isValid_h && isValid_f1) {
-            hPull = (TH1D*)getPullHistogram(h, f1);
-            isValid_hPull = true;
-
-            setPullTH1D();
-            return true;
-        }
-        return false;
-    };
-    void setPullTH1D() {
-        if (isValid_hPull) {
-            hPull->SetYTitle("Pull");
-            hPull->SetMarkerStyle(kFullCircle);
-            if (isValid_f1) {
-                hPull->SetMarkerColor(f1->GetLineColor());
-            }
-
-            // set maximum and minimum of the pull distributions symmetric about y = 0
-            double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
-            extremum *= 1.3;
-            hPull->SetMaximum(extremum);
-            hPull->SetMinimum(-1*extremum);
-        }
-    };
-    void calcSigmaEff() {
-
-        if (!isValid_h)  return;
-        if (h->GetEntries() == 0) return;
-
-        int binMax = h->GetMaximumBin();
-
-        double fraction = 0.6827;
-
-        std::vector<int> binRange = getLeftRightBins4IntegralFraction(h, binMax, fraction);
-        double fracFromBinEdges = h->Integral(binRange[0], binRange[1]) / h->Integral();
-
-        double x1 = h->GetBinLowEdge(binRange[0]);
-        double x2 = h->GetBinLowEdge(binRange[1]+1);
-        double width = x2-x1;
-
-        // by definition fracFromBinEdges >= fraction
-        // scale the width to remove any residual deviation from 0.6827 due to binned data.
-        width *= fraction / fracFromBinEdges;
-
-        sigmaEff = width / 2;
-        sigmaEffErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
-    };
-    void calcSigmaHM() {
-
-        if (!isValid_h)  return;
-        if (h->GetEntries() == 0) return;
-
-        int binMax = h->GetMaximumBin();
-        double maxContent = h->GetBinContent(binMax);
-
-        double halfMax = maxContent/2;
-
-        int binLeft = getMaximumBin(h, halfMax, 1, binMax);
-        int binRight = getMaximumBin(h, halfMax, binMax);
-
-        double x1 = h->GetBinLowEdge(binLeft);
-        double x2 = h->GetBinLowEdge(binRight+1);
-        double width = x2-x1;
-
-        // For a Gaussian distribution
-        // full-width-at-half-maximum = 2.355 * sigma
-        sigmaHM = width / 2.355;
-        sigmaHMErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
-    };
-    void update() {
-
-        isValid_h = (h != 0 && !h->IsZombie());
-        isValid_f1 = (f1 != 0 && !f1->IsZombie());
-        isValid_hPull = (hPull != 0 && !hPull->IsZombie());
-
-        if (isValid_h) {
-            hMean = h->GetMean();
-            hMeanErr = h->GetMeanError();
-
-            hStdDev = h->GetStdDev();
-            hStdDevErr = h->GetStdDevError();
-        }
-
-        calcSigmaEff();
-        calcSigmaHM();
-
-        if (isValid_f1) {
-            if (fncLabel == ESANA::labelGaus.c_str()) {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-            else if (fncLabel == ESANA::labelCB.c_str()) {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-            else if (fncLabel == ESANA::labelDSCB.c_str()) {
-
-                f1Mean = f1->GetParameter(1);
-                f1MeanErr = f1->GetParError(1);
-                f1Sigma = f1->GetParameter(2);
-                f1SigmaErr = f1->GetParError(2);
-                f1Chi2 = f1->GetChisquare();
-                f1Ndf = f1->GetNDF();
-            }
-        }
-    };
-    /*
-     * prepare text lines for mean values and resolutions from histogram mean and stdDev
-     */
-    std::vector<std::string> getTextLines4HistResult()
-        {
-        std::vector<std::string> res;
-
-        res.push_back(Form("#mu (Arith) = %.2f#pm%.3f", hMean, hMeanErr));
-        res.push_back(Form("#sigma (Arith) = %.2f#pm%.3f", hStdDev, hStdDevErr));
-
-        return res;
-        }
-    /*
-     * prepare text lines for results from fit, e.g. mean values and resolutions
-     */
-    std::vector<std::string> getTextLines4FitResult()
-    {
-        std::vector<std::string> res;
-
-        if (isValid_f1) {
-            if (fncLabel == ESANA::labelGaus.c_str()) {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-            else if (fncLabel == ESANA::labelCB.c_str()) {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#alpha = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
-                res.push_back(Form("n = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-            else if (fncLabel == ESANA::labelDSCB.c_str()) {
-
-                res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
-                res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-                res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
-                res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
-                res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
-                res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
-                res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
-            }
-        }
-
-        return res;
-    };
+    bool fit();
+    bool makePull();
+    void setPullTH1D();
+    void calcSigmaEff();
+    void calcSigmaHM();
+    void update();
+    std::vector<std::string> getTextLines4HistResult();
+    std::vector<std::string> getTextLines4FitResult();
 
     TH1D* h;       // energy scale distribution
     TF1*  f1;      // fit function
@@ -303,5 +139,188 @@ public :
     double f1Chi2;
     int    f1Ndf;
 };
+
+bool eScaleAnalyzer::fit()
+{
+    if (isValid_h && isValid_f1) {
+        h->Fit(f1, fitOption.c_str());
+        return true;
+    }
+    return false;
+}
+
+bool eScaleAnalyzer::makePull()
+{
+    if (isValid_h && isValid_f1) {
+        hPull = (TH1D*)getPullHistogram(h, f1);
+        isValid_hPull = true;
+
+        setPullTH1D();
+        return true;
+    }
+    return false;
+}
+
+void eScaleAnalyzer::setPullTH1D()
+{
+    if (isValid_hPull) {
+        hPull->SetYTitle("Pull");
+        hPull->SetMarkerStyle(kFullCircle);
+        if (isValid_f1) {
+            hPull->SetMarkerColor(f1->GetLineColor());
+        }
+
+        // set maximum and minimum of the pull distributions symmetric about y = 0
+        double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
+        extremum *= 1.3;
+        hPull->SetMaximum(extremum);
+        hPull->SetMinimum(-1*extremum);
+    }
+}
+
+void eScaleAnalyzer::calcSigmaEff()
+{
+    if (!isValid_h)  return;
+    if (h->GetEntries() == 0) return;
+
+    int binMax = h->GetMaximumBin();
+
+    double fraction = 0.6827;
+
+    std::vector<int> binRange = getLeftRightBins4IntegralFraction(h, binMax, fraction);
+    double fracFromBinEdges = h->Integral(binRange[0], binRange[1]) / h->Integral();
+
+    double x1 = h->GetBinLowEdge(binRange[0]);
+    double x2 = h->GetBinLowEdge(binRange[1]+1);
+    double width = x2-x1;
+
+    // by definition fracFromBinEdges >= fraction
+    // scale the width to remove any residual deviation from 0.6827 due to binned data.
+    width *= fraction / fracFromBinEdges;
+
+    sigmaEff = width / 2;
+    sigmaEffErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
+}
+
+void eScaleAnalyzer::calcSigmaHM()
+{
+    if (!isValid_h)  return;
+    if (h->GetEntries() == 0) return;
+
+    int binMax = h->GetMaximumBin();
+    double maxContent = h->GetBinContent(binMax);
+
+    double halfMax = maxContent/2;
+
+    int binLeft = getMaximumBin(h, halfMax, 1, binMax);
+    int binRight = getMaximumBin(h, halfMax, binMax);
+
+    double x1 = h->GetBinLowEdge(binLeft);
+    double x2 = h->GetBinLowEdge(binRight+1);
+    double width = x2-x1;
+
+    // For a Gaussian distribution
+    // full-width-at-half-maximum = 2.355 * sigma
+    sigmaHM = width / 2.355;
+    sigmaHMErr = hStdDevErr;       // for the moment, same error as in histogram stdDev
+}
+
+void eScaleAnalyzer::update()
+{
+    isValid_h = (h != 0 && !h->IsZombie());
+    isValid_f1 = (f1 != 0 && !f1->IsZombie());
+    isValid_hPull = (hPull != 0 && !hPull->IsZombie());
+
+    if (isValid_h) {
+        hMean = h->GetMean();
+        hMeanErr = h->GetMeanError();
+
+        hStdDev = h->GetStdDev();
+        hStdDevErr = h->GetStdDevError();
+    }
+
+    calcSigmaEff();
+    calcSigmaHM();
+
+    if (isValid_f1) {
+        if (fncLabel == ESANA::labelGaus.c_str()) {
+
+            f1Mean = f1->GetParameter(1);
+            f1MeanErr = f1->GetParError(1);
+            f1Sigma = f1->GetParameter(2);
+            f1SigmaErr = f1->GetParError(2);
+            f1Chi2 = f1->GetChisquare();
+            f1Ndf = f1->GetNDF();
+        }
+        else if (fncLabel == ESANA::labelCB.c_str()) {
+
+            f1Mean = f1->GetParameter(1);
+            f1MeanErr = f1->GetParError(1);
+            f1Sigma = f1->GetParameter(2);
+            f1SigmaErr = f1->GetParError(2);
+            f1Chi2 = f1->GetChisquare();
+            f1Ndf = f1->GetNDF();
+        }
+        else if (fncLabel == ESANA::labelDSCB.c_str()) {
+
+            f1Mean = f1->GetParameter(1);
+            f1MeanErr = f1->GetParError(1);
+            f1Sigma = f1->GetParameter(2);
+            f1SigmaErr = f1->GetParError(2);
+            f1Chi2 = f1->GetChisquare();
+            f1Ndf = f1->GetNDF();
+        }
+    }
+}
+
+/*
+ * prepare text lines for mean values and resolutions from histogram mean and stdDev
+ */
+std::vector<std::string> eScaleAnalyzer::getTextLines4HistResult()
+{
+    std::vector<std::string> res;
+
+    res.push_back(Form("#mu (Arith) = %.2f#pm%.3f", hMean, hMeanErr));
+    res.push_back(Form("#sigma (Arith) = %.2f#pm%.3f", hStdDev, hStdDevErr));
+
+    return res;
+}
+
+/*
+ * prepare text lines for results from fit, e.g. mean values and resolutions
+ */
+std::vector<std::string> eScaleAnalyzer::getTextLines4FitResult()
+{
+    std::vector<std::string> res;
+
+    if (isValid_f1) {
+        if (fncLabel == ESANA::labelGaus.c_str()) {
+
+            res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+            res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+            res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+        }
+        else if (fncLabel == ESANA::labelCB.c_str()) {
+
+            res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+            res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+            res.push_back(Form("#alpha = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+            res.push_back(Form("n = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+            res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+        }
+        else if (fncLabel == ESANA::labelDSCB.c_str()) {
+
+            res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
+            res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
+            res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+            res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+            res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
+            res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
+            res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
+        }
+    }
+
+    return res;
+}
 
 #endif
