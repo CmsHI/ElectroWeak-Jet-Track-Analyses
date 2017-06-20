@@ -141,11 +141,14 @@ int nTextOffsetsY;
 
 // cut configuration
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
-std::vector<float> bins_genPt[2];       // array of vectors for genPt bins, each array element is a vector, should function also as
 // list of pt cuts for GEN-level photons matched to RECO photons
-std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, each array element is a vector, should function also as
+std::vector<float> bins_genPt[2];       // array of vectors for genPt bins, each array element is a vector, should function also as
 // list of pt cuts for RECO photons
+std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, each array element is a vector, should function also as
 std::vector<int>   bins_cent[2];       // array of vectors for centrality bins, each array element is a vector.
+// list of other cuts
+std::vector<float>   bins_sumIso[2];
+std::vector<float>   bins_sieie[2];
 
 // event cuts/weights
 int doEventWeight;
@@ -167,6 +170,8 @@ int nBins_eta;
 int nBins_genPt;
 int nBins_recoPt;
 int nBins_cent;
+int nBins_sumIso;
+int nBins_sieie;
 /// configuration variables - END
 enum MODES {
     kEnergyScale,
@@ -182,6 +187,8 @@ enum ANABINS {
     kGenPt,
     kRecoPt,
     kCent,
+    kSumIso,
+    kSieie,
     kN_ANABINS
 };
 int nRecoAna;
@@ -455,7 +462,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                 double energyScale = pt/genPt;
 
-                std::vector<double> vars = {eta, genPt, pt, (double)cent};
+                std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
@@ -551,7 +558,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 }
                 bool matched2RECO = (iReco > -1);
 
-                std::vector<double> varsDenom = {genEta, genPt, -1, (double)cent};
+                std::vector<double> varsDenom = {genEta, genPt, -1, (double)cent, -999, -1};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     rAna[RECOANA::kETA][iAna].FillHDenom(genEta, w, varsDenom);
@@ -563,7 +570,11 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
 
                     if (matched2RECO) {
                         double pt  = (*ggHi.phoEt)[iReco];
-                        std::vector<double> varsNum = {genEta, genPt, pt, (double)cent};
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                        (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                        (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                        std::vector<double> varsNum = {genEta, genPt, pt, (double)cent, sumIso, sieie};
 
                         rAna[RECOANA::kETA][iAna].FillHNum(genEta, w, varsNum);
                         rAna[RECOANA::kGENPT][iAna].FillHNum(genPt, w, varsNum);
@@ -623,7 +634,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
                 }
 
-                std::vector<double> varsFake = {eta, -1, pt, (double)cent};
+                std::vector<double> varsFake = {eta, -1, pt, (double)cent, sumIso, sieie};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     rAna[RECOANA::kETA][iAna].FillHDenomFake(eta, w, varsFake);
@@ -677,7 +688,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     fakePDG = TMath::Abs(fakePDG);
                 }
 
-                std::vector<double> varsFakeParticle = {eta, genPt, pt, (double)cent};
+                std::vector<double> varsFakeParticle = {eta, genPt, pt, (double)cent, sumIso, sieie};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     if (!isMatched2GenPhoton) {
@@ -933,6 +944,14 @@ int readConfiguration(const TString configFile)
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_cent_gt]);
     bins_cent[1] = ConfigurationParser::ParseListInteger(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_cent_lt]);
+    bins_sumIso[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sumIso_gt]);
+    bins_sumIso[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sumIso_lt]);
+    bins_sieie[0] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sieie_gt]);
+    bins_sieie[1] = ConfigurationParser::ParseListFloat(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sieie_lt]);
 
     // event cuts/weights
     doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
@@ -967,6 +986,14 @@ int readConfiguration(const TString configFile)
         bins_cent[0].push_back(0);
         bins_cent[1].push_back(-1);
     }
+    if (bins_sumIso[0].size() == 0) {
+        bins_sumIso[0].push_back(-999);
+        bins_sumIso[1].push_back(-999);
+    }
+    if (bins_sieie[0].size() == 0) {
+        bins_sieie[0].push_back(-1);
+        bins_sieie[1].push_back(-1);
+    }
 
     if (bins_genPt[1].size() < bins_genPt[0].size()) {
         int diff = (int signed)(bins_genPt[0].size() - bins_genPt[1].size());
@@ -983,8 +1010,10 @@ int readConfiguration(const TString configFile)
     nBins_genPt = bins_genPt[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_recoPt = bins_recoPt[0].size();   // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_cent = bins_cent[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_sumIso = bins_sumIso[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_sieie = bins_sieie[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
-    nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent;
+    nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie;
 
     return 0;
 }
@@ -1022,6 +1051,14 @@ void printConfiguration()
         std::cout << "nBins_cent = " << nBins_cent << std::endl;
         for (int i=0; i<nBins_cent; ++i) {
             std::cout << Form("bins_cent[%d] = [%d, %d)", i, bins_cent[0].at(i), bins_cent[1].at(i)) << std::endl;
+        }
+        std::cout << "nBins_sumIso = " << nBins_sumIso << std::endl;
+        for (int i=0; i<nBins_sumIso; ++i) {
+            std::cout << Form("bins_sumIso[%d] = [%f, %f)", i, bins_sumIso[0].at(i), bins_sumIso[1].at(i)) << std::endl;
+        }
+        std::cout << "nBins_sieie = " << nBins_sieie << std::endl;
+        for (int i=0; i<nBins_sieie; ++i) {
+            std::cout << Form("bins_sieie[%d] = [%f, %f)", i, bins_sieie[0].at(i), bins_sieie[1].at(i)) << std::endl;
         }
 
         std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
@@ -1192,6 +1229,12 @@ int getVecIndex(std::vector<int> binIndices)
     nTmp /= nBins_cent;
     i += binIndices[ANABINS::kCent] * nTmp;
 
+    nTmp /= nBins_sumIso;
+    i += binIndices[ANABINS::kSumIso] * nTmp;
+
+    nTmp /= nBins_sieie;
+    i += binIndices[ANABINS::kSieie] * nTmp;
+
     return i;
 }
 
@@ -1224,6 +1267,14 @@ std::vector<int> getBinIndices(int i)
     nTmp /= nBins_cent;
     binIndices[ANABINS::kCent] = iTmp / nTmp;
 
+    iTmp = i % nTmp;
+    nTmp /= nBins_sumIso;
+    binIndices[ANABINS::kSumIso] = iTmp / nTmp;
+
+    iTmp = i % nTmp;
+    nTmp /= nBins_sieie;
+    binIndices[ANABINS::kSieie] = iTmp / nTmp;
+
     return binIndices;
 }
 
@@ -1253,10 +1304,10 @@ int  preLoop(TFile* input, bool makeNew)
         int iGenPt = binIndices[ANABINS::kGenPt];
         int iRecoPt = binIndices[ANABINS::kRecoPt];
         int iCent = binIndices[ANABINS::kCent];
+        int iSumIso = binIndices[ANABINS::kSumIso];
+        int iSieie = binIndices[ANABINS::kSieie];
 
-        if (iDep != RECOANA::kSUMISO && iDep != RECOANA::kSIEIE) {
-            if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
-        }
+        if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0)  continue;
 
         std::string strDep = "";
         std::string xTitle = "";
@@ -1281,12 +1332,12 @@ int  preLoop(TFile* input, bool makeNew)
             xTitle = "Centrality (%)";
             makeObject = true;
         }
-        else if (iDep == RECOANA::kSUMISO) {
+        else if (iSumIso == 0 && iDep == RECOANA::kSUMISO) {
             strDep = "depSumIso";
             xTitle = "sumIso";
             makeObject = true;
         }
-        else if (iDep == RECOANA::kSIEIE) {
+        else if (iSieie == 0 && iDep == RECOANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
             makeObject = true;
@@ -1295,15 +1346,22 @@ int  preLoop(TFile* input, bool makeNew)
         if (!makeObject)  continue;
 
         recoAnalyzer rAnaTmp;
+        rAnaTmp.recoObj = RECOANA::OBJS::kPHOTON;
+        rAnaTmp.dep = iDep;
+
         // histogram ranges
-        rAnaTmp.ranges[RECOANA::kETA][0] = bins_eta[0].at(iEta);
-        rAnaTmp.ranges[RECOANA::kETA][1] = bins_eta[1].at(iEta);
-        rAnaTmp.ranges[RECOANA::kGENPT][0] = bins_genPt[0].at(iGenPt);
-        rAnaTmp.ranges[RECOANA::kGENPT][1] = bins_genPt[1].at(iGenPt);
-        rAnaTmp.ranges[RECOANA::kRECOPT][0] = bins_recoPt[0].at(iRecoPt);
-        rAnaTmp.ranges[RECOANA::kRECOPT][1] = bins_recoPt[1].at(iRecoPt);
-        rAnaTmp.ranges[RECOANA::kCENT][0] = bins_cent[0].at(iCent);
-        rAnaTmp.ranges[RECOANA::kCENT][1] = bins_cent[1].at(iCent);
+        rAnaTmp.ranges[RECOANA::rETA][0] = bins_eta[0].at(iEta);
+        rAnaTmp.ranges[RECOANA::rETA][1] = bins_eta[1].at(iEta);
+        rAnaTmp.ranges[RECOANA::rGENPT][0] = bins_genPt[0].at(iGenPt);
+        rAnaTmp.ranges[RECOANA::rGENPT][1] = bins_genPt[1].at(iGenPt);
+        rAnaTmp.ranges[RECOANA::rRECOPT][0] = bins_recoPt[0].at(iRecoPt);
+        rAnaTmp.ranges[RECOANA::rRECOPT][1] = bins_recoPt[1].at(iRecoPt);
+        rAnaTmp.ranges[RECOANA::rCENT][0] = bins_cent[0].at(iCent);
+        rAnaTmp.ranges[RECOANA::rCENT][1] = bins_cent[1].at(iCent);
+        rAnaTmp.ranges[RECOANA::rSUMISO][0] = bins_sumIso[0].at(iSumIso);
+        rAnaTmp.ranges[RECOANA::rSUMISO][1] = bins_sumIso[1].at(iSumIso);
+        rAnaTmp.ranges[RECOANA::rSIEIE][0] = bins_sieie[0].at(iSieie);
+        rAnaTmp.ranges[RECOANA::rSIEIE][1] = bins_sieie[1].at(iSieie);
 
         // for histograms with a particular dependence,
         // a single index is used in the multidimensional array of recoAnalyzer objects is used.
@@ -1314,6 +1372,12 @@ int  preLoop(TFile* input, bool makeNew)
         // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
 
         std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
+        if (nBins_sumIso > 1) {
+            tmpName.append(Form("_sumIsoBin%d", iSumIso));
+        }
+        if (nBins_sieie > 1) {
+            tmpName.append(Form("_sieieBin%d", iSieie));
+        }
         rAnaTmp.name = tmpName.c_str();
         rAnaTmp.titleX = xTitle.c_str();
 
@@ -1324,15 +1388,16 @@ int  preLoop(TFile* input, bool makeNew)
         std::string nameFakeNum = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeNum);
         std::string nameFakeDenom = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kFakeDenom);
 
-        rAnaTmp.recoObj = RECOANA::OBJS::kPHOTON;
-        rAnaTmp.dep = iDep;
-
         // disable the cuts/ranges for this dependence
         // Ex. If the dependence is GenPt (GenPt is the x-axis),
         // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
         // The x-axis bins will set the cuts.
         rAnaTmp.ranges[iDep][0] = 0;
         rAnaTmp.ranges[iDep][1] = -1;
+        if (iDep == RECOANA::kSUMISO) {
+            rAnaTmp.ranges[iDep][0] = -999;
+            rAnaTmp.ranges[iDep][1] = -999;
+        }
 
         int iAxis = iDep;
         int nBins = TH1D_Axis_List[iAxis].nBins;  // nBins
@@ -1546,15 +1611,18 @@ int postLoop()
             int iGenPt = binIndices[ANABINS::kGenPt];
             int iRecoPt = binIndices[ANABINS::kRecoPt];
             int iCent = binIndices[ANABINS::kCent];
+            int iSumIso = binIndices[ANABINS::kSumIso];
+            int iSieie = binIndices[ANABINS::kSieie];
 
             if (iDep == RECOANA::kETA && iEta != 0) continue;
             if (iDep == RECOANA::kGENPT && iGenPt != 0) continue;
             if (iDep == RECOANA::kRECOPT && iRecoPt != 0) continue;
             if (iDep == RECOANA::kCENT && iCent != 0) continue;
+            if (iDep == RECOANA::kSUMISO && iSumIso != 0) continue;
+            if (iDep == RECOANA::kSIEIE && iSieie != 0) continue;
 
-            if (iDep != RECOANA::kSUMISO && iDep != RECOANA::kSIEIE) {
-                if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
-            }
+            if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0) continue;
+
             // for histograms with a particular dependence,
             // a single index is used in the multidimensional array of recoAnalyzer objects.
             // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
@@ -1599,10 +1667,12 @@ int postLoop()
                 int iGenPt = binIndices[ANABINS::kGenPt];
                 int iRecoPt = binIndices[ANABINS::kRecoPt];
                 int iCent = binIndices[ANABINS::kCent];
+                int iSumIso = binIndices[ANABINS::kSumIso];
+                int iSieie = binIndices[ANABINS::kSieie];
 
                 // plot from different eta bins
                 if (iEta == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {-1, iGenPt, iRecoPt, iCent});
+                    drawSame(c, iObs, iDep, {-1, iGenPt, iRecoPt, iCent, iSumIso, iSieie});
                 }
 
                 // plot from different genPt bins
@@ -1610,18 +1680,18 @@ int postLoop()
 
                     // there is no genPt bin for fake rate
                     if (iObs != RECOANA::kFAKE) {
-                        drawSame(c, iObs, iDep, {iEta, -1, iRecoPt, iCent});
+                        drawSame(c, iObs, iDep, {iEta, -1, iRecoPt, iCent, iSumIso, iSieie});
                     }
                 }
 
                 // plot from different recoPt bins
                 if (iRecoPt == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, -1, iCent});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, -1, iCent, iSumIso, iSieie});
                 }
 
                 // plot from different centrality bins
                 if (iCent == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, -1});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, -1, iSumIso, iSieie});
                 }
             }
         }
@@ -1643,12 +1713,16 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     int iGenPt = binIndices[ANABINS::kGenPt];
     int iRecoPt = binIndices[ANABINS::kRecoPt];
     int iCent = binIndices[ANABINS::kCent];
+    int iSumIso = binIndices[ANABINS::kSumIso];
+    int iSieie = binIndices[ANABINS::kSieie];
 
     // if the dependency is GenPt (the x-axis is GenPt), then it must be iGenPt = 0
     if (iDep == RECOANA::kETA && iEta != 0) return;
     if (iDep == RECOANA::kGENPT && iGenPt != 0) return;
     if (iDep == RECOANA::kRECOPT && iRecoPt != 0) return;
     if (iDep == RECOANA::kCENT && iCent != 0) return;
+    if (iDep == RECOANA::kSUMISO && iSumIso != 0) return;
+    if (iDep == RECOANA::kSIEIE && iSieie != 0) return;
 
     TH1D* hTmp = 0;
     TGraphAsymmErrors* gTmp = 0;
@@ -1659,32 +1733,46 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     std::string strBin2 = "";
     int nBins = 0;
     if (iEta == -1) {
-        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent});
+        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent, iSumIso, iSieie});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iGenPt == -1) {
-        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent});
+        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent, iSumIso, iSieie});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "genPtBin";
         strBin2 = "genPtBinAll";
         nBins = nBins_genPt;
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex({iEta, iGenPt, 0, iCent});
+        int iAna = getVecIndex({iEta, iGenPt, 0, iCent, iSumIso, iSieie});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "recoPtBin";
         strBin2 = "recoPtBinAll";
         nBins = nBins_recoPt;
     }
     else if (iCent == -1 && nBins_cent > 1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0});
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0, iSumIso, iSieie});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "centBin";
         strBin2 = "centBinAll";
         nBins = nBins_cent;
+    }
+    else if (iSumIso == -1 && nBins_sumIso > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, 0, iSieie});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "sumIsoBin";
+        strBin2 = "sumIsoBinAll";
+        nBins = nBins_sumIso;
+    }
+    else if (iSieie == -1 && nBins_sieie > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, 0});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "sieieBin";
+        strBin2 = "sieieBinAll";
+        nBins = nBins_sieie;
     }
     else return;
 
@@ -1703,10 +1791,12 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iAna = -1;
-        if (iEta == -1) iAna = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
-        else if (iGenPt == -1) iAna = getVecIndex({iEta, iBin, iRecoPt, iCent});
-        else if (iRecoPt == -1) iAna = getVecIndex({iEta, iGenPt, iBin, iCent});
-        else if (iCent == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
+        if (iEta == -1) iAna = getVecIndex({iBin, iGenPt, iRecoPt, iCent, iSumIso, iSieie});
+        else if (iGenPt == -1) iAna = getVecIndex({iEta, iBin, iRecoPt, iCent, iSumIso, iSieie});
+        else if (iRecoPt == -1) iAna = getVecIndex({iEta, iGenPt, iBin, iCent, iSumIso, iSieie});
+        else if (iCent == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iBin, iSumIso, iSieie});
+        else if (iSumIso == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iBin, iSieie});
+        else if (iSieie == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iBin});
 
         indicesAna[iBin] = iAna;
     }
@@ -1721,6 +1811,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iGenPt == -1) iHist = nBins_eta + iBin;
         else if (iRecoPt == -1) iHist = nBins_eta + nBins_genPt + iBin;
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
+        else if (iSumIso == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + iBin;
+        else if (iSieie == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + iBin;
 
         int iAnaTmp = indicesAna[iBin];
 
@@ -1791,6 +1883,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iGenPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextGenPt();
         else if (iRecoPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextRecoPt();
         else if (iCent == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextCent();
+        else if (iSumIso == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextSumIso();
+        else if (iSieie == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextSieie();
 
         leg->AddEntry(vecObj[iBin], legendText.c_str(), legendOption.c_str());
     }
@@ -1811,6 +1905,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     bool writeTextGenPt = (iDep != RECOANA::kGENPT && iObs != RECOANA::kFAKE);
     bool writeTextRecoPt = (iDep != RECOANA::kRECOPT);
     bool writeTextCent = (iDep != RECOANA::kCENT);
+    bool writeTextSumIso = (iDep != RECOANA::kSUMISO);
+    bool writeTextSieie = (iDep != RECOANA::kSIEIE);
 
     int iAna0 = indicesAna[0];
     std::string textLineTmp;
@@ -1829,6 +1925,16 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
             textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
+
+        if (writeTextSumIso) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSieie) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
     }
     else if (iGenPt == -1) {
         if (writeTextCent) {
@@ -1843,6 +1949,16 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
         if (writeTextRecoPt) {
             textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSumIso) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSieie) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
@@ -1861,6 +1977,16 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
             textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
+
+        if (writeTextSumIso) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSieie) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
     }
     else if (iCent == -1) {
         if (writeTextEta) {
@@ -1875,6 +2001,16 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
         if (writeTextRecoPt) {
             textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSumIso) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+        }
+
+        if (writeTextSieie) {
+            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
@@ -1919,7 +2055,7 @@ void setTH1(TH1D* h, int iHist)
     float titleOffsetY = titleOffsetsY.at(0);
     h->SetTitleOffset(titleOffsetY, "Y");
 
-    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent;
+    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie;
 
     int markerStyle = GRAPHICS::markerStyle;
     if (nMarkerStyles == nBinsTot) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(iHist));
