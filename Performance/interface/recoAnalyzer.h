@@ -321,18 +321,18 @@ public :
     };
     ~recoAnalyzer(){};
 
-    void FillH2D(double energyScale, double x, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillH(double energyScale, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillH2Dcorr(double genPt, double recoPt, double w, float eta = -999, int cent = -1);
+    void FillH2D(double energyScale, double x, double w, std::vector<double> vars);
+    void FillH(double energyScale, double w, std::vector<double> vars);
+    void FillH2Dcorr(double genPt, double recoPt, double w, std::vector<double> vars);
 
-    void FillHNum(double x, double w, float genEta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillHDenom(double x, double w, float genEta = -999, float genPt = -1, int cent = -1);
-    void FillHNumFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
-    void FillHDenomFake(double x, double w, float eta = -999, float recoPt = -1, int cent = -1);
-    void FillHFakeParticle(double x, int pdg, double w, float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
-    void FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta = -999, float recoPt = -1, int cent = -1);
+    void FillHNum(double x, double w, std::vector<double> vars);
+    void FillHDenom(double x, double w, std::vector<double> vars);
+    void FillHNumFake(double x, double w, std::vector<double> vars);
+    void FillHDenomFake(double x, double w, std::vector<double> vars);
+    void FillHFakeParticle(double x, int pdg, double w, std::vector<double> vars);
+    void FillHFakeParticleGenPt(double genPt, int pdg, double w, std::vector<double> vars);
 
-    bool insideRange(float eta = -999, float genPt = -1, float recoPt = -1, int cent = -1);
+    bool insideRange(std::vector<double> vars);
 
     std::string getRangeTextEta();
     std::string getRangeTextGenPt();
@@ -524,45 +524,52 @@ public :
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
-    float ranges[RECOANA::kN_RANGES][2];
+    double ranges[RECOANA::kN_RANGES][2];
 };
 
-void recoAnalyzer::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillH2D(double energyScale, double x, double w, std::vector<double> vars)
 {
-    if (isValid_h2D && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_h2D && insideRange(vars))
         h2D->Fill(x, energyScale, w);
 }
 
-void recoAnalyzer::FillH(double energyScale, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillH(double energyScale, double w, std::vector<double> vars)
 {
-    if (isValid_hEscale && insideRange(eta, genPt, recoPt, cent))
+    if (isValid_hEscale && insideRange(vars))
         hEscale->Fill(energyScale, w);
 }
 
-void recoAnalyzer::FillH2Dcorr(double genPt, double recoPt, double w, float eta, int cent)
+void recoAnalyzer::FillH2Dcorr(double genPt, double recoPt, double w, std::vector<double> vars)
 {
-    if (isValid_h2Dcorr && insideRange(eta, -1, -1, cent))
+    vars[RECOANA::rGENPT] = -1;
+    vars[RECOANA::rRECOPT] = -1;
+
+    if (isValid_h2Dcorr && insideRange(vars))
         h2Dcorr->Fill(genPt, recoPt, w);
 }
 
-void recoAnalyzer::FillHNum(double x, double w, float genEta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillHNum(double x, double w, std::vector<double> vars)
 {
-    if (isValid_hMatchNum && insideRange(genEta, genPt, recoPt, cent))
+    if (isValid_hMatchNum && insideRange(vars))
         hMatchNum->Fill(x, w);
 }
 
-void recoAnalyzer::FillHDenom(double x, double w, float genEta, float genPt, int cent)
+void recoAnalyzer::FillHDenom(double x, double w, std::vector<double> vars)
 {
-    if (isValid_hMatchDenom && insideRange(genEta, genPt, -1, cent))
+    vars[RECOANA::rRECOPT] = -1;
+
+    if (isValid_hMatchDenom && insideRange(vars))
         hMatchDenom->Fill(x, w);
 }
 /*
  * fill numerator for fake rate
  * no GEN-level selection is applied
  */
-void recoAnalyzer::FillHNumFake(double x, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHNumFake(double x, double w, std::vector<double> vars)
 {
-    if (isValid_hFakeNum && insideRange(eta, -1, recoPt, cent)) {
+    vars[RECOANA::rGENPT] = -1;
+
+    if (isValid_hFakeNum && insideRange(vars)) {
         hFakeNum->Fill(x, w);
     }
 }
@@ -571,15 +578,17 @@ void recoAnalyzer::FillHNumFake(double x, double w, float eta, float recoPt, int
  * fill denominator for fake rate
  * no GEN-level selection is applied
  */
-void recoAnalyzer::FillHDenomFake(double x, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHDenomFake(double x, double w, std::vector<double> vars)
 {
-    if (isValid_hFakeDenom && insideRange(eta, -1, recoPt, cent))
+    vars[RECOANA::rGENPT] = -1;
+
+    if (isValid_hFakeDenom && insideRange(vars))
         hFakeDenom->Fill(x, w);
 }
 
-void recoAnalyzer::FillHFakeParticle(double x, int pdg, double w, float eta, float genPt, float recoPt, int cent)
+void recoAnalyzer::FillHFakeParticle(double x, int pdg, double w, std::vector<double> vars)
 {
-    if (insideRange(eta, genPt, recoPt, cent)) {
+    if (insideRange(vars)) {
 
         int iParticle = getParticleIndex(pdg);
 
@@ -592,9 +601,11 @@ void recoAnalyzer::FillHFakeParticle(double x, int pdg, double w, float eta, flo
     }
 }
 
-void recoAnalyzer::FillHFakeParticleGenPt(double genPt, int pdg, double w, float eta, float recoPt, int cent)
+void recoAnalyzer::FillHFakeParticleGenPt(double genPt, int pdg, double w, std::vector<double> vars)
 {
-    if (insideRange(eta, -1, recoPt, cent)) {
+    vars[RECOANA::rGENPT] = -1;
+
+    if (insideRange(vars)) {
 
         if (isValid_hFakeAllGenPt) {
             hFakeAllGenPt->Fill(genPt, w);
@@ -614,8 +625,13 @@ void recoAnalyzer::FillHFakeParticleGenPt(double genPt, int pdg, double w, float
 /*
  * check if the given variables lie inside the kinematic range defined for this object.
  */
-bool recoAnalyzer::insideRange(float eta, float genPt, float recoPt, int cent)
+bool recoAnalyzer::insideRange(std::vector<double> vars)
 {
+    double eta = vars[RECOANA::rETA];
+    double genPt = vars[RECOANA::rGENPT];
+    double recoPt = vars[RECOANA::rRECOPT];
+    double cent = vars[RECOANA::rCENT];
+
     // make sure to pass the selection if no explicit kinematic range is specified.
     if (eta == -999)  eta = ranges[RECOANA::rETA][0];
     if (genPt == -1) genPt = ranges[RECOANA::rGENPT][0];

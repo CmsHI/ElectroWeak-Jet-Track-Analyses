@@ -455,27 +455,28 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                 double energyScale = pt/genPt;
 
+                std::vector<double> vars = {eta, genPt, pt, (double)cent};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
-                    rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kETA][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
+                    rAna[RECOANA::kETA][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kGENPT][iAna].FillH2D(energyScale, genPt, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kGENPT][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kGENPT][iAna].FillH2D(energyScale, genPt, w, vars);
+                    rAna[RECOANA::kGENPT][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kGENPT][iAna].FillH2Dcorr(genPt, pt, w, eta, cent);
+                    rAna[RECOANA::kGENPT][iAna].FillH2Dcorr(genPt, pt, w, vars);
 
-                    rAna[RECOANA::kRECOPT][iAna].FillH2D(energyScale, pt, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kRECOPT][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kRECOPT][iAna].FillH2D(energyScale, pt, w, vars);
+                    rAna[RECOANA::kRECOPT][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kCENT][iAna].FillH2D(energyScale, cent, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kCENT][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kCENT][iAna].FillH2D(energyScale, cent, w, vars);
+                    rAna[RECOANA::kCENT][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kSUMISO][iAna].FillH2D(energyScale, sumIso, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kSUMISO][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSUMISO][iAna].FillH2D(energyScale, sumIso, w, vars);
+                    rAna[RECOANA::kSUMISO][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kSIEIE][iAna].FillH2D(energyScale, sieie, w, eta, genPt, pt, cent);
-                    rAna[RECOANA::kSIEIE][iAna].FillH(energyScale, w, eta, genPt, pt, cent);
+                    rAna[RECOANA::kSIEIE][iAna].FillH2D(energyScale, sieie, w, vars);
+                    rAna[RECOANA::kSIEIE][iAna].FillH(energyScale, w, vars);
                 }
             }
             }
@@ -550,24 +551,26 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 }
                 bool matched2RECO = (iReco > -1);
 
+                std::vector<double> varsDenom = {genEta, genPt, -1, (double)cent};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
-                    rAna[RECOANA::kETA][iAna].FillHDenom(genEta, w, genEta, genPt, cent);
-                    rAna[RECOANA::kGENPT][iAna].FillHDenom(genPt, w, genEta, genPt, cent);
-                    //rAna[RECOANA::kRECOPT][iAna].FillHDenom(pt, w, genEta, genPt, cent);
-                    rAna[RECOANA::kCENT][iAna].FillHDenom(cent, w, genEta, genPt, cent);
-                    //rAna[RECOANA::kSUMISO][iAna].FillHDenom(sumIso, w, genEta, genPt, cent);
-                    //rAna[RECOANA::kSIEIE][iAna].FillHDenom(sieie, w, genEta, genPt, cent);
+                    rAna[RECOANA::kETA][iAna].FillHDenom(genEta, w, varsDenom);
+                    rAna[RECOANA::kGENPT][iAna].FillHDenom(genPt, w, varsDenom);
+                    //rAna[RECOANA::kRECOPT][iAna].FillHDenom(pt, w, varsDenom);
+                    rAna[RECOANA::kCENT][iAna].FillHDenom(cent, w, varsDenom);
+                    //rAna[RECOANA::kSUMISO][iAna].FillHDenom(sumIso, w, varsDenom);
+                    //rAna[RECOANA::kSIEIE][iAna].FillHDenom(sieie, w, varsDenom);
 
                     if (matched2RECO) {
                         double pt  = (*ggHi.phoEt)[iReco];
+                        std::vector<double> varsNum = {genEta, genPt, pt, (double)cent};
 
-                        rAna[RECOANA::kETA][iAna].FillHNum(genEta, w, genEta, genPt, pt, cent);
-                        rAna[RECOANA::kGENPT][iAna].FillHNum(genPt, w, genEta, genPt, pt, cent);
-                        //rAna[RECOANA::kRECOPT][iAna].FillHNum(pt, w, genEta, genPt, pt, cent);
-                        rAna[RECOANA::kCENT][iAna].FillHNum(cent, w, genEta, genPt, pt, cent);
-                        //rAna[RECOANA::kSUMISO][iAna].FillHNum(sumIso, w, genEta, genPt, pt, cent);
-                        //rAna[RECOANA::kSIEIE][iAna].FillHNum(sieie, w, genEta, genPt, pt, cent);
+                        rAna[RECOANA::kETA][iAna].FillHNum(genEta, w, varsNum);
+                        rAna[RECOANA::kGENPT][iAna].FillHNum(genPt, w, varsNum);
+                        //rAna[RECOANA::kRECOPT][iAna].FillHNum(pt, w, varsNum);
+                        rAna[RECOANA::kCENT][iAna].FillHNum(cent, w, varsNum);
+                        //rAna[RECOANA::kSUMISO][iAna].FillHNum(sumIso, w, varsNum);
+                        //rAna[RECOANA::kSIEIE][iAna].FillHNum(sieie, w, varsNum);
                     }
 
                 }
@@ -620,22 +623,23 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     genPt = (*ggHi.mcPt)[genMatchedIndex];
                 }
 
+                std::vector<double> varsFake = {eta, -1, pt, (double)cent};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
-                    rAna[RECOANA::kETA][iAna].FillHDenomFake(eta, w, eta, pt, cent);
-                    //rAna[RECOANA::kGENPT][iAna].FillHDenomFake(genPt, w, eta, pt, cent);
-                    rAna[RECOANA::kRECOPT][iAna].FillHDenomFake(pt, w, eta, pt, cent);
-                    rAna[RECOANA::kCENT][iAna].FillHDenomFake(cent, w, eta, pt, cent);
-                    rAna[RECOANA::kSUMISO][iAna].FillHDenomFake(sumIso, w, eta, pt, cent);
-                    rAna[RECOANA::kSIEIE][iAna].FillHDenomFake(sieie, w, eta, pt, cent);
+                    rAna[RECOANA::kETA][iAna].FillHDenomFake(eta, w, varsFake);
+                    //rAna[RECOANA::kGENPT][iAna].FillHDenomFake(genPt, w, varsFake);
+                    rAna[RECOANA::kRECOPT][iAna].FillHDenomFake(pt, w, varsFake);
+                    rAna[RECOANA::kCENT][iAna].FillHDenomFake(cent, w, varsFake);
+                    rAna[RECOANA::kSUMISO][iAna].FillHDenomFake(sumIso, w, varsFake);
+                    rAna[RECOANA::kSIEIE][iAna].FillHDenomFake(sieie, w, varsFake);
 
                     if (!isMatched2GenPhoton) {
-                        rAna[RECOANA::kETA][iAna].FillHNumFake(eta, w, eta, pt, cent);
-                        //rAna[RECOANA::kGENPT][iAna].FillHNumFake(genPt, w, eta, pt, cent);
-                        rAna[RECOANA::kRECOPT][iAna].FillHNumFake(pt, w, eta, pt, cent);
-                        rAna[RECOANA::kCENT][iAna].FillHNumFake(cent, w, eta, pt, cent);
-                        rAna[RECOANA::kSUMISO][iAna].FillHNumFake(sumIso, w, eta, pt, cent);
-                        rAna[RECOANA::kSIEIE][iAna].FillHNumFake(sieie, w, eta, pt, cent);
+                        rAna[RECOANA::kETA][iAna].FillHNumFake(eta, w, varsFake);
+                        //rAna[RECOANA::kGENPT][iAna].FillHNumFake(genPt, w, varsFake);
+                        rAna[RECOANA::kRECOPT][iAna].FillHNumFake(pt, w, varsFake);
+                        rAna[RECOANA::kCENT][iAna].FillHNumFake(cent, w, varsFake);
+                        rAna[RECOANA::kSUMISO][iAna].FillHNumFake(sumIso, w, varsFake);
+                        rAna[RECOANA::kSIEIE][iAna].FillHNumFake(sieie, w, varsFake);
                     }
                 }
 
@@ -673,17 +677,18 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     fakePDG = TMath::Abs(fakePDG);
                 }
 
+                std::vector<double> varsFakeParticle = {eta, genPt, pt, (double)cent};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     if (!isMatched2GenPhoton) {
-                        rAna[RECOANA::kETA][iAna].FillHFakeParticle(eta, fakePDG, w, eta, genPt, pt, cent);
-                        rAna[RECOANA::kGENPT][iAna].FillHFakeParticle(genPt, fakePDG, w, eta, genPt, pt, cent);
-                        rAna[RECOANA::kRECOPT][iAna].FillHFakeParticle(pt, fakePDG, w, eta, genPt, pt, cent);
-                        rAna[RECOANA::kCENT][iAna].FillHFakeParticle(cent, fakePDG, w, eta, genPt, pt, cent);
-                        rAna[RECOANA::kSUMISO][iAna].FillHFakeParticle(sumIso, fakePDG, w, eta, genPt, pt, cent);
-                        rAna[RECOANA::kSIEIE][iAna].FillHFakeParticle(sieie, fakePDG, w, eta, genPt, pt, cent);
+                        rAna[RECOANA::kETA][iAna].FillHFakeParticle(eta, fakePDG, w, varsFakeParticle);
+                        rAna[RECOANA::kGENPT][iAna].FillHFakeParticle(genPt, fakePDG, w, varsFakeParticle);
+                        rAna[RECOANA::kRECOPT][iAna].FillHFakeParticle(pt, fakePDG, w, varsFakeParticle);
+                        rAna[RECOANA::kCENT][iAna].FillHFakeParticle(cent, fakePDG, w, varsFakeParticle);
+                        rAna[RECOANA::kSUMISO][iAna].FillHFakeParticle(sumIso, fakePDG, w, varsFakeParticle);
+                        rAna[RECOANA::kSIEIE][iAna].FillHFakeParticle(sieie, fakePDG, w, varsFakeParticle);
 
-                        rAna[RECOANA::kGENPT][iAna].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, eta, pt, cent);
+                        rAna[RECOANA::kGENPT][iAna].FillHFakeParticleGenPt(fakeGenPt, fakePDG, w, varsFakeParticle);
                     }
                 }
                 }
