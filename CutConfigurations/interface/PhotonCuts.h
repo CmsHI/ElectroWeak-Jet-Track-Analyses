@@ -140,6 +140,10 @@ namespace CUTS {
       k_bins_pt_lt,
       k_bins_mcPt_gt,
       k_bins_mcPt_lt,
+      k_bins_sumIso_gt,
+      k_bins_sumIso_lt,
+      k_bins_sieie_gt,
+      k_bins_sieie_lt,
       k_energy_correction_file,
       k_sumiso_correction_file,
       k_pt_bin_numbers,
@@ -166,6 +170,10 @@ namespace CUTS {
       "bins_pt_lt",
       "bins_mcPt_gt",      // label starts with "bins_". this means the input will be a list of strings
       "bins_mcPt_lt",
+      "bins_sumIso_gt",
+      "bins_sumIso_lt",
+      "bins_sieie_gt",
+      "bins_sieie_lt",
       "energy_correction_file",
       "sumiso_correction_file",
       "pt_bin_numbers",      // select pt bins for dphi width/pedestal plots
