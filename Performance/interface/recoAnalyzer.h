@@ -68,6 +68,25 @@ const std::string DEP_LABELS[kN_DEPS] = {
         "SIEIE"
 };
 
+enum RANGES {   // reco performance ranges/cuts
+    rETA,
+    rGENPT,
+    rRECOPT,
+    rCENT,
+    rSUMISO,
+    rSIEIE,
+    kN_RANGES
+};
+
+const std::string RANGE_LABELS[kN_RANGES] = {
+        "ETA",
+        "GENPT",
+        "RECOPT",
+        "CENT",
+        "SUMISO",
+        "SIEIE"
+};
+
 // observables
 enum OBS {
     kESCALE,    // energy scale
@@ -295,7 +314,7 @@ public :
         yMin = {0, 0};
         yMax = {-1, -1};
 
-        for (int i=0; i<RECOANA::kN_DEPS; ++i) {
+        for (int i=0; i<RECOANA::kN_RANGES; ++i) {
             ranges[i][0] = 0;
             ranges[i][1] = -1;  // no upper bound
         }
@@ -505,7 +524,7 @@ public :
 
     // range of oberservables for which the histograms are made.
     // histograms are filled if range[i][0] <= observable < range[i][1]
-    float ranges[RECOANA::kN_DEPS][2];
+    float ranges[RECOANA::kN_RANGES][2];
 };
 
 void recoAnalyzer::FillH2D(double energyScale, double x, double w, float eta, float genPt, float recoPt, int cent)
@@ -598,19 +617,19 @@ void recoAnalyzer::FillHFakeParticleGenPt(double genPt, int pdg, double w, float
 bool recoAnalyzer::insideRange(float eta, float genPt, float recoPt, int cent)
 {
     // make sure to pass the selection if no explicit kinematic range is specified.
-    if (eta == -999)  eta = ranges[RECOANA::kETA][0];
-    if (genPt == -1) genPt = ranges[RECOANA::kGENPT][0];
-    if (recoPt == -1)  recoPt = ranges[RECOANA::kRECOPT][0];
-    if (cent == -1)  cent = ranges[RECOANA::kCENT][0];
+    if (eta == -999)  eta = ranges[RECOANA::rETA][0];
+    if (genPt == -1) genPt = ranges[RECOANA::rGENPT][0];
+    if (recoPt == -1)  recoPt = ranges[RECOANA::rRECOPT][0];
+    if (cent == -1)  cent = ranges[RECOANA::rCENT][0];
 
-    if(ranges[RECOANA::kETA][0] <= TMath::Abs(eta) &&
-       (ranges[RECOANA::kETA][1] == -1 || ranges[RECOANA::kETA][1] > TMath::Abs(eta))){
-    if(ranges[RECOANA::kGENPT][0] <= genPt         &&
-       (ranges[RECOANA::kGENPT][1] == -1  || ranges[RECOANA::kGENPT][1] > genPt)) {
-    if(ranges[RECOANA::kRECOPT][0] <= recoPt       &&
-       (ranges[RECOANA::kRECOPT][1] == -1 || ranges[RECOANA::kRECOPT][1] > recoPt)) {
-    if(ranges[RECOANA::kCENT][0] <= cent         &&
-       (ranges[RECOANA::kCENT][1] == -1  || ranges[RECOANA::kCENT][1] > cent)) {
+    if(ranges[RECOANA::rETA][0] <= TMath::Abs(eta) &&
+       (ranges[RECOANA::rETA][1] == -1 || ranges[RECOANA::rETA][1] > TMath::Abs(eta))){
+    if(ranges[RECOANA::rGENPT][0] <= genPt         &&
+       (ranges[RECOANA::rGENPT][1] == -1  || ranges[RECOANA::rGENPT][1] > genPt)) {
+    if(ranges[RECOANA::rRECOPT][0] <= recoPt       &&
+       (ranges[RECOANA::rRECOPT][1] == -1 || ranges[RECOANA::rRECOPT][1] > recoPt)) {
+    if(ranges[RECOANA::rCENT][0] <= cent         &&
+       (ranges[RECOANA::rCENT][1] == -1  || ranges[RECOANA::rCENT][1] > cent)) {
             return true;
     }}}}
     return false;
@@ -620,10 +639,10 @@ std::string recoAnalyzer::getRangeTextEta()
 {
     std::string res = "";
 
-    if (ranges[RECOANA::DEPS::kETA][0] <= 0 && ranges[RECOANA::DEPS::kETA][1] > 0)
-        res  = Form("|#eta|<%.2f", ranges[RECOANA::DEPS::kETA][1]);
-    else if (ranges[RECOANA::DEPS::kETA][0] > 0 && ranges[RECOANA::DEPS::kETA][1] > 0)
-        res  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::DEPS::kETA][0], ranges[RECOANA::DEPS::kETA][1]);
+    if (ranges[RECOANA::rETA][0] <= 0 && ranges[RECOANA::rETA][1] > 0)
+        res  = Form("|#eta|<%.2f", ranges[RECOANA::rETA][1]);
+    else if (ranges[RECOANA::rETA][0] > 0 && ranges[RECOANA::rETA][1] > 0)
+        res  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::rETA][0], ranges[RECOANA::rETA][1]);
 
     return res;
 }
@@ -632,12 +651,12 @@ std::string recoAnalyzer::getRangeTextGenPt()
 {
     std::string res = "";
 
-    if (ranges[RECOANA::DEPS::kGENPT][0] > 0 && ranges[RECOANA::DEPS::kGENPT][1] <= -1)
-        res  = Form("p_{T}^{gen}>%.0f", ranges[RECOANA::DEPS::kGENPT][0]);
-    else if (ranges[RECOANA::DEPS::kGENPT][0] > 0 && ranges[RECOANA::DEPS::kGENPT][1] > 0)
-        res  = Form("%.0f<p_{T}^{gen}<%.0f", ranges[RECOANA::DEPS::kGENPT][0], ranges[RECOANA::DEPS::kGENPT][1]);
-    else if (ranges[RECOANA::DEPS::kGENPT][0] <= 0 && ranges[RECOANA::DEPS::kGENPT][1] > 0)
-        res  = Form("p_{T}^{gen}<%.0f", ranges[RECOANA::DEPS::kGENPT][1]);
+    if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] <= -1)
+        res  = Form("p_{T}^{gen}>%.0f", ranges[RECOANA::rGENPT][0]);
+    else if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] > 0)
+        res  = Form("%.0f<p_{T}^{gen}<%.0f", ranges[RECOANA::rGENPT][0], ranges[RECOANA::rGENPT][1]);
+    else if (ranges[RECOANA::rGENPT][0] <= 0 && ranges[RECOANA::rGENPT][1] > 0)
+        res  = Form("p_{T}^{gen}<%.0f", ranges[RECOANA::rGENPT][1]);
 
     return res;
 }
@@ -646,12 +665,12 @@ std::string recoAnalyzer::getRangeTextRecoPt()
 {
     std::string res = "";
 
-    if (ranges[RECOANA::DEPS::kRECOPT][0] > 0 && ranges[RECOANA::DEPS::kRECOPT][1] <= -1)
-        res  = Form("p_{T}^{reco}>%.0f", ranges[RECOANA::DEPS::kRECOPT][0]);
-    else if (ranges[RECOANA::DEPS::kRECOPT][0] > 0 && ranges[RECOANA::DEPS::kRECOPT][1] > 0)
-        res = Form("%.0f<p_{T}^{reco}<%.0f", ranges[RECOANA::DEPS::kRECOPT][0], ranges[RECOANA::DEPS::kRECOPT][1]);
-    else if (ranges[RECOANA::DEPS::kRECOPT][0] <= 0 && ranges[RECOANA::DEPS::kRECOPT][1] > 0)
-        res = Form("p_{T}^{reco}<%.0f", ranges[RECOANA::DEPS::kRECOPT][1]);
+    if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] <= -1)
+        res  = Form("p_{T}^{reco}>%.0f", ranges[RECOANA::rRECOPT][0]);
+    else if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] > 0)
+        res = Form("%.0f<p_{T}^{reco}<%.0f", ranges[RECOANA::rRECOPT][0], ranges[RECOANA::rRECOPT][1]);
+    else if (ranges[RECOANA::rRECOPT][0] <= 0 && ranges[RECOANA::rRECOPT][1] > 0)
+        res = Form("p_{T}^{reco}<%.0f", ranges[RECOANA::rRECOPT][1]);
 
     return res;
 }
@@ -660,8 +679,8 @@ std::string recoAnalyzer::getRangeTextCent()
 {
     std::string res = "";
 
-    if (ranges[RECOANA::DEPS::kCENT][0] >= 0 && ranges[RECOANA::DEPS::kCENT][1] > 0)
-        res = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::DEPS::kCENT][0], ranges[RECOANA::DEPS::kCENT][1]);
+    if (ranges[RECOANA::rCENT][0] >= 0 && ranges[RECOANA::rCENT][1] > 0)
+        res = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::rCENT][0], ranges[RECOANA::rCENT][1]);
 
     return res;
 }
@@ -917,25 +936,25 @@ void recoAnalyzer::prepareTitle()
     std::string centStr  = "";      // whole centrality range
 
     // special cases
-    if (ranges[RECOANA::kETA][0] <= 0 && ranges[RECOANA::kETA][1] > 0)
-        etaStr  = Form("|#eta|<%.2f", ranges[RECOANA::kETA][1]);
-    else if (ranges[RECOANA::kETA][0] > 0 && ranges[RECOANA::kETA][1] > 0)
-        etaStr  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::kETA][0], ranges[RECOANA::kETA][1]);
+    if (ranges[RECOANA::rETA][0] <= 0 && ranges[RECOANA::rETA][1] > 0)
+        etaStr  = Form("|#eta|<%.2f", ranges[RECOANA::rETA][1]);
+    else if (ranges[RECOANA::rETA][0] > 0 && ranges[RECOANA::rETA][1] > 0)
+        etaStr  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::rETA][0], ranges[RECOANA::rETA][1]);
 
-    if (ranges[RECOANA::kGENPT][0] > 0 && ranges[RECOANA::kGENPT][1] <= -1)
-        genPtStr  = Form("p_{T}^{GEN}>%.0f", ranges[RECOANA::kGENPT][0]);
-    else if (ranges[RECOANA::kGENPT][0] > 0 && ranges[RECOANA::kGENPT][1] > 0)
-        genPtStr  = Form("%.0f<p_{T}^{GEN}<%.0f", ranges[RECOANA::kGENPT][0], ranges[RECOANA::kGENPT][1]);
+    if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] <= -1)
+        genPtStr  = Form("p_{T}^{GEN}>%.0f", ranges[RECOANA::rGENPT][0]);
+    else if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] > 0)
+        genPtStr  = Form("%.0f<p_{T}^{GEN}<%.0f", ranges[RECOANA::rGENPT][0], ranges[RECOANA::rGENPT][1]);
 
-    if (ranges[RECOANA::kRECOPT][0] > 0 && ranges[RECOANA::kRECOPT][1] <= -1)
-        recoPtStr  = Form("p_{T}^{RECO}>%.0f", ranges[RECOANA::kRECOPT][0]);
-    else if (ranges[RECOANA::kRECOPT][0] > 0 && ranges[RECOANA::kRECOPT][1] > 0)
-        recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[RECOANA::kRECOPT][0], ranges[RECOANA::kRECOPT][1]);
+    if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] <= -1)
+        recoPtStr  = Form("p_{T}^{RECO}>%.0f", ranges[RECOANA::rRECOPT][0]);
+    else if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] > 0)
+        recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[RECOANA::rRECOPT][0], ranges[RECOANA::rRECOPT][1]);
 
-    if (ranges[RECOANA::kCENT][0] <= 0 && ranges[RECOANA::kCENT][1] <= -1)
+    if (ranges[RECOANA::rCENT][0] <= 0 && ranges[RECOANA::rCENT][1] <= -1)
         centStr = "";
-    else if (ranges[RECOANA::kCENT][0] >= 0 && ranges[RECOANA::kCENT][1] > 0)
-        centStr  = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::kCENT][0], ranges[RECOANA::kCENT][1]);
+    else if (ranges[RECOANA::rCENT][0] >= 0 && ranges[RECOANA::rCENT][1] > 0)
+        centStr  = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::rCENT][0], ranges[RECOANA::rCENT][1]);
 
     std::string tmpHistTitle = "";
     if (etaStr.size() > 0)  tmpHistTitle.append(Form("%s", etaStr.c_str()));
@@ -2285,19 +2304,19 @@ void recoAnalyzer::drawLine4PtRange(TPad* p, int lineColor)
     if (dep == RECOANA::kGENPT) {
 
         // vertical lines for reco pt range
-        if (ranges[RECOANA::kRECOPT][0] > 0 &&
-            ranges[RECOANA::kRECOPT][0] > x1 && ranges[RECOANA::kRECOPT][0] < x2) {
+        if (ranges[RECOANA::rRECOPT][0] > 0 &&
+            ranges[RECOANA::rRECOPT][0] > x1 && ranges[RECOANA::rRECOPT][0] < x2) {
 
-            line = new TLine(ranges[RECOANA::kRECOPT][0], y1, ranges[RECOANA::kRECOPT][0], y2);
+            line = new TLine(ranges[RECOANA::rRECOPT][0], y1, ranges[RECOANA::rRECOPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
             line->Draw();
         }
-        if (ranges[RECOANA::kRECOPT][1] > 0 &&
-            ranges[RECOANA::kRECOPT][1] > x1 && ranges[RECOANA::kRECOPT][1] < x2) {
+        if (ranges[RECOANA::rRECOPT][1] > 0 &&
+            ranges[RECOANA::rRECOPT][1] > x1 && ranges[RECOANA::rRECOPT][1] < x2) {
 
-            line = new TLine(ranges[RECOANA::kRECOPT][1], y1, ranges[RECOANA::kRECOPT][1], y2);
+            line = new TLine(ranges[RECOANA::rRECOPT][1], y1, ranges[RECOANA::rRECOPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
@@ -2307,19 +2326,19 @@ void recoAnalyzer::drawLine4PtRange(TPad* p, int lineColor)
     else if (dep == RECOANA::kRECOPT) {
 
         // vertical lines for gen pt range
-        if (ranges[RECOANA::kGENPT][0] > 0 &&
-            ranges[RECOANA::kGENPT][0] > x1 && ranges[RECOANA::kGENPT][0] < x2) {
+        if (ranges[RECOANA::rGENPT][0] > 0 &&
+            ranges[RECOANA::rGENPT][0] > x1 && ranges[RECOANA::rGENPT][0] < x2) {
 
-            line = new TLine(ranges[RECOANA::kGENPT][0], y1, ranges[RECOANA::kGENPT][0], y2);
+            line = new TLine(ranges[RECOANA::rGENPT][0], y1, ranges[RECOANA::rGENPT][0], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
             line->Draw();
         }
-        if (ranges[RECOANA::kGENPT][1] > 0 &&
-            ranges[RECOANA::kGENPT][1] > x1 && ranges[RECOANA::kGENPT][1] < x2) {
+        if (ranges[RECOANA::rGENPT][1] > 0 &&
+            ranges[RECOANA::rGENPT][1] > x1 && ranges[RECOANA::rGENPT][1] < x2) {
 
-            line = new TLine(ranges[RECOANA::kGENPT][1], y1, ranges[RECOANA::kGENPT][1], y2);
+            line = new TLine(ranges[RECOANA::rGENPT][1], y1, ranges[RECOANA::rGENPT][1], y2);
             line->SetLineStyle(kDotted);
             line->SetLineColor(lineColor);
             line->SetLineWidth(line->GetLineWidth()*3);
