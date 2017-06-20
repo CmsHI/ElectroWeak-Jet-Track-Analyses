@@ -1244,10 +1244,10 @@ int  preLoop(TFile* input, bool makeNew)
 
         std::vector<int> binIndices = getBinIndices(iAna);
 
-        int iEta = binIndices[0];
-        int iGenPt = binIndices[1];
-        int iRecoPt = binIndices[2];
-        int iCent = binIndices[3];
+        int iEta = binIndices[ANABINS::kEta];
+        int iGenPt = binIndices[ANABINS::kGenPt];
+        int iRecoPt = binIndices[ANABINS::kRecoPt];
+        int iCent = binIndices[ANABINS::kCent];
 
         if (iDep != RECOANA::kSUMISO && iDep != RECOANA::kSIEIE) {
             if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0)  continue;
@@ -1537,10 +1537,10 @@ int postLoop()
 
             std::vector<int> binIndices = getBinIndices(iAna);
 
-            int iEta = binIndices[0];
-            int iGenPt = binIndices[1];
-            int iRecoPt = binIndices[2];
-            int iCent = binIndices[3];
+            int iEta = binIndices[ANABINS::kEta];
+            int iGenPt = binIndices[ANABINS::kGenPt];
+            int iRecoPt = binIndices[ANABINS::kRecoPt];
+            int iCent = binIndices[ANABINS::kCent];
 
             if (iDep == RECOANA::kETA && iEta != 0) continue;
             if (iDep == RECOANA::kGENPT && iGenPt != 0) continue;
@@ -1590,10 +1590,10 @@ int postLoop()
 
                 std::vector<int> binIndices = getBinIndices(iAna);
 
-                int iEta = binIndices[0];
-                int iGenPt = binIndices[1];
-                int iRecoPt = binIndices[2];
-                int iCent = binIndices[3];
+                int iEta = binIndices[ANABINS::kEta];
+                int iGenPt = binIndices[ANABINS::kGenPt];
+                int iRecoPt = binIndices[ANABINS::kRecoPt];
+                int iCent = binIndices[ANABINS::kCent];
 
                 // plot from different eta bins
                 if (iEta == 0 && rAna[iDep][iAna].name.size() > 0) {
