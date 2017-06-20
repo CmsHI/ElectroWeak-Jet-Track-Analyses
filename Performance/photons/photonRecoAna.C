@@ -1688,6 +1688,19 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
+    // prepare analysis indices
+    std::vector<int> indicesAna(nBins);
+    for (int iBin = 0; iBin < nBins; ++iBin) {
+
+        int iAna = -1;
+        if (iEta == -1) iAna = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
+        else if (iGenPt == -1) iAna = getVecIndex({iEta, iBin, iRecoPt, iCent});
+        else if (iRecoPt == -1) iAna = getVecIndex({iEta, iGenPt, iBin, iCent});
+        else if (iCent == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
+
+        indicesAna[iBin] = iAna;
+    }
+
     std::vector<TH1D*> vecH1D;
     std::vector<TGraph*> vecGraph;
     std::vector<TObject*> vecObj;
@@ -1699,11 +1712,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         else if (iRecoPt == -1) iHist = nBins_eta + nBins_genPt + iBin;
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
 
-        int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
-        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
-        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
+        int iAnaTmp = indicesAna[iBin];
 
         if (iObs == RECOANA::kEFF) {
             gTmp = (TGraphAsymmErrors*)rAna[iDep][iAnaTmp].gMatchEff->Clone();
@@ -1748,11 +1757,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     // vertical lines for pt ranges
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
-        int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
-        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
-        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
+        int iAnaTmp = indicesAna[iBin];
 
         if (iObs == RECOANA::kEFF) {
 
@@ -1767,11 +1772,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
-        int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
-        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
-        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
+        int iAnaTmp = indicesAna[iBin];
 
         std::string legendOption = "lpf";
         if (iObs == RECOANA::kEFF)  legendOption = "lp";
@@ -1801,72 +1802,69 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     bool writeTextRecoPt = (iDep != RECOANA::kRECOPT);
     bool writeTextCent = (iDep != RECOANA::kCENT);
 
+    int iAna0 = indicesAna[0];
     std::string textLineTmp;
     if (iEta == -1) {
-        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent});
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iGenPt == -1) {
-        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent});
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex({iEta, iGenPt, 0, iCent});
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
     else if (iCent == -1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0});
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextEta().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextGenPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna].getRangeTextRecoPt().c_str();
+            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
         }
     }
