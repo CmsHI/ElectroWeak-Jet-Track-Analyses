@@ -197,7 +197,7 @@ int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
-void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent);
+void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
 void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
@@ -1597,7 +1597,7 @@ int postLoop()
 
                 // plot from different eta bins
                 if (iEta == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, -1, iGenPt, iRecoPt, iCent);
+                    drawSame(c, iObs, iDep, {-1, iGenPt, iRecoPt, iCent});
                 }
 
                 // plot from different genPt bins
@@ -1605,18 +1605,18 @@ int postLoop()
 
                     // there is no genPt bin for fake rate
                     if (iObs != RECOANA::kFAKE) {
-                        drawSame(c, iObs, iDep, iEta, -1, iRecoPt, iCent);
+                        drawSame(c, iObs, iDep, {iEta, -1, iRecoPt, iCent});
                     }
                 }
 
                 // plot from different recoPt bins
                 if (iRecoPt == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, iEta, iGenPt, -1, iCent);
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, -1, iCent});
                 }
 
                 // plot from different centrality bins
                 if (iCent == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, iEta, iGenPt, iRecoPt, -1);
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, -1});
                 }
             }
         }
@@ -1625,7 +1625,7 @@ int postLoop()
     return 0;
 }
 
-void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt, int iCent)
+void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 {
     if ((iObs == RECOANA::kESCALE || iObs == RECOANA::kERES ||
          iObs == RECOANA::kESCALEARITH || iObs == RECOANA::kERESARITH ||
@@ -1633,6 +1633,11 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
             !runMode[MODES::kEnergyScale]) return;
     if (iObs == RECOANA::kEFF && !runMode[MODES::kMatchEff]) return;
     if (iObs == RECOANA::kFAKE && !runMode[MODES::kFakeRate]) return;
+
+    int iEta = binIndices[ANABINS::kEta];
+    int iGenPt = binIndices[ANABINS::kGenPt];
+    int iRecoPt = binIndices[ANABINS::kRecoPt];
+    int iCent = binIndices[ANABINS::kCent];
 
     // if the dependency is GenPt (the x-axis is GenPt), then it must be iGenPt = 0
     if (iDep == RECOANA::kETA && iEta != 0) return;
