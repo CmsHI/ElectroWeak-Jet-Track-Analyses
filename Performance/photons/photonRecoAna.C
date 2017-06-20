@@ -177,6 +177,13 @@ enum MODES {
 };
 const std::string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
 std::vector<bool> runMode;
+enum ANABINS {
+    kEta,
+    kGenPt,
+    kRecoPt,
+    kCent,
+    kN_ANABINS
+};
 int nRecoAna;
 // object for set of all possible energy scale histograms
 std::vector<recoAnalyzer> rAna[RECOANA::kN_DEPS];
@@ -186,7 +193,7 @@ std::vector<recoAnalyzer> rAna[RECOANA::kN_DEPS];
 int  readConfiguration(const TString configFile);
 void printConfiguration();
 std::vector<bool> parseMode(std::string mode);
-int getVecIndex(int iEta, int iGenPt, int iRecoPt, int iCent);
+int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
@@ -1163,19 +1170,22 @@ std::vector<bool> parseMode(std::string mode)
 /*
  * given the indices for analysis bins, return the vector index
  */
-int getVecIndex(int iEta, int iGenPt, int iRecoPt, int iCent)
+int getVecIndex(std::vector<int> binIndices)
 {
+    int n = binIndices.size();
+    if (n != ANABINS::kN_ANABINS) return -1;
+
     int nTmp = nRecoAna / nBins_eta;
-    int i = iEta * nTmp;
+    int i = binIndices[ANABINS::kEta] * nTmp;
 
     nTmp /= nBins_genPt;
-    i += iGenPt * nTmp;
+    i += binIndices[ANABINS::kGenPt] * nTmp;
 
     nTmp /= nBins_recoPt;
-    i += iRecoPt * nTmp;
+    i += binIndices[ANABINS::kRecoPt] * nTmp;
 
     nTmp /= nBins_cent;
-    i += iCent * nTmp;
+    i += binIndices[ANABINS::kCent] * nTmp;
 
     return i;
 }
@@ -1187,26 +1197,29 @@ std::vector<int> getBinIndices(int i)
 {
     if (i > nRecoAna)  return {};
 
+    std::vector<int> binIndices;
+    binIndices.resize(ANABINS::kN_ANABINS);
+
     int iTmp = i;
     int nTmp = nRecoAna;
 
     // eta bin index
     nTmp /= nBins_eta;
-    int iEta = iTmp / nTmp;
+    binIndices[ANABINS::kEta] = iTmp / nTmp;
 
     iTmp = i % nTmp;
     nTmp /= nBins_genPt;
-    int iGenPt = iTmp / nTmp;
+    binIndices[ANABINS::kGenPt] = iTmp / nTmp;
 
     iTmp = i % nTmp;
     nTmp /= nBins_recoPt;
-    int iRecoPt = iTmp / nTmp;
+    binIndices[ANABINS::kRecoPt] = iTmp / nTmp;
 
     iTmp = i % nTmp;
     nTmp /= nBins_cent;
-    int iCent = iTmp / nTmp;
+    binIndices[ANABINS::kCent] = iTmp / nTmp;
 
-    return {iEta, iGenPt, iRecoPt, iCent};
+    return binIndices;
 }
 
 /*
@@ -1636,28 +1649,28 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     std::string strBin2 = "";
     int nBins = 0;
     if (iEta == -1) {
-        int iAna = getVecIndex(0, iGenPt, iRecoPt, iCent);
+        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iGenPt == -1) {
-        int iAna = getVecIndex(iEta, 0, iRecoPt, iCent);
+        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "genPtBin";
         strBin2 = "genPtBinAll";
         nBins = nBins_genPt;
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex(iEta, iGenPt, 0, iCent);
+        int iAna = getVecIndex({iEta, iGenPt, 0, iCent});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "recoPtBin";
         strBin2 = "recoPtBinAll";
         nBins = nBins_recoPt;
     }
     else if (iCent == -1 && nBins_cent > 1) {
-        int iAna = getVecIndex(iEta, iGenPt, iRecoPt, 0);
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "centBin";
         strBin2 = "centBinAll";
@@ -1687,10 +1700,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
 
         int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex(iBin, iGenPt, iRecoPt, iCent);
-        else if (iGenPt == -1) iAnaTmp = getVecIndex(iEta, iBin, iRecoPt, iCent);
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iBin, iCent);
-        else if (iCent == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iRecoPt, iBin);
+        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
+        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
+        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
+        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
 
         if (iObs == RECOANA::kEFF) {
             gTmp = (TGraphAsymmErrors*)rAna[iDep][iAnaTmp].gMatchEff->Clone();
@@ -1736,10 +1749,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex(iBin, iGenPt, iRecoPt, iCent);
-        else if (iGenPt == -1) iAnaTmp = getVecIndex(iEta, iBin, iRecoPt, iCent);
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iBin, iCent);
-        else if (iCent == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iRecoPt, iBin);
+        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
+        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
+        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
+        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
 
         if (iObs == RECOANA::kEFF) {
 
@@ -1755,10 +1768,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iAnaTmp = -1;
-        if (iEta == -1) iAnaTmp = getVecIndex(iBin, iGenPt, iRecoPt, iCent);
-        else if (iGenPt == -1) iAnaTmp = getVecIndex(iEta, iBin, iRecoPt, iCent);
-        else if (iRecoPt == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iBin, iCent);
-        else if (iCent == -1) iAnaTmp = getVecIndex(iEta, iGenPt, iRecoPt, iBin);
+        if (iEta == -1) iAnaTmp = getVecIndex({iBin, iGenPt, iRecoPt, iCent});
+        else if (iGenPt == -1) iAnaTmp = getVecIndex({iEta, iBin, iRecoPt, iCent});
+        else if (iRecoPt == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iBin, iCent});
+        else if (iCent == -1) iAnaTmp = getVecIndex({iEta, iGenPt, iRecoPt, iBin});
 
         std::string legendOption = "lpf";
         if (iObs == RECOANA::kEFF)  legendOption = "lp";
@@ -1790,7 +1803,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
 
     std::string textLineTmp;
     if (iEta == -1) {
-        int iAna = getVecIndex(0, iGenPt, iRecoPt, iCent);
+        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent});
         if (writeTextCent) {
             textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
@@ -1807,7 +1820,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         }
     }
     else if (iGenPt == -1) {
-        int iAna = getVecIndex(iEta, 0, iRecoPt, iCent);
+        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent});
         if (writeTextCent) {
             textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
@@ -1824,7 +1837,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         }
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex(iEta, iGenPt, 0, iCent);
+        int iAna = getVecIndex({iEta, iGenPt, 0, iCent});
         if (writeTextCent) {
             textLineTmp = rAna[iDep][iAna].getRangeTextCent().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
@@ -1841,7 +1854,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, int iEta, int iGenPt, int iRecoPt,
         }
     }
     else if (iCent == -1) {
-        int iAna = getVecIndex(iEta, iGenPt, iRecoPt, 0);
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0});
         if (writeTextEta) {
             textLineTmp = rAna[iDep][iAna].getRangeTextEta().c_str();
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
