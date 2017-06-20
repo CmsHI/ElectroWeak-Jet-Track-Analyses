@@ -127,12 +127,12 @@ enum MODEL{
 
 // fill colors to be used in a plot
 //fall color scheme
-const int fillColors[kN_MODEL] = {
+int fillColors[kN_MODEL] = {
         TColor::GetColor("#A0522D"), // T2
         TColor::GetColor("#DAA520"),
         TColor::GetColor("#F4A460")   //strong coupling, 1st in legend, lowest in figure
 };
-const int fillColorPP = TColor::GetColor("#A0522D");//kViolet;   //34
+int fillColorPP = TColor::GetColor("#A0522D");//kViolet;   //34
 
 const double falpha = 0.7;
 const double falpha_PP = 0.8;
@@ -323,8 +323,8 @@ const std::vector<double> yerr_xjz_mean = {0.1111712, 0.04514933, 0.02058386, 0.
 const std::vector<double> y_xjz_mean_PP    = {0.9347126,  0.8099350,  0.8616110,  0.8125114};
 const std::vector<double> yerr_xjz_mean_PP = {0.06997798, 0.07184345, 0.02075788, 0.009971107};
 
-const int color   = TColor::GetColor("#1034A6");//36;
-const int colorPP = TColor::GetColor("#1034A6"); //36;
+int color   = TColor::GetColor("#1034A6");//36;
+int colorPP = TColor::GetColor("#1034A6"); //36;
 
 const double falpha = 0.85;
 const double falpha_PP = 0.85;
@@ -374,7 +374,7 @@ const std::vector<double> y_xjz[kN_MODEL] = {
 };
 
 // fill colors to be used in a plot
-const int fillColors[kN_MODEL] = {
+int fillColors[kN_MODEL] = {
         TColor::GetColor("#138808"),  // kBlue+2,
         TColor::GetColor("#138808")   //  kBlue+2
 };
@@ -385,7 +385,7 @@ const int lineStyles[kN_MODEL] = {
 };
 const int lineStylePP = 11;
 
-const int fillColorPP = TColor::GetColor("#138808");//kBlue+2;
+int fillColorPP = TColor::GetColor("#138808");//kBlue+2;
 
 const double falpha = 0.7;
 const double falpha_PP = 0.7;
