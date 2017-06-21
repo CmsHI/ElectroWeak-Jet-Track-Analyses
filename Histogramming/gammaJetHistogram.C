@@ -38,9 +38,9 @@ const std::vector<double>      xup    {2,  TMath::Pi(), 300};
 int getResolutionBin(int hiBin);
 int getResolutionBinPP(int smearBin);
 
-int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1, const float variation = 1);
 
-int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum) {
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum, const float variation) {
     TH1::SetDefaultSumw2();
 
     std::cout << "running gammaJetHistogram()" << std::endl;
@@ -555,6 +555,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         }
                         float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
                         JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
+                        JER_factor = 1 + variation * (JER_factor - 1);
                         jetpt *= JER_factor;
                     }
 
@@ -568,6 +569,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                             JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
                                 TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                         }
+                        JES_factor = 1 + variation * (JES_factor - 1);
                         jetpt *= JES_factor;
                     }
 
@@ -787,8 +789,10 @@ int getResolutionBinPP(int smearBin) {
     return 0;
 }
 
-int main(int argc, char** argv) {
-    if (argc == 6)
+int main(int argc, char* argv[]) {
+    if (argc == 7)
+        return gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atof(argv[6]));
+    else if (argc == 6)
         return gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
     else if (argc == 4)
         return gammaJetHistogram(argv[1], argv[2], argv[3]);
