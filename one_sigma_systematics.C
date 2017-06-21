@@ -43,7 +43,7 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
     TH1F* hnominals[nhists] = {0};
     TH1F* hfinal[nhists] = {0};
     for (std::size_t i=0; i<nhists; ++i) {
-        hnominals[i] = (TH1F*)fnominal->Get(Form("HI/%s", hist_list[i].c_str()));
+        hnominals[i] = (TH1F*)fnominal->Get(Form("%s", hist_list[i].c_str()));
         hfinal[i] = (TH1F*)hnominals[i]->Clone(hist_list[i].c_str());
     }
 
@@ -51,9 +51,7 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i] = new TFile(file_list[i].c_str(), "read");
 
-    TFile* fout = new TFile(Form("%s-systematics.root", label), "recreate");
-    fout->mkdir("HI");
-    fout->cd("HI");
+    TFile* fout = new TFile(Form("gammaJetHistograms_%s-incremental.root", label), "recreate");
 
     sys_var_t* sys_vars[nhists][nfiles] = {0};
     TH2F* hvariations[nhists] = {0};
@@ -65,7 +63,7 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
 
         hvariations[i] = new TH2F(Form("%s_variations", hist_list[i].c_str()), "", nbins, binning, 1000, -1, 1);
         for (std::size_t j=0; j<nfiles; ++j) {
-            sys_vars[i][j] = new sys_var_t(hist_list[i].c_str(), Form("%zu", j), hnominals[i], (TH1F*)fsys[j]->Get(Form("HI/%s", hist_list[i].c_str())));
+            sys_vars[i][j] = new sys_var_t(hist_list[i].c_str(), Form("%zu", j), hnominals[i], (TH1F*)fsys[j]->Get(Form("%s", hist_list[i].c_str())));
             sys_vars[i][j]->calc_sys(nbins, binning);
 
             for (int k=1; k<=nbins; ++k)
@@ -79,6 +77,8 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
             float stddev = hprojections[l-1]->GetStdDev(1);
             hfinal[i]->SetBinContent(l, std::max(std::abs(mean + stddev), std::abs(mean - stddev)));
             hfinal[i]->SetBinError(l, 0);
+
+            hprojections[l-1]->Write("", TObject::kOverwrite);
         }
 
         hvariations[i]->Write("", TObject::kOverwrite);

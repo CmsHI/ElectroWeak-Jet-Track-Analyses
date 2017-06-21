@@ -2,32 +2,35 @@
 
 [ -f $1 ] && rm $1
 
-BASE_OBS=(xjg dphi ptJet)
+DATATYPE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 
-for i in $(seq 0 2); do
-    for j in $(seq 0 7); do
-        for k in $(seq 0 6); do
-            echo h1D_${BASE_OBS[i]}_ptBin${j}_hiBin${k}_phoSIG_jetSIG_final_norm >> $1
+BASE_OBS=(xjg dphi dphi ptJet ptJet)
+SUFFIX=("" "" "_rebin" "" "_rebin");
+
+for h in $(seq 0 3); do
+    for i in $(seq 0 4); do
+        for j in $(seq 0 7); do
+            for k in $(seq 0 6); do
+                echo h1D_${BASE_OBS[i]}_ptBin${j}_hiBin${k}_${DATATYPE[h]}${SUFFIX[i]} >> $1
+            done
         done
     done
 done
 
-XJG_BASED=(xjg_mean rjg)
-DPHI_BASED=(dphi_width dphi_pedestal)
+DERIVED_OBS=(xjg_mean rjg dphi_width dphi_pedestal)
 
-OBS_SET=(XJG_BASED DPHI_BASED)
-OBS_SUFFIX=(_phoSIG_jetSIG "")
+for h in $(seq 0 3); do
+    for i in $(seq 0 7); do
+        echo h1D_${DERIVED_OBS}_centBinAll_ptBin${i}_${DATATYPE[h]} >> $1
+    done
 
-for n in $(seq 0 1); do
-    OBS_NAME=${OBS_SET[n]}[i]
+    for i in $(seq 0 6); do
+        echo h1D_${DERIVED_OBS}_ptBinAll_hiBin${i}_${DATATYPE[h]} >> $1
+    done
+done
 
-    for i in $(seq 0 1); do
-        for j in $(seq 0 7); do
-            echo h1D_${!OBS_NAME}_centBinAll_ptBin${j}${OBS_SUFFIX[n]} >> $1
-        done
-
-        for j in $(seq 0 6); do
-            echo h1D_${!OBS_NAME}_ptBinAll_hiBin${j}${OBS_SUFFIX[n]} >> $1
-        done
+for j in $(seq 0 7); do
+    for k in $(seq 0 6); do
+        echo h1D_iaa_ptBin${j}_hiBin${k}_rebin >> $1
     done
 done
