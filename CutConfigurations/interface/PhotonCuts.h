@@ -144,6 +144,8 @@ namespace CUTS {
       k_bins_sumIso_lt,
       k_bins_sieie_gt,
       k_bins_sieie_lt,
+      k_bins_r9_gt,
+      k_bins_r9_lt,
       k_energy_correction_file,
       k_sumiso_correction_file,
       k_pt_bin_numbers,
@@ -174,6 +176,8 @@ namespace CUTS {
       "bins_sumIso_lt",
       "bins_sieie_gt",
       "bins_sieie_lt",
+      "bins_r9_gt",
+      "bins_r9_lt",
       "energy_correction_file",
       "sumiso_correction_file",
       "pt_bin_numbers",      // select pt bins for dphi width/pedestal plots
