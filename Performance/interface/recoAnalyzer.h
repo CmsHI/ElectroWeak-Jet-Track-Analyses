@@ -104,6 +104,15 @@ enum OBS {
 
 const std::string OBS_LABELS[kN_OBS] = {"eScale", "eRes", "eScaleArith", "eResArith", "eResEff", "eResHM", "matchEff", "fakeRatio"};
 
+enum CORRS {   // correction types
+    k_corrE,        // very last correction giving the final energy or momentum
+    k_corrEta,      // very last correction giving the final eta
+    k_corrSCE,      // Super Cluster energy correction : SC E / SC Raw E
+    kN_CORRS
+};
+
+const std::string CORR_LABELS[kN_CORRS] = {"corrE", "corrEta", "corrSCE"};
+
 // list of particles that can fake RECO-level objects
 enum FAKECAND {
     k_unknown,
@@ -214,6 +223,12 @@ public :
         for (int i = 0; i < 8; ++i) {
             h1D[i] = 0;
         }
+        for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+            h2Dcorr[i] = 0;
+            h1Dcorr[i] = 0;
+            isValid_h2Dcorr[i] = false;
+        }
+
         hEscale = 0;
         h2Dcc = 0;
 
@@ -324,6 +339,7 @@ public :
     ~recoAnalyzer(){};
 
     void FillH2D(double energyScale, double x, double w, std::vector<double> vars);
+    void FillH2DCorr(double correction, double x, int iCorr, double w, std::vector<double> vars);
     void FillH(double energyScale, double w, std::vector<double> vars);
     void FillH2Dcc(double genPt, double recoPt, double w, std::vector<double> vars);
 
@@ -349,6 +365,7 @@ public :
     void updateTH1();
     void updateH1DsliceY();
     void updateH1DeScale();
+    void updateH1Dcorr();
 
     int getParticleIndex(int pdg);
     int getFakePDG(int iParticle);
@@ -374,6 +391,19 @@ public :
     int nBinsX;
     TH2D* h2D;
     /*
+     * h1D[0] = energy scale histogram, mean for a Gaussian fit
+     * h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
+     * h1D[2] = energy scale histogram, mean from histogram mean of 1D distribution
+     * h1D[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
+     * h1D[4] = energy resolution histogram, sigmaEff of 1D distribution
+     * h1D[5] = energy resolution histogram, sigmaHM of 1D distribution
+     * h1D[6] = matching efficiency
+     * h1D[7] = fake rate
+     */
+    TH1D* h1D[8];
+    bool isValid_h2D;
+
+    /*
      * h1DeScale[0] = energy scale histogram, mean for a Gaussian fit
      * h1DeScale[1] = energy resolution histogram, StdDev for a Gaussian fit
      * h1DeScale[2] = energy scale histogram, mean from histogram mean of 1D distribution
@@ -386,16 +416,11 @@ public :
     TH1D* h1DeScale[8];
 
     /*
-     * h1D[0] = energy scale histogram, mean for a Gaussian fit
-     * h1D[1] = energy resolution histogram, StdDev for a Gaussian fit
-     * h1D[2] = energy scale histogram, mean from histogram mean of 1D distribution
-     * h1D[3] = energy resolution histogram, StdDev from histogram mean of 1D distribution
-     * h1D[4] = energy resolution histogram, sigmaEff of 1D distribution
-     * h1D[5] = energy resolution histogram, sigmaHM of 1D distribution
-     * h1D[6] = matching efficiency
-     * h1D[7] = fake rate
+     * histograms for corrections applied to the RECO object
      */
-    TH1D* h1D[8];
+    TH2D* h2Dcorr[RECOANA::kN_CORRS];
+    TH1D* h1Dcorr[RECOANA::kN_CORRS];
+    bool isValid_h2Dcorr[RECOANA::kN_CORRS];
 
     std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
     /*
@@ -413,7 +438,6 @@ public :
     TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
     TH2D* h2Dcc;        // reco pt vs. gen pt correlation histogram.
 
-    bool isValid_h2D;
     bool isValid_hEscale;
     bool isValid_h2Dcc;
 
@@ -536,6 +560,12 @@ void recoAnalyzer::FillH2D(double energyScale, double x, double w, std::vector<d
 {
     if (isValid_h2D && insideRange(vars))
         h2D->Fill(x, energyScale, w);
+}
+
+void recoAnalyzer::FillH2DCorr(double correction, double x, int iCorr, double w, std::vector<double> vars)
+{
+    if (isValid_h2Dcorr[iCorr] && insideRange(vars))
+        h2Dcorr[iCorr]->Fill(x, correction, w);
 }
 
 void recoAnalyzer::FillH(double energyScale, double w, std::vector<double> vars)
@@ -823,6 +853,9 @@ void recoAnalyzer::updateTH1()
     if (isValid_h2D) {
         nBinsX = h2D->GetXaxis()->GetNbins();
     }
+    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+        isValid_h2Dcorr[i] = (h2Dcorr[i] != 0 && !h2Dcorr[i]->IsZombie());
+    }
     isValid_hEscale = (hEscale != 0 && !hEscale->IsZombie());
     isValid_h2Dcc = (h2Dcc != 0 && !h2Dcc->IsZombie());
 
@@ -862,10 +895,6 @@ void recoAnalyzer::updateH1DsliceY()
     for (int i=1; i<=nBinsX; ++i) {
 
         hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
-        hTmp->SetTitleOffset(titleOffsetX, "X");
-        hTmp->SetStats(false);
-        hTmp->GetXaxis()->CenterTitle();
-        hTmp->GetYaxis()->CenterTitle();
         hTmp->SetMarkerStyle(kFullCircle);
         h1DsliceY[i-1] = hTmp;
     }
@@ -911,6 +940,41 @@ void recoAnalyzer::updateH1DeScale()
         yErr = esa[i-1][indexFncFinal].sigmaHMErr;
         h1DeScale[RECOANA::kERESHM]->SetBinContent(i, y);
         h1DeScale[RECOANA::kERESHM]->SetBinError(i, yErr);
+    }
+}
+
+void recoAnalyzer::updateH1Dcorr()
+{
+    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+
+        if (!isValid_h2Dcorr[i]) continue;
+
+        h2Dcorr[i]->SetTitleOffset(titleOffsetX, "X");
+        h2Dcorr[i]->SetTitleOffset(titleOffsetY, "Y");
+        h2Dcorr[i]->SetStats(false);
+        h2Dcorr[i]->GetXaxis()->CenterTitle();
+        h2Dcorr[i]->GetYaxis()->CenterTitle();
+
+        std::string tmpHistName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "h_");
+        h1Dcorr[i] = (TH1D*)h2Dcorr[i]->ProjectionX(tmpHistName.c_str());
+
+        std::string tmpTitleY = Form("< %s >", h2Dcorr[i]->GetYaxis()->GetTitle());
+        h1Dcorr[i]->SetYTitle(tmpTitleY.c_str());
+
+        h1Dcorr[i]->SetTitleOffset(titleOffsetX, "X");
+        h1Dcorr[i]->SetTitleOffset(titleOffsetY, "Y");
+        h1Dcorr[i]->SetStats(false);
+        h1Dcorr[i]->GetXaxis()->CenterTitle();
+        h1Dcorr[i]->SetMarkerStyle(kFullCircle);
+
+        int nBinsTmp = h2Dcorr[i]->GetXaxis()->GetNbins();
+        for (int iBin = 1; iBin <= nBinsTmp; ++iBin) {
+            double mean = h2Dcorr[i]->ProjectionY("hTmp", iBin, iBin)->GetMean();
+            double meanErr = h2Dcorr[i]->ProjectionY("hTmp", iBin, iBin)->GetMeanError();
+
+            h1Dcorr[i]->SetBinContent(iBin, mean);
+            h1Dcorr[i]->SetBinError(iBin, meanErr);
+        }
     }
 }
 
@@ -1092,6 +1156,11 @@ void recoAnalyzer::prepareTitle()
     if(isValid_h2D) {
         h2D->SetTitle(title.c_str());
     }
+    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+        if (isValid_h2Dcorr[i]) {
+            h2Dcorr[i]->SetTitle(title.c_str());
+        }
+    }
     if (isValid_hEscale) {
         hEscale->SetTitle(title.c_str());
     }
@@ -1119,6 +1188,12 @@ void recoAnalyzer::postLoop()
     }
 
     if (isValid_h2D) {
+        h2D->SetTitleOffset(titleOffsetX, "X");
+        h2D->SetTitleOffset(titleOffsetY, "Y");
+        h2D->SetStats(false);
+        h2D->GetXaxis()->CenterTitle();
+        h2D->GetYaxis()->CenterTitle();
+
         TObjArray aSlices;
         h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
         std::string tmpTitleY = h2D->GetYaxis()->GetTitle();
@@ -1217,6 +1292,8 @@ void recoAnalyzer::postLoop()
         // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[6], h1DeScale[7] are set by the initial fit from TH2::FitSlicesY
         updateH1DeScale();
     }
+
+    updateH1Dcorr();
 
     calcMatchEff();
     calcFakeRatio();
@@ -1667,9 +1744,6 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h2D->SetTitleOffset(titleOffsetX, "X");
-        h2D->SetTitleOffset(titleOffsetY, "Y");
-        h2D->SetStats(false);
         h2D->Draw("colz");
         h2D->Write("",TObject::kOverwrite);
         setPad4Observable((TPad*) c, 0);
@@ -2010,6 +2084,51 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         for (int i = 0; i < nPads; ++i) {
             if (pads[i] != 0)  pads[i]->Delete();
         }
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+
+    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+
+        if (!isValid_h2Dcorr[i])  continue;
+
+        // 2D histogram for correction
+        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D", "cnv2D");
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h2Dcorr[i]->Draw("colz");
+        h2Dcorr[i]->Write("",TObject::kOverwrite);
+        // set the pad as if it is an energy scale observable
+        setPad4Observable((TPad*) c, RECOANA::kESCALE);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // 1D histogram for correction
+        canvasName = replaceAll(h1Dcorr[i]->GetName(), "h_", "cnv_");
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1Dcorr[i]->Draw("e");
+        h1Dcorr[i]->Write("",TObject::kOverwrite);
+        // set the pad as if it is an energy scale observable
+        setPad4Observable((TPad*) c, RECOANA::kESCALE);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // 1D and 2D histograms together
+        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "cnv2_");
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h2Dcorr[i]->Draw("colz");
+        h1Dcorr[i]->SetMarkerColor(kRed);
+        h1Dcorr[i]->Draw("e same");
+        // set the pad as if it is an energy scale observable
+        setPad4Observable((TPad*) c, RECOANA::kESCALE);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
     }
 

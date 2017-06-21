@@ -177,12 +177,13 @@ int nBins_r9;
 /// configuration variables - END
 enum MODES {
     kEnergyScale,
+    kCorrection,
     kMatchEff,
     kFakeRate,
     kFakeComposition,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"EnergyScale", "MatchEff", "FakeRate", "FakeComposition"};
+const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff", "FakeRate", "FakeComposition"};
 std::vector<bool> runMode;
 enum ANABINS {
     kEta,
@@ -488,6 +489,68 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
 
                     rAna[RECOANA::kSIEIE][iAna].FillH2D(energyScale, sieie, w, vars);
                     rAna[RECOANA::kSIEIE][iAna].FillH(energyScale, w, vars);
+                }
+            }
+            }
+
+            // correction
+            if (runMode[MODES::kCorrection]) {
+            for (int i=0; i<ggHi.nPho; ++i) {
+
+                // selections on RECO particle
+                if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                if (cut_phoHoverE != 0) {
+                    if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                }
+                if (cut_pho_ecalClusterIsoR4 != 0) {
+                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
+                }
+                if (cut_pho_hcalRechitIsoR4 != 0) {
+                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
+                }
+                if (cut_pho_trackIsoR4PtCut20 != 0) {
+                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
+                }
+                if (cut_phoSigmaIEtaIEta_2012 != 0) {
+                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
+                }
+                if (cut_sumIso != 0) {
+                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
+                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                            (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
+                }
+
+                double pt  = (*ggHi.phoEt)[i];
+                double eta = (*ggHi.phoEta)[i];
+                double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                        (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                        (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                double r9 = (*ggHi.phoR9)[i];
+                double phoE = (*ggHi.phoE)[i];
+                double phoSCE = (*ggHi.phoSCE)[i];
+                double phoSCRawE = (*ggHi.phoSCRawE)[i];
+
+                double corrE = phoE / phoSCE;
+                double corrSCE = phoSCE / phoSCRawE;
+
+                std::vector<double> vars = {eta, -1, pt, (double)cent, sumIso, sieie, r9};
+                for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
+
+                    rAna[RECOANA::kETA][iAna].FillH2DCorr(corrE, eta, RECOANA::k_corrE, w, vars);
+                    //rAna[RECOANA::kGENPT][iAna].varsFillH2DCorr(corrE, genPt, RECOANA::k_corrE, w, vars);
+                    rAna[RECOANA::kRECOPT][iAna].FillH2DCorr(corrE, pt, RECOANA::k_corrE, w, vars);
+                    rAna[RECOANA::kCENT][iAna].FillH2DCorr(corrE, cent, RECOANA::k_corrE, w, vars);
+                    rAna[RECOANA::kSUMISO][iAna].FillH2DCorr(corrE, sumIso, RECOANA::k_corrE, w, vars);
+                    rAna[RECOANA::kSIEIE][iAna].FillH2DCorr(corrE, sieie, RECOANA::k_corrE, w, vars);
+
+                    rAna[RECOANA::kETA][iAna].FillH2DCorr(corrSCE, eta, RECOANA::k_corrSCE, w, vars);
+                    //rAna[RECOANA::kGENPT][iAna].varsFillH2DCorr(corrSCE, genPt, RECOANA::k_corrSCE, w, vars);
+                    rAna[RECOANA::kRECOPT][iAna].FillH2DCorr(corrSCE, pt, RECOANA::k_corrSCE, w, vars);
+                    rAna[RECOANA::kCENT][iAna].FillH2DCorr(corrSCE, cent, RECOANA::k_corrSCE, w, vars);
+                    rAna[RECOANA::kSUMISO][iAna].FillH2DCorr(corrSCE, sumIso, RECOANA::k_corrSCE, w, vars);
+                    rAna[RECOANA::kSIEIE][iAna].FillH2DCorr(corrSCE, sieie, RECOANA::k_corrSCE, w, vars);
                 }
             }
             }
@@ -1414,6 +1477,8 @@ int  preLoop(TFile* input, bool makeNew)
         rAnaTmp.titleX = xTitle.c_str();
 
         std::string nameH2D = Form("h2D_%s", tmpName.c_str());
+        std::string nameH2DcorrE = Form("h2D_%s_%s", RECOANA::CORR_LABELS[RECOANA::k_corrE].c_str(), tmpName.c_str());
+        std::string nameH2DcorrSCE = Form("h2D_%s_%s", RECOANA::CORR_LABELS[RECOANA::k_corrSCE].c_str(), tmpName.c_str());
         std::string nameEscale = Form("h_%s", tmpName.c_str());
         std::string nameMatchNum = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchNum);
         std::string nameMatchDenom = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchDenom);
@@ -1460,6 +1525,25 @@ int  preLoop(TFile* input, bool makeNew)
                 rAnaTmp.h2D = (TH2D*)input->Get(nameH2D.c_str());
                 rAnaTmp.hEscale = (TH1D*)input->Get(nameEscale.c_str());
             }
+        }
+
+        // correction
+        if (runMode[MODES::kCorrection]) {
+        // correction histograms will not depend on GEN-level info.
+        if (iDep != RECOANA::kGENPT && iGenPt == 0) {
+            if (makeNew) {
+                rAnaTmp.h2Dcorr[RECOANA::k_corrE] =
+                        new TH2D(nameH2DcorrE.c_str(), Form(";%s;Reco E / SC E", xTitle.c_str()), nBins, arr,
+                                100, 0, 2);
+                rAnaTmp.h2Dcorr[RECOANA::k_corrSCE] =
+                        new TH2D(nameH2DcorrSCE.c_str(), Form(";%s;SC E / Raw SC E", xTitle.c_str()), nBins, arr,
+                                100, 0, 2);
+            }
+            else {
+                rAnaTmp.h2Dcorr[RECOANA::k_corrE] = (TH2D*)input->Get(nameH2DcorrE.c_str());
+                rAnaTmp.h2Dcorr[RECOANA::k_corrSCE] = (TH2D*)input->Get(nameH2DcorrSCE.c_str());
+            }
+        }
         }
 
         // matching efficiency
