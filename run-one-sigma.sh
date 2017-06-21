@@ -20,5 +20,5 @@ for ISYS in 0 1 2; do
     VAR_FILE_LIST=variations_${SYSTYPE[ISYS]}.list
     ls $INPUT/PbPb_Data_${SYSTYPE[ISYS]}/gammaJetHistograms_*.root > $VAR_FILE_LIST
 
-    ./one_sigma_systematics $NOMINAL $VAR_FILE_LIST $HIST_LIST $OUTPUT_FINAL/gammaJetHistograms_${SYSTYPE[ISYS]}-incremental.root
+    ./one_sigma_systematics $NOMINAL $VAR_FILE_LIST $HIST_LIST $OUTPUT_FINAL/gammaJetHistograms_${SYSTYPE[ISYS]}
 done

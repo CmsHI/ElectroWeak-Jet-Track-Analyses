@@ -51,7 +51,8 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i] = new TFile(file_list[i].c_str(), "read");
 
-    TFile* fout = new TFile(output, "recreate");
+    TFile* fout = new TFile(Form("%s-incremental.root", output), "recreate");
+    TFile* fdetail = new TFile(Form("%s-detail.root", output), "recreate");
 
     sys_var_t* sys_vars[nhists][nfiles] = {0};
     TH2F* hvariations[nhists] = {0};
@@ -78,17 +79,22 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
             hfinal[i]->SetBinContent(l, std::max(std::abs(mean + stddev), std::abs(mean - stddev)));
             hfinal[i]->SetBinError(l, 0);
 
+            fdetail->cd();
             hprojections[l-1]->Write("", TObject::kOverwrite);
         }
 
+        fdetail->cd();
         hvariations[i]->Write("", TObject::kOverwrite);
+
+        fout->cd();
         hfinal[i]->Write("", TObject::kOverwrite);
     }
 
+    fnominal->Close();
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i]->Close();
 
-    fout->Write("", TObject::kOverwrite);
+    fdetail->Close();
     fout->Close();
 
     return 0;
