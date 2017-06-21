@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [[ $# -ne 5 ]]; then
   echo "Usage: ./ShellScripts/gammaJet/gamma-jet-condor.sh [config] [input] [output dir] [njobs] [mixing file]"
   exit 1
