@@ -2135,7 +2135,7 @@ void setTH1(TH1D* h, int iHist)
     float titleOffsetY = titleOffsetsY.at(0);
     h->SetTitleOffset(titleOffsetY, "Y");
 
-    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie;
+    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_r9;
 
     int markerStyle = GRAPHICS::markerStyle;
     if (nMarkerStyles == nBinsTot) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(iHist));

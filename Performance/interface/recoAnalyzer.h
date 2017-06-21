@@ -1121,6 +1121,9 @@ void recoAnalyzer::postLoop()
     if (isValid_h2D) {
         TObjArray aSlices;
         h2D->FitSlicesY(0,0,-1,0,"Q LL M N", &aSlices);
+        std::string tmpTitleY = h2D->GetYaxis()->GetTitle();
+        std::string titleY_eScale = Form("< %s >", tmpTitleY.c_str());
+        std::string titleY_eRes = Form("#sigma( %s )", tmpTitleY.c_str());
 
         // energy scale
         int iObs = RECOANA::kESCALE;
@@ -1129,6 +1132,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyScale(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eScale.c_str());
         if (yMax[iObs] > yMin[iObs])
             h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
@@ -1139,6 +1143,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eRes.c_str());
         if (yMax[iObs] > yMin[iObs])
             h1DeScale[iObs]->SetAxisRange(yMin[iObs], yMax[iObs], "Y");
 
@@ -1149,6 +1154,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyScale(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eScale.c_str());
         h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[RECOANA::kESCALE] > yMin[RECOANA::kESCALE])
             h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kESCALE], yMax[RECOANA::kESCALE], "Y");
@@ -1160,6 +1166,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eRes.c_str());
         h1DeScale[iObs]->SetYTitle(Form("%s (Arith)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
             h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
@@ -1171,6 +1178,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eRes.c_str());
         h1DeScale[iObs]->SetYTitle(Form("%s (Effective)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
             h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
@@ -1182,6 +1190,7 @@ void recoAnalyzer::postLoop()
         h1DeScale[iObs]->SetTitle(title.c_str());
         h1DeScale[iObs]->SetXTitle(titleX.c_str());
         setTH1_energyWidth(h1DeScale[iObs], titleOffsetX, titleOffsetY);
+        h1DeScale[iObs]->SetYTitle(titleY_eRes.c_str());
         h1DeScale[iObs]->SetYTitle(Form("%s (FWHM / 2.35)", h1DeScale[iObs]->GetYaxis()->GetTitle()));
         if (yMax[RECOANA::kERES] > yMin[RECOANA::kERES])
             h1DeScale[iObs]->SetAxisRange(yMin[RECOANA::kERES], yMax[RECOANA::kERES], "Y");
