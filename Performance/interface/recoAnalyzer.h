@@ -222,7 +222,7 @@ public :
         isValid_h2Dcorr = false;
 
         indexFncFinal = ESANA::kDSCB_95;
-        indicesFnc = {ESANA::kGAUS_95, ESANA::kCBALL_95, ESANA::kDSCB_95};
+        indicesFnc = {ESANA::kGAUS_95, ESANA::kDSCB_95};
 
         hMatchNum = 0;
         hMatchDenom = 0;

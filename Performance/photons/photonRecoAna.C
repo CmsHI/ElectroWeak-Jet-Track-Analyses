@@ -1599,11 +1599,11 @@ int  preLoop(TFile* input, bool makeNew)
                     // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                 }
             }
-
-            rAnaTmp.updateTH1();
-            // set histogram title
-            rAnaTmp.prepareTitle();
         }
+
+        rAnaTmp.updateTH1();
+        // set histogram title
+        rAnaTmp.prepareTitle();
 
         if (rAnaTmp.isValid_h2D) {
 
