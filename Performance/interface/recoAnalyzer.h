@@ -75,6 +75,7 @@ enum RANGES {   // reco performance ranges/cuts
     rCENT,
     rSUMISO,
     rSIEIE,
+    rR9,
     kN_RANGES
 };
 
@@ -84,7 +85,8 @@ const std::string RANGE_LABELS[kN_RANGES] = {
         "RECOPT",
         "CENT",
         "SUMISO",
-        "SIEIE"
+        "SIEIE",
+        "R9"
 };
 
 // observables
@@ -340,6 +342,7 @@ public :
     std::string getRangeTextCent();
     std::string getRangeTextSumIso();
     std::string getRangeTextSieie();
+    std::string getRangeTextR9();
 
     std::string getBinEdgeText(int binLow, int binUp);
 
@@ -561,6 +564,7 @@ void recoAnalyzer::FillHDenom(double x, double w, std::vector<double> vars)
     vars[RECOANA::rRECOPT] = -1;
     vars[RECOANA::rSUMISO] = -999;
     vars[RECOANA::rSIEIE] = -1;
+    vars[RECOANA::rR9] = -1;
 
     if (isValid_hMatchDenom && insideRange(vars))
         hMatchDenom->Fill(x, w);
@@ -645,9 +649,11 @@ bool recoAnalyzer::insideRange(std::vector<double> vars)
     if (recoObj == RECOANA::OBJS::kPHOTON) {
         double sumIso = vars[RECOANA::rSUMISO];
         double sieie = vars[RECOANA::rSIEIE];
+        double r9 = vars[RECOANA::rR9];
 
         if (sumIso == -999)  sumIso = ranges[RECOANA::rSUMISO][0];
         if (sieie == -1)  sieie = ranges[RECOANA::rSIEIE][0];
+        if (r9 == -1)  r9 = ranges[RECOANA::rR9][0];
 
         if(ranges[RECOANA::rETA][0] <= TMath::Abs(eta) &&
            (ranges[RECOANA::rETA][1] == -1 || ranges[RECOANA::rETA][1] > TMath::Abs(eta))){
@@ -661,8 +667,10 @@ bool recoAnalyzer::insideRange(std::vector<double> vars)
            (ranges[RECOANA::rSUMISO][1] == -999 || ranges[RECOANA::rSUMISO][1] > sumIso)) {
         if(ranges[RECOANA::rSIEIE][0] <= sieie         &&
            (ranges[RECOANA::rSIEIE][1] == -1 || ranges[RECOANA::rSIEIE][1] > sieie)) {
+        if(ranges[RECOANA::rR9][0] <= r9         &&
+           (ranges[RECOANA::rR9][1] == -1 || ranges[RECOANA::rR9][1] > r9)) {
                 return true;
-        }}}}}}
+        }}}}}}}
         return false;
     }
     else
@@ -748,6 +756,23 @@ std::string recoAnalyzer::getRangeTextSieie()
             res = Form("#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][1]);
         else if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] > 0)
             res = Form("%.2f<#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][0], ranges[RECOANA::rSIEIE][1]);
+    }
+
+    return res;
+}
+
+std::string recoAnalyzer::getRangeTextR9()
+{
+    std::string res = "";
+
+    if (recoObj == RECOANA::kPHOTON) {
+
+        if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
+            res  = Form("R9>%.2f", ranges[RECOANA::rR9][0]);
+        else if (ranges[RECOANA::rR9][0] <= 0 && ranges[RECOANA::rR9][1] > 0)
+            res = Form("R9<%.2f", ranges[RECOANA::rR9][1]);
+        else if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] > 0)
+            res = Form("%.2f<R9<%.2f", ranges[RECOANA::rR9][0], ranges[RECOANA::rR9][1]);
     }
 
     return res;
@@ -1004,6 +1029,7 @@ void recoAnalyzer::prepareTitle()
     std::string centStr  = "";      // whole centrality range
     std::string sumIsoStr  = "";    // whole sumIso range
     std::string sieieStr  = "";     // whole sieie range
+    std::string r9Str  = "";     // whole sieie range
 
     if (ranges[RECOANA::rETA][0] <= 0 && ranges[RECOANA::rETA][1] > 0)
         etaStr  = Form("|#eta|<%.2f", ranges[RECOANA::rETA][1]);
@@ -1044,6 +1070,13 @@ void recoAnalyzer::prepareTitle()
             sieieStr = Form("#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][1]);
         else if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] > 0)
             sieieStr = Form("%.2f<#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][0], ranges[RECOANA::rSIEIE][1]);
+
+        if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
+            r9Str = Form("R9>%.2f", ranges[RECOANA::rR9][0]);
+        else if (ranges[RECOANA::rR9][0] <= 0 && ranges[RECOANA::rR9][1] > 0)
+            r9Str = Form("R9<%.2f", ranges[RECOANA::rR9][1]);
+        else if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] > 0)
+            r9Str = Form("%.2f<R9<%.2f", ranges[RECOANA::rR9][0], ranges[RECOANA::rR9][1]);
     }
 
     std::string tmpHistTitle = "";
@@ -1053,6 +1086,7 @@ void recoAnalyzer::prepareTitle()
     if (centStr.size() > 0)  tmpHistTitle.append(Form(" %s", centStr.c_str()));
     if (sumIsoStr.size() > 0)  tmpHistTitle.append(Form(" %s", sumIsoStr.c_str()));
     if (sieieStr.size() > 0)  tmpHistTitle.append(Form(" %s", sieieStr.c_str()));
+    if (r9Str.size() > 0)  tmpHistTitle.append(Form(" %s", r9Str.c_str()));
 
     title = tmpHistTitle.c_str();
     if(isValid_h2D) {
