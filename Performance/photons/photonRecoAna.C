@@ -475,7 +475,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     rAna[RECOANA::kGENPT][iAna].FillH2D(energyScale, genPt, w, vars);
                     rAna[RECOANA::kGENPT][iAna].FillH(energyScale, w, vars);
 
-                    rAna[RECOANA::kGENPT][iAna].FillH2Dcorr(genPt, pt, w, vars);
+                    rAna[RECOANA::kGENPT][iAna].FillH2Dcc(genPt, pt, w, vars);
 
                     rAna[RECOANA::kRECOPT][iAna].FillH2D(energyScale, pt, w, vars);
                     rAna[RECOANA::kRECOPT][iAna].FillH(energyScale, w, vars);
@@ -1574,7 +1574,7 @@ int  preLoop(TFile* input, bool makeNew)
 
             // special cases
             if (iDep == RECOANA::kGENPT) {
-                std::string tmpNameCorr = Form("h2Dcorr_%s", tmpName.c_str());
+                std::string tmpNameCorrCoeff = Form("h2Dcc_%s", tmpName.c_str());
 
                 int nBinsx2D = TH2D_Axis_List[0].axisX.nBins;    // nBinsx
                 int nBinsy2D = TH2D_Axis_List[0].axisY.nBins;    // nBinsy
@@ -1588,14 +1588,14 @@ int  preLoop(TFile* input, bool makeNew)
                 std::copy(binsy2D.begin(), binsy2D.end(), arrY);
 
                 if (makeNew) {
-                    rAnaTmp.h2Dcorr =
-                            new TH2D(tmpNameCorr.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
-                    // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
+                    rAnaTmp.h2Dcc =
+                            new TH2D(tmpNameCorrCoeff.c_str(), ";Gen p_{T};Reco p_{T}", nBinsx2D, arrX, nBinsy2D, arrY);
+                    // h2Dcc will be used only by rAna[RECOANA::kGENPT] object.
                     // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                 }
                 else {
-                    rAnaTmp.h2Dcorr = (TH2D*)input->Get(tmpNameCorr.c_str());
-                    // h2Dcorr will be used only by rAna[RECOANA::kGENPT] object.
+                    rAnaTmp.h2Dcc = (TH2D*)input->Get(tmpNameCorrCoeff.c_str());
+                    // h2Dcc will be used only by rAna[RECOANA::kGENPT] object.
                     // By definition, rAna[RECOANA::kEta] and rAna[RECOANA::kCENT] objects would be redundant.
                 }
             }

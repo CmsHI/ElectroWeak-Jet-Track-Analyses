@@ -215,11 +215,11 @@ public :
             h1D[i] = 0;
         }
         hEscale = 0;
-        h2Dcorr = 0;
+        h2Dcc = 0;
 
         isValid_h2D = false;
         isValid_hEscale = false;
-        isValid_h2Dcorr = false;
+        isValid_h2Dcc = false;
 
         indexFncFinal = ESANA::kDSCB_95;
         indicesFnc = {ESANA::kGAUS_95, ESANA::kDSCB_95};
@@ -325,7 +325,7 @@ public :
 
     void FillH2D(double energyScale, double x, double w, std::vector<double> vars);
     void FillH(double energyScale, double w, std::vector<double> vars);
-    void FillH2Dcorr(double genPt, double recoPt, double w, std::vector<double> vars);
+    void FillH2Dcc(double genPt, double recoPt, double w, std::vector<double> vars);
 
     void FillHNum(double x, double w, std::vector<double> vars);
     void FillHDenom(double x, double w, std::vector<double> vars);
@@ -411,11 +411,11 @@ public :
     std::vector<int> indicesFnc;    // indices of the fit functions to be shown in the 1D energy scale plots
 
     TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
-    TH2D* h2Dcorr;      // reco pt vs. gen pt correlation histogram.
+    TH2D* h2Dcc;        // reco pt vs. gen pt correlation histogram.
 
     bool isValid_h2D;
     bool isValid_hEscale;
-    bool isValid_h2Dcorr;
+    bool isValid_h2Dcc;
 
     // objects for efficiency
     TH1D* hMatchNum;
@@ -544,13 +544,13 @@ void recoAnalyzer::FillH(double energyScale, double w, std::vector<double> vars)
         hEscale->Fill(energyScale, w);
 }
 
-void recoAnalyzer::FillH2Dcorr(double genPt, double recoPt, double w, std::vector<double> vars)
+void recoAnalyzer::FillH2Dcc(double genPt, double recoPt, double w, std::vector<double> vars)
 {
     vars[RECOANA::rGENPT] = -1;
     vars[RECOANA::rRECOPT] = -1;
 
-    if (isValid_h2Dcorr && insideRange(vars))
-        h2Dcorr->Fill(genPt, recoPt, w);
+    if (isValid_h2Dcc && insideRange(vars))
+        h2Dcc->Fill(genPt, recoPt, w);
 }
 
 void recoAnalyzer::FillHNum(double x, double w, std::vector<double> vars)
@@ -824,7 +824,7 @@ void recoAnalyzer::updateTH1()
         nBinsX = h2D->GetXaxis()->GetNbins();
     }
     isValid_hEscale = (hEscale != 0 && !hEscale->IsZombie());
-    isValid_h2Dcorr = (h2Dcorr != 0 && !h2Dcorr->IsZombie());
+    isValid_h2Dcc = (h2Dcc != 0 && !h2Dcc->IsZombie());
 
     isValid_hMatchNum = (hMatchNum != 0 && !hMatchNum->IsZombie());
     isValid_hMatchDenom = (hMatchDenom != 0 && !hMatchDenom->IsZombie());
@@ -1095,8 +1095,8 @@ void recoAnalyzer::prepareTitle()
     if (isValid_hEscale) {
         hEscale->SetTitle(title.c_str());
     }
-    if(isValid_h2Dcorr) {
-        h2Dcorr->SetTitle(title.c_str());
+    if(isValid_h2Dcc) {
+        h2Dcc->SetTitle(title.c_str());
     }
     if(isValid_hMatchNum) {
         hMatchNum->SetTitle(title.c_str());
@@ -1641,8 +1641,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
     if (isValid_hEscale) {
         hEscale->Write();
     }
-    if (isValid_h2Dcorr) {
-        h2Dcorr->Write();
+    if (isValid_h2Dcc) {
+        h2Dcc->Write();
     }
 
     std::string canvasName = "";
@@ -2013,16 +2013,16 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
     }
 
-    if (isValid_h2Dcorr) {
-        canvasName = replaceAll(h2Dcorr->GetName(), "h2Dcorr", "cnv2Dcorr");
+    if (isValid_h2Dcc) {
+        canvasName = replaceAll(h2Dcc->GetName(), "h2Dcc", "cnv2Dcc");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h2Dcorr->SetTitleOffset(titleOffsetX, "X");
-        h2Dcorr->SetTitleOffset(titleOffsetY, "Y");
-        h2Dcorr->SetStats(false);
-        h2Dcorr->Draw("colz");
-        h2Dcorr->Write("",TObject::kOverwrite);
+        h2Dcc->SetTitleOffset(titleOffsetX, "X");
+        h2Dcc->SetTitleOffset(titleOffsetY, "Y");
+        h2Dcc->SetStats(false);
+        h2Dcc->Draw("colz");
+        h2Dcc->Write("",TObject::kOverwrite);
 
         // draw y = x correlation line
         c->Update();
