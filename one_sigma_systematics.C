@@ -15,7 +15,7 @@
 int nbins = 8;
 double binning[] = {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2};
 
-int one_sigma_systematics(const char* nominal_file, const char* filelist, const char* histlist, const char* label) {
+int one_sigma_systematics(const char* nominal_file, const char* filelist, const char* histlist, const char* output) {
     TH1::AddDirectory(kFALSE);
     TH1::SetDefaultSumw2(kTRUE);
 
@@ -51,7 +51,7 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i] = new TFile(file_list[i].c_str(), "read");
 
-    TFile* fout = new TFile(Form("gammaJetHistograms_%s-incremental.root", label), "recreate");
+    TFile* fout = new TFile(output, "recreate");
 
     sys_var_t* sys_vars[nhists][nfiles] = {0};
     TH2F* hvariations[nhists] = {0};
