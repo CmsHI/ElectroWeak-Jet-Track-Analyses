@@ -23,17 +23,15 @@ NJOBS=(400 100 200 5)
 
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 
-if [[ $4 -eq 0 ]]; then
+if [[ $3 -eq 0 ]]; then
     for ITERSAM in 0 1 2 3
     do
-        if [[ $5 -ne 2 ]]; then
-            CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
-            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
-        fi
+        CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
+        ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
     done
 fi
 
-if [[ $4 -eq 1 ]]; then
+if [[ $3 -eq 1 ]]; then
     for ITERSAM in 0 1 2 3
     do
         hadd $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/gammaJetSkim*.root &
@@ -42,7 +40,7 @@ if [[ $4 -eq 1 ]]; then
     wait
 fi
 
-if [[ $4 -ne 0 ]]; then
+if [[ $3 -ne 0 ]]; then
     for ITERSAM in 0 1 2 3
     do
         CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
