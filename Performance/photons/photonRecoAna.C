@@ -2021,13 +2021,13 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         std::string legendOption = "lpf";
         if (iObs == RECOANA::kEFF)  legendOption = "lp";
         std::string legendText = "";
-        if (iEta == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextEta();
-        else if (iGenPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextGenPt();
-        else if (iRecoPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextRecoPt();
-        else if (iCent == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextCent();
-        else if (iSumIso == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextSumIso();
-        else if (iSieie == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextSieie();
-        else if (iR9 == -1) legendText = rAna[iDep][iAnaTmp].getRangeTextR9();
+        if (iEta == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rETA);
+        else if (iGenPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rGENPT);
+        else if (iRecoPt == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rRECOPT);
+        else if (iCent == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rCENT);
+        else if (iSumIso == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSUMISO);
+        else if (iSieie == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSIEIE);
+        else if (iR9 == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rR9);
 
         leg->AddEntry(vecObj[iBin], legendText.c_str(), legendOption.c_str());
     }
@@ -2056,126 +2056,126 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     std::string textLineTmp;
     if (iEta == -1) {
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextR9().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
     }
     else if (iGenPt == -1) {
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextR9().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
     }
     else if (iRecoPt == -1) {
         if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextCent().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextR9().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
     }
     else if (iCent == -1) {
         if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextEta().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextGenPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextRecoPt().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSumIso().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextSieie().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
 
         if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeTextR9().c_str();
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
         }
     }
 
