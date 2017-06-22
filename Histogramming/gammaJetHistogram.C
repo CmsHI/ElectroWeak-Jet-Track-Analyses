@@ -302,10 +302,10 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
 
     // 0-30 and 30-100 are necessary only for smeared pp JER computation
     // smear 0-30 %
-    std::vector<double> CSN_HI_cent0030 = {0.059, 1.239, 0};
+    std::vector<double> CSN_HI_cent0030 = {0.06, 1.241, 6.827};
     std::vector<double> CSN_phi_HI_cent0030 = {-1.303 / 1000000, 0.1651, 1.864};
     // smear 30-100 %
-    std::vector<double> CSN_HI_cent30100 = {0.06, 1.241, 6.827};
+    std::vector<double> CSN_HI_cent30100 = {0.059, 1.239, 0};
     std::vector<double> CSN_phi_HI_cent30100 = {-2.013 / 100000000, 0.1646, 1.04};
 
 
