@@ -965,6 +965,7 @@ void recoAnalyzer::updateH1Dcorr()
         h1Dcorr[i]->SetTitleOffset(titleOffsetY, "Y");
         h1Dcorr[i]->SetStats(false);
         h1Dcorr[i]->GetXaxis()->CenterTitle();
+        h1Dcorr[i]->GetYaxis()->CenterTitle();
         h1Dcorr[i]->SetMarkerStyle(kFullCircle);
 
         int nBinsTmp = h2Dcorr[i]->GetXaxis()->GetNbins();
@@ -1095,53 +1096,13 @@ void recoAnalyzer::prepareTitle()
     std::string sieieStr  = "";     // whole sieie range
     std::string r9Str  = "";     // whole sieie range
 
-    if (ranges[RECOANA::rETA][0] <= 0 && ranges[RECOANA::rETA][1] > 0)
-        etaStr  = Form("|#eta|<%.2f", ranges[RECOANA::rETA][1]);
-    else if (ranges[RECOANA::rETA][0] > 0 && ranges[RECOANA::rETA][1] > 0)
-        etaStr  = Form("%.2f<|#eta|<%.2f", ranges[RECOANA::rETA][0], ranges[RECOANA::rETA][1]);
-
-    if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] <= -1)
-        genPtStr  = Form("p_{T}^{GEN}>%.0f", ranges[RECOANA::rGENPT][0]);
-    else if (ranges[RECOANA::rGENPT][0] <= 0 && ranges[RECOANA::rGENPT][1] > 0)
-        genPtStr  = Form("p_{T}^{GEN}<%.0f", ranges[RECOANA::rGENPT][1]);
-    else if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] > 0)
-        genPtStr  = Form("%.0f<p_{T}^{GEN}<%.0f", ranges[RECOANA::rGENPT][0], ranges[RECOANA::rGENPT][1]);
-
-    if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] <= -1)
-        recoPtStr  = Form("p_{T}^{RECO}>%.0f", ranges[RECOANA::rRECOPT][0]);
-    else if (ranges[RECOANA::rRECOPT][0] <= 0 && ranges[RECOANA::rRECOPT][1] > 0)
-        recoPtStr  = Form("p_{T}^{RECO}<%.0f", ranges[RECOANA::rRECOPT][1]);
-    else if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] > 0)
-        recoPtStr = Form("%.0f<p_{T}^{RECO}<%.0f", ranges[RECOANA::rRECOPT][0], ranges[RECOANA::rRECOPT][1]);
-
-    if (ranges[RECOANA::rCENT][0] <= 0 && ranges[RECOANA::rCENT][1] <= -1)
-        centStr = "";
-    else if (ranges[RECOANA::rCENT][0] >= 0 && ranges[RECOANA::rCENT][1] > 0)
-        centStr  = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::rCENT][0], ranges[RECOANA::rCENT][1]);
-
-    if (recoObj == RECOANA::OBJS::kPHOTON) {
-
-        if (ranges[RECOANA::rSUMISO][0] > -999 && ranges[RECOANA::rSUMISO][1] <= -999)
-            sumIsoStr = Form("sumIso>%.1f", ranges[RECOANA::rSUMISO][0]);
-        else if (ranges[RECOANA::rSUMISO][0] <= -999 && ranges[RECOANA::rSUMISO][1] > -999)
-            sumIsoStr = Form("sumIso<%.1f", ranges[RECOANA::rSUMISO][1]);
-        else if (ranges[RECOANA::rSUMISO][0] > -999 && ranges[RECOANA::rSUMISO][1] > -999)
-            sumIsoStr = Form("%.1f<sumIso<%.1f", ranges[RECOANA::rSUMISO][0], ranges[RECOANA::rSUMISO][1]);
-
-        if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] <= -1)
-            sieieStr = Form("#sigma_{#eta#eta}>%.2f", ranges[RECOANA::rSIEIE][0]);
-        else if (ranges[RECOANA::rSIEIE][0] <= 0 && ranges[RECOANA::rSIEIE][1] > 0)
-            sieieStr = Form("#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][1]);
-        else if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] > 0)
-            sieieStr = Form("%.2f<#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][0], ranges[RECOANA::rSIEIE][1]);
-
-        if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
-            r9Str = Form("R9>%.2f", ranges[RECOANA::rR9][0]);
-        else if (ranges[RECOANA::rR9][0] <= 0 && ranges[RECOANA::rR9][1] > 0)
-            r9Str = Form("R9<%.2f", ranges[RECOANA::rR9][1]);
-        else if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] > 0)
-            r9Str = Form("%.2f<R9<%.2f", ranges[RECOANA::rR9][0], ranges[RECOANA::rR9][1]);
-    }
+    etaStr  = getRangeTextEta();
+    genPtStr = getRangeTextGenPt();
+    recoPtStr  = getRangeTextRecoPt();
+    centStr  = getRangeTextCent();
+    sumIsoStr = getRangeTextSumIso();
+    sieieStr = getRangeTextSieie();
+    r9Str = getRangeTextR9();
 
     std::string tmpHistTitle = "";
     if (etaStr.size() > 0)  tmpHistTitle.append(Form("%s", etaStr.c_str()));
