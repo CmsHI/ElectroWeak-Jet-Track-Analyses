@@ -325,6 +325,10 @@ public :
         titleX = "";
         titleOffsetX = 1;
         titleOffsetY = 1;
+        textFont = 43;
+        textSize = 32;
+        textOffsetX = 0.08;
+        textOffsetY = 0.10;
 
         xMin = {0, 0};
         xMax = {-1, -1};
@@ -369,6 +373,7 @@ public :
     std::string getObjectName(int iObj, int iTObj = 0);
 
     void prepareTitle();
+    void prepareTextLines();
 
     void postLoop();
     void fitRecoGen();
@@ -539,6 +544,11 @@ public :
     std::string titleX;
     float titleOffsetX;
     float titleOffsetY;
+    std::vector<std::string> textLines;
+    float textFont;
+    float textSize;
+    float textOffsetX;
+    float textOffsetY;
 
     std::vector<float> xMin;
     std::vector<float> xMax;
@@ -872,7 +882,13 @@ void recoAnalyzer::updateH1DsliceY()
     for (int i=1; i<=nBinsX; ++i) {
 
         hTmp = h2D->ProjectionY(Form("h1D_projYbin%d_%s", i, name.c_str()), i, i, "");
+        hTmp->SetTitleOffset(titleOffsetX, "X");
+        hTmp->SetTitleOffset(titleOffsetY, "Y");
+        hTmp->SetStats(false);
+        hTmp->GetXaxis()->CenterTitle();
+        hTmp->GetYaxis()->CenterTitle();
         hTmp->SetMarkerStyle(kFullCircle);
+
         h1DsliceY[i-1] = hTmp;
     }
 }
@@ -1060,18 +1076,19 @@ std::string recoAnalyzer::getObjectName(int iObj, int iTObj)
 }
 
 /*
- * prepare the object title using the given ranges
+ * prepare the object title using the ranges
  */
 void recoAnalyzer::prepareTitle()
 {
     // prepare histogram title
-    std::string etaStr  = "";       // whole detector
-    std::string genPtStr  = "";     // whole pT range
-    std::string recoPtStr = "";     // whole pT range
-    std::string centStr  = "";      // whole centrality range
-    std::string sumIsoStr  = "";    // whole sumIso range
-    std::string sieieStr  = "";     // whole sieie range
-    std::string r9Str  = "";     // whole sieie range
+    // if etaStr is empty, then there is no eta range/selection.
+    std::string etaStr = "";
+    std::string genPtStr = "";
+    std::string recoPtStr = "";
+    std::string centStr = "";
+    std::string sumIsoStr = "";
+    std::string sieieStr = "";
+    std::string r9Str = "";
 
     etaStr  = getRangeText(RECOANA::rETA);
     genPtStr = getRangeText(RECOANA::rGENPT);
@@ -1117,6 +1134,38 @@ void recoAnalyzer::prepareTitle()
     if(isValid_hMatchEff) {
         hMatchEff->SetTitle(title.c_str());
     }
+}
+
+/*
+ * prepare the text lines using the ranges
+ */
+void recoAnalyzer::prepareTextLines()
+{
+    // if etaStr is empty, then there is no eta range/selection.
+    std::string etaStr = "";
+    std::string genPtStr = "";
+    std::string recoPtStr = "";
+    std::string centStr = "";
+    std::string sumIsoStr = "";
+    std::string sieieStr = "";
+    std::string r9Str = "";
+
+    etaStr  = getRangeText(RECOANA::rETA);
+    genPtStr = getRangeText(RECOANA::rGENPT);
+    recoPtStr  = getRangeText(RECOANA::rRECOPT);
+    centStr  = getRangeText(RECOANA::rCENT);
+    sumIsoStr = getRangeText(RECOANA::rSUMISO);
+    sieieStr = getRangeText(RECOANA::rSIEIE);
+    r9Str = getRangeText(RECOANA::rR9);
+
+    textLines.clear();
+    if (etaStr.size() > 0)  textLines.push_back(etaStr);
+    if (genPtStr.size() > 0)  textLines.push_back(genPtStr);
+    if (recoPtStr.size() > 0) textLines.push_back(recoPtStr);
+    if (centStr.size() > 0)  textLines.push_back(centStr);
+    if (sumIsoStr.size() > 0)  textLines.push_back(sumIsoStr);
+    if (sieieStr.size() > 0)  textLines.push_back(sieieStr);
+    if (r9Str.size() > 0)  textLines.push_back(r9Str);
 }
 
 void recoAnalyzer::postLoop()
@@ -1903,6 +1952,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
             std::string textLineTmp = getBinEdgeText(i+1, i+1);
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
             latex = new TLatex();
+            setTextAlignment(latex, "NW");
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
 
             // mean values and resolutions from histogram mean and stdDev
@@ -1996,6 +2046,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
             std::string textLineTmp = getBinEdgeText(i+1, i+1);
             if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
             latex = new TLatex();
+            setTextAlignment(latex, "NW");
             drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
 
             // mean values and resolutions from histogram mean and stdDev
@@ -2060,9 +2111,16 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h2Dcorr[i]->SetTitle("");
         h2Dcorr[i]->Draw("colz");
         h1Dcorr[i]->SetMarkerColor(kRed);
         h1Dcorr[i]->Draw("e same");
+
+        latex = new TLatex();
+        setTextAlignment(latex, "NE");
+        latex->SetTextFont(textFont);
+        latex->SetTextSize(textSize);
+        drawTextLines(latex, c, textLines, "NE", textOffsetX, textOffsetY);
         // set the pad as if it is an energy scale observable
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);

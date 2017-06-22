@@ -1556,7 +1556,7 @@ int  preLoop(TFile* input, bool makeNew)
         }
 
         // fake rate
-        if (runMode[MODES::kFakeRate] && iDep != RECOANA::kGENPT) {
+        if (runMode[MODES::kFakeRate]) {
             if (makeNew) {
                 rAnaTmp.hFakeNum =
                         new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
@@ -1683,6 +1683,7 @@ int  preLoop(TFile* input, bool makeNew)
         rAnaTmp.updateTH1();
         // set histogram title
         rAnaTmp.prepareTitle();
+        rAnaTmp.prepareTextLines();
 
         if (rAnaTmp.isValid_h2D) {
 
@@ -2220,12 +2221,5 @@ void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> tex
         }
     }
 
-    int nTextLinesTmp = textLines.size();
-    std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, pad, textOffsetX, textOffsetY);
-    for (int i = 0; i<nTextLinesTmp; ++i){
-        float x = textCoordinates.at(i).first;
-        float y = textCoordinates.at(i).second;
-        if (textLines.at(i) != CONFIGPARSER::nullInput.c_str())
-            latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
-    }
+    drawTextLines(latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
 }
