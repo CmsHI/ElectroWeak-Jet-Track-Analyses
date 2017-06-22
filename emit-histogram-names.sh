@@ -20,12 +20,14 @@ done
 DERIVED_OBS=(xjg_mean rjg dphi_width dphi_pedestal)
 
 for h in $(seq 0 3); do
-    for i in $(seq 0 7); do
-        echo h1D_${DERIVED_OBS}_centBinAll_ptBin${i}_${DATATYPE[h]} >> $1
-    done
+    for i in $(seq 0 3); do
+        for j in $(seq 0 7); do
+            echo h1D_${DERIVED_OBS[i]}_centBinAll_ptBin${j}_${DATATYPE[h]} >> $1
+        done
 
-    for i in $(seq 0 6); do
-        echo h1D_${DERIVED_OBS}_ptBinAll_hiBin${i}_${DATATYPE[h]} >> $1
+        for j in $(seq 0 6); do
+            echo h1D_${DERIVED_OBS[i]}_ptBinAll_hiBin${j}_${DATATYPE[h]} >> $1
+        done
     done
 done
 

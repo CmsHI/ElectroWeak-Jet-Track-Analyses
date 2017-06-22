@@ -9,9 +9,9 @@ NOMINAL=$1
 INPUT=$2
 OUTPUT=$3
 
-SYSTYPE=(JER JES_UP JES_DOWN)
+SYSTYPE=(JER JES)
 
-for ISYS in 0 1 2; do
+for ISYS in 0 1; do
     OUTPUT_FINAL=$OUTPUT/${SYSTYPE[ISYS]}
     mkdir -p $OUTPUT_FINAL
 
@@ -19,7 +19,7 @@ for ISYS in 0 1 2; do
     ./emit-histogram-names.sh $HIST_LIST
 
     VAR_FILE_LIST=$OUTPUT_FINAL/variations_${SYSTYPE[ISYS]}.list
-    ls $INPUT/PbPb_Data_${SYSTYPE[ISYS]}/gammaJetHistograms_*.root > $VAR_FILE_LIST
+    ls $INPUT/PbPb_Data_${SYSTYPE[ISYS]}*/gammaJetHistograms_*.root > $VAR_FILE_LIST
 
     ./one_sigma_systematics $NOMINAL $VAR_FILE_LIST $HIST_LIST $OUTPUT_FINAL/gammaJetHistograms_${SYSTYPE[ISYS]}
 done
