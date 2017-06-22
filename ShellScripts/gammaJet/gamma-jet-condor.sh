@@ -44,6 +44,7 @@ Log          = \$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
 requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
+job_lease_duration = 480
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
