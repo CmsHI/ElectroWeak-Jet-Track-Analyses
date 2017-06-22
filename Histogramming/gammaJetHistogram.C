@@ -631,6 +631,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                             resolutionBin = getResolutionBin(evt.hiBin);
                             float initialResolution = resolutionJetSmear[resolutionBin].getResolutionHI(jetpt);
                             JER_factor = rand.Gaus(1, smear_factor * initialResolution * sqrt(smear_factor * smear_factor - 1));
+                            JER_factor = 1 + variation * (JER_factor - 1);
                             jetpt *= JER_factor;
                         }
 
@@ -644,6 +645,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                                 JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
                                     TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                             }
+                            JES_factor = 1 + variation * (JES_factor - 1);
                             jetpt *= JES_factor;
                         }
 
