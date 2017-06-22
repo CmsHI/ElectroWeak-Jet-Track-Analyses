@@ -698,11 +698,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 bool isMatched = (genMatchedIndex >= 0);
                 bool isMatched2GenPhoton = (isMatched && (*ggHi.mcPID)[genMatchedIndex] == 22);
 
-                double genPt = -1;
-                if (isMatched2GenPhoton) {
-                    genPt = (*ggHi.mcPt)[genMatchedIndex];
-                }
-
                 std::vector<double> varsFake = {eta, -1, pt, (double)cent, sumIso, sieie, r9};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
@@ -757,12 +752,12 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     fakePDG = TMath::Abs(fakePDG);
                 }
 
-                std::vector<double> varsFakeParticle = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
+                std::vector<double> varsFakeParticle = {eta, -1, pt, (double)cent, sumIso, sieie, r9};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     if (!isMatched2GenPhoton) {
                         rAna[RECOANA::kETA][iAna].FillHFakeParticle(eta, fakePDG, w, varsFakeParticle);
-                        rAna[RECOANA::kGENPT][iAna].FillHFakeParticle(genPt, fakePDG, w, varsFakeParticle);
+                        //rAna[RECOANA::kGENPT][iAna].FillHFakeParticle(genPt, fakePDG, w, varsFakeParticle);
                         rAna[RECOANA::kRECOPT][iAna].FillHFakeParticle(pt, fakePDG, w, varsFakeParticle);
                         rAna[RECOANA::kCENT][iAna].FillHFakeParticle(cent, fakePDG, w, varsFakeParticle);
                         rAna[RECOANA::kSUMISO][iAna].FillHFakeParticle(sumIso, fakePDG, w, varsFakeParticle);
@@ -1561,7 +1556,7 @@ int  preLoop(TFile* input, bool makeNew)
         }
 
         // fake rate
-        if (runMode[MODES::kFakeRate]) {
+        if (runMode[MODES::kFakeRate] && iDep != RECOANA::kGENPT) {
             if (makeNew) {
                 rAnaTmp.hFakeNum =
                         new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
@@ -2044,139 +2039,41 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         textLinesTmp.push_back(textLines.at(i));
     }
 
-    bool writeTextEta = (iDep != RECOANA::kETA);
-    bool writeTextGenPt = (iDep != RECOANA::kGENPT && iObs != RECOANA::kFAKE);
-    bool writeTextRecoPt = (iDep != RECOANA::kRECOPT);
-    bool writeTextCent = (iDep != RECOANA::kCENT);
-    bool writeTextSumIso = (iDep != RECOANA::kSUMISO);
-    bool writeTextSieie = (iDep != RECOANA::kSIEIE);
-    bool writeTextR9 = true;
+    std::vector<int> textRanges = {
+            RECOANA::rCENT,
+            RECOANA::rGENPT,
+            RECOANA::rRECOPT,
+            RECOANA::rETA,
+            RECOANA::rSUMISO,
+            RECOANA::rSIEIE,
+            RECOANA::rR9
+    };
+    int nTextRanges = textRanges.size();
+    for (int i = 0; i < nTextRanges; ++i) {
 
-    int iAna0 = indicesAna[0];
-    std::string textLineTmp;
-    if (iEta == -1) {
-        if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
+        int iRange = textRanges[i];
 
-        if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
+        // if histograms are from different eta bins, then do not write eta range in the text lines
+        if (iEta == -1 && iRange == RECOANA::rETA) continue;
+        else if (iGenPt == -1 && iRange == RECOANA::rGENPT) continue;
+        else if (iRecoPt == -1 && iRange == RECOANA::rRECOPT) continue;
+        else if (iCent == -1 && iRange == RECOANA::rCENT) continue;
 
-        if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
+        // if the x-axis is eta, then do not write eta range in the text lines
+        if (iDep == RECOANA::kETA && iRange == RECOANA::rETA) continue;
+        else if (iDep == RECOANA::kGENPT && iRange == RECOANA::rGENPT) continue;
+        else if (iDep == RECOANA::kRECOPT && iRange == RECOANA::rRECOPT) continue;
+        else if (iDep == RECOANA::kCENT && iRange == RECOANA::rCENT) continue;
+        else if (iDep == RECOANA::kSUMISO && iRange == RECOANA::rSUMISO) continue;
+        else if (iDep == RECOANA::kSIEIE && iRange == RECOANA::rSIEIE) continue;
 
-        if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
+        // special cases
+        // There are no genPt ranges for fake rate.
+        if (iObs == RECOANA::kFAKE && iRange == RECOANA::rGENPT) continue;
 
-        if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-    }
-    else if (iGenPt == -1) {
-        if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-    }
-    else if (iRecoPt == -1) {
-        if (writeTextCent) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rCENT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-    }
-    else if (iCent == -1) {
-        if (writeTextEta) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rETA);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextGenPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rGENPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextRecoPt) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rRECOPT);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSumIso) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSUMISO);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextSieie) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rSIEIE);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
-
-        if (writeTextR9) {
-            textLineTmp = rAna[iDep][iAna0].getRangeText(RECOANA::rR9);
-            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
-        }
+        int iAna0 = indicesAna[0];
+        std::string textLineTmp = rAna[iDep][iAna0].getRangeText(iRange);
+        if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
     }
 
     setLatex(c, latex, iDep, textLinesTmp, leg);
