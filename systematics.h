@@ -110,7 +110,7 @@ public:
 
     void scale_sys(double scale_factor);
     void fit_sys(std::string diff_fit_func, std::string ratio_fit_func);
-    void print_latex();
+    void print_latex(int options);
     void write();
 
     TH1F* get_diff() { return hdiff; }
@@ -255,19 +255,45 @@ void sys_var_t::fit_sys(std::string diff_fit_func, std::string ratio_fit_func) {
     th1_from_tf1(hratio_abs_fit, fratio);
 }
 
-void sys_var_t::print_latex() {
+void sys_var_t::print_latex(int option) {
+    TH1F* hsys = 0;
+    switch (option) {
+        case 0:
+        case 1:
+            hsys = hratio_abs;
+            break;
+        case 2:
+        case 3:
+            hsys = hratio_abs_fit;
+            break;
+        case 4:
+            hsys = (TH1F*)hvariation->Clone("htmp_latex");
+            hsys->Divide(hnominal);
+            break;
+        case 5:
+            hsys = hvariation;
+            break;
+        default:
+            printf(" & $<$0.5%%");
+            return;
+    }
+
     float average_sys = 0;
     int nonzero_bins = 0;
-    for (int i=1; i<=hratio_abs->GetNbinsX(); ++i) {
-        if (hratio_abs->GetBinContent(i) != 0) {
-            average_sys += hratio_abs->GetBinContent(i);
+    for (int i=1; i<=hsys->GetNbinsX(); ++i) {
+        if (hsys->GetBinContent(i) != 0) {
+            average_sys += hsys->GetBinContent(i);
             ++nonzero_bins;
         }
     }
 
     if (nonzero_bins) {
         average_sys /= nonzero_bins;
-        printf(" & %5.1f%%", average_sys);
+        average_sys *= 100;
+        if (average_sys > 0.5) printf(" &  %5.1f%%", average_sys);
+        else printf(" & $<$0.5%%");
+    } else {
+        printf(" & !!!!!!!");
     }
 }
 
@@ -276,14 +302,14 @@ void sys_var_t::write() {
     if (hvariation) hvariation->Write("", TObject::kOverwrite);
 
     if (hdiff) hdiff->Write("", TObject::kOverwrite);
-    hdiff_abs->Write("", TObject::kOverwrite);
+    if (hdiff_abs) hdiff_abs->Write("", TObject::kOverwrite);
     if (hratio) hratio->Write("", TObject::kOverwrite);
-    hratio_abs->Write("", TObject::kOverwrite);
+    if (hratio_abs) hratio_abs->Write("", TObject::kOverwrite);
 
-    fdiff->Write("", TObject::kOverwrite);
-    fratio->Write("", TObject::kOverwrite);
-    hdiff_abs_fit->Write("", TObject::kOverwrite);
-    hratio_abs_fit->Write("", TObject::kOverwrite);
+    if (fdiff) fdiff->Write("", TObject::kOverwrite);
+    if (fratio) fratio->Write("", TObject::kOverwrite);
+    if (hdiff_abs_fit) hdiff_abs_fit->Write("", TObject::kOverwrite);
+    if (hratio_abs_fit) hratio_abs_fit->Write("", TObject::kOverwrite);
 }
 
 class total_sys_var_t {

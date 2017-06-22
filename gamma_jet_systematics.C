@@ -79,7 +79,7 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i] = new TFile(file_list[i].c_str(), "read");
 
-    TFile* fout = new TFile(Form("%s-systematics.root", label), "update");
+    TFile* fout = new TFile(Form("%s-systematics.root", label), "recreate");
 
     total_sys_var_t* total_sys_vars[nhists] = {0};
     sys_var_t* sys_vars[nhists][nfiles] = {0};
@@ -105,7 +105,7 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
                     sys_var_t* tmp_sys_var = sys_vars[i][j];
                     tmp_sys_var->calc_sys();
                     sys_vars[i][j] = new sys_var_t(sys_vars[i][j-1], tmp_sys_var);
-                    delete tmp_sys_var;
+                    // delete tmp_sys_var;
                     break; }
                 case 4:
                     sys_vars[i][j]->calc_sys();
@@ -124,10 +124,11 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
     }
 
     std::vector<std::string> hist_set[2];
-    hist_set[0] = {"PbPb_Data_xjg_mean_centBinAll_ptBin1", "PbPb_Data_xjg_mean_ptBinAll_hiBin1", "PbPb_Data_xjg_mean_ptBinAll_hiBin2", "PbPb_Data_dphi_width_centBinAll_ptBin1"};
-    hist_set[1] = {"PbPb_Data_rjg_centBinAll_ptBin1", "PbPb_Data_rjg_ptBinAll_hiBin1", "PbPb_Data_rjg_ptBinAll_hiBin2"};
+    // hist_set[0] = {"h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin2_PbPb_Data", "h1D_dphi_width_centBinAll_ptBin1_PbPb_Data"};
+    hist_set[0] = {"h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin2_PbPb_Data"};
+    // hist_set[1] = {"h1D_rjg_centBinAll_ptBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin2_PbPb_Data"};
 
-    for (int r=0; r<2; ++r) {
+    for (int r=0; r<1; ++r) {
         printf("\\begin{table}[hbtp]\n");
         printf("\\begin{center}\n");
         printf("\\begin{tabular}{r c c c c}\n");
@@ -138,7 +139,7 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
         for (int s=0; s<7; ++s) {
             printf("%-24s", sys_labels[s].c_str());
             for (std::size_t t=0; t<hist_set[r].size(); ++t)
-                sys_vars[get_index(hist_list, hist_set[r][t])][s]->print_latex();
+                sys_vars[get_index(hist_list, hist_set[r][t])][s]->print_latex(options[s]);
             printf(" \\\\\n");
         }
         printf("\\hline\n");
