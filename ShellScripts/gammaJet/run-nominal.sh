@@ -22,7 +22,7 @@ SAMPLE=(PbPb_Data PbPb_MC pp_Data pp_MC)
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 
 if [[ $3 -eq 0 ]]; then
-    for ITERSAM in 0 1 2 3
+    for ITERSAM in ${!SAM_SUFFIX[@]}
     do
         CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
         ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $INDIR/${SAMPLE[ITERSAM]}_gammaJetSkim.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram.root &> $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram.log &
@@ -31,7 +31,7 @@ if [[ $3 -eq 0 ]]; then
 fi
 
 if [[ $3 -ne 2 ]]; then
-    for ITERSAM in 0 1 2 3
+    for ITERSAM in ${!SAM_SUFFIX[@]}
     do
         CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
         ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $ARITHINDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic.root &> $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic.log &

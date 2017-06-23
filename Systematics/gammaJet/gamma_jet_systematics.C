@@ -10,7 +10,7 @@
 #include <string>
 #include <map>
 
-#include "systematics.h"
+#include "../interface/systematics.h"
 
 std::string sys_types[7] = {
     "pes", "purity_up", "purity_down", "ele_rej", "iso", "jer", "jes"
@@ -32,14 +32,11 @@ std::string sys_labels[7] = {
     "Photon Energy Scale", "Photon Purity", "Photon Purity", "Electron Contamination", "Photon Isolation", "Jet Energy Resolution", "Jet Energy Scale"
 };
 
-int nbins = 0;
-double* binning = 0;
-
 bool replace(std::string& str, const std::string& from, const std::string& to);
 
 int get_index(std::vector<std::string> hist_list, std::string hist_name);
 
-int gamma_jet_systematics(const char* nominal_file, const char* filelist, const char* histlist, const char* label) {
+int gamma_jet_systematics(const char* nominal_file, const char* filelist, const char* histlist, const char* output) {
     TH1::AddDirectory(kFALSE);
     TH1::SetDefaultSumw2(kTRUE);
 
@@ -79,7 +76,7 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
     for (std::size_t i=0; i<nfiles; ++i)
         fsys[i] = new TFile(file_list[i].c_str(), "read");
 
-    TFile* fout = new TFile(Form("%s-systematics.root", label), "recreate");
+    TFile* fout = new TFile(Form("%s.root", output), "recreate");
 
     total_sys_var_t* total_sys_vars[nhists] = {0};
     sys_var_t* sys_vars[nhists][nfiles] = {0};
@@ -93,9 +90,10 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
                 case 0:
                     sys_vars[i][j]->calc_sys();
                     break;
-                case 1:
-                    sys_vars[i][j]->calc_sys(nbins, binning);
-                    break;
+                case 1: {
+                    double binning[] = {};
+                    sys_vars[i][j]->calc_sys(0, binning);
+                    break; }
                 case 2: {
                     TH1F* hnominal_iso = (TH1F*)fnominal->Get(iso_map[hist_list[i]].c_str());
                     TH1F* hvariation_iso = (TH1F*)fsys[j]->Get(iso_map[hist_list[i]].c_str());
@@ -105,7 +103,6 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
                     sys_var_t* tmp_sys_var = sys_vars[i][j];
                     tmp_sys_var->calc_sys();
                     sys_vars[i][j] = new sys_var_t(sys_vars[i][j-1], tmp_sys_var);
-                    // delete tmp_sys_var;
                     break; }
                 case 4:
                     sys_vars[i][j]->calc_sys();
@@ -124,9 +121,8 @@ int gamma_jet_systematics(const char* nominal_file, const char* filelist, const 
     }
 
     std::vector<std::string> hist_set[2];
-    // hist_set[0] = {"h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin2_PbPb_Data", "h1D_dphi_width_centBinAll_ptBin1_PbPb_Data"};
-    hist_set[0] = {"h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin2_PbPb_Data"};
-    // hist_set[1] = {"h1D_rjg_centBinAll_ptBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin2_PbPb_Data"};
+    hist_set[0] = {"h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin1_PbPb_Data", "h1D_xjg_mean_ptBinAll_hiBin2_PbPb_Data", "h1D_dphi_width_centBinAll_ptBin1_PbPb_Data"};
+    hist_set[1] = {"h1D_rjg_centBinAll_ptBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin1_PbPb_Data", "h1D_rjg_ptBinAll_hiBin2_PbPb_Data"};
 
     for (int r=0; r<1; ++r) {
         printf("\\begin{table}[hbtp]\n");

@@ -10,10 +10,7 @@
 #include <vector>
 #include <string>
 
-#include "systematics.h"
-
-int nbins = 8;
-double binning[] = {0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2};
+#include "../interface/systematics.h"
 
 int one_sigma_systematics(const char* nominal_file, const char* filelist, const char* histlist, const char* output) {
     TH1::AddDirectory(kFALSE);
@@ -73,7 +70,7 @@ int one_sigma_systematics(const char* nominal_file, const char* filelist, const 
 
         TH1D* hprojections[nbins] = {0};
         for (int l=1; l<=nbins; ++l) {
-            hprojections[l-1] = hvariations[i]->ProjectionY(Form("_py_bin_%i", l), l, l);
+            hprojections[l-1] = hvariations[i]->ProjectionY(Form("%s_variations_py_bin_%i", hist_list[i].c_str(), l), l, l);
             float mean = hprojections[l-1]->GetMean(1);
             float stddev = hprojections[l-1]->GetStdDev(1);
             hfinal[i]->SetBinContent(l, std::max(std::abs(mean + stddev), std::abs(mean - stddev)));

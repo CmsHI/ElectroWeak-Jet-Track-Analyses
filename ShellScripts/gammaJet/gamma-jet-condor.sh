@@ -15,27 +15,27 @@ SRM_PREFIX="/mnt/hadoop/"
 SRM_PATH=${3#${SRM_PREFIX}}
 
 gfal-mkdir -p gsiftp://se01.cmsaf.mit.edu:2811/${SRM_PATH}
+
 cp ForestSkimmers/photons/gammaJetSkim.exe $now/
 cp Histogramming/gammaJetHistogram.exe $now/
-
 cp ShellScripts/gammaJet/*.list $now/
-
-CONFNAME="$(basename $1)"
 cp ./CutConfigurations/gammaJet*.conf $now/
+
+CONF="$(basename $1)"
 
 cp Corrections/jets/merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root Corrections/jets/L2L3/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Corrections/photonEnergyCorrections.root Corrections/photonEnergyCorrections_pp.root Corrections/sumIsoCorrections_Data.root Corrections/sumIsoCorrections_MC.root Corrections/PbPb_MC_weights.root Corrections/pp_MC_weights.root $now/
 
 BINARIES="gammaJetSkim.exe,gammaJetHistogram.exe"
-FILESTOCOPY="merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root,L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root,photonEnergyCorrections.root,photonEnergyCorrections_pp.root,sumIsoCorrections_Data.root,sumIsoCorrections_MC.root,PbPb_MC_weights.root,pp_MC_weights.root"
+CORRECTIONFILES="merged_Pythia8_Photon50_Hydjet_MB-HINPbPbWinter16DR-75X_mcRun2_HeavyIon_forest_v1_0_20160801_pthat_50_RESIDUALCORR.root,L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root,photonEnergyCorrections.root,photonEnergyCorrections_pp.root,sumIsoCorrections_Data.root,sumIsoCorrections_MC.root,PbPb_MC_weights.root,pp_MC_weights.root"
 BASECONFS="gammaJet.conf,gammaJet_JES_DOWN.conf,gammaJet_JES_UP.conf,gammaJet_JER.conf,gammaJet_ELE_REJ.conf,gammaJet_JER.conf,gammaJet_PURITY_UP.conf,gammaJet_PURITY_DOWN.conf"
 BASELISTS="PbPb_Data_HiForest.list,PbPb_MC_Flt30_HiForest.list,pp_MC_HiForest.list"
 
-cat > $now/skim-gamma-jet.condor <<EOF
+cat > $now/gamma-jet.condor <<EOF
 Universe     = vanilla
 Initialdir   = $PWD/$now
 # Request_memory = 4096
 Notification = Error
-Executable   = $PWD/$now/skim-gamma-jet.sh
+Executable   = $PWD/$now/gamma-jet.sh
 Arguments    = $1 $2 $3 \$(Process) $5
 GetEnv       = True
 Output       = \$(Process).out
@@ -44,26 +44,25 @@ Log          = \$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
 requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
-job_lease_duration = 480
+job_lease_duration = 240
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CONFNAME,$BASECONFS,$FILESTOCOPY,$BASELISTS
+transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$CORRECTIONFILES,$CONF,$BASECONFS,$BASELISTS
 
 Queue $4
-
 EOF
 
-cat > $now/skim-gamma-jet.sh <<EOF
+cat > $now/gamma-jet.sh <<EOF
 #!/bin/bash
 
+ls
+echo \$(whoami)
 echo \$HOSTNAME
 
 # setup grid proxy
 export X509_USER_PROXY=\${PWD}/$PROXYFILE
 
-# set hadoop directory path for xrdcp
-XRDCP_PREFIX="/mnt/hadoop/cms/"
-XRDCP_PATH=\${3#\${XRDCP_PREFIX}}
+# set hadoop directory path for grid tools
 SRM_PREFIX="/mnt/hadoop/"
 SRM_PATH=\${3#\${SRM_PREFIX}}
 
@@ -79,10 +78,8 @@ mv Corrections/L2L3VsPtEtaBinned_alphacut_high2_ak3PF_etacut3_dopPb0.root Correc
 
 set -x
 
-# run gammaJetSkim
+# run gammaJetSkim and gammaJetHistogram
 ./gammaJetSkim.exe \$1 \$2 gammaJetSkim_\${4}.root \${5} $4 \${4}
-
-# run gammaJetHistogram
 ./gammaJetHistogram.exe \$1 gammaJetSkim_\${4}.root gammaJetHistogram_\${4}.root
 
 if [[ \$? -eq 0 ]]; then
@@ -94,13 +91,8 @@ if [[ \$? -eq 0 ]]; then
     gfal-copy file://\${PWD}/gammaJetHistogram_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetHistogram_\${4}.root
 
     if [[ \$? -ne 0 ]]; then
-      xrdcp gammaJetSkim_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
-      xrdcp gammaJetHistogram_\${4}.root root://xrootd.cmsaf.mit.edu//\${XRDCP_PATH}
-
-      if [[ \$? -ne 0 ]]; then
-        lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetSkim_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetSkim_\${4}.root
-        lcg-cp -v -D srmv2 -b file://\${PWD}/gammaJetHistogram_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetHistogram_\${4}.root
-      fi
+      srmcp -2 gammaJetSkim_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetSkim_\${4}.root
+      srmcp -2 gammaJetHistogram_\${4}.root gsiftp://se01.cmsaf.mit.edu:2811/\${SRM_PATH}/gammaJetSkim_\${4}.root
     fi
   fi
 fi
@@ -109,4 +101,4 @@ rm -r CutConfigurations ShellScripts Corrections
 rm *.exe *.root
 EOF
 
-condor_submit $now/skim-gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
+condor_submit $now/gamma-jet.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool

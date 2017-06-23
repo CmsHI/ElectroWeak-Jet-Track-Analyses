@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -ne 2 ]]; then
-    echo -e "Usage: ./ShellScripts/gammaJet/skim-minbias.sh [hadoop dir] [output dir]"
+    echo -e "Usage: ./ShellScripts/gammaJet/run-minbias-skims.sh [hadoop dir] [output dir]"
     echo -e "[hadoop dir] will contain copies of the output skims"
     echo -e "[output dir] will contain output skims and logs"
     exit 1

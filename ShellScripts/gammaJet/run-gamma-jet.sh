@@ -2,7 +2,7 @@
 
 if [[ $# -ne 3 ]]; then
     echo -e "Usage: ./ShellScipts/gammaJet/run-skims.sh [hadoop dir] [output dir] [0/1]"
-    echo -e "arg 3: [0: skim, 1: merge + arithmetic]"
+    echo -e "arg 3: [0: skim, 1: merge]"
     echo -e "[hadoop dir] will contain condor output"
     echo -e "[output dir] will contain merged skims/histograms"
     exit 1
@@ -21,32 +21,31 @@ INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/
 MIXINGSAMPLE=(${MIXDIR}/PbPb_Data_minbiasJetSkim.root ${MIXDIR}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 NJOBS=(400 100 200 5)
 
-SYS_SUFFIX=("" _JER _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _JES_UP _JES_DOWN)
+SYS_SUFFIX=("" _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _JER _JES_UP _JES_DOWN)
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 
-for ITERSYS in $(seq 0 7); do
+for ISYS in ${!SYS_SUFFIX[@]}
+do
     if [[ $3 -eq 0 ]]; then
-        for ITERSAM in 0 1 2 3
+        for ISAM in ${!SAM_SUFFIX[@]}
         do
-            CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}${SYS_SUFFIX[ITERSYS]}
-            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ITERSAM]} $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged${SYS_SUFFIX[ITERSYS]}/ ${NJOBS[ITERSAM]} ${MIXINGSAMPLE[ITERSAM]}
+            CONFSUFFIX=${SAM_SUFFIX[ISAM]}${SYS_SUFFIX[ISYS]}
+            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ISAM]} $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/ ${NJOBS[ISAM]} ${MIXINGSAMPLE[ISAM]}
         done
     fi
 
     if [[ $3 -eq 1 ]]; then
-        for ITERSAM in 0 1 2 3
+        for ISAM in ${!SAM_SUFFIX[@]}
         do
-            # hadd $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/gammaJetSkim*.root &
-            hadd $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram.root $HADOOPDIR/${SAMPLE[ITERSAM]}_unmerged/gammaJetHistogram*.root &
+            # hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/gammaJetSkim*.root &
+            hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/gammaJetHistogram*.root &
         done
         wait
-    fi
 
-    if [[ $3 -ne 0 ]]; then
-        for ITERSAM in 0 1 2 3
+        for ISAM in ${!SAM_SUFFIX[@]}
         do
-            CONFSUFFIX=${SAM_SUFFIX[ITERSAM]}
-            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogram.root $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic.root &> $OUTDIR/${SAMPLE[ITERSAM]}_gammaJetHistogramArithmetic.log &
+            CONFSUFFIX=${SAM_SUFFIX[ISAM]}
+            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram.root $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic.root &> $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic.log &
         done
         wait
 

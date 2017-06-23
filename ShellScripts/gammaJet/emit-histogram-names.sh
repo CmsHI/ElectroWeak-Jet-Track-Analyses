@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $3 -ne 1 ]]; then
+    echo "Usage: ./ShellScripts/gammaJet/emit-histogram-names.sh [output]"
+    exit 1;
+fi
+
 [ -f $1 ] && rm $1
 
 DATATYPE=(PbPb_Data PbPb_MC pp_Data pp_MC)

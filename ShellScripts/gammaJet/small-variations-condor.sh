@@ -1,13 +1,13 @@
 #!/bin/bash
 
 if [[ $# -ne 6 ]]; then
-  echo "Usage: ./ShellScripts/gammaJet/incremental-variation-condor.sh [config] [input] [output dir] [njobs] [suffix] [arithmetic files dir]"
+  echo "Usage: ./ShellScripts/gammaJet/small-variations-condor.sh [config] [input] [output dir] [njobs] [suffix] [arithmetic files dir]"
   exit 1
 fi
 
 PROXYFILE=$(ls /tmp/ -lt | grep $USER | grep -m 1 x509 | awk '{print $NF}')
 
-now="incremental_variations_$(date +"%Y-%m-%d_%H_%M_%S")"
+now="small_variations_$(date +"%Y-%m-%d_%H_%M_%S")"
 mkdir $now
 echo "Working directory: $now"
 
@@ -15,6 +15,7 @@ SRM_PREFIX="/mnt/hadoop/"
 SRM_PATH=${3#${SRM_PREFIX}}
 
 gfal-mkdir -p gsiftp://se01.cmsaf.mit.edu:2811/${SRM_PATH}
+
 cp Histogramming/gammaJetHistogram.exe $now/
 cp Histogramming/gammaJetHistogramArithmetic.exe $now/
 cp Histogramming/gammaJetFinalHistograms.exe $now/
@@ -27,12 +28,12 @@ BINARIES="gammaJetHistogram.exe,gammaJetHistogramArithmetic.exe,gammaJetFinalHis
 ARITHFILES="PbPb_MC_gammaJetHistogramArithmetic${5}.root,pp_Data_gammaJetHistogramArithmetic${5}.root,pp_MC_gammaJetHistogramArithmetic${5}.root"
 CONF="$(basename $1)"
 
-cat > $now/incremental-variation.condor <<EOF
+cat > $now/small-variations.condor <<EOF
 Universe     = vanilla
 Initialdir   = $PWD/$now
 # Request_memory = 4096
 Notification = Error
-Executable   = $PWD/$now/incremental-variation.sh
+Executable   = $PWD/$now/small-variation.sh
 Arguments    = $1 $2 $3 $4 \$(Process)
 GetEnv       = True
 Output       = \$(Process).out
@@ -41,7 +42,7 @@ Log          = \$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$(whoami)"
 requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
-job_lease_duration = 480
+job_lease_duration = 240
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$ARITHFILES,$CONF
@@ -49,7 +50,7 @@ transfer_input_files = /tmp/$PROXYFILE,$BINARIES,$ARITHFILES,$CONF
 Queue $4
 EOF
 
-cat > $now/incremental-variation.sh <<EOF
+cat > $now/small-variations.sh <<EOF
 #!/bin/bash
 
 ls
@@ -98,4 +99,4 @@ fi
 rm *.exe *.root
 EOF
 
-condor_submit $now/incremental-variation.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
+condor_submit $now/small-variations.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool
