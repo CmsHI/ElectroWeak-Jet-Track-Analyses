@@ -1124,6 +1124,17 @@ void drawSamePhotonAna(TCanvas* c, int iDist, int iSel, int iEta, int iPt, int i
         leg->AddEntry(hTmp, legendText.c_str(), legendOption.c_str());
     }
 
+    // set maximum of the distributions
+    int nVec = vecTmp.size();
+    if (nVec > 0) {
+        int maxTH1Dindex = getMaximumTH1Dindex(vecTmp);
+        double extremum = vecTmp[maxTH1Dindex]->GetMaximum();
+        extremum *= 1.25;
+        for (int iVec = 0; iVec < nVec; ++iVec) {
+            vecTmp[iVec]->SetMaximum(extremum);
+        }
+    }
+
     drawSameTH1D(c, vecTmp);
 
     setLegend(c, leg, iDist);
