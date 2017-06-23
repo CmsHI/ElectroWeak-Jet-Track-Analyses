@@ -956,6 +956,8 @@ void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D)
     pad->cd();
     int n = vecTH1D.size();
     for (int i = 0; i < n; ++i) {
+        if (vecTH1D[i]->GetEntries() == 0) continue;
+
         if (i == 0)  vecTH1D[i]->Draw();
         else         vecTH1D[i]->Draw("same");
     }
