@@ -2080,19 +2080,6 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
         if (!isValid_h2Dcorr[i])  continue;
 
-        // 2D histogram for correction
-        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D", "cnv2D");
-        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
-        c->cd();
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h2Dcorr[i]->Draw("colz");
-        h2Dcorr[i]->Write("",TObject::kOverwrite);
-        // set the pad as if it is an energy scale observable
-        setPad4Observable((TPad*) c, RECOANA::kESCALE);
-        setCanvasFinal(c);
-        c->Write("",TObject::kOverwrite);
-        c->Close();         // do not use Delete() for TCanvas.
-
         // 1D histogram for correction
         canvasName = replaceAll(h1Dcorr[i]->GetName(), "h_", "cnv_");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
@@ -2107,12 +2094,13 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // 1D and 2D histograms together
-        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "cnv2_");
+        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D", "cnv2D");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         h2Dcorr[i]->SetTitle("");
         h2Dcorr[i]->Draw("colz");
+        h2Dcorr[i]->Write("",TObject::kOverwrite);
         h1Dcorr[i]->SetMarkerColor(kRed);
         h1Dcorr[i]->Draw("e same");
 
