@@ -171,7 +171,7 @@ void eScaleAnalyzer::setPullTH1D()
         }
 
         // set maximum and minimum of the pull distributions symmetric about y = 0
-        double extremum = std::max(TMath::Abs(hPull->GetMaximum()), TMath::Abs(hPull->GetMaximum()));
+        double extremum = std::max(TMath::Abs(hPull->GetMinimum()), TMath::Abs(hPull->GetMaximum()));
         extremum *= 1.3;
         hPull->SetMaximum(extremum);
         hPull->SetMinimum(-1*extremum);

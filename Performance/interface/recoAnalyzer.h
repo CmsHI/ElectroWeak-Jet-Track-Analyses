@@ -374,6 +374,7 @@ public :
 
     void prepareTitle();
     void prepareTextLines();
+    static std::vector<std::string> splitTextLines(std::vector<std::string> textLines, int nColumns);
 
     void postLoop();
     void fitRecoGen();
@@ -1168,6 +1169,43 @@ void recoAnalyzer::prepareTextLines()
     if (r9Str.size() > 0)  textLines.push_back(r9Str);
 }
 
+/*
+ * split the textLines so that the information looks uniform over multiple columns
+ */
+std::vector<std::string> recoAnalyzer::splitTextLines(std::vector<std::string> textLines, int nColumns)
+{
+    std::vector<std::string> res;
+    res.resize(nColumns);
+
+    int nTextLines = textLines.size();
+    int nLinesPerColumn = nTextLines / nColumns;
+    int remainder = nTextLines % nColumns;
+
+    int iLine = 0;
+    for (int iCol = 0; iCol < nColumns; ++iCol) {
+
+        std::string lineTmp = "";
+        for (int j = 0; j < nLinesPerColumn; ++j) {
+
+            if (lineTmp.size() > 0)  lineTmp.append(Form(" %s", textLines[iLine].c_str()));
+            else                     lineTmp.append(textLines[iLine].c_str());
+
+            ++iLine;
+        }
+        if (iCol < remainder) {
+
+            if (lineTmp.size() > 0)  lineTmp.append(Form(" %s", textLines[iLine].c_str()));
+            else                     lineTmp.append(textLines[iLine].c_str());
+
+            ++iLine;
+        }
+
+        res[iCol] = lineTmp;
+    }
+
+    return res;
+}
+
 void recoAnalyzer::postLoop()
 {
     if (isValid_hEscale) {
@@ -1916,11 +1954,16 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         TPad* pads[nPads];
         divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
 
+        std::vector<std::string> textLinesColsTmp = recoAnalyzer::splitTextLines(textLines, columns);
+
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
+            if (i < columns) {
+                h1DsliceY[i]->SetTitle(textLinesColsTmp[i].c_str());
+            }
             // show title only for histograms in the 1st row
-            if (i >= columns) {
+            else if (i >= columns) {
                 h1DsliceY[i]->SetTitle("");
             }
 
@@ -1990,6 +2033,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
         divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
 
+        textLinesColsTmp = recoAnalyzer::splitTextLines(textLines, columns);
+
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
@@ -2006,8 +2051,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
                     if (iFnc != indexFncFinal)  esa[i][iFnc].hPull->SetMarkerStyle(kOpenSquare);
 
+                    if (i < columns) {
+                        esa[i][iFnc].hPull->SetTitle(textLinesColsTmp[i].c_str());
+                    }
                     // show title only for histograms in the 1st row
-                    if (i >= columns) {
+                    else if (i >= columns) {
                         esa[i][iFnc].hPull->SetTitle("");
                     }
 
