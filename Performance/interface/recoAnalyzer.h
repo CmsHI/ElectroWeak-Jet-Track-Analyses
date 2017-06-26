@@ -322,6 +322,7 @@ public :
 
         name = "";
         title = "";
+        titleRanges = "";
         titleX = "";
         titleOffsetX = 1;
         titleOffsetY = 1;
@@ -372,8 +373,10 @@ public :
     static std::string getTObjectStr(int iTObj);
     std::string getObjectName(int iObj, int iTObj = 0);
 
-    void prepareTitle();
-    void prepareTextLines();
+    void prepareTitleRanges();
+    void prepareTextLinesRanges();
+    std::string getTitleAll();
+    std::vector<std::string> getTextLinesAll();
     static std::vector<std::string> splitTextLines(std::vector<std::string> textLines, int nColumns);
 
     void postLoop();
@@ -542,10 +545,12 @@ public :
 
     std::string name;   // this is basically histogram name excluding the "h1D"/"h2D" prefix
     std::string title;
+    std::string titleRanges;
     std::string titleX;
     float titleOffsetX;
     float titleOffsetY;
     std::vector<std::string> textLines;
+    std::vector<std::string> textLinesRanges;
     float textFont;
     float textSize;
     float textOffsetX;
@@ -870,6 +875,33 @@ void recoAnalyzer::updateTH1()
     isValid_hFakeOtherGenPt = (hFakeOtherGenPt != 0 && !hFakeOtherGenPt->IsZombie());
     isValid_hFakeOtherRatioGenPt = (hFakeOtherRatioGenPt != 0 && !hFakeOtherRatioGenPt->IsZombie());
     isValid_hFakeAllGenPt = (hFakeAllGenPt != 0 && !hFakeAllGenPt->IsZombie());
+
+    if(isValid_h2D) {
+        h2D->SetTitle(title.c_str());
+    }
+    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
+        if (isValid_h2Dcorr[i]) {
+            h2Dcorr[i]->SetTitle(title.c_str());
+        }
+    }
+    if (isValid_hEscale) {
+        hEscale->SetTitle(title.c_str());
+    }
+    if(isValid_h2Dcc) {
+        h2Dcc->SetTitle(title.c_str());
+    }
+    if(isValid_hMatchNum) {
+        hMatchNum->SetTitle(title.c_str());
+    }
+    if(isValid_hMatchDenom) {
+        hMatchDenom->SetTitle(title.c_str());
+    }
+    if(isValid_gMatchEff) {
+        gMatchEff->SetTitle(title.c_str());
+    }
+    if(isValid_hMatchEff) {
+        hMatchEff->SetTitle(title.c_str());
+    }
 }
 
 void recoAnalyzer::updateH1DsliceY()
@@ -1079,7 +1111,7 @@ std::string recoAnalyzer::getObjectName(int iObj, int iTObj)
 /*
  * prepare the object title using the ranges
  */
-void recoAnalyzer::prepareTitle()
+void recoAnalyzer::prepareTitleRanges()
 {
     // prepare histogram title
     // if etaStr is empty, then there is no eta range/selection.
@@ -1099,48 +1131,20 @@ void recoAnalyzer::prepareTitle()
     sieieStr = getRangeText(RECOANA::rSIEIE);
     r9Str = getRangeText(RECOANA::rR9);
 
-    std::string tmpHistTitle = "";
-    if (etaStr.size() > 0)  tmpHistTitle.append(Form("%s", etaStr.c_str()));
-    if (genPtStr.size() > 0)  tmpHistTitle.append(Form(" %s", genPtStr.c_str()));
-    if (recoPtStr.size() > 0) tmpHistTitle.append(Form(" %s", recoPtStr.c_str()));
-    if (centStr.size() > 0)  tmpHistTitle.append(Form(" %s", centStr.c_str()));
-    if (sumIsoStr.size() > 0)  tmpHistTitle.append(Form(" %s", sumIsoStr.c_str()));
-    if (sieieStr.size() > 0)  tmpHistTitle.append(Form(" %s", sieieStr.c_str()));
-    if (r9Str.size() > 0)  tmpHistTitle.append(Form(" %s", r9Str.c_str()));
-
-    title = tmpHistTitle.c_str();
-    if(isValid_h2D) {
-        h2D->SetTitle(title.c_str());
-    }
-    for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
-        if (isValid_h2Dcorr[i]) {
-            h2Dcorr[i]->SetTitle(title.c_str());
-        }
-    }
-    if (isValid_hEscale) {
-        hEscale->SetTitle(title.c_str());
-    }
-    if(isValid_h2Dcc) {
-        h2Dcc->SetTitle(title.c_str());
-    }
-    if(isValid_hMatchNum) {
-        hMatchNum->SetTitle(title.c_str());
-    }
-    if(isValid_hMatchDenom) {
-        hMatchDenom->SetTitle(title.c_str());
-    }
-    if(isValid_gMatchEff) {
-        gMatchEff->SetTitle(title.c_str());
-    }
-    if(isValid_hMatchEff) {
-        hMatchEff->SetTitle(title.c_str());
-    }
+    titleRanges = "";
+    if (etaStr.size() > 0)  titleRanges.append(Form("%s", etaStr.c_str()));
+    if (genPtStr.size() > 0)  titleRanges.append(Form(" %s", genPtStr.c_str()));
+    if (recoPtStr.size() > 0) titleRanges.append(Form(" %s", recoPtStr.c_str()));
+    if (centStr.size() > 0)  titleRanges.append(Form(" %s", centStr.c_str()));
+    if (sumIsoStr.size() > 0)  titleRanges.append(Form(" %s", sumIsoStr.c_str()));
+    if (sieieStr.size() > 0)  titleRanges.append(Form(" %s", sieieStr.c_str()));
+    if (r9Str.size() > 0)  titleRanges.append(Form(" %s", r9Str.c_str()));
 }
 
 /*
  * prepare the text lines using the ranges
  */
-void recoAnalyzer::prepareTextLines()
+void recoAnalyzer::prepareTextLinesRanges()
 {
     // if etaStr is empty, then there is no eta range/selection.
     std::string etaStr = "";
@@ -1159,14 +1163,33 @@ void recoAnalyzer::prepareTextLines()
     sieieStr = getRangeText(RECOANA::rSIEIE);
     r9Str = getRangeText(RECOANA::rR9);
 
-    textLines.clear();
-    if (etaStr.size() > 0)  textLines.push_back(etaStr);
-    if (genPtStr.size() > 0)  textLines.push_back(genPtStr);
-    if (recoPtStr.size() > 0) textLines.push_back(recoPtStr);
-    if (centStr.size() > 0)  textLines.push_back(centStr);
-    if (sumIsoStr.size() > 0)  textLines.push_back(sumIsoStr);
-    if (sieieStr.size() > 0)  textLines.push_back(sieieStr);
-    if (r9Str.size() > 0)  textLines.push_back(r9Str);
+    textLinesRanges.clear();
+    if (etaStr.size() > 0)  textLinesRanges.push_back(etaStr);
+    if (genPtStr.size() > 0)  textLinesRanges.push_back(genPtStr);
+    if (recoPtStr.size() > 0) textLinesRanges.push_back(recoPtStr);
+    if (centStr.size() > 0)  textLinesRanges.push_back(centStr);
+    if (sumIsoStr.size() > 0)  textLinesRanges.push_back(sumIsoStr);
+    if (sieieStr.size() > 0)  textLinesRanges.push_back(sieieStr);
+    if (r9Str.size() > 0)  textLinesRanges.push_back(r9Str);
+}
+
+std::string recoAnalyzer::getTitleAll()
+{
+    std::string res = title;
+
+    if (res.size() > 0)  res.append(Form(" %s", titleRanges.c_str()));
+    else                 res.append(titleRanges.c_str());
+
+    return res;
+}
+
+std::vector<std::string> recoAnalyzer::getTextLinesAll()
+{
+    std::vector<std::string> res = textLines;
+
+    res.insert(res.end(), textLinesRanges.begin(), textLinesRanges.end());
+
+    return res;
 }
 
 /*
@@ -1895,6 +1918,14 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg->SetFillStyle(4000);
         leg->SetBorderSize(0);
         leg->Draw();
+
+        latex = new TLatex();
+        setTextAlignment(latex, "NE");
+        latex->SetTextFont(textFont);
+        latex->SetTextSize(textSize);
+        std::vector<std::string> textLinesAll = getTextLinesAll();
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1954,13 +1985,13 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         TPad* pads[nPads];
         divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
 
-        std::vector<std::string> textLinesColsTmp = recoAnalyzer::splitTextLines(textLines, columns);
+        std::vector<std::string> columnTitlesTmp = recoAnalyzer::splitTextLines(textLinesAll, columns);
 
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
             if (i < columns) {
-                h1DsliceY[i]->SetTitle(textLinesColsTmp[i].c_str());
+                h1DsliceY[i]->SetTitle(columnTitlesTmp[i].c_str());
             }
             // show title only for histograms in the 1st row
             else if (i >= columns) {
@@ -2033,8 +2064,6 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
         divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
 
-        textLinesColsTmp = recoAnalyzer::splitTextLines(textLines, columns);
-
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
 
@@ -2052,7 +2081,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
                     if (iFnc != indexFncFinal)  esa[i][iFnc].hPull->SetMarkerStyle(kOpenSquare);
 
                     if (i < columns) {
-                        esa[i][iFnc].hPull->SetTitle(textLinesColsTmp[i].c_str());
+                        esa[i][iFnc].hPull->SetTitle(columnTitlesTmp[i].c_str());
                     }
                     // show title only for histograms in the 1st row
                     else if (i >= columns) {
@@ -2146,7 +2175,6 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        h2Dcorr[i]->SetTitle("");
         h2Dcorr[i]->Draw("colz");
         h2Dcorr[i]->Write("",TObject::kOverwrite);
         h1Dcorr[i]->SetMarkerColor(kRed);
@@ -2156,7 +2184,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         setTextAlignment(latex, "NE");
         latex->SetTextFont(textFont);
         latex->SetTextSize(textSize);
-        drawTextLines(latex, c, textLines, "NE", textOffsetX, textOffsetY);
+        std::vector<std::string> textLinesAll = getTextLinesAll();
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         // set the pad as if it is an energy scale observable
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);

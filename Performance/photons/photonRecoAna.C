@@ -64,8 +64,9 @@ std::vector<CONFIGPARSER::TH1Axis> TH1D_Axis_List;
 // this bin list will be used for gen pt - reco pt correlation histogram.
 std::vector<CONFIGPARSER::TH2DAxis> TH2D_Axis_List;
 
-std::vector<float> titleOffsetsX;
-std::vector<float> titleOffsetsY;
+std::string title;
+float titleOffsetX;
+float titleOffsetY;
 
 // min. y-axis value of energy Scale histogram default : 0.8
 std::vector<float> yMin;
@@ -113,6 +114,7 @@ std::string collisionName;
 int nTH1D_Axis_List;
 int nTH2D_Axis_List;
 
+int nTitles;
 int nTitleOffsetX;
 int nTitleOffsetY;
 
@@ -876,8 +878,9 @@ int readConfiguration(const TString configFile)
     // this bin list will be used for gen pt - reco pt correlation histogram.
     TH2D_Axis_List = ConfigurationParser::ParseListTH2D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
 
-    titleOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_titleOffsetX]);
-    titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_titleOffsetY]);
+    title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]);
+    titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+    titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
 
     // min. y-axis value of energy Scale histogram default : 0.8
     yMin = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_TH1_yMin]);
@@ -943,12 +946,10 @@ int readConfiguration(const TString configFile)
 
         TH2D_Axis_List.push_back(th2DAxis);
     }
-    
-    if (titleOffsetsX.size() == 0) titleOffsetsX = {1.25};
-    if (titleOffsetsY.size() == 0) titleOffsetsY = {1.75};
 
-    nTitleOffsetX = titleOffsetsX.size();
-    nTitleOffsetY = titleOffsetsY.size();
+    if (titleOffsetX <= 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
+    if (titleOffsetY <= 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
+
     nMarkerSizes = markerSizes.size();
     nMarkerStyles = markerStyles.size();
     nColors = colors.size();
@@ -1164,14 +1165,9 @@ void printConfiguration()
             std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
         }
 
-        std::cout << "nTitleOffsetX = " << nTitleOffsetX << std::endl;
-        for (int i = 0; i<nTitleOffsetX; ++i) {
-            std::cout << Form("titleOffsetsX[%d] = %f", i, titleOffsetsX.at(i)) << std::endl;
-        }
-        std::cout << "nTitleOffsetY = " << nTitleOffsetY << std::endl;
-        for (int i = 0; i<nTitleOffsetY; ++i) {
-            std::cout << Form("titleOffsetsY[%d] = %f", i, titleOffsetsY.at(i)) << std::endl;
-        }
+        std::cout << "title = " << title.c_str() << std::endl;
+        std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+        std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
         std::cout << "nyMin = " << nyMin << std::endl;
         std::cout << "nyMax = " << nyMax << std::endl;
         for (int i = 0; i < nyMax; ++i) {   // assume nyMax >= nyMin
@@ -1469,7 +1465,12 @@ int  preLoop(TFile* input, bool makeNew)
             tmpName.append(Form("_r9Bin%d", iR9));
         }
         rAnaTmp.name = tmpName.c_str();
+        rAnaTmp.title = title.c_str();
         rAnaTmp.titleX = xTitle.c_str();
+        rAnaTmp.titleOffsetX = titleOffsetX;
+        rAnaTmp.titleOffsetY = titleOffsetY;
+
+        rAnaTmp.textLines = textLines;
 
         std::string nameH2D = Form("h2D_%s", tmpName.c_str());
         std::string nameH2DcorrE = Form("h2D_%s_%s", RECOANA::CORR_LABELS[RECOANA::k_corrE].c_str(), tmpName.c_str());
@@ -1520,6 +1521,12 @@ int  preLoop(TFile* input, bool makeNew)
                 rAnaTmp.h2D = (TH2D*)input->Get(nameH2D.c_str());
                 rAnaTmp.hEscale = (TH1D*)input->Get(nameEscale.c_str());
             }
+
+            // set y-axis ranges for energy scale and resolution histograms
+            if (nyMin == 1)  rAnaTmp.yMin[0] = yMin[0];
+            else if (nyMin == 2)  rAnaTmp.yMin = yMin;
+            if (nyMax == 1)  rAnaTmp.yMax[0] = yMax[0];
+            else if (nyMax == 2)  rAnaTmp.yMax = yMax;
         }
 
         // correction
@@ -1681,25 +1688,9 @@ int  preLoop(TFile* input, bool makeNew)
         }
 
         rAnaTmp.updateTH1();
-        // set histogram title
-        rAnaTmp.prepareTitle();
-        rAnaTmp.prepareTextLines();
-
-        if (rAnaTmp.isValid_h2D) {
-
-            if (nyMin == 1)  rAnaTmp.yMin[0] = yMin[0];
-            else if (nyMin == 2)  rAnaTmp.yMin = yMin;
-
-            if (nyMax == 1)  rAnaTmp.yMax[0] = yMax[0];
-            else if (nyMax == 2)  rAnaTmp.yMax = yMax;
-
-            float titleOffsetXTmp = titleOffsetsX.at(0);
-            float titleOffsetYTmp = titleOffsetsY.at(0);
-            if (nTitleOffsetX == RECOANA::kN_DEPS)  titleOffsetXTmp = titleOffsetsX.at(iDep);
-            if (nTitleOffsetY == RECOANA::kN_DEPS)  titleOffsetYTmp = titleOffsetsY.at(iDep);
-            rAnaTmp.titleOffsetX = titleOffsetXTmp;
-            rAnaTmp.titleOffsetY = titleOffsetYTmp;
-        }
+        // prepare title and textline using ranges
+        rAnaTmp.prepareTitleRanges();
+        rAnaTmp.prepareTextLinesRanges();
 
         rAna[iDep][iAna] = rAnaTmp;
         }
@@ -2112,9 +2103,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
 void setTH1(TH1D* h, int iHist)
 {
-    float titleOffsetX = titleOffsetsX.at(0);
+    h->SetTitle(title.c_str());
     h->SetTitleOffset(titleOffsetX, "X");
-    float titleOffsetY = titleOffsetsY.at(0);
     h->SetTitleOffset(titleOffsetY, "Y");
 
     int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_r9;
