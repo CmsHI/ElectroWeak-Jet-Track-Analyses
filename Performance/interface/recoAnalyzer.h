@@ -328,8 +328,8 @@ public :
         titleOffsetY = 1;
         textFont = 43;
         textSize = 32;
-        textOffsetX = 0.08;
-        textOffsetY = 0.10;
+        textOffsetX = 0.06;
+        textOffsetY = 0.06;
 
         xMin = {0, 0};
         xMax = {-1, -1};
@@ -389,6 +389,7 @@ public :
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
     void setPad4Observable(TPad* p, int iObs);
+    void setLatex(TLatex* latex, std::string position);
     void drawLine4PtRange(TPad* p, int lineColor = kBlack);
 
     int nBinsX;
@@ -1133,12 +1134,12 @@ void recoAnalyzer::prepareTitleRanges()
 
     titleRanges = "";
     if (etaStr.size() > 0)  titleRanges.append(Form("%s", etaStr.c_str()));
-    if (genPtStr.size() > 0)  titleRanges.append(Form(" %s", genPtStr.c_str()));
-    if (recoPtStr.size() > 0) titleRanges.append(Form(" %s", recoPtStr.c_str()));
-    if (centStr.size() > 0)  titleRanges.append(Form(" %s", centStr.c_str()));
-    if (sumIsoStr.size() > 0)  titleRanges.append(Form(" %s", sumIsoStr.c_str()));
-    if (sieieStr.size() > 0)  titleRanges.append(Form(" %s", sieieStr.c_str()));
-    if (r9Str.size() > 0)  titleRanges.append(Form(" %s", r9Str.c_str()));
+    if (genPtStr.size() > 0)  titleRanges.append(Form(", %s", genPtStr.c_str()));
+    if (recoPtStr.size() > 0) titleRanges.append(Form(", %s", recoPtStr.c_str()));
+    if (centStr.size() > 0)  titleRanges.append(Form(", %s", centStr.c_str()));
+    if (sumIsoStr.size() > 0)  titleRanges.append(Form(", %s", sumIsoStr.c_str()));
+    if (sieieStr.size() > 0)  titleRanges.append(Form(", %s", sieieStr.c_str()));
+    if (r9Str.size() > 0)  titleRanges.append(Form(", %s", r9Str.c_str()));
 }
 
 /*
@@ -1210,14 +1211,14 @@ std::vector<std::string> recoAnalyzer::splitTextLines(std::vector<std::string> t
         std::string lineTmp = "";
         for (int j = 0; j < nLinesPerColumn; ++j) {
 
-            if (lineTmp.size() > 0)  lineTmp.append(Form(" %s", textLines[iLine].c_str()));
+            if (lineTmp.size() > 0)  lineTmp.append(Form(", %s", textLines[iLine].c_str()));
             else                     lineTmp.append(textLines[iLine].c_str());
 
             ++iLine;
         }
         if (iCol < remainder) {
 
-            if (lineTmp.size() > 0)  lineTmp.append(Form(" %s", textLines[iLine].c_str()));
+            if (lineTmp.size() > 0)  lineTmp.append(Form(", %s", textLines[iLine].c_str()));
             else                     lineTmp.append(textLines[iLine].c_str());
 
             ++iLine;
@@ -1783,6 +1784,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
     TLine* line = 0;
     TLegend* leg = 0;
     TLatex* latex = new TLatex();
+    std::vector<std::string> textLinesAll = getTextLinesAll();
 
     double legHeight = -1;
     double legWidth = -1;
@@ -1794,6 +1796,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         h2D->Draw("colz");
         h2D->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, 0);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1809,6 +1814,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1824,6 +1832,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1839,6 +1850,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1854,6 +1868,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1869,6 +1886,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1884,6 +1904,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h1DeScale[iObs]->SetMarkerSize(markerSize);
         h1DeScale[iObs]->Draw("e");
         h1DeScale[iObs]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, iObs);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1918,14 +1941,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg->SetFillStyle(4000);
         leg->SetBorderSize(0);
         leg->Draw();
-
         latex = new TLatex();
-        setTextAlignment(latex, "NE");
-        latex->SetTextFont(textFont);
-        latex->SetTextSize(textSize);
-        std::vector<std::string> textLinesAll = getTextLinesAll();
+        setLatex(latex, "NE");
         drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
-
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1963,6 +1981,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg->SetFillStyle(4000);
         leg->SetBorderSize(0);
         leg->Draw();
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         setPad4Observable((TPad*) c, RECOANA::kERES);
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
@@ -1985,7 +2006,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         TPad* pads[nPads];
         divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.05);
 
-        std::vector<std::string> columnTitlesTmp = recoAnalyzer::splitTextLines(textLinesAll, columns);
+        std::vector<std::string> linesTitlesAll;
+        if (title.size() > 0) linesTitlesAll.push_back(title);
+        linesTitlesAll.insert(linesTitlesAll.end(), textLinesAll.begin(), textLinesAll.end());
+        std::vector<std::string> columnTitlesTmp = recoAnalyzer::splitTextLines(linesTitlesAll, columns);
 
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
@@ -2164,6 +2188,9 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
         h1Dcorr[i]->Draw("e");
         h1Dcorr[i]->Write("",TObject::kOverwrite);
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         // set the pad as if it is an energy scale observable
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
         setCanvasFinal(c);
@@ -2179,12 +2206,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h2Dcorr[i]->Write("",TObject::kOverwrite);
         h1Dcorr[i]->SetMarkerColor(kRed);
         h1Dcorr[i]->Draw("e same");
-
         latex = new TLatex();
-        setTextAlignment(latex, "NE");
-        latex->SetTextFont(textFont);
-        latex->SetTextSize(textSize);
-        std::vector<std::string> textLinesAll = getTextLinesAll();
+        setLatex(latex, "NE");
         drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
         // set the pad as if it is an energy scale observable
         setPad4Observable((TPad*) c, RECOANA::kESCALE);
@@ -2203,6 +2226,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         h2Dcc->SetStats(false);
         h2Dcc->Draw("colz");
         h2Dcc->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NW");
+        drawTextLines(latex, c, textLinesAll, "NW", textOffsetX, textOffsetY);
 
         // draw y = x correlation line
         c->Update();
@@ -2225,6 +2252,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hMatchNum->SetMarkerSize(markerSize);
         hMatchNum->Draw("e");
         hMatchNum->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -2237,6 +2269,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hMatchDenom->SetMarkerSize(markerSize);
         hMatchDenom->Draw("e");
         hMatchDenom->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -2250,6 +2287,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hMatchEff->SetMarkerSize(markerSize);
         hMatchEff->Draw("e");
         hMatchEff->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, iObs);
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
@@ -2269,6 +2311,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         gMatchEff->SetMarkerSize(markerSize);
         gMatchEff->Draw("p e");
         gMatchEff->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, iObs);
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
@@ -2286,6 +2333,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hFakeNum->SetMarkerSize(markerSize);
         hFakeNum->Draw("e");
         hFakeNum->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -2298,6 +2350,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hFakeDenom->SetMarkerSize(markerSize);
         hFakeDenom->Draw("e");
         hFakeDenom->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setCanvasFinal(c);
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
@@ -2311,6 +2368,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         hFakeRatio->SetMarkerSize(markerSize);
         hFakeRatio->Draw("e");
         hFakeRatio->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, iObs);
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
@@ -2344,6 +2406,11 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         gFakeRatio->SetMarkerSize(markerSize);
         gFakeRatio->Draw("p e");
         gFakeRatio->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, iObs);
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
@@ -2426,6 +2493,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         leg->SetBorderSize(0);
         leg->Draw();
 
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
         setPad4Observable((TPad*) c, iObs);
         drawLine4PtRange((TPad*) c);
         setCanvasFinal(c);
@@ -2497,6 +2568,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
          leg->SetFillStyle(4000);
          leg->SetBorderSize(0);
          leg->Draw();
+
+         latex = new TLatex();
+         setLatex(latex, "NE");
+         drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
 
          setPad4Observable((TPad*) c, iObs);
          drawLine4PtRange((TPad*) c);
@@ -2598,6 +2673,13 @@ void recoAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 void recoAnalyzer::setPad4Observable(TPad* p, int iObs)
 {
     setPad4Observable(p, iObs, dep);
+}
+
+void recoAnalyzer::setLatex(TLatex* latex, std::string position)
+{
+    setTextAlignment(latex, position.c_str());
+    latex->SetTextFont(textFont);
+    latex->SetTextSize(textSize);
 }
 
 /*
