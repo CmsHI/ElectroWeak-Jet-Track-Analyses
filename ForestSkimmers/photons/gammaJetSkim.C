@@ -780,8 +780,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
           phoEtCorrected.push_back(phoEt_corrected);
           pho_sumIsoCorrected.push_back(sumIso);
 
-          // no correction applied to pp
-          phoEtCorrected_sys.push_back((*ggHi.phoEt)[i]);
+          phoEtCorrected_sys.push_back(phoEt_corrected);
         }
 
         bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
