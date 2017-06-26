@@ -158,11 +158,6 @@ int doEventWeight;
 
 // RECO photon cuts
 float cut_phoHoverE;
-float cut_pho_ecalClusterIsoR4;
-float cut_pho_hcalRechitIsoR4;
-float cut_pho_trackIsoR4PtCut20;
-float cut_phoSigmaIEtaIEta_2012;
-float cut_sumIso;
 
 // GEN photon cuts
 float cut_mcCalIsoDR04;
@@ -442,23 +437,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 if (cut_phoHoverE != 0) {
                     if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
                 }
-                if (cut_pho_ecalClusterIsoR4 != 0) {
-                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
-                }
-                if (cut_pho_hcalRechitIsoR4 != 0) {
-                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
-                }
-                if (cut_pho_trackIsoR4PtCut20 != 0) {
-                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
-                }
-                if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
-                }
-                if (cut_sumIso != 0) {
-                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
-                           (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                           (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
-                }
 
                 double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
@@ -493,23 +471,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
 
                 if (cut_phoHoverE != 0) {
                     if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
-                }
-                if (cut_pho_ecalClusterIsoR4 != 0) {
-                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
-                }
-                if (cut_pho_hcalRechitIsoR4 != 0) {
-                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
-                }
-                if (cut_pho_trackIsoR4PtCut20 != 0) {
-                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
-                }
-                if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
-                }
-                if (cut_sumIso != 0) {
-                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
-                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                            (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
                 }
 
                 double pt  = (*ggHi.phoEt)[i];
@@ -591,23 +552,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                     if (cut_phoHoverE != 0) {
                         if (!((*ggHi.phoHoverE)[j] < cut_phoHoverE))   continue;
                     }
-                    if (cut_pho_ecalClusterIsoR4 != 0) {
-                        if (!((*ggHi.pho_ecalClusterIsoR4)[j] < cut_pho_ecalClusterIsoR4))   continue;
-                    }
-                    if (cut_pho_hcalRechitIsoR4 != 0) {
-                        if (!((*ggHi.pho_hcalRechitIsoR4)[j] < cut_pho_hcalRechitIsoR4))   continue;
-                    }
-                    if (cut_pho_trackIsoR4PtCut20 != 0) {
-                        if (!((*ggHi.pho_trackIsoR4PtCut20)[j] < cut_pho_trackIsoR4PtCut20))   continue;
-                    }
-                    if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] < cut_phoSigmaIEtaIEta_2012))   continue;
-                    }
-                    if (cut_sumIso != 0) {
-                        if (!(((*ggHi.pho_ecalClusterIsoR4)[j] +
-                                (*ggHi.pho_hcalRechitIsoR4)[j]  +
-                                (*ggHi.pho_trackIsoR4PtCut20)[j]) < cut_sumIso))   continue;
-                    }
 
                     if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
                         iReco = j;
@@ -656,23 +600,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
 
                 if (cut_phoHoverE != 0) {
                     if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
-                }
-                if (cut_pho_ecalClusterIsoR4 != 0) {
-                    if (!((*ggHi.pho_ecalClusterIsoR4)[i] < cut_pho_ecalClusterIsoR4))   continue;
-                }
-                if (cut_pho_hcalRechitIsoR4 != 0) {
-                    if (!((*ggHi.pho_hcalRechitIsoR4)[i] < cut_pho_hcalRechitIsoR4))   continue;
-                }
-                if (cut_pho_trackIsoR4PtCut20 != 0) {
-                    if (!((*ggHi.pho_trackIsoR4PtCut20)[i] < cut_pho_trackIsoR4PtCut20))   continue;
-                }
-                if (cut_phoSigmaIEtaIEta_2012 != 0) {
-                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < cut_phoSigmaIEtaIEta_2012))   continue;
-                }
-                if (cut_sumIso != 0) {
-                    if (!(((*ggHi.pho_ecalClusterIsoR4)[i] +
-                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                            (*ggHi.pho_trackIsoR4PtCut20)[i]) < cut_sumIso))   continue;
                 }
 
                 double pt  = (*ggHi.phoEt)[i];
@@ -1016,11 +943,6 @@ int readConfiguration(const TString configFile)
 
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
-    cut_pho_ecalClusterIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_ecalClusterIsoR4];
-    cut_pho_hcalRechitIsoR4 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_hcalRechitIsoR4];
-    cut_pho_trackIsoR4PtCut20 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_pho_trackIsoR4PtCut20];
-    cut_phoSigmaIEtaIEta_2012 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoSigmaIEtaIEta_2012];
-    cut_sumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_sumIso];
 
     // GEN photon cuts
     cut_mcCalIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcCalIsoDR04];
@@ -1130,12 +1052,7 @@ void printConfiguration()
 
         std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
 
-        std::cout<<"cut_phoHoverE             = "<< cut_phoHoverE <<std::endl;
-        std::cout<<"cut_pho_ecalClusterIsoR4  = "<< cut_pho_ecalClusterIsoR4 <<std::endl;
-        std::cout<<"cut_pho_hcalRechitIsoR4   = "<< cut_pho_hcalRechitIsoR4 <<std::endl;
-        std::cout<<"cut_pho_trackIsoR4PtCut20 = "<< cut_pho_trackIsoR4PtCut20 <<std::endl;
-        std::cout<<"cut_phoSigmaIEtaIEta_2012 = "<< cut_phoSigmaIEtaIEta_2012 <<std::endl;
-        std::cout<<"cut_sumIso                = "<< cut_sumIso <<std::endl;
+        std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
 
         std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
         std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
