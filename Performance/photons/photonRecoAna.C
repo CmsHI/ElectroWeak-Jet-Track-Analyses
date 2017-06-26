@@ -1473,8 +1473,8 @@ int  preLoop(TFile* input, bool makeNew)
         rAnaTmp.textLines = textLines;
 
         std::string nameH2D = Form("h2D_%s", tmpName.c_str());
-        std::string nameH2DcorrE = Form("h2D_%s_%s", RECOANA::CORR_LABELS[RECOANA::k_corrE].c_str(), tmpName.c_str());
-        std::string nameH2DcorrSCE = Form("h2D_%s_%s", RECOANA::CORR_LABELS[RECOANA::k_corrSCE].c_str(), tmpName.c_str());
+        std::string nameH2DcorrE = rAnaTmp.getObjectName(recoAnalyzer::OBJ::k_corrE, recoAnalyzer::TOBJ::kTH2D);
+        std::string nameH2DcorrSCE = rAnaTmp.getObjectName(recoAnalyzer::OBJ::k_corrSCE, recoAnalyzer::TOBJ::kTH2D);
         std::string nameEscale = Form("h_%s", tmpName.c_str());
         std::string nameMatchNum = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchNum);
         std::string nameMatchDenom = rAnaTmp.getObjectName(recoAnalyzer::OBJ::kMatchDenom);

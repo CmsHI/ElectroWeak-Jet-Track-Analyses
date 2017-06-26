@@ -24,6 +24,8 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/tgraphUtil.h"
 #include "../../Utilities/mathUtil.h"
+#include "../../Utilities/styleUtil.h"
+#include "../../Utilities/systemUtil.h"
 #include "eScaleAnalyzer.h"
 
 namespace RECOANA {
@@ -516,6 +518,9 @@ public :
     std::vector<bool> passedMinFakeFractionGenPt;
 
     enum OBJ{
+        k_corrE,
+        k_corrEta,
+        k_corrSCE,
         kMatchNum,
         kMatchDenom,
         kMatchEff,
@@ -982,7 +987,7 @@ void recoAnalyzer::updateH1Dcorr()
         h2Dcorr[i]->GetXaxis()->CenterTitle();
         h2Dcorr[i]->GetYaxis()->CenterTitle();
 
-        std::string tmpHistName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "h_");
+        std::string tmpHistName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "h1D_");
         h1Dcorr[i] = (TH1D*)h2Dcorr[i]->ProjectionX(tmpHistName.c_str());
 
         std::string tmpTitleY = Form("< %s >", h2Dcorr[i]->GetYaxis()->GetTitle());
@@ -1048,6 +1053,12 @@ std::string recoAnalyzer::getFakePDGstr(int iParticle)
 std::string recoAnalyzer::getObjectStr(int iObj)
 {
     switch (iObj) {
+    case recoAnalyzer::OBJ::k_corrE :
+        return RECOANA::CORR_LABELS[RECOANA::k_corrE].c_str();
+    case recoAnalyzer::OBJ::k_corrEta :
+        return RECOANA::CORR_LABELS[RECOANA::k_corrEta].c_str();
+    case recoAnalyzer::OBJ::k_corrSCE :
+        return RECOANA::CORR_LABELS[RECOANA::k_corrSCE].c_str();
     case recoAnalyzer::OBJ::kMatchNum :
         return "MatchNum";
     case recoAnalyzer::OBJ::kMatchDenom :
@@ -1452,7 +1463,7 @@ void recoAnalyzer::fitRecoGen()
             if (j > 0)  esaTmp[j].fit();
 
             esaTmp[j].makePull();
-            std::string hpullName = replaceAll(esaTmp[j].f1->GetName(), "f1_", "hpull");
+            std::string hpullName = replaceAll(esaTmp[j].f1->GetName(), "f1_", "hpull_");
             esaTmp[j].hPull->SetName(hpullName.c_str());
 
             esaTmp[j].update();
@@ -1790,7 +1801,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
     double legWidth = -1;
 
     if (isValid_h2D) {
-        canvasName = replaceAll(h2D->GetName(), "h2D", "cnv2D");
+        canvasName = replaceAll(h2D->GetName(), "h2D_", "cnv2D_");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2182,7 +2193,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         if (!isValid_h2Dcorr[i])  continue;
 
         // 1D histogram for correction
-        canvasName = replaceAll(h1Dcorr[i]->GetName(), "h_", "cnv_");
+        canvasName = replaceAll(h1Dcorr[i]->GetName(), "h1D_", "cnv_");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2198,7 +2209,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c->Close();         // do not use Delete() for TCanvas.
 
         // 1D and 2D histograms together
-        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D", "cnv2D");
+        canvasName = replaceAll(h2Dcorr[i]->GetName(), "h2D_", "cnv2D_");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -2217,7 +2228,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
     }
 
     if (isValid_h2Dcc) {
-        canvasName = replaceAll(h2Dcc->GetName(), "h2Dcc", "cnv2Dcc");
+        canvasName = replaceAll(h2Dcc->GetName(), "h2Dcc_", "cnv2Dcc_");
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
