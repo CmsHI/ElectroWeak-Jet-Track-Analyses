@@ -166,12 +166,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "HybridRad", "HybridRad_ppref", "HybridColl", "HybridColl_ppref"
     };
     std::string draw_options[_NPLOTS] = {
-        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
+        "same e0 x0", "same hist e0 x0", "same e0 x0", "same hist e0 x0",
         "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0", "same l x0", "same l x0",
         "same l hist x0", "same l hist x0", "same l hist x0", "same l hist x0"
     };
     std::string sys_draw_options[_NPLOTS] = {
-        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
+        "same e0 x0", "same hist e0 x0", "same e0 x0", "same hist e0 x0",
         "", "", "", "", "", "", "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
@@ -315,7 +315,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
                     if (k == _JEWEL || k == _JEWEL_REF || ((k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type.find("centBinAll") == std::string::npos))
-                        h1[i][j][k]->Draw("same e x0");
+                        h1[i][j][k]->Draw("same e0 x0");
 
                     if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) ||
                         ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
