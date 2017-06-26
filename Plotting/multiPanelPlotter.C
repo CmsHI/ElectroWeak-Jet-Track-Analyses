@@ -166,12 +166,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "HybridRad", "HybridRad_ppref", "HybridColl", "HybridColl_ppref"
     };
     std::string draw_options[_NPLOTS] = {
-        "same e0 x0", "same hist e0 x0", "same e0 x0", "same hist e0 x0",
+        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
         "same l hist x0", "same l hist x0", "same l x0", "same l x0", "same l hist x0", "same l hist x0", "same l x0", "same l x0",
         "same l hist x0", "same l hist x0", "same l hist x0", "same l hist x0"
     };
     std::string sys_draw_options[_NPLOTS] = {
-        "same e0 x0", "same hist e0 x0", "same e0 x0", "same hist e0 x0",
+        "same e x0", "same hist e x0", "same e x0", "same hist e x0",
         "", "", "", "", "", "", "", "", "", "", "", ""
     };
     std::string graph_draw_options[_NPLOTS] = {
@@ -186,6 +186,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "Hybrid dE/dx #alpha T^{3}", "pp (Hybrid dE/dx #alpha T^{3})", "Hybrid dE/dx #alpha T^{2}", "pp (Hybrid dE/dx #alpha T^{2})"
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l", "f", "l", "f", "l"};
+
+    if (hist_type == "dphi") {
+        for (int s=0; s<_NPLOTS; ++s) {
+            draw_options[s] += " e0";
+            sys_draw_options[s] += " e0";
+        }
+    }
 
     int draw_order[_NPLOTS] = {_PP_MC, _PBPB_DATA, _PP_DATA, _PBPB_MC, _HYBRID_REF, _HYBRID, _JEWEL_REF, _JEWEL, _LBT_REF, _LBT, _HYBRIDRAD_REF, _HYBRIDRAD, _HYBRIDCOLL_REF, _HYBRIDCOLL, _IVITEV_REF, _IVITEV};
     for (int i=0; i<_NPLOTS; ++i) {
@@ -314,8 +321,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
-                    if (k == _JEWEL || k == _JEWEL_REF || ((k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type.find("centBinAll") == std::string::npos))
-                        h1[i][j][k]->Draw("same e0 x0");
+                    if (k == _JEWEL || k == _JEWEL_REF || ((k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type.find("centBinAll") == std::string::npos)) {
+                        if (hist_type == "dphi")
+                            h1[i][j][k]->Draw("same e0 x0");
+                        else
+                            h1[i][j][k]->Draw("same e x0");
+                    }
 
                     if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) ||
                         ((k == _LBT || k == _LBT_REF || k == _IVITEV) && (hist_type == "iaa" || hist_type == "ptJet"))) {
