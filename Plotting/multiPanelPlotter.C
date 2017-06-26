@@ -651,8 +651,8 @@ void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
     int nBins = h1->GetNbinsX();
     for (int i=first_bin; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
-        if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
-        if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
+        // if (h1->GetBinContent(i) < h1->GetMinimum()) continue;
+        // if (h1->GetBinContent(i) > h1->GetMaximum()) continue;
 
         double x = h1->GetBinCenter(i);
         int sys_bin = h1_sys->FindBin(x);
