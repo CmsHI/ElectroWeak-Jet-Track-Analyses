@@ -473,24 +473,13 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                     rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
-                    rAna[RECOANA::kETA][iAna].FillH(energyScale, w, vars);
-
                     rAna[RECOANA::kGENPT][iAna].FillH2D(energyScale, genPt, w, vars);
-                    rAna[RECOANA::kGENPT][iAna].FillH(energyScale, w, vars);
+                    rAna[RECOANA::kRECOPT][iAna].FillH2D(energyScale, pt, w, vars);
+                    rAna[RECOANA::kCENT][iAna].FillH2D(energyScale, cent, w, vars);
+                    rAna[RECOANA::kSUMISO][iAna].FillH2D(energyScale, sumIso, w, vars);
+                    rAna[RECOANA::kSIEIE][iAna].FillH2D(energyScale, sieie, w, vars);
 
                     rAna[RECOANA::kGENPT][iAna].FillH2Dcc(genPt, pt, w, vars);
-
-                    rAna[RECOANA::kRECOPT][iAna].FillH2D(energyScale, pt, w, vars);
-                    rAna[RECOANA::kRECOPT][iAna].FillH(energyScale, w, vars);
-
-                    rAna[RECOANA::kCENT][iAna].FillH2D(energyScale, cent, w, vars);
-                    rAna[RECOANA::kCENT][iAna].FillH(energyScale, w, vars);
-
-                    rAna[RECOANA::kSUMISO][iAna].FillH2D(energyScale, sumIso, w, vars);
-                    rAna[RECOANA::kSUMISO][iAna].FillH(energyScale, w, vars);
-
-                    rAna[RECOANA::kSIEIE][iAna].FillH2D(energyScale, sieie, w, vars);
-                    rAna[RECOANA::kSIEIE][iAna].FillH(energyScale, w, vars);
                 }
             }
             }
@@ -1513,13 +1502,9 @@ int  preLoop(TFile* input, bool makeNew)
                 rAnaTmp.h2D =
                         new TH2D(nameH2D.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
-                rAnaTmp.hEscale =
-                        new TH1D(nameEscale.c_str(), ";Reco p_{T} / Gen p_{T};",
-                                axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
             }
             else {
                 rAnaTmp.h2D = (TH2D*)input->Get(nameH2D.c_str());
-                rAnaTmp.hEscale = (TH1D*)input->Get(nameEscale.c_str());
             }
 
             // set y-axis ranges for energy scale and resolution histograms

@@ -218,12 +218,13 @@ public :
     recoAnalyzer(){
         nBinsX = 0;
         h2D = 0;
+        isValid_h2D = false;
 
-        for (int i = 0; i < 8; ++i) {
-            h1DeScale[i] = 0;
+        for (int i = 0; i < RECOANA::kN_OBS; ++i) {
+            h1D[i] = 0;
         }
         for (int i = 0; i < 8; ++i) {
-            h1D[i] = 0;
+            h1DeScale[i] = 0;
         }
         for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
             h2Dcorr[i] = 0;
@@ -231,11 +232,7 @@ public :
             isValid_h2Dcorr[i] = false;
         }
 
-        hEscale = 0;
         h2Dcc = 0;
-
-        isValid_h2D = false;
-        isValid_hEscale = false;
         isValid_h2Dcc = false;
 
         indexFncFinal = ESANA::kDSCB_95;
@@ -347,7 +344,6 @@ public :
 
     void FillH2D(double energyScale, double x, double w, std::vector<double> vars);
     void FillH2DCorr(double correction, double x, int iCorr, double w, std::vector<double> vars);
-    void FillH(double energyScale, double w, std::vector<double> vars);
     void FillH2Dcc(double genPt, double recoPt, double w, std::vector<double> vars);
 
     void FillHNum(double x, double w, std::vector<double> vars);
@@ -406,7 +402,7 @@ public :
      * h1D[6] = matching efficiency
      * h1D[7] = fake rate
      */
-    TH1D* h1D[8];
+    TH1D* h1D[RECOANA::kN_OBS];
     bool isValid_h2D;
 
     /*
@@ -441,10 +437,7 @@ public :
                           // function whose results will be the final fit results
     std::vector<int> indicesFnc;    // indices of the fit functions to be shown in the 1D energy scale plots
 
-    TH1D* hEscale;      // energy scale distribution for all the bins along x-axis
     TH2D* h2Dcc;        // reco pt vs. gen pt correlation histogram.
-
-    bool isValid_hEscale;
     bool isValid_h2Dcc;
 
     // objects for efficiency
@@ -582,12 +575,6 @@ void recoAnalyzer::FillH2DCorr(double correction, double x, int iCorr, double w,
 {
     if (isValid_h2Dcorr[iCorr] && insideRange(vars))
         h2Dcorr[iCorr]->Fill(x, correction, w);
-}
-
-void recoAnalyzer::FillH(double energyScale, double w, std::vector<double> vars)
-{
-    if (isValid_hEscale && insideRange(vars))
-        hEscale->Fill(energyScale, w);
 }
 
 void recoAnalyzer::FillH2Dcc(double genPt, double recoPt, double w, std::vector<double> vars)
@@ -855,7 +842,6 @@ void recoAnalyzer::updateTH1()
     for (int i = 0; i < RECOANA::kN_CORRS; ++i) {
         isValid_h2Dcorr[i] = (h2Dcorr[i] != 0 && !h2Dcorr[i]->IsZombie());
     }
-    isValid_hEscale = (hEscale != 0 && !hEscale->IsZombie());
     isValid_h2Dcc = (h2Dcc != 0 && !h2Dcc->IsZombie());
 
     isValid_hMatchNum = (hMatchNum != 0 && !hMatchNum->IsZombie());
@@ -889,9 +875,6 @@ void recoAnalyzer::updateTH1()
         if (isValid_h2Dcorr[i]) {
             h2Dcorr[i]->SetTitle(title.c_str());
         }
-    }
-    if (isValid_hEscale) {
-        hEscale->SetTitle(title.c_str());
     }
     if(isValid_h2Dcc) {
         h2Dcc->SetTitle(title.c_str());
@@ -1243,10 +1226,6 @@ std::vector<std::string> recoAnalyzer::splitTextLines(std::vector<std::string> t
 
 void recoAnalyzer::postLoop()
 {
-    if (isValid_hEscale) {
-        hEscale->SetMarkerStyle(kFullCircle);
-    }
-
     if (isValid_h2D) {
         h2D->SetTitleOffset(titleOffsetX, "X");
         h2D->SetTitleOffset(titleOffsetY, "Y");
@@ -1775,9 +1754,6 @@ void recoAnalyzer::calcFakeParticleRatioGenPt()
  */
 void recoAnalyzer::writeObjects(TCanvas* c)
 {
-    if (isValid_hEscale) {
-        hEscale->Write();
-    }
     if (isValid_h2Dcc) {
         h2Dcc->Write();
     }
