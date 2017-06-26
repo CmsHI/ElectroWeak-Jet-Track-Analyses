@@ -21,7 +21,7 @@ INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/
 MIXINGSAMPLE=(${MIXDIR}/PbPb_Data_minbiasJetSkim.root ${MIXDIR}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 NJOBS=(400 100 200 5)
 
-SYS_SUFFIX=("" _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _JER _JES_UP _JES_DOWN)
+SYS_SUFFIX=("" _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _ISO _JER _JES_UP _JES_DOWN)
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 
 for ISYS in ${!SYS_SUFFIX[@]}
