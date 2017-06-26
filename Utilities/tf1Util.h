@@ -9,6 +9,8 @@
 #include <TString.h>
 #include <TMath.h>
 
+#include "systemUtil.h"
+
 #ifndef TF1UTIL_H_
 #define TF1UTIL_H_
 

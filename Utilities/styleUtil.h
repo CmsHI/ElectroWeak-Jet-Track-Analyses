@@ -13,6 +13,8 @@
 #include <TAxis.h>
 #include <TAttFill.h>
 
+#include "interface/ConfigurationParser.h"
+
 #include <string>
 #include <vector>
 #include <utility>      // std::pair
