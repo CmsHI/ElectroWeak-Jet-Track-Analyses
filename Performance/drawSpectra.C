@@ -29,6 +29,127 @@
 #include "../Utilities/styleUtil.h"
 #include "../Utilities/th1Util.h"
 
+///// global variables
+/// configuration variables
+/*
+* drawing behavior :
+*      1. If N = # formulas and N = # selections, then N histograms will be drawn,
+*      2. If 1 = # formulas and N = # selections, then N histograms will be drawn with the same formula.
+*      3. If N = # formulas and 1 = # selections, then N histograms will be drawn with the same selection.
+*      4. else, exit.
+*/
+// input for mode
+int mode;
+
+// input for TTree;
+std::vector<std::string> treePaths;
+std::vector<std::string> treeFriendsPath;
+std::vector<std::string> treeFriendsPathIndividual;
+std::vector<std::string> formulas;
+std::string selectionBase;
+std::vector<std::string> selections;
+std::vector<std::string> selectionSplitter;
+std::vector<std::string> weights;
+
+// input for TH1;
+std::vector<std::string> titles;
+std::vector<std::string> titlesX;
+std::vector<std::string> titlesY;
+// nBins, xLow, xUp for the TH1D histogram;
+std::vector<std::vector<float>> TH1D_Bins_List;
+float binsLogScaleX;
+float titleOffsetX;
+float titleOffsetY;
+float yMin;
+float yMax;
+float markerSize;
+int drawSame;
+int drawNormalized;
+std::vector<std::string> drawOptions;
+std::vector<std::string> markerStyles;
+std::vector<std::string> lineStyles;
+std::vector<std::string> fillStyles;
+std::vector<std::string> colors;
+std::vector<std::string> fillColors;
+std::vector<std::string> lineColors;
+int lineWidth;
+
+// input for TLegend;
+std::vector<std::string> legendEntryLabels;
+std::string legendPosition;
+float legendOffsetX;
+float legendOffsetY;
+int legendBorderSize;
+float legendWidth;
+float legendHeight;
+float legendTextSize;
+
+// input for text objects;
+std::string tmpText;
+std::vector<std::string> textLines;
+int textFont;
+float textSize;
+std::string textPosition;
+float textOffsetX;
+float textOffsetY;
+
+std::string tmpTextOverPad;
+std::vector<std::string> textsOverPad;
+std::vector<std::string> textsOverPadAlignments;
+int textAbovePadFont;
+float textAbovePadSize;
+float textAbovePadOffsetX;
+float textAbovePadOffsetY;
+
+// input for TLine
+// y-axis positions of the horizontal lines to be drawn
+std::vector<float> TLines_horizontal;
+std::vector<std::string> lineStyles_horizontal;
+// x-axis positions of the vertical lines to be drawn
+std::vector<float> TLines_vertical;
+std::vector<std::string> lineStyles_vertical;
+
+// input for TCanvas
+int windowWidth;
+int windowHeight;
+float leftMargin;
+float rightMargin;
+float bottomMargin;
+float topMargin;
+int setLogx;
+int setLogy;
+
+int nTrees;
+int nFriends;
+int nFriendsIndividual;
+int nFormulas;
+int nSelections;
+int nSelectionSplitter;
+int nWeights;
+int nTitles;
+int nTitlesX;
+int nTitlesY;
+int nTH1D_Bins_List;
+int nDrawOptions;
+int nMarkerStyles;
+int nLineStyles;
+int nFillStyles;
+int nColors;
+int nFillColors;
+int nLineColors;
+int nLegendEntryLabels;
+int nTextLines;
+int nTextsOverPad;
+int nTextsOverPadAlignments;
+int nTLines_horizontal;
+int nLineStyles_horizontal;
+int nTLines_vertical;
+int nLineStyles_vertical;
+/// configuration variables - END
+///// global variables - END
+
+int readConfiguration(const TString configFile);
+void printConfiguration();
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
@@ -38,333 +159,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
-
-    if (!configInput.isValid) {
-        std::cout << "Input configuration is invalid." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-    if (!configCuts.isValid) {
-        std::cout << "Cut configuration is invalid." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-
-    /*
-     * drawing behavior :
-     *      1. If N = # formulas and N = # selections, then N histograms will be drawn,
-     *      2. If 1 = # formulas and N = # selections, then N histograms will be drawn with the same formula.
-     *      3. If N = # formulas and 1 = # selections, then N histograms will be drawn with the same selection.
-     *      4. else, exit.
-     */
-    // input for mode
-    int mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
-
-    // input for TTree
-    std::vector<std::string> treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
-    std::vector<std::string> treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
-    std::vector<std::string> treeFriendsPathIndividual = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPathIndividual]);
-    std::vector<std::string> formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
-    std::string selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
-    std::vector<std::string> selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
-    std::vector<std::string> selectionSplitter = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionSplitter]);
-    std::vector<std::string> weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
-
-    // input for TH1
-    std::vector<std::string> titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
-    std::vector<std::string> titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
-    std::vector<std::string> titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
-    // nBins, xLow, xUp for the TH1D histogram
-    std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
-    float binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
-    float titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
-    float titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
-    float yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
-    float yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
-    float markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
-    int drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
-    int drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
-    std::vector<std::string> drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
-    std::vector<std::string> markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
-    std::vector<std::string> lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
-    std::vector<std::string> fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
-    std::vector<std::string> colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
-    std::vector<std::string> fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
-    std::vector<std::string> lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
-    int lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
-
-    // input for TLegend
-    std::vector<std::string> legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
-    std::string legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
-    float legendOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
-    float legendOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
-    int legendBorderSize = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_legendBorderSize];
-    float legendWidth = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendWidth];
-    float legendHeight = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendHeight];
-    float legendTextSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendTextSize];
-
-    // input for text objects
-    std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
-    std::vector<std::string> textLines = ConfigurationParser::ParseList(tmpText);
-    int textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
-    float textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
-    std::string textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
-    float textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
-    float textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
-
-    std::string tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
-    std::vector<std::string> textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
-    std::vector<std::string> textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
-    int textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
-    float textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
-    float textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
-    float textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
-
-    // input for TLine
-    // y-axis positions of the horizontal lines to be drawn
-    std::vector<float> TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
-    std::vector<std::string> lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
-    // x-axis positions of the vertical lines to be drawn
-    std::vector<float> TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
-    std::vector<std::string> lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
-
-    // input for TCanvas
-    int windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
-    int windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
-    float leftMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
-    float rightMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
-    float bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
-    float topMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
-    int setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
-    int setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
-    
-    // set default values
-    if (selections.size() == 0) selections.push_back("1");
-    if (weights.size() == 0)    weights.push_back(INPUT_DEFAULT::TH1_weight.c_str());   // default weight = 1.
-    if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
-    if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
-    if (yMin == 0 && yMax == 0)  yMax = -1;
-    else if (yMin <= 0 && setLogy > 0)  yMin = resetTH1axisMin4LogScale(yMin, "y");
-    if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
-    if (lineWidth == 0)  lineWidth = INPUT_DEFAULT::lineWidth;
-
-    if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
-
-    if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
-    if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
-
-    if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
-    if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
-    if (leftMargin == 0) leftMargin = INPUT_DEFAULT::leftMargin;
-    if (rightMargin == 0) rightMargin = INPUT_DEFAULT::rightMargin;
-    if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
-    if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
-
-    int nTrees = treePaths.size();
-    int nFriends = treeFriendsPath.size();
-    int nFriendsIndividual = treeFriendsPathIndividual.size();
-    int nFormulas = formulas.size();
-    int nSelections = selections.size();
-    int nSelectionSplitter = selectionSplitter.size();
-    int nWeights = weights.size();
-    int nTitles = titles.size();
-    int nTitlesX = titlesX.size();
-    int nTitlesY = titlesY.size();
-    int nTH1D_Bins_List = TH1D_Bins_List[0].size();
-    int nDrawOptions = drawOptions.size();
-    int nMarkerStyles = markerStyles.size();
-    int nLineStyles = lineStyles.size();
-    int nFillStyles = fillStyles.size();
-    int nColors = colors.size();
-    int nFillColors = fillColors.size();
-    int nLineColors = lineColors.size();
-    int nLegendEntryLabels = legendEntryLabels.size();
-    int nTextLines = textLines.size();
-    int nTextsOverPad = textsOverPad.size();
-    int nTextsOverPadAlignments = textsOverPadAlignments.size();
-    int nTLines_horizontal = TLines_horizontal.size();
-    int nLineStyles_horizontal = lineStyles_horizontal.size();
-    int nTLines_vertical = TLines_vertical.size();
-    int nLineStyles_vertical = lineStyles_vertical.size();
-
-    // verbose about input configuration
-    std::cout<<"Input Configuration :"<<std::endl;
-    std::cout << "mode = " << mode << std::endl;
-    if (mode == INPUT_MODE::k_comparison) {
-        // in comparison mode "inputFile" should have the following format
-        // inputFile = <inputFile1>,<inputFile2>,...
-        // there should be no single space between <inputFile1> and <inputFile2>.
-        // the idea is to feed the input samples as a single argument and split them in the macro.
-        std::cout << "comparison mode : Spectra from two input samples are going to be compared." << std::endl;
-    }
-    std::cout << "nTrees = " << nTrees << std::endl;
-    for (int i=0; i<nTrees; ++i) {
-        std::cout << Form("treePaths[%d] = %s", i, treePaths.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nFriends = " << nFriends << std::endl;
-    for (int i=0; i<nFriends; ++i) {
-        std::cout << Form("treeFriendsPath[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nFriendsIndividual = " << nFriendsIndividual << std::endl;
-    for (int i=0; i<nFriendsIndividual; ++i) {
-        std::cout << Form("treeFriendsPathIndividual[%d] = %s", i, treeFriendsPathIndividual.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nFormulas     = " << nFormulas << std::endl;
-    for (int i=0; i<nFormulas; ++i) {
-        std::cout << Form("formulas[%d]   = %s", i, formulas.at(i).c_str()) << std::endl;
-    }
-    std::cout << "selectionBase = " << selectionBase.c_str() << std::endl;
-    std::cout << "nSelections   = " << nSelections << std::endl;
-    for (int i=0; i<nSelections; ++i) {
-            std::cout << Form("selections[%d] = %s", i, selections.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nSelectionSplitter = " << nSelectionSplitter << std::endl;
-    for (int i=0; i<nSelectionSplitter; ++i) {
-            std::cout << Form("selectionSplitter[%d] = %s", i, selectionSplitter.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nWeights   = " << nWeights << std::endl;
-    for (int i=0; i<nWeights; ++i) {
-            std::cout << Form("weights[%d] = %s", i, weights.at(i).c_str()) << std::endl;
-    }
-    
-    std::cout << "nTitles   = " << nTitles << std::endl;
-    for (int i=0; i<nTitles; ++i) {
-            std::cout << Form("titles[%d] = %s", i, titles.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nTitlesX   = " << nTitlesX << std::endl;
-    for (int i=0; i<nTitlesX; ++i) {
-            std::cout << Form("titlesX[%d] = %s", i, titlesX.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nTitlesY   = " << nTitlesY << std::endl;
-    for (int i=0; i<nTitlesY; ++i) {
-            std::cout << Form("titlesY[%d] = %s", i, titlesY.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
-    for (int i=0; i<nTH1D_Bins_List; ++i) {
-        std::cout << Form("TH1D_Bins_List[%d] = { ", i);
-        std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
-        std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
-        std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
-    }
-    std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
-    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
-    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
-    std::cout << "yMin = " << yMin << std::endl;
-    std::cout << "yMax = " << yMax << std::endl;
-    std::cout << "markerSize = " << markerSize << std::endl;
-    std::cout << "drawSame = " << drawSame << std::endl;
-    std::cout << "drawNormalized = " << drawNormalized << std::endl;
-    std::cout << "nDrawOptions   = " << nDrawOptions << std::endl;
-    for (int i = 0; i<nDrawOptions; ++i) {
-            std::cout << Form("drawOptions[%d] = %s", i, drawOptions.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nMarkerStyles  = " << nMarkerStyles << std::endl;
-    for (int i = 0; i<nMarkerStyles; ++i) {
-            std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nLineStyles   = " << nLineStyles << std::endl;
-    for (int i = 0; i<nLineStyles; ++i) {
-            std::cout << Form("lineStyles[%d] = %s", i, lineStyles.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nFillStyles   = " << nFillStyles << std::endl;
-    for (int i = 0; i<nFillStyles; ++i) {
-            std::cout << Form("fillStyles[%d] = %s", i, fillStyles.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nColors   = " << nColors << std::endl;
-    for (int i = 0; i<nColors; ++i) {
-            std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nFillColors = " << nFillColors << std::endl;
-    for (int i = 0; i<nFillColors; ++i) {
-            std::cout << Form("fillColors[%d] = %s", i, fillColors.at(i).c_str()) << std::endl;
-    }
-    std::cout << "nLineColors = " << nLineColors << std::endl;
-    for (int i = 0; i<nLineColors; ++i) {
-            std::cout << Form("lineColors[%d] = %s", i, lineColors.at(i).c_str()) << std::endl;
-    }
-    std::cout << "lineWidth = " << lineWidth << std::endl;
-
-    std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
-    for (int i = 0; i<nLegendEntryLabels; ++i) {
-            std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
-    }
-    if (nLegendEntryLabels > 0) {
-        std::cout << "legendPosition   = " << legendPosition.c_str() << std::endl;
-        if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
-        std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
-        std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
-        std::cout << "legendBorderSize = " << legendBorderSize << std::endl;
-        std::cout << "legendWidth      = " << legendWidth << std::endl;
-        std::cout << "legendHeight     = " << legendHeight << std::endl;
-        std::cout << "legendTextSize   = " << legendTextSize << std::endl;
-    }
-
-    std::cout << "nTextLines   = " << nTextLines << std::endl;
-    for (int i = 0; i<nTextLines; ++i) {
-            std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
-    }
-    if (nTextLines > 0) {
-        std::cout << "textFont = " << textFont << std::endl;
-        std::cout << "textSize = " << textSize << std::endl;
-        std::cout << "textPosition = " << textPosition << std::endl;
-        std::cout << "textOffsetX  = " << textOffsetX << std::endl;
-        std::cout << "textOffsetY  = " << textOffsetY << std::endl;
-    }
-
-    std::cout << "nTextsOverPad = " << nTextsOverPad << std::endl;
-    for (int i = 0; i<nTextsOverPad; ++i) {
-            std::cout << Form("textsOverPad[%d] = %s", i, textsOverPad.at(i).c_str()) << std::endl;
-    }
-    if (nTextsOverPad > 0) {
-        std::cout << "nTextsOverPadAlignments = " << nTextsOverPadAlignments << std::endl;
-        for (int i = 0; i<nTextsOverPadAlignments; ++i) {
-                std::cout << Form("textsOverPadAlignments[%d] = %s", i, textsOverPadAlignments.at(i).c_str()) << std::endl;
-        }
-        std::cout << "textAbovePadFont = " << textAbovePadFont << std::endl;
-        std::cout << "textAbovePadSize = " << textAbovePadSize << std::endl;
-        std::cout << "textAbovePadOffsetX  = " << textAbovePadOffsetX << std::endl;
-        std::cout << "textAbovePadOffsetY  = " << textAbovePadOffsetY << std::endl;
-    }
-
-    std::cout << "nTLines_horizontal = " << nTLines_horizontal << std::endl;
-    for (int i = 0; i<nTLines_horizontal; ++i) {
-            std::cout << Form("TLines_horizontal[%d] = %f", i, TLines_horizontal.at(i)) << std::endl;
-    }
-    if (nTLines_horizontal > 0) {
-        std::cout << "nLineStyles_horizontal = " << nLineStyles_horizontal << std::endl;
-        for (int i = 0; i<nLineStyles_horizontal; ++i) {
-            std::cout << Form("lineStyles_horizontal[%d] = %s", i, lineStyles_horizontal.at(i).c_str()) << std::endl;
-        }
-    }
-    std::cout << "nTLines_vertical = " << nTLines_vertical << std::endl;
-    for (int i = 0; i<nTLines_vertical; ++i) {
-            std::cout << Form("TLines_vertical[%d] = %f", i, TLines_vertical.at(i)) << std::endl;
-    }
-    if (nTLines_vertical > 0) {
-        std::cout << "nLineStyles_vertical = " << nLineStyles_vertical << std::endl;
-        for (int i = 0; i<nLineStyles_vertical; ++i) {
-            std::cout << Form("lineStyles_vertical[%d] = %s", i, lineStyles_vertical.at(i).c_str()) << std::endl;
-        }
-    }
-
-    std::cout << "windowWidth = " << windowWidth << std::endl;
-    std::cout << "windowHeight = " << windowHeight << std::endl;
-    std::cout << "leftMargin   = " << leftMargin << std::endl;
-    std::cout << "rightMargin  = " << rightMargin << std::endl;
-    std::cout << "bottomMargin = " << bottomMargin << std::endl;
-    std::cout << "topMargin    = " << topMargin << std::endl;
-    std::cout << "setLogx = " << setLogx << std::endl;
-    std::cout << "setLogy = " << setLogy << std::endl;
-
-    // cut configuration
-
-    // verbose about cut configuration
-    std::cout<<"Cut Configuration :"<<std::endl;
+    if (readConfiguration(configFile) != 0)  return;
+    printConfiguration();
 
     std::cout<<"Input handling :"<< std::endl;
-
     std::vector<std::string> inputFileArguments = InputConfigurationParser::ParseFileArgument(inputFile.Data());
     int nInputFileArguments = inputFileArguments.size();
     // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
@@ -477,6 +275,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         }
         else if (nTitles == nHistos)  {
             if (titles.at(i).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i).c_str();
+        }
+        else if (nTitles == nSplits)  {
+            if (titles.at(i/nHistosInput).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i/nHistosInput).c_str();
         }
 
         std::string titleX = "";
@@ -736,7 +537,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
 
     // write canvases
-    TCanvas* c;
+    TCanvas* c = 0;
     for (int i=0; i<nHistos; ++i) {
         c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
         c->SetTitle(h[i]->GetTitle());
@@ -788,7 +589,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         c->Write();
         c->Close();         // do not use Delete() for TCanvas.
     }
-    // canvases are written.
+    // write canvases - END
 
     // set style of the histograms for the canvases to be saved as picture
     for(int i=0; i<nHistos; ++i) {
@@ -890,6 +691,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         }
     }
 
+    TLatex* latex = 0;
+    TLine*  line = 0;
+
     if (drawSame == 0) {    // histograms will be plotted separately.
         for (int i=0; i<nHistos; ++i) {
             c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
@@ -906,7 +710,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             h_draw[i]->Draw(drawOption.c_str());
 
             // add Text
-            TLatex* latex = 0;
             if (nTextLines > 0) {
                 latex = new TLatex();
                 latex->SetTextFont(textFont);
@@ -921,25 +724,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add Text above the pad
-            TLatex* latexOverPad = 0;
             if (nTextsOverPad > 0) {
-                latexOverPad = new TLatex();
-                latexOverPad->SetTextFont(textAbovePadFont);
-                latexOverPad->SetTextSize(textAbovePadSize);
+                latex = new TLatex();
+                latex->SetTextFont(textAbovePadFont);
+                latex->SetTextSize(textAbovePadSize);
                 for (int i = 0; i < nTextsOverPad; ++i) {
                     int textOverPadAlignment = GRAPHICS::textAlign;
                     if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
                     else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
 
-                    latexOverPad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+                    latex->SetTextAlign(textOverPadAlignment);
+                    setTextAbovePad(latex, c, textAbovePadOffsetX, textAbovePadOffsetY);
 
-                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(i).c_str());
                 }
             }
 
             // add TLine
-            TLine* line_horizontal[nTLines_horizontal];
             for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
                 // draw horizontal line
                 double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
@@ -951,12 +752,11 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 else if (nLineStyles_horizontal == nTLines_horizontal)
                     lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
 
-                line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
-                line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line_horizontal[iLine]->Draw();
+                line = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
+                line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line->Draw();
             }
             // add TLine
-            TLine* line_vertical[nTLines_vertical];
             for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
                 // draw vertical line
                 double ymin = h[i]->GetMinimum();
@@ -968,9 +768,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 else if (nLineStyles_vertical == nTLines_vertical)
                     lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
 
-                line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
-                line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line_vertical[iLine]->Draw();
+                line = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
+                line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line->Draw();
             }
             c->Write();
 
@@ -1029,8 +829,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             if (drawSameInsideSplits) histStart =  iCanvas * nHistosPerCanvas;
             // set maximum/minimum of y-axis
             if (yMin > yMax) {
-                double histMin = h_draw[histStart]->GetMinimum();
-                double histMax = h_draw[histStart]->GetMaximum();
+                std::vector<TH1D*> vecTH1Dtmp;
+                vecTH1Dtmp.resize(nHistosPerCanvas);
+                vecTH1Dtmp[0] = h_draw[histStart];
 
                 int histCount = 1;
                 int iHist = histStart;
@@ -1040,10 +841,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 while (histCount < nHistosPerCanvas)
                 {
                     iHist += increment;
-                    if (h_draw[iHist]->GetMinimum() < histMin)   histMin = h_draw[iHist]->GetMinimum();
-                    if (h_draw[iHist]->GetMaximum() > histMax)   histMax = h_draw[iHist]->GetMaximum();
+                    vecTH1Dtmp[iHist] = h_draw[histStart];
                     histCount++;
                 }
+                double histMin = getMinimumTH1DContent(vecTH1Dtmp);
+                double histMax = getMaximumTH1DContent(vecTH1Dtmp);
+
                 if (setLogy == 0) h_draw[histStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
                 h_draw[histStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.25*TMath::Power(10,setLogy));
             }
@@ -1088,7 +891,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add Text
-            TLatex* latex = 0;
             if (nTextLines > 0) {
                 latex = new TLatex();
                 latex->SetTextFont(textFont);
@@ -1103,25 +905,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add Text above the pad
-            TLatex* latexOverPad = 0;
             if (nTextsOverPad > 0) {
-                latexOverPad = new TLatex();
-                latexOverPad->SetTextFont(textAbovePadFont);
-                latexOverPad->SetTextSize(textAbovePadSize);
+                latex = new TLatex();
+                latex->SetTextFont(textAbovePadFont);
+                latex->SetTextSize(textAbovePadSize);
                 for (int i = 0; i < nTextsOverPad; ++i) {
                     int textOverPadAlignment = GRAPHICS::textAlign;
                     if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
                     else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
 
-                    latexOverPad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexOverPad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+                    latex->SetTextAlign(textOverPadAlignment);
+                    setTextAbovePad(latex, c, textAbovePadOffsetX, textAbovePadOffsetY);
 
-                    latexOverPad->DrawLatexNDC(latexOverPad->GetX(), latexOverPad->GetY(), textsOverPad.at(i).c_str());
+                    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(i).c_str());
                 }
             }
 
             // add TLine
-            TLine* line_horizontal[nTLines_horizontal];
             for (int i = 0; i<nTLines_horizontal; ++i) {
                 if (nHistos > 0) {
                     // draw horizontal line
@@ -1134,13 +934,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                     else if (nLineStyles_horizontal == nTLines_horizontal)
                         lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
 
-                    line_horizontal[i] = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
-                    line_horizontal[i]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_horizontal[i]->Draw();
+                    line = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
+                    line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line->Draw();
                 }
             }
             // add TLine
-            TLine* line_vertical[nTLines_vertical];
             for (int i = 0; i<nTLines_vertical; ++i) {
                 if (nHistos > 0) {
                     // draw vertical line
@@ -1153,9 +952,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                     else if (nLineStyles_vertical == nTLines_vertical)
                         lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
 
-                    line_vertical[i] = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
-                    line_vertical[i]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_vertical[i]->Draw();
+                    line = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
+                    line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line->Draw();
                 }
             }
             c->Write();
@@ -1186,8 +985,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                     c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
                 }
             }
-            leg->Delete();
             c->Close();
+            if (leg != 0)  leg->Delete();
             iCanvas++;
             drawSameFinished = (iCanvas == nCanvasDrawSame);
         }
@@ -1216,4 +1015,332 @@ int main(int argc, char** argv)
                 << std::endl;
         return 1;
     }
+}
+
+int readConfiguration(const TString configFile)
+{
+    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+
+    if (!configInput.isValid) {
+        std::cout << "Input configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
+    if (!configCuts.isValid) {
+        std::cout << "Cut configuration is invalid." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
+
+    // input for mode
+    mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
+
+    // input for TTree
+    treePaths = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath]);
+    treeFriendsPath = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPath]);
+    treeFriendsPathIndividual = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFriendPathIndividual]);
+    formulas = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeFormula]);
+    selectionBase = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase];
+    selections = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelection]);
+    selectionSplitter = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionSplitter]);
+    weights = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_weight]);
+
+    // input for TH1
+    titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
+    titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
+    titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
+    // nBins, xLow, xUp for the TH1D histogram
+    std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
+    titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
+    titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+    yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
+    yMax = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMax];
+    markerSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_markerSize];
+    drawSame = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawSame];
+    drawNormalized = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_drawNormalized];
+    drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_drawOption]);
+    markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
+    lineStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineStyle]);
+    fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillStyle]);
+    colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
+    fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_fillColor]);
+    lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_lineColor]);
+    lineWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_lineWidth];
+
+    // input for TLegend
+    legendEntryLabels = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]));
+    legendPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition];
+    legendOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetX];
+    legendOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendOffsetY];
+    legendBorderSize = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_legendBorderSize];
+    legendWidth = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendWidth];
+    legendHeight = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendHeight];
+    legendTextSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_legendTextSize];
+
+    // input for text objects
+    tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
+    textLines = ConfigurationParser::ParseList(tmpText);
+    textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
+    textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
+    textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
+    textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
+    textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
+
+    tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
+    textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
+    textsOverPadAlignments = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePadAlign]);
+    textAbovePadFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textAbovePadFont];
+    textAbovePadSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadSize];
+    textAbovePadOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetX];
+    textAbovePadOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textAbovePadOffsetY];
+
+    // input for TLine
+    // y-axis positions of the horizontal lines to be drawn
+    TLines_horizontal = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_horizontal]);
+    lineStyles_horizontal = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_horizontal]);
+    // x-axis positions of the vertical lines to be drawn
+    TLines_vertical = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TLine_vertical]);
+    lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_LineStyle_vertical]);
+
+    // input for TCanvas
+    windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
+    windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
+    leftMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
+    rightMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
+    bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
+    topMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
+    setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
+    setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
+
+    // set default values
+    if (selections.size() == 0) selections.push_back("1");
+    if (weights.size() == 0)    weights.push_back(INPUT_DEFAULT::TH1_weight.c_str());   // default weight = 1.
+    if (titleOffsetX == 0) titleOffsetX = INPUT_DEFAULT::titleOffsetX;
+    if (titleOffsetY == 0) titleOffsetY = INPUT_DEFAULT::titleOffsetY;
+    if (yMin == 0 && yMax == 0)  yMax = -1;
+    else if (yMin <= 0 && setLogy > 0)  yMin = resetTH1axisMin4LogScale(yMin, "y");
+    if (drawNormalized >= INPUT_TH1::kN_TYPE_NORM) drawNormalized = INPUT_DEFAULT::drawNormalized;
+    if (lineWidth == 0)  lineWidth = INPUT_DEFAULT::lineWidth;
+
+    if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
+
+    if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
+    if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
+
+    if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
+    if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
+    if (leftMargin == 0) leftMargin = INPUT_DEFAULT::leftMargin;
+    if (rightMargin == 0) rightMargin = INPUT_DEFAULT::rightMargin;
+    if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
+    if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
+
+    nTrees = treePaths.size();
+    nFriends = treeFriendsPath.size();
+    nFriendsIndividual = treeFriendsPathIndividual.size();
+    nFormulas = formulas.size();
+    nSelections = selections.size();
+    nSelectionSplitter = selectionSplitter.size();
+    nWeights = weights.size();
+    nTitles = titles.size();
+    nTitlesX = titlesX.size();
+    nTitlesY = titlesY.size();
+    nTH1D_Bins_List = TH1D_Bins_List[0].size();
+    nDrawOptions = drawOptions.size();
+    nMarkerStyles = markerStyles.size();
+    nLineStyles = lineStyles.size();
+    nFillStyles = fillStyles.size();
+    nColors = colors.size();
+    nFillColors = fillColors.size();
+    nLineColors = lineColors.size();
+    nLegendEntryLabels = legendEntryLabels.size();
+    nTextLines = textLines.size();
+    nTextsOverPad = textsOverPad.size();
+    nTextsOverPadAlignments = textsOverPadAlignments.size();
+    nTLines_horizontal = TLines_horizontal.size();
+    nLineStyles_horizontal = lineStyles_horizontal.size();
+    nTLines_vertical = TLines_vertical.size();
+    nLineStyles_vertical = lineStyles_vertical.size();
+
+    return 0;
+}
+
+/*
+ * print information read from input/cut configurations
+ * assumes that readConfiguration() is run before
+ */
+void printConfiguration()
+{
+    // verbose about input configuration
+    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "mode = " << mode << std::endl;
+    if (mode == INPUT_MODE::k_comparison) {
+        // in comparison mode "inputFile" should have the following format
+        // inputFile = <inputFile1>,<inputFile2>,...
+        // there should be no single space between <inputFile1> and <inputFile2>.
+        // the idea is to feed the input samples as a single argument and split them in the macro.
+        std::cout << "comparison mode : Spectra from two input samples are going to be compared." << std::endl;
+    }
+    std::cout << "nTrees = " << nTrees << std::endl;
+    for (int i=0; i<nTrees; ++i) {
+        std::cout << Form("treePaths[%d] = %s", i, treePaths.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFriends = " << nFriends << std::endl;
+    for (int i=0; i<nFriends; ++i) {
+        std::cout << Form("treeFriendsPath[%d] = %s", i, treeFriendsPath.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFriendsIndividual = " << nFriendsIndividual << std::endl;
+    for (int i=0; i<nFriendsIndividual; ++i) {
+        std::cout << Form("treeFriendsPathIndividual[%d] = %s", i, treeFriendsPathIndividual.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFormulas     = " << nFormulas << std::endl;
+    for (int i=0; i<nFormulas; ++i) {
+        std::cout << Form("formulas[%d]   = %s", i, formulas.at(i).c_str()) << std::endl;
+    }
+    std::cout << "selectionBase = " << selectionBase.c_str() << std::endl;
+    std::cout << "nSelections   = " << nSelections << std::endl;
+    for (int i=0; i<nSelections; ++i) {
+        std::cout << Form("selections[%d] = %s", i, selections.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nSelectionSplitter = " << nSelectionSplitter << std::endl;
+    for (int i=0; i<nSelectionSplitter; ++i) {
+        std::cout << Form("selectionSplitter[%d] = %s", i, selectionSplitter.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nWeights   = " << nWeights << std::endl;
+    for (int i=0; i<nWeights; ++i) {
+        std::cout << Form("weights[%d] = %s", i, weights.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nTitles   = " << nTitles << std::endl;
+    for (int i=0; i<nTitles; ++i) {
+        std::cout << Form("titles[%d] = %s", i, titles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTitlesX   = " << nTitlesX << std::endl;
+    for (int i=0; i<nTitlesX; ++i) {
+        std::cout << Form("titlesX[%d] = %s", i, titlesX.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTitlesY   = " << nTitlesY << std::endl;
+    for (int i=0; i<nTitlesY; ++i) {
+        std::cout << Form("titlesY[%d] = %s", i, titlesY.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
+    for (int i=0; i<nTH1D_Bins_List; ++i) {
+        std::cout << Form("TH1D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
+    }
+    std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
+    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "yMin = " << yMin << std::endl;
+    std::cout << "yMax = " << yMax << std::endl;
+    std::cout << "markerSize = " << markerSize << std::endl;
+    std::cout << "drawSame = " << drawSame << std::endl;
+    std::cout << "drawNormalized = " << drawNormalized << std::endl;
+    std::cout << "nDrawOptions   = " << nDrawOptions << std::endl;
+    for (int i = 0; i<nDrawOptions; ++i) {
+        std::cout << Form("drawOptions[%d] = %s", i, drawOptions.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nMarkerStyles  = " << nMarkerStyles << std::endl;
+    for (int i = 0; i<nMarkerStyles; ++i) {
+        std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLineStyles   = " << nLineStyles << std::endl;
+    for (int i = 0; i<nLineStyles; ++i) {
+        std::cout << Form("lineStyles[%d] = %s", i, lineStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFillStyles   = " << nFillStyles << std::endl;
+    for (int i = 0; i<nFillStyles; ++i) {
+        std::cout << Form("fillStyles[%d] = %s", i, fillStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nColors   = " << nColors << std::endl;
+    for (int i = 0; i<nColors; ++i) {
+        std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFillColors = " << nFillColors << std::endl;
+    for (int i = 0; i<nFillColors; ++i) {
+        std::cout << Form("fillColors[%d] = %s", i, fillColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLineColors = " << nLineColors << std::endl;
+    for (int i = 0; i<nLineColors; ++i) {
+        std::cout << Form("lineColors[%d] = %s", i, lineColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "lineWidth = " << lineWidth << std::endl;
+
+    std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
+    for (int i = 0; i<nLegendEntryLabels; ++i) {
+        std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
+    }
+    if (nLegendEntryLabels > 0) {
+        std::cout << "legendPosition   = " << legendPosition.c_str() << std::endl;
+        if (legendPosition.size() == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
+        std::cout << "legendOffsetX    = " << legendOffsetX << std::endl;
+        std::cout << "legendOffsetY    = " << legendOffsetY << std::endl;
+        std::cout << "legendBorderSize = " << legendBorderSize << std::endl;
+        std::cout << "legendWidth      = " << legendWidth << std::endl;
+        std::cout << "legendHeight     = " << legendHeight << std::endl;
+        std::cout << "legendTextSize   = " << legendTextSize << std::endl;
+    }
+
+    std::cout << "nTextLines   = " << nTextLines << std::endl;
+    for (int i = 0; i<nTextLines; ++i) {
+        std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
+    }
+    if (nTextLines > 0) {
+        std::cout << "textFont = " << textFont << std::endl;
+        std::cout << "textSize = " << textSize << std::endl;
+        std::cout << "textPosition = " << textPosition << std::endl;
+        std::cout << "textOffsetX  = " << textOffsetX << std::endl;
+        std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+    }
+
+    std::cout << "nTextsOverPad = " << nTextsOverPad << std::endl;
+    for (int i = 0; i<nTextsOverPad; ++i) {
+        std::cout << Form("textsOverPad[%d] = %s", i, textsOverPad.at(i).c_str()) << std::endl;
+    }
+    if (nTextsOverPad > 0) {
+        std::cout << "nTextsOverPadAlignments = " << nTextsOverPadAlignments << std::endl;
+        for (int i = 0; i<nTextsOverPadAlignments; ++i) {
+            std::cout << Form("textsOverPadAlignments[%d] = %s", i, textsOverPadAlignments.at(i).c_str()) << std::endl;
+        }
+        std::cout << "textAbovePadFont = " << textAbovePadFont << std::endl;
+        std::cout << "textAbovePadSize = " << textAbovePadSize << std::endl;
+        std::cout << "textAbovePadOffsetX  = " << textAbovePadOffsetX << std::endl;
+        std::cout << "textAbovePadOffsetY  = " << textAbovePadOffsetY << std::endl;
+    }
+
+    std::cout << "nTLines_horizontal = " << nTLines_horizontal << std::endl;
+    for (int i = 0; i<nTLines_horizontal; ++i) {
+        std::cout << Form("TLines_horizontal[%d] = %f", i, TLines_horizontal.at(i)) << std::endl;
+    }
+    if (nTLines_horizontal > 0) {
+        std::cout << "nLineStyles_horizontal = " << nLineStyles_horizontal << std::endl;
+        for (int i = 0; i<nLineStyles_horizontal; ++i) {
+            std::cout << Form("lineStyles_horizontal[%d] = %s", i, lineStyles_horizontal.at(i).c_str()) << std::endl;
+        }
+    }
+    std::cout << "nTLines_vertical = " << nTLines_vertical << std::endl;
+    for (int i = 0; i<nTLines_vertical; ++i) {
+        std::cout << Form("TLines_vertical[%d] = %f", i, TLines_vertical.at(i)) << std::endl;
+    }
+    if (nTLines_vertical > 0) {
+        std::cout << "nLineStyles_vertical = " << nLineStyles_vertical << std::endl;
+        for (int i = 0; i<nLineStyles_vertical; ++i) {
+            std::cout << Form("lineStyles_vertical[%d] = %s", i, lineStyles_vertical.at(i).c_str()) << std::endl;
+        }
+    }
+
+    std::cout << "windowWidth = " << windowWidth << std::endl;
+    std::cout << "windowHeight = " << windowHeight << std::endl;
+    std::cout << "leftMargin   = " << leftMargin << std::endl;
+    std::cout << "rightMargin  = " << rightMargin << std::endl;
+    std::cout << "bottomMargin = " << bottomMargin << std::endl;
+    std::cout << "topMargin    = " << topMargin << std::endl;
+    std::cout << "setLogx = " << setLogx << std::endl;
+    std::cout << "setLogy = " << setLogy << std::endl;
+
+    // verbose about cut configuration
+    std::cout<<"Cut Configuration :"<<std::endl;
 }
