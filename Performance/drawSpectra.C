@@ -146,10 +146,27 @@ int nLineStyles_horizontal;
 int nTLines_vertical;
 int nLineStyles_vertical;
 /// configuration variables - END
+std::vector<std::vector<std::string>> inputFiles;
+std::vector<std::string> inputFileArguments;
+int nInputFileArguments;
+int nSplits = 1;
+int nSelectionsTot;
+int nFormulasTot;
+std::vector<Long64_t> entries;
+std::vector<Long64_t> entriesSelected;
+int nHistos;
+int nHistosInput;
+std::vector<TH1D*> h;
+std::vector<TH1D*> h_normInt;
+std::vector<TH1D*> h_normEvents;
+std::vector<TH1D*> h_draw;
+std::string outputFigureStr;
 ///// global variables - END
 
 int readConfiguration(const TString configFile);
 void printConfiguration();
+int preLoop(TFile* input = 0, bool makeNew = true);
+int postLoop();
 void setAndDrawLatex(TPad* pad);
 void setAndDrawLatexOverPad(TPad* pad);
 void setAndDrawLinesHorizontal(TPad* pad);
@@ -162,20 +179,23 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    outputFigureStr = outputFigureName.Data();
 
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
     std::cout<<"Input handling :"<< std::endl;
-    std::vector<std::string> inputFileArguments = InputConfigurationParser::ParseFileArgument(inputFile.Data());
-    int nInputFileArguments = inputFileArguments.size();
+    inputFileArguments = InputConfigurationParser::ParseFileArgument(inputFile.Data());
+    nInputFileArguments = inputFileArguments.size();
+
     // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
     std::cout<<"nInputFileArguments (number of input file arguments) = "<< nInputFileArguments << std::endl;
     for (int i = 0; i < nInputFileArguments; ++i) {
         std::cout << Form("inputFileArguments[%d] = %s", i, inputFileArguments.at(i).c_str()) << std::endl;
     }
 
-    std::vector<std::vector<std::string>> inputFiles(nInputFileArguments);
+    inputFiles.clear();
+    inputFiles.resize(nInputFileArguments);
     std::cout<<"#####"<< std::endl;
     for (int i = 0; i < nInputFileArguments; ++i) {
 
@@ -192,120 +212,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    // check consistency of the input file arguments with the mode
-    if (mode == INPUT_MODE::k_noMode && nInputFileArguments > 1) {
-        std::cout<<"no specific mode is chosen. more than one input samples are provided."<< std::endl;
-        std::cout<<"exiting"<< std::endl;
-        return;
-    }
-    if (mode == INPUT_MODE::k_comparison && nInputFileArguments == 1) {
-        std::cout<<"comparison mode is chosen. But only one input sample is provided."<< std::endl;
-        std::cout<<"exiting"<< std::endl;
-        return;
-    }
-
-    if (nTrees == 1 && nFriendsIndividual > 0) {
-        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
-        std::cout<<"There is only one tree to be plotted, it does not make sense to use individual friend trees."<< std::endl;
-        std::cout<<"exiting"<< std::endl;
-        return;
-    }
-    else if (nTrees > 1 && nFriendsIndividual > 0 && nTrees != nFriendsIndividual) {
-        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
-        std::cout<<"exiting"<< std::endl;
-        return;
-    }
-
-    if (nSelectionSplitter == 1) {
-        std::cout << "nSelectionSplitter = "<< nSelectionSplitter << std::endl;
-        std::cout << "selectionSplitter has been set to have exactly one selection"<< std::endl;
-        std::cout << "selectionSplitter is allowed to be either empty or to have more than one selections"<< std::endl;
-        std::cout << "exiting"<< std::endl;
-        return;
-    }
-    int nSplits = 1;
-    if (nSelectionSplitter > 1)  nSplits = nSelectionSplitter;
-
-    int nSelectionsTot = nSelections * nSplits;
-    int nFormulasTot = nFormulas * nSplits;
-
-    TH1::SetDefaultSumw2();
-    int nHistos = nFormulasTot;
-    if (nFormulas == 1 && nSelections > nFormulas) nHistos = nSelectionsTot;
-    else if (nFormulas == 1 && nSelections == 1 && nTrees > nFormulas) nHistos = nTrees * nSplits;
-    else if (nFormulas > 1 && nSelections > 1 && nFormulas != nSelections) {
-        std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
-        std::cout << "nHistos     = "<< nHistos << std::endl;
-        std::cout << "nSelections = "<< nSelections << std::endl;
-        std::cout << "exiting " << std::endl;
-        return;
-    }
-    else if (nFormulas > 1 && nTrees > 1 && nFormulas != nTrees) {
-        std::cout << "mismatch of number of formulas and number of trees"<< std::endl;
-        std::cout << "nHistos = "<< nHistos << std::endl;
-        std::cout << "nTrees  = "<< nTrees << std::endl;
-        std::cout << "exiting " << std::endl;
-        return;
-    }
-    else if (nSelections > 1 && nTrees > 1 && nSelections != nTrees) {
-        std::cout << "mismatch of number of selections and number of trees"<< std::endl;
-        std::cout << "nHistos     = "<< nHistos << std::endl;
-        std::cout << "nSelections = "<< nSelections << std::endl;
-        std::cout << "nTrees      = "<< nTrees << std::endl;
-        std::cout << "exiting " << std::endl;
-        return;
-    }
+    // This macro uses TTree::Draw(), the output file must defined before the output objects
     TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
-    output->cd();
-
-    int nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
-    std::cout << "nHistos = " << nHistos << std::endl;
-    TH1D* h[nHistos];
-    for (int i=0; i<nHistos; ++i) {
-        int nBins  = (int)TH1D_Bins_List[0].at(0);
-        float xLow = TH1D_Bins_List[1].at(0);
-        float xUp  = TH1D_Bins_List[2].at(0);
-        if (nTH1D_Bins_List == nHistosInput) {
-            nBins = (int)TH1D_Bins_List[0].at(i%nTH1D_Bins_List);
-            xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
-            xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
-        }
-        std::string title = "";
-        if (nTitles == 1)  {
-            if (titles.at(0).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(0).c_str();
-        }
-        else if (nTitles == nHistosInput)  {
-            if (titles.at(i%nTitles).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i%nTitles).c_str();
-        }
-        else if (nTitles == nHistos)  {
-            if (titles.at(i).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i).c_str();
-        }
-        else if (nTitles == nSplits)  {
-            if (titles.at(i/nHistosInput).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i/nHistosInput).c_str();
-        }
-
-        std::string titleX = "";
-        if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
-        else if (nTitlesX == nHistosInput) titleX = titlesX.at(i%nTitlesX).c_str();
-        else if (nTitlesX == nHistos)      titleX = titlesX.at(i).c_str();
-
-        std::string titleY = "";
-        if (nTitlesY == 1) titleY = titlesY.at(0).c_str();
-        else if (nTitlesY == nHistosInput) titleY = titlesY.at(i%nTitlesY).c_str();
-        else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
-
-        h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
-
-        if (binsLogScaleX > 0) {
-            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBins);
-            double binsArrTmp[nBins+1];
-            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
-
-            h[i]->GetXaxis()->Set(nBins, binsArrTmp);
-        }
-
-        if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
-    }
+    if (preLoop() != 0) return;
 
     // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
     // so in that case : 1.) the "TTree*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
@@ -314,9 +223,11 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     TTree* treeFriendsIndividual[nFriendsIndividual][nInputFileArguments];
     TTree* treeHiForestInfo[nInputFileArguments];
 
-    Long64_t entries[nInputFileArguments];
-    Long64_t entriesSelected[nHistos];
-    std::fill_n(entriesSelected, nHistos, 0);
+    entries.clear();
+    entries.resize(nInputFileArguments);
+    entriesSelected.clear();
+    entriesSelected.resize(nHistos);
+    std::fill_n(entriesSelected.begin(), nHistos, 0);
 
     int nFiles[nInputFileArguments];
     TFile* fileTmp = 0;
@@ -331,7 +242,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
         // read the first file only to get the HiForest info
         std::string inputPath = inputFiles[iInFileArg].at(0).c_str();
-        fileTmp = new TFile(inputPath.c_str(), "READ");
+        fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
         bool treeExists = true;
         if (nFiles[iInFileArg] == 1) {
@@ -378,7 +289,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             std::string inputPath = inputFiles[iInFileArg].at(iFile).c_str();
             std::cout <<"iFile = " << iFile << " , " ;
             std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
-            fileTmp = new TFile(inputPath.c_str(), "READ");
+            fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
             // check if the file is usable, if not skip the file.
             if (isGoodFile(fileTmp) != 0) {
@@ -492,396 +403,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
     std::cout << "###" << std::endl;
 
-    // print info about histograms
-    for (int i=0; i<nHistos; ++i) {
-        std::cout << "#####" << std::endl;
-        std::cout << Form("h[%d]", i) << std::endl;
-        std::string summary = summaryTH1(h[i]);
-        std::cout << summary.c_str() << std::endl;
-    }
-
     output->cd();
+    postLoop();
 
-    TH1D* h_normInt[nHistos];
-    TH1D* h_normEvents[nHistos];
-    for (int i=0; i<nHistos; ++i) {
-        h[i]->Write();
-
-        h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
-        h_normInt[i]->Scale(1./h[i]->Integral());
-        h_normInt[i]->Write();
-
-        h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
-        h_normEvents[i]->Scale(1./entriesSelected[i]);
-        h_normEvents[i]->Write();
-    }
-    // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
-
-    // set the style of the histograms for canvases to be written
-    for (int i=0; i<nHistos; ++i) {
-        h[i]->SetTitleOffset(titleOffsetX,"X");
-        h[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
-        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
-        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
-
-        // default marker style and color
-        h[i]->SetMarkerStyle(kFullCircle);
-        h[i]->SetMarkerColor(kBlack);
-        h_normInt[i]->SetMarkerStyle(kFullCircle);
-        h_normInt[i]->SetMarkerColor(kBlack);
-        h_normEvents[i]->SetMarkerStyle(kFullCircle);
-        h_normEvents[i]->SetMarkerColor(kBlack);
-
-        // no stats box in the final plots
-        h[i]->SetStats(false);
-        h_normInt[i]->SetStats(false);
-        h_normEvents[i]->SetStats(false);
-    }
-
-    // write canvases
-    TCanvas* c = 0;
-    for (int i=0; i<nHistos; ++i) {
-        c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
-        c->SetTitle(h[i]->GetTitle());
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
-        c->cd();
-
-        // set the style of the histograms for canvases to be written
-        h[i]->SetTitleOffset(titleOffsetX,"X");
-        h[i]->SetTitleOffset(titleOffsetY,"Y");
-        h[i]->SetMarkerStyle(kFullCircle);
-        h[i]->SetMarkerColor(kBlack);
-        h[i]->SetStats(false);              // no stats box in the final plots
-        h[i]->Draw("e");
-        c->Write();
-        c->Close();         // do not use Delete() for TCanvas.
-
-        // normalized to 1.
-        c = new TCanvas(Form("cnv_%d_normInt",i),"",windowWidth,windowHeight);
-        c->SetTitle(h_normInt[i]->GetTitle());
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
-        c->cd();
-
-        // set the style of the histograms for canvases to be written
-        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
-        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normInt[i]->SetMarkerStyle(kFullCircle);
-        h_normInt[i]->SetMarkerColor(kBlack);
-        h_normInt[i]->SetStats(false);  // no stats box in the final plots
-        h_normInt[i]->Draw("e");
-        c->Write();
-        c->Close();         // do not use Delete() for TCanvas.
-
-        // normalized by number of events
-        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
-        c->SetTitle(h_normEvents[i]->GetTitle());
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
-        c->cd();
-
-        // set the style of the histograms for canvases to be written
-        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
-        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normEvents[i]->SetMarkerStyle(kFullCircle);
-        h_normEvents[i]->SetMarkerColor(kBlack);
-        h_normEvents[i]->SetStats(false);   // no stats box in the final plots
-        h_normEvents[i]->Draw("e");
-        c->Write();
-        c->Close();         // do not use Delete() for TCanvas.
-    }
-    // write canvases - END
-
-    // set style of the histograms for the canvases to be saved as picture
-    for(int i=0; i<nHistos; ++i) {
-        bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
-
-        std::string drawOption = "";
-        if (nDrawOptions == 1) {
-            if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
-        }
-        else if (!drawSameAcrossSplits && nDrawOptions == nHistosInput) {
-            if (drawOptions.at(i%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
-        }
-        else if (drawSameAcrossSplits && nDrawOptions == nSplits) {
-            if (drawOptions.at((i/nHistosInput)%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at((i/nHistosInput)%nDrawOptions).c_str();
-        }
-        // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
-        // TObject::SetDrawOption() is not suitable for the approach here.
-
-        int markerStyle = GRAPHICS::markerStyle;
-        if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
-        else if (!drawSameAcrossSplits && nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
-        else if (drawSameAcrossSplits && nMarkerStyles == nSplits) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at((i/nHistosInput)%nMarkerStyles));
-        h[i]->SetMarkerStyle(markerStyle);
-        h_normInt[i]->SetMarkerStyle(markerStyle);
-        h_normEvents[i]->SetMarkerStyle(markerStyle);
-
-        int lineStyle = GRAPHICS::lineStyle;
-        if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
-        else if (!drawSameAcrossSplits && nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
-        else if (drawSameAcrossSplits && nLineStyles == nSplits)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at((i/nHistosInput)%nLineStyles));
-        h[i]->SetLineStyle(lineStyle);
-        h_normInt[i]->SetLineStyle(lineStyle);
-        h_normEvents[i]->SetLineStyle(lineStyle);
-
-        int fillStyle = GRAPHICS::fillStyle;
-        if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
-        else if (!drawSameAcrossSplits && nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
-        else if (drawSameAcrossSplits && nFillStyles == nSplits)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at((i/nHistosInput)%nFillStyles));
-        h[i]->SetFillStyle(fillStyle);
-        h_normInt[i]->SetFillStyle(fillStyle);
-        h_normEvents[i]->SetFillStyle(fillStyle);
-
-        int color = GRAPHICS::colors[i];
-        if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
-        else if (!drawSameAcrossSplits && nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
-        else if (drawSameAcrossSplits && nColors == nSplits) color = GraphicsConfigurationParser::ParseColor(colors.at((i/nHistosInput)%nColors));
-        h[i]->SetMarkerColor(color);
-        h[i]->SetLineColor(color);
-        h_normInt[i]->SetMarkerColor(color);
-        h_normInt[i]->SetLineColor(color);
-        h_normEvents[i]->SetMarkerColor(color);
-        h_normEvents[i]->SetLineColor(color);
-
-        int fillColor = -1;
-        if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
-        else if (!drawSameAcrossSplits && nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
-        else if (drawSameAcrossSplits && nFillColors == nSplits) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at((i/nHistosInput)%nFillColors));
-        if (fillColor != -1)
-        {
-            h[i]->SetFillColor(fillColor);
-            h_normInt[i]->SetFillColor(fillColor);
-            h_normEvents[i]->SetFillColor(fillColor);
-        }
-
-        int lineColor = -1;
-        if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
-        else if (!drawSameAcrossSplits && nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
-        else if (drawSameAcrossSplits && nLineColors == nSplits) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at((i/nHistosInput)%nLineColors));
-        if (nLineColors != -1)
-        {
-            h[i]->SetLineColor(lineColor);
-            h_normInt[i]->SetLineColor(lineColor);
-            h_normEvents[i]->SetLineColor(lineColor);
-        }
-
-        if(lineWidth != INPUT_DEFAULT::lineWidth) {
-            if (drawOption.find("hist") != std::string::npos) {
-                h[i]->SetLineWidth(lineWidth);
-                h_normInt[i]->SetLineWidth(lineWidth);
-                h_normEvents[i]->SetLineWidth(lineWidth);
-            }
-        }
-
-        h[i]->SetMarkerSize(markerSize);
-        h_normInt[i]->SetMarkerSize(markerSize);
-        h_normEvents[i]->SetMarkerSize(markerSize);
-    }
-
-    TH1D* h_draw[nHistos];
-    for (int i=0; i<nHistos; ++i) {
-        if (drawNormalized == INPUT_TH1::k_normInt) {
-            h_draw[i] = (TH1D*)h_normInt[i]->Clone(Form("h_%d_draw", i));
-        }
-        else if (drawNormalized == INPUT_TH1::k_normEvents) {
-            h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
-        }
-        else {  // no normalization
-            h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
-        }
-    }
-
-    if (drawSame == 0) {    // histograms will be plotted separately.
-        for (int i=0; i<nHistos; ++i) {
-            c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
-            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy);
-            c->cd();
-
-            std::string drawOption = "";
-            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
-
-            h_draw[i]->SetMarkerColor(kBlack);
-            h_draw[i]->SetLineColor(kBlack);
-            h_draw[i]->Draw(drawOption.c_str());
-
-            // add Text
-            setAndDrawLatex(c);
-
-            // add Text above the pad
-            setAndDrawLatexOverPad(c);
-
-            // add TLine
-            setAndDrawLinesHorizontal(c);
-            setAndDrawLinesVertical(c);
-            c->Write();
-
-            // save histograms as picture if a figure name is provided.
-            if (!outputFigureName.EqualTo("")) {
-                std::string tmpOutputFigureName = outputFigureName.Data();
-                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
-                    if (nHistos > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output.ext" becomes "output_2.ext"
-                        size_t pos = tmpOutputFigureName.find_last_of(".");
-                        tmpOutputFigureName.replace(pos,1, Form("_%d.", i+1));
-                    }
-                    c->SaveAs(tmpOutputFigureName.c_str());
-                }
-                else {  // file extension is NOT specified
-                    if (nHistos > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output" becomes "output_2"
-                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), i+1);
-                    }
-
-                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
-                }
-            }
-            c->Close();         // do not use Delete() for TCanvas.
-        }
-    }
-    else if (drawSame > 0) {    // histograms will be plotted to the same canvas
-
-        bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
-        bool drawSameInsideSplits = (drawSame == INPUT_TH1::k_drawSameInsideSplits);
-
-        int nCanvasDrawSame = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
-        if (drawSameAcrossSplits)  nCanvasDrawSame = nHistosInput;
-        if (drawSameInsideSplits)  nCanvasDrawSame = nSplits;
-
-        // one must have : nHistosPerCanvas * nCanvasDrawSame = nHistos
-        int nHistosPerCanvas = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
-        if (drawSameAcrossSplits)  nHistosPerCanvas = nSplits;
-        if (drawSameInsideSplits)  nHistosPerCanvas = nHistosInput;
-
-        int iCanvas = 0;
-        bool drawSameFinished = false;
-        while (!drawSameFinished)  {
-
-            c = new TCanvas(Form("cnv_drawSpectra_%d", iCanvas),"",windowWidth,windowHeight);
-            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy);
-            c->cd();
-
-            int histStart = 0;
-            if (drawSameAcrossSplits) histStart += iCanvas;
-            if (drawSameInsideSplits) histStart =  iCanvas * nHistosPerCanvas;
-            // set maximum/minimum of y-axis
-            if (yMin > yMax) {
-                std::vector<TH1D*> vecTH1Dtmp;
-                vecTH1Dtmp.resize(nHistosPerCanvas);
-                vecTH1Dtmp[0] = h_draw[histStart];
-
-                int histCount = 1;
-                int iHist = histStart;
-                int increment = 1;
-                if (drawSameAcrossSplits)  increment = nHistosInput;
-                if (drawSameInsideSplits)  increment = 1;
-                while (histCount < nHistosPerCanvas)
-                {
-                    iHist += increment;
-                    vecTH1Dtmp[histCount] = h_draw[iHist];
-                    histCount++;
-                }
-                double histMin = getMinimumTH1DContent(vecTH1Dtmp);
-                double histMax = getMaximumTH1DContent(vecTH1Dtmp);
-
-                if (setLogy == 0) h_draw[histStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
-                h_draw[histStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.25*TMath::Power(10,setLogy));
-            }
-
-            TLegend* leg = new TLegend();
-
-            int histCount = 0;
-            int iHist = histStart;
-            int increment = 1;
-            if (drawSameAcrossSplits)  increment = nHistosInput;
-            if (drawSameInsideSplits)  increment = 1;
-            while (histCount < nHistosPerCanvas)
-            {
-                std::string drawOption = "";
-                if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-                else if (nDrawOptions == nHistosPerCanvas) drawOption = drawOptions.at((iHist/increment)%nDrawOptions).c_str();
-
-                h_draw[iHist]->Draw(Form("%s same", drawOption.c_str()));
-
-                if (nLegendEntryLabels == nHistosPerCanvas) {
-                    std::string label = legendEntryLabels.at((iHist/increment)%nLegendEntryLabels).c_str();
-                    if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
-
-                    std::string legendOption = "lpf";
-                    if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
-                    leg->AddEntry(h_draw[iHist], label.c_str(), legendOption.c_str());
-                }
-
-                histCount++;
-                iHist += increment;
-            }
-
-            if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
-            leg->SetBorderSize(legendBorderSize);
-            double height = calcTLegendHeight(leg);
-            double width = calcTLegendWidth(leg);
-            if (legendHeight != 0)  height = legendHeight;
-            if (legendWidth != 0)  width = legendWidth;
-            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
-                setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
-                leg->Draw();
-            }
-
-            // add Text
-            setAndDrawLatex(c);
-
-            // add Text above the pad
-            setAndDrawLatexOverPad(c);
-
-            // add TLine
-            setAndDrawLinesHorizontal(c);
-            setAndDrawLinesVertical(c);
-            c->Write();
-
-            // save histograms as picture if a figure name is provided.
-            if (!outputFigureName.EqualTo("")) {
-                std::string tmpOutputFigureName = outputFigureName.Data();
-                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
-
-                    if (nCanvasDrawSame > 1) {
-                        // modify outputFile name
-                        // if iCanvas=1, then "output.ext" becomes "output_2.ext"
-                        size_t pos = tmpOutputFigureName.find_last_of(".");
-                        tmpOutputFigureName.replace(pos,1, Form("_%d.", iCanvas+1));
-                    }
-
-                    c->SaveAs(tmpOutputFigureName.c_str());
-                }
-                else {  // file extension is NOT specified
-                    if (nCanvasDrawSame > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output" becomes "output_2"
-                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), iCanvas+1);
-                    }
-
-                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
-                }
-            }
-            c->Close();
-            if (leg != 0)  leg->Delete();
-            iCanvas++;
-            drawSameFinished = (iCanvas == nCanvasDrawSame);
-        }
-    }
-
+    std::cout<<"Closing the output file."<<std::endl;
     output->Close();
+    std::cout<<"running drawSpectra() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
@@ -1232,6 +759,531 @@ void printConfiguration()
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
+}
+
+/*
+ * initialize/read/modify objects before the loop.
+ * Objects are eg. TH1, TGraph, ...
+ */
+int preLoop(TFile* input, bool makeNew)
+{
+    if (!makeNew) {
+        // check if the file is available
+        if (input == 0 ) return -1;
+        else if (!input->IsOpen()) return -1;
+        input->cd();
+    }
+
+    // check consistency of the input file arguments with the mode
+    if (mode == INPUT_MODE::k_noMode && nInputFileArguments > 1) {
+        std::cout<<"no specific mode is chosen. more than one input samples are provided."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return -1;
+    }
+    if (mode == INPUT_MODE::k_comparison && nInputFileArguments == 1) {
+        std::cout<<"comparison mode is chosen. But only one input sample is provided."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return -1;
+    }
+
+    if (nTrees == 1 && nFriendsIndividual > 0) {
+        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
+        std::cout<<"There is only one tree to be plotted, it does not make sense to use individual friend trees."<< std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return -1;
+    }
+    else if (nTrees > 1 && nFriendsIndividual > 0 && nTrees != nFriendsIndividual) {
+        std::cout<<"nTrees = "<< nTrees <<", nFriendsIndividual = " << nFriendsIndividual << std::endl;
+        std::cout<<"exiting"<< std::endl;
+        return -1;
+    }
+
+    if (nSelectionSplitter == 1) {
+        std::cout << "nSelectionSplitter = "<< nSelectionSplitter << std::endl;
+        std::cout << "selectionSplitter has been set to have exactly one selection"<< std::endl;
+        std::cout << "selectionSplitter is allowed to be either empty or to have more than one selections"<< std::endl;
+        std::cout << "exiting"<< std::endl;
+        return -1;
+    }
+    nSplits = 1;
+    if (nSelectionSplitter > 1)  nSplits = nSelectionSplitter;
+
+    nSelectionsTot = nSelections * nSplits;
+    nFormulasTot = nFormulas * nSplits;
+
+    TH1::SetDefaultSumw2();
+    nHistos = nFormulasTot;
+    if (nFormulas == 1 && nSelections > nFormulas) nHistos = nSelectionsTot;
+    else if (nFormulas == 1 && nSelections == 1 && nTrees > nFormulas) nHistos = nTrees * nSplits;
+    else if (nFormulas > 1 && nSelections > 1 && nFormulas != nSelections) {
+        std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
+        std::cout << "nHistos     = "<< nHistos << std::endl;
+        std::cout << "nSelections = "<< nSelections << std::endl;
+        std::cout << "exiting " << std::endl;
+        return -1;
+    }
+    else if (nFormulas > 1 && nTrees > 1 && nFormulas != nTrees) {
+        std::cout << "mismatch of number of formulas and number of trees"<< std::endl;
+        std::cout << "nHistos = "<< nHistos << std::endl;
+        std::cout << "nTrees  = "<< nTrees << std::endl;
+        std::cout << "exiting " << std::endl;
+        return -1;
+    }
+    else if (nSelections > 1 && nTrees > 1 && nSelections != nTrees) {
+        std::cout << "mismatch of number of selections and number of trees"<< std::endl;
+        std::cout << "nHistos     = "<< nHistos << std::endl;
+        std::cout << "nSelections = "<< nSelections << std::endl;
+        std::cout << "nTrees      = "<< nTrees << std::endl;
+        std::cout << "exiting " << std::endl;
+        return -1;
+    }
+
+    nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
+    std::cout << "nHistos = " << nHistos << std::endl;
+    h.clear();
+    h.resize(nHistos);
+    for (int i=0; i<nHistos; ++i) {
+        int nBins  = (int)TH1D_Bins_List[0].at(0);
+        float xLow = TH1D_Bins_List[1].at(0);
+        float xUp  = TH1D_Bins_List[2].at(0);
+        if (nTH1D_Bins_List == nHistosInput) {
+            nBins = (int)TH1D_Bins_List[0].at(i%nTH1D_Bins_List);
+            xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
+            xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
+        }
+        std::string title = "";
+        if (nTitles == 1)  {
+            if (titles.at(0).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(0).c_str();
+        }
+        else if (nTitles == nHistosInput)  {
+            if (titles.at(i%nTitles).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i%nTitles).c_str();
+        }
+        else if (nTitles == nHistos)  {
+            if (titles.at(i).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i).c_str();
+        }
+        else if (nTitles == nSplits)  {
+            if (titles.at(i/nHistosInput).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(i/nHistosInput).c_str();
+        }
+
+        std::string titleX = "";
+        if (nTitlesX == 1) titleX = titlesX.at(0).c_str();
+        else if (nTitlesX == nHistosInput) titleX = titlesX.at(i%nTitlesX).c_str();
+        else if (nTitlesX == nHistos)      titleX = titlesX.at(i).c_str();
+
+        std::string titleY = "";
+        if (nTitlesY == 1) titleY = titlesY.at(0).c_str();
+        else if (nTitlesY == nHistosInput) titleY = titlesY.at(i%nTitlesY).c_str();
+        else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
+
+        h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
+
+        if (binsLogScaleX > 0) {
+            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBins);
+            double binsArrTmp[nBins+1];
+            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
+
+            h[i]->GetXaxis()->Set(nBins, binsArrTmp);
+        }
+
+        if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
+    }
+
+    return 0;
+}
+
+int postLoop()
+{
+    // print info about histograms
+    for (int i=0; i<nHistos; ++i) {
+        std::cout << "#####" << std::endl;
+        std::cout << Form("h[%d]", i) << std::endl;
+        std::string summary = summaryTH1(h[i]);
+        std::cout << summary.c_str() << std::endl;
+    }
+
+    h_normInt.clear();
+    h_normInt.resize(nHistos);
+    h_normEvents.clear();
+    h_normEvents.resize(nHistos);
+    for (int i=0; i<nHistos; ++i) {
+        h[i]->Write();
+
+        h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
+        h_normInt[i]->Scale(1./h[i]->Integral());
+        h_normInt[i]->Write();
+
+        h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
+        h_normEvents[i]->Scale(1./entriesSelected[i]);
+        h_normEvents[i]->Write();
+    }
+    // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
+
+    // set the style of the histograms for canvases to be written
+    for (int i=0; i<nHistos; ++i) {
+        h[i]->SetTitleOffset(titleOffsetX,"X");
+        h[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
+
+        // default marker style and color
+        h[i]->SetMarkerStyle(kFullCircle);
+        h[i]->SetMarkerColor(kBlack);
+        h_normInt[i]->SetMarkerStyle(kFullCircle);
+        h_normInt[i]->SetMarkerColor(kBlack);
+        h_normEvents[i]->SetMarkerStyle(kFullCircle);
+        h_normEvents[i]->SetMarkerColor(kBlack);
+
+        // no stats box in the final plots
+        h[i]->SetStats(false);
+        h_normInt[i]->SetStats(false);
+        h_normEvents[i]->SetStats(false);
+    }
+
+    // write canvases
+    TCanvas* c = 0;
+    for (int i=0; i<nHistos; ++i) {
+        c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
+        c->SetTitle(h[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h[i]->SetTitleOffset(titleOffsetX,"X");
+        h[i]->SetTitleOffset(titleOffsetY,"Y");
+        h[i]->SetMarkerStyle(kFullCircle);
+        h[i]->SetMarkerColor(kBlack);
+        h[i]->SetStats(false);              // no stats box in the final plots
+        h[i]->Draw("e");
+        c->Write();
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // normalized to 1.
+        c = new TCanvas(Form("cnv_%d_normInt",i),"",windowWidth,windowHeight);
+        c->SetTitle(h_normInt[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normInt[i]->SetMarkerStyle(kFullCircle);
+        h_normInt[i]->SetMarkerColor(kBlack);
+        h_normInt[i]->SetStats(false);  // no stats box in the final plots
+        h_normInt[i]->Draw("e");
+        c->Write();
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // normalized by number of events
+        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
+        c->SetTitle(h_normEvents[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEvents[i]->SetMarkerStyle(kFullCircle);
+        h_normEvents[i]->SetMarkerColor(kBlack);
+        h_normEvents[i]->SetStats(false);   // no stats box in the final plots
+        h_normEvents[i]->Draw("e");
+        c->Write();
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    // write canvases - END
+
+    // set style of the histograms for the canvases to be saved as picture
+    for(int i=0; i<nHistos; ++i) {
+        bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
+
+        std::string drawOption = "";
+        if (nDrawOptions == 1) {
+            if (drawOptions.at(0).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(0).c_str();
+        }
+        else if (!drawSameAcrossSplits && nDrawOptions == nHistosInput) {
+            if (drawOptions.at(i%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at(i%nDrawOptions).c_str();
+        }
+        else if (drawSameAcrossSplits && nDrawOptions == nSplits) {
+            if (drawOptions.at((i/nHistosInput)%nDrawOptions).compare(CONFIGPARSER::nullInput) != 0)  drawOption = drawOptions.at((i/nHistosInput)%nDrawOptions).c_str();
+        }
+        // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
+        // TObject::SetDrawOption() is not suitable for the approach here.
+
+        int markerStyle = GRAPHICS::markerStyle;
+        if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
+        else if (!drawSameAcrossSplits && nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
+        else if (drawSameAcrossSplits && nMarkerStyles == nSplits) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at((i/nHistosInput)%nMarkerStyles));
+        h[i]->SetMarkerStyle(markerStyle);
+        h_normInt[i]->SetMarkerStyle(markerStyle);
+        h_normEvents[i]->SetMarkerStyle(markerStyle);
+
+        int lineStyle = GRAPHICS::lineStyle;
+        if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
+        else if (!drawSameAcrossSplits && nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
+        else if (drawSameAcrossSplits && nLineStyles == nSplits)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at((i/nHistosInput)%nLineStyles));
+        h[i]->SetLineStyle(lineStyle);
+        h_normInt[i]->SetLineStyle(lineStyle);
+        h_normEvents[i]->SetLineStyle(lineStyle);
+
+        int fillStyle = GRAPHICS::fillStyle;
+        if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
+        else if (!drawSameAcrossSplits && nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
+        else if (drawSameAcrossSplits && nFillStyles == nSplits)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at((i/nHistosInput)%nFillStyles));
+        h[i]->SetFillStyle(fillStyle);
+        h_normInt[i]->SetFillStyle(fillStyle);
+        h_normEvents[i]->SetFillStyle(fillStyle);
+
+        int color = GRAPHICS::colors[i];
+        if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
+        else if (!drawSameAcrossSplits && nColors == nHistosInput) color = GraphicsConfigurationParser::ParseColor(colors.at(i%nColors));
+        else if (drawSameAcrossSplits && nColors == nSplits) color = GraphicsConfigurationParser::ParseColor(colors.at((i/nHistosInput)%nColors));
+        h[i]->SetMarkerColor(color);
+        h[i]->SetLineColor(color);
+        h_normInt[i]->SetMarkerColor(color);
+        h_normInt[i]->SetLineColor(color);
+        h_normEvents[i]->SetMarkerColor(color);
+        h_normEvents[i]->SetLineColor(color);
+
+        int fillColor = -1;
+        if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
+        else if (!drawSameAcrossSplits && nFillColors == nHistosInput) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i%nFillColors));
+        else if (drawSameAcrossSplits && nFillColors == nSplits) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at((i/nHistosInput)%nFillColors));
+        if (fillColor != -1)
+        {
+            h[i]->SetFillColor(fillColor);
+            h_normInt[i]->SetFillColor(fillColor);
+            h_normEvents[i]->SetFillColor(fillColor);
+        }
+
+        int lineColor = -1;
+        if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
+        else if (!drawSameAcrossSplits && nLineColors == nHistosInput) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i%nLineColors));
+        else if (drawSameAcrossSplits && nLineColors == nSplits) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at((i/nHistosInput)%nLineColors));
+        if (nLineColors != -1)
+        {
+            h[i]->SetLineColor(lineColor);
+            h_normInt[i]->SetLineColor(lineColor);
+            h_normEvents[i]->SetLineColor(lineColor);
+        }
+
+        if(lineWidth != INPUT_DEFAULT::lineWidth) {
+            if (drawOption.find("hist") != std::string::npos) {
+                h[i]->SetLineWidth(lineWidth);
+                h_normInt[i]->SetLineWidth(lineWidth);
+                h_normEvents[i]->SetLineWidth(lineWidth);
+            }
+        }
+
+        h[i]->SetMarkerSize(markerSize);
+        h_normInt[i]->SetMarkerSize(markerSize);
+        h_normEvents[i]->SetMarkerSize(markerSize);
+    }
+
+    h_draw.clear();
+    h_draw.resize(nHistos);
+    for (int i=0; i<nHistos; ++i) {
+        if (drawNormalized == INPUT_TH1::k_normInt) {
+            h_draw[i] = (TH1D*)h_normInt[i]->Clone(Form("h_%d_draw", i));
+        }
+        else if (drawNormalized == INPUT_TH1::k_normEvents) {
+            h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
+        }
+        else {  // no normalization
+            h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
+        }
+    }
+
+    if (drawSame == 0) {    // histograms will be plotted separately.
+        for (int i=0; i<nHistos; ++i) {
+            c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
+            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+            setCanvasFinal(c, setLogx, setLogy);
+            c->cd();
+
+            std::string drawOption = "";
+            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+            else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
+
+            h_draw[i]->SetMarkerColor(kBlack);
+            h_draw[i]->SetLineColor(kBlack);
+            h_draw[i]->Draw(drawOption.c_str());
+
+            // add Text
+            setAndDrawLatex(c);
+
+            // add Text above the pad
+            setAndDrawLatexOverPad(c);
+
+            // add TLine
+            setAndDrawLinesHorizontal(c);
+            setAndDrawLinesVertical(c);
+            c->Write();
+
+            // save histograms as picture if a figure name is provided.
+            if (outputFigureStr.size() > 0) {
+                std::string tmpOutputFigureName = outputFigureStr.c_str();
+                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
+                    if (nHistos > 1) {
+                        // modify outputFile name
+                        // if i=1, then "output.ext" becomes "output_2.ext"
+                        size_t pos = tmpOutputFigureName.find_last_of(".");
+                        tmpOutputFigureName.replace(pos,1, Form("_%d.", i+1));
+                    }
+                    c->SaveAs(tmpOutputFigureName.c_str());
+                }
+                else {  // file extension is NOT specified
+                    if (nHistos > 1) {
+                        // modify outputFile name
+                        // if i=1, then "output" becomes "output_2"
+                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), i+1);
+                    }
+
+                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
+                }
+            }
+            c->Close();         // do not use Delete() for TCanvas.
+        }
+    }
+    else if (drawSame > 0) {    // histograms will be plotted to the same canvas
+
+        bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
+        bool drawSameInsideSplits = (drawSame == INPUT_TH1::k_drawSameInsideSplits);
+
+        int nCanvasDrawSame = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+        if (drawSameAcrossSplits)  nCanvasDrawSame = nHistosInput;
+        if (drawSameInsideSplits)  nCanvasDrawSame = nSplits;
+
+        // one must have : nHistosPerCanvas * nCanvasDrawSame = nHistos
+        int nHistosPerCanvas = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+        if (drawSameAcrossSplits)  nHistosPerCanvas = nSplits;
+        if (drawSameInsideSplits)  nHistosPerCanvas = nHistosInput;
+
+        int iCanvas = 0;
+        bool drawSameFinished = false;
+        while (!drawSameFinished)  {
+
+            c = new TCanvas(Form("cnv_drawSpectra_%d", iCanvas),"",windowWidth,windowHeight);
+            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+            setCanvasFinal(c, setLogx, setLogy);
+            c->cd();
+
+            int histStart = 0;
+            if (drawSameAcrossSplits) histStart += iCanvas;
+            if (drawSameInsideSplits) histStart =  iCanvas * nHistosPerCanvas;
+            // set maximum/minimum of y-axis
+            if (yMin > yMax) {
+                std::vector<TH1D*> vecTH1Dtmp;
+                vecTH1Dtmp.resize(nHistosPerCanvas);
+                vecTH1Dtmp[0] = h_draw[histStart];
+
+                int histCount = 1;
+                int iHist = histStart;
+                int increment = 1;
+                if (drawSameAcrossSplits)  increment = nHistosInput;
+                if (drawSameInsideSplits)  increment = 1;
+                while (histCount < nHistosPerCanvas)
+                {
+                    iHist += increment;
+                    vecTH1Dtmp[histCount] = h_draw[iHist];
+                    histCount++;
+                }
+                double histMin = getMinimumTH1DContent(vecTH1Dtmp);
+                double histMax = getMaximumTH1DContent(vecTH1Dtmp);
+
+                if (setLogy == 0) h_draw[histStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
+                h_draw[histStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.25*TMath::Power(10,setLogy));
+            }
+
+            TLegend* leg = new TLegend();
+
+            int histCount = 0;
+            int iHist = histStart;
+            int increment = 1;
+            if (drawSameAcrossSplits)  increment = nHistosInput;
+            if (drawSameInsideSplits)  increment = 1;
+            while (histCount < nHistosPerCanvas)
+            {
+                std::string drawOption = "";
+                if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+                else if (nDrawOptions == nHistosPerCanvas) drawOption = drawOptions.at((iHist/increment)%nDrawOptions).c_str();
+
+                h_draw[iHist]->Draw(Form("%s same", drawOption.c_str()));
+
+                if (nLegendEntryLabels == nHistosPerCanvas) {
+                    std::string label = legendEntryLabels.at((iHist/increment)%nLegendEntryLabels).c_str();
+                    if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
+
+                    std::string legendOption = "lpf";
+                    if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
+                    leg->AddEntry(h_draw[iHist], label.c_str(), legendOption.c_str());
+                }
+
+                histCount++;
+                iHist += increment;
+            }
+
+            if (legendTextSize != 0)  leg->SetTextSize(legendTextSize);
+            leg->SetBorderSize(legendBorderSize);
+            double height = calcTLegendHeight(leg);
+            double width = calcTLegendWidth(leg);
+            if (legendHeight != 0)  height = legendHeight;
+            if (legendWidth != 0)  width = legendWidth;
+            if (legendPosition.size() > 0) {    // draw the legend if really a position is provided.
+                setLegendPosition(leg, legendPosition, c, height, width, legendOffsetX, legendOffsetY);
+                leg->Draw();
+            }
+
+            // add Text
+            setAndDrawLatex(c);
+
+            // add Text above the pad
+            setAndDrawLatexOverPad(c);
+
+            // add TLine
+            setAndDrawLinesHorizontal(c);
+            setAndDrawLinesVertical(c);
+            c->Write();
+
+            // save histograms as picture if a figure name is provided.
+            if (outputFigureStr.size() > 0) {
+                std::string tmpOutputFigureName = outputFigureStr.c_str();
+                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
+
+                    if (nCanvasDrawSame > 1) {
+                        // modify outputFile name
+                        // if iCanvas=1, then "output.ext" becomes "output_2.ext"
+                        size_t pos = tmpOutputFigureName.find_last_of(".");
+                        tmpOutputFigureName.replace(pos,1, Form("_%d.", iCanvas+1));
+                    }
+
+                    c->SaveAs(tmpOutputFigureName.c_str());
+                }
+                else {  // file extension is NOT specified
+                    if (nCanvasDrawSame > 1) {
+                        // modify outputFile name
+                        // if i=1, then "output" becomes "output_2"
+                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), iCanvas+1);
+                    }
+
+                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
+                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
+                }
+            }
+            c->Close();
+            if (leg != 0)  leg->Delete();
+            iCanvas++;
+            drawSameFinished = (iCanvas == nCanvasDrawSame);
+        }
+    }
+
+    return 0;
 }
 
 void setAndDrawLatex(TPad* pad)
