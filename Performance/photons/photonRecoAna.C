@@ -231,8 +231,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TH1::SetDefaultSumw2();
-    // initialize histograms
+    // initialize objects
     if (preLoop() != 0) return;
 
     TTree* treeggHiNtuplizer = 0;
@@ -721,7 +720,6 @@ void photonRecoAnaNoLoop(const TString configFile, const TString inputFile, cons
 
     TFile* input = new TFile(inputFile.Data(), "READ");
 
-    TH1::SetDefaultSumw2();
     if (preLoop(input, false) != 0) return;
 
     TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
@@ -1276,6 +1274,8 @@ int  preLoop(TFile* input, bool makeNew)
         else if (!input->IsOpen()) return -1;
         input->cd();
     }
+
+    TH1::SetDefaultSumw2();
 
     for (int iDep = 0; iDep < RECOANA::kN_DEPS; ++iDep) {
 
