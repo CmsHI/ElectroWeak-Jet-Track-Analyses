@@ -150,6 +150,8 @@ int nLineStyles_vertical;
 
 int readConfiguration(const TString configFile);
 void printConfiguration();
+void setAndDrawLatex(TPad* pad, TLatex* latex);
+void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText);
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
@@ -693,7 +695,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
     TLatex* latex = 0;
     TLine*  line = 0;
-
     if (drawSame == 0) {    // histograms will be plotted separately.
         for (int i=0; i<nHistos; ++i) {
             c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
@@ -710,34 +711,13 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             h_draw[i]->Draw(drawOption.c_str());
 
             // add Text
-            if (nTextLines > 0) {
-                latex = new TLatex();
-                latex->SetTextFont(textFont);
-                latex->SetTextSize(textSize);
-                setTextAlignment(latex, textPosition);
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLines; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
-                }
-            }
+            latex = new TLatex();
+            setAndDrawLatex(c, latex);
 
             // add Text above the pad
-            if (nTextsOverPad > 0) {
+            for (int i = 0; i < nTextsOverPad; ++i) {
                 latex = new TLatex();
-                latex->SetTextFont(textAbovePadFont);
-                latex->SetTextSize(textAbovePadSize);
-                for (int i = 0; i < nTextsOverPad; ++i) {
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
-                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
-
-                    latex->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latex, c, textAbovePadOffsetX, textAbovePadOffsetY);
-
-                    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(i).c_str());
-                }
+                setAndDrawLatexOverPad(c, latex, i);
             }
 
             // add TLine
@@ -891,34 +871,13 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add Text
-            if (nTextLines > 0) {
-                latex = new TLatex();
-                latex->SetTextFont(textFont);
-                latex->SetTextSize(textSize);
-                setTextAlignment(latex, textPosition);
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLines, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLines; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    latex->DrawLatexNDC(x, y, textLines.at(i).c_str());
-                }
-            }
+            latex = new TLatex();
+            setAndDrawLatex(c, latex);
 
             // add Text above the pad
-            if (nTextsOverPad > 0) {
+            for (int i = 0; i < nTextsOverPad; ++i) {
                 latex = new TLatex();
-                latex->SetTextFont(textAbovePadFont);
-                latex->SetTextSize(textAbovePadSize);
-                for (int i = 0; i < nTextsOverPad; ++i) {
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
-                    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
-
-                    latex->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latex, c, textAbovePadOffsetX, textAbovePadOffsetY);
-
-                    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(i).c_str());
-                }
+                setAndDrawLatexOverPad(c, latex, i);
             }
 
             // add TLine
@@ -1343,4 +1302,28 @@ void printConfiguration()
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
+}
+
+void setAndDrawLatex(TPad* pad, TLatex* latex)
+{
+    latex->SetTextFont(textFont);
+    latex->SetTextSize(textSize);
+    setTextAlignment(latex, textPosition);
+
+    drawTextLines(latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
+}
+
+void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText)
+{
+    latex->SetTextFont(textAbovePadFont);
+    latex->SetTextSize(textAbovePadSize);
+
+    int textOverPadAlignment = GRAPHICS::textAlign;
+    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(iText));
+    latex->SetTextAlign(textOverPadAlignment);
+
+    setTextAbovePad(latex, pad, textAbovePadOffsetX, textAbovePadOffsetY);
+
+    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(iText).c_str());
 }
