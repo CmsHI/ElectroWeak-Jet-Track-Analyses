@@ -1010,160 +1010,160 @@ int readConfiguration(const TString configFile)
 void printConfiguration()
 {
     // verbose about input configuration
-        std::cout<<"Input Configuration :"<<std::endl;
-        std::cout << "mode = " << mode.c_str() << std::endl;
-        for (int i = 0; i < (int)runMode.size(); ++i) {
-            std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
-        }
+    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "mode = " << mode.c_str() << std::endl;
+    for (int i = 0; i < (int)runMode.size(); ++i) {
+        std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
+    }
 
-        std::cout << "treePath = " << treePath.c_str() << std::endl;
-        std::cout << "collision = " << collisionName.c_str() << std::endl;
+    std::cout << "treePath = " << treePath.c_str() << std::endl;
+    std::cout << "collision = " << collisionName.c_str() << std::endl;
 
-        // verbose about cut configuration
-        std::cout<<"Cut Configuration :"<<std::endl;
-        std::cout << "nBins_eta = " << nBins_eta << std::endl;
-        for (int i=0; i<nBins_eta; ++i) {
-            std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_genPt = " << nBins_genPt << std::endl;
-        for (int i=0; i<nBins_genPt; ++i) {
-            std::cout << Form("bins_genPt[%d] = [%f, %f)", i, bins_genPt[0].at(i), bins_genPt[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_recoPt = " << nBins_recoPt << std::endl;
-        for (int i=0; i<nBins_recoPt; ++i) {
-            std::cout << Form("bins_recoPt[%d] = [%f, %f)", i, bins_recoPt[0].at(i), bins_recoPt[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_cent = " << nBins_cent << std::endl;
-        for (int i=0; i<nBins_cent; ++i) {
-            std::cout << Form("bins_cent[%d] = [%d, %d)", i, bins_cent[0].at(i), bins_cent[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_sumIso = " << nBins_sumIso << std::endl;
-        for (int i=0; i<nBins_sumIso; ++i) {
-            std::cout << Form("bins_sumIso[%d] = [%f, %f)", i, bins_sumIso[0].at(i), bins_sumIso[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_sieie = " << nBins_sieie << std::endl;
-        for (int i=0; i<nBins_sieie; ++i) {
-            std::cout << Form("bins_sieie[%d] = [%f, %f)", i, bins_sieie[0].at(i), bins_sieie[1].at(i)) << std::endl;
-        }
-        std::cout << "nBins_r9 = " << nBins_r9 << std::endl;
-        for (int i=0; i<nBins_r9; ++i) {
-            std::cout << Form("bins_r9[%d] = [%f, %f)", i, bins_r9[0].at(i), bins_r9[1].at(i)) << std::endl;
-        }
+    // verbose about cut configuration
+    std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout << "nBins_eta = " << nBins_eta << std::endl;
+    for (int i=0; i<nBins_eta; ++i) {
+        std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_genPt = " << nBins_genPt << std::endl;
+    for (int i=0; i<nBins_genPt; ++i) {
+        std::cout << Form("bins_genPt[%d] = [%f, %f)", i, bins_genPt[0].at(i), bins_genPt[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_recoPt = " << nBins_recoPt << std::endl;
+    for (int i=0; i<nBins_recoPt; ++i) {
+        std::cout << Form("bins_recoPt[%d] = [%f, %f)", i, bins_recoPt[0].at(i), bins_recoPt[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_cent = " << nBins_cent << std::endl;
+    for (int i=0; i<nBins_cent; ++i) {
+        std::cout << Form("bins_cent[%d] = [%d, %d)", i, bins_cent[0].at(i), bins_cent[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_sumIso = " << nBins_sumIso << std::endl;
+    for (int i=0; i<nBins_sumIso; ++i) {
+        std::cout << Form("bins_sumIso[%d] = [%f, %f)", i, bins_sumIso[0].at(i), bins_sumIso[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_sieie = " << nBins_sieie << std::endl;
+    for (int i=0; i<nBins_sieie; ++i) {
+        std::cout << Form("bins_sieie[%d] = [%f, %f)", i, bins_sieie[0].at(i), bins_sieie[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_r9 = " << nBins_r9 << std::endl;
+    for (int i=0; i<nBins_r9; ++i) {
+        std::cout << Form("bins_r9[%d] = [%f, %f)", i, bins_r9[0].at(i), bins_r9[1].at(i)) << std::endl;
+    }
 
-        std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
+    std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
 
-        std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
+    std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
 
-        std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
-        std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
-        std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
+    std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
+    std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
+    std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
 
-        std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
+    std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
 
-        std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
-        for (int i=0; i<nTH1D_Axis_List; ++i) {
-            std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Axis_List.at(i));
-            std::cout << Form("TH1D_Axis_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
-        }
-        std::cout << "nTH2D_Axis_List = " << nTH2D_Axis_List << std::endl;
-        for (int i=0; i<nTH2D_Axis_List; ++i) {
-            std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Axis_List.at(i));
-            std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
-        }
+    std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
+    for (int i=0; i<nTH1D_Axis_List; ++i) {
+        std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Axis_List.at(i));
+        std::cout << Form("TH1D_Axis_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
+    }
+    std::cout << "nTH2D_Axis_List = " << nTH2D_Axis_List << std::endl;
+    for (int i=0; i<nTH2D_Axis_List; ++i) {
+        std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Axis_List.at(i));
+        std::cout << Form("TH2D_Axis_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
+    }
 
-        std::cout << "title = " << title.c_str() << std::endl;
-        std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
-        std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
-        std::cout << "nyMin = " << nyMin << std::endl;
-        std::cout << "nyMax = " << nyMax << std::endl;
-        for (int i = 0; i < nyMax; ++i) {   // assume nyMax >= nyMin
-            float yMinTmp = yMin.at(0);
-            if (nyMin > 1) yMinTmp = yMin.at(i);
-            float yMaxTmp = yMax.at(0);
-            if (nyMax > 1) yMaxTmp = yMax.at(i);
-            std::cout << Form("(yMin, yMax)[%d] = (%f, %f)", i, yMinTmp, yMaxTmp) << std::endl;
-        }
-        std::cout << "nMarkerSizes  = " << nMarkerSizes << std::endl;
-        for (int i = 0; i<nMarkerSizes; ++i) {
-                std::cout << Form("markerSizes[%d] = %f", i, markerSizes.at(i)) << std::endl;
-        }
-        std::cout << "nMarkerStyles  = " << nMarkerStyles << std::endl;
-        for (int i = 0; i<nMarkerStyles; ++i) {
-                std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
-        }
-        std::cout << "nColors   = " << nColors << std::endl;
-        for (int i = 0; i<nColors; ++i) {
-                std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
-        }
+    std::cout << "title = " << title.c_str() << std::endl;
+    std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
+    std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
+    std::cout << "nyMin = " << nyMin << std::endl;
+    std::cout << "nyMax = " << nyMax << std::endl;
+    for (int i = 0; i < nyMax; ++i) {   // assume nyMax >= nyMin
+        float yMinTmp = yMin.at(0);
+        if (nyMin > 1) yMinTmp = yMin.at(i);
+        float yMaxTmp = yMax.at(0);
+        if (nyMax > 1) yMaxTmp = yMax.at(i);
+        std::cout << Form("(yMin, yMax)[%d] = (%f, %f)", i, yMinTmp, yMaxTmp) << std::endl;
+    }
+    std::cout << "nMarkerSizes  = " << nMarkerSizes << std::endl;
+    for (int i = 0; i<nMarkerSizes; ++i) {
+        std::cout << Form("markerSizes[%d] = %f", i, markerSizes.at(i)) << std::endl;
+    }
+    std::cout << "nMarkerStyles  = " << nMarkerStyles << std::endl;
+    for (int i = 0; i<nMarkerStyles; ++i) {
+        std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nColors   = " << nColors << std::endl;
+    for (int i = 0; i<nColors; ++i) {
+        std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
+    }
 
-        std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
-        for (int i = 0; i<nLegendEntryLabels; ++i) {
-                std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
-        }
-        for (int i = 0; i<nLegendEntryLabels; ++i) {
-                std::cout << Form("legendEntryPadIndices[%d] = %d", i, legendEntryPadIndices.at(i)) << std::endl;
-        }
-        std::cout << "nLegendPositions    = " << nLegendPositions << std::endl;
-        if (nLegendPositions == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
-        for (int i = 0; i < nLegendPositions; ++i) {
-            std::cout << Form("legendPositions[%d] = %s", i, legendPositions.at(i).c_str()) << std::endl;
-        }
-        std::cout << "nLegendOffsetsX = " << nLegendOffsetsX << std::endl;
-        for (int i = 0; i < nLegendOffsetsX; ++i) {
-            std::cout << Form("legendOffsetsX[%d] = %f", i, legendOffsetsX.at(i)) << std::endl;
-        }
-        std::cout << "nLegendOffsetsY = " << nLegendOffsetsY << std::endl;
-        for (int i = 0; i < nLegendOffsetsY; ++i) {
-            std::cout << Form("legendOffsetsY[%d] = %f", i, legendOffsetsY.at(i)) << std::endl;
-        }
-        std::cout << "nLegendBorderSizes = " << nLegendBorderSizes << std::endl;
-        for (int i = 0; i < nLegendBorderSizes; ++i) {
-            std::cout << Form("legendBorderSizes[%d] = %d", i, legendBorderSizes.at(i)) << std::endl;
-        }
-        std::cout << "nLegendWidths = " << nLegendWidths << std::endl;
-        for (int i = 0; i < nLegendWidths; ++i) {
-            std::cout << Form("legendWidths[%d] = %f", i, legendWidths.at(i)) << std::endl;
-        }
-        std::cout << "nLegendHeights = " << nLegendHeights << std::endl;
-        for (int i = 0; i < nLegendHeights; ++i) {
-            std::cout << Form("legendHeights[%d] = %f", i, legendHeights.at(i)) << std::endl;
-        }
-        std::cout << "nLegendTextSizes = " << nLegendTextSizes << std::endl;
-        for (int i = 0; i < nLegendTextSizes; ++i) {
-            std::cout << Form("legendTextSizes[%d] = %f", i, legendTextSizes.at(i)) << std::endl;
-        }
+    std::cout << "nLegendEntryLabels   = " << nLegendEntryLabels << std::endl;
+    for (int i = 0; i<nLegendEntryLabels; ++i) {
+        std::cout << Form("legendEntryLabels[%d] = %s", i, legendEntryLabels.at(i).c_str()) << std::endl;
+    }
+    for (int i = 0; i<nLegendEntryLabels; ++i) {
+        std::cout << Form("legendEntryPadIndices[%d] = %d", i, legendEntryPadIndices.at(i)) << std::endl;
+    }
+    std::cout << "nLegendPositions    = " << nLegendPositions << std::endl;
+    if (nLegendPositions == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
+    for (int i = 0; i < nLegendPositions; ++i) {
+        std::cout << Form("legendPositions[%d] = %s", i, legendPositions.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nLegendOffsetsX = " << nLegendOffsetsX << std::endl;
+    for (int i = 0; i < nLegendOffsetsX; ++i) {
+        std::cout << Form("legendOffsetsX[%d] = %f", i, legendOffsetsX.at(i)) << std::endl;
+    }
+    std::cout << "nLegendOffsetsY = " << nLegendOffsetsY << std::endl;
+    for (int i = 0; i < nLegendOffsetsY; ++i) {
+        std::cout << Form("legendOffsetsY[%d] = %f", i, legendOffsetsY.at(i)) << std::endl;
+    }
+    std::cout << "nLegendBorderSizes = " << nLegendBorderSizes << std::endl;
+    for (int i = 0; i < nLegendBorderSizes; ++i) {
+        std::cout << Form("legendBorderSizes[%d] = %d", i, legendBorderSizes.at(i)) << std::endl;
+    }
+    std::cout << "nLegendWidths = " << nLegendWidths << std::endl;
+    for (int i = 0; i < nLegendWidths; ++i) {
+        std::cout << Form("legendWidths[%d] = %f", i, legendWidths.at(i)) << std::endl;
+    }
+    std::cout << "nLegendHeights = " << nLegendHeights << std::endl;
+    for (int i = 0; i < nLegendHeights; ++i) {
+        std::cout << Form("legendHeights[%d] = %f", i, legendHeights.at(i)) << std::endl;
+    }
+    std::cout << "nLegendTextSizes = " << nLegendTextSizes << std::endl;
+    for (int i = 0; i < nLegendTextSizes; ++i) {
+        std::cout << Form("legendTextSizes[%d] = %f", i, legendTextSizes.at(i)) << std::endl;
+    }
 
-        std::cout << "nTextLines   = " << nTextLines << std::endl;
-        for (int i = 0; i<nTextLines; ++i) {
-                std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
-        }
-        std::cout << "nTextPositions = " << nTextPositions << std::endl;
-        for (int i = 0; i<nTextPositions; ++i) {
-            std::cout << Form("textPositions[%d] = %s", i, textPositions.at(i).c_str()) << std::endl;
-        }
-        std::cout << "nTextFonts = " << nTextFonts << std::endl;
-        for (int i = 0; i<nTextFonts; ++i) {
-            std::cout << Form("textFonts[%d] = %d", i, textFonts.at(i)) << std::endl;
-        }
-        std::cout << "nTextSizes = " << nTextSizes << std::endl;
-        for (int i = 0; i<nTextSizes; ++i) {
-            std::cout << Form("textSizes[%d] = %f", i, textSizes.at(i)) << std::endl;
-        }
-        std::cout << "nTextOffsetsX = " << nTextOffsetsX << std::endl;
-        for (int i = 0; i<nTextOffsetsX; ++i) {
-            std::cout << Form("textOffsetsX[%d] = %f", i, textOffsetsX.at(i)) << std::endl;
-        }
-        std::cout << "nTextOffsetsY = " << nTextOffsetsY << std::endl;
-        for (int i = 0; i<nTextOffsetsY; ++i) {
-            std::cout << Form("textOffsetsY[%d] = %f", i, textOffsetsY.at(i)) << std::endl;
-        }
+    std::cout << "nTextLines   = " << nTextLines << std::endl;
+    for (int i = 0; i<nTextLines; ++i) {
+        std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTextPositions = " << nTextPositions << std::endl;
+    for (int i = 0; i<nTextPositions; ++i) {
+        std::cout << Form("textPositions[%d] = %s", i, textPositions.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTextFonts = " << nTextFonts << std::endl;
+    for (int i = 0; i<nTextFonts; ++i) {
+        std::cout << Form("textFonts[%d] = %d", i, textFonts.at(i)) << std::endl;
+    }
+    std::cout << "nTextSizes = " << nTextSizes << std::endl;
+    for (int i = 0; i<nTextSizes; ++i) {
+        std::cout << Form("textSizes[%d] = %f", i, textSizes.at(i)) << std::endl;
+    }
+    std::cout << "nTextOffsetsX = " << nTextOffsetsX << std::endl;
+    for (int i = 0; i<nTextOffsetsX; ++i) {
+        std::cout << Form("textOffsetsX[%d] = %f", i, textOffsetsX.at(i)) << std::endl;
+    }
+    std::cout << "nTextOffsetsY = " << nTextOffsetsY << std::endl;
+    for (int i = 0; i<nTextOffsetsY; ++i) {
+        std::cout << Form("textOffsetsY[%d] = %f", i, textOffsetsY.at(i)) << std::endl;
+    }
 
-        std::cout << "windowWidth = " << windowWidth << std::endl;
-        std::cout << "windowHeight = " << windowHeight << std::endl;
-        std::cout << "leftMargin   = " << leftMargin << std::endl;
-        std::cout << "rightMargin  = " << rightMargin << std::endl;
-        std::cout << "bottomMargin = " << bottomMargin << std::endl;
-        std::cout << "topMargin    = " << topMargin << std::endl;
+    std::cout << "windowWidth = " << windowWidth << std::endl;
+    std::cout << "windowHeight = " << windowHeight << std::endl;
+    std::cout << "leftMargin   = " << leftMargin << std::endl;
+    std::cout << "rightMargin  = " << rightMargin << std::endl;
+    std::cout << "bottomMargin = " << bottomMargin << std::endl;
+    std::cout << "topMargin    = " << topMargin << std::endl;
 }
 
 std::vector<bool> parseMode(std::string mode)
