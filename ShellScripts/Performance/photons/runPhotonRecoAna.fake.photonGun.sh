@@ -9,6 +9,7 @@ if [[ $USER == "tatar" ]]; then
   runCmdStr="myRun"
 fi
 
+progPath="./Performance/photons/photonRecoAna.exe"
 inputFile="/mnt/hadoop/cms/store/user/tatar/EGamma/SingleGammaFlatPt10To200_pythia8_Hydjet/0.root"
 
 outDir="/export/d00/scratch/"$USER"/EWJTA-out/Performance/photons/"
@@ -34,7 +35,7 @@ do
     configFile=${configList[i1]}
     outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
-    $runCmd Performance/photons/photonRecoAna.exe $configFile $inputFile $outputFile &> $outputFileLOG &
-    echo "$runCmdStr Performance/photons/photonRecoAna.exe $configFile $inputFile $outputFile &> $outputFileLOG &"
+    $runCmd $progPath $configFile $inputFile $outputFile &> $outputFileLOG &
+    echo "$runCmdStr $progPath $configFile $inputFile $outputFile &> $outputFileLOG &"
 done
 
