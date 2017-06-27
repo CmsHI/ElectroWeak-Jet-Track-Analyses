@@ -152,6 +152,8 @@ int readConfiguration(const TString configFile);
 void printConfiguration();
 void setAndDrawLatex(TPad* pad, TLatex* latex);
 void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText);
+void setAndDrawLinesHorizontal(TPad* pad, TLine* line);
+void setAndDrawLinesVertical(TPad* pad, TLine* line);
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
@@ -721,37 +723,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add TLine
-            for (int iLine = 0; iLine<nTLines_horizontal; ++iLine) {
-                // draw horizontal line
-                double xmin = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetFirst());
-                double xmax = h[i]->GetXaxis()->GetBinLowEdge(h[i]->GetXaxis()->GetLast()+1);
-
-                int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                if (nLineStyles_horizontal == 1)
-                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                else if (nLineStyles_horizontal == nTLines_horizontal)
-                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
-
-                line = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
-                line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line->Draw();
-            }
-            // add TLine
-            for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
-                // draw vertical line
-                double ymin = h[i]->GetMinimum();
-                double ymax = h[i]->GetMaximum();
-
-                int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                if (nLineStyles_vertical == 1)
-                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                else if (nLineStyles_vertical == nTLines_vertical)
-                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
-
-                line = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
-                line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                line->Draw();
-            }
+            setAndDrawLinesHorizontal(c, line);
+            setAndDrawLinesVertical(c, line);
             c->Write();
 
             // save histograms as picture if a figure name is provided.
@@ -881,41 +854,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add TLine
-            for (int i = 0; i<nTLines_horizontal; ++i) {
-                if (nHistos > 0) {
-                    // draw horizontal line
-                    double xmin = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetFirst());
-                    double xmax = h[0]->GetXaxis()->GetBinLowEdge(h[0]->GetXaxis()->GetLast()+1);
-
-                    int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                    if (nLineStyles_horizontal == 1)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                    else if (nLineStyles_horizontal == nTLines_horizontal)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
-
-                    line = new TLine(xmin, TLines_horizontal.at(i), xmax, TLines_horizontal.at(i));
-                    line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line->Draw();
-                }
-            }
-            // add TLine
-            for (int i = 0; i<nTLines_vertical; ++i) {
-                if (nHistos > 0) {
-                    // draw vertical line
-                    double ymin = h[0]->GetMinimum();
-                    double ymax = h[0]->GetMaximum();
-
-                    int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                    if (nLineStyles_vertical == 1)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                    else if (nLineStyles_vertical == nTLines_vertical)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
-
-                    line = new TLine(TLines_vertical.at(i), ymin, TLines_vertical.at(i), ymax);
-                    line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line->Draw();
-                }
-            }
+            setAndDrawLinesHorizontal(c, line);
+            setAndDrawLinesVertical(c, line);
             c->Write();
 
             // save histograms as picture if a figure name is provided.
@@ -1326,4 +1266,54 @@ void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText)
     setTextAbovePad(latex, pad, textAbovePadOffsetX, textAbovePadOffsetY);
 
     latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(iText).c_str());
+}
+
+void setAndDrawLinesHorizontal(TPad* pad, TLine* line)
+{
+    pad->Update();
+    for (int i = 0; i<nTLines_horizontal; ++i) {
+
+        double x1 = pad->GetUxmin();
+        double x2 = pad->GetUxmax();
+        double y1 = pad->GetUymin();
+        double y2 = pad->GetUymax();
+
+        if (y1 < TLines_horizontal.at(i) && TLines_horizontal.at(i) < y2) {
+
+            int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+            if (nLineStyles_horizontal == 1)
+                lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+            else if (nLineStyles_horizontal == nTLines_horizontal)
+                lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
+
+            line = new TLine(x1, TLines_horizontal.at(i), x2, TLines_horizontal.at(i));
+            line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line->Draw();
+        }
+    }
+}
+
+void setAndDrawLinesVertical(TPad* pad, TLine* line)
+{
+    pad->Update();
+    for (int i = 0; i<nTLines_vertical; ++i) {
+
+        double x1 = pad->GetUxmin();
+        double x2 = pad->GetUxmax();
+        double y1 = pad->GetUymin();
+        double y2 = pad->GetUymax();
+
+        if (x1 < TLines_vertical.at(i) && TLines_vertical.at(i) < x2) {
+
+            int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+            if (nLineStyles_vertical == 1)
+                lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+            else if (nLineStyles_vertical == nTLines_vertical)
+                lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
+
+            line = new TLine(TLines_vertical.at(i), y1, TLines_vertical.at(i), y2);
+            line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line->Draw();
+        }
+    }
 }
