@@ -159,6 +159,7 @@ int nHistosInput;
 std::vector<TH1D*> h;
 std::vector<TH1D*> h_normInt;
 std::vector<TH1D*> h_normEvents;
+std::vector<TH1D*> h_nums;      // histograms to store numbers
 std::vector<TH1D*> h_draw;
 std::string outputFigureStr;
 ///// global variables - END
@@ -905,6 +906,8 @@ int postLoop()
     h_normInt.resize(nHistos);
     h_normEvents.clear();
     h_normEvents.resize(nHistos);
+    h_nums.clear();
+    h_nums.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
         h[i]->Write();
 
@@ -915,6 +918,11 @@ int postLoop()
         h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
         h_normEvents[i]->Scale(1./entriesSelected[i]);
         h_normEvents[i]->Write();
+
+        h_nums[i] = new TH1D(Form("%s_nums", h[i]->GetName()), h[i]->GetTitle(), 2, 0, 2);
+        h_nums[i]->SetBinContent(1, entries[0]);
+        h_nums[i]->SetBinContent(2, entriesSelected[i]);
+        h_nums[i]->Write();
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
