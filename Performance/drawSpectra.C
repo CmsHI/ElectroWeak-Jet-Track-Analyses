@@ -150,10 +150,10 @@ int nLineStyles_vertical;
 
 int readConfiguration(const TString configFile);
 void printConfiguration();
-void setAndDrawLatex(TPad* pad, TLatex* latex);
-void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText);
-void setAndDrawLinesHorizontal(TPad* pad, TLine* line);
-void setAndDrawLinesVertical(TPad* pad, TLine* line);
+void setAndDrawLatex(TPad* pad);
+void setAndDrawLatexOverPad(TPad* pad);
+void setAndDrawLinesHorizontal(TPad* pad);
+void setAndDrawLinesVertical(TPad* pad);
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
@@ -695,8 +695,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         }
     }
 
-    TLatex* latex = 0;
-    TLine*  line = 0;
     if (drawSame == 0) {    // histograms will be plotted separately.
         for (int i=0; i<nHistos; ++i) {
             c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
@@ -713,18 +711,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             h_draw[i]->Draw(drawOption.c_str());
 
             // add Text
-            latex = new TLatex();
-            setAndDrawLatex(c, latex);
+            setAndDrawLatex(c);
 
             // add Text above the pad
-            for (int i = 0; i < nTextsOverPad; ++i) {
-                latex = new TLatex();
-                setAndDrawLatexOverPad(c, latex, i);
-            }
+            setAndDrawLatexOverPad(c);
 
             // add TLine
-            setAndDrawLinesHorizontal(c, line);
-            setAndDrawLinesVertical(c, line);
+            setAndDrawLinesHorizontal(c);
+            setAndDrawLinesVertical(c);
             c->Write();
 
             // save histograms as picture if a figure name is provided.
@@ -794,7 +788,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 while (histCount < nHistosPerCanvas)
                 {
                     iHist += increment;
-                    vecTH1Dtmp[iHist] = h_draw[histStart];
+                    vecTH1Dtmp[histCount] = h_draw[iHist];
                     histCount++;
                 }
                 double histMin = getMinimumTH1DContent(vecTH1Dtmp);
@@ -844,18 +838,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
 
             // add Text
-            latex = new TLatex();
-            setAndDrawLatex(c, latex);
+            setAndDrawLatex(c);
 
             // add Text above the pad
-            for (int i = 0; i < nTextsOverPad; ++i) {
-                latex = new TLatex();
-                setAndDrawLatexOverPad(c, latex, i);
-            }
+            setAndDrawLatexOverPad(c);
 
             // add TLine
-            setAndDrawLinesHorizontal(c, line);
-            setAndDrawLinesVertical(c, line);
+            setAndDrawLinesHorizontal(c);
+            setAndDrawLinesVertical(c);
             c->Write();
 
             // save histograms as picture if a figure name is provided.
@@ -950,7 +940,7 @@ int readConfiguration(const TString configFile)
     titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
     titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
     // nBins, xLow, xUp for the TH1D histogram
-    std::vector<std::vector<float>> TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
     binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
     titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
     titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
@@ -1244,31 +1234,38 @@ void printConfiguration()
     std::cout<<"Cut Configuration :"<<std::endl;
 }
 
-void setAndDrawLatex(TPad* pad, TLatex* latex)
+void setAndDrawLatex(TPad* pad)
 {
-    latex->SetTextFont(textFont);
-    latex->SetTextSize(textSize);
-    setTextAlignment(latex, textPosition);
+    TLatex latex;
 
-    drawTextLines(latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
+    latex.SetTextFont(textFont);
+    latex.SetTextSize(textSize);
+    setTextAlignment(&latex, textPosition);
+
+    drawTextLines(&latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
 }
 
-void setAndDrawLatexOverPad(TPad* pad, TLatex* latex, int iText)
+void setAndDrawLatexOverPad(TPad* pad)
 {
-    latex->SetTextFont(textAbovePadFont);
-    latex->SetTextSize(textAbovePadSize);
+    for (int i = 0; i < nTextsOverPad; ++i) {
 
-    int textOverPadAlignment = GRAPHICS::textAlign;
-    if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
-    else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(iText));
-    latex->SetTextAlign(textOverPadAlignment);
+        TLatex latex;
 
-    setTextAbovePad(latex, pad, textAbovePadOffsetX, textAbovePadOffsetY);
+        latex.SetTextFont(textAbovePadFont);
+        latex.SetTextSize(textAbovePadSize);
 
-    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), textsOverPad.at(iText).c_str());
+        int textOverPadAlignment = GRAPHICS::textAlign;
+        if (nTextsOverPadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(0));
+        else if (nTextsOverPadAlignments == nTextsOverPad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsOverPadAlignments.at(i));
+        latex.SetTextAlign(textOverPadAlignment);
+
+        setTextAbovePad(&latex, pad, textAbovePadOffsetX, textAbovePadOffsetY);
+
+        latex.DrawLatexNDC(latex.GetX(), latex.GetY(), textsOverPad.at(i).c_str());
+    }
 }
 
-void setAndDrawLinesHorizontal(TPad* pad, TLine* line)
+void setAndDrawLinesHorizontal(TPad* pad)
 {
     pad->Update();
     for (int i = 0; i<nTLines_horizontal; ++i) {
@@ -1286,14 +1283,14 @@ void setAndDrawLinesHorizontal(TPad* pad, TLine* line)
             else if (nLineStyles_horizontal == nTLines_horizontal)
                 lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(i));
 
-            line = new TLine(x1, TLines_horizontal.at(i), x2, TLines_horizontal.at(i));
-            line->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-            line->Draw();
+            TLine line;
+            line.SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line.DrawLine(x1, TLines_horizontal.at(i), x2, TLines_horizontal.at(i));
         }
     }
 }
 
-void setAndDrawLinesVertical(TPad* pad, TLine* line)
+void setAndDrawLinesVertical(TPad* pad)
 {
     pad->Update();
     for (int i = 0; i<nTLines_vertical; ++i) {
@@ -1311,9 +1308,9 @@ void setAndDrawLinesVertical(TPad* pad, TLine* line)
             else if (nLineStyles_vertical == nTLines_vertical)
                 lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(i));
 
-            line = new TLine(TLines_vertical.at(i), y1, TLines_vertical.at(i), y2);
-            line->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-            line->Draw();
+            TLine line;
+            line.SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line.DrawLine(TLines_vertical.at(i), y1, TLines_vertical.at(i), y2);
         }
     }
 }
