@@ -453,7 +453,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 !(hist_type == "iaa" && pt_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && cent_based_plots && j != 1)) {
+                !(hist_type == "xjg" && cent_based_plots && j != 0)) {
                 if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
                     plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
                 else
