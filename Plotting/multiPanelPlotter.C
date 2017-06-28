@@ -309,8 +309,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa")
                     {
                         if (pt_based_plots && cent_bin_numbers[i] == 2) {
-                            if (k == _PP_DATA) h1[i][j][k]->SetMarkerStyle(kOpenSquare);
-                            if (k == _PBPB_DATA) h1[i][j][k]->SetMarkerStyle(kFullSquare);
+                            if (k == _PP_DATA) {
+                                h1[i][j][k]->SetMarkerStyle(kOpenSquare);
+                            }
+                            if (k == _PBPB_DATA) {
+                                h1[i][j][k]->SetMarkerStyle(kFullSquare);
+                            }
                         }
                     }
 
@@ -1022,9 +1026,29 @@ void cover_axis(std::string hist_type, float margin, float edge) {
     }
 
     float axis_label_cover_size_wide = (hist_type.find("BinAll") != std::string::npos) ? 0.025 : axis_label_cover_size;
+    if (hist_type == "dphi") axis_label_cover_size_wide /= 1.05;
     for (int p=1; p<columns; ++p) {
         x_covers[p] = new TPad(Form("x_cover_%d", p), Form("x_cover_%d", p), x_min[p]-axis_label_cover_size_wide, y_min[rows-1]-0.05, x_min[p]+axis_label_cover_size_wide, y_min[rows-1]-0.005);
         x_covers[p]->Draw();
+    }
+
+    // cover the left most and right most x-axis label
+    TPad* x_covers_col1 = 0;
+    TPad* x_covers_colN = 0;
+    float axis_label_cover_size_wide_col1 = axis_label_cover_size_wide;
+    float axis_label_cover_size_wide_colN = axis_label_cover_size_wide;
+    if (hist_type != "iaa")  {
+        axis_label_cover_size_wide_col1 /= 3;
+        axis_label_cover_size_wide_colN /= 3;
+    }
+    else  {
+        axis_label_cover_size_wide_col1 /= 2.8;
+    }
+    if (columns > 2) {
+        x_covers_col1 = new TPad("x_cover_col1", "x_cover_col1", x_min[1]-pad_width-axis_label_cover_size_wide_col1, y_min[rows-1]-0.05, x_min[1]-pad_width+axis_label_cover_size_wide_col1, y_min[rows-1]-0.005);
+        x_covers_col1->Draw();
+        x_covers_colN = new TPad("x_cover_colN", "x_cover_colN", x_min[columns-1]+pad_width-axis_label_cover_size_wide_colN, y_min[rows-1]-0.05, x_min[columns-1]+pad_width+axis_label_cover_size_wide_colN, y_min[rows-1]-0.005);
+        x_covers_colN->Draw();
     }
 }
 
