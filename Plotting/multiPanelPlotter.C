@@ -453,10 +453,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 !(hist_type == "iaa" && pt_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && cent_based_plots && j != 1) &&
-                !(hist_type == "xjg" && pt_based_plots && i != 0) &&
-                !(hist_type == "dphi" && pt_based_plots && i != 0) &&
-                !(hist_type == "iaa" && pt_based_plots && i != 0)) {
+                !(hist_type == "xjg" && cent_based_plots && j != 1)) {
                 if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
                     plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
                 else
@@ -513,10 +510,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexInfo->SetTextAlign(11);
 
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
-                float line_pos = i_y[i * columns + j] - l * latex_spacing;
-                box_t info_box = (box_t) {0, 0, i_x[i * columns + j], line_pos};
-                adjust_coordinates(info_box, margin, edge, i, j);
-                latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
+                if (i_x[i * columns + j] >= 0 && i_y[i * columns + j] >= 0) {
+                    float line_pos = i_y[i * columns + j] - l * latex_spacing;
+                    box_t info_box = (box_t) {0, 0, i_x[i * columns + j], line_pos};
+                    adjust_coordinates(info_box, margin, edge, i, j);
+                    latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
+                }
             }
 
             // Draw line at 1 for Jet IAA
