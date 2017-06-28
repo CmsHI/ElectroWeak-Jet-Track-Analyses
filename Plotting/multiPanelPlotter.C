@@ -452,14 +452,17 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
 
-                TLatex* latexPrelim = new TLatex();
-                latexPrelim->SetTextFont(53);
-                latexPrelim->SetTextSize(13);
-                box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
-                if (hist_type == "xjg_mean_ptBinAll")
-                    prelim_box.x1 = 0.2;
-                adjust_coordinates(prelim_box, margin, edge, i, j);
-                latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
+                bool isPreliminary = false;
+                if (isPreliminary) {
+                    TLatex* latexPrelim = new TLatex();
+                    latexPrelim->SetTextFont(53);
+                    latexPrelim->SetTextSize(13);
+                    box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
+                    if (hist_type == "xjg_mean_ptBinAll")
+                        prelim_box.x1 = 0.2;
+                    adjust_coordinates(prelim_box, margin, edge, i, j);
+                    latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
+                }
 
                 if (columns < 4) {
                     plotInfo.push_back("anti-k_{T} jet R = 0.3");
