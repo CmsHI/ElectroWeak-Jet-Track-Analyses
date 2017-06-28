@@ -119,10 +119,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     float y_min = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_min];
 
     std::vector<int> l_panel = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_mpp_l_panel]);
-    float l_x1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x1];
-    float l_y1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_y1];
-    float l_x2 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x2];
-    float l_y2 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_y2];
+    std::vector<float> l_x1 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_x1]);
+    std::vector<float> l_y1 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_y1]);
+    std::vector<float> l_x2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_x2]);
+    std::vector<float> l_y2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_y2]);
 
     std::vector<float> i_x = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_x]);
     std::vector<float> i_y = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_y]);
@@ -399,11 +399,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw legend
-            int nLegends = l_panel.size();
+            int nL_panel = l_panel.size();
             TLegend* l1 = 0;
-            for (int iLeg = 0; iLeg < nLegends; ++iLeg) {
-                if (i * columns + j == l_panel.at(iLeg) - 1) {
-                    box_t l_box = (box_t) {l_x1, l_y1, l_x2, l_y2};
+            for (int iLeg = 0; iLeg < nL_panel; ++iLeg) {
+                if (i * columns + j == l_panel[iLeg] - 1) {
+                    box_t l_box = (box_t) {l_x1[iLeg], l_y1[iLeg], l_x2[iLeg], l_y2[iLeg]};
                     adjust_coordinates(l_box, margin, edge, i, j);
                     l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
                     set_legend_style(l1);
