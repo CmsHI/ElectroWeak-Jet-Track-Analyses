@@ -414,17 +414,25 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                             l1->SetTextSize(latex_font_size - 1);
                     }
 
-                    if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
-                        for (int p=0; p<_NPLOTS; ++p) {
-                            int k = draw_order[p];
-                            if (hist_file_valid[k]) {
-                                if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
-                                    if (g1[i][j][k])
-                                        l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
-                                } else {
-                                    if (h1[i][j][k])
-                                        l1->AddEntry(h1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
+                    for (int p=0; p<_NPLOTS; ++p) {
+                        int k = draw_order[p];
+                        if (hist_file_valid[k]) {
+
+                            std::string legend_label = legend_labels[k];
+                            if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa")
+                            {
+                                if (pt_based_plots && k == _PBPB_DATA) {
+                                    std::string centStr = Form(", %d - %d%%", bins_cent[0][cent_bin_numbers[i]]/2, bins_cent[1][cent_bin_numbers[i]]/2);
+                                    legend_label.append(centStr.c_str());
                                 }
+                            }
+
+                            if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
+                                if (g1[i][j][k])
+                                    l1->AddEntry(g1[i][j][k], legend_label.c_str(), legend_options[k].c_str());
+                            } else {
+                                if (h1[i][j][k])
+                                    l1->AddEntry(h1[i][j][k], legend_label.c_str(), legend_options[k].c_str());
                             }
                         }
                     }
@@ -440,9 +448,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             int pt_index = cent_based_plots ? i : j;
 
             if (hist_type.find("centBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && pt_based_plots && j != 0) &&
-                !(hist_type == "dphi" && pt_based_plots && j != 0) &&
-                !(hist_type == "iaa" && pt_based_plots && j != 0))
+                !(hist_type == "xjg" && pt_based_plots) &&
+                !(hist_type == "dphi" && pt_based_plots) &&
+                !(hist_type == "iaa" && pt_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && cent_based_plots && j != 1) &&
