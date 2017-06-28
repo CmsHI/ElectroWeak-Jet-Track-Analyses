@@ -118,7 +118,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     float y_max = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_max];
     float y_min = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_min];
 
-    int l_panel = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mpp_l_panel];
+    std::vector<int> l_panel = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_mpp_l_panel]);
     float l_x1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x1];
     float l_y1 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_y1];
     float l_x2 = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_l_x2];
@@ -390,34 +390,38 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // Draw legend
-            if (i * columns + j == l_panel - 1) {
-                box_t l_box = (box_t) {l_x1, l_y1, l_x2, l_y2};
-                adjust_coordinates(l_box, margin, edge, i, j);
-                TLegend* l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
-                set_legend_style(l1);
-                if (columns == 5) {
-                    if (configFile.Contains("theory_pp") || (configFile.Contains("theory_PbPb") && hist_type == "iaa"))
-                        l1->SetTextSize(latex_font_size - 2);
-                    else
-                        l1->SetTextSize(latex_font_size - 1);
-                }
+            int nLegends = l_panel.size();
+            TLegend* l1 = 0;
+            for (int iLeg = 0; iLeg < nLegends; ++iLeg) {
+                if (i * columns + j == l_panel.at(iLeg) - 1) {
+                    box_t l_box = (box_t) {l_x1, l_y1, l_x2, l_y2};
+                    adjust_coordinates(l_box, margin, edge, i, j);
+                    l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
+                    set_legend_style(l1);
+                    if (columns == 5) {
+                        if (configFile.Contains("theory_pp") || (configFile.Contains("theory_PbPb") && hist_type == "iaa"))
+                            l1->SetTextSize(latex_font_size - 2);
+                        else
+                            l1->SetTextSize(latex_font_size - 1);
+                    }
 
-                if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
-                    for (int p=0; p<_NPLOTS; ++p) {
-                        int k = draw_order[p];
-                        if (hist_file_valid[k]) {
-                            if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
-                                if (g1[i][j][k])
-                                    l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
-                            } else {
-                                if (h1[i][j][k])
-                                    l1->AddEntry(h1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
+                    if (hist_type != "iaa" || hist_file_valid[_JEWEL]) {
+                        for (int p=0; p<_NPLOTS; ++p) {
+                            int k = draw_order[p];
+                            if (hist_file_valid[k]) {
+                                if (k == _HYBRID || k == _HYBRIDRAD || k == _HYBRIDCOLL || ((k == _JEWEL || k == _JEWEL_REF) && hist_type.find("centBinAll") != std::string::npos)) {
+                                    if (g1[i][j][k])
+                                        l1->AddEntry(g1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
+                                } else {
+                                    if (h1[i][j][k])
+                                        l1->AddEntry(h1[i][j][k], legend_labels[k].c_str(), legend_options[k].c_str());
+                                }
                             }
                         }
                     }
-                }
 
-                l1->Draw();
+                    l1->Draw();
+                }
             }
 
             // ---- Photon/Jet Cuts ----
