@@ -204,6 +204,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     }
 
     bool cent_based_plots = (plot_type == "cent");
+    bool pt_based_plots = (plot_type == "pt");
 
     rows = cent_based_plots ? pt_bin_numbers.size() : cent_bin_numbers.size();
     columns = cent_based_plots ? cent_bin_numbers.size() : pt_bin_numbers.size();
@@ -304,6 +305,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                     set_hist_style(h1[i][j][k], k);
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
+
+                    if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa")
+                    {
+                        if (pt_based_plots && cent_bin_numbers[i] == 2) {
+                            if (k == _PP_DATA) h1[i][j][k]->SetMarkerStyle(kOpenSquare);
+                            if (k == _PBPB_DATA) h1[i][j][k]->SetMarkerStyle(kFullSquare);
+                        }
+                    }
 
                     h1[i][j][k]->SetAxisRange(y_min, y_max, "Y");
                     h1[i][j][k]->SetMaximum(y_max);
@@ -431,15 +440,15 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             int pt_index = cent_based_plots ? i : j;
 
             if (hist_type.find("centBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && plot_type == "pt" && j != 0) &&
-                !(hist_type == "dphi" && plot_type == "pt" && j != 0) &&
-                !(hist_type == "iaa" && plot_type == "pt" && j != 0))
+                !(hist_type == "xjg" && pt_based_plots && j != 0) &&
+                !(hist_type == "dphi" && pt_based_plots && j != 0) &&
+                !(hist_type == "iaa" && pt_based_plots && j != 0))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && plot_type == "cent" && j != 1) &&
-                !(hist_type == "xjg" && plot_type == "pt" && i != 0) &&
-                !(hist_type == "dphi" && plot_type == "pt" && i != 0) &&
-                !(hist_type == "iaa" && plot_type == "pt" && i != 0)) {
+                !(hist_type == "xjg" && cent_based_plots && j != 1) &&
+                !(hist_type == "xjg" && pt_based_plots && i != 0) &&
+                !(hist_type == "dphi" && pt_based_plots && i != 0) &&
+                !(hist_type == "iaa" && pt_based_plots && i != 0)) {
                 if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
                     plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
                 else
