@@ -88,11 +88,12 @@ float legendTextSize;
 // input for text objects;
 std::string tmpText;
 std::vector<std::string> textLines;
-int textFont;
-float textSize;
-std::string textPosition;
-float textOffsetX;
-float textOffsetY;
+std::vector<int> textLinePadIndices;
+std::vector<int> textFonts;
+std::vector<float> textSizes;
+std::vector<std::string> textPositions;
+std::vector<float> textOffsetsX;
+std::vector<float> textOffsetsY;
 
 std::string tmpTextOverPad;
 std::vector<std::string> textsOverPad;
@@ -140,6 +141,11 @@ int nFillColors;
 int nLineColors;
 int nLegendEntryLabels;
 int nTextLines;
+int nTextFonts;
+int nTextSizes;
+int nTextPositions;
+int nTextOffsetsX;
+int nTextOffsetsY;
 int nTextsOverPad;
 int nTextsOverPadAlignments;
 int nTLines_horizontal;
@@ -157,6 +163,7 @@ std::vector<Long64_t> entries;
 std::vector<Long64_t> entriesSelected;
 int nHistos;
 int nHistosInput;
+int nPads;
 std::vector<TH1D*> h;
 std::vector<TH1D*> h_normInt;
 std::vector<TH1D*> h_normEvents;
@@ -169,7 +176,7 @@ int readConfiguration(const TString configFile);
 void printConfiguration();
 int preLoop(TFile* input = 0, bool makeNew = true);
 int postLoop();
-void setAndDrawLatex(TPad* pad);
+void setAndDrawLatex(TPad* pad, int iPad);
 void setAndDrawLatexOverPad(TPad* pad);
 void setAndDrawLinesHorizontal(TPad* pad);
 void setAndDrawLinesVertical(TPad* pad);
@@ -541,11 +548,14 @@ int readConfiguration(const TString configFile)
     // input for text objects
     tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
     textLines = ConfigurationParser::ParseList(tmpText);
-    textFont = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_textFont];
-    textSize = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textSize];
-    textPosition = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition];
-    textOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetX];
-    textOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_textOffsetY];
+    std::vector<std::pair<std::string, int>> textEntries = ConfigurationParser::ParseListOfList(tmpText);
+    textLines = ConfigurationParser::getVecString(textEntries);
+    textLinePadIndices = ConfigurationParser::getVecIndex(textEntries);
+    textFonts = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_textFont]);
+    textSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textSize]);
+    textPositions = ConfigurationParser::ParseListOrString(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition]);
+    textOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textOffsetX]);
+    textOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textOffsetY]);
 
     tmpTextOverPad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textAbovePad]);
     textsOverPad = ConfigurationParser::ParseList(tmpTextOverPad);
@@ -585,8 +595,8 @@ int readConfiguration(const TString configFile)
 
     if (markerSize == 0)  markerSize = INPUT_DEFAULT::markerSize;
 
-    if (textFont == 0)  textFont = INPUT_DEFAULT::textFont;
-    if (textSize == 0)  textSize = INPUT_DEFAULT::textSize;
+    if (textFonts.size() == 0)  textFonts = {INPUT_DEFAULT::textFont};
+    if (textSizes.size() == 0)  textSizes = {INPUT_DEFAULT::textSize};
 
     if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
     if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
@@ -615,6 +625,11 @@ int readConfiguration(const TString configFile)
     nLineColors = lineColors.size();
     nLegendEntryLabels = legendEntryLabels.size();
     nTextLines = textLines.size();
+    nTextFonts = textFonts.size();
+    nTextSizes = textSizes.size();
+    nTextPositions = textPositions.size();
+    nTextOffsetsX = textOffsetsX.size();
+    nTextOffsetsY = textOffsetsY.size();
     nTextsOverPad = textsOverPad.size();
     nTextsOverPadAlignments = textsOverPadAlignments.size();
     nTLines_horizontal = TLines_horizontal.size();
@@ -748,11 +763,26 @@ void printConfiguration()
         std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
     }
     if (nTextLines > 0) {
-        std::cout << "textFont = " << textFont << std::endl;
-        std::cout << "textSize = " << textSize << std::endl;
-        std::cout << "textPosition = " << textPosition << std::endl;
-        std::cout << "textOffsetX  = " << textOffsetX << std::endl;
-        std::cout << "textOffsetY  = " << textOffsetY << std::endl;
+        std::cout << "nTextFonts = " << nTextFonts << std::endl;
+        for (int i = 0; i<nTextFonts; ++i) {
+            std::cout << Form("textFonts[%d] = %d", i, textFonts.at(i)) << std::endl;
+        }
+        std::cout << "nTextSizes = " << nTextSizes << std::endl;
+        for (int i = 0; i<nTextSizes; ++i) {
+            std::cout << Form("textSizes[%d] = %f", i, textSizes.at(i)) << std::endl;
+        }
+        std::cout << "nTextPositions = " << nTextPositions << std::endl;
+        for (int i = 0; i<nTextPositions; ++i) {
+            std::cout << Form("textPositions[%d] = %s", i, textPositions.at(i).c_str()) << std::endl;
+        }
+        std::cout << "nTextOffsetsX = " << nTextOffsetsX << std::endl;
+        for (int i = 0; i<nTextOffsetsX; ++i) {
+            std::cout << Form("textOffsetsX[%d] = %f", i, textOffsetsX.at(i)) << std::endl;
+        }
+        std::cout << "nTextOffsetsY = " << nTextOffsetsY << std::endl;
+        for (int i = 0; i<nTextOffsetsY; ++i) {
+            std::cout << Form("textOffsetsY[%d] = %f", i, textOffsetsY.at(i)) << std::endl;
+        }
     }
 
     std::cout << "nTextsOverPad = " << nTextsOverPad << std::endl;
@@ -1164,7 +1194,9 @@ int postLoop()
         }
     }
 
+    nPads = 0;
     if (drawSame == 0) {    // histograms will be plotted separately.
+        nPads = nHistos;
         for (int i=0; i<nHistos; ++i) {
             c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1180,7 +1212,7 @@ int postLoop()
             h_draw[i]->Draw(drawOption.c_str());
 
             // add Text
-            setAndDrawLatex(c);
+            setAndDrawLatex(c, i);
 
             // add Text above the pad
             setAndDrawLatexOverPad(c);
@@ -1225,6 +1257,7 @@ int postLoop()
         int nCanvasDrawSame = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
         if (drawSameAcrossSplits)  nCanvasDrawSame = nHistosInput;
         if (drawSameInsideSplits)  nCanvasDrawSame = nSplits;
+        nPads = nCanvasDrawSame;
 
         // one must have : nHistosPerCanvas * nCanvasDrawSame = nHistos
         int nHistosPerCanvas = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
@@ -1307,7 +1340,7 @@ int postLoop()
             }
 
             // add Text
-            setAndDrawLatex(c);
+            setAndDrawLatex(c, iCanvas);
 
             // add Text above the pad
             setAndDrawLatexOverPad(c);
@@ -1353,15 +1386,39 @@ int postLoop()
     return 0;
 }
 
-void setAndDrawLatex(TPad* pad)
+void setAndDrawLatex(TPad* pad, int iPad)
 {
+    bool textExists = (std::find(textLinePadIndices.begin(), textLinePadIndices.end(), iPad) != textLinePadIndices.end());
+    if (!textExists)  return;
+
     TLatex latex;
 
-    latex.SetTextFont(textFont);
-    latex.SetTextSize(textSize);
+    std::string textPosition = "";
+    if (nTextPositions == 1)  textPosition = textPositions.at(0);
+    else if (nTextPositions == nPads)  textPosition = textPositions.at(iPad);
     setTextAlignment(&latex, textPosition);
 
-    drawTextLines(&latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
+    float textFont = textFonts.at(0);
+    if (nTextFonts == nPads) textFont = textFonts.at(iPad);
+    latex.SetTextFont(textFont);
+
+    float textSize = textSizes.at(0);
+    if (nTextSizes == nPads) textSize = textSizes.at(iPad);
+    latex.SetTextSize(textSize);
+
+    float textOffsetX = textOffsetsX.at(0);
+    if (nTextOffsetsX == nPads) textOffsetX = textOffsetsX.at(iPad);
+
+    float textOffsetY = textOffsetsY.at(0);
+    if (nTextOffsetsY == nPads) textOffsetY = textOffsetsY.at(iPad);
+
+    std::vector<std::string> textLinesTmp;
+    for (int iLine = 0; iLine < nTextLines; ++iLine) {
+        if (textLinePadIndices.at(iLine) == iPad)
+            textLinesTmp.push_back(textLines.at(iLine).c_str());
+    }
+
+    drawTextLines(&latex, pad, textLinesTmp, textPosition, textOffsetX, textOffsetY);
 }
 
 void setAndDrawLatexOverPad(TPad* pad)
