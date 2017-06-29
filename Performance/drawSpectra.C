@@ -21,6 +21,7 @@
 #include <algorithm>
 
 #include "../TreeHeaders/CutConfigurationTree.h"
+#include "../Utilities/interface/ArgumentParser.h"
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/GraphicsConfigurationParser.h"
@@ -173,6 +174,7 @@ void setAndDrawLatexOverPad(TPad* pad);
 void setAndDrawLinesHorizontal(TPad* pad);
 void setAndDrawLinesVertical(TPad* pad);
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
+void drawSpectraNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
 {
@@ -351,7 +353,6 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 if (nHistosInput == nTrees)  treeIndex = i%nTrees;
                 // std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
-                int iInFileArg = 0;
                 if (mode == INPUT_MODE::k_comparison) {
                     iInFileArg = i%nInputFileArguments;
                     std::cout << "iInFileArg = " << iInFileArg << ", ";
@@ -401,6 +402,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
         std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
+
+        h_nums[i]->SetBinContent(1, entries[0]);
+        h_nums[i]->SetBinContent(2, entriesSelected[i]);
     }
     std::cout << "###" << std::endl;
 
@@ -412,18 +416,56 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout<<"running drawSpectra() - END"<<std::endl;
 }
 
+/*
+ * run the macro without going through event loop, things done before and after the loop
+ */
+void drawSpectraNoLoop(const TString configFile, const TString inputFile, const TString outputFile, const TString outputFigureName)
+{
+    std::cout<<"running drawSpectra()"<<std::endl;
+    std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
+    std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
+    std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    outputFigureStr = outputFigureName.Data();
+
+    if (readConfiguration(configFile) != 0)  return;
+    printConfiguration();
+
+    TFile* input = new TFile(inputFile.Data(), "READ");
+    if (preLoop(input, false) != 0) return;
+
+    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
+    output->cd();
+
+    postLoop();
+
+    std::cout<<"Closing the input file."<<std::endl;
+    input->Close();
+    std::cout<<"Closing the output file."<<std::endl;
+    output->Close();
+    std::cout<<"running drawSpectra() - END"<<std::endl;
+}
+
 int main(int argc, char** argv)
 {
-    if (argc == 5) {
-        drawSpectra(argv[1], argv[2], argv[3], argv[4]);
+    std::vector<std::string> argStr = ArgumentParser::ParseParameters(argc, argv);
+    int nArgStr = argStr.size();
+
+    std::vector<std::string> argOptions = ArgumentParser::ParseOptions(argc, argv);
+    bool noLoop = (findPositionInVector(argOptions, ARGUMENTPARSER::noLoop) >= 0);
+
+    if (nArgStr == 5) {
+        if (noLoop) drawSpectraNoLoop(argStr.at(1), argStr.at(2), argStr.at(3), argStr.at(4));
+        else        drawSpectra(argStr.at(1), argStr.at(2), argStr.at(3), argStr.at(4));
         return 0;
     }
-    else if (argc == 4) {
-        drawSpectra(argv[1], argv[2], argv[3]);
+    else if (nArgStr == 4) {
+        if (noLoop) drawSpectraNoLoop(argStr.at(1), argStr.at(2), argStr.at(3));
+        else        drawSpectra(argStr.at(1), argStr.at(2), argStr.at(3));
         return 0;
     }
-    else if (argc == 3) {
-        drawSpectra(argv[1], argv[2]);
+    else if (nArgStr == 3) {
+        if (noLoop) drawSpectraNoLoop(argStr.at(1), argStr.at(2));
+        else        drawSpectra(argStr.at(1), argStr.at(2));
         return 0;
     }
     else {
@@ -843,6 +885,8 @@ int preLoop(TFile* input, bool makeNew)
     std::cout << "nHistos = " << nHistos << std::endl;
     h.clear();
     h.resize(nHistos);
+    h_nums.clear();
+    h_nums.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
         int nBins  = (int)TH1D_Bins_List[0].at(0);
         float xLow = TH1D_Bins_List[1].at(0);
@@ -852,6 +896,15 @@ int preLoop(TFile* input, bool makeNew)
             xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
             xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
         }
+
+        std::string hName = Form("h_%d", i);
+        if (makeNew) {
+            h[i] = new TH1D(hName.c_str(), "", nBins, xLow, xUp);
+        }
+        else {
+            h[i] = (TH1D*)input->Get(hName.c_str());
+        }
+
         std::string title = "";
         if (nTitles == 1)  {
             if (titles.at(0).compare(CONFIGPARSER::nullInput) != 0)  title = titles.at(0).c_str();
@@ -876,7 +929,9 @@ int preLoop(TFile* input, bool makeNew)
         else if (nTitlesY == nHistosInput) titleY = titlesY.at(i%nTitlesY).c_str();
         else if (nTitlesY == nHistos)      titleY = titlesY.at(i).c_str();
 
-        h[i] = new TH1D(Form("h_%d", i),Form("%s;%s;%s", title.c_str(), titleX.c_str(), titleY.c_str()), nBins, xLow, xUp);
+        h[i]->SetTitle(title.c_str());
+        h[i]->SetXTitle(titleX.c_str());
+        h[i]->SetYTitle(titleY.c_str());
 
         if (binsLogScaleX > 0) {
             std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBins);
@@ -887,6 +942,15 @@ int preLoop(TFile* input, bool makeNew)
         }
 
         if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
+
+
+        std::string h_numsName = Form("%s_nums", h[i]->GetName());
+        if (makeNew) {
+            h_nums[i] = new TH1D(h_numsName.c_str(), h[i]->GetTitle(), 2, 0, 2);
+        }
+        else {
+            h_nums[i] = (TH1D*)input->Get(h_numsName.c_str());
+        }
     }
 
     return 0;
@@ -906,23 +970,18 @@ int postLoop()
     h_normInt.resize(nHistos);
     h_normEvents.clear();
     h_normEvents.resize(nHistos);
-    h_nums.clear();
-    h_nums.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
         h[i]->Write();
+        h_nums[i]->Write();
 
         h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
         h_normInt[i]->Scale(1./h[i]->Integral());
         h_normInt[i]->Write();
 
         h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
-        h_normEvents[i]->Scale(1./entriesSelected[i]);
+        Long64_t entriesTmp = h_nums[i]->GetBinContent(2);
+        h_normEvents[i]->Scale(1./entriesTmp);
         h_normEvents[i]->Write();
-
-        h_nums[i] = new TH1D(Form("%s_nums", h[i]->GetName()), h[i]->GetTitle(), 2, 0, 2);
-        h_nums[i]->SetBinContent(1, entries[0]);
-        h_nums[i]->SetBinContent(2, entriesSelected[i]);
-        h_nums[i]->Write();
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
