@@ -38,17 +38,17 @@ do
         for ISAM in ${!SAM_SUFFIX[@]}
         do
             # hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/gammaJetSkim*.root &
-            hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/gammaJetHistogram*.root &
+            hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram${SYS_SUFFIX[ISYS]}.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/gammaJetHistogram*.root &
         done
         wait
 
         for ISAM in ${!SAM_SUFFIX[@]}
         do
             CONFSUFFIX=${SAM_SUFFIX[ISAM]}
-            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram.root $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic.root &> $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic.log &
+            ./Histogramming/gammaJetHistogramArithmetic.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram${SYS_SUFFIX[ISYS]}.root $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.root &> $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.log &
         done
         wait
 
-        ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic.root ${OUTDIR}/gammaJetHistograms.root &> ${OUTDIR}/gammaJetHistograms.log
+        ./Histogramming/gammaJetFinalHistograms.exe ./CutConfigurations/gammaJet.conf ${OUTDIR}/PbPb_Data_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.root ${OUTDIR}/PbPb_MC_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.root ${OUTDIR}/pp_Data_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.root ${OUTDIR}/pp_MC_gammaJetHistogramArithmetic${SYS_SUFFIX[ISYS]}.root ${OUTDIR}/gammaJetHistograms${SYS_SUFFIX[ISYS]}.root &> ${OUTDIR}/gammaJetHistograms${SYS_SUFFIX[ISYS]}.log
     fi
 done
