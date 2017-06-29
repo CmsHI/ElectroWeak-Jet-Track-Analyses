@@ -21,6 +21,7 @@ const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from t
 const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
 const std::string multiLineBegin = "$MLB$";   // sign the beginning of a multi line value
 const std::string multiLineEnd = "$MLE$";     // sign the end of a multi line value
+const std::string times = "$TIMES$";       // separate multiple lists
 const std::string importStatement = "import.";
 const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
@@ -68,7 +69,7 @@ class ConfigurationParser {
 
 public :
     static bool isList(std::string str);
-    static bool isListOfList(std::string str);
+    static bool isMultipleList(std::string str);
     static bool isComment(std::string line);
     static bool isCommand(std::string line);
     static bool isImportStatement(std::string line);
@@ -90,6 +91,7 @@ public :
     static std::pair<std::string, std::string> ParseVarDefinitionString(std::string command, std::string value);
     static std::vector<std::string> ParseList(std::string strList, std::string separator = "");
     static std::vector<std::string> ParseListOrString(std::string strListOrString);
+    static std::vector<std::string> ParseMultipleLists(std::string strLists, std::string separator = "");
     static std::vector<std::string> ParseListWithoutBracket(std::string strList, std::string separator = "");
     static std::vector<int> ParseListWithoutBracketInteger(std::string strList, std::string separator = "");
     static std::vector<float> ParseListWithoutBracketFloat(std::string strList, std::string separator = "");
@@ -131,13 +133,19 @@ bool ConfigurationParser::isList(std::string str)
 }
 
 /*
- * return true if the string is a list of lists, not a list of elements
+ * a string is a multiple list if it there are multiple lists separated by special delimiters
  */
-bool ConfigurationParser::isListOfList(std::string str)
+bool ConfigurationParser::isMultipleList(std::string str)
 {
-    bool tmpIsList = isList(str);
-    bool hasListOfListSeparator = str.find(CONFIGPARSER::separator3.c_str()) != std::string::npos;
-    return (tmpIsList && hasListOfListSeparator);
+    std::string tmp = trim(str);
+    std::vector<std::string> tmpVec = split(str, CONFIGPARSER::times);
+    if (tmpVec.size() <= 1) return false;
+    else {
+        for (std::vector<std::string>::iterator it = tmpVec.begin(); it != tmpVec.end(); ++it) {
+            if (!isList((*it)))  return false;
+        }
+    }
+    return true;
 }
 
 bool ConfigurationParser::isComment(std::string line)
@@ -367,6 +375,8 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std
     if(strList.empty())
         return list;
 
+    if(isMultipleList(strList))  return ParseMultipleLists(strList, separator);
+
     size_t posStart = strList.find("{");     // a valid list starts with '{' and ends with '}'
     if (posStart == std::string::npos) return list;
 
@@ -429,6 +439,54 @@ std::vector<std::string> ConfigurationParser::ParseListOrString(std::string strL
         return {strListOrString};
     else
         return ParseList(strListOrString);
+}
+
+/*
+ * parse multiple lists separated by special delimeters
+ * Ex.
+ * strLists = {AA, BB} $TIMES$ {11, 22} $TIMES$ {CC, DD, EE}
+ * returns
+ * {AA11CC, BB11CC, AA22CC, BB22CC, AA11DD, BB11DD, AA22DD, BB22DD, AA11EE, BB11EE, AA22EE, BB22EE}
+ */
+std::vector<std::string> ConfigurationParser::ParseMultipleLists(std::string strLists, std::string separator)
+{
+    std::vector<std::string> strListsVec = split(strLists, CONFIGPARSER::times);
+
+    int nStrListsVec = strListsVec.size();
+    std::vector<std::string> lists[nStrListsVec];
+
+    for (int iList = 0; iList < nStrListsVec; ++iList) {
+        lists[iList] = ParseList(strListsVec[iList], separator);
+    }
+
+    std::vector<std::string> list;
+    for (int iList = 0; iList < nStrListsVec; ++iList) {
+
+        // take the list from previous iteration
+        std::vector<std::string> listTmp = list;
+
+        // the list from previous iteration is not the we want any more.
+        list.clear();
+
+        int n = lists[iList].size();
+        for (int i = 0; i < n; ++i) {
+
+            int nTmp = listTmp.size();
+            std::vector<std::string> listTmp2 = listTmp;
+
+            // append strings from the current list to strings from the previous iteration
+            if (nTmp == 0) listTmp2.push_back(lists[iList][i]);
+            else {
+                for (int j = 0; j < nTmp; ++j) {
+                    listTmp2[j].append(lists[iList][i].c_str());
+                }
+            }
+
+            list.insert(list.end(), listTmp2.begin(), listTmp2.end());
+        }
+    }
+
+    return list;
 }
 
 /*
@@ -933,7 +991,7 @@ std::string ConfigurationParser::verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxi
     std::string resX = verboseTH1D_Axis(th2DAxis.axisX);
     std::string resY = verboseTH1D_Axis(th2DAxis.axisY);
 
-    std::string res = Form("xAxis : %s, yAxis :%s", resX.c_str(), resY.c_str());
+    std::string res = Form("xAxis : %s, yAxis : %s", resX.c_str(), resY.c_str());
 
     return res;
 }
