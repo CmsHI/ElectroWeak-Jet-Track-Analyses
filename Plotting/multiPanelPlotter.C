@@ -511,13 +511,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 }
             }
 
-            if (i + j == 0) {
+            if (i + j == 0 || columns < 4) {
                 TLatex* latexCMS = new TLatex();
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
-                if (hist_type == "xjg_mean_ptBinAll")
-                    cms_box.x1 = 0.2;
+                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
+                    cms_box.x1 = 0.82;
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
 
