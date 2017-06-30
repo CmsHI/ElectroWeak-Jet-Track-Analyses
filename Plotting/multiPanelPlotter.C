@@ -183,8 +183,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         "same l e3", "same l z", "same l e3", "same l z"
     };
     std::string legend_labels[_NPLOTS] = {
-        "PbPb", "PYTHIA + HYDJET", "pp (smeared)", "PYTHIA",
-        "JEWEL + PYTHIA", "pp (JEWEL + PYTHIA)", "LBT 2017", "pp (LBT 2017)",
+        "PbPb", "P#scale[0.8]{YTHIA} + H#scale[0.8]{YDJET}", "pp (smeared)", "P#scale[0.8]{YTHIA}",
+        "J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}", "pp (J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA})", "LBT 2017", "pp (LBT 2017)",
         "Hybrid Model", "pp (Hybrid Model)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
         "Hybrid dE/dx #alpha T^{3}", "pp (Hybrid dE/dx #alpha T^{3})", "Hybrid dE/dx #alpha T^{2}", "pp (Hybrid dE/dx #alpha T^{2})"
     };
