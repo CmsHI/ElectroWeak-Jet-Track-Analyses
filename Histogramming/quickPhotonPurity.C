@@ -167,6 +167,10 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
         hBckPdf->DrawCopy("same hist");
         hData1->DrawCopy("same");
 
+        hSigPdf->Write(Form("signal_template_%i_%i", i, j), TObject::kOverwrite);
+        hBckPdf->Write(Form("background_template_%i_%i", i ,j), TObject::kOverwrite);
+        hData1->Write(Form("data_points_%i_%i", i, j), TObject::kOverwrite);
+
         Float_t xpos = 0.48;
         if (2*(k+j)*nPTBINS+i+1 == 1)
           xpos = 0.6;
