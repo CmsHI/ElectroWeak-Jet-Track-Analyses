@@ -459,7 +459,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (hist_type.find("ptBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && cent_based_plots && j != 0)) {
                 if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
-                    plotInfo.push_back(Form("%d < p_{T}^{#gamma} < %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
+                    plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
                 else
                     plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
             }
