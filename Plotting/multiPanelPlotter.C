@@ -535,7 +535,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             if (columns < 4) {
                 plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") {
+                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
                     plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
                 }
                 else {
