@@ -191,7 +191,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l", "f", "l", "f", "l"};
 
     if (hist_type == "dphi") {
-        for (int s=0; s<_NPLOTS; ++s) {
+        for (int s=0; s<_JEWEL; ++s) {
             draw_options[s] += " e0";
             sys_draw_options[s] += " e0";
         }
@@ -340,10 +340,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     // Workaround for not being able to draw a line through histogram contents and error bars at the same time
                     // LBT has no error bars!
                     if (k == _JEWEL || k == _JEWEL_REF || ((k == _HYBRID_REF || k == _HYBRIDRAD_REF || k == _HYBRIDCOLL_REF) && hist_type.find("centBinAll") == std::string::npos)) {
-                        if (hist_type == "dphi")
-                            h1[i][j][k]->Draw("same e0 x0");
-                        else
-                            h1[i][j][k]->Draw("same e x0");
+                        h1[i][j][k]->Draw("same e x0");
                     }
 
                     if ((k != _JEWEL && k != _JEWEL_REF && hist_type.find("centBinAll") != std::string::npos) ||
