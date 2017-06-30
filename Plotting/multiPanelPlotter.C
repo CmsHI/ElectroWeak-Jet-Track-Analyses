@@ -808,7 +808,8 @@ void set_hist_style(TH1D* h1, int k) {
     switch (k) {
         case _PBPB_DATA:
             h1->SetLineColor(kBlack);
-            h1->SetMarkerSize(0.64);
+            h1->SetMarkerSize(0.68);
+            if (columns > 4)  h1->SetMarkerSize(0.84);
             h1->SetMarkerStyle(kFullCircle);
             h1->SetMarkerColor(kBlack);
             break;
@@ -820,7 +821,8 @@ void set_hist_style(TH1D* h1, int k) {
             break;
         case _PP_DATA:
             h1->SetLineColor(kBlack);
-            h1->SetMarkerSize(0.64);
+            h1->SetMarkerSize(0.68);
+            if (columns > 4)  h1->SetMarkerSize(0.84);
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerColor(kBlack);
             break;
@@ -887,7 +889,8 @@ void set_graph_style(TGraphErrors* g1, int k) {
     switch (k) {
         case _PBPB_DATA:
             g1->SetLineColor(kBlack);
-            g1->SetMarkerSize(0.64);
+            g1->SetMarkerSize(0.68);
+            if (columns > 4)  g1->SetMarkerSize(0.84);
             g1->SetMarkerStyle(kFullCircle);
             g1->SetMarkerColor(kBlack);
             break;
@@ -899,7 +902,8 @@ void set_graph_style(TGraphErrors* g1, int k) {
             break;
         case _PP_DATA:
             g1->SetLineColor(kBlack);
-            g1->SetMarkerSize(0.64);
+            g1->SetMarkerSize(0.68);
+            if (columns > 4)  g1->SetMarkerSize(0.84);
             g1->SetMarkerStyle(kOpenCircle);
             g1->SetMarkerColor(kBlack);
             break;
