@@ -536,8 +536,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             if (columns < 4) {
                 plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
-                plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
+                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") {
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
+                }
+                else {
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                    plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
+                }
 
                 if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
                     plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
