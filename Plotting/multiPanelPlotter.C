@@ -645,7 +645,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     // Cover cut-off axis labels
     cover_axis(hist_type, margin, edge);
 
-    c1->SaveAs(canvas_title.append(".pdf").c_str());
+    if (!configFile.Contains("theory")) {
+        c1->SaveAs(canvas_title.append(".pdf").c_str());
+    } else {
+        if (configFile.Contains("theory_PbPb"))
+            c1->SaveAs(canvas_title.append("-theory-PbPb.pdf").c_str());
+        else
+            c1->SaveAs(canvas_title.append("-theory-pp.pdf").c_str());
+    }
 
     return 0;
 }
