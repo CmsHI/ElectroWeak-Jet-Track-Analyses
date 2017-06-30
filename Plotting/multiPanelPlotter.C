@@ -491,27 +491,31 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     adjust_coordinates(prelim_box, margin, edge, i, j);
                     latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
                 }
+            }
 
-                if (columns < 4) {
-                    plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
-                    plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
+            if (columns < 4) {
+                plotInfo.push_back("anti-k_{T} jet R = 0.3");
+                plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
 
-                    if (columns == 1 && hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-                        plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
-                }
-                if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
-                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
-                    plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                    plotInfo.erase(plotInfo.begin() + 1);
-                    plotInfo.erase(plotInfo.begin() + 1);
-                }
+                if ((columns == 1 && hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet") ||
+                    (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll"))
+                    plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
+            }
+            if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
+                plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                plotInfo.push_back("anti-k_{T} jet R = 0.3");
+                plotInfo.erase(plotInfo.begin() + 1);
+                plotInfo.erase(plotInfo.begin() + 1);
             }
 
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
             latexInfo->SetTextSize(latex_font_size);
-            if (columns == 5) latexInfo->SetTextSize(latex_font_size - 1);
+            if (columns == 5)
+                latexInfo->SetTextSize(latex_font_size - 1);
+            if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
+                latexInfo->SetTextSize(latex_font_size - 2);
 
             // (should move to config file)
             if (i_x[i * columns + j] > 0.8)
@@ -577,7 +581,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     } else if (columns > 1) {
-        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
+        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet" &&
+            !((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")))
             commonInfo = "#Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
 
