@@ -537,8 +537,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
                 plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
 
-                if ((columns == 1 && hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet") ||
-                    (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll"))
+                if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
                     plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
             }
             if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
@@ -553,8 +552,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             latexInfo->SetTextSize(latex_font_size);
             if (columns == 5)
                 latexInfo->SetTextSize(latex_font_size - 1);
-            if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
+            if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
                 latexInfo->SetTextSize(latex_font_size - 2);
+                latex_spacing -= 0.005;
+            }
 
             // (should move to config file)
             if (i_x[i * columns + j] > 0.8)
@@ -619,10 +620,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
         commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
-    } else if (columns > 1) {
-        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet" &&
-            !((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")))
-            commonInfo = "#Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
 
     TLatex* infoLatex = new TLatex();
