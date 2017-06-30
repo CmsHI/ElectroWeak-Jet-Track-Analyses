@@ -1098,12 +1098,15 @@ void cover_axis(std::string hist_type, float margin, float edge) {
     TPad* x_covers_colN = 0;
     float axis_label_cover_size_wide_col1 = axis_label_cover_size_wide;
     float axis_label_cover_size_wide_colN = axis_label_cover_size_wide;
-    if (hist_type != "iaa")  {
-        axis_label_cover_size_wide_col1 /= 3;
-        axis_label_cover_size_wide_colN /= 3;
+    if (hist_type == "iaa")  {
+        axis_label_cover_size_wide_col1 /= 2.8;
+    }
+    else if (hist_type == "rjg_centBinAll" && columns == 3)  {
+        axis_label_cover_size_wide_col1 /= 4.4;
     }
     else  {
-        axis_label_cover_size_wide_col1 /= 2.8;
+        axis_label_cover_size_wide_col1 /= 3;
+        axis_label_cover_size_wide_colN /= 3;
     }
     if (columns > 2) {
         x_covers_col1 = new TPad("x_cover_col1", "x_cover_col1", x_min[1]-pad_width-axis_label_cover_size_wide_col1, y_min[rows-1]-0.05, x_min[1]-pad_width+axis_label_cover_size_wide_col1, y_min[rows-1]-0.005);
