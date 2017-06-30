@@ -515,6 +515,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 TLatex* latexCMS = new TLatex();
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
+                if (columns > 3)
+                    latexCMS->SetTextSize(16 + columns - 3);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
                     cms_box.x1 = 0.82;
