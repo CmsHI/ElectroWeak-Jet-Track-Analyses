@@ -458,7 +458,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             int cent_index = cent_based_plots ? j : i;
             int pt_index = cent_based_plots ? i : j;
 
-            if (hist_type.find("centBinAll") == std::string::npos &&
+            if (canvas_title == "xjg_cent") {
+                plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
+            } else if (hist_type.find("centBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && pt_based_plots) &&
                 !(hist_type == "dphi" && pt_based_plots) &&
                 !(hist_type == "iaa" && pt_based_plots) &&
