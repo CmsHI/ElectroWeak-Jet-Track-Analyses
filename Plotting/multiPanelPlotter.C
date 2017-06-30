@@ -306,9 +306,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     set_hist_style(h1[i][j][k], k);
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
 
-                    if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa")
+                    if (((hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa") && pt_based_plots) ||
+                        ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") && cent_based_plots))
                     {
-                        if (pt_based_plots && cent_bin_numbers[i] == 2) {
+                        int iTmp = pt_based_plots ? i : j;
+                        if (cent_bin_numbers[iTmp] == 2) {
                             if (k == _PP_DATA) {
                                 h1[i][j][k]->SetMarkerStyle(kOpenSquare);
                             }
@@ -423,10 +425,12 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         if (hist_file_valid[k]) {
 
                             std::string legend_label = legend_labels[k];
-                            if (hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa")
+                            if (((hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa") && pt_based_plots)  ||
+                                ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") && cent_based_plots))
                             {
-                                if (pt_based_plots && k == _PBPB_DATA) {
-                                    std::string centStr = Form(", %d - %d%%", bins_cent[0][cent_bin_numbers[i]]/2, bins_cent[1][cent_bin_numbers[i]]/2);
+                                int iTmp = pt_based_plots ? i : j;
+                                if (k == _PBPB_DATA) {
+                                    std::string centStr = Form(", %d - %d%%", bins_cent[0][cent_bin_numbers[iTmp]]/2, bins_cent[1][cent_bin_numbers[iTmp]]/2);
                                     legend_label.append(centStr.c_str());
                                 }
                             }
@@ -454,7 +458,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (hist_type.find("centBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && pt_based_plots) &&
                 !(hist_type == "dphi" && pt_based_plots) &&
-                !(hist_type == "iaa" && pt_based_plots))
+                !(hist_type == "iaa" && pt_based_plots) &&
+                !(hist_type == "xjg_mean_ptBinAll" && cent_based_plots) &&
+                !(hist_type == "rjg_ptBinAll" && cent_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && cent_based_plots && j != 0)) {
