@@ -433,7 +433,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                             {
                                 int iTmp = pt_based_plots ? i : j;
                                 if (k == _PBPB_DATA) {
-                                    std::string centStr = Form(", %d - %d%%", bins_cent[0][cent_bin_numbers[iTmp]]/2, bins_cent[1][cent_bin_numbers[iTmp]]/2);
+                                    std::string centStr = Form(" Cent %d - %d%%", bins_cent[0][cent_bin_numbers[iTmp]]/2, bins_cent[1][cent_bin_numbers[iTmp]]/2);
                                     legend_label.append(centStr.c_str());
                                 }
                             }
