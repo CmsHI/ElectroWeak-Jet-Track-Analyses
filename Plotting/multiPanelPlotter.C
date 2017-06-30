@@ -473,19 +473,37 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
             }
 
-            if (hist_type.find("centBinAll") != std::string::npos) {
+            if (hist_type.find("xjg_mean_centBinAll") != std::string::npos) {
                 for (int asdf=0; asdf<2; ++asdf) {
                     TLatex* cent_label = new TLatex();
                     cent_label->SetTextFont(43);
                     cent_label->SetTextSize(latex_font_size);
-                    box_t cent_label_box = (box_t) {0.06 + (double)asdf * 0.78, 0.6 - (double)j * 0.05, 1, 1};
+                    box_t cent_label_box = (box_t) {0.06 + (double)asdf * 0.78, 0.32 + (double)j * 0.23 - (!j) * asdf * 0.15, 1, 1};
                     adjust_coordinates(cent_label_box, margin, edge, i, j);
                     cent_label->DrawLatexNDC(cent_label_box.x1, cent_label_box.y1, Form("Cent."));
 
                     TLatex* centnum_label = new TLatex();
                     centnum_label->SetTextFont(43);
                     centnum_label->SetTextSize(latex_font_size);
-                    box_t centnum_label_box = (box_t) {0.04 + (double)asdf * 0.78, 0.55 - (double)j * 0.05, 1, 1};
+                    box_t centnum_label_box = (box_t) {0.04 + (double)asdf * 0.78, 0.27 + (double)j * 0.23 - (!j) * asdf * 0.15, 1, 1};
+                    adjust_coordinates(centnum_label_box, margin, edge, i, j);
+                    centnum_label->DrawLatexNDC(centnum_label_box.x1, centnum_label_box.y1, Form("%i-%i%%", tmp_cent_min[asdf], tmp_cent_max[asdf]));
+                }
+            }
+
+            if (hist_type.find("rjg_centBinAll") != std::string::npos) {
+                for (int asdf=0; asdf<2; ++asdf) {
+                    TLatex* cent_label = new TLatex();
+                    cent_label->SetTextFont(43);
+                    cent_label->SetTextSize(latex_font_size);
+                    box_t cent_label_box = (box_t) {0.06 + (double)asdf * 0.78, 0.35 + (double)j * 0.13 - asdf * 0.13, 1, 1};
+                    adjust_coordinates(cent_label_box, margin, edge, i, j);
+                    cent_label->DrawLatexNDC(cent_label_box.x1, cent_label_box.y1, Form("Cent."));
+
+                    TLatex* centnum_label = new TLatex();
+                    centnum_label->SetTextFont(43);
+                    centnum_label->SetTextSize(latex_font_size);
+                    box_t centnum_label_box = (box_t) {0.04 + (double)asdf * 0.78, 0.3 + (double)j * 0.13 - asdf * 0.13, 1, 1};
                     adjust_coordinates(centnum_label_box, margin, edge, i, j);
                     centnum_label->DrawLatexNDC(centnum_label_box.x1, centnum_label_box.y1, Form("%i-%i%%", tmp_cent_min[asdf], tmp_cent_max[asdf]));
                 }
