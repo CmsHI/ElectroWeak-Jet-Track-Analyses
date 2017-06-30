@@ -24,7 +24,7 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Plotting/commonUtility.h"
 
-const TString LABEL = "PbPb Data";
+const TString LABEL = "PbPb";
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
 
 const Int_t CENTBINS[] = {60, 100};
@@ -183,31 +183,32 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
           latexCMS->SetTextSize(32);
           latexCMS->DrawLatexNDC(0.24, 0.9, "CMS");
 
-          TLatex* latexPrelim = new TLatex();
-          latexPrelim->SetTextFont(53);
-          latexPrelim->SetTextSize(28);
-          latexPrelim->DrawLatexNDC(0.4, 0.9, "Preliminary");
+          bool isPreliminary = false;
+          if (isPreliminary) {
+              TLatex* latexPrelim = new TLatex();
+              latexPrelim->SetTextFont(53);
+              latexPrelim->SetTextSize(28);
+              latexPrelim->DrawLatexNDC(0.4, 0.9, "Preliminary");
+          }
 
-          drawText(LABEL, xpos, 0.50, 1, 27);
-          drawText(Form("%.0f - %.0f%c", CENTBINS[j]/2., CENTBINS[j+1]/2., '%'), xpos, 0.40, 1, 27);
+          //drawText(LABEL, xpos, 0.50, 1, 27);
+          //drawText(Form("%.0f - %.0f%c", CENTBINS[j]/2., CENTBINS[j+1]/2., '%'), xpos, 0.40, 1, 27);
         }
 
-        if (i == 0) {
-          drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c", PTBINS[i], PTBINS[i+1]), 0.25, 0.80, 1, 27);
-        } else if (i != 0 && i != 4) {
-          drawText(Form("%.0f GeV/c < p_{T}^{#gamma} < %.0f GeV/c", PTBINS[i], PTBINS[i+1]), 0.15, 0.90, 1, 27);
+        if (i != 4) {
+          drawText(Form("p_{T}^{#gamma} #in (%.0f, %.0f) GeV/c", PTBINS[i], PTBINS[i+1]), 0.24, 0.90, 1, 27);
         } else {
-          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.24, 0.90, 1, 27);
+          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.36, 0.90, 1, 27);
         }
         if (i == 0) {
-          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.70, 1, 27);
+          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.85, 1, 27);
         } else {
-          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.80, 1, 27);
+          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.95, 1, 27);
         }
         if (i == 0) {
-          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.60, 1, 27);
+          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.75, 1, 27);
         } else {
-          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.70, 1, 27);
+          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.85, 1, 27);
         }
       }
     }
@@ -221,8 +222,9 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
   mcStyle(permaCopy[0]);
   sbStyle(permaCopy[1]);
 
+  cPurity->cd(0);
   TLegend* t3 = new TLegend(0.44, 0.30, 0.92, 0.60);
-  TLegendEntry* ent1 = t3->AddEntry(permaCopy[2], LABEL, "pl");
+  TLegendEntry* ent1 = t3->AddEntry(permaCopy[2], Form("%s Cent %d-%d%%", LABEL.Data(), CENTBINS[0]/2, CENTBINS[1]/2), "pl");
   TLegendEntry* ent2 = t3->AddEntry(permaCopy[0], "Signal", "lf");
   TLegendEntry* ent3 = t3->AddEntry(permaCopy[1], "Background", "lf");
 
