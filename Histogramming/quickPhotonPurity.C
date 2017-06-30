@@ -171,9 +171,10 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
         hBckPdf->Write(Form("background_template_%i_%i", i ,j), TObject::kOverwrite);
         hData1->Write(Form("data_points_%i_%i", i, j), TObject::kOverwrite);
 
-        Float_t xpos = 0.48;
+        Float_t xpos = 0.60;
         if (2*(k+j)*nPTBINS+i+1 == 1)
           xpos = 0.6;
+        if (i == 0) xpos = 0.66;
 
         if (i == 0) {
           // drawText("CMS Preliminary", 0.225, 0.90, 1, 27);
@@ -195,21 +196,19 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
           //drawText(Form("%.0f - %.0f%c", CENTBINS[j]/2., CENTBINS[j+1]/2., '%'), xpos, 0.40, 1, 27);
         }
 
-        if (i != 4) {
-          drawText(Form("p_{T}^{#gamma} #in (%.0f, %.0f) GeV/c", PTBINS[i], PTBINS[i+1]), 0.24, 0.90, 1, 27);
-        } else {
-          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.36, 0.90, 1, 27);
-        }
         if (i == 0) {
-          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.85, 1, 27);
-        } else {
-          drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.95, 1, 27);
+            drawText(Form("p_{T}^{#gamma} #in (%.0f, %.0f) GeV/c", PTBINS[i], PTBINS[i+1]), 0.50, 0.90, 1, 27);
         }
-        if (i == 0) {
-          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.75, 1, 27);
-        } else {
-          drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.85, 1, 27);
+        else if (i == 1 || i == 2) {
+          drawText(Form("p_{T}^{#gamma} #in (%.0f, %.0f) GeV/c", PTBINS[i], PTBINS[i+1]), 0.40, 0.90, 1, 27);
         }
+        else if (i == 3) {
+          drawText(Form("p_{T}^{#gamma} #in (%.0f, %.0f) GeV/c", PTBINS[i], PTBINS[i+1]), 0.36, 0.90, 1, 27);
+        } else {
+          drawText(Form("p_{T}^{#gamma} > %.0f GeV/c", PTBINS[i]), 0.50, 0.90, 1, 27);
+        }
+        drawText(Form("Purity : %.2f", (Float_t)fitr.purity), xpos, 0.80, 1, 27);
+        drawText(Form("#chi^{2}/ndf : %.2f", (Float_t)fitr.chisq), xpos, 0.70, 1, 27);
       }
     }
   }
@@ -222,8 +221,8 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
   mcStyle(permaCopy[0]);
   sbStyle(permaCopy[1]);
 
-  cPurity->cd(0);
-  TLegend* t3 = new TLegend(0.44, 0.30, 0.92, 0.60);
+  cPurity->cd(1);
+  TLegend* t3 = new TLegend(0.54, 0.36, 0.84, 0.66);
   TLegendEntry* ent1 = t3->AddEntry(permaCopy[2], Form("%s Cent %d-%d%%", LABEL.Data(), CENTBINS[0]/2, CENTBINS[1]/2), "pl");
   TLegendEntry* ent2 = t3->AddEntry(permaCopy[0], "Signal", "lf");
   TLegendEntry* ent3 = t3->AddEntry(permaCopy[1], "Background", "lf");
@@ -240,7 +239,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
   t3->SetBorderSize(0);
   t3->SetFillStyle(0);
   t3->SetTextFont(43);
-  t3->SetTextSize(27);
+  t3->SetTextSize(22);
   t3->Draw();
 
   outFile->cd();
