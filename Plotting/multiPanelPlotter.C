@@ -468,7 +468,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 !(hist_type == "rjg_ptBinAll" && cent_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
-                !(hist_type == "xjg" && cent_based_plots && j != 0)) {
+                !(hist_type == "xjg" && cent_based_plots)) {
                 if (bins_pt[1][pt_bin_numbers[pt_index]] < 9999)
                     plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", bins_pt[0][pt_bin_numbers[pt_index]], bins_pt[1][pt_bin_numbers[pt_index]]));
                 else
@@ -577,6 +577,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     adjust_coordinates(info_box, margin, edge, i, j);
                     latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
                 }
+            }
+
+            if (hist_type == "xjg" && cent_based_plots && j == 0) {
+                TLatex* latex_xjg_cent = (TLatex*)latexInfo->Clone("latex_xjg_cent");
+                box_t info_box_xjg_cent = (box_t) {0.43, 0.82, 1, 1};
+                adjust_coordinates(info_box_xjg_cent, margin, edge, i, j);
+                latex_xjg_cent->DrawLatexNDC(info_box_xjg_cent.x1, info_box_xjg_cent.y1, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[i]]));
             }
 
             // Draw line at 1 for Jet IAA
