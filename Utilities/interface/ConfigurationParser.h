@@ -21,7 +21,8 @@ const std::string noTrim = "$NOTRIM$";     // element will not be trimmed from t
 const std::string newLine = "$NEWLINE$";   // the value continues over the next line. useful when entering a long list of values.
 const std::string multiLineBegin = "$MLB$";   // sign the beginning of a multi line value
 const std::string multiLineEnd = "$MLE$";     // sign the end of a multi line value
-const std::string times = "$TIMES$";       // separate multiple lists
+const std::string times = "$TIMES$";       // operator for multiple lists
+const std::string plus = "$PLUS$";       // operator for multiple lists
 const std::string importStatement = "import.";
 const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
@@ -78,6 +79,7 @@ public :
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
     static bool isTH1D_BinsArray(std::string str);
+    static std::string getMultiListOperator(std::string strList);
     static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex);
     static std::vector<int> getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex);
     static std::vector<float> getVecFloat(std::vector<std::pair<float, int>> vecFloatIndex);
@@ -138,7 +140,10 @@ bool ConfigurationParser::isList(std::string str)
 bool ConfigurationParser::isMultipleList(std::string str)
 {
     std::string tmp = trim(str);
-    std::vector<std::string> tmpVec = split(str, CONFIGPARSER::times);
+    std::string operatorStr = getMultiListOperator(str);
+    if (operatorStr.size() == 0)  return false;
+
+    std::vector<std::string> tmpVec = split(str, operatorStr);
     if (tmpVec.size() <= 1) return false;
     else {
         for (std::vector<std::string>::iterator it = tmpVec.begin(); it != tmpVec.end(); ++it) {
@@ -195,6 +200,17 @@ bool ConfigurationParser::isTH1D_BinsArray(std::string str)
 {
     std::string tmp = trim(str);
     return (tmp.find("[") == 0 && tmp.rfind("]") == tmp.size()-1);
+}
+
+std::string ConfigurationParser::getMultiListOperator(std::string strList)
+{
+    std::string res;
+    if (strList.find(CONFIGPARSER::times) != std::string::npos)
+        res = CONFIGPARSER::times;
+    else if (strList.find(CONFIGPARSER::plus) != std::string::npos)
+        res = CONFIGPARSER::plus;
+
+    return res;
 }
 
 std::vector<std::string> ConfigurationParser::getVecString(std::vector<std::pair<std::string, int>> vecStringIndex)
@@ -442,47 +458,80 @@ std::vector<std::string> ConfigurationParser::ParseListOrString(std::string strL
 }
 
 /*
- * parse multiple lists separated by special delimeters
+ * parse multiple lists separated by special operators
  * Ex.
  * strLists = {AA, BB} $TIMES$ {11, 22} $TIMES$ {CC, DD, EE}
  * returns
  * {AA11CC, BB11CC, AA22CC, BB22CC, AA11DD, BB11DD, AA22DD, BB22DD, AA11EE, BB11EE, AA22EE, BB22EE}
+ * Ex.
+ * strLists = {AA, BB} $PLUS$ {11, 22} $PLUS$ {CC, DD}
+ * returns
+ * {AA, 11, CC, BB, 11, CC, AA, 22, CC, BB, 22, CC, AA, 11, DD, BB, 11, DD, AA, 22, DD, BB, 22, DD}
  */
 std::vector<std::string> ConfigurationParser::ParseMultipleLists(std::string strLists, std::string separator)
 {
-    std::vector<std::string> strListsVec = split(strLists, CONFIGPARSER::times);
+    std::string operatorStr = getMultiListOperator(strLists);
+    std::vector<std::string> strListsVec = split(strLists, operatorStr);
 
-    int nStrListsVec = strListsVec.size();
-    std::vector<std::string> lists[nStrListsVec];
+    int nLists = strListsVec.size();
+    std::vector<std::string> lists[nLists];
 
-    for (int iList = 0; iList < nStrListsVec; ++iList) {
+    for (int iList = 0; iList < nLists; ++iList) {
         lists[iList] = ParseList(strListsVec[iList], separator);
     }
 
     std::vector<std::string> list;
-    for (int iList = 0; iList < nStrListsVec; ++iList) {
+    if (operatorStr == CONFIGPARSER::times) {
+        for (int iList = 0; iList < nLists; ++iList) {
 
-        // take the list from previous iteration
-        std::vector<std::string> listTmp = list;
+            // take the list from previous iteration
+            std::vector<std::string> listTmp = list;
 
-        // the list from previous iteration is not the we want any more.
-        list.clear();
+            // the list from previous iteration is no more the one we want.
+            list.clear();
 
-        int n = lists[iList].size();
-        for (int i = 0; i < n; ++i) {
+            int n = lists[iList].size();
+            for (int i = 0; i < n; ++i) {
 
-            int nTmp = listTmp.size();
-            std::vector<std::string> listTmp2 = listTmp;
+                int nTmp = listTmp.size();
+                std::vector<std::string> listTmp2 = listTmp;
 
-            // append strings from the current list to strings from the previous iteration
-            if (nTmp == 0) listTmp2.push_back(lists[iList][i]);
-            else {
-                for (int j = 0; j < nTmp; ++j) {
-                    listTmp2[j].append(lists[iList][i].c_str());
+                // append strings from the current list to strings from the previous iteration
+                if (nTmp == 0) listTmp2.push_back(lists[iList][i]);
+                else {
+                    for (int j = 0; j < nTmp; ++j) {
+                        listTmp2[j].append(lists[iList][i].c_str());
+                    }
                 }
-            }
 
-            list.insert(list.end(), listTmp2.begin(), listTmp2.end());
+                list.insert(list.end(), listTmp2.begin(), listTmp2.end());
+            }
+        }
+    }
+    else if (operatorStr == CONFIGPARSER::plus) {
+
+        int nTot = 0;
+        for (int iList = 0; iList < nLists; ++iList) {
+            if (iList == 0)  nTot  = lists[iList].size();
+            else             nTot *= lists[iList].size();
+        }
+
+        list.clear();
+        list.resize(nTot*nLists);
+        for (int i = 0; i < nTot; ++i) {
+
+            for (int iList = nLists -1 ; iList >= 0; --iList) {
+
+                int nTmp = nTot;
+                for (int jList = iList+1 ; jList < nLists; ++jList) {
+                    nTmp /= lists[jList].size();
+                }
+                int iTmp = i % nTmp;
+                nTmp /= lists[iList].size();
+                iTmp /= nTmp;
+
+                list[i * nLists + iList] = lists[iList][iTmp];
+            }
         }
     }
 
