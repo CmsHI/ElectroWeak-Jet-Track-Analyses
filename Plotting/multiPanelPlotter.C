@@ -9,6 +9,7 @@
 #include "TLatex.h"
 #include "TArrow.h"
 #include "TLine.h"
+#include "TColor.h"
 
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
@@ -384,9 +385,9 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     TGraph* sys_gr = new TGraph();
                     sys_gr->SetFillStyle(1001);
                     if (k == _PBPB_DATA)
-                        sys_gr->SetFillColorAlpha(46, 0.7);
+                        sys_gr->SetFillColorAlpha(TColor::GetColor("#FF3855"), 0.7);
                     else if (k == _PP_DATA)
-                        sys_gr->SetFillColorAlpha(30, 0.7);
+                        sys_gr->SetFillColorAlpha(TColor::GetColor("#299617"), 0.7);
 
                     if (hist_type.find("centBinAll") == std::string::npos) {
                         if (canvas_title == "dphi_log" && set_log_scale)
