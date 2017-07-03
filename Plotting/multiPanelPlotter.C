@@ -273,7 +273,15 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         printf("Error: trying to plot %s as a function of centrality!\n", hist_type.c_str());
                     else
                         hist_name = Form("h1D_%s_ptBin%d_%s", hist_type.c_str(), pt_bin_numbers[j], suffix[k].c_str());
-                } else {
+                } else if (hist_type == "xjg_mean_rjg_ptBinAll") {
+                    if (cent_based_plots) {
+                        if (i == 0)       hist_name = Form("h1D_%s_hiBin%d_%s", "xjg_mean_ptBinAll", cent_bin_numbers[j], suffix[k].c_str());
+                        else if (i == 1)  hist_name = Form("h1D_%s_hiBin%d_%s", "rjg_ptBinAll", cent_bin_numbers[j], suffix[k].c_str());
+                    }
+                    else
+                        printf("Error: trying to plot %s as a function of pT!\n", hist_type.c_str());
+                }
+                else {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
@@ -300,9 +308,11 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->SetXTitle("#Delta#phi_{j#gamma}");
                         h1[i][j][k]->SetYTitle("#frac{1}{N_{j#gamma}} #frac{dN_{j#gamma}}{d#Delta#phi_{j#gamma}}");
                     }
-                    if (hist_type.find("xjg_mean") != std::string::npos)
+                    if (hist_type.find("xjg_mean") != std::string::npos ||
+                        (hist_type == "xjg_mean_rjg_ptBinAll" && i == 0))
                         h1[i][j][k]->SetYTitle("<x_{j#gamma}>");
-                    if (hist_type == "rjg_ptBinAll" || hist_type == "rjg_centBinAll")
+                    if (hist_type == "rjg_ptBinAll" || hist_type == "rjg_centBinAll" ||
+                        (hist_type == "xjg_mean_rjg_ptBinAll" && i == 1))
                         h1[i][j][k]->SetYTitle("R_{j#gamma}");
                     if (hist_type.find("centBinAll") != std::string::npos)
                         h1[i][j][k]->SetXTitle("N_{coll}-weighted <N_{part}>");
@@ -311,7 +321,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     set_axis_style(h1[i][j][k], i, j, x_axis_offset, y_axis_offset);
 
                     if (((hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa") && pt_based_plots) ||
-                        ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") && cent_based_plots))
+                        ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") && cent_based_plots) ||
+                        ((hist_type == "xjg_mean_rjg_ptBinAll") && cent_based_plots))
                     {
                         int iTmp = pt_based_plots ? i : j;
                         if (cent_bin_numbers[iTmp] == 2) {
@@ -433,7 +444,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
                             std::string legend_label = legend_labels[k];
                             if (((hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa") && pt_based_plots)  ||
-                                ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll") && cent_based_plots))
+                                ((hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll"
+                                        || hist_type == "xjg_mean_rjg_ptBinAll") && cent_based_plots))
                             {
                                 int iTmp = pt_based_plots ? i : j;
                                 if (k == _PBPB_DATA) {
@@ -469,7 +481,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 !(hist_type == "dphi" && pt_based_plots) &&
                 !(hist_type == "iaa" && pt_based_plots) &&
                 !(hist_type == "xjg_mean_ptBinAll" && cent_based_plots) &&
-                !(hist_type == "rjg_ptBinAll" && cent_based_plots))
+                !(hist_type == "rjg_ptBinAll" && cent_based_plots) &&
+                !(hist_type == "xjg_mean_rjg_ptBinAll" && cent_based_plots))
                 plotInfo.push_back(Form("%d - %d%%", bins_cent[0][cent_bin_numbers[cent_index]]/2, bins_cent[1][cent_bin_numbers[cent_index]]/2));
             if (hist_type.find("ptBinAll") == std::string::npos &&
                 !(hist_type == "xjg" && cent_based_plots)) {
@@ -522,7 +535,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 if (columns > 3)
                     latexCMS->SetTextSize(16 + columns - 3);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
-                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
+                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_rjg_ptBinAll")
                     cms_box.x1 = 0.82;
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
@@ -533,7 +546,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     latexPrelim->SetTextFont(53);
                     latexPrelim->SetTextSize(13);
                     box_t prelim_box = (box_t) {0.04, 0.84, 1, 1};
-                    if (hist_type == "xjg_mean_ptBinAll")
+                    if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_rjg_ptBinAll")
                         prelim_box.x1 = 0.2;
                     adjust_coordinates(prelim_box, margin, edge, i, j);
                     latexPrelim->DrawLatexNDC(prelim_box.x1, prelim_box.y1, "Preliminary");
@@ -542,7 +555,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             if (columns < 4) {
                 plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
+                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_rjg_ptBinAll" ||
+                    hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
                     plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
                 }
                 else {
@@ -565,9 +579,13 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             latexInfo->SetTextSize(latex_font_size);
             if (columns == 5)
                 latexInfo->SetTextSize(latex_font_size - 1);
-            if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
+            if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" ||
+                hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
                 latexInfo->SetTextSize(latex_font_size - 2);
                 latex_spacing -= 0.005;
+            }
+            else if (hist_type == "xjg_mean_rjg_ptBinAll") {
+                latexInfo->SetTextSize(latex_font_size - 2);
             }
 
             // (should move to config file)
