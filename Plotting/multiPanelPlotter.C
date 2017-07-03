@@ -119,8 +119,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     int set_log_scale = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_mpp_set_log_scale];
 
-    float y_max = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_max];
-    float y_min = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_min];
+    std::vector<float> y_max = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_y_max]);
+    std::vector<float> y_min = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_y_min]);
 
     std::vector<int> l_panel = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_mpp_l_panel]);
     std::vector<float> l_x1 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_x1]);
@@ -324,9 +324,15 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         }
                     }
 
-                    h1[i][j][k]->SetAxisRange(y_min, y_max, "Y");
-                    h1[i][j][k]->SetMaximum(y_max);
-                    h1[i][j][k]->SetMinimum(y_min);
+                    float yMinTmp = y_min.at(0);
+                    float yMaxTmp = y_max.at(0);
+                    int nYMin = y_min.size();
+                    int nYMax = y_max.size();
+                    if (nYMin == rows*columns)  yMinTmp = y_min.at(i*rows + j);
+                    if (nYMax == rows*columns)  yMaxTmp = y_max.at(i*rows + j);
+                    h1[i][j][k]->SetAxisRange(yMinTmp, yMaxTmp, "Y");
+                    h1[i][j][k]->SetMaximum(yMaxTmp);
+                    h1[i][j][k]->SetMinimum(yMinTmp);
 
                     if (canvas_title == "dphi_log" && set_log_scale)
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
