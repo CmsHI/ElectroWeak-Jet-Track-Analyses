@@ -180,6 +180,7 @@ void setAndDrawLatex(TPad* pad, int iPad);
 void setAndDrawLatexOverPad(TPad* pad);
 void setAndDrawLinesHorizontal(TPad* pad);
 void setAndDrawLinesVertical(TPad* pad);
+void saveAsFigure(TCanvas* c, int iCanvas);
 void drawSpectra(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 void drawSpectraNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "drawSpectra.root", const TString outputFigureName = "");
 
@@ -1225,29 +1226,8 @@ int postLoop()
             c->Write();
 
             // save histograms as picture if a figure name is provided.
-            if (outputFigureStr.size() > 0) {
-                std::string tmpOutputFigureName = outputFigureStr.c_str();
-                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
-                    if (nHistos > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output.ext" becomes "output_2.ext"
-                        size_t pos = tmpOutputFigureName.find_last_of(".");
-                        tmpOutputFigureName.replace(pos,1, Form("_%d.", i+1));
-                    }
-                    c->SaveAs(tmpOutputFigureName.c_str());
-                }
-                else {  // file extension is NOT specified
-                    if (nHistos > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output" becomes "output_2"
-                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), i+1);
-                    }
+            if (outputFigureStr.size() > 0)  saveAsFigure(c, i);
 
-                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
-                }
-            }
             c->Close();         // do not use Delete() for TCanvas.
         }
     }
@@ -1353,31 +1333,8 @@ int postLoop()
             c->Write();
 
             // save histograms as picture if a figure name is provided.
-            if (outputFigureStr.size() > 0) {
-                std::string tmpOutputFigureName = outputFigureStr.c_str();
-                if (tmpOutputFigureName.find(".") != std::string::npos) {     // file extension is specified
+            if (outputFigureStr.size() > 0)  saveAsFigure(c, iCanvas);
 
-                    if (nCanvasDrawSame > 1) {
-                        // modify outputFile name
-                        // if iCanvas=1, then "output.ext" becomes "output_2.ext"
-                        size_t pos = tmpOutputFigureName.find_last_of(".");
-                        tmpOutputFigureName.replace(pos,1, Form("_%d.", iCanvas+1));
-                    }
-
-                    c->SaveAs(tmpOutputFigureName.c_str());
-                }
-                else {  // file extension is NOT specified
-                    if (nCanvasDrawSame > 1) {
-                        // modify outputFile name
-                        // if i=1, then "output" becomes "output_2"
-                        tmpOutputFigureName = Form("%s_%d", tmpOutputFigureName.c_str(), iCanvas+1);
-                    }
-
-                    c->SaveAs(Form("%s.C", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.png", tmpOutputFigureName.c_str()));
-                    c->SaveAs(Form("%s.pdf", tmpOutputFigureName.c_str()));
-                }
-            }
             c->Close();
             if (leg != 0)  leg->Delete();
             iCanvas++;
@@ -1498,5 +1455,30 @@ void setAndDrawLinesVertical(TPad* pad)
             line.SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
             line.DrawLine(TLines_vertical.at(i), y1, TLines_vertical.at(i), y2);
         }
+    }
+}
+
+void saveAsFigure(TCanvas* c, int iCanvas)
+{
+    std::string outputFigureName = outputFigureStr.c_str();
+    if (outputFigureName.find(".") != std::string::npos) {     // file extension is specified
+        if (nHistos > 1) {
+            // modify outputFile name
+            // if i=1, then "output.ext" becomes "output_2.ext"
+            size_t pos = outputFigureName.find_last_of(".");
+            outputFigureName.replace(pos,1, Form("_%d.", iCanvas+1));
+        }
+        c->SaveAs(outputFigureName.c_str());
+    }
+    else {  // file extension is NOT specified
+        if (nHistos > 1) {
+            // modify outputFile name
+            // if i=1, then "output" becomes "output_2"
+            outputFigureName = Form("%s_%d", outputFigureName.c_str(), iCanvas+1);
+        }
+
+        c->SaveAs(Form("%s.C", outputFigureName.c_str()));
+        c->SaveAs(Form("%s.png", outputFigureName.c_str()));
+        c->SaveAs(Form("%s.pdf", outputFigureName.c_str()));
     }
 }
