@@ -761,6 +761,9 @@ void printConfiguration()
     for (int i = 0; i<nTextLines; ++i) {
         std::cout << Form("textLines[%d] = %s", i, textLines.at(i).c_str()) << std::endl;
     }
+    for (int i = 0; i<nTextLines; ++i) {
+        std::cout << Form("textLinePadIndices[%d] = %d", i, textLinePadIndices.at(i)) << std::endl;
+    }
     if (nTextLines > 0) {
         std::cout << "nTextFonts = " << nTextFonts << std::endl;
         for (int i = 0; i<nTextFonts; ++i) {
