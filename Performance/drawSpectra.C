@@ -10,6 +10,7 @@
 #include <TH1D.h>
 #include <TCut.h>
 #include <TCanvas.h>
+#include <TPad.h>
 #include <TLine.h>
 #include <TLegend.h>
 #include <TLatex.h>
@@ -1236,32 +1237,31 @@ int postLoop()
         bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
         bool drawSameInsideSplits = (drawSame == INPUT_TH1::k_drawSameInsideSplits);
 
-        int nCanvasDrawSame = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
-        if (drawSameAcrossSplits)  nCanvasDrawSame = nHistosInput;
-        if (drawSameInsideSplits)  nCanvasDrawSame = nSplits;
-        nPads = nCanvasDrawSame;
+        int nPads = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+        if (drawSameAcrossSplits)  nPads = nHistosInput;
+        if (drawSameInsideSplits)  nPads = nSplits;
 
         // one must have : nHistosPerCanvas * nCanvasDrawSame = nHistos
-        int nHistosPerCanvas = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
-        if (drawSameAcrossSplits)  nHistosPerCanvas = nSplits;
-        if (drawSameInsideSplits)  nHistosPerCanvas = nHistosInput;
+        int nHistosPerPad = nHistos;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+        if (drawSameAcrossSplits)  nHistosPerPad = nSplits;
+        if (drawSameInsideSplits)  nHistosPerPad = nHistosInput;
 
-        int iCanvas = 0;
+        int iPad = 0;
         bool drawSameFinished = false;
         while (!drawSameFinished)  {
 
-            c = new TCanvas(Form("cnv_drawSpectra_%d", iCanvas),"",windowWidth,windowHeight);
+            c = new TCanvas(Form("cnv_drawSpectra_%d", iPad),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
             setCanvasFinal(c, setLogx, setLogy);
             c->cd();
 
             int histStart = 0;
-            if (drawSameAcrossSplits) histStart += iCanvas;
-            if (drawSameInsideSplits) histStart =  iCanvas * nHistosPerCanvas;
+            if (drawSameAcrossSplits) histStart += iPad;
+            if (drawSameInsideSplits) histStart =  iPad * nHistosPerPad;
             // set maximum/minimum of y-axis
             if (yMin > yMax) {
                 std::vector<TH1D*> vecTH1Dtmp;
-                vecTH1Dtmp.resize(nHistosPerCanvas);
+                vecTH1Dtmp.resize(nHistosPerPad);
                 vecTH1Dtmp[0] = h_draw[histStart];
 
                 int histCount = 1;
@@ -1269,7 +1269,7 @@ int postLoop()
                 int increment = 1;
                 if (drawSameAcrossSplits)  increment = nHistosInput;
                 if (drawSameInsideSplits)  increment = 1;
-                while (histCount < nHistosPerCanvas)
+                while (histCount < nHistosPerPad)
                 {
                     iHist += increment;
                     vecTH1Dtmp[histCount] = h_draw[iHist];
@@ -1289,15 +1289,15 @@ int postLoop()
             int increment = 1;
             if (drawSameAcrossSplits)  increment = nHistosInput;
             if (drawSameInsideSplits)  increment = 1;
-            while (histCount < nHistosPerCanvas)
+            while (histCount < nHistosPerPad)
             {
                 std::string drawOption = "";
                 if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-                else if (nDrawOptions == nHistosPerCanvas) drawOption = drawOptions.at((iHist/increment)%nDrawOptions).c_str();
+                else if (nDrawOptions == nHistosPerPad) drawOption = drawOptions.at((iHist/increment)%nDrawOptions).c_str();
 
                 h_draw[iHist]->Draw(Form("%s same", drawOption.c_str()));
 
-                if (nLegendEntryLabels == nHistosPerCanvas) {
+                if (nLegendEntryLabels == nHistosPerPad) {
                     std::string label = legendEntryLabels.at((iHist/increment)%nLegendEntryLabels).c_str();
                     if (label.compare(CONFIGPARSER::nullInput) == 0)  continue;
 
@@ -1322,7 +1322,7 @@ int postLoop()
             }
 
             // add Text
-            setAndDrawLatex(c, iCanvas);
+            setAndDrawLatex(c, iPad);
 
             // add Text above the pad
             setAndDrawLatexOverPad(c);
@@ -1333,12 +1333,12 @@ int postLoop()
             c->Write();
 
             // save histograms as picture if a figure name is provided.
-            if (outputFigureStr.size() > 0)  saveAsFigure(c, iCanvas);
+            if (outputFigureStr.size() > 0)  saveAsFigure(c, iPad);
 
             c->Close();
             if (leg != 0)  leg->Delete();
-            iCanvas++;
-            drawSameFinished = (iCanvas == nCanvasDrawSame);
+            iPad++;
+            drawSameFinished = (iPad == nPads);
         }
     }
 
@@ -1462,7 +1462,7 @@ void saveAsFigure(TCanvas* c, int iCanvas)
 {
     std::string outputFigureName = outputFigureStr.c_str();
     if (outputFigureName.find(".") != std::string::npos) {     // file extension is specified
-        if (nHistos > 1) {
+        if (nPads > 1) {
             // modify outputFile name
             // if i=1, then "output.ext" becomes "output_2.ext"
             size_t pos = outputFigureName.find_last_of(".");
@@ -1471,7 +1471,7 @@ void saveAsFigure(TCanvas* c, int iCanvas)
         c->SaveAs(outputFigureName.c_str());
     }
     else {  // file extension is NOT specified
-        if (nHistos > 1) {
+        if (nPads > 1) {
             // modify outputFile name
             // if i=1, then "output" becomes "output_2"
             outputFigureName = Form("%s_%d", outputFigureName.c_str(), iCanvas+1);
