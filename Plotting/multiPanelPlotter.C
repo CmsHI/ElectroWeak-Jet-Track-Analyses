@@ -280,8 +280,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     }
                     else
                         printf("Error: trying to plot %s as a function of pT!\n", hist_type.c_str());
-                }
-                else {
+                } else if (hist_type == "xjg_mean_rjg_centBinAll") {
+                    if (pt_based_plots) {
+                        if (i == 0)       hist_name = Form("h1D_%s_ptBin%d_%s", "xjg_mean_centBinAll", pt_bin_numbers[j], suffix[k].c_str());
+                        else if (i == 1)  hist_name = Form("h1D_%s_ptBin%d_%s", "rjg_centBinAll", pt_bin_numbers[j], suffix[k].c_str());
+                    }
+                    else
+                        printf("Error: trying to plot %s as a function of centrality!\n", hist_type.c_str());
+                } else {
                     printf("Unknown plot type: %s\n", hist_type.c_str());
                 }
 
@@ -309,10 +315,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                         h1[i][j][k]->SetYTitle("#frac{1}{N_{j#gamma}} #frac{dN_{j#gamma}}{d#Delta#phi_{j#gamma}}");
                     }
                     if (hist_type.find("xjg_mean") != std::string::npos ||
-                        (hist_type == "xjg_mean_rjg_ptBinAll" && i == 0))
+                        ((hist_type == "xjg_mean_rjg_ptBinAll" || hist_type == "xjg_mean_rjg_centBinAll") && i == 0))
                         h1[i][j][k]->SetYTitle("<x_{j#gamma}>");
                     if (hist_type == "rjg_ptBinAll" || hist_type == "rjg_centBinAll" ||
-                        (hist_type == "xjg_mean_rjg_ptBinAll" && i == 1))
+                        ((hist_type == "xjg_mean_rjg_ptBinAll" || hist_type == "xjg_mean_rjg_centBinAll") && i == 1))
                         h1[i][j][k]->SetYTitle("R_{j#gamma}");
                     if (hist_type.find("centBinAll") != std::string::npos)
                         h1[i][j][k]->SetXTitle("N_{coll}-weighted <N_{part}>");
@@ -492,7 +498,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[pt_index]]));
             }
 
-            if (hist_type.find("xjg_mean_centBinAll") != std::string::npos) {
+            if (hist_type.find("xjg_mean_centBinAll") != std::string::npos ||
+                (hist_type == "xjg_mean_rjg_centBinAll" && i == 0)) {
                 for (int asdf=0; asdf<2; ++asdf) {
                     TLatex* cent_label = new TLatex();
                     cent_label->SetTextFont(43);
@@ -510,7 +517,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 }
             }
 
-            if (hist_type.find("rjg_centBinAll") != std::string::npos) {
+            if (hist_type == "rjg_centBinAll" ||
+                (hist_type == "xjg_mean_rjg_centBinAll" && i == 1)) {
                 for (int asdf=0; asdf<2; ++asdf) {
                     TLatex* cent_label = new TLatex();
                     cent_label->SetTextFont(43);
@@ -556,7 +564,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (columns < 4) {
                 plotInfo.push_back("anti-k_{T} jet R = 0.3");
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_rjg_ptBinAll" ||
-                    hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll") {
+                    hist_type == "xjg_mean_centBinAll" || hist_type == "rjg_centBinAll" || hist_type == "xjg_mean_rjg_centBinAll") {
                     plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
                 }
                 else {
@@ -584,7 +592,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexInfo->SetTextSize(latex_font_size - 2);
                 latex_spacing -= 0.005;
             }
-            else if (hist_type == "xjg_mean_rjg_ptBinAll") {
+            else if (hist_type == "xjg_mean_rjg_ptBinAll" || hist_type == "xjg_mean_rjg_centBinAll") {
                 latexInfo->SetTextSize(latex_font_size - 2);
             }
 
