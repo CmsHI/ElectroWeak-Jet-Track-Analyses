@@ -547,7 +547,6 @@ int readConfiguration(const TString configFile)
 
     // input for text objects
     tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
-    textLines = ConfigurationParser::ParseList(tmpText);
     std::vector<std::pair<std::string, int>> textEntries = ConfigurationParser::ParseListOfList(tmpText);
     textLines = ConfigurationParser::getVecString(textEntries);
     textLinePadIndices = ConfigurationParser::getVecIndex(textEntries);
@@ -1450,6 +1449,10 @@ void setAndDrawLinesHorizontal(TPad* pad)
         double x2 = pad->GetUxmax();
         double y1 = pad->GetUymin();
         double y2 = pad->GetUymax();
+        if (pad->GetLogy() == 1) {
+            y1 = TMath::Power(10, pad->GetUymin());
+            y2 = TMath::Power(10, pad->GetUymax());
+        }
 
         if (y1 < TLines_horizontal.at(i) && TLines_horizontal.at(i) < y2) {
 
@@ -1475,6 +1478,10 @@ void setAndDrawLinesVertical(TPad* pad)
         double x2 = pad->GetUxmax();
         double y1 = pad->GetUymin();
         double y2 = pad->GetUymax();
+        if (pad->GetLogy() == 1) {
+            y1 = TMath::Power(10, pad->GetUymin());
+            y2 = TMath::Power(10, pad->GetUymax());
+        }
 
         if (x1 < TLines_vertical.at(i) && TLines_vertical.at(i) < x2) {
 
