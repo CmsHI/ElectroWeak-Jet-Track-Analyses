@@ -128,8 +128,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::vector<float> l_x2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_x2]);
     std::vector<float> l_y2 = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_l_y2]);
 
-    std::vector<float> i_x = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_x]);
-    std::vector<float> i_y = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_i_y]);
+    std::vector<float> i_x = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_i_x]);
+    std::vector<float> i_y = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_i_y]);
 
     float x_axis_offset = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_x_axis_offset];
     float y_axis_offset = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_y_axis_offset];
