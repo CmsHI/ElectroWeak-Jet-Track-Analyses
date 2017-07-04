@@ -83,7 +83,6 @@ class tiling {
     void adjust_coordinates(float& x_min, float& y_min,
                             float& x_max, float& y_max,
                             int col, int row);
-    void adjust_coordinates(float points[], int col, int row);
 
     float adjust_size(float size, int col, int row);
     float adjust_size_inverse(float size, int col, int row);
@@ -239,10 +238,6 @@ void tiling::adjust_coordinates(float& x_min, float& y_min,
         y_min = y_min * (1.0 - margin_top - margin_bottom) + margin_bottom;
         y_max = y_max * (1.0 - margin_top - margin_bottom) + margin_bottom;
     }
-}
-
-void tiling::adjust_coordinates(float points[], int col, int row) {
-    adjust_coordinates(points[0], points[1], points[2], points[3], col, row);
 }
 
 float tiling::adjust_size(float size, int col, int row) {

@@ -28,7 +28,7 @@ void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
 
 std::vector<std::string> legend_draw_options;
 
-int gammaJetPlot(const std::string hist_list, const std::string input_file, const std::string sys_file, const std::string config_file) {
+int gammaJetPlot(const std::string input_file, const std::string sys_file, const std::string hist_list, const std::string config_file) {
     gStyle->SetOptTitle(0);
     gStyle->SetOptStat(0);
 
@@ -187,7 +187,8 @@ int gammaJetPlot(const std::string hist_list, const std::string input_file, cons
                     }
 
                     /* draw histogram */
-                    histograms[l]->Draw(option_strings[l][0].c_str());
+                    histograms[l] = (TH1D*)histograms[l]->DrawCopy(option_strings[l][0].c_str());
+                    histograms[l]->ResetBit(kCanDelete);
                 } else if (generic[l]->InheritsFrom(TGraphErrors::Class())) {
                     graphs[l] = (TGraphErrors*)generic[l];
                     tiler->set_sizes(
@@ -208,33 +209,6 @@ int gammaJetPlot(const std::string hist_list, const std::string input_file, cons
                     printf("unknown object type!\n");
                     return 1;
                 }
-            }
-
-            if (!histograms[0]) { continue; }
-
-            // Draw line at 1 for Jet IAA
-            if (hist_type == "iaa") {
-                TLine* line = new TLine();
-                line->SetLineStyle(3);
-                line->SetLineWidth(1);
-                line->DrawLine(
-                    histograms[0]->GetXaxis()->GetXmin(), 1,
-                    histograms[0]->GetXaxis()->GetXmax(), 1
-                );
-            }
-
-            // Draw line at y = 0 for dphi and xjg
-            if (hist_type == "dphi" || hist_type == "xjg") {
-                TLine* line = new TLine();
-                line->SetLineStyle(kDashed);
-                line->SetLineWidth(1);
-                gPad->Update();
-                double xMin = gPad->GetUxmin();
-                double xMax = gPad->GetUxmax();
-                double yMin = gPad->GetUymin();
-                double yMax = gPad->GetUymax();
-                if (yMin < 0 && 0 < yMax)
-                    line->DrawLine(xMin, 0, xMax, 0);
             }
 
             for (std::size_t s=0; s<l_panel.size(); ++s) {
@@ -269,6 +243,33 @@ int gammaJetPlot(const std::string hist_list, const std::string input_file, cons
                     CMS_label_x, 0.9, "CMS", 6,
                     cms_latex_size, 11, c, r
                 );
+            }
+
+            if (!histograms[0]) { continue; }
+
+            // Draw line at 1 for Jet IAA
+            if (hist_type == "iaa") {
+                TLine* line = new TLine();
+                line->SetLineStyle(3);
+                line->SetLineWidth(1);
+                line->DrawLine(
+                    histograms[0]->GetXaxis()->GetXmin(), 1,
+                    histograms[0]->GetXaxis()->GetXmax(), 1
+                );
+            }
+
+            // Draw line at y = 0 for dphi and xjg
+            if (hist_type == "dphi" || hist_type == "xjg") {
+                TLine* line = new TLine();
+                line->SetLineStyle(kDashed);
+                line->SetLineWidth(1);
+                gPad->Update();
+                double xMin = gPad->GetUxmin();
+                double xMax = gPad->GetUxmax();
+                double yMin = gPad->GetUymin();
+                double yMax = gPad->GetUymax();
+                if (yMin < 0 && 0 < yMax)
+                    line->DrawLine(xMin, 0, xMax, 0);
             }
 
             // draw latex info
@@ -393,46 +394,54 @@ int gammaJetPlot(const std::string hist_list, const std::string input_file, cons
 
 std::string set_systematics_style(TGraph* gr, int style) {
     switch (style) {
-        /* PbPb data 0-30% */
         case 0:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(46, 0.7);
             return "same e x0";
-        /* pp data 0-30% */
         case 1:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(30, 0.7);
             return "same e x0";
-        /* PbPb data 30-100% */
         case 2:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(46, 0.7);
             return "same e x0";
-        /* pp data 30-100% */
         case 3:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(30, 0.7);
             return "same e x0";
-        /* PbPb data 0-30% */
         case 4:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(46, 0.7);
             return "same e x0";
-        /* pp data 0-30% */
         case 5:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(30, 0.7);
             return "same e x0";
-        /* PbPb data 30-100% */
         case 6:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(46, 0.7);
             return "same e x0";
-        /* pp data 30-100% */
         case 7:
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(30, 0.7);
             return "same e x0";
+        case 12:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(46, 0.7);
+            return "same e0 x0";
+        case 13:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(30, 0.7);
+            return "same e0 x0";
+        case 14:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(46, 0.7);
+            return "same e0 x0";
+        case 15:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(30, 0.7);
+            return "same e0 x0";
         default:
             gr->SetFillStyle(1001);
             return "same e x0";
@@ -441,10 +450,9 @@ std::string set_systematics_style(TGraph* gr, int style) {
 
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings) {
     switch (style) {
-        /* PbPb data 0-30% legend */
-        case 0:
-            h1->SetLineWidth(0);
+        case 0:     /* PbPb data 0-30% legend */
             h1->SetLineColorAlpha(46, 0.7);
+            h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
             h1->SetMarkerSize(1.2);
@@ -453,10 +461,9 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* pp data 0-30% legend */
-        case 1:
-            h1->SetLineWidth(0);
+        case 1:     /* pp data 0-30% legend */
             h1->SetLineColorAlpha(30, 0.7);
+            h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
             h1->SetMarkerSize(1.2);
@@ -465,10 +472,9 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* PbPb data 30-100% legend */
-        case 2:
-            h1->SetLineWidth(0);
+        case 2:     /* PbPb data 30-100% legend */
             h1->SetLineColorAlpha(46, 0.7);
+            h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
             h1->SetMarkerSize(1.2);
@@ -477,10 +483,9 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* pp data 30-100% legend */
-        case 3:
-            h1->SetLineWidth(0);
+        case 3:     /* pp data 30-100% legend */
             h1->SetLineColorAlpha(30, 0.7);
+            h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
             h1->SetMarkerSize(1.2);
@@ -489,8 +494,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* PbPb data 0-30% */
-        case 4:
+        case 4:     /* PbPb data 0-30% */
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
@@ -498,8 +502,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* pp data 0-30% */
-        case 5:
+        case 5:     /* pp data 0-30% */
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
@@ -507,8 +510,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* PbPb data 30-100% */
-        case 6:
+        case 6:     /* PbPb data 30-100% */
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
@@ -516,8 +518,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* pp data 30-100% */
-        case 7:
+        case 7:     /* pp data 30-100% */
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
@@ -525,14 +526,49 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        /* pp data 30-100% */
-        case 8:
+        case 8:     /* PbPb MC 30-100% */
             h1->SetLineColor(1);
             h1->SetLineStyle(1);
             h1->SetLineWidth(1.2);
             h1->SetMarkerSize(0);
             option_strings.push_back("same hist e x0");
             option_strings.push_back("l");
+            break;
+        case 12:    /* PbPb data 0-30% dphi */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(20);
+            h1->SetMarkerSize(1.2);
+            option_strings.push_back("same e0 x0");
+            option_strings.push_back("pf");
+            break;
+        case 13:    /* pp data 0-30% dphi */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(24);
+            h1->SetMarkerSize(1.2);
+            option_strings.push_back("same e0 x0");
+            option_strings.push_back("pf");
+            break;
+        case 14:    /* PbPb data 30-100% dphi */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(21);
+            h1->SetMarkerSize(1.2);
+            option_strings.push_back("same e0 x0");
+            option_strings.push_back("pf");
+            break;
+        case 15:    /* pp data 30-100% dphi */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(25);
+            h1->SetMarkerSize(1.2);
+            option_strings.push_back("same e0 x0");
+            option_strings.push_back("pf");
             break;
         default:
             option_strings.push_back("same e x0");
@@ -543,17 +579,11 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
 
 void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_strings) {
     switch (style) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-        case 6:
-        case 7:
+        case 0: case 1: case 2: case 3:
+        case 4: case 5: case 6: case 7:
         case 8:
             break;
-        case 9:
+        case 9:     /* JEWEL */
             g1->SetLineColor(9);
             g1->SetLineStyle(1);
             g1->SetLineWidth(1.2);
@@ -561,7 +591,7 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
             option_strings.push_back("same l z");
             option_strings.push_back("l");
             break;
-        case 10:
+        case 10:    /* LBT */
             g1->SetLineColor(kOrange-3);
             g1->SetLineStyle(1);
             g1->SetLineWidth(1.2);
@@ -569,10 +599,9 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
             option_strings.push_back("same l z");
             option_strings.push_back("l");
             break;
-        case 11:
+        case 11:    /* Hybrid */
             g1->SetLineColorAlpha(kTeal+9, 0.7);
             g1->SetLineStyle(1);
-            g1->SetLineWidth(0);
             g1->SetMarkerSize(0);
             g1->SetFillColorAlpha(kTeal+9, 0.7);
             option_strings.push_back("same l e3");
