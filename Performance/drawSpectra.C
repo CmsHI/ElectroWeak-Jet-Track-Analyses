@@ -161,13 +161,12 @@ int nLineStyles_vertical;
 /// configuration variables - END
 enum MODES {
     kTH1D,
-    kTH1D_comparison,
     kTH2D,
     kN_MODES
 };
 std::vector<std::vector<std::string>> inputFiles;
-std::vector<std::string> inputFileArguments;
-int nInputFileArguments;
+std::vector<std::string> inputSamples;
+int nInputSamples;
 int nSplits;
 int nSelectionsTot;
 int nFormulasTot;
@@ -208,26 +207,25 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     printConfiguration();
 
     std::cout<<"Input handling :"<< std::endl;
-    inputFileArguments = InputConfigurationParser::ParseFileArgument(inputFile.Data());
-    nInputFileArguments = inputFileArguments.size();
+    inputSamples = InputConfigurationParser::ParseFileArgument(inputFile.Data());
+    nInputSamples = inputSamples.size();
 
-    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
-    std::cout<<"nInputFileArguments (number of input file arguments) = "<< nInputFileArguments << std::endl;
-    for (int i = 0; i < nInputFileArguments; ++i) {
-        std::cout << Form("inputFileArguments[%d] = %s", i, inputFileArguments.at(i).c_str()) << std::endl;
+    std::cout<<"nInputSamples (number of different input samples) = "<< nInputSamples << std::endl;
+    for (int i = 0; i < nInputSamples; ++i) {
+        std::cout << Form("inputSamples[%d] = %s", i, inputSamples.at(i).c_str()) << std::endl;
     }
 
     inputFiles.clear();
-    inputFiles.resize(nInputFileArguments);
+    inputFiles.resize(nInputSamples);
     std::cout<<"#####"<< std::endl;
-    for (int i = 0; i < nInputFileArguments; ++i) {
+    for (int i = 0; i < nInputSamples; ++i) {
 
-        if (nInputFileArguments > 1) {
+        if (nInputSamples > 1) {
             std::cout<<"###"<< std::endl;
-            std::cout<<"inputFileArgument = " << inputFileArguments.at(i).c_str() << std::endl;
+            std::cout<<"inputFileArgument = " << inputSamples.at(i).c_str() << std::endl;
         }
 
-        inputFiles[i] = InputConfigurationParser::ParseFiles(inputFileArguments.at(i));
+        inputFiles[i] = InputConfigurationParser::ParseFiles(inputSamples.at(i));
         std::cout<<"input ROOT files : num = " << inputFiles[i].size() << std::endl;
         for (std::vector<std::string>::iterator it = inputFiles[i].begin() ; it != inputFiles[i].end(); ++it) {
             std::cout<<(*it).c_str()<< std::endl;
@@ -239,45 +237,44 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
     if (preLoop() != 0) return;
 
-    // if no mode is specified (which is what happens most of the time), then it is expected that nInputFileArguments = 1.
     // so in that case : 1.) the "TTree*" objects below are effectively 1D, not 2D. 2.) the loops below have effective depth 1, not 2.
-    TTree* trees[nTrees][nInputFileArguments];
-    TTree* treeFriends[nFriends][nInputFileArguments];
-    TTree* treeFriendsIndividual[nFriendsIndividual][nInputFileArguments];
-    TTree* treeHiForestInfo[nInputFileArguments];
+    TTree* trees[nTrees][nInputSamples];
+    TTree* treeFriends[nFriends][nInputSamples];
+    TTree* treeFriendsIndividual[nFriendsIndividual][nInputSamples];
+    TTree* treeHiForestInfo[nInputSamples];
 
     entries.clear();
-    entries.resize(nInputFileArguments);
+    entries.resize(nInputSamples);
     entriesSelected.clear();
     entriesSelected.resize(nHistos);
     std::fill_n(entriesSelected.begin(), nHistos, 0);
 
-    int nFiles[nInputFileArguments];
+    int nFiles[nInputSamples];
     TFile* fileTmp = 0;
 
     std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
-    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
+    for (int iSample = 0; iSample < nInputSamples; ++iSample) {
 
-        nFiles[iInFileArg] = inputFiles[iInFileArg].size();
-        if (nInputFileArguments > 1) {
-            std::cout <<"iInFileArg = " << iInFileArg << " , "<< std::endl;
+        nFiles[iSample] = inputFiles[iSample].size();
+        if (nInputSamples > 1) {
+            std::cout <<"iSample = " << iSample << " , "<< std::endl;
         }
 
         // read the first file only to get the HiForest info
-        std::string inputPath = inputFiles[iInFileArg].at(0).c_str();
+        std::string inputPath = inputFiles[iSample].at(0).c_str();
         fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
         bool treeExists = true;
-        if (nFiles[iInFileArg] == 1) {
+        if (nFiles[iSample] == 1) {
             // read one tree only to get the number of entries
-            trees[0][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(0).c_str());
-            if (!trees[0][iInFileArg]) {
+            trees[0][iSample] = (TTree*)fileTmp->Get(treePaths.at(0).c_str());
+            if (!trees[0][iSample]) {
                 std::cout << "tree is not found in the path : "<< treePaths.at(0).c_str() <<". skipping file." << std::endl;
                 treeExists = false;
             }
             if (treeExists) {
-                entries[iInFileArg] = trees[0][iInFileArg]->GetEntries();
-                std::cout << "entries = " << entries[iInFileArg] << std::endl;
+                entries[iSample] = trees[0][iSample]->GetEntries();
+                std::cout << "entries = " << entries[iSample] << std::endl;
             }
         }
 
@@ -289,8 +286,8 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             }
             if (treeExists) {
                 HiForestInfoController hfic(treeHiForestInfo[0]);
-                if (iInFileArg == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-                else                  std::cout<<"### HiForestInfo Tree, input "<< iInFileArg+1 << " ###" << std::endl;
+                if (iSample == 0)  std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+                else                  std::cout<<"### HiForestInfo Tree, input "<< iSample+1 << " ###" << std::endl;
                 hfic.printHiForestInfo();
                 std::cout<<"###"<< std::endl;
             }
@@ -300,16 +297,16 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     }
 
     std::cout << "TTree::Draw()" <<std::endl;
-    for (int iInFileArg = 0; iInFileArg < nInputFileArguments; ++iInFileArg) {
+    for (int iSample = 0; iSample < nInputSamples; ++iSample) {
 
-        if (nInputFileArguments > 1) {
-            std::cout <<"iInFileArg = " << iInFileArg << std::endl;
+        if (nInputSamples > 1) {
+            std::cout <<"iSample = " << iSample << std::endl;
         }
 
-        entries[iInFileArg] = 0;
-        for (int iFile = 0; iFile < nFiles[iInFileArg]; ++iFile) {
+        entries[iSample] = 0;
+        for (int iFile = 0; iFile < nFiles[iSample]; ++iFile) {
 
-            std::string inputPath = inputFiles[iInFileArg].at(iFile).c_str();
+            std::string inputPath = inputFiles[iSample].at(iFile).c_str();
             std::cout <<"iFile = " << iFile << " , " ;
             std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
             fileTmp = TFile::Open(inputPath.c_str(), "READ");
@@ -322,15 +319,15 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
             bool treeExists = true;
             for (int i=0; i<nTrees; ++i) {
-                trees[i][iInFileArg] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());
-                if (!trees[i][iInFileArg]) {
+                trees[i][iSample] = (TTree*)fileTmp->Get(treePaths.at(i).c_str());
+                if (!trees[i][iSample]) {
                     std::cout << "tree is not found in the path : "<< treePaths.at(i).c_str() <<". skipping file." << std::endl;
                     treeExists = false;
                 }
             }
             for (int i=0; i<nFriends; ++i) {
-                treeFriends[i][iInFileArg] = (TTree*)fileTmp->Get(treeFriendsPath.at(i).c_str());
-                if (!treeFriends[i][iInFileArg]) {
+                treeFriends[i][iSample] = (TTree*)fileTmp->Get(treeFriendsPath.at(i).c_str());
+                if (!treeFriends[i][iSample]) {
                     std::cout << "tree is not found in the path : "<< treeFriendsPath.at(i).c_str() <<". skipping file." << std::endl;
                     treeExists = false;
                 }
@@ -340,12 +337,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             // add friends
             for (int i=0; i<nTrees; ++i) {
                 for (int j=0; j<nFriends; ++j) {
-                    trees[i][iInFileArg]->AddFriend(treeFriends[j][iInFileArg], Form("t%d", j));
+                    trees[i][iSample]->AddFriend(treeFriends[j][iSample], Form("t%d", j));
                 }
             }
             for (int i=0; i < nFriendsIndividual; ++i) {
                 if (treeFriendsPathIndividual.at(i).compare(CONFIGPARSER::nullInput) != 0) {
-                    treeFriendsIndividual[i][iInFileArg] = (TTree*)fileTmp->Get(treeFriendsPathIndividual.at(i).c_str());
+                    treeFriendsIndividual[i][iSample] = (TTree*)fileTmp->Get(treeFriendsPathIndividual.at(i).c_str());
                 }
             }
             if (nFriendsIndividual > 0) {
@@ -356,14 +353,14 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 }
             }
 
-            Long64_t entriesTmp = trees[0][iInFileArg]->GetEntries();      // assume all the trees have same number of entries
-            entries[iInFileArg] += entriesTmp;
+            Long64_t entriesTmp = trees[0][iSample]->GetEntries();      // assume all the trees have same number of entries
+            entries[iSample] += entriesTmp;
 
-            if (nInputFileArguments == 1)  {
+            if (nInputSamples == 1)  {
                 std::cout << "entries in File = " << entriesTmp << std::endl;
             }
             else {
-                std::cout << Form("entries[%d] = ", iInFileArg) << entriesTmp << std::endl;
+                std::cout << Form("entries in File of input %d = ", iSample+1) << entriesTmp << std::endl;
             }
 
             output->cd();
@@ -373,9 +370,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 if (nHistosInput == nTrees)  treeIndex = i%nTrees;
                 // std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
-                if (mode == MODES::kTH1D_comparison) {
-                    iInFileArg = i%nInputFileArguments;
-                    std::cout << "iInFileArg = " << iInFileArg << ", ";
+                if (nInputSamples > 1) {
+                    iSample = i%nInputSamples;
+                    std::cout << "iSample = " << iSample << ", ";
                 }
 
                 std::string formula = formulas.at(0).c_str();
@@ -393,20 +390,20 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 TCut selectionFinal = selectionBase.c_str();
                 selectionFinal = selectionFinal && selection.c_str();
                 if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
-                Long64_t entriesSelectedTmp = trees[treeIndex][iInFileArg]->GetEntries(selectionFinal.GetTitle());
+                Long64_t entriesSelectedTmp = trees[treeIndex][iSample]->GetEntries(selectionFinal.GetTitle());
                 // std::cout << "entriesSelected in file = " << entriesSelectedTmp << std::endl;
                 entriesSelected[i] += entriesSelectedTmp;
 
                 TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
-                trees[treeIndex][iInFileArg]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
+                trees[treeIndex][iSample]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
             }
             fileTmp->Close();
         }
     }
     std::cout << "TTree::Draw() ENDED" <<std::endl;
-    for (int i = 0; i < nInputFileArguments; ++i) {
+    for (int i = 0; i < nInputSamples; ++i) {
 
-        if (nInputFileArguments == 1)  {
+        if (nInputSamples == 1)  {
             std::cout << "entries = " << entries[0] << std::endl;
         }
         else {
@@ -666,12 +663,13 @@ void printConfiguration()
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "mode = " << mode << std::endl;
-    if (mode == MODES::kTH1D_comparison) {
-        // in comparison mode "inputFile" should have the following format
+    if (nInputSamples > 1) {
+        // Multiple input samples should be given using the following format
         // inputFile = <inputFile1>,<inputFile2>,...
         // there should be no single space between <inputFile1> and <inputFile2>.
         // the idea is to feed the input samples as a single argument and split them in the macro.
-        std::cout << "comparison mode : Spectra from two input samples are going to be compared." << std::endl;
+        std::cout << "There are multiple input samples. Entering comparison mode." << std::endl;
+        std::cout << "comparison mode : Spectra from multiple input samples are going to be compared." << std::endl;
     }
     std::cout << "nTrees = " << nTrees << std::endl;
     for (int i=0; i<nTrees; ++i) {
@@ -880,14 +878,8 @@ int preLoop(TFile* input, bool makeNew)
         input->cd();
     }
 
-    // check consistency of the input file arguments with the mode
-    if (mode == MODES::kTH1D && nInputFileArguments > 1) {
-        std::cout<<"TH1D mode is chosen. more than one input samples are provided."<< std::endl;
-        std::cout<<"exiting"<< std::endl;
-        return -1;
-    }
-    if (mode == MODES::kTH1D_comparison && nInputFileArguments == 1) {
-        std::cout<<"comparison mode is chosen. But only one input sample is provided."<< std::endl;
+    if (!(mode >= 0 && mode < MODES::kN_MODES)) {
+        std::cout<<"mode = "<< mode << " is not a valid mode." << std::endl;
         std::cout<<"exiting"<< std::endl;
         return -1;
     }
@@ -957,7 +949,7 @@ int preLoop(TFile* input, bool makeNew)
         int nBinsy = 0;
         float yLow = 0;
         float yUp  = 0;
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             nBinsx  = (int)TH1D_Bins_List[0].at(0);
             xLow = TH1D_Bins_List[1].at(0);
             xUp  = TH1D_Bins_List[2].at(0);
@@ -984,7 +976,7 @@ int preLoop(TFile* input, bool makeNew)
             }
         }
 
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             std::string hName = Form("h_%d", i);
             if (makeNew)
                 h[i] = new TH1D(hName.c_str(), "", nBinsx, xLow, xUp);
@@ -1072,7 +1064,7 @@ int postLoop()
         h[i]->Write("",TObject::kOverwrite);;
         h_nums[i]->Write("",TObject::kOverwrite);;
 
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
         }
         else if (mode == MODES::kTH2D) {
@@ -1081,7 +1073,7 @@ int postLoop()
         h_normInt[i]->Scale(1./h[i]->Integral());
         h_normInt[i]->Write("",TObject::kOverwrite);;
 
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
         }
         else if (mode == MODES::kTH2D) {
@@ -1131,7 +1123,7 @@ int postLoop()
         h[i]->SetTitleOffset(titleOffsetX,"X");
         h[i]->SetTitleOffset(titleOffsetY,"Y");
         h[i]->SetStats(false);  // no stats box in the final plots
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             h[i]->SetMarkerStyle(kFullCircle);
             h[i]->SetMarkerColor(kBlack);
             h[i]->Draw("e");
@@ -1153,7 +1145,7 @@ int postLoop()
         h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
         h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normInt[i]->SetStats(false);  // no stats box in the final plots
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             h_normInt[i]->SetMarkerStyle(kFullCircle);
             h_normInt[i]->SetMarkerColor(kBlack);
             h_normInt[i]->Draw("e");
@@ -1175,7 +1167,7 @@ int postLoop()
         h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
         h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normEvents[i]->SetStats(false);  // no stats box in the final plots
-        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+        if (mode == MODES::kTH1D) {
             h_normEvents[i]->SetMarkerStyle(kFullCircle);
             h_normEvents[i]->SetMarkerColor(kBlack);
             h_normEvents[i]->Draw("e");
@@ -1304,7 +1296,7 @@ int postLoop()
             if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
             else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
 
-            if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            if (mode == MODES::kTH1D) {
                 h_draw[i]->SetMarkerColor(kBlack);
                 h_draw[i]->SetLineColor(kBlack);
             }
@@ -1356,7 +1348,7 @@ int postLoop()
             if (drawSameAcrossSplits) histStart += iPad;
             if (drawSameInsideSplits) histStart =  iPad * nHistosPerPad;
             // set maximum/minimum of y-axis
-            if (yMin > yMax && (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison)) {
+            if (yMin > yMax && (mode == MODES::kTH1D)) {
                 std::vector<TH1D*> vecTH1Dtmp;
                 vecTH1Dtmp.resize(nHistosPerPad);
                 vecTH1Dtmp[0] = (TH1D*)h_draw[histStart];
