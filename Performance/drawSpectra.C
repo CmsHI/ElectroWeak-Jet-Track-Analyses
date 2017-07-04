@@ -8,6 +8,7 @@
 #include <TTree.h>
 #include <TH1.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TCut.h>
 #include <TCanvas.h>
 #include <TPad.h>
@@ -59,7 +60,9 @@ std::vector<std::string> titlesX;
 std::vector<std::string> titlesY;
 // nBins, xLow, xUp for the TH1D histogram;
 std::vector<std::vector<float>> TH1D_Bins_List;
+std::vector<std::vector<float>> TH2D_Bins_List;
 float binsLogScaleX;
+float binsLogScaleY;
 float titleOffsetX;
 float titleOffsetY;
 float yMin;
@@ -121,6 +124,7 @@ float bottomMargin;
 float topMargin;
 int setLogx;
 int setLogy;
+int setLogz;
 
 int nTrees;
 int nFriends;
@@ -133,6 +137,7 @@ int nTitles;
 int nTitlesX;
 int nTitlesY;
 int nTH1D_Bins_List;
+int nTH2D_Bins_List;
 int nDrawOptions;
 int nMarkerStyles;
 int nLineStyles;
@@ -154,10 +159,16 @@ int nLineStyles_horizontal;
 int nTLines_vertical;
 int nLineStyles_vertical;
 /// configuration variables - END
+enum MODES {
+    kTH1D,
+    kTH1D_comparison,
+    kTH2D,
+    kN_MODES
+};
 std::vector<std::vector<std::string>> inputFiles;
 std::vector<std::string> inputFileArguments;
 int nInputFileArguments;
-int nSplits = 1;
+int nSplits;
 int nSelectionsTot;
 int nFormulasTot;
 std::vector<Long64_t> entries;
@@ -165,11 +176,11 @@ std::vector<Long64_t> entriesSelected;
 int nHistos;
 int nHistosInput;
 int nPads;
-std::vector<TH1D*> h;
-std::vector<TH1D*> h_normInt;
-std::vector<TH1D*> h_normEvents;
-std::vector<TH1D*> h_nums;      // histograms to store numbers
-std::vector<TH1D*> h_draw;
+std::vector<TH1*> h;
+std::vector<TH1*> h_normInt;
+std::vector<TH1*> h_normEvents;
+std::vector<TH1*> h_nums;      // histograms to store numbers
+std::vector<TH1*> h_draw;
 std::string outputFigureStr;
 ///// global variables - END
 
@@ -362,7 +373,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 if (nHistosInput == nTrees)  treeIndex = i%nTrees;
                 // std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
 
-                if (mode == INPUT_MODE::k_comparison) {
+                if (mode == MODES::kTH1D_comparison) {
                     iInFileArg = i%nInputFileArguments;
                     std::cout << "iInFileArg = " << iInFileArg << ", ";
                 }
@@ -405,7 +416,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout << "### selected entries" << std::endl;
     for (int i = 0; i < nHistos; ++i) {
 
-        std::cout << "TH1D i = " << i << ", ";
+        std::cout << "TH1 i = " << i << ", ";
         int treeIndex = 0;
         if (nHistosInput == nTrees)  treeIndex = i%nTrees;
         std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
@@ -520,7 +531,10 @@ int readConfiguration(const TString configFile)
     titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
     // nBins, xLow, xUp for the TH1D histogram
     TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
+    TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
     binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
+    binsLogScaleY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleY];
     titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
     titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
     yMin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_TH1_yMin];
@@ -583,6 +597,7 @@ int readConfiguration(const TString configFile)
     topMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
     setLogx = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogx];
     setLogy = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogy];
+    setLogz = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_setLogz];
 
     // set default values
     if (selections.size() == 0) selections.push_back("1");
@@ -617,6 +632,7 @@ int readConfiguration(const TString configFile)
     nTitlesX = titlesX.size();
     nTitlesY = titlesY.size();
     nTH1D_Bins_List = TH1D_Bins_List[0].size();
+    nTH2D_Bins_List = TH2D_Bins_List[0].size();
     nDrawOptions = drawOptions.size();
     nMarkerStyles = markerStyles.size();
     nLineStyles = lineStyles.size();
@@ -650,7 +666,7 @@ void printConfiguration()
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
     std::cout << "mode = " << mode << std::endl;
-    if (mode == INPUT_MODE::k_comparison) {
+    if (mode == MODES::kTH1D_comparison) {
         // in comparison mode "inputFile" should have the following format
         // inputFile = <inputFile1>,<inputFile2>,...
         // there should be no single space between <inputFile1> and <inputFile2>.
@@ -706,7 +722,19 @@ void printConfiguration()
         std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
         std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
     }
+    std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;
+    for (int i=0; i<nTH2D_Bins_List; ++i) {
+        std::cout << Form("TH2D_Bins_List[%d] = { ", i);
+        std::cout << Form("%.0f, ", TH2D_Bins_List[0].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
+        std::cout << " { ";
+        std::cout << Form("%.0f, ", TH2D_Bins_List[3].at(i));
+        std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
+        std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
+    }
     std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
+    std::cout << "binsLogScaleY = " << binsLogScaleY << std::endl;
     std::cout << "titleOffsetX = " << titleOffsetX << std::endl;
     std::cout << "titleOffsetY = " << titleOffsetY << std::endl;
     std::cout << "yMin = " << yMin << std::endl;
@@ -833,6 +861,7 @@ void printConfiguration()
     std::cout << "topMargin    = " << topMargin << std::endl;
     std::cout << "setLogx = " << setLogx << std::endl;
     std::cout << "setLogy = " << setLogy << std::endl;
+    std::cout << "setLogz = " << setLogz << std::endl;
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
@@ -852,12 +881,12 @@ int preLoop(TFile* input, bool makeNew)
     }
 
     // check consistency of the input file arguments with the mode
-    if (mode == INPUT_MODE::k_noMode && nInputFileArguments > 1) {
-        std::cout<<"no specific mode is chosen. more than one input samples are provided."<< std::endl;
+    if (mode == MODES::kTH1D && nInputFileArguments > 1) {
+        std::cout<<"TH1D mode is chosen. more than one input samples are provided."<< std::endl;
         std::cout<<"exiting"<< std::endl;
         return -1;
     }
-    if (mode == INPUT_MODE::k_comparison && nInputFileArguments == 1) {
+    if (mode == MODES::kTH1D_comparison && nInputFileArguments == 1) {
         std::cout<<"comparison mode is chosen. But only one input sample is provided."<< std::endl;
         std::cout<<"exiting"<< std::endl;
         return -1;
@@ -922,21 +951,52 @@ int preLoop(TFile* input, bool makeNew)
     h_nums.clear();
     h_nums.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
-        int nBins  = (int)TH1D_Bins_List[0].at(0);
-        float xLow = TH1D_Bins_List[1].at(0);
-        float xUp  = TH1D_Bins_List[2].at(0);
-        if (nTH1D_Bins_List == nHistosInput) {
-            nBins = (int)TH1D_Bins_List[0].at(i%nTH1D_Bins_List);
-            xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
-            xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
+        int nBinsx = 0;
+        float xLow = 0;
+        float xUp  = 0;
+        int nBinsy = 0;
+        float yLow = 0;
+        float yUp  = 0;
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            nBinsx  = (int)TH1D_Bins_List[0].at(0);
+            xLow = TH1D_Bins_List[1].at(0);
+            xUp  = TH1D_Bins_List[2].at(0);
+            if (nTH1D_Bins_List == nHistosInput) {
+                nBinsx = (int)TH1D_Bins_List[0].at(i%nTH1D_Bins_List);
+                xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
+                xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
+            }
+        }
+        else if (mode == MODES::kTH2D) {
+            nBinsx  = (int)TH2D_Bins_List[0].at(0);
+            xLow = TH2D_Bins_List[1].at(0);
+            xUp  = TH2D_Bins_List[2].at(0);
+            nBinsy  = (int)TH2D_Bins_List[3].at(0);
+            yLow = TH2D_Bins_List[4].at(0);
+            yUp  = TH2D_Bins_List[5].at(0);
+            if (nTH2D_Bins_List == nHistosInput) {
+                nBinsx = (int)TH2D_Bins_List[0].at(i%nTH2D_Bins_List);
+                xLow  = TH2D_Bins_List[1].at(i%nTH2D_Bins_List);
+                xUp   = TH2D_Bins_List[2].at(i%nTH2D_Bins_List);
+                nBinsy = (int)TH2D_Bins_List[3].at(i%nTH2D_Bins_List);
+                yLow  = TH2D_Bins_List[4].at(i%nTH2D_Bins_List);
+                yUp   = TH2D_Bins_List[5].at(i%nTH2D_Bins_List);
+            }
         }
 
-        std::string hName = Form("h_%d", i);
-        if (makeNew) {
-            h[i] = new TH1D(hName.c_str(), "", nBins, xLow, xUp);
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            std::string hName = Form("h_%d", i);
+            if (makeNew)
+                h[i] = new TH1D(hName.c_str(), "", nBinsx, xLow, xUp);
+            else
+                h[i] = (TH1D*)input->Get(hName.c_str());
         }
-        else {
-            h[i] = (TH1D*)input->Get(hName.c_str());
+        else if (mode == MODES::kTH2D) {
+            std::string hName = Form("h2D_%d", i);
+            if (makeNew)
+                h[i] = new TH2D(hName.c_str(), "", nBinsx, xLow, xUp, nBinsy, yLow, yUp);
+            else
+                h[i] = (TH2D*)input->Get(hName.c_str());
         }
 
         std::string title = "";
@@ -968,23 +1028,27 @@ int preLoop(TFile* input, bool makeNew)
         h[i]->SetYTitle(titleY.c_str());
 
         if (binsLogScaleX > 0) {
-            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBins);
-            double binsArrTmp[nBins+1];
+            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBinsx);
+            double binsArrTmp[nBinsx+1];
             std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
 
-            h[i]->GetXaxis()->Set(nBins, binsArrTmp);
+            h[i]->GetXaxis()->Set(nBinsx, binsArrTmp);
+        }
+        if (binsLogScaleY > 0 && mode == MODES::kTH2D) {
+            std::vector<double> binsVecTmp = calcBinsLogScale(yLow, yUp, nBinsy);
+            double binsArrTmp[nBinsy+1];
+            std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
+
+            h[i]->GetYaxis()->Set(nBinsy, binsArrTmp);
         }
 
         if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
 
-
         std::string h_numsName = Form("%s_nums", h[i]->GetName());
-        if (makeNew) {
+        if (makeNew)
             h_nums[i] = new TH1D(h_numsName.c_str(), h[i]->GetTitle(), 2, 0, 2);
-        }
-        else {
+        else
             h_nums[i] = (TH1D*)input->Get(h_numsName.c_str());
-        }
     }
 
     return 0;
@@ -1005,17 +1069,27 @@ int postLoop()
     h_normEvents.clear();
     h_normEvents.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
-        h[i]->Write();
-        h_nums[i]->Write();
+        h[i]->Write("",TObject::kOverwrite);;
+        h_nums[i]->Write("",TObject::kOverwrite);;
 
-        h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
+        }
+        else if (mode == MODES::kTH2D) {
+            h_normInt[i] = (TH2D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
+        }
         h_normInt[i]->Scale(1./h[i]->Integral());
-        h_normInt[i]->Write();
+        h_normInt[i]->Write("",TObject::kOverwrite);;
 
-        h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
+        }
+        else if (mode == MODES::kTH2D) {
+            h_normEvents[i] = (TH2D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
+        }
         Long64_t entriesTmp = h_nums[i]->GetBinContent(2);
         h_normEvents[i]->Scale(1./entriesTmp);
-        h_normEvents[i]->Write();
+        h_normEvents[i]->Write("",TObject::kOverwrite);;
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
@@ -1045,54 +1119,71 @@ int postLoop()
     // write canvases
     TCanvas* c = 0;
     for (int i=0; i<nHistos; ++i) {
-        c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
+        std::string cnvName = Form("cnv_%d",i);
+        if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_%d",i);
+        c = new TCanvas(cnvName.c_str(),"",windowWidth,windowHeight);
         c->SetTitle(h[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
         // set the style of the histograms for canvases to be written
         h[i]->SetTitleOffset(titleOffsetX,"X");
         h[i]->SetTitleOffset(titleOffsetY,"Y");
-        h[i]->SetMarkerStyle(kFullCircle);
-        h[i]->SetMarkerColor(kBlack);
-        h[i]->SetStats(false);              // no stats box in the final plots
-        h[i]->Draw("e");
-        c->Write();
+        h[i]->SetStats(false);  // no stats box in the final plots
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            h[i]->SetMarkerStyle(kFullCircle);
+            h[i]->SetMarkerColor(kBlack);
+            h[i]->Draw("e");
+        }
+        if (mode == MODES::kTH2D) {
+            h[i]->Draw("colz");
+        }
+        c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
         // normalized to 1.
-        c = new TCanvas(Form("cnv_%d_normInt",i),"",windowWidth,windowHeight);
+        c = new TCanvas(Form("%s_normInt",cnvName.c_str()),"",windowWidth,windowHeight);
         c->SetTitle(h_normInt[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
         // set the style of the histograms for canvases to be written
         h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
         h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normInt[i]->SetMarkerStyle(kFullCircle);
-        h_normInt[i]->SetMarkerColor(kBlack);
         h_normInt[i]->SetStats(false);  // no stats box in the final plots
-        h_normInt[i]->Draw("e");
-        c->Write();
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            h_normInt[i]->SetMarkerStyle(kFullCircle);
+            h_normInt[i]->SetMarkerColor(kBlack);
+            h_normInt[i]->Draw("e");
+        }
+        if (mode == MODES::kTH2D) {
+            h_normInt[i]->Draw("colz");
+        }
+        c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
         // normalized by number of events
-        c = new TCanvas(Form("cnv_%d_normEvents",i),"",windowWidth,windowHeight);
+        c = new TCanvas(Form("%s_normEvents",cnvName.c_str()),"",windowWidth,windowHeight);
         c->SetTitle(h_normEvents[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c, setLogx, setLogy);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
         c->cd();
 
         // set the style of the histograms for canvases to be written
         h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
         h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
-        h_normEvents[i]->SetMarkerStyle(kFullCircle);
-        h_normEvents[i]->SetMarkerColor(kBlack);
-        h_normEvents[i]->SetStats(false);   // no stats box in the final plots
-        h_normEvents[i]->Draw("e");
-        c->Write();
+        h_normEvents[i]->SetStats(false);  // no stats box in the final plots
+        if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+            h_normEvents[i]->SetMarkerStyle(kFullCircle);
+            h_normEvents[i]->SetMarkerColor(kBlack);
+            h_normEvents[i]->Draw("e");
+        }
+        if (mode == MODES::kTH2D) {
+            h_normEvents[i]->Draw("colz");
+        }
+        c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
     }
     // write canvases - END
@@ -1202,17 +1293,21 @@ int postLoop()
     if (drawSame == 0) {    // histograms will be plotted separately.
         nPads = nHistos;
         for (int i=0; i<nHistos; ++i) {
-            c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
+            std::string cnvName = Form("cnv_%d",i);
+            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_%d",i);
+            c = new TCanvas(cnvName.c_str(),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy);
+            setCanvasFinal(c, setLogx, setLogy, setLogz);
             c->cd();
 
             std::string drawOption = "";
             if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
             else if (nDrawOptions == nHistosInput) drawOption = drawOptions.at(i%nDrawOptions).c_str();
 
-            h_draw[i]->SetMarkerColor(kBlack);
-            h_draw[i]->SetLineColor(kBlack);
+            if (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison) {
+                h_draw[i]->SetMarkerColor(kBlack);
+                h_draw[i]->SetLineColor(kBlack);
+            }
             h_draw[i]->Draw(drawOption.c_str());
 
             // add Text
@@ -1224,7 +1319,7 @@ int postLoop()
             // add TLine
             setAndDrawLinesHorizontal(c);
             setAndDrawLinesVertical(c);
-            c->Write();
+            c->Write("",TObject::kOverwrite);
 
             // save histograms as picture if a figure name is provided.
             if (outputFigureStr.size() > 0)  saveAsFigure(c, i);
@@ -1237,7 +1332,7 @@ int postLoop()
         bool drawSameAcrossSplits = (drawSame == INPUT_TH1::k_drawSameAcrossSplits);
         bool drawSameInsideSplits = (drawSame == INPUT_TH1::k_drawSameInsideSplits);
 
-        int nPads = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
+        nPads = 1;     // default, corresponds to drawSame == INPUT_TH1::k_drawSame
         if (drawSameAcrossSplits)  nPads = nHistosInput;
         if (drawSameInsideSplits)  nPads = nSplits;
 
@@ -1250,19 +1345,21 @@ int postLoop()
         bool drawSameFinished = false;
         while (!drawSameFinished)  {
 
-            c = new TCanvas(Form("cnv_drawSpectra_%d", iPad),"",windowWidth,windowHeight);
+            std::string cnvName = Form("cnv_drawSpectra_%d", iPad);
+            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_drawSpectra_%d", iPad);
+            c = new TCanvas(cnvName.c_str(),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            setCanvasFinal(c, setLogx, setLogy);
+            setCanvasFinal(c, setLogx, setLogy, setLogz);
             c->cd();
 
             int histStart = 0;
             if (drawSameAcrossSplits) histStart += iPad;
             if (drawSameInsideSplits) histStart =  iPad * nHistosPerPad;
             // set maximum/minimum of y-axis
-            if (yMin > yMax) {
+            if (yMin > yMax && (mode == MODES::kTH1D || mode == MODES::kTH1D_comparison)) {
                 std::vector<TH1D*> vecTH1Dtmp;
                 vecTH1Dtmp.resize(nHistosPerPad);
-                vecTH1Dtmp[0] = h_draw[histStart];
+                vecTH1Dtmp[0] = (TH1D*)h_draw[histStart];
 
                 int histCount = 1;
                 int iHist = histStart;
@@ -1272,7 +1369,7 @@ int postLoop()
                 while (histCount < nHistosPerPad)
                 {
                     iHist += increment;
-                    vecTH1Dtmp[histCount] = h_draw[iHist];
+                    vecTH1Dtmp[histCount] = (TH1D*)h_draw[iHist];
                     histCount++;
                 }
                 double histMin = getMinimumTH1DContent(vecTH1Dtmp);
@@ -1330,7 +1427,7 @@ int postLoop()
             // add TLine
             setAndDrawLinesHorizontal(c);
             setAndDrawLinesVertical(c);
-            c->Write();
+            c->Write("",TObject::kOverwrite);
 
             // save histograms as picture if a figure name is provided.
             if (outputFigureStr.size() > 0)  saveAsFigure(c, iPad);
