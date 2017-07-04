@@ -59,8 +59,8 @@ std::vector<std::string> titles;
 std::vector<std::string> titlesX;
 std::vector<std::string> titlesY;
 // nBins, xLow, xUp for the TH1D histogram;
-std::vector<std::vector<float>> TH1D_Bins_List;
-std::vector<std::vector<float>> TH2D_Bins_List;
+std::vector<CONFIGPARSER::TH1Axis> TH1D_Bins_List;
+std::vector<CONFIGPARSER::TH2DAxis> TH2D_Bins_List;
 float binsLogScaleX;
 float binsLogScaleY;
 float titleOffsetX;
@@ -396,6 +396,11 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
 
                 TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
                 trees[treeIndex][iSample]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
+                /*
+                 * For the case here TTree::Draw() is better than TTree::Project(), since
+                 * 1. TTree::Project() is just another call to TTree::Draw() with "goff" option
+                 * 2. TTree::Project() does not use "+" for filling histograms.
+                 */
             }
             fileTmp->Close();
         }
@@ -526,10 +531,10 @@ int readConfiguration(const TString configFile)
     titles = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]));
     titlesX = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleX]));
     titlesY = ConfigurationParser::ParseList(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_titleY]));
-    // nBins, xLow, xUp for the TH1D histogram
-    TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
-    // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
-    TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Bins(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
+    // nBins, xLow, xUp for TH1D histograms
+    TH1D_Bins_List = ConfigurationParser::ParseListTH1D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    // nBinsX, xLow, xUp, nBinsY, yLow, yUp for TH2D histograms
+    TH2D_Bins_List = ConfigurationParser::ParseListTH2D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
     binsLogScaleX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleX];
     binsLogScaleY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_binsLogScaleY];
     titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
@@ -628,8 +633,8 @@ int readConfiguration(const TString configFile)
     nTitles = titles.size();
     nTitlesX = titlesX.size();
     nTitlesY = titlesY.size();
-    nTH1D_Bins_List = TH1D_Bins_List[0].size();
-    nTH2D_Bins_List = TH2D_Bins_List[0].size();
+    nTH1D_Bins_List = TH1D_Bins_List.size();
+    nTH2D_Bins_List = TH2D_Bins_List.size();
     nDrawOptions = drawOptions.size();
     nMarkerStyles = markerStyles.size();
     nLineStyles = lineStyles.size();
@@ -715,21 +720,13 @@ void printConfiguration()
     }
     std::cout << "nTH1D_Bins_List = " << nTH1D_Bins_List << std::endl;
     for (int i=0; i<nTH1D_Bins_List; ++i) {
-        std::cout << Form("TH1D_Bins_List[%d] = { ", i);
-        std::cout << Form("%.0f, ", TH1D_Bins_List[0].at(i));
-        std::cout << Form("%f, ", TH1D_Bins_List[1].at(i));
-        std::cout << Form("%f }", TH1D_Bins_List[2].at(i)) << std::endl;;
+        std::string strTH1D_Axis = ConfigurationParser::verboseTH1D_Axis(TH1D_Bins_List.at(i));
+        std::cout << Form("TH1D_Bins_List[%d] = %s", i, strTH1D_Axis.c_str()) << std::endl;
     }
     std::cout << "nTH2D_Bins_List = " << nTH2D_Bins_List << std::endl;
     for (int i=0; i<nTH2D_Bins_List; ++i) {
-        std::cout << Form("TH2D_Bins_List[%d] = { ", i);
-        std::cout << Form("%.0f, ", TH2D_Bins_List[0].at(i));
-        std::cout << Form("%f, ", TH2D_Bins_List[1].at(i));
-        std::cout << Form("%f }", TH2D_Bins_List[2].at(i));
-        std::cout << " { ";
-        std::cout << Form("%.0f, ", TH2D_Bins_List[3].at(i));
-        std::cout << Form("%f, ", TH2D_Bins_List[4].at(i));
-        std::cout << Form("%f }", TH2D_Bins_List[5].at(i)) << std::endl;;
+        std::string strTH2D_Axis = ConfigurationParser::verboseTH2D_Axis(TH2D_Bins_List.at(i));
+        std::cout << Form("TH2D_Bins_List[%d] = %s", i, strTH2D_Axis.c_str()) << std::endl;
     }
     std::cout << "binsLogScaleX = " << binsLogScaleX << std::endl;
     std::cout << "binsLogScaleY = " << binsLogScaleY << std::endl;
@@ -943,50 +940,59 @@ int preLoop(TFile* input, bool makeNew)
     h_nums.clear();
     h_nums.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
-        int nBinsx = 0;
+
+        int nBinsX = 0;
+        int nBinsY = 0;
+        std::vector<double> binsX;
+        std::vector<double> binsY;
         float xLow = 0;
         float xUp  = 0;
-        int nBinsy = 0;
         float yLow = 0;
         float yUp  = 0;
+
+        int j = 0;
         if (mode == MODES::kTH1D) {
-            nBinsx  = (int)TH1D_Bins_List[0].at(0);
-            xLow = TH1D_Bins_List[1].at(0);
-            xUp  = TH1D_Bins_List[2].at(0);
-            if (nTH1D_Bins_List == nHistosInput) {
-                nBinsx = (int)TH1D_Bins_List[0].at(i%nTH1D_Bins_List);
-                xLow  = TH1D_Bins_List[1].at(i%nTH1D_Bins_List);
-                xUp   = TH1D_Bins_List[2].at(i%nTH1D_Bins_List);
-            }
+
+            if (nTH1D_Bins_List == nHistosInput) j = i%nTH1D_Bins_List;
+
+            nBinsX = TH1D_Bins_List[j].nBins;
+            binsX = TH1D_Bins_List[j].bins;
+            xLow = TH1D_Bins_List[j].xLow;
+            xUp = TH1D_Bins_List[j].xUp;
         }
         else if (mode == MODES::kTH2D) {
-            nBinsx  = (int)TH2D_Bins_List[0].at(0);
-            xLow = TH2D_Bins_List[1].at(0);
-            xUp  = TH2D_Bins_List[2].at(0);
-            nBinsy  = (int)TH2D_Bins_List[3].at(0);
-            yLow = TH2D_Bins_List[4].at(0);
-            yUp  = TH2D_Bins_List[5].at(0);
-            if (nTH2D_Bins_List == nHistosInput) {
-                nBinsx = (int)TH2D_Bins_List[0].at(i%nTH2D_Bins_List);
-                xLow  = TH2D_Bins_List[1].at(i%nTH2D_Bins_List);
-                xUp   = TH2D_Bins_List[2].at(i%nTH2D_Bins_List);
-                nBinsy = (int)TH2D_Bins_List[3].at(i%nTH2D_Bins_List);
-                yLow  = TH2D_Bins_List[4].at(i%nTH2D_Bins_List);
-                yUp   = TH2D_Bins_List[5].at(i%nTH2D_Bins_List);
-            }
+
+            if (nTH2D_Bins_List == nHistosInput) j = i%nTH2D_Bins_List;
+
+            nBinsX = TH2D_Bins_List[j].axisX.nBins;
+            binsX = TH2D_Bins_List[j].axisX.bins;
+            xLow = TH2D_Bins_List[j].axisX.xLow;
+            xUp = TH2D_Bins_List[j].axisX.xUp;
+            nBinsY = TH2D_Bins_List[j].axisY.nBins;
+            binsY = TH2D_Bins_List[j].axisY.bins;
+            yLow = TH2D_Bins_List[j].axisY.xLow;
+            yUp = TH2D_Bins_List[j].axisY.xUp;
         }
 
         if (mode == MODES::kTH1D) {
             std::string hName = Form("h_%d", i);
-            if (makeNew)
-                h[i] = new TH1D(hName.c_str(), "", nBinsx, xLow, xUp);
+            if (makeNew) {
+                double arrX[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arrX);
+                h[i] = new TH1D(hName.c_str(), "", nBinsX, arrX);
+            }
             else
                 h[i] = (TH1D*)input->Get(hName.c_str());
         }
         else if (mode == MODES::kTH2D) {
             std::string hName = Form("h2D_%d", i);
-            if (makeNew)
-                h[i] = new TH2D(hName.c_str(), "", nBinsx, xLow, xUp, nBinsy, yLow, yUp);
+            if (makeNew) {
+                double arrX[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arrX);
+                double arrY[nBinsY+1];
+                std::copy(binsY.begin(), binsY.end(), arrY);
+                h[i] = new TH2D(hName.c_str(), "", nBinsX, arrX, nBinsY, arrY);
+            }
             else
                 h[i] = (TH2D*)input->Get(hName.c_str());
         }
@@ -1020,18 +1026,18 @@ int preLoop(TFile* input, bool makeNew)
         h[i]->SetYTitle(titleY.c_str());
 
         if (binsLogScaleX > 0) {
-            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBinsx);
-            double binsArrTmp[nBinsx+1];
+            std::vector<double> binsVecTmp = calcBinsLogScale(xLow, xUp, nBinsX);
+            double binsArrTmp[nBinsX+1];
             std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
 
-            h[i]->GetXaxis()->Set(nBinsx, binsArrTmp);
+            h[i]->GetXaxis()->Set(nBinsX, binsArrTmp);
         }
         if (binsLogScaleY > 0 && mode == MODES::kTH2D) {
-            std::vector<double> binsVecTmp = calcBinsLogScale(yLow, yUp, nBinsy);
-            double binsArrTmp[nBinsy+1];
+            std::vector<double> binsVecTmp = calcBinsLogScale(yLow, yUp, nBinsY);
+            double binsArrTmp[nBinsY+1];
             std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp);
 
-            h[i]->GetYaxis()->Set(nBinsy, binsArrTmp);
+            h[i]->GetYaxis()->Set(nBinsY, binsArrTmp);
         }
 
         if (yMax > yMin)  h[i]->SetAxisRange(yMin, yMax, "Y");
@@ -1285,8 +1291,8 @@ int postLoop()
     if (drawSame == 0) {    // histograms will be plotted separately.
         nPads = nHistos;
         for (int i=0; i<nHistos; ++i) {
-            std::string cnvName = Form("cnv_%d",i);
-            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_%d",i);
+            std::string cnvName = Form("cnv_pad%d",i);
+            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_pad%d",i);
             c = new TCanvas(cnvName.c_str(),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
             setCanvasFinal(c, setLogx, setLogy, setLogz);
@@ -1337,8 +1343,8 @@ int postLoop()
         bool drawSameFinished = false;
         while (!drawSameFinished)  {
 
-            std::string cnvName = Form("cnv_drawSpectra_%d", iPad);
-            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_drawSpectra_%d", iPad);
+            std::string cnvName = Form("cnv_pad%d", iPad);
+            if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_pad%d", iPad);
             c = new TCanvas(cnvName.c_str(),"",windowWidth,windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
             setCanvasFinal(c, setLogx, setLogy, setLogz);
