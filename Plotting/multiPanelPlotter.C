@@ -237,6 +237,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
     for (int i=0; i<rows; ++i) {
         for (int j=0; j<columns; ++j) {
+            
             c1->cd(i*columns+j+1);
             if (set_log_scale)
                 gPad->SetLogy();
@@ -350,10 +351,14 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                     h1[i][j][k]->SetAxisRange(yMinTmp, yMaxTmp, "Y");
                     h1[i][j][k]->SetMaximum(yMaxTmp);
                     h1[i][j][k]->SetMinimum(yMinTmp);
-
+                    
+                    if(hist_type == "xjg_mean_rjg_ptBinAll")
+                    {
+                        h1[i][j][k]->SetAxisRange(yMinTmp,yMaxTmp+0.1,"Y");
+                    }
                     if (canvas_title == "dphi_log" && set_log_scale)
                         h1[i][j][k]->SetAxisRange(2, 3.14, "X");
-
+                    
                     if (hist_type == "xjg")
                         h1[i][j][k]->SetNdivisions(504);
 
@@ -431,11 +436,28 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             // Draw legend
             int nL_panel = l_panel.size();
             TLegend* l1 = 0;
+            if(hist_type == "xjg_mean_rjg_ptBinAll")
+            {
+                nL_panel = nL_panel -2;
+            }
             for (int iLeg = 0; iLeg < nL_panel; ++iLeg) {
                 if (i * columns + j == l_panel[iLeg] - 1) {
                     box_t l_box = (box_t) {l_x1[iLeg], l_y1[iLeg], l_x2[iLeg], l_y2[iLeg]};
                     adjust_coordinates(l_box, margin, edge, i, j);
                     l1 = new TLegend(l_box.x1, l_box.y1, l_box.x2, l_box.y2);
+                    if(hist_type == "xjg_mean_rjg_ptBinAll")
+                    {
+                        l1=new TLegend(l_box.x1+0.22, l_box.y1, l_box.x2+0.22, l_box.y2);
+                    }
+                    if(hist_type == "iaa")
+                    {
+                        l1=new TLegend(l_box.x1, l_box.y1+0.03, l_box.x2, l_box.y2+0.03);
+                    }
+                    if(hist_type == "xjg")
+                    {
+                        l1=new TLegend(l_box.x1, l_box.y1-0.01, l_box.x2, l_box.y2-0.01);
+                    }
+                    // LOOOK HERE FOR HOW TO ADJUST FIGURE 7 CENT
                     set_legend_style(l1);
                     if (columns == 5) {
                         if (configFile.Contains("theory_pp") || (configFile.Contains("theory_PbPb") && hist_type == "iaa"))
@@ -455,7 +477,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                             {
                                 int iTmp = pt_based_plots ? i : j;
                                 if (k == _PBPB_DATA) {
-                                    std::string centStr = Form(" Cent %d - %d%%", bins_cent[0][cent_bin_numbers[iTmp]]/2, bins_cent[1][cent_bin_numbers[iTmp]]/2);
+                                    std::string centStr = Form(" Cent. %d - %d%%", bins_cent[0][cent_bin_numbers[iTmp]]/2, bins_cent[1][cent_bin_numbers[iTmp]]/2);
                                     legend_label.append(centStr.c_str());
                                 }
                             }
@@ -469,7 +491,6 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                             }
                         }
                     }
-
                     l1->Draw();
                 }
             }
@@ -541,10 +562,24 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 latexCMS->SetTextFont(63);
                 latexCMS->SetTextSize(16);
                 if (columns > 3)
-                    latexCMS->SetTextSize(16 + columns - 3);
+                    latexCMS->SetTextSize(20 + columns - 3);
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" || hist_type == "xjg_mean_rjg_ptBinAll")
                     cms_box.x1 = 0.82;
+                if(hist_type == "xjg_mean_rjg_ptBinAll")
+                {
+                    cms_box = {0.025,0.913,1.105,1.013};
+                    latexCMS->SetTextSize(18);
+                }
+                if(hist_type == "iaa")
+                {
+                    latexCMS->SetTextSize(22);
+                }
+                // NEED TO FIX FIGURE 6 TEXT
+                if(hist_type == "xjg_cent")
+                {
+                    latexCMS->SetTextSize(10);
+                }
                 adjust_coordinates(cms_box, margin, edge, i, j);
                 latexCMS->DrawLatexNDC(cms_box.x1, cms_box.y1, "CMS");
 
@@ -573,7 +608,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 }
 
                 if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-                    plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
+                    plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}, #left|#eta^{#gamma}#right| < 1.44 ");
             }
             if (configFile.Contains("theory_PbPb") && canvas_title == "xjg_mean_ptBinAll") {
                 plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
@@ -584,7 +619,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
-            latexInfo->SetTextSize(latex_font_size);
+            latexInfo->SetTextSize(latex_font_size-1);
             if (columns == 5)
                 latexInfo->SetTextSize(latex_font_size - 1);
             if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" ||
@@ -597,17 +632,24 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             }
 
             // (should move to config file)
-            if (i_x[i * columns + j] > 0.8)
+            if (i_x[i * columns + j] > 0.8){
+                
                 latexInfo->SetTextAlign(31);
+            }
+            
             else
+            {
                 latexInfo->SetTextAlign(11);
-
+            }
+            // HOW TO MOVE LEGEND LOCATION
             for (std::size_t l=0; l<plotInfo.size(); ++l) {
                 if (i_x[i * columns + j] >= 0 && i_y[i * columns + j] >= 0) {
-                    float line_pos = i_y[i * columns + j] - l * latex_spacing;
+                    float line_pos = i_y[i * columns + j] - l * latex_spacing-0.03;
                     box_t info_box = (box_t) {0, 0, i_x[i * columns + j], line_pos};
                     adjust_coordinates(info_box, margin, edge, i, j);
-                    latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
+                    if(hist_type == "xjg_mean_rjg_centBinAll" && i!=1 && j!=1) latexInfo->DrawLatexNDC(info_box.x2-0.35, info_box.y2-0.55, plotInfo[l].c_str());
+                    if(hist_type == "xjg_mean_rjg_ptBinAll" && i!=1 && j!=1) latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
+                    if(hist_type != "xjg_mean_rjg_ptBinAll" || hist_type != "xjg_mean_rjg_centBinAll") latexInfo->DrawLatexNDC(info_box.x2, info_box.y2, plotInfo[l].c_str());
                 }
             }
 
