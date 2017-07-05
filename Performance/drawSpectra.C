@@ -176,6 +176,7 @@ int nHistos;
 int nHistosInput;
 int nPads;
 std::vector<TH1*> h;
+std::vector<TH1*> h_scaleWidth;
 std::vector<TH1*> h_normInt;
 std::vector<TH1*> h_normEvents;
 std::vector<TH1*> h_nums;      // histograms to store numbers
@@ -906,7 +907,6 @@ int preLoop(TFile* input, bool makeNew)
     nSelectionsTot = nSelections * nSplits;
     nFormulasTot = nFormulas * nSplits;
 
-    TH1::SetDefaultSumw2();
     nHistos = nFormulasTot;
     if (nFormulas == 1 && nSelections > nFormulas) nHistos = nSelectionsTot;
     else if (nFormulas == 1 && nSelections == 1 && nTrees > nFormulas) nHistos = nTrees * nSplits;
@@ -932,9 +932,10 @@ int preLoop(TFile* input, bool makeNew)
         std::cout << "exiting " << std::endl;
         return -1;
     }
-
-    nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
     std::cout << "nHistos = " << nHistos << std::endl;
+    nHistosInput = nHistos/nSplits;     // number of histograms without considering selectionSplitter
+
+    TH1::SetDefaultSumw2();
     h.clear();
     h.resize(nHistos);
     h_nums.clear();
@@ -1062,13 +1063,24 @@ int postLoop()
         std::cout << summary.c_str() << std::endl;
     }
 
+    h_scaleWidth.clear();
+    h_scaleWidth.resize(nHistos);
     h_normInt.clear();
     h_normInt.resize(nHistos);
     h_normEvents.clear();
     h_normEvents.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
-        h[i]->Write("",TObject::kOverwrite);;
-        h_nums[i]->Write("",TObject::kOverwrite);;
+        h[i]->Write("",TObject::kOverwrite);
+        h_nums[i]->Write("",TObject::kOverwrite);
+
+        if (mode == MODES::kTH1D) {
+            h_scaleWidth[i] = (TH1D*)h[i]->Clone(Form("%s_scaleWidth", h[i]->GetName()));
+        }
+        else if (mode == MODES::kTH2D) {
+            h_scaleWidth[i] = (TH2D*)h[i]->Clone(Form("%s_scaleWidth", h[i]->GetName()));
+        }
+        h_scaleWidth[i]->Scale(1, "width");
+        h_scaleWidth[i]->Write("",TObject::kOverwrite);
 
         if (mode == MODES::kTH1D) {
             h_normInt[i] = (TH1D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
@@ -1076,8 +1088,8 @@ int postLoop()
         else if (mode == MODES::kTH2D) {
             h_normInt[i] = (TH2D*)h[i]->Clone(Form("%s_normInt", h[i]->GetName()));
         }
-        h_normInt[i]->Scale(1./h[i]->Integral());
-        h_normInt[i]->Write("",TObject::kOverwrite);;
+        h_normInt[i]->Scale(1./h[i]->Integral(), "width");
+        h_normInt[i]->Write("",TObject::kOverwrite);
 
         if (mode == MODES::kTH1D) {
             h_normEvents[i] = (TH1D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
@@ -1086,8 +1098,8 @@ int postLoop()
             h_normEvents[i] = (TH2D*)h[i]->Clone(Form("%s_normEvents", h[i]->GetName()));
         }
         Long64_t entriesTmp = h_nums[i]->GetBinContent(2);
-        h_normEvents[i]->Scale(1./entriesTmp);
-        h_normEvents[i]->Write("",TObject::kOverwrite);;
+        h_normEvents[i]->Scale(1./entriesTmp, "width");
+        h_normEvents[i]->Write("",TObject::kOverwrite);
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
@@ -1095,6 +1107,8 @@ int postLoop()
     for (int i=0; i<nHistos; ++i) {
         h[i]->SetTitleOffset(titleOffsetX,"X");
         h[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_scaleWidth[i]->SetTitleOffset(titleOffsetX,"X");
+        h_scaleWidth[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normInt[i]->SetTitleOffset(titleOffsetX,"X");
         h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
@@ -1103,6 +1117,8 @@ int postLoop()
         // default marker style and color
         h[i]->SetMarkerStyle(kFullCircle);
         h[i]->SetMarkerColor(kBlack);
+        h_scaleWidth[i]->SetMarkerStyle(kFullCircle);
+        h_scaleWidth[i]->SetMarkerColor(kBlack);
         h_normInt[i]->SetMarkerStyle(kFullCircle);
         h_normInt[i]->SetMarkerColor(kBlack);
         h_normEvents[i]->SetMarkerStyle(kFullCircle);
@@ -1110,6 +1126,7 @@ int postLoop()
 
         // no stats box in the final plots
         h[i]->SetStats(false);
+        h_scaleWidth[i]->SetStats(false);
         h_normInt[i]->SetStats(false);
         h_normEvents[i]->SetStats(false);
     }
@@ -1140,7 +1157,29 @@ int postLoop()
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
-        // normalized to 1.
+        // scaled by bin width.
+        c = new TCanvas(Form("%s_scaleWidth",cnvName.c_str()),"",windowWidth,windowHeight);
+        c->SetTitle(h_scaleWidth[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h_scaleWidth[i]->SetTitleOffset(titleOffsetX,"X");
+        h_scaleWidth[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_scaleWidth[i]->SetStats(false);  // no stats box in the final plots
+        if (mode == MODES::kTH1D) {
+            h_scaleWidth[i]->SetMarkerStyle(kFullCircle);
+            h_scaleWidth[i]->SetMarkerColor(kBlack);
+            h_scaleWidth[i]->Draw("e");
+        }
+        if (mode == MODES::kTH2D) {
+            h_scaleWidth[i]->Draw("colz");
+        }
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+
+        // normalized such that integral("width") = 1.
         c = new TCanvas(Form("%s_normInt",cnvName.c_str()),"",windowWidth,windowHeight);
         c->SetTitle(h_normInt[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1162,7 +1201,7 @@ int postLoop()
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
 
-        // normalized by number of events
+        // normalized such that integral("width") = total entries / number of events
         c = new TCanvas(Form("%s_normEvents",cnvName.c_str()),"",windowWidth,windowHeight);
         c->SetTitle(h_normEvents[i]->GetTitle());
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1208,6 +1247,7 @@ int postLoop()
         else if (!drawSameAcrossSplits && nMarkerStyles == nHistosInput) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i%nMarkerStyles));
         else if (drawSameAcrossSplits && nMarkerStyles == nSplits) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at((i/nHistosInput)%nMarkerStyles));
         h[i]->SetMarkerStyle(markerStyle);
+        h_scaleWidth[i]->SetMarkerStyle(markerStyle);
         h_normInt[i]->SetMarkerStyle(markerStyle);
         h_normEvents[i]->SetMarkerStyle(markerStyle);
 
@@ -1216,6 +1256,7 @@ int postLoop()
         else if (!drawSameAcrossSplits && nLineStyles == nHistosInput)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(i%nLineStyles));
         else if (drawSameAcrossSplits && nLineStyles == nSplits)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at((i/nHistosInput)%nLineStyles));
         h[i]->SetLineStyle(lineStyle);
+        h_scaleWidth[i]->SetLineStyle(lineStyle);
         h_normInt[i]->SetLineStyle(lineStyle);
         h_normEvents[i]->SetLineStyle(lineStyle);
 
@@ -1224,6 +1265,7 @@ int postLoop()
         else if (!drawSameAcrossSplits && nFillStyles == nHistosInput)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(i%nFillStyles));
         else if (drawSameAcrossSplits && nFillStyles == nSplits)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at((i/nHistosInput)%nFillStyles));
         h[i]->SetFillStyle(fillStyle);
+        h_scaleWidth[i]->SetFillStyle(fillStyle);
         h_normInt[i]->SetFillStyle(fillStyle);
         h_normEvents[i]->SetFillStyle(fillStyle);
 
@@ -1233,6 +1275,8 @@ int postLoop()
         else if (drawSameAcrossSplits && nColors == nSplits) color = GraphicsConfigurationParser::ParseColor(colors.at((i/nHistosInput)%nColors));
         h[i]->SetMarkerColor(color);
         h[i]->SetLineColor(color);
+        h_scaleWidth[i]->SetMarkerColor(color);
+        h_scaleWidth[i]->SetLineColor(color);
         h_normInt[i]->SetMarkerColor(color);
         h_normInt[i]->SetLineColor(color);
         h_normEvents[i]->SetMarkerColor(color);
@@ -1245,6 +1289,7 @@ int postLoop()
         if (fillColor != -1)
         {
             h[i]->SetFillColor(fillColor);
+            h_scaleWidth[i]->SetFillColor(fillColor);
             h_normInt[i]->SetFillColor(fillColor);
             h_normEvents[i]->SetFillColor(fillColor);
         }
@@ -1256,6 +1301,7 @@ int postLoop()
         if (nLineColors != -1)
         {
             h[i]->SetLineColor(lineColor);
+            h_scaleWidth[i]->SetLineColor(lineColor);
             h_normInt[i]->SetLineColor(lineColor);
             h_normEvents[i]->SetLineColor(lineColor);
         }
@@ -1263,12 +1309,14 @@ int postLoop()
         if(lineWidth != INPUT_DEFAULT::lineWidth) {
             if (drawOption.find("hist") != std::string::npos) {
                 h[i]->SetLineWidth(lineWidth);
+                h_scaleWidth[i]->SetLineWidth(lineWidth);
                 h_normInt[i]->SetLineWidth(lineWidth);
                 h_normEvents[i]->SetLineWidth(lineWidth);
             }
         }
 
         h[i]->SetMarkerSize(markerSize);
+        h_scaleWidth[i]->SetMarkerSize(markerSize);
         h_normInt[i]->SetMarkerSize(markerSize);
         h_normEvents[i]->SetMarkerSize(markerSize);
     }
@@ -1282,8 +1330,8 @@ int postLoop()
         else if (drawNormalized == INPUT_TH1::k_normEvents) {
             h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
         }
-        else {  // no normalization
-            h_draw[i] = (TH1D*)h[i]->Clone(Form("h_%d_draw", i));
+        else {
+            h_draw[i] = (TH1D*)h_scaleWidth[i]->Clone(Form("h_%d_draw", i));
         }
     }
 
