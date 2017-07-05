@@ -84,17 +84,6 @@ class tiling {
     float get_canvas_margin_top() { return canvas_margin_top; }
     float get_canvas_margin_bottom() { return canvas_margin_bottom; }
 
-    void adjust_coordinates(float& x_min, float& y_min,
-                            float& x_max, float& y_max,
-                            int col, int row);
-
-    inline float normalize_canvas_size(float size) {
-        return size * frame_width / std::min(canvas_width, canvas_height); }
-    inline float normalize_tile_size(float size) {
-        return size * frame_width / std::min(tile_widths[0], tile_heights[0]); }
-    inline float normalize_tile_size_inverse(float size) {
-        return size * std::min(tile_widths[0], tile_heights[0]) / frame_width; }
-
     /* convenience functions for common ROOT objects */
     TCanvas* create_canvas(const char* name, const char* title);
     TLegend* create_legend_on_frame(float x_min, float y_min,
@@ -137,12 +126,22 @@ class tiling {
 
     void tile();
 
+    void adjust_coordinates(float& x_min, float& y_min,
+                            float& x_max, float& y_max,
+                            int col, int row);
+
     inline float adjust_size(float size, int col, int row) {
         float charheight = size * std::min(tile_widths[0], tile_heights[0]);
         return charheight / std::min(tile_widths[col], tile_heights[row]); }
     inline float adjust_size_inverse(float size, int col, int row) {
         float charheight = size * std::min(tile_widths[col], tile_heights[row]);
         return charheight / std::min(tile_widths[0], tile_heights[0]); }
+    inline float normalize_canvas_size(float size) {
+        return size * frame_width / std::min(canvas_width, canvas_height); }
+    inline float normalize_tile_size(float size) {
+        return size * frame_width / std::min(tile_widths[0], tile_heights[0]); }
+    inline float normalize_tile_size_inverse(float size) {
+        return size * std::min(tile_widths[0], tile_heights[0]) / frame_width; }
 };
 
 void tiling::tile() {
@@ -223,131 +222,6 @@ void tiling::tile() {
     }
 }
 
-void tiling::adjust_coordinates(float& x_min, float& y_min,
-                                float& x_max, float& y_max,
-                                int col, int row) {
-    if (columns > 1) {
-        if (col == 0) {
-            x_min = x_min * (1.0 - margin_left) + margin_left;
-            x_max = x_max * (1.0 - margin_left) + margin_left;
-        } else if (col == columns - 1) {
-            x_min = x_min * (1.0 - margin_right);
-            x_max = x_max * (1.0 - margin_right);
-        }
-    } else {
-        x_min = x_min * (1.0 - margin_left - margin_right) + margin_left;
-        x_max = x_max * (1.0 - margin_left - margin_right) + margin_left;
-    }
-
-    if (rows > 1) {
-        if (row == 0) {
-            y_min = y_min * (1.0 - margin_top);
-            y_max = y_max * (1.0 - margin_top);
-        } else if (row == rows - 1) {
-            y_min = y_min * (1.0 - margin_bottom) + margin_bottom;
-            y_max = y_max * (1.0 - margin_bottom) + margin_bottom;
-        }
-    } else {
-        y_min = y_min * (1.0 - margin_top - margin_bottom) + margin_bottom;
-        y_max = y_max * (1.0 - margin_top - margin_bottom) + margin_bottom;
-    }
-}
-
-/* x_options(y_options):
- *
- * [a] * n panels, where a:
- * 0: don't cover
- * 1: cover left(top) side only
- * 2: cover right(bottom) side only
- * 3: cover both sides
- *
- * options apply starting from the right(bottom)-most panel
- *
- * covers up to the edge of the panel, except when the panel is the
- * left(top)- or right(bottom)-most one
- *
- * warning! leading zeros indicate an octal number
- *
- * e.g. for a plot with 5 columns:
- *      33333 covers everything,
- *      23331 covers everything except the left-most and right-most label
- *      3333 covers everything in the last 4 frames
- */
-void tiling::cover_axis_labels(int x_options, int y_options) {
-    float x_min, x_max;
-    float y_min, y_max;
-
-    for (int i = columns - 1; i >= 0 && x_options != 0; --i, x_options /= 10) {
-        int opt = x_options % 10;
-
-        y_min = frame_edges_vertical[rows] - 0.05;
-        y_max = y_min + 0.048;
-
-        if (opt & 0x1) {
-            x_min = frame_edges_horizontal[i] - 0.0005;
-            x_max = x_min + 0.0125;
-
-            if (i == 0) { x_min -= 0.015; }
-
-            TPad* cover = new TPad(
-                Form("x_cover_left_%i", x_options),
-                Form("x_cover_left_%i", x_options),
-                x_min, y_min, x_max, y_max
-            );
-            cover->Draw();
-        }
-
-        if (opt & 0x2) {
-            x_min = frame_edges_horizontal[i + 1] - 0.012;
-            x_max = x_min + 0.0125;
-
-            if (i == columns - 1) { x_max += 0.015; }
-
-            TPad* cover = new TPad(
-                Form("x_cover_right_%i", x_options),
-                Form("x_cover_right_%i", x_options),
-                x_min, y_min, x_max, y_max
-            );
-            cover->Draw();
-        }
-    }
-
-    for (int i = rows - 1; i >= 0 && y_options != 0; --i, y_options /= 10) {
-        int opt = y_options % 10;
-
-        x_min = frame_edges_horizontal[0] - 0.03;
-        x_max = x_min + 0.029;
-
-        if (opt & 0x1) {
-            y_min = frame_edges_vertical[i] - 0.02;
-            y_max = y_min + 0.0205;
-
-            if (i == 0) { y_max += 0.04; }
-
-            TPad* cover = new TPad(
-                Form("x_cover_top_%i", y_options),
-                Form("x_cover_top_%i", y_options),
-                x_min, y_min, x_max, y_max
-            );
-            cover->Draw();
-        }
-
-        if (opt & 0x2) {
-            y_min = frame_edges_vertical[i + 1] - 0.0005;
-            y_max = y_min + 0.0205;
-
-            if (i == rows - 1) { y_min -= 0.04; }
-
-            TPad* cover = new TPad(
-                Form("x_cover_bottom_%i", y_options),
-                Form("x_cover_bottom_%i", y_options),
-                x_min, y_min, x_max, y_max
-            );
-            cover->Draw();
-        }
-    }
-}
-
 TCanvas* tiling::create_canvas(const char* name, const char* title) {
     TCanvas* c1 = new TCanvas(name, title, canvas_width, canvas_height);
 
@@ -403,13 +277,14 @@ TLegend* tiling::create_legend_on_frame(float x_min, float y_min,
 
 TLatex* tiling::draw_latex_on_canvas(float x, float y, const char* text,
                                      int font, float font_size, int align) {
-    TLatex* l1 = new TLatex();
+    float norm_size = normalize_canvas_size(font_size);
 
+    TLatex* l1 = new TLatex();
     l1->SetTextFont(font * 10 + 2);
-    l1->SetTextSize(normalize_canvas_size(font_size));
+    l1->SetTextSize(norm_size);
     l1->SetTextAlign(align);
 
-    return l1->DrawLatexNDC(x, y, text);
+    return l1->DrawLatexNDC(x, y + norm_size * 0.8, text);
 }
 
 TLatex* tiling::draw_latex_on_frame(float x, float y, const char* text,
@@ -418,8 +293,8 @@ TLatex* tiling::draw_latex_on_frame(float x, float y, const char* text,
     float x_tmp = 1;
     float y_tmp = 1;
     adjust_coordinates(x, y, x_tmp, y_tmp, col, row);
-    TLatex* l1 = new TLatex();
 
+    TLatex* l1 = new TLatex();
     l1->SetTextFont(font * 10 + 2);
     l1->SetTextSize(normalize_tile_size(adjust_size(font_size, col, row)));
     l1->SetTextAlign(align);
@@ -560,5 +435,130 @@ void tiling::set_sizes(TGraph* g1, int font,
         y_axis->SetTitle("");
         y_axis->SetTitleOffset(999);
         y_axis->SetLabelOffset(999);
+    }
+}
+
+/* x_options(y_options):
+ *
+ * [a] * n panels, where a:
+ * 0: don't cover
+ * 1: cover left(top) side only
+ * 2: cover right(bottom) side only
+ * 3: cover both sides
+ *
+ * options apply starting from the right(bottom)-most panel
+ *
+ * covers up to the edge of the panel, except when the panel is the
+ * left(top)- or right(bottom)-most one
+ *
+ * warning! leading zeros indicate an octal number
+ *
+ * e.g. for a plot with 5 columns:
+ *      33333 covers everything,
+ *      23331 covers everything except the left-most and right-most label
+ *      3333 covers everything in the last 4 frames
+ */
+void tiling::cover_axis_labels(int x_options, int y_options) {
+    float x_min, x_max;
+    float y_min, y_max;
+
+    for (int i = columns - 1; i >= 0 && x_options != 0; --i, x_options /= 10) {
+        int opt = x_options % 10;
+
+        y_min = frame_edges_vertical[rows] - 0.05;
+        y_max = y_min + 0.048;
+
+        if (opt & 0x1) {
+            x_min = frame_edges_horizontal[i] - 0.0005;
+            x_max = x_min + 0.0125;
+
+            if (i == 0) { x_min -= 0.015; }
+
+            TPad* cover = new TPad(
+                Form("x_cover_left_%i", x_options),
+                Form("x_cover_left_%i", x_options),
+                x_min, y_min, x_max, y_max
+            );
+            cover->Draw();
+        }
+
+        if (opt & 0x2) {
+            x_min = frame_edges_horizontal[i + 1] - 0.012;
+            x_max = x_min + 0.0125;
+
+            if (i == columns - 1) { x_max += 0.015; }
+
+            TPad* cover = new TPad(
+                Form("x_cover_right_%i", x_options),
+                Form("x_cover_right_%i", x_options),
+                x_min, y_min, x_max, y_max
+            );
+            cover->Draw();
+        }
+    }
+
+    for (int i = rows - 1; i >= 0 && y_options != 0; --i, y_options /= 10) {
+        int opt = y_options % 10;
+
+        x_min = frame_edges_horizontal[0] - 0.03;
+        x_max = x_min + 0.029;
+
+        if (opt & 0x1) {
+            y_min = frame_edges_vertical[i] - 0.02;
+            y_max = y_min + 0.0205;
+
+            if (i == 0) { y_max += 0.04; }
+
+            TPad* cover = new TPad(
+                Form("x_cover_top_%i", y_options),
+                Form("x_cover_top_%i", y_options),
+                x_min, y_min, x_max, y_max
+            );
+            cover->Draw();
+        }
+
+        if (opt & 0x2) {
+            y_min = frame_edges_vertical[i + 1] - 0.0005;
+            y_max = y_min + 0.0205;
+
+            if (i == rows - 1) { y_min -= 0.04; }
+
+            TPad* cover = new TPad(
+                Form("x_cover_bottom_%i", y_options),
+                Form("x_cover_bottom_%i", y_options),
+                x_min, y_min, x_max, y_max
+            );
+            cover->Draw();
+        }
+    }
+}
+
+void tiling::adjust_coordinates(float& x_min, float& y_min,
+                                float& x_max, float& y_max,
+                                int col, int row) {
+    if (columns > 1) {
+        if (col == 0) {
+            x_min = x_min * (1.0 - margin_left) + margin_left;
+            x_max = x_max * (1.0 - margin_left) + margin_left;
+        } else if (col == columns - 1) {
+            x_min = x_min * (1.0 - margin_right);
+            x_max = x_max * (1.0 - margin_right);
+        }
+    } else {
+        x_min = x_min * (1.0 - margin_left - margin_right) + margin_left;
+        x_max = x_max * (1.0 - margin_left - margin_right) + margin_left;
+    }
+
+    if (rows > 1) {
+        if (row == 0) {
+            y_min = y_min * (1.0 - margin_top);
+            y_max = y_max * (1.0 - margin_top);
+        } else if (row == rows - 1) {
+            y_min = y_min * (1.0 - margin_bottom) + margin_bottom;
+            y_max = y_max * (1.0 - margin_bottom) + margin_bottom;
+        }
+    } else {
+        y_min = y_min * (1.0 - margin_top - margin_bottom) + margin_bottom;
+        y_max = y_max * (1.0 - margin_top - margin_bottom) + margin_bottom;
     }
 }

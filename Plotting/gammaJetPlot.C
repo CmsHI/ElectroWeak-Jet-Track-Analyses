@@ -16,9 +16,9 @@
 
 const float ncoll_weighted_npart[4] = {43.58, 118.8, 239.9, 363.4};
 
-const float cms_latex_size = 0.07;
+const float cms_latex_size = 0.08;
 const float canvas_latex_size = 0.08;
-const float latex_size = 0.064;
+const float latex_size = 0.072;
 
 std::string set_systematics_style(TGraph* gr, int style);
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings);
@@ -215,7 +215,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 if (r*columns + c+1 == l_panel[s]) {
                     TLegend* l1 = tiler->create_legend_on_frame(
                         l_x1[s], l_y1[s], l_x2[s], l_y2[s],
-                        4, 0.06, c, r
+                        4, latex_size, c, r
                     );
 
                     for (std::size_t t=0; t<legend_labels[s].size(); ++t) {
@@ -277,8 +277,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
             if (histogram_names[r][c][0].find("centBinAll") == std::string::npos) {
                 int bins_cent[2][7] = {
-                    {0, 0, 30, 0, 10, 30, 60},
-                    {100, 30, 100, 10, 30, 60, 100}
+                    {0, 0, 30, 0, 10, 30, 50},
+                    {100, 30, 100, 10, 30, 50, 100}
                 };
 
                 std::size_t pos = histogram_names[r][c][0].find("hiBin") + 5;
@@ -372,8 +372,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
-    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
-    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 31);
+    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 31);
 
     std::string commonInfo;
     if (columns > 3) {
@@ -382,7 +382,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
 
-    tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), commonInfo.c_str(), 4, canvas_latex_size, 21);
+    tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
     tiler->cover_axis_labels(cover_options[0], cover_options[1]);
