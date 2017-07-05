@@ -118,10 +118,10 @@ class tiling {
     float canvas_margin_left, canvas_margin_right;
     float canvas_margin_top, canvas_margin_bottom;
 
-    float canvas_tile_ratio_width, canvas_tile_ratio_height;
+    float canvas_frame_ratio_horiz, canvas_frame_ratio_vert;
 
-    std::vector<float> tile_edges_horizontal, tile_edges_vertical;
-    std::vector<float> frame_edges_horizontal, frame_edges_vertical;
+    std::vector<float> tile_edges_horiz, tile_edges_vert;
+    std::vector<float> frame_edges_horiz, frame_edges_vert;
     std::vector<float> tile_widths, tile_heights;
 
     void tile();
@@ -146,78 +146,78 @@ class tiling {
 
 void tiling::tile() {
     if (columns > 1) {
-        canvas_tile_ratio_width = 1.0 / (1.0 - margin_left) +
+        canvas_frame_ratio_horiz = 1.0 / (1.0 - margin_left) +
             1.0 / (1.0 - margin_right) + columns - 2;
         canvas_margin_left = margin_left / (1.0 - margin_left) /
-            canvas_tile_ratio_width;
+            canvas_frame_ratio_horiz;
         canvas_margin_right = margin_right / (1.0 - margin_right) /
-            canvas_tile_ratio_width;
+            canvas_frame_ratio_horiz;
     } else {
-        canvas_tile_ratio_width = 1.0 / (1.0 - margin_left - margin_right);
+        canvas_frame_ratio_horiz = 1.0 / (1.0 - margin_left - margin_right);
         canvas_margin_left = margin_left;
         canvas_margin_right = margin_right;
     }
 
     if (rows > 1) {
-        canvas_tile_ratio_height = 1.0 / (1.0 - margin_top) +
+        canvas_frame_ratio_vert = 1.0 / (1.0 - margin_top) +
             1.0 / (1.0 - margin_bottom) + rows - 2;
         canvas_margin_top = margin_top / (1.0 - margin_top) /
-            canvas_tile_ratio_height;
+            canvas_frame_ratio_vert;
         canvas_margin_bottom = margin_bottom / (1.0 - margin_bottom) /
-            canvas_tile_ratio_height;
+            canvas_frame_ratio_vert;
     } else {
-        canvas_tile_ratio_height = 1.0 / (1.0 - margin_top - margin_bottom);
+        canvas_frame_ratio_vert = 1.0 / (1.0 - margin_top - margin_bottom);
         canvas_margin_top = margin_top;
         canvas_margin_bottom = margin_bottom;
     }
 
-    canvas_width = frame_width * canvas_tile_ratio_width;
-    canvas_height = frame_height * canvas_tile_ratio_height;
+    canvas_width = frame_width * canvas_frame_ratio_horiz;
+    canvas_height = frame_height * canvas_frame_ratio_vert;
 
-    tile_edges_horizontal.clear();
-    tile_edges_horizontal.push_back(0.0);
-    tile_edges_horizontal.push_back(canvas_margin_left / margin_left);
+    tile_edges_horiz.clear();
+    tile_edges_horiz.push_back(0.0);
+    tile_edges_horiz.push_back(canvas_margin_left / margin_left);
     for (int i=2; i<columns; ++i) {
-        tile_edges_horizontal.push_back(
-            tile_edges_horizontal[i-1] + 1.0 / canvas_tile_ratio_width
+        tile_edges_horiz.push_back(
+            tile_edges_horiz[i-1] + 1.0 / canvas_frame_ratio_horiz
         );
     }
-    if (columns > 1) { tile_edges_horizontal.push_back(1.0); }
+    if (columns > 1) { tile_edges_horiz.push_back(1.0); }
 
-    frame_edges_horizontal.clear();
+    frame_edges_horiz.clear();
     tile_widths.clear();
 
-    frame_edges_horizontal.push_back(canvas_margin_left);
+    frame_edges_horiz.push_back(canvas_margin_left);
     for (int i=0; i<columns; ++i) {
-        frame_edges_horizontal.push_back(
-            frame_edges_horizontal[i] + 1.0 / canvas_tile_ratio_width
+        frame_edges_horiz.push_back(
+            frame_edges_horiz[i] + 1.0 / canvas_frame_ratio_horiz
         );
         tile_widths.push_back(
             canvas_width *
-            (tile_edges_horizontal[i+1] - tile_edges_horizontal[i])
+            (tile_edges_horiz[i+1] - tile_edges_horiz[i])
         );
     }
 
-    tile_edges_vertical.clear();
-    tile_edges_vertical.push_back(1.0);
-    tile_edges_vertical.push_back(1.0 - canvas_margin_top / margin_top);
+    tile_edges_vert.clear();
+    tile_edges_vert.push_back(1.0);
+    tile_edges_vert.push_back(1.0 - canvas_margin_top / margin_top);
     for (int i=2; i<rows; ++i) {
-        tile_edges_vertical.push_back(
-            tile_edges_vertical[i-1] - 1.0 / canvas_tile_ratio_height
+        tile_edges_vert.push_back(
+            tile_edges_vert[i-1] - 1.0 / canvas_frame_ratio_vert
         );
     }
-    if (rows > 1) { tile_edges_vertical.push_back(0.0); }
+    if (rows > 1) { tile_edges_vert.push_back(0.0); }
 
-    frame_edges_vertical.clear();
+    frame_edges_vert.clear();
     tile_heights.clear();
 
-    frame_edges_vertical.push_back(1.0 - canvas_margin_top);
+    frame_edges_vert.push_back(1.0 - canvas_margin_top);
     for (int i=0; i<rows; ++i) {
-        frame_edges_vertical.push_back(
-            frame_edges_vertical[i] - 1.0 / canvas_tile_ratio_height
+        frame_edges_vert.push_back(
+            frame_edges_vert[i] - 1.0 / canvas_frame_ratio_vert
         );
         tile_heights.push_back(
-            canvas_height * (tile_edges_vertical[i] - tile_edges_vertical[i+1])
+            canvas_height * (tile_edges_vert[i] - tile_edges_vert[i+1])
         );
     }
 }
@@ -235,8 +235,8 @@ TCanvas* tiling::create_canvas(const char* name, const char* title) {
 
             tiles[i][j] = new TPad(
                 Form("tile_%i_%i", i, j), "",
-                tile_edges_horizontal[j], tile_edges_vertical[i+1],
-                tile_edges_horizontal[j+1], tile_edges_vertical[i]
+                tile_edges_horiz[j], tile_edges_vert[i+1],
+                tile_edges_horiz[j+1], tile_edges_vert[i]
             );
 
             if (i == 0) tiles[i][j]->SetTopMargin(margin_top);
@@ -440,7 +440,7 @@ void tiling::set_sizes(TGraph* g1, int font,
 
 /* x_options(y_options):
  *
- * [a] * n panels, where a:
+ * for each panel:
  * 0: don't cover
  * 1: cover left(top) side only
  * 2: cover right(bottom) side only
@@ -451,7 +451,7 @@ void tiling::set_sizes(TGraph* g1, int font,
  * covers up to the edge of the panel, except when the panel is the
  * left(top)- or right(bottom)-most one
  *
- * warning! leading zeros indicate an octal number
+ * warning! leading zeros indicate an octal number (c language feature)
  *
  * e.g. for a plot with 5 columns:
  *      33333 covers everything,
@@ -465,11 +465,11 @@ void tiling::cover_axis_labels(int x_options, int y_options) {
     for (int i = columns - 1; i >= 0 && x_options != 0; --i, x_options /= 10) {
         int opt = x_options % 10;
 
-        y_min = frame_edges_vertical[rows] - 0.05;
+        y_min = frame_edges_vert[rows] - 0.05;
         y_max = y_min + 0.048;
 
         if (opt & 0x1) {
-            x_min = frame_edges_horizontal[i] - 0.0005;
+            x_min = frame_edges_horiz[i] - 0.0005;
             x_max = x_min + 0.0125;
 
             if (i == 0) { x_min -= 0.015; }
@@ -483,7 +483,7 @@ void tiling::cover_axis_labels(int x_options, int y_options) {
         }
 
         if (opt & 0x2) {
-            x_min = frame_edges_horizontal[i + 1] - 0.012;
+            x_min = frame_edges_horiz[i + 1] - 0.012;
             x_max = x_min + 0.0125;
 
             if (i == columns - 1) { x_max += 0.015; }
@@ -500,11 +500,11 @@ void tiling::cover_axis_labels(int x_options, int y_options) {
     for (int i = rows - 1; i >= 0 && y_options != 0; --i, y_options /= 10) {
         int opt = y_options % 10;
 
-        x_min = frame_edges_horizontal[0] - 0.03;
+        x_min = frame_edges_horiz[0] - 0.03;
         x_max = x_min + 0.029;
 
         if (opt & 0x1) {
-            y_min = frame_edges_vertical[i] - 0.02;
+            y_min = frame_edges_vert[i] - 0.02;
             y_max = y_min + 0.0205;
 
             if (i == 0) { y_max += 0.04; }
@@ -518,7 +518,7 @@ void tiling::cover_axis_labels(int x_options, int y_options) {
         }
 
         if (opt & 0x2) {
-            y_min = frame_edges_vertical[i + 1] - 0.0005;
+            y_min = frame_edges_vert[i + 1] - 0.0005;
             y_max = y_min + 0.0205;
 
             if (i == rows - 1) { y_min -= 0.04; }
