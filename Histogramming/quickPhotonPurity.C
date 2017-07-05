@@ -181,7 +181,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
 
           TLatex* latexCMS = new TLatex();
           latexCMS->SetTextFont(63);
-          latexCMS->SetTextSize(32);
+          latexCMS->SetTextSize(40);
           latexCMS->DrawLatexNDC(0.24, 0.9, "CMS");
 
           bool isPreliminary = false;
