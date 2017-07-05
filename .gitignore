@@ -31,3 +31,6 @@
 
 # dependency files
 *.d
+
+# mac finder
+.DS_Store
