@@ -35,49 +35,49 @@ class tiling {
         rows(1, std::bind(&tiling::tile, this)),
         frame_width(400, std::bind(&tiling::tile, this)),
         frame_height(400, std::bind(&tiling::tile, this)),
-        margin_left(0.2, std::bind(&tiling::tile, this)),
-        margin_right(0.1, std::bind(&tiling::tile, this)),
-        margin_top(0.1, std::bind(&tiling::tile, this)),
-        margin_bottom(0.2, std::bind(&tiling::tile, this))
+        lmargin(0.2, std::bind(&tiling::tile, this)),
+        rmargin(0.1, std::bind(&tiling::tile, this)),
+        tmargin(0.1, std::bind(&tiling::tile, this)),
+        bmargin(0.2, std::bind(&tiling::tile, this))
     { tile(); }
     tiling(int columns, int rows) :
         columns(columns, std::bind(&tiling::tile, this)),
         rows(rows, std::bind(&tiling::tile, this)),
         frame_width(400, std::bind(&tiling::tile, this)),
         frame_height(400, std::bind(&tiling::tile, this)),
-        margin_left(0.2, std::bind(&tiling::tile, this)),
-        margin_right(0.1, std::bind(&tiling::tile, this)),
-        margin_top(0.1, std::bind(&tiling::tile, this)),
-        margin_bottom(0.2, std::bind(&tiling::tile, this))
+        lmargin(0.2, std::bind(&tiling::tile, this)),
+        rmargin(0.1, std::bind(&tiling::tile, this)),
+        tmargin(0.1, std::bind(&tiling::tile, this)),
+        bmargin(0.2, std::bind(&tiling::tile, this))
     { tile(); }
     tiling(int columns, int rows,
-           float margin_left, float margin_right,
-           float margin_top, float margin_bottom) :
+           float lmargin, float rmargin,
+           float tmargin, float bmargin) :
         columns(columns, std::bind(&tiling::tile, this)),
         rows(rows, std::bind(&tiling::tile, this)),
         frame_width(400, std::bind(&tiling::tile, this)),
         frame_height(400, std::bind(&tiling::tile, this)),
-        margin_left(margin_left, std::bind(&tiling::tile, this)),
-        margin_right(margin_right, std::bind(&tiling::tile, this)),
-        margin_top(margin_top, std::bind(&tiling::tile, this)),
-        margin_bottom(margin_bottom, std::bind(&tiling::tile, this))
+        lmargin(lmargin, std::bind(&tiling::tile, this)),
+        rmargin(rmargin, std::bind(&tiling::tile, this)),
+        tmargin(tmargin, std::bind(&tiling::tile, this)),
+        bmargin(bmargin, std::bind(&tiling::tile, this))
     { tile(); }
     tiling(int columns, int rows, int frame_width, int frame_height,
-           float margin_left, float margin_right,
-           float margin_top, float margin_bottom) :
+           float lmargin, float rmargin,
+           float tmargin, float bmargin) :
         columns(columns, std::bind(&tiling::tile, this)),
         rows(rows, std::bind(&tiling::tile, this)),
         frame_width(frame_width, std::bind(&tiling::tile, this)),
         frame_height(frame_height, std::bind(&tiling::tile, this)),
-        margin_left(margin_left, std::bind(&tiling::tile, this)),
-        margin_right(margin_right, std::bind(&tiling::tile, this)),
-        margin_top(margin_top, std::bind(&tiling::tile, this)),
-        margin_bottom(margin_bottom, std::bind(&tiling::tile, this))
+        lmargin(lmargin, std::bind(&tiling::tile, this)),
+        rmargin(rmargin, std::bind(&tiling::tile, this)),
+        tmargin(tmargin, std::bind(&tiling::tile, this)),
+        bmargin(bmargin, std::bind(&tiling::tile, this))
     { tile(); }
 
     member<int> columns, rows;
     member<int> frame_width, frame_height;
-    member<float> margin_left, margin_right, margin_top, margin_bottom;
+    member<float> lmargin, rmargin, tmargin, bmargin;
 
     float get_canvas_margin_left() { return canvas_margin_left; }
     float get_canvas_margin_right() { return canvas_margin_right; }
@@ -114,6 +114,8 @@ class tiling {
     void cover_axis_labels(int x_options, int y_options);
 
   private:
+    float lmargin_rel, rmargin_rel, tmargin_rel, bmargin_rel;
+
     float canvas_width, canvas_height;
     float canvas_margin_left, canvas_margin_right;
     float canvas_margin_top, canvas_margin_bottom;
@@ -145,38 +147,62 @@ class tiling {
 };
 
 void tiling::tile() {
+    canvas_frame_ratio_horiz = columns + lmargin + rmargin;
+    canvas_margin_left = lmargin / canvas_frame_ratio_horiz;
+    canvas_margin_right = rmargin / canvas_frame_ratio_horiz;
+
+    canvas_frame_ratio_vert = rows + tmargin + bmargin;
+    canvas_margin_top = tmargin / canvas_frame_ratio_vert;
+    canvas_margin_bottom = bmargin / canvas_frame_ratio_vert;
+
     if (columns > 1) {
-        canvas_frame_ratio_horiz = 1.0 / (1.0 - margin_left) +
-            1.0 / (1.0 - margin_right) + columns - 2;
-        canvas_margin_left = margin_left / (1.0 - margin_left) /
-            canvas_frame_ratio_horiz;
-        canvas_margin_right = margin_right / (1.0 - margin_right) /
-            canvas_frame_ratio_horiz;
+        lmargin_rel = lmargin / (lmargin + 1.0);
+        rmargin_rel = rmargin / (rmargin + 1.0);
     } else {
-        canvas_frame_ratio_horiz = 1.0 / (1.0 - margin_left - margin_right);
-        canvas_margin_left = margin_left;
-        canvas_margin_right = margin_right;
+        lmargin_rel = lmargin / canvas_frame_ratio_horiz;
+        rmargin_rel = rmargin / canvas_frame_ratio_horiz;
     }
 
     if (rows > 1) {
-        canvas_frame_ratio_vert = 1.0 / (1.0 - margin_top) +
-            1.0 / (1.0 - margin_bottom) + rows - 2;
-        canvas_margin_top = margin_top / (1.0 - margin_top) /
-            canvas_frame_ratio_vert;
-        canvas_margin_bottom = margin_bottom / (1.0 - margin_bottom) /
-            canvas_frame_ratio_vert;
+        tmargin_rel = tmargin / (tmargin + 1.0);
+        bmargin_rel = bmargin / (bmargin + 1.0);
     } else {
-        canvas_frame_ratio_vert = 1.0 / (1.0 - margin_top - margin_bottom);
-        canvas_margin_top = margin_top;
-        canvas_margin_bottom = margin_bottom;
+        tmargin_rel = tmargin / canvas_frame_ratio_vert;
+        bmargin_rel = bmargin / canvas_frame_ratio_vert;
     }
+
+    // if (columns > 1) {
+    //     canvas_frame_ratio_horiz = 1.0 / (1.0 - lmargin_rel) +
+    //         1.0 / (1.0 - rmargin_rel) + columns - 2;
+    //     canvas_margin_left = lmargin_rel / (1.0 - lmargin_rel) /
+    //         canvas_frame_ratio_horiz;
+    //     canvas_margin_right = rmargin_rel / (1.0 - rmargin_rel) /
+    //         canvas_frame_ratio_horiz;
+    // } else {
+    //     canvas_frame_ratio_horiz = 1.0 / (1.0 - lmargin_rel - rmargin_rel);
+    //     canvas_margin_left = lmargin_rel;
+    //     canvas_margin_right = rmargin_rel;
+    // }
+
+    // if (rows > 1) {
+    //     canvas_frame_ratio_vert = 1.0 / (1.0 - tmargin_rel) +
+    //         1.0 / (1.0 - bmargin_rel) + rows - 2;
+    //     canvas_margin_top = tmargin_rel / (1.0 - tmargin_rel) /
+    //         canvas_frame_ratio_vert;
+    //     canvas_margin_bottom = bmargin_rel / (1.0 - bmargin_rel) /
+    //         canvas_frame_ratio_vert;
+    // } else {
+    //     canvas_frame_ratio_vert = 1.0 / (1.0 - tmargin_rel - bmargin_rel);
+    //     canvas_margin_top = tmargin_rel;
+    //     canvas_margin_bottom = bmargin_rel;
+    // }
 
     canvas_width = frame_width * canvas_frame_ratio_horiz;
     canvas_height = frame_height * canvas_frame_ratio_vert;
 
     tile_edges_horiz.clear();
     tile_edges_horiz.push_back(0.0);
-    tile_edges_horiz.push_back(canvas_margin_left / margin_left);
+    tile_edges_horiz.push_back(canvas_margin_left / lmargin_rel);
     for (int i=2; i<columns; ++i) {
         tile_edges_horiz.push_back(
             tile_edges_horiz[i-1] + 1.0 / canvas_frame_ratio_horiz
@@ -200,7 +226,7 @@ void tiling::tile() {
 
     tile_edges_vert.clear();
     tile_edges_vert.push_back(1.0);
-    tile_edges_vert.push_back(1.0 - canvas_margin_top / margin_top);
+    tile_edges_vert.push_back(1.0 - canvas_margin_top / tmargin_rel);
     for (int i=2; i<rows; ++i) {
         tile_edges_vert.push_back(
             tile_edges_vert[i-1] - 1.0 / canvas_frame_ratio_vert
@@ -239,13 +265,13 @@ TCanvas* tiling::create_canvas(const char* name, const char* title) {
                 tile_edges_horiz[j+1], tile_edges_vert[i]
             );
 
-            if (i == 0) tiles[i][j]->SetTopMargin(margin_top);
+            if (i == 0) tiles[i][j]->SetTopMargin(tmargin_rel);
             else        tiles[i][j]->SetTopMargin(0);
-            if (i == rows - 1) tiles[i][j]->SetBottomMargin(margin_bottom);
+            if (i == rows - 1) tiles[i][j]->SetBottomMargin(bmargin_rel);
             else               tiles[i][j]->SetBottomMargin(0);
-            if (j == 0) tiles[i][j]->SetLeftMargin(margin_left);
+            if (j == 0) tiles[i][j]->SetLeftMargin(lmargin_rel);
             else        tiles[i][j]->SetLeftMargin(0);
-            if (j == columns - 1) tiles[i][j]->SetRightMargin(margin_right);
+            if (j == columns - 1) tiles[i][j]->SetRightMargin(rmargin_rel);
             else                  tiles[i][j]->SetRightMargin(0);
 
             tiles[i][j]->Draw();
@@ -538,27 +564,27 @@ void tiling::adjust_coordinates(float& x_min, float& y_min,
                                 int col, int row) {
     if (columns > 1) {
         if (col == 0) {
-            x_min = x_min * (1.0 - margin_left) + margin_left;
-            x_max = x_max * (1.0 - margin_left) + margin_left;
+            x_min = x_min * (1.0 - lmargin_rel) + lmargin_rel;
+            x_max = x_max * (1.0 - lmargin_rel) + lmargin_rel;
         } else if (col == columns - 1) {
-            x_min = x_min * (1.0 - margin_right);
-            x_max = x_max * (1.0 - margin_right);
+            x_min = x_min * (1.0 - rmargin_rel);
+            x_max = x_max * (1.0 - rmargin_rel);
         }
     } else {
-        x_min = x_min * (1.0 - margin_left - margin_right) + margin_left;
-        x_max = x_max * (1.0 - margin_left - margin_right) + margin_left;
+        x_min = x_min * (1.0 - lmargin_rel - rmargin_rel) + lmargin_rel;
+        x_max = x_max * (1.0 - lmargin_rel - rmargin_rel) + lmargin_rel;
     }
 
     if (rows > 1) {
         if (row == 0) {
-            y_min = y_min * (1.0 - margin_top);
-            y_max = y_max * (1.0 - margin_top);
+            y_min = y_min * (1.0 - tmargin_rel);
+            y_max = y_max * (1.0 - tmargin_rel);
         } else if (row == rows - 1) {
-            y_min = y_min * (1.0 - margin_bottom) + margin_bottom;
-            y_max = y_max * (1.0 - margin_bottom) + margin_bottom;
+            y_min = y_min * (1.0 - bmargin_rel) + bmargin_rel;
+            y_max = y_max * (1.0 - bmargin_rel) + bmargin_rel;
         }
     } else {
-        y_min = y_min * (1.0 - margin_top - margin_bottom) + margin_bottom;
-        y_max = y_max * (1.0 - margin_top - margin_bottom) + margin_bottom;
+        y_min = y_min * (1.0 - tmargin_rel - bmargin_rel) + bmargin_rel;
+        y_max = y_max * (1.0 - tmargin_rel - bmargin_rel) + bmargin_rel;
     }
 }
