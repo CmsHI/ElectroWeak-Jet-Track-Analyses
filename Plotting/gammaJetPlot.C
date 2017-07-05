@@ -239,7 +239,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 float CMS_label_x = 0.04;
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
                     CMS_label_x = 0.82;
-                tiler->create_latex_on_frame(
+                tiler->draw_latex_on_frame(
                     CMS_label_x, 0.9, "CMS", 6,
                     cms_latex_size, 11, c, r
                 );
@@ -285,7 +285,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 int cent_index = std::strtol(histogram_names[r][c][0].c_str() + pos, nullptr, 10);
 
                 if (canvas_title == "xjg_cent")
-                    plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_index]/2, bins_cent[1][cent_index]/2));
+                    plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_index], bins_cent[1][cent_index]));
 
                 if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
                     int cent_label_bins[2][2] = { {50, 0}, {100, 10} };
@@ -293,20 +293,20 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                         std::string cent_label = Form("%i-%i%%", cent_label_bins[0][p], cent_label_bins[1][p]);
 
                         if (r == 0) {
-                            tiler->create_latex_on_frame(
+                            tiler->draw_latex_on_frame(
                                 0.06 + p * 0.78, 0.32 + c * 0.23 - (!c) * p * 0.15, "Cent.", 4,
                                 latex_size, 11, c, r
                             );
-                            tiler->create_latex_on_frame(
+                            tiler->draw_latex_on_frame(
                                 0.04 + p * 0.78, 0.27 + c * 0.23 - (!c) * p * 0.15, cent_label.c_str(), 4,
                                 latex_size, 11, c, r
                             );
                         } else if (r == 1) {
-                            tiler->create_latex_on_frame(
+                            tiler->draw_latex_on_frame(
                                 0.06 + p * 0.78, 0.35 + c * 0.13 - p * 0.13, "Cent.", 4,
                                 latex_size, 11, c, r
                             );
-                            tiler->create_latex_on_frame(
+                            tiler->draw_latex_on_frame(
                                 0.04 + p * 0.78, 0.3 + c * 0.13 - p * 0.13, cent_label.c_str(), 4,
                                 latex_size, 11, c, r
                             );
@@ -351,14 +351,14 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             float line_pos = i_y[r*columns + c];
             int latex_align = (i_x[r*columns + c] > 0.8) ? 31 : 11;
             for (std::size_t q=0; q<plotInfo.size(); ++q) {
-                tiler->create_latex_on_frame(i_x[r*columns + c], line_pos, plotInfo[q].c_str(), 4, latex_size, latex_align, c, r);
+                tiler->draw_latex_on_frame(i_x[r*columns + c], line_pos, plotInfo[q].c_str(), 4, latex_size, latex_align, c, r);
                 line_pos -= latex_size;
             }
 
             /* draw pt label for xjg_cent */
-            if (canvas_title == "xjg_cent") {
-                tiler->create_latex_on_frame(
-                    0.43, 0.82, "p_{T}^{#gamma} > 60 GeV/c", 4,
+            if (canvas_title == "xjg_cent" && c == 0) {
+                tiler->draw_latex_on_frame(
+                    0.04, 0.82, "p_{T}^{#gamma} > 60 GeV/c", 4,
                     latex_size, 11, c, r
                 );
             }
@@ -372,8 +372,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
-    tiler->create_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top + tiler->normalize_size(0.06, -1, -1), "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
-    tiler->create_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top + tiler->normalize_size(0.06, -1, -1), "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 31);
+    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 31);
 
     std::string commonInfo;
     if (columns > 3) {
@@ -382,10 +382,10 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
 
-    tiler->create_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top + tiler->normalize_size(0.06, -1, -1), commonInfo.c_str(), 4, canvas_latex_size, 21);
+    tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top + tiler->normalize_canvas_size(0.06), commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
-    tiler->cover_axis(cover_options[0], cover_options[1]);
+    tiler->cover_axis_labels(cover_options[0], cover_options[1]);
 
     c1->SaveAs(canvas_title.append(".pdf").c_str());
 
