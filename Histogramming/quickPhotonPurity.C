@@ -73,7 +73,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
   TFile* outFile = new TFile(Form("%s.root", outputName.Data()), "RECREATE");
 
   const TCut sidebandIsolation = "((pho_sumIsoCorrected[phoIdx])>10) && ((pho_sumIsoCorrected[phoIdx])<20) && phoHoverE[phoIdx]<0.1";
-  const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && abs(mcPID[pho_genMatchedIndex[phoIdx]])<=22";
+  const TCut mcIsolation = "(pho_genMatchedIndex[phoIdx]!= -1) && mcCalIsoDR04[pho_genMatchedIndex[phoIdx]]<5 && mcPID[pho_genMatchedIndex[phoIdx]] == 22 && (abs(mcMomPID[pho_genMatchedIndex[phoIdx]])<=22 || mcMomPID[pho_genMatchedIndex[phoIdx]] == -999)";
 
   TCanvas* cPurity = new TCanvas("c1", "c1", 400*nPTBINS, 400*nCENTBINS);
   makeMultiPanelCanvas(cPurity, nPTBINS, nCENTBINS, 0.0, 0.0 , 0.2, 0.15, 0.005);
