@@ -173,32 +173,6 @@ void tiling::tile() {
         bmargin_rel = bmargin / canvas_frame_ratio_vert;
     }
 
-    // if (columns > 1) {
-    //     canvas_frame_ratio_horiz = 1.0 / (1.0 - lmargin_rel) +
-    //         1.0 / (1.0 - rmargin_rel) + columns - 2;
-    //     canvas_margin_left = lmargin_rel / (1.0 - lmargin_rel) /
-    //         canvas_frame_ratio_horiz;
-    //     canvas_margin_right = rmargin_rel / (1.0 - rmargin_rel) /
-    //         canvas_frame_ratio_horiz;
-    // } else {
-    //     canvas_frame_ratio_horiz = 1.0 / (1.0 - lmargin_rel - rmargin_rel);
-    //     canvas_margin_left = lmargin_rel;
-    //     canvas_margin_right = rmargin_rel;
-    // }
-
-    // if (rows > 1) {
-    //     canvas_frame_ratio_vert = 1.0 / (1.0 - tmargin_rel) +
-    //         1.0 / (1.0 - bmargin_rel) + rows - 2;
-    //     canvas_margin_top = tmargin_rel / (1.0 - tmargin_rel) /
-    //         canvas_frame_ratio_vert;
-    //     canvas_margin_bottom = bmargin_rel / (1.0 - bmargin_rel) /
-    //         canvas_frame_ratio_vert;
-    // } else {
-    //     canvas_frame_ratio_vert = 1.0 / (1.0 - tmargin_rel - bmargin_rel);
-    //     canvas_margin_top = tmargin_rel;
-    //     canvas_margin_bottom = bmargin_rel;
-    // }
-
     canvas_width = frame_width * canvas_frame_ratio_horiz;
     canvas_height = frame_height * canvas_frame_ratio_vert;
 
@@ -305,7 +279,8 @@ TLegend* tiling::create_legend_on_frame(float x_min, float y_min,
 
 TLatex* tiling::draw_latex_on_canvas(float x, float y, const char* text,
                                      int font, float font_size, int align) {
-    float norm_size = normalize_canvas_size(font_size);
+    float norm_size = normalize_canvas_size(font_size) *
+        std::min(canvas_width, canvas_height) / canvas_height;
 
     TLatex* l1 = new TLatex();
     l1->SetTextFont(font * 10 + 2);
@@ -363,9 +338,12 @@ void tiling::set_sizes(TH1* h1, int font,
     x_label_size = normalize_tile_size(x_label_size);
     x_tick_size = normalize_tile_size(x_tick_size);
     x_title_offset = x_title_offset *
-        std::min(tile_widths[0], tile_heights[0]) / tile_heights[0];
-    x_label_offset = normalize_tile_size(x_label_offset) *
-        std::min(tile_widths[0], tile_heights[0]) / tile_heights[0];
+        std::min(tile_widths[0], tile_heights[0]) / tile_heights[row];
+    x_label_offset = normalize_tile_size(x_label_offset);
+
+    float offset = 0.08 * frame_width / tile_widths[0] *
+        (1 - std::min(tile_widths[0], tile_heights[0]) / tile_heights[0]);
+    x_label_offset = x_label_offset - offset;
 
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
