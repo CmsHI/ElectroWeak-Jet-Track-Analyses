@@ -111,6 +111,7 @@ public :
     static unsigned int ParseRunNumber(std::string strRunLumiEvent);
     static unsigned int ParseLumiNumber(std::string strRunLumiEvent);
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
+    static std::string ParseSampleName(std::string fileName);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
@@ -885,6 +886,137 @@ unsigned long long ConfigurationParser::ParseEventNumber(std::string strRunLumiE
     CONFIGPARSER::RunLumiEvent rle = ParseRunLumiEvent(strRunLumiEvent);
     return rle.event;
 }
+
+/*
+ * extract a reasonable sample name from the given file path
+ */
+std::string ConfigurationParser::ParseSampleName(std::string fileName)
+{
+    std::string res = fileName;
+
+    bool isData = (toLowerCase(res).find("promptreco") != std::string::npos ||
+                   toLowerCase(res).find("run2015") != std::string::npos ||
+                   toLowerCase(res).find("run2016") != std::string::npos);
+    bool hasPythia = (toLowerCase(res).find("pythia") != std::string::npos);
+    bool hasHydjet = (toLowerCase(res).find("hydjet") != std::string::npos);
+    bool hasEpos = (toLowerCase(res).find("epos") != std::string::npos);
+    bool hasHijing = (toLowerCase(res).find("hijing") != std::string::npos);
+    bool hasMadgraph = (toLowerCase(res).find("amcatnlo") != std::string::npos);
+
+    std::string data_mc_Str = "";
+    if (isData) {
+        if (toLowerCase(fileName).find("pbpb") != std::string::npos || toLowerCase(fileName).find("hirun2015") != std::string::npos) {
+            data_mc_Str = "PbPb Data";
+        }
+        else if (toLowerCase(fileName).find("ppb") != std::string::npos || toLowerCase(fileName).find("pbp") != std::string::npos
+                                                                        || toLowerCase(fileName).find("parun2016") != std::string::npos) {
+            data_mc_Str = "pPb Data";
+            if (toLowerCase(fileName).find("parun2016b") != std::string::npos) {
+                data_mc_Str = "pPb Data, 5 TeV";
+            }
+            else if (toLowerCase(fileName).find("parun2016c") != std::string::npos) {
+                data_mc_Str = "pPb Data, 8 TeV";
+            }
+        }
+        else if (toLowerCase(fileName).find("pp") != std::string::npos || toLowerCase(fileName).find("run2015e") != std::string::npos) {
+            data_mc_Str = "pp Data";
+        }
+        else {
+            data_mc_Str = "Data";
+        }
+    }
+    else {
+        if (hasMadgraph && hasHydjet)
+            data_mc_Str = "Madgraph+H";
+        else if (hasMadgraph && hasEpos)
+            data_mc_Str = "Madgraph+Epos";
+        else if (hasMadgraph && hasHijing)
+            data_mc_Str = "Madgraph+Hijing";
+        else if (hasPythia && hasHydjet)
+            data_mc_Str = "P+H";
+        else if (hasPythia && hasEpos)
+            data_mc_Str = "P+Epos";
+        else if (hasPythia && hasHijing)
+            data_mc_Str = "P+Hijing";
+        else if (hasHydjet)
+            data_mc_Str = "Hydjet";
+        else if (hasEpos)
+            data_mc_Str = "Epos";
+        else if (hasHijing)
+            data_mc_Str = "Hijing";
+        else if (hasMadgraph)
+            data_mc_Str = "Madgraph";
+        else if (hasPythia)
+            data_mc_Str = "Pythia";
+    }
+
+    // remove frequently occuring unnecessary information
+    res = replaceAll(res, "/mnt/hadoop/cms/store/user/", "", false);
+    res = replaceAll(res, "/export/d00/scratch/", "", false);
+    res = replaceAll(res, ".root", "", false);
+    res = replaceAll(res, "PromptReco", "", false);
+    res = replaceAll(res, "RECO", "", false);
+    res = replaceAll(res, "Run2015", "", false);
+    res = replaceAll(res, "Run2016", "", false);
+    res = replaceAll(res, "FOREST", "", false);
+    res = replaceAll(res, "mcRun2", "", false);
+    res = replaceAll(res, "HeavyIon", "", false);
+    res = replaceAll(res, "TuneCUETP8M1", "", false);
+    res = replaceAll(res, "asymptotic", "", false);
+    res = replaceAll(res, "ppAt5TeV", "", false);
+    res = replaceAll(res, "amcatnlo", "", false);
+    res = replaceAll(res, "official", "", false);
+
+    // split by any of "/", "_", "-"
+    res = replaceAll(res, "/", " ");
+    res = replaceAll(res, "_", " ");
+    res = replaceAll(res, "-", " ");
+
+    std::string ptHatInfo = "";
+    std::vector<std::string> strList = split(res, " ");
+    int nStrList = strList.size();
+    for (int i = nStrList - 1; i >= 0; --i) {
+
+        if (!isData) {
+            size_t pos = toLowerCase(strList.at(i)).find("pthat");
+            if (pos != std::string::npos) {
+                // look at the current string for any numbers
+                std::string pthatXXX = strList.at(i).substr(pos+std::string("pthat").length(), 3);
+                std::string pthatXX = strList.at(i).substr(pos+std::string("pthat").length(), 2);
+                if (isInteger(pthatXXX))  ptHatInfo = pthatXXX;
+                else if (isInteger(pthatXX))  ptHatInfo = pthatXX;
+
+                if (ptHatInfo.size() == 0 && i+1 < nStrList) {
+                    // look at the string after and see if it is a number
+                    if (isInteger(strList.at(i+1)))  ptHatInfo = strList.at(i+1);
+                }
+            }
+        }
+        if (toLowerCase(strList.at(i)).find("winter") != std::string::npos ||
+            toLowerCase(strList.at(i)).find("summer") != std::string::npos) {
+
+            strList.erase(strList.begin() + i);
+        }
+    }
+
+    std::sort(
+        strList.begin(),
+        strList.end(),
+        [](const std::string& a, const std::string& b) {
+            return a.size() > b.size();
+    });
+
+    res = "";
+    if (strList.size() > 0) {
+        // assuming the remaining longest string is the process (if MC) or PD (if data) name
+        res = strList[0];
+    }
+    if (ptHatInfo.size() > 0) res.append(Form(" %s", ptHatInfo.c_str()));
+    if (data_mc_Str.size() > 0)  res.append(Form(" %s", data_mc_Str.c_str()));
+
+    return res;
+}
+
 
 /*
  * list[0].at(i);   nBins for the ith TH1D histogram
