@@ -339,11 +339,12 @@ void tiling::set_sizes(TH1* h1, int font,
     x_tick_size = normalize_tile_size(x_tick_size);
     x_title_offset = x_title_offset *
         std::min(tile_widths[0], tile_heights[0]) / tile_heights[row];
-    x_label_offset = normalize_tile_size(x_label_offset);
-
-    float offset = 0.08 * frame_width / tile_widths[0] *
-        (1 - std::min(tile_widths[0], tile_heights[0]) / tile_heights[0]);
-    x_label_offset = x_label_offset - offset;
+    x_label_offset = normalize_tile_size(x_label_offset) -
+        0.08 * frame_width / tile_widths[0] *
+        (1 - std::min(tile_widths[0], tile_heights[0]) / tile_heights[0]) -
+        0.08 * (tile_heights[rows - 1] - tile_heights[0]) /
+        std::max(tile_heights[0], tile_heights[rows - 1]) * frame_height /
+        std::min(tile_heights[0], tile_heights[rows - 1]);
 
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
