@@ -111,7 +111,9 @@ class tiling {
                    float x_label_offset, float y_label_offset,
                    int col, int row);
 
-    void cover_axis_labels(int x_options, int y_options);
+    void cover_axis_labels(int x_options, int y_options,
+                           float x_label_size, float y_label_size,
+                           float x_label_offset, float y_label_offset);
 
   private:
     float lmargin_rel, rmargin_rel, tmargin_rel, bmargin_rel;
@@ -346,19 +348,24 @@ void tiling::set_sizes(TH1* h1, int font,
     y_title_size = normalize_tile_size(y_title_size);
     y_label_size = normalize_tile_size(y_label_size);
     y_tick_size = normalize_tile_size(y_tick_size);
-    y_title_offset = normalize_tile_size_inverse(y_title_offset);
+    y_title_offset = normalize_tile_size_inverse(y_title_offset) *
+        frame_width / tile_widths[0];
+    y_label_offset = y_label_offset * frame_width / tile_widths[0];
 
     x_title_size = adjust_size(x_title_size, col, row);
     x_label_size = adjust_size(x_label_size, col, row);
     x_tick_size = x_tick_size * tile_widths[col] / frame_width *
         tile_widths[0] / tile_heights[0];
     x_title_offset = adjust_size_inverse(x_title_offset, col, row);
-    x_label_offset = x_label_offset - x_label_size * 0.8;
+    x_label_offset = x_label_offset - x_label_size * 0.8 + 0.06;
 
     x_title_size = normalize_tile_size(x_title_size);
     x_label_size = normalize_tile_size(x_label_size);
     x_tick_size = normalize_tile_size(x_tick_size);
-    x_label_offset = normalize_tile_size(x_label_offset);
+    x_title_offset = x_title_offset *
+        std::min(tile_widths[0], tile_heights[0]) / tile_heights[0];
+    x_label_offset = normalize_tile_size(x_label_offset) *
+        std::min(tile_widths[0], tile_heights[0]) / tile_heights[0];
 
     TAxis* x_axis = h1->GetXaxis();
     TAxis* y_axis = h1->GetYaxis();
@@ -484,76 +491,86 @@ void tiling::set_sizes(TGraph* g1, int font,
  *      23331 covers everything except the left-most and right-most label
  *      3333 covers everything in the last 4 frames
  */
-void tiling::cover_axis_labels(int x_options, int y_options) {
+void tiling::cover_axis_labels(int x_options, int y_options,
+                               float x_label_size, float y_label_size,
+                               float x_label_offset, float y_label_offset) {
     float x_min, x_max;
     float y_min, y_max;
+
+    x_label_size = adjust_size(x_label_size, 0, 0);
+    x_label_offset = x_label_offset - x_label_size * 0.8 + 0.06;
+    x_label_size = normalize_tile_size(x_label_size);
+    x_label_offset = normalize_tile_size(x_label_offset);
+
+    y_label_size = normalize_tile_size(adjust_size(y_label_size, 0, 0));
+    y_label_offset = y_label_offset * frame_width / tile_widths[0];
+
+    y_max = frame_edges_vert[rows] - x_label_offset;
+    y_min = y_max - x_label_size;
 
     for (int i = columns - 1; i >= 0 && x_options != 0; --i, x_options /= 10) {
         int opt = x_options % 10;
 
-        y_min = frame_edges_vert[rows] - 0.05;
-        y_max = y_min + 0.048;
-
         if (opt & 0x1) {
-            x_min = frame_edges_horiz[i] - 0.0005;
-            x_max = x_min + 0.0125;
-
-            if (i == 0) { x_min -= 0.015; }
+            x_min = frame_edges_horiz[i];
+            x_max = x_min + x_label_size;
+            if (i == 0) { x_min -= x_label_size; }
 
             TPad* cover = new TPad(
                 Form("x_cover_left_%i", x_options),
                 Form("x_cover_left_%i", x_options),
                 x_min, y_min, x_max, y_max
             );
+            cover->SetFillColor(1);
             cover->Draw();
         }
 
         if (opt & 0x2) {
-            x_min = frame_edges_horiz[i + 1] - 0.012;
-            x_max = x_min + 0.0125;
-
-            if (i == columns - 1) { x_max += 0.015; }
+            x_max = frame_edges_horiz[i + 1];
+            x_min = x_max - x_label_size;
+            if (i == columns - 1) { x_max += x_label_size; }
 
             TPad* cover = new TPad(
                 Form("x_cover_right_%i", x_options),
                 Form("x_cover_right_%i", x_options),
                 x_min, y_min, x_max, y_max
             );
+            cover->SetFillColor(2);
             cover->Draw();
         }
     }
 
+    x_max = frame_edges_horiz[0] - y_label_offset;
+    x_min = x_max - y_label_size;
+
     for (int i = rows - 1; i >= 0 && y_options != 0; --i, y_options /= 10) {
         int opt = y_options % 10;
 
-        x_min = frame_edges_horiz[0] - 0.03;
-        x_max = x_min + 0.029;
-
         if (opt & 0x1) {
-            y_min = frame_edges_vert[i] - 0.02;
-            y_max = y_min + 0.0205;
-
-            if (i == 0) { y_max += 0.04; }
+            y_max = frame_edges_vert[i];
+            y_min = y_max - y_label_size;
+            if (i == 0) { y_max += y_label_size; }
 
             TPad* cover = new TPad(
                 Form("x_cover_top_%i", y_options),
                 Form("x_cover_top_%i", y_options),
                 x_min, y_min, x_max, y_max
             );
+            cover->SetFillColor(3);
             cover->Draw();
         }
 
         if (opt & 0x2) {
-            y_min = frame_edges_vert[i + 1] - 0.0005;
-            y_max = y_min + 0.0205;
-
-            if (i == rows - 1) { y_min -= 0.04; }
+            y_min = frame_edges_vert[i + 1];
+            y_max = y_min + y_label_size;
+            if (i == rows - 1) { y_min -= y_label_size; }
 
             TPad* cover = new TPad(
                 Form("x_cover_bottom_%i", y_options),
                 Form("x_cover_bottom_%i", y_options),
                 x_min, y_min, x_max, y_max
             );
+            cover->SetFillColor(4);
             cover->Draw();
         }
     }

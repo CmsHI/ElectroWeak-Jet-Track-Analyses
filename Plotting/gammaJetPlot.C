@@ -385,7 +385,11 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
-    tiler->cover_axis_labels(cover_options[0], cover_options[1]);
+    tiler->cover_axis_labels(
+        cover_options[0], cover_options[1],
+        label_sizes[0], label_sizes[1],
+        label_offsets[0], label_offsets[1]
+    );
 
     c1->SaveAs(canvas_title.append(".pdf").c_str());
 
