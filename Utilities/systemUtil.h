@@ -25,6 +25,7 @@ bool startsWith(std::string str, std::string substr);
 bool endsWith(std::string str, std::string substr);
 bool matchesRegex(std::string str, std::string regexStr);
 bool matchesWildCard(std::string str, std::string wcStr);
+bool isInteger(std::string s);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
@@ -241,6 +242,16 @@ int countOccurances(std::string str, std::string substr)
         pos += substr.length();
     }
     return n;
+}
+
+/*
+ * returns false unless the string is composed of digits only
+ */
+bool isInteger(std::string s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
 }
 
 /*
