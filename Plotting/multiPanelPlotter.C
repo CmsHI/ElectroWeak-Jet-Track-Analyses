@@ -183,7 +183,7 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
     std::string legend_labels[_NPLOTS] = {
         "PbPb", "P#scale[0.8]{YTHIA} + H#scale[0.8]{YDJET}", "pp (smeared)", "P#scale[0.8]{YTHIA}",
         "J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}", "pp (J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA})", "LBT 2017", "pp (LBT 2017)",
-        "Hybrid Model", "pp (Hybrid Model)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
+        "Hybrid", "pp (Hybrid)", "pQCD jet E-loss", "pp (pQCD jet E-loss)",
         "Hybrid dE/dx #alpha T^{3}", "pp (Hybrid dE/dx #alpha T^{3})", "Hybrid dE/dx #alpha T^{2}", "pp (Hybrid dE/dx #alpha T^{2})"
     };
     std::string legend_options[_NPLOTS] = {"pf", "l", "pf", "l", "l", "l", "l", "l", "f", "l", "l", "l", "f", "l", "f", "l"};
@@ -448,9 +448,20 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                             l1->SetTextSize(latex_font_size - 1);
                     }
 
+                    int lcount = -1;
                     for (int p=0; p<_NPLOTS; ++p) {
                         int k = draw_order[p];
+
                         if (hist_file_valid[k]) {
+                            ++lcount;
+
+                            if (configFile.Contains("theory_PbPb")) {
+                                if (j % 5 == 0) {
+                                    if (lcount) { continue; }
+                                } else {
+                                    if (!lcount) { continue; }
+                                }
+                            }
 
                             std::string legend_label = legend_labels[k];
                             if (((hist_type == "xjg" || hist_type == "dphi" || hist_type == "iaa") && pt_based_plots)  ||
@@ -508,20 +519,20 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 const int tmp_cent_max[4] = {100, 50, 30, 10};
 
                 const float tmp_pos_cent[4] = {0.06, 0.28, 0.53, 0.86};
-                const float tmp_pos_num[4] = {0.03, 0.26, 0.5, 0.84};
+                const float tmp_pos_num[4] = {0.03, 0.28, 0.53, 0.84};
+
+                TLatex* cent_label = new TLatex();
+                cent_label->SetTextFont(43);
+                cent_label->SetTextSize(latex_font_size);
+                box_t cent_label_box = (box_t) {tmp_pos_cent[0], 0.15, 1, 1};
+                adjust_coordinates(cent_label_box, margin, edge, i, j);
+                cent_label->DrawLatexNDC(cent_label_box.x1, cent_label_box.y1, Form("Cent."));
 
                 for (int asdf=0; asdf<4; ++asdf) {
-                    TLatex* cent_label = new TLatex();
-                    cent_label->SetTextFont(43);
-                    cent_label->SetTextSize(latex_font_size);
-                    box_t cent_label_box = (box_t) {tmp_pos_cent[asdf], 0.15, 1, 1};
-                    adjust_coordinates(cent_label_box, margin, edge, i, j);
-                    cent_label->DrawLatexNDC(cent_label_box.x1, cent_label_box.y1, Form("Cent."));
-
                     TLatex* centnum_label = new TLatex();
                     centnum_label->SetTextFont(43);
                     centnum_label->SetTextSize(latex_font_size);
-                    box_t centnum_label_box = (box_t) {tmp_pos_num[asdf], 0.1, 1, 1};
+                    box_t centnum_label_box = (box_t) {tmp_pos_num[asdf], 0.08, 1, 1};
                     adjust_coordinates(centnum_label_box, margin, edge, i, j);
                     centnum_label->DrawLatexNDC(centnum_label_box.x1, centnum_label_box.y1, Form("%i-%i%%", tmp_cent_min[asdf], tmp_cent_max[asdf]));
                 }
@@ -536,6 +547,10 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
                 box_t cms_box = (box_t) {0.04, 0.9, 1, 1};
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
                     cms_box.x1 = 0.82;
+                if (canvas_title == "dphi_log_full" || canvas_title == "xjg" || canvas_title == "iaa") {
+                    cms_box.x1 = 0.05;
+                    cms_box.y1 = 0.88;
+                }
                 if(hist_type == "xjg_mean_rjg_ptBinAll")
                 {
                     latexCMS->SetTextSize(18);
@@ -589,6 +604,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             TLatex* latexInfo = new TLatex();
             latexInfo->SetTextFont(43);
             latexInfo->SetTextSize(latex_font_size-1);
+            if (canvas_title == "xjg_cent")
+                latexInfo->SetTextSize(latex_font_size + 1);
             if (columns == 5)
                 latexInfo->SetTextSize(latex_font_size - 2);
             if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll" ||
@@ -617,7 +634,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
 
             if (hist_type == "xjg" && cent_based_plots && j == 0) {
                 TLatex* latex_xjg_cent = (TLatex*)latexInfo->Clone("latex_xjg_cent");
-                box_t info_box_xjg_cent = (box_t) {0.43, 0.82, 1, 1};
+                latex_xjg_cent->SetTextSize(latex_font_size);
+                box_t info_box_xjg_cent = (box_t) {0.42, 0.81, 1, 1};
                 adjust_coordinates(info_box_xjg_cent, margin, edge, i, j);
                 latex_xjg_cent->DrawLatexNDC(info_box_xjg_cent.x1, info_box_xjg_cent.y1, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[i]]));
             }
@@ -625,7 +643,8 @@ int multiPanelPlotter(const TString inputFile, const TString configFile) {
             if (canvas_title == "xjg_mean_rjg_centBinAll" && i == 0) {
                 TLatex* xjg_mean_rjg_cent = (TLatex*)latexInfo->Clone("latex_xjg_mean_rjg_cent");
                 xjg_mean_rjg_cent->SetTextAlign(31);
-                box_t info_box_xjg_mean_rjg_cent = (box_t) {0.96, 0.9, 1, 1};
+                xjg_mean_rjg_cent->SetTextSize(latex_font_size + 1);
+                box_t info_box_xjg_mean_rjg_cent = (box_t) {0.96, 0.91, 1, 1};
                 adjust_coordinates(info_box_xjg_mean_rjg_cent, margin, edge, i, j);
                 xjg_mean_rjg_cent->DrawLatexNDC(info_box_xjg_mean_rjg_cent.x1, info_box_xjg_mean_rjg_cent.y1, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_bin_numbers[j]]));
             }
