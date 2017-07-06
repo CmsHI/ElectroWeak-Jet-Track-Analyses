@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS += -Wall -Werror -Wextra -O2 -Wno-narrowing
+CXXFLAGS += -Wall -Werror -Wextra -O2
 ROOTFLAGS := `root-config --cflags --libs`
 EXTRAFLAGS := -lTMVA -lRooFitCore -lRooFit
 
