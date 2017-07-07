@@ -14,17 +14,11 @@
 
 #include "tiling.h"
 
-const float ncoll_weighted_npart[4] = {43.58, 118.8, 239.9, 363.4};
-
-const float cms_latex_size = 0.08;
-const float canvas_latex_size = 0.08;
-const float latex_size = 0.072;
-
 std::string set_systematics_style(TGraph* gr, int style);
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings);
 void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_strings);
 
-void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin = 1);
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width = 0);
 
 std::vector<std::string> legend_draw_options;
 
@@ -41,35 +35,52 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 #define _GET_CONFIG_FLOAT(value) float value = config.proc[INPUT::kPLOTTING].f[INPUT::k_mpp_##value];
 #define _GET_CONFIG_STRING(value) std::string value = config.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_##value];
 
-#define _GET_CONFIG_INT_VECTOR(value) std::vector<int> value = ConfigurationParser::ParseListInteger(config.proc[INPUT::kPLOTTING].str_i[INPUT::k_mpp_##value]);
-#define _GET_CONFIG_FLOAT_VECTOR(value) std::vector<float> value = ConfigurationParser::ParseListFloat(config.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_##value]);
+#define _GET_CONFIG_INT_VECTOR(value, count)                                \
+    std::vector<int> value = ConfigurationParser::ParseListInteger(config.proc[INPUT::kPLOTTING].str_i[INPUT::k_mpp_##value]);  \
+    if ((int)value.size() < (int)count) {                                   \
+        printf("error: values in list [" #value "]: %zu, expected: " #count "\n", value.size());    \
+        return 1;                                                           \
+    }                                                                       \
+
+#define _GET_CONFIG_FLOAT_VECTOR(value, count)                              \
+    std::vector<float> value = ConfigurationParser::ParseListFloat(config.proc[INPUT::kPLOTTING].str_f[INPUT::k_mpp_##value]);  \
+    if ((int)value.size() < (int)count) {                                   \
+        printf("error: values in list [" #value "]: %zu, expected: " #count "\n", value.size());    \
+        return 1;                                                           \
+    }                                                                       \
 
     _GET_CONFIG_INT(rows);
     _GET_CONFIG_INT(columns);
 
-    _GET_CONFIG_FLOAT_VECTOR(margins);
-    _GET_CONFIG_FLOAT_VECTOR(title_offsets);
-    _GET_CONFIG_FLOAT_VECTOR(label_offsets);
-    _GET_CONFIG_FLOAT_VECTOR(title_sizes);
-    _GET_CONFIG_FLOAT_VECTOR(label_sizes);
-    _GET_CONFIG_FLOAT_VECTOR(tick_sizes);
-    _GET_CONFIG_INT_VECTOR(cover_options);
+    _GET_CONFIG_FLOAT_VECTOR(margins, 4);
+    _GET_CONFIG_FLOAT_VECTOR(title_offsets, 2);
+    _GET_CONFIG_FLOAT_VECTOR(label_offsets, 2);
+    _GET_CONFIG_FLOAT_VECTOR(latex_sizes, 4);
+    _GET_CONFIG_FLOAT_VECTOR(title_sizes, 2);
+    _GET_CONFIG_FLOAT_VECTOR(label_sizes, 2);
+    _GET_CONFIG_FLOAT_VECTOR(tick_sizes, 2);
+    _GET_CONFIG_INT_VECTOR(cover_options, 2);
 
-    _GET_CONFIG_INT_VECTOR(set_log_scale);
-    _GET_CONFIG_FLOAT_VECTOR(y_min);
-    _GET_CONFIG_FLOAT_VECTOR(y_max);
+    float cms_latex_size = latex_sizes[0];
+    float legend_latex_size = latex_sizes[1];
+    float info_latex_size = latex_sizes[2];
+    float canvas_latex_size = latex_sizes[3];
 
-    _GET_CONFIG_INT_VECTOR(draw_sys);
-    _GET_CONFIG_INT_VECTOR(clear_entries);
+    _GET_CONFIG_INT_VECTOR(set_log_scale, rows);
+    _GET_CONFIG_FLOAT_VECTOR(y_min, rows);
+    _GET_CONFIG_FLOAT_VECTOR(y_max, rows);
 
-    _GET_CONFIG_INT_VECTOR(l_panel);
-    _GET_CONFIG_FLOAT_VECTOR(l_x1);
-    _GET_CONFIG_FLOAT_VECTOR(l_y1);
-    _GET_CONFIG_FLOAT_VECTOR(l_x2);
-    _GET_CONFIG_FLOAT_VECTOR(l_y2);
+    _GET_CONFIG_INT_VECTOR(draw_sys, rows * columns);
+    _GET_CONFIG_INT_VECTOR(clear_entries, rows * columns);
 
-    _GET_CONFIG_FLOAT_VECTOR(i_x);
-    _GET_CONFIG_FLOAT_VECTOR(i_y);
+    _GET_CONFIG_INT_VECTOR(l_panel, 0);
+    _GET_CONFIG_FLOAT_VECTOR(l_x1, l_panel.size());
+    _GET_CONFIG_FLOAT_VECTOR(l_y1, l_panel.size());
+    _GET_CONFIG_FLOAT_VECTOR(l_x2, l_panel.size());
+    _GET_CONFIG_FLOAT_VECTOR(l_y2, l_panel.size());
+
+    _GET_CONFIG_FLOAT_VECTOR(i_x, rows * columns);
+    _GET_CONFIG_FLOAT_VECTOR(i_y, rows * columns);
 
     _GET_CONFIG_STRING(hist_type);
     _GET_CONFIG_STRING(canvas_title);
@@ -183,7 +194,10 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     if (systematics && (int)l < draw_sys[r*columns + c]) {
                         /* draw frame for systematics */
                         histograms[l]->Draw(sys_draw_options.c_str());
-                        draw_sys_unc(gr, histograms[l], systematics);
+                        if (hist_type.find("centBinAll") != std::string::npos)
+                            draw_sys_unc(gr, histograms[l], systematics, 32);
+                        else
+                            draw_sys_unc(gr, histograms[l], systematics);
                     }
 
                     /* draw histogram */
@@ -215,7 +229,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 if (r*columns + c+1 == l_panel[s]) {
                     TLegend* l1 = tiler->create_legend_on_frame(
                         l_x1[s], l_y1[s], l_x2[s], l_y2[s],
-                        4, latex_size, c, r
+                        4, legend_latex_size, c, r
                     );
 
                     for (std::size_t t=0; t<legend_labels[s].size(); ++t) {
@@ -286,33 +300,6 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
                 if (canvas_title == "xjg_cent")
                     plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_index], bins_cent[1][cent_index]));
-
-                if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
-                    int cent_label_bins[2][2] = { {50, 0}, {100, 10} };
-                    for (int p=0; p<2; ++p) {
-                        std::string cent_label = Form("%i-%i%%", cent_label_bins[0][p], cent_label_bins[1][p]);
-
-                        if (r == 0) {
-                            tiler->draw_latex_on_frame(
-                                0.06 + p * 0.78, 0.32 + c * 0.23 - (!c) * p * 0.15, "Cent.", 4,
-                                latex_size, 11, c, r
-                            );
-                            tiler->draw_latex_on_frame(
-                                0.04 + p * 0.78, 0.27 + c * 0.23 - (!c) * p * 0.15, cent_label.c_str(), 4,
-                                latex_size, 11, c, r
-                            );
-                        } else if (r == 1) {
-                            tiler->draw_latex_on_frame(
-                                0.06 + p * 0.78, 0.35 + c * 0.13 - p * 0.13, "Cent.", 4,
-                                latex_size, 11, c, r
-                            );
-                            tiler->draw_latex_on_frame(
-                                0.04 + p * 0.78, 0.3 + c * 0.13 - p * 0.13, cent_label.c_str(), 4,
-                                latex_size, 11, c, r
-                            );
-                        }
-                    }
-                }
             }
 
             if (histogram_names[r][c][0].find("ptBinAll") == std::string::npos) {
@@ -333,33 +320,42 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                         plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]));
                     }
                 }
+
+                if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
+                    int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
+                    float cent_label_pos[4] = {0.03, 0.28, 0.53, 0.84};
+
+                    if (r == 1) {
+                        tiler->draw_latex_on_frame(0.06, 0.15, "Cent.", 4, info_latex_size, 11, c, r);
+                        for (int p=0; p<4; ++p) {
+                            std::string cent_label = Form("%i-%i%%", cent_label_bins[0][p], cent_label_bins[1][p]);
+                            tiler->draw_latex_on_frame(cent_label_pos[p], 0.08, cent_label.c_str(), 4, info_latex_size, 11, c, r);
+                        }
+                    }
+                }
             }
 
             if (columns < 4) {
                 plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                if (hist_type.find("BinAll") != std::string::npos) {
-                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
-                } else {
-                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
-                    plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
-                }
+                plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
+                plotInfo.push_back("#left|#eta^{#gamma}#right| < 1.44");
 
-                if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-                    plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
+                if (hist_type != "dphi" && hist_type != "iaa" && hist_type != "ptJet")
+                    plotInfo.back() += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
             }
 
             float line_pos = i_y[r*columns + c];
             int latex_align = (i_x[r*columns + c] > 0.8) ? 31 : 11;
             for (std::size_t q=0; q<plotInfo.size(); ++q) {
-                tiler->draw_latex_on_frame(i_x[r*columns + c], line_pos, plotInfo[q].c_str(), 4, latex_size, latex_align, c, r);
-                line_pos -= latex_size;
+                tiler->draw_latex_on_frame(i_x[r*columns + c], line_pos, plotInfo[q].c_str(), 4, info_latex_size, latex_align, c, r);
+                line_pos -= info_latex_size * 1.44;
             }
 
             /* draw pt label for xjg_cent */
             if (canvas_title == "xjg_cent" && c == 0) {
                 tiler->draw_latex_on_frame(
                     0.04, 0.82, "p_{T}^{#gamma} > 60 GeV/c", 4,
-                    latex_size, 11, c, r
+                    info_latex_size, 11, c, r
                 );
             }
         }
@@ -373,15 +369,17 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
     tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
-    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 31);
+
+    std::string lumiInfo = "PbPb 404 #mub^{-1}";
+    if (canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
+    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
 
     std::string commonInfo;
     if (columns > 3) {
-        commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6";
+        commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
-
     tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
@@ -618,14 +616,14 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
     }
 }
 
-void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
     int nBins = h1->GetNbinsX();
-    for (int i=first_bin; i<=nBins; ++i) {
+    for (int i=1; i<=nBins; ++i) {
         if (h1->GetBinError(i) == 0) continue;
 
         double x = h1->GetBinCenter(i);
         int sys_bin = h1_sys->FindBin(x);
-        double bin_width = h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
+        double bin_width = (x_width) ? x_width : h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
 
         double val = h1->GetBinContent(i);
         double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
@@ -640,13 +638,10 @@ void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int first_bin) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc > 4) {
-        for (int p=4; p<argc; ++p) {
-            gammaJetPlot(argv[1], argv[2], argv[3], argv[p]);
-        }
+    if (argc == 5) {
+        return gammaJetPlot(argv[1], argv[2], argv[3], argv[4]);
     } else {
-        printf("Usage: ./Plotting/gammaJetPlot.exe [histogram list] [input file] [systematics file] [config file]\n");
+        printf("Usage: ./Plotting/gammaJetPlot.exe [input file] [systematics file] [config file] [histogram list]\n");
+        return 1;
     }
-
-    return 0;
 }

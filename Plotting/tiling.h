@@ -420,7 +420,6 @@ void tiling::cover_axis_labels(int x_options, int y_options,
                 Form("x_cover_left_%i", x_options),
                 x_min, y_min, x_max, y_max
             );
-            cover->SetFillColor(1);
             cover->Draw();
         }
 
@@ -435,7 +434,6 @@ void tiling::cover_axis_labels(int x_options, int y_options,
                 Form("x_cover_right_%i", x_options),
                 x_min, y_min, x_max, y_max
             );
-            cover->SetFillColor(2);
             cover->Draw();
         }
     }
@@ -448,7 +446,7 @@ void tiling::cover_axis_labels(int x_options, int y_options,
 
         if (opt & 0x1) {
             y_max = fedges_vert[i];
-            y_min = y_max - y_label_size / cfratio_vert;
+            y_min = y_max - y_label_size / cfratio_vert / 1.5f;
             if (i == 0) { y_max = std::min(1.f,
                 y_max + 2 * y_label_size / cfratio_vert); }
 
@@ -457,13 +455,12 @@ void tiling::cover_axis_labels(int x_options, int y_options,
                 Form("x_cover_top_%i", y_options),
                 x_min, y_min, x_max, y_max
             );
-            cover->SetFillColor(3);
             cover->Draw();
         }
 
         if (opt & 0x2) {
             y_min = fedges_vert[i + 1];
-            y_max = y_min + y_label_size / cfratio_vert;
+            y_max = y_min + y_label_size / cfratio_vert / 1.5f;
             if (i == rows - 1) { y_min = std::max(0.f,
                 y_min - 2 * y_label_size / cfratio_vert); }
 
@@ -472,7 +469,6 @@ void tiling::cover_axis_labels(int x_options, int y_options,
                 Form("x_cover_bottom_%i", y_options),
                 x_min, y_min, x_max, y_max
             );
-            cover->SetFillColor(4);
             cover->Draw();
         }
     }
