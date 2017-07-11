@@ -184,7 +184,7 @@ std::vector<TH1*> h_draw;
 std::string outputFigureStr;
 ///// global variables - END
 
-int readConfiguration(const TString configFile);
+int readConfiguration(const TString configFile, const TString inputFile = "");
 void printConfiguration();
 int preLoop(TFile* input = 0, bool makeNew = true);
 int postLoop();
@@ -204,7 +204,7 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
     outputFigureStr = outputFigureName.Data();
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     std::cout<<"Input handling :"<< std::endl;
@@ -450,7 +450,7 @@ void drawSpectraNoLoop(const TString configFile, const TString inputFile, const 
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
     outputFigureStr = outputFigureName.Data();
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     TFile* input = new TFile(inputFile.Data(), "READ");
@@ -499,7 +499,7 @@ int main(int argc, char** argv)
     }
 }
 
-int readConfiguration(const TString configFile)
+int readConfiguration(const TString configFile, const TString inputFile)
 {
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -514,6 +514,8 @@ int readConfiguration(const TString configFile)
         std::cout << "exiting" << std::endl;
         return -1;
     }
+
+    InputConfigurationParser::replaceKeyWords(configInput, inputFile.Data());
 
     // input for mode
     mode = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_mode];
