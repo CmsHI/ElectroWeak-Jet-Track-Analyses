@@ -35,9 +35,11 @@ public:
     void readGlobalTag(TTree* tree);
     void readInputLines(TTree* tree);
     void printHiForestInfo();
+    static bool isRealData(std::string filePath);
+    static bool isRealData(TFile* file);
     static int getCollisionType(std::string filePath);
     static int getCollisionType(TFile* file);
-    static int getCollisionType(TTree* treeSkim);
+    static int getCollisionType(TTree* treeSkim, bool isData = false);
 
     bool isHiForest;
     TTree* tree;
@@ -117,6 +119,35 @@ void HiForestInfoController::printHiForestInfo() {
     }
 }
 
+bool HiForestInfoController::isRealData(std::string filePath)
+{
+    TFile* file = TFile::Open(filePath.c_str(), "READ");
+    if (file == 0 || file->IsZombie())  return false;
+
+    bool isData = isRealData(file);
+
+    file->Close();
+    return isData;
+}
+
+bool HiForestInfoController::isRealData(TFile* file)
+{
+    TTree* tree = (TTree*)file->Get("ggHiNtuplizer/EventTree");
+    if (tree == 0 || tree->IsZombie()) return false;
+
+    tree->SetBranchStatus("*", 0);
+    tree->SetBranchStatus("isData", 1);
+
+    Bool_t isData;
+    tree->SetBranchAddress("isData", &isData);
+
+    // read one entry to decide if the file contains real data or not
+    tree->GetEntry(0);
+
+    tree->Delete();
+    return (bool)isData;
+}
+
 int HiForestInfoController::getCollisionType(std::string filePath)
 {
     TFile* file = TFile::Open(filePath.c_str(), "READ");
@@ -133,15 +164,23 @@ int HiForestInfoController::getCollisionType(TFile* file)
     TTree* treeSkim = (TTree*)file->Get("skimanalysis/HltTree");
     if (treeSkim == 0 || treeSkim->IsZombie()) return -2;
 
-    return getCollisionType(treeSkim);
+    bool isData = isRealData(file);
+
+    return getCollisionType(treeSkim, isData);
 }
 
-int HiForestInfoController::getCollisionType(TTree* treeSkim)
+int HiForestInfoController::getCollisionType(TTree* treeSkim, bool isData)
 {
     if (treeSkim->GetBranch("pcollisionEventSelection"))
-        return COLL::kHI;
+    {
+        if (isData)  return COLL::kHI;
+        else         return COLL::kHIMC;
+    }
     else if (treeSkim->GetBranch("pPAprimaryVertexFilter") && treeSkim->GetBranch("pBeamScrapingFilter"))
-        return COLL::kPP;
+    {
+        if (isData)  return COLL::kPP;
+        else         return COLL::kPPMC;
+    }
     else
         return -1;
 }
