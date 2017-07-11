@@ -16,6 +16,7 @@
 #include "ConfigurationParser.h"
 #include "CutConfigurationParser.h"
 #include "GraphicsConfigurationParser.h"
+#include "HiForestInfoController.h"
 
 #include "../eventUtil.h"
 #include "../systemUtil.h"
@@ -592,12 +593,15 @@ void InputConfigurationParser::replaceKeyWords(InputConfiguration& config, std::
     if (dataFiles.size() == 0) return;
 
     // use the information from first file only
-    std::string argument = dataFiles[0];
+    std::vector<std::string> argsStr = {dataFiles[0]};
+    std::vector<int> argsInt = {HiForestInfoController::getCollisionType(dataFiles[0])};
 
-    std::vector<std::string> parsedKeyWords = ConfigurationParser::ParseKeyWords(argument);
+    std::vector<std::string> parsedKeyWords = ConfigurationParser::ParseKeyWords(argsStr, argsInt);
 
     for (int iKey = 0; iKey < CONFIGPARSER::kN_KEYWORDS; ++iKey)
     {
+        if (parsedKeyWords[iKey].size() == 0)  continue;
+
         for (int i = 0 ; i < INPUT::kN_PROCESSES; ++i) {
             for (int j = 0 ; j < INPUT::kN_TYPES_I; ++j) {
                 config.proc[i].str_i[j] =

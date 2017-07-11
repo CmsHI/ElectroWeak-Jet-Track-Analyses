@@ -12,6 +12,7 @@
 
 #include "../systemUtil.h"
 #include "../th1Util.h"
+#include "../eventUtil.h"
 
 namespace CONFIGPARSER{
 
@@ -31,11 +32,13 @@ const std::string varDefinitionString = "var.string";
 
 enum KW {
     k_PARSESAMPLENAME,
+    k_PARSEEVENTSEL,
     kN_KEYWORDS
 };
 
 const std::string KW_LABELS[kN_KEYWORDS] = {
         "$@PARSESAMPLENAME$",
+        "$@PARSEEVENTSEL$"
 };
 
 const std::string separator1 = ",";
@@ -121,7 +124,7 @@ public :
     static unsigned int ParseLumiNumber(std::string strRunLumiEvent);
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::string ParseSampleName(std::string fileName);
-    static std::vector<std::string> ParseKeyWords(std::string arg);
+    static std::vector<std::string> ParseKeyWords(std::vector<std::string> argsStr, std::vector<int> argsInt);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
@@ -1027,11 +1030,12 @@ std::string ConfigurationParser::ParseSampleName(std::string fileName)
     return res;
 }
 
-std::vector<std::string> ConfigurationParser::ParseKeyWords(std::string arg)
+std::vector<std::string> ConfigurationParser::ParseKeyWords(std::vector<std::string> argsStr, std::vector<int> argsInt)
 {
     std::vector<std::string> res(CONFIGPARSER::kN_KEYWORDS);
 
-    res[CONFIGPARSER::k_PARSESAMPLENAME] = ParseSampleName(arg);
+    res[CONFIGPARSER::k_PARSESAMPLENAME] = ParseSampleName(argsStr[0]);
+    res[CONFIGPARSER::k_PARSEEVENTSEL] = getEventSelection((COLL::TYPE)argsInt[0]);
 
     return res;
 }
