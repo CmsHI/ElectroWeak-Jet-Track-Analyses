@@ -159,6 +159,7 @@ int nLineStyles_horizontal;
 int nTLines_vertical;
 int nLineStyles_vertical;
 /// configuration variables - END
+bool noLoop;
 enum MODES {
     kTH1D,
     kTH2D,
@@ -474,7 +475,7 @@ int main(int argc, char** argv)
     int nArgStr = argStr.size();
 
     std::vector<std::string> argOptions = ArgumentParser::ParseOptions(argc, argv);
-    bool noLoop = (findPositionInVector(argOptions, ARGUMENTPARSER::noLoop) >= 0);
+    noLoop = (findPositionInVector(argOptions, ARGUMENTPARSER::noLoop) >= 0);
 
     if (nArgStr == 5) {
         if (noLoop) drawSpectraNoLoop(argStr.at(1), argStr.at(2), argStr.at(3), argStr.at(4));
