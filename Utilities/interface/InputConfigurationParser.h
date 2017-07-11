@@ -422,6 +422,7 @@ class InputConfigurationParser : public ConfigurationParser {
     static std::vector<std::string> ParseEvents(std::string fileName);
     static std::vector<std::string> ParseFileArgument(std::string fileArgument);
     static void copyConfiguration(InputConfiguration& config, InputConfiguration configCopy);
+    static void replaceKeyWords(InputConfiguration& config, std::string dataFile);
     static InputConfiguration Parse(std::string inFile);
 };
 
@@ -577,6 +578,40 @@ void InputConfigurationParser::copyConfiguration(InputConfiguration& config, Inp
         for (int j = 0 ; j < INPUT::kN_TYPES_S; ++j) {
             if (config.proc[i].s[j].size() == 0) {
                 config.proc[i].s[j] = configCopy.proc[i].s[j];
+                char * cstr = new char [config.proc[i].s[j].length()+1];
+                std::strcpy(cstr, config.proc[i].s[j].c_str());
+                config.proc[i].c[j] = cstr;
+            }
+        }
+    }
+}
+
+void InputConfigurationParser::replaceKeyWords(InputConfiguration& config, std::string dataFile)
+{
+    std::vector<std::string> dataFiles = InputConfigurationParser::ParseFiles(dataFile);
+    if (dataFiles.size() == 0) return;
+
+    // use the information from first file only
+    std::string argument = dataFiles[0];
+
+    std::vector<std::string> parsedKeyWords = ConfigurationParser::ParseKeyWords(argument);
+
+    for (int iKey = 0; iKey < CONFIGPARSER::kN_KEYWORDS; ++iKey)
+    {
+        for (int i = 0 ; i < INPUT::kN_PROCESSES; ++i) {
+            for (int j = 0 ; j < INPUT::kN_TYPES_I; ++j) {
+                config.proc[i].str_i[j] =
+                        replaceAll(config.proc[i].str_i[j], CONFIGPARSER::KW_LABELS[iKey], parsedKeyWords[iKey]);
+            }
+
+            for (int j = 0 ; j < INPUT::kN_TYPES_F; ++j) {
+                config.proc[i].str_f[j] =
+                        replaceAll(config.proc[i].str_f[j], CONFIGPARSER::KW_LABELS[iKey], parsedKeyWords[iKey]);
+            }
+
+            for (int j = 0 ; j < INPUT::kN_TYPES_S; ++j) {
+                config.proc[i].s[j] =
+                        replaceAll(config.proc[i].s[j], CONFIGPARSER::KW_LABELS[iKey], parsedKeyWords[iKey]);
                 char * cstr = new char [config.proc[i].s[j].length()+1];
                 std::strcpy(cstr, config.proc[i].s[j].c_str());
                 config.proc[i].c[j] = cstr;
