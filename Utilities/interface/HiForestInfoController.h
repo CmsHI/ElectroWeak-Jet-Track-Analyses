@@ -6,9 +6,13 @@
 #define HIFORESTINFOCONTROLLER_H_
 
 #include <TTree.h>
+#include <TFile.h>
+#include <TDirectoryFile.h>
 
 #include <string>
 #include <iostream>
+
+#include "../eventUtil.h"
 
 const int CHARARRAYSIZE = 50;
 
@@ -31,6 +35,9 @@ public:
     void readGlobalTag(TTree* tree);
     void readInputLines(TTree* tree);
     void printHiForestInfo();
+    static int getCollisionType(std::string filePath);
+    static int getCollisionType(TFile* file);
+    static int getCollisionType(TTree* treeSkim);
 
     bool isHiForest;
     TTree* tree;
@@ -108,6 +115,35 @@ void HiForestInfoController::printHiForestInfo() {
     else {
         std::cout<<"input ROOT file does not have HiForestInfo tree" << std::endl;
     }
+}
+
+int HiForestInfoController::getCollisionType(std::string filePath)
+{
+    TFile* file = TFile::Open(filePath.c_str(), "READ");
+    if (file == 0 || file->IsZombie())  return -3;
+
+    int collisionType = getCollisionType(file);
+
+    file->Close();
+    return collisionType;
+}
+
+int HiForestInfoController::getCollisionType(TFile* file)
+{
+    TTree* treeSkim = (TTree*)file->Get("skimanalysis/HltTree");
+    if (treeSkim == 0 || treeSkim->IsZombie()) return -2;
+
+    return getCollisionType(treeSkim);
+}
+
+int HiForestInfoController::getCollisionType(TTree* treeSkim)
+{
+    if (treeSkim->GetBranch("pcollisionEventSelection"))
+        return COLL::kHI;
+    else if (treeSkim->GetBranch("pPAprimaryVertexFilter") && treeSkim->GetBranch("pBeamScrapingFilter"))
+        return COLL::kPP;
+    else
+        return -1;
 }
 
 #endif /* HIFORESTINFOCONTROLLER_H_ */
