@@ -30,6 +30,15 @@ namespace COLL {
             "PA",
             "PAMC"
     };
+
+    std::string EVENTSEL[kN_COLL] = {
+            "pcollisionEventSelection > 0",
+            "pcollisionEventSelection > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0 && pVertexFilterCutGplus > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0 && pVertexFilterCutGplus > 0"
+    };
 };
 
 std::string getCollisionTypeName (COLL::TYPE collision);
@@ -38,6 +47,7 @@ bool collisionIsDATA(COLL::TYPE collision);
 bool collisionIsHI(COLL::TYPE collision);
 bool collisionIsPP(COLL::TYPE collision);
 bool collisionIsPA(COLL::TYPE collision);
+std::string getEventSelection(COLL::TYPE collision);
 float findNcoll(int hiBin);
 float findNcollAverage(int hiBinLow, int hiBinHigh);
 std::vector<float> findNcollAverages(std::vector<int> hiBins);
@@ -76,6 +86,14 @@ bool collisionIsPP(COLL::TYPE collision) {
 bool collisionIsPA(COLL::TYPE collision) {
 
     return (collision == COLL::kPA || collision == COLL::kPAMC);
+}
+
+std::string getEventSelection(COLL::TYPE collision)
+{
+    if (collision >= 0 && collision < COLL::kN_COLL)
+        return COLL::EVENTSEL[collision];
+    else
+        return "";
 }
 
 /*
