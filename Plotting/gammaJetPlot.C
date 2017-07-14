@@ -473,7 +473,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
             h1->SetFillColorAlpha(46, 0.7);
             option_strings.push_back("same e x0");
@@ -484,7 +484,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
             h1->SetFillColorAlpha(30, 0.7);
             option_strings.push_back("same e x0");
@@ -495,7 +495,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
             h1->SetFillColorAlpha(46, 0.7);
             option_strings.push_back("same e x0");
@@ -506,7 +506,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
             h1->SetFillColorAlpha(30, 0.7);
             option_strings.push_back("same e x0");
@@ -516,7 +516,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -524,7 +524,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -532,7 +532,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -540,7 +540,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineColor(1);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -557,7 +557,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e0 x0");
             option_strings.push_back("pf");
             break;
@@ -566,7 +566,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e0 x0");
             option_strings.push_back("pf");
             break;
@@ -575,7 +575,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e0 x0");
             option_strings.push_back("pf");
             break;
@@ -584,7 +584,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
-            h1->SetMarkerSize(1.2);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e0 x0");
             option_strings.push_back("pf");
             break;
