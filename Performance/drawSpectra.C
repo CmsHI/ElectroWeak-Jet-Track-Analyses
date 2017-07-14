@@ -1340,7 +1340,7 @@ int postLoop()
 
     nPads = 0;
     if (drawSame == 0) {    // histograms will be plotted separately.
-        nPads = nHistos;
+        if (nTextLines > 0)  nPads = textLinePadIndices[nTextLines-1]+1;
         for (int i=0; i<nHistos; ++i) {
             std::string cnvName = Form("cnv_pad%d",i);
             if (mode == MODES::kTH2D)  cnvName = Form("cnv2D_pad%d",i);
@@ -1359,8 +1359,13 @@ int postLoop()
             }
             h_draw[i]->Draw(drawOption.c_str());
 
+            int iPad = 0;
+            if (nPads == nHistos) iPad = i;
+            else if (nPads == nHistosInput) iPad = i%nPads;
+            else if (nPads == nHistos) iPad = i;
+            else if (nPads == nSplits) iPad = i/nHistosInput;
             // add Text
-            setAndDrawLatex(c, i);
+            setAndDrawLatex(c, iPad);
 
             // add Text above the pad
             setAndDrawLatexOverPad(c);
