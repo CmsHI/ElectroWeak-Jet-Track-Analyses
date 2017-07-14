@@ -15,6 +15,7 @@ TTree* t3pp = 0;
 TTree* t4 = 0;
 TTree* t4pp = 0;
 TTree* t4cs = 0;
+TTree* trho = 0;
 TTree* tpf = 0;
 TTree* tpfcs = 0;
 TTree* ttrack = 0;
@@ -33,6 +34,7 @@ void readHiForestTrees()
     t4 = (TTree*)gFile->Get("akPu4PFJetAnalyzer/t");
     t4pp = (TTree*)gFile->Get("ak4PFJetAnalyzer/t");
     t4cs = (TTree*)gFile->Get("akCs4PFJetAnalyzer/t");
+    trho = (TTree*)gFile->Get("hiFJRhoAnalyzer/t");
     tpf = (TTree*)gFile->Get("pfcandAnalyzer/pfTree");
     tpfcs = (TTree*)gFile->Get("pfcandAnalyzerCS/pfTree");
     ttrack = (TTree*)gFile->Get("anaTrack/trackTree");
@@ -59,6 +61,8 @@ void readHiForestTrees()
         std::cout << "Tree* t4pp = ak4PFJetAnalyzer/t" << std::endl;
     if (t4cs != 0)
         std::cout << "Tree* t4cs = akCs4PFJetAnalyzer/t" << std::endl;
+    if (trho != 0)
+        std::cout << "Tree* trho = hiFJRhoAnalyzer/t" << std::endl;
     if (tpf != 0)
         std::cout << "Tree* tpf = pfcandAnalyzer/pfTree" << std::endl;
     if (tpfcs != 0)
