@@ -18,9 +18,10 @@ configFiles=(
 );
 
 outDirBase="/export/d00/scratch/"$USER"/EWJTA-out/"
+outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB"
 outputFiles=(
-$outDirBase"Configurations/photons/spectra_photon_Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB.root"
-$outDirBase"Configurations/photons/spectra_phoEt_Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB.root"
+$outDirBase"Configurations/photons/spectra_photon_"$outputSuffix".root"
+$outDirBase"Configurations/photons/spectra_phoEt_"$outputSuffix".root"
 );
 
 arrayIndices=${!outputFiles[*]}
