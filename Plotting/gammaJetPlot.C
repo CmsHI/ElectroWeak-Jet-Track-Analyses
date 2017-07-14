@@ -49,6 +49,13 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
         return 1;                                                           \
     }                                                                       \
 
+#define _GET_CONFIG_STRING_VECTOR(value, count)                             \
+    std::vector<std::string> value = ConfigurationParser::ParseListLatex(config.proc[INPUT::kPLOTTING].s[INPUT::k_mpp_##value]);   \
+    if ((int)value.size() < (int)count) {                                   \
+        printf("error: values in list [" #value "]: %zu, expected: " #count "\n", value.size());    \
+        return 1;                                                           \
+    }                                                                       \
+
     _GET_CONFIG_INT(rows);
     _GET_CONFIG_INT(columns);
 
@@ -81,6 +88,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
     _GET_CONFIG_FLOAT_VECTOR(i_x, rows * columns);
     _GET_CONFIG_FLOAT_VECTOR(i_y, rows * columns);
+
+    _GET_CONFIG_STRING_VECTOR(x_titles, 1);
+    _GET_CONFIG_STRING_VECTOR(y_titles, rows);
 
     _GET_CONFIG_STRING(hist_type);
     _GET_CONFIG_STRING(canvas_title);
@@ -181,14 +191,18 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     );
 
                     set_histogram_style(histograms[l], styles[r][c][l], option_strings[l]);
+                    histograms[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
+                    histograms[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
                     histograms[l]->SetAxisRange(y_min[r], y_max[r], "Y");
                     histograms[l]->SetMinimum(y_min[r]);
                     histograms[l]->SetMaximum(y_max[r]);
 
-                    /* special case for all xjg plots */
+                    /* tick mark settings */
                     if (hist_type == "xjg")
-                        histograms[l]->SetNdivisions(504);
+                        histograms[l]->SetNdivisions(504, "X");
+                    else if (hist_type == "iaa")
+                        histograms[l]->SetNdivisions(504, "Y");
 
                     /* draw systematic uncertainties */
                     if (systematics && (int)l < draw_sys[r*columns + c]) {
@@ -216,6 +230,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     );
 
                     set_graph_style(graphs[l], styles[r][c][l], option_strings[l]);
+                    graphs[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
+                    graphs[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
                     /* draw graph */
                     graphs[l]->Draw(option_strings[l][0].c_str());
@@ -254,8 +270,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
                     CMS_label_x = 0.82;
                 tiler->draw_latex_on_frame(
-                    CMS_label_x, 0.9, "CMS", 6,
-                    cms_latex_size, 11, c, r
+                    CMS_label_x, 0.96, "CMS", 6,
+                    cms_latex_size, 13, c, r
                 );
             }
 
@@ -354,8 +370,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             /* draw pt label for xjg_cent */
             if (canvas_title == "xjg_cent" && c == 0) {
                 tiler->draw_latex_on_frame(
-                    0.04, 0.82, "p_{T}^{#gamma} > 60 GeV/c", 4,
-                    info_latex_size, 11, c, r
+                    0.04, 0.8, "p_{T}^{#gamma} > 60 GeV/c", 4,
+                    info_latex_size * 0.9, 11, c, r
                 );
             }
         }

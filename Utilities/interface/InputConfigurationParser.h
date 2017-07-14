@@ -261,6 +261,8 @@ enum TYPE_S {
     k_LineStyle_horizontal_lowerPad,     // styles of the horizontal lines to be drawn in the lower pad
     k_TLine_vertical_lowerPad,           // x-axis positions of the vertical lines to be drawn in the lower pad
     k_LineStyle_vertical_lowerPad,       // styles of the vertical lines to be drawn in the lower pad
+    k_mpp_x_titles,
+    k_mpp_y_titles,
     k_mpp_hist_type,
     k_mpp_plot_type,
     k_mpp_canvas_title,
@@ -313,6 +315,8 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
     "lineStyle_horizontal_lowerPad",
     "TLine_vertical_lowerPad",
     "lineStyle_vertical_lowerPad",
+    "mpp_x_titles",
+    "mpp_y_titles",
     "mpp_hist_type",
     "mpp_plot_type",
     "mpp_canvas_title"
