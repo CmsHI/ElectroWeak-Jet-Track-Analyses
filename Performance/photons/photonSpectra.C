@@ -158,7 +158,7 @@ std::vector<bool> runSelection;
 photonAnalyzer phoAna[PHOTONANA::DIST::kN_DIST][PHOTONANA::SEL::kN_SEL][5][5][7];
 ///// global variables - END
 
-int  readConfiguration(const TString configFile);
+int  readConfiguration(const TString configFile, const TString inputFile = "");
 void printConfiguration();
 std::vector<bool> parseMode(std::string mode);
 int  preLoop(TFile* input = 0, bool makeNew = true);
@@ -177,7 +177,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
@@ -458,7 +458,7 @@ void photonSpectraNoLoop(const TString configFile, const TString inputFile, cons
     std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     TFile* input = new TFile(inputFile.Data(), "READ");
@@ -504,7 +504,7 @@ int main(int argc, char** argv)
     }
 }
 
-int readConfiguration(const TString configFile)
+int readConfiguration(const TString configFile, const TString inputFile)
 {
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
@@ -519,6 +519,8 @@ int readConfiguration(const TString configFile)
         std::cout << "exiting" << std::endl;
         return -1;
     }
+
+    InputConfigurationParser::replaceKeyWords(configInput, inputFile.Data());
 
     // input configuration
     mode = configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_mode];
