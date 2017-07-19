@@ -371,6 +371,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     }
                 }
 
+                if (r == 0 && hist_type.find("centBinAll") != std::string::npos)
+                    tiler->draw_latex_on_frame(0.96, 0.96, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]), 4, info_latex_size, 33, c, r);
+
                 if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
                     int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
                     float cent_label_pos[4] = {0.03, 0.3, 0.55, 0.81};
@@ -772,6 +775,9 @@ void draw_npart_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
         double x = ncoll_w_npart[i-1];
         double val = h1->GetBinContent(i);
         double error = TMath::Abs(h1_sys->GetBinContent(i));
+
+        if (val < 0)
+            continue;
 
         gr->SetPoint(0, x - (x_width/2), std::max(val - error, h1->GetMinimum()));
         gr->SetPoint(1, x + (x_width/2), std::max(val - error, h1->GetMinimum()));
