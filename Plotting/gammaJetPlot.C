@@ -226,7 +226,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     histograms[l]->SetMaximum(y_max[r]);
 
                     /* tick mark settings */
-                    if (hist_type == "xjg")
+                    if (hist_type == "xjg" || hist_type == "xjg_mean_rjg_centBinAll")
                         histograms[l]->SetNdivisions(504, "X");
                     else if (hist_type == "iaa")
                         histograms[l]->SetNdivisions(504, "Y");
@@ -373,7 +373,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
                 if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
                     int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
-                    float cent_label_pos[4] = {0.03, 0.28, 0.53, 0.83};
+                    float cent_label_pos[4] = {0.03, 0.3, 0.55, 0.81};
 
                     if (r == 1) {
                         tiler->draw_latex_on_frame(0.06, 0.15, "Cent.", 4, info_latex_size, 11, c, r);
@@ -430,7 +430,10 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
-    tiler->draw_latex_on_canvas((canvas_margin_left + 1.0 - canvas_margin_right) / 2, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
+    float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
+    if (canvas_title.find("theory") == std::string::npos)
+        middle_align -= 0.04;
+    tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
     tiler->cover_axis_labels(
