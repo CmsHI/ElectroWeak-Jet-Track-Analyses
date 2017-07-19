@@ -53,7 +53,7 @@ h1D_xjg_ptBin7_hiBin2_PbPb_Data 6
 h1D_xjg_ptBin7_hiBin2_PbPb_Data_JEWEL 9
 h1D_xjg_ptBin7_hiBin2_PbPb_Data_LBT 10
 =
-PbPb Cent. 0 - 30%
+PbPb 0 - 30%
 +
 @@
 @@
@@ -61,7 +61,7 @@ Hybrid
 J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}
 #scale[0.9]{LBT (2017)}
 +
-PbPb Cent. 30 - 100%
+PbPb 30 - 100%
 +
 @@
 @@

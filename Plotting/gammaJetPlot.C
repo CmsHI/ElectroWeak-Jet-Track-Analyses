@@ -14,11 +14,28 @@
 
 #include "tiling.h"
 
+static const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
+
+#define TRASH_TH1(hist)                                                     \
+    for (int p=1; p<=hist->GetNbinsX(); ++p) {                              \
+        hist->SetBinContent(p, -999);                                       \
+        hist->SetBinError(p, 0);                                            \
+    }
+
+#define TH1_TO_TGRAPH(hist, graph)                                          \
+    int npoints = hist->GetNbinsX();                                        \
+    graph = new TGraphErrors(npoints);                                      \
+    for (int p=0; p<npoints; ++p) {                                         \
+        graph->SetPoint(p, ncoll_w_npart[p], hist->GetBinContent(p+1));     \
+        graph->SetPointError(p, 0, hist->GetBinError(p+1));                 \
+    }
+
 std::string set_systematics_style(TGraph* gr, int style);
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings);
 void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_strings);
 
-void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width = 0);
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys);
+void draw_npart_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width);
 
 std::vector<std::string> legend_draw_options;
 
@@ -178,6 +195,16 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
                 generic[l] = input->Get(histogram_names[r][c][l].c_str());
 
+                if (hist_type.find("centBinAll") != std::string::npos) {
+                    histograms[l] = (TH1D*)generic[l];
+                    if (l < 2) {
+                        TRASH_TH1(histograms[l]);
+                    } else {
+                        TH1_TO_TGRAPH(histograms[l], graphs[l]);
+                        generic[l] = graphs[l];
+                    }
+                }
+
                 if (generic[l]->InheritsFrom(TH1D::Class())) {
                     histograms[l] = (TH1D*)generic[l];
                     tiler->set_sizes(
@@ -208,10 +235,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     if (systematics && (int)l < draw_sys[r*columns + c]) {
                         /* draw frame for systematics */
                         histograms[l]->Draw(sys_draw_options.c_str());
-                        if (hist_type.find("centBinAll") != std::string::npos)
-                            draw_sys_unc(gr, histograms[l], systematics, 32);
-                        else
-                            draw_sys_unc(gr, histograms[l], systematics);
+                        draw_sys_unc(gr, histograms[l], systematics);
                     }
 
                     /* draw histogram */
@@ -232,6 +256,16 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     set_graph_style(graphs[l], styles[r][c][l], option_strings[l]);
                     graphs[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
                     graphs[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
+
+                    /* draw systematic uncertainties */
+                    if (systematics && (int)l < draw_sys[r*columns + c]) {
+                        if (hist_type.find("centBinAll") != std::string::npos) {
+                            histograms[0]->Draw("same");
+                            histograms[l]->SetMinimum(y_min[r]);
+                            histograms[l]->SetMaximum(y_max[r]);
+                            draw_npart_sys_unc(gr, histograms[l], systematics, 32);
+                        }
+                    }
 
                     /* draw graph */
                     graphs[l]->Draw(option_strings[l][0].c_str());
@@ -339,7 +373,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
                 if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
                     int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
-                    float cent_label_pos[4] = {0.03, 0.28, 0.53, 0.84};
+                    float cent_label_pos[4] = {0.03, 0.28, 0.53, 0.83};
 
                     if (r == 1) {
                         tiler->draw_latex_on_frame(0.06, 0.15, "Cent.", 4, info_latex_size, 11, c, r);
@@ -597,9 +631,85 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
 
 void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_strings) {
     switch (style) {
-        case 0: case 1: case 2: case 3:
-        case 4: case 5: case 6: case 7:
+        case 0:     /* PbPb data 0-30% legend */
+            g1->SetLineColorAlpha(46, 0.7);
+            g1->SetLineWidth(0);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(20);
+            g1->SetMarkerSize(1.75);
+            g1->SetFillStyle(1001);
+            g1->SetFillColorAlpha(46, 0.7);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 1:     /* pp data 0-30% legend */
+            g1->SetLineColorAlpha(30, 0.7);
+            g1->SetLineWidth(0);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(24);
+            g1->SetMarkerSize(1.75);
+            g1->SetFillStyle(1001);
+            g1->SetFillColorAlpha(30, 0.7);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 2:     /* PbPb data 30-100% legend */
+            g1->SetLineColorAlpha(46, 0.7);
+            g1->SetLineWidth(0);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(21);
+            g1->SetMarkerSize(1.75);
+            g1->SetFillStyle(1001);
+            g1->SetFillColorAlpha(46, 0.7);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 3:     /* pp data 30-100% legend */
+            g1->SetLineColorAlpha(30, 0.7);
+            g1->SetLineWidth(0);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(25);
+            g1->SetMarkerSize(1.75);
+            g1->SetFillStyle(1001);
+            g1->SetFillColorAlpha(30, 0.7);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 4:     /* PbPb data 0-30% */
+            g1->SetLineColor(1);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(20);
+            g1->SetMarkerSize(1.75);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 5:     /* pp data 0-30% */
+            g1->SetLineColor(1);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(24);
+            g1->SetMarkerSize(1.75);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 6:     /* PbPb data 30-100% */
+            g1->SetLineColor(1);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(21);
+            g1->SetMarkerSize(1.75);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
+        case 7:     /* pp data 30-100% */
+            g1->SetLineColor(1);
+            g1->SetMarkerColor(1);
+            g1->SetMarkerStyle(25);
+            g1->SetMarkerSize(1.75);
+            option_strings.push_back("same p z");
+            option_strings.push_back("pf");
+            break;
         case 8:
+            option_strings.push_back("same l z");
+            option_strings.push_back("l");
             break;
         case 9:     /* JEWEL */
             g1->SetLineColor(9);
@@ -632,14 +742,13 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
     }
 }
 
-void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
-    int nBins = h1->GetNbinsX();
-    for (int i=1; i<=nBins; ++i) {
+void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys) {
+    for (int i=1; i<=h1->GetNbinsX(); ++i) {
         if (h1->GetBinError(i) == 0) continue;
 
         double x = h1->GetBinCenter(i);
         int sys_bin = h1_sys->FindBin(x);
-        double bin_width = (x_width) ? x_width : h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
+        double bin_width = h1->GetBinLowEdge(i+1) - h1->GetBinLowEdge(i);
 
         double val = h1->GetBinContent(i);
         double error = TMath::Abs(h1_sys->GetBinContent(sys_bin));
@@ -648,6 +757,23 @@ void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
         gr->SetPoint(1, x + (bin_width/2), std::max(val - error, h1->GetMinimum()));
         gr->SetPoint(2, x + (bin_width/2), std::min(val + error, h1->GetMaximum()));
         gr->SetPoint(3, x - (bin_width/2), std::min(val + error, h1->GetMaximum()));
+
+        gr->DrawClone("f");
+    }
+}
+
+void draw_npart_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
+    for (int i=1; i<=h1->GetNbinsX(); ++i) {
+        if (h1->GetBinError(i) == 0) continue;
+
+        double x = ncoll_w_npart[i-1];
+        double val = h1->GetBinContent(i);
+        double error = TMath::Abs(h1_sys->GetBinContent(i));
+
+        gr->SetPoint(0, x - (x_width/2), std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(1, x + (x_width/2), std::max(val - error, h1->GetMinimum()));
+        gr->SetPoint(2, x + (x_width/2), std::min(val + error, h1->GetMaximum()));
+        gr->SetPoint(3, x - (x_width/2), std::min(val + error, h1->GetMaximum()));
 
         gr->DrawClone("f");
     }
