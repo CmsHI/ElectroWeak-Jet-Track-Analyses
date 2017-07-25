@@ -291,8 +291,10 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
-    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV, PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
-    tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6, p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[0]), std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+    tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+    tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
 
     tiler->cover_axis_labels(
         cover_options[0], cover_options[1],
