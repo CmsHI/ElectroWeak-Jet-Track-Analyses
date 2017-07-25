@@ -22,8 +22,8 @@
 #define PP_COLOUR       (TColor::GetColor("#6699cc"))
 #define RATIO_COLOUR    (TColor::GetColor("#a09f93"))
 
-int min_hiBin[4] = {0, 10, 30, 50};
-int max_hiBin[4] = {10, 30, 50, 100};
+int min_hiBin[4] = {50, 30, 10, 0};
+int max_hiBin[4] = {100, 50, 30, 10};
 
 void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys);
 std::string set_systematics_style(TGraph* gr, int style);
