@@ -266,6 +266,7 @@ enum TYPE_S {
     k_mpp_hist_type,
     k_mpp_plot_type,
     k_mpp_canvas_title,
+    k_mpp_custom_info,
     kN_TYPES_S
 };
 
@@ -319,7 +320,8 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
     "mpp_y_titles",
     "mpp_hist_type",
     "mpp_plot_type",
-    "mpp_canvas_title"
+    "mpp_canvas_title",
+    "mpp_custom_info"
 };
 
 enum PROCESS {
