@@ -167,14 +167,20 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             c1->cd(r*columns + c+1);
             if (set_log_scale[r]) { gPad->SetLogy(); }
 
-            TObject* generic[histogram_names[r][c].size()] = {0};
-            TH1D* histograms[histogram_names[r][c].size()] = {0};
-            TGraphErrors* graphs[histogram_names[r][c].size()] = {0};
+            int nHistogram_names_Tmp = histogram_names[r][c].size();
+            TObject* generic[histogram_names[r][c].size()];
+            TH1D* histograms[histogram_names[r][c].size()];
+            TGraphErrors* graphs[histogram_names[r][c].size()];
+            for (int iName = 0; iName < nHistogram_names_Tmp; ++iName) {
+                generic[iName] = 0;
+                histograms[iName] = 0;
+                graphs[iName] = 0;
+            }
             std::vector< std::vector< std::string > > option_strings(
-                histogram_names[r][c].size(),  std::vector< std::string >(0)
+                    nHistogram_names_Tmp,  std::vector< std::string >(0)
             );
 
-            for (std::size_t l=0; l<histogram_names[r][c].size(); ++l) {
+            for (std::size_t l=0; l<(std::size_t)nHistogram_names_Tmp; ++l) {
                 if ((int)l == clear_entries[r*columns + c]) { gPad->Clear(); }
 
                 TH1D* systematics = 0;
