@@ -4,6 +4,7 @@
 
 #include "TStyle.h"
 #include "TLine.h"
+#include "TColor.h"
 
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
@@ -180,7 +181,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             TH1D* histograms[histogram_names[r][c].size()] = {0};
             TGraphErrors* graphs[histogram_names[r][c].size()] = {0};
             std::vector< std::vector< std::string > > option_strings(
-                histogram_names[r][c].size(),  std::vector< std::string >(0)
+                histogram_names[r][c].size(), std::vector< std::string >(0)
             );
 
             for (std::size_t l=0; l<histogram_names[r][c].size(); ++l) {
@@ -221,9 +222,11 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     histograms[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
                     histograms[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
-                    histograms[l]->SetAxisRange(y_min[r], y_max[r], "Y");
-                    histograms[l]->SetMinimum(y_min[r]);
-                    histograms[l]->SetMaximum(y_max[r]);
+                    if (hist_type != "purity") {
+                        histograms[l]->SetAxisRange(y_min[r], y_max[r], "Y");
+                        histograms[l]->SetMinimum(y_min[r]);
+                        histograms[l]->SetMaximum(y_max[r]);
+                    }
 
                     /* tick mark settings */
                     if (hist_type == "xjg" || hist_type == "xjg_mean_rjg_centBinAll")
@@ -239,8 +242,12 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     }
 
                     /* draw histogram */
-                    histograms[l] = (TH1D*)histograms[l]->DrawCopy(option_strings[l][0].c_str());
-                    histograms[l]->ResetBit(kCanDelete);
+                    if (hist_type == "purity") {
+                        histograms[l]->Draw(option_strings[l][0].c_str());
+                    } else {
+                        histograms[l] = (TH1D*)histograms[l]->DrawCopy(option_strings[l][0].c_str());
+                        histograms[l]->ResetBit(kCanDelete);
+                    }
                 } else if (generic[l]->InheritsFrom(TGraphErrors::Class())) {
                     graphs[l] = (TGraphErrors*)generic[l];
                     tiler->set_sizes(
@@ -339,62 +346,75 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             // draw latex info
             std::vector<std::string> plotInfo;
 
-            if (histogram_names[r][c][0].find("centBinAll") == std::string::npos) {
-                int bins_cent[2][7] = {
-                    {0, 0, 30, 0, 10, 30, 50},
-                    {100, 30, 100, 10, 30, 50, 100}
-                };
+            if (hist_type != "purity") {
+                if (histogram_names[r][c][0].find("centBinAll") == std::string::npos) {
+                    int bins_cent[2][7] = {
+                        {0, 0, 30, 0, 10, 30, 50},
+                        {100, 30, 100, 10, 30, 50, 100}
+                    };
 
-                std::size_t pos = histogram_names[r][c][0].find("hiBin") + 5;
-                int cent_index = std::strtol(histogram_names[r][c][0].c_str() + pos, nullptr, 10);
+                    std::size_t pos = histogram_names[r][c][0].find("hiBin") + 5;
+                    int cent_index = std::strtol(histogram_names[r][c][0].c_str() + pos, nullptr, 10);
 
-                if (canvas_title == "xjg_cent")
-                    plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_index], bins_cent[1][cent_index]));
-            }
-
-            if (histogram_names[r][c][0].find("ptBinAll") == std::string::npos) {
-                int bins_pt[2][8] = {
-                    {40, 60, 40, 50, 60, 80, 80, 100},
-                    {9999, 9999, 50, 60, 80, 9999, 100, 9999}
-                };
-
-                std::size_t pos = histogram_names[r][c][0].find("ptBin") + 5;
-                int pt_index = std::strtol(histogram_names[r][c][0].c_str() + pos, nullptr, 10);
-
-                if (hist_type.find("ptBinAll") == std::string::npos &&
-                    (r == 0 && hist_type.find("centBinAll") == std::string::npos) &&
-                    canvas_title != "xjg_cent") {
-                    if (bins_pt[1][pt_index] < 9999) {
-                        plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", bins_pt[0][pt_index], bins_pt[1][pt_index]));
-                    } else {
-                        plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]));
-                    }
+                    if (canvas_title == "xjg_cent")
+                        plotInfo.push_back(Form("Cent. %d - %d%%", bins_cent[0][cent_index], bins_cent[1][cent_index]));
                 }
 
-                if (r == 0 && hist_type.find("centBinAll") != std::string::npos)
-                    tiler->draw_latex_on_frame(0.96, 0.96, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]), 4, info_latex_size, 33, c, r);
+                if (histogram_names[r][c][0].find("ptBinAll") == std::string::npos) {
+                    int bins_pt[2][8] = {
+                        {40, 60, 40, 50, 60, 80, 80, 100},
+                        {9999, 9999, 50, 60, 80, 9999, 100, 9999}
+                    };
 
-                if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
-                    int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
-                    float cent_label_pos[4] = {0.03, 0.3, 0.55, 0.81};
+                    std::size_t pos = histogram_names[r][c][0].find("ptBin") + 5;
+                    int pt_index = std::strtol(histogram_names[r][c][0].c_str() + pos, nullptr, 10);
 
-                    if (r == 1) {
-                        tiler->draw_latex_on_frame(0.06, 0.15, "Cent.", 4, info_latex_size, 11, c, r);
-                        for (int p=0; p<4; ++p) {
-                            std::string cent_label = Form("%i-%i%%", cent_label_bins[0][p], cent_label_bins[1][p]);
-                            tiler->draw_latex_on_frame(cent_label_pos[p], 0.08, cent_label.c_str(), 4, info_latex_size, 11, c, r);
+                    if (hist_type.find("ptBinAll") == std::string::npos &&
+                        (r == 0 && hist_type.find("centBinAll") == std::string::npos) &&
+                        canvas_title != "xjg_cent") {
+                        if (bins_pt[1][pt_index] < 9999) {
+                            plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", bins_pt[0][pt_index], bins_pt[1][pt_index]));
+                        } else {
+                            plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]));
+                        }
+                    }
+
+                    if (r == 0 && hist_type.find("centBinAll") != std::string::npos)
+                        tiler->draw_latex_on_frame(0.96, 0.96, Form("p_{T}^{#gamma} > %d GeV/c", bins_pt[0][pt_index]), 4, info_latex_size, 33, c, r);
+
+                    if (hist_type.find("xjg_mean_rjg") != std::string::npos) {
+                        int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
+                        float cent_label_pos[4] = {0.03, 0.3, 0.55, 0.81};
+
+                        if (r == 1) {
+                            tiler->draw_latex_on_frame(0.06, 0.15, "Cent.", 4, info_latex_size, 11, c, r);
+                            for (int p=0; p<4; ++p) {
+                                std::string cent_label = Form("%i-%i%%", cent_label_bins[0][p], cent_label_bins[1][p]);
+                                tiler->draw_latex_on_frame(cent_label_pos[p], 0.08, cent_label.c_str(), 4, info_latex_size, 11, c, r);
+                            }
                         }
                     }
                 }
-            }
 
-            if (columns < 4) {
-                plotInfo.push_back("anti-k_{T} jet R = 0.3");
-                plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
-                plotInfo.push_back("#left|#eta^{#gamma}#right| < 1.44");
+                if (columns < 4) {
+                    plotInfo.push_back("anti-k_{T} jet R = 0.3");
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c, #left|#eta^{jet}#right| < 1.6");
+                    plotInfo.push_back("#left|#eta^{#gamma}#right| < 1.44");
 
-                if (hist_type != "dphi" && hist_type != "iaa" && hist_type != "ptJet")
-                    plotInfo.back() += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
+                    if (hist_type != "dphi" && hist_type != "iaa" && hist_type != "ptJet")
+                        plotInfo.back() += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
+                }
+            } else {
+                int pt_bins[2][5] = {{40, 50, 60, 80, 100}, {50, 60, 80, 100, 9999}};
+                float purity[5] = {0.73, 0.75, 0.77, 0.77, 0.82};
+                float chi2[5] = {3.96, 2.56, 1.52, 0.94, 0.78};
+
+                if (pt_bins[1][c] < 9999)
+                    plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", pt_bins[0][c], pt_bins[1][c]));
+                else
+                    plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", pt_bins[0][c]));
+                plotInfo.push_back(Form("Purity: %.2f", purity[c]));
+                plotInfo.push_back(Form("#chi^{2}/ndf: %.2f", chi2[c]));
             }
 
             float line_pos = i_y[r*columns + c];
@@ -411,32 +431,36 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     info_latex_size * 0.9, 11, c, r
                 );
             }
+
+            gPad->RedrawAxis();
         }
     }
 
     // Draw energy, lumi info, jet cuts on top
     c1->cd();
 
-    float canvas_margin_left = tiler->get_canvas_margin_left();
-    float canvas_margin_right = tiler->get_canvas_margin_right();
-    float canvas_margin_top = tiler->get_canvas_margin_top();
+    if (hist_type != "purity") {
+        float canvas_margin_left = tiler->get_canvas_margin_left();
+        float canvas_margin_right = tiler->get_canvas_margin_right();
+        float canvas_margin_top = tiler->get_canvas_margin_top();
 
-    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
 
-    std::string lumiInfo = "PbPb 404 #mub^{-1}";
-    if (canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
-    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
+        std::string lumiInfo = "PbPb 404 #mub^{-1}";
+        if (canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
+        tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
 
-    std::string commonInfo;
-    if (columns > 3) {
-        commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
-        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-            commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
+        std::string commonInfo;
+        if (columns > 3) {
+            commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
+            if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
+                commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
+        }
+        float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
+        if (canvas_title.find("theory") == std::string::npos)
+            middle_align -= 0.04;
+        tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
     }
-    float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
-    if (canvas_title.find("theory") == std::string::npos)
-        middle_align -= 0.04;
-    tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
     tiler->cover_axis_labels(
@@ -628,6 +652,30 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e0 x0");
             option_strings.push_back("pf");
             break;
+        case 16:    /* PbPb data purity */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(21);
+            h1->SetMarkerSize(1.25);
+            option_strings.push_back("same e x0");
+            option_strings.push_back("pl");
+            break;
+        case 17:    /* signal template */
+            h1->SetLineColor(TColor::GetColor("#e74c3c"));
+            h1->SetFillColor(TColor::GetColor("#e74c3c"));
+            h1->SetFillStyle(3004);
+            option_strings.push_back("same hist");
+            option_strings.push_back("lf");
+            break;
+        case 18:    /* background template */
+            h1->SetLineWidth(1);
+            h1->SetLineColor(TColor::GetColor("#2ecc71"));
+            h1->SetFillColor(TColor::GetColor("#2ecc71"));
+            h1->SetFillStyle(3001);
+            option_strings.push_back("same hist");
+            option_strings.push_back("lf");
+            break;
         default:
             option_strings.push_back("same e x0");
             option_strings.push_back("p");
@@ -792,7 +840,7 @@ int main(int argc, char* argv[]) {
     if (argc == 5) {
         return gammaJetPlot(argv[1], argv[2], argv[3], argv[4]);
     } else {
-        printf("Usage: ./Plotting/gammaJetPlot.exe [input file] [systematics file] [config file] [histogram list]\n");
+        printf("Usage: ./Plotting/gammaJetPlot.exe [input file] [systematics file] [histogram list] [config file]\n");
         return 1;
     }
 }
