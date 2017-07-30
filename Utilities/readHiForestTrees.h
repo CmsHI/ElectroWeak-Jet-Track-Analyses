@@ -19,6 +19,7 @@ TTree* trho = 0;
 TTree* tpf = 0;
 TTree* tpfcs = 0;
 TTree* ttrack = 0;
+TTree* ttrackpp = 0;
 
 void readHiForestTrees()
 {
@@ -38,6 +39,7 @@ void readHiForestTrees()
     tpf = (TTree*)gFile->Get("pfcandAnalyzer/pfTree");
     tpfcs = (TTree*)gFile->Get("pfcandAnalyzerCS/pfTree");
     ttrack = (TTree*)gFile->Get("anaTrack/trackTree");
+    ttrackpp = (TTree*)gFile->Get("ppTrack/trackTree");
 
     if (thlt != 0)
         std::cout << "Tree* thlt = hltanalysis/HltTree" << std::endl;
@@ -69,6 +71,8 @@ void readHiForestTrees()
         std::cout << "Tree* tpfcs = pfcandAnalyzerCS/pfTree" << std::endl;
     if (ttrack != 0)
         std::cout << "Tree* ttrack = anaTrack/trackTree" << std::endl;
+    if (ttrackpp != 0)
+        std::cout << "Tree* ttrackpp = ppTrack/trackTree" << std::endl;
 
     teg->AddFriend(tskim);
     teg->AddFriend(tevt);
