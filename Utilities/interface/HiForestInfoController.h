@@ -26,7 +26,7 @@ public:
         isHiForest = false;
 
         this->tree = tree;
-        if (this->tree->GetEntries() > 0) isHiForest = true;
+        if (this->tree != 0 && this->tree->GetEntries() > 0) isHiForest = true;
     };
     ~HiForestInfoController(){};
 
