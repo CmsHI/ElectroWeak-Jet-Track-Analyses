@@ -224,7 +224,6 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
         }
         if (!treeExists)  continue;
 
-        inputTreeEvent->SetBranchStatus("*",0);     // disable all branches
         inputTreeEvent->SetBranchStatus("run",1);    // enable event information
         inputTreeEvent->SetBranchStatus("event",1);
         inputTreeEvent->SetBranchStatus("lumis",1);
