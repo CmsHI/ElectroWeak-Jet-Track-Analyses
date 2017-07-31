@@ -1,20 +1,28 @@
 #!/bin/bash
 
 # simple script to transfer stdout and stderr files for condor jobs
-if [ $# -ne 2 ];
+if [ $# -ne 1 ] && [ $# -ne 2 ];
 then
-  echo "Usage: ./run_condor_transfer_data.sh <clusterID> <nJobs>"
+  echo "Usage 1: ./run_condor_transfer_data.sh <clusterID>"
+  echo "Usage 2: ./run_condor_transfer_data.sh <clusterID> <nJobs>"
   exit 1
 fi
 
 clusterID=$1
-nJobs=$2
 
 echo "running condor_transfer_data..."
-for (( iJob=0; iJob<nJobs; iJob++ ))
-do  
-   echo "transfer data for clusterID.job = "${clusterID}.${iJob}
-   condor_transfer_data -pool submit.mit.edu:9615 -name submit.mit.edu ${clusterID}.${iJob}
-done
+if [ $# == 1 ];
+then
+  echo "transfer data for clusterID = "${clusterID}
+  condor_transfer_data -pool submit.mit.edu:9615 -name submit.mit.edu ${clusterID}
+elif [ $# == 2 ];
+then
+  nJobs=$2
+  for (( iJob=0; iJob<nJobs; iJob++ ))
+  do
+    echo "transfer data for clusterID.job = "${clusterID}.${iJob}
+    condor_transfer_data -pool submit.mit.edu:9615 -name submit.mit.edu ${clusterID}.${iJob}
+  done
+fi
 echo "running condor_transfer_data - END"
 
