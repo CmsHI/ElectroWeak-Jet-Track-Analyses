@@ -439,28 +439,26 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     // Draw energy, lumi info, jet cuts on top
     c1->cd();
 
-    if (hist_type != "purity") {
-        float canvas_margin_left = tiler->get_canvas_margin_left();
-        float canvas_margin_right = tiler->get_canvas_margin_right();
-        float canvas_margin_top = tiler->get_canvas_margin_top();
+    float canvas_margin_left = tiler->get_canvas_margin_left();
+    float canvas_margin_right = tiler->get_canvas_margin_right();
+    float canvas_margin_top = tiler->get_canvas_margin_top();
 
-        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
 
-        std::string lumiInfo = "PbPb 404 #mub^{-1}";
-        if (canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
-        tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
+    std::string lumiInfo = "PbPb 404 #mub^{-1}";
+    if (hist_type != "purity" && canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
+    tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
 
-        std::string commonInfo;
-        if (columns > 3) {
-            commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
-            if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
-                commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
-        }
-        float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
-        if (canvas_title.find("theory") == std::string::npos)
-            middle_align -= 0.04;
-        tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
+    std::string commonInfo;
+    if (hist_type != "purity" && columns > 3) {
+        commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
+        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
+            commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
+    float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
+    if (canvas_title.find("theory") == std::string::npos)
+        middle_align -= 0.04;
+    tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
 
     // Cover cut-off axis labels
     tiler->cover_axis_labels(
