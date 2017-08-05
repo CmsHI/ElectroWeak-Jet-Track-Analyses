@@ -20,6 +20,11 @@ TTree* tpf = 0;
 TTree* tpfcs = 0;
 TTree* ttrack = 0;
 TTree* ttrackpp = 0;
+TTree* tEE = 0;
+TTree* tEB = 0;
+TTree* ttower = 0;
+TTree* tBC = 0;
+TNtuple* ntEvent = 0;
 
 void readHiForestTrees()
 {
@@ -40,6 +45,11 @@ void readHiForestTrees()
     tpfcs = (TTree*)gFile->Get("pfcandAnalyzerCS/pfTree");
     ttrack = (TTree*)gFile->Get("anaTrack/trackTree");
     ttrackpp = (TTree*)gFile->Get("ppTrack/trackTree");
+    tEE = (TTree*)gFile->Get("rechitanalyzer/ee");
+    tEB = (TTree*)gFile->Get("rechitanalyzer/eb");
+    ttower = (TTree*)gFile->Get("rechitanalyzer/tower");
+    tBC = (TTree*)gFile->Get("rechitanalyzer/bc");
+    ntEvent = (TNtuple*)gFile->Get("rechitanalyzer/ntEvent");
 
     if (thlt != 0)
         std::cout << "Tree* thlt = hltanalysis/HltTree" << std::endl;
@@ -73,6 +83,16 @@ void readHiForestTrees()
         std::cout << "Tree* ttrack = anaTrack/trackTree" << std::endl;
     if (ttrackpp != 0)
         std::cout << "Tree* ttrackpp = ppTrack/trackTree" << std::endl;
+    if (tEE != 0)
+        std::cout << "Tree* tEE = rechitanalyzer/ee" << std::endl;
+    if (tEB != 0)
+        std::cout << "Tree* tEB = rechitanalyzer/eb" << std::endl;
+    if (ttower != 0)
+        std::cout << "Tree* ttower = rechitanalyzer/tower" << std::endl;
+    if (tBC != 0)
+        std::cout << "Tree* tBC = rechitanalyzer/bc" << std::endl;
+    if (ntEvent != 0)
+        std::cout << "TNtuple* ntEvent = rechitanalyzer/ntEvent" << std::endl;
 
     teg->AddFriend(tskim);
     teg->AddFriend(tevt);
