@@ -13,10 +13,10 @@
 #include <string>
 #include <fstream>
 
-#include "../Utilities/interface/CutConfigurationParser.h"
-#include "../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/CutConfigurationParser.h"
+#include "../../Utilities/interface/InputConfigurationParser.h"
 
-#include "tiling.h"
+#include "../tiling.h"
 
 #define PBPB_COLOUR     (TColor::GetColor("#ef5253"))
 #define PP_COLOUR       (TColor::GetColor("#6699cc"))
