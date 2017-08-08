@@ -15,6 +15,7 @@
 
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/systemUtil.h"
 
 #include "../tiling.h"
 
@@ -22,8 +23,8 @@
 #define PP_COLOUR       (TColor::GetColor("#6699cc"))
 #define RATIO_COLOUR    (TColor::GetColor("#a09f93"))
 
-int min_hiBin[4] = {50, 30, 10, 0};
-int max_hiBin[4] = {100, 50, 30, 10};
+int min_hiBin[6] = {50, 30, 10, 0, 30, 0};
+int max_hiBin[6] = {100, 50, 30, 10, 100, 30};
 
 void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys);
 std::string set_systematics_style(TGraph* gr, int style);
@@ -184,13 +185,21 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 if ((int)l == clear_entries[r*columns + c]) { gPad->Clear(); }
 
                 TH1D* systematics = 0;
-                systematics = (TH1D*)fsys->Get((histogram_names[r][c][l] + "_systematics").c_str());
+                std::string systematicsName = (histogram_names[r][c][l] + "_systematics").c_str();
+                if (histogram_names[r][c][l].find("ppdatareweight") != std::string::npos)
+                    systematicsName = replaceAll(systematicsName, "ppdatareweight", "ppdata", false);
+                else if (histogram_names[r][c][l].find("_reweight") != std::string::npos)
+                    systematicsName = replaceAll(systematicsName, "_reweight", "", false);
+                systematics = (TH1D*)fsys->Get(systematicsName.c_str());
 
                 TGraph* gr = new TGraph();
                 gr->SetFillStyle(1001);
                 std::string sys_draw_options = set_systematics_style(gr, styles[r][c][l]);
 
-                generic[l] = fsys->Get((histogram_names[r][c][l] + "_nominal").c_str());
+                generic[l] = 0;
+                generic[l] = fsys->Get((histogram_names[r][c][l]).c_str());
+                if (generic[l] == 0)
+                    generic[l] = fsys->Get((histogram_names[r][c][l] + "_nominal").c_str());
 
                 if (generic[l]->InheritsFrom(TH1D::Class())) {
                     histograms[l] = (TH1D*)generic[l];
@@ -266,7 +275,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
 
             if (r == 0) {
                 std::vector<std::string> plotInfo;
-                plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
+                if (columns == 4) plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
+                else              plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
 
                 float line_pos = i_y[r*columns + c];
                 int latex_align = (i_x[r*columns + c] > 0.8) ? 33 : 13;
@@ -291,10 +301,20 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
-    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
-    tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
-    tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
-    tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+    if (columns == 4) {
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+    }
+    else {
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 31);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3*2, Form("p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+    }
 
     tiler->cover_axis_labels(
         cover_options[0], cover_options[1],
