@@ -305,17 +305,6 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 }
             }
 
-            // draw CMS label
-            if (c + r == 0 || columns < 4) {
-                float CMS_label_x = 0.04;
-                if (hist_type == "xjg_mean_ptBinAll" || hist_type == "rjg_ptBinAll")
-                    CMS_label_x = 0.82;
-                tiler->draw_latex_on_frame(
-                    CMS_label_x, 0.96, "CMS", 6,
-                    cms_latex_size, 13, c, r
-                );
-            }
-
             if (!histograms[0]) { continue; }
 
             // Draw line at 1 for Jet IAA
@@ -405,20 +394,17 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                         plotInfo.back() += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
                 }
             } else {
-                int pt_bins[2][5] = {{40, 50, 60, 80, 100}, {50, 60, 80, 100, 9999}};
-                float purity[5] = {0.73, 0.75, 0.77, 0.77, 0.82};
-                float chi2[5] = {3.96, 2.56, 1.52, 0.94, 0.78};
+                int cent_bins[2][4] = {{50, 30, 10, 0}, {100, 50, 30, 10}};
+                float purity[4] = {0.82, 0.77, 0.73, 0.68};
+                float chi2[4] = {1.23, 1.78, 2.64, 2.76};
 
-                if (pt_bins[1][c] < 9999)
-                    plotInfo.push_back(Form("p_{T}^{#gamma} #in (%d,%d) GeV/c", pt_bins[0][c], pt_bins[1][c]));
-                else
-                    plotInfo.push_back(Form("p_{T}^{#gamma} > %d GeV/c", pt_bins[0][c]));
+                plotInfo.push_back(Form("%i - %i%% Centrality", cent_bins[0][c], cent_bins[1][c]));
                 plotInfo.push_back(Form("Purity: %.2f", purity[c]));
-                plotInfo.push_back(Form("#chi^{2}/ndf: %.2f", chi2[c]));
+                plotInfo.push_back(Form("#chi^{2}/ndf: %.1f/78", chi2[c] * 78));
             }
 
             float line_pos = i_y[r*columns + c];
-            int latex_align = (i_x[r*columns + c] > 0.8) ? 31 : 11;
+            int latex_align = (i_x[r*columns + c] > 0.8) ? 33 : 11;
             for (std::size_t q=0; q<plotInfo.size(); ++q) {
                 tiler->draw_latex_on_frame(i_x[r*columns + c], line_pos, plotInfo[q].c_str(), 4, info_latex_size, latex_align, c, r);
                 line_pos -= info_latex_size * 1.44;
@@ -443,6 +429,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
+    // draw CMS label
+    tiler->draw_latex_on_canvas(canvas_margin_left / 2, 1.0 - canvas_margin_top, "CMS", 6, cms_latex_size, 22);
+
     tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
 
     std::string lumiInfo = "PbPb 404 #mub^{-1}";
@@ -450,7 +439,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.01, 1.0 - canvas_margin_top, lumiInfo.c_str(), 4, canvas_latex_size, 31);
 
     std::string commonInfo;
-    if (hist_type != "purity" && columns > 3) {
+    if (hist_type == "purity") {
+        commonInfo = "p_{T}^{#gamma} > 60 GeV/c";;
+    } else if (columns > 3) {
         commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
