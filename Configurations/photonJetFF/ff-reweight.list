@@ -1,0 +1,34 @@
+hff_final_pbpbdata_recoreco_100_200 0
+hff_final_ppdatareweight_srecoreco_100_200 1
+hff_final_pbpbdata_recoreco_100_200 2
+hff_final_ppdatareweight_srecoreco_100_200 3
++
+hff_final_pbpbdata_recoreco_60_100 0
+hff_final_ppdatareweight_srecoreco_60_100 1
+hff_final_pbpbdata_recoreco_60_100 2
+hff_final_ppdatareweight_srecoreco_60_100 3
++
+hff_final_pbpbdata_recoreco_20_60 0
+hff_final_ppdatareweight_srecoreco_20_60 1
+hff_final_pbpbdata_recoreco_20_60 2
+hff_final_ppdatareweight_srecoreco_20_60 3
++
+hff_final_pbpbdata_recoreco_0_20 0
+hff_final_ppdatareweight_srecoreco_0_20 1
+hff_final_pbpbdata_recoreco_0_20 2
+hff_final_ppdatareweight_srecoreco_0_20 3
++
+hff_final_ratio_100_200_reweight 4
+hff_final_ratio_100_200_reweight 5
++
+hff_final_ratio_60_100_reweight 4
+hff_final_ratio_60_100_reweight 5
++
+hff_final_ratio_20_60_reweight 4
+hff_final_ratio_20_60_reweight 5
++
+hff_final_ratio_0_20_reweight 4
+hff_final_ratio_0_20_reweight 5
+=
+PbPb
+pp (smeared, reweighted)
