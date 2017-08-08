@@ -398,7 +398,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 float purity[4] = {0.82, 0.77, 0.73, 0.68};
                 float chi2[4] = {1.23, 1.78, 2.64, 2.76};
 
-                plotInfo.push_back(Form("%i - %i%% Centrality", cent_bins[0][c], cent_bins[1][c]));
+                plotInfo.push_back(Form("Cent. %i - %i%%", cent_bins[0][c], cent_bins[1][c]));
                 plotInfo.push_back(Form("Purity: %.2f", purity[c]));
                 plotInfo.push_back(Form("#chi^{2}/ndf: %.1f/78", chi2[c] * 78));
             }
@@ -448,7 +448,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
     std::string commonInfo;
     if (hist_type == "purity") {
-        commonInfo = "p_{T}^{#gamma} > 60 GeV/c";;
+        commonInfo = "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44";
     } else if (columns > 3) {
         commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
