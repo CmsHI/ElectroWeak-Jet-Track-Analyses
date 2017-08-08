@@ -16,6 +16,8 @@ public:
   Double_t purity;
   Double_t chisq;
   Double_t sigMeanShift;
+  Double_t rawchisq;
+  Double_t ndf;
 
   TH1F *sigPdf;
   TH1F *bckPdf;
@@ -95,6 +97,8 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig=0, TH1D* hBkg=0, TH1D* hD
   res.nSig    = nev * ratio;
   res.nSigErr = nev * ratioError;
   res.chisq = (Double_t)f->GetChisquare()/ f->GetNDF();
+  res.rawchisq = f->GetChisquare();
+  res.ndf = f->GetNDF();
 
   TH1F *hSigPdf = (TH1F*)hSig->Clone(Form("%s_tmp",hSig->GetName()));
   hSigPdf->Scale(res.nSig/hSigPdf->Integral(1,nBins+1));
@@ -150,6 +154,8 @@ PhotonPurity getPurity(CutConfiguration config ,TTree *dataTree, TTree *mcTree,
   std::cout << "Purity: " << fitr.purity << std::endl;
   std::cout << "nSig: " << fitr.nSig << std::endl;
   std::cout << "chisq: " << fitr.chisq << std::endl;
+  std::cout << "rawchisq: " << fitr.rawchisq << std::endl;
+  std::cout << "ndf: " << fitr.ndf << std::endl;
 
   delete hSig;
   delete hBkg;
