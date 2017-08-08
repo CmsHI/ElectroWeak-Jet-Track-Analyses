@@ -410,14 +410,6 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 line_pos -= info_latex_size * 1.44;
             }
 
-            /* draw pt label for xjg_cent */
-            if (canvas_title == "xjg_cent" && c == 0) {
-                tiler->draw_latex_on_frame(
-                    0.04, 0.8, "p_{T}^{#gamma} > 60 GeV/c", 4,
-                    info_latex_size * 0.9, 11, c, r
-                );
-            }
-
             gPad->RedrawAxis();
         }
     }
@@ -451,6 +443,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
         commonInfo = "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44";
     } else if (columns > 3) {
         commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
+        if (canvas_title == "xjg_cent")
+            commonInfo += ", p_{T}^{#gamma} > 60 GeV/c";
         if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
