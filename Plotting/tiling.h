@@ -276,7 +276,8 @@ TLatex* tiling::draw_latex_on_canvas(float x, float y, const char* text,
     l1->SetTextSize(norm_size);
     l1->SetTextAlign(align);
 
-    return l1->DrawLatexNDC(x, y + norm_size * 0.8, text);
+    if (align % 10 != 1) { return l1->DrawLatexNDC(x, y, text); }
+    else { return l1->DrawLatexNDC(x, y + norm_size * 0.8, text); }
 }
 
 TLatex* tiling::draw_latex_on_frame(float x, float y, const char* text,

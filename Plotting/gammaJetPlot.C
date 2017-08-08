@@ -425,13 +425,21 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     // Draw energy, lumi info, jet cuts on top
     c1->cd();
 
+    // Cover cut-off axis labels
+    tiler->cover_axis_labels(
+        cover_options[0], cover_options[1],
+        label_sizes[0], label_sizes[1],
+        label_offsets[0], label_offsets[1]
+    );
+
     float canvas_margin_left = tiler->get_canvas_margin_left();
     float canvas_margin_right = tiler->get_canvas_margin_right();
     float canvas_margin_top = tiler->get_canvas_margin_top();
 
     // draw CMS label
-    tiler->draw_latex_on_canvas(canvas_margin_left / 2, 1.0 - canvas_margin_top, "CMS", 6, cms_latex_size, 22);
+    tiler->draw_latex_on_canvas(canvas_margin_left / 2, 1.0 - canvas_margin_top / 2, "CMS", 6, cms_latex_size, 22);
 
+    // draw common information
     tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
 
     std::string lumiInfo = "PbPb 404 #mub^{-1}";
@@ -450,13 +458,6 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     if (canvas_title.find("theory") == std::string::npos)
         middle_align -= 0.04;
     tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top, commonInfo.c_str(), 4, canvas_latex_size, 21);
-
-    // Cover cut-off axis labels
-    tiler->cover_axis_labels(
-        cover_options[0], cover_options[1],
-        label_sizes[0], label_sizes[1],
-        label_offsets[0], label_offsets[1]
-    );
 
     c1->SaveAs(canvas_title.append(".pdf").c_str());
 
