@@ -24,16 +24,16 @@ NJOBS=(400 100 200 5)
 SYS_SUFFIX=("" _PES _PURITY_UP _PURITY_DOWN _ELE_REJ _ISO _JER _JES_UP _JES_DOWN)
 SAM_SUFFIX=("" _mc _pp _pp_mc)
 
+if [[ $3 -eq 0 ]]; then
+    for ISAM in ${!SAM_SUFFIX[@]}
+    do
+        CONFSUFFIX=${SAM_SUFFIX[ISAM]}${SYS_SUFFIX[ISYS]}
+        ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ISAM]} $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/ ${NJOBS[ISAM]} ${MIXINGSAMPLE[ISAM]}
+    done
+fi
+
 for ISYS in ${!SYS_SUFFIX[@]}
 do
-    if [[ $3 -eq 0 ]]; then
-        for ISAM in ${!SAM_SUFFIX[@]}
-        do
-            CONFSUFFIX=${SAM_SUFFIX[ISAM]}${SYS_SUFFIX[ISYS]}
-            ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${CONFSUFFIX}.conf ${INFILE[ISAM]} $HADOOPDIR/${SAMPLE[ISAM]}_unmerged${SYS_SUFFIX[ISYS]}/ ${NJOBS[ISAM]} ${MIXINGSAMPLE[ISAM]}
-        done
-    fi
-
     if [[ $3 -eq 1 ]]; then
         for ISAM in ${!SAM_SUFFIX[@]}
         do
