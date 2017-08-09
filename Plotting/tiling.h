@@ -410,7 +410,7 @@ void tiling::cover_axis_labels(int x_options, int y_options,
 
         if (opt & 0x2) {
             x_max = fedges_horiz[i + 1];
-            x_min = x_max - x_label_size / cfratio_horiz;
+            x_min = x_max - 0.925 * x_label_size / cfratio_horiz;
             if (i == columns - 1) { x_max = std::min(1.f,
                 x_max + 2 * x_label_size / cfratio_horiz); }
 

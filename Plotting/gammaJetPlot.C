@@ -458,55 +458,58 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     return 0;
 }
 
+#define PBPB_COLOUR (TColor::GetColor("#E74C3C"))
+#define PP_COLOUR (TColor::GetColor("#2DCE58"))
+
 std::string set_systematics_style(TGraph* gr, int style) {
     switch (style) {
         case 0:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e x0";
         case 1:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e x0";
         case 2:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e x0";
         case 3:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e x0";
         case 4:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e x0";
         case 5:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e x0";
         case 6:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e x0";
         case 7:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e x0";
         case 12:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e0 x0";
         case 13:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e0 x0";
         case 14:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(46, 0.7);
+            gr->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             return "same e0 x0";
         case 15:
             gr->SetFillStyle(1001);
-            gr->SetFillColorAlpha(30, 0.7);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
             return "same e0 x0";
         default:
             gr->SetFillStyle(1001);
@@ -517,46 +520,46 @@ std::string set_systematics_style(TGraph* gr, int style) {
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings) {
     switch (style) {
         case 0:     /* PbPb data 0-30% legend */
-            h1->SetLineColorAlpha(46, 0.7);
+            h1->SetLineColorAlpha(PBPB_COLOUR, 0.7);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(20);
             h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(46, 0.7);
+            h1->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
         case 1:     /* pp data 0-30% legend */
-            h1->SetLineColorAlpha(30, 0.7);
+            h1->SetLineColorAlpha(PP_COLOUR, 0.7);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(24);
             h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(30, 0.7);
+            h1->SetFillColorAlpha(PP_COLOUR, 0.7);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
         case 2:     /* PbPb data 30-100% legend */
-            h1->SetLineColorAlpha(46, 0.7);
+            h1->SetLineColorAlpha(PBPB_COLOUR, 0.7);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(21);
             h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(46, 0.7);
+            h1->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
         case 3:     /* pp data 30-100% legend */
-            h1->SetLineColorAlpha(30, 0.7);
+            h1->SetLineColorAlpha(PP_COLOUR, 0.7);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(25);
             h1->SetMarkerSize(1.75);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(30, 0.7);
+            h1->SetFillColorAlpha(PP_COLOUR, 0.7);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -670,46 +673,46 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
 void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_strings) {
     switch (style) {
         case 0:     /* PbPb data 0-30% legend */
-            g1->SetLineColorAlpha(46, 0.7);
+            g1->SetLineColorAlpha(PBPB_COLOUR, 0.7);
             g1->SetLineWidth(0);
             g1->SetMarkerColor(1);
             g1->SetMarkerStyle(20);
             g1->SetMarkerSize(1.75);
             g1->SetFillStyle(1001);
-            g1->SetFillColorAlpha(46, 0.7);
+            g1->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             option_strings.push_back("same p z");
             option_strings.push_back("pf");
             break;
         case 1:     /* pp data 0-30% legend */
-            g1->SetLineColorAlpha(30, 0.7);
+            g1->SetLineColorAlpha(PP_COLOUR, 0.7);
             g1->SetLineWidth(0);
             g1->SetMarkerColor(1);
             g1->SetMarkerStyle(24);
             g1->SetMarkerSize(1.75);
             g1->SetFillStyle(1001);
-            g1->SetFillColorAlpha(30, 0.7);
+            g1->SetFillColorAlpha(PP_COLOUR, 0.7);
             option_strings.push_back("same p z");
             option_strings.push_back("pf");
             break;
         case 2:     /* PbPb data 30-100% legend */
-            g1->SetLineColorAlpha(46, 0.7);
+            g1->SetLineColorAlpha(PBPB_COLOUR, 0.7);
             g1->SetLineWidth(0);
             g1->SetMarkerColor(1);
             g1->SetMarkerStyle(21);
             g1->SetMarkerSize(1.75);
             g1->SetFillStyle(1001);
-            g1->SetFillColorAlpha(46, 0.7);
+            g1->SetFillColorAlpha(PBPB_COLOUR, 0.7);
             option_strings.push_back("same p z");
             option_strings.push_back("pf");
             break;
         case 3:     /* pp data 30-100% legend */
-            g1->SetLineColorAlpha(30, 0.7);
+            g1->SetLineColorAlpha(PP_COLOUR, 0.7);
             g1->SetLineWidth(0);
             g1->SetMarkerColor(1);
             g1->SetMarkerStyle(25);
             g1->SetMarkerSize(1.75);
             g1->SetFillStyle(1001);
-            g1->SetFillColorAlpha(30, 0.7);
+            g1->SetFillColorAlpha(PP_COLOUR, 0.7);
             option_strings.push_back("same p z");
             option_strings.push_back("pf");
             break;
