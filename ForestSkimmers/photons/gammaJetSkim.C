@@ -273,7 +273,7 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
   TRandom3 randSmearing(12345);    // random number seed should be fixed or reproducible
 
   // pp resolution
-  std::vector<double> CSN_PP = {0.06, 0.91, 0};
+  std::vector<double> CSN_PP = {0.06, 0.95, 0};
   std::vector<double> CSN_phi_PP = {7.72 / 100000000, 0.1222, 0.5818};
 
   // smear 0-30 %
