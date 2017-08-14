@@ -49,7 +49,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
     std::vector<std::string> sys_types {
         "nominal",
-        "JES_up", "JES_down", "JES_up2", "JES_down2", "purity_up", "purity_down", "JES_gluon", "JES_quark",
+        "JES_up", "JES_down", "JES_up2", "JES_down2", "JES_gluon", "JES_quark", "purity_up", "purity_down",
         "JER", "ele_rejection", "photon_energy",
         "photon_iso"                                                // photon isolation _must_ be the last in this list
     };
