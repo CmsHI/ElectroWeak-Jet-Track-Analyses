@@ -558,8 +558,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         if (isHI) {
                             float flavour_factor = 0;
                             int j = getResolutionBin(evt.hiBin);
-                            if (energyScale > 0) flavour_factor = f_JES_Q[j]->Eval(jetpt);
-                            if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                            if (energyScale > 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                            if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_Q[j]->Eval(jetpt);
                             JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
                                 TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                         }
@@ -634,8 +634,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                             if (isHI) {
                                 float flavour_factor = 0;
                                 int j = getResolutionBin(evt.hiBin);
-                                if (energyScale > 0) flavour_factor = f_JES_Q[j]->Eval(jetpt);
-                                if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                                if (energyScale > 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
+                                if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_Q[j]->Eval(jetpt);
                                 JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
                                     TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
                             }
