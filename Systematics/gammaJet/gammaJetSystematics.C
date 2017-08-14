@@ -39,13 +39,17 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 
 #define _JES_UP      1
 #define _JES_DOWN    2
-#define _PURITY_UP   3
-#define _PURITY_DOWN 4
-#define _PHOTON_ISO  8
+#define _JES_UP2     3
+#define _JES_DOWN2   4
+#define _JES_GLUON   5
+#define _JES_QUARK   6
+#define _PURITY_UP   7
+#define _PURITY_DOWN 8
+#define _PHOTON_ISO  12
 
     std::vector<std::string> sys_types {
         "nominal",
-        "JES_up", "JES_down", "purity_up", "purity_down",
+        "JES_up", "JES_down", "JES_up2", "JES_down2", "purity_up", "purity_down", "JES_gluon", "JES_quark",
         "JER", "ele_rejection", "photon_energy",
         "photon_iso"                                                // photon isolation _must_ be the last in this list
     };
@@ -62,6 +66,10 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
     std::map<std::string, std::string> sys_names;
     sys_names["JES_up"] = "Jet Energy Scale";
     sys_names["JES_down"] = "Jet Energy Scale";
+    sys_names["JES_up2"] = "Jet Energy Scale";
+    sys_names["JES_down2"] = "Jet Energy Scale";
+    sys_names["JES_gluon"] = "Jet Energy Scale (Gluon)";
+    sys_names["JES_quark"] = "Jet Energy Scale (Quark)";
     sys_names["purity_up"] = "Photon Purity";
     sys_names["purity_down"] = "Photon Purity";
     sys_names["JER"] = "Jet Energy Resolution";
@@ -150,7 +158,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         SysVar* sys_hists = new SysVar(hist_full_name, sys_types[m]);
                         sys_hists->init(h1D_nominal, h1D_varied);
 
-                        if (rebin_xjg_jers && hist_types[i] == "xjg" && (sys_types[m] == "JER" || sys_types[m] == "JES_up" || sys_types[m] == "JES_down"))
+                        if (rebin_xjg_jers && hist_types[i] == "xjg" && (sys_types[m] == "JER" || sys_types[m] == "JES_up" || sys_types[m] == "JES_down" || sys_types[m] == "JES_up2" || sys_types[m] == "JES_down2" || sys_types[m] == "JES_gluon" || sys_types[m] == "JES_quark"))
                             sys_hists->rebin_and_calc_sys();
                         else
                             sys_hists->calc_sys();
@@ -209,6 +217,24 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                         total_sys_hists->add_SysVar(JES_sys_hists);
                         ++m; ++m;
                     } else if (valid_input[_JES_UP] ^ valid_input[_JES_DOWN]) {
+                        total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
+                        ++m;
+                    }
+
+                    if (valid_input[_JES_UP2] && valid_input[_JES_DOWN2]) {
+                        TotalSysVar* JES2_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
+                        total_sys_hists->add_SysVar(JES2_sys_hists);
+                        ++m; ++m;
+                    } else if (valid_input[_JES_UP2] ^ valid_input[_JES_DOWN2]) {
+                        total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
+                        ++m;
+                    }
+
+                    if (valid_input[_JES_GLUON] && valid_input[_JES_QUARK]) {
+                        TotalSysVar* JESQG_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
+                        total_sys_hists->add_SysVar(JESQG_sys_hists);
+                        ++m; ++m;
+                    } else if (valid_input[_JES_GLUON] ^ valid_input[_JES_QUARK]) {
                         total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
                         ++m;
                     }
