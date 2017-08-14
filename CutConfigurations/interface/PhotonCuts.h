@@ -108,6 +108,7 @@ namespace CUTS {
       k_doPhotonIsolationSys,
       k_doPhotonEnergyScaleSystematics,
       k_useCorrectedSumIso,
+      k_doQGJES,
       kN_I_CUTS
     };
 
@@ -120,7 +121,8 @@ namespace CUTS {
       "doElectronRejection",
       "doPhotonIsolationSys",
       "doPhotonEnergyScaleSystematics",
-      "useCorrectedSumIso"
+      "useCorrectedSumIso",
+      "doQGJES"
     };
 
     enum S_CUTS{

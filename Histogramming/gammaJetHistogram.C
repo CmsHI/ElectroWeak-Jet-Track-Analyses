@@ -38,9 +38,9 @@ const std::vector<double>      xup    {2,  TMath::Pi(), 300};
 int getResolutionBin(int hiBin);
 int getResolutionBinPP(int smearBin);
 
-int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1, const float variation = 1);
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
 
-int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum, const float variation) {
+int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs, const int jobNum) {
     TH1::SetDefaultSumw2();
 
     std::cout << "running gammaJetHistogram()" << std::endl;
@@ -114,6 +114,8 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     const int nsmear = doResolutionSmearing ? 100 : 1;
 
     const bool doJetEnergyScaling = energyScale != 0;
+
+    const int doQGJES = configCuts.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_doQGJES];
 
     TF1* f_JES_Q[4] = {0};
     f_JES_Q[0] = new TF1("f_JES_Q_3", "0.011180+0.195313/sqrt(x)", 30, 300);
@@ -553,19 +555,17 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                     }
 
                     // JES systematics
-                    float JES_factor = 1 + energyScale;
+                    float JES_factor = 1;
                     if (doJetEnergyScaling) {
+                        JES_factor = 1 + energyScale;
+                    } else if (doQGJES) {
                         if (isHI) {
-                            float flavour_factor = 0;
                             int j = getResolutionBin(evt.hiBin);
-                            if (energyScale > 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
-                            if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_Q[j]->Eval(jetpt);
-                            JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
-                                TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
+                            if (doQGJES == 1 && phoEt < 60) JES_factor = 1 + f_JES_G[j]->Eval(jetpt);
+                            else if (doQGJES == -1) JES_factor = 1 - f_JES_Q[j]->Eval(jetpt);
                         }
-                        JES_factor = 1 + variation * (JES_factor - 1);
-                        jetpt *= JES_factor;
                     }
+                    jetpt *= JES_factor;
 
                     // jet cuts
                     if ((*gammaJet[smearBin].dR)[ijet] < cut_dR) continue;
@@ -629,19 +629,17 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
                         }
 
                         // JES systematics
-                        float JES_factor = 1 + energyScale;
+                        float JES_factor = 1;
                         if (doJetEnergyScaling) {
+                            JES_factor = 1 + energyScale;
+                        } else if (doQGJES) {
                             if (isHI) {
-                                float flavour_factor = 0;
                                 int j = getResolutionBin(evt.hiBin);
-                                if (energyScale > 0) flavour_factor = f_JES_G[j]->Eval(jetpt);
-                                if (energyScale < 0 && phoEt < 60) flavour_factor = f_JES_Q[j]->Eval(jetpt);
-                                JES_factor = 1 + (energyScale / TMath::Abs(energyScale)) *
-                                    TMath::Sqrt(energyScale * energyScale + flavour_factor * flavour_factor);
+                                if (doQGJES == 1 && phoEt < 60) JES_factor = 1 + f_JES_G[j]->Eval(jetpt);
+                                else if (doQGJES == -1) JES_factor = 1 - f_JES_Q[j]->Eval(jetpt);
                             }
-                            JES_factor = 1 + variation * (JES_factor - 1);
-                            jetpt *= JES_factor;
                         }
+                        jetpt *= JES_factor;
 
                         // jet cuts
                         if ((*gammaJetMB.dR)[ijet] < cut_dR) continue;
@@ -786,9 +784,7 @@ int getResolutionBinPP(int smearBin) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc == 7)
-        return gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atof(argv[6]));
-    else if (argc == 6)
+    if (argc == 5)
         return gammaJetHistogram(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
     else if (argc == 4)
         return gammaJetHistogram(argv[1], argv[2], argv[3]);
