@@ -175,6 +175,9 @@ int plotTechnicalSumIso(TString inputFileSig, TString inputFileBkg)
     c->SaveAs(Form("%s.png", outName.c_str()));
     c->SaveAs(Form("%s.pdf", outName.c_str()));
 
+    inputSig->Close();
+    inputBkg->Close();
+
     std::cout<<"running plotTechnicalSumIso() - END"<<std::endl;
     return 0;
 }
