@@ -12,15 +12,11 @@ sourceDir="./"
 sourceFiles=(
 "ff_60_30_gxi0.pdf"
 "ff_60_30_gxi1.pdf"
-"ff_80_40_gxi0.pdf"
-"ff_80_40_gxi1.pdf"
 );
 
 destinationFiles=(
 "figures/xijet_phoet60_jetpt30.pdf"
 "figures/xigamma_phoet60_jetpt30.pdf"
-"figures/xijet_phoet80_jetpt40.pdf"
-"figures/xigamma_phoet80_jetpt40.pdf"
 );
 
 arrayIndices=${!sourceFiles[*]}
