@@ -1,6 +1,6 @@
 /*
  * macro to make technical plots for sumIso distribution
- * Usage : Plotting/photonJetFF/plotTechnicalSumIso.exe Data/photonJetFF/photonSpectra_Pythia8_AllQCDPhoton_Hydjet_MB.root Data/photonJetFF/photonSpectra_Pythia8_EmEnrDijet_Hydjet_MB.roo
+ * Usage : ./Plotting/photonJetFF/plotTechnicalSumIso.exe Data/photonJetFF/photonSumIso_Pythia8_Hydjet_MB.root
  */
 #include "TFile.h"
 #include "TH1.h"
@@ -21,7 +21,7 @@
 
 #include "../../Utilities/styleUtil.h"
 
-int plotTechnicalSumIso(TString inputFileSig, TString inputFileBkg);
+int plotTechnicalSumIso(TString inputFile);
 void setTH1(TH1 *h);
 
 enum SIGBKG{
@@ -30,7 +30,7 @@ enum SIGBKG{
     kN_SIGBKG,
 };
 
-int plotTechnicalSumIso(TString inputFileSig, TString inputFileBkg)
+int plotTechnicalSumIso(TString inputFile)
 {
     std::cout<<"running plotTechnicalSumIso()"   <<std::endl;
 
@@ -63,20 +63,14 @@ int plotTechnicalSumIso(TString inputFileSig, TString inputFileBkg)
     TH1D* h[kN_SIGBKG];
     for (int i = 0; i < kN_SIGBKG; ++i) h[i] = 0;
 
-    TFile* inputSig = TFile::Open(inputFileSig.Data(), "read");
-    TFile* inputBkg = TFile::Open(inputFileBkg.Data(), "read");
+    TFile* input = TFile::Open(inputFile.Data(), "read");
 
-    h[k_sig] = (TH1D*)inputSig->Get("h_sumIso_hovere_etaBin0_ptBin0_hiBin0");
-    h[k_bkg] = (TH1D*)inputBkg->Get("h_sumIso_hovere_etaBin0_ptBin0_hiBin0");
+    h[k_sig] = (TH1D*)input->Get("h_norm_sumIso_pbpbmc_sig");
+    h[k_bkg] = (TH1D*)input->Get("h_norm_sumIso_pbpbmc_bkg");
     const int nHist = kN_SIGBKG;
 
-    // normalization
-    for (int i = 0; i < nHist; ++i) {
-        h[i]->Scale(1./h[i]->Integral());
-    }
-
     std::string titleX = "#Sigma iso (GeV/c)";
-    std::string titleY = "Unity Normalization";
+    std::string titleY = "Unity Normalization";     // histograms are unity normalized
 
     int fillStyles[nHist] = {3445, 3454};
     int fillColors[nHist] = {kRed, kGreen};
@@ -175,18 +169,17 @@ int plotTechnicalSumIso(TString inputFileSig, TString inputFileBkg)
     c->SaveAs(Form("%s.png", outName.c_str()));
     c->SaveAs(Form("%s.pdf", outName.c_str()));
 
-    inputSig->Close();
-    inputBkg->Close();
+    input->Close();
 
     std::cout<<"running plotTechnicalSumIso() - END"<<std::endl;
     return 0;
 }
 
 int main(int argc, char* argv[]) {
-    if (argc == 3)
-        return plotTechnicalSumIso(argv[1], argv[2]);
+    if (argc == 2)
+        return plotTechnicalSumIso(argv[1]);
     else {
-        std::cout << "./plotTechnicalSumIso.exe [input file Signal] [input file Bkg]" << std::endl;
+        std::cout << "./plotTechnicalSumIso.exe [input file]" << std::endl;
     }
 
     return 1;
