@@ -98,7 +98,7 @@ void plotTechnicalTrk(TString inputFile)
 
     int markerStyles[nHist] = {kFullSquare, kFullCross, kFullCircle};
     int markerColors[nHist] = {kBlack, kRed, kBlue};
-    float markerSize = 2.2;
+    float markerSize = 2.4;
 
     std::string legendLabels[nHist] = {"raw tracks", "bkg tracks", "raw - bkg"};
 
@@ -114,6 +114,9 @@ void plotTechnicalTrk(TString inputFile)
         h[i]->SetMarkerStyle(markerStyles[i]);
         h[i]->SetMarkerColor(markerColors[i]);
         h[i]->SetMarkerSize(markerSize);
+
+        h[i]->SetLineColor(markerColors[i]);
+        h[i]->SetLineWidth(3);
     }
 
     c = new TCanvas("cnv","",windowWidth,windowHeight);
@@ -123,8 +126,8 @@ void plotTechnicalTrk(TString inputFile)
 
     for (int i = 0; i < nHist; ++i) {
 
-        if (i == 0)  h[i]->Draw("e");
-        else         h[i]->Draw("e same");
+        if (i == 0)  h[i]->Draw("hist e");
+        else         h[i]->Draw("hist e same");
     }
 
     double legY2 = 0.84;
@@ -174,7 +177,7 @@ void plotTechnicalTrk(TString inputFile)
     latex->SetTextFont(52);
     latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
 
-    // sqrt(s) and lumi info
+    // sqrt(s) and data info
     latex = new TLatex();
     latex->SetTextFont(43);
     latex->SetTextSize(24*grScale);
@@ -187,7 +190,7 @@ void plotTechnicalTrk(TString inputFile)
     latex->SetTextSize(24*grScale);
     latex->SetTextAlign(31);
     setTextAbovePad(latex, c, 0.01, 0.02);
-    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), "PbPb 404 #mub^{-1}");
+    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), "PbPb Data");
 
     std::string outName = "plotTechnicalTrk";
     c->SaveAs(Form("%s.png", outName.c_str()));
@@ -260,7 +263,7 @@ void plotTechnicalJet(TString inputFile)
 
     int markerStyles[nHist] = {kFullSquare, kFullCross, kFullCircle};
     int markerColors[nHist] = {kOrange+2, kViolet, 419};
-    float markerSize = 2.2;
+    float markerSize = 2.4;
 
     std::string legendLabels[nHist] = {"raw jets", "bkg jets", "raw - bkg"};
 
@@ -276,6 +279,9 @@ void plotTechnicalJet(TString inputFile)
         h[i]->SetMarkerStyle(markerStyles[i]);
         h[i]->SetMarkerColor(markerColors[i]);
         h[i]->SetMarkerSize(markerSize);
+
+        h[i]->SetLineColor(markerColors[i]);
+        h[i]->SetLineWidth(3);
     }
 
     c = new TCanvas("cnv","",windowWidth,windowHeight);
@@ -285,8 +291,8 @@ void plotTechnicalJet(TString inputFile)
 
     for (int i = 0; i < nHist; ++i) {
 
-        if (i == 0)  h[i]->Draw("e");
-        else         h[i]->Draw("e same");
+        if (i == 0)  h[i]->Draw("hist e");
+        else         h[i]->Draw("hist e same");
     }
 
     double legY2 = 0.84;
@@ -349,7 +355,7 @@ void plotTechnicalJet(TString inputFile)
     latex->SetTextSize(24*grScale);
     latex->SetTextAlign(31);
     setTextAbovePad(latex, c, 0.01, 0.02);
-    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), "PbPb 404 #mub^{-1}");
+    latex->DrawLatexNDC(latex->GetX(), latex->GetY(), "PbPb Data");
 
     std::string outName = "plotTechnicalJet";
     c->SaveAs(Form("%s.png", outName.c_str()));
