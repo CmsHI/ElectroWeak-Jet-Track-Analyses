@@ -119,7 +119,7 @@ void plotTechnicalTrk(TString inputFile)
         h[i]->SetLineWidth(3);
     }
 
-    c = new TCanvas("cnv","",windowWidth,windowHeight);
+    c = new TCanvas("cnv_plotTechnicalTrk","",windowWidth,windowHeight);
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     setCanvasFinal(c, logX, logY);
     c->cd();
@@ -284,7 +284,7 @@ void plotTechnicalJet(TString inputFile)
         h[i]->SetLineWidth(3);
     }
 
-    c = new TCanvas("cnv","",windowWidth,windowHeight);
+    c = new TCanvas("cnv_plotTechnicalJet","",windowWidth,windowHeight);
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     setCanvasFinal(c, logX, logY);
     c->cd();
