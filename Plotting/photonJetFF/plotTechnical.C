@@ -61,7 +61,7 @@ void plotTechnicalTrk(TString inputFile)
     double xMin = 0.5;
     double xMax = 4.0;
     double yMin = 0;
-    double yMax = 18;
+    double yMax = 20;
 
     // no horizontal error bars
     gStyle->SetErrorX(0);
@@ -100,7 +100,7 @@ void plotTechnicalTrk(TString inputFile)
     int markerColors[nHist] = {kBlack, kRed, kBlue};
     float markerSize = 2.2;
 
-    std::string legendLabels[nHist] = {"raw tracks", "UE tracks", "UE subtracted tracks"};
+    std::string legendLabels[nHist] = {"raw tracks", "bkg tracks", "raw - bkg"};
 
     for (int i = 0; i < nHist; ++i) {
         setTH1(h[i]);
@@ -139,19 +139,28 @@ void plotTechnicalTrk(TString inputFile)
     leg->Draw();
     c->Update();
 
-    // text for kinematics
+    // info text
+    std::vector<std::string> textLines;
+    int nTextLines = 0;
     latex = new TLatex();
     latex->SetTextFont(43);
     latex->SetTextSize(24*grScale);
-    std::vector<std::string> textLines = {
-                            "#gamma+jet events",
-                            Form("Cent:%d-%d%%", hiBinMin/2, hiBinMax/2),
-                            "p_{T}^{trk} > 1 GeV/c",
-                            "anti-k_{T} jet R = 0.3",
-                            "p_{T}^{jet} > 30 GeV/c",
-                            "p_{T}^{#gamma} > 60 GeV/c",
-                             "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"};
-    int nTextLines = textLines.size();
+    textLines = { "#gamma+jet events",
+                  Form("Cent. %d-%d%%", hiBinMin/2, hiBinMax/2)};
+    nTextLines = textLines.size();
+    for (int i = 0; i < nTextLines; ++i) {
+        latex->DrawLatexNDC(0.70, 0.87-0.055*i, textLines[i].c_str());
+    }
+
+    latex = new TLatex();
+    latex->SetTextFont(43);
+    latex->SetTextSize(20*grScale);
+    textLines = {    "p_{T}^{trk} > 1 GeV/c",
+                     "anti-k_{T} jet R = 0.3",
+                     "p_{T}^{jet} > 30 GeV/c",
+                     "p_{T}^{#gamma} > 60 GeV/c",
+                     "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"};
+    nTextLines = textLines.size();
     for (int i = 0; i < nTextLines; ++i) {
         latex->DrawLatexNDC(0.20, legY1-0.08-0.055*i, textLines[i].c_str());
     }
@@ -250,10 +259,10 @@ void plotTechnicalJet(TString inputFile)
     std::string titleY = "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}";
 
     int markerStyles[nHist] = {kFullSquare, kFullCross, kFullCircle};
-    int markerColors[nHist] = {kBlue, kViolet, 419};
+    int markerColors[nHist] = {kOrange+2, kViolet, 419};
     float markerSize = 2.2;
 
-    std::string legendLabels[nHist] = {"raw jets", "bkg jets", "bkg subtracted jets"};
+    std::string legendLabels[nHist] = {"raw jets", "bkg jets", "raw - bkg"};
 
     for (int i = 0; i < nHist; ++i) {
         setTH1(h[i]);
@@ -292,19 +301,28 @@ void plotTechnicalJet(TString inputFile)
     leg->Draw();
     c->Update();
 
-    // text for kinematics
+    // info text
+    std::vector<std::string> textLines;
+    int nTextLines = 0;
     latex = new TLatex();
     latex->SetTextFont(43);
     latex->SetTextSize(24*grScale);
-    std::vector<std::string> textLines = {
-                            "#gamma+jet events",
-                            Form("Cent:%d-%d%%", hiBinMin/2, hiBinMax/2),
-                            "p_{T}^{trk} > 1 GeV/c",
-                            "anti-k_{T} jet R = 0.3",
-                            "p_{T}^{jet} > 30 GeV/c",
-                            "p_{T}^{#gamma} > 60 GeV/c",
-                             "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"};
-    int nTextLines = textLines.size();
+    textLines = { "#gamma+jet events",
+                  Form("Cent. %d-%d%%", hiBinMin/2, hiBinMax/2)};
+    nTextLines = textLines.size();
+    for (int i = 0; i < nTextLines; ++i) {
+        latex->DrawLatexNDC(0.70, 0.87-0.055*i, textLines[i].c_str());
+    }
+
+    latex = new TLatex();
+    latex->SetTextFont(43);
+    latex->SetTextSize(20*grScale);
+    textLines = {    "p_{T}^{trk} > 1 GeV/c",
+                     "anti-k_{T} jet R = 0.3",
+                     "p_{T}^{jet} > 30 GeV/c",
+                     "p_{T}^{#gamma} > 60 GeV/c",
+                     "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"};
+    nTextLines = textLines.size();
     for (int i = 0; i < nTextLines; ++i) {
         latex->DrawLatexNDC(0.20, legY1-0.08-0.055*i, textLines[i].c_str());
     }
@@ -344,7 +362,7 @@ int main(int argc, char* argv[]) {
     if (argc == 2)
         return plotTechnical(argv[1]);
     else
-        std::cout << "./plotPhotonJetFF [input file]" << std::endl;
+        std::cout << "./plotTechnical.exe [input file]" << std::endl;
 
     return 1;
 }
