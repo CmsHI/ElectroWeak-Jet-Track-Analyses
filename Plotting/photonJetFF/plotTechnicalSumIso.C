@@ -168,6 +168,7 @@ int plotTechnicalSumIso(TString inputFile)
     std::string outName = "plotTechnicalSumIso";
     c->SaveAs(Form("%s.png", outName.c_str()));
     c->SaveAs(Form("%s.pdf", outName.c_str()));
+    c->Close();
 
     input->Close();
 

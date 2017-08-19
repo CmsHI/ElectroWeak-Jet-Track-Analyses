@@ -195,6 +195,7 @@ void plotTechnicalTrk(TString inputFile)
     std::string outName = "plotTechnicalTrk";
     c->SaveAs(Form("%s.png", outName.c_str()));
     c->SaveAs(Form("%s.pdf", outName.c_str()));
+    c->Close();
 
     input->Close();
 
@@ -362,6 +363,7 @@ void plotTechnicalJet(TString inputFile)
     std::string outName = "plotTechnicalJet";
     c->SaveAs(Form("%s.png", outName.c_str()));
     c->SaveAs(Form("%s.pdf", outName.c_str()));
+    c->Close();
 
     input->Close();
 
