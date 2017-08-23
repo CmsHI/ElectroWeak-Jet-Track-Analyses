@@ -475,9 +475,9 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
             for (int ie = 0; ie < pho.nEle; ++ie) {
                 if ((*pho.elePt)[ie] < 10)
                     continue;
-                if (abs((*pho.eleEta)[ie] - (*pho.phoEta)[gammaJet[0].phoIdx]) > 0.03) // deta
+                if (fabs((*pho.eleEta)[ie] - (*pho.phoEta)[gammaJet[0].phoIdx]) > 0.03) // deta
                     continue;
-                if (abs(getDPHI((*pho.elePhi)[ie], (*pho.phoPhi)[gammaJet[0].phoIdx])) > 0.03) // dphi
+                if (fabs(acos(cos((*pho.elePhi)[ie] - (*pho.phoPhi)[gammaJet[0].phoIdx]))) > 0.03) // dphi
                     continue;
                 if (eleEpTemp < pho.eleEoverP->at(ie))
                     continue;
