@@ -12,6 +12,7 @@
 #include "TFile.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TMath.h"
 #include "TString.h"
 
 #include "../../../TreeHeaders/JetTree.h"
@@ -112,7 +113,7 @@ void L2L3ResidualWFits::setL2L3Residual(int radius, int etacut, bool dopPb)
 double L2L3ResidualWFits::get_corrected_pt(double jetpt, double jeteta)
 {
     double correction = 1;
-    if( abs(jeteta)> ((double)etacut)) return correction*jetpt;
+    if( TMath::Abs(jeteta)> ((double)etacut)) return correction*jetpt;
     int etaindex = 0;
     for(int ieta = 0; ieta < neta; ieta++){
         if(eta_min[ieta] > jeteta ) continue;
