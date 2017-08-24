@@ -32,14 +32,21 @@ if [[ $3 -eq 0 ]]; then
 fi
 
 if [[ $3 -eq 1 ]]; then
-    for ISAM in ${!SAM_SUFFIX[@]}
-    do
-        hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/gammaJetSkim*.root &
-    done
-    wait
+    # for ISAM in ${!SAM_SUFFIX[@]}
+    # do
+    #     hadd $OUTDIR/${SAMPLE[ISAM]}_gammaJetSkim.root $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/gammaJetSkim*.root &
+    # done
+    # wait
 
     for ISYS in ${!SYS_SUFFIX[@]}
     do
+        for ISAM in ${!SAM_SUFFIX[@]}
+        do
+            CONFSUFFIX=${SAM_SUFFIX[ISAM]}${SYS_SUFFIX[ISYS]}
+            ./Histogramming/gammaJetHistogram.exe ./CutConfigurations/gammaJet${CONFSUFFIX}.conf $OUTDIR/${SAMPLE[ISAM]}_gammaJetSkim.root $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram${SYS_SUFFIX[ISYS]}.root &> $OUTDIR/${SAMPLE[ISAM]}_gammaJetHistogram${SYS_SUFFIX[ISYS]}.log &
+        done
+        wait
+
         for ISAM in ${!SAM_SUFFIX[@]}
         do
             CONFSUFFIX=${SAM_SUFFIX[ISAM]}${SYS_SUFFIX[ISYS]}
