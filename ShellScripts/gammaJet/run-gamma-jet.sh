@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $# -ne 3 ]]; then
+if [[ $# -ne 1 ]]; then
     echo -e "Usage: ./ShellScipts/gammaJet/run-skims.sh [hadoop dir]"
     echo -e "[hadoop dir] will contain condor output"
     exit 1
