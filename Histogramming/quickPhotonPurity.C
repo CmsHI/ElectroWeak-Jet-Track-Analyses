@@ -93,7 +93,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
       TCut sidebandCut = sidebandIsolation && etaCut && ptCut && centCut && noiseCut && triggerCut;
       TCut mcSignalCut = mcIsolation && etaCut && ptCut && centCut && triggerCutMC;
 
-      PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj, dataCandidateCut, sidebandCut, mcSignalCut, 0, i);
+      PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj, dataCandidateCut, sidebandCut, mcSignalCut, 0);
 
       cPurity->cd(j*nCENTBINS+i+1);
 

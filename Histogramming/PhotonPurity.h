@@ -116,7 +116,9 @@ PhotonPurity doFit(CutConfiguration config, TH1D* hSig = 0, TH1D* hBkg = 0, TH1D
 
 PhotonPurity getPurity(CutConfiguration config, TTree* dataTree, TTree* mcTree,
                        TCut dataCandidateCut, TCut sidebandCut,
-                       TCut mcSignalCut, TTree* bkgmcTree = 0, int index = 0) {
+                       TCut mcSignalCut, TTree* bkgmcTree = 0) {
+    Float_t signalShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
+    Float_t backgroundShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
     const Int_t nSIGMABINS = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
     const Float_t maxSIGMA = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieHistMax];
     const std::string mcWeightLabel_s = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
@@ -126,13 +128,10 @@ PhotonPurity getPurity(CutConfiguration config, TTree* dataTree, TTree* mcTree,
     TH1D* hBkg = (TH1D*)hCand->Clone("bkg");
     TH1D* hSig = (TH1D*)hCand->Clone("sig");
 
-    float signalShift[4] = {-0.00006, -0.00003, -0.00003, 0};
-    float backgroundShift[4] = {0.00003, 0, 0.00001, 0};
-
     TString sigshift = "+";
-    sigshift += signalShift[index];
+    sigshift += signalShift;
     TString bkgshift = "+";
-    bkgshift += backgroundShift[index];
+    bkgshift += backgroundShift;
 
     dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", dataCandidateCut, "");
     if (bkgmcTree == 0) {
@@ -158,7 +157,7 @@ PhotonPurity getPurity(CutConfiguration config, TTree* dataTree, TTree* mcTree,
     delete hBkg;
     delete hCand;
 
-    fitr.sigMeanShift = signalShift[index];
+    fitr.sigMeanShift = signalShift;
 
     return fitr;
 }
