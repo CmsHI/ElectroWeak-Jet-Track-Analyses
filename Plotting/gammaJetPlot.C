@@ -396,11 +396,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             } else {
                 int cent_bins[2][4] = {{50, 30, 10, 0}, {100, 50, 30, 10}};
                 float purity[4] = {0.82, 0.77, 0.73, 0.68};
-                float chi2[4] = {95, 119, 107, 178};
 
                 plotInfo.push_back(Form("Cent. %i - %i%%", cent_bins[0][c], cent_bins[1][c]));
                 plotInfo.push_back(Form("Purity: %.2f", purity[c]));
-                plotInfo.push_back(Form("#chi^{2}/ndf: %.0f/78", chi2[c]));
             }
 
             float line_pos = i_y[r*columns + c];
