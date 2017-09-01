@@ -821,9 +821,9 @@ int gammaJetSkim(const TString configFile, const TString inputFile, const TStrin
       for (int ie = 0; ie < ggHi.nEle; ++ie) {
         if ((*ggHi.elePt)[ie] < 10)
           continue;
-        if (fabs((*ggHi.eleEta)[ie] - (*ggHi.phoEta)[phoIdx]) > 0.03) // deta
+        if (fabs((*ggHi.eleEta)[ie] - (*ggHi.phoEta)[phoIdx]) > 0.02) // deta
           continue;
-        if (fabs(acos(cos((*ggHi.elePhi)[ie] - (*ggHi.phoPhi)[phoIdx]))) > 0.03) // dphi
+        if (fabs(acos(cos((*ggHi.elePhi)[ie] - (*ggHi.phoPhi)[phoIdx]))) > 0.15) // dphi
           continue;
         if (eleEpTemp < (*ggHi.eleEoverP)[ie])
           continue;
