@@ -306,19 +306,12 @@ void tiling::set_sizes(T* h1, int font,
     font = font * 10 + 2;
 
     x_title_size = x_title_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
+    x_label_size = x_label_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
     x_tick_size = x_tick_size * tile_widths[col] * tile_widths[0] / std::min(tile_widths[0], tile_heights[0]) / tile_heights[row];
+
     x_title_offset = x_title_offset * std::min(tile_widths[col], tile_heights[row]) / tile_heights[row];
-
-    x_label_size = x_label_size * std::min(tile_widths[0], tile_heights[0]) / std::min(tile_widths[col], tile_heights[row]);
-    x_label_offset = x_label_offset - x_label_size * 0.8 + 0.064;
-
-    x_label_size = x_label_size * frame_width / std::min(tile_widths[0], tile_heights[0]);
-    x_label_offset = normalize_tile_size(x_label_offset) -
-        0.08 * frame_width / tile_widths[0] *
-        (1 - std::min(tile_widths[0], tile_heights[0]) / tile_heights[0]) -
-        0.08 * (tile_heights[rows - 1] - tile_heights[0]) /
-        std::max(tile_heights[0], tile_heights[rows - 1]) * frame_height /
-        std::min(tile_heights[0], tile_heights[rows - 1]);
+    x_label_offset = x_label_offset - 0.8 * (x_label_size + 0.08 * frame_width / std::min(tile_widths[0], tile_heights[0])) -
+        0.08 * (frame_width / tile_widths[0] * (1 - std::min(tile_widths[0], tile_heights[0]) / tile_heights[0]));
 
     y_title_size = y_title_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
     y_label_size = y_label_size * std::min(tile_widths[0], tile_heights[0]) / std::min(tile_widths[col], tile_heights[row]) * frame_width / std::min(tile_widths[0], tile_heights[0]);
