@@ -303,6 +303,8 @@ void tiling::set_sizes(T* h1, int font,
                        float x_title_offset, float y_title_offset,
                        float x_label_offset, float y_label_offset,
                        int col, int row) {
+    float input_x_label_size = x_label_size;
+
     font = font * 10 + 2;
 
     x_title_size = x_title_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
@@ -310,6 +312,9 @@ void tiling::set_sizes(T* h1, int font,
     x_tick_size = x_tick_size * tile_widths[col] / std::min(tile_widths[0], tile_heights[0]) / tile_heights[row] * tile_widths[0];
     x_title_offset = x_title_offset * std::min(tile_widths[col], tile_heights[row]) / tile_heights[row];
     x_label_offset = x_label_offset - 0.8 * x_label_size;
+    /* align top of labels with x axis */
+    /* (without this step, bottom of labels are aligned with x axis) */
+    x_label_offset = x_label_offset + input_x_label_size / 2;
 
     y_title_size = y_title_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
     y_label_size = y_label_size / std::min(tile_widths[col], tile_heights[row]) * frame_width;
