@@ -21,10 +21,10 @@ $outDir"photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB.root"
 );
 
 configList=(
-"Configurations/Performance/photons/photonRecoAna.fake.photonGun.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.photonGun.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.photonGun.SIG.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.photonGun.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
 );
 
 mkdir -p outDir
