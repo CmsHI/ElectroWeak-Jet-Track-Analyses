@@ -2565,7 +2565,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
          setCanvasFinal(c);
          c->Write("",TObject::kOverwrite);
          c->Close();         // do not use Delete() for TCanvas.
-         leg->Delete();
+         if (leg != 0)  leg->Delete();
          if (hTmp != 0)  hTmp->Delete();
      }
 
