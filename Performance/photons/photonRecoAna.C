@@ -182,6 +182,15 @@ enum MODES {
 };
 const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff", "FakeRate", "FakeComposition"};
 std::vector<int> runMode;
+
+enum MODES_ESCALE {
+    kNULL,
+    kRecoPtGenPt,
+    kSCRawEGenE,
+    kN_MODES_ESCALE
+};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE"};
+
 enum ANABINS {
     kEta,
     kGenPt,
@@ -444,7 +453,12 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                                 (*ggHi.pho_trackIsoR4PtCut20)[i]);
                 double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                 double r9 = (*ggHi.phoR9)[i];
-                double energyScale = pt/genPt;
+                double energyScale = -1;
+
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)
+                    energyScale = pt/genPt;
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)
+                    energyScale = (*ggHi.phoSCRawE)[i]/(*ggHi.mcE)[genMatchedIndex];
 
                 std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
@@ -1416,8 +1430,12 @@ int  preLoop(TFile* input, bool makeNew)
         // energy scale
         if (runMode[MODES::kEnergyScale]) {
             if (makeNew) {
+                std::string yTitleEScale = "";
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
+
                 rAnaTmp.h2D =
-                        new TH2D(nameH2D.c_str(), Form(";%s;Reco p_{T} / Gen p_{T}", xTitle.c_str()), nBins, arr,
+                        new TH2D(nameH2D.c_str(), Form(";%s;%s", xTitle.c_str(), yTitleEScale.c_str()), nBins, arr,
                                 axisEscale.nBins, axisEscale.xLow,  axisEscale.xUp);
             }
             else {
