@@ -181,7 +181,7 @@ enum MODES {
     kN_MODES
 };
 const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff", "FakeRate", "FakeComposition"};
-std::vector<bool> runMode;
+std::vector<int> runMode;
 enum ANABINS {
     kEta,
     kGenPt,
@@ -200,7 +200,7 @@ std::vector<recoAnalyzer> rAna[RECOANA::kN_DEPS];
 
 int  readConfiguration(const TString configFile);
 void printConfiguration();
-std::vector<bool> parseMode(std::string mode);
+std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 int  preLoop(TFile* input = 0, bool makeNew = true);
@@ -1164,9 +1164,9 @@ void printConfiguration()
     std::cout << "topMargin    = " << topMargin << std::endl;
 }
 
-std::vector<bool> parseMode(std::string mode)
+std::vector<int> parseMode(std::string mode)
 {
-    std::vector<bool> res(MODES::kN_MODES, false);
+    std::vector<int> res(MODES::kN_MODES, 0);
 
     int len = mode.size();
     if (len != MODES::kN_MODES) return res;
@@ -1176,7 +1176,7 @@ std::vector<bool> parseMode(std::string mode)
         std::istringstream sin(mode.substr(i, 1));
         int in;
         sin >> in;
-        if (in > 0) res.at(i) = true;
+        res.at(i) = in;
     }
 
     // special cases
