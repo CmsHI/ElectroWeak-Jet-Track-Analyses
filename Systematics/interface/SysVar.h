@@ -233,6 +233,30 @@ public:
         calc_average();
     }
 
+    TotalSysVar(TotalSysVar* up, TotalSysVar* down) {
+        init = true;
+
+        hist_name = up->hist_name;
+        sys_type = up->sys_type;
+
+        // SysVar_objects.push_back(up);
+        // SysVar_objects.push_back(down);
+
+        h1D_diff = new TH1D();
+        h1D_ratio = new TH1D();
+
+        up->h1D_diff->Copy(*h1D_diff);
+        up->h1D_ratio->Copy(*h1D_ratio);
+
+        h1D_diff->SetName(Form("h1D_%s_diff_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
+        h1D_ratio->SetName(Form("h1D_%s_ratio_%s_%s_total", hist_name.c_str(), up->sys_type.c_str(), down->sys_type.c_str()));
+
+        TH1D_Max(h1D_diff, down->h1D_diff);
+        TH1D_Max(h1D_ratio, down->h1D_ratio);
+
+        calc_average();
+    }
+
     TotalSysVar(const TotalSysVar& sys) {
         init = sys.init;
 

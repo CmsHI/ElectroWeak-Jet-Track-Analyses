@@ -212,32 +212,19 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
                     std::size_t m = 0;
                     TotalSysVar* total_sys_hists = new TotalSysVar();
 
-                    if (valid_input[_JES_UP] && valid_input[_JES_DOWN]) {
-                        TotalSysVar* JES_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
-                        total_sys_hists->add_SysVar(JES_sys_hists);
-                        ++m; ++m;
-                    } else if (valid_input[_JES_UP] ^ valid_input[_JES_DOWN]) {
-                        total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
-                        ++m;
-                    }
+                    TotalSysVar* JES_up_hists = new TotalSysVar();
+                    JES_up_hists->add_SysVar(systematics[i][j][k][l][m]);
+                    JES_up_hists->add_SysVar(systematics[i][j][k][l][m+2]);
+                    JES_up_hists->add_SysVar(systematics[i][j][k][l][m+4]);
 
-                    if (valid_input[_JES_UP2] && valid_input[_JES_DOWN2]) {
-                        TotalSysVar* JES2_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
-                        total_sys_hists->add_SysVar(JES2_sys_hists);
-                        ++m; ++m;
-                    } else if (valid_input[_JES_UP2] ^ valid_input[_JES_DOWN2]) {
-                        total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
-                        ++m;
-                    }
+                    TotalSysVar* JES_down_hists = new TotalSysVar();
+                    JES_down_hists->add_SysVar(systematics[i][j][k][l][m+1]);
+                    JES_down_hists->add_SysVar(systematics[i][j][k][l][m+3]);
+                    JES_down_hists->add_SysVar(systematics[i][j][k][l][m+5]);
 
-                    if (valid_input[_JES_GLUON] && valid_input[_JES_QUARK]) {
-                        TotalSysVar* JESQG_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
-                        total_sys_hists->add_SysVar(JESQG_sys_hists);
-                        ++m; ++m;
-                    } else if (valid_input[_JES_GLUON] ^ valid_input[_JES_QUARK]) {
-                        total_sys_hists->add_SysVar(systematics[i][j][k][l][m]);
-                        ++m;
-                    }
+                    TotalSysVar* JES_sys_hists = new TotalSysVar(JES_up_hists, JES_down_hists);
+                    total_sys_hists->add_SysVar(JES_sys_hists);
+                    m = m + 6;
 
                     if (valid_input[_PURITY_UP] && valid_input[_PURITY_DOWN]) {
                         TotalSysVar* purity_sys_hists = new TotalSysVar(systematics[i][j][k][l][m], systematics[i][j][k][l][m+1]);
