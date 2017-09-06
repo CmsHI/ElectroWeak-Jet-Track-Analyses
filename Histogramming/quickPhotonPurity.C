@@ -93,12 +93,12 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
       TCut sidebandCut = sidebandIsolation && etaCut && ptCut && centCut && noiseCut && triggerCut;
       TCut mcSignalCut = mcIsolation && etaCut && ptCut && centCut && triggerCutMC;
 
-      PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj, dataCandidateCut, sidebandCut, mcSignalCut, 0);
+      PhotonPurity fitr = getPurity(configCuts, tgj, tmcgj, dataCandidateCut, sidebandCut, mcSignalCut);
 
       cPurity->cd(j*nCENTBINS+i+1);
 
-      TH1F* hSigPdf = fitr.sigPdf;
-      TH1F* hBckPdf = fitr.bckPdf;
+      TH1D* hSigPdf = fitr.sig_fit;
+      TH1D* hBckPdf = fitr.bkg_fit;
       TH1D* hData1  = fitr.data;
       hSigPdf->Add(hBckPdf);
 
@@ -156,7 +156,7 @@ int quickPhotonPurity(const TString configFile, const TString inputData, const T
 
       drawText(Form("%i - %i %% Cent.", CENTBINS[i]/2, CENTBINS[i+1]/2), 0.50, 0.90, 1, 27);
       drawText(Form("Purity: %.2f", (Float_t)fitr.purity), xpos, 0.80, 1, 27);
-      drawText(Form("#chi^{2}/ndf: %.0f/%.0f", (float)fitr.rawchisq, (float)fitr.ndf), xpos, 0.70, 1, 27);
+      drawText(Form("#chi^{2}/ndf: %.0f/%.0f", (float)fitr.chisq, (float)fitr.ndf), xpos, 0.70, 1, 27);
       drawText(Form("#chi^{2}/ndf: %.2f", (Float_t)fitr.chisq), xpos, 0.60, 1, 27);
     }
   }

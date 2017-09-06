@@ -11,155 +11,167 @@
 
 class PhotonPurity {
   public:
-    Double_t nSig;
-    Double_t nSigErr;
-    Double_t purity;
-    Double_t chisq;
-    Double_t sigMeanShift;
-    Double_t rawchisq;
-    Double_t ndf;
+    double nsig;
+    double nsigerr;
+    double ratio;
+    double ratioerr;
+    double sigshift;
+    double sigshifterr;
+    double chisq;
+    double ndf;
 
-    TH1F* sigPdf;
-    TH1F* bckPdf;
+    double purity;
+
+    TH1D* sig_fit;
+    TH1D* bkg_fit;
     TH1D* data;
 };
 
-class histFunction2 {
+class Templates {
   public:
-    histFunction2(TH1D* h, TH1D* h2);
-    ~histFunction2() {
-        delete histBck;
-        delete histSig;
+    Templates(TH1D* hdata, TH1D* hsig, TH1D* hbkg);
+    Templates(TH1D* hdata, TTree* tsig, TCut* csig, TTree* tbkg, TCut* cbkg);
+
+    ~Templates() {
+        data_hist->Delete();
+
+        sig_hist->Delete();
+        bkg_hist->Delete();
     };
 
-    Double_t evaluate(Double_t* x, Double_t* par);
-    TH1D* histSig;
-    TH1D* histBck;
-    Double_t lowEdge;
-    Double_t highEdge;
-    Double_t nbin;
+    double evaluate_hist(double* x, double* par);
+    double evaluate(double* x, double* par);
+
+  private:
+    TH1D* data_hist;
+
+    TH1D* sig_hist;
+    TH1D* bkg_hist;
+
+    TTree* sig_tree;
+    TTree* bkg_tree;
+    TCut sig_cut;
+    TCut bkg_cut;
 };
 
-histFunction2::histFunction2(TH1D* h, TH1D* h2) {
-    histSig = (TH1D*)h->Clone();
-    histBck = (TH1D*)h2->Clone();
+Templates::Templates(TH1D* hdata, TH1D* hsig, TH1D* hbkg) {
+    data_hist = (TH1D*)hdata->Clone("data");
 
-    nbin = h->GetNbinsX();
-    lowEdge = h->GetBinLowEdge(1);
-    highEdge = h->GetBinLowEdge(nbin + 1);
+    sig_hist = (TH1D*)hsig->Clone("signal_template");
+    bkg_hist = (TH1D*)hbkg->Clone("background_template");
 
-    histSig->SetName("hSig");
-    histSig->Scale(1. / histSig->Integral(1, histSig->GetNbinsX() + 1));
-    histBck->SetName("hBck");
-    histBck->Scale(1. / histBck->Integral(1, histBck->GetNbinsX() + 1));
+    sig_hist->Scale(1. / sig_hist->Integral(1, sig_hist->GetNbinsX()));
+    bkg_hist->Scale(1. / bkg_hist->Integral(1, bkg_hist->GetNbinsX()));
 }
 
-Double_t histFunction2::evaluate(Double_t* x, Double_t* par) {
-    Double_t xx = x[0];
-    Int_t binNum = histBck->FindBin(xx);
-    Int_t shiftedSigBinNum = histSig->FindBin(xx + par[2]);
-    return par[0] * (histSig->GetBinContent(shiftedSigBinNum) * par[1] + histBck->GetBinContent(binNum) * (1 - par[1]));
+double Templates::evaluate_hist(double* x, double* par) {
+    double xx = x[0];
+    int bkg_bin = bkg_hist->FindBin(xx);
+    int sig_bin = sig_hist->FindBin(xx);
+    return par[0] * (sig_hist->GetBinContent(sig_bin) * par[1] + bkg_hist->GetBinContent(bkg_bin) * (1 - par[1]));
 }
 
+double Templates::evaluate(double* x, double* par) {
+    double xx = x[0];
+    float half_bin_width = data_hist->GetBinWidth(data_hist->FindBin(xx));
 
-PhotonPurity doFit(CutConfiguration config, TH1D* hSig = 0, TH1D* hBkg = 0, TH1D* hData1 = 0) {
-    Float_t varLow = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitLow];
-    Float_t varHigh = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitHigh];
-    Float_t purityBinVal = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieThreshold];
+    int bkg_entries = bkg_tree->GetEntries(
+        Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
+            bkg_cut.GetTitle(), xx - half_bin_width, xx + half_bin_width)
+    );
+    int sig_entries = sig_tree->GetEntries(
+        Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
+            sig_cut.GetTitle(), xx + par[2] - half_bin_width, xx + par[2] + half_bin_width)
+    );
+    return par[0] * (sig_entries * par[1] + bkg_entries * (1 - par[1]));
+}
 
-    TH1D* hDatatmp = (TH1D*)hData1->Clone(Form("%s_datatmp", hData1->GetName()));
-    Int_t nBins = hDatatmp->GetNbinsX();
-    histFunction2* myFits = new histFunction2(hSig, hBkg);
-    TF1* f = new TF1("f", myFits, &histFunction2::evaluate, varLow, varHigh, 3);
-    f->SetParameters(hDatatmp->Integral(1, nBins + 1), 0.72, 0.0);
+PhotonPurity fit(CutConfiguration config, TH1D* hsig = 0, TH1D* hbkg = 0, TH1D* hdata = 0) {
+    float range_low = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitLow];
+    float range_high = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitHigh];
+    float sieie_cut = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieThreshold];
+
+    Templates* hist_templates = new Templates(hdata, hsig, hbkg);
+
+    TH1D* data_copy = (TH1D*)hdata->Clone(Form("%s_copy", hdata->GetName()));
+    int nbins = data_copy->GetNbinsX();
+
+    TF1* f = new TF1("f", hist_templates, &Templates::evaluate_hist, range_low, range_high, 3);
+    f->SetParameters(data_copy->Integral(1, nbins), 0.72, 0.0);
     f->SetParLimits(1, 0, 1);
     f->FixParameter(2, 0.0);
-    hDatatmp->Fit("f", "WL 0 Q", "", varLow, varHigh);
-    hDatatmp->Fit("f", "WL 0 Q", "", varLow, varHigh);
-    hDatatmp->Fit("f", "WL M 0 Q", "", varLow, varHigh);
+    data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
+    data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
+    data_copy->Fit("f", "WL M 0 Q", "", range_low, range_high);
 
     PhotonPurity res;
-    res.nSig = 0;
-    Double_t nev = f->GetParameter(0);
-    Double_t ratio = f->GetParameter(1);
-    Double_t shift = f->GetParameter(2);
-    Double_t nevError = f->GetParError(0);
-    Double_t ratioError = f->GetParError(1);
-    Double_t shiftError = f->GetParError(2);
 
-    std::cout << "nev: " << nev << " nevError: " << nevError << std::endl;
-    std::cout << "ratio: " << ratio << " ratioError: " << ratioError << std::endl;
-    std::cout << "shift: " << shift << " shiftError: " << shiftError << std::endl;
+    double nevents = f->GetParameter(0);
+    double ratio = f->GetParameter(1);
+    double shift = f->GetParameter(2);
 
-    res.nSig    = nev * ratio;
-    res.nSigErr = nev * ratioError;
-    res.chisq = (Double_t)f->GetChisquare() / f->GetNDF();
-    res.rawchisq = f->GetChisquare();
+    double nevents_error = f->GetParError(0);
+    double ratio_error = f->GetParError(1);
+    double shift_error = f->GetParError(2);
+
+    res.nsig = nevents * ratio;
+    res.nsigerr = res.nsig * sqrt(ratio_error / ratio * ratio_error / ratio + nevents_error / nevents * nevents_error / nevents);
+    res.ratio = ratio;
+    res.ratioerr = ratio_error;
+    res.sigshift = shift;
+    res.sigshifterr = shift_error;
+    res.chisq = f->GetChisquare();
     res.ndf = f->GetNDF();
 
-    TH1F* hSigPdf = (TH1F*)hSig->Clone(Form("%s_tmp", hSig->GetName()));
-    hSigPdf->Scale(res.nSig / hSigPdf->Integral(1, nBins + 1));
+    TH1F* hsig_pdf = (TH1F*)hsig->Clone(Form("%s_fit", hsig->GetName()));
+    hsig_pdf->Scale(res.nsig / hsig_pdf->Integral(1, nbins));
+    TH1F* hbkg_pdf = (TH1F*)hbkg->Clone(Form("%s_fit", hbkg->GetName()));
+    hbkg_pdf->Scale((nevents - res.nsig) / hbkg_pdf->Integral(1, nbins));
 
-    TH1F* hBckPdf = (TH1F*)hBkg->Clone(Form("%s_tmp", hBkg->GetName()));
-    hBckPdf->Scale((nev - res.nSig) / hBckPdf->Integral(1, nBins + 1));
+    double signal = hsig_pdf->Integral(1, hsig_pdf->FindBin(sieie_cut), "width");
+    double background = hbkg_pdf->Integral(1, hbkg_pdf->FindBin(sieie_cut), "width");
+    res.purity = signal / (signal + background);
 
-    Double_t ss1 = hSigPdf->Integral(1, hSigPdf->FindBin(purityBinVal), "width");
-    Double_t bb1 = hBckPdf->Integral(1, hBckPdf->FindBin(purityBinVal), "width");
-    res.purity = ss1 / (ss1 + bb1);
-
-    res.sigPdf = (TH1F*)hSigPdf->Clone(Form("%s_sig", hSig->GetName()));
-    res.bckPdf = (TH1F*)hBckPdf->Clone(Form("%s_bck", hBkg->GetName()));
-    res.data = (TH1D*)hData1->Clone(Form("%s_cand", hData1->GetName()));
+    res.sig_fit = (TH1D*)hsig_pdf->Clone(Form("%s_sig", hsig->GetName()));
+    res.bkg_fit = (TH1D*)hbkg_pdf->Clone(Form("%s_bck", hbkg->GetName()));
+    res.data = (TH1D*)hdata->Clone(Form("%s_cand", hdata->GetName()));
 
     return res;
 }
 
-PhotonPurity getPurity(CutConfiguration config, TTree* dataTree, TTree* mcTree,
-                       TCut dataCandidateCut, TCut sidebandCut,
-                       TCut mcSignalCut, TTree* bkgmcTree = 0) {
-    Float_t signalShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
-    Float_t backgroundShift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
-    const Int_t nSIGMABINS = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
-    const Float_t maxSIGMA = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieHistMax];
-    const std::string mcWeightLabel_s = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
-    TCut mcWeightLabel = mcWeightLabel_s.c_str();
+PhotonPurity getPurity(CutConfiguration config, TTree* data_tree, TTree* mc_tree,
+                       TCut candidate_cut, TCut sideband_cut, TCut signal_cut) {
+    float sig_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
+    float bkg_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
+    const int nbins = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
 
-    TH1D* hCand = new TH1D("cand", "", nSIGMABINS, 0, maxSIGMA);
-    TH1D* hBkg = (TH1D*)hCand->Clone("bkg");
-    TH1D* hSig = (TH1D*)hCand->Clone("sig");
+    const std::string weight_string = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
+    TCut weight_label = weight_string.c_str();
 
-    TString sigshift = "+";
-    sigshift += signalShift;
-    TString bkgshift = "+";
-    bkgshift += backgroundShift;
+    TH1D* hdata = new TH1D("hdata", "", nbins, 0, 0.025);
+    TH1D* hbkg = (TH1D*)hdata->Clone("hbkg");
+    TH1D* hsig = (TH1D*)hdata->Clone("hsig");
 
-    dataTree->Project(hCand->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", dataCandidateCut, "");
-    if (bkgmcTree == 0) {
-        dataTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]" + bkgshift, sidebandCut, "");
-    } else {
-        bkgmcTree->Project(hBkg->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]" + bkgshift, mcWeightLabel * sidebandCut, "");
-    }
-    mcTree->Project(hSig->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]" + sigshift, mcWeightLabel * mcSignalCut, "");
+    data_tree->Project(hdata->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", candidate_cut, "");
+    data_tree->Project(hbkg->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", bkg_shift), sideband_cut, "");
+    mc_tree->Project(hsig->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", sig_shift), weight_label * signal_cut, "");
 
-    std::cout << "dataCount: " << hCand->GetEntries() << std::endl;
-    std::cout << "bkgCount: " << hBkg->GetEntries() << std::endl;
-    std::cout << "sigCount: " << hSig->GetEntries() << std::endl;
+    std::cout << "data count: " << hdata->GetEntries() << std::endl;
+    std::cout << "bkg count: " << hbkg->GetEntries() << std::endl;
+    std::cout << "sig count: " << hsig->GetEntries() << std::endl;
 
-    PhotonPurity fitr = doFit(config, hSig, hBkg, hCand);
+    PhotonPurity fit_result = fit(config, hsig, hbkg, hdata);
 
-    std::cout << "Purity: " << fitr.purity << std::endl;
-    std::cout << "nSig: " << fitr.nSig << std::endl;
-    std::cout << "chisq: " << fitr.chisq << std::endl;
-    std::cout << "rawchisq: " << fitr.rawchisq << std::endl;
-    std::cout << "ndf: " << fitr.ndf << std::endl;
+    std::cout << "purity: " << fit_result.purity << std::endl;
+    std::cout << "nsig: " << fit_result.nsig << std::endl;
+    std::cout << "chisq: " << fit_result.chisq << std::endl;
+    std::cout << "ndf: " << fit_result.ndf << std::endl;
 
-    delete hSig;
-    delete hBkg;
-    delete hCand;
+    delete hsig;
+    delete hbkg;
+    delete hdata;
 
-    fitr.sigMeanShift = signalShift;
-
-    return fitr;
+    return fit_result;
 }
 
 #endif
