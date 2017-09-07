@@ -10,25 +10,11 @@
 
 #include "../Utilities/interface/CutConfigurationParser.h"
 
-class Purity {
-  public:
-    double nsig;
-    double nsigerr;
-    double ratio;
-    double ratioerr;
-    double sigshift;
-    double sigshifterr;
-    double chisq;
-    int ndf;
-
-    double purity;
-
-    TH1D* sig_fit;
-    TH1D* bkg_fit;
-    TH1D* data;
-};
+class Purity;
 
 class Templates {
+    friend class Purity;
+
   public:
     Templates(TH1D* hdata, TH1D* hsig, TH1D* hbkg);
     Templates(TH1D* hdata, TTree* tsig, TCut csig, TTree* tbkg, TCut cbkg);
@@ -40,14 +26,19 @@ class Templates {
         bkg_hist->Delete();
     };
 
-    double evaluate_hist(double* x, double* par);
+    int type() { return fit_type; };
+
     double evaluate(double* x, double* par);
 
   private:
+    int fit_type;
+
     TH1D* data_hist;
 
     TH1D* sig_hist;
     TH1D* bkg_hist;
+
+    TTree* data_tree;
 
     TTree* sig_tree;
     TTree* bkg_tree;
@@ -58,17 +49,23 @@ class Templates {
 };
 
 Templates::Templates(TH1D* hdata, TH1D* hsig, TH1D* hbkg) {
-    data_hist = (TH1D*)hdata->Clone("data");
+    fit_type = 0;
 
-    sig_hist = (TH1D*)hsig->Clone("signal_template");
-    bkg_hist = (TH1D*)hbkg->Clone("background_template");
+    data_hist = (TH1D*)hdata->Clone(Form("%s_template", hdata->GetName()));
+
+    sig_hist = (TH1D*)hsig->Clone(Form("%s_template", hsig->GetName()));
+    bkg_hist = (TH1D*)hbkg->Clone(Form("%s_template", hbkg->GetName()));
 
     sig_hist->Scale(1. / sig_hist->Integral(1, sig_hist->GetNbinsX()));
     bkg_hist->Scale(1. / bkg_hist->Integral(1, bkg_hist->GetNbinsX()));
 }
 
 Templates::Templates(TH1D* hdata, TTree* tsig, TCut csig, TTree* tbkg, TCut cbkg) {
-    data_hist = (TH1D*)hdata->Clone("data");
+    fit_type = 1;
+
+    data_hist = (TH1D*)hdata->Clone(Form("%s_template", hdata->GetName()));
+
+    data_tree = tbkg;
 
     sig_tree = tsig;
     bkg_tree = tbkg;
@@ -85,62 +82,63 @@ Templates::Templates(TH1D* hdata, TTree* tsig, TCut csig, TTree* tbkg, TCut cbkg
     );
 }
 
-double Templates::evaluate_hist(double* x, double* par) {
-    double xx = x[0];
-    int bkg_bin = bkg_hist->FindBin(xx);
-    int sig_bin = sig_hist->FindBin(xx);
-    return par[0] * (sig_hist->GetBinContent(sig_bin) * par[1] + bkg_hist->GetBinContent(bkg_bin) * (1 - par[1]));
-}
-
 double Templates::evaluate(double* x, double* par) {
     double xx = x[0];
-    float half_bin_width = data_hist->GetBinWidth(data_hist->FindBin(xx));
 
-    int bkg_entries = bkg_tree->GetEntries(
-        Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
-            bkg_cut.GetTitle(), xx - half_bin_width, xx + half_bin_width)
-    ) / bkg_total;
-    int sig_entries = sig_tree->GetEntries(
-        Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
-            sig_cut.GetTitle(), xx + par[2] - half_bin_width, xx + par[2] + half_bin_width)
-    ) / sig_total;
-    return par[0] * (sig_entries * par[1] + bkg_entries * (1 - par[1]));
+    switch (fit_type) {
+        case 0: {
+            int bkg_bin = bkg_hist->FindBin(xx);
+            int sig_bin = sig_hist->FindBin(xx);
+            return par[0] * (sig_hist->GetBinContent(sig_bin) * par[1] + bkg_hist->GetBinContent(bkg_bin) * (1 - par[1]));
+            break; }
+        case 1: {
+            float half_bin_width = data_hist->GetBinWidth(data_hist->FindBin(xx));
+
+            int bkg_entries = bkg_tree->GetEntries(
+                Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
+                    bkg_cut.GetTitle(), xx - half_bin_width, xx + half_bin_width)
+            ) / bkg_total;
+            int sig_entries = sig_tree->GetEntries(
+                Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
+                    sig_cut.GetTitle(), xx + par[2] - half_bin_width, xx + par[2] + half_bin_width)
+            ) / sig_total;
+            return par[0] * (sig_entries * par[1] + bkg_entries * (1 - par[1]));
+            break; }
+    }
 }
 
-Purity calc_purity(CutConfiguration config, TTree* data_tree, TTree* mc_tree,
-                         TCut candidate_cut, TCut sideband_cut, TCut signal_cut) {
-    float sig_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
-    float bkg_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
-    const int nbins = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
+class Purity {
+  public:
+    double nentries;
+    double nentrieserr;
+    double ratio;
+    double ratioerr;
+    double shift;
+    double shifterr;
 
-    const std::string weight_string = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].s[CUTS::PHO::k_monteCarloWeightLabel];
-    TCut weight_label = weight_string.c_str();
+    double chisq;
+    int ndf;
 
-    TH1D* hdata = new TH1D("hdata", "", nbins, 0, 0.025);
-    TH1D* hbkg = (TH1D*)hdata->Clone("hbkg");
-    TH1D* hsig = (TH1D*)hdata->Clone("hsig");
+    double nsig;
+    double nsigerr;
+    double purity;
 
-    data_tree->Project(hdata->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", candidate_cut, "");
-    data_tree->Project(hbkg->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", bkg_shift), sideband_cut, "");
-    mc_tree->Project(hsig->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", sig_shift), weight_label * signal_cut, "");
+    TH1D* hdata;
+    TH1D* hsig_fit;
+    TH1D* hbkg_fit;
 
-    std::cout << "data count: " << hdata->GetEntries() << std::endl;
-    std::cout << "bkg count: " << hbkg->GetEntries() << std::endl;
-    std::cout << "sig count: " << hsig->GetEntries() << std::endl;
+    void fit(Templates* templates, TH1D* hdata, float range_low, float range_high, float sieie_cut);
 
-    float range_low = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitLow];
-    float range_high = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityFitHigh];
-    float sieie_cut = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieThreshold];
+  private:
+    void get_parameters(TF1* f);
+    void construct(Templates* templates, float sieie_cut);
+};
 
-    /* fit using binned templates */
-    Templates* hist_templates = new Templates(hdata, hsig, hbkg);
-    /* fit using exact ranges */
-    // Templates* templates = new Templates(hdata, mc_tree, signal_cut, data_tree, sideband_cut);
-
+void Purity::fit(Templates* templates, TH1D* hdata, float range_low, float range_high, float sieie_cut) {
     TH1D* data_copy = (TH1D*)hdata->Clone(Form("%s_copy", hdata->GetName()));
 
-    TF1* f = new TF1("f", hist_templates, &Templates::evaluate_hist, range_low, range_high, 3);
-    f->SetParameters(data_copy->Integral(1, nbins), 0.72, 0.0);
+    TF1* f = new TF1("f", templates, &Templates::evaluate, range_low, range_high, 3);
+    f->SetParameters(data_copy->Integral(1, data_copy->GetNbinsX()), 0.72, 0.0);
     f->SetParLimits(1, 0, 1);
     f->FixParameter(2, 0.0);
 
@@ -148,48 +146,48 @@ Purity calc_purity(CutConfiguration config, TTree* data_tree, TTree* mc_tree,
     data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
     data_copy->Fit("f", "WL M 0 Q", "", range_low, range_high);
 
-    Purity res;
+    get_parameters(f);
+    construct(templates, sieie_cut);
+}
 
-    double nevents = f->GetParameter(0);
-    double ratio = f->GetParameter(1);
-    double shift = f->GetParameter(2);
+void Purity::get_parameters(TF1* f) {
+    nentries = f->GetParameter(0);
+    ratio = f->GetParameter(1);
+    shift = f->GetParameter(2);
 
-    double nevents_error = f->GetParError(0);
-    double ratio_error = f->GetParError(1);
-    double shift_error = f->GetParError(2);
+    nentrieserr = f->GetParError(0);
+    ratioerr = f->GetParError(1);
+    shifterr = f->GetParError(2);
 
-    res.nsig = nevents * ratio;
-    res.nsigerr = res.nsig * sqrt(ratio_error / ratio * ratio_error / ratio + nevents_error / nevents * nevents_error / nevents);
-    res.ratio = ratio;
-    res.ratioerr = ratio_error;
-    res.sigshift = shift;
-    res.sigshifterr = shift_error;
-    res.chisq = f->GetChisquare();
-    res.ndf = f->GetNDF();
+    nsig = nentries * ratio;
+    nsigerr = nsig * sqrt(ratioerr / ratio * ratioerr / ratio + nentrieserr / nentries * nentrieserr / nentries);
 
-    TH1F* hsig_pdf = (TH1F*)hsig->Clone(Form("%s_fit", hsig->GetName()));
-    hsig_pdf->Scale(res.nsig / hsig_pdf->Integral(1, nbins));
-    TH1F* hbkg_pdf = (TH1F*)hbkg->Clone(Form("%s_fit", hbkg->GetName()));
-    hbkg_pdf->Scale((nevents - res.nsig) / hbkg_pdf->Integral(1, nbins));
+    chisq = f->GetChisquare();
+    ndf = f->GetNDF();
+}
 
-    double signal = hsig_pdf->Integral(1, hsig_pdf->FindBin(sieie_cut), "width");
-    double background = hbkg_pdf->Integral(1, hbkg_pdf->FindBin(sieie_cut), "width");
-    res.purity = signal / (signal + background);
+void Purity::construct(Templates* templates, float sieie_cut) {
+    hdata = (TH1D*)templates->data_hist->Clone(Form("%s_fit", templates->data_hist->GetName()));
 
-    res.sig_fit = (TH1D*)hsig_pdf->Clone(Form("%s_sig", hsig->GetName()));
-    res.bkg_fit = (TH1D*)hbkg_pdf->Clone(Form("%s_bck", hbkg->GetName()));
-    res.data = (TH1D*)hdata->Clone(Form("%s_cand", hdata->GetName()));
+    switch (templates->fit_type) {
+        case 0:
+            hsig_fit = (TH1D*)templates->sig_hist->Clone(Form("%s_fit", templates->sig_hist->GetName()));
+            hbkg_fit = (TH1D*)templates->bkg_hist->Clone(Form("%s_fit", templates->bkg_hist->GetName()));
+            break;
+        case 1:
+            hsig_fit = (TH1D*)templates->data_hist->Clone(Form("%s_fit_sig", hdata->GetName()));
+            templates->sig_tree->Project(hsig_fit->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", shift), templates->sig_cut, "");
+            hbkg_fit = (TH1D*)templates->data_hist->Clone(Form("%s_fit_bkg", hdata->GetName()));
+            templates->data_tree->Project(hbkg_fit->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx]"), templates->bkg_cut, "");
+            break;
+    }
 
-    std::cout << "purity: " << res.purity << std::endl;
-    std::cout << "nsig: " << res.nsig << std::endl;
-    std::cout << "chisq: " << res.chisq << std::endl;
-    std::cout << "ndf: " << res.ndf << std::endl;
+    hsig_fit->Scale(nsig / hsig_fit->Integral(1, hsig_fit->GetNbinsX()));
+    hbkg_fit->Scale((nentries - nsig) / hbkg_fit->Integral(1, hbkg_fit->GetNbinsX()));
 
-    delete hsig;
-    delete hbkg;
-    delete hdata;
-
-    return res;
+    double signal = hsig_fit->Integral(1, hsig_fit->FindBin(sieie_cut), "width");
+    double background = hbkg_fit->Integral(1, hbkg_fit->FindBin(sieie_cut), "width");
+    purity = signal / (signal + background);
 }
 
 #endif
