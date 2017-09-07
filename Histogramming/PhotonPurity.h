@@ -18,7 +18,7 @@ class PhotonPurity {
     double sigshift;
     double sigshifterr;
     double chisq;
-    double ndf;
+    int ndf;
 
     double purity;
 
