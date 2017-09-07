@@ -1,15 +1,16 @@
-#ifndef PhotonPurity_h
-#define PhotonPurity_h
+#ifndef _PURITY_H
+#define _PURITY_H
 
-#include <TH1.h>
-#include <TNtuple.h>
-#include <TCut.h>
-#include <TF1.h>
+#include "TH1.h"
+#include "TNtuple.h"
+#include "TCut.h"
+#include "TF1.h"
+
 #include <string>
 
 #include "../Utilities/interface/CutConfigurationParser.h"
 
-class PhotonPurity {
+class Purity {
   public:
     double nsig;
     double nsigerr;
@@ -106,7 +107,7 @@ double Templates::evaluate(double* x, double* par) {
     return par[0] * (sig_entries * par[1] + bkg_entries * (1 - par[1]));
 }
 
-PhotonPurity calc_purity(CutConfiguration config, TTree* data_tree, TTree* mc_tree,
+Purity calc_purity(CutConfiguration config, TTree* data_tree, TTree* mc_tree,
                          TCut candidate_cut, TCut sideband_cut, TCut signal_cut) {
     float sig_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
     float bkg_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
@@ -147,7 +148,7 @@ PhotonPurity calc_purity(CutConfiguration config, TTree* data_tree, TTree* mc_tr
     data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
     data_copy->Fit("f", "WL M 0 Q", "", range_low, range_high);
 
-    PhotonPurity res;
+    Purity res;
 
     double nevents = f->GetParameter(0);
     double ratio = f->GetParameter(1);

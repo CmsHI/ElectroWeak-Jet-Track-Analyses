@@ -21,22 +21,21 @@
 #include <string>
 #include <iostream>
 
-#include "PhotonPurity.h"
+#include "Purity.h"
 
 #include "../Utilities/interface/CutConfigurationParser.h"
-#include "../Plotting/commonUtility.h"
 
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
 
-const vector<int> min_cent = {100, 60, 20, 0};
-const vector<int> max_cent = {200, 100, 60, 20};
+const std::vector<int> min_cent = {100, 60, 20, 0};
+const std::vector<int> max_cent = {200, 100, 60, 20};
 const std::size_t ncent = min_cent.size();
 
-const vector<float> min_pt = {60};
-const vector<float> max_pt = {9999};
+const std::vector<float> min_pt = {60};
+const std::vector<float> max_pt = {9999};
 const std::size_t npt = min_pt.size();
 
-int quickPhotonPurity(const TString configFile, const TString skim_data, const TString skim_mc, const std::string label) {
+int PhotonPurity(const TString configFile, const TString skim_data, const TString skim_mc, const std::string label) {
   gStyle->SetOptStat(0);
 
   TH1::SetDefaultSumw2();
@@ -94,7 +93,7 @@ int quickPhotonPurity(const TString configFile, const TString skim_data, const T
       TCut sideband_cut = sideband_isolation && eta_cut && pt_cut && cent_cut && noiseCut && trigger_selection;
       TCut signal_cut = signal_selection && eta_cut && pt_cut && cent_cut && trigger_selection_mc;
 
-      PhotonPurity purity = calc_purity(configCuts, photonjet_tree, photonjet_tree_mc, candidate_cut, sideband_cut, signal_cut);
+      Purity purity = calc_purity(configCuts, photonjet_tree, photonjet_tree_mc, candidate_cut, sideband_cut, signal_cut);
 
       TH1D* hsig = purity.sig_fit;
       TH1D* hbkg = purity.bkg_fit;
@@ -114,7 +113,7 @@ int quickPhotonPurity(const TString configFile, const TString skim_data, const T
 
 int main(int argc, char* argv[]) {
   if (argc == 5)
-    return quickPhotonPurity(argv[1], argv[2], argv[3], argv[4]);
+    return PhotonPurity(argv[1], argv[2], argv[3], argv[4]);
 
   return 1;
 }
