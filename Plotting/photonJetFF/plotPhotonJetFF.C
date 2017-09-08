@@ -270,7 +270,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             // draw CMS label
             if (c + r == 0) {
                 tiler->draw_latex_on_frame(0.04, 0.96, "CMS", 6, cms_latex_size, 13, c, r);
-                tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Preliminary", 5, cms_latex_size * 0.81, 13, c, r);
+                //tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Preliminary", 5, cms_latex_size * 0.81, 13, c, r);
             }
 
             if (r == 0) {
