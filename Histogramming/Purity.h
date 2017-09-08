@@ -105,6 +105,8 @@ double Templates::evaluate(double* x, double* par) {
             return par[0] * (sig_entries * par[1] + bkg_entries * (1 - par[1]));
             break; }
     }
+
+    return -999;
 }
 
 class Purity {
