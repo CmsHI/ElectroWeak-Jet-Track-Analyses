@@ -128,8 +128,10 @@ class Purity {
     TH1D* hdata;
     TH1D* hsig_fit;
     TH1D* hbkg_fit;
+    TH1D* htotal_fit;
 
     void fit(Templates* templates, TH1D* hdata, float range_low, float range_high, float sieie_cut);
+    void write();
 
   private:
     void get_parameters(TF1* f);
@@ -183,13 +185,13 @@ void Purity::construct(Templates* templates, float sieie_cut) {
 
     switch (templates->fit_type) {
         case 0:
-            hsig_fit = (TH1D*)templates->sig_hist->Clone(Form("%s_fit", templates->sig_hist->GetName()));
-            hbkg_fit = (TH1D*)templates->bkg_hist->Clone(Form("%s_fit", templates->bkg_hist->GetName()));
+            hsig_fit = (TH1D*)templates->sig_hist->Clone(Form("%s_sig", hdata->GetName()));
+            hbkg_fit = (TH1D*)templates->bkg_hist->Clone(Form("%s_bkg", hdata->GetName()));
             break;
         case 1:
-            hsig_fit = (TH1D*)templates->data_hist->Clone(Form("%s_fit_sig", hdata->GetName()));
+            hsig_fit = (TH1D*)templates->data_hist->Clone(Form("%s_sig", hdata->GetName()));
             templates->sig_tree->Project(hsig_fit->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", shift), templates->sig_cut, "");
-            hbkg_fit = (TH1D*)templates->data_hist->Clone(Form("%s_fit_bkg", hdata->GetName()));
+            hbkg_fit = (TH1D*)templates->data_hist->Clone(Form("%s_bkg", hdata->GetName()));
             templates->data_tree->Project(hbkg_fit->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx]"), templates->bkg_cut, "");
             break;
     }
@@ -200,6 +202,18 @@ void Purity::construct(Templates* templates, float sieie_cut) {
     double signal = hsig_fit->Integral(1, hsig_fit->FindBin(sieie_cut), "width");
     double background = hbkg_fit->Integral(1, hbkg_fit->FindBin(sieie_cut), "width");
     purity = signal / (signal + background);
+
+    htotal_fit = (TH1D*)hsig_fit->Clone(Form("%s_total", hdata->GetName()));
+    htotal_fit->Add(hbkg_fit);
+}
+
+void Purity::write() {
+    if (!hdata) { return; }
+
+    hdata->Write("", TObject::kOverwrite);
+    hsig_fit->Write("", TObject::kOverwrite);
+    hbkg_fit->Write("", TObject::kOverwrite);
+    htotal_fit->Write("", TObject::kOverwrite);
 }
 
 #endif

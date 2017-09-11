@@ -128,9 +128,7 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
       std::cout << "chisq: " << purity->chisq << std::endl;
       std::cout << "ndf: " << purity->ndf << std::endl;
 
-      purity->hsig_fit->Write(Form("combined fit_%zu_%zu", i, j), TObject::kOverwrite);
-      purity->hbkg_fit->Write(Form("background_fit_%zu_%zu", i ,j), TObject::kOverwrite);
-      purity->hdata->Write(Form("data_%zu_%zu", i, j), TObject::kOverwrite);
+      purity->write();
     }
   }
 
