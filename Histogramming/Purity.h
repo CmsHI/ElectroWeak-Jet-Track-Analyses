@@ -44,8 +44,8 @@ class Templates {
     TTree* bkg_tree;
     TCut sig_cut;
     TCut bkg_cut;
-    int sig_total;
-    int bkg_total;
+    float sig_total;
+    float bkg_total;
 };
 
 Templates::Templates(TH1D* hdata, TH1D* hsig, TH1D* hbkg) {
@@ -94,11 +94,11 @@ double Templates::evaluate(double* x, double* par) {
         case 1: {
             float half_bin_width = data_hist->GetBinWidth(data_hist->FindBin(xx));
 
-            int bkg_entries = bkg_tree->GetEntries(
+            float bkg_entries = bkg_tree->GetEntries(
                 Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
                     bkg_cut.GetTitle(), xx - half_bin_width, xx + half_bin_width)
             ) / bkg_total;
-            int sig_entries = sig_tree->GetEntries(
+            float sig_entries = sig_tree->GetEntries(
                 Form("(%s) && (phoSigmaIEtaIEta_2012[phoIdx]>%f && phoSigmaIEtaIEta_2012[phoIdx]<%f)",
                     sig_cut.GetTitle(), xx + par[2] - half_bin_width, xx + par[2] + half_bin_width)
             ) / sig_total;
@@ -142,7 +142,17 @@ void Purity::fit(Templates* templates, TH1D* hdata, float range_low, float range
     TF1* f = new TF1("f", templates, &Templates::evaluate, range_low, range_high, 3);
     f->SetParameters(data_copy->Integral(1, data_copy->GetNbinsX()), 0.72, 0.0);
     f->SetParLimits(1, 0, 1);
-    f->FixParameter(2, 0.0);
+    switch (templates->type()) {
+        case 0:
+            f->FixParameter(2, 0.0);
+            break;
+        case 1:
+            f->SetParLimits(2, -0.0001, 0.0001);
+            break;
+        default:
+            f->FixParameter(2, 0.0);
+            break;
+    }
 
     data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
     data_copy->Fit("f", "WL 0 Q", "", range_low, range_high);
