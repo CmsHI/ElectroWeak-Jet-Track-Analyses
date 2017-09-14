@@ -97,6 +97,7 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
       signal_cut = signal_cut * weight_label;
 
       const int nbins = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].i[CUTS::PHO::k_puritySieieBins];
+      const int divisions = 1;
       float sig_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySignalShift];
       float bkg_shift = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_purityBackgroundShift];
 
@@ -104,9 +105,9 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
       data_tree->Project(hdata->GetName(), "phoSigmaIEtaIEta_2012[phoIdx]", candidate_cut, "");
       std::cout << "data count: " << hdata->GetEntries() << std::endl;
 
-      TH1D* hbkg = (TH1D*)hdata->Clone(Form("hbkg_%zu_%zu", i, j));
+      TH1D* hbkg = new TH1D(Form("hbkg_%zu_%zu", i, j), "", nbins * divisions, 0, 0.025);
       data_tree->Project(hbkg->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", bkg_shift), sideband_cut, "");
-      TH1D* hsig = (TH1D*)hdata->Clone(Form("hsig_%zu_%zu", i, j));
+      TH1D* hsig = new TH1D(Form("hsig_%zu_%zu", i, j), "", nbins * divisions, 0, 0.025);
       mc_tree->Project(hsig->GetName(), Form("phoSigmaIEtaIEta_2012[phoIdx] + %f", sig_shift), signal_cut, "");
       std::cout << "bkg count: " << hbkg->GetEntries() << std::endl;
       std::cout << "sig count: " << hsig->GetEntries() << std::endl;
@@ -116,14 +117,12 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
       float sieie_cut = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_puritySieieThreshold];
 
       /* fit using binned templates */
-      Templates* templates = new Templates(hdata, hsig, hbkg);
-
-      /* fit using exact ranges */
-      // Templates* templates = new Templates(hdata, mc_tree, signal_cut, data_tree, sideband_cut);
+      Templates* templates = new Templates(hdata, hsig, hbkg, divisions);
 
       Purity* purity = new Purity();
       purity->fit(templates, hdata, range_low, range_high, sieie_cut);
 
+      std::cout << "nsig: " << purity->nsig << std::endl;
       std::cout << "purity: " << purity->purity << std::endl;
       std::cout << "chisq: " << purity->chisq << std::endl;
       std::cout << "ndf: " << purity->ndf << std::endl;
