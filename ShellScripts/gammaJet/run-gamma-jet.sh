@@ -17,9 +17,7 @@ INFILE=(./ShellScripts/gammaJet/PbPb_Data_HiForest.list ./ShellScripts/gammaJet/
 MIXINGSAMPLE=(${MIXDIR}/PbPb_Data_minbiasJetSkim.root ${MIXDIR}/PbPb_MC_minbiasJetSkim.root DUMMY.root DUMMY.root)
 NJOBS=(400 100 200 5)
 
-if [[ $3 -eq 0 ]]; then
-    for ISAM in ${!SAM_SUFFIX[@]}
-    do
-        ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${SAM_SUFFIX[ISAM]}.conf ${INFILE[ISAM]} $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/ ${NJOBS[ISAM]} ${MIXINGSAMPLE[ISAM]}
-    done
-fi
+for ISAM in ${!SAM_SUFFIX[@]}
+do
+    ./ShellScripts/gammaJet/gamma-jet-condor.sh ./CutConfigurations/gammaJet${SAM_SUFFIX[ISAM]}.conf ${INFILE[ISAM]} $HADOOPDIR/${SAMPLE[ISAM]}_unmerged/ ${NJOBS[ISAM]} ${MIXINGSAMPLE[ISAM]}
+done
