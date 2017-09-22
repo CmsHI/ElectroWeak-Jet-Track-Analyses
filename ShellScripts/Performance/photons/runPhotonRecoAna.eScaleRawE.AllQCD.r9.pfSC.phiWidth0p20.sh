@@ -2,13 +2,7 @@
 
 #g++ -Wall -Werror -Wextra -O2 `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -MMD -MF ./build/Performance/photons/photonRecoAna.d Performance/photons/photonRecoAna.C -o Performance/photons/photonRecoAna.exe
 
-runCmd="time -p"
-runCmdStr="time -p"
-if [[ $USER == "tatar" ]]; then
-  runCmd="$HOME/code/scripts/myRun.sh"
-  runCmdStr="myRun"
-fi
-
+runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/photons/photonRecoAna.exe"
 inputList=(
 "Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC.list"
@@ -48,6 +42,6 @@ do
     outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     $runCmd $progPath $configFile $inputFile $outputFile &> $outputFileLOG &
-    echo "$runCmdStr $progPath $configFile $inputFile $outputFile &> $outputFileLOG &"
+    echo "$runCmd $progPath $configFile $inputFile $outputFile &> $outputFileLOG &"
 done
 
