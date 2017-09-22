@@ -14,8 +14,8 @@ outputSkimPrefix=$skim_HI_ZEE_DATA_Prefix
 outputSkim=$outputSkimDir$outputSkimPrefix".root"
 outputSkimLOG=$outputSkimDirLOG$outputSkimPrefix".log"
 echo "inputSkim     : "$inputSkim; echo "outputSkim    : "$outputSkim;echo "outputSkimLOG : "$outputSkimLOG
-echo "~/code/scripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkim &> $outputSkimLOG &"
-~/code/scripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkim &> $outputSkimLOG &
+echo "./ShellScripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkim &> $outputSkimLOG &"
+./ShellScripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkim &> $outputSkimLOG &
 
 ####################
 DO_SYSVAR=$DO_SYSVAR_HI_ZEE_DATA

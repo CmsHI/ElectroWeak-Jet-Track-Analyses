@@ -14,8 +14,8 @@ outputSkimPrefix=$skim_HI_ZEE_MC_Pyquen_Prefix
 outputSkim=$outputSkimDir$outputSkimPrefix".root"
 outputSkimLOG=$outputSkimDirLOG$outputSkimPrefix".log"
 echo "inputSkim     : "$inputSkim; echo "outputSkim    : "$outputSkim;echo "outputSkimLOG : "$outputSkimLOG
-echo "~/code/scripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkimHydjet &> $outputSkimLOG &"
-~/code/scripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkimHydjet &> $outputSkimLOG &
+echo "./ShellScripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkimHydjet &> $outputSkimLOG &"
+./ShellScripts/myRun.sh ForestSkimmers/Zbosons/zJetSkim.exe $configFile $inputSkim $outputSkim $inputMinBiasJetSkimHydjet &> $outputSkimLOG &
 
 ####################
 DO_SYSVAR=$DO_SYSVAR_HI_ZEE_MC_Pyquen

@@ -17,8 +17,8 @@ outputHistPrefix=$hist_HI_ZEE_MC_Pyquen_Prefix
 outputHist=$outputHistDir$outputHistPrefix".root"
 outputHistLOG=$outputHistDirLOG$outputHistPrefix".log"
 echo "inputHist     : "$inputHist; echo "outputHist    : "$outputHist; echo "outputLOGHist : "$outputHistLOG
-echo "~/code/scripts/myRun.sh Histogramming/zBosons/zJetHistogram.exe $configFile $inputHist $outputHist &> $outputHistLOG &"
-~/code/scripts/myRun.sh Histogramming/zBosons/zJetHistogram.exe $configFile $inputHist $outputHist &> $outputHistLOG &
+echo "./ShellScripts/myRun.sh Histogramming/zBosons/zJetHistogram.exe $configFile $inputHist $outputHist &> $outputHistLOG &"
+./ShellScripts/myRun.sh Histogramming/zBosons/zJetHistogram.exe $configFile $inputHist $outputHist &> $outputHistLOG &
 
 ####################
 DO_SYSVAR=$DO_SYSVAR_HI_ZEE_MC_Pyquen

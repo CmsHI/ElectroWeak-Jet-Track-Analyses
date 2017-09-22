@@ -280,7 +280,7 @@ function runZJetHistogramSum() {
         outputLOG=$outputPrefix2."log"
 
         echo "$progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &"
-        $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ~/code/scripts/myRun.sh
+        $progPath $importedConfig $zJetHistZEEPath $zJetHistZMMPath $output &> $outputLOG &    # ./ShellScripts/myRun.sh
     done
 
     echo "runZJetHistogramSum() - END"
