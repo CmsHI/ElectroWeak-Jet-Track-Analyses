@@ -44,13 +44,13 @@ function runGeneratedConf() {
     
     if (( ${#logFile} > 0 )); then
       echo "$progPath $temporaryConfig $inputFile $outputFile &> $logFile &"
-      $progPath $temporaryConfig $inputFile $outputFile &> $logFile & #      ~/code/scripts/myRun.sh  
+      $progPath $temporaryConfig $inputFile $outputFile &> $logFile & #      ./ShellScripts/myRun.sh
       ## possibility to run as a ROOT macro
       ## progPath2="${progPath/.exe/.C}"
       ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'")' &> $logFile &
     else
       echo "$progPath $temporaryConfig $inputFile $outputFile &"
-      $progPath $temporaryConfig $inputFile $outputFile & # ~/code/scripts/myRun.sh 
+      $progPath $temporaryConfig $inputFile $outputFile & # ./ShellScripts/myRun.sh
       ## possibility to run as a ROOT macro
       ## progPath2="${progPath/.exe/.C}"
       ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'")'
@@ -106,13 +106,13 @@ function runGeneratedConf2() {
     
     if (( ${#logFile} > 0 )); then
       echo "$progPath $temporaryConfig $inputFile $outputFile $ioFile2 &> $logFile &"
-      $progPath $temporaryConfig $inputFile $outputFile $ioFile2 &> $logFile & #      ~/code/scripts/myRun.sh  
+      $progPath $temporaryConfig $inputFile $outputFile $ioFile2 &> $logFile & #      ./ShellScripts/myRun.sh
       ## possibility to run as a ROOT macro
       ## progPath2="${progPath/.exe/.C}"
       ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'", "'$ioFile2'")' &> $logFile &
     else
       echo "$progPath $temporaryConfig $inputFile $outputFile $ioFile2 &"
-      $progPath $temporaryConfig $inputFile $outputFile $ioFile2 & # ~/code/scripts/myRun.sh 
+      $progPath $temporaryConfig $inputFile $outputFile $ioFile2 & # ./ShellScripts/myRun.sh
       ## possibility to run as a ROOT macro
       ## progPath2="${progPath/.exe/.C}"
       ## root -l ''$progPath2'("'$temporaryConfig'", "'$inputFile'", "'$outputFile'", "'$ioFile2'")'
