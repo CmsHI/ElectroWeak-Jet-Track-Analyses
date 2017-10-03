@@ -22,6 +22,8 @@ void zJet_saveModelDataPoints(const TString outputFile = "Data/zBosons/model_zJe
 
 void zJet_saveModelDataPoints(const TString outputFile)
 {
+   std::cout<<"running zJet_saveModelDataPoints()"<<std::endl;
+
    std::string dirName = "";
    std::string dirTitle = "";
    TFile* output = new TFile(outputFile.Data(),"RECREATE");
@@ -39,14 +41,16 @@ void zJet_saveModelDataPoints(const TString outputFile)
    output->mkdir(dirName.c_str(), dirTitle.c_str());
    output->cd(dirName.c_str());
 
-   std::vector<std::string> observables_HYBRID {"xjz", "dphi", "rjz", "IAA", "IAA_ptBin5", "IAA_ptBin6"};
+   std::vector<std::string> observables_HYBRID {"xjz", "dphijz", "rjz", "IAA", "IAA_ptBin5", "IAA_ptBin6"};
    int nObservables_HYBRID = observables_HYBRID.size();
    for (int i = 0; i < nObservables_HYBRID; ++i) {
 
        std::string observable = observables_HYBRID.at(i);
-       std::string tmpObjectName = Form("%s_ptBin0_hiBin1", observable.c_str());
-       if (observable == "IAA_ptBin5" || observable == "IAA_ptBin6")
-           tmpObjectName = replaceAll(tmpObjectName, "_ptBin0", "");
+       std::string tmpObjectName = Form("%s_pbpb_cent030_theory_HYBRID", observable.c_str());
+       if (observable == "IAA_ptBin5")
+           tmpObjectName = "IAA_pbpb_cent030_zPt6080_theory_HYBRID";
+       else if (observable == "IAA_ptBin6")
+           tmpObjectName = "IAA_pbpb_cent030_zPt80_theory_HYBRID";
 
        std::string objectName = "";
 
@@ -66,7 +70,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
                yPP = HYBRID::y_xjz_PP;
                yerrPP = HYBRID::yerr_xjz_PP;
            }
-           else if (observable == "dphi") {
+           else if (observable == "dphijz") {
                x[iModel] = HYBRID::x_dphi;
                ymin[iModel] = HYBRID::ymin_dphi[iModel];
                ymax[iModel] = HYBRID::ymax_dphi[iModel];
@@ -109,7 +113,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
 
        if (xPP.size() > 0) {
-           objectName = Form("%s_PP", tmpObjectName.c_str());
+           objectName = Form("%s_pp_theory_HYBRID", observable.c_str());
            grErr = new TGraphErrors();
            setTGraphErrors(grErr, xPP, yPP, yerrPP);
            grErr->SetName(Form("gr_%s", objectName.c_str()));
@@ -125,12 +129,12 @@ void zJet_saveModelDataPoints(const TString outputFile)
    output->mkdir(dirName.c_str(), dirTitle.c_str());
    output->cd(dirName.c_str());
 
-   std::vector<std::string> observables_JEWEL {"xjz", "dphi", "rjz", "xjz_mean"};
+   std::vector<std::string> observables_JEWEL {"xjz", "dphijz", "rjz", "xjzMean"};
    int nObservables_JEWEL = observables_JEWEL.size();
    for (int i = 0; i < nObservables_JEWEL; ++i) {
 
        std::string observable = observables_JEWEL.at(i);
-       std::string tmpObjectName = Form("%s_ptBin0_hiBin1", observable.c_str());
+       std::string tmpObjectName = Form("%s_pbpb_cent030_theory_JEWEL", observable.c_str());
 
        std::string objectName = "";
 
@@ -149,7 +153,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
            yPP = JEWEL::y_xjz_PP;
            yerrPP = JEWEL::yerr_xjz_PP;
        }
-       else if (observable == "dphi") {
+       else if (observable == "dphijz") {
            x = JEWEL::x_dphi;
            y = JEWEL::y_dphi;
            yerr = JEWEL::yerr_dphi;
@@ -165,7 +169,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
            yPP = JEWEL::y_rjz_PP;
            yerrPP = JEWEL::yerr_rjz_PP;
        }
-       else if (observable == "xjz_mean") {
+       else if (observable == "xjzMean") {
            x = JEWEL::x_xjz_mean;
            y = JEWEL::y_xjz_mean;
            yerr = JEWEL::yerr_xjz_mean;
@@ -184,7 +188,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
 
        if (xPP.size() > 0) {
-           objectName = Form("%s_PP", tmpObjectName.c_str());
+           objectName = Form("%s_pp_theory_JEWEL", observable.c_str());
            grErr = new TGraphErrors();
            setTGraphErrors(grErr, xPP, yPP, yerrPP);
            grErr->SetName(Form("gr_%s", objectName.c_str()));
@@ -205,7 +209,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
    for (int i = 0; i < nObservables_VITEV; ++i) {
 
        std::string observable = observables_VITEV.at(i);
-       std::string tmpObjectName = Form("%s_ptBin0_hiBin1", observable.c_str());
+       std::string tmpObjectName = Form("%s_pbpb_cent030_theory_GLV", observable.c_str());
 
        std::string objectName = "";
 
@@ -239,7 +243,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
 
        if (xPP.size() > 0) {
-           objectName = Form("%s_PP", tmpObjectName.c_str());
+           objectName = Form("%s_pp_theory_GLV", observable.c_str());
 
            int nPoints = xPP.size();
            double xArr[nPoints];
@@ -253,8 +257,10 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
    }
 
+   std::cout<<"Closing the output file"<<std::endl;
    output->Close();
-   std::cout<< "output file has been closed" <<std::endl;
+
+   std::cout<<"running zJet_saveModelDataPoints() - END"<<std::endl;
 }
 
 int main(int argc, char** argv)
