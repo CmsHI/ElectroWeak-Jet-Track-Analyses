@@ -24,22 +24,18 @@ void zJet_saveModelDataPoints(const TString outputFile)
 {
    std::cout<<"running zJet_saveModelDataPoints()"<<std::endl;
 
-   std::string dirName = "";
-   std::string dirTitle = "";
    TFile* output = new TFile(outputFile.Data(),"RECREATE");
+   std::string dirName = "THEORY";
+   std::string dirTitle = "Z+jet at 5.02 TeV predictions";
+   output->mkdir(dirName.c_str(), dirTitle.c_str());
+   output->cd(dirName.c_str());
 
    std::cout << "output file : " << outputFile.Data() << std::endl;
 
-   // TH1D* h1D = 0;
    TGraph* gr = new TGraph();
    TGraphErrors* grErr = new TGraphErrors();
 
-   // HYBRID model predictions
    std::cout << "HYBRID model predictions" << std::endl;
-   dirName = "HYBRID";
-   dirTitle = Form("Z+jet at 5.02 TeV predictions from %s", dirName.c_str());
-   output->mkdir(dirName.c_str(), dirTitle.c_str());
-   output->cd(dirName.c_str());
 
    std::vector<std::string> observables_HYBRID {"xjz", "dphijz", "rjz", "IAA", "IAA_ptBin5", "IAA_ptBin6"};
    int nObservables_HYBRID = observables_HYBRID.size();
@@ -122,12 +118,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
    }
 
-   // JEWEL predictions
    std::cout << "JEWEL predictions" << std::endl;
-   dirName = "JEWEL";
-   dirTitle = Form("Z+jet at 5.02 TeV predictions from %s", dirName.c_str());
-   output->mkdir(dirName.c_str(), dirTitle.c_str());
-   output->cd(dirName.c_str());
 
    std::vector<std::string> observables_JEWEL {"xjz", "dphijz", "rjz", "xjzMean"};
    int nObservables_JEWEL = observables_JEWEL.size();
@@ -197,12 +188,7 @@ void zJet_saveModelDataPoints(const TString outputFile)
        }
    }
 
-   // Ivan Vitev predictions
-   std::cout << "Ivan Vitev predictions" << std::endl;
-   dirName = "VITEV";
-   dirTitle = Form("Z+jet at 5.02 TeV predictions from %s", dirName.c_str());
-   output->mkdir(dirName.c_str(), dirTitle.c_str());
-   output->cd(dirName.c_str());
+   std::cout << "GLV predictions" << std::endl;
 
    std::vector<std::string> observables_VITEV {"xjz"};
    int nObservables_VITEV = observables_VITEV.size();
