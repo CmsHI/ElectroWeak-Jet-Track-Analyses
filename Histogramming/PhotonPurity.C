@@ -27,12 +27,12 @@
 
 const TCut noiseCut = "!((phoE3x3[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE3x3[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03) && (phoE1x5[phoIdx]/phoE5x5[phoIdx] > 1./3.-0.03 && phoE1x5[phoIdx]/phoE5x5[phoIdx] < 1./3.+0.03) && (phoE2x5[phoIdx]/phoE5x5[phoIdx] > 2./3.-0.03 && phoE2x5[phoIdx]/phoE5x5[phoIdx] < 2./3.+0.03))";
 
-const std::vector<int> min_cent = {100, 60, 20, 0};
-const std::vector<int> max_cent = {200, 100, 60, 20};
+const std::vector<int> min_cent = {0, 0, 30, 0, 20, 60, 100};
+const std::vector<int> max_cent = {200, 60, 2000, 20, 60, 100, 200};
 const std::size_t ncent = min_cent.size();
 
-const std::vector<float> min_pt = {60};
-const std::vector<float> max_pt = {9999};
+const std::vector<float> min_pt = {40, 60, 40, 50, 60, 80, 80, 100};
+const std::vector<float> max_pt = {9999, 9999, 50, 60, 80, 9999, 100, 9999};
 const std::size_t npt = min_pt.size();
 
 int PhotonPurity(const TString configFile, const TString skim_data, const TString skim_mc, const std::string label) {
@@ -45,6 +45,8 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
     std::cout << "Invalid configfile, terminating." << std::endl;
     return 1;
   }
+
+  float purity_values[ncent][npt] = {0};
 
   std::string jetCollection = config.proc[CUTS::kHISTOGRAM].obj[CUTS::kJET].s[CUTS::JET::k_jetCollection];
 
@@ -128,10 +130,17 @@ int PhotonPurity(const TString configFile, const TString skim_data, const TStrin
       std::cout << "ndf: " << purity->ndf << std::endl;
 
       purity->write();
+
+      purity_values[i][j] = purity->purity;
     }
   }
 
   output->Close();
+
+  for (std::size_t j=0; j<npt; ++j)
+    for (std::size_t i=0; i<ncent; ++i)
+      printf("%f, ", purity_values[i][j]);
+  printf("\n");
 
   return 0;
 }
