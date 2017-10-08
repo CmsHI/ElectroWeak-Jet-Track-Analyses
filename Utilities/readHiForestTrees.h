@@ -61,6 +61,8 @@ void readHiForestTrees()
         std::cout << "Tree* tskim = skimanalysis/HltTree" << std::endl;
     if (tevt != 0)
         std::cout << "Tree* tevt = hiEvtAnalyzer/HiTree" << std::endl;
+    if (tGen != 0)
+        std::cout << "Tree* tGen = HiGenParticleAna/hi" << std::endl;
     if (t3 != 0)
         std::cout << "Tree* t3 = akPu3PFJetAnalyzer/t" << std::endl;
     if (t3pp != 0)
