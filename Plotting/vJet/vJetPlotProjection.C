@@ -1,0 +1,1434 @@
+/*
+ * Stand-alone macro to produce CMS projection plots for Z+jet and photon+jet FF observables.
+ */
+#include <TFile.h>
+#include <TDirectoryFile.h>
+#include <TCanvas.h>
+#include <TPad.h>
+#include <TAxis.h>
+#include <TGaxis.h>
+#include <TH1.h>
+#include <TH1D.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TF1.h>
+#include <TLine.h>
+#include <TLegend.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TStyle.h>
+#include <TColor.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
+
+enum FIGURE{
+    k_xjz,
+    k_xijet,
+    k_xigamma,
+    k_xijet_ratio,
+    k_xigamma_ratio,
+    k_xijet_ratioOnly,
+    k_xigamma_ratioOnly,
+    kN_FIGURES
+};
+
+std::string figureNames[kN_FIGURES] = {"projection_xjz",
+        "projection_xijet",
+        "projection_xigamma",
+        "projection_xijet_ratio",
+        "projection_xigamma_ratio",
+        "projection_xijet_ratioOnly",
+        "projection_xigamma_ratioOnly",};
+
+// Canvas
+int windowWidth;
+int windowHeight;
+int logX;
+int logY;
+float leftMargin;
+float rightMargin;
+float bottomMargin;
+float topMargin;
+// TH1D
+std::string xTitle;
+std::string yTitle;
+float xTitleSize;
+float yTitleSize;
+float xTitleOffset;
+float yTitleOffset;
+int xTitleFont;
+int yTitleFont;
+double yMin;
+double yMax;
+std::vector<std::string> histPaths;
+std::vector<int> markerColors;
+std::vector<int> markerStyles;
+std::vector<float> markerSizes;
+std::vector<int> lineColors;
+std::vector<float> lineTransparencies;
+std::vector<int> lineWidths;
+std::vector<int> fillColors;
+std::vector<float> fillTransparencies;
+std::vector<std::string> drawOptions;
+std::vector<std::string> sysPaths;
+std::vector<bool> sysUseRelUnc;
+std::vector<int> sysColors;
+std::vector<float> sysTransparencies;
+std::vector<int> sysFillStyles;
+// TGraph
+std::vector<std::string> graphPaths;
+std::vector<int> graphMarkerColors;
+std::vector<float> graphMarkerTransparencies;
+std::vector<int> graphMarkerStyles;
+std::vector<float> graphMarkerSizes;
+std::vector<int> graphLineColors;
+std::vector<float> graphLineTransparencies;
+std::vector<int> graphLineWidths;
+std::vector<int> graphLineStyles;
+std::vector<int> graphFillColors;
+std::vector<float> graphFillTransparencies;
+std::vector<std::string> graphDrawOptions;
+// TLegend
+float legendX1;
+float legendY1;
+float legendWidth;
+float legendHeight;
+float legendMargin;
+std::vector<std::string> legendEntryTexts;
+std::vector<std::string> legendEntryOptions;
+// TLatex
+float textX;
+std::vector<float> textYs;
+int textAlign;
+int textFont;
+float textSize;
+std::vector<std::string> textLines;
+// TLatex over pad
+std::vector<float> textXsOverPad;
+float textYOverPad;
+std::vector<int> textAlignsOverPad;
+int textFontOverPad;
+float textSizeOverPad;
+std::vector<std::string> textOverPadLines;
+// TLatex CMS Projection
+float textXCMSProj;
+float textYCMSProj;
+int textAlignCMSProj;
+int textFontCMSProj;
+float textSizeCMSProj;
+
+double statsIncrease = 10 / 0.404;
+
+void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
+void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
+void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysReduction = 0);
+void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
+void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet = true, double sysReduction = 0);
+void setTH1D(int iHist, TH1D* h);
+void setTGraph(int iGraph, TGraph* gr);
+void setTGraphSys(int iSys, TGraph* gr);
+void setCanvas(TCanvas* c);
+void setLegend(TLegend* leg);
+void setLatex(int iText, TLatex* latex);
+void setLatexOverPad(int iText, TLatex* latex);
+void setLatexCMSProj(TLatex* latex, std::string text = "CMS");
+double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
+double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
+void divideCanvas(TCanvas* c, int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
+void divideCanvas(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void scaleBinErrors(TH1* h, double scale);
+void fillTH1fromTF1(TH1* h, TF1* f, int binFirst, int binLast);
+
+void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction)
+{
+    std::cout<<"running vJetPlotProjection()"<<std::endl;
+    std::cout<<"figureIndex = "<< figureIndex <<std::endl;
+    std::cout<<"inputFile = "<< inputFile.c_str() <<std::endl;
+
+    switch (figureIndex) {
+        case k_xjz:
+            projectionPlot_xjz(inputFile, sysReduction);
+            break;
+        case k_xijet:
+            projectionPlot_xi(inputFile, true, sysReduction);
+            break;
+        case k_xigamma:
+            projectionPlot_xi(inputFile, false, sysReduction);
+            break;
+        case k_xijet_ratio:
+            projectionPlot_xi_ratio(inputFile, true, sysReduction);
+            break;
+        case k_xigamma_ratio:
+            projectionPlot_xi_ratio(inputFile, false, sysReduction);
+            break;
+        case k_xijet_ratioOnly:
+            projectionPlot_xi_ratioOnly(inputFile, true, sysReduction);
+            break;
+        case k_xigamma_ratioOnly:
+            projectionPlot_xi_ratioOnly(inputFile, false, sysReduction);
+            break;
+        default:
+            break;
+    }
+
+    std::cout<<"vJetPlotProjection() - END"<<std::endl;
+}
+
+void projectionPlot_xjz(std::string inputFile, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xjz()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    TCanvas* c = 0;
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[k_xjz].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[k_xjz].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[k_xjz].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "x_{jZ} = p^{jet}_{T}/p^{Z}_{T}";
+    yTitle = "#frac{1}{N_{Z}} #frac{dN_{jZ}}{dx_{jZ}}";
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 1;
+
+    enum HISTLABELS {
+        k_pbpb,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "h1D_xjz_pbpb_cent0100"
+    };
+    markerColors = {kBlack};
+    markerStyles = {kFullCircle};
+    markerSizes = {1.70};
+    lineColors = {kBlack};
+    lineTransparencies = {1.0};
+    lineWidths = {3};
+    fillColors = {46};
+    if (sysReduction == -1) fillColors = {0};
+    fillTransparencies = {1.0};
+    drawOptions = {"e same"};
+    sysPaths = {
+            "h1D_sysVar_xjz_pbpb_cent0100_rel",
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+        };
+    }
+    sysUseRelUnc = {true};
+    sysColors = {46};
+    sysTransparencies = {0.7};
+    sysFillStyles = {1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+    }
+    // modify bin contents for projection
+    double sf = 0.96;
+    int iBin = 3;
+    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
+    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
+    sf = 0.9;
+    iBin = 5;
+    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
+    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
+    sf = 0.6;
+    iBin = 8;
+    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
+    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
+    // add content to last bin
+    sf = 0.6;
+    iBin = 10;
+    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin-1) * sf);
+    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(sf));
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i == 0) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    /*
+    legendX1 = 0.6;
+    legendY1 = 0.7875;
+    legendWidth = 0.44;
+    legendHeight = 0.1125;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "PbPb, 0-30 %",
+    };
+    legendEntryOptions = {
+            "pf",
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+    */
+
+    textAlign = 31;
+    textFont = 43;
+    textSize = 34;
+    textLines = {
+            "Projected PbPb data",
+            "Cent. 0-100 %",
+            "p_{T}^{Z} > 60 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "#Delta#phi_{jZ} > #frac{7}{8}#pi"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.93;
+    textYs.resize(nTextLines, 0.80);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.056;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 10 nb^{-1}"
+    };
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.05;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_xjz() - END"<<std::endl;
+}
+
+void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xi()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    TCanvas* c = 0 ;
+
+    int xiIndex = isxijet ? k_xijet : k_xigamma;
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[xiIndex].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[xiIndex].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[xiIndex].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "#xi^{jet}";
+    yTitle = "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}";
+    if (!isxijet) {
+        xTitle = "#xi^{#gamma}_{T}";
+        yTitle = "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{#gamma}_{T}}";
+    }
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 5.5;
+
+    enum HISTLABELS {
+        k_pbpb,
+        k_pp,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "hff_final_pbpbdata_recoreco_0_20",
+            "hff_final_ppdata_srecoreco_0_20"
+    };
+    markerColors = {kBlack, kBlack};
+    markerStyles = {kFullCircle, kOpenCircle};
+    markerSizes = {1.70, 1.70};
+    lineColors = {kBlack, kBlack};
+    lineTransparencies = {1.0, 1.0};
+    lineWidths = {3, 3};
+    fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc")};
+    if (sysReduction == -1) fillColors = {0, 0};
+    fillTransparencies = {0.7, 0.7};
+    drawOptions = {"e same", "e same"};
+    sysPaths = {
+            "hff_final_pbpbdata_recoreco_0_20_systematics",
+            "hff_final_ppdata_srecoreco_0_20_systematics"
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+                "NULL"
+        };
+    }
+    sysUseRelUnc = {false, false};
+    sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc")};
+    sysTransparencies = {0.7, 0.7};
+    sysFillStyles = {1001, 1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+
+        // set x-axis range
+        h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
+    }
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i == 0) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    legendX1 = 0.24;
+    legendY1 = 0.72;
+    legendWidth = 0.54;
+    legendHeight = 0.12;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "PbPb, Cent. 0-10 %",
+            "pp"
+    };
+    legendEntryOptions = {
+            "pf",
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pp]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pp].c_str(), legendEntryOptions[k_pp].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+
+    textAlign = 11;
+    textFont = 43;
+    textSize = 26;
+    textLines = {
+            "p_{T}^{trk} > 1 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "p_{T}^{#gamma} > 60 GeV/c",
+            "|#eta^{#gamma}| < 1.44",
+            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.26;
+    textYs.resize(nTextLines, 0.68);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.056;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 10 nb^{-1}"
+    };
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.05;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_xi() - END"<<std::endl;
+}
+
+void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xi_ratio()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    int rows = 2;
+    int columns = 1;
+    float yMargin = 0;
+    float xMargin = 0;
+    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, yMargin);
+    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, xMargin);
+
+    windowWidth = 800;
+    windowHeight = 700;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.17;
+    topMargin    = 0.04;
+    TCanvas* c = 0 ;
+
+    int xiIndex = isxijet ? k_xijet_ratio : k_xigamma_ratio;
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[xiIndex].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[xiIndex].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[xiIndex].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    c->SetCanvasSize(windowWidth*normCanvasWidth, windowHeight*normCanvasHeight);
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
+
+    TPad* pads[2];
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+
+    for (int i = 0; i < 2; ++i) {
+        pads[i]->SetBorderMode(0);
+        pads[i]->SetBorderSize(0);
+        pads[i]->SetFrameBorderMode(0);
+        pads[i]->SetFrameLineColor(0);
+
+        // put ticks to upper and right part of the axis.
+        pads[i]->SetTickx(1);
+        pads[i]->SetTicky(1);
+    }
+
+    xTitle = "#xi^{jet}";
+    yTitle = "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}";
+    if (!isxijet) {
+        xTitle = "#xi^{#gamma}_{T}";
+        yTitle = "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{#gamma}_{T}}";
+    }
+    xTitleSize = 0.056;
+    yTitleSize = 0.056;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.50;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 4.2;
+
+    enum HISTLABELS {
+        k_pbpb,
+        k_pp,
+        k_ratio,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "hff_final_pbpbdata_recoreco_0_20",
+            "hff_final_ppdata_srecoreco_0_20",
+            "hff_final_ratio_0_20"
+    };
+    markerColors = {kBlack, kBlack, kBlack};
+    markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
+    markerSizes = {1.70, 1.70, 1.70};
+    lineColors = {kBlack, kBlack, kBlack};
+    lineTransparencies = {1.0, 1.0, 1.0};
+    lineWidths = {3, 3, 3};
+    fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+    if (sysReduction == -1) fillColors = {0, 0, 0};
+    fillTransparencies = {0.7, 0.7, 0.7};
+    drawOptions = {"e same", "e same", "e same"};
+    sysPaths = {
+            "hff_final_pbpbdata_recoreco_0_20_systematics",
+            "hff_final_ppdata_srecoreco_0_20_systematics",
+            "hff_final_ratio_0_20_systematics"
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+                "NULL",
+                "NULL",
+        };
+    }
+    sysUseRelUnc = {false, false, false};
+    sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+    sysTransparencies = {0.7, 0.7, 0.7};
+    sysFillStyles = {1001, 1001, 1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+
+        // set x-axis range
+        h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
+
+        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.4);
+        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4);
+
+        h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
+        h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
+    }
+    h1Ds[k_ratio]->SetYTitle("PbPb / pp");
+    h1Ds[k_ratio]->SetMinimum(0.4);
+    h1Ds[k_ratio]->SetMaximum(2.0);
+    if (!isxijet) {
+        h1Ds[k_ratio]->SetMinimum(0);
+        h1Ds[k_ratio]->SetMaximum(3);
+    }
+
+    // smooth the pbpb / pp
+    TF1* f1 = 0;
+    std::vector<TH1D*> h1DsFit(nHistPaths, 0);
+    h1DsFit[k_ratio] = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_Fit", h1Ds[k_ratio]->GetName()));
+    f1 = new TF1(Form("%s_tmpF1", h1Ds[k_ratio]->GetName()), "pol3", 0.75, 3.75);
+    h1DsFit[k_ratio]->Fit(f1, "N M R 0");
+    if (isxijet) {
+        fillTH1fromTF1(h1Ds[k_ratio], f1, 2, 9);
+    }
+    else {
+        fillTH1fromTF1(h1Ds[k_ratio], f1, 3, 8);
+    }
+    hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_sf", h1Ds[k_ratio]->GetName()));
+    hTmp->Divide(h1DsFit[k_ratio]);
+    // modify pbpb distribution using the smoothed pbpb / pp ratio
+    for (int iBin = 1; iBin <= hTmp->GetNbinsX(); ++iBin) {
+        h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin)*hTmp->GetBinContent(iBin));
+        h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin)*TMath::Sqrt(hTmp->GetBinContent(iBin)));
+    }
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        c->cd(1);
+        if (i == k_ratio) c->cd(2);
+
+        if (i == 0 || i == k_ratio) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    c->cd(1);
+    legendX1 = 0.24;
+    legendY1 = 0.70;
+    legendWidth = 0.54;
+    legendHeight = 0.16;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "PbPb, Cent. 0-10 %",
+            "pp"
+    };
+    legendEntryOptions = {
+            "pf",
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pp]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pp].c_str(), legendEntryOptions[k_pp].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+
+    c->cd(2);
+    textAlign = 11;
+    textFont = 43;
+    textSize = 26;
+    textLines = {
+            "p_{T}^{trk} > 1 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "p_{T}^{#gamma} > 60 GeV/c",
+            "|#eta^{#gamma}| < 1.44",
+            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.26;
+    textYs.resize(nTextLines, 0.93);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.065;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    c->Update();
+    c->cd(1);
+    textAlign = 11;
+    textFont = 43;
+    textSize = 30;
+    textLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 10 nb^{-1}"
+    };
+    nTextLines = textLines.size();
+    textX = 0.26;
+    textYs.clear();
+    textYs.resize(nTextLines, 0.62);
+    latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.08;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.88;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.07;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.88;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    c->cd();
+    TPad* emptyBox = 0;
+    emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
+                                    c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
+    emptyBox->Draw();
+
+    emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
+                                    c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
+    emptyBox->Draw();
+
+    c->cd(2);
+    TLine* line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->cd();
+    c->Update();
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_xi_ratio() - END"<<std::endl;
+}
+
+void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xi_ratioOnly()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    TCanvas* c = 0 ;
+
+    int xiIndex = isxijet ? k_xijet_ratioOnly : k_xigamma_ratioOnly;
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[xiIndex].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[xiIndex].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[xiIndex].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "#xi^{jet}";
+    if (!isxijet) {
+        xTitle = "#xi^{#gamma}_{T}";
+    }
+    yTitle = "PbPb / pp";
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0.4;
+    yMax = 2.0;
+    if (!isxijet) {
+        yMin = 0;
+        yMax = 3;
+    }
+
+    enum HISTLABELS {
+        k_ratio,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "hff_final_ratio_0_20"
+    };
+    markerColors = {kBlack};
+    markerStyles = {kFullSquare};
+    markerSizes = {1.70};
+    lineColors = {kBlack};
+    lineTransparencies = {1.0};
+    lineWidths = {3};
+    fillColors = {TColor::GetColor("#a09f93")};
+    if (sysReduction == -1) fillColors = {0};
+    fillTransparencies = {0.7};
+    drawOptions = {"e same"};
+    sysPaths = {
+            "hff_final_ratio_0_20_systematics"
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+        };
+    }
+    sysUseRelUnc = {false};
+    sysColors = {TColor::GetColor("#a09f93")};
+    sysTransparencies = {0.7};
+    sysFillStyles = {1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    TF1* f1 = 0;
+    std::vector<TH1D*> h1DsFit(nHistPaths, 0);
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+
+        // set x-axis range
+        h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
+
+        h1DsFit[i] = (TH1D*)h1Ds[i]->Clone(Form("%s_Fit", h1Ds[i]->GetName()));
+        f1 = new TF1(Form("%s_tmpF1", h1Ds[i]->GetName()), "pol3", 0.75, 3.75);
+        h1DsFit[i]->Fit(f1, "N M R 0");
+        if (isxijet) {
+            fillTH1fromTF1(h1Ds[i], f1, 2, 9);
+        }
+        else {
+            fillTH1fromTF1(h1Ds[i], f1, 3, 8);
+        }
+    }
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i == 0) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    /*
+    legendX1 = 0.24;
+    legendY1 = 0.72;
+    legendWidth = 0.54;
+    legendHeight = 0.12;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "PbPb / pp"
+    };
+    legendEntryOptions = {
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp", h1Ds[k_ratio]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_ratio].c_str(), legendEntryOptions[k_ratio].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+    */
+
+    textAlign = 11;
+    textFont = 43;
+    textSize = 26;
+    textLines = {
+            "PbPb, Cent. 0-10 %",
+            "p_{T}^{trk} > 1 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6",
+            "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44",
+            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.25;
+    textYs.resize(nTextLines, 0.80);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.056;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 10 nb^{-1}"
+    };
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.05;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    TLine* line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_xi_ratioOnly() - END"<<std::endl;
+}
+
+void setTH1D(int iHist, TH1D* h)
+{
+    h->SetTitle("");
+    h->SetXTitle(xTitle.c_str());
+    h->SetYTitle(yTitle.c_str());
+    h->SetTitleSize(xTitleSize, "X");
+    h->SetTitleSize(yTitleSize, "Y");
+    h->SetTitleOffset(xTitleOffset, "X");
+    h->SetTitleOffset(yTitleOffset, "Y");
+    h->SetTitleFont(xTitleFont, "X");
+    h->SetTitleFont(yTitleFont, "Y");
+    h->SetStats(false);
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
+    h->SetMinimum(yMin);
+    h->SetMaximum(yMax);
+    h->SetMarkerColor(markerColors[iHist]);
+    h->SetMarkerStyle(markerStyles[iHist]);
+    h->SetMarkerSize(markerSizes[iHist]);
+    h->SetLineColor(lineColors[iHist]);
+    h->SetLineColorAlpha(lineColors[iHist], lineTransparencies[iHist]);
+    h->SetLineStyle(kSolid);
+    h->SetLineWidth(lineWidths[iHist]);
+    h->SetFillColor(fillColors[iHist]);
+    h->SetFillColorAlpha(fillColors[iHist], fillTransparencies[iHist]);
+}
+
+void setTGraph(int iGraph, TGraph* gr)
+{
+    gr->SetMarkerColor(graphMarkerColors[iGraph]);
+    gr->SetMarkerColorAlpha(graphMarkerColors[iGraph], graphMarkerTransparencies[iGraph]);
+    gr->SetMarkerStyle(graphMarkerStyles[iGraph]);
+    gr->SetMarkerSize(graphMarkerSizes[iGraph]);
+    gr->SetLineColor(graphLineColors[iGraph]);
+    gr->SetLineColorAlpha(graphLineColors[iGraph], graphLineTransparencies[iGraph]);
+    gr->SetLineWidth(graphLineWidths[iGraph]);
+    gr->SetLineStyle(graphLineStyles[iGraph]);
+    gr->SetFillColor(graphFillColors[iGraph]);
+    gr->SetFillColorAlpha(graphFillColors[iGraph], graphFillTransparencies[iGraph]);
+}
+
+void setTGraphSys(int iSys, TGraph* gr)
+{
+    gr->SetFillColor(sysColors[iSys]);
+    gr->SetFillColorAlpha(sysColors[iSys], sysTransparencies[iSys]);
+    gr->SetFillStyle(sysFillStyles[iSys]);
+}
+
+void setCanvas(TCanvas* c)
+{
+    c->SetLogx(logX);
+    c->SetLogy(logY);
+
+    float defaultMargin = 0.1;
+    double normWidth  = (1 - defaultMargin*2 + leftMargin + rightMargin);
+    double normHeight = (1 - defaultMargin*2 + bottomMargin + topMargin);
+
+    // https://root.cern.ch/doc/master/TCanvas_8h_source.html#l00058
+    UInt_t width = c->GetWindowWidth();     // fWindowWidth  : Width of window (including borders, etc.)
+    UInt_t height = c->GetWindowHeight();   // fWindowHeight : Height of window (including menubar, borders, etc.)
+
+    // assume the function is called in batch mode, so use SetCanvasSize() instead of SetWindowSize()
+    c->SetCanvasSize(width*normWidth, height*normHeight);
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
+
+    c->SetBorderMode(0);
+    c->SetBorderSize(0);
+    c->SetFrameBorderMode(0);
+    c->SetFrameLineColor(0);
+
+    // put ticks to upper and right part of the axis.
+    c->SetTickx(1);
+    c->SetTicky(1);
+}
+
+void setLegend(TLegend* leg)
+{
+    // make legend transparent
+    leg->SetFillColor(-1);
+    leg->SetFillStyle(4000);
+    leg->SetBorderSize(0);
+
+    leg->SetX1(legendX1);
+    leg->SetX2(legendX1+legendWidth);
+    leg->SetY1(legendY1);
+    leg->SetY2(legendY1+legendHeight);
+    leg->SetMargin(legendMargin);
+}
+
+void setLatex(int iText, TLatex* latex)
+{
+    latex->SetTextAlign(textAlign);
+    latex->SetTextFont(textFont);
+    latex->SetTextSize(textSize);
+
+    latex->SetNDC();
+    latex->SetText(textX, textYs[iText], textLines[iText].c_str());
+}
+
+void setLatexOverPad(int iText, TLatex* latex)
+{
+    latex->SetTextAlign(textAlignsOverPad[iText]);
+    latex->SetTextFont(textFontOverPad);
+    latex->SetTextSize(textSizeOverPad);
+
+    latex->SetNDC();
+    latex->SetText(textXsOverPad[iText], textYOverPad, textOverPadLines[iText].c_str());
+}
+
+void setLatexCMSProj(TLatex* latex, std::string text)
+{
+    latex->SetTextAlign(textAlignCMSProj);
+    latex->SetTextFont(textFontCMSProj);
+    latex->SetTextSize(textSizeCMSProj);
+
+    latex->SetNDC();
+    latex->SetText(textXCMSProj, textYCMSProj, text.c_str());
+}
+
+/*
+ * calculate the width of a TCanvas in a normalization scheme where the width is 1 for
+ * a canvas with a columns = 1, bottomMargin + topMargin = 2*defaultMargin and xMargin = 0
+ */
+double calcNormCanvasWidth(int columns, float leftMargin, float rightMargin, float xMargin)
+{
+    double defaultMargin = 0.1;
+    double padWidth = (1 - defaultMargin*2 + xMargin);
+
+    float x_max[columns];
+    x_max[0] = padWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
+    for (int i = 1; i < columns; ++i) {
+        x_max[i] = x_max[i-1] + padWidth;
+    }
+    x_max[columns-1] += rightMargin - xMargin/2;
+
+    return x_max[columns-1];
+}
+
+/*
+ * calculate the height of a TCanvas in a normalization scheme where the height is 1 for
+ * a canvas with a rows = 1, bottomMargin + topMargin = 2*defaultMargin and yMargin = 0
+ */
+double calcNormCanvasHeight(int rows, float bottomMargin, float topMargin, float yMargin)
+{
+    double defaultMargin = 0.1;
+    double padHeight = (1 - defaultMargin*2 + yMargin);
+
+    float y_min[rows], y_max[rows];
+    y_min[rows-1] = 0;
+    y_max[rows-1] = padHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
+    for (int i = rows - 2; i >= 0; --i) {
+        y_min[i] = y_max[i+1];
+        y_max[i] = y_min[i] + padHeight;
+    }
+    y_max[0] += topMargin - yMargin/2;
+
+    return y_max[0];
+}
+
+void divideCanvas(TCanvas* c, int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+{
+    TPad* pads[rows*columns];
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
+}
+
+void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+{
+    c->Clear();
+
+    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
+    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
+
+    float x_min[columns], x_max[columns];
+    x_min[0] = 0;
+    x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
+    for (int i = 1; i < columns; ++i) {
+        x_min[i] = x_max[i-1];
+        x_max[i] = x_max[i-1] + normPadWidth;
+    }
+    x_max[columns-1] += rightMargin - xMargin/2;
+
+    float y_min[rows], y_max[rows];
+    y_min[rows-1] = yMinOffset;
+    y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
+    for (int i = rows - 2; i >= 0; --i) {
+        y_min[i] = y_max[i+1]+yMinOffset;
+        y_max[i] = y_min[i] + normPadHeight;
+    }
+    y_max[0] += topMargin - yMargin/2;
+
+    double normCanvasWidth = x_max[columns-1];
+    double normCanvasHeight = y_max[0];
+    // normalize the coordinates such that x_max[columns-1] = 1 and y_max[0] = 1
+    for (int i = 0; i < columns; ++i) {
+        x_min[i] /= normCanvasWidth;
+        x_max[i] /= normCanvasWidth;
+    }
+    for (int i = 0; i < rows; ++i) {
+        y_min[i] /= normCanvasHeight;
+        y_max[i] /= normCanvasHeight;
+    }
+
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<columns; j++) {
+            c->cd();
+            int ij = i*columns+j;
+            pads[ij] = new TPad(Form("pad_%d_%d", i, j), Form("pad_%d_%d", i, j), x_min[j], y_min[i], x_max[j], y_max[i]);
+
+            if (i == 0) pads[ij]->SetTopMargin(topMargin);
+            else pads[ij]->SetTopMargin(yMargin/2);
+            if (i == rows - 1) pads[ij]->SetBottomMargin(bottomMargin);
+            else pads[ij]->SetBottomMargin(yMargin/2);
+            if (j == 0) pads[ij]->SetLeftMargin(leftMargin);
+            else pads[ij]->SetLeftMargin(xMargin/2);
+            if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin);
+            else pads[ij]->SetRightMargin(xMargin/2);
+
+            pads[ij]->Draw();
+            pads[ij]->cd();
+            pads[ij]->SetNumber(ij+1);
+        }
+    }
+}
+
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
+{
+   double val = h->GetBinContent(bin);
+   double x   = h->GetBinCenter(bin);
+   int binSys = hSys->FindBin(x);
+
+   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+
+   std::string hSysName = hSys->GetName();
+
+   if (binWidth < 0) {
+     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
+   }
+
+   double errorLow = val - error;
+   double errorUp = val + error;
+   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
+   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
+
+   gr->SetPoint(0, x - (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(1, x + (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(2, x + (binWidth/2)*binWidthScale, errorUp);
+   gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
+}
+
+/*
+ * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
+ * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
+ * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
+ */
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i) {
+        if (h->GetBinError(i) == 0) continue;
+        if (h->GetBinContent(i) < h->GetMinimum()) continue;
+        if (h->GetBinContent(i) > h->GetMaximum()) continue;
+
+        setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
+        gr->DrawClone("f");
+    }
+}
+
+void scaleBinErrors(TH1* h, double scale)
+{
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; i++)
+    {
+        h->SetBinError(i, h->GetBinError(i)*scale);
+    }
+}
+
+void fillTH1fromTF1(TH1* h, TF1* f, int binFirst, int binLast)
+{
+    for ( int i = binFirst; i <= binLast; i++)
+    {
+        double x = h->GetBinCenter(i);
+        double y = f->Eval(x);
+
+        double binContent = h->GetBinContent(i);
+        double binError = h->GetBinError(i);
+
+        h->SetBinContent(i, y);
+        h->SetBinError(i, binError * TMath::Sqrt(y/binContent));
+    }
+}
+
+int main(int argc, char** argv)
+{
+    if (argc == 4) {
+        vJetPlotProjection(atoi(argv[1]), argv[2], std::atof(argv[3]));
+        return 0;
+    }
+    else if (argc == 3) {
+        vJetPlotProjection(atoi(argv[1]), argv[2]);
+        return 0;
+    }
+    else {
+        std::cout << "Usage : \n" <<
+                "./vJetPlotProjection.exe <figureIndex> <inputFile>"
+                << std::endl;
+        return 1;
+    }
+}
