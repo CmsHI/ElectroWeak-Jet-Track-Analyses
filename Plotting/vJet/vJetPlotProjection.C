@@ -326,7 +326,6 @@ void projectionPlot_xjz(std::string inputFile, double sysReduction)
     textFont = 43;
     textSize = 34;
     textLines = {
-            "Projected PbPb data",
             "Cent. 0-100 %",
             "p_{T}^{Z} > 60 GeV/c",
             "anti-k_{T} jet R = 0.3",
@@ -513,7 +512,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
     legendHeight = 0.12;
     legendMargin = 0.15;
     legendEntryTexts = {
-            "PbPb, Cent. 0-10 %",
+            "PbPb Cent. 0-10 %",
             "pp"
     };
     legendEntryOptions = {
@@ -562,7 +561,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
     textSizeOverPad = 30;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            "PbPb 10 nb^{-1}"
+            "PbPb 10 nb^{-1}, pp 650 pb^{-1}"
     };
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
@@ -788,7 +787,7 @@ void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysRedu
     legendHeight = 0.16;
     legendMargin = 0.15;
     legendEntryTexts = {
-            "PbPb, Cent. 0-10 %",
+            "PbPb Cent. 0-10 %",
             "pp"
     };
     legendEntryOptions = {
@@ -838,7 +837,8 @@ void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysRedu
     textSize = 30;
     textLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            "PbPb 10 nb^{-1}"
+            "PbPb 10 nb^{-1}",
+            "pp 650 pb^{-1}"
     };
     nTextLines = textLines.size();
     textX = 0.26;
@@ -1053,7 +1053,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
     textFont = 43;
     textSize = 26;
     textLines = {
-            "PbPb, Cent. 0-10 %",
+            "PbPb Cent. 0-10 %",
             "p_{T}^{trk} > 1 GeV/c",
             "anti-k_{T} jet R = 0.3",
             "p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6",
@@ -1078,7 +1078,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
     textSizeOverPad = 30;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            "PbPb 10 nb^{-1}"
+            "PbPb 10 nb^{-1}, pp 650 pb^{-1}"
     };
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
@@ -1427,7 +1427,7 @@ int main(int argc, char** argv)
     }
     else {
         std::cout << "Usage : \n" <<
-                "./vJetPlotProjection.exe <figureIndex> <inputFile>"
+                "./vJetPlotProjection.exe <figureIndex> <inputFile> <sysReduction>"
                 << std::endl;
         return 1;
     }
