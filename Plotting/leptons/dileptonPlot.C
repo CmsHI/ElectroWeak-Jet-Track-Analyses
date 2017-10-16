@@ -518,28 +518,28 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 h1D[COLL::kHIMC]->SetMaximum(histMax);
 
                 h1D[COLL::kHIMC]->Draw("hist");  // first draw "hist" option
-                h1D[COLL::kHIMC]->Write();
+                h1D[COLL::kHIMC]->Write(Form("%s_MC", h1D[COLL::kHIMC]->GetName()),TObject::kOverwrite);
             }
             if (h1DisValid[COLL::kPPMC] && plotPPMC.at(i)) {
                 h1D[COLL::kPPMC]->SetMinimum(histMin);
                 h1D[COLL::kPPMC]->SetMaximum(histMax);
 
                 h1D[COLL::kPPMC]->Draw("hist");  // first draw "hist" option
-                h1D[COLL::kPPMC]->Write();
+                h1D[COLL::kPPMC]->Write(Form("%s_MC", h1D[COLL::kPPMC]->GetName()),TObject::kOverwrite);
             }
             if (h1DisValid[COLL::kHI] && plotHI.at(i)) {
                 h1D[COLL::kHI]->SetMinimum(histMin);
                 h1D[COLL::kHI]->SetMaximum(histMax);
 
                 h1D[COLL::kHI]->Draw("e same");
-                h1D[COLL::kHI]->Write();
+                h1D[COLL::kHI]->Write("",TObject::kOverwrite);
 
                 if (h1DsameChargeisValid[COLL::kHI] && plotSameCharge.at(i)) {
                     h1DsameCharge[COLL::kHI]->SetMinimum(histMin);
                     h1DsameCharge[COLL::kHI]->SetMaximum(histMax);
 
                     h1DsameCharge[COLL::kHI]->Draw("e same");
-                    h1DsameCharge[COLL::kHI]->Write();
+                    h1DsameCharge[COLL::kHI]->Write("",TObject::kOverwrite);
                 }
             }
             if (h1DisValid[COLL::kPP] && plotPP.at(i)) {
@@ -547,14 +547,14 @@ void dileptonPlot(const TString configFile, const TString inputFile, const TStri
                 h1D[COLL::kPP]->SetMaximum(histMax);
 
                 h1D[COLL::kPP]->Draw("e same");
-                h1D[COLL::kPP]->Write();
+                h1D[COLL::kPP]->Write("",TObject::kOverwrite);
 
                 if (h1DsameChargeisValid[COLL::kPP] && plotSameCharge.at(i)) {
                     h1DsameCharge[COLL::kPP]->SetMinimum(histMin);
                     h1DsameCharge[COLL::kPP]->SetMaximum(histMax);
 
                     h1DsameCharge[COLL::kPP]->Draw("e same");
-                    h1DsameCharge[COLL::kPP]->Write();
+                    h1DsameCharge[COLL::kPP]->Write("",TObject::kOverwrite);
                 }
             }
 
