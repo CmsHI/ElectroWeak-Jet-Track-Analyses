@@ -25,9 +25,7 @@ do
     inputFile=${inputFiles[i1]}
     $progPath $figureIndex $inputFile 0
     $progPath $figureIndex $inputFile -1
-    $progPath $figureIndex $inputFile 0.3
     $progPath $figureIndex $inputFile 0.5
-    $progPath $figureIndex $inputFile 0.7
     wait
 done
 
