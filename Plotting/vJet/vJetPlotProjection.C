@@ -942,7 +942,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     legendHeight = 0.14;
     legendMargin = 0.15;
     legendEntryTexts = {"PbPb, 0-30 %", "Current Unc.", "Projected Unc."};
-    legendEntryOptions = {"p", "l", "f"};
+    legendEntryOptions = {"p", "e", "f"};
     leg = new TLegend();
 
     hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
