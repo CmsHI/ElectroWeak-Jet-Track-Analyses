@@ -901,9 +901,9 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     mergeUncWithErrorBar(h1DsMergedUncProjection[k_pbpb], h1DsSys[k_pbpb], sysUseRelUnc[k_pbpb]);
 
     if (h1DsSys[k_pbpb] != 0) {
+        h1DsSys[k_pbpb] = (TH1D*)h1DsMergedUncProjection[k_pbpb]->Clone(Form("%s_MergedUncProjection", h1DsSys[k_pbpb]->GetName()));
         for (int iBin = 1; iBin < h1DsSys[k_pbpb]->GetNbinsX(); ++iBin) {
-            h1DsSys[k_pbpb]->SetBinContent(iBin,
-                    h1DsMergedUncProjection[k_pbpb]->GetBinError(iBin)/h1DsMergedUncProjection[k_pbpb]->GetBinContent(iBin));
+            h1DsSys[k_pbpb]->SetBinContent(iBin, h1DsSys[k_pbpb]->GetBinError(iBin)/h1DsSys[k_pbpb]->GetBinContent(iBin));
         }
 
         gr = new TGraph();
