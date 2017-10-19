@@ -7,6 +7,7 @@ progPath="./Plotting/vJet/vJetPlotProjection.exe"
 inputFiles=(
 "./Data/zBosons/zJet_Data_pbpb_cent_030_0100.root"
 "./Data/zBosons/zJet_Data_pbpb_cent_030_0100.root"
+"./Data/zBosons/zJet_Data_pbpb_cent_030_0100.root"
 "./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
@@ -15,7 +16,7 @@ inputFiles=(
 "./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 );
 
-figureIndices=(0 1 2 3 4 5 6 7)
+figureIndices=(0 1 2 3 4 5 6 7 8)
 
 arrayIndices=${!figureIndices[*]}
 for i1 in $arrayIndices
