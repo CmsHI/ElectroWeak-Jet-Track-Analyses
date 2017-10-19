@@ -1348,7 +1348,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
     markerColors = {kBlack, kBlack};
     markerStyles = {kFullCircle, kOpenCircle};
     markerSizes = {1.70, 1.70};
-    lineColors = {kBlack, kBlack};
+    lineColors = {kBlack, 45};
     lineTransparencies = {1.0, 1.0};
     lineWidths = {3, 3};
     fillColors = {35, 43};
@@ -1430,27 +1430,50 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
 
-    legendX1 = 0.24;
-    legendY1 = 0.72;
-    legendWidth = 0.54;
-    legendHeight = 0.12;
-    legendMargin = 0.15;
-    legendEntryTexts = {
-            "PbPb Cent. 0-10 %",
-            "pp"
-    };
-    legendEntryOptions = {
-            "pf",
-            "pf"
-    };
-    TLegend* leg = new TLegend();
+    TLegend* leg = 0;
 
+    legendX1 = 0.24;
+    legendY1 = 0.70;
+    legendWidth = 0.54;
+    legendHeight = 0.14;
+    legendMargin = 0.15;
+    legendEntryTexts = {"PbPb Cent. 0-10 %", "Current Unc.", "Projected Unc."};
+    legendEntryOptions = {"p", "e", "f"};
+    leg = new TLegend();
     hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
     hTmp->SetLineWidth(0);
     leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
-    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pp]->GetName()));
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp2", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(3);
+    leg->AddEntry(hTmp, legendEntryTexts[1].c_str(), legendEntryOptions[1].c_str());
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp3", h1Ds[k_pbpb]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pp].c_str(), legendEntryOptions[k_pp].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts[2].c_str(), legendEntryOptions[2].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+
+    legendX1 = 0.62;
+    legendY1 = 0.70;
+    legendWidth = 0.54;
+    legendHeight = 0.14;
+    legendMargin = 0.15;
+    legendEntryTexts = {"pp", "Current Unc.", "Projected Unc."};
+    legendEntryOptions = {"p", "e", "f"};
+    leg = new TLegend();
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
+
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp2", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(3);
+    leg->AddEntry(hTmp, legendEntryTexts[1].c_str(), legendEntryOptions[1].c_str());
+
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp3", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[2].c_str(), legendEntryOptions[2].c_str());
 
     setLegend(leg);
     leg->Draw();
@@ -1469,7 +1492,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
     };
     int nTextLines = textLines.size();
     textX = 0.26;
-    textYs.resize(nTextLines, 0.68);
+    textYs.resize(nTextLines, 0.65);
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
