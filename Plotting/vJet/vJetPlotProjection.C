@@ -1202,7 +1202,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
     legendMargin = 0.15;
     legendEntryTexts = {
             "PbPb Cent. 0-10 %",
-            "pp"
+            "pp (smeared)"
     };
     legendEntryOptions = {
             "pf",
@@ -1460,7 +1460,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
     legendWidth = 0.54;
     legendHeight = 0.14;
     legendMargin = 0.15;
-    legendEntryTexts = {"pp", "Current Unc.", "Projected Unc."};
+    legendEntryTexts = {"pp (smeared)", "Current Unc.", "Projected Unc."};
     legendEntryOptions = {"p", "e", "f"};
     leg = new TLegend();
     hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
@@ -1735,7 +1735,7 @@ void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysRedu
     legendMargin = 0.15;
     legendEntryTexts = {
             "PbPb Cent. 0-10 %",
-            "pp"
+            "pp (smeared)"
     };
     legendEntryOptions = {
             "pf",
