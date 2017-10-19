@@ -775,9 +775,9 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     lineColors = {kBlack};
     lineTransparencies = {1.0};
     lineWidths = {3};
-    fillColors = {46};
+    fillColors = {34};
     if (sysReduction == -1) fillColors = {0};
-    fillTransparencies = {0.7};
+    fillTransparencies = {0.75};
     drawOptions = {"e same"};
     sysPaths = {
             "h1D_sysVar_xjz_pbpb_cent030_rel",
@@ -788,8 +788,8 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         };
     }
     sysUseRelUnc = {true};
-    sysColors = {46};
-    sysTransparencies = {0.7};
+    sysColors = {34};
+    sysTransparencies = {0.8};
     sysFillStyles = {1001};
 
     int nHistPaths = histPaths.size();
