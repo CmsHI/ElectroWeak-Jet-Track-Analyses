@@ -452,7 +452,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
     yTitleFont = 42;
 
     yMin = 0;
-    yMax = 1.2;
+    yMax = 1.3;
 
     enum HISTLABELS {
         k_pbpb,
@@ -598,7 +598,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
 
     TLegend* leg = 0;
     legendX1 = 0.25;
-    legendY1 = 0.77;
+    legendY1 = 0.78;
     legendWidth = 0.44;
     legendHeight = 0.06;
     legendMargin = 0.15;
@@ -703,7 +703,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
     }
 
     textXCMSProj = 0.25;
-    textYCMSProj = 0.86;
+    textYCMSProj = 0.87;
     textAlignCMSProj = 11;
     textFontCMSProj = 61;
     textSizeCMSProj = 0.06;
@@ -712,7 +712,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
     latex->Draw();
 
     textXCMSProj = 0.38;
-    textYCMSProj = 0.86;
+    textYCMSProj = 0.87;
     textAlignCMSProj = 11;
     textFontCMSProj = 52;
     textSizeCMSProj = 0.05;
@@ -770,7 +770,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     yTitleFont = 42;
 
     yMin = 0;
-    yMax = 1.35;
+    yMax = 1.30;
 
     enum HISTLABELS {
         k_pbpb,
@@ -937,7 +937,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
 
     TLegend* leg = 0;
     legendX1 = 0.25;
-    legendY1 = 0.71;
+    legendY1 = 0.72;
     legendWidth = 0.44;
     legendHeight = 0.14;
     legendMargin = 0.15;
@@ -1050,7 +1050,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     }
 
     textXCMSProj = 0.25;
-    textYCMSProj = 0.86;
+    textYCMSProj = 0.87;
     textAlignCMSProj = 11;
     textFontCMSProj = 61;
     textSizeCMSProj = 0.06;
@@ -1059,7 +1059,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     latex->Draw();
 
     textXCMSProj = 0.38;
-    textYCMSProj = 0.86;
+    textYCMSProj = 0.87;
     textAlignCMSProj = 11;
     textFontCMSProj = 52;
     textSizeCMSProj = 0.05;
