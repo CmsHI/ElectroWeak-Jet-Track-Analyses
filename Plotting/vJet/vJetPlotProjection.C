@@ -801,7 +801,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
     sysUseRelUnc = {true, true};
     sysColors = {TColor::GetColor("#a09f93"), TColor::GetColor("#ad33ff")};
     sysTransparencies = {0.8, 0.8};
-    sysFillStyles = {1001, 1001};
+    sysFillStyles = {1001, 3254};
 
     int nHistPaths = histPaths.size();
     std::vector<TH1D*> h1Ds(nHistPaths, 0);
