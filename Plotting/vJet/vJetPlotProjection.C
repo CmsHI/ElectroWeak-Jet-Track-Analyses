@@ -494,30 +494,33 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
     }
-    // modify bin contents for projection
-    double sf = 1.05;
-    int iBin = 4;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
-    sf = 0.95;
-    iBin = 5;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
-    // add content to last 2 bins
-    sf = 0.5;
-    iBin = 9;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin-1) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(sf));
-    sf = 0.5;
-    iBin = 10;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin-1) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(sf));
+    // modify bin contents for projection, use a fit function for that.
+    TF1* f1 = 0;
+    double f1_xMin = 0.1;
+    double f1_xMax = 1.9;
+    // pol2 x Gaussian
+    //f1_xMin = 0.3;
+    //f1_xMax = 1.9;
+    //f1 = new TF1("f1","([0]+[1]*x+[2]*x*x)*exp(-[3]*(x-[4])*(x-[4]))", f1_xMin, f1_xMax);
+    // pol3 x Gaussian
+    f1 = new TF1("f1","([0]+[1]*x+[2]*x*x+[3]*x*x*x)*exp(-[4]*(x-[5])*(x-[5]))", f1_xMin, f1_xMax);
+    h1Ds[k_pbpb]->Fit(f1, "M N R");
+    for (int iBin = h1Ds[k_pbpb]->FindBin(f1_xMin); iBin <= h1Ds[k_pbpb]->FindBin(f1_xMax); ++iBin) {
+        double binContent = h1Ds[k_pbpb]->GetBinContent(iBin);
+        double binError = h1Ds[k_pbpb]->GetBinError(iBin);
+        double val = f1->Eval(h1Ds[k_pbpb]->GetBinCenter(iBin));
+
+        h1Ds[k_pbpb]->SetBinContent(iBin, val);
+        h1Ds[k_pbpb]->SetBinError(iBin, binError * TMath::Sqrt(val/binContent));
+        if (binError == 0)
+            h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(val/h1Ds[k_pbpb]->GetBinContent(iBin-1)));
+    }
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
 
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
         if (i == 0) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
@@ -813,24 +816,27 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
     }
-    // modify bin contents for projection
-    double sf = 1.05;
-    int iBin = 4;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
-    sf = 0.95;
-    iBin = 5;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin) * TMath::Sqrt(sf));
-    // add content to last 2 bins
-    sf = 0.5;
-    iBin = 9;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin-1) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(sf));
-    sf = 0.5;
-    iBin = 10;
-    h1Ds[k_pbpb]->SetBinContent(iBin, h1Ds[k_pbpb]->GetBinContent(iBin-1) * sf);
-    h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(sf));
+    // modify bin contents for projection, use a fit function for that.
+    TF1* f1 = 0;
+    double f1_xMin = 0.1;
+    double f1_xMax = 1.9;
+    // pol2 x Gaussian
+    //f1_xMin = 0.3;
+    //f1_xMax = 1.9;
+    //f1 = new TF1("f1","([0]+[1]*x+[2]*x*x)*exp(-[3]*(x-[4])*(x-[4]))", f1_xMin, f1_xMax);
+    // pol3 x Gaussian
+    f1 = new TF1("f1","([0]+[1]*x+[2]*x*x+[3]*x*x*x)*exp(-[4]*(x-[5])*(x-[5]))", f1_xMin, f1_xMax);
+    h1Ds[k_pbpb]->Fit(f1, "M N R");
+    for (int iBin = h1Ds[k_pbpb]->FindBin(f1_xMin); iBin <= h1Ds[k_pbpb]->FindBin(f1_xMax); ++iBin) {
+        double binContent = h1Ds[k_pbpb]->GetBinContent(iBin);
+        double binError = h1Ds[k_pbpb]->GetBinError(iBin);
+        double val = f1->Eval(h1Ds[k_pbpb]->GetBinCenter(iBin));
+
+        h1Ds[k_pbpb]->SetBinContent(iBin, val);
+        h1Ds[k_pbpb]->SetBinError(iBin, binError * TMath::Sqrt(val/binContent));
+        if (binError == 0)
+            h1Ds[k_pbpb]->SetBinError(iBin, h1Ds[k_pbpb]->GetBinError(iBin-1) * TMath::Sqrt(val/h1Ds[k_pbpb]->GetBinContent(iBin-1)));
+    }
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
@@ -906,7 +912,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         // prepare and draw current uncertainty
         mergeUncWithErrorBar(h1DsMergedUncCurrent[k_pbpb], h1DsSys[k_pbpb], sysUseRelUnc[k_pbpb]);
 
-        for (int iBin = 1; iBin < h1DsMergedUncCurrent[k_pbpb]->GetNbinsX(); ++iBin) {
+        for (int iBin = 1; iBin <= h1DsMergedUncCurrent[k_pbpb]->GetNbinsX(); ++iBin) {
             double binContent = h1DsMergedUncCurrent[k_pbpb]->GetBinContent(iBin);
             double binError = h1DsMergedUncCurrent[k_pbpb]->GetBinError(iBin);
             if (sysUseRelUnc[k_pbpb])
@@ -927,7 +933,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         }
         mergeUncWithErrorBar(h1DsMergedUncProjection[k_pbpb], h1DsSys[k_pbpb], sysUseRelUnc[k_pbpb]);
 
-        for (int iBin = 1; iBin < h1DsMergedUncProjection[k_pbpb]->GetNbinsX(); ++iBin) {
+        for (int iBin = 1; iBin <= h1DsMergedUncProjection[k_pbpb]->GetNbinsX(); ++iBin) {
             double binContent = h1DsMergedUncProjection[k_pbpb]->GetBinContent(iBin);
             double binError = h1DsMergedUncProjection[k_pbpb]->GetBinError(iBin);
             if (sysUseRelUnc[k_pbpb])
@@ -1432,7 +1438,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
             // prepare and draw current uncertainty
             mergeUncWithErrorBar(h1DsMergedUncCurrent[i], h1DsSys[i], sysUseRelUnc[i]);
 
-            for (int iBin = 1; iBin < h1DsMergedUncCurrent[i]->GetNbinsX(); ++iBin) {
+            for (int iBin = 1; iBin <= h1DsMergedUncCurrent[i]->GetNbinsX(); ++iBin) {
                 double binContent = h1DsMergedUncCurrent[i]->GetBinContent(iBin);
                 double binError = h1DsMergedUncCurrent[i]->GetBinError(iBin);
                 if (sysUseRelUnc[i])
@@ -1453,7 +1459,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
             }
             mergeUncWithErrorBar(h1DsMergedUncProjection[i], h1DsSys[i], sysUseRelUnc[i]);
 
-            for (int iBin = 1; iBin < h1DsMergedUncProjection[i]->GetNbinsX(); ++iBin) {
+            for (int iBin = 1; iBin <= h1DsMergedUncProjection[i]->GetNbinsX(); ++iBin) {
                 double binContent = h1DsMergedUncProjection[i]->GetBinContent(iBin);
                 double binError = h1DsMergedUncProjection[i]->GetBinError(iBin);
                 if (sysUseRelUnc[i])
