@@ -1,10 +1,12 @@
 /*
- * macro to draw eta, GEN Pt, RECO Pt and centrality dependent photon reconstruction performance plots.
+ * macro to draw eta, gen Pt, reco Pt, centrality, isolation, and shower shape dependent photon reconstruction performance plots.
  * The macro can make 4 types of plots
  *  1. x-axis is eta.
- *  2. x-axis is GEN Pt
- *  3. x-axis is RECO Pt.
+ *  2. x-axis is gen Pt.
+ *  3. x-axis is reco Pt.
  *  4. x-axis is centrality (hiBin/2)
+ *  5. x-axis is isolation (sumIso)
+ *  6. x-axis is shower shape (sigmaIEtaIEta_2012)
  * saves histograms to a .root file.
  */
 

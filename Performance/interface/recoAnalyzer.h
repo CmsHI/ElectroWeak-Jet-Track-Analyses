@@ -2671,8 +2671,8 @@ void recoAnalyzer::setLatex(TLatex* latex, std::string position)
 
 /*
  * draw vertical lines for the pt range
- * Ex. x-axis axis is reco pt and the gen Pt range is 10<pt<30, then it draws vertical lines at x=10 and x=30.
- * Ex. x-axis axis is gen pt and the reco Pt range is pt>20, then it draws vertical line at x=20.
+ * Ex. x-axis is reco pt and the gen Pt range is 10<pt<30, then it draws vertical lines at x=10 and x=30.
+ * Ex. x-axis is gen pt and the reco Pt range is pt>20, then it draws vertical line at x=20.
  */
 void recoAnalyzer::drawLine4PtRange(TPad* p, int lineColor)
 {
@@ -2683,7 +2683,7 @@ void recoAnalyzer::drawLine4PtRange(TPad* p, int lineColor)
     double x2 = p->GetUxmax();
     double y1 = p->GetUymin();
     double y2 = p->GetUymax();
-    if (y2 > 1)  y2 = 1;        // vertical rises to at most y = 1
+    if (y2 > 1)  y2 = 1;        // vertical line rises to at most y = 1
 
     if (dep == RECOANA::kGENPT) {
 
