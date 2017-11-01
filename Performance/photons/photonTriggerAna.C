@@ -434,42 +434,63 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             // efficiency
             if (runMode[MODES::kEff]) {
-                for (int i=0; i<ggHi.nPho; ++i) {
 
-                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                for (int iAna = 0;  iAna < nTriggerAna; ++iAna) {
 
-                    if (cut_phoHoverE != 0) {
-                        if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                    int iMax = -1;
+                    double maxPt = 0;
+                    for (int i=0; i<ggHi.nPho; ++i) {
+
+                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                        if (cut_phoHoverE != 0) {
+                            if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                        }
+
+                        double pt = (*ggHi.phoEt)[i];
+                        double eta = (*ggHi.phoEta)[i];
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                        double r9 = (*ggHi.phoR9)[i];
+                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+
+                        // triggerAnalyzer object with reco pt dependency is the correct one for this decision
+                        if (!tAna[TRIGGERANA::kRECOPT][iAna].insideRange(vars)) continue;
+
+                        if (pt > maxPt) {
+                            iMax = i;
+                            maxPt = pt;
+                        }
                     }
 
-                    double pt = (*ggHi.phoEt)[i];
-                    double eta = (*ggHi.phoEta)[i];
-                    double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                            (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                            (*ggHi.pho_trackIsoR4PtCut20)[i]);
-                    double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                    double r9 = (*ggHi.phoR9)[i];
-                    std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+                    if (iMax >= 0) {
 
-                    for (int iAna = 0;  iAna < nTriggerAna; ++iAna) {
-                        bool passedDenom = true;
-                        if (passedDenom) {
-                            tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
-                            tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
-                            tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
-                            tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
-                            tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
+                        double pt = (*ggHi.phoEt)[iMax];
+                        double eta = (*ggHi.phoEta)[iMax];
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
+                                (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
+                        double r9 = (*ggHi.phoR9)[iMax];
+                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
-                            std::vector<int> binIndices = getBinIndices(iAna);
+                        tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
+                        tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
+                        tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
+                        tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
+                        tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
-                            int iTrig = indicesTriggerNum[iAna];
-                            if (triggerBitsNum[iTrig] > 0) {
-                                tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                                tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                                tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                                tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                                tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
-                            }
+                        std::vector<int> binIndices = getBinIndices(iAna);
+
+                        int iTrig = indicesTriggerNum[iAna];
+                        if (triggerBitsNum[iTrig] > 0) {
+                            tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                            tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                            tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                            tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                            tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
                         }
                     }
                 }
