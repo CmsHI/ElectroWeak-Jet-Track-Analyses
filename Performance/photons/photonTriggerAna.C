@@ -138,6 +138,7 @@ int nTextOffsetsY;
 
 // cut configuration
 std::vector<std::string> triggerBranchesNum;
+std::vector<std::string> triggerBranchesDenom;
 
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
 // list of pt cuts for RECO photons
@@ -155,6 +156,7 @@ int doEventWeight;
 float cut_phoHoverE;
 
 int nTriggerBranchesNum;
+int nTriggerBranchesDenom;
 
 int nBins_eta;
 int nBins_recoPt;
@@ -171,7 +173,7 @@ const std::string modesStr[kN_MODES] = {"Eff"};
 std::vector<int> runMode;
 
 enum ANABINS {
-    kTriggerNum,
+    kTrigger,
     kEta,
     kRecoPt,
     kCent,
@@ -186,8 +188,11 @@ std::vector<triggerAnalyzer> tAna[TRIGGERANA::kN_DEPS];
 // Each vector will have size nTriggerAna = nTriggerBranchesNum * nBins_eta * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie * nBins_r9
 
 std::vector<int> indicesTriggerNum;
-// look up vector for which triggerAnalyzer object corresponds to which num trigger
+std::vector<int> indicesTriggerDenom;
+// look up vector for which triggerAnalyzer object corresponds to which num/denom trigger
 // triggerAnalyzer object with index j corresponds to num trigger with index indicesTriggerNum[j]
+
+int nTriggers;
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -279,6 +284,14 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         if (branchSetFlag == -1) {
             std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
             std::cout<<"Following branch is not found : " << triggerBranchesNum[i].c_str() <<std::endl;
+        }
+    }
+    Int_t triggerBitsDenom[nTriggerBranchesDenom];
+    for (int i = 0; i < nTriggerBranchesDenom; ++i) {
+        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, triggerBranchesDenom[i], triggerBitsDenom[i]);
+        if (branchSetFlag == -1) {
+            std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
+            std::cout<<"Following branch is not found : " << triggerBranchesDenom[i].c_str() <<std::endl;
         }
     }
 
@@ -467,30 +480,34 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                     if (iMax >= 0) {
 
-                        double pt = (*ggHi.phoEt)[iMax];
-                        double eta = (*ggHi.phoEta)[iMax];
-                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
-                                (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
-                                (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
-                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
-                        double r9 = (*ggHi.phoR9)[iMax];
-                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+                        int iTrigDenom = indicesTriggerDenom[iAna];
+                        bool passedDenom = (nTriggerBranchesDenom == 0 || triggerBitsDenom[iTrigDenom] > 0);
+                        if (passedDenom) {
 
-                        tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
-                        tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
-                        tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
-                        tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
-                        tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
+                            double pt = (*ggHi.phoEt)[iMax];
+                            double eta = (*ggHi.phoEta)[iMax];
+                            double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
+                                    (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
+                                    (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
+                            double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
+                            double r9 = (*ggHi.phoR9)[iMax];
+                            std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
-                        std::vector<int> binIndices = getBinIndices(iAna);
+                            tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
+                            tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
+                            tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
+                            tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
+                            tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
-                        int iTrig = indicesTriggerNum[iAna];
-                        if (triggerBitsNum[iTrig] > 0) {
-                            tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                            tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                            tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                            tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                            tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+                            int iTrigNum = indicesTriggerNum[iAna];
+                            bool passedNum = (nTriggerBranchesNum == 0 || triggerBitsNum[iTrigNum] > 0);
+                            if (passedNum) {
+                                tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+                            }
                         }
                     }
                 }
@@ -706,6 +723,7 @@ int readConfiguration(const TString configFile)
 
     // cut configuration
     triggerBranchesNum = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
+    triggerBranchesDenom = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
 
     bins_eta[0] = ConfigurationParser::ParseListFloat(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
@@ -771,6 +789,18 @@ int readConfiguration(const TString configFile)
     }
 
     nTriggerBranchesNum = triggerBranchesNum.size();
+    nTriggerBranchesDenom = triggerBranchesDenom.size();
+
+    if (nTriggerBranchesNum > 1 && nTriggerBranchesDenom > 1 && nTriggerBranchesNum != nTriggerBranchesDenom) {
+        std::cout << "mismatch in the number of numerators and denominators :" << std::endl;
+        std::cout << "nTriggerBranchesNum = " << nTriggerBranchesNum << std::endl;
+        std::cout << "nTriggerBranchesDenom = " << nTriggerBranchesDenom << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
+
+    nTriggers = nTriggerBranchesNum;
+    if (nTriggerBranchesDenom > 1) nTriggers = nTriggerBranchesDenom;
 
     nBins_eta = bins_eta[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_recoPt = bins_recoPt[0].size();   // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -779,7 +809,7 @@ int readConfiguration(const TString configFile)
     nBins_sieie = bins_sieie[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_r9 = bins_r9[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
-    nTriggerAna = nTriggerBranchesNum * nBins_eta * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie * nBins_r9;
+    nTriggerAna = nTriggers * nBins_eta * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie * nBins_r9;
 
     return 0;
 }
@@ -805,6 +835,10 @@ void printConfiguration()
     std::cout << "nTriggerBranchesNum  = " << nTriggerBranchesNum << std::endl;
     for (int i = 0; i<nTriggerBranchesNum; ++i) {
         std::cout << Form("triggerBranchesNum[%d] = %s", i, triggerBranchesNum.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTriggerBranchesDenom  = " << nTriggerBranchesDenom << std::endl;
+    for (int i = 0; i<nTriggerBranchesDenom; ++i) {
+        std::cout << Form("triggerBranchesDenom[%d] = %s", i, triggerBranchesDenom.at(i).c_str()) << std::endl;
     }
 
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
@@ -965,8 +999,8 @@ int getVecIndex(std::vector<int> binIndices)
     int n = binIndices.size();
     if (n != ANABINS::kN_ANABINS) return -1;
 
-    int nTmp = nTriggerAna / nTriggerBranchesNum;
-    int i = binIndices[ANABINS::kTriggerNum] * nTmp;
+    int nTmp = nTriggerAna / nTriggers;
+    int i = binIndices[ANABINS::kTrigger] * nTmp;
 
     nTmp /= nBins_eta;
     i += binIndices[ANABINS::kEta] * nTmp;
@@ -1003,8 +1037,8 @@ std::vector<int> getBinIndices(int i)
     int nTmp = nTriggerAna;
 
     // trigger branch index
-    nTmp /= nTriggerBranchesNum;
-    binIndices[ANABINS::kTriggerNum] = iTmp / nTmp;
+    nTmp /= nTriggers;
+    binIndices[ANABINS::kTrigger] = iTmp / nTmp;
 
     // eta bin index
     iTmp = i % nTmp;
@@ -1058,7 +1092,7 @@ int  preLoop(TFile* input, bool makeNew)
 
         std::vector<int> binIndices = getBinIndices(iAna);
 
-        int iTriggerNum = binIndices[ANABINS::kTriggerNum];
+        int iTrigger = binIndices[ANABINS::kTrigger];
 
         int iEta = binIndices[ANABINS::kEta];
         int iRecoPt = binIndices[ANABINS::kRecoPt];
@@ -1104,8 +1138,13 @@ int  preLoop(TFile* input, bool makeNew)
         tAnaTmp.recoObj = TRIGGERANA::OBJS::kPHOTON;
         tAnaTmp.dep = iDep;
 
+        int iTriggerNum = (nTriggerBranchesNum == nTriggers) ? iTrigger : 0;
         tAnaTmp.pathNum = triggerBranchesNum[iTriggerNum].c_str();
-        tAnaTmp.pathDenom = "";
+
+        if (nTriggerBranchesDenom > 0) {
+            int iTriggerDenom = (nTriggerBranchesDenom == nTriggers) ? iTrigger : 0;
+            tAnaTmp.pathDenom = triggerBranchesDenom[iTriggerDenom].c_str();
+        }
 
         // histogram ranges
         tAnaTmp.ranges[TRIGGERANA::rETA][0] = bins_eta[0].at(iEta);
@@ -1139,7 +1178,7 @@ int  preLoop(TFile* input, bool makeNew)
         if (nBins_r9 > 1) {
             tmpName.append(Form("_r9Bin%d", iR9));
         }
-        tmpName.append(Form("_trig%d", iTriggerNum));
+        tmpName.append(Form("_trig%d", iTrigger));
 
         tAnaTmp.name = tmpName.c_str();
         tAnaTmp.title = title.c_str();
@@ -1193,10 +1232,17 @@ int  preLoop(TFile* input, bool makeNew)
         }
     }
 
+    indicesTriggerNum.clear();
     indicesTriggerNum.resize(nTriggerAna);
+
+    indicesTriggerDenom.clear();
+    indicesTriggerDenom.resize(nTriggerAna);
     for (int iAna = 0; iAna < nTriggerAna; ++iAna) {
+
         std::vector<int> binIndices = getBinIndices(iAna);
-        indicesTriggerNum[iAna] = binIndices[ANABINS::kTriggerNum];
+
+        indicesTriggerNum[iAna] = (nTriggerBranchesNum > 1) ? binIndices[ANABINS::kTrigger] : 0;
+        indicesTriggerDenom[iAna] = (nTriggerBranchesDenom > 1) ? binIndices[ANABINS::kTrigger] : 0;
     }
 
     return 0;
@@ -1213,7 +1259,7 @@ int postLoop()
 
             std::vector<int> binIndices = getBinIndices(iAna);
 
-            //int iTriggerNum = binIndices[ANABINS::kTriggerNum];
+            //int iTrigger = binIndices[ANABINS::kTriggerNum];
 
             int iEta = binIndices[ANABINS::kEta];
             int iRecoPt = binIndices[ANABINS::kRecoPt];
@@ -1266,7 +1312,7 @@ int postLoop()
 
                 std::vector<int> binIndices = getBinIndices(iAna);
 
-                int iTriggerNum = binIndices[ANABINS::kTriggerNum];
+                int iTrigger = binIndices[ANABINS::kTrigger];
 
                 int iEta = binIndices[ANABINS::kEta];
                 int iRecoPt = binIndices[ANABINS::kRecoPt];
@@ -1276,38 +1322,38 @@ int postLoop()
                 int iR9 = binIndices[ANABINS::kR9];
 
                 // plot from different triggers
-                if (iTriggerNum == 0 && tAna[iDep][iAna].name.size() > 0) {
+                if (iTrigger == 0 && tAna[iDep][iAna].name.size() > 0) {
                     drawSame(c, iObs, iDep, {-1, iEta, iRecoPt, iCent, iSumIso, iSieie, iR9});
                 }
 
                 // plot from different eta bins
                 if (iEta == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, -1, iRecoPt, iCent, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iTrigger, -1, iRecoPt, iCent, iSumIso, iSieie, iR9});
                 }
 
                 // plot from different recoPt bins
                 if (iRecoPt == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, iEta, -1, iCent, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iTrigger, iEta, -1, iCent, iSumIso, iSieie, iR9});
                 }
 
                 // plot from different centrality bins
                 if (iCent == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, iEta, iRecoPt, -1, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, -1, iSumIso, iSieie, iR9});
                 }
 
                 // plot from different sumIso bins
                 if (iSumIso == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, iEta, iRecoPt, iCent, -1, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, iCent, -1, iSieie, iR9});
                 }
 
                 // plot from different sumIso bins
                 if (iSieie == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, iEta, iRecoPt, iCent, iSumIso, -1, iR9});
+                    drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, iCent, iSumIso, -1, iR9});
                 }
 
                 // plot from different R9 bins
                 if (iR9 == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTriggerNum, iEta, iRecoPt, iCent, iSumIso, iSieie, -1});
+                    drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, iCent, iSumIso, iSieie, -1});
                 }
             }
         }
@@ -1320,7 +1366,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 {
     if (iObs == TRIGGERANA::kEFF && !runMode[MODES::kEff]) return;
 
-    int iTriggerNum = binIndices[ANABINS::kTriggerNum];
+    int iTrigger = binIndices[ANABINS::kTrigger];
 
     int iEta = binIndices[ANABINS::kEta];
     int iRecoPt = binIndices[ANABINS::kRecoPt];
@@ -1344,50 +1390,50 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     std::string strBin = "";
     std::string strBin2 = "";
     int nBins = 0;
-    if (iTriggerNum == -1) {
+    if (iTrigger == -1) {
         int iAna = getVecIndex({0, iEta, iRecoPt, iCent, iSumIso, iSieie, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "trig";
         strBin2 = "trigAll";
-        nBins = nTriggerBranchesNum;
+        nBins = nTriggers;
     }
     else if (iEta == -1) {
-        int iAna = getVecIndex({iTriggerNum, 0, iRecoPt, iCent, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iTrigger, 0, iRecoPt, iCent, iSumIso, iSieie, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex({iTriggerNum, iEta, 0, iCent, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iTrigger, iEta, 0, iCent, iSumIso, iSieie, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "recoPtBin";
         strBin2 = "recoPtBinAll";
         nBins = nBins_recoPt;
     }
     else if (iCent == -1 && nBins_cent > 1) {
-        int iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, 0, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iTrigger, iEta, iRecoPt, 0, iSumIso, iSieie, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "centBin";
         strBin2 = "centBinAll";
         nBins = nBins_cent;
     }
     else if (iSumIso == -1 && nBins_sumIso > 1) {
-        int iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, 0, iSieie, iR9});
+        int iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, 0, iSieie, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "sumIsoBin";
         strBin2 = "sumIsoBinAll";
         nBins = nBins_sumIso;
     }
     else if (iSieie == -1 && nBins_sieie > 1) {
-        int iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, iSumIso, 0, iR9});
+        int iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, iSumIso, 0, iR9});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "sieieBin";
         strBin2 = "sieieBinAll";
         nBins = nBins_sieie;
     }
     else if (iR9 == -1 && nBins_r9 > 1) {
-        int iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, iSumIso, iSieie, 0});
+        int iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, iSumIso, iSieie, 0});
         tmpName = tAna[iDep][iAna].name.c_str();
         strBin = "r9Bin";
         strBin2 = "r9BinAll";
@@ -1410,13 +1456,13 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iAna = -1;
-        if (iTriggerNum == -1) iAna = getVecIndex({iBin, iEta, iRecoPt, iCent, iSumIso, iSieie, iR9});
-        else if (iEta == -1) iAna = getVecIndex({iTriggerNum, iBin, iRecoPt, iCent, iSumIso, iSieie, iR9});
-        else if (iRecoPt == -1) iAna = getVecIndex({iTriggerNum, iEta, iBin, iCent, iSumIso, iSieie, iR9});
-        else if (iCent == -1) iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iBin, iSumIso, iSieie, iR9});
-        else if (iSumIso == -1) iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, iBin, iSieie, iR9});
-        else if (iSieie == -1) iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, iSumIso, iBin, iR9});
-        else if (iR9 == -1) iAna = getVecIndex({iTriggerNum, iEta, iRecoPt, iCent, iSumIso, iSieie, iBin});
+        if (iTrigger == -1) iAna = getVecIndex({iBin, iEta, iRecoPt, iCent, iSumIso, iSieie, iR9});
+        else if (iEta == -1) iAna = getVecIndex({iTrigger, iBin, iRecoPt, iCent, iSumIso, iSieie, iR9});
+        else if (iRecoPt == -1) iAna = getVecIndex({iTrigger, iEta, iBin, iCent, iSumIso, iSieie, iR9});
+        else if (iCent == -1) iAna = getVecIndex({iTrigger, iEta, iRecoPt, iBin, iSumIso, iSieie, iR9});
+        else if (iSumIso == -1) iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, iBin, iSieie, iR9});
+        else if (iSieie == -1) iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, iSumIso, iBin, iR9});
+        else if (iR9 == -1) iAna = getVecIndex({iTrigger, iEta, iRecoPt, iCent, iSumIso, iSieie, iBin});
 
         indicesAna[iBin] = iAna;
     }
@@ -1427,8 +1473,8 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iHist = iBin;
-        if (iTriggerNum == -1) iHist = iBin;
-        else if (iEta == -1) iHist = nTriggerBranchesNum + iBin;
+        if (iTrigger == -1) iHist = iBin;
+        else if (iEta == -1) iHist = nTriggers + iBin;
         else if (iRecoPt == -1) iHist = nBins_eta + iBin;
         else if (iCent == -1) iHist = nBins_eta + nBins_recoPt + iBin;
         else if (iSumIso == -1) iHist = nBins_eta + nBins_recoPt + nBins_cent + iBin;
@@ -1445,7 +1491,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
                 hTmp = (TH1D*)tAna[iDep][iAnaTmp].hEff->Clone();
 
                 hTmp->SetTitle("");
-                if (iTriggerNum != -1) {
+                if (iTrigger != -1) {
                     hTmp->SetTitle(tAna[iDep][iAnaTmp].getPathNumText().c_str());
                 }
 
@@ -1462,7 +1508,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
             hTmp = (TH1D*)tAna[iDep][iAnaTmp].hNum->Clone();
 
             hTmp->SetTitle("");
-            if (iTriggerNum != -1) {
+            if (iTrigger != -1) {
                 hTmp->SetTitle(tAna[iDep][iAnaTmp].getPathNumText().c_str());
             }
 
@@ -1506,7 +1552,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         std::string legendOption = "lpf";
         if (iObs == TRIGGERANA::kEFF)  legendOption = "lp";
         std::string legendText = "";
-        if (iTriggerNum == -1) legendText = tAna[iDep][iAnaTmp].getPathNumText();
+        if (iTrigger == -1) legendText = tAna[iDep][iAnaTmp].getPathNumText();
         else if (iEta == -1) legendText = tAna[iDep][iAnaTmp].getRangeText(TRIGGERANA::rETA);
         else if (iRecoPt == -1) legendText = tAna[iDep][iAnaTmp].getRangeText(TRIGGERANA::rRECOPT);
         else if (iCent == -1) legendText = tAna[iDep][iAnaTmp].getRangeText(TRIGGERANA::rCENT);
@@ -1581,7 +1627,7 @@ void setTH1(TH1D* h, int iHist)
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
 
-    int nBinsTot = nTriggerBranchesNum + nBins_eta + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_r9;
+    int nBinsTot = nTriggers + nBins_eta + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_r9;
 
     int markerStyle = GRAPHICS::markerStyle;
     if (nMarkerStyles == nBinsTot) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(iHist));
