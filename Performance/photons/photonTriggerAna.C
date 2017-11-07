@@ -193,6 +193,10 @@ std::vector<int> indicesTriggerDenom;
 // triggerAnalyzer object with index j corresponds to num trigger with index indicesTriggerNum[j]
 
 int nTriggers;
+
+std::vector<int> indicesMapNum;
+std::vector<int> indicesMapDenom;
+std::vector<std::string> triggerBranches;  // list of all trigger branches to be used. Elements are unique
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -200,6 +204,7 @@ void printConfiguration();
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
+void indexTriggerBrances();
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
@@ -278,20 +283,19 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     treeHlt->SetBranchAddress("LumiBlock", &hlt_lumi);
     treeHlt->SetBranchAddress("Run", &hlt_run);
 
-    Int_t triggerBitsNum[nTriggerBranchesNum];
-    for (int i = 0; i < nTriggerBranchesNum; ++i) {
-        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, triggerBranchesNum[i], triggerBitsNum[i]);
-        if (branchSetFlag == -1) {
-            std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
-            std::cout<<"Following branch is not found : " << triggerBranchesNum[i].c_str() <<std::endl;
-        }
+    indexTriggerBrances();
+    int nTriggerBranches =  triggerBranches.size();
+    std::cout << "nTriggerBranches (trigger branches to read) = " << nTriggerBranches << std::endl;
+    for (int i = 0; i<nTriggerBranches; ++i) {
+        std::cout << Form("triggerBranches[%d] = %s", i, triggerBranches.at(i).c_str()) << std::endl;
     }
-    Int_t triggerBitsDenom[nTriggerBranchesDenom];
-    for (int i = 0; i < nTriggerBranchesDenom; ++i) {
-        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, triggerBranchesDenom[i], triggerBitsDenom[i]);
+
+    Int_t triggerBits[nTriggerBranches];
+    for (int i = 0; i < nTriggerBranches; ++i) {
+        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, triggerBranches[i], triggerBits[i]);
         if (branchSetFlag == -1) {
-            std::cout<<"set branch addresses for triggers that go into numerator"<<std::endl;
-            std::cout<<"Following branch is not found : " << triggerBranchesDenom[i].c_str() <<std::endl;
+            std::cout << "set branch addresses for triggers" << std::endl;
+            std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() <<std::endl;
         }
     }
 
@@ -481,7 +485,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                     if (iMax >= 0) {
 
                         int iTrigDenom = indicesTriggerDenom[iAna];
-                        bool passedDenom = (nTriggerBranchesDenom == 0 || triggerBitsDenom[iTrigDenom] > 0);
+                        int iTrig = -1;
+                        if (iTrigDenom >= 0) iTrig = indicesMapDenom[iTrigDenom];
+                        bool passedDenom = (iTrig == -1 || triggerBits[iTrig] > 0);
                         if (passedDenom) {
 
                             double pt = (*ggHi.phoEt)[iMax];
@@ -500,7 +506,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
                             int iTrigNum = indicesTriggerNum[iAna];
-                            bool passedNum = (nTriggerBranchesNum == 0 || triggerBitsNum[iTrigNum] > 0);
+                            iTrig = -1;
+                            if (iTrigNum >= 0) iTrig = indicesMapNum[iTrigNum];
+                            bool passedNum = (iTrig == -1 || triggerBits[iTrig] > 0);
                             if (passedNum) {
                                 tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
                                 tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
@@ -1069,6 +1077,30 @@ std::vector<int> getBinIndices(int i)
 }
 
 /*
+ * collect all trigger branches in a single list of unique elements and map their indices to the ones in num / denom lists
+ */
+void indexTriggerBrances()
+{
+    triggerBranches.clear();
+    triggerBranches.insert(triggerBranches.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
+    triggerBranches.insert(triggerBranches.end(), triggerBranchesDenom.begin(), triggerBranchesDenom.end());
+
+    triggerBranches = vectorUnique(triggerBranches);
+
+    indicesMapNum.clear();
+    indicesMapNum.resize((int)triggerBranchesNum.size());
+    for (int i = 0; i < (int)triggerBranchesNum.size(); ++i) {
+        indicesMapNum[i] = findPositionInVector(triggerBranches, triggerBranchesNum[i].c_str());
+    }
+
+    indicesMapDenom.clear();
+    indicesMapDenom.resize((int)triggerBranchesDenom.size());
+    for (int i = 0; i < (int)triggerBranchesDenom.size(); ++i) {
+        indicesMapDenom[i] = findPositionInVector(triggerBranches, triggerBranchesDenom[i].c_str());
+    }
+}
+
+/*
  * initialize/read/modify the analysis objects before the loop.
  * Objects are eg. TH1, TGraph, ...
  */
@@ -1241,8 +1273,13 @@ int  preLoop(TFile* input, bool makeNew)
 
         std::vector<int> binIndices = getBinIndices(iAna);
 
-        indicesTriggerNum[iAna] = (nTriggerBranchesNum > 1) ? binIndices[ANABINS::kTrigger] : 0;
-        indicesTriggerDenom[iAna] = (nTriggerBranchesDenom > 1) ? binIndices[ANABINS::kTrigger] : 0;
+        if (nTriggerBranchesNum > 1)        indicesTriggerNum[iAna] = binIndices[ANABINS::kTrigger];
+        else if (nTriggerBranchesNum == 1)  indicesTriggerNum[iAna] = 0;
+        else                                indicesTriggerNum[iAna] = -1;
+
+        if (nTriggerBranchesDenom > 1)        indicesTriggerDenom[iAna] = binIndices[ANABINS::kTrigger];
+        else if (nTriggerBranchesDenom == 1)  indicesTriggerDenom[iAna] = 0;
+        else                                  indicesTriggerDenom[iAna] = -1;
     }
 
     return 0;
