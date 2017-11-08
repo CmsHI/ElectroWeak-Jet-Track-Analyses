@@ -43,6 +43,7 @@ double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightM
 double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
 int    calcNrows(int nPads);
 int    calcNcolumns(int nPads);
+bool   isFrameAreaSquare(TPad* pad);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
@@ -472,6 +473,23 @@ int calcNcolumns(int nPads)
     }
     else
         return nPads;
+}
+
+/*
+ * return true if a TH1 object drawn in this pad would be square shaped (height and width of the frame are same).
+ */
+bool isFrameAreaSquare(TPad* pad)
+{
+    double wNDC = pad->GetAbsWNDC();
+    double hNDC = pad->GetAbsHNDC();
+
+    double wPixel = wNDC * pad->GetWw();
+    double hPixel = hNDC * pad->GetWh();
+
+    double marginXaxis = 1 - pad->GetLeftMargin() - pad->GetRightMargin();
+    double marginYaxis = 1 - pad->GetBottomMargin() - pad->GetTopMargin();
+
+    return (wPixel * marginXaxis == hPixel * marginYaxis);
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
