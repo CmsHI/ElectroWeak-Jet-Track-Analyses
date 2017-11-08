@@ -18,6 +18,7 @@
 #include <string>
 #include <vector>
 #include <utility>      // std::pair
+#include <math.h>
 
 #ifndef STYLEUTIL_H_
 #define STYLEUTIL_H_
@@ -44,6 +45,11 @@ double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMar
 int    calcNrows(int nPads);
 int    calcNcolumns(int nPads);
 bool   isFrameAreaSquare(TPad* pad);
+int    calcPadWidth4SquareFrame(TPad* pad);
+int    calcPadHeight4SquareFrame(TPad* pad);
+int    calcPadWidth4SquareFrame(int height, double hNDC, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
+int    calcPadHeight4SquareFrame(int width, double wNDC, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
+int    calcPadLength4SquareFrame(int lengthX, double xNDC, double yNDC, float marginX1, float marginX2, float marginY1, float marginY2);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
@@ -490,6 +496,46 @@ bool isFrameAreaSquare(TPad* pad)
     double marginYaxis = 1 - pad->GetBottomMargin() - pad->GetTopMargin();
 
     return (wPixel * marginXaxis == hPixel * marginYaxis);
+}
+
+/*
+ * return the width that will make the pad have a square frame.
+ * The returned value will not give an exact square because of integer precision.
+ */
+int calcPadWidth4SquareFrame(TPad* pad)
+{
+    return calcPadWidth4SquareFrame(pad->GetWh(), pad->GetAbsHNDC(), pad->GetAbsWNDC(),
+            pad->GetLeftMargin(), pad->GetRightMargin(), pad->GetBottomMargin(), pad->GetTopMargin());
+}
+
+/*
+ * return the height that will make the pad have a square frame.
+ * The returned value will not give an exact square because of integer precision.
+ */
+int calcPadHeight4SquareFrame(TPad* pad)
+{
+    return calcPadHeight4SquareFrame(pad->GetWw(), pad->GetAbsWNDC(), pad->GetAbsHNDC(),
+            pad->GetLeftMargin(), pad->GetRightMargin(), pad->GetBottomMargin(), pad->GetTopMargin());
+}
+
+int calcPadWidth4SquareFrame(int height, double hNDC, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+{
+    return calcPadLength4SquareFrame(height, hNDC, wNDC, bottomMargin, topMargin, leftMargin, rightMargin);
+}
+
+int calcPadHeight4SquareFrame(int width, double wNDC, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+{
+    return calcPadLength4SquareFrame(width, wNDC, hNDC, leftMargin, rightMargin, bottomMargin, topMargin);
+}
+
+int calcPadLength4SquareFrame(int lengthX, double xNDC, double yNDC, float marginX1, float marginX2, float marginY1, float marginY2)
+{
+    double pixelsX = xNDC * lengthX;
+
+    double framePixelsX = pixelsX * (1 - marginX1 - marginX2);
+    double pixelsY = framePixelsX / (1 - marginY1 - marginY2);
+
+    return std::round(pixelsY);
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
