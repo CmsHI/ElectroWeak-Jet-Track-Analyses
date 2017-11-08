@@ -275,6 +275,12 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     TTree* treeHlt = 0;
     std::string treeHltPath = "hltbitanalysis/HltTree";
     treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
+    treeHlt->SetBranchStatus("*",0);     // disable all branches
+
+    // specify explicitly which branches to use
+    treeHlt->SetBranchStatus("Event", 1);
+    treeHlt->SetBranchStatus("LumiBlock", 1);
+    treeHlt->SetBranchStatus("Run", 1);
 
     ULong64_t       hlt_event;
     Int_t           hlt_lumi;
