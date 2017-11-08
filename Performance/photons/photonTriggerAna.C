@@ -137,7 +137,12 @@ int nTextOffsetsX;
 int nTextOffsetsY;
 
 // cut configuration
+
+// triggers that go into numerator
 std::vector<std::string> triggerBranchesNum;
+// global denominator : list of triggers that define the subset of events to consider.
+std::vector<std::string> triggerBranchesDenomGlobal;
+// individual denominators
 std::vector<std::string> triggerBranchesDenom;
 
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
@@ -156,6 +161,7 @@ int doEventWeight;
 float cut_phoHoverE;
 
 int nTriggerBranchesNum;
+int nTriggerBranchesDenomGlobal;
 int nTriggerBranchesDenom;
 
 int nBins_eta;
@@ -195,6 +201,7 @@ std::vector<int> indicesTriggerDenom;
 int nTriggers;
 
 std::vector<int> indicesMapNum;
+std::vector<int> indicesMapDenomGlobal;
 std::vector<int> indicesMapDenom;
 std::vector<std::string> triggerBranches;  // list of all trigger branches to be used. Elements are unique
 ///// global variables - END
@@ -205,8 +212,9 @@ std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 void indexTriggerBrances();
-bool passedDenom(int iTriggerDenom, int triggerBits[]);
 bool passedNum(int iTriggerNum, int triggerBits[]);
+bool passedDenomGlobal(int triggerBits[]);
+bool passedDenom(int iTriggerDenom, int triggerBits[]);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
@@ -348,8 +356,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     Long64_t duplicateEntries = 0;
 
     Long64_t entries = 0;
-    Long64_t entriesAnalyzed = 0;
     Long64_t entriesNotFoundinHLT = 0;
+    Long64_t entriesPassedDenomGlobal = 0;
+    Long64_t entriesAnalyzed = 0;
 
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -433,7 +442,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             treeHlt->GetEntry(entryHLT);
 
-            entriesAnalyzed++;
+            if (!passedDenomGlobal(triggerBits)) continue;
+            entriesPassedDenomGlobal++;
 
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
@@ -444,6 +454,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 if ((skimAna.has_pPAprimaryVertexFilter && skimAna.pPAprimaryVertexFilter < 1) ||
                         (skimAna.has_pBeamScrapingFilter && skimAna.pBeamScrapingFilter < 1))  continue;
             }
+
+            entriesAnalyzed++;
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
@@ -529,6 +541,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesNotFoundinHLT = " << entriesNotFoundinHLT << std::endl;
+    std::cout << "entriesPassedDenomGlobal = " << entriesPassedDenomGlobal << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
 
     TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
@@ -732,6 +745,7 @@ int readConfiguration(const TString configFile)
 
     // cut configuration
     triggerBranchesNum = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
+    triggerBranchesDenomGlobal = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenomGlobal_List]);
     triggerBranchesDenom = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
 
     bins_eta[0] = ConfigurationParser::ParseListFloat(
@@ -798,6 +812,7 @@ int readConfiguration(const TString configFile)
     }
 
     nTriggerBranchesNum = triggerBranchesNum.size();
+    nTriggerBranchesDenomGlobal = triggerBranchesDenomGlobal.size();
     nTriggerBranchesDenom = triggerBranchesDenom.size();
 
     if (nTriggerBranchesNum > 1 && nTriggerBranchesDenom > 1 && nTriggerBranchesNum != nTriggerBranchesDenom) {
@@ -844,6 +859,10 @@ void printConfiguration()
     std::cout << "nTriggerBranchesNum  = " << nTriggerBranchesNum << std::endl;
     for (int i = 0; i<nTriggerBranchesNum; ++i) {
         std::cout << Form("triggerBranchesNum[%d] = %s", i, triggerBranchesNum.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTriggerBranchesDenomGlobal  = " << nTriggerBranchesDenomGlobal << std::endl;
+    for (int i = 0; i<nTriggerBranchesDenomGlobal; ++i) {
+        std::cout << Form("triggerBranchesDenomGlobal[%d] = %s", i, triggerBranchesDenomGlobal.at(i).c_str()) << std::endl;
     }
     std::cout << "nTriggerBranchesDenom  = " << nTriggerBranchesDenom << std::endl;
     for (int i = 0; i<nTriggerBranchesDenom; ++i) {
@@ -1084,6 +1103,7 @@ void indexTriggerBrances()
 {
     triggerBranches.clear();
     triggerBranches.insert(triggerBranches.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
+    triggerBranches.insert(triggerBranches.end(), triggerBranchesDenomGlobal.begin(), triggerBranchesDenomGlobal.end());
     triggerBranches.insert(triggerBranches.end(), triggerBranchesDenom.begin(), triggerBranchesDenom.end());
 
     triggerBranches = vectorUnique(triggerBranches);
@@ -1094,6 +1114,12 @@ void indexTriggerBrances()
         indicesMapNum[i] = findPositionInVector(triggerBranches, triggerBranchesNum[i].c_str());
     }
 
+    indicesMapDenomGlobal.clear();
+    indicesMapDenomGlobal.resize((int)triggerBranchesDenomGlobal.size());
+    for (int i = 0; i < (int)triggerBranchesDenomGlobal.size(); ++i) {
+        indicesMapDenomGlobal[i] = findPositionInVector(triggerBranches, triggerBranchesDenomGlobal[i].c_str());
+    }
+
     indicesMapDenom.clear();
     indicesMapDenom.resize((int)triggerBranchesDenom.size());
     for (int i = 0; i < (int)triggerBranchesDenom.size(); ++i) {
@@ -1101,19 +1127,32 @@ void indexTriggerBrances()
     }
 }
 
-bool passedDenom(int iTriggerDenom, int triggerBits[])
-{
-    if (iTriggerDenom < 0) return true;
-
-    int iTrig = indicesMapDenom[iTriggerDenom];
-    return (triggerBits[iTrig] > 0);
-}
-
 bool passedNum(int iTriggerNum, int triggerBits[])
 {
     if (iTriggerNum < 0) return true;
 
     int iTrig = indicesMapNum[iTriggerNum];
+    return (triggerBits[iTrig] > 0);
+}
+
+bool passedDenomGlobal(int triggerBits[])
+{
+    if (nTriggerBranchesDenomGlobal == 0) return true;
+
+    // these triggers are "OR"ed.
+    for (int i = 0; i < nTriggerBranchesDenomGlobal; ++i) {
+        int iTrig = indicesMapDenomGlobal[i];
+        if (triggerBits[iTrig] > 0)  return true;
+    }
+
+    return false;
+}
+
+bool passedDenom(int iTriggerDenom, int triggerBits[])
+{
+    if (iTriggerDenom < 0) return true;
+
+    int iTrig = indicesMapDenom[iTriggerDenom];
     return (triggerBits[iTrig] > 0);
 }
 
