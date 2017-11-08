@@ -145,6 +145,11 @@ std::vector<std::string> triggerBranchesDenomGlobal;
 // individual denominators
 std::vector<std::string> triggerBranchesDenom;
 
+// prescales to check in numerators and denominators
+std::vector<std::string> prescaleBranchesNum;
+// prescales to check only in denominators
+std::vector<std::string> prescaleBranchesDenom;
+
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
 // list of pt cuts for RECO photons
 std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, each array element is a vector, should function also as
@@ -163,6 +168,8 @@ float cut_phoHoverE;
 int nTriggerBranchesNum;
 int nTriggerBranchesDenomGlobal;
 int nTriggerBranchesDenom;
+int nPrescaleBranchesNum;
+int nPrescaleBranchesDenom;
 
 int nBins_eta;
 int nBins_recoPt;
@@ -204,6 +211,10 @@ std::vector<int> indicesMapNum;
 std::vector<int> indicesMapDenomGlobal;
 std::vector<int> indicesMapDenom;
 std::vector<std::string> triggerBranches;  // list of all trigger branches to be used. Elements are unique
+
+std::vector<int> indicesMapPrescaleNum;
+std::vector<int> indicesMapPrescaleDenom;
+std::vector<std::string> prescaleBranches;  // list of all prescale branches to be used. Elements are unique
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -215,6 +226,8 @@ void indexTriggerBrances();
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
 bool passedDenom(int iTriggerDenom, int triggerBits[]);
+bool isPrescaledNum(int iTriggerNum, int triggerPrescales[]);
+bool isPrescaledDenom(int iTriggerDenom, int triggerPrescales[]);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
@@ -302,7 +315,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     indexTriggerBrances();
     int nTriggerBranches =  triggerBranches.size();
     std::cout << "nTriggerBranches (trigger branches to read) = " << nTriggerBranches << std::endl;
-    for (int i = 0; i<nTriggerBranches; ++i) {
+    for (int i = 0; i < nTriggerBranches; ++i) {
         std::cout << Form("triggerBranches[%d] = %s", i, triggerBranches.at(i).c_str()) << std::endl;
     }
 
@@ -312,6 +325,24 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         if (branchSetFlag == -1) {
             std::cout << "set branch addresses for triggers" << std::endl;
             std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() <<std::endl;
+        }
+    }
+
+    int nPrescaleBranches =  prescaleBranches.size();
+    std::cout << "nPrescaleBranches (prescale branches to read) = " << nPrescaleBranches << std::endl;
+    for (int i = 0; i < nPrescaleBranches; ++i) {
+        std::cout << Form("prescaleBranches[%d] = %s", i, prescaleBranches.at(i).c_str()) << std::endl;
+        if (prescaleBranches.at(i).size() > 0 && prescaleBranches.at(i).find("Prescl") == std::string::npos) {
+            std::cout << "Warning : Branch name does not contain 'Prescl'" << std::endl;
+        }
+    }
+
+    Int_t triggerPrescales[nPrescaleBranches];
+    for (int i = 0; i < nPrescaleBranches; ++i) {
+        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, prescaleBranches[i], triggerPrescales[i]);
+        if (branchSetFlag == -1) {
+            std::cout << "set branch addresses for prescales" << std::endl;
+            std::cout << "Following branch is not found : "  << prescaleBranches[i].c_str() <<std::endl;
         }
     }
 
@@ -504,6 +535,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                     // leading object goes into histograms
                     if(iMax == -1) continue;
+
+                    if (isPrescaledDenom(indicesTriggerDenom[iAna], triggerPrescales))  continue;
+                    if (isPrescaledNum(indicesTriggerNum[iAna], triggerPrescales))  continue;
 
                     if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
@@ -749,6 +783,9 @@ int readConfiguration(const TString configFile)
     triggerBranchesDenomGlobal = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenomGlobal_List]);
     triggerBranchesDenom = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenom_List]);
 
+    prescaleBranchesNum = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNumPrescl_List]);
+    prescaleBranchesDenom = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerDenomPrescl_List]);
+
     bins_eta[0] = ConfigurationParser::ParseListFloat(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
     bins_eta[1] = ConfigurationParser::ParseListFloat(
@@ -815,6 +852,8 @@ int readConfiguration(const TString configFile)
     nTriggerBranchesNum = triggerBranchesNum.size();
     nTriggerBranchesDenomGlobal = triggerBranchesDenomGlobal.size();
     nTriggerBranchesDenom = triggerBranchesDenom.size();
+    nPrescaleBranchesNum = prescaleBranchesNum.size();
+    nPrescaleBranchesDenom = prescaleBranchesDenom.size();
 
     if (nTriggerBranchesNum > 1 && nTriggerBranchesDenom > 1 && nTriggerBranchesNum != nTriggerBranchesDenom) {
         std::cout << "mismatch in the number of numerators and denominators :" << std::endl;
@@ -826,6 +865,21 @@ int readConfiguration(const TString configFile)
 
     nTriggers = nTriggerBranchesNum;
     if (nTriggerBranchesDenom > 1) nTriggers = nTriggerBranchesDenom;
+
+    if (nPrescaleBranchesNum > 0 && nPrescaleBranchesNum != nTriggerBranchesNum)
+    {
+        std::cout << "mismatch in the number of numerators and prescales to be used for numerators :" << std::endl;
+        std::cout << "nTriggerBranchesNum = " << nTriggerBranchesNum << " and nPrescaleBranchesNum = " << nPrescaleBranchesNum << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
+    if (nPrescaleBranchesDenom > 0 && nPrescaleBranchesDenom != nTriggerBranchesDenom)
+    {
+        std::cout << "mismatch in the number of denominators and prescales to be used for denominators :" << std::endl;
+        std::cout << "nTriggerBranchesDenom = " << nTriggerBranchesDenom << " and nPrescaleBranchesDenom = " << nPrescaleBranchesDenom << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
 
     nBins_eta = bins_eta[0].size();         // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_recoPt = bins_recoPt[0].size();   // assume <myvector>[0] and <myvector>[1] have the same size.
@@ -868,6 +922,15 @@ void printConfiguration()
     std::cout << "nTriggerBranchesDenom  = " << nTriggerBranchesDenom << std::endl;
     for (int i = 0; i<nTriggerBranchesDenom; ++i) {
         std::cout << Form("triggerBranchesDenom[%d] = %s", i, triggerBranchesDenom.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nPrescaleBranchesNum = " << nPrescaleBranchesNum << std::endl;
+    for (int i = 0; i < nPrescaleBranchesNum; ++i) {
+        std::cout << Form("prescaleBranchesNum[%d] = ", i) << prescaleBranchesNum.at(i).c_str() << std::endl;
+    }
+    std::cout << "nPrescaleBranchesDenom = " << nPrescaleBranchesDenom << std::endl;
+    for (int i = 0; i < nPrescaleBranchesDenom; ++i) {
+        std::cout << Form("prescaleBranchesDenom[%d] = ", i) << prescaleBranchesDenom.at(i).c_str() << std::endl;
     }
 
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
@@ -1126,6 +1189,25 @@ void indexTriggerBrances()
     for (int i = 0; i < (int)triggerBranchesDenom.size(); ++i) {
         indicesMapDenom[i] = findPositionInVector(triggerBranches, triggerBranchesDenom[i].c_str());
     }
+
+    // do the same for prescale branches
+    prescaleBranches.clear();
+    prescaleBranches.insert(prescaleBranches.end(), prescaleBranchesNum.begin(), prescaleBranchesNum.end());
+    prescaleBranches.insert(prescaleBranches.end(), prescaleBranchesDenom.begin(), prescaleBranchesDenom.end());
+
+    prescaleBranches = vectorUnique(prescaleBranches);
+
+    indicesMapPrescaleNum.clear();
+    indicesMapPrescaleNum.resize((int)prescaleBranchesNum.size());
+    for (int i = 0; i < (int)prescaleBranchesNum.size(); ++i) {
+        indicesMapPrescaleNum[i] = findPositionInVector(prescaleBranches, prescaleBranchesNum[i].c_str());
+    }
+
+    indicesMapPrescaleDenom.clear();
+    indicesMapPrescaleDenom.resize((int)prescaleBranchesDenom.size());
+    for (int i = 0; i < (int)prescaleBranchesDenom.size(); ++i) {
+        indicesMapPrescaleDenom[i] = findPositionInVector(prescaleBranches, prescaleBranchesDenom[i].c_str());
+    }
 }
 
 bool passedNum(int iTriggerNum, int triggerBits[])
@@ -1155,6 +1237,24 @@ bool passedDenom(int iTriggerDenom, int triggerBits[])
 
     int iTrig = indicesMapDenom[iTriggerDenom];
     return (triggerBits[iTrig] > 0);
+}
+
+bool isPrescaledNum(int iTriggerNum, int triggerPrescales[])
+{
+    if (nPrescaleBranchesNum == 0) return false;
+    if (iTriggerNum < 0) return false;
+
+    int iPrescale = indicesMapPrescaleNum[iTriggerNum];
+    return (triggerPrescales[iPrescale] > 1);
+}
+
+bool isPrescaledDenom(int iTriggerDenom, int triggerPrescales[])
+{
+    if (nPrescaleBranchesDenom == 0) return false;
+    if (iTriggerDenom < 0) return false;
+
+    int iPrescale = indicesMapPrescaleDenom[iTriggerDenom];
+    return (triggerPrescales[iPrescale] > 1);
 }
 
 /*
