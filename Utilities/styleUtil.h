@@ -535,7 +535,7 @@ int calcPadLength4SquareFrame(int lengthX, double xNDC, double yNDC, float margi
     double framePixelsX = pixelsX * (1 - marginX1 - marginX2);
     double pixelsY = framePixelsX / (1 - marginY1 - marginY2);
 
-    return std::round(pixelsY);
+    return std::round(pixelsY / yNDC);
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
