@@ -205,6 +205,8 @@ std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 void indexTriggerBrances();
+bool passedDenom(int iTriggerDenom, int triggerBits[]);
+bool passedNum(int iTriggerNum, int triggerBits[]);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
@@ -490,11 +492,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                     if (iMax >= 0) {
 
-                        int iTrigDenom = indicesTriggerDenom[iAna];
-                        int iTrig = -1;
-                        if (iTrigDenom >= 0) iTrig = indicesMapDenom[iTrigDenom];
-                        bool passedDenom = (iTrig == -1 || triggerBits[iTrig] > 0);
-                        if (passedDenom) {
+                        if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
                             double pt = (*ggHi.phoEt)[iMax];
                             double eta = (*ggHi.phoEta)[iMax];
@@ -511,11 +509,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
-                            int iTrigNum = indicesTriggerNum[iAna];
-                            iTrig = -1;
-                            if (iTrigNum >= 0) iTrig = indicesMapNum[iTrigNum];
-                            bool passedNum = (iTrig == -1 || triggerBits[iTrig] > 0);
-                            if (passedNum) {
+                            if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
+
                                 tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
                                 tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
                                 tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
@@ -1104,6 +1099,22 @@ void indexTriggerBrances()
     for (int i = 0; i < (int)triggerBranchesDenom.size(); ++i) {
         indicesMapDenom[i] = findPositionInVector(triggerBranches, triggerBranchesDenom[i].c_str());
     }
+}
+
+bool passedDenom(int iTriggerDenom, int triggerBits[])
+{
+    if (iTriggerDenom < 0) return true;
+
+    int iTrig = indicesMapDenom[iTriggerDenom];
+    return (triggerBits[iTrig] > 0);
+}
+
+bool passedNum(int iTriggerNum, int triggerBits[])
+{
+    if (iTriggerNum < 0) return true;
+
+    int iTrig = indicesMapNum[iTriggerNum];
+    return (triggerBits[iTrig] > 0);
 }
 
 /*
