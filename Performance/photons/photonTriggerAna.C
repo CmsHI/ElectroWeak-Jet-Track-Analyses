@@ -502,35 +502,36 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                         }
                     }
 
-                    if (iMax >= 0) {
+                    // leading object goes into histograms
+                    if(iMax == -1) continue;
 
-                        if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
+                    if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
-                            double pt = (*ggHi.phoEt)[iMax];
-                            double eta = (*ggHi.phoEta)[iMax];
-                            double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
-                                    (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
-                                    (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
-                            double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
-                            double r9 = (*ggHi.phoR9)[iMax];
-                            std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+                        double pt = (*ggHi.phoEt)[iMax];
+                        double eta = (*ggHi.phoEta)[iMax];
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
+                                (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
+                        double r9 = (*ggHi.phoR9)[iMax];
+                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
-                            tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
-                            tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
-                            tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
-                            tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
-                            tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
+                        tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
+                        tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
+                        tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
+                        tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
+                        tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
-                            if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
+                        if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
 
-                                tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                                tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                                tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                                tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                                tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
-                            }
+                            tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                            tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                            tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                            tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                            tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
                         }
                     }
+
                 }
             }
 
