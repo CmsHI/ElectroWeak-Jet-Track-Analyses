@@ -495,7 +495,8 @@ bool isFrameAreaSquare(TPad* pad)
     double marginXaxis = 1 - pad->GetLeftMargin() - pad->GetRightMargin();
     double marginYaxis = 1 - pad->GetBottomMargin() - pad->GetTopMargin();
 
-    return (wPixel * marginXaxis == hPixel * marginYaxis);
+    // relax exact matching because of integer precision in width/height
+    return TMath::Abs(wPixel * marginXaxis - hPixel * marginYaxis)/(wPixel * marginXaxis) < 0.0001;
 }
 
 /*
