@@ -45,11 +45,11 @@ double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMar
 int    calcNrows(int nPads);
 int    calcNcolumns(int nPads);
 bool   isFrameAreaSquare(TPad* pad);
-int    calcPadWidth4SquareFrame(TPad* pad);
-int    calcPadHeight4SquareFrame(TPad* pad);
-int    calcPadWidth4SquareFrame(int height, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
-int    calcPadHeight4SquareFrame(int width, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
-int    calcPadLength4SquareFrame(int lengthX, double xNDC, float marginX1, float marginX2, float marginY1, float marginY2);
+double calcPadWidth4SquareFrame(TPad* pad);
+double calcPadHeight4SquareFrame(TPad* pad);
+double calcPadWidth4SquareFrame(int height, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
+double calcPadHeight4SquareFrame(int width, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin);
+double calcPadLength4SquareFrame(int lengthX, double xNDC, float marginX1, float marginX2, float marginY1, float marginY2);
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c);
 double calcTLegendHeight(TLegend* legend, double offset = 0.0375, double ratio = 0.0375);
 double calcTLegendWidth (TLegend* legend, double offset = 0.06,   double ratio = 25./3000, double threshold = 0.2);
@@ -501,9 +501,9 @@ bool isFrameAreaSquare(TPad* pad)
 
 /*
  * return the width that will make the pad have a square frame.
- * The returned value will not give an exact square because of integer precision.
+ * The returned value will have to be converted to integer, therefore may not give an exact square.
  */
-int calcPadWidth4SquareFrame(TPad* pad)
+double calcPadWidth4SquareFrame(TPad* pad)
 {
     return calcPadWidth4SquareFrame(pad->GetWh(), pad->GetAbsHNDC(),
             pad->GetLeftMargin(), pad->GetRightMargin(), pad->GetBottomMargin(), pad->GetTopMargin());
@@ -511,32 +511,32 @@ int calcPadWidth4SquareFrame(TPad* pad)
 
 /*
  * return the height that will make the pad have a square frame.
- * The returned value will not give an exact square because of integer precision.
+ * The returned value will have to be converted to integer, therefore may not give an exact square.
  */
-int calcPadHeight4SquareFrame(TPad* pad)
+double calcPadHeight4SquareFrame(TPad* pad)
 {
     return calcPadHeight4SquareFrame(pad->GetWw(), pad->GetAbsWNDC(),
             pad->GetLeftMargin(), pad->GetRightMargin(), pad->GetBottomMargin(), pad->GetTopMargin());
 }
 
-int calcPadWidth4SquareFrame(int height, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+double calcPadWidth4SquareFrame(int height, double hNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
 {
     return calcPadLength4SquareFrame(height, hNDC, bottomMargin, topMargin, leftMargin, rightMargin);
 }
 
-int calcPadHeight4SquareFrame(int width, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
+double calcPadHeight4SquareFrame(int width, double wNDC, float leftMargin, float rightMargin, float bottomMargin, float topMargin)
 {
     return calcPadLength4SquareFrame(width, wNDC, leftMargin, rightMargin, bottomMargin, topMargin);
 }
 
-int calcPadLength4SquareFrame(int lengthX, double xNDC, float marginX1, float marginX2, float marginY1, float marginY2)
+double calcPadLength4SquareFrame(int lengthX, double xNDC, float marginX1, float marginX2, float marginY1, float marginY2)
 {
     double pixelsX = xNDC * lengthX;
 
     double framePixelsX = pixelsX * (1 - marginX1 - marginX2);
     double pixelsY = framePixelsX / (1 - marginY1 - marginY2);
 
-    return std::round(pixelsY);
+    return pixelsY;
 }
 
 double calcTextWidth(std::vector<std::string> lines, TCanvas* c)
