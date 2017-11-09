@@ -124,7 +124,7 @@ void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMar
     x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
     for (int i = 1; i < columns; ++i) {
         x_min[i] = x_max[i-1];
-        x_max[i] = x_max[i-1] + normPadWidth;
+        x_max[i] = x_min[i] + normPadWidth;
     }
     x_max[columns-1] += rightMargin - xMargin/2;
 
@@ -132,7 +132,7 @@ void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMar
     y_min[rows-1] = yMinOffset;
     y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
     for (int i = rows - 2; i >= 0; --i) {
-        y_min[i] = y_max[i+1]+yMinOffset;
+        y_min[i] = y_max[i+1] + yMinOffset;
         y_max[i] = y_min[i] + normPadHeight;
     }
     y_max[0] += topMargin - yMargin/2;
