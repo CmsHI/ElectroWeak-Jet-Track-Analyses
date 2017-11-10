@@ -214,14 +214,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     if (yMargin == 0) yMargin = INPUT_DEFAULT::yMargin;
     if (rows == 0) rows = INPUT_DEFAULT::rows;
     if (columns == 0) columns = INPUT_DEFAULT::columns;
-    if (rows == 1 && yMargin > 0)   {
-        yMargin = 0;
-        std::cout << "There is one row in the canvas. yMargin is set to " << yMargin << std::endl;
-    }
-    if (columns == 1 && xMargin > 0)   {
-        xMargin = 0;
-        std::cout << "There is one column in the canvas. xMargin is set to " << xMargin << std::endl;
-    }
     if (setLogx.size() == 0)  setLogx = {0};
     int nSetLogx = setLogx.size();
     if (setLogy.size() == 0)  setLogy = {0};
@@ -1060,18 +1052,19 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         for (int iPad = 0; iPad < nPads; ++iPad) {
             c->cd();
 
-            float windowHeightFractionTmp = windowHeightFractions.at(0);
-            if (nWindowHeightFractions == nPads)  windowHeightFractionTmp = windowHeightFractions.at(iPad);
-
             std::string padNameTmp = Form("%s_lower", pads[iPad]->GetName());
             double x1_lowerPad = pads[iPad]->GetXlowNDC();
-            double y1_lowerPad = pads[iPad]->GetYlowNDC()-windowHeightFractionTmp/windowHeightScale;
+            double y1_lowerPad = pads[iPad]->GetYlowNDC();
+            if (iPad + columns < nPads)  y1_lowerPad = pads[iPad+columns]->GetYlowNDC();
+            else                         y1_lowerPad = 0;
             double x2_lowerPad = pads[iPad]->GetXlowNDC()+pads[iPad]->GetWNDC();
             double y2_lowerPad = pads[iPad]->GetYlowNDC();
 
             pads2[iPad] = new TPad(padNameTmp.c_str(), "", x1_lowerPad, y1_lowerPad, x2_lowerPad, y2_lowerPad);
             pads2[iPad]->SetLeftMargin(pads[iPad]->GetLeftMargin());
             pads2[iPad]->SetRightMargin(pads[iPad]->GetRightMargin());
+            pads2[iPad]->SetBottomMargin(yMargin * (pads[iPad]->GetAbsHNDC() / pads2[iPad]->GetAbsHNDC()));
+            pads2[iPad]->SetTopMargin(0);
 
             setPadFinal(pads2[iPad], pads[iPad]->GetLogx(), 0);  // do not draw the y-axis in log scale for the ratio histogram.
 
