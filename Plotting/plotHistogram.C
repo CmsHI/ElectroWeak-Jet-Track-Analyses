@@ -72,7 +72,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> xMax = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_TH1_xMax]);
     std::vector<float> yMin = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_TH1_yMin]);
     std::vector<float> yMax = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_TH1_yMax]);
-    int drawSame = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_drawSame];
     std::vector<int> drawNormalized = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_drawNormalized]);
     std::vector<std::string> drawOptions = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_drawOption]);
     std::vector<float> markerSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_markerSize]);
@@ -460,7 +459,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nyMax > 1) yMaxTmp = yMax.at(i);
         std::cout << Form("(yMin, yMax)[%d] = (%f, %f)", i, yMinTmp, yMaxTmp) << std::endl;
     }
-    std::cout << "drawSame = " << drawSame << std::endl;
     std::cout << "nDrawNormalized = " << nDrawNormalized << std::endl;
     for (int i = 0; i<nDrawNormalized; ++i) {
             std::cout << Form("drawNormalized[%d] = %d", i, drawNormalized.at(i)) << std::endl;
@@ -1020,629 +1018,463 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     for (int iPad = 0; iPad < nPads; ++iPad) {
         legs[iPad] = new TLegend();
     }
-    if (drawSame == 0) {    // histograms will be plotted separately.
-        for (int i=0; i<nHistos; ++i) {
 
-            int indexPad = TH1_padIndices.at(i);
-            int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), indexPad) - TH1_padIndices.begin();
+    // set canvas and pads
+    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, yMargin);
+    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, xMargin);
 
-            c = new TCanvas(Form("cnv_%d",i),"",windowWidth,windowHeight);
-            c->SetTitle(h[i]->GetTitle());
-            setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-            int setLogxTmp = setLogx.at(0);
-            if (nSetLogx == nPads) setLogxTmp = setLogx.at(indexPad);
-            int setLogyTmp = setLogy.at(0);
-            if (nSetLogy == nPads) setLogyTmp = setLogy.at(indexPad);
-            setCanvasFinal(c, setLogxTmp, setLogyTmp);
+    c = new TCanvas("cnv","",windowWidth,windowHeight);
+
+    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+    setCanvasFinal(c);
+    c->cd();
+
+    float yMinOffset = 0;
+    double windowHeightScale = 1;
+    if (doDrawRatio || doDrawDiff) {
+        // resize the canvas in along y axis
+        float windowHeightFraction = windowHeightFractions.at(0);
+        for (int iFrac = 1; iFrac < nWindowHeightFractions; ++iFrac) {
+            if (windowHeightFractions.at(iFrac) > windowHeightFraction)
+                windowHeightFraction = windowHeightFractions.at(iFrac);
+        }
+        windowHeightScale = 1 + windowHeightFraction;
+        c->SetCanvasSize(c->GetWw(), c->GetWh()*windowHeightScale);
+
+        yMinOffset = windowHeightFraction;
+    }
+
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
+
+    for (int iPad = 0; iPad < nPads; ++iPad) {
+        int setLogxTmp = setLogx.at(0);
+        if (nSetLogx == nPads) setLogxTmp = setLogx.at(iPad);
+        int setLogyTmp = setLogy.at(0);
+        if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
+
+        setPadFinal(pads[iPad], setLogxTmp, setLogyTmp);
+    }
+
+    if (doDrawRatio || doDrawDiff) {
+
+        for (int iPad = 0; iPad < nPads; ++iPad) {
             c->cd();
 
-            std::string drawOption = "";
-            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+            float windowHeightFractionTmp = windowHeightFractions.at(0);
+            if (nWindowHeightFractions == nPads)  windowHeightFractionTmp = windowHeightFractions.at(iPad);
 
-            h[i]->Draw(drawOption.c_str());
+            std::string padNameTmp = Form("%s_lower", pads[iPad]->GetName());
+            double x1_lowerPad = pads[iPad]->GetXlowNDC();
+            double y1_lowerPad = pads[iPad]->GetYlowNDC()-windowHeightFractionTmp/windowHeightScale;
+            double x2_lowerPad = pads[iPad]->GetXlowNDC()+pads[iPad]->GetWNDC();
+            double y2_lowerPad = pads[iPad]->GetYlowNDC();
 
-            // add Text
-            TLatex* latex = 0;
-            bool textExists = (std::find(textLinePadIndices.begin(), textLinePadIndices.end(), indexPad) != textLinePadIndices.end());
-            if (textExists && nTextLines > 0) {
-                latex = new TLatex();
+            pads2[iPad] = new TPad(padNameTmp.c_str(), "", x1_lowerPad, y1_lowerPad, x2_lowerPad, y2_lowerPad);
+            pads2[iPad]->SetLeftMargin(pads[iPad]->GetLeftMargin());
+            pads2[iPad]->SetRightMargin(pads[iPad]->GetRightMargin());
 
-                std::string textPosition = "";
-                if (nTextPositions == 1)  textPosition = textPositions.at(0);
-                else if (nTextPositions == nPads)  textPosition = textPositions.at(indexPad);
-                setTextAlignment(latex, textPosition);
+            setPadFinal(pads2[iPad], pads[iPad]->GetLogx(), 0);  // do not draw the y-axis in log scale for the ratio histogram.
 
-                float textFont = textFonts.at(0);
-                if (nTextFonts == nPads) textFont = textFonts.at(indexPad);
-                latex->SetTextFont(textFont);
-
-                float textSize = textSizes.at(0);
-                if (nTextSizes == nPads) textSize = textSizes.at(indexPad);
-                latex->SetTextSize(textSize);
-
-                float textOffsetX = textOffsetsX.at(0);
-                if (nTextOffsetsX == nPads) textOffsetX = textOffsetsX.at(indexPad);
-
-                float textOffsetY = textOffsetsY.at(0);
-                if (nTextOffsetsY == nPads) textOffsetY = textOffsetsY.at(indexPad);
-
-                std::vector<std::string> textLinesTmp;
-                for (int iLine = 0; iLine < nTextLines; ++iLine) {
-                    if (textLinePadIndices.at(iLine) == indexPad)
-                        textLinesTmp.push_back(textLines.at(iLine).c_str());
-                }
-
-                int nTextLinesTmp = textLinesTmp.size();
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLinesTmp; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    if (textLinesTmp.at(i) != CONFIGPARSER::nullInput.c_str())
-                        latex->DrawLatexNDC(x, y, textLinesTmp.at(i).c_str());
-                }
-            }
-
-            // add Text above the pad
-            TLatex* latexAbovePad = 0;
-            bool textAbovePadExists = (std::find(textsAbovePadPadIndices.begin(), textsAbovePadPadIndices.end(), indexPad) != textsAbovePadPadIndices.end());
-            if (textAbovePadExists && nTextsAbovePad > 0) {
-                latexAbovePad = new TLatex();
-
-                int textAbovePadFont = textAbovePadFonts.at(0);
-                if (nTextAbovePadFonts == nPads)  textAbovePadFont = textAbovePadFonts.at(indexPad);
-                latexAbovePad->SetTextFont(textAbovePadFont);
-
-                float textAbovePadSize = textAbovePadSizes.at(0);
-                if (nTextAbovePadSizes == nPads)  textAbovePadSize = textAbovePadSizes.at(indexPad);
-                latexAbovePad->SetTextSize(textAbovePadSize);
-
-                float textAbovePadOffsetX = textAbovePadOffsetsX.at(0);
-                if (nTextAbovePadOffsetsX == nPads) textAbovePadOffsetX = textAbovePadOffsetsX.at(indexPad);
-
-                float textAbovePadOffsetY = textAbovePadOffsetsX.at(0);
-                if (nTextAbovePadOffsetsY == nPads) textAbovePadOffsetY = textAbovePadOffsetsX.at(indexPad);
-
-                for (int iText = 0; iText < nTextsAbovePad; ++iText) {
-                    if (textsAbovePadPadIndices.at(iText) != indexPad)  continue;
-
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsAbovePadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(0));
-                    else if (nTextsAbovePadAlignments == nTextsAbovePad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(iText));
-
-                    latexAbovePad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexAbovePad, c, textAbovePadOffsetX, textAbovePadOffsetY);
-
-                    latexAbovePad->DrawLatexNDC(latexAbovePad->GetX(), latexAbovePad->GetY(), textsAbovePad.at(iText).c_str());
-                }
-
-                // add TLine
-                TLine* line_horizontal[nTLines_horizontal];
-                bool lineHorizontalExists = (std::find(TLines_horizontal_PadIndices.begin(), TLines_horizontal_PadIndices.end(), indexPad) != TLines_horizontal_PadIndices.end());
-                if (lineHorizontalExists && nHistos > 0) {
-                    for (int iLine = 0; iLine < nTLines_horizontal; ++iLine) {
-                        if (TLines_horizontal_PadIndices.at(iLine) != indexPad)  continue;
-
-                        // draw horizontal line
-                        double xmin = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetFirst());
-                        double xmax = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetLast()+1);
-
-                        int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                        if (nLineStyles_horizontal == 1)
-                            lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                        else if (nLineStyles_horizontal == nTLines_horizontal)
-                            lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
-
-                        line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
-                        line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                        line_horizontal[iLine]->Draw();
-                    }
-                }
-                // add TLine
-                TLine* line_vertical[nTLines_vertical];
-                bool lineVerticalExists = (std::find(TLines_vertical_PadIndices.begin(), TLines_vertical_PadIndices.end(), indexPad) != TLines_vertical_PadIndices.end());
-                if (lineVerticalExists && nHistos > 0) {
-                    for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
-                        if (TLines_vertical_PadIndices.at(iLine) != indexPad)  continue;
-
-                        // draw vertical line
-                        double ymin = h[iStart]->GetMinimum();
-                        double ymax = h[iStart]->GetMaximum();
-
-                        int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                        if (nLineStyles_vertical == 1)
-                            lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                        else if (nLineStyles_vertical == nTLines_vertical)
-                            lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
-
-                        line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
-                        line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                        line_vertical[iLine]->Draw();
-                    }
-                }
-            }
-
-            std::string tmpOutputFile = outputFile.Data();
-            if (tmpOutputFile.find(".") != std::string::npos) {     // file extension is specified
-                if (nHistos > 1) {
-                    // modify outputFile name
-                    // if i=1, then "output.ext" becomes "output_2.ext"
-                    size_t pos = tmpOutputFile.find_last_of(".");
-                    tmpOutputFile.replace(pos,1, Form("_%d.", i+1));
-                }
-                c->SaveAs(tmpOutputFile.c_str());
-            }
-            else {  // file extension is NOT specified
-                if (nHistos > 1) {
-                    // modify outputFile name
-                    // if i=1, then "output" becomes "output_2"
-                    tmpOutputFile = Form("%s_%d", tmpOutputFile.c_str(), i+1);
-                }
-                c->SaveAs(Form("%s.C", tmpOutputFile.c_str()));
-                c->SaveAs(Form("%s.png", tmpOutputFile.c_str()));
-                c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
-            }
-            c->Close();         // do not use Delete() for TCanvas.
+            pads2[iPad]->Draw();
+            pads2[iPad]->cd();
+            pads2[iPad]->SetNumber(nPads+iPad+1);
         }
     }
-    else if (drawSame > 0) {
-        // set canvas and pads
-        double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, yMargin);
-        double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, xMargin);
+    // set canvas and pads - END
 
-        c = new TCanvas("cnv","",windowWidth,windowHeight);
+    for (int iPad = 0; iPad < nPads; ++iPad) {
 
-        setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
-        setCanvasFinal(c);
-        c->cd();
+        float yMinTmp = yMin.at(0);
+        if (nyMin > 1 && nyMin == nPads) yMinTmp = yMin.at(iPad);
+        float yMaxTmp = yMax.at(0);
+        if (nyMax > 1 && nyMax == nPads) yMaxTmp = yMax.at(iPad);
 
-        float yMinOffset = 0;
-        double windowHeightScale = 1;
-        if (doDrawRatio || doDrawDiff) {
-            // resize the canvas in along y axis
-            float windowHeightFraction = windowHeightFractions.at(0);
-            for (int iFrac = 1; iFrac < nWindowHeightFractions; ++iFrac) {
-                if (windowHeightFractions.at(iFrac) > windowHeightFraction)
-                    windowHeightFraction = windowHeightFractions.at(iFrac);
-            }
-            windowHeightScale = 1 + windowHeightFraction;
-            c->SetCanvasSize(c->GetWw(), c->GetWh()*windowHeightScale);
+        // set maximum/minimum of y-axis
+        if (yMinTmp > yMaxTmp) {
 
-            yMinOffset = windowHeightFraction;
-        }
+            int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
+            int nTH1_perPad = TH1s_perPad.at(iPad);
 
-        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
-
-        for (int iPad = 0; iPad < nPads; ++iPad) {
-            int setLogxTmp = setLogx.at(0);
-            if (nSetLogx == nPads) setLogxTmp = setLogx.at(iPad);
+            double histMin = getMinimumTH1s(h, nTH1_perPad, iStart);
+            double histMax = getMaximumTH1s(h, nTH1_perPad, iStart);
             int setLogyTmp = setLogy.at(0);
             if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
+            if (setLogyTmp == 0) h[iStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
+            h[iStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.1*TMath::Power(10,setLogyTmp));
+        }
+    }
 
-            setPadFinal(pads[iPad], setLogxTmp, setLogyTmp);
+    int nIndexDrawOptionHist = indexDrawOptionHist.size();
+    for (int i = 0; nIndexDrawOptionHist; ++i) {
+        // draw first the histograms with drawOption = "hist" so that plots with markers are not overwritten.
+        int iHist = indexDrawOptionHist.at(i);
+
+        std::string drawOption = "";
+        if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+        else if (nDrawOptions == nHistos) drawOption = drawOptions.at(iHist).c_str();
+
+        if (!hDrawn[iHist]) {
+             int indexPad = TH1_padIndices.at(iHist);
+             c->cd(indexPad);
+             h[iHist]->Draw(Form("%s same", drawOption.c_str()));
+             hDrawn[iHist] = true;
+         }
+    }
+
+    for (int i = 0; i<nHistos; ++i) {
+
+        int indexPad = TH1_padIndices.at(i);
+        c->cd(indexPad+1);
+
+        std::string drawOption = "";
+        if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
+        else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+
+        if (!hDrawn[i]) {
+            h[i]->Draw(Form("%s same", drawOption.c_str()));
+            hDrawn[i] = true;
+        }
+
+        std::string label = legendEntryLabels.at(0).c_str();
+        if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
+        if (label == CONFIGPARSER::nullInput)  continue;
+
+        std::string legendOption = "lpf";
+        if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
+        int legIndex = -1;
+        if (nHistos == nLegendEntryLabels) legIndex = legendEntryPadIndices.at(i);
+        if (legIndex > -1)  legs[legIndex]->AddEntry(h[i], label.c_str(), legendOption.c_str());
+    }
+
+    for (int iPad = 0; iPad < nPads; ++iPad) {
+        c->cd(iPad+1);
+
+        int nTH1_perPad = TH1s_perPad.at(iPad);
+        int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
+
+        bool legendExists = (std::find(legendEntryPadIndices.begin(), legendEntryPadIndices.end(), iPad) != legendEntryPadIndices.end());
+        if (legendExists && nLegendPositions > 0) {    // draw the legend if really a position is provided.
+
+            float legendTextSize = 0;
+            if (nLegendTextSizes == 1) legendTextSize = legendTextSizes.at(0);
+            else if (nLegendTextSizes == nPads) legendTextSize = legendTextSizes.at(iPad);
+            if (legendTextSize != 0)  legs[iPad]->SetTextSize(legendTextSize);
+
+            int legendBorderSize = 0;
+            if (nLegendBorderSizes == 1) legendBorderSize = legendBorderSizes.at(0);
+            else if (nLegendBorderSizes == nPads) legendBorderSize = legendBorderSizes.at(iPad);
+            legs[iPad]->SetBorderSize(legendBorderSize);
+
+            float legendHeight = 0;
+            if (nLegendHeights == 1) legendHeight = legendHeights.at(0);
+            else if (nLegendHeights == nPads) legendHeight = legendHeights.at(iPad);
+
+            float legendWidth = 0;
+            if (nLegendWidths == 1) legendWidth = legendWidths.at(0);
+            else if (nLegendWidths == nPads) legendWidth = legendWidths.at(iPad);
+
+            double height = calcTLegendHeight(legs[iPad]);
+            double width = calcTLegendWidth(legs[iPad]);
+            if (legendHeight != 0)  height = legendHeight;
+            if (legendWidth != 0)  width = legendWidth;
+
+            std::string legendPosition = legendPositions.at(0).c_str();
+            if (nLegendPositions == nPads)  legendPosition = legendPositions.at(iPad).c_str();
+
+            float legendOffsetX = 0;
+            if (nLegendOffsetsX == 1) legendOffsetX = legendOffsetsX.at(0);
+            else if (nLegendOffsetsX == nPads) legendOffsetX = legendOffsetsX.at(iPad);
+
+            float legendOffsetY = 0;
+            if (nLegendOffsetsY == 1) legendOffsetY = legendOffsetsY.at(0);
+            else if (nLegendOffsetsY == nPads) legendOffsetY = legendOffsetsY.at(iPad);
+
+            setLegendPosition(legs[iPad], legendPosition, pads[iPad], height, width, legendOffsetX, legendOffsetY);
+            int nLegEntriesTmp = legs[iPad]->GetNRows();
+            if (nLegEntriesTmp > 0)  legs[iPad]->Draw();
+        }
+
+        // add Text
+        TLatex* latex = 0;
+        bool textExists = (std::find(textLinePadIndices.begin(), textLinePadIndices.end(), iPad) != textLinePadIndices.end());
+        if (textExists && nTextLines > 0) {
+            latex = new TLatex();
+
+            std::string textPosition = "";
+            if (nTextPositions == 1)  textPosition = textPositions.at(0);
+            else if (nTextPositions == nPads)  textPosition = textPositions.at(iPad);
+            setTextAlignment(latex, textPosition);
+
+            float textFont = textFonts.at(0);
+            if (nTextFonts == nPads) textFont = textFonts.at(iPad);
+            latex->SetTextFont(textFont);
+
+            float textSize = textSizes.at(0);
+            if (nTextSizes == nPads) textSize = textSizes.at(iPad);
+            latex->SetTextSize(textSize);
+
+            float textOffsetX = textOffsetsX.at(0);
+            if (nTextOffsetsX == nPads) textOffsetX = textOffsetsX.at(iPad);
+
+            float textOffsetY = textOffsetsY.at(0);
+            if (nTextOffsetsY == nPads) textOffsetY = textOffsetsY.at(iPad);
+
+            std::vector<std::string> textLinesTmp;
+            for (int iLine = 0; iLine < nTextLines; ++iLine) {
+                if (textLinePadIndices.at(iLine) == iPad)
+                    textLinesTmp.push_back(textLines.at(iLine).c_str());
+            }
+
+            int nTextLinesTmp = textLinesTmp.size();
+            std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY);
+            for (int i = 0; i<nTextLinesTmp; ++i){
+                float x = textCoordinates.at(i).first;
+                float y = textCoordinates.at(i).second;
+                if (textLinesTmp.at(i) != CONFIGPARSER::nullInput.c_str())
+                    latex->DrawLatexNDC(x, y, textLinesTmp.at(i).c_str());
+            }
+        }
+
+        // add Text above the pad
+        TLatex* latexAbovePad = 0;
+        bool textAbovePadExists = (std::find(textsAbovePadPadIndices.begin(), textsAbovePadPadIndices.end(), iPad) != textsAbovePadPadIndices.end());
+        if (textAbovePadExists && nTextsAbovePad > 0) {
+            latexAbovePad = new TLatex();
+
+            int textAbovePadFont = textAbovePadFonts.at(0);
+            if (nTextAbovePadFonts == nPads)  textAbovePadFont = textAbovePadFonts.at(iPad);
+            latexAbovePad->SetTextFont(textAbovePadFont);
+
+            float textAbovePadSize = textAbovePadSizes.at(0);
+            if (nTextAbovePadSizes == nPads)  textAbovePadSize = textAbovePadSizes.at(iPad);
+            latexAbovePad->SetTextSize(textAbovePadSize);
+
+            float textAbovePadOffsetX = textAbovePadOffsetsX.at(0);
+            if (nTextAbovePadOffsetsX == nPads) textAbovePadOffsetX = textAbovePadOffsetsX.at(iPad);
+
+            float textAbovePadOffsetY = textAbovePadOffsetsX.at(0);
+            if (nTextAbovePadOffsetsY == nPads) textAbovePadOffsetY = textAbovePadOffsetsX.at(iPad);
+
+            for (int iText = 0; iText < nTextsAbovePad; ++iText) {
+                if (textsAbovePadPadIndices.at(iText) != iPad)  continue;
+
+                int textOverPadAlignment = GRAPHICS::textAlign;
+                if (nTextsAbovePadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(0));
+                else if (nTextsAbovePadAlignments == nTextsAbovePad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(iText));
+
+                latexAbovePad->SetTextAlign(textOverPadAlignment);
+                setTextAbovePad(latexAbovePad, c, textAbovePadOffsetX, textAbovePadOffsetY);
+
+                latexAbovePad->DrawLatexNDC(latexAbovePad->GetX(), latexAbovePad->GetY(), textsAbovePad.at(iText).c_str());
+            }
+        }
+
+        // add TLine
+        TLine* line_horizontal[nTLines_horizontal];
+        bool lineHorizontalExists = (std::find(TLines_horizontal_PadIndices.begin(), TLines_horizontal_PadIndices.end(), iPad) != TLines_horizontal_PadIndices.end());
+        if (lineHorizontalExists && nHistos > 0) {
+            for (int iLine = 0; iLine < nTLines_horizontal; ++iLine) {
+                if (TLines_horizontal_PadIndices.at(iLine) != iPad)  continue;
+
+                // draw horizontal line
+                double xmin = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetFirst());
+                double xmax = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetLast()+1);
+
+                int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
+                if (nLineStyles_horizontal == 1)
+                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
+                else if (nLineStyles_horizontal == nTLines_horizontal)
+                    lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
+
+                line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
+                line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line_horizontal[iLine]->Draw();
+            }
+        }
+        // add TLine
+        TLine* line_vertical[nTLines_vertical];
+        bool lineVerticalExists = (std::find(TLines_vertical_PadIndices.begin(), TLines_vertical_PadIndices.end(), iPad) != TLines_vertical_PadIndices.end());
+        if (lineVerticalExists && nHistos > 0) {
+            for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
+                if (TLines_vertical_PadIndices.at(iLine) != iPad)  continue;
+
+                // draw vertical line
+                double ymin = h[iStart]->GetMinimum();
+                double ymax = h[iStart]->GetMaximum();
+
+                int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
+                if (nLineStyles_vertical == 1)
+                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
+                else if (nLineStyles_vertical == nTLines_vertical)
+                    lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
+
+                line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
+                line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                line_vertical[iLine]->Draw();
+            }
         }
 
         if (doDrawRatio || doDrawDiff) {
 
-            for (int iPad = 0; iPad < nPads; ++iPad) {
-                c->cd();
+            int drawRatioTmp = drawRatio.at(0);
+            if (nDrawRatio == nPads)  drawRatioTmp = drawRatio.at(iPad);
+
+            int drawDiffTmp = drawDiff.at(0);
+            if (nDrawDiff == nPads)  drawDiffTmp = drawDiff.at(iPad);
+
+            if (drawRatioTmp == 0 && drawDiffTmp == 0)  continue;
+            c->cd(nPads+iPad+1);
+
+            // ratio or diff histograms
+            int nHistos_lowerPad = 0;
+            // ratio histograms will be the division of input histograms at even index by the histograms at odd index
+            // diff histograms will be input histograms at even index - input histograms at odd index
+            // if input histogram list has odd number of histograms then drawRatio/drawDiff step is skipped.
+            // Ex. : TH1_paths = {h1, h2, h3, h4}
+            //      ==> h_ratio[0] = h1/h2, h_ratio[1] = h3/h4
+            //      ==> h_diff[0] = h1-h2, h_diff[1] = h3-h4
+            if (nHistos % 2 == 0)   nHistos_lowerPad = nTH1_perPad/2;
+
+            TH1D* h_lowerPad[nHistos_lowerPad];
+            for (int i=0; i<nHistos_lowerPad; ++i) {
+
+                h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
+                h_lowerPad[i]->Reset();    // start from scratch, reset the undesired properties inherited from the original histogram.
+                h_lowerPad[i]->Add(h[iStart+2*i]);
+
+                // do compatibility test before ratio / diff
+                double valKolmogorov = h_lowerPad[i]->KolmogorovTest(h[iStart+2*i+1]);
+                std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
+                h_lowerPad[i]->Chi2Test(h[iStart+2*i+1],"WW P");
+
+                if (drawRatioTmp > 0)  h_lowerPad[i]->Divide(h[iStart+2*i+1]);
+                else if (drawDiffTmp > 0)  h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
 
-                float windowHeightFractionTmp = windowHeightFractions.at(0);
-                if (nWindowHeightFractions == nPads)  windowHeightFractionTmp = windowHeightFractions.at(iPad);
-
-                std::string padNameTmp = Form("%s_lower", pads[iPad]->GetName());
-                double x1_lowerPad = pads[iPad]->GetXlowNDC();
-                double y1_lowerPad = pads[iPad]->GetYlowNDC()-windowHeightFractionTmp/windowHeightScale;
-                double x2_lowerPad = pads[iPad]->GetXlowNDC()+pads[iPad]->GetWNDC();
-                double y2_lowerPad = pads[iPad]->GetYlowNDC();
-
-                pads2[iPad] = new TPad(padNameTmp.c_str(), "", x1_lowerPad, y1_lowerPad, x2_lowerPad, y2_lowerPad);
-                pads2[iPad]->SetLeftMargin(pads[iPad]->GetLeftMargin());
-                pads2[iPad]->SetRightMargin(pads[iPad]->GetRightMargin());
-
-                setPadFinal(pads2[iPad], pads[iPad]->GetLogx(), 0);  // do not draw the y-axis in log scale for the ratio histogram.
-
-                pads2[iPad]->Draw();
-                pads2[iPad]->cd();
-                pads2[iPad]->SetNumber(nPads+iPad+1);
-            }
-        }
-        // set canvas and pads - END
-
-        for (int iPad = 0; iPad < nPads; ++iPad) {
-
-            float yMinTmp = yMin.at(0);
-            if (nyMin > 1 && nyMin == nPads) yMinTmp = yMin.at(iPad);
-            float yMaxTmp = yMax.at(0);
-            if (nyMax > 1 && nyMax == nPads) yMaxTmp = yMax.at(iPad);
-
-            // set maximum/minimum of y-axis
-            if (yMinTmp > yMaxTmp) {
-
-                int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
-                int nTH1_perPad = TH1s_perPad.at(iPad);
-
-                double histMin = getMinimumTH1s(h, nTH1_perPad, iStart);
-                double histMax = getMaximumTH1s(h, nTH1_perPad, iStart);
-                int setLogyTmp = setLogy.at(0);
-                if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
-                if (setLogyTmp == 0) h[iStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
-                h[iStart]->SetMaximum(histMax+TMath::Abs(histMax)*0.1*TMath::Power(10,setLogyTmp));
-            }
-        }
-
-        int nIndexDrawOptionHist = indexDrawOptionHist.size();
-        for (int i = 0; nIndexDrawOptionHist; ++i) {
-            // draw first the histograms with drawOption = "hist" so that plots with markers are not overwritten.
-            int iHist = indexDrawOptionHist.at(i);
-
-            std::string drawOption = "";
-            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistos) drawOption = drawOptions.at(iHist).c_str();
-
-            if (!hDrawn[iHist]) {
-                 int indexPad = TH1_padIndices.at(iHist);
-                 c->cd(indexPad);
-                 h[iHist]->Draw(Form("%s same", drawOption.c_str()));
-                 hDrawn[iHist] = true;
-             }
-        }
-
-        for (int i = 0; i<nHistos; ++i) {
-
-            int indexPad = TH1_padIndices.at(i);
-            c->cd(indexPad+1);
-
-            std::string drawOption = "";
-            if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
-            else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
-
-            if (!hDrawn[i]) {
-                h[i]->Draw(Form("%s same", drawOption.c_str()));
-                hDrawn[i] = true;
-            }
-
-            std::string label = legendEntryLabels.at(0).c_str();
-            if (nHistos == nLegendEntryLabels) label = legendEntryLabels.at(i).c_str();
-            if (label == CONFIGPARSER::nullInput)  continue;
-
-            std::string legendOption = "lpf";
-            if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
-            int legIndex = -1;
-            if (nHistos == nLegendEntryLabels) legIndex = legendEntryPadIndices.at(i);
-            if (legIndex > -1)  legs[legIndex]->AddEntry(h[i], label.c_str(), legendOption.c_str());
-        }
-
-        for (int iPad = 0; iPad < nPads; ++iPad) {
-            c->cd(iPad+1);
-
-            int nTH1_perPad = TH1s_perPad.at(iPad);
-            int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
-
-            bool legendExists = (std::find(legendEntryPadIndices.begin(), legendEntryPadIndices.end(), iPad) != legendEntryPadIndices.end());
-            if (legendExists && nLegendPositions > 0) {    // draw the legend if really a position is provided.
-
-                float legendTextSize = 0;
-                if (nLegendTextSizes == 1) legendTextSize = legendTextSizes.at(0);
-                else if (nLegendTextSizes == nPads) legendTextSize = legendTextSizes.at(iPad);
-                if (legendTextSize != 0)  legs[iPad]->SetTextSize(legendTextSize);
-
-                int legendBorderSize = 0;
-                if (nLegendBorderSizes == 1) legendBorderSize = legendBorderSizes.at(0);
-                else if (nLegendBorderSizes == nPads) legendBorderSize = legendBorderSizes.at(iPad);
-                legs[iPad]->SetBorderSize(legendBorderSize);
-
-                float legendHeight = 0;
-                if (nLegendHeights == 1) legendHeight = legendHeights.at(0);
-                else if (nLegendHeights == nPads) legendHeight = legendHeights.at(iPad);
-
-                float legendWidth = 0;
-                if (nLegendWidths == 1) legendWidth = legendWidths.at(0);
-                else if (nLegendWidths == nPads) legendWidth = legendWidths.at(iPad);
-
-                double height = calcTLegendHeight(legs[iPad]);
-                double width = calcTLegendWidth(legs[iPad]);
-                if (legendHeight != 0)  height = legendHeight;
-                if (legendWidth != 0)  width = legendWidth;
-
-                std::string legendPosition = legendPositions.at(0).c_str();
-                if (nLegendPositions == nPads)  legendPosition = legendPositions.at(iPad).c_str();
-
-                float legendOffsetX = 0;
-                if (nLegendOffsetsX == 1) legendOffsetX = legendOffsetsX.at(0);
-                else if (nLegendOffsetsX == nPads) legendOffsetX = legendOffsetsX.at(iPad);
-
-                float legendOffsetY = 0;
-                if (nLegendOffsetsY == 1) legendOffsetY = legendOffsetsY.at(0);
-                else if (nLegendOffsetsY == nPads) legendOffsetY = legendOffsetsY.at(iPad);
-
-                setLegendPosition(legs[iPad], legendPosition, pads[iPad], height, width, legendOffsetX, legendOffsetY);
-                int nLegEntriesTmp = legs[iPad]->GetNRows();
-                if (nLegEntriesTmp > 0)  legs[iPad]->Draw();
-            }
-
-            // add Text
-            TLatex* latex = 0;
-            bool textExists = (std::find(textLinePadIndices.begin(), textLinePadIndices.end(), iPad) != textLinePadIndices.end());
-            if (textExists && nTextLines > 0) {
-                latex = new TLatex();
-
-                std::string textPosition = "";
-                if (nTextPositions == 1)  textPosition = textPositions.at(0);
-                else if (nTextPositions == nPads)  textPosition = textPositions.at(iPad);
-                setTextAlignment(latex, textPosition);
-
-                float textFont = textFonts.at(0);
-                if (nTextFonts == nPads) textFont = textFonts.at(iPad);
-                latex->SetTextFont(textFont);
-
-                float textSize = textSizes.at(0);
-                if (nTextSizes == nPads) textSize = textSizes.at(iPad);
-                latex->SetTextSize(textSize);
-
-                float textOffsetX = textOffsetsX.at(0);
-                if (nTextOffsetsX == nPads) textOffsetX = textOffsetsX.at(iPad);
-
-                float textOffsetY = textOffsetsY.at(0);
-                if (nTextOffsetsY == nPads) textOffsetY = textOffsetsY.at(iPad);
-
-                std::vector<std::string> textLinesTmp;
-                for (int iLine = 0; iLine < nTextLines; ++iLine) {
-                    if (textLinePadIndices.at(iLine) == iPad)
-                        textLinesTmp.push_back(textLines.at(iLine).c_str());
-                }
-
-                int nTextLinesTmp = textLinesTmp.size();
-                std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY);
-                for (int i = 0; i<nTextLinesTmp; ++i){
-                    float x = textCoordinates.at(i).first;
-                    float y = textCoordinates.at(i).second;
-                    if (textLinesTmp.at(i) != CONFIGPARSER::nullInput.c_str())
-                        latex->DrawLatexNDC(x, y, textLinesTmp.at(i).c_str());
-                }
-            }
-
-            // add Text above the pad
-            TLatex* latexAbovePad = 0;
-            bool textAbovePadExists = (std::find(textsAbovePadPadIndices.begin(), textsAbovePadPadIndices.end(), iPad) != textsAbovePadPadIndices.end());
-            if (textAbovePadExists && nTextsAbovePad > 0) {
-                latexAbovePad = new TLatex();
-
-                int textAbovePadFont = textAbovePadFonts.at(0);
-                if (nTextAbovePadFonts == nPads)  textAbovePadFont = textAbovePadFonts.at(iPad);
-                latexAbovePad->SetTextFont(textAbovePadFont);
-
-                float textAbovePadSize = textAbovePadSizes.at(0);
-                if (nTextAbovePadSizes == nPads)  textAbovePadSize = textAbovePadSizes.at(iPad);
-                latexAbovePad->SetTextSize(textAbovePadSize);
-
-                float textAbovePadOffsetX = textAbovePadOffsetsX.at(0);
-                if (nTextAbovePadOffsetsX == nPads) textAbovePadOffsetX = textAbovePadOffsetsX.at(iPad);
-
-                float textAbovePadOffsetY = textAbovePadOffsetsX.at(0);
-                if (nTextAbovePadOffsetsY == nPads) textAbovePadOffsetY = textAbovePadOffsetsX.at(iPad);
-
-                for (int iText = 0; iText < nTextsAbovePad; ++iText) {
-                    if (textsAbovePadPadIndices.at(iText) != iPad)  continue;
-
-                    int textOverPadAlignment = GRAPHICS::textAlign;
-                    if (nTextsAbovePadAlignments == 1) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(0));
-                    else if (nTextsAbovePadAlignments == nTextsAbovePad) textOverPadAlignment = GraphicsConfigurationParser::ParseTextAlign(textsAbovePadAlignments.at(iText));
-
-                    latexAbovePad->SetTextAlign(textOverPadAlignment);
-                    setTextAbovePad(latexAbovePad, c, textAbovePadOffsetX, textAbovePadOffsetY);
-
-                    latexAbovePad->DrawLatexNDC(latexAbovePad->GetX(), latexAbovePad->GetY(), textsAbovePad.at(iText).c_str());
-                }
-            }
-
-            // add TLine
-            TLine* line_horizontal[nTLines_horizontal];
-            bool lineHorizontalExists = (std::find(TLines_horizontal_PadIndices.begin(), TLines_horizontal_PadIndices.end(), iPad) != TLines_horizontal_PadIndices.end());
-            if (lineHorizontalExists && nHistos > 0) {
-                for (int iLine = 0; iLine < nTLines_horizontal; ++iLine) {
-                    if (TLines_horizontal_PadIndices.at(iLine) != iPad)  continue;
-
-                    // draw horizontal line
-                    double xmin = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetFirst());
-                    double xmax = h[iStart]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetLast()+1);
-
-                    int lineStyle_horizontal = GRAPHICS::lineStyle_horizontal;
-                    if (nLineStyles_horizontal == 1)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(0));
-                    else if (nLineStyles_horizontal == nTLines_horizontal)
-                        lineStyle_horizontal = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal.at(iLine));
-
-                    line_horizontal[iLine] = new TLine(xmin, TLines_horizontal.at(iLine), xmax, TLines_horizontal.at(iLine));
-                    line_horizontal[iLine]->SetLineStyle(lineStyle_horizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_horizontal[iLine]->Draw();
-                }
-            }
-            // add TLine
-            TLine* line_vertical[nTLines_vertical];
-            bool lineVerticalExists = (std::find(TLines_vertical_PadIndices.begin(), TLines_vertical_PadIndices.end(), iPad) != TLines_vertical_PadIndices.end());
-            if (lineVerticalExists && nHistos > 0) {
-                for (int iLine = 0; iLine<nTLines_vertical; ++iLine) {
-                    if (TLines_vertical_PadIndices.at(iLine) != iPad)  continue;
-
-                    // draw vertical line
-                    double ymin = h[iStart]->GetMinimum();
-                    double ymax = h[iStart]->GetMaximum();
-
-                    int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
-                    if (nLineStyles_vertical == 1)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(0));
-                    else if (nLineStyles_vertical == nTLines_vertical)
-                        lineStyle_vertical = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical.at(iLine));
-
-                    line_vertical[iLine] = new TLine(TLines_vertical.at(iLine), ymin, TLines_vertical.at(iLine), ymax);
-                    line_vertical[iLine]->SetLineStyle(lineStyle_vertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                    line_vertical[iLine]->Draw();
-                }
-            }
-
-            if (doDrawRatio || doDrawDiff) {
-
-                int drawRatioTmp = drawRatio.at(0);
-                if (nDrawRatio == nPads)  drawRatioTmp = drawRatio.at(iPad);
-
-                int drawDiffTmp = drawDiff.at(0);
-                if (nDrawDiff == nPads)  drawDiffTmp = drawDiff.at(iPad);
-
-                if (drawRatioTmp == 0 && drawDiffTmp == 0)  continue;
-                c->cd(nPads+iPad+1);
-
-                // ratio or diff histograms
-                int nHistos_lowerPad = 0;
-                // ratio histograms will be the division of input histograms at even index by the histograms at odd index
-                // diff histograms will be input histograms at even index - input histograms at odd index
-                // if input histogram list has odd number of histograms then drawRatio/drawDiff step is skipped.
-                // Ex. : TH1_paths = {h1, h2, h3, h4}
-                //      ==> h_ratio[0] = h1/h2, h_ratio[1] = h3/h4
-                //      ==> h_diff[0] = h1-h2, h_diff[1] = h3-h4
-                if (nHistos % 2 == 0)   nHistos_lowerPad = nTH1_perPad/2;
-
-                TH1D* h_lowerPad[nHistos_lowerPad];
-                for (int i=0; i<nHistos_lowerPad; ++i) {
-
-                    h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
-                    h_lowerPad[i]->Reset();    // start from scratch, reset the undesired properties inherited from the original histogram.
-                    h_lowerPad[i]->Add(h[iStart+2*i]);
-
-                    // do compatibility test before ratio / diff
-                    double valKolmogorov = h_lowerPad[i]->KolmogorovTest(h[iStart+2*i+1]);
-                    std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
-                    h_lowerPad[i]->Chi2Test(h[iStart+2*i+1],"WW P");
-
-                    if (drawRatioTmp > 0)  h_lowerPad[i]->Divide(h[iStart+2*i+1]);
-                    else if (drawDiffTmp > 0)  h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
-
-                    float yMin_lowerPadTmp = yMin_lowerPad.at(0);
-                    if (nyMin_lowerPad > 1 && nyMin_lowerPad == nPads) yMin_lowerPadTmp = yMin_lowerPad.at(iPad);
-
-                    float yMax_lowerPadTmp = yMax_lowerPad.at(0);
-                    if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
-
-                    if (yMax_lowerPadTmp > yMin_lowerPadTmp)   h_lowerPad[i]->SetAxisRange(yMin_lowerPadTmp, yMax_lowerPadTmp, "Y");
-
-                    for (int iFit = 0; iFit < nTF1_formulas_lowerPad; ++iFit) {
-
-                        if (TF1_lowerPad_Indices.at(iFit)-1 != iPad)  continue;
-
-                        std::string TF1_formula_lowerPad = TF1_formulas_lowerPad.at(iFit).c_str();
-                        if (TF1_formula_lowerPad == CONFIGPARSER::nullInput.c_str()) continue;
-
-                        double TF1_xMin_lowerPad = TF1_ranges_lowerPad[0].at(iFit);
-                        double TF1_xMax_lowerPad = TF1_ranges_lowerPad[1].at(iFit);
-
-                        std::string fitOption_lowerPad = INPUT_DEFAULT::fitOption.c_str();
-                        if (nFitOptions_lowerPad == 1)  fitOption_lowerPad = fitOptions_lowerPad.at(0).c_str();
-                        if (nFitOptions_lowerPad == nFitTH1_lowerPad)  fitOption_lowerPad = fitOptions_lowerPad.at(iFit).c_str();
-
-                        int fitColor_lowerPad = INPUT_DEFAULT::fitColor;
-                        if (nFitColors == 1) fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(0));
-                        else if (nFitColors_lowerPad == nFitTH1_lowerPad) {
-                            if (fitColors_lowerPad.at(iFit) != CONFIGPARSER::nullInput)
-                                fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(iFit));
-                        }
-
-                        TF1 f1_lowerPad(Form("f1_%d", iFit), TF1_formula_lowerPad.c_str(), TF1_xMin_lowerPad, TF1_xMax_lowerPad);
-                        f1_lowerPad.SetLineColor(fitColor_lowerPad);
-
-                        int fitTH1_lowerPad_Start =
-                                int(std::find(TF1_lowerPad_Indices.begin(), TF1_lowerPad_Indices.end(), iPad+1) - TF1_lowerPad_Indices.begin());
-                        int iFit_Pad = iFit - fitTH1_lowerPad_Start;
-                        h_lowerPad[iFit_Pad]->Fit(f1_lowerPad.GetName(), fitOption_lowerPad.c_str());
-                    }
-                }
-
-                // set maximum/minimum of y-axis in the lower pad
                 float yMin_lowerPadTmp = yMin_lowerPad.at(0);
                 if (nyMin_lowerPad > 1 && nyMin_lowerPad == nPads) yMin_lowerPadTmp = yMin_lowerPad.at(iPad);
 
                 float yMax_lowerPadTmp = yMax_lowerPad.at(0);
                 if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
 
-                if (yMin_lowerPadTmp > yMax_lowerPadTmp) {
-                    double histMin = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
-                    double histMax = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
-                    h_lowerPad[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
-                    h_lowerPad[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1);
-                }
+                if (yMax_lowerPadTmp > yMin_lowerPadTmp)   h_lowerPad[i]->SetAxisRange(yMin_lowerPadTmp, yMax_lowerPadTmp, "Y");
 
-                for (int i=0; i<nHistos_lowerPad; ++i) {
-                    double axisSizeRatio = (c->GetPad(iPad+1)->GetAbsHNDC()/c->GetPad(nPads+iPad+1)->GetAbsHNDC());
-                    setTH1Ratio(h_lowerPad[i], h[iStart+2*i], axisSizeRatio);
+                for (int iFit = 0; iFit < nTF1_formulas_lowerPad; ++iFit) {
 
-                    std::string titleY_lowerPad = "";
-                    if (nTitlesY_lowerPad == 1) titleY_lowerPad = titlesY_lowerPad.at(0);
-                    else if (nTitlesY_lowerPad == nPads)  titleY_lowerPad = titlesY_lowerPad.at(iPad);
+                    if (TF1_lowerPad_Indices.at(iFit)-1 != iPad)  continue;
 
-                    if (titleY_lowerPad == CONFIGPARSER::nullInput) h[i]->SetYTitle("");
-                    else if (titleY_lowerPad.size() > 0) h_lowerPad[i]->SetYTitle(titleY_lowerPad.c_str());
+                    std::string TF1_formula_lowerPad = TF1_formulas_lowerPad.at(iFit).c_str();
+                    if (TF1_formula_lowerPad == CONFIGPARSER::nullInput.c_str()) continue;
 
-                    h_lowerPad[i]->SetMarkerColor(h[iStart+2*i]->GetMarkerColor());
-                    h_lowerPad[i]->SetMarkerStyle(h[iStart+2*i]->GetMarkerStyle());
+                    double TF1_xMin_lowerPad = TF1_ranges_lowerPad[0].at(iFit);
+                    double TF1_xMax_lowerPad = TF1_ranges_lowerPad[1].at(iFit);
 
-                    h_lowerPad[i]->Draw("e same");
-                }
-                // add TLine to the lower pad
-                TLine* line_horizontal_lowerPad[nTLines_horizontal_lowerPad];
-                bool lineHorizontalLowerPadExists = (std::find(TLines_horizontal_lowerPad_PadIndices.begin(), TLines_horizontal_lowerPad_PadIndices.end(), iPad) != TLines_horizontal_lowerPad_PadIndices.end());
-                if (lineHorizontalLowerPadExists && nHistos_lowerPad > 0) {
-                    for (int iLine = 0; iLine < nTLines_horizontal_lowerPad; ++iLine) {
-                        if (TLines_horizontal_lowerPad_PadIndices.at(iLine) != iPad)  continue;
+                    std::string fitOption_lowerPad = INPUT_DEFAULT::fitOption.c_str();
+                    if (nFitOptions_lowerPad == 1)  fitOption_lowerPad = fitOptions_lowerPad.at(0).c_str();
+                    if (nFitOptions_lowerPad == nFitTH1_lowerPad)  fitOption_lowerPad = fitOptions_lowerPad.at(iFit).c_str();
 
-                        // draw horizontal line
-                        double xmin_lowerPad = h_lowerPad[0]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetFirst());
-                        double xmax_lowerPad = h_lowerPad[0]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetLast()+1);
-
-                        int lineStyle_horizontal_lowerPad = GRAPHICS::lineStyle_horizontal;
-                        if (nLineStyles_horizontal_lowerPad == 1)
-                            lineStyle_horizontal_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal_lowerPad.at(0));
-                        else if (nLineStyles_horizontal_lowerPad == nTLines_horizontal_lowerPad)
-                            lineStyle_horizontal_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal_lowerPad.at(iLine));
-
-                        line_horizontal_lowerPad[iLine] = new TLine(xmin_lowerPad, TLines_horizontal_lowerPad.at(iLine), xmax_lowerPad, TLines_horizontal_lowerPad.at(iLine));
-                        line_horizontal_lowerPad[iLine]->SetLineStyle(lineStyle_horizontal_lowerPad);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                        line_horizontal_lowerPad[iLine]->Draw();
+                    int fitColor_lowerPad = INPUT_DEFAULT::fitColor;
+                    if (nFitColors == 1) fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(0));
+                    else if (nFitColors_lowerPad == nFitTH1_lowerPad) {
+                        if (fitColors_lowerPad.at(iFit) != CONFIGPARSER::nullInput)
+                            fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(iFit));
                     }
-                }
-                // add TLine to the lower pad
-                TLine* line_vertical_lowerPad[nTLines_vertical_lowerPad];
-                double ymin_lowerPad = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
-                double ymax_lowerPad = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
-                bool lineVerticalLowerPadExists = (std::find(TLines_vertical_lowerPad_PadIndices.begin(), TLines_vertical_lowerPad_PadIndices.end(), iPad) != TLines_vertical_lowerPad_PadIndices.end());
-                if (lineVerticalLowerPadExists && nHistos_lowerPad > 0) {
-                    for (int iLine = 0; iLine < nTLines_vertical_lowerPad; ++iLine) {
-                        if (TLines_vertical_lowerPad_PadIndices.at(iLine) != iPad)  continue;
 
-                        int lineStyle_vertical_lowerPad = GRAPHICS::lineStyle_vertical;
-                        if (nLineStyles_vertical_lowerPad == 1)
-                            lineStyle_vertical_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical_lowerPad.at(0));
-                        else if (nLineStyles_vertical_lowerPad == nTLines_vertical_lowerPad)
-                            lineStyle_vertical_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical_lowerPad.at(iLine));
+                    TF1 f1_lowerPad(Form("f1_%d", iFit), TF1_formula_lowerPad.c_str(), TF1_xMin_lowerPad, TF1_xMax_lowerPad);
+                    f1_lowerPad.SetLineColor(fitColor_lowerPad);
 
-                        line_vertical_lowerPad[iLine] = new TLine(TLines_vertical_lowerPad.at(iLine), ymin_lowerPad, TLines_vertical_lowerPad.at(iLine), ymax_lowerPad);
-                        line_vertical_lowerPad[iLine]->SetLineStyle(lineStyle_vertical_lowerPad);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
-                        line_vertical_lowerPad[iLine]->Draw();
-                    }
+                    int fitTH1_lowerPad_Start =
+                            int(std::find(TF1_lowerPad_Indices.begin(), TF1_lowerPad_Indices.end(), iPad+1) - TF1_lowerPad_Indices.begin());
+                    int iFit_Pad = iFit - fitTH1_lowerPad_Start;
+                    h_lowerPad[iFit_Pad]->Fit(f1_lowerPad.GetName(), fitOption_lowerPad.c_str());
                 }
             }
-            c->cd(iPad+1);
-        }
-        c->cd(1);
 
-        std::string tmpOutputFile = outputFile.Data();
-        if (tmpOutputFile.find(".") != std::string::npos) {     // file extension is specified
-            c->SaveAs(tmpOutputFile.c_str());
-        }
-        else {  // file extension is NOT specified
-            c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
-        }
+            // set maximum/minimum of y-axis in the lower pad
+            float yMin_lowerPadTmp = yMin_lowerPad.at(0);
+            if (nyMin_lowerPad > 1 && nyMin_lowerPad == nPads) yMin_lowerPadTmp = yMin_lowerPad.at(iPad);
 
-        c->Close();         // do not use Delete() for TCanvas.
+            float yMax_lowerPadTmp = yMax_lowerPad.at(0);
+            if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
+
+            if (yMin_lowerPadTmp > yMax_lowerPadTmp) {
+                double histMin = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
+                double histMax = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
+                h_lowerPad[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
+                h_lowerPad[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1);
+            }
+
+            for (int i=0; i<nHistos_lowerPad; ++i) {
+                double axisSizeRatio = (c->GetPad(iPad+1)->GetAbsHNDC()/c->GetPad(nPads+iPad+1)->GetAbsHNDC());
+                setTH1Ratio(h_lowerPad[i], h[iStart+2*i], axisSizeRatio);
+
+                std::string titleY_lowerPad = "";
+                if (nTitlesY_lowerPad == 1) titleY_lowerPad = titlesY_lowerPad.at(0);
+                else if (nTitlesY_lowerPad == nPads)  titleY_lowerPad = titlesY_lowerPad.at(iPad);
+
+                if (titleY_lowerPad == CONFIGPARSER::nullInput) h[i]->SetYTitle("");
+                else if (titleY_lowerPad.size() > 0) h_lowerPad[i]->SetYTitle(titleY_lowerPad.c_str());
+
+                h_lowerPad[i]->SetMarkerColor(h[iStart+2*i]->GetMarkerColor());
+                h_lowerPad[i]->SetMarkerStyle(h[iStart+2*i]->GetMarkerStyle());
+
+                h_lowerPad[i]->Draw("e same");
+            }
+            // add TLine to the lower pad
+            TLine* line_horizontal_lowerPad[nTLines_horizontal_lowerPad];
+            bool lineHorizontalLowerPadExists = (std::find(TLines_horizontal_lowerPad_PadIndices.begin(), TLines_horizontal_lowerPad_PadIndices.end(), iPad) != TLines_horizontal_lowerPad_PadIndices.end());
+            if (lineHorizontalLowerPadExists && nHistos_lowerPad > 0) {
+                for (int iLine = 0; iLine < nTLines_horizontal_lowerPad; ++iLine) {
+                    if (TLines_horizontal_lowerPad_PadIndices.at(iLine) != iPad)  continue;
+
+                    // draw horizontal line
+                    double xmin_lowerPad = h_lowerPad[0]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetFirst());
+                    double xmax_lowerPad = h_lowerPad[0]->GetXaxis()->GetBinLowEdge(h[iStart]->GetXaxis()->GetLast()+1);
+
+                    int lineStyle_horizontal_lowerPad = GRAPHICS::lineStyle_horizontal;
+                    if (nLineStyles_horizontal_lowerPad == 1)
+                        lineStyle_horizontal_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal_lowerPad.at(0));
+                    else if (nLineStyles_horizontal_lowerPad == nTLines_horizontal_lowerPad)
+                        lineStyle_horizontal_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_horizontal_lowerPad.at(iLine));
+
+                    line_horizontal_lowerPad[iLine] = new TLine(xmin_lowerPad, TLines_horizontal_lowerPad.at(iLine), xmax_lowerPad, TLines_horizontal_lowerPad.at(iLine));
+                    line_horizontal_lowerPad[iLine]->SetLineStyle(lineStyle_horizontal_lowerPad);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_horizontal_lowerPad[iLine]->Draw();
+                }
+            }
+            // add TLine to the lower pad
+            TLine* line_vertical_lowerPad[nTLines_vertical_lowerPad];
+            double ymin_lowerPad = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
+            double ymax_lowerPad = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
+            bool lineVerticalLowerPadExists = (std::find(TLines_vertical_lowerPad_PadIndices.begin(), TLines_vertical_lowerPad_PadIndices.end(), iPad) != TLines_vertical_lowerPad_PadIndices.end());
+            if (lineVerticalLowerPadExists && nHistos_lowerPad > 0) {
+                for (int iLine = 0; iLine < nTLines_vertical_lowerPad; ++iLine) {
+                    if (TLines_vertical_lowerPad_PadIndices.at(iLine) != iPad)  continue;
+
+                    int lineStyle_vertical_lowerPad = GRAPHICS::lineStyle_vertical;
+                    if (nLineStyles_vertical_lowerPad == 1)
+                        lineStyle_vertical_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical_lowerPad.at(0));
+                    else if (nLineStyles_vertical_lowerPad == nTLines_vertical_lowerPad)
+                        lineStyle_vertical_lowerPad = GraphicsConfigurationParser::ParseLineStyle(lineStyles_vertical_lowerPad.at(iLine));
+
+                    line_vertical_lowerPad[iLine] = new TLine(TLines_vertical_lowerPad.at(iLine), ymin_lowerPad, TLines_vertical_lowerPad.at(iLine), ymax_lowerPad);
+                    line_vertical_lowerPad[iLine]->SetLineStyle(lineStyle_vertical_lowerPad);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+                    line_vertical_lowerPad[iLine]->Draw();
+                }
+            }
+        }
+        c->cd(iPad+1);
     }
+    c->cd(1);
+
+    std::string tmpOutputFile = outputFile.Data();
+    if (tmpOutputFile.find(".") != std::string::npos) {     // file extension is specified
+        c->SaveAs(tmpOutputFile.c_str());
+    }
+    else {  // file extension is NOT specified
+        c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
+    }
+
+    c->Close();         // do not use Delete() for TCanvas.
 }
 
 int main(int argc, char** argv)
