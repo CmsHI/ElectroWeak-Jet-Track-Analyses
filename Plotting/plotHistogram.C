@@ -1044,7 +1044,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         yMinOffset = windowHeightFraction;
     }
 
-    divideCanvas2(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0.8, 0.8, yMinOffset);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0.8, 0.8, yMinOffset);
 
     for (int iPad = 0; iPad < nPads; ++iPad) {
         int setLogxTmp = setLogx.at(0);

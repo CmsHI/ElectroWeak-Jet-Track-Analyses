@@ -26,9 +26,9 @@
 void setCanvasFinal(TCanvas* c, int logx = 0, int logy = 0, int logz = 0);
 void setCanvasMargin(TCanvas* c, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
 void setCanvasSizeMargin(TCanvas* c, double normWidth = 1, double normHeight = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1);
-void divideCanvas(TCanvas* c, int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
-void divideCanvas(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
-void divideCanvas2(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float frameWidth = 0.8, float frameHeight = 0.8, float yMinOffSet = 0);
+void divideCanvas(TCanvas* c, int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float frameWidth = 0.8, float frameHeight = 0.8, float yMinOffSet = 0);
+void divideCanvas(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float frameWidth = 0.8, float frameHeight = 0.8, float yMinOffSet = 0);
+void divideCanvas2017(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
 void setPadFinal(TPad* pad, int logx = 0, int logy = 0, int logz = 0);
 void setTH1Final (TH1* h);
 void setTH1Ratio (TH1* h, TH1* hBase, double factor);
@@ -107,77 +107,13 @@ void setCanvasSizeMargin(TCanvas* c, double normWidth, double normHeight, float 
     c->SetTopMargin(topMargin);
 }
 
-void divideCanvas(TCanvas* c, int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+void divideCanvas(TCanvas* c, int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float frameWidth, float frameHeight, float yMinOffset)
 {
     TPad* pads[rows*columns];
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameWidth, frameHeight, yMinOffset);
 }
 
-void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
-{
-    c->Clear();
-
-    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
-    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
-
-    float x_min[columns], x_max[columns];
-    x_min[0] = 0;
-    x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
-    for (int i = 1; i < columns; ++i) {
-        x_min[i] = x_max[i-1];
-        x_max[i] = x_min[i] + normPadWidth;
-    }
-    x_max[columns-1] += rightMargin - xMargin/2;
-
-    float y_min[rows], y_max[rows];
-    y_min[rows-1] = yMinOffset;
-    y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
-    for (int i = rows - 2; i >= 0; --i) {
-        y_min[i] = y_max[i+1] + yMinOffset;
-        y_max[i] = y_min[i] + normPadHeight;
-    }
-    y_max[0] += topMargin - yMargin/2;
-
-    double normCanvasWidth = x_max[columns-1];
-    double normCanvasHeight = y_max[0];
-    // normalize the coordinates such that x_max[columns-1] = 1 and y_max[0] = 1
-    for (int i = 0; i < columns; ++i) {
-        x_min[i] /= normCanvasWidth;
-        x_max[i] /= normCanvasWidth;
-    }
-    for (int i = 0; i < rows; ++i) {
-        y_min[i] /= normCanvasHeight;
-        y_max[i] /= normCanvasHeight;
-    }
-
-    for (int i=0; i<rows; i++) {
-        for (int j=0; j<columns; j++) {
-            c->cd();
-            int ij = i*columns+j;
-            pads[ij] = new TPad(Form("pad_%d_%d", i, j), Form("pad_%d_%d", i, j), x_min[j], y_min[i], x_max[j], y_max[i]);
-
-            if (i == 0) pads[ij]->SetTopMargin(topMargin);
-            else pads[ij]->SetTopMargin(yMargin/2);
-            if (i == rows - 1) pads[ij]->SetBottomMargin(bottomMargin);
-            else pads[ij]->SetBottomMargin(yMargin/2);
-            if (j == 0) pads[ij]->SetLeftMargin(leftMargin);
-            else pads[ij]->SetLeftMargin(xMargin/2);
-            if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin);
-            else pads[ij]->SetRightMargin(xMargin/2);
-
-            pads[ij]->Draw();
-            pads[ij]->cd();
-            pads[ij]->SetNumber(ij+1);
-
-            setPadFinal(pads[ij]);
-        }
-    }
-}
-
-/*
- * to replace the original function, divideCanvas().
- */
-void divideCanvas2(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float frameWidth, float frameHeight, float yMinOffset)
+void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float frameWidth, float frameHeight, float yMinOffset)
 {
     c->Clear();
 
@@ -231,6 +167,70 @@ void divideCanvas2(TCanvas* c, TPad* pads[], int rows, int columns, float leftMa
             else pads[ij]->SetLeftMargin(xMargin/2 / padWidth[j]);
             if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin / padWidth[j]);
             else pads[ij]->SetRightMargin(xMargin/2 / padWidth[j]);
+
+            pads[ij]->Draw();
+            pads[ij]->cd();
+            pads[ij]->SetNumber(ij+1);
+
+            setPadFinal(pads[ij]);
+        }
+    }
+}
+
+/*
+ * Deprecated, replaced by divideCanvas().
+ */
+void divideCanvas2017(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
+{
+    c->Clear();
+
+    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
+    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
+
+    float x_min[columns], x_max[columns];
+    x_min[0] = 0;
+    x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
+    for (int i = 1; i < columns; ++i) {
+        x_min[i] = x_max[i-1];
+        x_max[i] = x_min[i] + normPadWidth;
+    }
+    x_max[columns-1] += rightMargin - xMargin/2;
+
+    float y_min[rows], y_max[rows];
+    y_min[rows-1] = yMinOffset;
+    y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
+    for (int i = rows - 2; i >= 0; --i) {
+        y_min[i] = y_max[i+1] + yMinOffset;
+        y_max[i] = y_min[i] + normPadHeight;
+    }
+    y_max[0] += topMargin - yMargin/2;
+
+    double normCanvasWidth = x_max[columns-1];
+    double normCanvasHeight = y_max[0];
+    // normalize the coordinates such that x_max[columns-1] = 1 and y_max[0] = 1
+    for (int i = 0; i < columns; ++i) {
+        x_min[i] /= normCanvasWidth;
+        x_max[i] /= normCanvasWidth;
+    }
+    for (int i = 0; i < rows; ++i) {
+        y_min[i] /= normCanvasHeight;
+        y_max[i] /= normCanvasHeight;
+    }
+
+    for (int i=0; i<rows; i++) {
+        for (int j=0; j<columns; j++) {
+            c->cd();
+            int ij = i*columns+j;
+            pads[ij] = new TPad(Form("pad_%d_%d", i, j), Form("pad_%d_%d", i, j), x_min[j], y_min[i], x_max[j], y_max[i]);
+
+            if (i == 0) pads[ij]->SetTopMargin(topMargin);
+            else pads[ij]->SetTopMargin(yMargin/2);
+            if (i == rows - 1) pads[ij]->SetBottomMargin(bottomMargin);
+            else pads[ij]->SetBottomMargin(yMargin/2);
+            if (j == 0) pads[ij]->SetLeftMargin(leftMargin);
+            else pads[ij]->SetLeftMargin(xMargin/2);
+            if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin);
+            else pads[ij]->SetRightMargin(xMargin/2);
 
             pads[ij]->Draw();
             pads[ij]->cd();

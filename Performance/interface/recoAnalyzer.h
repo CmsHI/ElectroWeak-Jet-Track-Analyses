@@ -1991,7 +1991,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
 
         int nPads = rows * columns;
         TPad* pads[nPads];
-        divideCanvas2(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.8, 0.8, 0.05);
+        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.8, 0.8, 0.05);
 
         std::vector<std::string> linesTitlesAll;
         if (title.size() > 0) linesTitlesAll.push_back(title);
@@ -2073,7 +2073,7 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         setCanvasFinal(c);
         c->cd();
 
-        divideCanvas2(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.8, 0.8, 0.05);
+        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.8, 0.8, 0.05);
 
         for (int i = 0; i < nH1DsliceY; ++i) {
             c->cd(i+1);
