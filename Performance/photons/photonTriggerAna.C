@@ -179,11 +179,18 @@ int nBins_sieie;
 int nBins_r9;
 /// configuration variables - END
 enum MODES {
+    kAnaType,
     kEff,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"Eff"};
+const std::string modesStr[kN_MODES] = {"AnaType", "Eff"};
 std::vector<int> runMode;
+
+enum MODES_ANATYPE {
+    kData,
+    kEmulation,
+    kN_MODES_ANATYPE
+};
 
 enum ANABINS {
     kTrigger,
@@ -223,6 +230,7 @@ std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 void indexTriggerBrances();
+void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
 bool passedDenom(int iTriggerDenom, int triggerBits[]);
@@ -240,22 +248,28 @@ void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, c
 
 void photonTriggerAna(const TString configFile, const TString hltFile, const TString inputFile, const TString outputFile)
 {
-    std::cout<<"running photonTriggerAna()"<<std::endl;
-    std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
-    std::cout<<"hltFile     = "<< hltFile.Data()  <<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
-    std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    std::cout << "running photonTriggerAna()" << std::endl;
+    std::cout << "configFile  = " << configFile.Data() << std::endl;
+    std::cout << "hltFile     = " << hltFile.Data() << std::endl;
+    std::cout << "inputFile   = " << inputFile.Data() << std::endl;
+    std::cout << "outputFile  = " << outputFile.Data() << std::endl;
 
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
-    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
-    std::cout<<"#####"<< std::endl;
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        std::cout<<(*it).c_str()<< std::endl;
+    if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
+        if (std::string(hltFile.Data()) != inputFile.Data()) {
+            std::cout << "The analysis type is data. hltFile will be ignored." << std::endl;
+        }
     }
-    std::cout<<"##### END #####"<< std::endl;
+
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+    std::cout << "input ROOT files : num = " << inputFiles.size() << std::endl;
+    std::cout << "#####" << std::endl;
+    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+        std::cout << (*it).c_str() << std::endl;
+    }
+    std::cout << "##### END #####" << std::endl;
 
     // initialize objects
     if (preLoop() != 0) return;
@@ -284,48 +298,23 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
     treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
     HiForestInfoController hfic(treeHiForestInfo);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+    std::cout << "### HiForestInfo Tree ###" << std::endl;
     hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
+    std::cout << "###" << std::endl;
 
     fileTmp->Close();
     // done with initial reading
 
-    std::cout<<"### HLT bit analysis file ###"<< std::endl;
-    TFile* fileHlt = TFile::Open(hltFile.Data(), "READ");
-    fileHlt->cd();
-
+    TFile* fileHlt = 0;
     TTree* treeHlt = 0;
-    std::string treeHltPath = "hltbitanalysis/HltTree";
-    treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
-    treeHlt->SetBranchStatus("*",0);     // disable all branches
-
-    // specify explicitly which branches to use
-    treeHlt->SetBranchStatus("Event", 1);
-    treeHlt->SetBranchStatus("LumiBlock", 1);
-    treeHlt->SetBranchStatus("Run", 1);
-
-    ULong64_t       hlt_event;
-    Int_t           hlt_lumi;
-    Int_t           hlt_run;
-    treeHlt->SetBranchAddress("Event", &hlt_event);
-    treeHlt->SetBranchAddress("LumiBlock", &hlt_lumi);
-    treeHlt->SetBranchAddress("Run", &hlt_run);
+    std::string treeHltPath = "";
+    EventMatcher* emHLT = 0;
 
     indexTriggerBrances();
     int nTriggerBranches =  triggerBranches.size();
     std::cout << "nTriggerBranches (trigger branches to read) = " << nTriggerBranches << std::endl;
     for (int i = 0; i < nTriggerBranches; ++i) {
         std::cout << Form("triggerBranches[%d] = %s", i, triggerBranches.at(i).c_str()) << std::endl;
-    }
-
-    Int_t triggerBits[nTriggerBranches];
-    for (int i = 0; i < nTriggerBranches; ++i) {
-        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, triggerBranches[i], triggerBits[i]);
-        if (branchSetFlag == -1) {
-            std::cout << "set branch addresses for triggers" << std::endl;
-            std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() <<std::endl;
-        }
     }
 
     int nPrescaleBranches =  prescaleBranches.size();
@@ -337,47 +326,66 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         }
     }
 
+    Int_t triggerBits[nTriggerBranches];
     Int_t triggerPrescales[nPrescaleBranches];
-    for (int i = 0; i < nPrescaleBranches; ++i) {
-        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(treeHlt, prescaleBranches[i], triggerPrescales[i]);
-        if (branchSetFlag == -1) {
-            std::cout << "set branch addresses for prescales" << std::endl;
-            std::cout << "Following branch is not found : "  << prescaleBranches[i].c_str() <<std::endl;
-        }
-    }
 
-    EventMatcher* emHLT = new EventMatcher();
+    if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
-    Long64_t duplicateEntriesHlt = 0;
+        std::cout << "### HLT bit analysis file ###" << std::endl;
+        fileHlt = TFile::Open(hltFile.Data(), "READ");
+        fileHlt->cd();
 
-    Long64_t entriesHlt = 0;
-    Long64_t entriesAnalyzedHlt = 0;
+        treeHltPath = "hltbitanalysis/HltTree";
+        treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
+        treeHlt->SetBranchStatus("*",0);     // disable all branches
 
-    std::cout<< "Loop HLT: " << treeHltPath.c_str() <<std::endl;
-    entriesHlt = treeHlt->GetEntries();
-    std::cout << "entries in HLT File = " << entriesHlt << std::endl;
-    for (Long64_t j_entry = 0; j_entry < entriesHlt; ++j_entry)
-    {
-        if (j_entry % 2000 == 0)  {
-            std::cout << "current entry = " <<j_entry<<" out of "<<entriesHlt<<" : "<<std::setprecision(2)<<(double)j_entry/entriesHlt*100<<" %"<<std::endl;
-        }
+        // specify explicitly which branches to use
+        treeHlt->SetBranchStatus("Event", 1);
+        treeHlt->SetBranchStatus("LumiBlock", 1);
+        treeHlt->SetBranchStatus("Run", 1);
 
-        treeHlt->GetEntry(j_entry);
+        ULong64_t       hlt_event;
+        Int_t           hlt_lumi;
+        Int_t           hlt_run;
+        treeHlt->SetBranchAddress("Event", &hlt_event);
+        treeHlt->SetBranchAddress("LumiBlock", &hlt_lumi);
+        treeHlt->SetBranchAddress("Run", &hlt_run);
 
-        bool eventAdded = emHLT->addEvent(hlt_run, hlt_lumi, hlt_event, j_entry);
-        if(!eventAdded) // this event is duplicate, skip this one.
+        setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
+        setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+
+        emHLT = new EventMatcher();
+
+        Long64_t duplicateEntriesHlt = 0;
+        Long64_t entriesHlt = 0;
+        Long64_t entriesAnalyzedHlt = 0;
+
+        std::cout << "Loop HLT: " << treeHltPath.c_str() << std::endl;
+        entriesHlt = treeHlt->GetEntries();
+        std::cout << "entries in HLT File = " << entriesHlt << std::endl;
+        for (Long64_t j_entry = 0; j_entry < entriesHlt; ++j_entry)
         {
-            duplicateEntriesHlt++;
-            continue;
-        }
+            if (j_entry % 2000 == 0)  {
+                std::cout << "current entry = " <<j_entry<< " out of " <<entriesHlt<< " : " <<std::setprecision(2)<<(double)j_entry/entriesHlt*100<< " %" << std::endl;
+            }
 
-        entriesAnalyzedHlt++;
+            treeHlt->GetEntry(j_entry);
+
+            bool eventAdded = emHLT->addEvent(hlt_run, hlt_lumi, hlt_event, j_entry);
+            if(!eventAdded) // this event is duplicate, skip this one.
+            {
+                duplicateEntriesHlt++;
+                continue;
+            }
+
+            entriesAnalyzedHlt++;
+        }
+        std::cout << "Loop HLT ENDED : " << treeHltPath.c_str() << std::endl;
+        std::cout << "entries HLT          = " << entriesHlt << std::endl;
+        std::cout << "duplicateEntries HLT = " << duplicateEntriesHlt << std::endl;
+        std::cout << "entriesAnalyzed HLT  = " << entriesAnalyzedHlt << std::endl;
+        std::cout << "###" << std::endl;
     }
-    std::cout<<  "Loop HLT ENDED : " << treeHltPath.c_str() <<std::endl;
-    std::cout << "entries HLT            = " << entriesHlt << std::endl;
-    std::cout << "duplicateEntries HLT   = " << duplicateEntriesHlt << std::endl;
-    std::cout << "entriesAnalyzed HLT    = " << entriesAnalyzedHlt << std::endl;
-    std::cout<<"###"<< std::endl;
 
     bool isMC = collisionIsMC((COLL::TYPE)collisionType);
     bool isHI = collisionIsHI((COLL::TYPE)collisionType);
@@ -391,18 +399,27 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     Long64_t entriesPassedDenomGlobal = 0;
     Long64_t entriesAnalyzed = 0;
 
-    std::cout<< "Loop : " << treePath.c_str() <<std::endl;
+    std::cout << "Loop : " << treePath.c_str() << std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
         std::string inputPath = inputFiles.at(iFile).c_str();
-        std::cout <<"iFile = " << iFile << " , " ;
-        std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
+        std::cout << "iFile = " << iFile << " , " ;
+        std::cout << "reading input file : " << inputPath.c_str() << std::endl;
         fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
         // check if the file is usable, if not skip the file.
         if (isGoodFile(fileTmp) != 0) {
             std::cout << "File is not good. skipping file." << std::endl;
             continue;
+        }
+
+        if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
+            treeHltPath = "hltanalysis/HltTree";
+            treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
+            treeHlt->SetBranchStatus("*",0);     // disable all branches
+
+            setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
+            setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
         }
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
@@ -449,7 +466,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
-                std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+                std::cout << "current entry = " <<j_entry<< " out of " <<entriesTmp<< " : " <<std::setprecision(2)<<(double)j_entry/entriesTmp*100<< " %" << std::endl;
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
@@ -463,14 +480,20 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 continue;
             }
 
-            // find the event in Hlt file
-            Long64_t entryHLT = emHLT->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
-            if (entryHLT < 0) {
-                entriesNotFoundinHLT++;
-                continue;
-            }
-            emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+            Long64_t entryHLT = 0;
+            if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
+                // find the event in Hlt file
+                entryHLT = emHLT->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                if (entryHLT < 0) {
+                    entriesNotFoundinHLT++;
+                    continue;
+                }
+                emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+            }
+            else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
+                entryHLT = j_entry;
+            }
             treeHlt->GetEntry(entryHLT);
 
             if (!passedDenomGlobal(triggerBits)) continue;
@@ -572,7 +595,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         }
         fileTmp->Close();
     }
-    std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
+    std::cout <<  "Loop ENDED : " << treePath.c_str() << std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesNotFoundinHLT = " << entriesNotFoundinHLT << std::endl;
@@ -584,12 +607,14 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
     postLoop();
 
-    std::cout<<"Closing the HLT file."<<std::endl;
-    fileHlt->Close();
+    if (fileHlt != 0) {
+        std::cout << "Closing the HLT file." << std::endl;
+        fileHlt->Close();
+    }
 
-    std::cout<<"Closing the output file."<<std::endl;
+    std::cout << "Closing the output file." << std::endl;
     output->Close();
-    std::cout<<"running photonTriggerAna() - END"<<std::endl;
+    std::cout << "running photonTriggerAna() - END" << std::endl;
 }
 
 /*
@@ -597,10 +622,10 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
  */
 void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile)
 {
-    std::cout<<"running photonTriggerAna()"<<std::endl;
-    std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
-    std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    std::cout << "running photonTriggerAna()" << std::endl;
+    std::cout << "configFile  = " << configFile.Data() << std::endl;
+    std::cout << "inputFile   = " << inputFile.Data()  << std::endl;
+    std::cout << "outputFile  = " << outputFile.Data() << std::endl;
 
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
@@ -614,11 +639,11 @@ void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, c
 
     postLoop();
 
-    std::cout<<"Closing the input file."<<std::endl;
+    std::cout << "Closing the input file." << std::endl;
     input->Close();
-    std::cout<<"Closing the output file."<<std::endl;
+    std::cout << "Closing the output file." << std::endl;
     output->Close();
-    std::cout<<"running photonTriggerAna() - END"<<std::endl;
+    std::cout << "running photonTriggerAna() - END" << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -900,7 +925,7 @@ int readConfiguration(const TString configFile)
 void printConfiguration()
 {
     // verbose about input configuration
-    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "Input Configuration :" << std::endl;
     std::cout << "mode = " << mode.c_str() << std::endl;
     for (int i = 0; i < (int)runMode.size(); ++i) {
         std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
@@ -910,7 +935,7 @@ void printConfiguration()
     std::cout << "collision = " << collisionName.c_str() << std::endl;
 
     // verbose about cut configuration
-    std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout << "Cut Configuration :" << std::endl;
     std::cout << "nTriggerBranchesNum  = " << nTriggerBranchesNum << std::endl;
     for (int i = 0; i<nTriggerBranchesNum; ++i) {
         std::cout << Form("triggerBranchesNum[%d] = %s", i, triggerBranchesNum.at(i).c_str()) << std::endl;
@@ -958,11 +983,11 @@ void printConfiguration()
         std::cout << Form("bins_r9[%d] = [%f, %f)", i, bins_r9[0].at(i), bins_r9[1].at(i)) << std::endl;
     }
 
-    std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
+    std::cout << "doEventWeight = " << doEventWeight << std::endl;
 
-    std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
+    std::cout << "cut_phoHoverE = " << cut_phoHoverE << std::endl;
 
-    std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
+    std::cout << "Input Configuration (Cont'd) :" << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
     for (int i=0; i<nTH1D_Axis_List; ++i) {
@@ -1003,7 +1028,7 @@ void printConfiguration()
         std::cout << Form("legendEntryPadIndices[%d] = %d", i, legendEntryPadIndices.at(i)) << std::endl;
     }
     std::cout << "nLegendPositions    = " << nLegendPositions << std::endl;
-    if (nLegendPositions == 0) std::cout<< "No position is provided, legend will not be drawn." <<std::endl;
+    if (nLegendPositions == 0) std::cout << "No position is provided, legend will not be drawn." << std::endl;
     for (int i = 0; i < nLegendPositions; ++i) {
         std::cout << Form("legendPositions[%d] = %s", i, legendPositions.at(i).c_str()) << std::endl;
     }
@@ -1207,6 +1232,17 @@ void indexTriggerBrances()
     indicesMapPrescaleDenom.resize((int)prescaleBranchesDenom.size());
     for (int i = 0; i < (int)prescaleBranchesDenom.size(); ++i) {
         indicesMapPrescaleDenom[i] = findPositionInVector(prescaleBranches, prescaleBranchesDenom[i].c_str());
+    }
+}
+
+void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal)
+{
+    for (int i = 0; i < nVal; ++i) {
+        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(tree, branchNames[i], val[i]);
+        if (branchSetFlag == -1) {
+            std::cout << "set branch addresses for triggers" << std::endl;
+            std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() << std::endl;
+        }
     }
 }
 
