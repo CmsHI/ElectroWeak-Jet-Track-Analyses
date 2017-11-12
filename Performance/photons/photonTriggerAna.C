@@ -181,9 +181,10 @@ int nBins_r9;
 enum MODES {
     kAnaType,
     kEff,
+    kInEff,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"AnaType", "Eff"};
+const std::string modesStr[kN_MODES] = {"AnaType", "Eff", "InEff"};
 std::vector<int> runMode;
 
 enum MODES_ANATYPE {
@@ -514,8 +515,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 w *= vertexWeight * centWeight;
             }
 
-            // efficiency
-            if (runMode[MODES::kEff]) {
+            // efficiency or inefficiency
+            if (runMode[MODES::kEff] || runMode[MODES::kInEff]) {
 
                 for (int iAna = 0;  iAna < nTriggerAna; ++iAna) {
 
@@ -577,6 +578,14 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
                             tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+                        }
+                        if (!passedNum(indicesTriggerNum[iAna], triggerBits)) {
+
+                            tAna[TRIGGERANA::kETA][iAna].FillHNumInEff(eta, w, vars);
+                            tAna[TRIGGERANA::kRECOPT][iAna].FillHNumInEff(pt, w, vars);
+                            tAna[TRIGGERANA::kCENT][iAna].FillHNumInEff(cent, w, vars);
+                            tAna[TRIGGERANA::kSUMISO][iAna].FillHNumInEff(sumIso, w, vars);
+                            tAna[TRIGGERANA::kSIEIE][iAna].FillHNumInEff(sieie, w, vars);
                         }
                     }
 
@@ -1096,6 +1105,10 @@ std::vector<int> parseMode(std::string mode)
         res.at(i) = in;
     }
 
+    // special cases
+    // If "inefficiency" is to be run, then "efficiency" must be run as well.
+    if (res[MODES::kInEff])  res[MODES::kEff] = true;
+
     return res;
 }
 
@@ -1406,6 +1419,7 @@ int  preLoop(TFile* input, bool makeNew)
 
         std::string nameNum = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNum);
         std::string nameDenom = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kDenom);
+        std::string nameNumInEff = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNumInEff);
 
         // disable the cuts/ranges for this dependence
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
@@ -1436,6 +1450,16 @@ int  preLoop(TFile* input, bool makeNew)
             else {
                 tAnaTmp.hNum = (TH1D*)input->Get(nameNum.c_str());
                 tAnaTmp.hDenom = (TH1D*)input->Get(nameDenom.c_str());
+            }
+        }
+        // inefficiency
+        if (runMode[MODES::kInEff]) {
+            if (makeNew) {
+                tAnaTmp.hNumInEff =
+                        new TH1D(nameNumInEff.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+            }
+            else {
+                tAnaTmp.hNumInEff = (TH1D*)input->Get(nameNumInEff.c_str());
             }
         }
 
@@ -1586,6 +1610,7 @@ int postLoop()
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 {
     if (iObs == TRIGGERANA::kEFF && !runMode[MODES::kEff]) return;
+    if (iObs == TRIGGERANA::kINEFF && !runMode[MODES::kInEff]) return;
 
     int iTrigger = binIndices[ANABINS::kTrigger];
 
@@ -1704,12 +1729,19 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
         int iAnaTmp = indicesAna[iBin];
 
-        if (iObs == TRIGGERANA::kEFF) {
-            gTmp = (TGraphAsymmErrors*)tAna[iDep][iAnaTmp].gEff->Clone();
+        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
+
+            if (iObs == TRIGGERANA::kEFF)
+                gTmp = (TGraphAsymmErrors*)tAna[iDep][iAnaTmp].gEff->Clone();
+            else if (iObs == TRIGGERANA::kINEFF)
+                gTmp = (TGraphAsymmErrors*)tAna[iDep][iAnaTmp].gInEff->Clone();
 
             if (iBin == 0) {
                 // dummy histogram to be used as template for the graph
-                hTmp = (TH1D*)tAna[iDep][iAnaTmp].hEff->Clone();
+                if (iObs == TRIGGERANA::kEFF)
+                    hTmp = (TH1D*)tAna[iDep][iAnaTmp].hEff->Clone();
+                else if (iObs == TRIGGERANA::kINEFF)
+                    hTmp = (TH1D*)tAna[iDep][iAnaTmp].hInEff->Clone();
 
                 hTmp->SetTitle("");
                 if (iTrigger != -1) {
@@ -1739,7 +1771,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         }
     }
 
-    if (iObs == TRIGGERANA::kEFF) {
+    if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
         drawSameTGraph(c, vecGraph);
     }
     else {
@@ -1755,7 +1787,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
         int iAnaTmp = indicesAna[iBin];
 
-        if (iObs == TRIGGERANA::kEFF) {
+        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
 
             tAna[iDep][iAnaTmp].drawLine4PtThreshold(c, vecGraph[iBin]->GetMarkerColor());
         }
@@ -1771,7 +1803,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         int iAnaTmp = indicesAna[iBin];
 
         std::string legendOption = "lpf";
-        if (iObs == TRIGGERANA::kEFF)  legendOption = "lp";
+        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)  legendOption = "lp";
         std::string legendText = "";
         if (iTrigger == -1) legendText = tAna[iDep][iAnaTmp].getPathNumText();
         else if (iEta == -1) legendText = tAna[iDep][iAnaTmp].getRangeText(TRIGGERANA::rETA);

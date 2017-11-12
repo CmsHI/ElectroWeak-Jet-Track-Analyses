@@ -110,6 +110,13 @@ public :
         isValid_hEff = false;
         isValid_gEff = false;
 
+        hNumInEff = 0;
+        hInEff = 0;
+        gInEff = 0;
+        isValid_hNumInEff = false;
+        isValid_hInEff = false;
+        isValid_gInEff = false;
+
         pathNum = "";
         pathDenom = "";
         pathNumText = "";
@@ -144,6 +151,7 @@ public :
 
     void FillHNum(double x, double w, std::vector<double> vars);
     void FillHDenom(double x, double w, std::vector<double> vars);
+    void FillHNumInEff(double x, double w, std::vector<double> vars);
 
     std::string getPathNum() { return pathNum; };
     std::string getPathDenom() { return pathDenom; };
@@ -169,6 +177,7 @@ public :
 
     void postLoop();
     void calcEff();
+    void calcInEff();
     void writeObjects(TCanvas* c);
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
@@ -197,6 +206,15 @@ public :
     bool isValid_hEff;
     bool isValid_gEff;
 
+    // objects for inefficiency
+    TH1D* hNumInEff;
+    TH1D* hInEff;
+    TGraphAsymmErrors* gInEff;
+
+    bool isValid_hNumInEff;
+    bool isValid_hInEff;
+    bool isValid_gInEff;
+
     std::string pathNum;
     std::string pathDenom;
     std::string pathNumText;
@@ -207,7 +225,8 @@ public :
         kNum,
         kDenom,
         kEff,
-        kFakeNum,
+        kNumInEff,
+        kInEff,
         kN_OBJ
     };
 
@@ -254,6 +273,12 @@ void triggerAnalyzer::FillHDenom(double x, double w, std::vector<double> vars)
 {
     if (isValid_hDenom && insideRange(vars))
         hDenom->Fill(x, w);
+}
+
+void triggerAnalyzer::FillHNumInEff(double x, double w, std::vector<double> vars)
+{
+    if (isValid_hNumInEff && insideRange(vars))
+        hNumInEff->Fill(x, w);
 }
 
 /*
@@ -396,11 +421,13 @@ void triggerAnalyzer::updateTH1()
     isValid_hEff = (hEff != 0 && !hEff->IsZombie());
     isValid_gEff = (gEff != 0 && !gEff->IsZombie());
 
+    isValid_hNumInEff = (hNumInEff != 0 && !hNumInEff->IsZombie());
+    isValid_hInEff = (hInEff != 0 && !hInEff->IsZombie());
+    isValid_gInEff = (gInEff != 0 && !gInEff->IsZombie());
+
     if (isValid_hNum) {
         nBinsX = hNum->GetXaxis()->GetNbins();
     }
-
-
 
     if(isValid_hNum) {
         hNum->SetTitle(title.c_str());
@@ -408,11 +435,21 @@ void triggerAnalyzer::updateTH1()
     if(isValid_hDenom) {
         hDenom->SetTitle(title.c_str());
     }
+    if(isValid_hEff) {
+        hEff->SetTitle(title.c_str());
+    }
     if(isValid_gEff) {
         gEff->SetTitle(title.c_str());
     }
-    if(isValid_hEff) {
-        hEff->SetTitle(title.c_str());
+
+    if(isValid_hNumInEff) {
+        hNumInEff->SetTitle(title.c_str());
+    }
+    if(isValid_hInEff) {
+        hInEff->SetTitle(title.c_str());
+    }
+    if(isValid_gInEff) {
+        gInEff->SetTitle(title.c_str());
     }
 }
 
@@ -425,6 +462,10 @@ std::string triggerAnalyzer::getObjectStr(int iObj)
         return "Denom";
     case triggerAnalyzer::OBJ::kEff :
         return "Eff";
+    case triggerAnalyzer::OBJ::kNumInEff :
+        return "NumInEff";
+    case triggerAnalyzer::OBJ::kInEff :
+        return "InEff";
     default :
         return "";
     }
@@ -574,13 +615,13 @@ std::vector<std::string> triggerAnalyzer::splitTextLines(std::vector<std::string
 void triggerAnalyzer::postLoop()
 {
     calcEff();
+    calcInEff();
 }
 
 void triggerAnalyzer::calcEff()
 {
     if (!isValid_hNum || !isValid_hDenom) return;
 
-    std::string tmpName;
     hNum->SetTitle(title.c_str());
     hNum->SetXTitle(titleX.c_str());
     setTH1_efficiency(hNum, titleOffsetX, titleOffsetY);
@@ -595,6 +636,7 @@ void triggerAnalyzer::calcEff()
     }
 
     gEff = new TGraphAsymmErrors();
+    std::string tmpName;
     tmpName = getObjectName(triggerAnalyzer::OBJ::kEff, triggerAnalyzer::TOBJ::kTGraph);
     gEff->SetName(tmpName.c_str());
     gEff->BayesDivide(hNum, hDenom);
@@ -621,6 +663,53 @@ void triggerAnalyzer::calcEff()
     hEff->SetMaximum(1.2);
 
     isValid_hEff = true;
+}
+
+void triggerAnalyzer::calcInEff()
+{
+    if (!isValid_hNumInEff || !isValid_hDenom) return;
+
+    hNumInEff->SetTitle(title.c_str());
+    hNumInEff->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hNumInEff, titleOffsetX, titleOffsetY);
+
+    hDenom->SetTitle(title.c_str());
+    hDenom->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hDenom, titleOffsetX, titleOffsetY);
+
+    if (isValid_gInEff) {
+        gInEff->Delete();
+        isValid_gInEff = false;
+    }
+
+    gInEff = new TGraphAsymmErrors();
+    std::string tmpName;
+    tmpName = getObjectName(triggerAnalyzer::OBJ::kInEff, triggerAnalyzer::TOBJ::kTGraph);
+    gInEff->SetName(tmpName.c_str());
+    gInEff->BayesDivide(hNumInEff, hDenom);
+    gInEff->SetTitle(title.c_str());
+    gInEff->GetXaxis()->SetTitle(titleX.c_str());
+    gInEff->GetYaxis()->SetTitle("Inefficiency");
+    gInEff->SetMarkerStyle(kFullCircle);
+
+    isValid_gInEff = true;
+
+    if (isValid_hInEff) {
+        hInEff->Delete();
+        isValid_hInEff = false;
+    }
+
+    tmpName = getObjectName(triggerAnalyzer::OBJ::kInEff, triggerAnalyzer::TOBJ::kTH1D);
+    hInEff = (TH1D*)hNumInEff->Clone(tmpName.c_str());
+    fillTH1fromTGraph(hInEff, gInEff);
+    setTH1_efficiency(hDenom, titleOffsetX, titleOffsetY);
+    hInEff->SetTitle(title.c_str());
+    hInEff->SetXTitle(titleX.c_str());
+    hInEff->SetYTitle("Inefficiency");
+    hInEff->SetMinimum(0);
+    hInEff->SetMaximum(1.2);
+
+    isValid_hInEff = true;
 }
 
 /*
@@ -724,6 +813,70 @@ void triggerAnalyzer::writeObjects(TCanvas* c)
         hTmp->Delete();
     }
 
+    // inefficiency objects
+    if (isValid_hNumInEff) {
+        canvasName = Form("cnv_%s_%s", getObjectStr(triggerAnalyzer::OBJ::kNumInEff).c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hNumInEff->SetMarkerSize(markerSize);
+        hNumInEff->Draw("e");
+        hNumInEff->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (isValid_hInEff) {
+        int iObs = TRIGGERANA::kINEFF;
+        canvasName = Form("cnv_%sH1D_%s", TRIGGERANA::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hInEff->SetMarkerSize(markerSize);
+        hInEff->Draw("e");
+        hInEff->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtThreshold((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (isValid_hInEff && isValid_gInEff) {
+        int iObs = TRIGGERANA::kINEFF;
+        canvasName = Form("cnv_%s_%s", TRIGGERANA::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        // dummy histogram to be used as template for the graph
+        TH1D* hTmp = (TH1D*)hInEff->Clone("hTmp");
+        hTmp->Reset();
+        hTmp->Draw();
+        gInEff->SetMarkerSize(markerSize);
+        gInEff->Draw("p e");
+        gInEff->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtThreshold((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+        hTmp->Delete();
+    }
+
      if (line != 0)  line->Delete();
      latex->Delete();
 }
@@ -733,7 +886,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
     TLine* line = 0;
 
     p->Update();
-    if (iObs == TRIGGERANA::kEFF) {
+    if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
@@ -755,7 +908,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (iObs == TRIGGERANA::kEFF)  yMax = 1;
+        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
