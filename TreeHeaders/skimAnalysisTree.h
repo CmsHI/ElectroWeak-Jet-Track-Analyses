@@ -38,6 +38,8 @@ public :
     ~skimAnalysis(){};
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
+    void enableBranchesHI(TTree *t);
+    void enableBranchesPP(TTree *t);
     void checkBranches(TTree *t);
     bool passedEventSelectionHI();
     bool passedEventSelectionPP();
@@ -183,6 +185,17 @@ void skimAnalysis::setupTreeForWriting(TTree *t)
     t->Branch("pVertexFilterCutGplus",&pVertexFilterCutGplus,"pVertexFilterCutGplus/I");
     t->Branch("pVertexFilterCutE",&pVertexFilterCutE,"pVertexFilterCutE/I");
     t->Branch("pVertexFilterCutEandG",&pVertexFilterCutEandG,"pVertexFilterCutEandG/I");
+}
+
+void skimAnalysis::enableBranchesHI(TTree *t)
+{
+    t->SetBranchStatus("pcollisionEventSelection",1);
+}
+
+void skimAnalysis::enableBranchesPP(TTree *t)
+{
+    t->SetBranchStatus("pPAprimaryVertexFilter",1);
+    t->SetBranchStatus("pBeamScrapingFilter",1);
 }
 
 void skimAnalysis::checkBranches(TTree *t)

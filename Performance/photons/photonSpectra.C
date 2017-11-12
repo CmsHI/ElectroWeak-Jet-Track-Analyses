@@ -275,13 +275,6 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
         treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         treeSkim->SetBranchStatus("*",0);     // disable all branches
-        if (isHI) {
-            treeSkim->SetBranchStatus("pcollisionEventSelection",1);
-        }
-        else if (isPP) {
-            treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
-            treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
-        }
 
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
@@ -290,6 +283,8 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
         hiEvt.setupTreeForReading(treeHiEvt);
 
         skimAnalysis skimAna;
+        if (isHI) skimAna.enableBranchesHI(treeSkim);
+        else if (isPP) skimAna.enableBranchesPP(treeSkim);
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
@@ -317,8 +312,9 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
+
             if (isHI && !skimAna.passedEventSelectionHI())  continue;
-            if (isPP && !skimAna.passedEventSelectionPP())  continue;
+            else if (isPP && !skimAna.passedEventSelectionPP())  continue;
 
             for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
