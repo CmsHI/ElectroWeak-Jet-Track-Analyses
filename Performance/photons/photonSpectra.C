@@ -317,13 +317,8 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
 
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
-            if (isHI) {
-                if (skimAna.has_pcollisionEventSelection && skimAna.pcollisionEventSelection < 1)  continue;
-            }
-            else if (isPP) {
-                if ((skimAna.has_pPAprimaryVertexFilter && skimAna.pPAprimaryVertexFilter < 1) ||
-                    (skimAna.has_pBeamScrapingFilter && skimAna.pBeamScrapingFilter < 1))  continue;
-            }
+            if (isHI && !skimAna.passedEventSelectionHI())  continue;
+            if (isPP && !skimAna.passedEventSelectionPP())  continue;
 
             for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
             for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {

@@ -39,6 +39,8 @@ public :
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
     void checkBranches(TTree *t);
+    bool passedEventSelectionHI();
+    bool passedEventSelectionPP();
 
     // Declaration of leaf types
     // PbPb
@@ -210,6 +212,17 @@ void skimAnalysis::checkBranches(TTree *t)
     has_pVertexFilterCutGplus = t->GetBranch("pVertexFilterCutGplus");
     has_pVertexFilterCutE = t->GetBranch("pVertexFilterCutE");
     has_pVertexFilterCutEandG = t->GetBranch("pVertexFilterCutEandG");
+}
+
+bool skimAnalysis::passedEventSelectionHI()
+{
+    return (!has_pcollisionEventSelection || pcollisionEventSelection > 0);
+}
+
+bool skimAnalysis::passedEventSelectionPP()
+{
+    return ((!has_pPAprimaryVertexFilter || pPAprimaryVertexFilter > 0) &&
+            (!has_pBeamScrapingFilter || pBeamScrapingFilter > 0));
 }
 
 #endif
