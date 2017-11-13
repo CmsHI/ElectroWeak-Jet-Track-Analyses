@@ -6,11 +6,13 @@ hltFiles=(
 "DUMMY.root"
 "DUMMY.root"
 )
-inputFile="Configurations/filelists/HIRun2017PP_ExpressForests_Run3065XX.list"
+#inputFile="Configurations/filelists/HIRun2017PP_ExpressForests_Run3065XX.list"
+inputFile="Configurations/filelists/HIRun2017PP_ExpressForests_Run306572.list"
 
 userInitial=${USER:0:1}
 outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet-Track-Analyses/EWJTA-out/"
-outputSuffix="ExpressForests_Run3065XX"
+#outputSuffix="ExpressForests_Run3065XX"
+outputSuffix="ExpressForests_Run306572"
 outList=(
 $outDirBase"Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix".root"
 $outDirBase"Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix"_HoverELoose.root"
