@@ -1,11 +1,14 @@
 /*
  * macro to draw eta, reco Pt, centrality, isolation, and shower shape dependent photon trigger performance plots.
- * The macro can make 4 types of plots
+ * The macro can make 8 types of plots
  *  1. x-axis is eta.
  *  2. x-axis is reco Pt.
  *  3. x-axis is centrality (hiBin/2)
- *  4. x-axis is isolation (sumIso)
- *  5. x-axis is shower shape (sigmaIEtaIEta_2012)
+ *  4. x-axis is isolation (sumIso = ecalIso + hcalIso + trkIso)
+ *  5. x-axis is ecal iso
+ *  6. x-axis is hcal iso
+ *  7. x-axis is track iso
+ *  8. x-axis is shower shape (sigmaIEtaIEta_2012)
  * saves histograms to a .root file.
  */
 
@@ -579,9 +582,10 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                         double pt = (*ggHi.phoEt)[iMax];
                         double eta = (*ggHi.phoEta)[iMax];
-                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iMax] +
-                                (*ggHi.pho_hcalRechitIsoR4)[iMax]  +
-                                (*ggHi.pho_trackIsoR4PtCut20)[iMax]);
+                        double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iMax];
+                        double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iMax];
+                        double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iMax];
+                        double sumIso = ecalIso + hcalIso + trkIso;
                         double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
                         double r9 = (*ggHi.phoR9)[iMax];
                         std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
@@ -590,6 +594,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                         tAna[TRIGGERANA::kRECOPT][iAna].FillHDenom(pt, w, vars);
                         tAna[TRIGGERANA::kCENT][iAna].FillHDenom(cent, w, vars);
                         tAna[TRIGGERANA::kSUMISO][iAna].FillHDenom(sumIso, w, vars);
+                        tAna[TRIGGERANA::kECALISO][iAna].FillHDenom(ecalIso, w, vars);
+                        tAna[TRIGGERANA::kHCALISO][iAna].FillHDenom(hcalIso, w, vars);
+                        tAna[TRIGGERANA::kTRKISO][iAna].FillHDenom(trkIso, w, vars);
                         tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
                         if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
@@ -598,6 +605,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
                             tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
                             tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                            tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                            tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                            tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
                         }
                         if (!passedNum(indicesTriggerNum[iAna], triggerBits)) {
@@ -606,6 +616,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kRECOPT][iAna].FillHNumInEff(pt, w, vars);
                             tAna[TRIGGERANA::kCENT][iAna].FillHNumInEff(cent, w, vars);
                             tAna[TRIGGERANA::kSUMISO][iAna].FillHNumInEff(sumIso, w, vars);
+                            tAna[TRIGGERANA::kECALISO][iAna].FillHNumInEff(ecalIso, w, vars);
+                            tAna[TRIGGERANA::kHCALISO][iAna].FillHNumInEff(hcalIso, w, vars);
+                            tAna[TRIGGERANA::kTRKISO][iAna].FillHNumInEff(trkIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNumInEff(sieie, w, vars);
                         }
                     }
@@ -1419,6 +1432,21 @@ int  preLoop(TFile* input, bool makeNew)
             xTitle = "sumIso";
             makeObject = true;
         }
+        else if (iSumIso == 0 && iDep == TRIGGERANA::kECALISO) {
+            strDep = "depEcalIso";
+            xTitle = "ecalIso";
+            makeObject = true;
+        }
+        else if (iSumIso == 0 && iDep == TRIGGERANA::kHCALISO) {
+            strDep = "depHcalIso";
+            xTitle = "hcalIso";
+            makeObject = true;
+        }
+        else if (iSumIso == 0 && iDep == TRIGGERANA::kTRKISO) {
+            strDep = "depTrkIso";
+            xTitle = "trkIso";
+            makeObject = true;
+        }
         else if (iSieie == 0 && iDep == TRIGGERANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
@@ -1491,9 +1519,10 @@ int  preLoop(TFile* input, bool makeNew)
         // The x-axis bins will set the cuts.
         tAnaTmp.ranges[iDep][0] = 0;
         tAnaTmp.ranges[iDep][1] = -1;
-        if (iDep == TRIGGERANA::kSUMISO) {
-            tAnaTmp.ranges[iDep][0] = -999;
-            tAnaTmp.ranges[iDep][1] = -999;
+        if (iDep == TRIGGERANA::kSUMISO || iDep == TRIGGERANA::kECALISO ||
+            iDep == TRIGGERANA::kHCALISO || iDep == TRIGGERANA::kTRKISO) {
+            tAnaTmp.ranges[TRIGGERANA::rSUMISO][0] = -999;
+            tAnaTmp.ranges[TRIGGERANA::rSUMISO][1] = -999;
         }
 
         int iAxis = iDep;
@@ -1516,6 +1545,7 @@ int  preLoop(TFile* input, bool makeNew)
                 tAnaTmp.hDenom = (TH1D*)input->Get(nameDenom.c_str());
             }
         }
+
         // inefficiency
         if (runMode[MODES::kInEff]) {
             if (makeNew) {
@@ -1580,6 +1610,9 @@ int postLoop()
             if (iDep == TRIGGERANA::kRECOPT && iRecoPt != 0) continue;
             if (iDep == TRIGGERANA::kCENT && iCent != 0) continue;
             if (iDep == TRIGGERANA::kSUMISO && iSumIso != 0) continue;
+            if (iDep == TRIGGERANA::kECALISO && iSumIso != 0) continue;
+            if (iDep == TRIGGERANA::kHCALISO && iSumIso != 0) continue;
+            if (iDep == TRIGGERANA::kTRKISO && iSumIso != 0) continue;
             if (iDep == TRIGGERANA::kSIEIE && iSieie != 0) continue;
 
             if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0) continue;
@@ -1655,7 +1688,7 @@ int postLoop()
                     drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, iCent, -1, iSieie, iR9});
                 }
 
-                // plot from different sumIso bins
+                // plot from different sieie bins
                 if (iSieie == 0 && tAna[iDep][iAna].name.size() > 0) {
                     drawSame(c, iObs, iDep, {iTrigger, iEta, iRecoPt, iCent, iSumIso, -1, iR9});
                 }
@@ -1690,6 +1723,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     if (iDep == TRIGGERANA::kRECOPT && iRecoPt != 0) return;
     if (iDep == TRIGGERANA::kCENT && iCent != 0) return;
     if (iDep == TRIGGERANA::kSUMISO && iSumIso != 0) return;
+    if (iDep == TRIGGERANA::kECALISO && iSumIso != 0) return;
+    if (iDep == TRIGGERANA::kHCALISO && iSumIso != 0) return;
+    if (iDep == TRIGGERANA::kTRKISO && iSumIso != 0) return;
     if (iDep == TRIGGERANA::kSIEIE && iSieie != 0) return;
 
     TH1D* hTmp = 0;
@@ -1918,6 +1954,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iDep == TRIGGERANA::kRECOPT && iRange == TRIGGERANA::rRECOPT) continue;
         else if (iDep == TRIGGERANA::kCENT && iRange == TRIGGERANA::rCENT) continue;
         else if (iDep == TRIGGERANA::kSUMISO && iRange == TRIGGERANA::rSUMISO) continue;
+        else if (iDep == TRIGGERANA::kECALISO && iRange == TRIGGERANA::rSUMISO) continue;
+        else if (iDep == TRIGGERANA::kHCALISO && iRange == TRIGGERANA::rSUMISO) continue;
+        else if (iDep == TRIGGERANA::kTRKISO && iRange == TRIGGERANA::rSUMISO) continue;
         else if (iDep == TRIGGERANA::kSIEIE && iRange == TRIGGERANA::rSIEIE) continue;
 
         int iAna0 = indicesAna[0];
