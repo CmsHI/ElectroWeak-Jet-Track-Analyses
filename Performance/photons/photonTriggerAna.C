@@ -56,6 +56,9 @@ std::string mode;
 std::string treePath;
 int collisionType;
 
+std::vector<std::pair<std::string, int>> selectionBase;
+std::vector<std::string> selectionBaseEntries;
+
 // input for TH1
 // nBins, xLow, xUp for the TH1D histogram
 // this bin list will be used for histograms where x-axis is eta.
@@ -106,6 +109,7 @@ float bottomMargin;
 float topMargin;
 
 std::string collisionName;
+int nSelectionBaseEntries;
 int nTH1D_Axis_List;
 int nTH2D_Axis_List;
 
@@ -223,6 +227,11 @@ std::vector<std::string> triggerBranches;  // list of all trigger branches to be
 std::vector<int> indicesMapPrescaleNum;
 std::vector<int> indicesMapPrescaleDenom;
 std::vector<std::string> prescaleBranches;  // list of all prescale branches to be used. Elements are unique
+
+std::vector<unsigned int> runNumbers;
+std::vector<unsigned int> lumiStartNumbers;
+std::vector<unsigned int> lumiEndNumbers;
+int nRunNumbers;
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -230,6 +239,7 @@ void printConfiguration();
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
+void setRunLumiNumbers();
 void indexTriggerBrances();
 void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
 bool passedNum(int iTriggerNum, int triggerBits[]);
@@ -310,6 +320,14 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     TTree* treeHlt = 0;
     std::string treeHltPath = "";
     EventMatcher* emHLT = 0;
+
+    setRunLumiNumbers();
+    if (nRunNumbers > 0) {
+        std::cout << "nRunNumbers (Run and Lumi Section ranges to process) = " << nRunNumbers << std::endl;
+        for (int i = 0; i < nRunNumbers; ++i) {
+            std::cout << Form("{run, lumi start, lumi end}[%d] = {%d, %d, %d}", i, runNumbers.at(i), lumiStartNumbers.at(i), lumiEndNumbers.at(i)) << std::endl;
+        }
+    }
 
     indexTriggerBrances();
     int nTriggerBranches =  triggerBranches.size();
@@ -474,6 +492,17 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
             {
                 duplicateEntries++;
                 continue;
+            }
+
+            if (nRunNumbers > 0) {
+                bool passedRunLumi = false;
+                for (int i = 0; i < nRunNumbers; ++i) {
+                    if (ggHi.run == runNumbers[i]) {
+                        passedRunLumi = (ggHi.lumis >= lumiStartNumbers[i] && ggHi.lumis <= lumiEndNumbers[i]);
+                        if (passedRunLumi)  break;
+                    }
+                }
+                if (!passedRunLumi) continue;
             }
 
             Long64_t entryHLT = 0;
@@ -699,6 +728,12 @@ int readConfiguration(const TString configFile)
     treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
     collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
 
+    // selectionBase contains the Run and lumiSection range to process, like a JSON file
+    // selectionBase = {222333, 55, 77 ;;; 111888, 22, 66} means that
+    // events with Run=222333, 55 <= lumi <= 77 OR Run=111888, 22 <= lumi <= 66 will be processed.
+    selectionBase = ConfigurationParser::ParseListOfList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treeSelectionBase]);
+    selectionBaseEntries = ConfigurationParser::getVecString(selectionBase);
+
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
     // this bin list will be used for histograms where x-axis is eta.
@@ -785,6 +820,7 @@ int readConfiguration(const TString configFile)
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+    nSelectionBaseEntries = selectionBaseEntries.size();
     nTH1D_Axis_List = TH1D_Axis_List.size();
 
     nLegendEntryLabels = legendEntryLabels.size();
@@ -933,6 +969,12 @@ void printConfiguration()
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
+
+    std::cout << "nSelectionBaseEntries (Run and Lumi Section ranges to process) = " << nSelectionBaseEntries << std::endl;
+    for (int i = 0; i<nSelectionBaseEntries; i+=3) {
+        std::cout << Form("selectionBaseEntries[%d][%d][%d] = %s, %s, %s", i, i+1, i+2,
+                selectionBaseEntries.at(i).c_str(), selectionBaseEntries.at(i+1).c_str(), selectionBaseEntries.at(i+2).c_str()) << std::endl;
+    }
 
     // verbose about cut configuration
     std::cout << "Cut Configuration :" << std::endl;
@@ -1187,6 +1229,24 @@ std::vector<int> getBinIndices(int i)
     binIndices[ANABINS::kR9] = iTmp / nTmp;
 
     return binIndices;
+}
+
+void setRunLumiNumbers()
+{
+    runNumbers.clear();
+    lumiStartNumbers.clear();
+    lumiEndNumbers.clear();
+
+    if (nSelectionBaseEntries % 3 != 0)  return;
+
+    for (int i = 0; i < nSelectionBaseEntries; i+=3) {
+
+        runNumbers.push_back(std::atoi(selectionBaseEntries.at(i).c_str()));
+        lumiStartNumbers.push_back(std::atoi(selectionBaseEntries.at(i+1).c_str()));
+        lumiEndNumbers.push_back(std::atoi(selectionBaseEntries.at(i+2).c_str()));
+    }
+
+    nRunNumbers = runNumbers.size();
 }
 
 /*
