@@ -242,6 +242,7 @@ std::vector<int> getBinIndices(int i);
 void setRunLumiNumbers();
 void indexTriggerBrances();
 void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
+bool passedRunLumi(unsigned int run, unsigned int lumi);
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
 bool passedDenom(int iTriggerDenom, int triggerBits[]);
@@ -494,16 +495,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 continue;
             }
 
-            if (nRunNumbers > 0) {
-                bool passedRunLumi = false;
-                for (int i = 0; i < nRunNumbers; ++i) {
-                    if (ggHi.run == runNumbers[i]) {
-                        passedRunLumi = (ggHi.lumis >= lumiStartNumbers[i] && ggHi.lumis <= lumiEndNumbers[i]);
-                        if (passedRunLumi)  break;
-                    }
-                }
-                if (!passedRunLumi) continue;
-            }
+            if (!passedRunLumi(ggHi.run, ggHi.lumis))  continue;
 
             Long64_t entryHLT = 0;
             if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
@@ -1308,6 +1300,18 @@ void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int v
             std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() << std::endl;
         }
     }
+}
+
+bool passedRunLumi(unsigned int run, unsigned int lumi)
+{
+    if (nRunNumbers == 0)  return true;
+
+    for (int i = 0; i < nRunNumbers; ++i) {
+        if (run == runNumbers[i] && lumi >= lumiStartNumbers[i] && lumi <= lumiEndNumbers[i])
+            return true;
+    }
+
+    return false;
 }
 
 bool passedNum(int iTriggerNum, int triggerBits[])
