@@ -6,6 +6,7 @@
 # text output or external binary names
 *.out
 *.log
+*.list
 *.bin
 *.exe
 
