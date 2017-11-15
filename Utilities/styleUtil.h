@@ -41,6 +41,7 @@ void setTextAbovePad(TLatex* latex, TPad* pad, double offsetX = 0, double offset
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TCanvas* c, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TPad* pad, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX = 0, double offsetY = 0);
+bool containsClassInstance(TPad* pad, std::string objectType);
 double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
 double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
 int    calcNrows(int nPads);
@@ -462,6 +463,22 @@ void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std
         if (lines.at(i) != CONFIGPARSER::nullInput.c_str())
             latex->DrawLatexNDC(x, y, lines.at(i).c_str());
     }
+}
+
+/*
+ * return true if the pad contains an instance of the given class.
+ * Ex. containsClassInstance(pad, "TH2") will return if the pad contains a 2D histogram.
+ * Ex. containsClassInstance(pad, "TLegend") will return if the pad contains a legend.
+ */
+bool containsClassInstance(TPad* pad, std::string objectType)
+{
+    int n = pad->GetListOfPrimitives()->GetSize();
+    for (int i = 0; i < n; ++i) {
+        if (pad->GetListOfPrimitives()->At(i)->InheritsFrom(objectType.c_str()))
+            return true;
+    }
+
+    return false;
 }
 
 /*

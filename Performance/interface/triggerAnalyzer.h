@@ -1013,13 +1013,8 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
     TLine* line = 0;
 
     p->Update();
-    bool is2D = false;
-    int nPrimitives = p->GetListOfPrimitives()->GetSize();
-    for (int i = 0; i < nPrimitives; ++i) {
-        is2D |= p->GetListOfPrimitives()->At(i)->InheritsFrom("TH2");
-    }
-
-    if (!is2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)) {
+    bool hasH2D = containsClassInstance(p, "TH2");
+    if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
@@ -1041,7 +1036,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (!is2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF))  yMax = 1;
+        if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF))  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
