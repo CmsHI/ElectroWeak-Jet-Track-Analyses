@@ -582,6 +582,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                         double pt = (*ggHi.phoEt)[iMax];
                         double eta = (*ggHi.phoEta)[iMax];
+                        double phi = (*ggHi.phoPhi)[iMax];
                         double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iMax];
                         double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iMax];
                         double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iMax];
@@ -599,6 +600,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                         tAna[TRIGGERANA::kTRKISO][iAna].FillHDenom(trkIso, w, vars);
                         tAna[TRIGGERANA::kSIEIE][iAna].FillHDenom(sieie, w, vars);
 
+                        tAna[TRIGGERANA::kETA][iAna].FillH2Denom(eta, phi, w, vars);
+
                         if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
 
                             tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
@@ -609,6 +612,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
                             tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                            tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
                         }
                         if (!passedNum(indicesTriggerNum[iAna], triggerBits)) {
 
@@ -1511,6 +1516,8 @@ int  preLoop(TFile* input, bool makeNew)
 
         std::string nameNum = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNum);
         std::string nameDenom = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kDenom);
+        std::string nameNum2D = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNum, triggerAnalyzer::TOBJ::kTH2D);
+        std::string nameDenom2D = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kDenom, triggerAnalyzer::TOBJ::kTH2D);
         std::string nameNumInEff = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNumInEff);
 
         // disable the cuts/ranges for this dependence
@@ -1543,6 +1550,20 @@ int  preLoop(TFile* input, bool makeNew)
             else {
                 tAnaTmp.hNum = (TH1D*)input->Get(nameNum.c_str());
                 tAnaTmp.hDenom = (TH1D*)input->Get(nameDenom.c_str());
+            }
+
+            if (iDep == TRIGGERANA::kETA) {
+                if (makeNew) {
+                    tAnaTmp.h2Num =
+                            new TH2D(nameNum2D.c_str(), Form(";%s;photon #phi", xTitle.c_str()), nBins, arr,
+                                                                                                 20, -TMath::Pi(), TMath::Pi());
+                    tAnaTmp.h2Denom =
+                            (TH2D*)tAnaTmp.h2Num->Clone(nameDenom2D.c_str());
+                }
+                else {
+                    tAnaTmp.h2Num = (TH2D*)input->Get(nameNum2D.c_str());
+                    tAnaTmp.h2Denom = (TH2D*)input->Get(nameDenom2D.c_str());
+                }
             }
         }
 
