@@ -27,8 +27,8 @@ $outDirBase"Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix"_Hov
 );
 
 configList=(
-"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.ExpressForests.Run3065XX.conf"
-"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.ExpressForests.Run3065XX.HoverELoose.conf"
+"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.conf"
+"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.HoverELoose.conf"
 );
 
 arrayIndices=${!outList[*]}
