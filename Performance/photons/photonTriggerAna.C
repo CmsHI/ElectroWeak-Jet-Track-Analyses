@@ -258,7 +258,6 @@ void setRunLumiNumbers();
 void indexTriggerBranches();
 void indexTriggerBranches4HltObj();
 int getIndexHltObj4TriggerBranch(int iTriggerNum);
-void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
 bool passedRunLumi(unsigned int run, unsigned int lumi);
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
@@ -416,8 +415,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         treeHlt->SetBranchAddress("LumiBlock", &hlt_lumi);
         treeHlt->SetBranchAddress("Run", &hlt_run);
 
-        setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
-        setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+        triggerAnalyzer::setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
+        triggerAnalyzer::setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
 
         emHLT = new EventMatcher();
 
@@ -484,8 +483,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
             treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
             treeHlt->SetBranchStatus("*",0);     // disable all branches
 
-            setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
-            setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+            triggerAnalyzer::setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
+            triggerAnalyzer::setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
 
             for (int i = 0; i < nTreeHltObjPaths; ++i) {
                 std::string treeHltObjectPath = treeHltObjPaths.at(i).c_str();
@@ -1422,17 +1421,6 @@ void indexTriggerBranches4HltObj()
 int getIndexHltObj4TriggerBranch(int iTriggerNum)
 {
     return indicesMapNum2HltObject[iTriggerNum];
-}
-
-void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal)
-{
-    for (int i = 0; i < nVal; ++i) {
-        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(tree, branchNames[i], val[i]);
-        if (branchSetFlag == -1) {
-            std::cout << "set branch addresses for triggers" << std::endl;
-            std::cout << "Following branch is not found : "  << triggerBranches[i].c_str() << std::endl;
-        }
-    }
 }
 
 bool passedRunLumi(unsigned int run, unsigned int lumi)

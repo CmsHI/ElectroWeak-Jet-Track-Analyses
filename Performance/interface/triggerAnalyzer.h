@@ -208,6 +208,7 @@ public :
     double getOffset4PtThreshold(double ptThreshold);
 
     static int setBranchAdressTrigger(TTree* tree, std::string branch, int & branchVal);
+    static void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
 
     int nBinsX;
 
@@ -1203,6 +1204,17 @@ int triggerAnalyzer::setBranchAdressTrigger(TTree* tree, std::string branch, int
         std::cout<<"default value set to  : "<<branch.c_str()<<" = 1"<<std::endl;
         branchVal = 1;
         return -1;
+    }
+}
+
+void triggerAnalyzer::setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal)
+{
+    for (int i = 0; i < nVal; ++i) {
+        int branchSetFlag = triggerAnalyzer::setBranchAdressTrigger(tree, branchNames[i], val[i]);
+        if (branchSetFlag == -1) {
+            std::cout << "set branch addresses for triggers" << std::endl;
+            std::cout << "Following branch is not found : "  << branchNames[i].c_str() << std::endl;
+        }
     }
 }
 
