@@ -202,7 +202,7 @@ public :
     void drawLine4PtThreshold(TPad* p, int lineColor = kBlack);
 
     std::string getTriggerPathText(std::string triggerPath);
-    std::string getHLTObjectName(std::string triggerName);
+    static std::string getHLTObjectName(std::string triggerName);
     double extractPtThreshold(std::string triggerName);
     double extractEtaThreshold(std::string triggerName);
     double getOffset4PtThreshold(double ptThreshold);

@@ -32,6 +32,7 @@
 
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
+#include "../../TreeHeaders/hltObjectTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
@@ -200,6 +201,13 @@ enum MODES_ANATYPE {
     kN_MODES_ANATYPE
 };
 
+enum MODES_EFF {
+    kNULL,
+    kTriggerBit,
+    kMatchHltObj,
+    kN_MODES_EFF
+};
+
 enum ANABINS {
     kTrigger,
     kEta,
@@ -231,6 +239,10 @@ std::vector<int> indicesMapPrescaleNum;
 std::vector<int> indicesMapPrescaleDenom;
 std::vector<std::string> prescaleBranches;  // list of all prescale branches to be used. Elements are unique
 
+// HLT objects for matching to offline object
+std::vector<std::string> triggerBranches4HltObj;
+std::vector<int> indicesMapNum2HltObject;
+
 std::vector<unsigned int> runNumbers;
 std::vector<unsigned int> lumiStartNumbers;
 std::vector<unsigned int> lumiEndNumbers;
@@ -243,7 +255,9 @@ std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 void setRunLumiNumbers();
-void indexTriggerBrances();
+void indexTriggerBranches();
+void indexTriggerBranches4HltObj();
+int getIndexHltObj4TriggerBranch(int iTriggerNum);
 void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal);
 bool passedRunLumi(unsigned int run, unsigned int lumi);
 bool passedNum(int iTriggerNum, int triggerBits[]);
@@ -323,6 +337,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     TFile* fileHlt = 0;
     TTree* treeHlt = 0;
     std::string treeHltPath = "";
+    std::vector<TTree*> treeHltObjs;
+    std::vector<std::string> treeHltObjPaths;
     EventMatcher* emHLT = 0;
 
     setRunLumiNumbers();
@@ -333,7 +349,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         }
     }
 
-    indexTriggerBrances();
+    indexTriggerBranches();
     int nTriggerBranches =  triggerBranches.size();
     std::cout << "nTriggerBranches (trigger branches to read) = " << nTriggerBranches << std::endl;
     for (int i = 0; i < nTriggerBranches; ++i) {
@@ -347,6 +363,32 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         if (prescaleBranches.at(i).size() > 0 && prescaleBranches.at(i).find("Prescl") == std::string::npos) {
             std::cout << "Warning : Branch name does not contain 'Prescl'" << std::endl;
         }
+    }
+
+    int nTreeHltObjPaths = 0;
+    if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
+
+        indexTriggerBranches4HltObj();
+        nTreeHltObjPaths = triggerBranches4HltObj.size();
+
+        treeHltObjs.clear();
+        treeHltObjs.resize(nTreeHltObjPaths);
+
+        treeHltObjPaths.clear();
+        treeHltObjPaths.resize(nTreeHltObjPaths);
+        for (int i = 0; i < nTreeHltObjPaths; ++i) {
+
+            std::string hltObjectPath = "";
+            std::string hltObjectName = triggerAnalyzer::getHLTObjectName(triggerBranches4HltObj.at(i).c_str());
+            if (hltObjectName.size() > 0)
+                hltObjectPath = Form("hltobject/%s", hltObjectName.c_str());
+
+            treeHltObjPaths.at(i) = hltObjectPath;
+        }
+    }
+    std::cout << "nTreeHltObjPaths (HLT object trees to read) = " << nTreeHltObjPaths << std::endl;
+    for (int i = 0; i < nTreeHltObjPaths; ++i) {
+        std::cout << Form("treeHltObjPaths[%d] = ", i) << treeHltObjPaths.at(i).c_str() << std::endl;
     }
 
     Int_t triggerBits[nTriggerBranches];
@@ -436,6 +478,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
             continue;
         }
 
+        std::vector<hltObject> hltObjs(nTreeHltObjPaths);
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
             treeHltPath = "hltanalysisReco/HltTree";
             treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
@@ -443,6 +486,20 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
             setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+
+            for (int i = 0; i < nTreeHltObjPaths; ++i) {
+                std::string treeHltObjectPath = treeHltObjPaths.at(i).c_str();
+                treeHltObjs[i] = 0;
+                treeHltObjs[i] = (TTree*)fileTmp->Get(treeHltObjectPath.c_str());
+
+                if (!treeHltObjs[i]) {
+                    std::cout << "tree is not found in the path : "<< treeHltObjectPath.c_str() <<". skipping the tree." << std::endl;
+                    continue;
+                }
+
+                treeHltObjs[i]->SetBranchStatus("*", 1);
+                hltObjs[i].setupTreeForReading(treeHltObjs[i]);
+            }
         }
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
@@ -515,6 +572,10 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 entryHLT = j_entry;
             }
             treeHlt->GetEntry(entryHLT);
+
+            for (int i = 0; i < nTreeHltObjPaths; ++i) {
+                treeHltObjs[i]->GetEntry(entryHLT);
+            }
 
             if (!passedDenomGlobal(triggerBits)) continue;
             entriesPassedDenomGlobal++;
@@ -604,16 +665,51 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
                         if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
 
-                            tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                            tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                            tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                            tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                            tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
-                            tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
-                            tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
-                            tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+                            if (runMode[MODES::kEff] == MODES_EFF::kTriggerBit) {
+                                tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
 
-                            tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+                                tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+                            }
+                            else if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
+
+                                int iHltObj = getIndexHltObj4TriggerBranch(indicesTriggerNum[iAna]);
+
+                                int nHltObjs = hltObjs[iHltObj].pt->size();
+                                double ptHLT = -1;
+                                double etaHLT = -999;
+                                double phiHLT = -999;
+                                for (int iObj = 0; iObj < nHltObjs; ++iObj) {
+
+                                    if ((*hltObjs[iHltObj].pt)[iObj] > ptHLT) {
+                                        ptHLT = (*hltObjs[iHltObj].pt)[iObj];
+                                        etaHLT = (*hltObjs[iHltObj].eta)[iObj];
+                                        phiHLT = (*hltObjs[iHltObj].phi)[iObj];
+                                    }
+                                }
+
+                                double etaSC = (*ggHi.phoSCEta)[iMax];
+                                double phiSC = (*ggHi.phoSCPhi)[iMax];
+
+                                if (ptHLT > -1 && getDR2(etaHLT, phiHLT, etaSC, phiSC) < 0.01) {
+                                    tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                    tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                    tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                    tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                    tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                    tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                    tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                    tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                                    tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+                                }
+                            }
                         }
                         if (!passedNum(indicesTriggerNum[iAna], triggerBits)) {
 
@@ -1262,7 +1358,7 @@ void setRunLumiNumbers()
 /*
  * collect all trigger branches in a single list of unique elements and map their indices to the ones in num / denom lists
  */
-void indexTriggerBrances()
+void indexTriggerBranches()
 {
     triggerBranches.clear();
     triggerBranches.insert(triggerBranches.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
@@ -1307,6 +1403,25 @@ void indexTriggerBrances()
     for (int i = 0; i < (int)prescaleBranchesDenom.size(); ++i) {
         indicesMapPrescaleDenom[i] = findPositionInVector(prescaleBranches, prescaleBranchesDenom[i].c_str());
     }
+}
+
+void indexTriggerBranches4HltObj()
+{
+    triggerBranches4HltObj.clear();
+    triggerBranches4HltObj.insert(triggerBranches4HltObj.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
+
+    triggerBranches4HltObj = vectorUnique(triggerBranches4HltObj);
+
+    indicesMapNum2HltObject.clear();
+    indicesMapNum2HltObject.resize((int)triggerBranchesNum.size());
+    for (int i = 0; i < (int)triggerBranchesNum.size(); ++i) {
+        indicesMapNum2HltObject[i] = findPositionInVector(triggerBranches4HltObj, triggerBranchesNum[i].c_str());
+    }
+}
+
+int getIndexHltObj4TriggerBranch(int iTriggerNum)
+{
+    return indicesMapNum2HltObject[iTriggerNum];
 }
 
 void setBranchesTrigger(TTree* tree, std::vector<std::string> branchNames, int val[], int nVal)
