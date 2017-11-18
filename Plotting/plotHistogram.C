@@ -166,6 +166,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     // input for TCanvas
     int windowWidth = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowWidth];
     int windowHeight = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_windowHeight];
+    float frameWidth = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_frameWidth];
+    float frameHeight = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_frameHeight];
     float leftMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_leftMargin];
     float rightMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_rightMargin];
     float bottomMargin = configInput.proc[INPUT::kPLOTTING].f[INPUT::k_bottomMargin];
@@ -206,6 +208,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     if (windowWidth  == 0)  windowWidth = INPUT_DEFAULT::windowWidth;
     if (windowHeight == 0)  windowHeight = INPUT_DEFAULT::windowHeight;
+    if (frameWidth  == 0)  frameWidth = INPUT_DEFAULT::frameWidth;
+    if (frameHeight == 0)  frameHeight = INPUT_DEFAULT::frameHeight;
     if (leftMargin == 0) leftMargin = INPUT_DEFAULT::leftMargin;
     if (rightMargin == 0) rightMargin = INPUT_DEFAULT::rightMargin;
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
@@ -766,6 +770,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     std::cout << "windowWidth  = " << windowWidth << std::endl;
     std::cout << "windowHeight = " << windowHeight << std::endl;
+    std::cout << "frameWidth   = " << frameWidth << std::endl;
+    std::cout << "frameHeight  = " << frameHeight << std::endl;
     std::cout << "leftMargin   = " << leftMargin << std::endl;
     std::cout << "rightMargin  = " << rightMargin << std::endl;
     std::cout << "bottomMargin = " << bottomMargin << std::endl;
@@ -1036,7 +1042,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         yMinOffset = windowHeightFraction;
     }
 
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0.8, 0.8, yMinOffset);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameWidth, frameHeight, yMinOffset);
 
     for (int iPad = 0; iPad < nPads; ++iPad) {
         int setLogxTmp = setLogx.at(0);

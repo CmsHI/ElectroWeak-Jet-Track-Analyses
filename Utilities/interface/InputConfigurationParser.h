@@ -116,6 +116,8 @@ enum TYPE_F {
     k_legendWidth,
     k_legendHeight,
     k_legendTextSize,
+    k_frameWidth,
+    k_frameHeight,
     k_leftMargin,
     k_rightMargin,
     k_bottomMargin,
@@ -169,6 +171,8 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "legendWidth",
     "legendHeight",
     "legendTextSize",
+    "frameWidth",
+    "frameHeight",
     "leftMargin",
     "rightMargin",
     "bottomMargin",
@@ -384,6 +388,8 @@ const int fitColor = EColor::kRed;
 const int rows = 1;
 const int columns = 1;
 
+const float frameWidth = 0.8;
+const float frameHeight = 0.8;
 const float leftMargin = 0.1;
 const float rightMargin = 0.1;
 const float bottomMargin = 0.1;
