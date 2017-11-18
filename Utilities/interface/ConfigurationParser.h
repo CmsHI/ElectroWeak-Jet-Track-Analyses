@@ -81,7 +81,7 @@ struct TH2DAxis {
 class ConfigurationParser {
 
 public :
-    static bool isList(std::string str);
+    static bool isList(std::string str, std::string bracketLeft = "{", std::string bracketRight = "}");
     static bool isMultipleList(std::string str);
     static bool isComment(std::string line);
     static bool isCommand(std::string line);
@@ -140,12 +140,12 @@ public :
 };
 
 /*
- * a string is a list if it starts with "{" and ends with "}"
+ * a string is a list if it starts with bracketLeft (default "{") and ends with bracketRight (default "}")
  */
-bool ConfigurationParser::isList(std::string str)
+bool ConfigurationParser::isList(std::string str, std::string bracketLeft, std::string bracketRight)
 {
     std::string tmp = trim(str);
-    return (tmp.find("{") == 0 && tmp.rfind("}") == tmp.size()-1);
+    return (tmp.find(bracketLeft.c_str()) == 0 && tmp.rfind(bracketRight.c_str()) == tmp.size()-1);
 }
 
 /*
@@ -212,8 +212,7 @@ bool ConfigurationParser::isVarDefinitionString(std::string line)
  */
 bool ConfigurationParser::isTH1D_BinsArray(std::string str)
 {
-    std::string tmp = trim(str);
-    return (tmp.find("[") == 0 && tmp.rfind("]") == tmp.size()-1);
+    return isList(str, "[", "]");
 }
 
 std::string ConfigurationParser::getMultiListOperator(std::string strList)
