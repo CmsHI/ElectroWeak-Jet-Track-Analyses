@@ -42,8 +42,8 @@ std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string
 std::vector<std::pair<float, float>> calcTextCoordinates(std::vector<std::string> lines, std::string position, TPad* pad, double offsetX = 0, double offsetY = 0, float lineOffset = 0.05);
 void drawTextLines(TLatex* latex, TPad* pad, std::vector<std::string> lines, std::string position, double offsetX = 0, double offsetY = 0);
 bool containsClassInstance(TPad* pad, std::string objectType);
-double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
-double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
+double calcNormCanvasWidth(int columns = 1, float frameWidth = 0.8, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
+double calcNormCanvasHeight(int rows = 1, float frameHeight = 0.8, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
 int    calcNrows(int nPads);
 int    calcNcolumns(int nPads);
 bool   isFrameAreaSquare(TPad* pad);
@@ -185,8 +185,8 @@ void divideCanvas2017(TCanvas* c, TPad* pads[], int rows, int columns, float lef
 {
     c->Clear();
 
-    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
-    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
+    double normPadWidth = calcNormCanvasWidth(1, 0.8, leftMargin, rightMargin, xMargin);
+    double normPadHeight = calcNormCanvasHeight(1, 0.8, bottomMargin, topMargin, yMargin);
 
     float x_min[columns], x_max[columns];
     x_min[0] = 0;
@@ -483,12 +483,11 @@ bool containsClassInstance(TPad* pad, std::string objectType)
 
 /*
  * calculate the width of a TCanvas in a normalization scheme where the width is 1 for
- * a canvas with a columns = 1, bottomMargin + topMargin = 2*defaultMargin and xMargin = 0
+ * a canvas with a columns = 1, leftMargin + rightMargin + frameWidth = 1 and xMargin = 0
  */
-double calcNormCanvasWidth(int columns, float leftMargin, float rightMargin, float xMargin)
+double calcNormCanvasWidth(int columns, float frameWidth, float leftMargin, float rightMargin, float xMargin)
 {
-    double defaultMargin = 0.1;
-    double padWidth = (1 - defaultMargin*2 + xMargin);
+    double padWidth = frameWidth + xMargin;
 
     float x_max[columns];
     x_max[0] = padWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
@@ -502,12 +501,11 @@ double calcNormCanvasWidth(int columns, float leftMargin, float rightMargin, flo
 
 /*
  * calculate the height of a TCanvas in a normalization scheme where the height is 1 for
- * a canvas with a rows = 1, bottomMargin + topMargin = 2*defaultMargin and yMargin = 0
+ * a canvas with a rows = 1, bottomMargin + topMargin + frameHeight = 1 and yMargin = 0
  */
-double calcNormCanvasHeight(int rows, float bottomMargin, float topMargin, float yMargin)
+double calcNormCanvasHeight(int rows, float frameHeight, float bottomMargin, float topMargin, float yMargin)
 {
-    double defaultMargin = 0.1;
-    double padHeight = (1 - defaultMargin*2 + yMargin);
+    double padHeight = frameHeight + yMargin;
 
     float y_min[rows], y_max[rows];
     y_min[rows-1] = 0;

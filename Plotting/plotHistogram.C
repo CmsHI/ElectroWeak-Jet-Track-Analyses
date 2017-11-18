@@ -1018,8 +1018,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     }
 
     // set canvas and pads
-    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, yMargin);
-    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, xMargin);
+    double normCanvasHeight = calcNormCanvasHeight(rows, frameHeight, bottomMargin, topMargin, yMargin);
+    double normCanvasWidth = calcNormCanvasWidth(columns, frameWidth, leftMargin, rightMargin, xMargin);
 
     c = new TCanvas("cnv","",windowWidth,windowHeight);
 
