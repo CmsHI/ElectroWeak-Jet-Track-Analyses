@@ -29,8 +29,10 @@ void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 
 double getMinimumTH1s(TH1D* h[], int nHistos, int start = 0);
 double getMaximumTH1s(TH1D* h[], int nHistos, int start = 0);
 void setConstantBinContent(TH1* h, double constantContent);
+void setConstantBinError(TH1* h, double constantError);
 void setConstantBinContentError(TH1* h, double constantContent, double  constantError);
 void setBinContents(TH1* h, std::vector<double> binContents);
+void setBinErrors(TH1* h, std::vector<double> binErrors);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
@@ -246,15 +248,19 @@ void setConstantBinContent(TH1* h, double constantContent)
 }
 
 /*
- * set content of all bins to constantContent
- * set error of all bins to constantError
+ * set error of all bins to the given value
  */
-void setConstantBinContentError(TH1* h, double constantContent, double  constantError)
+void setConstantBinError(TH1* h, double constantError)
 {
     int nBins = h->GetNbinsX();
-    std::vector<double> binContents (nBins+2, constantContent);
-    std::vector<double> binErrors   (nBins+2, constantError);
-    setBinContentsErrors(h, binContents, binErrors);
+    std::vector<double> binErrors (nBins+2, constantError);
+    setBinErrors(h, binErrors);
+}
+
+void setConstantBinContentError(TH1* h, double constantContent, double  constantError)
+{
+    setConstantBinContent(h, constantContent);
+    setConstantBinError(h, constantError);
 }
 
 /*
@@ -276,24 +282,27 @@ void setBinContents(TH1* h, std::vector<double> binContents)
 }
 
 /*
- * function to set bin contents and errors of TH1 histogram.
- * includes underflow and overflow bins, size of binContents/binErrors must be nBins + 2.
+ * function to set bin errors of TH1 histogram.
+ * includes underflow and overflow bins, size of binErrors must be nBins + 2.
  * avoids looping over the bins in the main program.
  * helps to keep the code clean.
  */
-void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors)
+void setBinErrors(TH1* h, std::vector<double> binErrors)
 {
-    int nBins    = h->GetNbinsX();
-    int nVec     = binContents.size();
-    int nVecErr  = binErrors.size();
-    if (nBins+2 != nVec)     return;
-    if (nBins+2 != nVecErr)  return;
+    int nBins = h->GetNbinsX();
+    int nVec  = binErrors.size();
+    if (nBins+2 != nVec)  return;
 
     for ( int i = 0; i <= nBins+1; ++i)
     {
-        h->SetBinContent(i, binContents.at(i));
         h->SetBinError(i, binErrors.at(i));
     }
+}
+
+void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors)
+{
+    setBinContents(h, binContents);
+    setBinErrors(h, binErrors);
 }
 
 void scaleBinErrors(TH1* h, double scale)
