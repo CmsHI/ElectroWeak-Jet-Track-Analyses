@@ -65,6 +65,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleOffsetY]);
     std::vector<int> centerTitleX = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleX]);
     std::vector<int> centerTitleY = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleY]);
+    std::vector<std::string> TH1error_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1error_path]));
     std::vector<CONFIGPARSER::TH1Scaling> TH1Scalings = ConfigurationParser::ParseListTH1Scaling(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
     std::vector<int> TH1_rebins = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
     std::vector<float> TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
@@ -320,6 +321,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nTitleOffsetY = titleOffsetsY.size();
     int nCenterTitleX = centerTitleX.size();
     int nCenterTitleY = centerTitleY.size();
+    int nHistosErr = TH1error_paths.size();
     int nTH1Scalings = TH1Scalings.size();
     int nTH1_rebins = TH1_rebins.size();
     int nTH1_norms = TH1_norms.size();
@@ -424,6 +426,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "nCenterTitleY = " << nCenterTitleY << std::endl;
     for (int i = 0; i<nCenterTitleY; ++i) {
         std::cout << Form("centerTitleY[%d] = %d", i, centerTitleY.at(i)) << std::endl;
+    }
+    std::cout << "nTH1error_paths  = " << nHistosErr << std::endl;
+    for (int i = 0; i<nHistosErr; ++i) {
+            std::cout << Form("TH1error_paths[%d] = %s", i, TH1error_paths.at(i).c_str()) << std::endl;
     }
     std::cout << "nTH1Scalings  = " << nTH1Scalings << std::endl;
     for (int i = 0; i<nTH1Scalings; ++i) {
@@ -823,28 +829,42 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     TFile* f[nHistos];
     TH1::SetDefaultSumw2();
     TH1D* h[nHistos];
+    TH1D* hErr[nHistos];
 
     // first read all the objects, then make the modifications
     for (int i=0; i<nHistos; ++i) {
         hDrawn[i] = false;
 
-        std::string TH1_Path = TH1_paths.at(i).c_str();
+        std::string TH1_path = TH1_paths.at(i).c_str();
         std::string inputFile = inputFiles.at(0).c_str();
         if (nInputFiles == nHistos)  inputFile = inputFiles.at(i).c_str();
 
         f[i] = TFile::Open(inputFile.c_str());
         h[i] = 0;
-        h[i] = (TH1D*)f[i]->Get(TH1_Path.c_str());
+        h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
         if(h[i] == 0){
-            std::cout << "No histogram found: " << TH1_Path.c_str() << " file: " << inputFile.c_str() << std::endl;
+            std::cout << "No histogram found: " << TH1_path.c_str() << " file: " << inputFile.c_str() << std::endl;
         }
         h[i]->SetName(Form("h_%d", i));
         h[i]->SetStats(false);
 
+        hErr[i] = 0;
+        if (nHistosErr == nHistos) {
+            std::string TH1error_path = TH1error_paths.at(i).c_str();
+            hErr[i] = (TH1D*)f[i]->Get(TH1error_path.c_str());
+            if(hErr[i] == 0){
+                std::cout << "No histogram found for TH1error_path: " << TH1error_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+            }
+            hErr[i]->SetName(Form("hErr_%d", i));
+
+            std::vector<double> binErrors = getBinContents(hErr[i]);
+            setBinErrors(h[i], binErrors);
+        }
+
         // print info about histograms
         std::cout << "#####" << std::endl;
         std::cout << Form("h[%d]", i) << std::endl;
-        std::cout << Form("TH1_Paths[%d] = %s", i, TH1_Path.c_str()) << std::endl;
+        std::cout << Form("TH1_paths[%d] = %s", i, TH1_path.c_str()) << std::endl;
         std::cout << Form("inputFiles[%d] = %s", i, inputFile.c_str()) << std::endl;
         std::string summary = summaryTH1(h[i]);
         std::cout << summary.c_str() << std::endl;

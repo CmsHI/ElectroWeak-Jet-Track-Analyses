@@ -239,6 +239,7 @@ enum TYPE_S {
     k_drawOption,
     k_TH1D_Bins_List,       // nBins, xLow, xUp for a TH1D histogram
     k_TH2D_Bins_List,       // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
+    k_TH1error_path,        // path to the TH1 object whose content is bin errors
     k_TF1,                  // formula, xMin and xMax for a TF1 function
     k_fitOption,
     k_fitColor,
@@ -294,6 +295,7 @@ const std::string TYPE_S_LABELS[kN_TYPES_S] = {
     "drawOption",
     "TH1D_Bins_List",
     "TH2D_Bins_List",
+    "TH1error_path",
     "TF1",
     "fitOption",
     "fitColor",
