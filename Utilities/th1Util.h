@@ -36,6 +36,8 @@ void setBinErrors(TH1* h, std::vector<double> binErrors);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
+std::vector<double> getBinContents(TH1* h);
+std::vector<double> getBinErrors(TH1* h);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
 int getMinimumBin(TH1D* h, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
@@ -322,6 +324,38 @@ void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
         h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
         h->SetBinError(i,   h->GetBinError(i)*scaleError);
     }
+}
+
+/*
+ * returns the bin contents including underflow and overflow bins
+ * size of the vector is nBins+2.
+ */
+std::vector<double> getBinContents(TH1* h)
+{
+    std::vector<double> res;
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; ++i)
+    {
+        res.push_back(h->GetBinContent(i));
+    }
+
+    return res;
+}
+
+/*
+ * returns the bin errors including underflow and overflow bins
+ * size of the vector is nBins+2.
+ */
+std::vector<double> getBinErrors(TH1* h)
+{
+    std::vector<double> res;
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; ++i)
+    {
+        res.push_back(h->GetBinError(i));
+    }
+
+    return res;
 }
 
 /*
