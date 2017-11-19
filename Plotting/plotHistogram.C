@@ -65,7 +65,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleOffsetY]);
     std::vector<int> centerTitleX = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleX]);
     std::vector<int> centerTitleY = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleY]);
-    std::vector<float> TH1_scales = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
+    std::vector<CONFIGPARSER::TH1Scaling> TH1Scalings = ConfigurationParser::ParseListTH1Scaling(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
     std::vector<int> TH1_rebins = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
     std::vector<float> TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
     std::vector<float> xMin = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_TH1_xMin]);
@@ -320,7 +320,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nTitleOffsetY = titleOffsetsY.size();
     int nCenterTitleX = centerTitleX.size();
     int nCenterTitleY = centerTitleY.size();
-    int nTH1_scales = TH1_scales.size();
+    int nTH1Scalings = TH1Scalings.size();
     int nTH1_rebins = TH1_rebins.size();
     int nTH1_norms = TH1_norms.size();
     int nTF1_formulas = TF1_formulas.size();    // assume TF1_formulas.size() = TF1_ranges[0].size()
@@ -425,17 +425,17 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nCenterTitleY; ++i) {
         std::cout << Form("centerTitleY[%d] = %d", i, centerTitleY.at(i)) << std::endl;
     }
-    std::cout << "nTH1_scales  = " << nTH1_scales << std::endl;
-    for (int i = 0; i<nTH1_scales; ++i) {
-            std::cout << Form("TH1_scales[%d] = %f", i, TH1_scales.at(i)) << std::endl;
+    std::cout << "nTH1Scalings  = " << nTH1Scalings << std::endl;
+    for (int i = 0; i<nTH1Scalings; ++i) {
+        std::cout << Form("TH1Scalings[%d] = %s", i, TH1Scalings.at(i).verbose().c_str()) << std::endl;
     }
     std::cout << "nTH1_rebins  = " << nTH1_rebins << std::endl;
     for (int i = 0; i<nTH1_rebins; ++i) {
             std::cout << Form("TH1_rebins[%d] = %d", i, TH1_rebins.at(i)) << std::endl;
     }
-    std::cout << "nTH1_normalizations  = " << nTH1_norms << std::endl;
+    std::cout << "nTH1_norms  = " << nTH1_norms << std::endl;
     for (int i = 0; i<nTH1_norms; ++i) {
-            std::cout << Form("TH1_normalizations[%d] = %f", i, TH1_norms.at(i)) << std::endl;
+            std::cout << Form("TH1_norms[%d] = %f", i, TH1_norms.at(i)) << std::endl;
     }
     std::cout << "nxMin = " << nxMin << std::endl;
     std::cout << "nxMax = " << nxMax << std::endl;
@@ -823,11 +823,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     TFile* f[nHistos];
     TH1::SetDefaultSumw2();
     TH1D* h[nHistos];
+
+    // first read all the objects, then make the modifications
     for (int i=0; i<nHistos; ++i) {
         hDrawn[i] = false;
 
         std::string TH1_Path = TH1_paths.at(i).c_str();
-        int indexPad = TH1_padIndices.at(i);
         std::string inputFile = inputFiles.at(0).c_str();
         if (nInputFiles == nHistos)  inputFile = inputFiles.at(i).c_str();
 
@@ -847,15 +848,35 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("inputFiles[%d] = %s", i, inputFile.c_str()) << std::endl;
         std::string summary = summaryTH1(h[i]);
         std::cout << summary.c_str() << std::endl;
+    }
+
+    for (int i=0; i<nHistos; ++i) {
+        int indexPad = TH1_padIndices.at(i);
 
         int drawNormalizedTmp = drawNormalized.at(0);
         if (nDrawNormalized == nHistos) drawNormalizedTmp = drawNormalized.at(i);
         if (drawNormalizedTmp == INPUT_TH1::k_normInt)  h[i]->Scale(1./h[i]->Integral());
 
-        float scale = 1;
-        if (nTH1_scales == 1)  scale = TH1_scales.at(0);
-        else if (nTH1_scales == nHistos)  scale = TH1_scales.at(i);
-        if (scale !=1 )        h[i]->Scale(scale);
+        CONFIGPARSER::TH1Scaling th1Scaling;
+        if (nTH1Scalings == 1)  th1Scaling = TH1Scalings.at(0);
+        else if (nTH1Scalings == nHistos)  th1Scaling = TH1Scalings.at(i);
+        if (th1Scaling.scaleFactor != 0) {
+            if (th1Scaling.histIndexValid()) {
+                int iTmp = th1Scaling.histIndex;
+
+                int binTmp = -1;
+                if (th1Scaling.scaleUsingBin())
+                    binTmp = th1Scaling.bin;
+                else
+                    binTmp = h[iTmp]->FindBin(th1Scaling.x);
+
+                double contentTmp = h[iTmp]->GetBinContent(binTmp);
+                h[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+            }
+            else {
+                h[i]->Scale(th1Scaling.scaleFactor);
+            }
+        }
 
         int rebin = 1;
         if (nTH1_rebins == 1)  rebin = TH1_rebins.at(0);

@@ -76,6 +76,32 @@ struct TH2DAxis {
     TH1Axis axisY;
 };
 
+/*
+ * object for reading TH1 scaling information from configuration file
+ */
+struct TH1Scaling {
+    TH1Scaling() : histIndex(-1), bin(-1), x(-999), scaleFactor(0) {}
+    bool histIndexValid() {
+        return (histIndex != -1);
+    }
+    bool scaleUsingBin() {
+        return (bin != -1);
+    }
+    std::string verbose() {
+        std::string res;
+        res.append(Form("{ histIndex = %d, ", histIndex));
+        res.append(Form("bin = %d, ", bin));
+        res.append(Form("x = %f, ", x));
+        res.append(Form("scaleFactor = %f }", scaleFactor));
+        return res;
+    }
+
+    int histIndex;      // index of reference TH1D for scaling
+    int bin;            // bin wrt which the scaling will be done
+    double x;           // Scaling will be done wrt. the bin corresponding to x value
+    double scaleFactor;
+};
+
 }
 
 class ConfigurationParser {
@@ -90,7 +116,6 @@ public :
     static bool isImportCutStatement(std::string line);
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
-    static bool isTH1D_BinsArray(std::string str);
     static std::string getMultiListOperator(std::string strList);
     static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex);
     static std::vector<int> getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex);
@@ -131,6 +156,7 @@ public :
     static std::vector<CONFIGPARSER::TH2DAxis> ParseListTH2D_Axis(std::string strList);
     static std::string verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis);
     static std::string verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxis);
+    static std::vector<CONFIGPARSER::TH1Scaling> ParseListTH1Scaling(std::string strList);
     static std::string ParseLatex(std::string str);
     static std::vector<std::string> ParseListLatex(std::string strList, std::string separator = "");
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
@@ -205,14 +231,6 @@ bool ConfigurationParser::isVarDefinitionString(std::string line)
 {
     std::string tmp = trim(line);
     return (tmp.find(CONFIGPARSER::varDefinitionString.c_str()) == 0);
-}
-
-/*
- * a string is an array of TH1D bins if it starts with "[" and ends with "]"
- */
-bool ConfigurationParser::isTH1D_BinsArray(std::string str)
-{
-    return isList(str, "[", "]");
 }
 
 std::string ConfigurationParser::getMultiListOperator(std::string strList)
@@ -1074,7 +1092,8 @@ std::vector<CONFIGPARSER::TH1Axis> ConfigurationParser::ParseListTH1D_Axis(std::
 
         CONFIGPARSER::TH1Axis th1Axis;
 
-        if (isTH1D_BinsArray(strTH1D_Axis)) {
+        // a string is an array of TH1D bins if it starts with "[" and ends with "]"
+        if (isList(strTH1D_Axis, "[", "]")) {
             strTH1D_Axis = replaceAll(strTH1D_Axis, "[", "{");
             strTH1D_Axis = replaceAll(strTH1D_Axis, "]", "}");
             // listBinEdges is an array of nBins+1 numbers where
@@ -1196,6 +1215,52 @@ std::string ConfigurationParser::verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxi
     std::string res = Form("xAxis : %s, yAxis : %s", resX.c_str(), resY.c_str());
 
     return res;
+}
+
+std::vector<CONFIGPARSER::TH1Scaling> ConfigurationParser::ParseListTH1Scaling(std::string strList)
+{
+
+    std::vector<CONFIGPARSER::TH1Scaling> list;
+
+    // split TH1Scaling information by ";;"
+    std::vector<std::string> strListTH1Scaling = ParseList(strList, CONFIGPARSER::separator2.c_str());
+
+    for (std::vector<std::string>::iterator it = strListTH1Scaling.begin() ; it != strListTH1Scaling.end(); ++it) {
+
+        std::string strTH1Scaling = (*it);
+
+        CONFIGPARSER::TH1Scaling th1Scaling;
+
+        // a string is a list containing histPath, bin/xUser, scaleFactor if it starts with "[" and ends with "]"
+        if (isList(strTH1Scaling, "[", "]")) {
+            strTH1Scaling = replaceAll(strTH1Scaling, "[", "{");
+            strTH1Scaling = replaceAll(strTH1Scaling, "]", "}");
+
+            std::vector<std::string> listParams = ParseList(strTH1Scaling);
+            // 1st element is the index of the reference TH1
+            // 2nd element is the bin or the x-axis value of the reference point
+            // 3rd element is the scale factor
+            th1Scaling.histIndex = std::atoi(listParams.at(0).c_str());
+
+            std::string binOrxValStr = listParams.at(1);
+            if (binOrxValStr.find("bin") != std::string::npos) {
+                th1Scaling.bin = std::atoi(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
+            }
+            else if (binOrxValStr.find("x") != std::string::npos) {
+                th1Scaling.x = std::atof(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
+            }
+
+            th1Scaling.scaleFactor = std::atof(listParams.at(2).c_str());
+        }
+        else {
+            th1Scaling.scaleFactor = std::atof(strTH1Scaling.c_str());
+        }
+
+        list.push_back(th1Scaling);
+    }
+
+    return list;
+
 }
 
 /*
