@@ -41,9 +41,10 @@ const std::string KW_LABELS[kN_KEYWORDS] = {
         "$@PARSEEVENTSEL$"
 };
 
-const std::string separator1 = ",";
-const std::string separator2 = ";;";        // separator used as alternative to separator1
-const std::string separator3 = ";;;";       // separator used for list of lists
+const std::string separator = ",";
+const std::string separator1 = ";";     // 1st alternative to separator
+const std::string separator2 = ";;";    // 2nd alternative to separator
+const std::string separator3 = ";;;";   // 3rd alternative, separator used for list of lists
 
 struct RunLumiEvent {
   unsigned int run, lumi;
@@ -432,7 +433,7 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std
 
     if (separator.size() == 0) {
         // by default, elements of the list are separated by ","
-        separator = CONFIGPARSER::separator1.c_str();
+        separator = CONFIGPARSER::separator.c_str();
         // allow "," to be a list element
         // if one wants to use comma inside a list element, then one should use ";;" as element separator
         if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
@@ -584,7 +585,7 @@ std::vector<std::string> ConfigurationParser::ParseListWithoutBracket(std::strin
 
     if (separator.size() == 0) {
         // by default, elements of the list are separated by ","
-        separator = CONFIGPARSER::separator1.c_str();
+        separator = CONFIGPARSER::separator.c_str();
         // allow "," to be a list element
         // if one wants to use comma inside a list element, then one should use ";;" as element separator
         if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
@@ -1223,7 +1224,7 @@ std::vector<CONFIGPARSER::TH1Scaling> ConfigurationParser::ParseListTH1Scaling(s
     std::vector<CONFIGPARSER::TH1Scaling> list;
 
     // split TH1Scaling information by ";;"
-    std::vector<std::string> strListTH1Scaling = ParseList(strList, CONFIGPARSER::separator2.c_str());
+    std::vector<std::string> strListTH1Scaling = ParseList(strList, CONFIGPARSER::separator1.c_str());
 
     for (std::vector<std::string>::iterator it = strListTH1Scaling.begin() ; it != strListTH1Scaling.end(); ++it) {
 
@@ -1287,7 +1288,7 @@ std::vector<std::string> ConfigurationParser::ParseListLatex(std::string strList
 
     if (separator.size() == 0) {
         // by default, elements of the list are separated by ","
-        separator = CONFIGPARSER::separator1.c_str();
+        separator = CONFIGPARSER::separator.c_str();
         // allow "," to be a list element
         // if one wants to use comma inside a list element, then one should use ";;" as element separator
         if (strList.find(CONFIGPARSER::separator2.c_str()) != std::string::npos)  separator = CONFIGPARSER::separator2.c_str();
