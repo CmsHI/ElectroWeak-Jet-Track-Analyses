@@ -241,7 +241,7 @@ double getMaximumTH1s(TH1D* h[], int nHistos, int start) {
 void setConstantBinContent(TH1* h, double constantContent)
 {
     int nBins = h->GetNbinsX();
-    std::vector<double> binContents (nBins, constantContent);
+    std::vector<double> binContents (nBins+2, constantContent);
     setBinContents(h, binContents);
 }
 
@@ -252,13 +252,14 @@ void setConstantBinContent(TH1* h, double constantContent)
 void setConstantBinContentError(TH1* h, double constantContent, double  constantError)
 {
     int nBins = h->GetNbinsX();
-    std::vector<double> binContents (nBins, constantContent);
-    std::vector<double> binErrors   (nBins, constantError);
+    std::vector<double> binContents (nBins+2, constantContent);
+    std::vector<double> binErrors   (nBins+2, constantError);
     setBinContentsErrors(h, binContents, binErrors);
 }
 
 /*
  * function to set bin contents of TH1 histogram.
+ * includes underflow and overflow bins, size of binContents must be nBins + 2.
  * avoids looping over the bins in the main program.
  * helps to keep the code clean.
  */
@@ -266,16 +267,17 @@ void setBinContents(TH1* h, std::vector<double> binContents)
 {
     int nBins = h->GetNbinsX();
     int nVec  = binContents.size();
-    if (nBins != nVec)  return;
+    if (nBins+2 != nVec)  return;
 
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = 0; i <= nBins+1; ++i)
     {
-        h->SetBinContent(i, binContents.at(i-1));
+        h->SetBinContent(i, binContents.at(i));
     }
 }
 
 /*
  * function to set bin contents and errors of TH1 histogram.
+ * includes underflow and overflow bins, size of binContents/binErrors must be nBins + 2.
  * avoids looping over the bins in the main program.
  * helps to keep the code clean.
  */
@@ -284,13 +286,13 @@ void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<d
     int nBins    = h->GetNbinsX();
     int nVec     = binContents.size();
     int nVecErr  = binErrors.size();
-    if (nBins != nVec)     return;
-    if (nBins != nVecErr)  return;
+    if (nBins+2 != nVec)     return;
+    if (nBins+2 != nVecErr)  return;
 
-    for ( int i = 1; i <= nBins; i++)
+    for ( int i = 0; i <= nBins+1; ++i)
     {
-        h->SetBinContent(i, binContents.at(i-1));
-        h->SetBinError(i, binErrors.at(i-1));
+        h->SetBinContent(i, binContents.at(i));
+        h->SetBinError(i, binErrors.at(i));
     }
 }
 
