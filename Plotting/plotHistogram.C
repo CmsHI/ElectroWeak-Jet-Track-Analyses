@@ -66,6 +66,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<int> centerTitleX = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleX]);
     std::vector<int> centerTitleY = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleY]);
     std::vector<std::string> TH1error_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1error_path]));
+    std::vector<std::string> TH1sysp_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysp_path]));
+    std::vector<std::string> TH1sysm_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysm_path]));
     std::vector<CONFIGPARSER::TH1Scaling> TH1Scalings = ConfigurationParser::ParseListTH1Scaling(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
     std::vector<int> TH1_rebins = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
     std::vector<float> TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
@@ -322,6 +324,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nCenterTitleX = centerTitleX.size();
     int nCenterTitleY = centerTitleY.size();
     int nHistosErr = TH1error_paths.size();
+    int nHistosSysp = TH1sysp_paths.size();
+    int nHistosSysm = TH1sysm_paths.size();
     int nTH1Scalings = TH1Scalings.size();
     int nTH1_rebins = TH1_rebins.size();
     int nTH1_norms = TH1_norms.size();
@@ -430,6 +434,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "nTH1error_paths  = " << nHistosErr << std::endl;
     for (int i = 0; i<nHistosErr; ++i) {
             std::cout << Form("TH1error_paths[%d] = %s", i, TH1error_paths.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nHistosSysp  = " << nHistosSysp << std::endl;
+    for (int i = 0; i<nHistosSysp; ++i) {
+            std::cout << Form("TH1sysp_paths[%d] = %s", i, TH1sysp_paths.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nHistosSysm  = " << nHistosSysm << std::endl;
+    for (int i = 0; i<nHistosSysm; ++i) {
+            std::cout << Form("TH1sysm_paths[%d] = %s", i, TH1sysm_paths.at(i).c_str()) << std::endl;
     }
     std::cout << "nTH1Scalings  = " << nTH1Scalings << std::endl;
     for (int i = 0; i<nTH1Scalings; ++i) {
@@ -830,6 +842,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     TH1::SetDefaultSumw2();
     TH1D* h[nHistos];
     TH1D* hErr[nHistos];
+    TH1D* hSysp[nHistos];
+    TH1D* hSysm[nHistos];
+
+    TH1D* hTmp = 0;
+
+    TGraph* gr = 0;
+    gr = new TGraph();
 
     // first read all the objects, then make the modifications
     for (int i=0; i<nHistos; ++i) {
@@ -851,14 +870,42 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         hErr[i] = 0;
         if (nHistosErr == nHistos) {
             std::string TH1error_path = TH1error_paths.at(i).c_str();
-            hErr[i] = (TH1D*)f[i]->Get(TH1error_path.c_str());
-            if(hErr[i] == 0){
-                std::cout << "No histogram found for TH1error_path: " << TH1error_path.c_str() << " file: " << inputFile.c_str() << std::endl;
-            }
-            hErr[i]->SetName(Form("hErr_%d", i));
+            if (TH1error_path != CONFIGPARSER::nullInput) {
 
-            std::vector<double> binErrors = getBinContents(hErr[i]);
-            setBinErrors(h[i], binErrors);
+                hErr[i] = (TH1D*)f[i]->Get(TH1error_path.c_str());
+                if(hErr[i] == 0){
+                    std::cout << "No histogram found for TH1error_path: " << TH1error_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+                }
+                hErr[i]->SetName(Form("hErr_%d", i));
+
+                std::vector<double> binErrors = getBinContents(hErr[i]);
+                setBinErrors(h[i], binErrors);
+            }
+        }
+
+        hSysp[i] = 0;
+        if (nHistosSysp == nHistos) {
+            std::string TH1sysp_path = TH1sysp_paths.at(i).c_str();
+            if (TH1sysp_path != CONFIGPARSER::nullInput) {
+
+                hSysp[i] = (TH1D*)f[i]->Get(TH1sysp_path.c_str());
+                if(hSysp[i] == 0){
+                    std::cout << "No histogram found for TH1sysp_path: " << TH1sysp_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+                }
+                hSysp[i]->SetName(Form("hSysp_%d", i));
+            }
+        }
+        hSysm[i] = 0;
+        if (nHistosSysm == nHistos) {
+            std::string TH1sysm_path = TH1sysm_paths.at(i).c_str();
+            if (TH1sysm_path != CONFIGPARSER::nullInput) {
+
+                hSysm[i] = (TH1D*)f[i]->Get(TH1sysm_path.c_str());
+                if(hSysm[i] == 0){
+                    std::cout << "No histogram found for TH1sysm_path: " << TH1sysm_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+                }
+                hSysm[i]->SetName(Form("hSysm_%d", i));
+            }
         }
 
         // print info about histograms
@@ -929,18 +976,18 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         else if (titleY.size() > 0) h[i]->SetYTitle(titleY.c_str());
 
         std::string drawOption = "";
-        if (nDrawOptions == 1) {
-            if (drawOptions.at(0) != CONFIGPARSER::nullInput)  drawOption = drawOptions.at(0).c_str();
+        if (nDrawOptions > 0) {
+
+            int iOption = (nDrawOptions == nHistos) ? i : 0;
+            if (drawOptions.at(iOption) != CONFIGPARSER::nullInput)  {
+                drawOption = drawOptions.at(iOption).c_str();
+            }
+            if (drawOption.find("hist") != std::string::npos) {
+                indexDrawOptionHist.push_back(i);   // book histograms with drawOption = "hist" and draw them first
+            }
+            // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
+            // TObject::SetDrawOption() is not suitable for the approach here.
         }
-        else if (nDrawOptions == nHistos) {
-            if (drawOptions.at(i) != CONFIGPARSER::nullInput)  drawOption = drawOptions.at(i).c_str();
-        }
-        if (drawOption.size() > 0)  drawOptions.at(i) = drawOption.c_str();     // overwrite drawing options
-        if (drawOption.find("hist") != std::string::npos) {
-            indexDrawOptionHist.push_back(i);   // book histograms with drawOption = "hist" and draw them first
-        }
-        // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
-        // TObject::SetDrawOption() is not suitable for the approach here.
 
         int markerStyle = GRAPHICS::markerStyle;
         if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
@@ -1145,7 +1192,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     }
 
     int nIndexDrawOptionHist = indexDrawOptionHist.size();
-    for (int i = 0; nIndexDrawOptionHist; ++i) {
+    for (int i = 0; i < nIndexDrawOptionHist; ++i) {
         // draw first the histograms with drawOption = "hist" so that plots with markers are not overwritten.
         int iHist = indexDrawOptionHist.at(i);
 
@@ -1155,8 +1202,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
         if (!hDrawn[iHist]) {
              int indexPad = TH1_padIndices.at(iHist);
-             c->cd(indexPad);
-             h[iHist]->Draw(Form("%s same", drawOption.c_str()));
+             c->cd(indexPad+1);
+             if (containsClassInstance(pads[indexPad], "TH1"))
+                 h[iHist]->Draw(Form("%s same", drawOption.c_str()));
+             else
+                 h[iHist]->Draw(Form("%s", drawOption.c_str()));
              hDrawn[iHist] = true;
          }
     }
@@ -1170,7 +1220,20 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
         else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
 
+        if (!containsClassInstance(pads[indexPad], "TH1")) {
+            hTmp = (TH1D*)h[i]->Clone();
+            hTmp->Reset();
+            hTmp->Draw();
+        }
+
         if (!hDrawn[i]) {
+
+            if (hSysp[i] && hSysm[i]) {
+                gr = new TGraph();
+                gr->SetFillColorAlpha(h[i]->GetFillColor(), 0.7);
+                drawSysUncBoxes(gr, h[i], hSysm[i], hSysp[i], false);
+            }
+
             h[i]->Draw(Form("%s same", drawOption.c_str()));
             hDrawn[i] = true;
         }
@@ -1513,6 +1576,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     else {  // file extension is NOT specified
         c->SaveAs(Form("%s.pdf", tmpOutputFile.c_str()));
     }
+
+    if (hTmp) hTmp->Delete();
 
     c->Close();         // do not use Delete() for TCanvas.
 }
