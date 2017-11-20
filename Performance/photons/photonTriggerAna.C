@@ -681,32 +681,29 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                                 int iHltObj = getIndexHltObj4TriggerBranch(indicesTriggerNum[iAna]);
 
                                 int nHltObjs = hltObjs[iHltObj].pt->size();
-                                double ptHLT = -1;
-                                double etaHLT = -999;
-                                double phiHLT = -999;
                                 for (int iObj = 0; iObj < nHltObjs; ++iObj) {
 
-                                    if ((*hltObjs[iHltObj].pt)[iObj] > ptHLT) {
-                                        ptHLT = (*hltObjs[iHltObj].pt)[iObj];
-                                        etaHLT = (*hltObjs[iHltObj].eta)[iObj];
-                                        phiHLT = (*hltObjs[iHltObj].phi)[iObj];
+                                    double ptHLT = (*hltObjs[iHltObj].pt)[iObj];
+                                    double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
+                                    double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
+
+                                    double etaSC = (*ggHi.phoSCEta)[iMax];
+                                    double phiSC = (*ggHi.phoSCPhi)[iMax];
+
+                                    if (ptHLT > 0 && getDR2(etaHLT, phiHLT, etaSC, phiSC) < 0.01) {
+                                        tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                        tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                        tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                        tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                        tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                        tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                        tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                        tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                                        tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+
+                                        break;
                                     }
-                                }
-
-                                double etaSC = (*ggHi.phoSCEta)[iMax];
-                                double phiSC = (*ggHi.phoSCPhi)[iMax];
-
-                                if (ptHLT > -1 && getDR2(etaHLT, phiHLT, etaSC, phiSC) < 0.01) {
-                                    tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                                    tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                                    tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                                    tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                                    tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
-                                    tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
-                                    tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
-                                    tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
-
-                                    tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
                                 }
                             }
                         }
