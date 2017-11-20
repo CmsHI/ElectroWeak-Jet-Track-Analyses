@@ -687,10 +687,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                                     double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
                                     double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
 
-                                    double etaSC = (*ggHi.phoSCEta)[iMax];
-                                    double phiSC = (*ggHi.phoSCPhi)[iMax];
-
-                                    if (ptHLT > 0 && getDR2(etaHLT, phiHLT, etaSC, phiSC) < 0.01) {
+                                    if (ptHLT > 0 && getDR2(etaHLT, phiHLT, eta, phi) < 0.01) {
                                         tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
                                         tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
                                         tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
