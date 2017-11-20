@@ -73,7 +73,11 @@ void addSysUnc(TH1* hTot, TH1* h);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, bool isSysMinus, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void setSysUncBoxDown(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void setSysUncBoxUp(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 // plotting
 void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D);
 void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D);
@@ -969,6 +973,47 @@ void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double 
    gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
 }
 
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, bool isSysMinus, int bin, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    double val = h->GetBinContent(bin);
+    double x   = h->GetBinCenter(bin);
+    int binSys = hSys->FindBin(x);
+
+    double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+    if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+
+    std::string hSysName = hSys->GetName();
+
+    if (binWidth < 0) {
+      binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
+    }
+
+    if (isSysMinus) {
+        double valSys = val - error;
+        if (valSys < h->GetMinimum())  valSys = h->GetMinimum();
+
+        gr->SetPoint(0, x - (binWidth/2)*binWidthScale, valSys);
+        gr->SetPoint(1, x + (binWidth/2)*binWidthScale, valSys);
+    }
+    else {
+        double valSys = val + error;
+        if (valSys > h->GetMaximum()) valSys = h->GetMaximum();
+
+        gr->SetPoint(2, x + (binWidth/2)*binWidthScale, valSys);
+        gr->SetPoint(3, x - (binWidth/2)*binWidthScale, valSys);
+    }
+}
+
+void setSysUncBoxUp(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    setSysUncBox(gr, h, hSys, false, bin, doRelUnc, binWidth, binWidthScale);
+}
+
+void setSysUncBoxDown(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    setSysUncBox(gr, h, hSys, true, bin, doRelUnc, binWidth, binWidthScale);
+}
+
 /*
  * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
  * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
@@ -987,6 +1032,19 @@ void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWid
     }
 }
 
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i) {
+        if (h->GetBinError(i) == 0) continue;
+        if (h->GetBinContent(i) < h->GetMinimum()) continue;
+        if (h->GetBinContent(i) > h->GetMaximum()) continue;
+
+        setSysUncBox(gr, h, hSysDown, true, i, doRelUnc, binWidth, binWidthScale);
+        setSysUncBox(gr, h, hSysUp, false, i, doRelUnc, binWidth, binWidthScale);
+        gr->DrawClone("f");
+    }
+}
 
 void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D)
 {
