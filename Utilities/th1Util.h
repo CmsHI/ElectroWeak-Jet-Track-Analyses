@@ -71,6 +71,7 @@ void setTH1Style4SysUnc(TH1* h);
 void subtractIdentity4SysUnc(TH1* h);
 void addSysUnc(TH1* hTot, TH1* h);
 void sysDiff2sysRel(TH1D* hNom, TH1D* hSys);
+void sysRel2sysDiff(TH1D* hNom, TH1D* hSys);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
 void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
@@ -925,6 +926,25 @@ void sysDiff2sysRel(TH1D* hNom, TH1D* hSys)
         double valNom = hNom->GetBinContent(binNom);
 
         double val = TMath::Abs(valDiff / valNom);
+        hSys->SetBinContent(iBin, val);
+    }
+}
+
+/*
+ * "hSys" is the histogram that contains the relative systematics variation.
+ * convert it to histogram that contains the systematics variation in difference.
+ */
+void sysRel2sysDiff(TH1D* hNom, TH1D* hSys)
+{
+    int nBins = hSys->GetNbinsX();
+    for (int iBin = 1; iBin <= nBins; ++iBin) {
+        double valRel = hSys->GetBinContent(iBin);
+        double x = hSys->GetBinCenter(iBin);
+
+        int binNom = hNom->FindBin(x);
+        double valNom = hNom->GetBinContent(binNom);
+
+        double val = TMath::Abs(valRel * valNom);
         hSys->SetBinContent(iBin, val);
     }
 }
