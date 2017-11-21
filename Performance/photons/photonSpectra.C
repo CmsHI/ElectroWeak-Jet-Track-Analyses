@@ -188,7 +188,6 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    TH1::SetDefaultSumw2();
     // initialize histograms
     if (preLoop() != 0) return;
 
@@ -454,7 +453,6 @@ void photonSpectraNoLoop(const TString configFile, const TString inputFile, cons
 
     TFile* input = new TFile(inputFile.Data(), "READ");
 
-    TH1::SetDefaultSumw2();
     if (preLoop(input, false) != 0) return;
 
     TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
@@ -883,6 +881,8 @@ int  preLoop(TFile* input, bool makeNew)
         else if (!input->IsOpen()) return -1;
         input->cd();
     }
+
+    TH1::SetDefaultSumw2();
 
     for (int iDist = 0; iDist < PHOTONANA::DIST::kN_DIST; ++iDist) {
         for (int iSel = 0; iSel < PHOTONANA::SEL::kN_SEL; ++iSel) {
