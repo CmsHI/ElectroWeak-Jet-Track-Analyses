@@ -365,7 +365,7 @@ void photonSpectra(const TString configFile, const TString inputFile, const TStr
                 if (!passed)  continue;
                 */
 
-                bool passedSpikeReject = ((*ggHi.phoSigmaIEtaIEta)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3);
+                bool passedSpikeReject = ((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3);
                 bool passedHoverE = passedSpikeReject && ((*ggHi.phoHoverE)[i] < 0.1);
 
                 double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
