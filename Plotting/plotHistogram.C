@@ -83,6 +83,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> fillStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillStyle]);
     std::vector<std::string> colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_color]);
     std::vector<std::string> fillColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_fillColor]);
+    std::vector<float> fillAlphas = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_fillAlpha]);
     std::vector<std::string> lineColors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_lineColor]);
     std::vector<int> lineWidths = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_lineWidth]);
     std::vector<int> fitTH1 = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_fitTH1]);
@@ -340,6 +341,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nFillStyles = fillStyles.size();
     int nColors = colors.size();
     int nFillColors = fillColors.size();
+    int nFillAlphas = fillAlphas.size();
     int nLineColors = lineColors.size();
     int nLineWidths = lineWidths.size();
     int nFitTH1 = fitTH1.size();
@@ -504,6 +506,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "nFillColors = " << nFillColors << std::endl;
     for (int i = 0; i<nFillColors; ++i) {
             std::cout << Form("fillColors[%d] = %s", i, fillColors.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nFillAlphas = " << nFillAlphas << std::endl;
+    for (int i = 0; i<nFillAlphas; ++i) {
+            std::cout << Form("fillAlphas[%d] = %f", i, fillAlphas.at(i)) << std::endl;
     }
     std::cout << "nLineColors = " << nLineColors << std::endl;
     for (int i = 0; i<nLineColors; ++i) {
@@ -1015,6 +1021,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         else if (nFillColors == nHistos) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(i));
         if (fillColor != -1)  h[i]->SetFillColor(fillColor);
 
+        float fillAlpha = -1;
+        if (nFillAlphas == 1) fillAlpha = fillAlphas.at(0);
+        else if (nFillAlphas == nHistos) fillAlpha = fillAlphas.at(i);
+        if (fillAlpha != -1 && fillColor != -1)  h[i]->SetFillColorAlpha(fillColor, fillAlpha);
+
         int lineColor = -1;
         if (nLineColors == 1) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(0));
         else if (nLineColors == nHistos) lineColor = GraphicsConfigurationParser::ParseColor(lineColors.at(i));
@@ -1230,7 +1241,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
             if (hSysp[i] && hSysm[i]) {
                 gr = new TGraph();
-                gr->SetFillColorAlpha(h[i]->GetFillColor(), 0.7);
+                gr->SetFillColor(h[i]->GetFillColor());
                 drawSysUncBoxes(gr, h[i], hSysm[i], hSysp[i], false);
             }
 
