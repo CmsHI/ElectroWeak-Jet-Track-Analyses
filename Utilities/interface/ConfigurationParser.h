@@ -483,7 +483,9 @@ std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std
  */
 std::vector<std::string> ConfigurationParser::ParseListOrString(std::string strListOrString)
 {
-    if (!isList(strListOrString))
+    if (trim(strListOrString).size() == 0)
+        return {};
+    else if (!isList(strListOrString))
         return {strListOrString};
     else
         return ParseList(strListOrString);
@@ -710,7 +712,10 @@ std::vector<int> ConfigurationParser::ParseListInteger(std::string strList)
 
 std::vector<int> ConfigurationParser::ParseListOrInteger(std::string strListOrInteger)
 {
-    if (!isList(strListOrInteger)) {
+    if (trim(strListOrInteger).size() == 0) {
+        return {};
+    }
+    else if (!isList(strListOrInteger)) {
         std::istringstream sin(strListOrInteger);
         int val;
         sin >> val;
@@ -762,7 +767,10 @@ std::vector<float> ConfigurationParser::ParseListFloat(std::string strList)
 
 std::vector<float> ConfigurationParser::ParseListOrFloat(std::string strListOrFloat)
 {
-    if (!isList(strListOrFloat)) {
+    if (trim(strListOrFloat).size() == 0) {
+        return {};
+    }
+    else if (!isList(strListOrFloat)) {
         std::istringstream sin(strListOrFloat);
         float val;
         sin >> val;
