@@ -725,7 +725,7 @@ void photonRecoAnaNoLoop(const TString configFile, const TString inputFile, cons
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
-    TFile* input = new TFile(inputFile.Data(), "READ");
+    TFile* input = TFile::Open(inputFile.Data(), "READ");
 
     if (preLoop(input, false) != 0) return;
 

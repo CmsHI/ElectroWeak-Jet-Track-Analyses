@@ -475,18 +475,18 @@ void photonSpectraAnaNoLoop(const TString configFile, const TString inputFile, c
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
-    TFile* input = new TFile(inputFile.Data(), "READ");
+    TFile* input = TFile::Open(inputFile.Data(), "READ");
+    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
 
     if (preLoop(input, false) != 0) return;
 
-    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
     output->cd();
 
     postLoop();
 
-    std::cout<<"Closing the input file."<<std::endl;
+    std::cout << "Closing the input file." << std::endl;
     input->Close();
-    std::cout<<"Closing the output file."<<std::endl;
+    std::cout << "Closing the output file." << std::endl;
     output->Close();
     std::cout<<"running photonSpectraAna() - END"<<std::endl;
 }
