@@ -52,6 +52,9 @@ enum DEPS {   // dependencies (x-axis)
     kRECOPT,
     kCENT,
     kSUMISO,
+    kECALISO,
+    kHCALISO,
+    kTRKISO,
     kSIEIE,
     kN_DEPS
 };
@@ -61,6 +64,9 @@ const std::string DEP_LABELS[kN_DEPS] = {
         "RECOPT",
         "CENT",
         "SUMISO",
+        "ECALISO",
+        "HCALISO",
+        "TRKISO",
         "SIEIE"
 };
 

@@ -2,8 +2,6 @@
 
 #g++ -Wall -Werror -Wextra -O2 `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -MMD -MF ./build/Performance/photons/photonSpectraAna.d Performance/photons/photonSpectraAna.C -o Performance/photons/photonSpectraAna.exe
 
-make Performance/photons/photonSpectraAna.exe
-
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/photons/photonSpectraAna.exe"
 inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"

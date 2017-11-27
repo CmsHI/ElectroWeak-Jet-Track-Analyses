@@ -1,11 +1,14 @@
 /*
  * macro to draw eta, reco Pt, centrality, isolation, and shower shape dependent photon spectra.
- * The macro can make 5 types of plots
+ * The macro can make 8 types of plots
  *  1. x-axis is eta.
  *  2. x-axis is reco Pt.
  *  3. x-axis is centrality (hiBin/2)
- *  4. x-axis is isolation (sumIso)
- *  5. x-axis is shower shape (sigmaIEtaIEta_2012)
+ *  4. x-axis is isolation (sumIso = ecalIso + hcalIso + trkIso)
+ *  5. x-axis is ecal iso
+ *  6. x-axis is hcal iso
+ *  7. x-axis is track iso
+ *  8. x-axis is shower shape (sigmaIEtaIEta_2012)
  * saves histograms to a .root file.
  */
 
@@ -376,9 +379,10 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
 
                 double eta = (*ggHi.phoEta)[i];
                 double pt  = (*ggHi.phoEt)[i];
-                double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                                (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                                (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[i];
+                double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[i];
+                double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[i];
+                double sumIso = ecalIso + hcalIso + trkIso;
                 double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                 double r9 = (*ggHi.phoR9)[i];
 
@@ -389,6 +393,9 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
                     sAna[SPECTRAANA::kRECOPT][iAna].FillH(pt, w, vars);
                     sAna[SPECTRAANA::kCENT][iAna].FillH(cent, w, vars);
                     sAna[SPECTRAANA::kSUMISO][iAna].FillH(sumIso, w, vars);
+                    sAna[SPECTRAANA::kECALISO][iAna].FillH(ecalIso, w, vars);
+                    sAna[SPECTRAANA::kHCALISO][iAna].FillH(hcalIso, w, vars);
+                    sAna[SPECTRAANA::kTRKISO][iAna].FillH(trkIso, w, vars);
                     sAna[SPECTRAANA::kSIEIE][iAna].FillH(sieie, w, vars);
                 }
             }
@@ -970,6 +977,21 @@ int  preLoop(TFile* input, bool makeNew)
             xTitle = "sumIso";
             makeObject = true;
         }
+        else if (iSumIso == 0 && iDep == SPECTRAANA::kECALISO) {
+            strDep = "depEcalIso";
+            xTitle = "ecalIso";
+            makeObject = true;
+        }
+        else if (iSumIso == 0 && iDep == SPECTRAANA::kHCALISO) {
+            strDep = "depHcalIso";
+            xTitle = "hcalIso";
+            makeObject = true;
+        }
+        else if (iSumIso == 0 && iDep == SPECTRAANA::kTRKISO) {
+            strDep = "depTrkIso";
+            xTitle = "trkIso";
+            makeObject = true;
+        }
         else if (iSieie == 0 && iDep == SPECTRAANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
@@ -1022,9 +1044,10 @@ int  preLoop(TFile* input, bool makeNew)
         // The x-axis bins will set the cuts.
         sAnaTmp.ranges[iDep][0] = 0;
         sAnaTmp.ranges[iDep][1] = -1;
-        if (iDep == SPECTRAANA::kSUMISO) {
-            sAnaTmp.ranges[iDep][0] = -999;
-            sAnaTmp.ranges[iDep][1] = -999;
+        if (iDep == SPECTRAANA::kSUMISO || iDep == SPECTRAANA::kECALISO ||
+            iDep == SPECTRAANA::kHCALISO || iDep == SPECTRAANA::kTRKISO) {
+            sAnaTmp.ranges[SPECTRAANA::rSUMISO][0] = -999;
+            sAnaTmp.ranges[SPECTRAANA::rSUMISO][1] = -999;
         }
 
         int iAxis = iDep;
@@ -1081,6 +1104,9 @@ int postLoop()
             if (iDep == SPECTRAANA::kRECOPT && iRecoPt != 0) continue;
             if (iDep == SPECTRAANA::kCENT && iCent != 0) continue;
             if (iDep == SPECTRAANA::kSUMISO && iSumIso != 0) continue;
+            if (iDep == SPECTRAANA::kECALISO && iSumIso != 0) continue;
+            if (iDep == SPECTRAANA::kHCALISO && iSumIso != 0) continue;
+            if (iDep == SPECTRAANA::kTRKISO && iSumIso != 0) continue;
             if (iDep == SPECTRAANA::kSIEIE && iSieie != 0) continue;
 
             if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0) continue;
@@ -1129,7 +1155,7 @@ int postLoop()
                     drawSame(c, iObs, iDep, {iEta, iRecoPt, iCent, -1, iSieie, iR9});
                 }
 
-                // plot from different sumIso bins
+                // plot from different shower shape bins
                 if (iSieie == 0 && sAna[iDep][iAna].name.size() > 0) {
                     drawSame(c, iObs, iDep, {iEta, iRecoPt, iCent, iSumIso, -1, iR9});
                 }
@@ -1164,6 +1190,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     if (iDep == SPECTRAANA::kRECOPT && iRecoPt != 0) return;
     if (iDep == SPECTRAANA::kCENT && iCent != 0) return;
     if (iDep == SPECTRAANA::kSUMISO && iSumIso != 0) return;
+    if (iDep == SPECTRAANA::kECALISO && iSumIso != 0) return;
+    if (iDep == SPECTRAANA::kHCALISO && iSumIso != 0) return;
+    if (iDep == SPECTRAANA::kTRKISO && iSumIso != 0) return;
     if (iDep == SPECTRAANA::kSIEIE && iSieie != 0) return;
 
     TH1D* hTmp = 0;
@@ -1328,6 +1357,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iDep == SPECTRAANA::kRECOPT && iRange == SPECTRAANA::rRECOPT) continue;
         else if (iDep == SPECTRAANA::kCENT && iRange == SPECTRAANA::rCENT) continue;
         else if (iDep == SPECTRAANA::kSUMISO && iRange == SPECTRAANA::rSUMISO) continue;
+        else if (iDep == SPECTRAANA::kECALISO && iRange == SPECTRAANA::rSUMISO) continue;
+        else if (iDep == SPECTRAANA::kHCALISO && iRange == SPECTRAANA::rSUMISO) continue;
+        else if (iDep == SPECTRAANA::kTRKISO && iRange == SPECTRAANA::rSUMISO) continue;
         else if (iDep == SPECTRAANA::kSIEIE && iRange == SPECTRAANA::rSIEIE) continue;
 
         int iAna0 = indicesAna[0];
