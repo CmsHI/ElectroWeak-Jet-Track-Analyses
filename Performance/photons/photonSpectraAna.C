@@ -261,13 +261,6 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
     bool isHI = collisionIsHI((COLL::TYPE)collisionType);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
-    if (!isMC) {
-        std::cout << "This macro runs on simulation samples only." << std::endl;
-        std::cout << "Change the collisionType to a simulated collisions." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -296,11 +289,13 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
 
         treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-        treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
-        treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
-        // check existence of genMatching branch
-        if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
-            std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+        if (isMC) {
+            treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
+            treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+            // check existence of genMatching branch
+            if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
+                std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+            }
         }
 
         // specify explicitly which branches to use, do not use wildcard
