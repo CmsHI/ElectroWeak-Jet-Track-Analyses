@@ -168,6 +168,13 @@ enum MODES {
 const std::string modesStr[kN_MODES] = {"Spectra"};
 std::vector<int> runMode;
 
+enum MODES_SPECTRA {
+    kNULL,
+    kInclusive,
+    kLeading,       // NOTE : this mode works only for recoPtBin=0, bins with recoPtBin > 0 are ignored.
+    kN_MODES_SPECTRA
+};
+
 enum ANABINS {
     kEta,
     kRecoPt,
@@ -369,25 +376,66 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
             }
 
             if (runMode[MODES::kSpectra]) {
-            for (int i=0; i<ggHi.nPho; ++i) {
+            for (int iAna = 0;  iAna < nSpectraAna; ++iAna) {
 
-                if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                int iMax = -1;
+                double maxPt = 0;
+                std::vector<int> candidates;
+                for (int i = 0; i < ggHi.nPho; ++i) {
+                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                if (cut_phoHoverE != 0) {
-                    if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                    if (cut_phoHoverE != 0) {
+                        if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                    }
+
+                    if (runMode[MODES::kSpectra] == MODES_SPECTRA::kInclusive) {
+                        candidates.push_back(i);
+                    }
+                    else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
+
+                        double eta = (*ggHi.phoEta)[i];
+                        double pt  = (*ggHi.phoEt)[i];
+                        double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[i];
+                        double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[i];
+                        double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[i];
+                        double sumIso = ecalIso + hcalIso + trkIso;
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                        double r9 = (*ggHi.phoR9)[i];
+
+                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+
+                        // spectraAnalyzer object with reco pt dependency is the correct one for this decision
+                        if (!sAna[SPECTRAANA::kRECOPT][iAna].insideRange(vars)) continue;
+
+                        if (pt > maxPt) {
+                            iMax = i;
+                            maxPt = pt;
+                        }
+                    }
                 }
 
-                double eta = (*ggHi.phoEta)[i];
-                double pt  = (*ggHi.phoEt)[i];
-                double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[i];
-                double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[i];
-                double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[i];
-                double sumIso = ecalIso + hcalIso + trkIso;
-                double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                double r9 = (*ggHi.phoR9)[i];
+                if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
+                    candidates.clear();
 
-                std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
-                for (int iAna = 0;  iAna < nSpectraAna; ++iAna) {
+                    // leading object goes into histograms
+                    if(iMax == -1) continue;
+                    // the only candidate is the leading particle
+                    candidates.push_back(iMax);
+                }
+
+                int nCandidates = candidates.size();
+                for (int i = 0; i < nCandidates; ++i) {
+                    int iPho = candidates[i];
+
+                    double eta = (*ggHi.phoEta)[iPho];
+                    double pt  = (*ggHi.phoEt)[iPho];
+                    double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iPho];
+                    double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iPho];
+                    double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iPho];
+                    double sumIso = ecalIso + hcalIso + trkIso;
+                    double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iPho];
+                    double r9 = (*ggHi.phoR9)[iPho];
+                    std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
                     sAna[SPECTRAANA::kETA][iAna].FillH(eta, w, vars);
                     sAna[SPECTRAANA::kRECOPT][iAna].FillH(pt, w, vars);
