@@ -1,6 +1,6 @@
 /*
  * macro to draw eta, gen Pt, reco Pt, centrality, isolation, and shower shape dependent photon reconstruction performance plots.
- * The macro can make 4 types of plots
+ * The macro can make 6 types of plots
  *  1. x-axis is eta.
  *  2. x-axis is gen Pt.
  *  3. x-axis is reco Pt.
@@ -204,9 +204,9 @@ enum ANABINS {
     kN_ANABINS
 };
 int nRecoAna;
-// object for set of all possible energy scale histograms
+// object for set of all reco analysis
 std::vector<recoAnalyzer> rAna[RECOANA::kN_DEPS];
-// Each vector will have size nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent
+// Each vector will have size nRecoAna
 ///// global variables - END
 
 int  readConfiguration(const TString configFile);
@@ -375,13 +375,13 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 continue;
             }
 
-            entriesAnalyzed++;
-
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
 
             if (isHI && !skimAna.passedEventSelectionHI())  continue;
             else if (isPP && !skimAna.passedEventSelectionPP())  continue;
+
+            entriesAnalyzed++;
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
@@ -1303,6 +1303,13 @@ int  preLoop(TFile* input, bool makeNew)
 
         if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0)  continue;
 
+        // for histograms with a particular dependence,
+        // a single index is used in the multidimensional array of recoAnalyzer objects.
+        // Example : for a reco analysis object with eta dependence (eta is the x-axis), there will not be different objects
+        // with different eta ranges.
+        // For eta dependence, the objects will have iEta = 0, but not iEta > 0
+        // In general there will be no object with all of iEta, iRecoPt, ..., > 0
+
         std::string strDep = "";
         std::string xTitle = "";
         bool makeObject = false;
@@ -1358,14 +1365,6 @@ int  preLoop(TFile* input, bool makeNew)
         rAnaTmp.ranges[RECOANA::rSIEIE][1] = bins_sieie[1].at(iSieie);
         rAnaTmp.ranges[RECOANA::rR9][0] = bins_r9[0].at(iR9);
         rAnaTmp.ranges[RECOANA::rR9][1] = bins_r9[1].at(iR9);
-
-        // for histograms with a particular dependence,
-        // a single index is used in the multidimensional array of recoAnalyzer objects is used.
-        // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
-        // with different eta ranges.
-        // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
-        // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
-        // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
 
         std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
         if (nBins_sumIso > 1) {
@@ -1639,14 +1638,6 @@ int postLoop()
 
             if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0) continue;
 
-            // for histograms with a particular dependence,
-            // a single index is used in the multidimensional array of recoAnalyzer objects.
-            // Example : for an energy scale histogram with eta dependence (eta is the x-axis), there will not be different histograms
-            // with different eta ranges.
-            // There will be objects like : rAna[RECOANA::kETA][0][iGenPt][iRecoPt][iCent]
-            // but not like : rAna[RECOANA::kETA][1][iGenPt][iRecoPt][iCent]
-            // in general there will be no object rAna[someIndex][iEta][iGenPt][iRecoPt][iCent] such that iEta, iGenpT, iRecoPt, iCent > 0
-
             c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
 
@@ -1657,13 +1648,6 @@ int postLoop()
         }
     }
 
-
-    /*
-     * plot 1D energy scale/resolution plots on top split into
-     *  1. eta bins
-     *  2. gen pt bins
-     *  3. centrality bins
-     */
     // iObs = 0 is energy scale
     // iObs = 1 is energy resolution
     // iObs = 2 is energy scale from histogram mean
@@ -1716,7 +1700,7 @@ int postLoop()
                     drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, -1, iSieie, iR9});
                 }
 
-                // plot from different sumIso bins
+                // plot from different shower shape bins
                 if (iSieie == 0 && rAna[iDep][iAna].name.size() > 0) {
                     drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, -1, iR9});
                 }
