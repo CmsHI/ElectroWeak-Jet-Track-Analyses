@@ -1,6 +1,6 @@
 /*
  * macro to draw eta, reco Pt, centrality, isolation, and shower shape dependent photon spectra.
- * The macro can make 8 types of plots
+ * The macro can make 9 types of plots
  *  1. x-axis is eta.
  *  2. x-axis is reco Pt.
  *  3. x-axis is centrality (hiBin/2)
@@ -9,6 +9,7 @@
  *  6. x-axis is hcal iso
  *  7. x-axis is track iso
  *  8. x-axis is shower shape (sigmaIEtaIEta_2012)
+ *  9. x-axis is R9
  * saves histograms to a .root file.
  */
 
@@ -465,6 +466,7 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
                     sAna[SPECTRAANA::kHCALISO][iAna].FillH(hcalIso, w, vars);
                     sAna[SPECTRAANA::kTRKISO][iAna].FillH(trkIso, w, vars);
                     sAna[SPECTRAANA::kSIEIE][iAna].FillH(sieie, w, vars);
+                    sAna[SPECTRAANA::kR9][iAna].FillH(r9, w, vars);
                 }
             }
             }
@@ -1075,6 +1077,11 @@ int  preLoop(TFile* input, bool makeNew)
             xTitle = "#sigma_{#eta#eta}";
             makeObject = true;
         }
+        else if (iR9 == 0 && iDep == SPECTRAANA::kR9) {
+            strDep = "depR9";
+            xTitle = "R9";
+            makeObject = true;
+        }
 
         if (!makeObject)  continue;
 
@@ -1177,6 +1184,7 @@ int postLoop()
             int iCent = binIndices[ANABINS::kCent];
             int iSumIso = binIndices[ANABINS::kSumIso];
             int iSieie = binIndices[ANABINS::kSieie];
+            int iR9 = binIndices[ANABINS::kR9];
 
             if (iDep == SPECTRAANA::kETA && iEta != 0) continue;
             if (iDep == SPECTRAANA::kRECOPT && iRecoPt != 0) continue;
@@ -1186,8 +1194,9 @@ int postLoop()
             if (iDep == SPECTRAANA::kHCALISO && iSumIso != 0) continue;
             if (iDep == SPECTRAANA::kTRKISO && iSumIso != 0) continue;
             if (iDep == SPECTRAANA::kSIEIE && iSieie != 0) continue;
+            if (iDep == SPECTRAANA::kR9 && iR9 != 0) continue;
 
-            if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0) continue;
+            if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0) continue;
 
             c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
@@ -1272,6 +1281,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     if (iDep == SPECTRAANA::kHCALISO && iSumIso != 0) return;
     if (iDep == SPECTRAANA::kTRKISO && iSumIso != 0) return;
     if (iDep == SPECTRAANA::kSIEIE && iSieie != 0) return;
+    if (iDep == SPECTRAANA::kR9 && iR9 != 0) return;
 
     TH1D* hTmp = 0;
 
@@ -1429,6 +1439,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         if (iEta == -1 && iRange == SPECTRAANA::rETA) continue;
         else if (iRecoPt == -1 && iRange == SPECTRAANA::rRECOPT) continue;
         else if (iCent == -1 && iRange == SPECTRAANA::rCENT) continue;
+        else if (iSumIso == -1 && iRange == SPECTRAANA::rSUMISO) continue;
+        else if (iSieie == -1 && iRange == SPECTRAANA::rSIEIE) continue;
+        else if (iR9 == -1 && iRange == SPECTRAANA::rR9) continue;
 
         // if the x-axis is eta, then do not write eta range in the text lines
         if (iDep == SPECTRAANA::kETA && iRange == SPECTRAANA::rETA) continue;
@@ -1439,6 +1452,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iDep == SPECTRAANA::kHCALISO && iRange == SPECTRAANA::rSUMISO) continue;
         else if (iDep == SPECTRAANA::kTRKISO && iRange == SPECTRAANA::rSUMISO) continue;
         else if (iDep == SPECTRAANA::kSIEIE && iRange == SPECTRAANA::rSIEIE) continue;
+        else if (iDep == SPECTRAANA::kR9 && iRange == SPECTRAANA::rR9) continue;
 
         int iAna0 = indicesAna[0];
         std::string textLineTmp = sAna[iDep][iAna0].getRangeText(iRange);
