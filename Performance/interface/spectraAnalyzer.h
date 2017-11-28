@@ -56,6 +56,7 @@ enum DEPS {   // dependencies (x-axis)
     kHCALISO,
     kTRKISO,
     kSIEIE,
+    kR9,
     kN_DEPS
 };
 
@@ -67,7 +68,8 @@ const std::string DEP_LABELS[kN_DEPS] = {
         "ECALISO",
         "HCALISO",
         "TRKISO",
-        "SIEIE"
+        "SIEIE",
+        "R9"
 };
 
 enum RANGES {   // ranges/cuts
@@ -537,6 +539,7 @@ void spectraAnalyzer::postLoop()
     h->GetXaxis()->CenterTitle();
     h->GetYaxis()->CenterTitle();
     h->SetMarkerStyle(kFullCircle);
+    h->SetMinimum(0);
 
     h1D[SPECTRAANA::kRAW] = h;
 
@@ -575,6 +578,12 @@ void spectraAnalyzer::postLoop()
 
         h1D[iObs]->Scale(1./(double)nEvents, "width");
         h1D[iObs]->SetYTitle(Form("#frac{1}{N_{Event}} #frac{dN}{d%s}", titleX.c_str()));
+    }
+
+    for (int iObs = 0; iObs < SPECTRAANA::kN_OBS; ++iObs) {
+        if (!isValid_h1D[iObs]) continue;
+
+        h1D[iObs]->SetMinimum(0);
     }
 }
 
