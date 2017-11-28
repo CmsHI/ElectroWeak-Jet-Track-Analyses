@@ -15,7 +15,42 @@
 
 #include "tiling.h"
 
-static const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
+// static const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
+
+TGraphErrors* HIN11010() {
+    TGraphErrors* gHIN11010 = new TGraphErrors(4);
+    gHIN11010->SetName("gHIN11010");
+
+    gHIN11010->SetPoint(0, 43.644, 0.76326);
+    gHIN11010->SetPointError(0, 0, 0.80510 - 0.76326);
+    gHIN11010->SetPoint(1, 116.101, 0.80510);
+    gHIN11010->SetPointError(1, 0, 0.83367 - 0.80510);
+    gHIN11010->SetPoint(2, 235.169, 0.70306);
+    gHIN11010->SetPointError(2, 0, 0.71939 - 0.70306);
+    gHIN11010->SetPoint(3, 358.051, 0.72908);
+    gHIN11010->SetPointError(3, 0, 0.75153 - 0.72908);
+
+    return gHIN11010;
+}
+
+void draw_HIN11010_sys(TGraph* gr) {
+    float x_val[4] = {43.644, 116.101, 235.169, 358.051};
+    float y_val[4] = {0.76326, 0.80510, 0.70306, 0.72908};
+    float sys[4] = {0.78775 - 0.76326, 0.84592 - 0.80510, 0.73673 - 0.70306, 0.76837 - 0.72908};
+
+    for (int i=0; i<4; ++i) {
+        float x = x_val[i];
+        float val = y_val[i];
+        float error = sys[i];
+
+        gr->SetPoint(0, x - 16, val - error);
+        gr->SetPoint(1, x + 16, val - error);
+        gr->SetPoint(2, x + 16, val + error);
+        gr->SetPoint(3, x - 16, val + error);
+
+        gr->DrawClone("f");
+    }
+}
 
 #define TRASH_TH1(hist)                                                     \
     for (int p=1; p<=hist->GetNbinsX(); ++p) {                              \
@@ -23,12 +58,12 @@ static const float ncoll_w_npart[4] = {43.58, 118.8, 239.9, 363.4};
         hist->SetBinError(p, 0);                                            \
     }
 
-#define TH1_TO_TGRAPH(hist, graph)                                          \
-    int npoints = hist->GetNbinsX();                                        \
-    graph = new TGraphErrors(npoints);                                      \
-    for (int p=0; p<npoints; ++p) {                                         \
-        graph->SetPoint(p, ncoll_w_npart[p], hist->GetBinContent(p+1));     \
-        graph->SetPointError(p, 0, hist->GetBinError(p+1));                 \
+#define TH1_TO_TGRAPH(hist, graph)                                              \
+    int npoints = hist->GetNbinsX();                                            \
+    graph = new TGraphErrors(npoints);                                          \
+    for (int p=0; p<npoints; ++p) {                                             \
+        graph->SetPoint(p, hist->GetBinCenter(p+1), hist->GetBinContent(p+1));  \
+        graph->SetPointError(p, 0, hist->GetBinError(p+1));                     \
     }
 
 std::string set_systematics_style(TGraph* gr, int style);
@@ -43,6 +78,8 @@ std::vector<std::string> legend_draw_options;
 int gammaJetPlot(const std::string input_file, const std::string sys_file, const std::string hist_list, const std::string config_file) {
     gStyle->SetOptTitle(0);
     gStyle->SetOptStat(0);
+
+    // TGraphErrors* gHIN11010 = HIN11010();
 
     TFile* input = new TFile(input_file.c_str(), "read");
     TFile* sys = new TFile(sys_file.c_str(), "read");
@@ -274,6 +311,17 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                         }
                     }
 
+                    // if (!c && !r && canvas_title == "xjg_mean_rjg_centBinAll") {
+                    //     gHIN11010->SetLineColor(2);
+                    //     gHIN11010->SetMarkerColor(2);
+                    //     gHIN11010->SetMarkerStyle(29);
+                    //     gHIN11010->SetMarkerSize(1.75);
+                    //     gHIN11010->Draw("same p z");
+                    //     gr->SetFillStyle(3254);
+                    //     gr->SetFillColorAlpha(TColor::GetColor("#ad33ff"), 0.7);
+                    //     draw_HIN11010_sys(gr);
+                    // }
+
                     /* draw graph */
                     graphs[l]->Draw(option_strings[l][0].c_str());
                 } else {
@@ -300,6 +348,11 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                                 option_strings[t][1].c_str());
                         }
                     }
+
+                    // if (!c && !r && canvas_title == "xjg_mean_rjg_centBinAll") {
+                    //     gHIN11010->SetFillColorAlpha(TColor::GetColor("#ad33ff"), 0.7);
+                    //     l1->AddEntry(gHIN11010, "HIN-11-010", "pf");
+                    // }
 
                     l1->Draw();
                 }
@@ -753,7 +806,7 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
         case 9:     /* JEWEL */
             g1->SetLineColor(9);
             g1->SetLineStyle(1);
-            g1->SetLineWidth(1.2);
+            g1->SetLineWidth(2.4);
             g1->SetMarkerSize(0);
             option_strings.push_back("same l z");
             option_strings.push_back("l");
@@ -761,7 +814,7 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
         case 10:    /* LBT */
             g1->SetLineColor(kOrange-3);
             g1->SetLineStyle(1);
-            g1->SetLineWidth(1.2);
+            g1->SetLineWidth(2.4);
             g1->SetMarkerSize(0);
             option_strings.push_back("same l z");
             option_strings.push_back("l");
@@ -805,7 +858,8 @@ void draw_npart_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys, int x_width) {
     for (int i=1; i<=h1->GetNbinsX(); ++i) {
         if (h1->GetBinError(i) == 0) continue;
 
-        double x = ncoll_w_npart[i-1];
+        // double x = ncoll_w_npart[i-1];
+        double x = h1->GetBinCenter(i);
         double val = h1->GetBinContent(i);
         double error = TMath::Abs(h1_sys->GetBinContent(i));
 
