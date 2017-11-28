@@ -45,6 +45,7 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../interface/spectraAnalyzer.h"
+#include "../interface/triggerAnalyzer.h"
 
 ///// global variables
 /// configuration variables
@@ -148,6 +149,10 @@ std::vector<float>   bins_sumIso[2];
 std::vector<float>   bins_sieie[2];
 std::vector<float>   bins_r9[2];
 
+// trigger requirement
+std::vector<std::string> triggerPaths;
+int nTriggerPaths;
+
 // event cuts/weights
 int doEventWeight;
 
@@ -226,6 +231,7 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
     // initialize objects
     if (preLoop() != 0) return;
 
+    TTree* treeHlt = 0;
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
     TTree* treeHiForestInfo = 0;
@@ -281,6 +287,15 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
             continue;
         }
 
+        Int_t triggerBits[nTriggerPaths];
+        if (nTriggerPaths > 0) {
+            std::string treeHltPath = "hltanalysisReco/HltTree";
+            treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
+            treeHlt->SetBranchStatus("*",0);     // disable all branches
+
+            triggerAnalyzer::setBranchesTrigger(treeHlt, triggerPaths, triggerBits, nTriggerPaths);
+        }
+
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
         treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
@@ -331,9 +346,19 @@ void photonSpectraAna(const TString configFile, const TString inputFile, const T
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
+            if (treeHlt)  treeHlt->GetEntry(j_entry);
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
+
+            bool passedTrigger = (nTriggerPaths == 0);
+            for (int i = 0; i < nTriggerPaths; ++i) {
+                if (triggerBits[i] > 0)  {
+                    passedTrigger = true;
+                    break;
+                }
+            }
+            if (!passedTrigger) continue;
 
             bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -671,11 +696,16 @@ int readConfiguration(const TString configFile)
     bins_r9[1] = ConfigurationParser::ParseListFloat(
             configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_r9_lt]);
 
+    // trigger requirement
+    triggerPaths = ConfigurationParser::ParseList(configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_triggerNum_List]);
+
     // event cuts/weights
     doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
 
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+
+    nTriggerPaths = triggerPaths.size();
 
     // set default values
     if (bins_eta[0].size() == 0) {
@@ -762,6 +792,11 @@ void printConfiguration()
     std::cout << "nBins_r9 = " << nBins_r9 << std::endl;
     for (int i=0; i<nBins_r9; ++i) {
         std::cout << Form("bins_r9[%d] = [%f, %f)", i, bins_r9[0].at(i), bins_r9[1].at(i)) << std::endl;
+    }
+
+    std::cout << "nTriggerPaths = " << nTriggerPaths << std::endl;
+    for (int i = 0; i<nTriggerPaths; ++i) {
+        std::cout << Form("triggerPaths[%d] = %s", i, triggerPaths.at(i).c_str()) << std::endl;
     }
 
     std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
