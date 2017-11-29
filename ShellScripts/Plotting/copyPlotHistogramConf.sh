@@ -2,8 +2,8 @@
 # script to create a plotHistogram.C configuration file at the given path, creates necessary directories
 
 if [ $# -ne 1 ]; then
-  echo "Usage: ./ShellScripts/Plotting/copyPlotHistogram.sh <PathtoConfigFile>"
-  echo "Example: ./ShellScripts/Plotting/copyPlotHistogram.sh ./plotsDir/plot.pt.conf"
+  echo "Usage: ./ShellScripts/Plotting/copyPlotHistogramConf.sh <PathtoConfigFile>"
+  echo "Example: ./ShellScripts/Plotting/copyPlotHistogramConf.sh ./plotsDir/plot.pt.conf"
   exit 1
 fi
 
