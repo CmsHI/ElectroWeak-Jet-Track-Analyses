@@ -40,7 +40,7 @@ do
    confFileBase=$(basename "${confFile}")
    echo $confFileBase
    # write $confFileBase to the new script
-   echo -e "\$baseDir""\"$confFileBase\"" >> $outputFile
+   echo -e """\"$confFileBase\"" >> $outputFile
 done
 
 # continue editing the file
@@ -50,7 +50,7 @@ cat >> $outputFile <<EOF
 arrayIndices=\${!configFiles[*]}
 for i1 in \$arrayIndices
 do
-    configFile=\${configFiles[i1]}
+    configFile=\$baseDir\${configFiles[i1]}
     inputFile=\$configFile  # assume input files are listed in the config file
     outputFile="\${configFile/.conf/.png}"
     outputFileLOG="\${configFile/.conf/.log}"

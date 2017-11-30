@@ -6,15 +6,15 @@ progPath="./Plotting/plotHistogram.exe"
 baseDir="/directory/of/configFiles/"
 
 configFiles=(
-$baseDir"plot.pt.conf"
-$baseDir"plot.eta.conf"
-$baseDir"plot.phi.conf"
+"plot.pt.conf"
+"plot.eta.conf"
+"plot.phi.conf"
 );
 
 arrayIndices=${!configFiles[*]}
 for i1 in $arrayIndices
 do
-    configFile=${configFiles[i1]}
+    configFile=$baseDir${configFiles[i1]}
     inputFile=$configFile  # assume input files are listed in the config file
     outputFile="${configFile/.conf/.png}"
     outputFileLOG="${configFile/.conf/.log}"
