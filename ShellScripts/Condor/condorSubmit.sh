@@ -49,7 +49,7 @@ if [ "$nFilesToProcess" -lt "$nFiles" ]; then
 fi
 
 # create the directories for condor submission and condor output files
-baseDir=$PWD
+baseDir="/work/"$USER"/ewjta"
 timeNow=$(date +"%Y%m%d_%H%M%S")
 submitDir=$baseDir"/condorSubmissions/"$timeNow
 condorLogsDir=$baseDir"/condorLogs/"$timeNow
@@ -205,4 +205,4 @@ EOF
 chmod u+x $submitDir/rmJobOutput.sh
 
 cat $submitDir/submit.condor
-echo "condor_submit $submitDir/submit.condor -pool submit.mit.edu:9615 -name submit.mit.edu -spool" 
+echo "condor_submit $submitDir/submit.condor -name submit.mit.edu"
