@@ -191,7 +191,15 @@ chmod u+x $submitDir/mergeOutput.sh
 cat > $submitDir/rmJobOutput.sh <<EOF
 #!/bin/bash
 
-rm -r $outputDir
+rm -rf $outputDir
+
+# $? is the exit status of last run command
+if [ \$? -ne 0 ]; then
+  srmPrefix="/mnt/hadoop/"
+  outputDirTmp=$outputDir
+  outputDirSRM=\${outputDirTmp#\${srmPrefix}}
+  gfal-rm -r gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}
+fi
 
 EOF
 chmod u+x $submitDir/rmJobOutput.sh
