@@ -40,7 +40,7 @@ do
    confFileBase=$(basename "${confFile}")
    echo $confFileBase
    # write $confFileBase to the new script
-   echo -e """\"$confFileBase\"" >> $outputFile
+   echo -e "\"$confFileBase\"" >> $outputFile
 done
 
 # continue editing the file
