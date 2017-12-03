@@ -945,9 +945,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
                 double contentTmp = h[iTmp]->GetBinContent(binTmp);
                 h[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
             }
             else {
                 h[i]->Scale(th1Scaling.scaleFactor);
+                if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor);
+                if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor);
             }
         }
 
