@@ -7,6 +7,7 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TF1.h>
 #include <TCanvas.h>
 #include <TPad.h>
@@ -846,12 +847,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     TFile* f[nHistos];
     TH1::SetDefaultSumw2();
-    TH1D* h[nHistos];
-    TH1D* hErr[nHistos];
-    TH1D* hSysp[nHistos];
-    TH1D* hSysm[nHistos];
+    TH1* h[nHistos];
+    TH1* hErr[nHistos];
+    TH1* hSysp[nHistos];
+    TH1* hSysm[nHistos];
 
-    TH1D* hTmp = 0;
+    TH1* hTmp = 0;
 
     TGraph* gr = 0;
     gr = new TGraph();
@@ -866,10 +867,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
         f[i] = TFile::Open(inputFile.c_str());
         h[i] = 0;
-        h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
+        h[i] = (TH1*)f[i]->Get(TH1_path.c_str());
         if(h[i] == 0){
             std::cout << "No histogram found: " << TH1_path.c_str() << " file: " << inputFile.c_str() << std::endl;
         }
+        if (h[i]->InheritsFrom("TH2"))  h[i] = (TH2D*)f[i]->Get(TH1_path.c_str());
+        else                            h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
+
         h[i]->SetName(Form("h_%d", i));
         h[i]->SetStats(false);
 
@@ -1197,8 +1201,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
             int nTH1_perPad = TH1s_perPad.at(iPad);
 
-            double histMin = getMinimumTH1s(h, nTH1_perPad, iStart);
-            double histMax = getMaximumTH1s(h, nTH1_perPad, iStart);
+            double histMin = getMinimumTH1s((TH1D**)h, nTH1_perPad, iStart);
+            double histMax = getMaximumTH1s((TH1D**)h, nTH1_perPad, iStart);
             int setLogyTmp = setLogy.at(0);
             if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
             if (setLogyTmp == 0) h[iStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
