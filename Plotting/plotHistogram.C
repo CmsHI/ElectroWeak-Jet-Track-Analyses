@@ -8,6 +8,7 @@
 #include <TH1.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <THStack.h>
 #include <TF1.h>
 #include <TCanvas.h>
 #include <TPad.h>
@@ -843,6 +844,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     // extra
     std::vector<int> indexDrawOptionHist;   // book histograms with drawOption = "hist" and draw them first
                                             // so that plots with markers are not overwritten.
+    std::vector<int> indexDrawStack(nHistos, -1);  // if drawOption has "stackj", then adds the histogram into "j"th stack histogram
+                                                   // Ex. drawOptions = {"stack0", "stack1", "stack0", ...}, then
+                                                   // h0, h2 will be in the 1st THStack, h1 will be in the 2nd THStack.
+                                                   // can draw at most 10 THStack
+
     std::vector<bool> hDrawn(nHistos, false);       // true if the histogram is already drawn.
 
     std::vector<TFile*> f(nHistos, 0);
@@ -851,6 +857,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<TH1*> hErr(nHistos, 0);
     std::vector<TH1*> hSysp(nHistos, 0);
     std::vector<TH1*> hSysm(nHistos, 0);
+
+    std::vector<THStack*> hStack(nHistos, 0);
+    std::vector<bool> hStackDrawn(nHistos, false);
 
     TH1* hTmp = 0;
 
@@ -911,6 +920,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 hSysm[i]->SetName(Form("hSysm_%d", i));
             }
         }
+
+        hStack[i] = new THStack(Form("hStack%d", i), "");
 
         // print info about histograms
         std::cout << "#####" << std::endl;
@@ -990,7 +1001,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (drawOptions.at(iOption) != CONFIGPARSER::nullInput)  {
                 drawOption = drawOptions.at(iOption).c_str();
             }
-            if (drawOption.find("hist") != std::string::npos) {
+            if (drawOption.find("stack") != std::string::npos) {
+                // parse the index of stacked hist.
+                std::string iStackStr = drawOption.substr(drawOption.find("stack") + 5, 1);
+                int iStack = std::atoi(iStackStr.c_str());
+                indexDrawStack[i] = iStack;
+            }
+            else if (drawOption.find("hist") != std::string::npos) {
                 indexDrawOptionHist.push_back(i);   // book histograms with drawOption = "hist" and draw them first
             }
             // https://root.cern.ch/doc/master/classTObject.html#abe2a97d15738d5de00cd228e0dc21e56
@@ -1204,6 +1221,25 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
     }
 
+    for (int i = 0; i < nHistos; ++i) {
+
+        int iTHStack = indexDrawStack[i];
+        if (iTHStack == -1)  continue;
+
+        std::string drawOption = "";
+        if (nDrawOptions > 0) {
+
+            int iOption = (nDrawOptions == nHistos) ? i : 0;
+            if (drawOptions.at(iOption) != CONFIGPARSER::nullInput)  {
+                drawOption = drawOptions.at(iOption).c_str();
+            }
+        }
+
+        std::string stackOption = Form("stack%d", iTHStack);
+        std::string otherDrawOption = replaceAll(drawOption, stackOption, "");
+        hStack[iTHStack]->Add(h[i], otherDrawOption.c_str());
+    }
+
     int nIndexDrawOptionHist = indexDrawOptionHist.size();
     for (int i = 0; i < nIndexDrawOptionHist; ++i) {
         // draw first the histograms with drawOption = "hist" so that plots with markers are not overwritten.
@@ -1237,6 +1273,15 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             hTmp = (TH1D*)h[i]->Clone();
             hTmp->Reset();
             hTmp->Draw();
+        }
+
+        int iTHStack = indexDrawStack[i];
+        if (iTHStack >= 0) {
+            if (!hStackDrawn[iTHStack]) {
+                hStack[iTHStack]->Draw(Form("%s same", hStack[iTHStack]->GetDrawOption()));
+                hStackDrawn[iTHStack] = true;
+            }
+            hDrawn[i] = true;
         }
 
         if (!hDrawn[i]) {
