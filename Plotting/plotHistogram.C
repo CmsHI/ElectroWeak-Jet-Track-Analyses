@@ -1201,8 +1201,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
             int nTH1_perPad = TH1s_perPad.at(iPad);
 
-            double histMin = getMinimumTH1s((TH1D**)h, nTH1_perPad, iStart);
-            double histMax = getMaximumTH1s((TH1D**)h, nTH1_perPad, iStart);
+            double histMin = getMinimumTH1s((TH1**)h, nTH1_perPad, iStart);
+            double histMax = getMaximumTH1s((TH1**)h, nTH1_perPad, iStart);
             int setLogyTmp = setLogy.at(0);
             if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
             if (setLogyTmp == 0) h[iStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
@@ -1519,8 +1519,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
 
             if (yMin_lowerPadTmp > yMax_lowerPadTmp) {
-                double histMin = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
-                double histMax = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
+                double histMin = getMinimumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
+                double histMax = getMaximumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
                 h_lowerPad[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
                 h_lowerPad[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1);
             }
@@ -1565,8 +1565,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             }
             // add TLine to the lower pad
             TLine* line_vertical_lowerPad[nTLines_vertical_lowerPad];
-            double ymin_lowerPad = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
-            double ymax_lowerPad = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
+            double ymin_lowerPad = getMinimumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
+            double ymax_lowerPad = getMaximumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
             bool lineVerticalLowerPadExists = (std::find(TLines_vertical_lowerPad_PadIndices.begin(), TLines_vertical_lowerPad_PadIndices.end(), iPad) != TLines_vertical_lowerPad_PadIndices.end());
             if (lineVerticalLowerPadExists && nHistos_lowerPad > 0) {
                 for (int iLine = 0; iLine < nTLines_vertical_lowerPad; ++iLine) {

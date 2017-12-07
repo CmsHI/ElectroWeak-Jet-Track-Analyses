@@ -26,8 +26,8 @@ void fillTH1fromTGraph(TH1* h, TGraph* graph);
 void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
-double getMinimumTH1s(TH1D* h[], int nHistos, int start = 0);
-double getMaximumTH1s(TH1D* h[], int nHistos, int start = 0);
+double getMinimumTH1s(TH1* h[], int nHistos, int start = 0);
+double getMaximumTH1s(TH1* h[], int nHistos, int start = 0);
 void setConstantBinContent(TH1* h, double constantContent);
 void setConstantBinError(TH1* h, double constantError);
 void setConstantBinContentError(TH1* h, double constantContent, double  constantError);
@@ -222,7 +222,7 @@ void setTH1_efficiency(TH1* h, float titleOffsetX, float titleOffsetY) {
 /*
  * get minimum of an array of TH1D
  */
-double getMinimumTH1s(TH1D* h[], int nHistos, int start) {
+double getMinimumTH1s(TH1* h[], int nHistos, int start) {
 
     double result = h[start]->GetMinimum();
     for (int i = start+1; i < start+nHistos; ++i) {
@@ -235,7 +235,7 @@ double getMinimumTH1s(TH1D* h[], int nHistos, int start) {
 /*
  * get maximum of an array of TH1D
  */
-double getMaximumTH1s(TH1D* h[], int nHistos, int start) {
+double getMaximumTH1s(TH1* h[], int nHistos, int start) {
 
     double result = h[start]->GetMaximum();
     for (int i = start+1; i < start+nHistos; ++i) {
