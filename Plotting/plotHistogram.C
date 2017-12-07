@@ -843,14 +843,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     // extra
     std::vector<int> indexDrawOptionHist;   // book histograms with drawOption = "hist" and draw them first
                                             // so that plots with markers are not overwritten.
-    bool hDrawn[nHistos];       // true if the histogram is already drawn.
+    std::vector<bool> hDrawn(nHistos, false);       // true if the histogram is already drawn.
 
-    TFile* f[nHistos];
+    std::vector<TFile*> f(nHistos, 0);
     TH1::SetDefaultSumw2();
-    TH1* h[nHistos];
-    TH1* hErr[nHistos];
-    TH1* hSysp[nHistos];
-    TH1* hSysm[nHistos];
+    std::vector<TH1*> h(nHistos, 0);
+    std::vector<TH1*> hErr(nHistos, 0);
+    std::vector<TH1*> hSysp(nHistos, 0);
+    std::vector<TH1*> hSysm(nHistos, 0);
 
     TH1* hTmp = 0;
 
@@ -859,14 +859,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     // first read all the objects, then make the modifications
     for (int i=0; i<nHistos; ++i) {
-        hDrawn[i] = false;
-
         std::string TH1_path = TH1_paths.at(i).c_str();
         std::string inputFile = inputFiles.at(0).c_str();
         if (nInputFiles == nHistos)  inputFile = inputFiles.at(i).c_str();
 
         f[i] = TFile::Open(inputFile.c_str());
-        h[i] = 0;
         h[i] = (TH1*)f[i]->Get(TH1_path.c_str());
         if(h[i] == 0){
             std::cout << "No histogram found: " << TH1_path.c_str() << " file: " << inputFile.c_str() << std::endl;
@@ -877,7 +874,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         h[i]->SetName(Form("h_%d", i));
         h[i]->SetStats(false);
 
-        hErr[i] = 0;
         if (nHistosErr == nHistos) {
             std::string TH1error_path = TH1error_paths.at(i).c_str();
             if (TH1error_path != CONFIGPARSER::nullInput) {
@@ -893,7 +889,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             }
         }
 
-        hSysp[i] = 0;
         if (nHistosSysp == nHistos) {
             std::string TH1sysp_path = TH1sysp_paths.at(i).c_str();
             if (TH1sysp_path != CONFIGPARSER::nullInput) {
@@ -905,7 +900,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 hSysp[i]->SetName(Form("hSysp_%d", i));
             }
         }
-        hSysm[i] = 0;
         if (nHistosSysm == nHistos) {
             std::string TH1sysm_path = TH1sysm_paths.at(i).c_str();
             if (TH1sysm_path != CONFIGPARSER::nullInput) {
@@ -1201,8 +1195,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             int iStart = std::find(TH1_padIndices.begin(), TH1_padIndices.end(), iPad) - TH1_padIndices.begin();
             int nTH1_perPad = TH1s_perPad.at(iPad);
 
-            double histMin = getMinimumTH1s((TH1**)h, nTH1_perPad, iStart);
-            double histMax = getMaximumTH1s((TH1**)h, nTH1_perPad, iStart);
+            double histMin = getMinimumTH1s(h, nTH1_perPad, iStart);
+            double histMax = getMaximumTH1s(h, nTH1_perPad, iStart);
             int setLogyTmp = setLogy.at(0);
             if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
             if (setLogyTmp == 0) h[iStart]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
@@ -1457,7 +1451,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             //      ==> h_diff[0] = h1-h2, h_diff[1] = h3-h4
             if (nHistos % 2 == 0)   nHistos_lowerPad = nTH1_perPad/2;
 
-            TH1D* h_lowerPad[nHistos_lowerPad];
+            std::vector<TH1*> h_lowerPad(nHistos_lowerPad, 0);
             for (int i=0; i<nHistos_lowerPad; ++i) {
 
                 h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
@@ -1519,8 +1513,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
 
             if (yMin_lowerPadTmp > yMax_lowerPadTmp) {
-                double histMin = getMinimumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
-                double histMax = getMaximumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
+                double histMin = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
+                double histMax = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
                 h_lowerPad[0]->SetMinimum(histMin-TMath::Abs(histMin)*0.1);
                 h_lowerPad[0]->SetMaximum(histMax+TMath::Abs(histMax)*0.1);
             }
@@ -1565,8 +1559,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             }
             // add TLine to the lower pad
             TLine* line_vertical_lowerPad[nTLines_vertical_lowerPad];
-            double ymin_lowerPad = getMinimumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
-            double ymax_lowerPad = getMaximumTH1s((TH1**)h_lowerPad, nHistos_lowerPad);
+            double ymin_lowerPad = getMinimumTH1s(h_lowerPad, nHistos_lowerPad);
+            double ymax_lowerPad = getMaximumTH1s(h_lowerPad, nHistos_lowerPad);
             bool lineVerticalLowerPadExists = (std::find(TLines_vertical_lowerPad_PadIndices.begin(), TLines_vertical_lowerPad_PadIndices.end(), iPad) != TLines_vertical_lowerPad_PadIndices.end());
             if (lineVerticalLowerPadExists && nHistos_lowerPad > 0) {
                 for (int iLine = 0; iLine < nTLines_vertical_lowerPad; ++iLine) {

@@ -27,7 +27,9 @@ void setTH1_energyScale(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 
 void setTH1_energyWidth(TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 void setTH1_efficiency (TH1* h, float titleOffsetX = 1.25, float titleOffsetY = 1.75);
 double getMinimumTH1s(TH1* h[], int nHistos, int start = 0);
+double getMinimumTH1s(std::vector<TH1*> vecH, int nHistos, int start = 0);
 double getMaximumTH1s(TH1* h[], int nHistos, int start = 0);
+double getMaximumTH1s(std::vector<TH1*> vecH, int nHistos, int start = 0);
 void setConstantBinContent(TH1* h, double constantContent);
 void setConstantBinError(TH1* h, double constantError);
 void setConstantBinContentError(TH1* h, double constantContent, double  constantError);
@@ -220,7 +222,7 @@ void setTH1_efficiency(TH1* h, float titleOffsetX, float titleOffsetY) {
 }
 
 /*
- * get minimum of an array of TH1D
+ * get minimum of an array of TH1
  */
 double getMinimumTH1s(TH1* h[], int nHistos, int start) {
 
@@ -233,7 +235,17 @@ double getMinimumTH1s(TH1* h[], int nHistos, int start) {
 }
 
 /*
- * get maximum of an array of TH1D
+ * get minimum of a vector of TH1
+ */
+double getMinimumTH1s(std::vector<TH1*> vecH, int nHistos, int start) {
+
+    TH1* arrH[nHistos];
+    std::copy(vecH.begin() + start, vecH.begin() + start + nHistos, arrH);
+    return getMinimumTH1s(arrH, nHistos);
+}
+
+/*
+ * get maximum of an array of TH1
  */
 double getMaximumTH1s(TH1* h[], int nHistos, int start) {
 
@@ -243,6 +255,16 @@ double getMaximumTH1s(TH1* h[], int nHistos, int start) {
     }
 
     return result;
+}
+
+/*
+ * get maximum of a vector of TH1
+ */
+double getMaximumTH1s(std::vector<TH1*> vecH, int nHistos, int start) {
+
+    TH1* arrH[nHistos];
+    std::copy(vecH.begin() + start, vecH.begin() + start + nHistos, arrH);
+    return getMaximumTH1s(arrH, nHistos);
 }
 
 /*
