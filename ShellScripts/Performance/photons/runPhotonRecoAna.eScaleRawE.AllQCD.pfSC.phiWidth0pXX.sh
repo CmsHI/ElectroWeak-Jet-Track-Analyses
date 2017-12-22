@@ -11,6 +11,10 @@ inputList=(
 "Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC.list"
 "Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p20.list"
 "Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p20.list"
+"Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p30.list"
+"Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p30.list"
+"Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p40.list"
+"Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p40.list"
 );
 
 outDir="/export/d00/scratch/"$USER"/EWJTA-out/Performance/photons/"
@@ -21,12 +25,20 @@ $outDir"photonRecoAna_eScaleRawE_SIG_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.ro
 $outDir"photonRecoAna_eScaleRawE_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
 $outDir"photonRecoAna_eScaleRawE_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
 $outDir"photonRecoAna_eScaleRawE_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
+$outDir"photonRecoAna_eScaleRawE_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
+$outDir"photonRecoAna_eScaleRawE_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
+$outDir"photonRecoAna_eScaleRawE_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
+$outDir"photonRecoAna_eScaleRawE_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
 );
 
 configList=(
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.conf"
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.conf"
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.conf"
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.conf"
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.conf"
 "Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.conf"
