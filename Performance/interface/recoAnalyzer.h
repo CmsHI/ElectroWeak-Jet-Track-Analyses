@@ -1982,8 +1982,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         int columns = calcNcolumns(nH1DsliceY);
         int rows = calcNrows(nH1DsliceY);
 
-        double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, 0);
-        double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, 0);
+        double normCanvasHeight = calcNormCanvasHeight(rows, 0.8, bottomMargin, topMargin, 0);
+        double normCanvasWidth = calcNormCanvasWidth(columns, 0.8, leftMargin, rightMargin, 0);
         c = new TCanvas(Form("cnv_projY_%s", name.c_str()),"",windowWidth,windowHeight);
         setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
         setCanvasFinal(c);
