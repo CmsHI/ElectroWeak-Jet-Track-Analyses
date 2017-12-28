@@ -6,9 +6,9 @@
 #include "TGraphAsymmErrors.h"
 #include "TLegend.h"
 
-#include "plotUtils.C"
-#include "utilsMV.C"
-#include "utils.C"
+#include "plotUtils.h"
+#include "utilsMV.h"
+#include "utils.h"
 
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
 
