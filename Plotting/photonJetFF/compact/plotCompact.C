@@ -12,7 +12,7 @@
 
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
 
-void plotHIN16014(int ifig = 1) {
+void plotCompact(int ifig = 1) {
   
   TString tag = "#sqrt{s_{NN}} = 5.02 TeV";
 
@@ -357,8 +357,8 @@ void plotHIN16014(int ifig = 1) {
   }
   leg2->Draw();
 
-  c1->SaveAs(Form("HIN16014Fig%d.png",ifig));
-  c1->SaveAs(Form("HIN16014Fig%d.pdf",ifig));
+  c1->SaveAs(Form("fig%d.png",ifig));
+  c1->SaveAs(Form("fig%d.pdf",ifig));
 }
 
 TGraphErrors *MakeSystGraph(TH1* hC, TH1 *hS, double we) {
