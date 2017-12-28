@@ -69,7 +69,7 @@ Int_t GetFillColor(Int_t i) {
 
 Int_t GetMarker(Int_t i) {
   const Int_t nc = 8;
-  Int_t markerStyle[nc] = {20,21,33,34,24,25,27,28};
+  Int_t markerStyle[nc] = {20,21,33,29,24,25,27,30};
   if(i<nc) return markerStyle[i];
   else     return 20+i;
 }
