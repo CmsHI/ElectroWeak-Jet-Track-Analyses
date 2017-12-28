@@ -1181,7 +1181,7 @@ TGraphErrors *CalcRatioGraphs(TGraphErrors *gr1=0, TGraphErrors *gr2=0, Bool_t b
     gr1->GetPoint(j,x1,y1);
     for(int i=0; i<gr2->GetN(); i++) {
       gr2->GetPoint(i,x2,y2);
-      if(abs(x1-x2)<1e-6) {
+      if(std::fabs(x1-x2)<1e-6) {
         if(bPrint) Printf("CalcRatioGraphs x1: %f x2: %f",x1,x2);
 	//double diff = x2-x1;
 	//if(diff<5. && diff>0.) {

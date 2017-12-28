@@ -643,11 +643,11 @@ void polint(const Double_t xa[], const Double_t ya[], const Int_t n, const Float
   Float_t den,dif,dift,ho,hp,w;
   Float_t *c, *d;
 
-  dif=fabs(x-xa[0]);
+  dif=std::fabs(x-xa[0]);
   c=new Float_t[n];
   d=new Float_t[n];
   for (i=0; i<n; i++) {
-    if ( (dift=fabs(x-xa[i])) < dif) {
+    if ( (dift=std::fabs(x-xa[i])) < dif) {
       ns=i;
       dif=dift;
     }
@@ -821,11 +821,11 @@ TGraphErrors *diff_gr(TGraphErrors *gr1, TGraph *gr2, Int_t err_flag=0, Float_t 
     gr1->GetPoint(i1,x1,y1);
     Double_t x2,y2;
     gr2->GetPoint(i2,x2,y2);
-    while (i2 < gr2->GetN() && fabs(x2-x1) > delta*x1 && x2*(1+delta)<x1) {
+    while (i2 < gr2->GetN() && std::fabs(x2-x1) > delta*x1 && x2*(1+delta)<x1) {
       i2++;
       gr2->GetPoint(i2,x2,y2);
     }
-    if (fabs(x2-x1) < delta*x1) {
+    if (std::fabs(x2-x1) < delta*x1) {
       diff_gr->SetPoint(i_point,x1,y1-y2);
       Float_t gr1_err=gr1->GetErrorY(i1);
       Float_t gr2_err=gr2->GetErrorY(i2);
@@ -880,11 +880,11 @@ TGraph *add_graphs(TGraph *gr1, TGraph *gr2) {
   for (Int_t i=0; i < gr2->GetN(); i++) {
     Double_t x2,y2;
     gr2->GetPoint(i,x2,y2);
-    while ( np < gr_sum->GetN() && x1 < x2 && fabs(x1-x2)/x2 > 1e-3) {
+    while ( np < gr_sum->GetN() && x1 < x2 && std::fabs(x1-x2)/x2 > 1e-3) {
       np++;
       gr_sum->GetPoint(np,x1,y1);
     }
-    if (fabs(x1-x2)/x2 < 1e-3) {
+    if (std::fabs(x1-x2)/x2 < 1e-3) {
       gr_sum->SetPoint(np,x1,y1+y2);
     }
   }
@@ -910,11 +910,11 @@ TGraphErrors *add_graphs(TGraphErrors *gr1, TGraphErrors *gr2) {
   for (Int_t i=0; i < gr2->GetN(); i++) {
     Double_t x2,y2;
     gr2->GetPoint(i,x2,y2);
-    while ( np < gr_sum->GetN() && x1 < x2 && fabs(x1-x2)/x2 > 1e-3) {
+    while ( np < gr_sum->GetN() && x1 < x2 && std::fabs(x1-x2)/x2 > 1e-3) {
       np++;
       gr_sum->GetPoint(np,x1,y1);
     }
-    if (fabs(x1-x2)/x2 < 1e-3) {
+    if (std::fabs(x1-x2)/x2 < 1e-3) {
       gr_sum->SetPoint(np,x1,y1+y2);
       gr_sum->SetPointError(np,gr_sum->GetErrorX(np),sqrt(gr2->GetErrorY(i)*gr2->GetErrorY(i)+gr_sum->GetErrorY(np)*gr_sum->GetErrorY(np)));
     }
@@ -941,11 +941,11 @@ TGraphAsymmErrors *add_graphs(TGraphAsymmErrors *gr1, TGraphAsymmErrors *gr2) {
   for (Int_t i=0; i < gr2->GetN(); i++) {
     Double_t x2,y2;
     gr2->GetPoint(i,x2,y2);
-    while ( np < gr_sum->GetN() && x1 < x2 && fabs(x1-x2)/x2 > 1e-3) {
+    while ( np < gr_sum->GetN() && x1 < x2 && std::fabs(x1-x2)/x2 > 1e-3) {
       np++;
       gr_sum->GetPoint(np,x1,y1);
     }
-    if (fabs(x1-x2)/x2 < 1e-3) {
+    if (std::fabs(x1-x2)/x2 < 1e-3) {
       gr_sum->SetPoint(np,x1,y1+y2);
       gr_sum->SetPointError(np,gr_sum->GetErrorXlow(np),gr_sum->GetErrorXhigh(np),
 			    sqrt(gr2->GetErrorYlow(i)*gr2->GetErrorYlow(i)+gr_sum->GetErrorYlow(np)*gr_sum->GetErrorYlow(np)),
@@ -966,7 +966,7 @@ TGraphErrors *make_sys_gr(TH1*low_h, TH1*high_h) {
     Float_t low = low_h->GetBinContent(i_bin+1);
     Float_t high = high_h->GetBinContent(i_bin+1);
     sys_gr->SetPoint(i_bin, low_h->GetBinCenter(i_bin+1), 0.5*(low + high));
-    sys_gr->SetPointError(i_bin, 0.5*low_h->GetBinWidth(i_bin+1), 0.5*fabs(high - low));
+    sys_gr->SetPointError(i_bin, 0.5*low_h->GetBinWidth(i_bin+1), 0.5*std::fabs(high - low));
   }
   return sys_gr;
 }
