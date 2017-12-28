@@ -3,9 +3,12 @@
 #include <TH3F.h>
 #include <TH1F.h>
 #include <TH1D.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
 #include <TGraphAsymmErrors.h>
 #include <TLegend.h>
 #include <TLine.h>
+#include <TPad.h>
 
 #include "plotUtils.h"
 #include "utilsMV.h"
@@ -394,7 +397,7 @@ TGraphErrors *MakeSystGraph(TH1* hC, TH1 *hS, double we) {
     double y = hC->GetBinContent(ic);
 
     double xerr = hS->GetXaxis()->GetBinWidth(ic)/2./we;
-    double yerr = abs(hS->GetBinContent(ic));
+    double yerr = std::fabs(hS->GetBinContent(ic));
 
     gr->SetPoint(gr->GetN(),x,y);
     gr->SetPointError(gr->GetN()-1,xerr,yerr);
