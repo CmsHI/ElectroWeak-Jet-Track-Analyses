@@ -138,11 +138,14 @@ void plotHIN16014(int ifig = 1) {
       grXiSys[k][i]->SetMarkerColor(GetColor(colorCode));
       grXiSys[k][i]->SetMarkerStyle(GetMarker(k));
       grXiSys[k][i]->SetMarkerSize(1.);
+      if(k==0) {
+          grXiSys[k][i]->SetMarkerSize(grXiSys[k][i]->GetMarkerSize()*1.2);
+      }
 
       if(k==0)
-        grXiSys[k][i]->SetMarkerStyle(24);
+        grXiSys[k][i]->SetMarkerStyle(kOpenCircle);
       else
-        grXiSys[k][i]->SetMarkerStyle(25);
+        grXiSys[k][i]->SetMarkerStyle(kFullSquare);
 
       if(k==0) {
         grXiSys[k][i]->SetFillStyle(0);
@@ -164,11 +167,16 @@ void plotHIN16014(int ifig = 1) {
       hXi[k][i]->SetLineColor(GetColor(colorCode));
       hXi[k][i]->SetMarkerColor(GetColor(colorCode));
 
-      if(k==0)
-        hXi[k][i]->SetMarkerStyle(24);
+      if(k==0) {
+          hXi[k][i]->SetMarkerStyle(kOpenCircle);
+      }
       else
-        hXi[k][i]->SetMarkerStyle(25);
+          hXi[k][i]->SetMarkerStyle(kFullSquare);
+
       hXi[k][i]->SetMarkerSize(1.1);
+      if(k==0) {
+          hXi[k][i]->SetMarkerSize(hXi[k][i]->GetMarkerSize()*1.2);
+      }
       hXi[k][i]->Draw("same EX0");
     }
 
