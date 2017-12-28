@@ -259,11 +259,20 @@ void plotHIN16014(int ifig = 1) {
   text2.SetTextColor(1);
 
   text2.DrawLatex(0.5-0.2,0.-0.1,"0");
+  text2.SetTextColor(GetColor(1));
   text2.DrawLatex(0.5-0.2,1.-0.1,"1");
+  text2.DrawLatex(4.5+0.1,2.-0.1,"2");
+  text2.SetTextColor(GetColor(2));
   text2.DrawLatex(0.5-0.2,2.-0.1,"1");
+  text2.DrawLatex(4.5+0.1,3.-0.1,"2");
+  text2.SetTextColor(GetColor(3));
   text2.DrawLatex(0.5-0.2,3.-0.1,"1");
+  text2.DrawLatex(4.5+0.1,4.-0.1,"2");
+  text2.SetTextColor(GetColor(4));
   text2.DrawLatex(0.5-0.2,4.-0.1,"1");
-  text2.DrawLatex(0.5-0.2,5.-0.1,"2");
+  text2.DrawLatex(4.5+0.1,5.-0.1,"2");
+  text2.SetTextColor(1);
+  //text2.DrawLatex(0.5-0.2,5.-0.1,"2");
 
   //the y-axis breakers
   TLine *ld1 = new TLine(0.5-0.1,1.4,0.5+0.08,1.5);
