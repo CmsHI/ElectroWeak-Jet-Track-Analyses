@@ -1,21 +1,24 @@
-#include "TFile.h"
-#include "TF1.h"
-#include "TRandom3.h"
-#include "TH1.h"
-#include "TLegend.h"
-#include "TH2.h"
-#include "TStyle.h"
-#include "TROOT.h"
-#include "TSystem.h"
-#include "TCanvas.h"
-#include "TGraph.h"
-#include "TLatex.h"
-#include "Riostream.h"
-#include "TMath.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
-#include "TH1.h"
-#include "TMath.h"
+#include <TFile.h>
+#include <TF1.h>
+#include <TRandom3.h>
+#include <TH1.h>
+#include <TLegend.h>
+#include <TH2.h>
+#include <TStyle.h>
+#include <TROOT.h>
+#include <TSystem.h>
+#include <TCanvas.h>
+#include <TGraph.h>
+#include <TLatex.h>
+#include <Riostream.h>
+#include <TMath.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TH1.h>
+#include <TMath.h>
+#include <THnSparse.h>
+
+#include <iostream>
 #include <vector>
 
 double Median(const TH1D * h1) { 
@@ -188,7 +191,7 @@ Double_t calc_Rn(TGraph *grOutgoingSpectrum,Float_t p0,Float_t Abs, Float_t pow_
       Rn+=TMath::Power(x,pow_n-1.)*y*TMath::Abs(xold-x);//0.5*(yold+)
       xold=x;
     }
-  //Rn+=(double)Abs;
+  Rn+=(double)Abs;
   return Rn;
 }
 
@@ -204,7 +207,7 @@ TGraph *GetOutgoingSpectrum(TGraph *grPdE, Double_t EParton)
   return grOutgoingSpectrum;
 }
 
-Double_t calc_Rn_FromPdE1E(TH1F *hPdE1E=0,Double_t p0=0,Double_t Abs=0, Float_t pow_n=7., Bool_t width=kFALSE)
+Double_t calc_Rn_FromPdE1E(TH1F *hPdE1E=0,Double_t p0=0, Float_t pow_n=7., Bool_t width=kFALSE)
 {
   double Rn = (double)p0;
   double x,y;
@@ -232,7 +235,7 @@ Float_t calc_R(TGraph *rad_gr = 0, Float_t p0 = 0., Float_t pow_n = 8) {
   mean_dE += p0;
   sum_w = p0;
 
-  cout << "R from dE=0 " << mean_dE << endl;
+  std::cout << "R from dE=0 " << mean_dE << std::endl;
   Double_t old_x, x;
   Double_t old_p, p;
   rad_gr->GetPoint(0,old_x,old_p);
@@ -242,11 +245,11 @@ Float_t calc_R(TGraph *rad_gr = 0, Float_t p0 = 0., Float_t pow_n = 8) {
     sum_w += old_p*(x-old_x);
     mean_dE += old_p*(x-old_x)*pow_x;
     if (old_x < 0.1 && x > 0.1)
-      cout << "R up to dE/E = " << x << "  : " << mean_dE << endl;
+      std::cout << "R up to dE/E = " << x << "  : " << mean_dE << std::endl;
     old_x = x;
     old_p = p;
   }
-  cout << "sum_w " << sum_w << endl;
+  std::cout << "sum_w " << sum_w << std::endl;
   return mean_dE;
 }
 
@@ -260,7 +263,7 @@ Double_t calc_mean_de(TGraph *rad_gr = 0, Double_t p0 = 0.,Double_t Emax = 1e6) 
 //   mean_dE += p1;
 //   sum_w = p0+p1;
   sum_w = p0;
-  //cout << "Discrete part: mean_dE " << mean_dE << " p " << sum_w << endl;
+  //std::cout << "Discrete part: mean_dE " << mean_dE << " p " << sum_w << std::endl;
 
   Double_t old_dE, dE;
   Double_t old_p, p;
@@ -271,21 +274,21 @@ Double_t calc_mean_de(TGraph *rad_gr = 0, Double_t p0 = 0.,Double_t Emax = 1e6) 
   for (Int_t i = 0; i < rad_gr->GetN(); i++) {
     rad_gr->GetPoint(i,dE,p);
     //    if(dE>Emax && Emax!=1e6) continue;
-    //    cout << "p: " << p << "\tsum_w: " << sum_w << endl;
+    //    std::cout << "p: " << p << "\tsum_w: " << sum_w << std::endl;
     if(dE>=Emax && j==0)
       {
 	p = 1.-sum_w;
-	cout << "p dE>" << Emax << ": " << p << "\tsum_w: " << sum_w <<endl;
+	std::cout << "p dE>" << Emax << ": " << p << "\tsum_w: " << sum_w << std::endl;
 	j++;
       }
     if(dE>Emax && j>0) continue;
     sum_w += p*(dE-old_dE);
     mean_dE += p*(dE-old_dE)*dE;
-    //cout << "ddE " << dE-old_dE << " dsumw " << old_p*(dE-old_dE) << " sum_w " << sum_w << endl;
+    //std::cout << "ddE " << dE-old_dE << " dsumw " << old_p*(dE-old_dE) << " sum_w " << sum_w << std::endl;
     old_dE = dE;
     old_p = p;
   }
-  //  cout << "mean_dE " << mean_dE << " sum_w " << sum_w << endl;
+  //  std::cout << "mean_dE " << mean_dE << " sum_w " << sum_w << std::endl;
   return mean_dE/sum_w;
 }
 
@@ -299,13 +302,12 @@ Double_t calc_mean_de(TH1F *hrad = 0, Double_t p0 = 0.,Double_t Emax = 1e6) {
 //   mean_dE += p1;
 //   sum_w = p0+p1;
   sum_w = p0;
-  //cout << "Discrete part: mean_dE " << mean_dE << " p " << sum_w << endl;
+  //std::cout << "Discrete part: mean_dE " << mean_dE << " p " << sum_w << std::endl;
 
   int j = 0;
   Double_t old_dE, dE;
-  Double_t old_p, p;
+  Double_t p;
   old_dE = hrad->GetBinCenter(0);
-  old_p=hrad->GetBinContent(0);
   //double Emax = hrad->GetBinCenter( hrad->GetNbinsX());
   for (Int_t i = 0; i < hrad->GetNbinsX(); i++) {
     dE = (double)hrad->GetBinCenter(i);
@@ -314,7 +316,7 @@ Double_t calc_mean_de(TH1F *hrad = 0, Double_t p0 = 0.,Double_t Emax = 1e6) {
     if(dE>=Emax && j==0)
       {
 	p = 1.-sum_w;
-	cout << "p dE>" << Emax << ": " << p << "\tsum_w: " << sum_w << endl;
+	std::cout << "p dE>" << Emax << ": " << p << "\tsum_w: " << sum_w << std::endl;
 	j++;
       }
     if(dE>Emax && j>0) continue;
@@ -322,11 +324,10 @@ Double_t calc_mean_de(TH1F *hrad = 0, Double_t p0 = 0.,Double_t Emax = 1e6) {
     //     mean_dE += old_p*(dE-old_dE)*dE;
     sum_w += p*(dE-old_dE);
     mean_dE += p*(dE-old_dE)*dE;
-    //cout << "ddE " << dE-old_dE << " dsumw " << old_p*(dE-old_dE) << " sum_w " << sum_w << endl;
+    //std::cout << "ddE " << dE-old_dE << " dsumw " << old_p*(dE-old_dE) << " sum_w " << sum_w << std::endl;
     old_dE = dE;
-    old_p = p;
   }
-  //cout << "mean_dE " << mean_dE << " sum_w " << sum_w << endl;
+  //std::cout << "mean_dE " << mean_dE << " sum_w " << sum_w << std::endl;
   return mean_dE/sum_w;
 }
 
@@ -411,7 +412,7 @@ Double_t calc_mean_range_width(TGraph *gr = 0, int minbin = 0, int maxbin = 100)
 // 	J03 += 0.5*(y+yold)*(x-xold);
 // 	J13 += 0.5*(y+yold)*l*(x-xold);
 //       }
-//       //      cout << "l: " << l << "\tqhat: " << y << endl;
+//       //      std::cout << "l: " << l << "\tqhat: " << y << std::endl;
 
 //       xold=x;
 //       yold=y;
@@ -478,7 +479,7 @@ void add_histo(TH1 *h1, Float_t a) {
 
 void DivideGraphWithBinWidth(TGraphErrors *gr) {
   for (Int_t i=0; i<gr->GetN(); i++) {
-    Double_t x,y,xerr,yerr;
+    Double_t x,y;
     gr->GetPoint(i,x,y);
     gr->SetPoint(i,x,y/(2.*gr->GetErrorX(i)));
     gr->SetPointError(i,gr->GetErrorX(i),gr->GetErrorY(i)/(gr->GetErrorX(i)*2.));
@@ -487,7 +488,7 @@ void DivideGraphWithBinWidth(TGraphErrors *gr) {
 
 void MultiplyGraphWithBinWidth(TGraphErrors *gr) {
   for (Int_t i=0; i<gr->GetN(); i++) {
-    Double_t x,y,xerr,yerr;
+    Double_t x,y;
     gr->GetPoint(i,x,y);
     gr->SetPoint(i,x,y*2.*gr->GetErrorX(i));
     gr->SetPointError(i,gr->GetErrorX(i),gr->GetErrorY(i)*gr->GetErrorX(i)*2.);
@@ -503,10 +504,10 @@ TGraph *add_graphs(TGraph *gr1, TGraph *gr2) {
     gr1->GetPoint(j,x1,y1);
     for(int i=0; i<gr2->GetN(); i++) {
       gr2->GetPoint(i,x2,y2);
-      //      cout << "x1: " << x1 << "\ty1: " << y1 << endl;
+      //      std::cout << "x1: " << x1 << "\ty1: " << y1 << std::endl;
       if(x1==x2) {
-	//cout << "x: " << x1 << "\ty: " << y1 << endl;
-	//cout << "x2: " << x2 << "\ty2: " << y2 << endl;
+	//std::cout << "x: " << x1 << "\ty: " << y1 << std::endl;
+	//std::cout << "x2: " << x2 << "\ty2: " << y2 << std::endl;
 	newgraph->SetPoint(newgraph->GetN(),x1,y1+y2);
       }
     }
@@ -525,10 +526,10 @@ TGraphErrors *add_graphs(TGraphErrors *gr1, TGraphErrors *gr2) {
     gr1->GetPoint(j,x1,y1);
     for(int i=0; i<gr2->GetN(); i++) {
       gr2->GetPoint(i,x2,y2);
-      //      cout << "x1: " << x1 << "\ty1: " << y1 << endl;
+      //      std::cout << "x1: " << x1 << "\ty1: " << y1 << std::endl;
       if(x1==x2) {
-	//cout << "x: " << x1 << "\ty: " << y1 << endl;
-	//cout << "x2: " << x2 << "\ty2: " << y2 << endl;
+	//std::cout << "x: " << x1 << "\ty: " << y1 << std::endl;
+	//std::cout << "x2: " << x2 << "\ty2: " << y2 << std::endl;
 	newgraph->SetPoint(newgraph->GetN(),x1,y1+y2);
 	double error2 = gr1->GetErrorY(j)*gr1->GetErrorY(j)+gr2->GetErrorY(i)*gr2->GetErrorY(i);
 	if(error2>0.)
@@ -573,7 +574,7 @@ TGraph *divide_graphs_int(TGraph *num, TGraph *denom) {
     }
     if (x <= x1+(x2-x1)*1.05 && x > x1) {  // allow small tolerance for last point
       y_int = (x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2;
-      //cout << "x " << x << " x1 " << x1 << " x2 " << x2 << " y " << y << " y_int " << y_int << endl;
+      //std::cout << "x " << x << " x1 " << x1 << " x2 " << x2 << " y " << y << " y_int " << y_int << std::endl;
       gr->SetPoint(gr->GetN(),x,y/y_int);
     }
   }
@@ -604,9 +605,9 @@ TGraphErrors *divide_graphs_int(TGraphErrors *num, TGraphErrors *denom) {
     }
     if (x <= x1+(x2-x1)*1.05 && x > x1) {  // allow small tolerance for last point   
       y_int = (x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2;
-      cout << "i " << i << " x " << x << " y " << y << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << " y_int " << y_int << endl;
+      std::cout << "i " << i << " x " << x << " y " << y << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << " y_int " << y_int << std::endl;
       Float_t y_int_err = sqrt(pow((x2-x)/(x2-x1)*y_err1,2)+pow((x-x1)/(x2-x1)*y_err2,2));
-      cout << "y_int " << y_int << " y_int_err " << y_int_err << " y " << y << " y_err " << y_err << endl;
+      std::cout << "y_int " << y_int << " y_int_err " << y_int_err << " y " << y << " y_err " << y_err << std::endl;
       gr->SetPoint(gr->GetN(),x,y/y_int);
       gr->SetPointError(gr->GetN()-1,0,sqrt(pow(y_err/y,2)+pow(y_int_err/y_int,2))*y/y_int);
     }
@@ -646,10 +647,6 @@ void subtract_constant_graph(TGraph *gr,Double_t constant) {
   }
 }  
 
-void calc_meanX_hist(TH1F *hist,Double_t xmin = 0., Double_t xmax = 0.) {
-
-}         
-
 TGraphErrors* divide_histos(TH1 *h1 = 0x0, TH1* h2 = 0x0, Double_t xmax=-1., Bool_t bNoErrorh2 = kFALSE) {
 
   if(!h1) { Printf("h1 doesn't exist"); return 0; }
@@ -668,12 +665,12 @@ TGraphErrors* divide_histos(TH1 *h1 = 0x0, TH1* h2 = 0x0, Double_t xmax=-1., Boo
     j = h2->FindBin(binCent);
     binWidth = h1->GetXaxis()->GetBinWidth(i);
     //    Printf("i,j: %d,%d",i,j);
-    // cout << "i,j: " << i << "," << j << "\tbinWidth: " << binWidth << " - " << h2->GetXaxis()->GetBinWidth(j) << "\tbinCent: " << binCent << " - " << h2->GetXaxis()->GetBinCenter(j) << endl;
+    // std::cout << "i,j: " << i << "," << j << "\tbinWidth: " << binWidth << " - " << h2->GetXaxis()->GetBinWidth(j) << "\tbinCent: " << binCent << " - " << h2->GetXaxis()->GetBinCenter(j) << std::endl;
     if(h1->GetBinContent(i)<1e-12) continue;
     if(h2->GetBinContent(j)>0.) {
-      //      cout << "h1->GetBinError(" << i << ") = " << h1->GetBinError(i) << "\t" << "h2->GetBinError(" << i << ") = " << h2->GetBinError(i) << endl;
+      //      std::cout << "h1->GetBinError(" << i << ") = " << h1->GetBinError(i) << "\t" << "h2->GetBinError(" << i << ") = " << h2->GetBinError(i) << std::endl;
       ratio = h1->GetBinContent(i)/h2->GetBinContent(j);
-      //      cout << "yield: " << h1->GetBinContent(i) << " / " << h2->GetBinContent(j) << endl;
+      //      std::cout << "yield: " << h1->GetBinContent(i) << " / " << h2->GetBinContent(j) << std::endl;
 
       //      error2 = (h1->GetBinContent(i)*h1->GetBinError(i))*(h1->GetBinContent(i)*h1->GetBinError(i)) + (-1.*h1->GetBinContent(i)/h2->GetBinContent(j)/h2->GetBinContent(j)*h2->GetBinError(j))*(-1.*h1->GetBinContent(i)/h2->GetBinContent(j)/h2->GetBinContent(j)*h2->GetBinError(j));
 
@@ -737,7 +734,6 @@ void createHistoFromFunction(TF1 *f1, TH1 *h1, double xmin = 0.1, bool useBinCen
     if(useBinCenter) {
       y1 = f1->Eval(binCent);
     } else {
-      double binWidth = h1->GetXaxis()->GetBinWidth(i);
       double binMin = h1->GetXaxis()->GetBinLowEdge(i);
       double binMax = h1->GetXaxis()->GetBinUpEdge(i);
       y1 = f1->Integral(binMin,binMax);
@@ -761,11 +757,11 @@ TGraphErrors* divide_histosNoErrorh2(TH1 *h1, TH1* h2) {
     binCent = h1->GetXaxis()->GetBinCenter(i);
     j = h2->FindBin(binCent);
     binWidth = h1->GetXaxis()->GetBinWidth(i);
-    cout << "i,j: " << i << "," << j << "\tbinWidth: " << binWidth << " - " << h2->GetXaxis()->GetBinWidth(j) << "\tbinCent: " << binCent << " - " << h2->GetXaxis()->GetBinCenter(j) << endl;
+    std::cout << "i,j: " << i << "," << j << "\tbinWidth: " << binWidth << " - " << h2->GetXaxis()->GetBinWidth(j) << "\tbinCent: " << binCent << " - " << h2->GetXaxis()->GetBinCenter(j) << std::endl;
     if(h2->GetBinContent(j)>0.) {
-      //      cout << "h1->GetBinError(" << i << ") = " << h1->GetBinError(i) << "\t" << "h2->GetBinError(" << i << ") = " << h2->GetBinError(i) << endl;
+      //      std::cout << "h1->GetBinError(" << i << ") = " << h1->GetBinError(i) << "\t" << "h2->GetBinError(" << i << ") = " << h2->GetBinError(i) << std::endl;
       ratio = h1->GetBinContent(i)/h2->GetBinContent(j);
-      //      cout << "yield: " << h1->GetBinContent(i) << " / " << h2->GetBinContent(j) << endl;
+      //      std::cout << "yield: " << h1->GetBinContent(i) << " / " << h2->GetBinContent(j) << std::endl;
 
       //      error2 = (h1->GetBinContent(i)*h1->GetBinError(i))*(h1->GetBinContent(i)*h1->GetBinError(i)) + (-1.*h1->GetBinContent(i)/h2->GetBinContent(j)/h2->GetBinContent(j)*h2->GetBinError(j))*(-1.*h1->GetBinContent(i)/h2->GetBinContent(j)/h2->GetBinContent(j)*h2->GetBinError(j));
 
@@ -896,12 +892,12 @@ Double_t GetFirstDerivative(TH1 *histo) {
     diff = TMath::Abs(histo->GetBinContent(i)-histo->GetBinContent(i+1))/(histo->GetBinCenter(i+1)-histo->GetBinCenter(i));
     sumDiff+=diff;
 
-    cout << "i: " << i << "\tdiff: " << diff << endl;
+    std::cout << "i: " << i << "\tdiff: " << diff << std::endl;
 
   } 
 
   //  sumDiff = sumDiff/(double)i;
-  cout << "sumDiff: " << sumDiff << endl;
+  std::cout << "sumDiff: " << sumDiff << std::endl;
 
   return sumDiff;
 }
@@ -915,7 +911,7 @@ Double_t GetRatioYAvgY(TH1 *histo) {
   histo->Fit(f1,"0");
   Double_t avgY = f1->GetParameter(0);
 
-  cout << "param lin fit: " << avgY << endl;
+  std::cout << "param lin fit: " << avgY << std::endl;
   if(avgY==0.) return 0.;
 
   Double_t ratio= 0.;
@@ -924,20 +920,20 @@ Double_t GetRatioYAvgY(TH1 *histo) {
   for(int i =1; i<histo->GetNbinsX(); i++) {
 
     double yield = histo->GetBinContent(i);
-    cout << "i: " << i << "\tyield: " << yield << endl;
+    std::cout << "i: " << i << "\tyield: " << yield << std::endl;
     if(yield>0.) {
       ratio=yield/avgY;   
       counter++;
     }
 
-    cout << "i: " << i << "\tratio: " << ratio << endl;
+    std::cout << "i: " << i << "\tratio: " << ratio << std::endl;
     sumRatio+=ratio;
   }
 
-  cout << "sumRatio: " << sumRatio << "\tcounter: " << counter << endl; 
+  std::cout << "sumRatio: " << sumRatio << "\tcounter: " << counter << std::endl;
   sumRatio = sumRatio/((double)counter);
 
-  cout << "sumRatio: " << sumRatio << endl;
+  std::cout << "sumRatio: " << sumRatio << std::endl;
 
   return sumRatio;
 }
@@ -961,14 +957,12 @@ Double_t GetMaxYTGraph(TGraph *gr) {
 Double_t GetMinYTGraph(TGraph *gr) {
 
   Double_t minY = GetMaxYTGraph(gr);
-  Double_t xminY = 0.;
   Double_t x,y;
   for(int i=0; i<gr->GetN();i++) {
 
     gr->GetPoint(i,x,y);
     if(y<minY) {
       minY=y;
-      xminY = x;
     }
   }
 
@@ -1042,7 +1036,7 @@ Double_t InterpolateFast(TGraph *gr, Double_t x) {
       if(x2>x) ipold=ipold;
       else ipold = ip;
       i++;
-      //      cout << "ipold: " << ipold << "\tip: " << ip << "\tx2: " << x2 << "\ty2: " << y2 << endl;
+      //      std::cout << "ipold: " << ipold << "\tip: " << ip << "\tx2: " << x2 << "\ty2: " << y2 << std::endl;
     }
   }
   else if(x2<x) {
@@ -1053,7 +1047,7 @@ Double_t InterpolateFast(TGraph *gr, Double_t x) {
       if(x2>x) ipold = ip;
       else ipold = ipold;
       i++;
-      //      cout << "ipold: " << ipold << "\tip: " << ip << "\tx2: " << x2 << "\ty2: " << y2 << endl;
+      //      std::cout << "ipold: " << ipold << "\tip: " << ip << "\tx2: " << x2 << "\ty2: " << y2 << std::endl;
     }
   }
 
@@ -1077,7 +1071,7 @@ Double_t InterpolateFast(TGraph *gr, Double_t x) {
     gr->GetPoint(ip2-1,xold,yold);
 
   }
-  //  cout << "For x=" << x << " interpolate between: " << xold << " and " << x2 << endl;
+  //  std::cout << "For x=" << x << " interpolate between: " << xold << " and " << x2 << std::endl;
   return ((x-xold)*y2 + (x2-x)*yold) / (x2-xold);
 
 }
@@ -1137,7 +1131,6 @@ TGraphAsymmErrors *MoveBinPosX(TGraphAsymmErrors *gr, Double_t shift =0) {
     double x,y;
     gr->GetPoint(i,x,y);
     double exlow = gr->GetErrorXlow(i);
-    double exhigh = gr->GetErrorXhigh(i);
     double eylow = gr->GetErrorYlow(i);
     double eyhigh = gr->GetErrorYhigh(i);
 
@@ -1220,11 +1213,11 @@ TGraphAsymmErrors *CalcRatioGraphs(TGraphAsymmErrors *gr1=0, TGraphErrors *gr2=0
   Double_t x1,y1,x2,y2;
   for(int j=0; j<gr1->GetN(); j++) {
     gr1->GetPoint(j,x1,y1);
-    //    cout << "x1: " << x1 << endl;
+    //    std::cout << "x1: " << x1 << std::endl;
     for(int i=0; i<gr2->GetN(); i++) {
       gr2->GetPoint(i,x2,y2);
       if(x1==x2) {
-	//	cout << "x1: " << x1 << " x2: " << x2 << "  y1: " << y1 << " y2: " << y2 << "  y1/y2: " << y1/y2 << endl;
+	//	std::cout << "x1: " << x1 << " x2: " << x2 << "  y1: " << y1 << " y2: " << y2 << "  y1/y2: " << y1/y2 << std::endl;
 	if(y2>0.){
 	  newgraph->SetPoint(newgraph->GetN(),x1,y1/y2);
 	  double A = (-1.*y1/y2/y2)*(-1.*y1/y2/y2)*gr2->GetErrorYlow(i)*gr2->GetErrorYlow(i);
@@ -1406,14 +1399,14 @@ TGraphErrors *CalcRatioGraphsOnlyLargest(TGraphErrors *gr1=0, TGraphErrors *gr2=
 	  double A = (-1.*y1/y2/y2)*(-1.*y1/y2/y2)*ey2*ey2;
 	  double B = 1./y2/y2*ey1*ey1;
 	  double error2 = A + B;
-	  if(error2==0.) cout << "huh? error is 0 x1=" << x1<< endl;
-	  // cout << "x1: " << x1 << "\terror: " << sqrt(error2) << endl;
+	  if(error2==0.) std::cout << "huh? error is 0 x1=" << x1<< std::endl;
+	  // std::cout << "x1: " << x1 << "\terror: " << sqrt(error2) << std::endl;
 	  newgraph->SetPointError(newgraph->GetN()-1,gr1->GetErrorX(j),TMath::Sqrt(error2));
 
 	}
       }
       else {
-	//	cout << "x1!=x2: " << x1 < "\t" << x2 << endl;
+	//	std::cout << "x1!=x2: " << x1 < "\t" << x2 << std::endl;
       }
     }
 
@@ -1440,7 +1433,7 @@ TGraphAsymmErrors *CalcRatioGraphsCorrelated(TGraphAsymmErrors *gr1=0, TGraphAsy
 	  double minError =0.;
 	  double maxError = 0.;
 	  
-	  //cout << "y1: " << y1 << " lowErr: " << gr1->GetErrorYlow(j) << " highErr: " <<  gr1->GetErrorYhigh(j) << endl;
+	  //std::cout << "y1: " << y1 << " lowErr: " << gr1->GetErrorYlow(j) << " highErr: " <<  gr1->GetErrorYhigh(j) << std::endl;
 	  double minRatio = (y1 - gr1->GetErrorYlow(j)) / (y2 - gr2->GetErrorYlow(i));
 	  minError += y1/y2 - minRatio;
 	  if(minError<0.) {
@@ -1454,7 +1447,7 @@ TGraphAsymmErrors *CalcRatioGraphsCorrelated(TGraphAsymmErrors *gr1=0, TGraphAsy
 	    minError=minError + -1.*maxError;
 	    maxError-=maxError;
 	  }
-	  // cout << "ratio("<< x1 << "): " << y1/y2 << " - " << minError << " + " << maxError << endl;
+	  // std::cout << "ratio("<< x1 << "): " << y1/y2 << " - " << minError << " + " << maxError << std::endl;
 
 	  newgraph->SetPointEYlow(newgraph->GetN()-1,minError);
 	  newgraph->SetPointEYhigh(newgraph->GetN()-1,maxError);
@@ -1481,11 +1474,10 @@ TGraphErrors *CalcRatioGraphHisto(TGraphErrors *gr1=0, TH1 *h2=0, Bool_t bWithou
     if(x1>h2->GetXaxis()->GetXmax()) continue;
     Int_t histoBin = h2->GetXaxis()->FindBin(x1);
     x2 = h2->GetXaxis()->GetBinCenter(histoBin);
-    // cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl;
-    if(x1!=x2) {cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl; continue;}
+    // std::cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl;
+    if(x1!=x2) {std::cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl; continue;}
     y2 = h2->GetBinContent(histoBin);
     Double_t errorY = h2->GetBinError(histoBin);
-    Double_t errorX = h2->GetBinWidth(histoBin);
 
     if(y2>0.){
       newgraph->SetPoint(newgraph->GetN(),x1,y1/y2);
@@ -1513,10 +1505,9 @@ TGraphAsymmErrors *CalcRatioGraphHisto(TGraphAsymmErrors *gr1=0, TH1 *h2=0, Bool
     if(x1>h2->GetXaxis()->GetXmax()) continue;
     Int_t histoBin = h2->GetXaxis()->FindBin(x1);
     x2 = h2->GetXaxis()->GetBinCenter(histoBin);
-    if(x1!=x2) {cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl; continue;}
+    if(x1!=x2) {std::cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl; continue;}
     y2 = h2->GetBinContent(histoBin);
     Double_t errorY = h2->GetBinError(histoBin);
-    Double_t errorX = h2->GetBinWidth(histoBin);
 
     if(y2>0.){
       newgraph->SetPoint(newgraph->GetN(),x1,y1/y2);
@@ -1553,11 +1544,10 @@ TGraphErrors *CalcRatioHistoGraph(TH1 *h2, TGraphErrors *gr1=0, Bool_t bWithoutE
     if(x1>h2->GetXaxis()->GetXmax()) continue;
     Int_t histoBin = h2->GetXaxis()->FindBin(x1);
     x2 = h2->GetXaxis()->GetBinCenter(histoBin);
-    // cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl;
-    if(x1!=x2) {cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl; continue;}
+    // std::cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl;
+    if(x1!=x2) {std::cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl; continue;}
     y2 = h2->GetBinContent(histoBin);
     Double_t errorY = gr1->GetErrorY(j);
-    Double_t errorX = h2->GetBinWidth(histoBin);
 
     if(y1>0.){
       newgraph->SetPoint(newgraph->GetN(),x1,y2/y1);
@@ -1584,7 +1574,7 @@ TGraphAsymmErrors *GetLargestErrors(TGraphAsymmErrors *gr1=0x0, TGraphAsymmError
       gr2->GetPoint(j,x2,y2);
 
       if(x1==x2 && y1==y2) {
-	cout << "x: " << x1 << "\ty: " << y1 << endl;
+	std::cout << "x: " << x1 << "\ty: " << y1 << std::endl;
 	newgraph->SetPoint(newgraph->GetN(),x1,y1);
 
 	double errLow1 = gr1->GetErrorYlow(i);
@@ -1612,7 +1602,7 @@ TGraphErrors *GetLargestRelativeErrorReturnGraph(TH1D *h1=0x0, TH1D *h2=0x0, TH1
 
   TGraphErrors *newgraph = new TGraphErrors();
 
-  Double_t x1,y1,x2,y2,x3,y3;
+  Double_t x1,y1,y2,y3;
   Double_t err1, err2, err3,relerr1, relerr2,relerr3;
 
   for(int i=1; i<=h1->GetNbinsX(); i++) {
@@ -1625,8 +1615,7 @@ TGraphErrors *GetLargestRelativeErrorReturnGraph(TH1D *h1=0x0, TH1D *h2=0x0, TH1
       continue;
 
     int j = h2->GetXaxis()->FindBin(x1);
-    x2=h2->GetXaxis()->GetBinCenter(j);
-    //    cout << "x1: " << x1 << "\tx2: " << x2 << endl;
+    //    std::cout << "x1: " << x1 << "\tx2: " << x2 << std::endl;
     y2=h2->GetBinContent(j);
     err2=h2->GetBinError(j);
     if(y2>0)
@@ -1636,7 +1625,6 @@ TGraphErrors *GetLargestRelativeErrorReturnGraph(TH1D *h1=0x0, TH1D *h2=0x0, TH1
 
     if(h3) {
       int k = h3->GetXaxis()->FindBin(x1);
-      x3=h3->GetXaxis()->GetBinCenter(k);
       y3=h3->GetBinContent(k);
       err3=h3->GetBinError(k);
       if(y3>0)
@@ -1682,10 +1670,10 @@ TGraphAsymmErrors *AddErrGraphs(TGraphAsymmErrors *gr1=0x0, TGraphAsymmErrors *g
     gr1->GetPoint(j,x1,y1);
     for(int i=0; i<gr2->GetN(); i++) {
       gr2->GetPoint(i,x2,y2);
-      // cout << "x1: " << x1 << "\ty1: " << y1 << endl;
-      // cout << "x2: " << x2 << "\ty2: " << y2 << endl;
+      // std::cout << "x1: " << x1 << "\ty1: " << y1 << std::endl;
+      // std::cout << "x2: " << x2 << "\ty2: " << y2 << std::endl;
       if(x1==x2 && y1==y2) {
-	cout << "x: " << x1 << "\ty: " << y1 << endl;
+	std::cout << "x: " << x1 << "\ty: " << y1 << std::endl;
 	newgraph->SetPoint(newgraph->GetN(),x1,y1);
 	double A = gr2->GetErrorYlow(i)*gr2->GetErrorYlow(i);
 	if(bWithoutErrorY) A = 0.;
@@ -1716,12 +1704,11 @@ void MultiplyHistGraph(TH1 *h2 = 0, TGraphErrors *gr1=0, Bool_t bWithoutErrorY=k
     if(x1>h2->GetXaxis()->GetXmax()) continue;
     Int_t histoBin = h2->GetXaxis()->FindBin(x1);
     x2 = h2->GetXaxis()->GetBinCenter(histoBin);
-    // cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl;
-    //if(x1!=x2) {cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl; continue;}
-    if(TMath::Abs(x1-x2)>1e-6) {cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << endl; continue;}
+    // std::cout << " x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl;
+    //if(x1!=x2) {std::cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl; continue;}
+    if(TMath::Abs(x1-x2)>1e-6) {std::cout << "wrong bin x1 = " << x1 << "  x2 = " << x2 << "  histoBin = " << histoBin << std::endl; continue;}
     y2 = h2->GetBinContent(histoBin);
     Double_t errorY = h2->GetBinError(histoBin);
-    Double_t errorX = h2->GetBinWidth(histoBin);
 
     Printf("x1: %f y1: %f y2: %f",x1,y1,y2);
     double newContent = y1*y2;
@@ -1738,7 +1725,6 @@ void MultiplyHistGraph(TH1 *h2 = 0, TGraphErrors *gr1=0, Bool_t bWithoutErrorY=k
 void RemoveErrorsXaxis(TGraphErrors *gr) {
 
    for(int j=0; j<gr->GetN(); j++) {
-     double ex = gr->GetErrorX(j);
      double ey = gr->GetErrorY(j);
      gr->SetPointError(j,0.,ey);
    }
@@ -1754,10 +1740,10 @@ void RemoveErrorsXaxis(TGraphErrors *gr) {
 //     gr1->GetPoint(j,x1,y1);
 //     for(int i=0; i<gr2->GetN(); i++) {
 //       gr2->GetPoint(i,x2,y2);
-//       cout << "x1: " << x1 << "\ty1: " << y1 << endl;
-//       cout << "x2: " << x2 << "\ty2: " << y2 << endl;
+//       std::cout << "x1: " << x1 << "\ty1: " << y1 << std::endl;
+//       std::cout << "x2: " << x2 << "\ty2: " << y2 << std::endl;
 //       if(x1==x2 && y1==y2) {
-// 	cout << "x: " << x1 << "\ty: " << y1 << endl;
+// 	std::cout << "x: " << x1 << "\ty: " << y1 << std::endl;
 // 	newgraph->SetPoint(newgraph->GetN(),x1,y1);
 // 	double A = gr2->GetErrorYlow(i)*gr2->GetErrorYlow(i);
 // 	if(bWithoutErrorY) A = 0.;
@@ -1905,14 +1891,14 @@ TH1D *GetRawJetSpectrum(TString str,
   int centMinBin =fhnJetPtRec->GetAxis(2)->FindBin(centMin); 
   int centMaxBin =fhnJetPtRec->GetAxis(2)->FindBin(centMax)-1; 
   fhnJetPtRec->GetAxis(2)->SetRange(centMinBin,centMaxBin);     // Set Centrality bin
-  // cout << "centMin: " <<  fhnJetPtRec->GetAxis(2)->GetBinLowEdge(centMinBin) << "  centMax: " <<   fhnJetPtRec->GetAxis(2)->GetBinUpEdge(centMaxBin) << endl;
+  // std::cout << "centMin: " <<  fhnJetPtRec->GetAxis(2)->GetBinLowEdge(centMinBin) << "  centMax: " <<   fhnJetPtRec->GetAxis(2)->GetBinUpEdge(centMaxBin) << std::endl;
 
   fhnJetPtRec->GetAxis(0)->SetRange(3,3);               // take all jets
 
-  //cout << "nBinsArea: " <<   fhnJetPtRec->GetAxis(5)->GetNbins() << endl;
+  //std::cout << "nBinsArea: " <<   fhnJetPtRec->GetAxis(5)->GetNbins() << std::endl;
   int areaMinBin =fhnJetPtRec->GetAxis(5)->FindBin(areaMin);
   int areaMaxBin =fhnJetPtRec->GetAxis(5)->GetNbins();
-  //cout << "areaMin: " << fhnJetPtRec->GetAxis(5)->GetBinLowEdge(areaMinBin) << endl;
+  //std::cout << "areaMin: " << fhnJetPtRec->GetAxis(5)->GetBinLowEdge(areaMinBin) << std::endl;
   fhnJetPtRec->GetAxis(5)->SetRange(areaMinBin,areaMaxBin);     // Set Area min
 
   Int_t binLoPt = fhnJetPtRec->GetAxis(1)->FindBin(ptMin);
@@ -1920,8 +1906,6 @@ TH1D *GetRawJetSpectrum(TString str,
 
   fhnJetPtRec->GetAxis(1)->SetRange(binLoPt,binUpPt);   // Set pT range
   if(trigHad>0) {
-    Double_t trigHadD = fhnJetPtRec->GetAxis(7)->GetBinLowEdge(trigHad);
-    //    cout << "trigHadD: " << trigHadD << "  trigHad: " << trigHad << endl;
     fhnJetPtRec->GetAxis(7)->SetRange(trigHad,fhnJetPtRec->GetAxis(7)->GetNbins());
   }
 

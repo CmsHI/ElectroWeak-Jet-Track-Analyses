@@ -1,9 +1,11 @@
+#include <TColor.h>
+#include <TLatex.h>
 
 static  int      myDarkRed     = TColor::GetColor(128,0,0);
 static  int      myDarkGreen   = TColor::GetColor(0,128,0);
 static  int      myDarkBlue    = TColor::GetColor(0,0,128);
 
-TH1F *DrawFrame(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax, TString xTitle = "", TString yTitle = "", double a = 0.1, bool setMargins = true) {
+TH1F *DrawFrame(Double_t xmin, Double_t xmax, Double_t ymin, Double_t ymax, TString xTitle = "", TString yTitle = "", bool setMargins = true) {
 
   if(setMargins) {
   gPad->SetLeftMargin(0.22);

@@ -4,6 +4,11 @@
  *
  */
 
+#include <TColor.h>
+#include <TPad.h>
+
+#include <iostream>
+
 const Float_t kELMASS = 0.00051099907;
 const Float_t kPMASS  = 0.93827231;
 const Float_t kKMASS  = 0.49367;
@@ -15,7 +20,7 @@ const Char_t *label_str[3]={"40 #font[12]{A}#upointGeV",
 
 void grey_palette()
 {
-  col=(TColor*) gROOT->GetListOfColors()->At(2);
+  TColor* col=(TColor*) gROOT->GetListOfColors()->At(2);
   col->SetRGB(0.8,0.8,0.8);
   col=(TColor*) gROOT->GetListOfColors()->At(3);
   col->SetRGB(0.6,0.6,0.6);
@@ -37,7 +42,7 @@ void draw_numbers(TCanvas *c1,Int_t n_pad) {
     TVirtualPad::Pad()->cd(i+1);
     Char_t num[10];
     sprintf(num,"%c)",97+i);
-    cout << TVirtualPad::Pad() << " " << num << endl;
+    std::cout << TVirtualPad::Pad() << " " << num << std::endl;
     ltx.DrawLatex(0.22,0.8,num);
   }
 }
@@ -61,14 +66,14 @@ void set_text_sizes(TVirtualPad *pad=0x0, TH1F* hist=0x0, Float_t textSizeFactor
   hist->SetTitleSize(get_txt_size(pad,title_size));
   hist->SetTitleSize(get_txt_size(pad,title_size),"Y");
 
-  cout << "get_txt_size(pad,label_size) " << get_txt_size(pad,label_size) << endl;
+  std::cout << "get_txt_size(pad,label_size) " << get_txt_size(pad,label_size) << std::endl;
 }
 
 
 void eraselabel(TPad *p,Double_t h)
 {
    p->cd();
-   pe = new TPad("pe","pe",0,0,p->GetLeftMargin(),h);       
+   TPad* pe = new TPad("pe","pe",0,0,p->GetLeftMargin(),h);
    pe->Draw(); 
    pe->SetFillColor(p->GetFillColor());  
    pe->SetBorderMode(0);
@@ -238,7 +243,7 @@ TCanvas *make_canvas2(const Char_t *name, const Char_t *title, Int_t n_x=1, Int_
 	      y1=1-(1./(1-gStyle->GetPadTopMargin())+j)/tot_height;
 	  }
 	}
-	//cout << "x1 " << x1 << ", x2 " << x2 << endl;
+	//std::cout << "x1 " << x1 << ", x2 " << x2 << std::endl;
 	TPad *pad=new TPad(tmp_str,title,x1,y1,x2,y2);
 	//pad->SetFillColor(idx+1);
 	// if (i>0)
@@ -271,7 +276,7 @@ TPolyLine3D *draw_func_3d(TF1 *f1) {
   Float_t vmin[3],vmax[3];
   TView *view=TVirtualPad::Pad()->GetView();
   if (view==0){
-    cout << "ERROR in draw_func_3d : no view found" << endl; 
+    std::cout << "ERROR in draw_func_3d : no view found" << std::endl;
     return 0;
   }
   view->GetRange(vmin,vmax);
@@ -537,8 +542,8 @@ void draw_legend_m(Float_t x, Float_t y, TAttMarker *att_m, const Char_t *label,
     y_real=exp(log(10)*y_real);
   if (TVirtualPad::Pad()->GetLogx())
     x_real=exp(log(10)*x_real);
-  // cout << "uymin " << TVirtualPad::Pad()->GetUymin() << " max " 
-  //     << TVirtualPad::Pad()->GetUymax() << " y " << y << " y_real " << y_real << endl; 
+  // std::cout << "uymin " << TVirtualPad::Pad()->GetUymin() << " max "
+  //     << TVirtualPad::Pad()->GetUymax() << " y " << y << " y_real " << y_real << std::endl;
   TMarker *mrk=new TMarker(x_real,y_real,m_style);
   Float_t m_siz=att_m->GetMarkerSize();
   mrk->SetMarkerSize(m_siz);
@@ -596,12 +601,12 @@ void set_chi_levels(TH2 *h1, const Int_t n_cont, Double_t *c_levels, Double_t *x
     }
   }
   
-  cout << "min_xbin " << min_xbin << ", " << min_ybin << ", min_chi " << min_chi << endl;
+  std::cout << "min_xbin " << min_xbin << ", " << min_ybin << ", min_chi " << min_chi << std::endl;
 
   Double_t *c_levels_tmp=new Double_t[n_cont];
   for (Int_t i=0; i<n_cont;i++) {
     c_levels_tmp[i]=c_levels[i]+min_chi;
-    cout << "c_levels[" <<i << "] " << c_levels[i] << ", tmp " << c_levels_tmp[i] << endl;
+    std::cout << "c_levels[" <<i << "] " << c_levels[i] << ", tmp " << c_levels_tmp[i] << std::endl;
   }
   h1->SetContour(n_cont,c_levels_tmp);
   //delete c_levels_tmp;
@@ -625,7 +630,7 @@ void make_gr_file(const Char_t *name,TGraphErrors *gr,const Char_t mode='w') {
     Double_t x,y;
     gr->GetPoint(i,x,y);
     fout << x << " " << y;
-    fout << " " << gr->GetErrorY(i)<< endl;
+    fout << " " << gr->GetErrorY(i)<< std::endl;
   }
   fout.close();
 }
@@ -650,17 +655,17 @@ void polint(const Double_t xa[], const Double_t ya[], const Int_t n, const Float
     c[i]=ya[i];
     d[i]=ya[i];
   }
-  //cout << "x_int " << x_int << ", ns " << ns << ", dif " << dif << endl;
+  //std::cout << "x_int " << x_int << ", ns " << ns << ", dif " << dif << std::endl;
   y=ya[ns--];
-  //cout << "y " << y << endl;
+  //std::cout << "y " << y << std::endl;
   for (m=1; m < n; m++) {
     for (i=0; i < n-m; i++) {
-      //cout << "i " << i << ", m " << m << endl;
+      //std::cout << "i " << i << ", m " << m << std::endl;
       ho=xa[i]-x;
       hp=xa[i+m]-x;
       w=c[i+1]-d[i];
       if ( (den=ho-hp) == 0) 
-	cout << "ERROR in polint" << endl;  // Error occurs if two xa are equal
+	std::cout << "ERROR in polint" << std::endl;  // Error occurs if two xa are equal
       den=w/den;
       d[i]=hp*den;
       c[i]=ho*den;
@@ -759,7 +764,7 @@ TGraph *divide_graph(TGraph *gr, TF1* f1) {
 }
 
 TGraphErrors *divide_graph(TGraphAsymmErrors *num, TGraphAsymmErrors *denom) {
-  cout << "WARNING: not taking asymmetric errors into account" << endl;
+  std::cout << "WARNING: not taking asymmetric errors into account" << std::endl;
   Int_t n=num->GetN();
   TGraphErrors *rat_gr=new TGraphErrors(n);
   for (Int_t i=0; i<n; i++) {
@@ -995,7 +1000,7 @@ TGraph *divide_graphs_int(TGraph *num, TGraph *denom) {
     }
     if (x <= x1+(x2-x1)*1.05 && x > x1) {  // allow small tolerance for last point
       y_int = (x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2;
-      //cout << "x " << x << " x1 " << x1 << " x2 " << x2 << " y " << y << " y_int " << y_int << endl;
+      //std::cout << "x " << x << " x1 " << x1 << " x2 " << x2 << " y " << y << " y_int " << y_int << std::endl;
       gr->SetPoint(gr->GetN(),x,y/y_int);
     }
   }
@@ -1025,9 +1030,9 @@ TGraphErrors *divide_graphs_int(TGraphErrors *num, TGraphErrors *denom) {
     }
     if (x <= x1+(x2-x1)*1.05 && x > x1) {  // allow small tolerance for last point   
       y_int = (x2-x)/(x2-x1)*y1 + (x-x1)/(x2-x1)*y2;
-      cout << "i " << i << " x " << x << " y " << y << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << " y_int " << y_int << endl;
+      std::cout << "i " << i << " x " << x << " y " << y << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << " y_int " << y_int << std::endl;
       Float_t y_int_err = sqrt(pow((x2-x)/(x2-x1)*y_err1,2)+pow((x-x1)/(x2-x1)*y_err2,2));
-      cout << "y_int " << y_int << " y_int_err " << y_int_err << " y " << y << " y_err " << y_err << endl;
+      std::cout << "y_int " << y_int << " y_int_err " << y_int_err << " y " << y << " y_err " << y_err << std::endl;
       gr->SetPoint(gr->GetN(),x,y/y_int);
       gr->SetPointError(gr->GetN()-1,0,sqrt(pow(y_err/y,2)+pow(y_int_err/y_int,2))*y/y_int);
     }

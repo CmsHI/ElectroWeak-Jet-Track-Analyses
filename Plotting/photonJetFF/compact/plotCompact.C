@@ -1,18 +1,21 @@
-#include "TCanvas.h"
-#include "TFile.h"
-#include "TH3F.h"
-#include "TH1F.h"
-#include "TH1D.h"
-#include "TGraphAsymmErrors.h"
-#include "TLegend.h"
+#include <TCanvas.h>
+#include <TFile.h>
+#include <TH3F.h>
+#include <TH1F.h>
+#include <TH1D.h>
+#include <TGraphAsymmErrors.h>
+#include <TLegend.h>
+#include <TLine.h>
 
 #include "plotUtils.h"
 #include "utilsMV.h"
 #include "utils.h"
 
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
+void plotCompact(int ifig = 1);
 
-void plotCompact(int ifig = 1) {
+void plotCompact(int ifig)
+{
   
   TString tag = "#sqrt{s_{NN}} = 5.02 TeV";
 
@@ -115,7 +118,7 @@ void plotCompact(int ifig = 1) {
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.07);
 
-  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,10.5,xTitle.Data(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.Data()),0.1,false);
+  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,10.5,xTitle.Data(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.Data()),false);
   fr1->GetXaxis()->SetNdivisions(509);
   fr1->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
   fr1->GetYaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -204,7 +207,7 @@ void plotCompact(int ifig = 1) {
     grSystForLeg[il]->SetFillColor(kGray+1);
   }
   
-  TLegend *leg1;
+  TLegend *leg1 = 0;
   if(ifig==1) leg1 = CreateLegend(0.5,0.8,0.02,0.15,"",txtSize);
   if(ifig==2) leg1 = CreateLegend(0.63,0.93,0.02,0.15,"",txtSize);
   leg1->AddEntry(grSystForLeg[1],strLeg[1].Data(),"pf");
@@ -239,7 +242,7 @@ void plotCompact(int ifig = 1) {
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.);
 
-  TH1F *fr2 = DrawFrame(0.5,4.5,0.,5.2,xTitle.Data(),"PbPb / pp",0.1,false);
+  TH1F *fr2 = DrawFrame(0.5,4.5,0.,5.2,xTitle.Data(),"PbPb / pp",false);
   fr2->GetXaxis()->SetNdivisions(509);
   fr2->GetYaxis()->SetNdivisions(509);
   fr2->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -346,7 +349,7 @@ void plotCompact(int ifig = 1) {
     hRatio[i]->Draw("same E X0");
   }
 
-  TLegend *leg2;
+  TLegend *leg2 = 0;
   if(ifig==1) leg2 = CreateLegend(0.18,0.96,0.88,0.96,"",txtSize);
   if(ifig==2) leg2 = CreateLegend(0.18,0.96,0.88,0.96,"",txtSize);
   leg2->SetNColumns(4);
@@ -359,6 +362,20 @@ void plotCompact(int ifig = 1) {
 
   c1->SaveAs(Form("fig%d.png",ifig));
   c1->SaveAs(Form("fig%d.pdf",ifig));
+}
+
+int main(int argc, char** argv)
+{
+    if (argc == 2) {
+        plotCompact(std::atoi(argv[1]));
+        return 0;
+    }
+    else {
+        std::cout << "Usage : \n" <<
+                "./plotCompact.exe <figureIndex>"
+                << std::endl;
+        return 1;
+    }
 }
 
 TGraphErrors *MakeSystGraph(TH1* hC, TH1 *hS, double we) {
