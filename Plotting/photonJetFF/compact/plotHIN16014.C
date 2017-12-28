@@ -334,8 +334,14 @@ void plotHIN16014(int ifig = 1) {
     hRatio[i]->SetMarkerColor(GetColor(colorCode));
     hRatio[i]->SetMarkerStyle(GetMarker(i));
 
-    if(i>1) hRatio[i]->SetMarkerSize(1.5);
-    else     hRatio[i]->SetMarkerSize(1.2);
+    if(i>1) {
+        hRatio[i]->SetMarkerSize(1.7);
+        grRatioSys[i]->SetMarkerSize(1.7);
+    }
+    else     {
+        hRatio[i]->SetMarkerSize(1.2);
+        grRatioSys[i]->SetMarkerSize(1.2);
+    }
     
     hRatio[i]->Draw("same E X0");
   }
