@@ -1,12 +1,11 @@
 ## Producing plots
 
-Change to this directory and run the following
+Start from the base directory and run the following
 
 ```C++
-root -l
-.L plotCompact.C
-plotCompact(1); //for Fig. 1
-plotCompact(2); //for Fig. 2
-// The plots will appear in this directory
+make Plotting/photonJetFF/compact/plotCompact.exe
+cd Plotting/photonJetFF/compact/
+./plotCompact.exe 1 # for Fig. 1
+./plotCompact.exe 2 # for Fig. 2
 ```
 
