@@ -15,23 +15,21 @@
 #include "utils.h"
 
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
-void plotCompact(int ifig = 1);
+void plotCompact(std::string inputFile = "Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root", int ifig = 1);
 
-void plotCompact(int ifig)
+void plotCompact(std::string inputFile, int ifig)
 {
-  
   TString tag = "#sqrt{s_{NN}} = 5.02 TeV";
-
-  TString strFig1 = "data/photonJetFF_Data_xijet_paper.root";
-  TString strFig2 = "data/photonJetFF_Data_xigamma_paper.root";
 
   TString xTitle = "#xi^{jet}";
   if(ifig==2) xTitle = "#xi^{#gamma}_{T}";
 
-  TFile *f;
-  if(ifig==1)      f = new TFile(strFig1.Data());
-  else if(ifig==2) f = new TFile(strFig2.Data());
-  else {Printf("This root file doesn't exist. Aborting!"); return;}
+  TFile* f = 0;
+  f = new TFile(inputFile.c_str());
+  if (!f || f->IsZombie()) {
+      Printf("This root file doesn't exist. Aborting!");
+      return;
+  }
 
   const int nCent = 4; //centrality bins
   double centMin[nCent] = {0.,10.,30.,50.};
@@ -363,19 +361,23 @@ void plotCompact(int ifig)
   }
   leg2->Draw();
 
-  c1->SaveAs(Form("fig%d.png",ifig));
-  c1->SaveAs(Form("fig%d.pdf",ifig));
+  c1->SaveAs(Form("photonjetFF_compact_fig%d.png",ifig));
+  c1->SaveAs(Form("photonjetFF_compact_fig%d.pdf",ifig));
 }
 
 int main(int argc, char** argv)
 {
-    if (argc == 2) {
-        plotCompact(std::atoi(argv[1]));
+    if (argc == 3) {
+        plotCompact(argv[1], std::atoi(argv[2]));
+        return 0;
+    }
+    else if (argc == 2) {
+        plotCompact(argv[1]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./plotCompact.exe <figureIndex>"
+                "./plotCompact.exe <inputFile> <figureIndex>"
                 << std::endl;
         return 1;
     }
