@@ -129,7 +129,7 @@ echo "##"
 echo "host : \$(hostname)"
 echo "PWD  : \$PWD"
 echo "##"
-./myRun.sh "./"\$progExe \$configTmp \$inputListTmp \$outputTmp
+./myRun.sh "./"\$progExe \$inputListTmp \$outputTmp
 
 echo "## directory content ##"
 ls -altrh
