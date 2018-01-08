@@ -182,20 +182,20 @@ void plotCompact(std::string inputFile, int ifig)
     TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     if(i==0) {
-      std::string textTmp = Form("%s", strCent.Data());
-      DrawLatex(0.17,0.14,textTmp.c_str(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.14,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.10,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==1) {
-      std::string textTmp = Form("%s (+%.0f)", strCent.Data(), scale[i]);
-      DrawLatex(0.17,0.31,textTmp.c_str(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.30,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.26,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==2) {
-      std::string textTmp = Form("%s (+%.0f)", strCent.Data(), scale[i]);
-      DrawLatex(0.17,0.46,textTmp.c_str(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.46,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.42,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==3) {
-      std::string textTmp = Form("%s (+%.0f)", strCent.Data(), scale[i]);
-      DrawLatex(0.17,0.62,textTmp.c_str(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.63,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.59,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
   }
 
