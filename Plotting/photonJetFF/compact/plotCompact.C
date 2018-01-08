@@ -182,8 +182,7 @@ void plotCompact(std::string inputFile, int ifig)
     TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     if(i==0) {
-      DrawLatex(0.17,0.14,strCent.Data(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.10,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.12,strCent.Data(),txtSize,GetColor(colorCode));
     }
     if(i==1) {
       DrawLatex(0.17,0.30,strCent.Data(),txtSize,GetColor(colorCode));
@@ -266,21 +265,33 @@ void plotCompact(std::string inputFile, int ifig)
   text2.SetTextColor(1);
 
   text2.DrawLatex(0.5-0.2,0.-0.1,"0");
-  text2.SetTextColor(GetColor(1));
   text2.DrawLatex(0.5-0.2,1.-0.1,"1");
-  text2.DrawLatex(4.5+0.1,2.-0.1,"2");
-  text2.SetTextColor(GetColor(2));
-  text2.DrawLatex(0.5-0.2,2.-0.1,"1");
-  text2.DrawLatex(4.5+0.1,3.-0.1,"2");
-  text2.SetTextColor(GetColor(3));
-  text2.DrawLatex(0.5-0.2,3.-0.1,"1");
-  text2.DrawLatex(4.5+0.1,4.-0.1,"2");
-  text2.SetTextColor(GetColor(4));
-  text2.DrawLatex(0.5-0.2,4.-0.1,"1");
-  text2.DrawLatex(4.5+0.1,5.-0.1,"2");
+  text2.DrawLatex(0.5-0.2,2.-0.1,"2");
+  text2.DrawLatex(0.5-0.2,3.-0.1,"3");
+  text2.DrawLatex(0.5-0.2,4.-0.1,"4");
   text2.SetTextColor(1);
-  //text2.DrawLatex(0.5-0.2,5.-0.1,"2");
 
+  for(int i = 0; i<nCent; ++i) {
+    TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
+    strCent+="%";
+    int colorCode = i+1;
+    std::string strTmp = Form("%s (+%.0f)", strCent.Data(), scale[i]/2);
+    if (i == 0) {
+        strTmp = strCent.Data();
+        DrawLatex(0.18,0.36,strTmp.c_str(),txtSize,GetColor(colorCode));
+    }
+    else if (i == 1) {
+        DrawLatex(0.18,0.52,strTmp.c_str(),txtSize,GetColor(colorCode));
+    }
+    else if (i == 2) {
+        DrawLatex(0.18,0.70,strTmp.c_str(),txtSize,GetColor(colorCode));
+    }
+    else if (i == 3) {
+        DrawLatex(0.18,0.87,strTmp.c_str(),txtSize,GetColor(colorCode));
+    }
+  }
+
+  /*
   //the y-axis breakers
   TLine *ld1 = new TLine(0.5-0.1,1.4,0.5+0.08,1.5);
   ld1->SetLineWidth(1);
@@ -311,6 +322,7 @@ void plotCompact(std::string inputFile, int ifig)
   ld6->SetLineWidth(1);
   ld6->SetLineColor(1);
   ld6->Draw();
+  */
 
   for(int i = 0; i<nCent; ++i) {
     Printf("scale2[%d] = %f",i,scale2[i]);
@@ -350,6 +362,7 @@ void plotCompact(std::string inputFile, int ifig)
     hRatio[i]->Draw("same E X0");
   }
 
+  /*
   TLegend *leg2 = 0;
   if(ifig==1) leg2 = CreateLegend(0.18,0.96,0.88,0.96,"",txtSize);
   if(ifig==2) leg2 = CreateLegend(0.18,0.96,0.88,0.96,"",txtSize);
@@ -360,6 +373,7 @@ void plotCompact(std::string inputFile, int ifig)
     leg2->AddEntry(grRatioSys[i],strCent.Data(),"pf");  
   }
   leg2->Draw();
+  */
 
   c1->SaveAs(Form("photonjetFF_compact_fig%d.png",ifig));
   c1->SaveAs(Form("photonjetFF_compact_fig%d.pdf",ifig));
