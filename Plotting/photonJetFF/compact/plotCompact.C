@@ -119,7 +119,7 @@ void plotCompact(std::string inputFile, int ifig)
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.07);
 
-  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,11,xTitle.Data(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.Data()),false);
+  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,11.999,xTitle.Data(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.Data()),false);
   fr1->GetXaxis()->SetNdivisions(509);
   fr1->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
   fr1->GetYaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -182,19 +182,19 @@ void plotCompact(std::string inputFile, int ifig)
     TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     if(i==0) {
-      DrawLatex(0.17,0.12,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.10,strCent.Data(),txtSize,GetColor(colorCode));
     }
     if(i==1) {
-      DrawLatex(0.17,0.30,strCent.Data(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.26,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.28,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.24,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==2) {
-      DrawLatex(0.17,0.46,strCent.Data(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.42,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.43,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.39,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==3) {
-      DrawLatex(0.17,0.63,strCent.Data(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.59,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.58,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.54,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
   }
 
