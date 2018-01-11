@@ -10,6 +10,7 @@
 #include <set>
 #include <iostream>
 #include <fstream>      // ifstream, ofstream
+#include <cstdlib>
 #include <algorithm>    // std::transform
 #include <regex>
 
@@ -30,6 +31,7 @@ int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
+std::string getEnvironmentVariable(std::string envName);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -290,6 +292,18 @@ std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector
         res.push_back(pos);
     }
 
+    return res;
+}
+
+/*
+ * returns the value of the given environment variable
+ * returns an empty string if the environment variable is not defined.
+ * https://stackoverflow.com/questions/7463947/make-and-stdlogic-error/7464044#7464044
+ */
+std::string getEnvironmentVariable(std::string envName)
+{
+    const char* envValueChar = std::getenv(envName.c_str());
+    std::string res = envValueChar ? envValueChar : "";
     return res;
 }
 
