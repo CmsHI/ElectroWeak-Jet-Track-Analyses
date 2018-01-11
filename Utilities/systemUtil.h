@@ -28,8 +28,8 @@ bool matchesWildCard(std::string str, std::string wcStr);
 bool isInteger(std::string s);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
-std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
+std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -233,6 +233,13 @@ bool matchesWildCard(std::string str, std::string wcStr)
 /*
  * count the number of times a substring appears in a string
  */
+bool isInteger(std::string s)
+{
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
+
 int countOccurances(std::string str, std::string substr)
 {
     int n = 0;
@@ -247,13 +254,6 @@ int countOccurances(std::string str, std::string substr)
 /*
  * returns false unless the string is composed of digits only
  */
-bool isInteger(std::string s)
-{
-    std::string::const_iterator it = s.begin();
-    while (it != s.end() && std::isdigit(*it)) ++it;
-    return !s.empty() && it == s.end();
-}
-
 /*
  * return the index of a std::string in a std::vector
  * return -1 if not found.
