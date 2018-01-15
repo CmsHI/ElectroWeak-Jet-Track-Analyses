@@ -68,7 +68,7 @@ inputListName=$(basename $inputList)
 
 ## customizations for submit-hi2.mit.edu and submit.mit.edu machines ##
 # proxy files start with "x509" and they are located under /tmp/ only.
-proxyFilePath=$(find /tmp/ -maxdepth 1 -user $USER  -type f -name "x509*" -print | head -1)
+proxyFilePath=$(find /tmp/ -maxdepth 1 -user $USER -type f -name "x509*" -print | head -1)
 proxyFile=$(basename $proxyFilePath)
 
 srmPrefix="/mnt/hadoop/"
