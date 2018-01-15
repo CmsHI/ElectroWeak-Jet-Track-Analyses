@@ -76,3 +76,15 @@ All cuts applied at every step come from files in the *CutConfigurations* folder
  - This folder is intended to store configuration files for different performance and analysis studies.
  - It is recommended to follow a sound organization when placing the ".conf" files into that folder. For example "Configurations/zJet" should contain configurations related to z-Jet correlations analysis.
 
+## Settings
+
+It is useful to set the following environment variables
+ - **EWJTAHOME** points to the directory where this repository is based
+ - **EWJTAOUT** points to the directory for the output files.
+
+Set the environment variables by adding the following lines into ~/.bash_profile or ~/.bashrc
+  ```C++
+  export EWJTAHOME=<directory where this repository is based>
+  export EWJTAOUT=<directory for output files>
+  ...
+  ```
