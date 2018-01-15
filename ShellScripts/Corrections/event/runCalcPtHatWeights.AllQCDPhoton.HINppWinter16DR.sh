@@ -1,5 +1,8 @@
 #!/bin/bash
 
+## First run the following script so that the input for this script is produced :
+## ./ShellScripts/event/runDrawSpectra.pthat.AllQCDPhoton.HINppWinter16DR.sh
+
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Corrections/calcPtHatWeights.exe"
 
