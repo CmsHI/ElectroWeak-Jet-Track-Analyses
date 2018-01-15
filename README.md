@@ -83,7 +83,7 @@ It is useful to set the following environment variables
  - **EWJTAOUT** points to the directory for the output files.
 
 Set the environment variables by adding the following lines into ~/.bash_profile or ~/.bashrc
-  ```C++
+  ```bash
   export EWJTAHOME=<directory where this repository is based>
   export EWJTAOUT=<directory for output files>
   ```
