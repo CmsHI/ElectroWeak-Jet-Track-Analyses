@@ -9,7 +9,7 @@ echo "## zJetHistogramSum HI DATA"
 ####################
 configFile=$config_histSum_HI_DATA
 
-inputHistDir="/home/kaya/Desktop/EWJTA-out/zJet20160715/"
+inputHistDir=$EWJTAOUT"/zJet20160715/"
 inputHistPrefixZEE=$inputHistDir$hist_HI_ZEE_DATA_Prefix
 inputHistPrefixZMM=$inputHistDir$hist_HI_ZMM_DATA_Prefix
 inputZEE=$inputHistPrefixZEE".root"

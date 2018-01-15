@@ -9,7 +9,7 @@ echo "## zJetHistogramSum PP MC"
 ####################
 configFile=$config_histSum_PP_MC_Pythia
 
-inputHistDir="/home/kaya/Desktop/EWJTA-out/zJet20160715/"
+inputHistDir=$EWJTAOUT"/zJet20160715/"
 inputHistPrefixZEE=$inputHistDir$hist_PP_ZEE_MC_Pythia_Prefix
 inputHistPrefixZMM=$inputHistDir$hist_PP_ZMM_MC_Pythia_Prefix
 inputZEE=$inputHistPrefixZEE".root"
