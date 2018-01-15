@@ -246,6 +246,7 @@ CutConfiguration CutConfigurationParser::Parse(std::string inFile) {
     size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
     std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
     value = ConfigurationParser::substituteVarString(value, mapVarString);
+    value = ConfigurationParser::substituteEnv(value);
     std::istringstream sin(value);
     line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
     if (isCommand) {

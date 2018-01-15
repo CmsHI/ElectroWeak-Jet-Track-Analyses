@@ -41,6 +41,17 @@ const std::string KW_LABELS[kN_KEYWORDS] = {
         "$@PARSEEVENTSEL$"
 };
 
+enum ENV {
+    k_EWJTAHOME,
+    k_EWJTAOUT,
+    kN_ENV
+};
+
+const std::string ENV_LABELS[kN_ENV] = {
+        "$$EWJTAHOME$",
+        "$$EWJTAOUT$"
+};
+
 const std::string separator = ",";
 const std::string separator1 = ";";     // 1st alternative to separator
 const std::string separator2 = ";;";    // 2nd alternative to separator
@@ -124,10 +135,12 @@ public :
     static std::vector<int> getVecIndex(std::vector<std::pair<std::string, int>> vecStringIndex);
     static std::vector<int> getVecIndex(std::vector<std::pair<int, int>> vecIntegerIndex);
     static std::vector<int> getVecIndex(std::vector<std::pair<float, int>> vecFloatIndex);
+    static std::string getEnvName(std::string strEnvLabel);
     static std::string varReference(std::string varName);
     static std::string trimComment(std::string line);
     static std::string ReadValue(std::ifstream& fin, std::string value);
     static std::string substituteVarString(std::string value, std::map<std::string, std::string> mapVarString);
+    static std::string substituteEnv(std::string line);
     static std::pair<std::string, std::string> ParseVarDefinitionString(std::string command, std::string value);
     static std::vector<std::string> ParseList(std::string strList, std::string separator = "");
     static std::vector<std::string> ParseListOrString(std::string strListOrString);
@@ -318,6 +331,14 @@ std::vector<int> ConfigurationParser::getVecIndex(std::vector<std::pair<float, i
 }
 
 /*
+ * name of an environment variable does not contain any "$"
+ */
+std::string ConfigurationParser::getEnvName(std::string strEnvLabel)
+{
+    return replaceAll(strEnvLabel, "$", "");
+}
+
+/*
  * constructs the syntax for referencing a variable
  */
 std::string ConfigurationParser::varReference(std::string varName)
@@ -403,6 +424,18 @@ std::string ConfigurationParser::substituteVarString(std::string value, std::map
     }
 
     return value;
+}
+
+std::string ConfigurationParser::substituteEnv(std::string line)
+{
+    for (int iEnv = 0; iEnv < CONFIGPARSER::kN_ENV; ++iEnv)
+    {
+        std::string envName = getEnvName(CONFIGPARSER::ENV_LABELS[iEnv]);
+        std::string envValue = getEnvironmentVariable(envName);
+        line = replaceAll(line, CONFIGPARSER::ENV_LABELS[iEnv], envValue);
+    }
+
+    return line;
 }
 
 /*

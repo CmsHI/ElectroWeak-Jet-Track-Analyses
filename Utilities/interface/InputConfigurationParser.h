@@ -492,6 +492,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
 
                 size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
                 std::string in = trim(strLine.substr(0, posLast));
+                in = ConfigurationParser::substituteEnv(in);
                 // assume this line contains a ROOT file
                 fileNames.push_back(in);
             }
@@ -515,6 +516,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
 
                 size_t posLast = strLine.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
                 std::string in = trim(strLine.substr(0, posLast));
+                in = ConfigurationParser::substituteEnv(in);
                 // assume this line contains a ROOT file
                 fileNames.push_back(in);
             }
@@ -681,6 +683,7 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
         size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
         std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));
         value = ConfigurationParser::substituteVarString(value, mapVarString);
+        value = ConfigurationParser::substituteEnv(value);
         std::istringstream sin(value);
         line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
         if (isCommand) {
