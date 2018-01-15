@@ -26,5 +26,4 @@ do
     ptHatMin=${ptHatMins[i1]}
     ptHatMax=${ptHatMaxs[i1]}
     $runCmd $progPath $file1 $file2 $hist1 $hist2 $ptHatMin $ptHatMax
-#    echo "$runCmd $progPath $file1 $file2 $hist1 $hist2 $ptHatMin $ptHatMax"
 done
