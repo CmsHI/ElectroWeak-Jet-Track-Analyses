@@ -17,18 +17,21 @@ inputList=(
 "Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p40.list"
 );
 
-outDir="/export/d00/scratch/"$USER"/EWJTA-out/Performance/photons/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+fi
 outList=(
-$outDir"photonRecoAna_fake_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
-$outDir"photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
-$outDir"photonRecoAna_fake_SIG_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
-$outDir"photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
-$outDir"photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
-$outDir"photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
-$outDir"photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
-$outDir"photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
-$outDir"photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
-$outDir"photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_SIG_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p20.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
+$outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
 );
 
 configList=(

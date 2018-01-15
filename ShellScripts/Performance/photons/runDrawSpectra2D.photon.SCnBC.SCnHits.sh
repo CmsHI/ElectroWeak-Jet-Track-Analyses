@@ -14,14 +14,17 @@ configFiles=(
 "Configurations/photons/spectra2D.photon.SCnHits.GED.conf"
 );
 
-outDirBase="/export/d00/scratch/"$USER"/EWJTA-out/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+fi
 outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB"
 #outputSuffix="SingleGammaFlatPt10To100_pythia8_Hydjet"
 outputFiles=(
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBC_"$outputSuffix".root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBC_GED_"$outputSuffix".root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnHits_"$outputSuffix".root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnHits_GED_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBC_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBC_GED_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnHits_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnHits_GED_"$outputSuffix".root"
 );
 
 arrayIndices=${!outputFiles[*]}

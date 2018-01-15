@@ -20,14 +20,17 @@ configFiles=(
 "Configurations/photons/spectra2D.photon.SCnBCnHits.fake.GED.conf"
 );
 
-outDirBase="/export/d00/scratch/"$USER"/EWJTA-out/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+fi
 outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB"
 outputFiles=(
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBCnHits_fake_"$outputSuffix"_extendEC.root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC.root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p20.root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p30.root"
-$outDirBase"Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p40.root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_"$outputSuffix"_extendEC.root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC.root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p20.root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p30.root"
+$outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p40.root"
 );
 
 arrayIndices=${!outputFiles[*]}

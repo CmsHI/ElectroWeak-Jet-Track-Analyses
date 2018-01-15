@@ -15,15 +15,15 @@ configFiles=(
 "Configurations/gammaJetTrack/spectra2D.photon.etaphi.gjt.conf"
 );
 
-outDirBase="/export/d00/scratch/"$USER"/GJT-out/"
+outDirBase="/export/d00/scratch/"$USER"/GJT-out"
 outputSuffix="PbPb_Data_skim_170712"
 outputFiles=(
-$outDirBase"spectra_photon_gjt_"$outputSuffix".root"
-$outDirBase"spectra_photon_gjt_pho60_"$outputSuffix".root"
-$outDirBase"spectra_photon_gjt_pho60_phoBkg_"$outputSuffix".root"
-$outDirBase"spectra_photon_gjt_pho60_phoSig_"$outputSuffix".root"
-$outDirBase"spectra_photon_gjt_pho80_"$outputSuffix".root"
-$outDirBase"spectra2D_photon_etaphi_gjt_"$outputSuffix".root"
+$outDirBase"/spectra_photon_gjt_"$outputSuffix".root"
+$outDirBase"/spectra_photon_gjt_pho60_"$outputSuffix".root"
+$outDirBase"/spectra_photon_gjt_pho60_phoBkg_"$outputSuffix".root"
+$outDirBase"/spectra_photon_gjt_pho60_phoSig_"$outputSuffix".root"
+$outDirBase"/spectra_photon_gjt_pho80_"$outputSuffix".root"
+$outDirBase"/spectra2D_photon_etaphi_gjt_"$outputSuffix".root"
 );
 
 arrayIndices=${!outputFiles[*]}

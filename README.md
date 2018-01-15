@@ -86,5 +86,4 @@ Set the environment variables by adding the following lines into ~/.bash_profile
   ```C++
   export EWJTAHOME=<directory where this repository is based>
   export EWJTAOUT=<directory for output files>
-  ...
   ```

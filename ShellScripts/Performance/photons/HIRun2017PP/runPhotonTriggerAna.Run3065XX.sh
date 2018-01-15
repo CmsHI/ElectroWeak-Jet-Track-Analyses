@@ -16,8 +16,11 @@ hltFiles=(
 #inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306631.list"
 inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306631.list"
 
-userInitial=${USER:0:1}
-outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet-Track-Analyses/EWJTA-out/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  userInitial=${USER:0:1}
+  outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet-Track-Analyses/EWJTA-out"
+fi
 #outputSuffix="ExpressForests_Run3065XX"
 #outputSuffix="ExpressForests_Run306572"
 #outputSuffix="ExpressForests_Run306572_denomL1"
@@ -28,8 +31,8 @@ outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet
 #outputSuffix="Prompt_Reco_HighEGJet_Run306631_denomL1"
 outputSuffix="Prompt_Reco_HighEGJet_Run306631_denomL1_matchHLT"
 outList=(
-$outDirBase"Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix".root"
-$outDirBase"Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix"_HoverELoose.root"
+$outDirBase"/Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix".root"
+$outDirBase"/Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix"_HoverELoose.root"
 );
 
 configList=(

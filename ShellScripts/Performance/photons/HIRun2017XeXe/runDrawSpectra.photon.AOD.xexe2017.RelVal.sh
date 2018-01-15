@@ -11,12 +11,15 @@ configFiles=(
 "Configurations/photons/HIRun2017XeXe/spectra.photon.AOD.nonGED.conf"
 );
 
-#outDirBase="/export/d00/scratch/"$USER"/EWJTA-out/"
-outDirBase="Configurations/photons/HIRun2017XeXe/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  userInitial=${USER:0:1}
+  outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet-Track-Analyses/EWJTA-out"
+fi
 outputSuffix="HIMinimumBias1_dataRun2_Rereco17_ONLYXeXeBS_v1_RelVal_xexe2017"
 outputFiles=(
-$outDirBase"spectra_photon_AOD_"$outputSuffix".root"
-$outDirBase"spectra_photon_AOD_nonGED_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/HIRun2017XeXe/spectra_photon_AOD_"$outputSuffix".root"
+$outDirBase"/Configurations/photons/HIRun2017XeXe/spectra_photon_AOD_nonGED_"$outputSuffix".root"
 );
 
 arrayIndices=${!outputFiles[*]}
