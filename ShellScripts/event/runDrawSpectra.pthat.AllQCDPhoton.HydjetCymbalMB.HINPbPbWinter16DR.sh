@@ -22,14 +22,17 @@ configFiles=(
 "Configurations/event/Pythia8_AllQCDPhoton_Hydjet_Cymbal_MB_HINPbPbWinter16DR/spectra.pthat.conf"
 );
 
-outDirBase="/export/d00/scratch/"$USER"/EWJTA-out/"
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+fi
 outputFiles=(
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhoton30_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhoton50_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhoton80_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhoton120_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-$outDirBase"Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton30_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton50_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton80_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton120_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
 );
 
 arrayIndices=${!outputFiles[*]}
