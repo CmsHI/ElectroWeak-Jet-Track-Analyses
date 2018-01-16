@@ -1,6 +1,5 @@
 /*
  * macro to make technical plots for sumIso distribution
- * Usage : ./Plotting/photonJetFF/plotTechnicalSumIso.exe Data/photonJetFF/photonSumIso_Pythia8_Hydjet_MB.root
  */
 #include "TFile.h"
 #include "TH1.h"

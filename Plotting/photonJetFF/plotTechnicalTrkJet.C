@@ -1,3 +1,6 @@
+/*
+ * macro to make technical plots for UE track subtraction and bkg jet subtraction
+ */
 #include "TFile.h"
 #include "TH1.h"
 #include "TGraphErrors.h"
