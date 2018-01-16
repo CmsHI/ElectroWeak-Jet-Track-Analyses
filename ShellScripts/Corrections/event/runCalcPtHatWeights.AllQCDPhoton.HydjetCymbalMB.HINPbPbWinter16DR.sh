@@ -1,18 +1,20 @@
 #!/bin/bash
 
 ## First run the following script so that the input for this script is produced :
-## ./ShellScripts/event/runDrawSpectra.pthat.AllQCDPhoton.HydjetCymbalMB.HINPbPbWinter16DR.sh
+## ./ShellScripts/event/runDrawSpectra.CONDOR.pthat.AllQCDPhoton.HydjetCymbalMB.HINPbPbWinter16DR.sh
 
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Corrections/calcPtHatWeights.exe"
 
-outDirBase=$EWJTAOUT
-if [ -z "$outDirBase" ]; then
-  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
-fi
+#outDirBase=$EWJTAOUT
+#if [ -z "$outDirBase" ]; then
+#  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+#fi
+USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine[2]}')
+outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
 
-file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
-file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR_CONDOR/job0.root"
+file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR_CONDOR/job0.root"
 
 hist1="h_0"
 hist2="h_0"
