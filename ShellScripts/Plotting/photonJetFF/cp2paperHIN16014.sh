@@ -10,15 +10,11 @@ destinationDir=$1
 sourceDir="./"
 
 sourceFiles=(
-"ff_60_30_gxi0.pdf"
-"ff_60_30_gxi1.pdf"
 "photonjetFF_compact_fig1.pdf"
 "photonjetFF_compact_fig2.pdf"
 );
 
 destinationFiles=(
-"figures/xijet_phoet60_jetpt30.pdf"
-"figures/xigamma_phoet60_jetpt30.pdf"
 "figures/xijet_phoet60_jetpt30_PRL.pdf"
 "figures/xigamma_phoet60_jetpt30_PRL.pdf"
 );
