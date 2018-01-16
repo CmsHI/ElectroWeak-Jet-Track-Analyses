@@ -17,7 +17,7 @@
 
 #include "../../Utilities/styleUtil.h"
 
-int plotTechnical(TString inputFile);
+int plotTechnicalTrkJet(TString inputFile);
 void plotTechnicalTrk(TString inputFile);
 void plotTechnicalJet(TString inputFile);
 void setTH1(TH1 *h);
@@ -29,12 +29,12 @@ enum SIGBKG{
     kN_SIGBKG,
 };
 
-int plotTechnical(TString inputFile)
+int plotTechnicalTrkJet(TString inputFile)
 {
-    std::cout<<"running plotTechnical()"   <<std::endl;
+    std::cout<<"running plotTechnicalTrkJet()"   <<std::endl;
     plotTechnicalTrk(inputFile);
     plotTechnicalJet(inputFile);
-    std::cout<<"running plotTechnical() - END"<<std::endl;
+    std::cout<<"running plotTechnicalTrkJet() - END"<<std::endl;
 
     return 0;
 }
@@ -372,9 +372,9 @@ void plotTechnicalJet(TString inputFile)
 
 int main(int argc, char* argv[]) {
     if (argc == 2)
-        return plotTechnical(argv[1]);
+        return plotTechnicalTrkJet(argv[1]);
     else
-        std::cout << "./plotTechnical.exe [input file]" << std::endl;
+        std::cout << "./plotTechnicalTrkJet.exe [input file]" << std::endl;
 
     return 1;
 }
