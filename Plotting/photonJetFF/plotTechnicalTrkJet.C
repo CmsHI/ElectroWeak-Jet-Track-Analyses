@@ -176,9 +176,12 @@ void plotTechnicalTrk(TString inputFile)
     latex->SetTextFont(61);
     latex->DrawLatexNDC(0.20, 0.87, "CMS");
 
-    latex = new TLatex();
-    latex->SetTextFont(52);
-    latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
+    bool isPreliminary = false;
+    if (isPreliminary) {
+        latex = new TLatex();
+        latex->SetTextFont(52);
+        latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
+    }
 
     // sqrt(s) and data info
     latex = new TLatex();
@@ -344,11 +347,14 @@ void plotTechnicalJet(TString inputFile)
     latex->SetTextFont(61);
     latex->DrawLatexNDC(0.20, 0.87, "CMS");
 
-    latex = new TLatex();
-    latex->SetTextFont(52);
-    latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
+    bool isPreliminary = false;
+    if (isPreliminary) {
+        latex = new TLatex();
+        latex->SetTextFont(52);
+        latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
+    }
 
-    // sqrt(s) and lumi info
+    // sqrt(s) and data info
     latex = new TLatex();
     latex->SetTextFont(43);
     latex->SetTextSize(24*grScale);
