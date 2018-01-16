@@ -52,7 +52,7 @@ fi
 baseDir="/work/"$USER"/ewjta"
 timeNow=$(date +"%Y%m%d_%H%M%S")
 submitDir=$baseDir"/condorSubmissions/"$timeNow
-condorLogsDir=$baseDir"/condorLogs/"$timeNow
+condorLogsDir=$submitDir"/logs"
 mkdir -p $submitDir
 mkdir -p $condorLogsDir
 
