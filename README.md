@@ -81,9 +81,11 @@ All cuts applied at every step come from files in the *CutConfigurations* folder
 It is useful to set the following environment variables
  - **EWJTAHOME** points to the directory where this repository is based
  - **EWJTAOUT** points to the directory for the output files.
+ - **EWJTAOUTGRID** points to the directory for the output files which are created/written by GRID jobs/tools.
 
 Set the environment variables by adding the following lines into ~/.bash_profile or ~/.bashrc
   ```bash
   export EWJTAHOME=<directory where this repository is based>
   export EWJTAOUT=<directory for output files>
+  export EWJTAOUTGRID=<directory for output files which are created/written by GRID jobs/tools>
   ```
