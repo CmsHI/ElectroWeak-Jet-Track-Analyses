@@ -6,12 +6,14 @@
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Corrections/calcPtHatWeights.exe"
 
-#outDirBase=$EWJTAOUT
-#if [ -z "$outDirBase" ]; then
-#  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
-#fi
-USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine[2]}')
-outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
+outDirBase=$EWJTAOUTGRID
+if [ -z "$outDirBase" ]; then
+  USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine[2]}')
+  if [ -z "$USERGRID" ]; then
+    USERGRID=$USER
+  fi
+  outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
+fi
 
 file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
 file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
