@@ -13,8 +13,8 @@ progPath="./Corrections/calcPtHatWeights.exe"
 USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine[2]}')
 outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
 
-file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR_CONDOR/job0.root"
-file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR_CONDOR/job0.root"
+file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton15_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
+file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
 
 hist1="h_0"
 hist2="h_0"
