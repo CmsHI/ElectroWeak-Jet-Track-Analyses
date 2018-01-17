@@ -1,9 +1,9 @@
 #!/bin/bash
 # creates a script in a given directory and that script runs plotHistogram.C on all configuration files in that directory
 
-if [ $# -ne 1 ]; then
-  echo "Usage: ./ShellScripts/Plotting/createRunPlots.sh <pathToDirectory>"
-  echo "Example: ./ShellScripts/Plotting/createRunPlots.sh ./plotsDir/"
+if [ $# -lt 1 ]; then
+  echo "Usage: ./ShellScripts/Plotting/createRunPlots.sh <pathToDirectory> [<configFileNames>]"
+  echo "Example: ./ShellScripts/Plotting/createRunPlots.sh ./plotsDir/ ['plot.pt*.conf']"
   exit 1
 fi
 
@@ -34,7 +34,11 @@ configFiles=(
 EOF
 
 echo "list of config files to be put into shell script"
-confFilesWC=$outputDir"*.conf"
+confFileNamesWC=$2
+if [ -z "$confFileNamesWC" ]; then
+  confFileNamesWC="*.conf"
+fi
+confFilesWC=$outputDir$confFileNamesWC
 for confFile in $confFilesWC
 do
    confFileBase=$(basename "${confFile}")
