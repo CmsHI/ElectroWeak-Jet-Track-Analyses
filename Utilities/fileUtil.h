@@ -345,7 +345,8 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
     TH1*  h = 0;
     TKey*  key = 0;
     TIter* iter = new TIter(keysHisto);
-    TCanvas* c1=new TCanvas();
+    TCanvas* c1=new TCanvas("cnvTmp", "", 600, 600);
+    c1->SetMargin(0.15, 0.05, 0.1, 0.1);
     while ((key=(TKey*)iter->Next()))
     {
         h = (TH1*)key->ReadObj();
