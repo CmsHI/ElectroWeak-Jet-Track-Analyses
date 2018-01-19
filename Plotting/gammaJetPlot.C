@@ -494,7 +494,7 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
         commonInfo = "anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6, |#eta^{#gamma}| < 1.44";
         if (canvas_title == "xjg_cent")
             commonInfo += ", p_{T}^{#gamma} > 60 GeV/c";
-        if (hist_type.find("dphi") == std::string::npos && hist_type != "iaa" && hist_type != "ptJet")
+        if (hist_type.find("dphi") == std::string::npos)
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
     float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
