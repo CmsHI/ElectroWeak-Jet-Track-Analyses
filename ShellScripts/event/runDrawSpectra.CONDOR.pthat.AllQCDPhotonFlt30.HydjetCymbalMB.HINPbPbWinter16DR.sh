@@ -1,5 +1,9 @@
 #!/bin/bash
 
+## how to run this script and submit the condor jobs :
+# $> ./ShellScripts/event/runDrawSpectra.CONDOR.pthat.AllQCDPhotonFlt30.HydjetCymbalMB.HINPbPbWinter16DR.sh &> tempLog.txt
+# $> grep "condor_submit /" tempLog.txt # execute the lines that are printed
+
 #g++ -Wall -Werror -Wextra -O2 -Wno-narrowing `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -MMD -MF ./build/Performance/drawSpectra.d Performance/drawSpectra.C -o Performance/drawSpectra.exe
 
 runCmd="./ShellScripts/myRun.sh"
