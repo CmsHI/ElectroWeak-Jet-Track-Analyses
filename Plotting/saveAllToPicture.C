@@ -51,16 +51,19 @@ void saveAllToPicture(std::string fileName, std::string directory)
         }
     }
 
-    // save to picture
+    // canvas to be used as template for pictures
+    TCanvas* c = new TCanvas("c", "", 600, 600);
     for (std::vector<std::string>::const_iterator it = wildCards.begin() ; it != wildCards.end(); ++it){
 
         std::string regexStr = "";
         if((*it).size() > 0) regexStr = wildCard2Regex((*it));
 
-        saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn);
-        saveGraphsToPicture     (file, regexStr, graphicsFormat, directoryToBeSavedIn);
+        saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
+        saveGraphsToPicture     (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
         saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn);
     }
+    c->Close();
+
     std::cout<< "end : saving graphics" <<std::endl;
 
     std::cout<<"Closing the input file."<<std::endl;
