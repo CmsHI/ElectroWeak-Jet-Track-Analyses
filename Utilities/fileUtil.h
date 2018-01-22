@@ -37,10 +37,10 @@ TList*   getListOfALLCanvases(TDirectoryFile* dir);
 
 std::string getKeyPath(TKey* key);
 
-void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
-void     saveHistogramsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0, int rebin=1);
-void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
-void     saveGraphsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int styleIndex=0);
+void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int rebin=1);
+void     saveHistogramsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int rebin=1);
+void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
+void     saveGraphsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="");
 void     saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
 void     saveCanvasesToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="");
 
@@ -333,12 +333,12 @@ std::string getKeyPath(TKey* key)
 /*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int styleIndex, int rebin)
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int rebin)
 {
-    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, styleIndex, rebin);
+    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, rebin);
 }
 
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int styleIndex, int rebin)
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int rebin)
 {
     TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
@@ -354,11 +354,6 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
         if(rebin!=1)
         {
             h->Rebin(rebin);
-        }
-
-        if(styleIndex==1)
-        {
-            h->Draw("E");
         }
         else
         {
@@ -385,12 +380,12 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
 /*
  * save recursively all the graphs inside a TDirectoryFile "dir" to images
  */
-void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int styleIndex)
+void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
 {
-    saveGraphsToPicture(dir, "", fileType, directoryToBeSavedIn, styleIndex);
+    saveGraphsToPicture(dir, "", fileType, directoryToBeSavedIn);
 }
 
-void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int styleIndex)
+void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
 {
     TList* keysGraph = getListOfMatchedKeys(dir, regex, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
 
@@ -402,14 +397,7 @@ void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fil
     {
         graph = (TGraph*)key->ReadObj();
 
-        if(styleIndex==1)
-        {
-            graph->Draw();
-        }
-        else
-        {
-            graph->Draw("a p");
-        }
+        graph->Draw("a p");
 
         if(directoryToBeSavedIn == "")   // save in the current directory if no directory is specified
         {
