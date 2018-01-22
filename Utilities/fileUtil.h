@@ -37,8 +37,8 @@ TList*   getListOfALLCanvases(TDirectoryFile* dir);
 
 std::string getKeyPath(TKey* key);
 
-void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="", int rebin=1);
-void     saveHistogramsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="", int rebin=1);
+void     saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
+void     saveHistogramsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="");
 void     saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
 void     saveGraphsToPicture(TDirectoryFile* dir, std::string regex="", std::string fileType="png", std::string directoryToBeSavedIn="");
 void     saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType="png", std::string directoryToBeSavedIn="");
@@ -333,12 +333,12 @@ std::string getKeyPath(TKey* key)
 /*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, int rebin)
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
 {
-    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, rebin);
+    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn);
 }
 
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, int rebin)
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
 {
     TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
@@ -351,18 +351,11 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
     {
         h = (TH1*)key->ReadObj();
 
-        if(rebin!=1)
+        h->Draw();
+        if(h->InheritsFrom("TH2"))
         {
-            h->Rebin(rebin);
-        }
-        else
-        {
-            h->Draw();
-            if(h->InheritsFrom("TH2"))
-            {
-                h->SetStats(false);
-                h->Draw("COLZ");    // default plot style for TH2 histograms
-            }
+            h->SetStats(false);
+            h->Draw("COLZ");    // default plot style for TH2 histograms
         }
 
         if(directoryToBeSavedIn == "")   // save in the current directory if no directory is specified
