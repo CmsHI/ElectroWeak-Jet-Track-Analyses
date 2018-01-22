@@ -20,6 +20,9 @@
 
 std::string graphicsFormat;
 std::vector<std::string> wildCards;
+int logx;
+int logy;
+int logz;
 
 void saveAllToPicture(std::string fileName, std::string directory = "");
 
@@ -50,9 +53,15 @@ void saveAllToPicture(std::string fileName, std::string directory)
             std::cout << Form("wc[%d] = %s", i, wildCards.at(i).c_str()) << std::endl;
         }
     }
+    std::cout << "logx = " << logx << std::endl;
+    std::cout << "logy = " << logy << std::endl;
+    std::cout << "logz = " << logz << std::endl;
 
     // canvas to be used as template for pictures
     TCanvas* c = new TCanvas("c", "", 600, 600);
+    c->SetLogx(logx);
+    c->SetLogy(logy);
+    c->SetLogz(logz);
     for (std::vector<std::string>::const_iterator it = wildCards.begin() ; it != wildCards.end(); ++it){
 
         std::string regexStr = "";
@@ -81,6 +90,12 @@ int main(int argc, char** argv)
     graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0 ?
                       ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "");
     wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
+    logx = (ArgumentParser::ParseOptionInput("--logx", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--logx", argOptions).at(0).c_str()) : 0;
+    logy = (ArgumentParser::ParseOptionInput("--logy", argOptions).size() > 0) ?
+                std::atoi(ArgumentParser::ParseOptionInput("--logy", argOptions).at(0).c_str()) : 0;
+    logz = (ArgumentParser::ParseOptionInput("--logz", argOptions).size() > 0) ?
+                std::atoi(ArgumentParser::ParseOptionInput("--logz", argOptions).at(0).c_str()) : 0;
 
     // set default values
     if (graphicsFormat.size() == 0)  graphicsFormat = "png";
