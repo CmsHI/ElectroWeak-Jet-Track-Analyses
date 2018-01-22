@@ -37,10 +37,10 @@ TList* getListOfALLCanvases(TDirectoryFile* dir);
 
 std::string getKeyPath(TKey* key);
 
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "");
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "");
-void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "");
-void saveGraphsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "");
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveGraphsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "");
 void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "");
 
@@ -333,22 +333,29 @@ std::string getKeyPath(TKey* key)
 /*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
-    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn);
+    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, c);
 }
 
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
     TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
     TH1*  h = 0;
     TKey*  key = 0;
     TIter* iter = new TIter(keysHisto);
-    TCanvas* c1=new TCanvas("cnvTmp", "", 600, 600);
-    c1->SetMargin(0.15, 0.05, 0.1, 0.1);
+
+    TCanvas* cnv = 0;
     while ((key=(TKey*)iter->Next()))
     {
+        if (c) {
+            cnv = (TCanvas*)c->Clone("cnvTmp");
+        }
+        else {
+            cnv = new TCanvas("cnvTmp", "", 600, 600);
+        }
+
         h = (TH1*)key->ReadObj();
 
         h->Draw();
@@ -361,29 +368,38 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
         if(directoryToBeSavedIn == "")
             directoryToBeSavedIn = "."; // save in the current directory if no directory is specified
 
-        c1->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), h->GetName(), fileType.c_str()));
+        cnv->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), h->GetName(), fileType.c_str()));
+
+        cnv->Close();
     }
-    c1->Close();
 }
 
 /*
  * save recursively all the graphs inside a TDirectoryFile "dir" to images
  */
-void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
+void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
-    saveGraphsToPicture(dir, "", fileType, directoryToBeSavedIn);
+    saveGraphsToPicture(dir, "", fileType, directoryToBeSavedIn, c);
 }
 
-void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
+void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
     TList* keysGraph = getListOfMatchedKeys(dir, regex, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
 
     TGraph* graph = 0;
     TKey*  key = 0;
     TIter* iter = new TIter(keysGraph);
-    TCanvas* c1=new TCanvas();
-    while ((key=(TKey*)iter->Next()))
+
+    TCanvas* cnv = 0;
+    while ((key = (TKey*)iter->Next()))
     {
+        if (c) {
+            cnv = (TCanvas*)c->Clone("cnvTmp");
+        }
+        else {
+            cnv = new TCanvas("cnvTmp", "", 600, 600);
+        }
+
         graph = (TGraph*)key->ReadObj();
 
         graph->Draw("a p");
@@ -391,9 +407,10 @@ void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fil
         if(directoryToBeSavedIn == "")
             directoryToBeSavedIn = "."; // save in the current directory if no directory is specified
 
-        c1->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), graph->GetName(), fileType.c_str()));
+        cnv->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), graph->GetName(), fileType.c_str()));
+
+        cnv->Close();
     }
-    c1->Close();
 }
 
 void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
