@@ -18,13 +18,7 @@
 #include "../Utilities/fileUtil.h"
 #include "../Utilities/systemUtil.h"
 
-std::string graphicsFormat;
-std::vector<std::string> wildCards;
-int ww;     // window width
-int wh;     // window height
-int logx;
-int logy;
-int logz;
+std::vector<std::string> argOptions;
 
 void saveAllToPicture(std::string fileName, std::string directory = "");
 
@@ -45,6 +39,28 @@ void saveAllToPicture(std::string fileName, std::string directory)
     else {
         directoryToBeSavedIn = directory.c_str();
     }
+
+    // parse the input of different options
+    std::string graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0) ?
+            ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "png";
+    std::vector<std::string> wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
+
+    // window width
+    int ww = (ArgumentParser::ParseOptionInput("--ww", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--ww", argOptions).at(0).c_str()) : 600;
+    // window height
+    int wh = (ArgumentParser::ParseOptionInput("--wh", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--wh", argOptions).at(0).c_str()) : 600;
+
+    int logx = (ArgumentParser::ParseOptionInput("--logx", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--logx", argOptions).at(0).c_str()) : 0;
+    int logy = (ArgumentParser::ParseOptionInput("--logy", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--logy", argOptions).at(0).c_str()) : 0;
+    int logz = (ArgumentParser::ParseOptionInput("--logz", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--logz", argOptions).at(0).c_str()) : 0;
+
+    // set default values
+    if (wildCards.size() == 0)  wildCards = {""};
 
     // print the input of different options
     std::cout << "graphicsFormat = " << graphicsFormat.c_str() << std::endl;
@@ -91,34 +107,20 @@ int main(int argc, char** argv)
     std::vector<std::string> argStr = ArgumentParser::ParseParameters(argc, argv);
     int nArgStr = argStr.size();
 
-    std::vector<std::string> argOptions = ArgumentParser::ParseOptions(argc, argv);
-    // parse the input of different options
-    graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0) ?
-                      ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "";
-    wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
-
-    ww = (ArgumentParser::ParseOptionInput("--ww", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--ww", argOptions).at(0).c_str()) : 600;
-    wh = (ArgumentParser::ParseOptionInput("--wh", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--wh", argOptions).at(0).c_str()) : 600;
-
-    logx = (ArgumentParser::ParseOptionInput("--logx", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--logx", argOptions).at(0).c_str()) : 0;
-    logy = (ArgumentParser::ParseOptionInput("--logy", argOptions).size() > 0) ?
-                std::atoi(ArgumentParser::ParseOptionInput("--logy", argOptions).at(0).c_str()) : 0;
-    logz = (ArgumentParser::ParseOptionInput("--logz", argOptions).size() > 0) ?
-                std::atoi(ArgumentParser::ParseOptionInput("--logz", argOptions).at(0).c_str()) : 0;
-
-    // set default values
-    if (graphicsFormat.size() == 0)  graphicsFormat = "png";
-    if (wildCards.size() == 0)  wildCards = {""};
+    argOptions = ArgumentParser::ParseOptions(argc, argv);
 
     if (nArgStr == 3)    saveAllToPicture(argStr.at(1), argStr.at(2));
     else if (nArgStr == 2)    saveAllToPicture(argStr.at(1));
     else {
         std::cout << "Usage : \n" <<
-                "./saveAllToPicture.exe (--format=<graphicsFormat>) (--wc=<wildcards>) <inputFile> <outputDirectory>"
+                "./saveAllToPicture.exe <inputFile> [<outputDirectory>] [options]"
                 << std::endl;
+        std::cout << "Options are" << std::endl;
+        std::cout << "--format=<graphicsFormat>" << std::endl;
+        std::cout << "--wc=<wildcards>" << std::endl;
+        std::cout << "--ww=<window width>" << std::endl;
+        std::cout << "--wh=<window height>" << std::endl;
+        std::cout << "--logx=<log scale of x-axis>, Similarly for logy and logz" << std::endl;
         return 1;
     }
     return 0;
