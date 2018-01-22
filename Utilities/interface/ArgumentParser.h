@@ -30,6 +30,7 @@ public :
     static std::vector<std::string> ParseOptions(int argc, char** argv);
     static std::vector<std::string> ParseOptionInput(std::string optionType, std::string option);
     static std::vector<std::string> ParseOptionInput(std::string optionType, std::vector<std::string> options);
+    static std::string ParseOptionInputSingle(std::string optionType, std::vector<std::string> options);
 };
 
 /*
@@ -92,6 +93,10 @@ std::vector<std::string> ArgumentParser::ParseOptionInput(std::string optionType
     }
 }
 
+/*
+ * Parse the input values for an option.
+ * The input is parsed as a list of strings.
+ */
 std::vector<std::string> ArgumentParser::ParseOptionInput(std::string optionType, std::vector<std::string> options)
 {
     for (std::vector<std::string>::const_iterator it = options.begin() ; it != options.end(); ++it){
@@ -101,6 +106,17 @@ std::vector<std::string> ArgumentParser::ParseOptionInput(std::string optionType
     }
 
     return {};
+}
+
+/*
+ * Parse the input values for an option.
+ * The input is parsed as a string.
+ */
+std::string ArgumentParser::ParseOptionInputSingle(std::string optionType, std::vector<std::string> options)
+{
+    std::vector<std::string> inputAsList =  ArgumentParser::ParseOptionInput(optionType, options);
+    if (inputAsList.size()) return inputAsList.at(0);
+    else                    return "";
 }
 
 #endif

@@ -41,23 +41,23 @@ void saveAllToPicture(std::string fileName, std::string directory)
     }
 
     // parse the input of different options
-    std::string graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0) ?
-            ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "png";
+    std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
+            ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions) : "png";
     std::vector<std::string> wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
 
     // window width
-    int ww = (ArgumentParser::ParseOptionInput("--ww", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--ww", argOptions).at(0).c_str()) : 600;
+    int ww = (ArgumentParser::ParseOptionInputSingle("--ww", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--ww", argOptions).c_str()) : 600;
     // window height
-    int wh = (ArgumentParser::ParseOptionInput("--wh", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--wh", argOptions).at(0).c_str()) : 600;
+    int wh = (ArgumentParser::ParseOptionInputSingle("--wh", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--wh", argOptions).c_str()) : 600;
 
-    int logx = (ArgumentParser::ParseOptionInput("--logx", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--logx", argOptions).at(0).c_str()) : 0;
-    int logy = (ArgumentParser::ParseOptionInput("--logy", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--logy", argOptions).at(0).c_str()) : 0;
-    int logz = (ArgumentParser::ParseOptionInput("--logz", argOptions).size() > 0) ?
-            std::atoi(ArgumentParser::ParseOptionInput("--logz", argOptions).at(0).c_str()) : 0;
+    int logx = (ArgumentParser::ParseOptionInputSingle("--logx", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logx", argOptions).c_str()) : 0;
+    int logy = (ArgumentParser::ParseOptionInputSingle("--logy", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logy", argOptions).c_str()) : 0;
+    int logz = (ArgumentParser::ParseOptionInputSingle("--logz", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logz", argOptions).c_str()) : 0;
 
     // set default values
     if (wildCards.size() == 0)  wildCards = {""};
