@@ -52,6 +52,16 @@ void saveAllToPicture(std::string fileName, std::string directory)
     int wh = (ArgumentParser::ParseOptionInputSingle("--wh", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--wh", argOptions).c_str()) : 600;
 
+    // margins
+    double lmargin = (ArgumentParser::ParseOptionInputSingle("--lmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--lmargin", argOptions).c_str()) : 0.1;
+    double rmargin = (ArgumentParser::ParseOptionInputSingle("--rmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--rmargin", argOptions).c_str()) : 0.1;
+    double bmargin = (ArgumentParser::ParseOptionInputSingle("--bmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--bmargin", argOptions).c_str()) : 0.1;
+    double tmargin = (ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).c_str()) : 0.1;
+
     int logx = (ArgumentParser::ParseOptionInputSingle("--logx", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--logx", argOptions).c_str()) : 0;
     int logy = (ArgumentParser::ParseOptionInputSingle("--logy", argOptions).size() > 0) ?
@@ -75,6 +85,11 @@ void saveAllToPicture(std::string fileName, std::string directory)
     std::cout << "ww = " << ww << std::endl;
     std::cout << "wh = " << wh << std::endl;
 
+    std::cout << "lmargin = " << lmargin << std::endl;
+    std::cout << "rmargin = " << rmargin << std::endl;
+    std::cout << "bmargin = " << bmargin << std::endl;
+    std::cout << "tmargin = " << tmargin << std::endl;
+
     std::cout << "logx = " << logx << std::endl;
     std::cout << "logy = " << logy << std::endl;
     std::cout << "logz = " << logz << std::endl;
@@ -84,6 +99,7 @@ void saveAllToPicture(std::string fileName, std::string directory)
     c->SetLogx(logx);
     c->SetLogy(logy);
     c->SetLogz(logz);
+    c->SetMargin(lmargin, rmargin, bmargin, tmargin);
     for (std::vector<std::string>::const_iterator it = wildCards.begin() ; it != wildCards.end(); ++it){
 
         std::string regexStr = "";
@@ -120,6 +136,7 @@ int main(int argc, char** argv)
         std::cout << "--wc=<wildcards>" << std::endl;
         std::cout << "--ww=<window width>" << std::endl;
         std::cout << "--wh=<window height>" << std::endl;
+        std::cout << "--lmargin=<left margin>, Similarly rmargin, bmargin, tmargin for right, bottom, and top margins" << std::endl;
         std::cout << "--logx=<log scale of x-axis>, Similarly for logy and logz" << std::endl;
         return 1;
     }
