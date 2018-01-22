@@ -44,3 +44,18 @@ Run the following to create the lists for Pythia8_AllQCDPhoton*Flt30_Hydjet_Cymb
   cat Configurations/filelists/Pythia8_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
   cat Configurations/filelists/Pythia8_AllQCDPhoton120Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
   ```
+
+Run the following to create the lists for Pythia8_AllQCDPhoton*Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST :
+
+  ```bash
+  cd $EWJTAHOME # go to directory where the repository is based
+  ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/180111_184718/0000/*.root > Configurations/filelists/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/180111_184802/0000/*.root > Configurations/filelists/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/180111_184839/0000/*.root > Configurations/filelists/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/180111_184934/0000/*.root > Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  rm Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
+  ```
