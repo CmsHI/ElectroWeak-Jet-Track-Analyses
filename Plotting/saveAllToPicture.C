@@ -20,6 +20,8 @@
 
 std::string graphicsFormat;
 std::vector<std::string> wildCards;
+int ww;     // window width
+int wh;     // window height
 int logx;
 int logy;
 int logz;
@@ -53,12 +55,16 @@ void saveAllToPicture(std::string fileName, std::string directory)
             std::cout << Form("wc[%d] = %s", i, wildCards.at(i).c_str()) << std::endl;
         }
     }
+
+    std::cout << "ww = " << ww << std::endl;
+    std::cout << "wh = " << wh << std::endl;
+
     std::cout << "logx = " << logx << std::endl;
     std::cout << "logy = " << logy << std::endl;
     std::cout << "logz = " << logz << std::endl;
 
     // canvas to be used as template for pictures
-    TCanvas* c = new TCanvas("c", "", 600, 600);
+    TCanvas* c = new TCanvas("c", "", ww, wh);
     c->SetLogx(logx);
     c->SetLogy(logy);
     c->SetLogz(logz);
@@ -87,9 +93,15 @@ int main(int argc, char** argv)
 
     std::vector<std::string> argOptions = ArgumentParser::ParseOptions(argc, argv);
     // parse the input of different options
-    graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0 ?
-                      ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "");
+    graphicsFormat = (ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).size() > 0) ?
+                      ArgumentParser::ParseOptionInput(ARGUMENTPARSER::format, argOptions).at(0) : "";
     wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
+
+    ww = (ArgumentParser::ParseOptionInput("--ww", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--ww", argOptions).at(0).c_str()) : 600;
+    wh = (ArgumentParser::ParseOptionInput("--wh", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInput("--wh", argOptions).at(0).c_str()) : 600;
+
     logx = (ArgumentParser::ParseOptionInput("--logx", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInput("--logx", argOptions).at(0).c_str()) : 0;
     logy = (ArgumentParser::ParseOptionInput("--logy", argOptions).size() > 0) ?
