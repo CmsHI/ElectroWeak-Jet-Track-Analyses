@@ -107,7 +107,7 @@ void saveAllToPicture(std::string fileName, std::string directory)
 
         saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
         saveGraphsToPicture     (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
-        saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn);
+        saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
     }
     c->Close();
 

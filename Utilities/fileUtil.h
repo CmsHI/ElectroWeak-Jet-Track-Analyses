@@ -41,8 +41,8 @@ void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png
 void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveGraphsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
-void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "");
-void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "");
+void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 
 /*
  * return 0 , if the file is good to read.
@@ -342,8 +342,8 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
 {
     TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
-    TH1*  h = 0;
-    TKey*  key = 0;
+    TH1* h = 0;
+    TKey* key = 0;
     TIter* iter = new TIter(keysHisto);
 
     TCanvas* cnv = 0;
@@ -387,7 +387,7 @@ void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fil
     TList* keysGraph = getListOfMatchedKeys(dir, regex, "TGraph", true); // all graphs that inherit from "TGraph" will be saved to picture.
 
     TGraph* graph = 0;
-    TKey*  key = 0;
+    TKey* key = 0;
     TIter* iter = new TIter(keysGraph);
 
     TCanvas* cnv = 0;
@@ -413,32 +413,41 @@ void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fil
     }
 }
 
-void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn)
+void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
-    saveCanvasesToPicture(dir, "", fileType, directoryToBeSavedIn);
+    saveCanvasesToPicture(dir, "", fileType, directoryToBeSavedIn, c);
 }
 
-void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn)
+void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
 {
-    TList* keysCanvas = getListOfMatchedKeys(dir, regex,"TCanvas", true);  // all canvases that inherit from "TCanvas" will be saved to picture.
+    TList* keysCanvas = getListOfMatchedKeys(dir, regex, "TCanvas", true);  // all canvases that inherit from "TCanvas" will be saved to picture.
 
-    TCanvas* c = new TCanvas();
-    TKey*  key = 0;
+    TCanvas* cnv = new TCanvas();
+    TKey* key = 0;
     TIter* iter = new TIter(keysCanvas);
+
     while ((key=(TKey*)iter->Next()))
     {
-        c = (TCanvas*)key->ReadObj();
-        c->Draw();
+        cnv = (TCanvas*)key->ReadObj();
+        if (c)  {
+            cnv->SetCanvasSize(c->GetWw(), c->GetWh());
+            cnv->SetLogx(c->GetLogx());
+            cnv->SetLogy(c->GetLogy());
+            cnv->SetLogz(c->GetLogz());
+            cnv->SetMargin(c->GetLeftMargin(), c->GetRightMargin(), c->GetBottomMargin(), c->GetTopMargin());
+            cnv->Update();
+        }
+        cnv->Draw();
 
         if(directoryToBeSavedIn == "")
             directoryToBeSavedIn = "."; // save in the current directory if no directory is specified
 
-        c->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), c->GetName(), fileType.c_str()));
-        c->Close();  // close the canvas after each iteration,
+        cnv->SaveAs(Form("%s/%s.%s", directoryToBeSavedIn.c_str(), cnv->GetName(), fileType.c_str()));
+        cnv->Close();  // close the canvas after each iteration,
                      // otherwise each iteration will have open a new window and
                      // they will not be closed until the code terminates.
     }
-    c->Close();
+    cnv->Close();
 }
 
 #endif /* FILEUTIL_H_ */
