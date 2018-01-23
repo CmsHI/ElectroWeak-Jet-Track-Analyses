@@ -45,6 +45,8 @@ void saveAllToPicture(std::string fileName, std::string directory)
             ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions) : "png";
     std::vector<std::string> wildCards = ArgumentParser::ParseOptionInput(ARGUMENTPARSER::wildCard, argOptions);
 
+    bool overwriteStoredCanvas = (findPositionInVector(argOptions, "--overwriteStoredCanvas") != -1);
+
     // window width
     int ww = (ArgumentParser::ParseOptionInputSingle("--ww", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--ww", argOptions).c_str()) : 600;
@@ -82,6 +84,9 @@ void saveAllToPicture(std::string fileName, std::string directory)
         }
     }
 
+    if (overwriteStoredCanvas)
+        std::cout << "overwriting stored canvases" << std::endl;
+
     std::cout << "ww = " << ww << std::endl;
     std::cout << "wh = " << wh << std::endl;
 
@@ -100,6 +105,9 @@ void saveAllToPicture(std::string fileName, std::string directory)
     c->SetLogy(logy);
     c->SetLogz(logz);
     c->SetMargin(lmargin, rmargin, bmargin, tmargin);
+
+    TCanvas* c2 = 0;
+    if (overwriteStoredCanvas) c2 = (TCanvas*)c->Clone("c2");
     for (std::vector<std::string>::const_iterator it = wildCards.begin() ; it != wildCards.end(); ++it){
 
         std::string regexStr = "";
@@ -107,9 +115,10 @@ void saveAllToPicture(std::string fileName, std::string directory)
 
         saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
         saveGraphsToPicture     (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
-        saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
+        saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn, c2);
     }
     c->Close();
+    if (c2) c2->Close();
 
     std::cout<< "end : saving graphics" <<std::endl;
 
