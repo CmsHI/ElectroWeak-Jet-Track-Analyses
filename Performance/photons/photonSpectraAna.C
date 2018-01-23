@@ -1026,7 +1026,7 @@ int  preLoop(TFile* input, bool makeNew)
         int iSieie = binIndices[ANABINS::kSieie];
         int iR9 = binIndices[ANABINS::kR9];
 
-        if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0)  continue;
+        if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0)  continue;
 
         // for histograms with a particular dependence,
         // a single index is used in the multidimensional array of spectraAnalyzer objects.
