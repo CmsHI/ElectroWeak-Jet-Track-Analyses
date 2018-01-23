@@ -1,82 +1,66 @@
 h1D_xjg_ptBin2_hiBin1_pp_Data 1
 h1D_xjg_ptBin2_hiBin1_pp_Data 5
 h1D_xjg_ptBin2_hiBin1_pp_Data_Hybrid 11
-h1D_xjg_ptBin2_hiBin1_pp_Data_JEWEL 9
-h1D_xjg_ptBin2_hiBin1_pp_Data_LBT 10
 h1D_xjg_ptBin2_hiBin1_pp_Data 5
 +
 h1D_xjg_ptBin3_hiBin1_pp_Data 1
 h1D_xjg_ptBin3_hiBin1_pp_Data 5
 h1D_xjg_ptBin3_hiBin1_pp_Data_Hybrid 11
-h1D_xjg_ptBin3_hiBin1_pp_Data_JEWEL 9
-h1D_xjg_ptBin3_hiBin1_pp_Data_LBT 10
 h1D_xjg_ptBin3_hiBin1_pp_Data 5
 +
 h1D_xjg_ptBin4_hiBin1_pp_Data 1
 h1D_xjg_ptBin4_hiBin1_pp_Data 5
 h1D_xjg_ptBin4_hiBin1_pp_Data_Hybrid 11
-h1D_xjg_ptBin4_hiBin1_pp_Data_JEWEL 9
-h1D_xjg_ptBin4_hiBin1_pp_Data_LBT 10
 h1D_xjg_ptBin4_hiBin1_pp_Data 5
 +
 h1D_xjg_ptBin6_hiBin1_pp_Data 1
 h1D_xjg_ptBin6_hiBin1_pp_Data 5
 h1D_xjg_ptBin6_hiBin1_pp_Data_Hybrid 11
-h1D_xjg_ptBin6_hiBin1_pp_Data_JEWEL 9
-h1D_xjg_ptBin6_hiBin1_pp_Data_LBT 10
 h1D_xjg_ptBin6_hiBin1_pp_Data 5
 +
 h1D_xjg_ptBin7_hiBin1_pp_Data 1
 h1D_xjg_ptBin7_hiBin1_pp_Data 5
 h1D_xjg_ptBin7_hiBin1_pp_Data_Hybrid 11
-h1D_xjg_ptBin7_hiBin1_pp_Data_JEWEL 9
-h1D_xjg_ptBin7_hiBin1_pp_Data_LBT 10
 h1D_xjg_ptBin7_hiBin1_pp_Data 5
 +
-h1D_xjg_ptBin2_hiBin2_pp_Data 3
-h1D_xjg_ptBin2_hiBin2_pp_Data 7
+h1D_xjg_ptBin2_hiBin0_pp_Data 3
+h1D_xjg_ptBin2_hiBin0_pp_Data 7
 h1D_xjg_ptBin2_hiBin2_pp_Data_JEWEL 9
 h1D_xjg_ptBin2_hiBin2_pp_Data_LBT 10
-h1D_xjg_ptBin2_hiBin2_pp_Data 7
+h1D_xjg_ptBin2_hiBin0_pp_Data 7
 +
-h1D_xjg_ptBin3_hiBin2_pp_Data 3
-h1D_xjg_ptBin3_hiBin2_pp_Data 7
+h1D_xjg_ptBin3_hiBin0_pp_Data 3
+h1D_xjg_ptBin3_hiBin0_pp_Data 7
 h1D_xjg_ptBin3_hiBin2_pp_Data_JEWEL 9
 h1D_xjg_ptBin3_hiBin2_pp_Data_LBT 10
-h1D_xjg_ptBin3_hiBin2_pp_Data 7
+h1D_xjg_ptBin3_hiBin0_pp_Data 7
 +
-h1D_xjg_ptBin4_hiBin2_pp_Data 3
-h1D_xjg_ptBin4_hiBin2_pp_Data 7
+h1D_xjg_ptBin4_hiBin0_pp_Data 3
+h1D_xjg_ptBin4_hiBin0_pp_Data 7
 h1D_xjg_ptBin4_hiBin2_pp_Data_JEWEL 9
 h1D_xjg_ptBin4_hiBin2_pp_Data_LBT 10
-h1D_xjg_ptBin4_hiBin2_pp_Data 7
+h1D_xjg_ptBin4_hiBin0_pp_Data 7
 +
-h1D_xjg_ptBin6_hiBin2_pp_Data 3
-h1D_xjg_ptBin6_hiBin2_pp_Data 7
+h1D_xjg_ptBin6_hiBin0_pp_Data 3
+h1D_xjg_ptBin6_hiBin0_pp_Data 7
 h1D_xjg_ptBin6_hiBin2_pp_Data_JEWEL 9
 h1D_xjg_ptBin6_hiBin2_pp_Data_LBT 10
-h1D_xjg_ptBin6_hiBin2_pp_Data 7
+h1D_xjg_ptBin6_hiBin0_pp_Data 7
 +
-h1D_xjg_ptBin7_hiBin2_pp_Data 3
-h1D_xjg_ptBin7_hiBin2_pp_Data 7
+h1D_xjg_ptBin7_hiBin0_pp_Data 3
+h1D_xjg_ptBin7_hiBin0_pp_Data 7
 h1D_xjg_ptBin7_hiBin2_pp_Data_JEWEL 9
 h1D_xjg_ptBin7_hiBin2_pp_Data_LBT 10
-h1D_xjg_ptBin7_hiBin2_pp_Data 7
+h1D_xjg_ptBin7_hiBin0_pp_Data 7
 =
-pp (smeared) 0 - 30%
+pp (smeared)
+$0 - 30%
 +
 @@
 @@
 Hybrid
-J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}
 +
-@@
-@@
-@@
-@@
-#scale[0.9]{LBT (2017)}
-+
-pp (smeared) 30 - 100%
+pp (unsmeared)
 +
 @@
 @@

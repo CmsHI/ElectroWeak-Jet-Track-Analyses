@@ -339,6 +339,11 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
                     for (std::size_t t=0; t<legend_labels[s].size(); ++t) {
                         if (legend_labels[s][t] == "@@") { continue; }
+                        if (legend_labels[s][t][0] == '$') {
+                            legend_labels[s][t].erase(0, 1);
+                            l1->AddEntry((TObject*)0, legend_labels[s][t].c_str(), "");
+                            continue;
+                        }
 
                         if (histograms[t]) {
                             l1->AddEntry(histograms[t], legend_labels[s][t].c_str(),
@@ -483,8 +488,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     tiler->draw_latex_on_canvas(canvas_margin_left + 0.006, 1.0 - canvas_margin_top / 2, "CMS", 6, cms_latex_size, 12);
 
     // draw common information
-    std::string lumiInfo = "#sqrt{s_{NN}} = 5.02 TeV, PbPb 404 #mub^{-1}";
-    if (hist_type != "purity" && canvas_title.find("theory") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
+    std::string lumiInfo = "#sqrt{s_{NN}} = 5.02 TeV";
+    if (canvas_title.find("pp") == std::string::npos) { lumiInfo += ", PbPb 404 #mub^{-1}"; }
+    if (hist_type != "purity" && canvas_title != "xjg_theory") { lumiInfo += ", pp 27.4 pb^{-1}"; }
     tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.006, 1.0 - canvas_margin_top / 2, lumiInfo.c_str(), 4, canvas_latex_size, 32);
 
     std::string commonInfo;
@@ -501,6 +507,8 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
     if (canvas_title.find("theory") == std::string::npos) {
         if (canvas_title == "xjg_cent") { middle_align -= 0.116; }
         else { middle_align -= 0.125; }
+    } else if (canvas_title.find("xjg") != std::string::npos) {
+        middle_align -= 0.072;
     }
     tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top / 2, commonInfo.c_str(), 4, canvas_latex_size, 22);
 
