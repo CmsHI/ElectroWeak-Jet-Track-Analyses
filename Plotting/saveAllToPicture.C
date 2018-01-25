@@ -147,6 +147,7 @@ int main(int argc, char** argv)
         std::cout << "--wh=<window height>" << std::endl;
         std::cout << "--lmargin=<left margin>, Similarly rmargin, bmargin, tmargin for right, bottom, and top margins" << std::endl;
         std::cout << "--logx=<log scale of x-axis>, Similarly for logy and logz" << std::endl;
+        std::cout << "--overwriteStoredCanvas is needed to modify a stored canvas" << std::endl;
         return 1;
     }
     return 0;
