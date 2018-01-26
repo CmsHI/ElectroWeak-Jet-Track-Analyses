@@ -18,6 +18,7 @@
 #include "../Utilities/interface/HiForestInfoController.h"
 #include "../Utilities/fileUtil.h"
 
+void setTH1D(TH1D* h);
 void nTupleHistogram(std::string inputFile, std::string outputFile = "nTupleHistogram.root");
 
 void nTupleHistogram(std::string inputFile, std::string outputFile)
@@ -218,6 +219,7 @@ void nTupleHistogram(std::string inputFile, std::string outputFile)
     output->cd();
 
     for (int i = 0; i < nH1D; ++i) {
+        setTH1D(vecH1D[i]);
         vecH1D[i]->Write("",TObject::kOverwrite);
     }
 
@@ -238,4 +240,13 @@ int main(int argc, char** argv)
                 << std::endl;
         return 1;
     }
+}
+
+void setTH1D(TH1D* h)
+{
+    h->SetMarkerStyle(kFullCircle);
+    h->SetMarkerColor(kBlack);
+
+    h->SetTitleOffset(1.25, "X");
+    h->SetTitleOffset(1.5, "Y");
 }
