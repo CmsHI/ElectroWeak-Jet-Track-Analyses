@@ -58,11 +58,9 @@ void nTupleHistogram(std::string inputFile, std::string outputFile)
     int nH1D = vecH1D.size();
 
     // TTree objects
-    std::string tree1Path = "ggHiNtuplizerGED/EventTree";
-    std::string tree2Path = "ak3PFJetAnalyzer/t";
-
-    TTree* tree1 = 0;
-    TTree* tree2 = 0;
+    std::vector<std::string> treePaths = {"ggHiNtuplizerGED/EventTree", "ak3PFJetAnalyzer/t"};
+    int nTrees = treePaths.size();
+    std::vector<TTree*> trees(nTrees, 0);
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -75,10 +73,10 @@ void nTupleHistogram(std::string inputFile, std::string outputFile)
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
-        tree1 = (TTree*)fileTmp->Get(tree1Path.c_str());
-        Long64_t entriesTmp = tree1->GetEntries();
+        trees[0] = (TTree*)fileTmp->Get(treePaths[0].c_str());
+        Long64_t entriesTmp = trees[0]->GetEntries();
         std::cout << "entries = " << entriesTmp << std::endl;
-        tree1->Delete();
+        trees[0]->Delete();
     }
 
     TTree* treeHiForestInfo = 0;
@@ -113,46 +111,47 @@ void nTupleHistogram(std::string inputFile, std::string outputFile)
             continue;
         }
 
-        tree1 = (TTree*)fileTmp->Get(tree1Path.c_str());
+        for (int j = 0; j < nTrees; ++j) {
+            trees[j] = (TTree*)fileTmp->Get(treePaths[j].c_str());
+        }
 
+        // branches for the 1st tree.
         int nPho;
         std::vector<float> *phoEt = 0;
         std::vector<float> *phoEta = 0;
         std::vector<float> *phoPhi = 0;
-
         // specify explicitly which branches to use, do not use wildcard
-        tree1->SetBranchStatus("*", 0);     // disable all branches
-        tree1->SetBranchStatus("nPho", 1);
-        tree1->SetBranchStatus("phoEt", 1);
-        tree1->SetBranchStatus("phoEta", 1);
-        tree1->SetBranchStatus("phoPhi", 1);
+        trees[0]->SetBranchStatus("*", 0);     // disable all branches
+        trees[0]->SetBranchStatus("nPho", 1);
+        trees[0]->SetBranchStatus("phoEt", 1);
+        trees[0]->SetBranchStatus("phoEta", 1);
+        trees[0]->SetBranchStatus("phoPhi", 1);
 
-        tree1->SetBranchAddress("nPho", &nPho);
-        tree1->SetBranchAddress("phoEt", &phoEt);
-        tree1->SetBranchAddress("phoEta", &phoEta);
-        tree1->SetBranchAddress("phoPhi", &phoPhi);
+        trees[0]->SetBranchAddress("nPho", &nPho);
+        trees[0]->SetBranchAddress("phoEt", &phoEt);
+        trees[0]->SetBranchAddress("phoEta", &phoEta);
+        trees[0]->SetBranchAddress("phoPhi", &phoPhi);
 
-        tree2 = (TTree*)fileTmp->Get(tree2Path.c_str());
+
+        // branches for the 2nd tree.
         const int maxJets = 1000;
-
         int nref;
         float jtpt[maxJets];   //[nref]
         float jteta[maxJets];   //[nref]
         float jtphi[maxJets];   //[nref]
-
         // specify explicitly which branches to use, do not use wildcard
-        tree2->SetBranchStatus("*", 0);     // disable all branches
-        tree2->SetBranchStatus("nref", 1);
-        tree2->SetBranchStatus("jtpt", 1);
-        tree2->SetBranchStatus("jteta", 1);
-        tree2->SetBranchStatus("jtphi", 1);
+        trees[1]->SetBranchStatus("*", 0);     // disable all branches
+        trees[1]->SetBranchStatus("nref", 1);
+        trees[1]->SetBranchStatus("jtpt", 1);
+        trees[1]->SetBranchStatus("jteta", 1);
+        trees[1]->SetBranchStatus("jtphi", 1);
 
-        tree2->SetBranchAddress("nref", &nref);
-        tree2->SetBranchAddress("jtpt", jtpt);
-        tree2->SetBranchAddress("jteta", jteta);
-        tree2->SetBranchAddress("jtphi", jtphi);
+        trees[1]->SetBranchAddress("nref", &nref);
+        trees[1]->SetBranchAddress("jtpt", jtpt);
+        trees[1]->SetBranchAddress("jteta", jteta);
+        trees[1]->SetBranchAddress("jtphi", jtphi);
 
-        Long64_t entriesTmp = tree1->GetEntries();
+        Long64_t entriesTmp = trees[0]->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
@@ -161,8 +160,9 @@ void nTupleHistogram(std::string inputFile, std::string outputFile)
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
-            tree1->GetEntry(j_entry);
-            tree2->GetEntry(j_entry);
+            for (int i = 0; i < nTrees; ++i) {
+                trees[i]->GetEntry(j_entry);
+            }
 
             /*
             bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
