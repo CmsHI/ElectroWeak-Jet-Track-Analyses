@@ -60,4 +60,34 @@ const std::string modelTAG[kN_MODEL] = {
 
 };
 
+namespace COLBT {
+
+/*
+ * Couple LBT-hydro photon+jet FF prediction data tables
+ * naming convention :
+ *      n_<observable>    : number of points in the observable
+ *      x_<observable>    : x axis values of the observable, bin centers
+ *      y_<observable>    : y axis values of the observable
+ */
+
+const int n_xijet = 8;
+
+// PbPb / pp ratio of xijet distributions
+const std::vector<double> x_xijet_ratio_PbPb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xijet_ratio_PbPb_pp_cent010 = {1.0376, 0.9242, 0.8798, 0.8929, 1.0036, 1.2092, 1.4642, 2.3966};
+
+const std::vector<double> x_xijet_ratio_PbPb_pp_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xijet_ratio_PbPb_pp_cent1030 = {1.0316, 0.9419, 0.9118, 0.9555, 1.0186, 1.08, 1.1519, 1.4793};
+
+const int n_xigamma = 8;
+
+// PbPb / pp ratio of xigamma distributions
+const std::vector<double> x_xigamma_ratio_PbPb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xigamma_ratio_PbPb_pp_cent010 = {0.4912, 0.6387, 0.6579, 0.6522, 0.8253, 1.1071, 1.4865, 2.2029};
+
+const std::vector<double> x_xigamma_ratio_PbPb_pp_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xigamma_ratio_PbPb_pp_cent1030 = {0.6131, 0.7321, 0.7181, 0.7401, 0.8398, 1.0148, 1.2143, 1.6115};
+
+};
+
 #endif /* DATA_PHOTONJETFF_PHOTONJETFFDATA_H_ */
