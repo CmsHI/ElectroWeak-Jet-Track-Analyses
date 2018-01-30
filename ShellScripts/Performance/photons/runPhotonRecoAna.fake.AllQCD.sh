@@ -24,14 +24,14 @@ configList=(
 "Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
 );
 
-mkdir -p outDir
-
 arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configList[i1]}
     outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
+    outDir=$(dirname "${outputFile}")
+    mkdir -p $outDir
     $runCmd $progPath $configFile $inputFile $outputFile &> $outputFileLOG &
     echo "$runCmd $progPath $configFile $inputFile $outputFile &> $outputFileLOG &"
 done
