@@ -9,6 +9,8 @@ inputFile="Configurations/filelists/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMin
 
 configFiles=(
 "Configurations/HIRun2018PbPb/L1T/spectra.L1CaloTower.iet.conf"
+"Configurations/HIRun2018PbPb/L1T/spectra.L1CaloTower.ieta.iphi.conf"
+"Configurations/HIRun2018PbPb/L1T/spectra2D.L1CaloTower.ieta.iphi.conf"
 );
 
 outDirBase=$EWJTAOUT
@@ -18,6 +20,8 @@ fi
 outputSuffix="L1Ntuple_XeXeRun2017_HIMinimumBias"
 outputFiles=(
 $outDirBase"/Configurations/HIRun2018PbPb/L1T/spectra_L1CaloTower_iet_"$outputSuffix".root"
+$outDirBase"/Configurations/HIRun2018PbPb/L1T/spectra_L1CaloTower_ieta_iphi_"$outputSuffix".root"
+$outDirBase"/Configurations/HIRun2018PbPb/L1T/spectra2D_L1CaloTower_ieta_iphi_"$outputSuffix".root"
 );
 
 arrayIndices=${!outputFiles[*]}
