@@ -1,5 +1,6 @@
 #include "TFile.h"
 #include "TH1.h"
+#include "TGraph.h"
 #include "TGraphErrors.h"
 #include "TCanvas.h"
 #include "TPad.h"
@@ -16,6 +17,8 @@
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/systemUtil.h"
+#include "../../Data/photonJetFF/photonJetFFData.h"
+#include "../../Utilities/tgraphUtil.h"
 
 #include "../tiling.h"
 
@@ -28,6 +31,7 @@ int max_hiBin[6] = {100, 50, 30, 10, 100, 30};
 
 void draw_sys_unc(TGraph* gr, TH1* h1, TH1* h1_sys);
 std::string set_systematics_style(TGraph* gr, int style);
+void set_graph_style(TGraph* gr, int style, std::vector<std::string>& option_strings);
 void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_strings);
 
 int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* config_file) {
@@ -159,6 +163,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
         printf("some legends will be empty\n");
     }
 
+    bool plotTheory = (hist_type.find("theory") != std::string::npos);
+
     tiling* tiler = new tiling(columns, rows, 400, 400,
         margins[0], margins[1], margins[2], margins[3]);
 
@@ -171,11 +177,13 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             int nHistogram_names_Tmp = histogram_names[r][c].size();
             TObject* generic[histogram_names[r][c].size()];
             TH1D* histograms[histogram_names[r][c].size()];
-            TGraphErrors* graphs[histogram_names[r][c].size()];
+            TGraph* graphs[histogram_names[r][c].size()];
+            TGraphErrors* graphErrs[histogram_names[r][c].size()];
             for (int iName = 0; iName < nHistogram_names_Tmp; ++iName) {
                 generic[iName] = 0;
                 histograms[iName] = 0;
                 graphs[iName] = 0;
+                graphErrs[iName] = 0;
             }
             std::vector< std::vector< std::string > > option_strings(
                     nHistogram_names_Tmp,  std::vector< std::string >(0)
@@ -238,7 +246,26 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                     /* draw histogram */
                     histograms[l] = (TH1D*)histograms[l]->DrawCopy(option_strings[l][0].c_str());
                     histograms[l]->ResetBit(kCanDelete);
-                } else {
+                }
+                else if (generic[l]->InheritsFrom(TGraph::Class())) {
+                    graphs[l] = (TGraph*)generic[l];
+
+                    set_graph_style(graphs[l], styles[r][c][l], option_strings[l]);
+                    graphs[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
+                    graphs[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
+
+                    /* restrict x-axis range */
+                    graphs[l]->GetXaxis()->SetRange(0.5 + 0.001, 4.5 - 0.001);
+                    graphs[l]->GetYaxis()->SetRange(y_min[r], y_max[r]);
+                    graphs[l]->SetMinimum(y_min[r]);
+                    graphs[l]->SetMaximum(y_max[r]);
+
+                    graphs[l]->DrawClone(option_strings[l][0].c_str());
+                }
+                else if (generic[l]->InheritsFrom(TGraphErrors::Class())) {
+                    graphErrs[l] = (TGraphErrors*)generic[l];
+                }
+                else {
                     printf("unknown object type!\n");
                     return 1;
                 }
@@ -257,9 +284,20 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                         if (histograms[t]) {
                             l1->AddEntry(histograms[t], legend_labels[s][t].c_str(),
                                 option_strings[t][1].c_str());
-                        } else if (graphs[t]) {
+                        }
+                        else if (graphs[t]) {
                             l1->AddEntry(graphs[t], legend_labels[s][t].c_str(),
+                                    option_strings[t][1].c_str());
+                            if (std::string(graphs[t]->GetName()).find("hybrid") != std::string::npos) {
+                                l1->SetHeader("Hybrid");
+                            }
+                        }
+                        else if (graphErrs[t]) {
+                            l1->AddEntry(graphErrs[t], legend_labels[s][t].c_str(),
                                 option_strings[t][1].c_str());
+                            if (std::string(graphErrs[t]->GetName()).find("hybrid") != std::string::npos) {
+                                l1->SetHeader("Hybrid");
+                            }
                         }
                     }
 
@@ -276,8 +314,12 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
 
             if (r == 0) {
                 std::vector<std::string> plotInfo;
-                if (columns == 4) plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
-                else              plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
+                if (columns == 4)
+                    plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
+                else if (columns == 2 && plotTheory)
+                    plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
+                else
+                    plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
 
                 float line_pos = i_y[r*columns + c];
                 int latex_align = (i_x[r*columns + c] > 0.8) ? 33 : 13;
@@ -287,7 +329,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 }
             }
 
-            if (r == 1) {
+            if (r == 1 || (plotTheory && r == 0)) {
                 TLine* line = new TLine();
                 line->SetLineStyle(2);
                 line->SetLineWidth(1);
@@ -360,6 +402,39 @@ std::string set_systematics_style(TGraph* gr, int style) {
             gr->SetFillStyle(1001);
             gr->SetFillColor(1);
             return "same e x0";
+    }
+}
+
+void set_graph_style(TGraph* gr, int style, std::vector<std::string>& option_strings) {
+
+    if (10 <= style && style < 20) {
+        gr->SetFillColorAlpha(SCET::colors[style - 10], SCET::falphas[style - 10]);
+        gr->SetLineColorAlpha(SCET::colors[style - 10], SCET::falphas[style - 10]);
+        gr->SetLineWidth(0);
+        gr->SetFillStyle(1001);
+        option_strings.push_back("same f");
+        option_strings.push_back("f");
+    }
+    else if (20 <= style && style < 30) {
+        gr->SetFillColorAlpha(COLBT::colors[style - 20], COLBT::falphas[style - 20]);
+        gr->SetLineColorAlpha(COLBT::colors[style - 20], COLBT::falphas[style - 20]);
+        gr->SetLineWidth(3);
+        gr->SetFillStyle(1001);
+        option_strings.push_back("same l");
+        option_strings.push_back("l");
+    }
+    else if (30 <= style && style < 50) {
+        gr->SetFillColorAlpha(HYBRID::colors[style - 30], HYBRID::falphas[style - 30]);
+        gr->SetLineColorAlpha(HYBRID::colors[style - 30], HYBRID::falphas[style - 30]);
+        gr->SetLineWidth(0);
+        gr->SetFillStyle(1001);
+        option_strings.push_back("same f");
+        option_strings.push_back("f");
+    }
+    else {
+        gr->SetLineWidth(0);
+        option_strings.push_back("f");
+        option_strings.push_back("f");
     }
 }
 
