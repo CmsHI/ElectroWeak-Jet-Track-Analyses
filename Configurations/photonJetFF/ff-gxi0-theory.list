@@ -1,0 +1,32 @@
+hff_final_ratio_20_60 4
+gr_CoLBT_xijet_ratio_pbpb_pp_cent1030 21
+gr_hybrid_xijet_noback_ratio_pbpb_pp_cent1030 36
+gr_hybrid_xijet_back_ratio_pbpb_pp_cent1030 30
+hff_final_ratio_20_60 5
++
+hff_final_ratio_0_20 4
+gr_SCET_zh_ratio_pbpb_pp_g2p0 10
+gr_CoLBT_xijet_ratio_pbpb_pp_cent010 20
+gr_hybrid_xijet_noback_ratio_pbpb_pp_cent010 36
+gr_hybrid_xijet_back_ratio_pbpb_pp_cent010 30
+hff_final_ratio_0_20 5
+=
+Data
+@@
+@@
+@@
+@@
++
+@@
+SCET_G
+CoLBT-hydro
+@@
+@@
+@@
++
+@@
+@@
+@@
+w/o back reaction
+with back reaction
+@@

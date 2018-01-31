@@ -1,0 +1,29 @@
+hff_final_ratio_20_60 4
+gr_CoLBT_xigamma_ratio_pbpb_pp_cent1030 23
+gr_hybrid_xigamma_noback_ratio_pbpb_pp_cent1030 48
+gr_hybrid_xigamma_back_ratio_pbpb_pp_cent1030 42
+hff_final_ratio_20_60 5
++
+hff_final_ratio_0_20 4
+gr_CoLBT_xigamma_ratio_pbpb_pp_cent010 22
+gr_hybrid_xigamma_noback_ratio_pbpb_pp_cent010 48
+gr_hybrid_xigamma_back_ratio_pbpb_pp_cent010 42
+hff_final_ratio_0_20 5
+=
+Data
+@@
+@@
+@@
+@@
++
+@@
+CoLBT-hydro
+@@
+@@
+@@
++
+@@
+@@
+w/o back reaction
+with back reaction
+@@
