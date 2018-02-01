@@ -12,6 +12,8 @@ sourceDir="./"
 sourceFiles=(
 "ff_60_30_gxi0.pdf"
 "ff_60_30_gxi1.pdf"
+"ff_60_30_gxi0_theory.pdf"
+"ff_60_30_gxi1_theory.pdf"
 "ff_60_30_gxi0_cent030.pdf"
 "ff_60_30_gxi1_cent030.pdf"
 "plotTechnicalTrk.pdf"
@@ -31,6 +33,8 @@ sourceFiles=(
 destinationFiles=(
 "figures/supplementary/xijet_phoet60_jetpt30.pdf"
 "figures/supplementary/xigamma_phoet60_jetpt30.pdf"
+"figures/supplementary/xijet_phoet60_jetpt30_theoryComparison.pdf"
+"figures/supplementary/xigamma_phoet60_jetpt30_theoryComparison.pdf"
 "figures/supplementary/xijet_phoet60_jetpt30_twoCentBins.pdf"
 "figures/supplementary/xigamma_phoet60_jetpt30_twoCentBins.pdf"
 "figures/supplementary/xijet_bkgTrk_subtraction.pdf"
