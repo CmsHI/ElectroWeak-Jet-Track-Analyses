@@ -183,6 +183,13 @@ void plotTechnicalTrk(TString inputFile)
         latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
     }
 
+    bool isSupplementary = true;
+    if (isSupplementary) {
+        latex = new TLatex();
+        latex->SetTextFont(52);
+        latex->DrawLatexNDC(0.31, 0.87, "Supplementary");
+    }
+
     // sqrt(s) and data info
     latex = new TLatex();
     latex->SetTextFont(43);
@@ -352,6 +359,13 @@ void plotTechnicalJet(TString inputFile)
         latex = new TLatex();
         latex->SetTextFont(52);
         latex->DrawLatexNDC(0.31, 0.87, "Preliminary");
+    }
+
+    bool isSupplementary = true;
+    if (isSupplementary) {
+        latex = new TLatex();
+        latex->SetTextFont(52);
+        latex->DrawLatexNDC(0.31, 0.87, "Supplementary");
     }
 
     // sqrt(s) and data info
