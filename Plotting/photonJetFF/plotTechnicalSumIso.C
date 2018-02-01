@@ -105,7 +105,7 @@ int plotTechnicalSumIso(TString inputFile)
     }
     c->Update();
 
-    double legY2 = 0.90;
+    double legY2 = 0.82;
     double legY1 = legY2 - 0.05 - 0.04*nHist;
     leg = new TLegend(0.66, legY1, 0.92, legY2);
     leg->SetHeader("Pythia+Hydjet");
@@ -137,7 +137,7 @@ int plotTechnicalSumIso(TString inputFile)
                      "|#eta^{#gamma}| < 1.44"};
     nTextLines = textLines.size();
     for (int i = 0; i < nTextLines; ++i) {
-        latex->DrawLatexNDC(0.20, legY1-0.04-0.055*i, textLines[i].c_str());
+        latex->DrawLatexNDC(0.20, legY1+0.04-0.055*i, textLines[i].c_str());
     }
 
     // CMS Simulation
@@ -147,7 +147,7 @@ int plotTechnicalSumIso(TString inputFile)
 
     latex = new TLatex();
     latex->SetTextFont(52);
-    latex->DrawLatexNDC(0.31, 0.87, "Simulation");
+    latex->DrawLatexNDC(0.31, 0.87, "Simulation Supplementary");
 
     // sqrt(s) and mc info
     latex = new TLatex();
