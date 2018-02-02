@@ -164,6 +164,9 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     }
 
     bool plotTheoryRatio = (hist_type.find("theory_ratio") != std::string::npos);
+    bool plotTheoryPP = (hist_type.find("theory_pp") != std::string::npos);
+    bool plotTheoryPbPb = (hist_type.find("theory_pbpb") != std::string::npos);
+    bool plotTheory = (plotTheoryRatio || plotTheoryPP || plotTheoryPbPb);
 
     tiling* tiler = new tiling(columns, rows, 400, 400,
         margins[0], margins[1], margins[2], margins[3]);
@@ -318,7 +321,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 std::vector<std::string> plotInfo;
                 if (columns == 4)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
-                else if (columns == 2 && plotTheoryRatio)
+                else if (columns == 2 && plotTheory)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
                 else
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
@@ -354,8 +357,16 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     }
     else {
         tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
-        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
-        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+        if (plotTheoryPP) {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+        }
+        else if (plotTheoryPbPb) {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
+        }
+        else {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
+        }
         tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 31);
         tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3*2, Form("p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
         tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
@@ -430,8 +441,15 @@ void set_graph_style(TGraph* gr, int style, std::vector<std::string>& option_str
         gr->SetLineColorAlpha(HYBRID::colors[style - 30], HYBRID::falphas[style - 30]);
         gr->SetLineWidth(0);
         gr->SetFillStyle(1001);
-        option_strings.push_back("same f");
-        option_strings.push_back("f");
+        if ((style - 30) % 3 == 2) {
+            gr->SetLineWidth(3);
+            option_strings.push_back("same l");
+            option_strings.push_back("l");
+        }
+        else {
+            option_strings.push_back("same f");
+            option_strings.push_back("f");
+        }
     }
     else {
         gr->SetLineWidth(0);
