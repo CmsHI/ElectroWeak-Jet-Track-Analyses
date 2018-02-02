@@ -11,13 +11,13 @@ inputFiles=(
 );
 
 histLists=(
-"Configurations/photonJetFF/ff-gxi0-theory.list"
-"Configurations/photonJetFF/ff-gxi1-theory.list"
+"Configurations/photonJetFF/ff-gxi0-theory-ratio.list"
+"Configurations/photonJetFF/ff-gxi1-theory-ratio.list"
 );
 
 configList=(
-"Configurations/photonJetFF/ff-60-30-gxi0-theory.conf"
-"Configurations/photonJetFF/ff-60-30-gxi1-theory.conf"
+"Configurations/photonJetFF/ff-60-30-gxi0-theory-ratio.conf"
+"Configurations/photonJetFF/ff-60-30-gxi1-theory-ratio.conf"
 );
 
 inputFileTheory="./Data/photonJetFF/model_photonJetFF_5TeV.root"

@@ -163,7 +163,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
         printf("some legends will be empty\n");
     }
 
-    bool plotTheory = (hist_type.find("theory") != std::string::npos);
+    bool plotTheoryRatio = (hist_type.find("theory_ratio") != std::string::npos);
 
     tiling* tiler = new tiling(columns, rows, 400, 400,
         margins[0], margins[1], margins[2], margins[3]);
@@ -318,7 +318,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 std::vector<std::string> plotInfo;
                 if (columns == 4)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
-                else if (columns == 2 && plotTheory)
+                else if (columns == 2 && plotTheoryRatio)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
                 else
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
@@ -331,7 +331,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 }
             }
 
-            if (r == 1 || (plotTheory && r == 0)) {
+            if (r == 1 || (plotTheoryRatio && r == 0)) {
                 TLine* line = new TLine();
                 line->SetLineStyle(2);
                 line->SetLineWidth(1);
