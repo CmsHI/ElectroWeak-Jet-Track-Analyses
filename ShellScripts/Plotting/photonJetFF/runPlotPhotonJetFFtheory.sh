@@ -8,16 +8,28 @@ progPath="./Plotting/photonJetFF/plotPhotonJetFF.exe"
 inputFiles=(
 "./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 );
 
 histLists=(
 "Configurations/photonJetFF/ff-gxi0-theory-ratio.list"
 "Configurations/photonJetFF/ff-gxi1-theory-ratio.list"
+"Configurations/photonJetFF/ff-gxi0-theory-pp.list"
+"Configurations/photonJetFF/ff-gxi0-theory-pbpb.list"
+"Configurations/photonJetFF/ff-gxi1-theory-pp.list"
+"Configurations/photonJetFF/ff-gxi1-theory-pbpb.list"
 );
 
 configList=(
 "Configurations/photonJetFF/ff-60-30-gxi0-theory-ratio.conf"
 "Configurations/photonJetFF/ff-60-30-gxi1-theory-ratio.conf"
+"Configurations/photonJetFF/ff-60-30-gxi0-theory-pp.conf"
+"Configurations/photonJetFF/ff-60-30-gxi0-theory-pbpb.conf"
+"Configurations/photonJetFF/ff-60-30-gxi1-theory-pp.conf"
+"Configurations/photonJetFF/ff-60-30-gxi1-theory-pbpb.conf"
 );
 
 inputFileTheory="./Data/photonJetFF/model_photonJetFF_5TeV.root"
