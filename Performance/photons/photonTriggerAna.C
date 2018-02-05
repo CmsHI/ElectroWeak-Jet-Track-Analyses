@@ -590,16 +590,15 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-        treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
-        treeggHiNtuplizer->SetBranchStatus("event",1);
-        treeggHiNtuplizer->SetBranchStatus("lumis",1);
-
         treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
 
         // specify explicitly which branches to use, do not use wildcard
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
         treeHiEvt->SetBranchStatus("*",0);     // disable all branches
+        treeHiEvt->SetBranchStatus("run",1);   // enable event information
+        treeHiEvt->SetBranchStatus("evt",1);
+        treeHiEvt->SetBranchStatus("lumi",1);
         treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
         if (doEventWeight > 0) {
@@ -634,35 +633,35 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
 
-            bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
+            bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
             {
                 duplicateEntries++;
                 continue;
             }
 
-            if (!passedRunLumi(ggHi.run, ggHi.lumis))  continue;
+            if (!passedRunLumi(hiEvt.run, hiEvt.lumi))  continue;
 
             Long64_t entryTrig = 0;
             if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
                 // find the event in Hlt file
-                entryTrig = emTrig->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                entryTrig = emTrig->getEntry(hiEvt.run, hiEvt.lumi, hiEvt.evt);
                 if (entryTrig < 0) {
                     entriesNotFoundinTrigger++;
                     continue;
                 }
-                emTrig->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+                emTrig->removeEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt);
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
 
                 // find the event in L1 file
-                entryTrig = emTrig->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                entryTrig = emTrig->getEntry(hiEvt.run, hiEvt.lumi, hiEvt.evt);
                 if (entryTrig < 0) {
                     entriesNotFoundinTrigger++;
                     continue;
                 }
-                emTrig->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+                emTrig->removeEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt);
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
                 entryTrig = j_entry;
