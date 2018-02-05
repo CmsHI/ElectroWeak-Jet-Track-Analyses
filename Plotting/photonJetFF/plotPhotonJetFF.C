@@ -291,14 +291,14 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                         else if (graphs[t]) {
                             l1->AddEntry(graphs[t], legend_labels[s][t].c_str(),
                                     option_strings[t][1].c_str());
-                            if (std::string(graphs[t]->GetName()).find("hybrid") != std::string::npos) {
+                            if (!plotTheoryPP && std::string(graphs[t]->GetName()).find("hybrid") != std::string::npos) {
                                 l1->SetHeader("Hybrid");
                             }
                         }
                         else if (graphErrs[t]) {
                             l1->AddEntry(graphErrs[t], legend_labels[s][t].c_str(),
                                 option_strings[t][1].c_str());
-                            if (std::string(graphErrs[t]->GetName()).find("hybrid") != std::string::npos) {
+                            if (!plotTheoryPP && std::string(graphErrs[t]->GetName()).find("hybrid") != std::string::npos) {
                                 l1->SetHeader("Hybrid");
                             }
                         }

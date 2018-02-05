@@ -1,19 +1,15 @@
 hff_final_ppdata_srecoreco_20_60 1
 gr_hybrid_xigamma_noback_pp_cent1030 38
-gr_hybrid_xigamma_back_pp_cent1030 32
 hff_final_ppdata_srecoreco_20_60 3
 +
 hff_final_ppdata_srecoreco_0_20 1
 gr_hybrid_xigamma_noback_pp_cent1030 38
-gr_hybrid_xigamma_back_pp_cent1030 32
 hff_final_ppdata_srecoreco_0_20 3
 =
 pp (smeared)
 @@
 @@
-@@
 +
 @@
-w/o back reaction
-w/ back reaction
+Hybrid
 @@
