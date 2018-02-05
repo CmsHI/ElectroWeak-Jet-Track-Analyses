@@ -36,6 +36,8 @@
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
+#include "../../TreeHeaders/L1AnalysisEventDataFormat.h"
+#include "../../TreeHeaders/L1AnalysisL1UpgradeDataFormat.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
@@ -198,6 +200,7 @@ std::vector<int> runMode;
 enum MODES_ANATYPE {
     kData,
     kEmulation,
+    kL1Objects,
     kN_MODES_ANATYPE
 };
 
@@ -238,6 +241,8 @@ std::vector<std::string> triggerBranches;  // list of all trigger branches to be
 std::vector<int> indicesMapPrescaleNum;
 std::vector<int> indicesMapPrescaleDenom;
 std::vector<std::string> prescaleBranches;  // list of all prescale branches to be used. Elements are unique
+
+std::vector<double> triggerThresholds;
 
 // HLT objects for matching to offline object
 std::vector<std::string> triggerBranches4HltObj;
@@ -338,7 +343,11 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     std::string treeHltPath = "";
     std::vector<TTree*> treeHltObjs;
     std::vector<std::string> treeHltObjPaths;
+    TTree* treeEvent = 0;
     EventMatcher* emHLT = 0;
+
+    L1Analysis::L1AnalysisEventDataFormat* L1Event = 0;
+    L1Analysis::L1AnalysisL1UpgradeDataFormat* L1Upgrade = 0;
 
     setRunLumiNumbers();
     if (nRunNumbers > 0) {
@@ -389,6 +398,15 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     for (int i = 0; i < nTreeHltObjPaths; ++i) {
         std::cout << Form("treeHltObjPaths[%d] = ", i) << treeHltObjPaths.at(i).c_str() << std::endl;
     }
+
+    bool hasPseudoTriggerBranches = false;
+    for (int i = 0; i < nTriggerBranches; ++i) {
+        if (triggerBranches.at(i).find("pseudo") != std::string::npos) {
+            hasPseudoTriggerBranches = true;
+            break;
+        }
+    }
+    std::cout << "hasPseudoTriggerBranches = " << hasPseudoTriggerBranches << std::endl;
 
     Int_t triggerBits[nTriggerBranches];
     Int_t triggerPrescales[nPrescaleBranches];
@@ -448,6 +466,75 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         std::cout << "entries HLT          = " << entriesHlt << std::endl;
         std::cout << "duplicateEntries HLT = " << duplicateEntriesHlt << std::endl;
         std::cout << "entriesAnalyzed HLT  = " << entriesAnalyzedHlt << std::endl;
+        std::cout << "###" << std::endl;
+    }
+    else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+        std::cout << "### L1Ntuple file ###" << std::endl;
+
+        fileHlt = TFile::Open(hltFile.Data(), "READ");
+        fileHlt->cd();
+
+        if (hasPseudoTriggerBranches) {
+            triggerThresholds.clear();
+            triggerAnalyzer tAnaPseudo;
+            for (int i = 0; i < nTriggerBranches; ++i) {
+                triggerThresholds.push_back(tAnaPseudo.extractPtThreshold(triggerBranches.at(i)));
+            }
+            for (int i = 0; i < nTriggerBranches; ++i ) {
+                std::cout << Form("triggerThresholds[%d] = %f", i, triggerThresholds[i]) << std::endl;
+            }
+        }
+
+        std::string treeEventPath = "l1EventTree/L1EventTree";
+        treeEvent = (TTree*)fileHlt->Get(treeEventPath.c_str());
+        treeEvent->SetBranchStatus("*",0);     // disable all branches
+
+        // specify explicitly which branches to use
+        treeEvent->SetBranchStatus("*", 1);
+        treeEvent->SetBranchStatus("Event", 1);
+        L1Event = new L1Analysis::L1AnalysisEventDataFormat();
+        treeEvent->SetBranchAddress("Event", &L1Event);
+
+        treeHltPath = "l1UpgradeEmuTree/L1UpgradeTree";
+        treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
+        treeHlt->SetBranchStatus("*",0);     // disable all branches
+
+        // specify explicitly which branches to use
+        treeHlt->SetBranchStatus("*", 1);
+        treeHlt->SetBranchStatus("L1Upgrade", 1);
+        L1Upgrade = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
+        treeHlt->SetBranchAddress("L1Upgrade", &L1Upgrade);
+
+        emHLT = new EventMatcher();
+
+        Long64_t duplicateEntriesL1 = 0;
+        Long64_t entriesL1 = 0;
+        Long64_t entriesAnalyzedL1 = 0;
+
+        std::cout << "Loop L1Ntuple: " << treeEventPath.c_str() << std::endl;
+        entriesL1 = treeEvent->GetEntries();
+        std::cout << "entries in L1Ntuple File = " << entriesL1 << std::endl;
+        for (Long64_t j_entry = 0; j_entry < entriesL1; ++j_entry)
+        {
+            if (j_entry % 2000 == 0)  {
+                std::cout << "current entry = " <<j_entry<< " out of " <<entriesL1<< " : " <<std::setprecision(2)<<(double)j_entry/entriesL1*100<< " %" << std::endl;
+            }
+
+            treeEvent->GetEntry(j_entry);
+
+            bool eventAdded = emHLT->addEvent(L1Event->run, L1Event->lumi, L1Event->event, j_entry);
+            if(!eventAdded) // this event is duplicate, skip this one.
+            {
+                duplicateEntriesL1++;
+                continue;
+            }
+
+            entriesAnalyzedL1++;
+        }
+        std::cout << "Loop L1Ntuple ENDED : " << treeEventPath.c_str() << std::endl;
+        std::cout << "entries L1Ntuple          = " << entriesL1 << std::endl;
+        std::cout << "duplicateEntries L1Ntuple = " << duplicateEntriesL1 << std::endl;
+        std::cout << "entriesAnalyzed L1Ntuple  = " << entriesAnalyzedL1 << std::endl;
         std::cout << "###" << std::endl;
     }
 
@@ -567,6 +654,16 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 }
                 emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
             }
+            else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+
+                // find the event in Hlt file
+                entryHLT = emHLT->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                if (entryHLT < 0) {
+                    entriesNotFoundinHLT++;
+                    continue;
+                }
+                emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+            }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
                 entryHLT = j_entry;
             }
@@ -597,6 +694,20 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 double centWeight = 1;
                 if (isHI && isMC)  centWeight = findNcoll(hiBin);
                 w *= vertexWeight * centWeight;
+            }
+
+            if (hasPseudoTriggerBranches) {
+                if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+                    for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+                        triggerBits[iTrig] = 0;
+                        for (int i = 0; i < L1Upgrade->nEGs; ++i) {
+                            if (L1Upgrade->egEt[i] > triggerThresholds[iTrig]) {
+                                triggerBits[iTrig] = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
 
             // efficiency or inefficiency
