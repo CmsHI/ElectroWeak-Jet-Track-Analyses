@@ -244,9 +244,9 @@ std::vector<std::string> prescaleBranches;  // list of all prescale branches to 
 
 std::vector<double> triggerThresholds;
 
-// HLT objects for matching to offline object
-std::vector<std::string> triggerBranches4HltObj;
-std::vector<int> indicesMapNum2HltObject;
+// Trigger objects for matching to offline object
+std::vector<std::string> triggerBranches4TrigObj;
+std::vector<int> indicesMapNum2TrigObject;
 
 std::vector<unsigned int> runNumbers;
 std::vector<unsigned int> lumiStartNumbers;
@@ -261,8 +261,8 @@ int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
 void setRunLumiNumbers();
 void indexTriggerBranches();
-void indexTriggerBranches4HltObj();
-int getIndexHltObj4TriggerBranch(int iTriggerNum);
+void indexTriggerBranches4TrigObj();
+int getIndexTrigObj4TriggerBranch(int iTriggerNum);
 bool passedRunLumi(unsigned int run, unsigned int lumi);
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
@@ -276,14 +276,14 @@ void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
-void photonTriggerAna(const TString configFile, const TString hltFile, const TString inputFile, const TString outputFile = "photonTriggerAna.root");
+void photonTriggerAna(const TString configFile, const TString triggerFile, const TString inputFile, const TString outputFile = "photonTriggerAna.root");
 void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "photonTriggerAna.root");
 
-void photonTriggerAna(const TString configFile, const TString hltFile, const TString inputFile, const TString outputFile)
+void photonTriggerAna(const TString configFile, const TString triggerFile, const TString inputFile, const TString outputFile)
 {
     std::cout << "running photonTriggerAna()" << std::endl;
     std::cout << "configFile  = " << configFile.Data() << std::endl;
-    std::cout << "hltFile     = " << hltFile.Data() << std::endl;
+    std::cout << "triggerFile = " << triggerFile.Data() << std::endl;
     std::cout << "inputFile   = " << inputFile.Data() << std::endl;
     std::cout << "outputFile  = " << outputFile.Data() << std::endl;
 
@@ -291,8 +291,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     printConfiguration();
 
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
-        if (std::string(hltFile.Data()) != inputFile.Data()) {
-            std::cout << "The analysis type is data. hltFile will be ignored." << std::endl;
+        if (std::string(triggerFile.Data()) != inputFile.Data()) {
+            std::cout << "The analysis type is data. triggerFile will be ignored." << std::endl;
         }
     }
 
@@ -338,13 +338,13 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     fileTmp->Close();
     // done with initial reading
 
-    TFile* fileHlt = 0;
-    TTree* treeHlt = 0;
-    std::string treeHltPath = "";
-    std::vector<TTree*> treeHltObjs;
-    std::vector<std::string> treeHltObjPaths;
-    TTree* treeEvent = 0;
-    EventMatcher* emHLT = 0;
+    TFile* fileTrig = 0;
+    TTree* treeTrig = 0;
+    std::string treeTrigPath = "";
+    std::vector<TTree*> treeTrigObjs;
+    std::vector<std::string> treeTrigObjPaths;
+    TTree* treeEventTrig = 0;
+    EventMatcher* emTrig = 0;
 
     L1Analysis::L1AnalysisEventDataFormat* L1Event = 0;
     L1Analysis::L1AnalysisL1UpgradeDataFormat* L1Upgrade = 0;
@@ -373,30 +373,30 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
         }
     }
 
-    int nTreeHltObjPaths = 0;
+    int nTreeTrigObjPaths = 0;
     if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
 
-        indexTriggerBranches4HltObj();
-        nTreeHltObjPaths = triggerBranches4HltObj.size();
+        indexTriggerBranches4TrigObj();
+        nTreeTrigObjPaths = triggerBranches4TrigObj.size();
 
-        treeHltObjs.clear();
-        treeHltObjs.resize(nTreeHltObjPaths);
+        treeTrigObjs.clear();
+        treeTrigObjs.resize(nTreeTrigObjPaths);
 
-        treeHltObjPaths.clear();
-        treeHltObjPaths.resize(nTreeHltObjPaths);
-        for (int i = 0; i < nTreeHltObjPaths; ++i) {
+        treeTrigObjPaths.clear();
+        treeTrigObjPaths.resize(nTreeTrigObjPaths);
+        for (int i = 0; i < nTreeTrigObjPaths; ++i) {
 
             std::string hltObjectPath = "";
-            std::string hltObjectName = triggerAnalyzer::getHLTObjectName(triggerBranches4HltObj.at(i).c_str());
+            std::string hltObjectName = triggerAnalyzer::getHLTObjectName(triggerBranches4TrigObj.at(i).c_str());
             if (hltObjectName.size() > 0)
                 hltObjectPath = Form("hltobject/%s", hltObjectName.c_str());
 
-            treeHltObjPaths.at(i) = hltObjectPath;
+            treeTrigObjPaths.at(i) = hltObjectPath;
         }
     }
-    std::cout << "nTreeHltObjPaths (HLT object trees to read) = " << nTreeHltObjPaths << std::endl;
-    for (int i = 0; i < nTreeHltObjPaths; ++i) {
-        std::cout << Form("treeHltObjPaths[%d] = ", i) << treeHltObjPaths.at(i).c_str() << std::endl;
+    std::cout << "nTreeTrigObjPaths (Trigger object trees to read) = " << nTreeTrigObjPaths << std::endl;
+    for (int i = 0; i < nTreeTrigObjPaths; ++i) {
+        std::cout << Form("treeTrigObjPaths[%d] = ", i) << treeTrigObjPaths.at(i).c_str() << std::endl;
     }
 
     bool hasPseudoTriggerBranches = false;
@@ -414,36 +414,36 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
         std::cout << "### HLT bit analysis file ###" << std::endl;
-        fileHlt = TFile::Open(hltFile.Data(), "READ");
-        fileHlt->cd();
+        fileTrig = TFile::Open(triggerFile.Data(), "READ");
+        fileTrig->cd();
 
-        treeHltPath = "hltbitanalysis/HltTree";
-        treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
-        treeHlt->SetBranchStatus("*",0);     // disable all branches
+        treeTrigPath = "hltbitanalysis/HltTree";
+        treeTrig = (TTree*)fileTrig->Get(treeTrigPath.c_str());
+        treeTrig->SetBranchStatus("*",0);     // disable all branches
 
         // specify explicitly which branches to use
-        treeHlt->SetBranchStatus("Event", 1);
-        treeHlt->SetBranchStatus("LumiBlock", 1);
-        treeHlt->SetBranchStatus("Run", 1);
+        treeTrig->SetBranchStatus("Event", 1);
+        treeTrig->SetBranchStatus("LumiBlock", 1);
+        treeTrig->SetBranchStatus("Run", 1);
 
         ULong64_t       hlt_event;
         Int_t           hlt_lumi;
         Int_t           hlt_run;
-        treeHlt->SetBranchAddress("Event", &hlt_event);
-        treeHlt->SetBranchAddress("LumiBlock", &hlt_lumi);
-        treeHlt->SetBranchAddress("Run", &hlt_run);
+        treeTrig->SetBranchAddress("Event", &hlt_event);
+        treeTrig->SetBranchAddress("LumiBlock", &hlt_lumi);
+        treeTrig->SetBranchAddress("Run", &hlt_run);
 
-        triggerAnalyzer::setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
-        triggerAnalyzer::setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+        triggerAnalyzer::setBranchesTrigger(treeTrig, triggerBranches, triggerBits, nTriggerBranches);
+        triggerAnalyzer::setBranchesTrigger(treeTrig, prescaleBranches, triggerPrescales, nPrescaleBranches);
 
-        emHLT = new EventMatcher();
+        emTrig = new EventMatcher();
 
         Long64_t duplicateEntriesHlt = 0;
         Long64_t entriesHlt = 0;
         Long64_t entriesAnalyzedHlt = 0;
 
-        std::cout << "Loop HLT: " << treeHltPath.c_str() << std::endl;
-        entriesHlt = treeHlt->GetEntries();
+        std::cout << "Loop HLT: " << treeTrigPath.c_str() << std::endl;
+        entriesHlt = treeTrig->GetEntries();
         std::cout << "entries in HLT File = " << entriesHlt << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesHlt; ++j_entry)
         {
@@ -451,9 +451,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 std::cout << "current entry = " <<j_entry<< " out of " <<entriesHlt<< " : " <<std::setprecision(2)<<(double)j_entry/entriesHlt*100<< " %" << std::endl;
             }
 
-            treeHlt->GetEntry(j_entry);
+            treeTrig->GetEntry(j_entry);
 
-            bool eventAdded = emHLT->addEvent(hlt_run, hlt_lumi, hlt_event, j_entry);
+            bool eventAdded = emTrig->addEvent(hlt_run, hlt_lumi, hlt_event, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
             {
                 duplicateEntriesHlt++;
@@ -462,7 +462,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             entriesAnalyzedHlt++;
         }
-        std::cout << "Loop HLT ENDED : " << treeHltPath.c_str() << std::endl;
+        std::cout << "Loop HLT ENDED : " << treeTrigPath.c_str() << std::endl;
         std::cout << "entries HLT          = " << entriesHlt << std::endl;
         std::cout << "duplicateEntries HLT = " << duplicateEntriesHlt << std::endl;
         std::cout << "entriesAnalyzed HLT  = " << entriesAnalyzedHlt << std::endl;
@@ -471,8 +471,8 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
         std::cout << "### L1Ntuple file ###" << std::endl;
 
-        fileHlt = TFile::Open(hltFile.Data(), "READ");
-        fileHlt->cd();
+        fileTrig = TFile::Open(triggerFile.Data(), "READ");
+        fileTrig->cd();
 
         if (hasPseudoTriggerBranches) {
             triggerThresholds.clear();
@@ -485,34 +485,34 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
             }
         }
 
-        std::string treeEventPath = "l1EventTree/L1EventTree";
-        treeEvent = (TTree*)fileHlt->Get(treeEventPath.c_str());
-        treeEvent->SetBranchStatus("*",0);     // disable all branches
+        std::string treeEventTrigPath = "l1EventTree/L1EventTree";
+        treeEventTrig = (TTree*)fileTrig->Get(treeEventTrigPath.c_str());
+        treeEventTrig->SetBranchStatus("*",0);     // disable all branches
 
         // specify explicitly which branches to use
-        treeEvent->SetBranchStatus("*", 1);
-        treeEvent->SetBranchStatus("Event", 1);
+        treeEventTrig->SetBranchStatus("*", 1);
+        treeEventTrig->SetBranchStatus("Event", 1);
         L1Event = new L1Analysis::L1AnalysisEventDataFormat();
-        treeEvent->SetBranchAddress("Event", &L1Event);
+        treeEventTrig->SetBranchAddress("Event", &L1Event);
 
-        treeHltPath = "l1UpgradeEmuTree/L1UpgradeTree";
-        treeHlt = (TTree*)fileHlt->Get(treeHltPath.c_str());
-        treeHlt->SetBranchStatus("*",0);     // disable all branches
+        treeTrigPath = "l1UpgradeEmuTree/L1UpgradeTree";
+        treeTrig = (TTree*)fileTrig->Get(treeTrigPath.c_str());
+        treeTrig->SetBranchStatus("*",0);     // disable all branches
 
         // specify explicitly which branches to use
-        treeHlt->SetBranchStatus("*", 1);
-        treeHlt->SetBranchStatus("L1Upgrade", 1);
+        treeTrig->SetBranchStatus("*", 1);
+        treeTrig->SetBranchStatus("L1Upgrade", 1);
         L1Upgrade = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
-        treeHlt->SetBranchAddress("L1Upgrade", &L1Upgrade);
+        treeTrig->SetBranchAddress("L1Upgrade", &L1Upgrade);
 
-        emHLT = new EventMatcher();
+        emTrig = new EventMatcher();
 
         Long64_t duplicateEntriesL1 = 0;
         Long64_t entriesL1 = 0;
         Long64_t entriesAnalyzedL1 = 0;
 
-        std::cout << "Loop L1Ntuple: " << treeEventPath.c_str() << std::endl;
-        entriesL1 = treeEvent->GetEntries();
+        std::cout << "Loop L1Ntuple: " << treeEventTrigPath.c_str() << std::endl;
+        entriesL1 = treeEventTrig->GetEntries();
         std::cout << "entries in L1Ntuple File = " << entriesL1 << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesL1; ++j_entry)
         {
@@ -520,9 +520,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                 std::cout << "current entry = " <<j_entry<< " out of " <<entriesL1<< " : " <<std::setprecision(2)<<(double)j_entry/entriesL1*100<< " %" << std::endl;
             }
 
-            treeEvent->GetEntry(j_entry);
+            treeEventTrig->GetEntry(j_entry);
 
-            bool eventAdded = emHLT->addEvent(L1Event->run, L1Event->lumi, L1Event->event, j_entry);
+            bool eventAdded = emTrig->addEvent(L1Event->run, L1Event->lumi, L1Event->event, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
             {
                 duplicateEntriesL1++;
@@ -531,7 +531,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             entriesAnalyzedL1++;
         }
-        std::cout << "Loop L1Ntuple ENDED : " << treeEventPath.c_str() << std::endl;
+        std::cout << "Loop L1Ntuple ENDED : " << treeEventTrigPath.c_str() << std::endl;
         std::cout << "entries L1Ntuple          = " << entriesL1 << std::endl;
         std::cout << "duplicateEntries L1Ntuple = " << duplicateEntriesL1 << std::endl;
         std::cout << "entriesAnalyzed L1Ntuple  = " << entriesAnalyzedL1 << std::endl;
@@ -546,7 +546,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     Long64_t duplicateEntries = 0;
 
     Long64_t entries = 0;
-    Long64_t entriesNotFoundinHLT = 0;
+    Long64_t entriesNotFoundinTrigger = 0;
     Long64_t entriesPassedDenomGlobal = 0;
     Long64_t entriesAnalyzed = 0;
 
@@ -564,27 +564,27 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
             continue;
         }
 
-        std::vector<hltObject> hltObjs(nTreeHltObjPaths);
+        std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
-            treeHltPath = "hltanalysisReco/HltTree";
-            treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
-            treeHlt->SetBranchStatus("*",0);     // disable all branches
+            treeTrigPath = "hltanalysisReco/HltTree";
+            treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
+            treeTrig->SetBranchStatus("*",0);     // disable all branches
 
-            triggerAnalyzer::setBranchesTrigger(treeHlt, triggerBranches, triggerBits, nTriggerBranches);
-            triggerAnalyzer::setBranchesTrigger(treeHlt, prescaleBranches, triggerPrescales, nPrescaleBranches);
+            triggerAnalyzer::setBranchesTrigger(treeTrig, triggerBranches, triggerBits, nTriggerBranches);
+            triggerAnalyzer::setBranchesTrigger(treeTrig, prescaleBranches, triggerPrescales, nPrescaleBranches);
 
-            for (int i = 0; i < nTreeHltObjPaths; ++i) {
-                std::string treeHltObjectPath = treeHltObjPaths.at(i).c_str();
-                treeHltObjs[i] = 0;
-                treeHltObjs[i] = (TTree*)fileTmp->Get(treeHltObjectPath.c_str());
+            for (int i = 0; i < nTreeTrigObjPaths; ++i) {
+                std::string treeHltObjectPath = treeTrigObjPaths.at(i).c_str();
+                treeTrigObjs[i] = 0;
+                treeTrigObjs[i] = (TTree*)fileTmp->Get(treeHltObjectPath.c_str());
 
-                if (!treeHltObjs[i]) {
+                if (!treeTrigObjs[i]) {
                     std::cout << "tree is not found in the path : "<< treeHltObjectPath.c_str() <<". skipping the tree." << std::endl;
                     continue;
                 }
 
-                treeHltObjs[i]->SetBranchStatus("*", 1);
-                hltObjs[i].setupTreeForReading(treeHltObjs[i]);
+                treeTrigObjs[i]->SetBranchStatus("*", 1);
+                hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
             }
         }
 
@@ -643,34 +643,34 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
             if (!passedRunLumi(ggHi.run, ggHi.lumis))  continue;
 
-            Long64_t entryHLT = 0;
+            Long64_t entryTrig = 0;
             if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
                 // find the event in Hlt file
-                entryHLT = emHLT->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
-                if (entryHLT < 0) {
-                    entriesNotFoundinHLT++;
+                entryTrig = emTrig->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                if (entryTrig < 0) {
+                    entriesNotFoundinTrigger++;
                     continue;
                 }
-                emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+                emTrig->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
 
-                // find the event in Hlt file
-                entryHLT = emHLT->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
-                if (entryHLT < 0) {
-                    entriesNotFoundinHLT++;
+                // find the event in L1 file
+                entryTrig = emTrig->getEntry(ggHi.run, ggHi.lumis, ggHi.event);
+                if (entryTrig < 0) {
+                    entriesNotFoundinTrigger++;
                     continue;
                 }
-                emHLT->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
+                emTrig->removeEvent(ggHi.run, ggHi.lumis, ggHi.event);
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
-                entryHLT = j_entry;
+                entryTrig = j_entry;
             }
-            treeHlt->GetEntry(entryHLT);
+            treeTrig->GetEntry(entryTrig);
 
-            for (int i = 0; i < nTreeHltObjPaths; ++i) {
-                treeHltObjs[i]->GetEntry(entryHLT);
+            for (int i = 0; i < nTreeTrigObjPaths; ++i) {
+                treeTrigObjs[i]->GetEntry(entryTrig);
             }
 
             if (!passedDenomGlobal(triggerBits)) continue;
@@ -789,7 +789,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
                             }
                             else if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
 
-                                int iHltObj = getIndexHltObj4TriggerBranch(indicesTriggerNum[iAna]);
+                                int iHltObj = getIndexTrigObj4TriggerBranch(indicesTriggerNum[iAna]);
 
                                 int nHltObjs = hltObjs[iHltObj].pt->size();
                                 for (int iObj = 0; iObj < nHltObjs; ++iObj) {
@@ -837,7 +837,7 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
     std::cout <<  "Loop ENDED : " << treePath.c_str() << std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
-    std::cout << "entriesNotFoundinHLT = " << entriesNotFoundinHLT << std::endl;
+    std::cout << "entriesNotFoundinTrigger = " << entriesNotFoundinTrigger << std::endl;
     std::cout << "entriesPassedDenomGlobal = " << entriesPassedDenomGlobal << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
 
@@ -846,9 +846,9 @@ void photonTriggerAna(const TString configFile, const TString hltFile, const TSt
 
     postLoop();
 
-    if (fileHlt != 0) {
-        std::cout << "Closing the HLT file." << std::endl;
-        fileHlt->Close();
+    if (fileTrig != 0) {
+        std::cout << "Closing the trigger file." << std::endl;
+        fileTrig->Close();
     }
 
     std::cout << "Closing the output file." << std::endl;
@@ -908,7 +908,7 @@ int main(int argc, char** argv)
     }
     else {
         std::cout << "Usage : \n" <<
-                "./photonTriggerAna.exe <configFile> <hltFile> <inputFile> <outputFile>"
+                "./photonTriggerAna.exe <configFile> <triggerFile> <inputFile> <outputFile>"
                 << std::endl;
         return 1;
     }
@@ -1509,23 +1509,23 @@ void indexTriggerBranches()
     }
 }
 
-void indexTriggerBranches4HltObj()
+void indexTriggerBranches4TrigObj()
 {
-    triggerBranches4HltObj.clear();
-    triggerBranches4HltObj.insert(triggerBranches4HltObj.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
+    triggerBranches4TrigObj.clear();
+    triggerBranches4TrigObj.insert(triggerBranches4TrigObj.end(), triggerBranchesNum.begin(), triggerBranchesNum.end());
 
-    triggerBranches4HltObj = vectorUnique(triggerBranches4HltObj);
+    triggerBranches4TrigObj = vectorUnique(triggerBranches4TrigObj);
 
-    indicesMapNum2HltObject.clear();
-    indicesMapNum2HltObject.resize((int)triggerBranchesNum.size());
+    indicesMapNum2TrigObject.clear();
+    indicesMapNum2TrigObject.resize((int)triggerBranchesNum.size());
     for (int i = 0; i < (int)triggerBranchesNum.size(); ++i) {
-        indicesMapNum2HltObject[i] = findPositionInVector(triggerBranches4HltObj, triggerBranchesNum[i].c_str());
+        indicesMapNum2TrigObject[i] = findPositionInVector(triggerBranches4TrigObj, triggerBranchesNum[i].c_str());
     }
 }
 
-int getIndexHltObj4TriggerBranch(int iTriggerNum)
+int getIndexTrigObj4TriggerBranch(int iTriggerNum)
 {
-    return indicesMapNum2HltObject[iTriggerNum];
+    return indicesMapNum2TrigObject[iTriggerNum];
 }
 
 bool passedRunLumi(unsigned int run, unsigned int lumi)
