@@ -4,6 +4,7 @@ runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/photons/photonTriggerAna.exe"
 triggerFiles=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias/180205_205303/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias_egBypassEGVetos1/180205_205730/L1Ntuple_merged.root"
 )
 inputFile="/mnt/hadoop/cms/store/user/cmcginn/XeXe_94X_SkimForest_MERGED/HIMinimumBias8/HiForestAOD_HIMinimumBias8_HighPtL1Skim_Jet30OrGamma15_MERGED_20180123.root"
 
@@ -14,10 +15,12 @@ fi
 outputSuffix="L1Ntuple_XeXeRun2017_HIMinimumBias"
 outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix".root"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix"_egBypassEGVetos1.root"
 );
 
 configList=(
 "Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.egBypassEGVetos1.conf"
 );
 
 arrayIndices=${!outList[*]}
