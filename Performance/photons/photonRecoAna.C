@@ -310,10 +310,6 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-        treeggHiNtuplizer->SetBranchStatus("run",1);    // enable event information
-        treeggHiNtuplizer->SetBranchStatus("event",1);
-        treeggHiNtuplizer->SetBranchStatus("lumis",1);
-
         treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
@@ -326,6 +322,9 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
         // specify explicitly which branches to use, do not use wildcard
         treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
         treeHiEvt->SetBranchStatus("*",0);     // disable all branches
+        treeHiEvt->SetBranchStatus("run",1);   // enable event information
+        treeHiEvt->SetBranchStatus("evt",1);
+        treeHiEvt->SetBranchStatus("lumi",1);
         treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
         if (doEventWeight > 0) {
@@ -368,7 +367,7 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
             treeHiGenParticle->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
 
-            bool eventAdded = em->addEvent(ggHi.run, ggHi.lumis, ggHi.event, j_entry);
+            bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
             {
                 duplicateEntries++;
