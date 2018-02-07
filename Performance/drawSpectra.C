@@ -1105,10 +1105,11 @@ int postLoop()
         h_normEvents[i]->Write("",TObject::kOverwrite);
 
         if (mode == MODES::kTH2D) {
-            std::vector<TH1D*> hProj(2, 0);
+            std::vector<TH1D*> hProj(4, 0);
             for (int iProj = 0; iProj < 2; ++iProj) {
-                if (iProj == 0)
+                if (iProj == 0) {
                     hProj[0] = (TH1D*)((TH2D*)h[i])->ProjectionX(Form("%s_projX", h[i]->GetName()));
+                }
                 else
                     hProj[0] = (TH1D*)((TH2D*)h[i])->ProjectionY(Form("%s_projY", h[i]->GetName()));
 
@@ -1125,6 +1126,30 @@ int postLoop()
                 hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_normEvents", hProj[0]->GetName()));
                 hProj[1]->Scale(1./entriesTmp, "width");
                 hProj[1]->Write("",TObject::kOverwrite);
+
+                hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
+                hProj[3] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
+
+                std::string projYTitle = (iProj == 0) ? ((TH2D*)h[i])->GetYaxis()->GetTitle() : ((TH2D*)h[i])->GetXaxis()->GetTitle();
+                hProj[2]->SetYTitle(Form("< %s >", projYTitle.c_str()));
+                hProj[3]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
+                for (int iProjBin = 1; iProjBin <= hProj[0]->GetNbinsX(); ++iProjBin) {
+                    if (iProj == 0) {
+                        hProj[2]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetMean());
+                        hProj[2]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetMeanError());
+                        hProj[3]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetStdDev());
+                        hProj[3]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetStdDevError());
+                    }
+                    else {
+                        hProj[2]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetMean());
+                        hProj[2]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetMeanError());
+                        hProj[3]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetStdDev());
+                        hProj[3]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetStdDevError());
+                    }
+                }
+
+                hProj[2]->Write("",TObject::kOverwrite);
+                hProj[3]->Write("",TObject::kOverwrite);
             }
         }
     }
