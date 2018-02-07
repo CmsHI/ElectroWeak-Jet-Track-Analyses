@@ -1103,6 +1103,30 @@ int postLoop()
         Long64_t entriesTmp = h_nums[i]->GetBinContent(2);
         h_normEvents[i]->Scale(1./entriesTmp, "width");
         h_normEvents[i]->Write("",TObject::kOverwrite);
+
+        if (mode == MODES::kTH2D) {
+            std::vector<TH1D*> hProj(2, 0);
+            for (int iProj = 0; iProj < 2; ++iProj) {
+                if (iProj == 0)
+                    hProj[0] = (TH1D*)((TH2D*)h[i])->ProjectionX(Form("%s_projX", h[i]->GetName()));
+                else
+                    hProj[0] = (TH1D*)((TH2D*)h[i])->ProjectionY(Form("%s_projY", h[i]->GetName()));
+
+                hProj[0]->Write("",TObject::kOverwrite);
+
+                hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_scaleWidth", hProj[0]->GetName()));
+                hProj[1]->Scale(1, "width");
+                hProj[1]->Write("",TObject::kOverwrite);
+
+                hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_normInt", hProj[0]->GetName()));
+                hProj[1]->Scale(1./hProj[0]->Integral(), "width");
+                hProj[1]->Write("",TObject::kOverwrite);
+
+                hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_normEvents", hProj[0]->GetName()));
+                hProj[1]->Scale(1./entriesTmp, "width");
+                hProj[1]->Write("",TObject::kOverwrite);
+            }
+        }
     }
     // histograms are written. After this point changes to the histograms will not be reflected in the output ROOT file.
 
