@@ -5,7 +5,8 @@ set -x
 mergedFinal="/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias/180205_205303/L1Ntuple_merged.root"
 mergeInput="/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias/180205_205303/0000/L1Ntuple_*.root"
 
-mergedTMP="/export/d00/scratch/"$USER"/mergedTMP.root"
+timeNow=$(date +"%Y%m%d_%H%M%S")
+mergedTMP="/export/d00/scratch/"$USER"/mergedTMP_"$timeNow".root"
 hadd -f $mergedTMP $mergeInput
 
 mv $mergedTMP $mergedFinal
