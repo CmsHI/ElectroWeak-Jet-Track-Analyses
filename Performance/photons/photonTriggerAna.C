@@ -571,7 +571,7 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
         std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData ||
             runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
-            treeTrigPath = "hltanalysisReco/HltTree";
+            treeTrigPath = "hltanalysis/HltTree";
             treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
             treeTrig->SetBranchStatus("*",0);     // disable all branches
 
