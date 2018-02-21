@@ -201,6 +201,7 @@ enum MODES_ANATYPE {
     kData,
     kEmulation,
     kL1Objects,
+    kDataMatchL1ObjEvts,    // same analysis as kData, but the events are matched to the ones in L1Objects file.
     kN_MODES_ANATYPE
 };
 
@@ -468,7 +469,8 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
         std::cout << "entriesAnalyzed HLT  = " << entriesAnalyzedHlt << std::endl;
         std::cout << "###" << std::endl;
     }
-    else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+    else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects ||
+             runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
         std::cout << "### L1Ntuple file ###" << std::endl;
 
         fileTrig = TFile::Open(triggerFile.Data(), "READ");
@@ -495,15 +497,17 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
         L1Event = new L1Analysis::L1AnalysisEventDataFormat();
         treeEventTrig->SetBranchAddress("Event", &L1Event);
 
-        treeTrigPath = "l1UpgradeEmuTree/L1UpgradeTree";
-        treeTrig = (TTree*)fileTrig->Get(treeTrigPath.c_str());
-        treeTrig->SetBranchStatus("*",0);     // disable all branches
+        if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+            treeTrigPath = "l1UpgradeEmuTree/L1UpgradeTree";
+            treeTrig = (TTree*)fileTrig->Get(treeTrigPath.c_str());
+            treeTrig->SetBranchStatus("*",0);     // disable all branches
 
-        // specify explicitly which branches to use
-        treeTrig->SetBranchStatus("*", 1);
-        treeTrig->SetBranchStatus("L1Upgrade", 1);
-        L1Upgrade = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
-        treeTrig->SetBranchAddress("L1Upgrade", &L1Upgrade);
+            // specify explicitly which branches to use
+            treeTrig->SetBranchStatus("*", 1);
+            treeTrig->SetBranchStatus("L1Upgrade", 1);
+            L1Upgrade = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
+            treeTrig->SetBranchAddress("L1Upgrade", &L1Upgrade);
+        }
 
         emTrig = new EventMatcher();
 
@@ -565,7 +569,8 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
         }
 
         std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
-        if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
+        if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData ||
+            runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
             treeTrigPath = "hltanalysisReco/HltTree";
             treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
             treeTrig->SetBranchStatus("*",0);     // disable all branches
@@ -654,7 +659,6 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
                 emTrig->removeEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt);
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
-
                 // find the event in L1 file
                 entryTrig = emTrig->getEntry(hiEvt.run, hiEvt.lumi, hiEvt.evt);
                 if (entryTrig < 0) {
@@ -662,6 +666,16 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
                     continue;
                 }
                 emTrig->removeEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt);
+            }
+            else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
+                // find the event in L1 file
+                entryTrig = emTrig->getEntry(hiEvt.run, hiEvt.lumi, hiEvt.evt);
+                if (entryTrig < 0) {
+                    entriesNotFoundinTrigger++;
+                    continue;
+                }
+                emTrig->removeEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt);
+                entryTrig = j_entry;
             }
             else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
                 entryTrig = j_entry;
