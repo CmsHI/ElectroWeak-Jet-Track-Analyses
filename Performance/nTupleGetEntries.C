@@ -1,5 +1,5 @@
 /*
- * template macro to loop over a file with nTuples and print number of entries that pass a set of selections
+ * macro to loop over a file with nTuples and print number of entries that pass the given selections in the given trees
  */
 
 #include <TFile.h>
@@ -17,13 +17,15 @@
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/HiForestInfoController.h"
 #include "../Utilities/fileUtil.h"
+#include "../Utilities/systemUtil.h"
 
-void nTupleGetEntries(std::string inputFile);
+void nTupleGetEntries(std::string inputFile, std::string argFile);
 
-void nTupleGetEntries(std::string inputFile)
+void nTupleGetEntries(std::string inputFile, std::string argFile)
 {
     std::cout<<"running nTupleGetEntries()"<<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
+    std::cout<<"inputFile = "<< inputFile.c_str()  <<std::endl;
+    std::cout<<"argFile   = "<< argFile.c_str()  <<std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -33,14 +35,28 @@ void nTupleGetEntries(std::string inputFile)
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    std::vector<std::string> selections = {"phoEt > 60",
-                                           "phoEt > 60 && abs(phoEta) < 1.44",
-                                           "phoEt > 60 && abs(phoEta) < 1.44 && jtpt > 30"
-    };
+    std::vector<std::string> argLines = getLines(argFile);
+    int nArgLines = argLines.size();
 
+    std::vector<std::string> selections;
+    std::vector<std::string> treePaths;
+    bool isSelection = false;
+    for (int i = 0; i < nArgLines; ++i) {
+
+        if (argLines[i] == "==selections==")  {
+            isSelection = true;
+            continue;
+        }
+        else if (argLines[i] == "==trees==")  {
+            isSelection = false;
+            continue;
+        }
+
+        if (isSelection)  selections.push_back(argLines[i]);
+        else              treePaths.push_back(argLines[i]);
+    }
     int nSelections = selections.size();
     std::vector<Long64_t> selectedEntries(nSelections, 0);
-
     std::cout<<"#####"<< std::endl;
     std::cout << "nSelections = " << nSelections << std::endl;
     for (int i = 0; i < nSelections; ++i) {
@@ -48,13 +64,9 @@ void nTupleGetEntries(std::string inputFile)
     }
     std::cout<<"##### END #####"<< std::endl;
 
-    // TTree objects
-    std::vector<std::string> treePaths = {"ggHiNtuplizerGED/EventTree",
-                                          "ak3PFJetAnalyzer/t"
-    };
+    // TTree objects;
     int nTrees = treePaths.size();
     std::vector<TTree*> trees(nTrees, 0);
-
     std::cout<<"#####"<< std::endl;
     std::cout << "nTrees = " << nTrees << std::endl;
     for (int i = 0; i < nTrees; ++i) {
@@ -132,13 +144,13 @@ void nTupleGetEntries(std::string inputFile)
 
 int main(int argc, char** argv)
 {
-    if (argc == 2) {
-        nTupleGetEntries(argv[1]);
+    if (argc == 3) {
+        nTupleGetEntries(argv[1], argv[2]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./nTupleGetEntries.exe <inputFile>"
+                "./nTupleGetEntries.exe <inputFile> <argFile>"
                 << std::endl;
         return 1;
     }
