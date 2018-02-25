@@ -15,14 +15,29 @@ outputFiles=(
 $outDirBase"/Performance/nTupleGetEntries_"$outputSuffix".log"
 );
 
+argFileTmp="./Performance/nTupleGetEntries.args.txt"
+rm -f $argFileTmp
+echo "==selections==" >> $argFileTmp
+echo "phoEt > 80" >> $argFileTmp
+echo "phoEt > 80 && abs(phoEta) < 1.44" >> $argFileTmp
+echo "phoEt > 60 && abs(phoEta) < 1.44 && jtpt > 30" >> $argFileTmp
+echo "==trees==" >> $argFileTmp
+echo "ggHiNtuplizerGED/EventTree" >> $argFileTmp
+echo "ak3PFJetAnalyzer/t" >> $argFileTmp
+
+argFiles=(
+$argFileTmp
+);
+
 arrayIndices=${!outputFiles[*]}
 for i1 in $arrayIndices
 do
     outputFile=${outputFiles[i1]}
+    argFile=${argFiles[i1]}
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
-    $runCmd $progPath $inputFile &> $outputFile &
-    echo "$runCmd $progPath $inputFile &> $outputFile &"
+    $runCmd $progPath $inputFile $argFile &> $outputFile &
+    echo "$runCmd $progPath $inputFile $argFile &> $outputFile &"
 done
 
 
