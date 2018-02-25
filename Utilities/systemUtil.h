@@ -15,6 +15,7 @@
 #include <regex>
 
 bool        fileExists(std::string filename);
+std::vector<std::string> getLines(std::string file);
 int         replaceStringInFile(std::string file, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString, bool matchCase);
@@ -46,6 +47,26 @@ bool fileExists(std::string filename)
 {
   std::ifstream file(filename.c_str());
   return (bool)file; //root CINT compiler requires explicit cast
+}
+
+/*
+ * read all the lines in a file and return them in a vector of strings
+ */
+std::vector<std::string> getLines(std::string file)
+{
+    std::vector<std::string> res;
+
+    std::ifstream inFile(file.c_str());
+    std::string strLine;
+    if (inFile.is_open()) {
+        while (getline(inFile,strLine)) {
+
+            res.push_back(strLine);
+        }
+    }
+    inFile.close();
+
+    return res;
 }
 
 /*
