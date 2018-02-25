@@ -4,7 +4,7 @@ runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/nTupleGetEntries.exe"
 inputFile="Configurations/filelists/Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
 
-make $progPath || exit 1
+#make $progPath || exit 1
 
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
