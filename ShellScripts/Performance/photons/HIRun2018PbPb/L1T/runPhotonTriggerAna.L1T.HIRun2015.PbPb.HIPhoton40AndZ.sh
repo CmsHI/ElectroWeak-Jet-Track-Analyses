@@ -27,9 +27,9 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuff
 );
 
 configList=(
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.Run2630XX.L1SingleEG.conf"
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.Run2630XX.L1T.conf"
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.Run2630XX.L1T.egBypassEGVetos1.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1SingleEG.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.egBypassEGVetos1.conf"
 );
 
 arrayIndices=${!outList[*]}
