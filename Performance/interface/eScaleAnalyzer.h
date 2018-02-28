@@ -27,6 +27,7 @@ enum FNCS {
     kCBALL_99,  // crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
     kDSCB_95,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 95% of the integral
     kDSCB_99,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 99% of the integral
+    kDSCB_92,   // double sided crystal ball fit where the Gaussian part is seeded by FitSlicesY, uses bin range that covers 92% of the integral
     kN_FNCS
 };
 
@@ -42,6 +43,7 @@ const std::string FNC_LABELS[kN_FNCS] = {
         labelCB,
         labelCB,
         labelDSCB,
+        labelDSCB,
         labelDSCB
 };
 
@@ -51,6 +53,7 @@ const std::string FNC_TITLES[kN_FNCS] = {
         "Gaussian",
         "Crystal Ball",
         "Crystal Ball",
+        "DSCB",
         "DSCB",
         "DSCB"
 };
@@ -62,11 +65,12 @@ const std::string FNC_FORMULAS[kN_FNCS] = {
         "crystalball",
         "crystalball",
         "0",
+        "0",
         "0"
 };
 
-const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.99, 0.95, 0.99};
-const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kOrange-1, kOrange+2, kBlue+1, kRed+1};
+const double intFractions[kN_FNCS] = {1, 0.95, 0.98, 0.95, 0.99, 0.95, 0.99, 0.92};
+const int fncColors[kN_FNCS] = {kGreen+2, kRed, kBlue, kOrange-1, kOrange+2, kBlue+1, kRed+1, kBlue+1};
 const std::string fitOption = "Q M R N";
 
 };

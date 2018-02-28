@@ -245,8 +245,8 @@ public :
         h2Dcc = 0;
         isValid_h2Dcc = false;
 
-        indexFncFinal = ESANA::kDSCB_95;
-        indicesFnc = {ESANA::kGAUS_95, ESANA::kDSCB_95};
+        indexFncFinal = ESANA::kDSCB_92;
+        indicesFnc = {ESANA::kGAUS_95, ESANA::kDSCB_92};
 
         hMatchNum = 0;
         hMatchDenom = 0;
