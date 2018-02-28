@@ -211,6 +211,16 @@ const int particlesColor[kN_FakeCand] =
    kAzure+2      // cascade0
 };
 
+enum NEUTRALMESONS {
+    k_pion0,
+    kN_NeutralMesons
+};
+
+const particle neutralMesons[kN_NeutralMesons] =
+{
+   particle("pion0", "#pi^{0}", {111})
+};
+
 };
 
 class recoAnalyzer {
