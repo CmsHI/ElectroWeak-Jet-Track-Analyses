@@ -115,29 +115,6 @@ enum CORRS {   // correction types
 
 const std::string CORR_LABELS[kN_CORRS] = {"corrE", "corrEta", "corrSCE"};
 
-// list of particles that can fake RECO-level objects
-enum FAKECAND {
-    k_unknown,
-    k_electron,
-    k_eneutrino,
-    k_muon,
-    k_muneutrino,
-    k_tau,
-    k_kaonL,
-    k_pionch,
-    k_kaonS,
-    k_kaonch,
-    k_neutron,
-    k_proton,
-    k_nucleon,
-    k_sigmaM,
-    k_lambda,
-    k_sigmaP,
-    k_cascadeM,
-    k_cascade0,
-    kN_FakeCand
-};
-
 struct particle
 {
     particle() {
@@ -165,6 +142,29 @@ struct particle
     std::vector<int> PDG;
     std::vector<double> m;
     std::vector<int> charge;
+};
+
+// list of particles that can fake RECO-level objects
+enum FAKECAND {
+    k_unknown,
+    k_electron,
+    k_eneutrino,
+    k_muon,
+    k_muneutrino,
+    k_tau,
+    k_kaonL,
+    k_pionch,
+    k_kaonS,
+    k_kaonch,
+    k_neutron,
+    k_proton,
+    k_nucleon,
+    k_sigmaM,
+    k_lambda,
+    k_sigmaP,
+    k_cascadeM,
+    k_cascade0,
+    kN_FakeCand
 };
 
 const particle particles[kN_FakeCand] =
