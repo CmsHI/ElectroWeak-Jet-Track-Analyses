@@ -95,10 +95,11 @@ const std::string RANGE_LABELS[kN_RANGES] = {
 enum OBS {
     kEFF,        // trigger efficiency
     kINEFF,      // trigger inefficiency
+    kFAKE,       // trigger fake is a trigger fire without a matching offline object
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eff", "ineff"};
+const std::string OBS_LABELS[kN_OBS] = {"eff", "ineff", "fake"};
 
 };
 
@@ -129,6 +130,15 @@ public :
         isValid_hNumInEff = false;
         isValid_hInEff = false;
         isValid_gInEff = false;
+
+        hFakeNum = 0;
+        hFakeDenom = 0;
+        hFakeRatio = 0;
+        gFakeRatio = 0;
+        isValid_hFakeNum = false;
+        isValid_hFakeDenom = false;
+        isValid_hFakeRatio = false;
+        isValid_gFakeRatio = false;
 
         pathNum = "";
         pathDenom = "";
@@ -167,6 +177,8 @@ public :
     void FillH2Num(double x, double y, double w, std::vector<double> vars);
     void FillH2Denom(double x, double y, double w, std::vector<double> vars);
     void FillHNumInEff(double x, double w, std::vector<double> vars);
+    void FillHNumFake(double x, double w, std::vector<double> vars);
+    void FillHDenomFake(double x, double w, std::vector<double> vars);
 
     std::string getPathNum() { return pathNum; };
     std::string getPathDenom() { return pathDenom; };
@@ -194,6 +206,7 @@ public :
     void calcEff();
     void calcEff2D();
     void calcInEff();
+    void calcFakeRatio();
     void writeObjects(TCanvas* c);
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
@@ -233,10 +246,19 @@ public :
     TH1D* hNumInEff;
     TH1D* hInEff;
     TGraphAsymmErrors* gInEff;
-
     bool isValid_hNumInEff;
     bool isValid_hInEff;
     bool isValid_gInEff;
+
+    // objects for fake rate
+    TH1D* hFakeNum;
+    TH1D* hFakeDenom;
+    TH1D* hFakeRatio;
+    TGraphAsymmErrors* gFakeRatio;
+    bool isValid_hFakeNum;
+    bool isValid_hFakeDenom;
+    bool isValid_hFakeRatio;
+    bool isValid_gFakeRatio;
 
     std::string pathNum;
     std::string pathDenom;
@@ -250,6 +272,9 @@ public :
         kEff,
         kNumInEff,
         kInEff,
+        kFakeNum,
+        kFakeDenom,
+        kFakeRatio,
         kN_OBJ
     };
 
@@ -314,6 +339,23 @@ void triggerAnalyzer::FillHNumInEff(double x, double w, std::vector<double> vars
 {
     if (isValid_hNumInEff && insideRange(vars))
         hNumInEff->Fill(x, w);
+}
+
+void triggerAnalyzer::FillHNumFake(double x, double w, std::vector<double> vars)
+{
+    vars[TRIGGERANA::rRECOPT] = -1;
+
+    if (isValid_hFakeNum && insideRange(vars)) {
+        hFakeNum->Fill(x, w);
+    }
+}
+
+void triggerAnalyzer::FillHDenomFake(double x, double w, std::vector<double> vars)
+{
+    vars[TRIGGERANA::rRECOPT] = -1;
+
+    if (isValid_hFakeDenom && insideRange(vars))
+        hFakeDenom->Fill(x, w);
 }
 
 /*
@@ -464,6 +506,11 @@ void triggerAnalyzer::updateTH1()
     isValid_hInEff = (hInEff != 0 && !hInEff->IsZombie());
     isValid_gInEff = (gInEff != 0 && !gInEff->IsZombie());
 
+    isValid_hFakeNum = (hFakeNum != 0 && !hFakeNum->IsZombie());
+    isValid_hFakeDenom = (hFakeDenom != 0 && !hFakeDenom->IsZombie());
+    isValid_hFakeRatio = (hFakeRatio != 0 && !hFakeRatio->IsZombie());
+    isValid_gFakeRatio = (gFakeRatio != 0 && !gFakeRatio->IsZombie());
+
     if (isValid_hNum) {
         nBinsX = hNum->GetXaxis()->GetNbins();
     }
@@ -515,6 +562,12 @@ std::string triggerAnalyzer::getObjectStr(int iObj)
         return "NumInEff";
     case triggerAnalyzer::OBJ::kInEff :
         return "InEff";
+    case triggerAnalyzer::OBJ::kFakeNum :
+        return "FakeNum";
+    case triggerAnalyzer::OBJ::kFakeDenom :
+        return "FakeDenom";
+    case triggerAnalyzer::OBJ::kFakeRatio :
+        return "FakeRatio";
     default :
         return "";
     }
@@ -666,6 +719,7 @@ void triggerAnalyzer::postLoop()
     calcEff();
     calcEff2D();
     calcInEff();
+    calcFakeRatio();
 }
 
 void triggerAnalyzer::calcEff()
@@ -790,6 +844,54 @@ void triggerAnalyzer::calcInEff()
  * write histograms with a particular dependence
  * use "c" as a template
  */
+void triggerAnalyzer::calcFakeRatio()
+{
+    if (!isValid_hFakeNum || !isValid_hFakeDenom) return;
+
+    std::string nameTmp;
+
+    hFakeNum->SetTitle(title.c_str());
+    hFakeNum->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hFakeNum, titleOffsetX, titleOffsetY);
+
+    hFakeDenom->SetTitle(title.c_str());
+    hFakeDenom->SetXTitle(titleX.c_str());
+    setTH1_efficiency(hFakeDenom, titleOffsetX, titleOffsetY);
+
+    if (isValid_gFakeRatio) {
+        gFakeRatio->Delete();
+        isValid_gFakeRatio = false;
+    }
+
+    gFakeRatio = new TGraphAsymmErrors();
+    nameTmp = getObjectName(triggerAnalyzer::OBJ::kFakeRatio, triggerAnalyzer::TOBJ::kTGraph);
+    gFakeRatio->SetName(nameTmp.c_str());
+    gFakeRatio->BayesDivide(hFakeNum, hFakeDenom);
+    gFakeRatio->SetTitle(title.c_str());
+    gFakeRatio->GetXaxis()->SetTitle(titleX.c_str());
+    gFakeRatio->GetYaxis()->SetTitle("Trigger Fake Rate");
+    gFakeRatio->SetMarkerStyle(kFullCircle);
+
+    isValid_gFakeRatio = true;
+
+    if (isValid_hFakeRatio) {
+        hFakeRatio->Delete();
+        isValid_hFakeRatio = false;
+    }
+
+    nameTmp = getObjectName(triggerAnalyzer::OBJ::kFakeRatio, triggerAnalyzer::TOBJ::kTH1D);
+    hFakeRatio = (TH1D*)hFakeNum->Clone(nameTmp.c_str());
+    fillTH1fromTGraph(hFakeRatio, gFakeRatio);
+    setTH1_efficiency(hFakeDenom, titleOffsetX, titleOffsetY);
+    hFakeRatio->SetTitle(title.c_str());
+    hFakeRatio->SetXTitle(titleX.c_str());
+    hFakeRatio->SetYTitle("Trigger Fake Rate");
+    hFakeRatio->SetMinimum(0);
+    hFakeRatio->SetMaximum(1.2);
+
+    isValid_hFakeRatio = true;
+}
+
 void triggerAnalyzer::writeObjects(TCanvas* c)
 {
     std::string canvasName = "";
@@ -1005,6 +1107,114 @@ void triggerAnalyzer::writeObjects(TCanvas* c)
         hTmp->Delete();
     }
 
+    // fake rate objects
+    if (isValid_hFakeNum) {
+        canvasName = Form("cnv_%s_%s", getObjectStr(triggerAnalyzer::OBJ::kFakeNum).c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hFakeNum->SetMarkerSize(markerSize);
+        hFakeNum->Draw("e");
+        hFakeNum->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (isValid_hFakeDenom) {
+        canvasName = Form("cnv_%s_%s", getObjectStr(triggerAnalyzer::OBJ::kFakeDenom).c_str(), name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hFakeDenom->SetMarkerSize(markerSize);
+        hFakeDenom->Draw("e");
+        hFakeDenom->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (isValid_hFakeRatio) {
+        int iObs = TRIGGERANA::kFAKE;
+        canvasName = Form("cnv_%s_%s", TRIGGERANA::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        hFakeRatio->SetMarkerSize(markerSize);
+        hFakeRatio->Draw("e");
+        hFakeRatio->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtThreshold((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+
+        // plot fake rate in log-scale as well
+        int minBin = getMinimumBin(hFakeRatio, 0);
+        double minContent = 0.001;
+        if (minBin > -1) minContent = hFakeRatio->GetBinContent(minBin);
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        hFakeRatio->SetMinimum(TMath::Power(10, logYmin));
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+        hFakeRatio->SetMinimum(0);  // restore the minimum after log-scale canvas.
+
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+    if (isValid_hFakeRatio && isValid_gFakeRatio) {
+        int iObs = TRIGGERANA::kFAKE;
+        canvasName = Form("cnv_%sgraph_%s", TRIGGERANA::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        // dummy histogram to be used as template for the graph
+        TH1D* hTmp = (TH1D*)hFakeRatio->Clone("hTmp");
+        hTmp->Reset();
+        hTmp->Draw();
+        gFakeRatio->SetMarkerSize(markerSize);
+        gFakeRatio->Draw("p e");
+        gFakeRatio->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtThreshold((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+
+        // plot fake rate in log-scale as well
+        int minBinIndex = getMinimumBinIndex(gFakeRatio, 0);
+        double minContent = 0.001;
+        if (minBinIndex > -1) minContent = getMinimum(gFakeRatio, 0);
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        hTmp->SetMinimum(TMath::Power(10, logYmin));
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+
+        c->Close();         // do not use Delete() for TCanvas.
+        hTmp->Delete();
+    }
+
      if (line != 0)  line->Delete();
      latex->Delete();
 }
@@ -1015,7 +1225,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 
     p->Update();
     bool hasH2D = containsClassInstance(p, "TH2");
-    if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)) {
+    if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE)) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
@@ -1037,7 +1247,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
-        if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF))  yMax = 1;
+        if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE))  yMax = 1;
 
         // draw lines for ECAL transition region
         std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};

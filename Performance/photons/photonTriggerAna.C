@@ -192,9 +192,10 @@ enum MODES {
     kAnaType,
     kEff,
     kInEff,
+    kFakeRate,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"AnaType", "Eff", "InEff"};
+const std::string modesStr[kN_MODES] = {"AnaType", "Eff", "InEff", "FakeRate"};
 std::vector<int> runMode;
 
 enum MODES_ANATYPE {
@@ -838,6 +839,62 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
                             tAna[TRIGGERANA::kHCALISO][iAna].FillHNumInEff(hcalIso, w, vars);
                             tAna[TRIGGERANA::kTRKISO][iAna].FillHNumInEff(trkIso, w, vars);
                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNumInEff(sieie, w, vars);
+                        }
+                    }
+
+                }
+            }
+
+            // fake rate
+            if (runMode[MODES::kFakeRate]) {
+                for (int iAna = 0;  iAna < nTriggerAna; ++iAna) {
+
+                    int iMax = -1;
+                    double maxPt = 0;
+                    for (int i=0; i<ggHi.nPho; ++i) {
+
+                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                        if (cut_phoHoverE != 0) {
+                            if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                        }
+
+                        double pt = (*ggHi.phoEt)[i];
+                        double eta = (*ggHi.phoEta)[i];
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                        double r9 = (*ggHi.phoR9)[i];
+                        std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
+
+                        // triggerAnalyzer object with reco pt dependency is the correct one for this decision
+                        if (!tAna[TRIGGERANA::kRECOPT][iAna].insideRange(vars)) continue;
+
+                        if (pt > maxPt) {
+                            iMax = i;
+                            maxPt = pt;
+                        }
+                    }
+
+                    bool noRecoObj = (iMax == -1);
+
+                    if (isPrescaledDenom(indicesTriggerDenom[iAna], triggerPrescales))  continue;
+                    if (isPrescaledNum(indicesTriggerNum[iAna], triggerPrescales))  continue;
+
+                    if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
+
+                        if (passedNum(indicesTriggerNum[iAna], triggerBits)) {
+
+                            std::vector<double> varsFake = {-999, -1, (double)cent, -999, -1, -1};
+
+                            tAna[TRIGGERANA::kRECOPT][iAna].FillHDenomFake(tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold, w, varsFake);
+                            tAna[TRIGGERANA::kCENT][iAna].FillHDenomFake(cent, w, varsFake);
+
+                            if (noRecoObj) {
+                                tAna[TRIGGERANA::kRECOPT][iAna].FillHNumFake(tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold, w, varsFake);
+                                tAna[TRIGGERANA::kCENT][iAna].FillHNumFake(cent, w, varsFake);
+                            }
                         }
                     }
 
@@ -1740,6 +1797,8 @@ int  preLoop(TFile* input, bool makeNew)
         std::string nameNum2D = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNum, triggerAnalyzer::TOBJ::kTH2D);
         std::string nameDenom2D = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kDenom, triggerAnalyzer::TOBJ::kTH2D);
         std::string nameNumInEff = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNumInEff);
+        std::string nameFakeNum = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeNum);
+        std::string nameFakeDenom = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeDenom);
 
         // disable the cuts/ranges for this dependence
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
@@ -1796,6 +1855,20 @@ int  preLoop(TFile* input, bool makeNew)
             }
             else {
                 tAnaTmp.hNumInEff = (TH1D*)input->Get(nameNumInEff.c_str());
+            }
+        }
+
+        // fake rate
+        if (runMode[MODES::kFakeRate]) {
+            if (makeNew) {
+                tAnaTmp.hFakeNum =
+                        new TH1D(nameFakeNum.c_str(), Form(";%s;Entries", xTitle.c_str()), nBins, arr);
+                tAnaTmp.hFakeDenom =
+                        (TH1D*)tAnaTmp.hFakeNum->Clone(nameFakeDenom.c_str());
+            }
+            else {
+                tAnaTmp.hFakeNum = (TH1D*)input->Get(nameFakeNum.c_str());
+                tAnaTmp.hFakeDenom = (TH1D*)input->Get(nameFakeDenom.c_str());
             }
         }
 
@@ -1917,7 +1990,10 @@ int postLoop()
 
                 // plot from different recoPt bins
                 if (iRecoPt == 0 && tAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iTrigger, iEta, -1, iCent, iSumIso, iSieie, iR9});
+                    // there is no recoPt bin for trigger fake rate
+                    if (iObs != TRIGGERANA::kFAKE) {
+                        drawSame(c, iObs, iDep, {iTrigger, iEta, -1, iCent, iSumIso, iSieie, iR9});
+                    }
                 }
 
                 // plot from different centrality bins
@@ -1950,6 +2026,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 {
     if (iObs == TRIGGERANA::kEFF && !runMode[MODES::kEff]) return;
     if (iObs == TRIGGERANA::kINEFF && !runMode[MODES::kInEff]) return;
+    if (iObs == TRIGGERANA::kFAKE && !runMode[MODES::kFakeRate]) return;
 
     int iTrigger = binIndices[ANABINS::kTrigger];
 
@@ -2101,6 +2178,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         }
         else {
             hTmp = (TH1D*)tAna[iDep][iAnaTmp].hNum->Clone();
+            if (iObs == TRIGGERANA::kFAKE) {
+                hTmp = (TH1D*)tAna[iDep][iAnaTmp].hFakeRatio->Clone();
+                hTmp->SetMaximum(1.6);
+            }
 
             hTmp->SetTitle("");
             if (iTrigger != -1) {
@@ -2116,6 +2197,9 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
         drawSameTGraph(c, vecGraph);
     }
+    else if (iObs == TRIGGERANA::kFAKE) {
+        drawSameTH1D(c, vecH1D);
+    }
     else {
         drawSameTH1D(c, vecH1D);
     }
@@ -2130,8 +2214,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         int iAnaTmp = indicesAna[iBin];
 
         if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF) {
-
             tAna[iDep][iAnaTmp].drawLine4PtThreshold(c, vecGraph[iBin]->GetMarkerColor());
+        }
+        else if (iObs == TRIGGERANA::kFAKE) {
+            tAna[iDep][iAnaTmp].drawLine4PtThreshold(c, vecH1D[iBin]->GetMarkerColor());
         }
     }
 
@@ -2145,7 +2231,7 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         int iAnaTmp = indicesAna[iBin];
 
         std::string legendOption = "lpf";
-        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF)  legendOption = "lp";
+        if (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE)  legendOption = "lp";
         std::string legendText = "";
         if (iTrigger == -1) legendText = tAna[iDep][iAnaTmp].getPathNumText();
         else if (iEta == -1) legendText = tAna[iDep][iAnaTmp].getRangeText(TRIGGERANA::rETA);
@@ -2201,6 +2287,10 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iDep == TRIGGERANA::kTRKISO && iRange == TRIGGERANA::rSUMISO) continue;
         else if (iDep == TRIGGERANA::kSIEIE && iRange == TRIGGERANA::rSIEIE) continue;
 
+        // special cases
+        // There are no recoPt ranges for trigger fake rate.
+        if (iObs == TRIGGERANA::kFAKE && iRange == TRIGGERANA::rRECOPT) continue;
+
         int iAna0 = indicesAna[0];
         std::string textLineTmp = tAna[iDep][iAna0].getRangeText(iRange);
         if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp);
@@ -2210,6 +2300,26 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
 
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
+
+    if (iObs == TRIGGERANA::kFAKE) {
+
+        // plot fake rate in log-scale as well
+        int minTH1Dindex = getMinimumTH1Dindex(vecH1D, 0);
+        int minBin = -1;
+        if (minTH1Dindex > -1) minBin = getMinimumBin(vecH1D[minTH1Dindex], 0);
+        double minContent = 0.001;
+        if (minTH1Dindex > -1 && minBin > -1) minContent = vecH1D[minTH1Dindex]->GetBinContent(minBin);
+        double logYmin = TMath::Floor(TMath::Log10(minContent));
+        for (int i = 0; i < nBins; ++i) {
+            vecH1D[i]->SetMinimum(TMath::Power(10, logYmin));
+            vecH1D[i]->SetMaximum(4);
+        }
+        c->SetLogy(1);
+        c->Update();
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+    }
 
     leg->Delete();
     line->Delete();
