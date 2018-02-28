@@ -21,6 +21,8 @@
 #include <TLine.h>
 #include <TLegend.h>
 #include <TLatex.h>
+#include <TMath.h>
+#include <TLorentzVector.h>
 
 #include <string>
 #include <vector>
@@ -189,9 +191,11 @@ enum MODES_ESCALE {
     kNULL,
     kRecoPtGenPt,
     kSCRawEGenE,
+    kRecoPtGenPtpi0,
+    kSCRawEGenEpi0,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE"};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtpi0", "SCRawEGenEpi0"};
 
 enum ANABINS {
     kEta,
@@ -404,6 +408,14 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 if ((*ggHi.mcPID)[genMatchedIndex] != 22)   continue;    // is matched to a photon
 
                 double genPt = (*ggHi.mcPt)[genMatchedIndex];
+                double genE = (*ggHi.mcE)[genMatchedIndex];
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0 || runMode[MODES::kEnergyScale] == kSCRawEGenEpi0) {
+                    if ((*ggHi.mcMomPID)[genMatchedIndex] != 111) continue;
+                    genPt = (*ggHi.mcMomPt)[genMatchedIndex];
+                    TLorentzVector vec;
+                    vec.SetPtEtaPhiM(genPt, (*ggHi.mcMomEta)[genMatchedIndex], (*ggHi.mcMomPhi)[genMatchedIndex], (*ggHi.mcMomMass)[genMatchedIndex]);
+                    genE = vec.E();
+                }
                 if (genPt <= 0)   continue;
 
                 if (isHI) {
@@ -447,10 +459,14 @@ void photonRecoAna(const TString configFile, const TString inputFile, const TStr
                 double r9 = (*ggHi.phoR9)[i];
                 double energyScale = -1;
 
-                if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
+                    runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0) {
                     energyScale = pt/genPt;
-                else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)
-                    energyScale = (*ggHi.phoSCRawE)[i]/(*ggHi.mcE)[genMatchedIndex];
+                }
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenE ||
+                         runMode[MODES::kEnergyScale] == kSCRawEGenEpi0) {
+                    energyScale = (*ggHi.phoSCRawE)[i]/genE;
+                }
 
                 std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
                 for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
@@ -1424,6 +1440,8 @@ int  preLoop(TFile* input, bool makeNew)
                 std::string yTitleEScale = "";
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
+                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0)  yTitleEScale = "Reco photon p_{T} / Gen #pi^{0} p_{T}";
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEpi0)  yTitleEScale = "photon SC Raw E / Gen #pi^{0} E";
 
                 rAnaTmp.h2D =
                         new TH2D(nameH2D.c_str(), Form(";%s;%s", xTitle.c_str(), yTitleEScale.c_str()), nBins, arr,
