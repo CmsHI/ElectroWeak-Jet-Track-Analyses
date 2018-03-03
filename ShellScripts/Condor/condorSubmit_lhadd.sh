@@ -18,11 +18,16 @@ nFilesPerJob=$5  # number files to be processed in a single job, take care to sp
 
 
 echo "program path      : $progPath"
-echo "input file        : $inputList"
+echo "input list        : $inputList"
 echo "output directory  : $outputDir"
 
 if [[ $outputDir != /mnt/hadoop/* ]]; then
     echo "output directory must be under /mnt/hadoop/"
+    exit 1
+fi
+
+if [[ $inputList = *.root ]]; then
+    echo "input list must be a list of ROOT files, not a ROOT file itself."
     exit 1
 fi
 
