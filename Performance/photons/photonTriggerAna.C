@@ -256,7 +256,7 @@ std::vector<unsigned int> lumiEndNumbers;
 int nRunNumbers;
 ///// global variables - END
 
-int  readConfiguration(const TString configFile);
+int  readConfiguration(std::string configFile);
 void printConfiguration();
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
@@ -278,27 +278,27 @@ void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
-void photonTriggerAna(const TString configFile, const TString triggerFile, const TString inputFile, const TString outputFile = "photonTriggerAna.root");
-void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile = "photonTriggerAna.root");
+void photonTriggerAna(std::string configFile, std::string triggerFile, std::string inputFile, std::string outputFile = "photonTriggerAna.root");
+void photonTriggerAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "photonTriggerAna.root");
 
-void photonTriggerAna(const TString configFile, const TString triggerFile, const TString inputFile, const TString outputFile)
+void photonTriggerAna(std::string configFile, std::string triggerFile, std::string inputFile, std::string outputFile)
 {
     std::cout << "running photonTriggerAna()" << std::endl;
-    std::cout << "configFile  = " << configFile.Data() << std::endl;
-    std::cout << "triggerFile = " << triggerFile.Data() << std::endl;
-    std::cout << "inputFile   = " << inputFile.Data() << std::endl;
-    std::cout << "outputFile  = " << outputFile.Data() << std::endl;
+    std::cout << "configFile  = " << configFile.c_str() << std::endl;
+    std::cout << "triggerFile = " << triggerFile.c_str() << std::endl;
+    std::cout << "inputFile   = " << inputFile.c_str() << std::endl;
+    std::cout << "outputFile  = " << outputFile.c_str() << std::endl;
 
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
-        if (std::string(triggerFile.Data()) != inputFile.Data()) {
+        if (std::string(triggerFile.c_str()) != inputFile.c_str()) {
             std::cout << "The analysis type is data. triggerFile will be ignored." << std::endl;
         }
     }
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout << "input ROOT files : num = " << inputFiles.size() << std::endl;
     std::cout << "#####" << std::endl;
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
@@ -416,7 +416,7 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
         std::cout << "### HLT bit analysis file ###" << std::endl;
-        fileTrig = TFile::Open(triggerFile.Data(), "READ");
+        fileTrig = TFile::Open(triggerFile.c_str(), "READ");
         fileTrig->cd();
 
         treeTrigPath = "hltbitanalysis/HltTree";
@@ -474,7 +474,7 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
              runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
         std::cout << "### L1Ntuple file ###" << std::endl;
 
-        fileTrig = TFile::Open(triggerFile.Data(), "READ");
+        fileTrig = TFile::Open(triggerFile.c_str(), "READ");
         fileTrig->cd();
 
         if (hasPseudoTriggerBranches) {
@@ -911,7 +911,7 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
     std::cout << "entriesPassedDenomGlobal = " << entriesPassedDenomGlobal << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
 
-    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
+    TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
 
     postLoop();
@@ -929,21 +929,21 @@ void photonTriggerAna(const TString configFile, const TString triggerFile, const
 /*
  * run the macro without going through event loop, things done before and after the loop
  */
-void photonTriggerAnaNoLoop(const TString configFile, const TString inputFile, const TString outputFile)
+void photonTriggerAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile)
 {
     std::cout << "running photonTriggerAna()" << std::endl;
-    std::cout << "configFile  = " << configFile.Data() << std::endl;
-    std::cout << "inputFile   = " << inputFile.Data()  << std::endl;
-    std::cout << "outputFile  = " << outputFile.Data() << std::endl;
+    std::cout << "configFile  = " << configFile.c_str() << std::endl;
+    std::cout << "inputFile   = " << inputFile.c_str()  << std::endl;
+    std::cout << "outputFile  = " << outputFile.c_str() << std::endl;
 
     if (readConfiguration(configFile) != 0)  return;
     printConfiguration();
 
-    TFile* input = TFile::Open(inputFile.Data(), "READ");
+    TFile* input = TFile::Open(inputFile.c_str(), "READ");
 
     if (preLoop(input, false) != 0) return;
 
-    TFile* output = TFile::Open(outputFile.Data(),"RECREATE");
+    TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
 
     postLoop();
@@ -984,10 +984,10 @@ int main(int argc, char** argv)
     }
 }
 
-int readConfiguration(const TString configFile)
+int readConfiguration(std::string configFile)
 {
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.c_str());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.c_str());
 
     if (!configInput.isValid) {
         std::cout << "Input configuration is invalid." << std::endl;
