@@ -18,12 +18,23 @@ nFilesPerJob=$6  # number files to be processed in a single job, take care to sp
 
 echo "program path      : $progPath"
 echo "coniguration file : $configFile"
-echo "input file        : $inputList"
+echo "input list        : $inputList"
 echo "output directory  : $outputDir"
 
 if [[ $outputDir != /mnt/hadoop/* ]]; then
     echo "output directory must be under /mnt/hadoop/"
     exit 1
+fi
+
+timeNow=$(date +"%Y%m%d_%H%M%S")
+isTmpList=0
+if [[ $inputList = *.root ]]; then
+    isTmpList=1
+    inputFileTmp=$inputList
+    inputListTmp="tmpList_"$timeNow".list"
+    echo $inputFileTmp > $inputListTmp
+    inputList=$inputListTmp
+    echo "input list was given as a ROOT file, not as a list of ROOT files. Created temporary list file : "$inputListTmp
 fi
 
 # calculate/check nJobs and nFilesPerJob
@@ -50,7 +61,6 @@ fi
 
 # create the directories for condor submission and condor output files
 baseDir="/work/"$USER"/ewjta"
-timeNow=$(date +"%Y%m%d_%H%M%S")
 submitDir=$baseDir"/condorSubmissions/"$timeNow
 condorLogsDir=$submitDir"/logs"
 mkdir -p $submitDir
@@ -63,6 +73,10 @@ cp $progPath $submitDir
 cp $configFile $submitDir
 cp $inputList $submitDir
 cp $PWD"/ShellScripts/myRun.sh" $submitDir
+
+if [ $isTmpList -gt 0 ]; then
+  rm $inputList
+fi
 
 progName=$(basename $progPath)
 configName=$(basename $configFile)
