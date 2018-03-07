@@ -19,17 +19,17 @@
 #include "../Utilities/interface/HiForestInfoController.h"
 #include "../Utilities/fileUtil.h"
 
-void hiForestPickSkim(const TString configFile, const TString eventList, const TString inputFile, const TString outputFile = "hiForestPickSkim.txt");
+void hiForestPickSkim(std::string configFile, std::string eventList, std::string inputFile, std::string outputFile = "hiForestPickSkim.txt");
 
-void hiForestPickSkim(const TString configFile, const TString eventList, const TString inputFile, const TString outputFile)
+void hiForestPickSkim(std::string configFile, std::string eventList, std::string inputFile, std::string outputFile)
 {
     std::cout<<"running hiForestPickSkim()"<<std::endl;
-    std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
-    std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    std::cout<<"configFile  = "<< configFile.c_str() <<std::endl;
+    std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
+    std::cout<<"outputFile  = "<< outputFile.c_str() <<std::endl;
 
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.c_str());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.c_str());
 
     if (!configInput.isValid) {
         std::cout << "Input configuration is invalid." << std::endl;
@@ -72,7 +72,7 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
 
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
     std::cout<<"#####"<< std::endl;
@@ -82,7 +82,7 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
     std::cout<<"##### END #####"<< std::endl;
 
     std::cout << "### Event list info ###" << std::endl;
-    std::vector<std::string> vecRunLumiEvent = InputConfigurationParser::ParseEvents(eventList.Data());
+    std::vector<std::string> vecRunLumiEvent = InputConfigurationParser::ParseEvents(eventList.c_str());
     int nRunLumiEvent = vecRunLumiEvent.size();
     if (nRunLumiEvent == 0) {
         std::cout << "Event list is empty." << std::endl;
@@ -132,7 +132,7 @@ void hiForestPickSkim(const TString configFile, const TString eventList, const T
         std::cout<<"###"<< std::endl;
     }
 
-    TFile* output = new TFile(outputFile, "RECREATE");
+    TFile* output = new TFile(outputFile.c_str(), "RECREATE");
     int nTrees = listTTree->GetSize();
 
     std::cout << "nTrees = " << nTrees << std::endl;

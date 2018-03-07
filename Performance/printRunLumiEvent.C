@@ -27,17 +27,17 @@
 #include "../Utilities/interface/HiForestInfoController.h"
 #include "../Utilities/fileUtil.h"
 
-void printRunLumiEvent(const TString configFile, const TString inputFile, const TString outputFile = "printRunLumiEvent.txt");
+void printRunLumiEvent(std::string configFile, std::string inputFile, std::string outputFile = "printRunLumiEvent.txt");
 
-void printRunLumiEvent(const TString configFile, const TString inputFile, const TString outputFile)
+void printRunLumiEvent(std::string configFile, std::string inputFile, std::string outputFile)
 {
     std::cout<<"running printRunLumiEvent()"<<std::endl;
-    std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.Data()  <<std::endl;
-    std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
+    std::cout<<"configFile  = "<< configFile.c_str() <<std::endl;
+    std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
+    std::cout<<"outputFile  = "<< outputFile.c_str() <<std::endl;
 
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.c_str());
+    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.c_str());
 
     if (!configInput.isValid) {
         std::cout << "Input configuration is invalid." << std::endl;
@@ -74,7 +74,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
 
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
     std::cout<<"#####"<< std::endl;
@@ -148,7 +148,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
        // std::cout << "opening file : " << outputFile.Data() << std::endl;
        std::ios_base::openmode openMode = std::ios_base::out | std::ios_base::trunc;    // default mode, overwrites existing file
        if (iFile > 0)  openMode = std::ios_base::app | std::ios_base::out;      // append mode
-       std::ofstream outFileStream(outputFile.Data(), openMode);
+       std::ofstream outFileStream(outputFile.c_str(), openMode);
 
        if (outFileStream.is_open()) {
            if (iFile == 0) outFileStream << "# run lumis event" << std::endl;
@@ -164,7 +164,7 @@ void printRunLumiEvent(const TString configFile, const TString inputFile, const 
     std::cout << "TTree::Draw() ENDED : " << treePath.c_str() <<std::endl;
     std::cout << "entries = " << entries <<std::endl;
     std::cout << "entriesSelected = " << entriesSelected <<std::endl;
-    std::cout << "wrote file   : " << outputFile.Data() << std::endl;
+    std::cout << "wrote file   : " << outputFile.c_str() << std::endl;
 }
 
 int main(int argc, char** argv)
