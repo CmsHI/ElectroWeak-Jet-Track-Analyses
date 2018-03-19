@@ -504,8 +504,9 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
             treeTrig->SetBranchStatus("*",0);     // disable all branches
 
             // specify explicitly which branches to use
-            treeTrig->SetBranchStatus("*", 1);
             treeTrig->SetBranchStatus("L1Upgrade", 1);
+            treeTrig->SetBranchStatus("nEGs", 1);
+            treeTrig->SetBranchStatus("*eg*", 1);
             L1Upgrade = new L1Analysis::L1AnalysisL1UpgradeDataFormat();
             treeTrig->SetBranchAddress("L1Upgrade", &L1Upgrade);
         }
