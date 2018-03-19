@@ -828,12 +828,13 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
             option_strings.push_back("l");
             break;
         case 11:    /* Hybrid */
-            g1->SetLineColorAlpha(kTeal+9, 0.7);
+            g1->SetLineColorAlpha(kMagenta, 0.7);
             g1->SetLineStyle(1);
+            g1->SetLineWidth(2.4);
             g1->SetMarkerSize(0);
-            g1->SetFillColorAlpha(kTeal+9, 0.7);
+            g1->SetFillColorAlpha(kMagenta, 0.7);
             option_strings.push_back("same l e3");
-            option_strings.push_back("f");
+            option_strings.push_back("l");
             break;
         default:
             option_strings.push_back("same l z");
