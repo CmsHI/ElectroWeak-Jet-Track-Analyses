@@ -1065,13 +1065,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nxMin == nPads) xMinTmp = xMin.at(indexPad);
         float xMaxTmp = xMax.at(0);
         if (nxMax == nPads) xMaxTmp = xMax.at(indexPad);
-        if (xMaxTmp > xMinTmp)       h[i]->SetAxisRange(xMinTmp, xMaxTmp, "X");
+        if (xMaxTmp > xMinTmp)       h[i]->GetXaxis()->SetRangeUser(xMinTmp, xMaxTmp);
 
         float yMinTmp = yMin.at(0);
         if (nyMin == nPads) yMinTmp = yMin.at(indexPad);
         float yMaxTmp = yMax.at(0);
         if (nyMax == nPads) yMaxTmp = yMax.at(indexPad);
-        if (yMaxTmp > yMinTmp)       h[i]->SetAxisRange(yMinTmp, yMaxTmp, "Y");
+        if (yMaxTmp > yMinTmp)       h[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
 
         float titleOffsetX = titleOffsetsX.at(0);
         if (nTitleOffsetX == nPads)  titleOffsetX = titleOffsetsX.at(indexPad);
@@ -1460,8 +1460,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 if (TLines_vertical_PadIndices.at(iLine) != iPad)  continue;
 
                 // draw vertical line
-                double ymin = h[iStart]->GetMinimum();
-                double ymax = h[iStart]->GetMaximum();
+                double ymin = gPad->GetUymin();
+                double ymax = gPad->GetUymax();
 
                 int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
                 if (nLineStyles_vertical == 1)
@@ -1517,7 +1517,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 float yMax_lowerPadTmp = yMax_lowerPad.at(0);
                 if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
 
-                if (yMax_lowerPadTmp > yMin_lowerPadTmp)   h_lowerPad[i]->SetAxisRange(yMin_lowerPadTmp, yMax_lowerPadTmp, "Y");
+                if (yMax_lowerPadTmp > yMin_lowerPadTmp)   h_lowerPad[i]->GetYaxis()->SetRangeUser(yMin_lowerPadTmp, yMax_lowerPadTmp);
 
                 for (int iFit = 0; iFit < nTF1_formulas_lowerPad; ++iFit) {
 
