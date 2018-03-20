@@ -210,6 +210,7 @@ enum MODES_EFF {
     kNULL,
     kTriggerBit,
     kMatchHltObj,
+    kMatchL1Obj,
     kN_MODES_EFF
 };
 
@@ -265,6 +266,7 @@ void setRunLumiNumbers();
 void indexTriggerBranches();
 void indexTriggerBranches4TrigObj();
 int getIndexTrigObj4TriggerBranch(int iTriggerNum);
+int getIndexTrig4TriggerNum(int iTriggerNum);
 bool passedRunLumi(unsigned int run, unsigned int lumi);
 bool passedNum(int iTriggerNum, int triggerBits[]);
 bool passedDenomGlobal(int triggerBits[]);
@@ -826,6 +828,40 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                         tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
 
                                         break;
+                                    }
+                                }
+                            }
+                            else if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+
+                                if (hasPseudoTriggerBranches) {
+                                    if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+
+                                        int iL1Obj = getIndexTrig4TriggerNum(indicesTriggerNum[iAna]);
+
+                                        for (int iObj = 0; iObj < L1Upgrade->nEGs; ++iObj) {
+                                            if (L1Upgrade->egEt[iObj] > triggerThresholds[iL1Obj]) {
+                                                // the fact that there is an L1 EG with pt > threshold is not enough.
+                                                // make sure they match also in eta-phi.
+
+                                                double etaL1 = L1Upgrade->egEta[iObj];
+                                                double phiL1 = L1Upgrade->egPhi[iObj];
+
+                                                if (getDR2(etaL1, phiL1, eta, phi) < 0.04) {
+                                                    tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                                    tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                                    tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                                    tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                                    tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                                    tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                                    tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                                    tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                                                    tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1599,6 +1635,11 @@ int getIndexTrigObj4TriggerBranch(int iTriggerNum)
     return indicesMapNum2TrigObject[iTriggerNum];
 }
 
+int getIndexTrig4TriggerNum(int iTriggerNum)
+{
+    return indicesMapNum[iTriggerNum];
+}
+
 bool passedRunLumi(unsigned int run, unsigned int lumi)
 {
     if (nRunNumbers == 0)  return true;
@@ -1615,7 +1656,7 @@ bool passedNum(int iTriggerNum, int triggerBits[])
 {
     if (iTriggerNum < 0) return true;
 
-    int iTrig = indicesMapNum[iTriggerNum];
+    int iTrig = getIndexTrig4TriggerNum(iTriggerNum);
     return (triggerBits[iTrig] > 0);
 }
 
