@@ -985,14 +985,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::string titleX = "";
         if (nTitlesX == 1) titleX = titlesX.at(0);
         else if (nTitlesX == nPads)  titleX = titlesX.at(indexPad);
-        if (titleX == CONFIGPARSER::nullInput) h[i]->SetXTitle("");
-        else if (titleX.size() > 0) h[i]->SetXTitle(titleX.c_str());
+        if (titleX == CONFIGPARSER::nullInput) h[i]->GetXaxis()->SetTitle("");
+        else if (titleX.size() > 0) h[i]->GetXaxis()->SetTitle(titleX.c_str());
 
         std::string titleY = "";
         if (nTitlesY == 1) titleY = titlesY.at(0);
         else if (nTitlesY == nPads)  titleY = titlesY.at(indexPad);
-        if (titleY == CONFIGPARSER::nullInput) h[i]->SetYTitle("");
-        else if (titleY.size() > 0) h[i]->SetYTitle(titleY.c_str());
+        if (titleY == CONFIGPARSER::nullInput) h[i]->GetYaxis()->SetTitle("");
+        else if (titleY.size() > 0) h[i]->GetYaxis()->SetTitle(titleY.c_str());
 
         std::string drawOption = "";
         if (nDrawOptions > 0) {
@@ -1572,8 +1572,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 if (nTitlesY_lowerPad == 1) titleY_lowerPad = titlesY_lowerPad.at(0);
                 else if (nTitlesY_lowerPad == nPads)  titleY_lowerPad = titlesY_lowerPad.at(iPad);
 
-                if (titleY_lowerPad == CONFIGPARSER::nullInput) h[i]->SetYTitle("");
-                else if (titleY_lowerPad.size() > 0) h_lowerPad[i]->SetYTitle(titleY_lowerPad.c_str());
+                if (titleY_lowerPad == CONFIGPARSER::nullInput) h[i]->GetYaxis()->SetTitle("");
+                else if (titleY_lowerPad.size() > 0) h_lowerPad[i]->GetYaxis()->SetTitle(titleY_lowerPad.c_str());
 
                 h_lowerPad[i]->SetMarkerColor(h[iStart+2*i]->GetMarkerColor());
                 h_lowerPad[i]->SetMarkerStyle(h[iStart+2*i]->GetMarkerStyle());
