@@ -593,11 +593,11 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
 
                     if (matched2RECO) {
                         double pt  = (*ggHi.phoEt)[iReco];
-                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                                        (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                                        (*ggHi.pho_trackIsoR4PtCut20)[i]);
-                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                        double r9 = (*ggHi.phoR9)[i];
+                        double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iReco] +
+                                        (*ggHi.pho_hcalRechitIsoR4)[iReco]  +
+                                        (*ggHi.pho_trackIsoR4PtCut20)[iReco]);
+                        double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iReco];
+                        double r9 = (*ggHi.phoR9)[iReco];
                         std::vector<double> varsNum = {genEta, genPt, pt, (double)cent, sumIso, sieie, r9};
 
                         rAna[RECOANA::kETA][iAna].FillHNum(genEta, w, varsNum);
