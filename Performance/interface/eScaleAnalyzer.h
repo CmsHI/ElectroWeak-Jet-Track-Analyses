@@ -269,7 +269,7 @@ void eScaleAnalyzer::update()
 
             f1Mean = f1->GetParameter(1);
             f1MeanErr = f1->GetParError(1);
-            f1Sigma = f1->GetParameter(2);
+            f1Sigma = TMath::Abs(f1->GetParameter(2));
             f1SigmaErr = f1->GetParError(2);
             f1Chi2 = f1->GetChisquare();
             f1Ndf = f1->GetNDF();
@@ -316,10 +316,18 @@ std::vector<std::string> eScaleAnalyzer::getTextLines4FitResult()
 
             res.push_back(Form("#mu = %.2f#pm%.3f", f1Mean, f1MeanErr));
             res.push_back(Form("#sigma = %.2f#pm%.3f", f1Sigma, f1SigmaErr));
-            res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
-            res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
-            res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
-            res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
+            if (f1->GetParameter(2) >= 0) {
+                res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+                res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+                res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
+                res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
+            }
+            else {
+                res.push_back(Form("#alpha_{1} = %.2f#pm%.3f", f1->GetParameter(5), f1->GetParError(5)));
+                res.push_back(Form("n_{1} = %.2f#pm%.3f", f1->GetParameter(6), f1->GetParError(6)));
+                res.push_back(Form("#alpha_{2} = %.2f#pm%.3f", f1->GetParameter(3), f1->GetParError(3)));
+                res.push_back(Form("n_{2} = %.2f#pm%.3f", f1->GetParameter(4), f1->GetParError(4)));
+            }
             res.push_back(Form("#chi^{2} = %.4f", f1Chi2));
         }
     }
