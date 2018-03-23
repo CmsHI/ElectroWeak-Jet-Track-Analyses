@@ -18,6 +18,10 @@ outputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1/180320_145107/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB1_EE1/180320_145157/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB2_EE2/180320_145221/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB0_EE0/180322_231658/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE0/180322_231721/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE1/180322_231744/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1/180322_231807/L1Ntuple_merged.root"
 );
 
 inputList=(
@@ -33,6 +37,10 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1/180320_145107/0000/L1Ntuple_*.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB1_EE1/180320_145157/0000/L1Ntuple_*.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB2_EE2/180320_145221/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB0_EE0/180322_231658/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE0/180322_231721/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE1/180322_231744/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1/180322_231807/0000/L1Ntuple_*.root"
 );
 
 logFileList=(
@@ -48,6 +56,10 @@ $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBi
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1.log"
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB1_EE1.log"
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB2_EE2.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egHOverEcut_EB0_EE0.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE0.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB0_EE1.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1.log"
 );
 
 arrayIndices=${!outputList[*]}
