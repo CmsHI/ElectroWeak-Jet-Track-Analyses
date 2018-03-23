@@ -27,10 +27,14 @@ timeNow=$(date +"%Y%m%d_%H%M%S")
 mergedTMP="/export/d00/scratch/"$USER"/mergedTMP_"$timeNow".root"
 hadd -f $mergedTMP $mergeInput
 
+outDir=$(dirname "${mergedFinal}")
+mkdir -p $outDir
 mv $mergedTMP $mergedFinal
 if [ $? -ne 0 ]; then
   srmPrefix="/mnt/hadoop/"
   if [ ${mergedFinal:0:12} = $srmPrefix ]; then
+    outDirSRM=${outDir#${srmPrefix}}
+    gfal-mkdir gsiftp://se01.cmsaf.mit.edu:2811/${outDirSRM}
     outputSRM=${mergedFinal#${srmPrefix}}
     gfal-copy file://${mergedTMP} gsiftp://se01.cmsaf.mit.edu:2811/${outputSRM}
   fi
