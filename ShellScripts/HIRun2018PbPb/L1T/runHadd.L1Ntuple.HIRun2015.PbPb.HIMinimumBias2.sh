@@ -26,6 +26,8 @@ outputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB2_EE2/180324_023639/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt15/180324_025008/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt25/180324_025031/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt35/180326_012017/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt45/180326_012100/L1Ntuple_merged.root"
 );
 
 inputList=(
@@ -49,6 +51,8 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB2_EE2/180324_023639/0000/L1Ntuple_*.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt15/180324_025008/0000/L1Ntuple_*.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt25/180324_025031/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt35/180326_012017/0000/L1Ntuple_*.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt45/180326_012100/0000/L1Ntuple_*.root"
 );
 
 logFileList=(
@@ -72,6 +76,8 @@ $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBi
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB2_EE2.log"
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1_BypassPt15.log"
 $EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1_BypassPt25.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1_BypassPt35.log"
+$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1_egBypassExtHOverE1_egHOverEcut_EB1_EE1_BypassPt45.log"
 );
 
 arrayIndices=${!outputList[*]}
