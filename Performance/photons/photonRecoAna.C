@@ -337,7 +337,13 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
 
         // specify explicitly which branches to use, do not use wildcard
         treeHiGenParticle = (TTree*)fileTmp->Get("HiGenParticleAna/hi");
-        treeHiGenParticle->SetBranchStatus("*",1);     // enable all branches
+        treeHiGenParticle->SetBranchStatus("*",0);     // disable all branches
+
+        // read gen particle tree only if the relevant modes are run
+        bool readHiGenParticle = (runMode[MODES::kFakeComposition]);
+        if (readHiGenParticle) {
+            treeHiGenParticle->SetBranchStatus("*",1);     // enable all branches
+        }
 
         treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         treeSkim->SetBranchStatus("*",0);     // disable all branches
@@ -368,7 +374,9 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
-            treeHiGenParticle->GetEntry(j_entry);
+            if (readHiGenParticle) {
+                treeHiGenParticle->GetEntry(j_entry);
+            }
             treeSkim->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
