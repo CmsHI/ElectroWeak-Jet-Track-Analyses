@@ -191,11 +191,11 @@ enum MODES_ESCALE {
     kNULL,
     kRecoPtGenPt,
     kSCRawEGenE,
-    kRecoPtGenPth0,
-    kSCRawEGenEh0,
+    kRecoPtGenPtmeson0,
+    kSCRawEGenEmeson0,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPth0", "SCRawEGenEh0"};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtmeson0", "SCRawEGenEmeson0"};
 
 enum ANABINS {
     kEta,
@@ -418,7 +418,7 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
 
                 double genPt = (*ggHi.mcPt)[genMatchedIndex];
                 double genE = (*ggHi.mcE)[genMatchedIndex];
-                if (runMode[MODES::kEnergyScale] == kRecoPtGenPth0 || runMode[MODES::kEnergyScale] == kSCRawEGenEh0) {
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0 || runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0) {
                     if (!isNeutralMeson((*ggHi.mcMomPID)[genMatchedIndex]))  continue;
 
                     genPt = (*ggHi.mcMomPt)[genMatchedIndex];
@@ -470,11 +470,11 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 double energyScale = -1;
 
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
-                    runMode[MODES::kEnergyScale] == kRecoPtGenPth0) {
+                    runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0) {
                     energyScale = pt/genPt;
                 }
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE ||
-                         runMode[MODES::kEnergyScale] == kSCRawEGenEh0) {
+                         runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0) {
                     energyScale = (*ggHi.phoSCRawE)[i]/genE;
                 }
 
@@ -1452,8 +1452,8 @@ int  preLoop(TFile* input, bool makeNew)
                 std::string yTitleEScale = "";
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
-                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPth0)  yTitleEScale = "Reco photon p_{T} / Gen #h^{0} p_{T}";
-                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEh0)  yTitleEScale = "photon SC Raw E / Gen #h^{0} E";
+                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0)  yTitleEScale = "Reco photon p_{T} / Gen #h^{0} p_{T}";
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0)  yTitleEScale = "photon SC Raw E / Gen #h^{0} E";
 
                 rAnaTmp.h2D =
                         new TH2D(nameH2D.c_str(), Form(";%s;%s", xTitle.c_str(), yTitleEScale.c_str()), nBins, arr,
