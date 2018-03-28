@@ -188,14 +188,22 @@ const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff",
 std::vector<int> runMode;
 
 enum MODES_ESCALE {
-    kNULL,
+    kNULL_ESCALE,
     kRecoPtGenPt,
     kSCRawEGenE,
     kRecoPtGenPtmeson0,
     kSCRawEGenEmeson0,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtmeson0", "SCRawEGenEmeson0"};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL_ESCALE", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtmeson0", "SCRawEGenEmeson0"};
+
+enum MODES_MATCHEFF {
+    kNULL_MATCHEFF,
+    kMatchPho,
+    kMatchMeson0,
+    kN_MODES_MATCHEFF
+};
+const std::string modesMatchEffStr[kN_MODES_MATCHEFF] = {"NULL_MATCHEFF", "MatchPho", "MatchMeson0"};
 
 enum ANABINS {
     kEta,
@@ -546,6 +554,14 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 double genPt = (*ggHi.mcPt)[i];
                 double genEta = (*ggHi.mcEta)[i];
                 double genPhi = (*ggHi.mcPhi)[i];
+
+                if (runMode[MODES::kMatchEff] == kMatchMeson0)  {
+                    if (!isNeutralMeson((*ggHi.mcMomPID)[i]))  continue;
+
+                    genPt = (*ggHi.mcMomPt)[i];
+                    genEta = (*ggHi.mcMomEta)[i];
+                    genPhi = (*ggHi.mcMomPhi)[i];
+                }
 
                 if (isHI) {
                     if (cut_mcCalIsoDR04 != 0) {
