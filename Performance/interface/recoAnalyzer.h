@@ -213,12 +213,18 @@ const int particlesColor[kN_FakeCand] =
 
 enum NEUTRALMESONS {
     k_pion0,
+    k_etaMeson,
+    k_etaPrime,
+    k_omegaMeson,
     kN_NeutralMesons
 };
 
 const particle neutralMesons[kN_NeutralMesons] =
 {
-   particle("pion0", "#pi^{0}", {111})
+   particle("pion0", "#pi^{0}", {111}),
+   particle("etaMeson", "#eta", {221}),
+   particle("etaPrime", "#eta^{#prime}", {331}),
+   particle("omegaMeson", "#omega", {223})
 };
 
 };
