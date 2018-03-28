@@ -191,11 +191,11 @@ enum MODES_ESCALE {
     kNULL,
     kRecoPtGenPt,
     kSCRawEGenE,
-    kRecoPtGenPtpi0,
-    kSCRawEGenEpi0,
+    kRecoPtGenPth0,
+    kSCRawEGenEh0,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtpi0", "SCRawEGenEpi0"};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPth0", "SCRawEGenEh0"};
 
 enum ANABINS {
     kEta,
@@ -225,6 +225,7 @@ void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
+bool isNeutralMeson(int pdg);
 void photonRecoAna(std::string configFile, std::string inputFile, std::string outputFile = "photonRecoAna.root");
 void photonRecoAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "photonRecoAna.root");
 
@@ -417,8 +418,9 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
 
                 double genPt = (*ggHi.mcPt)[genMatchedIndex];
                 double genE = (*ggHi.mcE)[genMatchedIndex];
-                if (runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0 || runMode[MODES::kEnergyScale] == kSCRawEGenEpi0) {
-                    if ((*ggHi.mcMomPID)[genMatchedIndex] != 111) continue;
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPth0 || runMode[MODES::kEnergyScale] == kSCRawEGenEh0) {
+                    if (!isNeutralMeson((*ggHi.mcMomPID)[genMatchedIndex]))  continue;
+
                     genPt = (*ggHi.mcMomPt)[genMatchedIndex];
                     TLorentzVector vec;
                     vec.SetPtEtaPhiM(genPt, (*ggHi.mcMomEta)[genMatchedIndex], (*ggHi.mcMomPhi)[genMatchedIndex], (*ggHi.mcMomMass)[genMatchedIndex]);
@@ -468,11 +470,11 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 double energyScale = -1;
 
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
-                    runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0) {
+                    runMode[MODES::kEnergyScale] == kRecoPtGenPth0) {
                     energyScale = pt/genPt;
                 }
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE ||
-                         runMode[MODES::kEnergyScale] == kSCRawEGenEpi0) {
+                         runMode[MODES::kEnergyScale] == kSCRawEGenEh0) {
                     energyScale = (*ggHi.phoSCRawE)[i]/genE;
                 }
 
@@ -1450,8 +1452,8 @@ int  preLoop(TFile* input, bool makeNew)
                 std::string yTitleEScale = "";
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
-                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtpi0)  yTitleEScale = "Reco photon p_{T} / Gen #pi^{0} p_{T}";
-                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEpi0)  yTitleEScale = "photon SC Raw E / Gen #pi^{0} E";
+                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPth0)  yTitleEScale = "Reco photon p_{T} / Gen #h^{0} p_{T}";
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEh0)  yTitleEScale = "photon SC Raw E / Gen #h^{0} E";
 
                 rAnaTmp.h2D =
                         new TH2D(nameH2D.c_str(), Form(";%s;%s", xTitle.c_str(), yTitleEScale.c_str()), nBins, arr,
@@ -2136,4 +2138,12 @@ void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> tex
     }
 
     drawTextLines(latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
+}
+
+bool isNeutralMeson(int pdg)
+{
+    for (int i = 0; i < RECOANA::kN_NeutralMesons; ++i) {
+        if (pdg == RECOANA::neutralMesons[i].PDG[0]) return true;
+    }
+    return false;
 }
