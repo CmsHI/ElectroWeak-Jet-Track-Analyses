@@ -4,7 +4,10 @@
 
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/drawSpectra.exe"
-inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
+inputFiles=(
+"/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
+"/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
+);
 
 configFiles=(
 "Configurations/photons/spectra.photon.conf"
@@ -25,6 +28,7 @@ arrayIndices=${!outputFiles[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
+    inputFile=${inputFiles[i1]}
     outputFile=${outputFiles[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
