@@ -159,6 +159,7 @@ std::vector<float>   bins_r9[2];
 
 // event cuts/weights
 int doEventWeight;
+std::vector<std::vector<float>> pthatWeights;
 
 // RECO photon cuts
 float cut_phoHoverE;
@@ -167,6 +168,8 @@ float cut_phoHoverE;
 float cut_mcCalIsoDR04;
 float cut_mcTrkIsoDR04;
 float cut_mcSumIso;
+
+int nPthatWeights;
 
 int nBins_eta;
 int nBins_genPt;
@@ -343,6 +346,9 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
         if (doEventWeight > 0) {
             treeHiEvt->SetBranchStatus("weight", 1);
         }
+        if (nPthatWeights > 0) {
+            treeHiEvt->SetBranchStatus("pthat",1);
+        }
 
         // specify explicitly which branches to use, do not use wildcard
         treeHiGenParticle = (TTree*)fileTmp->Get("HiGenParticleAna/hi");
@@ -413,6 +419,17 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 double centWeight = 1;
                 if (isHI && isMC)  centWeight = findNcoll(hiBin);
                 w *= vertexWeight * centWeight;
+            }
+
+            if (nPthatWeights > 0) {
+                double pthatWeight = 0;
+                for (int i = 0; i < nPthatWeights; ++i) {
+                    if (hiEvt.pthat >= pthatWeights[0][i] && hiEvt.pthat < pthatWeights[1][i]) {
+                        pthatWeight = pthatWeights[2][i];
+                        break;
+                    }
+                }
+                w *= pthatWeight;
             }
 
             // energy scale
@@ -988,6 +1005,10 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // event cuts/weights
     doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+    pthatWeights = ConfigurationParser::ParseListTriplet(
+            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+
+    nPthatWeights = pthatWeights[0].size();
 
     // RECO photon cuts
     cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
@@ -1099,6 +1120,13 @@ void printConfiguration()
     }
 
     std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
+    std::cout << "nPthatWeights = " << nPthatWeights << std::endl;
+    for (int i = 0; i < nPthatWeights; ++i) {
+        std::cout << Form("pthatWeights[%d] = { ", i);
+        std::cout << Form("%.0f, ", pthatWeights[0].at(i));
+        std::cout << Form("%f, ", pthatWeights[1].at(i));
+        std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
+    }
 
     std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
 
