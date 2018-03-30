@@ -164,6 +164,7 @@ public :
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::string ParseSampleName(std::string fileName);
     static std::vector<std::string> ParseKeyWords(std::vector<std::string> argsStr, std::vector<int> argsInt);
+    static std::vector<std::vector<float>> ParseListMultiplet(std::string strList, int n);
     static std::vector<std::vector<float>> ParseListTriplet(std::string strList);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
@@ -1101,22 +1102,30 @@ std::vector<std::string> ConfigurationParser::ParseKeyWords(std::vector<std::str
 }
 
 /*
+ * parse list where each item is a sequence of "n" many numbers
+ */
+std::vector<std::vector<float>> ConfigurationParser::ParseListMultiplet(std::string strList, int n)
+{
+    std::vector<std::vector<float>> list(n);
+
+    std::vector<float> listFlat = ParseListFloat(strList);
+    if (listFlat.size() % n != 0)   return list;
+
+    for (std::vector<float>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=n) {
+        for (int j = 0; j < n; ++j) {
+            list[j].push_back(*(it+j));
+        }
+    }
+
+    return list;
+}
+
+/*
  * parse list where each item is a sequence of three numbers
  */
 std::vector<std::vector<float>> ConfigurationParser::ParseListTriplet(std::string strList)
 {
-    std::vector<std::vector<float>> list(3);
-
-    std::vector<float> listFlat = ParseListFloat(strList);
-    if (listFlat.size() % 3 != 0)   return list;
-
-    for (std::vector<float>::iterator it = listFlat.begin() ; it != listFlat.end(); it+=3) {
-        list[0].push_back(*it);
-        list[1].push_back(*(it+1));
-        list[2].push_back(*(it+2));
-    }
-
-    return list;
+    return ParseListMultiplet(strList, 3);
 }
 
 /*
