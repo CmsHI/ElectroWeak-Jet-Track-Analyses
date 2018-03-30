@@ -17,7 +17,7 @@ configFiles=(
 
 outDirBase="/export/d00/scratch/"$USER"/GJT-out"
 outputSuffix="PbPb_Data_skim_170712"
-outputFiles=(
+outList=(
 $outDirBase"/spectra_photon_gjt_"$outputSuffix".root"
 $outDirBase"/spectra_photon_gjt_pho60_"$outputSuffix".root"
 $outDirBase"/spectra_photon_gjt_pho60_phoBkg_"$outputSuffix".root"
@@ -26,11 +26,11 @@ $outDirBase"/spectra_photon_gjt_pho80_"$outputSuffix".root"
 $outDirBase"/spectra2D_photon_etaphi_gjt_"$outputSuffix".root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

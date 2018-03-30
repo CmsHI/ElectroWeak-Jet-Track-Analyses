@@ -22,17 +22,17 @@ if [ -z "$outDirBase" ]; then
   fi
   outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
 fi
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/event/spectra2D_ngen_hiBin_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR/dummy.root"
 $outDirBase"/Configurations/event/spectra2D_ngen_hiBin_Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV/dummy.root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     inputFile=${inputFiles[i1]}
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     #outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     #mkdir -p $outDir

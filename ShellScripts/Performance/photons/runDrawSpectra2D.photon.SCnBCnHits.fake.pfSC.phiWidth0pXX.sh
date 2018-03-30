@@ -29,7 +29,7 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB"
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_"$outputSuffix"_extendEC.root"
 $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC.root"
 $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p10.root"
@@ -39,12 +39,12 @@ $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outpu
 $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_fake_GED_"$outputSuffix"_extendEC_phiWidth0p40.root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
     inputFile=${inputList[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

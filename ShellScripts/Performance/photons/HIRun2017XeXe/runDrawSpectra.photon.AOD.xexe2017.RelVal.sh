@@ -17,16 +17,16 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/afs/cern.ch/work/"$userInitial"/"$USER"/public/code/ElectroWeak-Jet-Track-Analyses/EWJTA-out"
 fi
 outputSuffix="HIMinimumBias1_dataRun2_Rereco17_ONLYXeXeBS_v1_RelVal_xexe2017"
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/photons/HIRun2017XeXe/spectra_photon_AOD_"$outputSuffix".root"
 $outDirBase"/Configurations/photons/HIRun2017XeXe/spectra_photon_AOD_nonGED_"$outputSuffix".root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

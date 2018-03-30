@@ -15,15 +15,15 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="L1Ntuple_XeXeRun2017_HIMinimumBias"
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/HIRun2018PbPb/L1T/spectra_egEt_"$outputSuffix".root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

@@ -13,15 +13,15 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR"
-outputFiles=(
+outList=(
 $outDirBase"/Performance/nTupleHistogram_"$outputSuffix".root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     inputFile=${inputFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

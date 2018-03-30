@@ -26,7 +26,7 @@ outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/event/spectra_pthat_Photon15_pp502_TuneCUETP8M1_HINppWinter16DR.root"
 $outDirBase"/Configurations/event/spectra_pthat_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR.root"
 $outDirBase"/Configurations/event/spectra_pthat_Photon50_pp502_TuneCUETP8M1_HINppWinter16DR.root"
@@ -35,12 +35,12 @@ $outDirBase"/Configurations/event/spectra_pthat_Photon120_pp502_TuneCUETP8M1_HIN
 $outDirBase"/Configurations/event/spectra_pthat_PhotonXX_pp502_TuneCUETP8M1_HINppWinter16DR.root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     inputFile=${inputFiles[i1]}
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

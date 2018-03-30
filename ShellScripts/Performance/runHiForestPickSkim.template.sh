@@ -20,16 +20,16 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB"
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/examples/hiForestPickSkim_"$outputSuffix".root"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
     eventList=${eventLists[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir

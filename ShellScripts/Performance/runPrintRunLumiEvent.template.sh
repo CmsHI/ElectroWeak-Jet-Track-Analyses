@@ -16,15 +16,15 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB"
-outputFiles=(
+outList=(
 $outDirBase"/Configurations/examples/printRLE_"$outputSuffix".txt"
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configFiles[i1]}
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.txt/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
