@@ -164,6 +164,7 @@ public :
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::string ParseSampleName(std::string fileName);
     static std::vector<std::string> ParseKeyWords(std::vector<std::string> argsStr, std::vector<int> argsInt);
+    static std::vector<std::vector<float>> ParseListTriplet(std::string strList);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
     static std::vector<CONFIGPARSER::TH1Axis> ParseListTH1D_Axis(std::string strList);
     static std::vector<std::vector<float>> ParseListTH2D_Bins(std::string strList);
@@ -1100,13 +1101,10 @@ std::vector<std::string> ConfigurationParser::ParseKeyWords(std::vector<std::str
 }
 
 /*
- * list[0].at(i);   nBins for the ith TH1D histogram
- * list[1].at(i);   xLow  for the ith TH1D histogram
- * list[2].at(i);   xUp   for the ith TH1D histogram
+ * parse list where each item is a sequence of three numbers
  */
-std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::string strList)
+std::vector<std::vector<float>> ConfigurationParser::ParseListTriplet(std::string strList)
 {
-
     std::vector<std::vector<float>> list(3);
 
     std::vector<float> listFlat = ParseListFloat(strList);
@@ -1119,6 +1117,16 @@ std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::str
     }
 
     return list;
+}
+
+/*
+ * list[0].at(i);   nBins for the ith TH1D histogram
+ * list[1].at(i);   xLow  for the ith TH1D histogram
+ * list[2].at(i);   xUp   for the ith TH1D histogram
+ */
+std::vector<std::vector<float>> ConfigurationParser::ParseListTH1D_Bins(std::string strList)
+{
+    return ParseListTriplet(strList);
 }
 
 std::vector<CONFIGPARSER::TH1Axis> ConfigurationParser::ParseListTH1D_Axis(std::string strList)
