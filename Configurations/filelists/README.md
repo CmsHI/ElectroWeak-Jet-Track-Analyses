@@ -59,3 +59,20 @@ Run the following to create the lists for Pythia8_AllQCDPhoton*Flt50_Hydjet_Cymb
   cat Configurations/filelists/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
   cat Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
   ```
+
+Run the following to create the lists for Pythia8_EmEnrichedDijet*_Hydjet_Cymbal_MB_FOREST.list :
+
+  ```bash
+  cd $EWJTAHOME # go to directory where the repository is based
+  ls -1 /mnt/hadoop/cms/store/user/tatar/official/Pythia8_EmEnrichedDijet30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root > Configurations/filelists/Pythia8_EmEnrichedDijet30_Hydjet_Cymbal_MB_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/tatar/official/Pythia8_EmEnrichedDijet50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root > Configurations/filelists/Pythia8_EmEnrichedDijet50_Hydjet_Cymbal_MB_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/tatar/official/Pythia8_EmEnrichedDijet80_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root > Configurations/filelists/Pythia8_EmEnrichedDijet80_Hydjet_Cymbal_MB_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/tatar/official/Pythia8_EmEnrichedDijet120_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root > Configurations/filelists/Pythia8_EmEnrichedDijet120_Hydjet_Cymbal_MB_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/tatar/official/Pythia8_EmEnrichedDijet170_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root > Configurations/filelists/Pythia8_EmEnrichedDijet170_Hydjet_Cymbal_MB_FOREST.list
+  rm Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  cat Configurations/filelists/Pythia8_EmEnrichedDijet30_Hydjet_Cymbal_MB_FOREST.list >> Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  cat Configurations/filelists/Pythia8_EmEnrichedDijet50_Hydjet_Cymbal_MB_FOREST.list >> Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  cat Configurations/filelists/Pythia8_EmEnrichedDijet80_Hydjet_Cymbal_MB_FOREST.list >> Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  cat Configurations/filelists/Pythia8_EmEnrichedDijet120_Hydjet_Cymbal_MB_FOREST.list >> Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  cat Configurations/filelists/Pythia8_EmEnrichedDijet170_Hydjet_Cymbal_MB_FOREST.list >> Configurations/filelists/Pythia8_EmEnrichedDijetXX_Hydjet_Cymbal_MB_FOREST.list
+  ```
