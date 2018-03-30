@@ -2,9 +2,12 @@
 
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/nTupleGetEntries.exe"
-inputFile="Configurations/filelists/Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
+progCode="${progPath/.exe/.C}"
+#g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
-#make $progPath || exit 1
+inputList=(
+"Configurations/filelists/Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
+);
 
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
@@ -32,6 +35,7 @@ $argFileTmp
 arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
+    inputFile=${inputList[i1]}
     outputFile=${outList[i1]}
     argFile=${argFiles[i1]}
     outDir=$(dirname "${outputFile}")
