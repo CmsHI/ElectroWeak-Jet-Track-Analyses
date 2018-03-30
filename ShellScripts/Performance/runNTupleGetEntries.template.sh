@@ -11,7 +11,7 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outputSuffix="Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR"
-outputFiles=(
+outList=(
 $outDirBase"/Performance/nTupleGetEntries_"$outputSuffix".log"
 );
 
@@ -29,10 +29,10 @@ argFiles=(
 $argFileTmp
 );
 
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
-    outputFile=${outputFiles[i1]}
+    outputFile=${outList[i1]}
     argFile=${argFiles[i1]}
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
