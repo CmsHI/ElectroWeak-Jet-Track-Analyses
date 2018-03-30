@@ -12,6 +12,18 @@ Run the following to create the lists for Pythia8_Photon*_pp502_TuneCUETP8M1_HIN
   ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_Photon*_pp502_TuneCUETP8M1/HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3*-v1-FOREST/0.root > Configurations/filelists/Pythia8_PhotonXX_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
   ```
 
+Run the following to create the lists for Pythia8_EmEnrDijet*_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST :
+
+  ```bash
+  cd $EWJTAHOME # go to directory where the repository is based
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet30_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijet30_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet50_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijet50_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet80_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijet80_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet120_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijet120_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet170_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijet170_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/rbi/merged/Pythia8_EmEnrDijet*_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root > Configurations/filelists/Pythia8_EmEnrDijetXX_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list
+  ```
+
 Run the following to create the lists for Pythia8_AllQCDPhoton*_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST :
 
   ```bash
