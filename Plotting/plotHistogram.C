@@ -1460,8 +1460,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 if (TLines_vertical_PadIndices.at(iLine) != iPad)  continue;
 
                 // draw vertical line
+                gPad->Update();
                 double ymin = gPad->GetUymin();
                 double ymax = gPad->GetUymax();
+                if (gPad->GetLogy() > 0) {
+                    ymin = TMath::Power(TMath::Power(10, gPad->GetLogy()), gPad->GetUymin());
+                    ymax = TMath::Power(TMath::Power(10, gPad->GetLogy()), gPad->GetUymax());
+                }
 
                 int lineStyle_vertical = GRAPHICS::lineStyle_vertical;
                 if (nLineStyles_vertical == 1)
