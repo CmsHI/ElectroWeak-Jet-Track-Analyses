@@ -196,7 +196,7 @@ std::vector<spectraAnalyzer> sAna[SPECTRAANA::kN_DEPS];
 // Each vector will have size nSpectraAna
 ///// global variables - END
 
-int  readConfiguration(std::string configFile);
+int  readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
@@ -218,7 +218,7 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
     std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.c_str() <<std::endl;
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
@@ -498,7 +498,7 @@ void photonSpectraAnaNoLoop(std::string configFile, std::string inputFile, std::
     std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.c_str() <<std::endl;
 
-    if (readConfiguration(configFile) != 0)  return;
+    if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
     TFile* input = TFile::Open(inputFile.c_str(), "READ");
@@ -510,9 +510,9 @@ void photonSpectraAnaNoLoop(std::string configFile, std::string inputFile, std::
 
     postLoop();
 
-    std::cout << "Closing the input file." << std::endl;
+    std::cout<<"Closing the input file."<<std::endl;
     input->Close();
-    std::cout << "Closing the output file." << std::endl;
+    std::cout<<"Closing the output file."<<std::endl;
     output->Close();
     std::cout<<"running photonSpectraAna() - END"<<std::endl;
 }
@@ -543,7 +543,7 @@ int main(int argc, char** argv)
     }
 }
 
-int readConfiguration(std::string configFile)
+int readConfiguration(std::string configFile, std::string inputFile)
 {
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.c_str());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.c_str());
@@ -558,6 +558,8 @@ int readConfiguration(std::string configFile)
         std::cout << "exiting" << std::endl;
         return -1;
     }
+
+    InputConfigurationParser::replaceKeyWords(configInput, inputFile.c_str());
 
     // input configuration
     mode = configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_mode];
