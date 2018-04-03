@@ -358,10 +358,11 @@ std::string PROCESS_LABELS[kN_PROCESSES] = {
 namespace INPUT_TH1 {
 
 enum TYPE_NORM {
-    k_noNorm,         // no normalization, just a place holder
-    k_normInt,        // normalization by the total number of entries, histogram integral will be 1.
-    k_normEvents,     // normalization by the number of events
-    kN_TYPE_NORM      // must come last in enum
+    k_noNorm,              // no normalization, just a place holder
+    k_normInt,             // normalization by the total number of entries, histogram integral will be 1.
+    k_normEvents,          // normalization by the number of events that pass full selection
+    k_normEventsBaseSel,   // normalization by the number of events that pass base selection
+    kN_TYPE_NORM           // must come last in enum
 };
 
 enum TYPE_DRAWSAME {
