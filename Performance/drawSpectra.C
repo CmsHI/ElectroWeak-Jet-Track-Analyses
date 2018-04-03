@@ -173,13 +173,15 @@ int nSelectionsTot;
 int nFormulasTot;
 std::vector<Long64_t> entries;
 std::vector<Long64_t> entriesSelected;
+std::vector<Long64_t> entriesBaseSelection;
 int nHistos;
 int nHistosInput;
 int nPads;
 std::vector<TH1*> h;
 std::vector<TH1*> h_scaleWidth;
 std::vector<TH1*> h_normInt;
-std::vector<TH1*> h_normEvents;
+std::vector<TH1*> h_normEvents;         // normalized by the number of events that pass full selection. Ex : hiBin < 60 && jtpt > 30
+std::vector<TH1*> h_normEventsBaseSel;  // normalized by the number of events that pass base selection. Ex : hiBin < 60
 std::vector<TH1*> h_nums;      // histograms to store numbers
 std::vector<TH1*> h_draw;
 std::string outputFigureStr;
@@ -250,6 +252,9 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     entriesSelected.clear();
     entriesSelected.resize(nHistos);
     std::fill_n(entriesSelected.begin(), nHistos, 0);
+    entriesBaseSelection.clear();
+    entriesBaseSelection.resize(nHistos);
+    std::fill_n(entriesBaseSelection.begin(), nHistos, 0);
 
     int nFiles[nInputSamples];
     TFile* fileTmp = 0;
@@ -393,8 +398,10 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 selectionFinal = selectionFinal && selection.c_str();
                 if (selectionSplit.size() > 0)  selectionFinal = selectionFinal && selectionSplit.c_str();
                 Long64_t entriesSelectedTmp = trees[treeIndex][iSample]->GetEntries(selectionFinal.GetTitle());
+                Long64_t entriesBaseSelectionTmp = trees[treeIndex][iSample]->GetEntries(selectionBase.c_str());
                 // std::cout << "entriesSelected in file = " << entriesSelectedTmp << std::endl;
                 entriesSelected[i] += entriesSelectedTmp;
+                entriesBaseSelection[i] += entriesBaseSelectionTmp;
 
                 TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
                 trees[treeIndex][iSample]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
@@ -424,11 +431,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
         int treeIndex = 0;
         if (nHistosInput == nTrees)  treeIndex = i%nTrees;
         std::cout << "treePath = " << treePaths.at(treeIndex).c_str() << ", ";
-
-        std::cout << "entriesSelected = " << entriesSelected[i] << std::endl;
+        std::cout << "entriesSelected = " << entriesSelected[i] << ", ";
+        std::cout << "entriesBaseSelection = " << entriesBaseSelection[i] << std::endl;
 
         h_nums[i]->SetBinContent(1, entries[0]);
         h_nums[i]->SetBinContent(2, entriesSelected[i]);
+        h_nums[i]->SetBinContent(3, entriesBaseSelection[i]);
     }
     std::cout << "###" << std::endl;
 
@@ -1048,7 +1056,7 @@ int preLoop(TFile* input, bool makeNew)
 
         std::string h_numsName = Form("%s_nums", h[i]->GetName());
         if (makeNew)
-            h_nums[i] = new TH1D(h_numsName.c_str(), h[i]->GetTitle(), 2, 0, 2);
+            h_nums[i] = new TH1D(h_numsName.c_str(), h[i]->GetTitle(), 3, 0, 3);
         else
             h_nums[i] = (TH1D*)input->Get(h_numsName.c_str());
     }
@@ -1072,6 +1080,8 @@ int postLoop()
     h_normInt.resize(nHistos);
     h_normEvents.clear();
     h_normEvents.resize(nHistos);
+    h_normEventsBaseSel.clear();
+    h_normEventsBaseSel.resize(nHistos);
     for (int i=0; i<nHistos; ++i) {
         h[i]->Write("",TObject::kOverwrite);
         h_nums[i]->Write("",TObject::kOverwrite);
@@ -1103,6 +1113,16 @@ int postLoop()
         Long64_t entriesTmp = h_nums[i]->GetBinContent(2);
         h_normEvents[i]->Scale(1./entriesTmp, "width");
         h_normEvents[i]->Write("",TObject::kOverwrite);
+
+        if (mode == MODES::kTH1D) {
+            h_normEventsBaseSel[i] = (TH1D*)h[i]->Clone(Form("%s_normEventsBaseSel", h[i]->GetName()));
+        }
+        else if (mode == MODES::kTH2D) {
+            h_normEventsBaseSel[i] = (TH2D*)h[i]->Clone(Form("%s_normEventsBaseSel", h[i]->GetName()));
+        }
+        Long64_t entriesBaseSelTmp = h_nums[i]->GetBinContent(3);
+        h_normEventsBaseSel[i]->Scale(1./entriesBaseSelTmp, "width");
+        h_normEventsBaseSel[i]->Write("",TObject::kOverwrite);
 
         if (mode == MODES::kTH2D) {
             std::vector<TH1D*> hProj(4, 0);
@@ -1165,6 +1185,8 @@ int postLoop()
         h_normInt[i]->SetTitleOffset(titleOffsetY,"Y");
         h_normEvents[i]->SetTitleOffset(titleOffsetX,"X");
         h_normEvents[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEventsBaseSel[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEventsBaseSel[i]->SetTitleOffset(titleOffsetY,"Y");
 
         // default marker style and color
         h[i]->SetMarkerStyle(kFullCircle);
@@ -1175,12 +1197,15 @@ int postLoop()
         h_normInt[i]->SetMarkerColor(kBlack);
         h_normEvents[i]->SetMarkerStyle(kFullCircle);
         h_normEvents[i]->SetMarkerColor(kBlack);
+        h_normEventsBaseSel[i]->SetMarkerStyle(kFullCircle);
+        h_normEventsBaseSel[i]->SetMarkerColor(kBlack);
 
         // no stats box in the final plots
         h[i]->SetStats(false);
         h_scaleWidth[i]->SetStats(false);
         h_normInt[i]->SetStats(false);
         h_normEvents[i]->SetStats(false);
+        h_normEventsBaseSel[i]->SetStats(false);
     }
 
     // write canvases
@@ -1274,6 +1299,28 @@ int postLoop()
         }
         c->Write("",TObject::kOverwrite);
         c->Close();         // do not use Delete() for TCanvas.
+
+        // normalized such that integral("width") = total entries / number of events that pass base selection
+        c = new TCanvas(Form("%s_normEventsBaseSel",cnvName.c_str()),"",windowWidth,windowHeight);
+        c->SetTitle(h_normEventsBaseSel[i]->GetTitle());
+        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c, setLogx, setLogy, setLogz);
+        c->cd();
+
+        // set the style of the histograms for canvases to be written
+        h_normEventsBaseSel[i]->SetTitleOffset(titleOffsetX,"X");
+        h_normEventsBaseSel[i]->SetTitleOffset(titleOffsetY,"Y");
+        h_normEventsBaseSel[i]->SetStats(false);  // no stats box in the final plots
+        if (mode == MODES::kTH1D) {
+            h_normEventsBaseSel[i]->SetMarkerStyle(kFullCircle);
+            h_normEventsBaseSel[i]->SetMarkerColor(kBlack);
+            h_normEventsBaseSel[i]->Draw("e");
+        }
+        if (mode == MODES::kTH2D) {
+            h_normEventsBaseSel[i]->Draw("colz");
+        }
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
     }
     // write canvases - END
 
@@ -1302,6 +1349,7 @@ int postLoop()
         h_scaleWidth[i]->SetMarkerStyle(markerStyle);
         h_normInt[i]->SetMarkerStyle(markerStyle);
         h_normEvents[i]->SetMarkerStyle(markerStyle);
+        h_normEventsBaseSel[i]->SetMarkerStyle(markerStyle);
 
         int lineStyle = GRAPHICS::lineStyle;
         if (nLineStyles == 1)  lineStyle = GraphicsConfigurationParser::ParseLineStyle(lineStyles.at(0));
@@ -1311,6 +1359,7 @@ int postLoop()
         h_scaleWidth[i]->SetLineStyle(lineStyle);
         h_normInt[i]->SetLineStyle(lineStyle);
         h_normEvents[i]->SetLineStyle(lineStyle);
+        h_normEventsBaseSel[i]->SetLineStyle(lineStyle);
 
         int fillStyle = GRAPHICS::fillStyle;
         if (nFillStyles == 1)  fillStyle = GraphicsConfigurationParser::ParseLineStyle(fillStyles.at(0));
@@ -1320,6 +1369,7 @@ int postLoop()
         h_scaleWidth[i]->SetFillStyle(fillStyle);
         h_normInt[i]->SetFillStyle(fillStyle);
         h_normEvents[i]->SetFillStyle(fillStyle);
+        h_normEventsBaseSel[i]->SetFillStyle(fillStyle);
 
         int color = GRAPHICS::colors[i];
         if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
@@ -1333,6 +1383,8 @@ int postLoop()
         h_normInt[i]->SetLineColor(color);
         h_normEvents[i]->SetMarkerColor(color);
         h_normEvents[i]->SetLineColor(color);
+        h_normEventsBaseSel[i]->SetMarkerColor(color);
+        h_normEventsBaseSel[i]->SetLineColor(color);
 
         int fillColor = -1;
         if (nFillColors == 1) fillColor = GraphicsConfigurationParser::ParseColor(fillColors.at(0));
@@ -1344,6 +1396,7 @@ int postLoop()
             h_scaleWidth[i]->SetFillColor(fillColor);
             h_normInt[i]->SetFillColor(fillColor);
             h_normEvents[i]->SetFillColor(fillColor);
+            h_normEventsBaseSel[i]->SetFillColor(fillColor);
         }
 
         int lineColor = -1;
@@ -1356,6 +1409,7 @@ int postLoop()
             h_scaleWidth[i]->SetLineColor(lineColor);
             h_normInt[i]->SetLineColor(lineColor);
             h_normEvents[i]->SetLineColor(lineColor);
+            h_normEventsBaseSel[i]->SetLineColor(lineColor);
         }
 
         if(lineWidth != INPUT_DEFAULT::lineWidth) {
@@ -1364,6 +1418,7 @@ int postLoop()
                 h_scaleWidth[i]->SetLineWidth(lineWidth);
                 h_normInt[i]->SetLineWidth(lineWidth);
                 h_normEvents[i]->SetLineWidth(lineWidth);
+                h_normEventsBaseSel[i]->SetLineWidth(lineWidth);
             }
         }
 
@@ -1371,6 +1426,7 @@ int postLoop()
         h_scaleWidth[i]->SetMarkerSize(markerSize);
         h_normInt[i]->SetMarkerSize(markerSize);
         h_normEvents[i]->SetMarkerSize(markerSize);
+        h_normEventsBaseSel[i]->SetMarkerSize(markerSize);
     }
 
     h_draw.clear();
@@ -1381,6 +1437,9 @@ int postLoop()
         }
         else if (drawNormalized == INPUT_TH1::k_normEvents) {
             h_draw[i] = (TH1D*)h_normEvents[i]->Clone(Form("h_%d_draw", i));
+        }
+        else if (drawNormalized == INPUT_TH1::k_normEventsBaseSel) {
+            h_draw[i] = (TH1D*)h_normEventsBaseSel[i]->Clone(Form("h_%d_draw", i));
         }
         else {
             h_draw[i] = (TH1D*)h_scaleWidth[i]->Clone(Form("h_%d_draw", i));
