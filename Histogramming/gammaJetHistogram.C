@@ -37,6 +37,7 @@ const std::vector<double>      xup    {2,  TMath::Pi(), 300};
 
 int getResolutionBin(int hiBin);
 int getResolutionBinPP(int smearBin);
+double getPhoPtReweight(float phopt, TH1D* h);
 
 int gammaJetHistogram(const TString configFile, const TString inputFile, const TString outputFile, const int nJobs = -1, const int jobNum = -1);
 
@@ -127,6 +128,24 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     f_JES_G[1] = new TF1("f_JES_G_4", "0.023489+0.313111/sqrt(x)", 30, 300);
     f_JES_G[2] = new TF1("f_JES_G_5", "0.021607+0.295396/sqrt(x)", 30, 300);
     f_JES_G[3] = new TF1("f_JES_G_6", "0.021607+0.213359/sqrt(x)", 30, 300);
+
+    TFile* feffcorr = new TFile("Corrections/phoeffcorrsystv2.root");
+    TH1D* heffcorr[4]; // TH1D* heffcorrsb[4];
+    if (isHI) {
+        heffcorr[0] = (TH1D*)feffcorr->Get("hphopt_pbpbdata_recoreco_0_20_effcorr");
+        heffcorr[1] = (TH1D*)feffcorr->Get("hphopt_pbpbdata_recoreco_20_60_effcorr");
+        heffcorr[2] = (TH1D*)feffcorr->Get("hphopt_pbpbdata_recoreco_60_100_effcorr");
+        heffcorr[3] = (TH1D*)feffcorr->Get("hphopt_pbpbdata_recoreco_100_200_effcorr");
+        // heffcorrsb[0] = (TH1D*)feffcorr->Get("hphoptsideband_pbpbdata_recoreco_0_20_effcorr");
+        // heffcorrsb[1] = (TH1D*)feffcorr->Get("hphoptsideband_pbpbdata_recoreco_20_60_effcorr");
+        // heffcorrsb[2] = (TH1D*)feffcorr->Get("hphoptsideband_pbpbdata_recoreco_60_100_effcorr");
+        // heffcorrsb[3] = (TH1D*)feffcorr->Get("hphoptsideband_pbpbdata_recoreco_100_200_effcorr");
+    } else {
+        for (int asdf=0; asdf<3; ++asdf) {
+            heffcorr[asdf] = (TH1D*)feffcorr->Get("hphopt_ppdata_recoreco_100_200_effcorr");
+            // heffcorrsb[asdf] = (TH1D*)feffcorr->Get("hphoptsideband_ppdata_recoreco_100_200_effcorr");
+        }
+    }
 
     TRandom3 rand(12345);
 
@@ -500,8 +519,16 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
         tJet->GetEntry(jentry);
         tHiEvt->GetEntry(jentry);
 
-        float weight = isMC ? evt.weight : 1;
         float phoEt = doPhotonEnergyScaleSystematics ? (*pho.phoEtCorrected_sys)[gammaJet[0].phoIdx] : (*pho.phoEtCorrected)[gammaJet[0].phoIdx];
+        float weight = 0;
+        if (isMC) { weight = evt.weight; }
+        else {
+            // if (isSignalPho) {
+                weight = getPhoPtReweight(phoEt, heffcorr[getResolutionBin(evt.hiBin)]);
+            // } else {
+            //     weight = getPhoPtReweight(phoEt, heffcorrsb[getResolutionBin(evt.hiBin)]);
+            // }
+        }
 
         // handle nEntriesPho separate from jet loop
         for (int i = 0; i < nBins_pt; ++i) {
@@ -781,6 +808,22 @@ int getResolutionBinPP(int smearBin) {
     }
     std::cout << "Warning, getResolutionBinPP out of bounds." << std::endl;
     return 0;
+}
+
+double getPhoPtReweight(float phopt, TH1D* h)
+{
+    int iBin = h->FindBin(phopt);
+    if (iBin >= 1 && iBin <= h->GetNbinsX()) {
+        if (h->GetBinContent(iBin) > 0) {
+            return h->GetBinContent(iBin);
+        }
+        else {
+            return 1;
+        }
+    }
+    else {
+        return 1;
+    }
 }
 
 int main(int argc, char* argv[]) {
