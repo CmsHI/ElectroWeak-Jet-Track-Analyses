@@ -129,7 +129,7 @@ int gammaJetHistogram(const TString configFile, const TString inputFile, const T
     f_JES_G[2] = new TF1("f_JES_G_5", "0.021607+0.295396/sqrt(x)", 30, 300);
     f_JES_G[3] = new TF1("f_JES_G_6", "0.021607+0.213359/sqrt(x)", 30, 300);
 
-    TFile* feffcorr = new TFile("Corrections/phoeffcorrsystv2.root");
+    TFile* feffcorr = new TFile("Corrections/phoeffcorr.root");
     TH1D* heffcorr[4]; // TH1D* heffcorrsb[4];
     if (isHI) {
         heffcorr[0] = (TH1D*)feffcorr->Get("hphopt_pbpbdata_recoreco_0_20_effcorr");
