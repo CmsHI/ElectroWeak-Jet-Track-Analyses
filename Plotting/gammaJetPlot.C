@@ -301,6 +301,12 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     graphs[l]->GetXaxis()->SetTitle(x_titles[0].c_str());
                     graphs[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
+                    /* normalisation for LBT dphi curves */
+                    if (hist_type == "dphi" && histogram_names[r][c][l].find("pp_Data_rebin_LBT") != std::string::npos) {
+                        for (int i=0; i<graphs[l]->GetN(); ++i)
+                            graphs[l]->GetY()[i] *= 20 / TMath::Pi();
+                    }
+
                     /* draw systematic uncertainties */
                     if (systematics && (int)l < draw_sys[r*columns + c]) {
                         if (hist_type.find("centBinAll") != std::string::npos) {
