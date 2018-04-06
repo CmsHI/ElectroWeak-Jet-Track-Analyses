@@ -45,12 +45,12 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
 #define _JES_QUARK   6
 #define _PURITY_UP   7
 #define _PURITY_DOWN 8
-#define _PHOTON_ISO  12
+#define _PHOTON_ISO  13
 
     std::vector<std::string> sys_types {
         "nominal",
         "JES_up", "JES_down", "JES_up2", "JES_down2", "JES_gluon", "JES_quark", "purity_up", "purity_down",
-        "JER", "ele_rejection", "photon_energy",
+        "JER", "ele_rejection", "photon_energy", "photon_efficiency",
         "photon_iso"                                                // photon isolation _must_ be the last in this list
     };
     int n_sys_types = sys_types.size();
@@ -75,6 +75,7 @@ int gammaJetSystematics(const TString configFile, const TString inputList, const
     sys_names["JER"] = "Jet Energy Resolution";
     sys_names["ele_rejection"] = "Electron Contamination";
     sys_names["photon_energy"] = "Photon Energy Scale";
+    sys_names["photon_efficiency"] = "Photon Efficiency";
     sys_names["photon_iso"] = "Photon Isolation";
 
     TFile* input_files[n_input_files] = {0};

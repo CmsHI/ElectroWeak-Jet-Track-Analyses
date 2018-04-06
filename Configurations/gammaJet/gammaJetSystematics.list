@@ -12,4 +12,5 @@ Data/photons/gammaJetHistograms_PURITY_DOWN.root
 Data/photons/gammaJetHistograms_JER.root
 Data/photons/gammaJetHistograms_ELE_REJ.root
 Data/photons/gammaJetHistograms_PES.root
+Data/photons/gammaJetHistograms_PHOEFF.root
 Data/photons/gammaJetHistograms_ISO.root
