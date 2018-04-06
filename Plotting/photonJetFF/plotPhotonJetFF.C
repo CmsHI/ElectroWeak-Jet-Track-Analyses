@@ -229,7 +229,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                     histograms[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
                     /* restrict x-axis range */
-                    histograms[l]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
+                    //histograms[l]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");   // FF
+                    histograms[l]->SetAxisRange(0 + 0.001, 0.3 - 0.001, "X");   // JS
                     histograms[l]->SetAxisRange(y_min[r], y_max[r], "Y");
                     histograms[l]->SetMinimum(y_min[r]);
                     histograms[l]->SetMaximum(y_max[r]);
@@ -258,7 +259,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                     graphs[l]->GetYaxis()->SetTitle(y_titles[r].c_str());
 
                     /* restrict x-axis range */
-                    graphs[l]->GetXaxis()->SetRange(0.5 + 0.001, 4.5 - 0.001);
+                    //graphs[l]->GetXaxis()->SetRange(0.5 + 0.001, 4.5 - 0.001);    // FF
+                    graphs[l]->GetXaxis()->SetRange(0 + 0.001, 0.3 - 0.001);   // JS
                     graphs[l]->GetYaxis()->SetRange(y_min[r], y_max[r]);
                     graphs[l]->SetMinimum(y_min[r]);
                     graphs[l]->SetMaximum(y_max[r]);
@@ -311,8 +313,10 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             // draw CMS label
             if (c + r == 0) {
                 tiler->draw_latex_on_frame(0.04, 0.96, "CMS", 6, cms_latex_size, 13, c, r);
-                bool isPreliminary = false;
-                bool isSupplementary = true;
+                //bool isPreliminary = true;  // FF
+                //bool isSupplementary = false; // FF
+                bool isPreliminary = true;  // JS
+                bool isSupplementary = false; // JS
                 if (isPreliminary)  tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Preliminary", 5, cms_latex_size * 0.81, 13, c, r);
                 else if (isSupplementary)  tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Supplementary", 5, cms_latex_size * 0.81, 13, c, r);
             }
@@ -338,7 +342,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 TLine* line = new TLine();
                 line->SetLineStyle(2);
                 line->SetLineWidth(1);
-                line->DrawLine(0.5, 1, 4.5, 1);
+                // line->DrawLine(0.5, 1, 4.5, 1); // FF
+                line->DrawLine(0, 1, 0.3, 1);   // JS
             }
         }
     }
