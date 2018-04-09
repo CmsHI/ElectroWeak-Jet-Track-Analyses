@@ -12,7 +12,6 @@ outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
-#outputSuffix="PbPb_MC_skim_20180115_merged"
 outputFiles=(
 $outDirBase"/Performance/photons/nTupleGetEntries_mcCalIso_hOverE_EmEnrichedDijet80_Hydjet_Cymbal_MB.log"
 );
@@ -24,7 +23,7 @@ evtSel="pcollisionEventSelection > 0 && abs(vz) < 15 && hiBin < 60"
 spikeReject="abs(pho_seedTime)<3 && pho_swissCrx <0.9 && phoSigmaIEtaIEta_2012 > 0.002"
 sumIso="(pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20) < 1"
 sieie="phoSigmaIEtaIEta_2012 < 0.01"
-sieieSB="phoSigmaIEtaIEta_2012 > 0.011 && phoSigmaIEtaIEta_2012 < 0.01"
+sieieSB="phoSigmaIEtaIEta_2012 > 0.011 && phoSigmaIEtaIEta_2012 < 0.017"
 genMatching="pho_genMatchedIndex >=0 && mcPID[pho_genMatchedIndex] == 22 && mcMomPID[pho_genMatchedIndex] == 111"
 genPi02Pho="mcPID == 22 && abs(mcEta) <= 1.44 && mcMomPID == 111 && mcMomPt >= 40"
 echo "$evtSel && $genPi02Pho" >> $argFileTmp
