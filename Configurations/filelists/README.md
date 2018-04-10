@@ -73,6 +73,21 @@ Run the following to create the lists for Pythia8_AllQCDPhoton*Flt50_Hydjet_Cymb
   cat Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list
   ```
 
+Run the following to create the lists for Pythia8_AllQCDPhoton*Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST :
+
+  ```bash
+  cd $EWJTAHOME # go to directory where the repository is based
+  ls -S1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14_ext1-v1-FOREST/180403*/0000/HiForestAOD_*.root | head -484 > Configurations/filelists/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  ls -S1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14_ext1-v1-FOREST/180403*/0000/HiForestAOD_*.root | head -525 > Configurations/filelists/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  ls -1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14_ext1-v1-FOREST/180403*/0000/HiForestAOD_*.root > Configurations/filelists/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  ls -S1 /mnt/hadoop/cms/store/user/katatar/official/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14_ext1-v1-FOREST/180403*/0000/HiForestAOD_*.root | head -291 > Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  rm Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton80Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton50Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  cat Configurations/filelists/Pythia8_AllQCDPhoton120Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list >> Configurations/filelists/Pythia8_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR_ext_FOREST.list
+  ```
+
 Run the following to create the lists for Pythia8_EmEnrichedDijet*_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list :
 
   ```bash
