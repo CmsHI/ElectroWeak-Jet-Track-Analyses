@@ -66,5 +66,7 @@ sed -i "s/$lineToReplace/$newLine/g" $outputScript
 echo "Script has been created at $outputScript"
 echo "run the script via :"
 outputScriptLOG="${outputScript/.sh/.log}"
+outputScriptLOGDir=$(dirname "${outputScriptLOG}")
+mkdir -p $EWJTAOUT/$outputScriptLOGDir
 echo "$outputScript &> $EWJTAOUT/$outputScriptLOG &"
 
