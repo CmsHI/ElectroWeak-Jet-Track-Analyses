@@ -196,17 +196,22 @@ enum MODES_ESCALE {
     kSCRawEGenE,
     kRecoPtGenPtmeson0,
     kSCRawEGenEmeson0,
+    kRecoPtGenPtele,
+    kSCRawEGenEele,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL_ESCALE", "RecoPtGenPt", "SCRawEGenE", "RecoPtGenPtmeson0", "SCRawEGenEmeson0"};
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL_ESCALE", "RecoPtGenPt", "SCRawEGenE",
+                                                                    "RecoPtGenPtmeson0", "SCRawEGenEmeson0",
+                                                                    "RecoPtGenPtele", "SCRawEGenEele"};
 
 enum MODES_MATCHEFF {
     kNULL_MATCHEFF,
     kMatchPho,
     kMatchMeson0,
+    kMatchEle,
     kN_MODES_MATCHEFF
 };
-const std::string modesMatchEffStr[kN_MODES_MATCHEFF] = {"NULL_MATCHEFF", "MatchPho", "MatchMeson0"};
+const std::string modesMatchEffStr[kN_MODES_MATCHEFF] = {"NULL_MATCHEFF", "MatchPho", "MatchMeson0", "MatchEle"};
 
 enum ANABINS {
     kEta,
@@ -439,7 +444,12 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 // selections on GEN particle
                 int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
                 if (genMatchedIndex < 0)   continue;    // is matched
-                if ((*ggHi.mcPID)[genMatchedIndex] != 22)   continue;    // is matched to a photon
+
+                int genMatchedPID = 22;
+                if (runMode[MODES::kEnergyScale] == kRecoPtGenPtele || runMode[MODES::kEnergyScale] == kSCRawEGenEele) {
+                    genMatchedPID = 11;
+                }
+                if (TMath::Abs((*ggHi.mcPID)[genMatchedIndex]) != genMatchedPID)  continue;
 
                 double genPt = (*ggHi.mcPt)[genMatchedIndex];
                 double genE = (*ggHi.mcE)[genMatchedIndex];
@@ -495,11 +505,13 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
                 double energyScale = -1;
 
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
-                    runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0) {
+                    runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0 ||
+                    runMode[MODES::kEnergyScale] == kRecoPtGenPtele) {
                     energyScale = pt/genPt;
                 }
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE ||
-                         runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0) {
+                         runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0 ||
+                         runMode[MODES::kEnergyScale] == kSCRawEGenEele) {
                     energyScale = (*ggHi.phoSCRawE)[i]/genE;
                 }
 
@@ -567,7 +579,12 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
             if (runMode[MODES::kMatchEff]) {
             for (int i=0; i<ggHi.nMC; ++i) {
 
-                if ((*ggHi.mcPID)[i] != 22)   continue;    // consider only GEN-level photons
+                int genMatchedPID = 22;
+                if (runMode[MODES::kMatchEff] == kMatchEle) {
+                    genMatchedPID = 11;
+                }
+                if (TMath::Abs((*ggHi.mcPID)[i]) != genMatchedPID)  continue;
+
                 double genPt = (*ggHi.mcPt)[i];
                 double genEta = (*ggHi.mcEta)[i];
                 double genPhi = (*ggHi.mcPhi)[i];
@@ -1498,6 +1515,8 @@ int  preLoop(TFile* input, bool makeNew)
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
                 else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0)  yTitleEScale = "Reco photon p_{T} / Gen #h^{0} p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0)  yTitleEScale = "photon SC Raw E / Gen #h^{0} E";
+                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtele)  yTitleEScale = "Reco photon p_{T} / Gen e^{#pm} p_{T}";
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEele)  yTitleEScale = "photon SC Raw E / Gen e^{#pm} E";
 
                 rAnaTmp.h2D =
                         new TH2D(nameH2D.c_str(), Form(";%s;%s", xTitle.c_str(), yTitleEScale.c_str()), nBins, arr,
