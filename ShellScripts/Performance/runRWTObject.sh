@@ -6,8 +6,8 @@ g++ $progCode $(root-config --cflags --libs) -Werror -Wall -O2 -o $progPath || e
 
 runCmd="./ShellScripts/myRun.sh"
 
-inputFile="/home/kaya/Documents/EclipseWorkSpace/EW-J-T-A/ElectroWeak-Jet-Track-Analyses/Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
-outputFile="/home/kaya/Documents/EclipseWorkSpace/EW-J-T-A/ElectroWeak-Jet-Track-Analyses/Data/photonJetFF/readWriteTObject_xijet.root"
+inputFile="./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
+outputFile="./Data/photonJetFF/readWriteTObject_xijet.root"
 
 inputObjs=(
 "hff_final_pbpbdata_recoreco_100_200"
