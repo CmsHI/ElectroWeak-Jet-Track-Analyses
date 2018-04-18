@@ -6,12 +6,12 @@ runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/drawSpectra.exe"
 inputFiles=(
 "Configurations/filelists/Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.list"
-#"Configurations/filelists/Pythia8_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list"
+"Configurations/filelists/Pythia8_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list"
 );
 
 configFiles=(
 "Configurations/event/collision/spectra2D.coll.geometry.conf"
-#"Configurations/event/collision/spectra2D.coll.geometry.conf"
+"Configurations/event/collision/spectra2D.coll.geometry.conf"
 );
 
 outDirBase=$EWJTAOUT
@@ -20,7 +20,7 @@ if [ -z "$outDirBase" ]; then
 fi
 outList=(
 $outDirBase"/Configurations/event/spectra2D_coll_geo_Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.root"
-#$outDirBase"/Configurations/event/spectra2D_coll_geo_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Configurations/event/spectra2D_coll_geo_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
 );
 
 arrayIndices=${!outList[*]}
