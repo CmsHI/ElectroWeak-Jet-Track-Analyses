@@ -15,8 +15,8 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/mnt/hadoop/cms/store/user/"$USERGRID"/EWJTA-out"
 fi
 
-file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
-file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR/job0.root"
+file1=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhoton30Flt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+file2=$outDirBase"/Configurations/event/spectra_pthat_AllQCDPhotonXXFlt50_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
 
 hist1="h_0"
 hist2="h_0"
