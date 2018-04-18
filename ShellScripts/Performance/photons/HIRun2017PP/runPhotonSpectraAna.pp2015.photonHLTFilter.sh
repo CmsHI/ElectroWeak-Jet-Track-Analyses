@@ -4,6 +4,10 @@ runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/photons/photonSpectraAna.exe"
 inputFile="/mnt/hadoop/cms/store/user/luck/2015-Data-promptRECO-photonSkims/pp-photonHLTFilter-v0-HiForest/0.root"
 
+configList=(
+"Configurations/Performance/photons/HIRun2017PP/photonSpectraAna.pp2015.photonHLTFilter.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -11,10 +15,6 @@ fi
 outputSuffix="2015_promptRECO_pp_photonHLTFilter"
 outList=(
 $outDirBase"/Performance/photons/HIRun2017PP/photonSpectraAna_"$outputSuffix".root"
-);
-
-configList=(
-"Configurations/Performance/photons/HIRun2017PP/photonSpectraAna.pp2015.photonHLTFilter.conf"
 );
 
 arrayIndices=${!outList[*]}

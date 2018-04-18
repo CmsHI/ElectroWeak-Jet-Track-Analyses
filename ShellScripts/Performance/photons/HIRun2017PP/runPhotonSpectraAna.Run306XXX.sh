@@ -5,6 +5,10 @@ progPath="./Performance/photons/photonSpectraAna.exe"
 #inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306631.list"
 inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306604.list"
 
+configList=(
+"Configurations/Performance/photons/HIRun2017PP/photonSpectraAna.Run306XXX.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   userInitial=${USER:0:1}
@@ -14,10 +18,6 @@ fi
 outputSuffix="Prompt_Reco_HighEGJet_Run306604"
 outList=(
 $outDirBase"/Performance/photons/HIRun2017PP/photonSpectraAna_"$outputSuffix".root"
-);
-
-configList=(
-"Configurations/Performance/photons/HIRun2017PP/photonSpectraAna.Run306XXX.conf"
 );
 
 arrayIndices=${!outList[*]}

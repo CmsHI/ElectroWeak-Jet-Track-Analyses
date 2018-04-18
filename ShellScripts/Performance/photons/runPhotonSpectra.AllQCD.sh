@@ -6,6 +6,11 @@ runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/photons/photonSpectra.exe"
 inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
 
+configList=(
+"Configurations/Performance/photons/photonSpectra.AllQCD.conf"
+"Configurations/Performance/photons/photonSpectra.AllQCD.GED.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -13,11 +18,6 @@ fi
 outList=(
 $outDirBase"/Performance/photons/photonSpectra_AllQCDPhoton30_Hydjet_Cymbal_MB.root"
 $outDirBase"/Performance/photons/photonSpectra_GED_AllQCDPhoton30_Hydjet_Cymbal_MB.root"
-);
-
-configList=(
-"Configurations/Performance/photons/photonSpectra.AllQCD.conf"
-"Configurations/Performance/photons/photonSpectra.AllQCD.GED.conf"
 );
 
 arrayIndices=${!outList[*]}

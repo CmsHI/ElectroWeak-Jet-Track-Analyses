@@ -16,6 +16,11 @@ hltFiles=(
 #inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306631.list"
 inputFile="Configurations/filelists/HIRun2017PP/Prompt_Reco_HighEGJet_Run306631.list"
 
+configList=(
+"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.conf"
+"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.HoverELoose.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   userInitial=${USER:0:1}
@@ -33,11 +38,6 @@ outputSuffix="Prompt_Reco_HighEGJet_Run306631_denomL1_matchHLT"
 outList=(
 $outDirBase"/Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix".root"
 $outDirBase"/Performance/photons/HIRun2017PP/photonTriggerAna_"$outputSuffix"_HoverELoose.root"
-);
-
-configList=(
-"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.conf"
-"Configurations/Performance/photons/HIRun2017PP/photonTriggerAna.Run3065XX.HoverELoose.conf"
 );
 
 arrayIndices=${!outList[*]}

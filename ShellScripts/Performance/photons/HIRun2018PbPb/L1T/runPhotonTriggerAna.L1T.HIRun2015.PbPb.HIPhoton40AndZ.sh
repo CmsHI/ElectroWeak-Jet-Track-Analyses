@@ -15,6 +15,12 @@ ls -1 $inputDirTmp"/"HiForestAOD_6??.root >> $inputFile
 ls -1 $inputDirTmp"/"HiForestAOD_7??.root >> $inputFile
 ls -1 $inputDirTmp"/"HiForestAOD_8??.root >> $inputFile
 
+configList=(
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1SingleEG.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.egBypassEGVetos1.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -24,12 +30,6 @@ outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix"_L1SingleEG.root"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix"_L1T.root"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix"_L1T_egBypassEGVetos1.root"
-);
-
-configList=(
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1SingleEG.conf"
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.conf"
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.HIPhoton40AndZ.Run2630XX.L1T.egBypassEGVetos1.conf"
 );
 
 arrayIndices=${!outList[*]}

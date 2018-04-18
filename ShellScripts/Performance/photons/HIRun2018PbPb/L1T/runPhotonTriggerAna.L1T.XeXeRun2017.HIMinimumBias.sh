@@ -8,6 +8,11 @@ triggerFiles=(
 )
 inputFile="/mnt/hadoop/cms/store/user/cmcginn/XeXe_94X_SkimForest_MERGED/HIMinimumBias8/HiForestAOD_HIMinimumBias8_HighPtL1Skim_Jet30OrGamma15_MERGED_20180123.root"
 
+configList=(
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.egBypassEGVetos1.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -16,11 +21,6 @@ outputSuffix="L1Ntuple_XeXeRun2017_HIMinimumBias"
 outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix".root"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna_"$outputSuffix"_egBypassEGVetos1.root"
-);
-
-configList=(
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.conf"
-"Configurations/Performance/photons/HIRun2018PbPb/L1T/photonTriggerAna.L1T.XeXeRun2017.HIMinimumBias.egBypassEGVetos1.conf"
 );
 
 arrayIndices=${!outList[*]}

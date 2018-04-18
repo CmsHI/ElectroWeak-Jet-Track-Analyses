@@ -21,6 +21,23 @@ inputList=(
 "Configurations/filelists/photons/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p40.list"
 );
 
+configList=(
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -40,23 +57,6 @@ $outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cy
 $outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
 $outDirBase"/Performance/photons/photonRecoAna_fake_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
 $outDirBase"/Performance/photons/photonRecoAna_fake_SIG_GED_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
-);
-
-configList=(
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.fake.AllQCD.SIG.GED.conf"
 );
 
 arrayIndices=${!outList[*]}

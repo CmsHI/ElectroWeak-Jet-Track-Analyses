@@ -21,6 +21,23 @@ inputList=(
 "Configurations/filelists/photons/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC_pfSC_phiWidth0p40.list"
 );
 
+configList=(
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -40,23 +57,6 @@ $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_GED_r9_AllQCDPhoton30_
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_SIG_GED_r9_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p30.root"
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_GED_r9_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_SIG_GED_r9_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC_pfSC_phiWidth0p40.root"
-);
-
-configList=(
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.GED.r9.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.AllQCD.SIG.GED.r9.conf"
 );
 
 arrayIndices=${!outList[*]}

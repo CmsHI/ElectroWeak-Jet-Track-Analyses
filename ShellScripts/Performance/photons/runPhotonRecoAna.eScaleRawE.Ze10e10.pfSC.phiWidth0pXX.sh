@@ -10,6 +10,12 @@ inputList=(
 "Configurations/filelists/Zee/Pythia8_Ze10e10_Hydjet_MB_HiFall15_FOREST_extendEC_pfSC_phiWidth0p20.list"
 );
 
+configList=(
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.GED.conf"
+"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.GED.conf"
+);
+
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
@@ -18,12 +24,6 @@ outList=(
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_Ze10e10_Hydjet_MB_HiFall15_FOREST_extendEC.root"
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_GED_Ze10e10_Hydjet_MB_HiFall15_FOREST_extendEC.root"
 $outDirBase"/Performance/photons/photonRecoAna_eScaleRawE_GED_Ze10e10_Hydjet_MB_HiFall15_FOREST_extendEC_pfSC_phiWidth0p20.root"
-);
-
-configList=(
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.GED.conf"
-"Configurations/Performance/photons/photonRecoAna.eScaleRawE.Zee.GED.conf"
 );
 
 arrayIndices=${!outList[*]}
