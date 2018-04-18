@@ -422,6 +422,16 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
                 for (int i = 0; i < ggHi.nPho; ++i) {
                     if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
+                    if (isHI && !isMC) {
+                        bool failedNoiseCut =  ((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                                (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03) &&
+                               ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1./3.-0.03 &&
+                                (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1./3.+0.03) &&
+                               ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                                (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03);
+                        if (failedNoiseCut)  continue;
+                    }
+
                     if (cut_phoHoverE != 0) {
                         if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
                     }
