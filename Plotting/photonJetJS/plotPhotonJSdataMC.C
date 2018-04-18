@@ -1,5 +1,5 @@
 /*
- * Stand-alone macro to produce the pp data vs MC photon+jet JS plots
+ * macro to produce the pp data vs MC photon+jet JS plots
  */
 #include <TFile.h>
 #include <TDirectoryFile.h>
@@ -21,7 +21,7 @@
 #include <string>
 #include <iostream>
 
-//#include "../../Utilities/styleUtil.h"
+#include "../../Utilities/styleUtil.h"
 
 enum FIGURE{
     k_js_pp_data_mc,
@@ -127,12 +127,6 @@ void setLatex(int iText, TLatex* latex);
 void setLatexOverPad(int iText, TLatex* latex);
 void setLatexCMS(TLatex* latex);
 void setLatexCMSProj(TLatex* latex, std::string text = "CMS");
-double calcNormCanvasWidth(int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float xMargin = 0.01);
-double calcNormCanvasHeight(int rows = 1, float bottomMargin = 0.1, float topMargin = 0.1, float yMargin = 0.01);
-void divideCanvas(TCanvas* c, int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
-void divideCanvas(TCanvas* c, TPad* pads[], int rows = 1, int columns = 1, float leftMargin = 0.1, float rightMargin = 0.1, float bottomMargin = 0.1, float topMargin = 0.1, float xMargin = 0.01, float yMargin = 0.01, float yMinOffSet = 0);
-void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 
 void plotPhotonJSdataMC(int figureIndex, std::string inputFile)
 {
@@ -161,34 +155,63 @@ void plot_js_pp_data_mc(std::string inputFile)
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
 
-    int rows = 2;
-    int columns = 1;
-    float yMargin = 0;
-    float xMargin = 0;
-    double normCanvasHeight = calcNormCanvasHeight(rows, bottomMargin, topMargin, yMargin);
-    double normCanvasWidth = calcNormCanvasWidth(columns, leftMargin, rightMargin, xMargin);
-
     windowWidth = 800;
-    windowHeight = 700;
+    windowHeight = 800;
+    int rows = 1;
+    int columns = 1;
+    float yMargin = 0.2;
+    float xMargin = 0;
+
     logX = 0;
     logY = 0;
     leftMargin   = 0.21;
     rightMargin  = 0.04;
-    bottomMargin = 0.18;
+    bottomMargin = 0.0;
     topMargin    = 0.08;
     TCanvas* c = 0 ;
 
-    c = new TCanvas(figureNames[k_js_pp_data_mc].c_str(), "", windowWidth, windowHeight);
+    double normCanvasWidth = calcNormCanvasWidth(columns, 0.8, leftMargin, rightMargin, xMargin);
+    double normCanvasHeight = calcNormCanvasHeight(rows, 0.8, bottomMargin, topMargin, yMargin);
+
+    c = new TCanvas(figureNames[k_js_pp_data_mc].c_str(), "", windowWidth,windowHeight);
 
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
-    c->SetCanvasSize(windowWidth*normCanvasWidth, windowHeight*normCanvasHeight);
-    c->SetLeftMargin(leftMargin);
-    c->SetRightMargin(rightMargin);
-    c->SetBottomMargin(bottomMargin);
-    c->SetTopMargin(topMargin);
+    setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+    setCanvasFinal(c);
+    c->cd();
+
+    double windowHeightFraction = 0.4;
+    double windowHeightScale = 1 + windowHeightFraction;
+    c->SetCanvasSize(c->GetWw(), c->GetWh()*windowHeightScale);
+
+    double yMinOffset = windowHeightFraction;
 
     TPad* pads[2];
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0.8, 0.8, yMinOffset);
+    //divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+
+    setPadFinal(pads[0], logX, logY);
+
+    std::string padNameTmp = Form("%s_lower", pads[0]->GetName());
+    double x1_lowerPad = pads[0]->GetXlowNDC();
+    double y1_lowerPad = pads[0]->GetYlowNDC();
+    y1_lowerPad = 0;
+    double x2_lowerPad = pads[0]->GetXlowNDC()+pads[0]->GetWNDC();
+    double y2_lowerPad = pads[0]->GetYlowNDC();
+
+    c->cd();
+    pads[1] = new TPad(padNameTmp.c_str(), "", x1_lowerPad, y1_lowerPad, x2_lowerPad, y2_lowerPad);
+    pads[1]->SetLeftMargin(pads[0]->GetLeftMargin());
+    pads[1]->SetRightMargin(pads[0]->GetRightMargin());
+    pads[1]->SetBottomMargin(yMargin * (pads[0]->GetAbsHNDC() / pads[1]->GetAbsHNDC()));
+    pads[1]->SetTopMargin(0);
+
+    setPadFinal(pads[1], pads[0]->GetLogx(), 0);  // do not draw the y-axis in log scale for the ratio histogram.
+
+    pads[1]->Draw();
+    pads[1]->cd();
+    pads[1]->SetNumber(2);
+
 
     for (int i = 0; i < 2; ++i) {
         pads[i]->SetBorderMode(0);
@@ -211,8 +234,8 @@ void plot_js_pp_data_mc(std::string inputFile)
     xTitleFont = 42;
     yTitleFont = 42;
 
-    yMin = 0.2;
-    yMax = 60;
+    yMin = 0.3;
+    yMax = 40;
 
     enum HISTLABELS {
         k_pp,
@@ -276,10 +299,23 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
             h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
         }
+        else if (i == k_ratio) {
+            h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.6 * windowHeightScale);
+            h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4 * windowHeightScale);
+
+            h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
+            h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
+        }
     }
     h1Ds[k_ratio]->SetYTitle("DATA / MC");
-    h1Ds[k_ratio]->SetMinimum(0.8);
-    h1Ds[k_ratio]->SetMaximum(1.2);
+    h1Ds[k_ratio]->SetMinimum(0.85);
+    h1Ds[k_ratio]->SetMaximum(1.15);
+
+    h1Ds[k_ratio]->SetTitleOffset(0.8, "X");
+    h1Ds[k_ratio]->SetTitleOffset(0.8, "Y");
+
+    h1Ds[k_ratio]->SetTitleSize(0.2, "X");
+    h1Ds[k_ratio]->SetTitleSize(0.12, "Y");
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
@@ -395,13 +431,14 @@ void plot_js_pp_data_mc(std::string inputFile)
 
     c->cd();
     TPad* emptyBox = 0;
-    emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
-                                    c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
+    emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.015,
+                                    c->GetX1()+leftMargin-0.017, pads[0]->GetYlowNDC()+0.035);
     emptyBox->Draw();
-
+    /*
     emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
                                     c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
     emptyBox->Draw();
+    */
 
     c->cd(2);
     TLine* line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
@@ -550,155 +587,6 @@ void setLatexCMSProj(TLatex* latex, std::string text)
 
     latex->SetNDC();
     latex->SetText(textXCMSProj, textYCMSProj, text.c_str());
-}
-
-/*
- * calculate the width of a TCanvas in a normalization scheme where the width is 1 for
- * a canvas with a columns = 1, bottomMargin + topMargin = 2*defaultMargin and xMargin = 0
- */
-double calcNormCanvasWidth(int columns, float leftMargin, float rightMargin, float xMargin)
-{
-    double defaultMargin = 0.1;
-    double padWidth = (1 - defaultMargin*2 + xMargin);
-
-    float x_max[columns];
-    x_max[0] = padWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
-    for (int i = 1; i < columns; ++i) {
-        x_max[i] = x_max[i-1] + padWidth;
-    }
-    x_max[columns-1] += rightMargin - xMargin/2;
-
-    return x_max[columns-1];
-}
-
-/*
- * calculate the height of a TCanvas in a normalization scheme where the height is 1 for
- * a canvas with a rows = 1, bottomMargin + topMargin = 2*defaultMargin and yMargin = 0
- */
-double calcNormCanvasHeight(int rows, float bottomMargin, float topMargin, float yMargin)
-{
-    double defaultMargin = 0.1;
-    double padHeight = (1 - defaultMargin*2 + yMargin);
-
-    float y_min[rows], y_max[rows];
-    y_min[rows-1] = 0;
-    y_max[rows-1] = padHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
-    for (int i = rows - 2; i >= 0; --i) {
-        y_min[i] = y_max[i+1];
-        y_max[i] = y_min[i] + padHeight;
-    }
-    y_max[0] += topMargin - yMargin/2;
-
-    return y_max[0];
-}
-
-void divideCanvas(TCanvas* c, int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
-{
-    TPad* pads[rows*columns];
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, yMinOffset);
-}
-
-void divideCanvas(TCanvas* c, TPad* pads[], int rows, int columns, float leftMargin, float rightMargin, float bottomMargin, float topMargin, float xMargin, float yMargin, float yMinOffset)
-{
-    c->Clear();
-
-    double normPadWidth = calcNormCanvasWidth(1, leftMargin, rightMargin, xMargin);
-    double normPadHeight = calcNormCanvasHeight(1, bottomMargin, topMargin, yMargin);
-
-    float x_min[columns], x_max[columns];
-    x_min[0] = 0;
-    x_max[0] = normPadWidth + leftMargin - xMargin/2;   // left margin is inside the width of leftmost panel
-    for (int i = 1; i < columns; ++i) {
-        x_min[i] = x_max[i-1];
-        x_max[i] = x_max[i-1] + normPadWidth;
-    }
-    x_max[columns-1] += rightMargin - xMargin/2;
-
-    float y_min[rows], y_max[rows];
-    y_min[rows-1] = yMinOffset;
-    y_max[rows-1] = normPadHeight + bottomMargin - yMargin/2;  // bottom margin is inside the height of bottom panel
-    for (int i = rows - 2; i >= 0; --i) {
-        y_min[i] = y_max[i+1]+yMinOffset;
-        y_max[i] = y_min[i] + normPadHeight;
-    }
-    y_max[0] += topMargin - yMargin/2;
-
-    double normCanvasWidth = x_max[columns-1];
-    double normCanvasHeight = y_max[0];
-    // normalize the coordinates such that x_max[columns-1] = 1 and y_max[0] = 1
-    for (int i = 0; i < columns; ++i) {
-        x_min[i] /= normCanvasWidth;
-        x_max[i] /= normCanvasWidth;
-    }
-    for (int i = 0; i < rows; ++i) {
-        y_min[i] /= normCanvasHeight;
-        y_max[i] /= normCanvasHeight;
-    }
-
-    for (int i=0; i<rows; i++) {
-        for (int j=0; j<columns; j++) {
-            c->cd();
-            int ij = i*columns+j;
-            pads[ij] = new TPad(Form("pad_%d_%d", i, j), Form("pad_%d_%d", i, j), x_min[j], y_min[i], x_max[j], y_max[i]);
-
-            if (i == 0) pads[ij]->SetTopMargin(topMargin);
-            else pads[ij]->SetTopMargin(yMargin/2);
-            if (i == rows - 1) pads[ij]->SetBottomMargin(bottomMargin);
-            else pads[ij]->SetBottomMargin(yMargin/2);
-            if (j == 0) pads[ij]->SetLeftMargin(leftMargin);
-            else pads[ij]->SetLeftMargin(xMargin/2);
-            if (j == columns - 1) pads[ij]->SetRightMargin(rightMargin);
-            else pads[ij]->SetRightMargin(xMargin/2);
-
-            pads[ij]->Draw();
-            pads[ij]->cd();
-            pads[ij]->SetNumber(ij+1);
-        }
-    }
-}
-
-void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
-{
-   double val = h->GetBinContent(bin);
-   double x   = h->GetBinCenter(bin);
-   int binSys = hSys->FindBin(x);
-
-   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
-   if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
-
-   std::string hSysName = hSys->GetName();
-
-   if (binWidth < 0) {
-     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
-   }
-
-   double errorLow = val - error;
-   double errorUp = val + error;
-   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
-   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
-
-   gr->SetPoint(0, x - (binWidth/2)*binWidthScale, errorLow);
-   gr->SetPoint(1, x + (binWidth/2)*binWidthScale, errorLow);
-   gr->SetPoint(2, x + (binWidth/2)*binWidthScale, errorUp);
-   gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
-}
-
-/*
- * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
- * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
- * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
- */
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
-{
-    int nBins = h->GetNbinsX();
-    for (int i = 1; i <= nBins; ++i) {
-        if (h->GetBinError(i) == 0) continue;
-        if (h->GetBinContent(i) < h->GetMinimum()) continue;
-        if (h->GetBinContent(i) > h->GetMaximum()) continue;
-
-        setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
-        gr->DrawClone("f");
-    }
 }
 
 int main(int argc, char** argv)
