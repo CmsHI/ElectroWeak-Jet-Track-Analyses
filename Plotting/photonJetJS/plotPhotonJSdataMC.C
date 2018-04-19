@@ -317,7 +317,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     h1Ds[k_ratio]->SetTitleOffset(0.6, "Y");
 
     h1Ds[k_ratio]->SetTitleSize(0.16, "X");
-    h1Ds[k_ratio]->SetTitleSize(0.16, "Y");
+    h1Ds[k_ratio]->SetTitleSize(0.15, "Y");
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
@@ -377,10 +377,11 @@ void plot_js_pp_data_mc(std::string inputFile)
     textSize = 32;
     textLines = {
             "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44",
+            "p_{T}^{trk} > 1 GeV/c",
             "anti-k_{T} jet R = 0.3",
-            "p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6",
-            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}",
-            "p_{T}^{trk} > 1 GeV/c"
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
     };
     int nTextLines = textLines.size();
     textX = 0.92;
