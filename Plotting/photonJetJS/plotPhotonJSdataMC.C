@@ -254,7 +254,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     markerSizes = {1.70, 1.70, 1.70};
     lineColors = {kBlack, kRed, kBlack};
     lineTransparencies = {1.0, 1.0, 1.0};
-    lineWidths = {3, 3, 3};
+    lineWidths = {3, 4, 3};
     fillColors = {TColor::GetColor("#6699cc"), 0, TColor::GetColor("#6699cc")};
     fillTransparencies = {0.7, 0, 0.7};
     drawOptions = {"e same", "hist same", "e same"};
@@ -307,7 +307,9 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
         }
     }
-    h1Ds[k_ratio]->SetYTitle("DATA / MC");
+    h1Ds[k_MC]->SetLineStyle(kDashed);
+
+    h1Ds[k_ratio]->SetYTitle("Data / MC");
     h1Ds[k_ratio]->SetMinimum(0.85);
     h1Ds[k_ratio]->SetMaximum(1.15);
 
