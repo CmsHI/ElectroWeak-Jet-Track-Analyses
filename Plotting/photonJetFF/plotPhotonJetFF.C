@@ -9,6 +9,7 @@
 #include "TStyle.h"
 #include "TColor.h"
 #include "TLine.h"
+#include "TAxis.h"
 
 #include <vector>
 #include <string>
@@ -173,6 +174,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
         margins[0], margins[1], margins[2], margins[3]);
 
     TCanvas* c1 = tiler->create_canvas("c1", "");
+    TPad* emptyBox = 0;
     for (int r=0; r<rows; ++r) {
         for (int c=0; c<columns; ++c) {
             c1->cd(r*columns + c+1);
@@ -350,6 +352,25 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 }
                 else {
                     line->DrawLine(0.5, 1, 4.5, 1); // FF
+                }
+            }
+
+            if (isJS && r == rows-1) {
+
+                float tmp_margin_left = gPad->GetLeftMargin();
+                float tmp_margin_right = gPad->GetRightMargin();
+                float tmp_margin_bottom = gPad->GetBottomMargin();
+
+                emptyBox = 0;
+                if (c < columns - 1) {
+                    emptyBox = new TPad("emptyBox", "", 1-0.1-tmp_margin_right,                tmp_margin_bottom-0.1,
+                                                        std::min(1.0, 1.0 - tmp_margin_right), tmp_margin_bottom-0.02);
+                    emptyBox->DrawClone();
+                }
+                if (c > 0) {
+                    emptyBox = new TPad("emptyBox", "", std::max(0.0, tmp_margin_left - 0.1), tmp_margin_bottom-0.1,
+                                                        tmp_margin_left+0.1, tmp_margin_bottom-0.02);
+                    emptyBox->DrawClone();
                 }
             }
         }
