@@ -159,7 +159,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     windowHeight = 800;
     int rows = 1;
     int columns = 1;
-    float yMargin = 0.2;
+    float yMargin = 0.14;
     float xMargin = 0;
 
     logX = 0;
@@ -167,7 +167,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     leftMargin   = 0.21;
     rightMargin  = 0.04;
     bottomMargin = 0.0;
-    topMargin    = 0.08;
+    topMargin    = 0.06;
     TCanvas* c = 0 ;
 
     double normCanvasWidth = calcNormCanvasWidth(columns, 0.8, leftMargin, rightMargin, xMargin);
@@ -303,7 +303,7 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.6 * windowHeightScale);
             h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4 * windowHeightScale);
 
-            h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
+            h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*1.8);
             h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
         }
     }
@@ -313,11 +313,11 @@ void plot_js_pp_data_mc(std::string inputFile)
     h1Ds[k_ratio]->SetMinimum(0.85);
     h1Ds[k_ratio]->SetMaximum(1.15);
 
-    h1Ds[k_ratio]->SetTitleOffset(0.8, "X");
-    h1Ds[k_ratio]->SetTitleOffset(0.8, "Y");
+    h1Ds[k_ratio]->SetTitleOffset(0.9, "X");
+    h1Ds[k_ratio]->SetTitleOffset(0.6, "Y");
 
-    h1Ds[k_ratio]->SetTitleSize(0.2, "X");
-    h1Ds[k_ratio]->SetTitleSize(0.12, "Y");
+    h1Ds[k_ratio]->SetTitleSize(0.16, "X");
+    h1Ds[k_ratio]->SetTitleSize(0.16, "Y");
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
