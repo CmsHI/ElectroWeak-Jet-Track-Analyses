@@ -364,8 +364,14 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     if (columns == 4) {
         tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
         tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "PbPb 404 #mub^{-1}, pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
-        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
-        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+        if (isJS) {
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, p_{T}^{trk} > 1 GeV/c", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+        }
+        else {
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+        }
     }
     else {
         tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
@@ -379,9 +385,16 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top/3*2, "PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
             tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top, "pp 27.4 pb^{-1}", 4, canvas_latex_size, 11);
         }
-        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 31);
-        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3*2, Form("p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
-        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+        if (isJS) {
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3*2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+        }
+        else {
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/3*2, Form("p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
+            tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+        }
     }
 
     tiler->cover_axis_labels(
