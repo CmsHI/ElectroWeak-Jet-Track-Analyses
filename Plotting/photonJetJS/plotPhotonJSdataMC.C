@@ -374,7 +374,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     c->cd(1);
     textAlign = 31;
     textFont = 43;
-    textSize = 26;
+    textSize = 32;
     textLines = {
             "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44",
             "anti-k_{T} jet R = 0.3",
@@ -395,14 +395,14 @@ void plot_js_pp_data_mc(std::string inputFile)
 
     textAlign = 11;
     textFont = 43;
-    textSize = 30;
+    textSize = 32;
     textLines = {
             "#sqrt{s} = 5.02 TeV, pp 27.4 pb^{-1}"
     };
     nTextLines = textLines.size();
-    textX = 0.38;
+    textX = 0.52;
     textYs.clear();
-    textYs.resize(nTextLines, 0.94);
+    textYs.resize(nTextLines, 0.95);
     latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
