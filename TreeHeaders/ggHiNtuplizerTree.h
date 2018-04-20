@@ -271,6 +271,7 @@ public :
   };
   ~ggHiNtuplizer(){};
   void setupTreeForReading(TTree *t);
+  bool is2015EcalNoise(int iPho);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1089,6 +1090,20 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("muPFPhoIso")) t->SetBranchAddress("muPFPhoIso", &muPFPhoIso, &b_muPFPhoIso);
     if (t->GetBranch("muPFNeuIso")) t->SetBranchAddress("muPFNeuIso", &muPFNeuIso, &b_muPFNeuIso);
     if (t->GetBranch("muPFPUIso")) t->SetBranchAddress("muPFPUIso", &muPFPUIso, &b_muPFPUIso);
+}
+
+/*
+ * check if the photon is ECAL noise in 2015 PbPb data
+ */
+bool ggHiNtuplizer::is2015EcalNoise(int iPho)
+{
+    bool failedNoiseCut =  ((*phoE3x3)[iPho]/(*phoE5x5)[iPho] > 2./3.-0.03 &&
+            (*phoE3x3)[iPho]/(*phoE5x5)[iPho] < 2./3.+0.03) &&
+           ((*phoE1x5)[iPho]/(*phoE5x5)[iPho] > 1./3.-0.03 &&
+            (*phoE1x5)[iPho]/(*phoE5x5)[iPho] < 1./3.+0.03) &&
+           ((*phoE2x5)[iPho]/(*phoE5x5)[iPho] > 2./3.-0.03 &&
+            (*phoE2x5)[iPho]/(*phoE5x5)[iPho] < 2./3.+0.03);
+    return failedNoiseCut;
 }
 
 #endif /* TREEHEADERS_GGHINTUPLIZERTREE_H_ */
