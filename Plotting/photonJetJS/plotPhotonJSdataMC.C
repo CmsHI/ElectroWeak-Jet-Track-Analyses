@@ -109,12 +109,12 @@ int textAlignCMS;
 int textFontCMS;
 float textSizeCMS;
 
-// TLatex CMS Projection
-float textXCMSProj;
-float textYCMSProj;
-int textAlignCMSProj;
-int textFontCMSProj;
-float textSizeCMSProj;
+// TLatex CMS Preliminary
+float textXCMSpreliminary;
+float textYCMSpreliminary;
+int textAlignCMSpreliminary;
+int textFontCMSpreliminary;
+float textSizeCMSpreliminary;
 
 void plotPhotonJSdataMC(int figureIndex, std::string inputFile);
 void plot_js_pp_data_mc(std::string inputFile);
@@ -126,7 +126,7 @@ void setLegend(TLegend* leg);
 void setLatex(int iText, TLatex* latex);
 void setLatexOverPad(int iText, TLatex* latex);
 void setLatexCMS(TLatex* latex);
-void setLatexCMSProj(TLatex* latex, std::string text = "CMS");
+void setLatexCMSextraLabel(TLatex* latex, std::string text = "CMS");
 
 void plotPhotonJSdataMC(int figureIndex, std::string inputFile)
 {
@@ -421,13 +421,13 @@ void plot_js_pp_data_mc(std::string inputFile)
     setLatexCMS(latex);
     latex->Draw();
 
-    textXCMSProj = 0.25;
-    textYCMSProj = 0.78;
-    textAlignCMSProj = 11;
-    textFontCMSProj = 52;
-    textSizeCMSProj = 0.06;
+    textXCMSpreliminary = 0.25;
+    textYCMSpreliminary = 0.78;
+    textAlignCMSpreliminary = 11;
+    textFontCMSpreliminary = 52;
+    textSizeCMSpreliminary = 0.06;
     latex = new TLatex();
-    setLatexCMSProj(latex, "Preliminary");
+    setLatexCMSextraLabel(latex, "Preliminary");
     latex->Draw();
 
     c->Update();
@@ -582,14 +582,14 @@ void setLatexCMS(TLatex* latex)
     latex->SetText(textXCMS, textYCMS, "CMS");
 }
 
-void setLatexCMSProj(TLatex* latex, std::string text)
+void setLatexCMSextraLabel(TLatex* latex, std::string text)
 {
-    latex->SetTextAlign(textAlignCMSProj);
-    latex->SetTextFont(textFontCMSProj);
-    latex->SetTextSize(textSizeCMSProj);
+    latex->SetTextAlign(textAlignCMSpreliminary);
+    latex->SetTextFont(textFontCMSpreliminary);
+    latex->SetTextSize(textSizeCMSpreliminary);
 
     latex->SetNDC();
-    latex->SetText(textXCMSProj, textYCMSProj, text.c_str());
+    latex->SetText(textXCMSpreliminary, textYCMSpreliminary, text.c_str());
 }
 
 int main(int argc, char** argv)
