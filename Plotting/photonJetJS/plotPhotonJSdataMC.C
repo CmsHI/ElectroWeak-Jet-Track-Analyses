@@ -421,7 +421,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     setLatexCMS(latex);
     latex->Draw();
 
-    bool isPreliminary = true;
+    bool isPreliminary = false;
     if (isPreliminary) {
         textXCMSpreliminary = 0.25;
         textYCMSpreliminary = 0.78;

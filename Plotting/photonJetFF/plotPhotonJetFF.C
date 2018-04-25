@@ -319,7 +319,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 bool isPreliminary = true;  // FF
                 bool isSupplementary = false; // FF
                 if (isJS) {
-                    isPreliminary = true;
+                    isPreliminary = false;
                     isSupplementary = false;
                 }
                 if (isPreliminary)  tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Preliminary", 5, cms_latex_size * 0.81, 13, c, r);
