@@ -281,17 +281,17 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
         }
         else if (i == k_ratio) {
-            h1Ds[i] = (TH1D*)h1Ds[k_MC]->Clone(histPaths[i].c_str());
-            h1Ds[i]->Divide(h1Ds[k_pp]);
+            h1Ds[k_ratio] = (TH1D*)h1Ds[k_MC]->Clone(histPaths[k_ratio].c_str());
+            h1Ds[k_ratio]->Divide(h1Ds[k_pp]);
 
-            hTmp = (TH1D*)h1DsSys[k_pp]->Clone(Form("%s_varied", histPaths[i].c_str()));
+            hTmp = (TH1D*)h1DsSys[k_pp]->Clone(Form("%s_varied", histPaths[k_ratio].c_str()));
             hTmp->Add(h1Ds[k_pp]);
 
-            h1DsSys[i] = (TH1D*)h1Ds[k_MC]->Clone(sysPaths[i].c_str());
-            h1DsSys[i]->Divide(hTmp);
+            h1DsSys[k_ratio] = (TH1D*)h1Ds[k_MC]->Clone(sysPaths[k_ratio].c_str());
+            h1DsSys[k_ratio]->Divide(hTmp);
 
-            h1DsSys[i]->Add(h1Ds[i], -1);
-            calcTH1Abs4SysUnc(h1DsSys[i]);
+            h1DsSys[k_ratio]->Add(h1Ds[k_ratio], -1);
+            calcTH1Abs4SysUnc(h1DsSys[k_ratio]);
         }
         setTH1D(i, h1Ds[i]);
 
@@ -305,19 +305,18 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
             h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
         }
-        else if (i == k_ratio) {
-            h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.6 * windowHeightScale);
-            h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4 * windowHeightScale);
-
-            h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*1.8);
-            h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
-        }
     }
     h1Ds[k_MC]->SetLineStyle(kDashed);
 
     h1Ds[k_ratio]->SetYTitle("MC / Data");
     h1Ds[k_ratio]->SetMinimum(0.85);
     h1Ds[k_ratio]->SetMaximum(1.15);
+
+    h1Ds[k_ratio]->GetXaxis()->SetLabelSize(h1Ds[k_ratio]->GetXaxis()->GetLabelSize()*1.6 * windowHeightScale);
+    h1Ds[k_ratio]->GetYaxis()->SetLabelSize(h1Ds[k_ratio]->GetYaxis()->GetLabelSize()*1.4 * windowHeightScale);
+
+    h1Ds[k_ratio]->GetXaxis()->SetLabelOffset(h1Ds[k_ratio]->GetXaxis()->GetLabelOffset()*1.8);
+    h1Ds[k_ratio]->GetYaxis()->SetLabelOffset(h1Ds[k_ratio]->GetYaxis()->GetLabelOffset()*2);
 
     h1Ds[k_ratio]->SetTitleOffset(0.9, "X");
     h1Ds[k_ratio]->SetTitleOffset(0.6, "Y");
