@@ -116,7 +116,7 @@ int textAlignCMSpreliminary;
 int textFontCMSpreliminary;
 float textSizeCMSpreliminary;
 
-void plotPhotonJSdataMC(int figureIndex, std::string inputFile);
+void plotPhotonJetJSdataMC(int figureIndex, std::string inputFile);
 void plot_js_pp_data_mc(std::string inputFile);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
@@ -128,9 +128,9 @@ void setLatexOverPad(int iText, TLatex* latex);
 void setLatexCMS(TLatex* latex);
 void setLatexCMSextraLabel(TLatex* latex, std::string text = "CMS");
 
-void plotPhotonJSdataMC(int figureIndex, std::string inputFile)
+void plotPhotonJetJSdataMC(int figureIndex, std::string inputFile)
 {
-    std::cout<<"running plotPhotonJSdataMC()"<<std::endl;
+    std::cout<<"running plotPhotonJetJSdataMC()"<<std::endl;
     std::cout<<"figureIndex = "<< figureIndex <<std::endl;
     std::cout<<"inputFile = "<< inputFile.c_str() <<std::endl;
 
@@ -142,7 +142,7 @@ void plotPhotonJSdataMC(int figureIndex, std::string inputFile)
             break;
     }
 
-    std::cout<<"plotPhotonJSdataMC() - END"<<std::endl;
+    std::cout<<"plotPhotonJetJSdataMC() - END"<<std::endl;
 }
 
 void plot_js_pp_data_mc(std::string inputFile)
@@ -598,12 +598,12 @@ void setLatexCMSextraLabel(TLatex* latex, std::string text)
 int main(int argc, char** argv)
 {
     if (argc == 3) {
-        plotPhotonJSdataMC(atoi(argv[1]), argv[2]);
+        plotPhotonJetJSdataMC(atoi(argv[1]), argv[2]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./plotPhotonJSdataMC.exe <figureIndex> <inputFile>"
+                "./plotPhotonJetJSdataMC.exe <figureIndex> <inputFile>"
                 << std::endl;
         return 1;
     }
