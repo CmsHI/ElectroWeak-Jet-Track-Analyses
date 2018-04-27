@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include "../../Utilities/styleUtil.h"
+#include "../../Utilities/th1Util.h"
 
 enum FIGURE{
     k_js_pp_data_mc,
@@ -261,7 +262,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     sysPaths = {
             "hjs_final_ppdata_corrjsrecoreco_100_200_systematics",
             "NULL",
-            "hjs_final_ratio_ppdata_ppmc_100_200_systematics",
+            "hjs_final_ratio_ppmc_ppdata_100_200_systematics",
     };
     sysUseRelUnc = {false, false, false};
     sysColors = {TColor::GetColor("#6699cc"), 0, TColor::GetColor("#6699cc")};
@@ -280,12 +281,17 @@ void plot_js_pp_data_mc(std::string inputFile)
             h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
         }
         else if (i == k_ratio) {
-            h1Ds[i] = (TH1D*)h1Ds[k_pp]->Clone(histPaths[i].c_str());
-            h1Ds[i]->Divide(h1Ds[k_MC]);
+            h1Ds[i] = (TH1D*)h1Ds[k_MC]->Clone(histPaths[i].c_str());
+            h1Ds[i]->Divide(h1Ds[k_pp]);
 
-            h1DsSys[i] = (TH1D*)h1DsSys[k_pp]->Clone(sysPaths[i].c_str());
-            h1DsSys[i]->Divide(h1Ds[k_pp]);
-            h1DsSys[i]->Multiply(h1Ds[i]);
+            hTmp = (TH1D*)h1DsSys[k_pp]->Clone(Form("%s_varied", histPaths[i].c_str()));
+            hTmp->Add(h1Ds[k_pp]);
+
+            h1DsSys[i] = (TH1D*)h1Ds[k_MC]->Clone(sysPaths[i].c_str());
+            h1DsSys[i]->Divide(hTmp);
+
+            h1DsSys[i]->Add(h1Ds[i], -1);
+            calcTH1Abs4SysUnc(h1DsSys[i]);
         }
         setTH1D(i, h1Ds[i]);
 
@@ -309,7 +315,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     }
     h1Ds[k_MC]->SetLineStyle(kDashed);
 
-    h1Ds[k_ratio]->SetYTitle("Data / MC");
+    h1Ds[k_ratio]->SetYTitle("MC / Data");
     h1Ds[k_ratio]->SetMinimum(0.85);
     h1Ds[k_ratio]->SetMaximum(1.15);
 
