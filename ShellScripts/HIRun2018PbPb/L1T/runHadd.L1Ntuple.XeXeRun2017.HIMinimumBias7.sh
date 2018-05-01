@@ -33,18 +33,22 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTowerMedian/180422_071553/0000/L1Ntuple_*.root"
 );
 
+outDirBase=$EWJTAOUT
+if [ -z "$outDirBase" ]; then
+  outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
+fi
 logFileList=(
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_hiFlag0.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_hiFlag1.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_None.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_ChunkyDonut.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingHIRegion.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingHITower.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPP.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPExclude.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTower.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTowerMask.log"
-$EWJTAOUT"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTowerMedian.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_hiFlag0.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_hiFlag1.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_None.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_ChunkyDonut.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingHIRegion.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingHITower.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPP.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPExclude.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTower.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTowerMask.log"
+$outDirBase"/ShellScripts/HIRun2018PbPb/L1T/runHadd_L1Ntuple_XeXeRun2017_HIMinimumBias7_PhiRingPPTowerMedian.log"
 );
 
 arrayIndices=${!outputList[*]}
