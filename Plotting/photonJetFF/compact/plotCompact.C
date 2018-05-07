@@ -14,14 +14,16 @@
 #include "utilsMV.h"
 #include "utils.h"
 
+#include <string>
+
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
 void plotCompact(std::string inputFile = "Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root", int ifig = 1);
 
 void plotCompact(std::string inputFile, int ifig)
 {
-  TString tag = "#sqrt{s_{NN}} = 5.02 TeV";
+  std::string tag = "#sqrt{s_{NN}} = 5.02 TeV";
 
-  TString xTitle = "#xi^{jet}";
+  std::string xTitle = "#xi^{jet}";
   if(ifig==2) xTitle = "#xi^{#gamma}_{T}";
 
   TFile* file = 0;
@@ -36,7 +38,7 @@ void plotCompact(std::string inputFile, int ifig)
   double centMax[nCent] = {10.,30.,50.,100.};
    
   const int ns = 2; //systems: pp=0 PbPb=1
-  TString strLeg[ns] = {"pp (smeared)","PbPb"};
+  std::string strLeg[ns] = {"pp (smeared)","PbPb"};
 
   /* Kaya's instructions:
     PbPb histograms are hff_final_pbpbdata_recoreco_X_Y where X_Y = 0_20 corresponds to Cent. 0-10% (Remaining centralities are clear from context.)
@@ -54,24 +56,24 @@ void plotCompact(std::string inputFile, int ifig)
   TH1 *hObsSys[ns][nCent];
   TGraphErrors *grObsSys[ns][nCent];
   for(int is = 0; is<ns; ++is) {
-    TString strSysTmp;
+    std::string strSysTmp;
     if(is==0) //pp smeared
       strSysTmp = "ppdata_s";
     else if(is==1) //PbPb
       strSysTmp = "pbpbdata_";
     for(int ic = 0; ic<nCent; ++ic) {
-      TString histName;
-      if(ic==0) histName = Form("hff_final_%srecoreco_0_20",strSysTmp.Data());
-      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60",strSysTmp.Data());
-      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100",strSysTmp.Data());
-      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200",strSysTmp.Data());
-      hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
+      std::string histName;
+      if(ic==0) histName = Form("hff_final_%srecoreco_0_20",strSysTmp.c_str());
+      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60",strSysTmp.c_str());
+      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100",strSysTmp.c_str());
+      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200",strSysTmp.c_str());
+      hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
-      if(ic==0) histName = Form("hff_final_%srecoreco_0_20_systematics",strSysTmp.Data());
-      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60_systematics",strSysTmp.Data());
-      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100_systematics",strSysTmp.Data());
-      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200_systematics",strSysTmp.Data());
-      hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
+      if(ic==0) histName = Form("hff_final_%srecoreco_0_20_systematics",strSysTmp.c_str());
+      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60_systematics",strSysTmp.c_str());
+      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100_systematics",strSysTmp.c_str());
+      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200_systematics",strSysTmp.c_str());
+      hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
       if(hObs[is][ic]) {
         grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic],2.);
@@ -87,18 +89,18 @@ void plotCompact(std::string inputFile, int ifig)
   TH1 *hRatioSys[nCent];
   TGraphErrors *grRatioSys[nCent];
   for(int ic = 0; ic<nCent; ++ic) {
-    TString histName;
+    std::string histName;
     if(ic==0) histName = Form("hff_final_ratio_0_20");
     else if(ic==1) histName = Form("hff_final_ratio_20_60");
     else if(ic==2) histName = Form("hff_final_ratio_60_100");
     else if(ic==3) histName = Form("hff_final_ratio_100_200");
-    hRatio[ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
+    hRatio[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
     if(ic==0) histName = Form("hff_final_ratio_0_20_systematics");
     else if(ic==1) histName = Form("hff_final_ratio_20_60_systematics");
     else if(ic==2) histName = Form("hff_final_ratio_60_100_systematics");
     else if(ic==3) histName = Form("hff_final_ratio_100_200_systematics");
-    hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
+    hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
     
     grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic],2.);
 
@@ -119,7 +121,7 @@ void plotCompact(std::string inputFile, int ifig)
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.07);
 
-  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,11.999,xTitle.Data(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.Data()),false);
+  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,11.999,xTitle.c_str(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.c_str()),false);
   fr1->GetXaxis()->SetNdivisions(509);
   fr1->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
   fr1->GetYaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -179,21 +181,21 @@ void plotCompact(std::string inputFile, int ifig)
       hObs[k][i]->Draw("same EX0");
     }
 
-    TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
+    std::string strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     if(i==0) {
-      DrawLatex(0.17,0.10,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.10,strCent.c_str(),txtSize,GetColor(colorCode));
     }
     if(i==1) {
-      DrawLatex(0.17,0.28,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.28,strCent.c_str(),txtSize,GetColor(colorCode));
       DrawLatex(0.17,0.24,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==2) {
-      DrawLatex(0.17,0.43,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.43,strCent.c_str(),txtSize,GetColor(colorCode));
       DrawLatex(0.17,0.39,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
     if(i==3) {
-      DrawLatex(0.17,0.58,strCent.Data(),txtSize,GetColor(colorCode));
+      DrawLatex(0.17,0.58,strCent.c_str(),txtSize,GetColor(colorCode));
       DrawLatex(0.17,0.54,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
     }
   }
@@ -210,8 +212,8 @@ void plotCompact(std::string inputFile, int ifig)
   TLegend *leg1 = 0;
   if(ifig==1) leg1 = CreateLegend(0.5,0.8,0.02,0.15,"",txtSize);
   if(ifig==2) leg1 = CreateLegend(0.63,0.93,0.02,0.15,"",txtSize);
-  leg1->AddEntry(grSystForLeg[1],strLeg[1].Data(),"pf");
-  leg1->AddEntry(grSystForLeg[0],strLeg[0].Data(),"pf");
+  leg1->AddEntry(grSystForLeg[1],strLeg[1].c_str(),"pf");
+  leg1->AddEntry(grSystForLeg[0],strLeg[0].c_str(),"pf");
   leg1->Draw();
   
   double xtext = 0.18;
@@ -225,7 +227,7 @@ void plotCompact(std::string inputFile, int ifig)
   TPad *pad=new TPad("padUp","padUp",0.,0.935,1.,1.);
   pad->Draw();
   pad->cd();
-  DrawLatex(0.21,0.2,Form("%s, PbPb 404  #mub^{-1}, pp 27.4 pb^{-1}",tag.Data()),get_txt_size(TVirtualPad::Pad(),18.));
+  DrawLatex(0.21,0.2,Form("%s, PbPb 404  #mub^{-1}, pp 27.4 pb^{-1}",tag.c_str()),get_txt_size(TVirtualPad::Pad(),18.));
 
   //----------------------------------------------------------------------------------------
   //PbPb/pp ratios
@@ -242,7 +244,7 @@ void plotCompact(std::string inputFile, int ifig)
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.);
 
-  TH1F *fr2 = DrawFrame(0.5,4.5,0.,5.2,xTitle.Data(),"PbPb / pp",false);
+  TH1F *fr2 = DrawFrame(0.5,4.5,0.,5.2,xTitle.c_str(),"PbPb / pp",false);
   fr2->GetXaxis()->SetNdivisions(509);
   fr2->GetYaxis()->SetNdivisions(509);
   fr2->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -272,12 +274,12 @@ void plotCompact(std::string inputFile, int ifig)
   text2.SetTextColor(1);
 
   for(int i = 0; i<nCent; ++i) {
-    TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
+    std::string strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     int colorCode = i+1;
-    std::string strTmp = Form("%s (+%.0f)", strCent.Data(), scale[i]/2);
+    std::string strTmp = Form("%s (+%.0f)", strCent.c_str(), scale[i]/2);
     if (i == 0) {
-        strTmp = strCent.Data();
+        strTmp = strCent.c_str();
         DrawLatex(0.18,0.36,strTmp.c_str(),txtSize,GetColor(colorCode));
     }
     else if (i == 1) {
@@ -368,9 +370,9 @@ void plotCompact(std::string inputFile, int ifig)
   if(ifig==2) leg2 = CreateLegend(0.18,0.96,0.88,0.96,"",txtSize);
   leg2->SetNColumns(4);
   for(int i = 0; i<nCent; ++i) {
-    TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
+    std::string strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
-    leg2->AddEntry(grRatioSys[i],strCent.Data(),"pf");  
+    leg2->AddEntry(grRatioSys[i],strCent.c_str(),"pf");
   }
   leg2->Draw();
   */
