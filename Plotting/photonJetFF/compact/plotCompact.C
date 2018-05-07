@@ -46,6 +46,8 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       strLeg = {"pp","PbPb"};
   }
 
+ bool plotJSDataMC = (isJS && ifig == 2);
+
   /* Kaya's instructions:
     PbPb histograms are hff_final_pbpbdata_recoreco_X_Y where X_Y = 0_20 corresponds to Cent. 0-10% (Remaining centralities are clear from context.)
     Similarly smeared pp histograms are hff_final_ppdata_srecoreco_X_Y
@@ -57,7 +59,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   std::vector<double> scale = {0.,2.,4.,6.};  //scale factors for xi distributions
   std::vector<double> scale2 = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
   if (isJS) {
-      scale = {1.,10.,100.,1000.};
+      scale = {10.,100.,1000.,10000.};
       scale2 = {0.,2.,4.,6.};
   }
 
@@ -101,8 +103,10 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       if(hObs[is][ic]) {
         grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic],2.);
         bool multiply = isJS;
-        add_histo(hObs[is][ic],scale[ic], multiply);
-        add_graph(grObsSys[is][ic],scale[ic], multiply);
+        if (is == 1 || !isJS) { // do not scale pp for JS plots
+            add_histo(hObs[is][ic],scale[ic], multiply);
+            add_graph(grObsSys[is][ic],scale[ic], multiply);
+        }
       } else
         Printf("Could not find hObs is =%d ic=%d",is,ic);
     }
@@ -125,6 +129,24 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
     add_histo(hRatio[ic],scale2[ic]);
     add_graph(grRatioSys[ic],scale2[ic]);
+  }
+
+  // get pp MC histogram if any
+  TH1 *hObs_ppmc = 0;
+  //TH1 *hRatio_ppmc_data = 0;
+  //TH1 *hRatioSys_ppmc_data = 0;
+  //TGraphErrors *grRatioSys_ppmc_data = 0;
+  if (plotJSDataMC) {
+      hObs_ppmc = dynamic_cast<TH1*>(file->Get("hjs_final_ppmc_ref0gen0_100_200"));
+      //hRatio_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200"));
+      //hRatioSys_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200_systematics"));
+
+      //grRatioSys_ppmc_data = MakeSystGraph(hRatio_ppmc_data, hRatioSys_ppmc_data, 2.);
+
+      hObs_ppmc->SetAxisRange(0, 0.299, "X");
+      hObs_ppmc->SetLineStyle(kDashed);
+      hObs_ppmc->SetLineWidth(3);
+      hObs_ppmc->SetLineColor(kViolet);
   }
 
   TCanvas *c1 = new TCanvas("c1","c1: xi",480,750);
@@ -150,7 +172,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       xMin = 0;
       xMax = 0.3;
       yMin = 0.2;
-      yMax = 200000-0.001;
+      yMax = 900000-0.001;
       yTitle = "#rho(r)";
   }
   TH1F *fr1 = DrawFrame(xMin, xMax, yMin, yMax, xTitle.c_str(),yTitle.c_str(),false);
@@ -193,10 +215,19 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       }
       if(k==1) grObsSys[k][i]->SetFillStyle(3002);//3002);
 
+      if (k == 0 && isJS) {
+          grObsSys[k][i]->SetMarkerColor(kBlack);
+          grObsSys[k][i]->SetLineColor(kBlack);
+      }
+
       grObsSys[k][i]->Draw("2");
     }
   }
   
+  if (plotJSDataMC) {
+      hObs_ppmc->Draw("same hist");
+  }
+
   for(int i = nCent-1; i>-1; --i) {
     int colorCode = i+1;
     for(int k = (ns-1); k>-1; --k) {
@@ -212,6 +243,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
           hObs[k][i]->SetMarkerStyle(kFullCross);
 
       hObs[k][i]->SetMarkerSize(1.3);
+      if (k == 0 && isJS) {
+          hObs[k][i]->SetMarkerColor(kBlack);
+      }
 
       hObs[k][i]->Draw("same EX0");
     }
@@ -222,6 +256,8 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     if (isJS) {
         double scaleLog = TMath::Log10(scale[i]);
         scaleStr = Form("(x10^{%.0f})",scaleLog);
+        if (scaleLog == 1)
+            scaleStr = Form("(x10)");
     }
     double latex1X = 0;
     double latex1Y = 0;
@@ -252,30 +288,32 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     if (isJS) {
         if(i==0) {
             latex1X = 0.18;
-            latex1Y = 0.20;
+            latex1Y = 0.32;
+            latex2X = 0.18;
+            latex2Y = 0.28;
         }
         else if (i==1) {
             latex1X = 0.18;
-            latex1Y = 0.36;
+            latex1Y = 0.47;
             latex2X = 0.18;
-            latex2Y = 0.31;
+            latex2Y = 0.42;
         }
         else if (i==2) {
             latex1X = 0.18;
-            latex1Y = 0.52;
+            latex1Y = 0.61;
             latex2X = 0.18;
-            latex2Y = 0.47;
+            latex2Y = 0.56;
         }
         else if (i==3) {
             latex1X = 0.18;
-            latex1Y = 0.67;
+            latex1Y = 0.75;
             latex2X = 0.18;
-            latex2Y = 0.62;
+            latex2Y = 0.70;
         }
     }
 
     DrawLatex(latex1X, latex1Y, strCent.c_str(),txtSize,GetColor(colorCode));
-    if (i != 0) {
+    if (i != 0 || isJS) {
         DrawLatex(latex2X, latex2Y, scaleStr.c_str(),txtSize,GetColor(colorCode));
     }
   }
@@ -301,14 +339,18 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       leg1Ymax = 0.15;
   }
   if (isJS) {
-      leg1Xmin = 0.2;
-      leg1Xmax = 0.5;
+      leg1Xmin = 0.18;
+      leg1Xmax = 0.48;
       leg1Ymin = 0.02;
-      leg1Ymax = 0.15;
+      if (plotJSDataMC) leg1Ymin = 0.01;
+      leg1Ymax = 0.18;
   }
   leg1 = CreateLegend(leg1Xmin, leg1Xmax, leg1Ymin, leg1Ymax, "",txtSize);
   leg1->AddEntry(grSystForLeg[1],strLeg[1].c_str(),"pf");
   leg1->AddEntry(grSystForLeg[0],strLeg[0].c_str(),"pf");
+  if (plotJSDataMC) {
+      leg1->AddEntry(hObs_ppmc,"PYTHIA 8","l");
+  }
   leg1->Draw();
 
   double cmsTextX = 0.83;
@@ -326,7 +368,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   }
   else {
       DrawLatex(0.35,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
-      DrawLatex(0.39,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c"),txtSize);
+      DrawLatex(0.38,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c"),txtSize);
       DrawLatex(0.53,0.72,Form("|#eta^{jet}| < %.1f, p_{T}^{trk} > 1 GeV/c", 1.6),txtSize);
   }
 
