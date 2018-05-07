@@ -13,11 +13,12 @@ inputFiles=(
 );
 
 figureIndices=(1 2);
+isJS=0
 
 arrayIndices=${!inputFiles[*]}
 for i1 in $arrayIndices
 do
     inputFile=${inputFiles[i1]}
     figureIndex=${figureIndices[i1]}
-    $progPath $inputFile $figureIndex
+    $progPath $inputFile $figureIndex $isJS
 done
