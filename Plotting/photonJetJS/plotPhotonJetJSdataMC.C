@@ -276,35 +276,18 @@ void plot_js_pp_data_mc(std::string inputFile)
     TH1D* hTmp = 0;
     for (int i = 0; i < nHistPaths; ++i) {
 
-        if (i < 2) {
-            h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
-            h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
-        }
-        else if (i == k_ratio) {
-            h1Ds[k_ratio] = (TH1D*)h1Ds[k_MC]->Clone(histPaths[k_ratio].c_str());
-            h1Ds[k_ratio]->Divide(h1Ds[k_pp]);
-
-            hTmp = (TH1D*)h1DsSys[k_pp]->Clone(Form("%s_varied", histPaths[k_ratio].c_str()));
-            hTmp->Add(h1Ds[k_pp]);
-
-            h1DsSys[k_ratio] = (TH1D*)h1Ds[k_MC]->Clone(sysPaths[k_ratio].c_str());
-            h1DsSys[k_ratio]->Divide(hTmp);
-
-            h1DsSys[k_ratio]->Add(h1Ds[k_ratio], -1);
-            calcTH1Abs4SysUnc(h1DsSys[k_ratio]);
-        }
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0 + 0.001, 0.3 - 0.001, "X");
 
-        if (i < 2) {
-            h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.6);
-            h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.6);
+        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.6);
+        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.6);
 
-            h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
-            h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
-        }
+        h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
+        h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
     }
     h1Ds[k_MC]->SetLineStyle(kDashed);
 
