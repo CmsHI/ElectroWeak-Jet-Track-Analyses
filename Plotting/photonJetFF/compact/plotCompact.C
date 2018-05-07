@@ -41,7 +41,10 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   double centMax[nCent] = {10.,30.,50.,100.};
    
   const int ns = 2; //systems: pp=0 PbPb=1
-  std::string strLeg[ns] = {"pp (smeared)","PbPb"};
+  std::vector<std::string> strLeg = {"pp (smeared)","PbPb"};
+  if (isJS) {
+      strLeg = {"pp","PbPb"};
+  }
 
   /* Kaya's instructions:
     PbPb histograms are hff_final_pbpbdata_recoreco_X_Y where X_Y = 0_20 corresponds to Cent. 0-10% (Remaining centralities are clear from context.)
@@ -53,6 +56,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
   std::vector<double> scale = {0.,2.,4.,6.};  //scale factors for xi distributions
   std::vector<double> scale2 = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
+  if (isJS) {
+      scale = {1.,10.,100.,1000.};
+  }
 
   std::string strObs = "hff";
   if (isJS) strObs = "hjs";
@@ -93,8 +99,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
       if(hObs[is][ic]) {
         grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic],2.);
-        add_histo(hObs[is][ic],scale[ic]);
-        add_graph(grObsSys[is][ic],scale[ic]);
+        bool multiply = isJS;
+        add_histo(hObs[is][ic],scale[ic], multiply);
+        add_graph(grObsSys[is][ic],scale[ic], multiply);
       } else
         Printf("Could not find hObs is =%d ic=%d",is,ic);
     }
@@ -141,8 +148,8 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   if (isJS) {
       xMin = 0;
       xMax = 0.3;
-      yMin = 0.1;
-      yMax = 99.999;
+      yMin = 0.2;
+      yMax = 200000-0.001;
       yTitle = "#rho(r)";
   }
   TH1F *fr1 = DrawFrame(xMin, xMax, yMin, yMax, xTitle.c_str(),yTitle.c_str(),false);
@@ -153,6 +160,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   fr1->GetYaxis()->SetTitleSize(get_txt_size(TVirtualPad::Pad(),24.));
   fr1->GetXaxis()->SetTitleOffset(0.8);
   fr1->GetYaxis()->SetTitleOffset(1.02);
+  if (isJS) {
+      fr1->GetYaxis()->SetTitleOffset(1.16);
+  }
   fr1->GetYaxis()->SetLabelOffset(0.021);
   fr1->GetXaxis()->CenterTitle(true);
   fr1->GetYaxis()->CenterTitle(true);
@@ -207,20 +217,65 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
     std::string strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
+    std::string scaleStr = Form("(+%.0f)",scale[i]);
+    if (isJS) {
+        double scaleLog = TMath::Log10(scale[i]);
+        scaleStr = Form("(x10^{%.0f})",scaleLog);
+    }
+    double latex1X = 0;
+    double latex1Y = 0;
+    double latex2X = 0;
+    double latex2Y = 0;
     if(i==0) {
-      DrawLatex(0.17,0.10,strCent.c_str(),txtSize,GetColor(colorCode));
+        latex1X = 0.17;
+        latex1Y = 0.10;
     }
-    if(i==1) {
-      DrawLatex(0.17,0.28,strCent.c_str(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.24,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+    else if (i==1) {
+        latex1X = 0.17;
+        latex1Y = 0.28;
+        latex2X = 0.17;
+        latex2Y = 0.24;
     }
-    if(i==2) {
-      DrawLatex(0.17,0.43,strCent.c_str(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.39,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+    else if (i==2) {
+        latex1X = 0.17;
+        latex1Y = 0.43;
+        latex2X = 0.17;
+        latex2Y = 0.39;
     }
-    if(i==3) {
-      DrawLatex(0.17,0.58,strCent.c_str(),txtSize,GetColor(colorCode));
-      DrawLatex(0.17,0.54,Form("(+%.0f)",scale[i]),txtSize,GetColor(colorCode));
+    else if (i==3) {
+        latex1X = 0.17;
+        latex1Y = 0.58;
+        latex2X = 0.17;
+        latex2Y = 0.54;
+    }
+    if (isJS) {
+        if(i==0) {
+            latex1X = 0.18;
+            latex1Y = 0.20;
+        }
+        else if (i==1) {
+            latex1X = 0.18;
+            latex1Y = 0.36;
+            latex2X = 0.18;
+            latex2Y = 0.31;
+        }
+        else if (i==2) {
+            latex1X = 0.18;
+            latex1Y = 0.52;
+            latex2X = 0.18;
+            latex2Y = 0.47;
+        }
+        else if (i==3) {
+            latex1X = 0.18;
+            latex1Y = 0.67;
+            latex2X = 0.18;
+            latex2Y = 0.62;
+        }
+    }
+
+    DrawLatex(latex1X, latex1Y, strCent.c_str(),txtSize,GetColor(colorCode));
+    if (i != 0) {
+        DrawLatex(latex2X, latex2Y, scaleStr.c_str(),txtSize,GetColor(colorCode));
     }
   }
 
@@ -234,19 +289,46 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   }
   
   TLegend *leg1 = 0;
-  if(ifig==1) leg1 = CreateLegend(0.5,0.8,0.02,0.15,"",txtSize);
-  if(ifig==2) leg1 = CreateLegend(0.63,0.93,0.02,0.15,"",txtSize);
+  double leg1Xmin = 0.5;
+  double leg1Xmax = 0.8;
+  double leg1Ymin = 0.02;
+  double leg1Ymax = 0.15;
+  if (ifig == 2) {
+      leg1Xmin = 0.63;
+      leg1Xmax = 0.93;
+      leg1Ymin = 0.02;
+      leg1Ymax = 0.15;
+  }
+  if (isJS) {
+      leg1Xmin = 0.2;
+      leg1Xmax = 0.5;
+      leg1Ymin = 0.02;
+      leg1Ymax = 0.15;
+  }
+  leg1 = CreateLegend(leg1Xmin, leg1Xmax, leg1Ymin, leg1Ymax, "",txtSize);
   leg1->AddEntry(grSystForLeg[1],strLeg[1].c_str(),"pf");
   leg1->AddEntry(grSystForLeg[0],strLeg[0].c_str(),"pf");
   leg1->Draw();
-  
-  double xtext = 0.18;
 
-  DrawLatex(0.83,0.86,"#bf{CMS}",get_txt_size(TVirtualPad::Pad(),20.));
+  double cmsTextX = 0.83;
+  double cmsTextY = 0.86;
+  if (isJS) {
+      cmsTextX = 0.20;
+      cmsTextY = 0.86;
+  }
+  DrawLatex(cmsTextX, cmsTextY, "#bf{CMS}",get_txt_size(TVirtualPad::Pad(),20.));
   
-  DrawLatex(xtext,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
-  DrawLatex(xtext,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < %.1f",1.6),txtSize);
-  DrawLatex(xtext,0.72,Form("p_{T}^{trk} > 1 GeV/c"),txtSize);
+  if (!isJS) {
+      DrawLatex(0.18,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
+      DrawLatex(0.18,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < %.1f",1.6),txtSize);
+      DrawLatex(0.18,0.72,Form("p_{T}^{trk} > 1 GeV/c"),txtSize);
+  }
+  else {
+      DrawLatex(0.35,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
+      DrawLatex(0.39,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c"),txtSize);
+      DrawLatex(0.53,0.72,Form("|#eta^{jet}| < %.1f, p_{T}^{trk} > 1 GeV/c", 1.6),txtSize);
+  }
+
 
   TPad *pad=new TPad("padUp","padUp",0.,0.935,1.,1.);
   pad->Draw();
@@ -296,18 +378,20 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   text2.SetTextFont(42);
   text2.SetTextColor(1);
 
-  text2.DrawLatex(0.5-0.2,0.-0.1,"0");
-  text2.DrawLatex(0.5-0.2,1.-0.1,"1");
-  text2.DrawLatex(0.5-0.2,2.-0.1,"2");
-  text2.DrawLatex(0.5-0.2,3.-0.1,"3");
-  text2.DrawLatex(0.5-0.2,4.-0.1,"4");
+  double xText2 = xMin - 0.2;
+  if (isJS) xText2 = xMin - 0.01;
+  text2.DrawLatex(xText2,0.-0.1,"0");
+  text2.DrawLatex(xText2,1.-0.1,"1");
+  text2.DrawLatex(xText2,2.-0.1,"2");
+  text2.DrawLatex(xText2,3.-0.1,"3");
+  text2.DrawLatex(xText2,4.-0.1,"4");
   text2.SetTextColor(1);
 
   for(int i = 0; i<nCent; ++i) {
     std::string strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
     strCent+="%";
     int colorCode = i+1;
-    std::string strTmp = Form("%s (+%.0f)", strCent.c_str(), scale[i]/2);
+    std::string strTmp = Form("%s (+%.0f)", strCent.c_str(), scale2[i]);
     if (i == 0) {
         strTmp = strCent.c_str();
         DrawLatex(0.18,0.36,strTmp.c_str(),txtSize,GetColor(colorCode));

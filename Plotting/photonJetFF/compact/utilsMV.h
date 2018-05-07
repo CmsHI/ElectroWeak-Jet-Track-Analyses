@@ -458,21 +458,33 @@ void scale_graph_x(TGraph *gr) {
   }
 }
 
-void add_graph(TGraphErrors *gr, Float_t a) {
+void add_graph(TGraphErrors *gr, Float_t a, bool multiply = false) {
   for (Int_t i=0; i<gr->GetN(); i++) {
     Double_t x,y;
     gr->GetPoint(i,x,y);
-    gr->SetPoint(i,x,y+a);
-    gr->SetPointError(i,gr->GetErrorX(i),gr->GetErrorY(i));// * (1.+a/y));
+    if (!multiply) {
+        gr->SetPoint(i,x,y+a);
+        gr->SetPointError(i,gr->GetErrorX(i),gr->GetErrorY(i));// * (1.+a/y));
+    }
+    else {
+        gr->SetPoint(i,x,y*a);
+        gr->SetPointError(i,gr->GetErrorX(i),gr->GetErrorY(i)*a);// * (1.+a/y));
+    }
   }
 }
 
-void add_histo(TH1 *h1, Float_t a) {
+void add_histo(TH1 *h1, Float_t a, bool multiply = false) {
   for (Int_t i=1; i<=h1->GetXaxis()->GetNbins(); i++) {
     double y = h1->GetBinContent(i);
     if(y>0.) {
-      h1->SetBinContent(i,y+a);
-      h1->SetBinError(i,h1->GetBinError(i));
+        if (!multiply) {
+            h1->SetBinContent(i,y+a);
+            h1->SetBinError(i,h1->GetBinError(i));
+        }
+        else {
+            h1->SetBinContent(i,y*a);
+            h1->SetBinError(i,h1->GetBinError(i)*a);
+        }
     }
   }
 }
