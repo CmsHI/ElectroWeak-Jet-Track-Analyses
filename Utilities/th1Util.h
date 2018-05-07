@@ -861,7 +861,7 @@ void calcTH1AbsMax4SysUnc(TH1* h, TH1* h1, TH1* h2)
 }
 
 /*
- * "h" becomes "abs(h)" : replace the bin contents of a "h" with the absolute values
+ * "h" becomes "abs(h)" : replace the bin contents of "h" with the absolute values
  */
 void calcTH1Abs4SysUnc(TH1* h)
 {
