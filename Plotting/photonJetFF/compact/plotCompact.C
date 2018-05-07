@@ -50,6 +50,8 @@ void plotCompact(std::string inputFile, int ifig)
 
   double scale[nCent] = {0.,2.,4.,6.};  //scale factors for xi distributions
   double scale2[nCent] = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
+
+  std::string strObs = "hff";
    
   //Get xi histograms
   TH1 *hObs[ns][nCent];
@@ -62,17 +64,17 @@ void plotCompact(std::string inputFile, int ifig)
     else if(is==1) //PbPb
       strSysTmp = "pbpbdata_";
     for(int ic = 0; ic<nCent; ++ic) {
-      std::string histName;
-      if(ic==0) histName = Form("hff_final_%srecoreco_0_20",strSysTmp.c_str());
-      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60",strSysTmp.c_str());
-      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100",strSysTmp.c_str());
-      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200",strSysTmp.c_str());
+      std::string histName = "";
+      if(ic==0) histName = Form("%s_final_%srecoreco_0_20", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==1) histName = Form("%s_final_%srecoreco_20_60", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==2) histName = Form("%s_final_%srecoreco_60_100", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==3) histName = Form("%s_final_%srecoreco_100_200", strObs.c_str(), strSysTmp.c_str());
       hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
-      if(ic==0) histName = Form("hff_final_%srecoreco_0_20_systematics",strSysTmp.c_str());
-      else if(ic==1) histName = Form("hff_final_%srecoreco_20_60_systematics",strSysTmp.c_str());
-      else if(ic==2) histName = Form("hff_final_%srecoreco_60_100_systematics",strSysTmp.c_str());
-      else if(ic==3) histName = Form("hff_final_%srecoreco_100_200_systematics",strSysTmp.c_str());
+      if(ic==0) histName = Form("%s_final_%srecoreco_0_20_systematics", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==1) histName = Form("%s_final_%srecoreco_20_60_systematics", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==2) histName = Form("%s_final_%srecoreco_60_100_systematics", strObs.c_str(), strSysTmp.c_str());
+      else if(ic==3) histName = Form("%s_final_%srecoreco_100_200_systematics", strObs.c_str(), strSysTmp.c_str());
       hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
       if(hObs[is][ic]) {
@@ -90,16 +92,16 @@ void plotCompact(std::string inputFile, int ifig)
   TGraphErrors *grRatioSys[nCent];
   for(int ic = 0; ic<nCent; ++ic) {
     std::string histName;
-    if(ic==0) histName = Form("hff_final_ratio_0_20");
-    else if(ic==1) histName = Form("hff_final_ratio_20_60");
-    else if(ic==2) histName = Form("hff_final_ratio_60_100");
-    else if(ic==3) histName = Form("hff_final_ratio_100_200");
+    if(ic==0) histName = Form("%s_final_ratio_0_20", strObs.c_str());
+    else if(ic==1) histName = Form("%s_final_ratio_20_60", strObs.c_str());
+    else if(ic==2) histName = Form("%s_final_ratio_60_100", strObs.c_str());
+    else if(ic==3) histName = Form("%s_final_ratio_100_200", strObs.c_str());
     hRatio[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
-    if(ic==0) histName = Form("hff_final_ratio_0_20_systematics");
-    else if(ic==1) histName = Form("hff_final_ratio_20_60_systematics");
-    else if(ic==2) histName = Form("hff_final_ratio_60_100_systematics");
-    else if(ic==3) histName = Form("hff_final_ratio_100_200_systematics");
+    if(ic==0) histName = Form("%s_final_ratio_0_20_systematics", strObs.c_str());
+    else if(ic==1) histName = Form("%s_final_ratio_20_60_systematics", strObs.c_str());
+    else if(ic==2) histName = Form("%s_final_ratio_60_100_systematics", strObs.c_str());
+    else if(ic==3) histName = Form("%s_final_ratio_100_200_systematics", strObs.c_str());
     hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
     
     grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic],2.);
