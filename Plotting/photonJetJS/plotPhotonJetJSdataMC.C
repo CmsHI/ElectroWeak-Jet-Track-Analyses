@@ -248,7 +248,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     histPaths = {
             "hjs_final_ppdata_corrjsrecoreco_100_200",
             "hjs_final_ppmc_ref0gen0_100_200",
-            "hjs_final_ratio_ppdata_ppmc_100_200"
+            "hjs_final_ratio_ppmc_ppdata_100_200"
     };
     markerColors = {kBlack, kBlack, kBlack};
     markerStyles = {kFullCircle, kOpenCircle, kFullCircle};
