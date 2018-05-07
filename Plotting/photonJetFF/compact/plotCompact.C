@@ -24,9 +24,9 @@ void plotCompact(std::string inputFile, int ifig)
   TString xTitle = "#xi^{jet}";
   if(ifig==2) xTitle = "#xi^{#gamma}_{T}";
 
-  TFile* f = 0;
-  f = new TFile(inputFile.c_str());
-  if (!f || f->IsZombie()) {
+  TFile* file = 0;
+  file = new TFile(inputFile.c_str());
+  if (!file || file->IsZombie()) {
       Printf("This root file doesn't exist. Aborting!");
       return;
   }
@@ -50,9 +50,9 @@ void plotCompact(std::string inputFile, int ifig)
   double scale2[nCent] = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
    
   //Get xi histograms
-  TH1 *hXi[ns][nCent];
-  TH1 *hXiSys[ns][nCent];
-  TGraphErrors *grXiSys[ns][nCent];
+  TH1 *hObs[ns][nCent];
+  TH1 *hObsSys[ns][nCent];
+  TGraphErrors *grObsSys[ns][nCent];
   for(int is = 0; is<ns; ++is) {
     TString strSysTmp;
     if(is==0) //pp smeared
@@ -65,20 +65,20 @@ void plotCompact(std::string inputFile, int ifig)
       else if(ic==1) histName = Form("hff_final_%srecoreco_20_60",strSysTmp.Data());
       else if(ic==2) histName = Form("hff_final_%srecoreco_60_100",strSysTmp.Data());
       else if(ic==3) histName = Form("hff_final_%srecoreco_100_200",strSysTmp.Data());
-      hXi[is][ic] = dynamic_cast<TH1*>(f->Get(histName.Data()));
+      hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
 
       if(ic==0) histName = Form("hff_final_%srecoreco_0_20_systematics",strSysTmp.Data());
       else if(ic==1) histName = Form("hff_final_%srecoreco_20_60_systematics",strSysTmp.Data());
       else if(ic==2) histName = Form("hff_final_%srecoreco_60_100_systematics",strSysTmp.Data());
       else if(ic==3) histName = Form("hff_final_%srecoreco_100_200_systematics",strSysTmp.Data());
-      hXiSys[is][ic] = dynamic_cast<TH1*>(f->Get(histName.Data()));
+      hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
 
-      if(hXi[is][ic]) {
-        grXiSys[is][ic] = MakeSystGraph(hXi[is][ic],hXiSys[is][ic],2.);
-        add_histo(hXi[is][ic],scale[ic]);
-        add_graph(grXiSys[is][ic],scale[ic]);
+      if(hObs[is][ic]) {
+        grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic],2.);
+        add_histo(hObs[is][ic],scale[ic]);
+        add_graph(grObsSys[is][ic],scale[ic]);
       } else
-        Printf("Could not find hXi is =%d ic=%d",is,ic);
+        Printf("Could not find hObs is =%d ic=%d",is,ic);
     }
   }
 
@@ -92,13 +92,13 @@ void plotCompact(std::string inputFile, int ifig)
     else if(ic==1) histName = Form("hff_final_ratio_20_60");
     else if(ic==2) histName = Form("hff_final_ratio_60_100");
     else if(ic==3) histName = Form("hff_final_ratio_100_200");
-    hRatio[ic] = dynamic_cast<TH1*>(f->Get(histName.Data()));
+    hRatio[ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
 
     if(ic==0) histName = Form("hff_final_ratio_0_20_systematics");
     else if(ic==1) histName = Form("hff_final_ratio_20_60_systematics");
     else if(ic==2) histName = Form("hff_final_ratio_60_100_systematics");
     else if(ic==3) histName = Form("hff_final_ratio_100_200_systematics");
-    hRatioSys[ic] = dynamic_cast<TH1*>(f->Get(histName.Data()));
+    hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.Data()));
     
     grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic],2.);
 
@@ -133,50 +133,50 @@ void plotCompact(std::string inputFile, int ifig)
 
   for(int i = nCent-1; i>-1; --i) {
     for(int k = (ns-1); k>-1; --k) {
-      if(!hXi[k][i]) continue;
+      if(!hObs[k][i]) continue;
 
       int colorCode = i+1;
 
-      grXiSys[k][i]->SetFillColor(GetFillColor(colorCode));
-      grXiSys[k][i]->SetLineColor(10);
-      grXiSys[k][i]->SetMarkerColor(GetColor(colorCode));
-      grXiSys[k][i]->SetMarkerStyle(GetMarker(k));
-      grXiSys[k][i]->SetMarkerSize(1.3);
+      grObsSys[k][i]->SetFillColor(GetFillColor(colorCode));
+      grObsSys[k][i]->SetLineColor(10);
+      grObsSys[k][i]->SetMarkerColor(GetColor(colorCode));
+      grObsSys[k][i]->SetMarkerStyle(GetMarker(k));
+      grObsSys[k][i]->SetMarkerSize(1.3);
 
       if(k==0)
-        grXiSys[k][i]->SetMarkerStyle(kOpenCross);
+        grObsSys[k][i]->SetMarkerStyle(kOpenCross);
       else
-        grXiSys[k][i]->SetMarkerStyle(kFullCross);
+        grObsSys[k][i]->SetMarkerStyle(kFullCross);
 
       if(k==0) {
-        grXiSys[k][i]->SetFillStyle(0);
-        grXiSys[k][i]->SetLineColor(GetColor(colorCode));
-        grXiSys[k][i]->SetLineWidth(1);
-        grXiSys[k][i]->SetFillColor(10);
+        grObsSys[k][i]->SetFillStyle(0);
+        grObsSys[k][i]->SetLineColor(GetColor(colorCode));
+        grObsSys[k][i]->SetLineWidth(1);
+        grObsSys[k][i]->SetFillColor(10);
       }
-      if(k==1) grXiSys[k][i]->SetFillStyle(3002);//3002);
+      if(k==1) grObsSys[k][i]->SetFillStyle(3002);//3002);
 
-      grXiSys[k][i]->Draw("2");
+      grObsSys[k][i]->Draw("2");
     }
   }
   
   for(int i = nCent-1; i>-1; --i) {
     int colorCode = i+1;
     for(int k = (ns-1); k>-1; --k) {
-      if(!hXi[k][i]) continue;
+      if(!hObs[k][i]) continue;
       
-      hXi[k][i]->SetLineColor(GetColor(colorCode));
-      hXi[k][i]->SetMarkerColor(GetColor(colorCode));
+      hObs[k][i]->SetLineColor(GetColor(colorCode));
+      hObs[k][i]->SetMarkerColor(GetColor(colorCode));
 
       if(k==0) {
-          hXi[k][i]->SetMarkerStyle(kOpenCross);
+          hObs[k][i]->SetMarkerStyle(kOpenCross);
       }
       else
-          hXi[k][i]->SetMarkerStyle(kFullCross);
+          hObs[k][i]->SetMarkerStyle(kFullCross);
 
-      hXi[k][i]->SetMarkerSize(1.3);
+      hObs[k][i]->SetMarkerSize(1.3);
 
-      hXi[k][i]->Draw("same EX0");
+      hObs[k][i]->Draw("same EX0");
     }
 
     TString strCent = Form("%.0f-%.0f",centMin[i],centMax[i]);
@@ -199,8 +199,8 @@ void plotCompact(std::string inputFile, int ifig)
   }
 
   TGraphErrors *grSystForLeg[2]; //clones for legend which we want in black
-  grSystForLeg[0] = dynamic_cast<TGraphErrors*>(grXiSys[0][0]->Clone("grSystForLeg0"));
-  grSystForLeg[1] = dynamic_cast<TGraphErrors*>(grXiSys[1][0]->Clone("grSystForLeg0"));
+  grSystForLeg[0] = dynamic_cast<TGraphErrors*>(grObsSys[0][0]->Clone("grSystForLeg0"));
+  grSystForLeg[1] = dynamic_cast<TGraphErrors*>(grObsSys[1][0]->Clone("grSystForLeg0"));
   for(int il = 0; il<2; ++il) {
     if(il==0) grSystForLeg[il]->SetLineColor(1);
     grSystForLeg[il]->SetMarkerColor(1);
