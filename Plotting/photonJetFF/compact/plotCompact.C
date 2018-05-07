@@ -58,6 +58,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   std::vector<double> scale2 = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
   if (isJS) {
       scale = {1.,10.,100.,1000.};
+      scale2 = {0.,2.,4.,6.};
   }
 
   std::string strObs = "hff";
@@ -354,7 +355,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   double yMaxRatio = 5.2;
   if (isJS) {
       yMinRatio = 0;
-      yMaxRatio = 5.2;
+      yMaxRatio = 8.2;
   }
   TH1F *fr2 = DrawFrame(xMin, xMax, yMinRatio, yMaxRatio, xTitle.c_str(), "PbPb / pp" , false);
   fr2->GetXaxis()->SetNdivisions(509);
@@ -378,13 +379,24 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   text2.SetTextFont(42);
   text2.SetTextColor(1);
 
-  double xText2 = xMin - 0.2;
-  if (isJS) xText2 = xMin - 0.01;
-  text2.DrawLatex(xText2,0.-0.1,"0");
-  text2.DrawLatex(xText2,1.-0.1,"1");
-  text2.DrawLatex(xText2,2.-0.1,"2");
-  text2.DrawLatex(xText2,3.-0.1,"3");
-  text2.DrawLatex(xText2,4.-0.1,"4");
+  double xText2 = 0;
+  if (!isJS) {
+      xText2 = xMin - 0.2;
+      text2.DrawLatex(xText2,0.-0.1,"0");
+      text2.DrawLatex(xText2,1.-0.1,"1");
+      text2.DrawLatex(xText2,2.-0.1,"2");
+      text2.DrawLatex(xText2,3.-0.1,"3");
+      text2.DrawLatex(xText2,4.-0.1,"4");
+  }
+  else {
+      xText2 = xMin - 0.01;
+      text2.DrawLatex(xText2,0.-0.1,"0");
+      text2.DrawLatex(xText2,1.-0.1,"1");
+      text2.DrawLatex(xText2,3.-0.1,"3");
+      text2.DrawLatex(xText2,5.-0.1,"5");
+      text2.DrawLatex(xText2,7.-0.1,"7");
+  }
+
   text2.SetTextColor(1);
 
   for(int i = 0; i<nCent; ++i) {
@@ -392,19 +404,37 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     strCent+="%";
     int colorCode = i+1;
     std::string strTmp = Form("%s (+%.0f)", strCent.c_str(), scale2[i]);
+    double latexRatioX = 0.18;
+    double latexRatioY = 0;
     if (i == 0) {
+        latexRatioY = 0.36;
         strTmp = strCent.c_str();
-        DrawLatex(0.18,0.36,strTmp.c_str(),txtSize,GetColor(colorCode));
     }
     else if (i == 1) {
-        DrawLatex(0.18,0.52,strTmp.c_str(),txtSize,GetColor(colorCode));
+        latexRatioY = 0.52;
     }
     else if (i == 2) {
-        DrawLatex(0.18,0.70,strTmp.c_str(),txtSize,GetColor(colorCode));
+        latexRatioY = 0.70;
     }
     else if (i == 3) {
-        DrawLatex(0.18,0.87,strTmp.c_str(),txtSize,GetColor(colorCode));
+        latexRatioY = 0.87;
     }
+    if (isJS) {
+        if (i == 0) {
+            latexRatioY = 0.30;
+            strTmp = strCent.c_str();
+        }
+        else if (i == 1) {
+            latexRatioY = 0.50;
+        }
+        else if (i == 2) {
+            latexRatioY = 0.72;
+        }
+        else if (i == 3) {
+            latexRatioY = 0.92;
+        }
+    }
+    DrawLatex(latexRatioX,latexRatioY,strTmp.c_str(),txtSize,GetColor(colorCode));
   }
 
   /*
