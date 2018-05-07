@@ -16,6 +16,7 @@
 
 #include <string>
 
+std::string getCentStr(int iCent);
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
 void plotCompact(std::string inputFile = "Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root", int ifig = 1);
 
@@ -58,23 +59,18 @@ void plotCompact(std::string inputFile, int ifig)
   TH1 *hObsSys[ns][nCent];
   TGraphErrors *grObsSys[ns][nCent];
   for(int is = 0; is<ns; ++is) {
-    std::string strSysTmp;
+    std::string strSysTmp = "";
     if(is==0) //pp smeared
       strSysTmp = "ppdata_s";
     else if(is==1) //PbPb
       strSysTmp = "pbpbdata_";
     for(int ic = 0; ic<nCent; ++ic) {
       std::string histName = "";
-      if(ic==0) histName = Form("%s_final_%srecoreco_0_20", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==1) histName = Form("%s_final_%srecoreco_20_60", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==2) histName = Form("%s_final_%srecoreco_60_100", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==3) histName = Form("%s_final_%srecoreco_100_200", strObs.c_str(), strSysTmp.c_str());
+      std::string centStr = getCentStr(ic);
+      histName = Form("%s_final_%srecoreco_%s", strObs.c_str(), strSysTmp.c_str(), centStr.c_str());
       hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
-      if(ic==0) histName = Form("%s_final_%srecoreco_0_20_systematics", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==1) histName = Form("%s_final_%srecoreco_20_60_systematics", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==2) histName = Form("%s_final_%srecoreco_60_100_systematics", strObs.c_str(), strSysTmp.c_str());
-      else if(ic==3) histName = Form("%s_final_%srecoreco_100_200_systematics", strObs.c_str(), strSysTmp.c_str());
+      histName = Form("%s_final_%srecoreco_%s_systematics", strObs.c_str(), strSysTmp.c_str(), centStr.c_str());
       hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
       if(hObs[is][ic]) {
@@ -91,17 +87,12 @@ void plotCompact(std::string inputFile, int ifig)
   TH1 *hRatioSys[nCent];
   TGraphErrors *grRatioSys[nCent];
   for(int ic = 0; ic<nCent; ++ic) {
-    std::string histName;
-    if(ic==0) histName = Form("%s_final_ratio_0_20", strObs.c_str());
-    else if(ic==1) histName = Form("%s_final_ratio_20_60", strObs.c_str());
-    else if(ic==2) histName = Form("%s_final_ratio_60_100", strObs.c_str());
-    else if(ic==3) histName = Form("%s_final_ratio_100_200", strObs.c_str());
+    std::string histName = "";
+    std::string centStr = getCentStr(ic);
+    histName = Form("%s_final_ratio_%s", strObs.c_str(), centStr.c_str());
     hRatio[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
-    if(ic==0) histName = Form("%s_final_ratio_0_20_systematics", strObs.c_str());
-    else if(ic==1) histName = Form("%s_final_ratio_20_60_systematics", strObs.c_str());
-    else if(ic==2) histName = Form("%s_final_ratio_60_100_systematics", strObs.c_str());
-    else if(ic==3) histName = Form("%s_final_ratio_100_200_systematics", strObs.c_str());
+    histName = Form("%s_final_ratio_%s_systematics", strObs.c_str(), centStr.c_str());
     hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
     
     grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic],2.);
@@ -398,6 +389,25 @@ int main(int argc, char** argv)
                 "./plotCompact.exe <inputFile> <figureIndex>"
                 << std::endl;
         return 1;
+    }
+}
+
+std::string getCentStr(int iCent)
+{
+    if(iCent == 0) {
+        return "0_20";
+    }
+    else if(iCent == 1) {
+        return "20_60";
+    }
+    else if(iCent == 2) {
+        return "60_100";
+    }
+    else if(iCent == 3) {
+        return "100_200";
+    }
+    else {
+        return "";
     }
 }
 
