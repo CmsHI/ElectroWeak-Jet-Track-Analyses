@@ -18,14 +18,16 @@
 
 std::string getCentStr(int iCent);
 TGraphErrors *MakeSystGraph(TH1* hC = 0, TH1 *hS = 0, double we = 1.);
-void plotCompact(std::string inputFile = "Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root", int ifig = 1);
+void plotCompact(std::string inputFile = "Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root", int ifig = 1, bool isJS = 0);
 
-void plotCompact(std::string inputFile, int ifig)
+void plotCompact(std::string inputFile, int ifig, bool isJS)
 {
   std::string tag = "#sqrt{s_{NN}} = 5.02 TeV";
 
   std::string xTitle = "#xi^{jet}";
-  if(ifig==2) xTitle = "#xi^{#gamma}_{T}";
+  if(ifig == 2) xTitle = "#xi^{#gamma}_{T}";
+
+  if (isJS) xTitle = "r";
 
   TFile* file = 0;
   file = new TFile(inputFile.c_str());
@@ -49,10 +51,11 @@ void plotCompact(std::string inputFile, int ifig)
     The systematics for each data are in the histograms with the suffix "_systematics". Systematics are in absolute values (difference from the nominal).
   */
 
-  double scale[nCent] = {0.,2.,4.,6.};  //scale factors for xi distributions
-  double scale2[nCent] = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
+  std::vector<double> scale = {0.,2.,4.,6.};  //scale factors for xi distributions
+  std::vector<double> scale2 = {0.,1.,2.,3.}; //scale factors for PbPb/pp ratios (hidden)
 
   std::string strObs = "hff";
+  if (isJS) strObs = "hjs";
    
   //Get xi histograms
   TH1 *hObs[ns][nCent];
@@ -60,13 +63,28 @@ void plotCompact(std::string inputFile, int ifig)
   TGraphErrors *grObsSys[ns][nCent];
   for(int is = 0; is<ns; ++is) {
     std::string strSysTmp = "";
-    if(is==0) //pp smeared
-      strSysTmp = "ppdata_s";
-    else if(is==1) //PbPb
-      strSysTmp = "pbpbdata_";
+    if(is==0) {
+        //pp smeared
+        strSysTmp = "ppdata_s";
+        if (isJS) strSysTmp = "ppdata_corrjs";
+    }
+    else if(is==1) {
+        //PbPb
+        strSysTmp = "pbpbdata_";
+        if (isJS) strSysTmp = "pbpbdata_corrjs";
+    }
     for(int ic = 0; ic<nCent; ++ic) {
       std::string histName = "";
       std::string centStr = getCentStr(ic);
+
+      hObs[is][ic] = 0;
+      hObsSys[is][ic] = 0;
+
+      if (is == 0 && isJS) {
+          if (ic != 0) continue;
+          centStr = getCentStr(3);
+      }
+
       histName = Form("%s_final_%srecoreco_%s", strObs.c_str(), strSysTmp.c_str(), centStr.c_str());
       hObs[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
@@ -113,8 +131,21 @@ void plotCompact(std::string inputFile, int ifig)
   gPad->SetBottomMargin(0.);
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.07);
+  if (isJS) gPad->SetLogy(1);
 
-  TH1F *fr1 = DrawFrame(0.5,4.5,-0.5,11.999,xTitle.c_str(),Form("1/N^{jet} dN^{trk}/d%s",xTitle.c_str()),false);
+  std::string yTitle = Form("1/N^{jet} dN^{trk}/d%s",xTitle.c_str());
+  double xMin = 0.5;
+  double xMax = 4.5;
+  double yMin = -0.5;
+  double yMax = 11.999;
+  if (isJS) {
+      xMin = 0;
+      xMax = 0.3;
+      yMin = 0.1;
+      yMax = 99.999;
+      yTitle = "#rho(r)";
+  }
+  TH1F *fr1 = DrawFrame(xMin, xMax, yMin, yMax, xTitle.c_str(),yTitle.c_str(),false);
   fr1->GetXaxis()->SetNdivisions(509);
   fr1->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
   fr1->GetYaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -237,7 +268,13 @@ void plotCompact(std::string inputFile, int ifig)
   gPad->SetRightMargin(0.05);
   gPad->SetTopMargin(0.);
 
-  TH1F *fr2 = DrawFrame(0.5,4.5,0.,5.2,xTitle.c_str(),"PbPb / pp",false);
+  double yMinRatio = 0;
+  double yMaxRatio = 5.2;
+  if (isJS) {
+      yMinRatio = 0;
+      yMaxRatio = 5.2;
+  }
+  TH1F *fr2 = DrawFrame(xMin, xMax, yMinRatio, yMaxRatio, xTitle.c_str(), "PbPb / pp" , false);
   fr2->GetXaxis()->SetNdivisions(509);
   fr2->GetYaxis()->SetNdivisions(509);
   fr2->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
@@ -370,13 +407,18 @@ void plotCompact(std::string inputFile, int ifig)
   leg2->Draw();
   */
 
-  c1->SaveAs(Form("photonjetFF_compact_fig%d.png",ifig));
-  c1->SaveAs(Form("photonjetFF_compact_fig%d.pdf",ifig));
+  std::string obsCnv = (isJS) ? "JS" : "FF";
+  c1->SaveAs(Form("photonjet%s_compact_fig%d.png", obsCnv.c_str(), ifig));
+  c1->SaveAs(Form("photonjet%s_compact_fig%d.pdf", obsCnv.c_str(), ifig));
 }
 
 int main(int argc, char** argv)
 {
-    if (argc == 3) {
+    if (argc == 4) {
+        plotCompact(argv[1], std::atoi(argv[2]), std::atoi(argv[3]));
+        return 0;
+    }
+    else if (argc == 3) {
         plotCompact(argv[1], std::atoi(argv[2]));
         return 0;
     }
