@@ -369,20 +369,30 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   double cmsTextX = 0.83;
   double cmsTextY = 0.86;
   if (isJS) {
-      cmsTextX = 0.20;
-      cmsTextY = 0.86;
+      cmsTextX = 0.18;
+      cmsTextY = 0.87;
   }
   DrawLatex(cmsTextX, cmsTextY, "#bf{CMS}",get_txt_size(TVirtualPad::Pad(),20.));
   
+  TLatex textPreliminary; //drawer for y-axis of ratio lower panel
+  bool isPreliminary = false;
+  if (isJS && isPreliminary) {
+      textPreliminary.SetTextAlign(11);
+      textPreliminary.SetTextSize(txtSize);
+      textPreliminary.SetTextFont(52);
+      textPreliminary.SetTextColor(1);
+      textPreliminary.DrawLatexNDC(cmsTextX,cmsTextY-0.04,"Preliminary");
+  }
+
   if (!isJS) {
       DrawLatex(0.18,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
       DrawLatex(0.18,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < %.1f",1.6),txtSize);
       DrawLatex(0.18,0.72,Form("p_{T}^{trk} > 1 GeV/c"),txtSize);
   }
   else {
-      DrawLatex(0.35,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize);
-      DrawLatex(0.38,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c"),txtSize);
-      DrawLatex(0.53,0.72,Form("|#eta^{jet}| < %.1f, p_{T}^{trk} > 1 GeV/c", 1.6),txtSize);
+      DrawLatex(0.39,0.86,Form("p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}"),txtSize*0.94);
+      DrawLatex(0.41,0.79,Form("anti-k_{T} jet R = 0.3, p_{T}^{jet} > 30 GeV/c"),txtSize*0.94);
+      DrawLatex(0.55,0.72,Form("|#eta^{jet}| < %.1f, p_{T}^{trk} > 1 GeV/c", 1.6),txtSize*0.94);
   }
 
 
