@@ -133,20 +133,32 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
   // get pp MC histogram if any
   TH1 *hObs_ppmc = 0;
-  //TH1 *hRatio_ppmc_data = 0;
-  //TH1 *hRatioSys_ppmc_data = 0;
-  //TGraphErrors *grRatioSys_ppmc_data = 0;
+  TH1 *hRatio_ppmc_data = 0;
+  TH1 *hRatioSys_ppmc_data = 0;
+  TGraphErrors *grRatioSys_ppmc_data = 0;
   if (plotJSDataMC) {
       hObs_ppmc = dynamic_cast<TH1*>(file->Get("hjs_final_ppmc_ref0gen0_100_200"));
-      //hRatio_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200"));
-      //hRatioSys_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200_systematics"));
+      hRatio_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200"));
+      hRatioSys_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200_systematics"));
 
-      //grRatioSys_ppmc_data = MakeSystGraph(hRatio_ppmc_data, hRatioSys_ppmc_data, 2.);
+      grRatioSys_ppmc_data = MakeSystGraph(hRatio_ppmc_data, hRatioSys_ppmc_data, 2.);
 
+      hObs_ppmc->SetStats(false);
       hObs_ppmc->SetAxisRange(0, 0.299, "X");
       hObs_ppmc->SetLineStyle(kDashed);
       hObs_ppmc->SetLineWidth(3);
       hObs_ppmc->SetLineColor(kViolet);
+
+      hRatio_ppmc_data->SetStats(false);
+      hRatio_ppmc_data->SetMarkerStyle(kFullCross);
+      hRatio_ppmc_data->SetMarkerColor(kBlack);
+
+      grRatioSys_ppmc_data->SetFillColor(kGray+3);
+      grRatioSys_ppmc_data->SetFillStyle(3002);
+      grRatioSys_ppmc_data->SetLineColor(10);
+      grRatioSys_ppmc_data->SetMarkerColor(kBlack);
+      grRatioSys_ppmc_data->SetMarkerStyle(kOpenCross);
+      grRatioSys_ppmc_data->SetMarkerSize(1.);
   }
 
   TCanvas *c1 = new TCanvas("c1","c1: xi",480,750);
@@ -233,6 +245,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     for(int k = (ns-1); k>-1; --k) {
       if(!hObs[k][i]) continue;
       
+      hObs[k][i]->SetStats(false);
       hObs[k][i]->SetLineColor(GetColor(colorCode));
       hObs[k][i]->SetMarkerColor(GetColor(colorCode));
 
@@ -384,7 +397,14 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
 
   c1->cd();
   
-  TPad *pad2=new TPad("pad2","pad2",0.,0.,1.,0.45);
+  double pad2Y1 = 0;
+  double pad2Y2 = 0.45;
+  if (plotJSDataMC) {
+      pad2Y1 = 0.15;
+      pad2Y2 = 0.45;
+  }
+
+  TPad *pad2=new TPad("pad2","pad2",0.,pad2Y1,1.,pad2Y2);
   pad2->Draw();
   pad2->cd();
 
@@ -410,6 +430,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   fr2->GetYaxis()->SetTitleOffset(0.88);
   fr2->GetXaxis()->CenterTitle(true);
   fr2->GetYaxis()->CenterTitle(true);
+  if (plotJSDataMC) {
+      fr2->GetYaxis()->SetTitleOffset(0.60);
+  }
 
   fr2->GetYaxis()->SetLabelColor(10);
 
@@ -432,7 +455,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   }
   else {
       xText2 = xMin - 0.01;
-      text2.DrawLatex(xText2,0.-0.1,"0");
+      if (!plotJSDataMC)  {
+          text2.DrawLatex(xText2,0.-0.1,"0");
+      }
       text2.DrawLatex(xText2,1.-0.1,"1");
       text2.DrawLatex(xText2,3.-0.1,"3");
       text2.DrawLatex(xText2,5.-0.1,"5");
@@ -462,6 +487,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
         latexRatioY = 0.87;
     }
     if (isJS) {
+        latexRatioX = 0.20;
         if (i == 0) {
             latexRatioY = 0.30;
             strTmp = strCent.c_str();
@@ -474,6 +500,21 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
         }
         else if (i == 3) {
             latexRatioY = 0.92;
+        }
+        if (plotJSDataMC) {
+            if (i == 0) {
+                latexRatioY = 0.16;
+                strTmp = strCent.c_str();
+            }
+            else if (i == 1) {
+                latexRatioY = 0.41;
+            }
+            else if (i == 2) {
+                latexRatioY = 0.66;
+            }
+            else if (i == 3) {
+                latexRatioY = 0.91;
+            }
         }
     }
     DrawLatex(latexRatioX,latexRatioY,strTmp.c_str(),txtSize,GetColor(colorCode));
@@ -548,6 +589,63 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     }
     
     hRatio[i]->Draw("same E X0");
+  }
+
+  TPad *pad3 = 0;
+  TH1F *fr3 = 0;
+  if (plotJSDataMC) {
+      pad2->SetBottomMargin(0);
+
+      c1->cd();
+      pad3 = new TPad("pad3","pad3",0.,0.,1., pad2Y1);
+      pad3->Draw();
+      pad3->cd();
+
+      gPad->SetLeftMargin(0.15);
+      gPad->SetBottomMargin(0.34);
+      gPad->SetRightMargin(0.05);
+      gPad->SetTopMargin(0.);
+
+      double heightRatio = pad3->GetAbsHNDC() / pad2->GetAbsHNDC();
+
+      fr3 = DrawFrame(xMin, xMax, 0.85, 1.15, xTitle.c_str(), "MC/pp" , false);
+      fr3->GetXaxis()->SetNdivisions(509);
+      fr3->GetYaxis()->SetNdivisions(505);
+      fr3->GetXaxis()->SetLabelSize(get_txt_size(TVirtualPad::Pad(),18.));
+      fr3->GetYaxis()->SetLabelSize(0.0);//get_txt_size(TVirtualPad::Pad(),18.));
+      fr3->GetXaxis()->SetTitleSize(get_txt_size(TVirtualPad::Pad(),24.));
+      fr3->GetYaxis()->SetTitleSize(get_txt_size(TVirtualPad::Pad(),24.));
+      fr3->GetXaxis()->SetTitleOffset(0.80);
+      fr3->GetYaxis()->SetTitleOffset(fr2->GetYaxis()->GetTitleOffset() * heightRatio);
+      fr3->GetXaxis()->CenterTitle(true);
+      fr3->GetYaxis()->CenterTitle(true);
+
+      fr3->GetXaxis()->SetTickSize(fr3->GetXaxis()->GetLabelSize()*0.5);
+
+      fr3->GetYaxis()->SetLabelColor(10);
+
+      txtSize = get_txt_size(TVirtualPad::Pad(),18.);
+
+      text2.SetTextAlign(11);
+      text2.SetTextSize(txtSize);
+      text2.SetTextFont(42);
+      text2.SetTextColor(1);
+
+      xText2 = xMin - 0.05;
+      text2.DrawLatex(xMin - 0.02, 0.9-0.02,"0.9");
+      text2.DrawLatex(xMin - 0.01, 1.-0.02,"1");
+      text2.DrawLatex(xMin - 0.02, 1.1-0.02,"1.1");
+
+      TLine *l3 = new TLine(fr3->GetXaxis()->GetXmin(), 1, fr3->GetXaxis()->GetXmax(), 1);
+      l3->SetLineStyle(2);
+      l3->SetLineColor(1);
+      l3->Draw();
+
+      grRatioSys_ppmc_data->Draw("2");
+
+      hRatio_ppmc_data->SetMarkerSize(1.2);
+      hRatio_ppmc_data->SetLineWidth(2);
+      hRatio_ppmc_data->Draw("same E X0");
   }
 
   /*
