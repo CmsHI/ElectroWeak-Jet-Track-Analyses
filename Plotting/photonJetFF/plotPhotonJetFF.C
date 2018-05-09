@@ -316,8 +316,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
             // draw CMS label
             if (c + r == 0) {
                 tiler->draw_latex_on_frame(0.04, 0.96, "CMS", 6, cms_latex_size, 13, c, r);
-                bool isPreliminary = true;  // FF
-                bool isSupplementary = false; // FF
+                bool isPreliminary = false;  // FF
+                bool isSupplementary = true; // FF
                 if (isJS) {
                     isPreliminary = true;
                     isSupplementary = true;
