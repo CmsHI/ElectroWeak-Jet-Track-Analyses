@@ -12,7 +12,7 @@
 namespace SCET {
 
 /*
- * SCET_G. photon+jet JS prediction data tables
+ * SCET_G photon+jet JS prediction data tables
  * naming convention :
  *      n_<observable>    : number of points in the observable
  *      x_<observable>    : x axis values of the observable, bin centers
@@ -22,7 +22,7 @@ namespace SCET {
 const std::string modelName = "SCET";
 
 // r points
-const int n_rho = 98;
+const int n_rho = 6;
 const std::vector<double> x_r = {0.025, 0.075, 0.125, 0.175, 0.225, 0.275};
 
 // PbPb / pp ratio of rho(r) distributions
@@ -30,7 +30,7 @@ const std::vector<double> ymin_rho_ratio_pbpb_pp = {0.887049, 1.14779, 1.29244, 
 const std::vector<double> ymax_rho_ratio_pbpb_pp = {0.88727, 1.16766, 1.33628, 1.57292, 1.85721, 2.15164};
 
 enum DATATABLES{
-    k_rho_ratio_pbpb_pp,  // g=2.0 +/- 0.2
+    k_rho_ratio_pbpb_pp,
     kN_DATATABLES
 };
 
@@ -51,15 +51,15 @@ const std::vector<double> ymaxData[kN_DATATABLES] = {
 };
 
 const std::string xTitles[kN_DATATABLES] = {
-        "zh"
+        "r"
 };
 
 const std::string yTitles[kN_DATATABLES] = {
-        "PbPb / pp"
+        "\rho(r)_{PbPb} / \rho(r)_{pp}"
 };
 
 const std::string titles[kN_DATATABLES] = {
-        "SCET_{G} Chien-Vitev"  // "g = 2.0 #pm 0.2"
+        "SCET_{G} Chien-Vitev"
 };
 
 // fill colors to be used in a plot
