@@ -165,6 +165,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     }
 
     bool isJS = (hist_type.find("js") == 0);
+    bool plotRatio = (hist_type.find("_ratio") != std::string::npos);
     bool plotTheoryRatio = (hist_type.find("theory_ratio") != std::string::npos);
     bool plotTheoryPP = (hist_type.find("theory_pp") != std::string::npos);
     bool plotTheoryPbPb = (hist_type.find("theory_pbpb") != std::string::npos);
@@ -333,7 +334,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
                 else if (columns == 2 && plotTheory)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
-                else if (columns == 1 && plotTheory)
+                else if (columns == 1 && (plotRatio || plotTheory))
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[3], max_hiBin[3]));
                 else
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
@@ -346,7 +347,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 }
             }
 
-            if (r == 1 || (plotTheoryRatio && r == 0)) {
+            if (r == 1 || (plotRatio && r == 0) || (plotTheoryRatio && r == 0)) {
                 TLine* line = new TLine();
                 line->SetLineStyle(2);
                 line->SetLineWidth(1);
