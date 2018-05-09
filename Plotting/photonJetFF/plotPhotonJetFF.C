@@ -333,6 +333,8 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
                 else if (columns == 2 && plotTheory)
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
+                else if (columns == 1 && plotTheory)
+                    plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[3], max_hiBin[3]));
                 else
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
 
