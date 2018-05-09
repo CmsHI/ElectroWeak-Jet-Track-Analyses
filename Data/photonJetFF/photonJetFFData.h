@@ -59,7 +59,7 @@ const std::string yTitles[kN_DATATABLES] = {
 };
 
 const std::string titles[kN_DATATABLES] = {
-        "SCET_G."  // "g = 2.0 #pm 0.2"
+        "SCET_{G}"  // "g = 2.0 #pm 0.2"
 };
 
 // fill colors to be used in a plot
