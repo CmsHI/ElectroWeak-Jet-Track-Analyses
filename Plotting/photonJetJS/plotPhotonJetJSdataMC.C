@@ -373,7 +373,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     };
     int nTextLines = textLines.size();
     textX = 0.92;
-    textYs.resize(nTextLines, 0.68);
+    textYs.resize(nTextLines, 0.64);
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
@@ -409,7 +409,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     setLatexCMS(latex);
     latex->Draw();
 
-    bool isPreliminary = false;
+    bool isPreliminary = true;
     if (isPreliminary) {
         textXCMSpreliminary = 0.25;
         textYCMSpreliminary = 0.78;
@@ -418,6 +418,18 @@ void plot_js_pp_data_mc(std::string inputFile)
         textSizeCMSpreliminary = 0.06;
         latex = new TLatex();
         setLatexCMSextraLabel(latex, "Preliminary");
+        latex->Draw();
+    }
+
+    bool isSupplementary = true;
+    if (isSupplementary) {
+        textXCMSpreliminary = 0.25;
+        textYCMSpreliminary = 0.72;
+        textAlignCMSpreliminary = 11;
+        textFontCMSpreliminary = 52;
+        textSizeCMSpreliminary = 0.06;
+        latex = new TLatex();
+        setLatexCMSextraLabel(latex, "Supplementary");
         latex->Draw();
     }
 
