@@ -451,6 +451,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     );
 
     c1->SaveAs(Form("%s.pdf", canvas_title.c_str()));
+    c1->SaveAs(Form("%s.png", canvas_title.c_str()));
 
     fsys->Close();
 
