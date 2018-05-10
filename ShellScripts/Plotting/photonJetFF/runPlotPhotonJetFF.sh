@@ -10,6 +10,10 @@ inputFiles=(
 "./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 );
 
 histLists=(
@@ -17,6 +21,10 @@ histLists=(
 "Configurations/photonJetFF/ff.list"
 "Configurations/photonJetFF/ff-cent030.list"
 "Configurations/photonJetFF/ff-cent030.list"
+"Configurations/photonJetFF/ff-cent030-ratio.list"
+"Configurations/photonJetFF/ff-cent030-ratio.list"
+"Configurations/photonJetFF/ff-cent1030-cent010-ratio.list"
+"Configurations/photonJetFF/ff-cent1030-cent010-ratio.list"
 );
 
 configList=(
@@ -24,6 +32,10 @@ configList=(
 "Configurations/photonJetFF/ff-60-30-gxi1.conf"
 "Configurations/photonJetFF/ff-60-30-gxi0-cent030.conf"
 "Configurations/photonJetFF/ff-60-30-gxi1-cent030.conf"
+"Configurations/photonJetFF/ff-60-30-gxi0-cent030-ratio.conf"
+"Configurations/photonJetFF/ff-60-30-gxi1-cent030-ratio.conf"
+"Configurations/photonJetFF/ff-60-30-gxi0-cent1030-cent010-ratio.conf"
+"Configurations/photonJetFF/ff-60-30-gxi1-cent1030-cent010-ratio.conf"
 );
 
 arrayIndices=${!configList[*]}
