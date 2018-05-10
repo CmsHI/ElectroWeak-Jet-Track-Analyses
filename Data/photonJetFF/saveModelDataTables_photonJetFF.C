@@ -72,6 +72,7 @@ void saveModelDataTables_photonJetFF(std::string outputFile)
        std::vector<double> y = COLBT::yData[i];
 
        int fillColor = COLBT::colors[i];
+       int lineStyle = COLBT::lineStyles[i];
        double falpha = COLBT::falphas[i];
        std::string xTitle = COLBT::xTitles[i].c_str();
        std::string yTitle = COLBT::yTitles[i].c_str();
@@ -86,6 +87,7 @@ void saveModelDataTables_photonJetFF(std::string outputFile)
        gr->GetYaxis()->SetTitle(yTitle.c_str());
        gr->SetTitle(title.c_str());
        gr->SetFillColorAlpha(fillColor, falpha);
+       gr->SetLineStyle(lineStyle);
        gr->SetFillStyle(1001);
        gr->Write("",TObject::kOverwrite);
    }
