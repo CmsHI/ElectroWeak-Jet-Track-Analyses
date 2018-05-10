@@ -14,6 +14,8 @@ sourceFiles=(
 "js_60_30_gxi0.pdf"
 "js_60_30_gxi0_cent030.pdf"
 "js_pp_data_mc.pdf"
+"js_60_30_gxi0_ratio_cent010.pdf"
+"js_60_30_gxi0_theory_ratio.pdf"
 );
 
 destinationFiles=(
@@ -21,6 +23,8 @@ destinationFiles=(
 "figures/supplementary/jetshape_phoet60_jetpt30.pdf"
 "figures/supplementary/jetshape_phoet60_jetpt30_twoCentBins.pdf"
 "figures/supplementary/jetshape_phoet60_jetpt30_pp_data_mc.pdf"
+"figures/supplementary/jetshape_phoet60_jetpt30_ratio_cent010.pdf"
+"figures/supplementary/jetshape_phoet60_jetpt30_theory_ratio.pdf"
 );
 
 arrayIndices=${!sourceFiles[*]}
