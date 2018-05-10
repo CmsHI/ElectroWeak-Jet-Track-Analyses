@@ -3,7 +3,8 @@ gr_hybrid_xijet_noback_pp_cent1030 38
 hff_final_ppdata_srecoreco_20_60 3
 +
 hff_final_ppdata_srecoreco_0_20 1
-gr_hybrid_xijet_noback_pp_cent1030 38
+gr_hybrid_xijet_noback_pp_cent010 38
+gr_CoLBT_xijet_pp 20
 hff_final_ppdata_srecoreco_0_20 3
 =
 pp (smeared)
@@ -11,5 +12,11 @@ pp (smeared)
 @@
 +
 @@
+@@
+CoLBT-hydro
+@@
++
+@@
 Hybrid
+@@
 @@
