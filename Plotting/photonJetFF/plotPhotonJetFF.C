@@ -166,10 +166,13 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
 
     bool isJS = (hist_type.find("js") == 0);
     bool plotRatio = (hist_type.find("_ratio") != std::string::npos);
+    bool plotDataRatio = (hist_type.find("data_ratio") != std::string::npos);
     bool plotTheoryRatio = (hist_type.find("theory_ratio") != std::string::npos);
     bool plotTheoryPP = (hist_type.find("theory_pp") != std::string::npos);
     bool plotTheoryPbPb = (hist_type.find("theory_pbpb") != std::string::npos);
     bool plotTheory = (plotTheoryRatio || plotTheoryPP || plotTheoryPbPb);
+
+    bool plot2CentBins = (hist_type.find("cent030") == std::string::npos);
 
     tiling* tiler = new tiling(columns, rows, 400, 400,
         margins[0], margins[1], margins[2], margins[3]);
@@ -330,14 +333,26 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
 
             if (r == 0) {
                 std::vector<std::string> plotInfo;
-                if (columns == 4)
+                if (columns == 4) {
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c], max_hiBin[c]));
-                else if (columns == 2 && plotTheory)
-                    plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
-                else if (columns == 1 && (plotRatio || plotTheory))
+                }
+                else if (columns == 2) {
+                    if (plot2CentBins || plotTheory) {
+                        plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+2], max_hiBin[c+2]));
+                    }
+                    else {
+                        plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
+                    }
+                }
+                else if (columns == 1 && (plotRatio || plotTheoryPbPb)) {
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[3], max_hiBin[3]));
-                else
+                }
+                else if (columns == 1 && isJS && plotTheoryPP) {
+
+                }
+                else {
                     plotInfo.push_back(Form("Cent. %d - %d%%", min_hiBin[c+4], max_hiBin[c+4]));
+                }
 
                 float line_pos = i_y[r*columns + c];
                 int latex_align = (i_x[r*columns + c] > 0.8) ? 33 : 13;
@@ -347,7 +362,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 }
             }
 
-            if (r == 1 || (plotRatio && r == 0) || (plotTheoryRatio && r == 0)) {
+            if (r == 1 || (plotRatio && r == 0)) {
                 TLine* line = new TLine();
                 line->SetLineStyle(2);
                 line->SetLineWidth(1);
@@ -396,6 +411,40 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
         else {
             tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top/2, Form("p_{T}^{trk} > 1 GeV/c, anti-k_{T} jet R = 0.3, p_{T}^{jet} > %i GeV/c, #left|#eta^{jet}#right| < 1.6", std::stoi(custom_info[0])), 4, canvas_latex_size, 31);
             tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top, Form("p_{T}^{#gamma} > %i GeV/c, |#eta^{#gamma}| < 1.44, #Delta#phi_{j#gamma} > #frac{7#pi}{8}", std::stoi(custom_info[1])), 4, canvas_latex_size, 31);
+        }
+    }
+    else if (columns == 2 && plotDataRatio) {
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - canvas_margin_top*1.2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(0.99 - canvas_margin_right, 1.0 - canvas_margin_top*1.2, "pp 27.4 pb^{-1}, PbPb 404 #mub^{-1}", 4, canvas_latex_size, 31);
+
+        if (isJS) {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.44, 0.72 - 0.,   Form("p_{T}^{#gamma} > %i GeV/c", std::stoi(custom_info[1])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.44, 0.72 - 0.07, Form("anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.44, 0.72 - 0.07*2, Form("p_{T}^{jet} > %i GeV/c", std::stoi(custom_info[0])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.44, 0.72 - 0.07*3, "#Delta#phi_{j#gamma} > #frac{7#pi}{8}", 4, canvas_latex_size, 11);
+        }
+        else {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.,   Form("p_{T}^{#gamma} > %i GeV/c", std::stoi(custom_info[1])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07, Form("anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07*2, Form("p_{T}^{jet} > %i GeV/c", std::stoi(custom_info[0])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07*3, "#Delta#phi_{j#gamma} > #frac{7#pi}{8}", 4, canvas_latex_size, 11);
+        }
+    }
+    else if (columns == 1 && plotDataRatio) {
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - 0.02 - canvas_margin_top/2, "#sqrt{s_{NN}} = 5.02 TeV", 4, canvas_latex_size, 11);
+        tiler->draw_latex_on_canvas(canvas_margin_left + 0.01, 1.0 - 0.02 - canvas_margin_top, "pp 27.4 pb^{-1}, PbPb 404 #mub^{-1}", 4, canvas_latex_size, 11);
+
+        if (isJS) {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.04, 0.56 - 0.,   Form("p_{T}^{#gamma} > %i GeV/c", std::stoi(custom_info[1])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.04, 0.56 - 0.07, Form("anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.04, 0.56 - 0.07*2, Form("p_{T}^{jet} > %i GeV/c", std::stoi(custom_info[0])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.04, 0.56 - 0.07*3, "#Delta#phi_{j#gamma} > #frac{7#pi}{8}", 4, canvas_latex_size, 11);
+        }
+        else {
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.,   Form("p_{T}^{#gamma} > %i GeV/c", std::stoi(custom_info[1])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07, Form("anti-k_{T} jet R = 0.3"), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07*2, Form("p_{T}^{jet} > %i GeV/c", std::stoi(custom_info[0])), 4, canvas_latex_size, 11);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.45, 0.74 - 0.07*3, "#Delta#phi_{j#gamma} > #frac{7#pi}{8}", 4, canvas_latex_size, 11);
         }
     }
     else if (columns == 1) {
