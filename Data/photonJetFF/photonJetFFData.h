@@ -233,6 +233,19 @@ const int colors[kN_DATATABLES] = {
         kBlue
 };
 
+const int lineStyles[kN_DATATABLES] = {
+        kDashed,
+        kDashed,
+        kBlue,
+        kDashed,
+        kBlue,
+        kDashed,
+        kDashed,
+        kBlue,
+        kDashed,
+        kBlue
+};
+
 const double falphas[kN_DATATABLES] = {
         0.7,
         0.7,
