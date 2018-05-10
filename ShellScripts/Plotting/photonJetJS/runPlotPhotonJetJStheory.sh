@@ -7,13 +7,19 @@ g++ Plotting/photonJetFF/plotPhotonJetFF.C $(root-config --cflags --libs) -Werro
 progPath="./Plotting/photonJetFF/plotPhotonJetFF.exe"
 inputFiles=(
 "./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 );
 
 histLists=(
+"Configurations/photonJetJS/js-theory-pp.list"
+"Configurations/photonJetJS/js-theory-pbpb-cent010.list"
 "Configurations/photonJetJS/js-theory-ratio.list"
 );
 
 configList=(
+"Configurations/photonJetJS/js-60-30-gxi0-theory-pp.conf"
+"Configurations/photonJetJS/js-60-30-gxi0-theory-pbpb-cent010.conf"
 "Configurations/photonJetJS/js-60-30-gxi0-theory-ratio.conf"
 );
 
