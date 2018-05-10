@@ -91,6 +91,16 @@ const std::string modelName = "CoLBT";
 
 const int n_xijet = 8;
 
+// xijet distributions
+const std::vector<double> x_xijet_pp = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xijet_pp = {0.3652, 0.9028, 1.4704, 2.0299, 2.304, 2.1461, 1.5155, 0.6117};
+
+const std::vector<double> x_xijet_pbpb_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xijet_pbpb_cent010 = {0.3710931049, 0.8654814314, 1.2892395996, 1.8841397385, 2.4116838017, 2.514590212, 1.8644089835, 1.0202310513};
+
+const std::vector<double> x_xijet_pbpb_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xijet_pbpb_cent1030 = {0.3596858395, 0.8909740806, 1.3419588522, 1.9115780402, 2.3754135282, 2.3013550272, 1.7296642085, 0.9200285501};
+
 // PbPb / pp ratio of xijet distributions
 const std::vector<double> x_xijet_ratio_pbpb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
 const std::vector<double> y_xijet_ratio_pbpb_pp_cent010 = {1.0376, 0.9242, 0.8798, 0.8929, 1.0036, 1.2092, 1.4642, 2.3966};
@@ -100,6 +110,16 @@ const std::vector<double> y_xijet_ratio_pbpb_pp_cent1030 = {1.0316, 0.9419, 0.91
 
 const int n_xigamma = 8;
 
+// xigamma distributions
+const std::vector<double> x_xigamma_pp = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xigamma_pp = {0.2299, 0.596, 1.1496, 1.6699, 2.1609, 2.2637, 1.9984, 1.156};
+
+const std::vector<double> x_xigamma_pbpb_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xigamma_pbpb_cent010 = {0.1105796894, 0.3773785425, 0.7195914223, 1.0972855858, 1.5507180121, 1.9483615093, 2.2350400486, 2.0758411067};
+
+const std::vector<double> x_xigamma_pbpb_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
+const std::vector<double> y_xigamma_pbpb_cent1030 = {0.133059313, 0.4360962846, 0.8358689396, 1.2285471967, 1.7364654846, 2.0810782201, 2.134946902, 1.7832719146};
+
 // PbPb / pp ratio of xigamma distributions
 const std::vector<double> x_xigamma_ratio_pbpb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
 const std::vector<double> y_xigamma_ratio_pbpb_pp_cent010 = {0.4912, 0.6387, 0.6579, 0.6522, 0.8253, 1.1071, 1.4865, 2.2029};
@@ -108,52 +128,94 @@ const std::vector<double> x_xigamma_ratio_pbpb_pp_cent1030 = {0.75, 1.25, 1.75, 
 const std::vector<double> y_xigamma_ratio_pbpb_pp_cent1030 = {0.6131, 0.7321, 0.7181, 0.7401, 0.8398, 1.0148, 1.2143, 1.6115};
 
 enum DATATABLES{
+    k_xijet_pp,
+    k_xijet_pbpb_cent010,
     k_xijet_ratio_pbpb_pp_cent010,
+    k_xijet_pbpb_cent1030,
     k_xijet_ratio_pbpb_pp_cent1030,
+    k_xigamma_pp,
+    k_xigamma_pbpb_cent010,
     k_xigamma_ratio_pbpb_pp_cent010,
+    k_xigamma_pbpb_cent1030,
     k_xigamma_ratio_pbpb_pp_cent1030,
     kN_DATATABLES
 };
 
 const std::string dataNames[kN_DATATABLES] = {
+        "xijet_pp",
+        "xijet_pbpb_cent010",
         "xijet_ratio_pbpb_pp_cent010",
+        "xijet_pbpb_cent1030",
         "xijet_ratio_pbpb_pp_cent1030",
+        "xigamma_pp",
+        "xigamma_pbpb_cent010",
         "xigamma_ratio_pbpb_pp_cent010",
+        "xigamma_pbpb_cent1030",
         "xigamma_ratio_pbpb_pp_cent1030"
 };
 
 const std::vector<double> xData[kN_DATATABLES] = {
+        x_xijet_pp,
+        x_xijet_pbpb_cent010,
         x_xijet_ratio_pbpb_pp_cent010,
+        x_xijet_pbpb_cent1030,
         x_xijet_ratio_pbpb_pp_cent1030,
+        x_xigamma_pp,
+        x_xigamma_pbpb_cent010,
         x_xigamma_ratio_pbpb_pp_cent010,
+        x_xigamma_pbpb_cent1030,
         x_xigamma_ratio_pbpb_pp_cent1030
 };
 
 const std::vector<double> yData[kN_DATATABLES] = {
+        y_xijet_pp,
+        y_xijet_pbpb_cent010,
         y_xijet_ratio_pbpb_pp_cent010,
+        y_xijet_pbpb_cent1030,
         y_xijet_ratio_pbpb_pp_cent1030,
+        y_xigamma_pp,
+        y_xigamma_pbpb_cent010,
         y_xigamma_ratio_pbpb_pp_cent010,
+        y_xigamma_pbpb_cent1030,
         y_xigamma_ratio_pbpb_pp_cent1030
 };
 
 const std::string xTitles[kN_DATATABLES] = {
         "#xi^{jet}",
         "#xi^{jet}",
+        "#xi^{jet}",
+        "#xi^{jet}",
+        "#xi^{jet}",
+        "#xi^{#gamma}_{T}",
+        "#xi^{#gamma}_{T}",
+        "#xi^{#gamma}_{T}",
         "#xi^{#gamma}_{T}",
         "#xi^{#gamma}_{T}"
 };
 
 const std::string yTitles[kN_DATATABLES] = {
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}",
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}",
         "PbPb / pp",
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{jet}}",
         "PbPb / pp",
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{#gamma}_{T}}",
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{#gamma}_{T}}",
         "PbPb / pp",
+        "#frac{1}{N^{jet}} #frac{dN^{trk}}{d#xi^{#gamma}_{T}}",
         "PbPb / pp"
 };
 
 const std::string titles[kN_DATATABLES] = {
+        "CoLBT-hydro pp",
+        "CoLBT-hydro 0-10%",
         "CoLBT-hydro 0-10%",
         "CoLBT-hydro 10-30%",
+        "CoLBT-hydro 10-30%",
+        "CoLBT-hydro pp",
         "CoLBT-hydro 0-10%",
+        "CoLBT-hydro 0-10%",
+        "CoLBT-hydro 10-30%",
         "CoLBT-hydro 10-30%"
 };
 
@@ -162,10 +224,22 @@ const int colors[kN_DATATABLES] = {
         kBlue,
         kBlue,
         kBlue,
+        kBlue,
+        kBlue,
+        kBlue,
+        kBlue,
+        kBlue,
+        kBlue,
         kBlue
 };
 
 const double falphas[kN_DATATABLES] = {
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
+        0.7,
         0.7,
         0.7,
         0.7,
