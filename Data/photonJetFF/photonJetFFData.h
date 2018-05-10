@@ -103,10 +103,10 @@ const std::vector<double> y_xijet_pbpb_cent1030 = {0.3596858395, 0.8909740806, 1
 
 // PbPb / pp ratio of xijet distributions
 const std::vector<double> x_xijet_ratio_pbpb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
-const std::vector<double> y_xijet_ratio_pbpb_pp_cent010 = {1.0376, 0.9242, 0.8798, 0.8929, 1.0036, 1.2092, 1.4642, 2.3966};
+const std::vector<double> y_xijet_ratio_pbpb_pp_cent010 = {1.0161366508, 0.9586635262, 0.8767951575, 0.9281933782, 1.0467377612, 1.1717022562, 1.2302269769, 1.6678617808};
 
 const std::vector<double> x_xijet_ratio_pbpb_pp_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
-const std::vector<double> y_xijet_ratio_pbpb_pp_cent1030 = {1.0316, 0.9419, 0.9118, 0.9555, 1.0186, 1.08, 1.1519, 1.4793};
+const std::vector<double> y_xijet_ratio_pbpb_pp_cent1030 = {0.9849009844, 0.9869008425, 0.9126488386, 0.9417104489, 1.030995455, 1.0723428672, 1.141315875, 1.5040519047};
 
 const int n_xigamma = 8;
 
@@ -122,10 +122,10 @@ const std::vector<double> y_xigamma_pbpb_cent1030 = {0.133059313, 0.4360962846, 
 
 // PbPb / pp ratio of xigamma distributions
 const std::vector<double> x_xigamma_ratio_pbpb_pp_cent010 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
-const std::vector<double> y_xigamma_ratio_pbpb_pp_cent010 = {0.4912, 0.6387, 0.6579, 0.6522, 0.8253, 1.1071, 1.4865, 2.2029};
+const std::vector<double> y_xigamma_ratio_pbpb_pp_cent010 = {0.4809903844, 0.633185474, 0.6259493931, 0.6570965841, 0.7176259948, 0.8606977556, 1.1184147561, 1.7957102999};
 
 const std::vector<double> x_xigamma_ratio_pbpb_pp_cent1030 = {0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25};
-const std::vector<double> y_xigamma_ratio_pbpb_pp_cent1030 = {0.6131, 0.7321, 0.7181, 0.7401, 0.8398, 1.0148, 1.2143, 1.6115};
+const std::vector<double> y_xigamma_ratio_pbpb_pp_cent1030 = {0.5787703913, 0.7317051755, 0.727095459, 0.7357010579, 0.803584379, 0.9193259796, 1.0683281135, 1.5426227635};
 
 enum DATATABLES{
     k_xijet_pp,
