@@ -62,6 +62,36 @@ void saveModelDataTables_photonJetJS(std::string outputFile)
        gr->Write("",TObject::kOverwrite);
    }
 
+   std::cout << "LBT predictions" << std::endl;
+   for (int i = 0; i < LBT::DATATABLES::kN_DATATABLES; ++i) {
+
+       std::string modelName = LBT::modelName;
+       std::string dataName = LBT::dataNames[i];
+
+       std::vector<double> x = LBT::xData[i];
+       std::vector<double> y = LBT::yData[i];
+
+       int fillColor = LBT::colors[i];
+       int lineStyle = LBT::lineStyles[i];
+       double falpha = LBT::falphas[i];
+       std::string xTitle = LBT::xTitles[i].c_str();
+       std::string yTitle = LBT::yTitles[i].c_str();
+       std::string title = LBT::titles[i].c_str();
+
+       std::string objectName = Form("gr_%s_%s", modelName.c_str(), dataName.c_str());
+       gr = new TGraphErrors();
+
+       setTGraphErrors((TGraphErrors*)gr, x, y, std::vector<double> ((int)x.size(), 0));
+       gr->SetName(objectName.c_str());
+       gr->GetXaxis()->SetTitle(xTitle.c_str());
+       gr->GetYaxis()->SetTitle(yTitle.c_str());
+       gr->SetTitle(title.c_str());
+       gr->SetFillColorAlpha(fillColor, falpha);
+       gr->SetLineStyle(lineStyle);
+       gr->SetFillStyle(1001);
+       gr->Write("",TObject::kOverwrite);
+   }
+
    std::cout<<"Closing the output file"<<std::endl;
    output->Close();
 
