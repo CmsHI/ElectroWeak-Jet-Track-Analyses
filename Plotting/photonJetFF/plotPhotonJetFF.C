@@ -506,6 +506,9 @@ void set_graph_style(TGraph* gr, int style, std::vector<std::string>& option_str
         gr->SetFillColorAlpha(COLBT::colors[style - 20], COLBT::falphas[style - 20]);
         gr->SetLineColorAlpha(COLBT::colors[style - 20], COLBT::falphas[style - 20]);
         gr->SetLineWidth(3);
+        if (style >= 25) {
+            gr->SetLineWidth(4.5);
+        }
         gr->SetFillStyle(1001);
         option_strings.push_back("same l");
         option_strings.push_back("l");

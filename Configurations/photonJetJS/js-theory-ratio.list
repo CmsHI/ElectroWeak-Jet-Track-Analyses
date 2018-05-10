@@ -1,11 +1,14 @@
 hjs_final_ratio_0_20 4
-gr_SCET_rho_ratio_pbpb_pp 10
+gr_SCET_rho_ratio_pbpb_pp_cent010 10
+gr_LBT_rho_ratio_pbpb_pp_cent010 25
 hjs_final_ratio_0_20 5
 =
 Data
 @@
 @@
+@@
 +
 @@
 SCET_{G} Chien-Vitev
+LBT
 @@
