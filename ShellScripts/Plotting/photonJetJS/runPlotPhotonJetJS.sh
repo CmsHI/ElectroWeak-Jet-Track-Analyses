@@ -9,6 +9,8 @@ inputFiles=(
 "./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 "./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 "./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 #"./Data/photonJetJS/jsdata_data_normJet_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 #"./Data/photonJetJS/jsdata_data_normJet_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 );
@@ -16,7 +18,9 @@ inputFiles=(
 histLists=(
 "Configurations/photonJetJS/js.list"
 "Configurations/photonJetJS/js-cent030.list"
-"Configurations/photonJetJS/js-cent010.list"
+"Configurations/photonJetJS/js-cent010-ratio.list"
+"Configurations/photonJetJS/js-cent030-ratio.list"
+"Configurations/photonJetJS/js-cent1030-cent010-ratio.list"
 #"Configurations/photonJetJS/js-normJet.list"
 #"Configurations/photonJetJS/js-normJet-cent030.list"
 );
@@ -24,7 +28,9 @@ histLists=(
 configList=(
 "Configurations/photonJetJS/js-60-30-gxi0.conf"
 "Configurations/photonJetJS/js-60-30-gxi0-cent030.conf"
-"Configurations/photonJetJS/js-60-30-gxi0-cent010.conf"
+"Configurations/photonJetJS/js-60-30-gxi0-cent010-ratio.conf"
+"Configurations/photonJetJS/js-60-30-gxi0-cent030-ratio.conf"
+"Configurations/photonJetJS/js-60-30-gxi0-cent1030-cent010-ratio.conf"
 #"Configurations/photonJetJS/js-normJet-60-30-gxi0.conf"
 #"Configurations/photonJetJS/js-normJet-60-30-gxi0-cent030.conf"
 );
