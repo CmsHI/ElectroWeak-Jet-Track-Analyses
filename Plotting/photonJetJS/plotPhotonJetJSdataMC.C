@@ -455,6 +455,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     c->cd();
     c->Update();
     c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->SaveAs(Form("%s.png", c->GetName()));
     c->Close();         // do not use Delete() for TCanvas.
 
     std::cout<<"Closing the input file"<<std::endl;
