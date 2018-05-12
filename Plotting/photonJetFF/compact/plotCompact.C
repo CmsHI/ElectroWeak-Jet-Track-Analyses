@@ -375,7 +375,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   DrawLatex(cmsTextX, cmsTextY, "#bf{CMS}",get_txt_size(TVirtualPad::Pad(),20.));
   
   TLatex textPreliminary; //drawer for y-axis of ratio lower panel
-  bool isPreliminary = false;
+  bool isPreliminary = true;
   if (isJS && isPreliminary) {
       textPreliminary.SetTextAlign(11);
       textPreliminary.SetTextSize(txtSize);
