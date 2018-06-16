@@ -184,6 +184,11 @@ std::vector<TH1*> h_normEvents;         // normalized by the number of events th
 std::vector<TH1*> h_normEventsBaseSel;  // normalized by the number of events that pass base selection. Ex : hiBin < 60
 std::vector<TH1*> h_nums;      // histograms to store numbers
 std::vector<TH1*> h_draw;
+// store formula, selection and weight used for each histogram. Helps to look up what was used for a specific histogram.
+std::vector<std::string> histFormulas;
+std::vector<std::string> histSelections;
+std::vector<std::string> histWeights;
+
 std::string outputFigureStr;
 ///// global variables - END
 
@@ -255,6 +260,16 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
     entriesBaseSelection.clear();
     entriesBaseSelection.resize(nHistos);
     std::fill_n(entriesBaseSelection.begin(), nHistos, 0);
+
+    histFormulas.clear();
+    histFormulas.resize(nHistos);
+    std::fill_n(histFormulas.begin(), nHistos, "");
+    histSelections.clear();
+    histSelections.resize(nHistos);
+    std::fill_n(histSelections.begin(), nHistos, "");
+    histWeights.clear();
+    histWeights.resize(nHistos);
+    std::fill_n(histWeights.begin(), nHistos, "");
 
     int nFiles[nInputSamples];
     TFile* fileTmp = 0;
@@ -403,6 +418,12 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
                 entriesSelected[i] += entriesSelectedTmp;
                 entriesBaseSelection[i] += entriesBaseSelectionTmp;
 
+                if (histFormulas[i] == "") {
+                    histFormulas[i] = formula;
+                    histSelections[i] = selectionFinal.GetTitle();
+                    histWeights[i] = weight;
+                }
+
                 TCut weight_AND_selection = Form("(%s)*(%s)", weight.c_str(), selectionFinal.GetTitle());
                 trees[treeIndex][iSample]->Draw(Form("%s >>+ %s", formula.c_str(), h[i]->GetName()), weight_AND_selection.GetTitle(), "goff");
                 /*
@@ -424,6 +445,16 @@ void drawSpectra(const TString configFile, const TString inputFile, const TStrin
             std::cout << Form("entries[%d] = ", i) << entries[i] << std::endl;
         }
     }
+    std::cout << "### formulas, selections, and weights" << std::endl;
+    for (int i = 0; i < nHistos; ++i) {
+
+        std::cout << "TH1 i = " << i << ", ";
+        std::cout << "formula = " << histFormulas[i].c_str() << ", ";
+        std::cout << "selection = " << histSelections[i].c_str() << ", ";
+        std::cout << "weight = " << histWeights[i].c_str() << std::endl;
+    }
+    std::cout << "###" << std::endl;
+
     std::cout << "### selected entries" << std::endl;
     for (int i = 0; i < nHistos; ++i) {
 
