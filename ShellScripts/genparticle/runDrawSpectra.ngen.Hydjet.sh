@@ -7,10 +7,12 @@ progCode="${progPath/.exe/.C}"
 
 inputList=(
 "Configurations/filelists/Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.list"
+"Configurations/filelists/Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.list"
 );
 
 configList=(
 "Configurations/genparticle/spectra.ngen.conf"
+"Configurations/genparticle/spectra.ngen.ptBins.conf"
 );
 
 outDirBase=$EWJTAOUT
@@ -20,6 +22,7 @@ fi
 outputSuffix="Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV"
 outList=(
 $outDirBase"/Configurations/genparticle/spectra_ngen_"$outputSuffix".root"
+$outDirBase"/Configurations/genparticle/spectra_ngen_ptBins_"$outputSuffix".root"
 );
 
 arrayIndices=${!outList[*]}
