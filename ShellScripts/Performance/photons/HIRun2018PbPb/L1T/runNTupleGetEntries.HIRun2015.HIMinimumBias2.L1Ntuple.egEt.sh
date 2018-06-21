@@ -1,4 +1,5 @@
 #!/bin/bash
+# Estimate the emulated L1 EG rates.
 
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/nTupleGetEntries.exe"
@@ -11,6 +12,10 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30/180327_034514/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24/180420_210253/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut25/180420_210913/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egCap18/180618_213956/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24_egCap18/180618_212055/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egCap24/180618_223738/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_HIRun2015_HIMinimumBias2_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24_egCap24/180618_223823/L1Ntuple_merged.root"
 );
 
 outDirBase=$EWJTAOUT
@@ -24,6 +29,10 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuff
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut25.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egCap18.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24_egCap18.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egCap24.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuffix"_L1T_egBypassFGBit1ShapeBit1ExtHOverE1_egHOverEcut_EB1_EE1_BypassPt30_egEtaCut24_egCap24.log"
 );
 
 argFileTmp="./Performance/nTupleGetEntries.args.txt"
@@ -48,6 +57,10 @@ echo "==trees==" >> $argFileTmp
 echo "l1UpgradeEmuTree/L1UpgradeTree" >> $argFileTmp
 
 argFiles=(
+$argFileTmp
+$argFileTmp
+$argFileTmp
+$argFileTmp
 $argFileTmp
 $argFileTmp
 $argFileTmp
