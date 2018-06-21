@@ -31,16 +31,13 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$outputSuff
 argFileTmp="./Performance/nTupleGetEntries.args.txt"
 rm -f $argFileTmp
 echo "==selections==" >> $argFileTmp
-runSel="run >= 263233 && run <= 263284"
-echo "L1_SingleEG3_BptxAND > 0 && "$runSel >> $argFileTmp
-echo "L1_SingleEG7_BptxAND > 0 && "$runSel >> $argFileTmp
-echo "L1_SingleEG15_BptxAND > 0 && "$runSel >> $argFileTmp
-echo "L1_SingleEG21_BptxAND > 0 && "$runSel >> $argFileTmp
-echo "L1_SingleEG30_BptxAND > 0 && "$runSel >> $argFileTmp
-echo $runSel >> $argFileTmp
+echo "L1_SingleEG3_BptxAND > 0" >> $argFileTmp
+echo "L1_SingleEG7_BptxAND > 0" >> $argFileTmp
+echo "L1_SingleEG15_BptxAND > 0" >> $argFileTmp
+echo "L1_SingleEG21_BptxAND > 0" >> $argFileTmp
+echo "L1_SingleEG30_BptxAND > 0" >> $argFileTmp
 echo "==trees==" >> $argFileTmp
 echo "hltanalysis/HltTree" >> $argFileTmp
-echo "hiEvtAnalyzer/HiTree" >> $argFileTmp
 
 argFiles=(
 $argFileTmp
