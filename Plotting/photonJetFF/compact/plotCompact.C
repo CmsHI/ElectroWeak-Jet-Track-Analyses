@@ -70,6 +70,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   TH1 *hObs[ns][nCent];
   TH1 *hObsSys[ns][nCent];
   TGraphErrors *grObsSys[ns][nCent];
+  double xWEsys = (isJS) ? 1 : 2;   // scaling factor that goes to the width of systematics along x-axis
   for(int is = 0; is<ns; ++is) {
     std::string strSysTmp = "";
     if(is==0) {
@@ -101,7 +102,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       hObsSys[is][ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
 
       if(hObs[is][ic]) {
-        grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic],2.);
+        grObsSys[is][ic] = MakeSystGraph(hObs[is][ic],hObsSys[is][ic], xWEsys);
         bool multiply = isJS;
         if (is == 1 || !isJS) { // do not scale pp for JS plots
             add_histo(hObs[is][ic],scale[ic], multiply);
@@ -125,7 +126,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     histName = Form("%s_final_ratio_%s_systematics", strObs.c_str(), centStr.c_str());
     hRatioSys[ic] = dynamic_cast<TH1*>(file->Get(histName.c_str()));
     
-    grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic],2.);
+    grRatioSys[ic] = MakeSystGraph(hRatio[ic],hRatioSys[ic], xWEsys);
 
     add_histo(hRatio[ic],scale2[ic]);
     add_graph(grRatioSys[ic],scale2[ic]);
@@ -141,7 +142,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       hRatio_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200"));
       hRatioSys_ppmc_data = dynamic_cast<TH1*>(file->Get("hjs_final_ratio_ppmc_ppdata_100_200_systematics"));
 
-      grRatioSys_ppmc_data = MakeSystGraph(hRatio_ppmc_data, hRatioSys_ppmc_data, 2.);
+      grRatioSys_ppmc_data = MakeSystGraph(hRatio_ppmc_data, hRatioSys_ppmc_data, xWEsys);
 
       hObs_ppmc->SetStats(false);
       hObs_ppmc->SetAxisRange(0, 0.299, "X");
