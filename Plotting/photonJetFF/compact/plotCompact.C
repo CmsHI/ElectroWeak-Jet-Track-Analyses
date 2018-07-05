@@ -151,7 +151,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
       hObs_ppmc->SetLineColor(kViolet);
 
       hRatio_ppmc_data->SetStats(false);
-      hRatio_ppmc_data->SetMarkerStyle(kFullCross);
+      hRatio_ppmc_data->SetMarkerStyle(kOpenCross);
       hRatio_ppmc_data->SetMarkerColor(kBlack);
 
       grRatioSys_ppmc_data->SetFillColor(kGray+3);
