@@ -1502,6 +1502,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (nHistos % 2 == 0)   nHistos_lowerPad = nTH1_perPad/2;
 
             std::vector<TH1*> h_lowerPad(nHistos_lowerPad, 0);
+            TH1* hTest1 = 0;
+            TH1* hTest2 = 0;
             for (int i=0; i<nHistos_lowerPad; ++i) {
 
                 h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
@@ -1509,9 +1511,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 h_lowerPad[i]->Add(h[iStart+2*i]);
 
                 // do compatibility test before ratio / diff
-                double valKolmogorov = h_lowerPad[i]->KolmogorovTest(h[iStart+2*i+1]);
+                hTest1 = (TH1D*)h[iStart+2*i]->Clone(Form("%s_test1", h[iStart+2*i]->GetName()));
+                hTest2 = (TH1D*)h[iStart+2*i+1]->Clone(Form("%s_test1", h[iStart+2*i+1]->GetName()));
+                double valKolmogorov = hTest1->KolmogorovTest(hTest2);
                 std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
-                h_lowerPad[i]->Chi2Test(h[iStart+2*i+1],"WW P");
+                hTest1->Chi2Test(hTest2, "WW P");
 
                 if (drawRatioTmp > 0)  h_lowerPad[i]->Divide(h[iStart+2*i+1]);
                 else if (drawDiffTmp > 0)  h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
