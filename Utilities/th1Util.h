@@ -72,6 +72,7 @@ void calcTH1Abs4SysUnc(TH1* h);
 void setTH1Style4SysUnc(TH1* h);
 void subtractIdentity4SysUnc(TH1* h);
 void addSysUnc(TH1* hTot, TH1* h);
+void addBinErrors(TH1* h, TH1* hError);
 void sysDiff2sysRel(TH1D* hNom, TH1D* hSys);
 void sysRel2sysDiff(TH1D* hNom, TH1D* hSys);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
@@ -930,6 +931,22 @@ void addSysUnc(TH1* hTot, TH1* h)
 
         hTot->SetBinContent(i, uncTot);
         hTot->SetBinError(i, errTot);
+    }
+}
+
+/*
+ * add the content of "hError" to the bin error of "h"
+ */
+void addBinErrors(TH1* h, TH1* hError)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i)
+    {
+        double err1 = h->GetBinError(i);
+        double err2 = hError->GetBinContent(i);
+        double errTot = TMath::Sqrt(err1*err1 + err2*err2);
+
+        h->SetBinError(i, errTot);
     }
 }
 
