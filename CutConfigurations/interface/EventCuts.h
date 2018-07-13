@@ -47,6 +47,7 @@ namespace CUTS {
         k_bins_eta_gt,
         k_bins_eta_lt,
         k_weights_file,
+        k_reco_algo,        // Island or GED algorithm
         kN_S_CUTS
     };
 
@@ -58,7 +59,8 @@ namespace CUTS {
             "bins_cent_lt",
             "bins_eta_gt",
             "bins_eta_lt",
-            "weights_file"
+            "weights_file",
+            "reco_algo"
     };
 
   };
