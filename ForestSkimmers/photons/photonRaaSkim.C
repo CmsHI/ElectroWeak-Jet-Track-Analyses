@@ -1,3 +1,6 @@
+// this code is inherited from gammaJetSkim.C by Yeonju Go
+// 2017 Mar 29 modification : pho_isEle and pho_is2015Noise are calculated in nPho loop. so all the photons have this info.  
+
 #include <TFile.h>
 #include <TTree.h>
 #include <TChain.h>
@@ -9,76 +12,104 @@
 #include <iomanip>
 
 #include "../../CorrelationTuple/EventMatcher.h"
-#include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../TreeHeaders/ggHiNtuplizerTreePhotonRAA.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
-#include "../../Utilities/physicsUtil.h"
+//#include "../../Utilities/commonUtility.h"
+#include "../../Plotting/commonUtility.h"
 #include "../../Utilities/interface/CutConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 
 const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1862 GB, so that the code does not switch to a new file after 10 GB
 
-void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", COLL::TYPE colli = COLL::kPP, const TString reweightInputFile = "/home/goyeonju/CMS/2016/PhotonAnalysis2016/160302_skim/files/vertexReweightingHistogram_pthatweighted_ppAllQCD.root");
-float xSecCal(const char* fname_lowestPthat, TChain* mergedTree, float pthat_i, float pthat_f);
+double getAngleToEP(double angle);
 
-void photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile, COLL::TYPE colli, const TString reweightInputFile)
-{
+int photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", const int isEmEnr=0, const int nJobs=-1, const int jobNum=-1) {
     std::cout<<"running photonRaaSkim()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
     std::cout<<"outputFile  = "<< outputFile.Data() <<std::endl;
 
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
+    const InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
+    const CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
     // input configuration
-/*    int collisionType;
-    if (configInput.isValid) {
-        collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
+    if (!configInput.isValid) {
+        std::cout << "Invalid input configuration" << std::endl;
+        return 1;
+    } else if (!configCuts.isValid) {
+        std::cout << "Invalid cut configuration" << std::endl;
+        return 1;
     }
-    else {
-        collisionType = COLL::kPP;
-    }
-*/
+
+    const int collisionType = configInput.proc[INPUT::kSKIM].i[INPUT::k_collisionType];
     // verbose about input configuration
-    int collisionType = colli;
-    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout << "Input Configuration :" << std::endl;
     std::cout << "collisionType = " << collisionType << std::endl;
-    const char* collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
-    std::cout << "collision = " << collisionName << std::endl;
+    std::cout << "collision = " << getCollisionTypeName((COLL::TYPE)collisionType).c_str() << std::endl;
 
     // cut configuration
-    float cut_vz;
-    int cut_pcollisionEventSelection;
-    int cut_pPAprimaryVertexFilter;
-    int cut_pBeamScrapingFilter;
 
-    float cutPhoEt;
-    float cutPhoEta;
+    std::vector<float> mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+    const float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
+    const float cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
+    const int cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
+    const int cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
 
-    if (configCuts.isValid) {
-        cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
-        cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
-        cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
-        cut_pBeamScrapingFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pBeamScrapingFilter];
+    const float cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
+    const float cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
 
-        cutPhoEt = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_et];
-        cutPhoEta = configCuts.proc[CUTS::kSKIM].obj[CUTS::kPHOTON].f[CUTS::PHO::k_eta];
+    const int doEventWeight = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
+    const bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+    const bool isHI = collisionIsHI((COLL::TYPE)collisionType);
 
+    const string reco_algo = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_reco_algo].c_str();
+
+    // binning for photon energy correction
+    std::vector<int> centBins[2];
+    centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
+    centBins[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
+    int nCentBins = centBins[0].size();
+
+    std::vector<float> etaBins[2];
+    etaBins[0] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_gt]);
+    etaBins[1] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_lt]);
+    int nEtaBins = etaBins[0].size();
+
+    TFile* energyCorrectionFile = 0;
+    TF1* photonEnergyCorrections[nCentBins][nEtaBins] = {0};
+    TF1* photonEnergyCorrections_res_sig[nCentBins][nEtaBins] = {0};
+    TF1* photonEnergyCorrections_res_rms[nCentBins][nEtaBins] = {0};
+    TF1* photonEnergyCorrections_pp[nEtaBins] = {0};
+    TF1* photonEnergyCorrections_res_sig_pp[nEtaBins] = {0};
+    TF1* photonEnergyCorrections_res_rms_pp[nEtaBins] = {0};
+    if (isHI) {
+        energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
+        for (int i=0; i<nCentBins; ++i){
+            for (int j=0; j<nEtaBins; ++j){
+                photonEnergyCorrections[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_cent%i_eta%i", i, j));
+                photonEnergyCorrections_res_rms[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent%i_eta%i", i, j));
+                photonEnergyCorrections_res_sig[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent%i_eta%i", i, j));
+            }
+        }
+    } else {
+        energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file_pp].c_str());
+        for (int i=0; i<nEtaBins; ++i){
+            photonEnergyCorrections_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_mean_cent0_eta%i", i));
+            photonEnergyCorrections_res_rms_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent0_eta%i", i));
+            photonEnergyCorrections_res_sig_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent0_eta%i", i));
+        }
     }
-    else {
-        cut_vz = 15;
-        cut_pcollisionEventSelection = 1;
-        cut_pPAprimaryVertexFilter = 1;
-        cut_pBeamScrapingFilter = 1;
 
-        cutPhoEt = 15;
-        cutPhoEta = 1.44;
-    }
+    TFile* sumIsoCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str());
+    TH1D* sumIsoCorrections[nCentBins] = {0};
+    for (int i=0; i<nCentBins; ++i)
+        sumIsoCorrections[i] = (TH1D*)sumIsoCorrectionFile->Get(Form("sumIsoCorrections_cent%i", i));
 
-    bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-    bool isHI = collisionIsHI((COLL::TYPE)collisionType);
-    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
+    // mc pthat weighting
+    for (std::size_t i=0; i<mcPthatWeights.size(); ++i)
+        std::cout << mcPthatWeights[i] << " ";
+    std::cout << std::endl;
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
@@ -94,358 +125,668 @@ void photonRaaSkim(const TString configFile, const TString inputFile, const TStr
     std::cout<<"cutPhoEt  = "<<cutPhoEt<<std::endl;
     std::cout<<"cutPhoEta = "<<cutPhoEta<<std::endl;
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
-    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
-    std::cout<<"#####"<< std::endl;
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        std::cout<<(*it).c_str()<< std::endl;
-    }
-    std::cout<<"##### END #####"<< std::endl;
-
-    TChain* treeHLT   = new TChain("hltanalysis/HltTree");
-    TChain* treeggHiNtuplizer = 0;
-    if(colli==COLL::kPP || colli==COLL::kPPMC) treeggHiNtuplizer = new TChain("ggHiNtuplizerGED/EventTree");
-    else if(colli==COLL::kHI || colli==COLL::kHIMC) treeggHiNtuplizer = new TChain("ggHiNtuplizer/EventTree");
-    TChain* treeHiEvt = new TChain("hiEvtAnalyzer/HiTree");
-    TChain* treeSkim  = new TChain("skimanalysis/HltTree");
-    TChain* treeHiForestInfo = new TChain("HiForest/HiForestInfo");
-    TChain* treeGen=0;
-    if(isMC) treeGen  = new TChain("HiGenParticleAna/hi");
-
-    // pthatWeight Calculation block! 
-    int nPthat = 5;
-    float pthatCut[nPthat+1];
-    const char* lowestPthatFileName="";
-    int nfiles = 0;
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        treeHLT->Add((*it).c_str());
-        treeggHiNtuplizer->Add((*it).c_str());
-        treeHiEvt->Add((*it).c_str());
-        treeSkim->Add((*it).c_str());
-        treeHiForestInfo->Add((*it).c_str());
-        if(isMC) treeGen->Add((*it).c_str());
-        if(isMC && (nfiles==0)) { 
-            lowestPthatFileName = (*it).c_str(); 
-            TString str(lowestPthatFileName);
-            std::cout << "lowestPthatFileName = " << lowestPthatFileName << std::endl;
-            if(str.Contains("15")) {
-                float temp[] = {15,30,50,80,120,9999};          
-                for(int j=0;j<nPthat+1;j++){
-                    pthatCut[j] = temp[j];
-                }
-            } else if(str.Contains("30")) {
-                float temp[] = {30,50,80,120,170,9999};          
-                for(int j=0;j<nPthat+1;j++){
-                    pthatCut[j] = temp[j];
-                }
-            }
-        }
-        nfiles++;
+    // vertex and centrality? reweighting file
+    TFile* weightsFile = TFile::Open(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_weights_file].c_str(), "READ");
+    TH1D* hweights_vz = 0;
+    TH1D* hweights_cent = 0;
+    if (isMC) {
+        hweights_vz = (TH1D*)weightsFile->Get("hvz");
+        if (isHI)
+            hweights_cent = (TH1D*)weightsFile->Get("hcent");
     }
 
-    float tmpWeight[nPthat];
-    if(isMC) {
-        for(int j=0; j<nPthat ; j++){
-            tmpWeight[j] = xSecCal(lowestPthatFileName,treeHiEvt, pthatCut[j], pthatCut[j+1]);
-            std::cout << collisionName << ", pthatWeight of " << pthatCut[j] << " to " << pthatCut[j+1] << " = " << tmpWeight[j] << std::endl;
-        }
-    }
-/*
-    HiForestInfoController hfic(treeHiForestInfo);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
-*/
-    treeHLT->SetBranchStatus("*",0);     // disable all branches
-    treeHLT->SetBranchStatus("HLT_HI*SinglePhoton*Eta*",1);     // enable photon branches
-    treeHLT->SetBranchStatus("HLT_HI*DoublePhoton*Eta*",1);     // enable photon branches
-
-    float vz;
-    Int_t hiBin;
-    UInt_t run, lumis;
-    ULong64_t event;
-    float pthat, pthatWeight;
-    float vtxWeight, centWeight;
-    treeHiEvt->SetBranchAddress("vz",&vz);
-    treeHiEvt->SetBranchAddress("hiBin",&hiBin);
-    treeHiEvt->SetBranchAddress("run", &run);
-    treeHiEvt->SetBranchAddress("evt", &event);
-    treeHiEvt->SetBranchAddress("lumi", &lumis);
-    if(isMC) {
-        //treeHiEvt->Branch("pthatWeight", &pthatWeight, "pthatWeight/F");
-        treeHiEvt->SetBranchAddress("pthat", &pthat);
-    }   
-
-    // specify explicitly which branches to store, do not use wildcard
-    treeSkim->SetBranchStatus("*",0);
-
-    Int_t pcollisionEventSelection;  // this filter is used for HI.
-    if (isHI) {
-        treeSkim->SetBranchStatus("pcollisionEventSelection",1);
-        if (treeSkim->GetBranch("pcollisionEventSelection")) {
-            treeSkim->SetBranchAddress("pcollisionEventSelection",&pcollisionEventSelection);
-        }
-        else {   // overwrite to default
-            pcollisionEventSelection = 1;
-            std::cout<<"could not get branch : pcollisionEventSelection"<<std::endl;
-            std::cout<<"set to default value : pcollisionEventSelection = "<<pcollisionEventSelection<<std::endl;
-        }
-    }
-    else {
-        pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
-    }
-    Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
-    if (isPP) {
-        treeSkim->SetBranchStatus("pPAprimaryVertexFilter",1);
-        if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
-            treeSkim->SetBranchAddress("pPAprimaryVertexFilter",&pPAprimaryVertexFilter);
-        }
-        else {   // overwrite to default
-            pPAprimaryVertexFilter = 1;
-            std::cout<<"could not get branch : pPAprimaryVertexFilter"<<std::endl;
-            std::cout<<"set to default value : pPAprimaryVertexFilter = "<<pPAprimaryVertexFilter<<std::endl;
-        }
-    }
-    else {
-        pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
-    }
-    Int_t pBeamScrapingFilter;   // this filter is used for PP.
-    if (isPP) {
-        treeSkim->SetBranchStatus("pBeamScrapingFilter",1);
-        if (treeSkim->GetBranch("pBeamScrapingFilter")) {
-            treeSkim->SetBranchAddress("pBeamScrapingFilter",&pBeamScrapingFilter);
-        }
-        else {   // overwrite to default
-            pBeamScrapingFilter = 1;
-            std::cout<<"could not get branch : pBeamScrapingFilter"<<std::endl;
-            std::cout<<"set to default value : pBeamScrapingFilter = "<<pBeamScrapingFilter<<std::endl;
-        }
-    }
-    else {
-        pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
-    }
-
-    // objects for z-jet correlations
-    ggHiNtuplizer ggHi;
-    ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
-    treeggHiNtuplizer->SetBranchStatus("*",0);
-    treeggHiNtuplizer->SetBranchStatus("run",1);
-    treeggHiNtuplizer->SetBranchStatus("event",1);
-    treeggHiNtuplizer->SetBranchStatus("lumis",1);
-    treeggHiNtuplizer->SetBranchStatus("nPho",1);
-    treeggHiNtuplizer->SetBranchStatus("pho*",1);
-    treeggHiNtuplizer->SetBranchStatus("pf*",1);
-    //treeggHiNtuplizer->SetBranchStatus("tower*",1);
-    if(isMC) treeggHiNtuplizer->SetBranchStatus("mc*",1);
-    if(isMC) treeggHiNtuplizer->SetBranchStatus("nMC",1);
-
-
-
-    TFile* output = TFile::Open(outputFile,"RECREATE");
+    //output file setting
+    TFile* output = TFile::Open(outputFile, "RECREATE");
     TTree* configTree = setupConfigurationTreeForWriting(configCuts);
-
     // output tree variables
-    TTree *outputTreeHLT=0, *outputTreeggHiNtuplizer=0, 
-          *outputTreeHiEvt=0, *outputTreeSkim=0, *outputTreeHiForestInfo=0, *outputTreeGen=0;
+    TTree *outputTreeHLT = 0, *outputTreeggHiNtuplizer = 0, *outputTreeHiEvt = 0, *outputTreeSkim = 0;
 
-    // output tree variables
-    outputTreeHLT    = treeHLT->CloneTree(0);
-    outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
-    outputTreeHiEvt = treeHiEvt->CloneTree(0);
-    outputTreeSkim   = treeSkim->CloneTree(0);
-    outputTreeHiForestInfo = treeHiForestInfo->CloneTree(0);
-    if(isMC) outputTreeGen = treeGen ->CloneTree(0);
-
-    outputTreeSkim->SetName("skimTree");
-    outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
-    outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
-    outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
-    outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
-    outputTreeHiForestInfo->SetMaxTreeSize(MAXTREESIZE);
-    if(isMC) outputTreeGen->SetMaxTreeSize(MAXTREESIZE);
-
-    if(isMC) outputTreeHiEvt->Branch("pthatWeight", &pthatWeight, "pthatWeight/F");
-    if(isMC) outputTreeHiEvt->Branch("vtxWeight", &vtxWeight, "vtxWeight/F");
-    if(isMC) outputTreeHiEvt->Branch("centWeight", &centWeight, "centWeight/F");
-
-
-
-    /////// Vertex and Centrality reweighting for MC ///////
-    TH1D* vertexHistoRatio = 0;
-    TH1D* centBinHistoRatio = 0;
-    if(isMC){
-        TFile* rewf = new TFile(reweightInputFile);
-        vertexHistoRatio = (TH1D*) rewf -> Get("vertexHistoRatio");
-        centBinHistoRatio = (TH1D*) rewf -> Get("centBinHistoRatio");
-    }
-
-    /////// Event Matching for DATA ///////
+    //event matching
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
-    Long64_t entriesPassedEventSelection =0;
-    Long64_t entriesAnalyzed =0;
-    Long64_t entriesSpikeRejected=0;
-    Long64_t entries = treeggHiNtuplizer->GetEntries();
-    std::cout << "entries = " << entries << std::endl;
-    std::cout<< "Loop : ggHiNtuplizer/EventTree" <<std::endl;
-    //for (Long64_t j_entry=10000; j_entry<10100; ++j_entry)
-    for (Long64_t j_entry=0; j_entry<entries; ++j_entry)
-    {
-        if (j_entry % 2000 == 0)  {
-            std::cout << "current entry = " <<j_entry<<" out of "<<entries<<" : "<<std::setprecision(2)<<(double)j_entry/entries*100<<" %"<<std::endl;
+    Long64_t totalEntries = 0;
+    Long64_t entriesPassedEventSelection = 0;
+    Long64_t entriesAnalyzed = 0;
+
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.Data());
+
+    for (std::size_t i=0; i<inputFiles.size(); ++i) 
+        std::cout << inputFiles[i] << std::endl;
+    std::cout << "input ROOT files : num = " << inputFiles.size() << std::endl;
+    std::cout << "#####" << std::endl;
+
+    std::vector<std::string>::iterator itFirst = inputFiles.begin();
+    std::vector<std::string>::iterator itEnd = inputFiles.end();
+
+    if (inputFiles.size() > 1 && nJobs != -1) {
+        if (jobNum >= nJobs) {
+            std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
+            return 1;
+        } else if ((unsigned)nJobs > inputFiles.size()) {
+            std::cout << "More jobs defined than input files, invalid settings." << std::endl;
+            std::cout << "Number of files: " << inputFiles.size() << " . Number of jobs: " << nJobs << std::endl;
+            return 1;
         }
 
-        treeHLT->GetEntry(j_entry);
-        treeggHiNtuplizer->GetEntry(j_entry);
-        treeSkim->GetEntry(j_entry);
-        treeHiEvt->GetEntry(j_entry);
-        treeHiForestInfo->GetEntry(j_entry);
-        if(isMC) treeGen->GetEntry(j_entry);
+        int totFiles = inputFiles.size();
+        itFirst = inputFiles.begin() + floor((float)totFiles*(float)jobNum/(float)nJobs);
+        itEnd = inputFiles.begin() + floor((float)totFiles*(float)(jobNum+1)/(float)nJobs);
+        if (jobNum == nJobs-1)
+            itEnd = inputFiles.end();
 
-        bool eventAdded = em->addEvent(run,lumis,event,j_entry);
-        //std::cout << run << " " << lumis << " " << event << " " << j_entry << std::endl;
-        if(!eventAdded) // this event is duplicate, skip this one.
-        {
-            duplicateEntries++;
-            continue;
-        }
-
-        if(isMC) {
-            if((pthat>=pthatCut[0]) && (pthat<pthatCut[1])) pthatWeight = tmpWeight[0];
-            else if((pthat>=pthatCut[1]) && (pthat<pthatCut[2])) pthatWeight = tmpWeight[1];
-            else if((pthat>=pthatCut[2]) && (pthat<pthatCut[3])) pthatWeight = tmpWeight[2];
-            else if((pthat>=pthatCut[3]) && (pthat<pthatCut[4])) pthatWeight = tmpWeight[3];
-            else if((pthat>=pthatCut[4]) && (pthat<pthatCut[5])) pthatWeight = tmpWeight[4];
-            else continue;
-        }
-        // event selection
-        if (!(TMath::Abs(vz) < cut_vz))  continue;
-        if (isHI) {
-            if ((pcollisionEventSelection < cut_pcollisionEventSelection))  continue;
-        }
-        else {
-            if (pPAprimaryVertexFilter < cut_pPAprimaryVertexFilter || pBeamScrapingFilter < cut_pBeamScrapingFilter)  continue;
-        }
-        entriesPassedEventSelection++;
+        std::cout << "For this job " << jobNum << std::endl;
+        std::cout << "First Entry: " << floor((float)totFiles*(float)jobNum/(float)nJobs) << std::endl;
+        std::cout << "Final Entry: " << floor((float)totFiles*(float)(jobNum+1)/(float)nJobs) << std::endl;
+    }
 
 
-        // photon block
-        // find leading photon
-        int phoIdx = -1;     // index of the leading photon
-        double maxPhoEt = -1;
-        for(int i=0; i<ggHi.nPho; ++i)
-        {
-            bool failedEtCut  = (ggHi.phoEt->at(i) < cutPhoEt) ;
-            bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta) ;
-            bool failedSpikeRejection;
-            bool failedHotSpotRejection;
-            //if (isHI) {
-            failedSpikeRejection =( (ggHi.phoEta->at(i)<1.44) && 
-                    (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
-                     ggHi.pho_swissCrx->at(i)     > 0.9   ||
-                     TMath::Abs(ggHi.pho_seedTime->at(i)) > 3) );
-            // }
-            // else {
-            //     failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002);
-            // }
+    float eventWeight;
+    float ncoll_data;
+    std::vector<float> pho_genPt, pho_genEta, pho_genPhi, pho_genE, pho_genEt, pho_genCalIsoDR03, pho_genCalIsoDR04, pho_genTrkIsoDR03, pho_genTrkIsoDR04;
+    std::vector<int> pho_genPID, pho_genStatus, pho_genMomPID;
+    std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIsoCorrected;
+    std::vector<float> phoEtCorrected_resSys_rms, phoEtCorrected_resSys_sig;
+    std::vector<float> phoEtCorrected_resSys_rms2, phoEtCorrected_resSys_sig2;
+    std::vector<float> phoEtCorrected_resSys_up, phoEtCorrected_resSys_down;
+    std::vector<int> pho_isEle, pho_is2015Noise; 
+    //Int_t pho_isEle, pho_is2015Noise;
+    Int_t pcollisionEventSelection;  // this filter is used for HI.
+    Int_t HBHENoiseFilterResultRun2Loose;
+    Int_t pPAprimaryVertexFilter;    // this filter is used for PP.
+    Int_t pBeamScrapingFilter;   // this filter is used for PP.
+    TRandom3 *r3=new TRandom3();
+    //int ii=0;
+    for (std::vector<std::string>::iterator it = itFirst; it != itEnd; ++it) {
+        std::cout << (*it).c_str() << std::endl;
+        //ii++;
+        //std::cout << ii << std::endl;
+        //if(ii<100) continue;
 
-            failedHotSpotRejection = (
-                (ggHi.phoE3x3->at(i)/ggHi.phoE5x5->at(i) > 2./3.-0.03 && ggHi.phoE3x3->at(i)/ggHi.phoE5x5->at(i) < 2./3.+0.03) &&
-                (ggHi.phoE1x5->at(i)/ggHi.phoE5x5->at(i) > 1./3.-0.03 && ggHi.phoE1x5->at(i)/ggHi.phoE5x5->at(i) < 1./3.+0.03) &&
-                (ggHi.phoE2x5->at(i)/ggHi.phoE5x5->at(i) > 2./3.-0.03 && ggHi.phoE2x5->at(i)/ggHi.phoE5x5->at(i) < 2./3.+0.03) );
-            
-            bool failedHoverE = (ggHi.phoHoverE->at(i) > 0.2);      // <0.1 cut is applied after corrections
-            //               bool failedEnergyRatio = ((float)ggHi.phoSCRawE->at(i)/ggHi.phoE->at(i) < 0.5);
+        TFile *inFile = TFile::Open((*it).c_str());
+        inFile->cd();
 
-            if (failedEtCut)          continue;
-            if (failedEtaCut)         continue;
-            if (failedSpikeRejection) continue;
-            if (failedHotSpotRejection) {entriesSpikeRejected++; continue;}
-            if (failedHoverE)         continue;
-            //               if (failedEnergyRatio)    continue;    // actually applied after corrections
+        TTree* treeHLT = (TTree*)inFile->Get("hltanalysis/HltTree");
+        TTree* treeggHiNtuplizer = 0;
+        treeggHiNtuplizer = (TTree*)inFile->Get(Form("ggHiNtuplizer%s/EventTree",reco_algo.data()));
+        //std::cout << "ggHiNtuplizer" << reco_algo << " is being processed" << endl;
+       // if (isHI)
+       //     treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizer/EventTree");
+       // else 
+       //     treeggHiNtuplizer = (TTree*)inFile->Get("ggHiNtuplizerGED/EventTree");
 
-            if (ggHi.phoEt->at(i) > maxPhoEt)
-            {
-                maxPhoEt = ggHi.phoEt->at(i);
-                phoIdx = i;
-            }
-        }
-        if (phoIdx == -1) continue;
+        TTree* treeHiEvt = (TTree*)inFile->Get("hiEvtAnalyzer/HiTree");
+        TTree* treeSkim  = (TTree*)inFile->Get("skimanalysis/HltTree");
 
-        ////// Vertex and Centrality reweighting for MC ////////
+        treeHLT->SetBranchStatus("*", 0);     // disable all branches
+        treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*", 1);     // enable photon branches
+        treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*", 1);     // enable photon branches
+
+        // objects for gamma-jet correlations
+        ggHiNtuplizer ggHi;
+        ggHi.setupTreeForReading(treeggHiNtuplizer);    // treeggHiNtuplizer is input
+        ggHi.pho_genPID         = &pho_genPID;
+        ggHi.pho_genStatus      = &pho_genStatus;
+        ggHi.pho_genPt          = &pho_genPt;
+        ggHi.pho_genEta         = &pho_genEta;
+        ggHi.pho_genPhi         = &pho_genPhi;
+        ggHi.pho_genE           = &pho_genE;
+        ggHi.pho_genEt          = &pho_genEt;
+        ggHi.pho_genMomPID      = &pho_genMomPID;
+        ggHi.pho_genCalIsoDR03  = &pho_genCalIsoDR03;
+        ggHi.pho_genCalIsoDR04  = &pho_genCalIsoDR04;
+        ggHi.pho_genTrkIsoDR03  = &pho_genTrkIsoDR03;
+        ggHi.pho_genTrkIsoDR04  = &pho_genTrkIsoDR04;
+        ggHi.phoEtCorrected = &phoEtCorrected;
+        ggHi.phoEtCorrected_sys = &phoEtCorrected_sys;
+        ggHi.pho_sumIsoCorrected = &pho_sumIsoCorrected;
+        ggHi.pho_isEle = &pho_isEle;
+        ggHi.pho_is2015Noise = &pho_is2015Noise;
+
+        // specify explicitly which branches to store, do not use wildcard
+        treeHiEvt->SetBranchStatus("*", 0);
+        treeHiEvt->SetBranchStatus("run", 1);
+        treeHiEvt->SetBranchStatus("evt", 1);
+        treeHiEvt->SetBranchStatus("lumi", 1);
+        treeHiEvt->SetBranchStatus("vz", 1);
+        treeHiEvt->SetBranchStatus("hiBin", 1);
+        treeHiEvt->SetBranchStatus("hiHF", 1);
+        treeHiEvt->SetBranchStatus("hiHFplus", 1);
+        treeHiEvt->SetBranchStatus("hiHFminus", 1);
+        treeHiEvt->SetBranchStatus("hiHFplusEta4", 1);
+        treeHiEvt->SetBranchStatus("hiHFminusEta4", 1);
+        // treeHiEvt->SetBranchStatus("hiNevtPlane", 1);
+        if(isHI) treeHiEvt->SetBranchStatus("hiEvtPlanes", 1);
         if (isMC) {
-            vtxWeight = vertexHistoRatio->GetBinContent(vertexHistoRatio->FindBin(vz));
-            centWeight = centBinHistoRatio->GetBinContent(centBinHistoRatio->FindBin(hiBin));
+            treeHiEvt->SetBranchStatus("Npart", 1);
+            treeHiEvt->SetBranchStatus("Ncoll", 1);
+            treeHiEvt->SetBranchStatus("Nhard", 1);
+            treeHiEvt->SetBranchStatus("ProcessID", 1);
+            treeHiEvt->SetBranchStatus("pthat", 1);
+            treeHiEvt->SetBranchStatus("alphaQCD", 1);
+            treeHiEvt->SetBranchStatus("alphaQED", 1);
+            treeHiEvt->SetBranchStatus("qScale", 1);
         }
-        ////////////////////////////////////////////////////////
 
-        entriesAnalyzed++;
+        float vz;
+        Int_t hiBin;
+        Float_t hiEvtPlanes[29];   //[hiNevtPlane]
+        UInt_t run, lumis;
+        ULong64_t event;
+        float pthat;
 
-        outputTreeHLT->Fill();
-        outputTreeggHiNtuplizer->Fill();
-        outputTreeHiEvt->Fill();
-        outputTreeSkim->Fill();
-        outputTreeHiForestInfo->Fill();
-        if(isMC) outputTreeGen->Fill();
-    }// event loop closed here
+        treeHiEvt->SetBranchAddress("vz", &vz);
+        treeHiEvt->SetBranchAddress("hiBin", &hiBin);
+        if(isHI) treeHiEvt->SetBranchAddress("hiEvtPlanes", &hiEvtPlanes);
+        treeHiEvt->SetBranchAddress("run", &run);
+        treeHiEvt->SetBranchAddress("evt", &event);
+        treeHiEvt->SetBranchAddress("lumi", &lumis);
+        if (isMC)
+            treeHiEvt->SetBranchAddress("pthat", &pthat);
 
-    std::cout<<  "Loop ENDED : ggHiNtuplizer/EventTree" <<std::endl;
-    std::cout << "entries            = " << entries << std::endl;
+        // specify explicitly which branches to store, do not use wildcard
+        treeSkim->SetBranchStatus("*", 0);
+
+        if (isHI) {
+            treeSkim->SetBranchStatus("pcollisionEventSelection", 1);
+            if (treeSkim->GetBranch("pcollisionEventSelection")) {
+                treeSkim->SetBranchAddress("pcollisionEventSelection", &pcollisionEventSelection);
+            } else {   // overwrite to default
+                pcollisionEventSelection = 1;
+                std::cout << "could not get branch : pcollisionEventSelection" << std::endl;
+                std::cout << "set to default value : pcollisionEventSelection = " << pcollisionEventSelection << std::endl;
+            }
+        } else {
+            pcollisionEventSelection = 0;    // default value if the collision is not HI, will not be used anyway.
+        }
+
+        if (!isMC) {
+            treeSkim->SetBranchStatus("HBHENoiseFilterResultRun2Loose", 1);
+            if (treeSkim->GetBranch("HBHENoiseFilterResultRun2Loose")) {
+                treeSkim->SetBranchAddress("HBHENoiseFilterResultRun2Loose", &HBHENoiseFilterResultRun2Loose);
+            } else {   // overwrite to default
+                HBHENoiseFilterResultRun2Loose = 1;
+                std::cout << "could not get branch : HBHENoiseFilterResultRun2Loose" << std::endl;
+                std::cout << "set to default value : HBHENoiseFilterResultRun2Loose = " << HBHENoiseFilterResultRun2Loose << std::endl;
+            }
+        } else {
+            HBHENoiseFilterResultRun2Loose = 0;
+        }
+
+        if (!isHI) {
+            treeSkim->SetBranchStatus("pPAprimaryVertexFilter", 1);
+            if (treeSkim->GetBranch("pPAprimaryVertexFilter")) {
+                treeSkim->SetBranchAddress("pPAprimaryVertexFilter", &pPAprimaryVertexFilter);
+            } else {   // overwrite to default
+                pPAprimaryVertexFilter = 1;
+                std::cout << "could not get branch : pPAprimaryVertexFilter" << std::endl;
+                std::cout << "set to default value : pPAprimaryVertexFilter = " << pPAprimaryVertexFilter << std::endl;
+            }
+        } else {
+            pPAprimaryVertexFilter = 0;      // default value if the collision is not PP, will not be used anyway.
+        }
+
+        if (!isHI) {
+            treeSkim->SetBranchStatus("pBeamScrapingFilter", 1);
+            if (treeSkim->GetBranch("pBeamScrapingFilter")) {
+                treeSkim->SetBranchAddress("pBeamScrapingFilter", &pBeamScrapingFilter);
+            } else {   // overwrite to default
+                pBeamScrapingFilter = 1;
+                std::cout << "could not get branch : pBeamScrapingFilter" << std::endl;
+                std::cout << "set to default value : pBeamScrapingFilter = " << pBeamScrapingFilter << std::endl;
+            }
+        } else {
+            pBeamScrapingFilter = 0;     // default value if the collision is not PP, will not be used anyway.
+        }
+
+
+        if (it == itFirst) {
+            output->cd();
+            outputTreeHLT = treeHLT->CloneTree(0);
+            outputTreeHLT->SetName("hltTree");
+            outputTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
+            outputTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+            outputTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
+            if(isMC){
+                outputTreeggHiNtuplizer->Branch("pho_genPID", &pho_genPID);
+                outputTreeggHiNtuplizer->Branch("pho_genStatus", &pho_genStatus);
+                outputTreeggHiNtuplizer->Branch("pho_genPt", &pho_genPt);
+                outputTreeggHiNtuplizer->Branch("pho_genEta", &pho_genEta);
+                outputTreeggHiNtuplizer->Branch("pho_genPhi", &pho_genPhi);
+                outputTreeggHiNtuplizer->Branch("pho_genE", &pho_genE);
+                outputTreeggHiNtuplizer->Branch("pho_genEt", &pho_genEt);
+                outputTreeggHiNtuplizer->Branch("pho_genMomPID", &pho_genMomPID);
+                outputTreeggHiNtuplizer->Branch("pho_genCalIsoDR03", &pho_genCalIsoDR03);
+                outputTreeggHiNtuplizer->Branch("pho_genCalIsoDR04", &pho_genCalIsoDR04);
+                outputTreeggHiNtuplizer->Branch("pho_genTrkIsoDR03", &pho_genTrkIsoDR03);
+                outputTreeggHiNtuplizer->Branch("pho_genTrkIsoDR04", &pho_genTrkIsoDR04);
+            }
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected", &phoEtCorrected);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &phoEtCorrected_sys);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms2", &phoEtCorrected_resSys_rms2);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_sig", &phoEtCorrected_resSys_sig);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_sig2", &phoEtCorrected_resSys_sig2);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_up", &phoEtCorrected_resSys_up);
+            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_down", &phoEtCorrected_resSys_down);
+            outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
+            outputTreeggHiNtuplizer->Branch("pho_isEle", &pho_isEle);
+            outputTreeggHiNtuplizer->Branch("pho_is2015Noise", &pho_is2015Noise);
+            outputTreeHiEvt = treeHiEvt->CloneTree(0);
+            outputTreeHiEvt->SetName("HiEvt");
+            outputTreeHiEvt->SetTitle("subbranches of hiEvtAnalyzer/HiTree");
+            if (doEventWeight)
+                outputTreeHiEvt->Branch("weight", &eventWeight, "weight/F");
+            if (!isMC)
+                outputTreeHiEvt->Branch("Ncoll", &ncoll_data, "Ncoll/F");
+            outputTreeSkim = treeSkim->CloneTree(0);
+            outputTreeSkim->SetName("skim");
+            outputTreeSkim->SetTitle("subbranches of skimanalysis/HltTree");
+            if(isHI) { outputTreeSkim->Branch("pcollisionEventSelection", &pcollisionEventSelection, "pcollisionEventSelection/I"); }
+            else {
+                outputTreeSkim->Branch("pPAprimaryVertexFilter", &pPAprimaryVertexFilter, "pPAprimaryVertexFilter/I");
+                outputTreeSkim->Branch("pBeamScrapingFilter", &pBeamScrapingFilter, "pBeamScrapingFilter/I");
+            }
+            outputTreeSkim->Branch("HBHENoiseFilterResultRun2Loose", &HBHENoiseFilterResultRun2Loose, "HBHENoiseFilterResultRun2Loose/I");
+
+            outputTreeHLT->SetMaxTreeSize(MAXTREESIZE);
+            outputTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
+            outputTreeSkim->SetMaxTreeSize(MAXTREESIZE);
+            inFile->cd();
+        } else {
+            output->cd();
+            treeHLT->CopyAddresses(outputTreeHLT);
+            treeggHiNtuplizer->CopyAddresses(outputTreeggHiNtuplizer);
+            treeHiEvt->CopyAddresses(outputTreeHiEvt);
+            treeSkim->CopyAddresses(outputTreeSkim);
+            inFile->cd();
+        }
+
+        Long64_t nentries = treeggHiNtuplizer->GetEntries();
+        long long firstEntry = 0;
+        long long lastEntry = nentries;
+        std::cout << "Total Entries: " << nentries << std::endl;
+
+        if (inputFiles.size() == 1 && nJobs != -1) {
+            if (jobNum >= nJobs) {
+                std::cout << "jobNum > nJobs, invalid configuration, aborting" << std::endl;
+                return 1;
+            }
+
+            firstEntry = floor((float)nentries*(float)jobNum/(float)nJobs);
+            lastEntry = floor((float)nentries*(float)(jobNum+1)/(float)nJobs);
+            if (jobNum == nJobs-1)
+                lastEntry = nentries;
+
+            std::cout << "For this job " << jobNum << std::endl;
+            std::cout << "First Entry: " << firstEntry << std::endl;
+            std::cout << "Final Entry: " << lastEntry << std::endl;
+        }
+
+        totalEntries += nentries;
+        //for (long long jentry = firstEntry; jentry < 100; jentry++) {
+        for (long long jentry = firstEntry; jentry < lastEntry; jentry++) {
+            if (jentry % 2000 == 0)
+                printf("current entry = %lli out of %lli : %.1f%%\n", jentry, nentries, jentry*100.0/nentries);
+            if(isMC){
+                pho_genPID.clear();       
+                pho_genStatus.clear();    
+                pho_genPt.clear();        
+                pho_genEta.clear();       
+                pho_genPhi.clear();       
+                pho_genE.clear();         
+                pho_genEt.clear();        
+                pho_genMomPID.clear();    
+                pho_genCalIsoDR03.clear();
+                pho_genCalIsoDR04.clear();
+                pho_genTrkIsoDR03.clear();
+                pho_genTrkIsoDR04.clear();
+            }
+            phoEtCorrected.clear();
+            phoEtCorrected_sys.clear();
+            phoEtCorrected_resSys_rms.clear();
+            phoEtCorrected_resSys_rms2.clear();
+            phoEtCorrected_resSys_sig.clear();
+            phoEtCorrected_resSys_sig2.clear();
+            phoEtCorrected_resSys_up.clear();
+            phoEtCorrected_resSys_down.clear();
+            pho_sumIsoCorrected.clear();
+            pho_isEle.clear();
+            pho_is2015Noise.clear();
+
+            treeHLT->GetEntry(jentry);
+            treeggHiNtuplizer->GetEntry(jentry);
+            treeSkim->GetEntry(jentry);
+            treeHiEvt->GetEntry(jentry);
+
+            eventWeight = 1;
+            if (doEventWeight && isEmEnr==0) {
+                if (pthat >= 14.99 && pthat < 30.) {
+                    eventWeight = mcPthatWeights[0];
+                } else if (pthat >= 30. && pthat < 50.) {
+                    eventWeight = mcPthatWeights[1];
+                } else if (pthat >= 50. && pthat < 80.) {
+                    eventWeight = mcPthatWeights[2];
+                } else if (pthat >= 80. && pthat < 120.) {
+                    eventWeight = mcPthatWeights[3];
+                } else if (pthat >= 120.) {
+                    eventWeight = mcPthatWeights[4];
+                } else {
+                    eventWeight = 0;
+                    std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
+                }
+                
+                eventWeight *= hweights_vz->GetBinContent(hweights_vz->FindBin(vz));
+                if (isHI)
+                    eventWeight *= hweights_cent->GetBinContent(hweights_cent->FindBin(hiBin));
+
+            } else if(doEventWeight && isEmEnr==1) {
+                if (pthat >= 29.99 && pthat < 50.) {
+                    eventWeight = mcPthatWeights[0];
+                } else if (pthat >= 50. && pthat < 80.) {
+                    eventWeight = mcPthatWeights[1];
+                } else if (pthat >= 80. && pthat < 120.) {
+                    eventWeight = mcPthatWeights[2];
+                } else if (pthat >= 120. && pthat < 170.) {
+                    eventWeight = mcPthatWeights[3];
+                } else if (pthat >= 170.) {
+                    eventWeight = mcPthatWeights[4];
+                } else {
+                    eventWeight = 0;
+                    std::cout << "ERROR: bad pthat value: " << pthat << std::endl;
+                }
+                
+                eventWeight *= hweights_vz->GetBinContent(hweights_vz->FindBin(vz));
+                if (isHI)
+                    eventWeight *= hweights_cent->GetBinContent(hweights_cent->FindBin(hiBin));
+
+            }
+
+            bool eventAdded = em->addEvent(run, lumis, event, jentry);
+            if (!eventAdded) { // this event is duplicate, skip this one.
+                duplicateEntries++;
+                continue;
+            }
+
+            // event selection
+            if (!(TMath::Abs(vz) < cut_vz))
+                continue;
+            if (isHI) {
+                if ((pcollisionEventSelection < cut_pcollisionEventSelection))
+                    continue;
+                if (!isMC && (HBHENoiseFilterResultRun2Loose < cut_pcollisionEventSelection))
+                    continue; // re-use config value...
+            } else {
+                if (pPAprimaryVertexFilter < cut_pPAprimaryVertexFilter || pBeamScrapingFilter < cut_pBeamScrapingFilter)
+                    continue;
+            }
+
+            entriesPassedEventSelection++;
+
+            // find leading photon
+            int phoIdx = -1;     // index of the leading photon
+            double maxPhoEt = -1;
+
+            for (int i=0; i<ggHi.nPho; ++i) {
+                int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
+
+                // apply corrections to every photon
+                double sumIso = (*ggHi.pho_ecalClusterIsoR4)[i] + (*ggHi.pho_hcalRechitIsoR4)[i] + (*ggHi.pho_trackIsoR4PtCut20)[i];
+                double phoEt_corrected = 0;
+                double resCorr1 = 0; 
+                double resCorr2 = 0;
+                double sigCorr1 = 0;
+                double sigCorr2 = 0;
+                double resUp = 0;
+                double resDown = 0;
+                if (isHI) {
+                    int icent = 0;
+                    for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
+
+                    if ((*ggHi.phoEt)[i] > 10)
+                        phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                        //phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
+
+                    phoEtCorrected.push_back(phoEt_corrected);
+                    pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections[icent]->GetBinContent(sumIsoCorrections[icent]->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+
+                    // systematic variations from Ran
+                    // MC   0 - 30%   Z mass: 9.094649e+01
+                    // Data 0 - 30%   Z mass: 9.000079e+01
+                    // MC   30 - 100% Z mass: 9.094943e+01
+                    // Data 30 - 100% Z mass: 9.064840e+01
+                    //phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
+                    
+                    // systematic variations from Yeonju from Kaya's energy scale correction 
+                    // MC   0 - 10%   Z mass: 90.6898 
+                    // Data 0 - 10%   Z mass: 89.9488 
+                    // MC   10 - 30%  Z mass: 91.0283 
+                    // Data 10 - 30%  Z mass: 90.0369 
+                    // MC   30 - 100% Z mass: 90.4153 
+                    // Data 30 - 100% Z mass: 90.3944 
+                    //if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.6898 / 89.9488;
+                    //else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 91.0283 / 90.0369; 
+                    //else phoEt_corrected = phoEt_corrected * 90.4153 / 90.3944; 
+                    
+                    // systematic variations from Yeonju from Yeonju's energy scale correction(resolution_lowpt)
+                    // MC       0-10%   Z mass :    90.6713
+                    // DATA     0-10%   Z mass :    90.3055
+                    // MC GEN   0-10%   Z mass :    90.7494
+                    // MC       10-30%  Z mass :    90.7136
+                    // DATA     10-30%  Z mass :    89.9181
+                    // MC GEN   10-30%  Z mass :    90.7445
+                    // MC       30-100% Z mass :    90.0702
+                    // DATA     30-100% Z mass :    90.1195
+                    // MC GEN   30-100% Z mass :    90.7517
+                    
+                    // systematic variations from Yeonju from Yeonju's energy scale correction(resolution_lowpt)
+                    // after electron matching /////// 
+                    // MC      0-10%   Z mass :    90.6448
+                    // DATA    0-10%   Z mass :    90.1938
+                    // MC GEN  0-10%   Z mass :    90.7495
+                    // MC      10-30%  Z mass :    90.7663
+                    // DATA    10-30%  Z mass :    89.9276
+                    // MC GEN  10-30%  Z mass :    90.7445
+                    // MC      30-100% Z mass :    90.1635
+                    // DATA    30-100% Z mass :    90.2506
+                    // MC GEN  30-100% Z mass :    90.7517 
+                    if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.6448 / 90.1938; 
+                    else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 90.7663 / 89.9276; 
+                    else phoEt_corrected = phoEt_corrected * 90.1635 / 90.2506; 
+                    phoEtCorrected_sys.push_back(phoEt_corrected);
+                    
+
+                    // energy resolution systematic
+                    float mean = photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                    float rms = photonEnergyCorrections_res_rms[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                    float sig = photonEnergyCorrections_res_sig[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                    resUp = (*ggHi.phoEt)[i] /(mean+sig);
+                    resDown = (*ggHi.phoEt)[i] /(mean-sig);
+                    if ((*ggHi.phoEt)[i] > 10){
+                        resCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
+                        resCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
+                        sigCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
+                        sigCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
+                    }
+                   // if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
+                    phoEtCorrected_resSys_rms.push_back(resCorr1);
+                    phoEtCorrected_resSys_rms2.push_back(resCorr2);
+                    phoEtCorrected_resSys_sig.push_back(sigCorr1);
+                    phoEtCorrected_resSys_sig2.push_back(sigCorr2);
+                    phoEtCorrected_resSys_up.push_back(resUp);
+                    phoEtCorrected_resSys_down.push_back(resDown);
+                    
+                } else { // pp
+                    if ((*ggHi.phoEt)[i] > 10)
+                        phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                        //phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->GetBinContent(photonEnergyCorrections_pp[ieta]->FindBin((*ggHi.phoEt)[i]));
+
+                    phoEtCorrected.push_back(phoEt_corrected);
+                    pho_sumIsoCorrected.push_back(sumIso);
+
+                    phoEt_corrected = phoEt_corrected * 89.8724 / 89.06 ;// after electron matching in the systematic
+                    //phoEt_corrected = phoEt_corrected * 90.4818 / 88.9401;// before electron matching 
+                    phoEtCorrected_sys.push_back(phoEt_corrected);
+                    //phoEtCorrected_sys.push_back((*ggHi.phoEt)[i]);
+                    
+                    // energy resolution systematic
+                    float mean = photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                    float rms = photonEnergyCorrections_res_rms_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                    float sig = photonEnergyCorrections_res_sig_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                    resUp = (*ggHi.phoEt)[i] /(mean+sig);
+                    resDown = (*ggHi.phoEt)[i] /(mean-sig);
+                    if ((*ggHi.phoEt)[i] > 10){
+                        resCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
+                        resCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
+                        sigCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
+                        sigCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
+                    }
+                   // if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
+                    phoEtCorrected_resSys_rms.push_back(resCorr1);
+                    phoEtCorrected_resSys_rms2.push_back(resCorr2);
+                    phoEtCorrected_resSys_sig.push_back(sigCorr1);
+                    phoEtCorrected_resSys_sig2.push_back(sigCorr2);
+                    phoEtCorrected_resSys_up.push_back(resUp);
+                    phoEtCorrected_resSys_down.push_back(resDown);
+                }
+                
+                // fill photon gen variables
+                if(isMC){
+                    int matchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                    pho_genPID.push_back((*ggHi.mcPID)[matchedIndex]);
+                    if(matchedIndex!=-1){
+                        pho_genPID.push_back((*ggHi.mcPID)[matchedIndex]);
+                        pho_genStatus.push_back((*ggHi.mcStatus)[matchedIndex]);
+                        pho_genPt.push_back((*ggHi.mcPt)[matchedIndex]);
+                        pho_genEta.push_back((*ggHi.mcEta)[matchedIndex]);
+                        pho_genPhi.push_back((*ggHi.mcPhi)[matchedIndex]);
+                        pho_genE.push_back((*ggHi.mcE)[matchedIndex]);
+                        pho_genEt.push_back((*ggHi.mcEt)[matchedIndex]);
+                        pho_genMomPID.push_back((*ggHi.mcMomPID)[matchedIndex]);
+                        pho_genCalIsoDR03.push_back((*ggHi.mcCalIsoDR03)[matchedIndex]);
+                        pho_genCalIsoDR04.push_back((*ggHi.mcCalIsoDR04)[matchedIndex]);
+                        pho_genTrkIsoDR03.push_back((*ggHi.mcTrkIsoDR03)[matchedIndex]);
+                        pho_genTrkIsoDR04.push_back((*ggHi.mcTrkIsoDR04)[matchedIndex]);
+                    } else{
+                        pho_genPID.push_back(-100);
+                        pho_genStatus.push_back(-100);
+                        pho_genPt.push_back(-100);
+                        pho_genEta.push_back(-100);
+                        pho_genPhi.push_back(-100);
+                        pho_genE.push_back(-100);
+                        pho_genEt.push_back(-100);
+                        pho_genMomPID.push_back(-100);
+                        pho_genCalIsoDR03.push_back(-100);
+                        pho_genCalIsoDR04.push_back(-100);
+                        pho_genTrkIsoDR03.push_back(-100);
+                        pho_genTrkIsoDR04.push_back(-100);
+                    }
+                }
+
+                // fill noise variable
+                int phois2015Noise = 0;
+                if (((*ggHi.phoEt)[i] > 10) && 
+                        ((*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                         (*ggHi.phoE3x3)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03) &&
+                        ((*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] > 1./3.-0.03 &&
+                         (*ggHi.phoE1x5)[i]/(*ggHi.phoE5x5)[i] < 1./3.+0.03) &&
+                        ((*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] > 2./3.-0.03 &&
+                         (*ggHi.phoE2x5)[i]/(*ggHi.phoE5x5)[i] < 2./3.+0.03)) {
+                    phois2015Noise = 1;
+                }
+                pho_is2015Noise.push_back(phois2015Noise);
+
+                int phoisEle = 0;
+                float eleEpTemp = 100.0;
+                if ((*ggHi.phoEt)[i] > 10){
+                    for (int ie=0; ie<ggHi.nEle; ++ie) {
+                        if ((*ggHi.elePt)[ie] < 10)
+                            continue;
+                        if (abs((*ggHi.eleEta)[ie] - (*ggHi.phoEta)[i]) > 0.03) // deta
+                            continue;
+                        if (abs(getDPHI((*ggHi.elePhi)[ie], (*ggHi.phoPhi)[i])) > 0.03) // dphi
+                            continue;
+                        if (eleEpTemp < (*ggHi.eleEoverP)[ie])
+                            continue;
+
+                        phoisEle = 1;
+                        break;
+                    }
+                }
+                pho_isEle.push_back(phoisEle);
+
+                bool failedEtCut = (ggHi.phoEt->at(i) < cutPhoEt);
+                if (failedEtCut)
+                    continue;
+                bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta);
+                if (failedEtaCut)
+                    continue;
+                bool failedSpikeRejection;
+                failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
+                        ggHi.pho_swissCrx->at(i)     > 0.9   ||
+                        TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
+                if (failedSpikeRejection)
+                    continue;
+
+                if (ggHi.phoEt->at(i) > maxPhoEt) {
+                    maxPhoEt = ggHi.phoEt->at(i);
+                    phoIdx = i;
+                }
+
+            }
+
+            if (phoIdx == -1)
+                continue;
+
+            entriesAnalyzed++;
+
+            outputTreeHLT->Fill();
+            outputTreeggHiNtuplizer->Fill();
+            outputTreeHiEvt->Fill();
+            outputTreeSkim->Fill();
+
+        }
+        inFile->Close();
+    } // files loop
+
+    std::cout << "Loop ENDED : ggHiNtuplizer/EventTree" << std::endl;
+    std::cout << "entries            = " << totalEntries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesPassedEventSelection   = " << entriesPassedEventSelection << std::endl;
     std::cout << "entriesAnalyzed               = " << entriesAnalyzed << std::endl;
-    std::cout << "entriesSpikeRejected          = " << entriesSpikeRejected << std::endl;
     std::cout << "outputTreeHLT->GetEntries()   = " << outputTreeHLT->GetEntries() << std::endl;
     std::cout << "outputTreeggHiNtuplizer->GetEntries()   = " << outputTreeggHiNtuplizer->GetEntries() << std::endl;
     std::cout << "outputTreeSkim->GetEntries()  = " << outputTreeSkim->GetEntries() << std::endl;
     std::cout << "outputTreeHiEvt->GetEntries() = " << outputTreeHiEvt->GetEntries() << std::endl;
-    std::cout << "outputTreeHiForestInfo->GetEntries() = " << outputTreeHiForestInfo->GetEntries() << std::endl;
-    if(isMC) std::cout << "outputTreeGen->GetEntries() = " << outputTreeGen->GetEntries() << std::endl;
-
 
     output->cd();
-    configTree->Write("",TObject::kOverwrite);
-    output->Write("",TObject::kOverwrite);
+    configTree->Write("", TObject::kOverwrite);
+
+    output->Write("", TObject::kOverwrite);
     output->Close();
+
+    std::cout << "photonRaaSkim() - END" << std::endl;
+
+    return 0;
 }
 
-int main(int argc, char** argv)
-{
-    if (argc == 4) {
-        photonRaaSkim(argv[1], argv[2], argv[3]);
-        return 0;
-    }
-    else if (argc == 3) {
-        photonRaaSkim(argv[1], argv[2]);
-        return 0;
-    }
-    else {
-        std::cout << "Usage : \n" <<
-            "./photonRaaSkim.exe <configFile> <inputFile> <outputFile>"
-            << std::endl;
-        return 1;
-    }
+double getAngleToEP(double angle) {
+    angle = (angle > TMath::Pi()) ? 2 * TMath::Pi() - angle : angle;
+    return (angle > TMath::Pi()/2) ? TMath::Pi() - angle : angle;
 }
 
-float xSecCal(const char* fname_lowestPthat, TChain* mergedTree, float pthat_i, float pthat_f){
-    const int nFile = 2;
-    int entries[nFile];
-    for(int i=0; i<nFile ; i++){
-        entries[i]=0.0;
-    }
-    TFile* fin = new TFile(fname_lowestPthat);
-    TTree* tlowest = (TTree*) fin -> Get("hiEvtAnalyzer/HiTree");
-    Float_t pthat_low, pthat_merged;
-    TBranch *b_pthat_low, *b_pthat_merged;
-    tlowest->SetBranchAddress("pthat",&pthat_low, &b_pthat_low);
-    entries[0] = tlowest->GetEntries(Form("pthat>= %.3f && pthat< %.3f", pthat_i, pthat_f));
-    std::cout << "entries from the lowest pthat sample : " << entries[0] << std::endl;
+int main(int argc, char** argv) {
+    if (argc == 7)
+        return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
+    else if (argc == 5)
+        return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]));
+    else if (argc == 4)
+        return photonRaaSkim(argv[1], argv[2], argv[3]);
+    else if (argc == 3)
+        return photonRaaSkim(argv[1], argv[2]);
+    else
+        printf("Usage : \n"
+                "./photonRaaSkim_workingOn.exe <configFile> <inputFile> <outputFile>\n");
 
-    mergedTree->SetBranchAddress("pthat",&pthat_merged, &b_pthat_merged);
-    entries[1] = mergedTree->GetEntries(Form("pthat>= %.3f && pthat< %.3f", pthat_i, pthat_f));
-    std::cout << "entries from the merged sample : " << entries[1] << std::endl;
-
-    float weight = (double)entries[0]/(double)entries[1];
-    return weight;
+    return 1;
 }
 
