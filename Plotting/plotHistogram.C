@@ -857,6 +857,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<TH1*> hErr(nHistos, 0);
     std::vector<TH1*> hSysp(nHistos, 0);
     std::vector<TH1*> hSysm(nHistos, 0);
+    std::vector<TH1*> hSysMax(nHistos, 0);    // max of hSysp and hSysm
 
     std::vector<THStack*> hStack(nHistos, 0);
     std::vector<bool> hStackDrawn(nHistos, false);
@@ -919,6 +920,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 }
                 hSysm[i]->SetName(Form("hSysm_%d", i));
             }
+        }
+        if (hSysp[i] && hSysm[i]) {
+            hSysMax[i] = (TH1D*)hSysp[i]->Clone(Form("%s_sysMax", hSysp[i]->GetName()));
+            calcTH1AbsMax4SysUnc(hSysMax[i], hSysp[i], hSysm[i]);
         }
 
         hStack[i] = new THStack(Form("hStack%d", i), "");
@@ -1512,7 +1517,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
                 // do compatibility test before ratio / diff
                 hTest1 = (TH1D*)h[iStart+2*i]->Clone(Form("%s_test1", h[iStart+2*i]->GetName()));
+                if (hSysMax[iStart+2*i]) {
+                    addBinErrors(hTest1, hSysMax[iStart+2*i]);
+                }
                 hTest2 = (TH1D*)h[iStart+2*i+1]->Clone(Form("%s_test1", h[iStart+2*i+1]->GetName()));
+                if (hSysMax[iStart+2*i+1]) {
+                    addBinErrors(hTest2, hSysMax[iStart+2*i+1]);
+                }
+
                 double valKolmogorov = hTest1->KolmogorovTest(hTest2);
                 std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
                 hTest1->Chi2Test(hTest2, "WW P");
