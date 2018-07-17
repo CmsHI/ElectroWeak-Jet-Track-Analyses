@@ -28,6 +28,7 @@ bool endsWith(std::string str, std::string substr);
 bool matchesRegex(std::string str, std::string regexStr);
 bool matchesWildCard(std::string str, std::string wcStr);
 bool isInteger(std::string s);
+double roundToPrecision(double x, int precision);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
@@ -263,6 +264,14 @@ bool isInteger(std::string s)
     std::string::const_iterator it = s.begin();
     while (it != s.end() && std::isdigit(*it)) ++it;
     return !s.empty() && it == s.end();
+}
+
+/*
+ * round double variable to given precision after the decimal point
+ */
+double roundToPrecision(double x, int precision)
+{
+    return round(x * std::pow(10, precision)) / std::pow(10, precision);
 }
 
 int countOccurances(std::string str, std::string substr)
