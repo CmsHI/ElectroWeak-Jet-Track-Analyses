@@ -29,6 +29,7 @@ bool matchesRegex(std::string str, std::string regexStr);
 bool matchesWildCard(std::string str, std::string wcStr);
 bool isInteger(std::string s);
 double roundToPrecision(double x, int precision);
+double roundToSignificantFigures(double x, int nFigures);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
@@ -272,6 +273,37 @@ bool isInteger(std::string s)
 double roundToPrecision(double x, int precision)
 {
     return round(x * std::pow(10, precision)) / std::pow(10, precision);
+}
+
+/*
+ * round double variable to given number of significant figures
+ */
+double roundToSignificantFigures(double x, int nFigures)
+{
+    if (nFigures <= 0) return x;
+    if (x == 0) return 0;
+
+    double sign = (x >= 0) ? 1 : -1;
+    x = std::fabs(x);
+
+    // helps to find the first non-zero leading digit
+    int orderOfMag = (int)(std::floor(std::log10(x)));
+    double res = 0;
+
+    while (nFigures > 0) {
+        int tmpDigit = ((int)(x / std::pow(10, orderOfMag)) % 10);
+
+        if (nFigures == 1) {
+            // check the digit to the right of last significant figure
+            if (((int)(x / std::pow(10, orderOfMag-1)) % 10) >= 5)  tmpDigit++;
+        }
+        res += (double)(tmpDigit) * std::pow(10, orderOfMag);
+
+        orderOfMag--;
+        nFigures--;
+    }
+
+    return res*sign;
 }
 
 int countOccurances(std::string str, std::string substr)
