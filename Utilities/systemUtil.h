@@ -30,6 +30,7 @@ bool matchesWildCard(std::string str, std::string wcStr);
 bool isInteger(std::string s);
 double roundToPrecision(double x, int precision);
 double roundToSignificantFigures(double x, int nFigures);
+double roundToSignificantFigures(double x, int nFigures, bool ignoreBeforeDecimalPoint);
 int  countOccurances(std::string str, std::string substr);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
@@ -304,6 +305,24 @@ double roundToSignificantFigures(double x, int nFigures)
     }
 
     return res*sign;
+}
+
+/*
+ * round double variable to given number of significant figures
+ * with the option of considering SF only after decimal point
+ */
+double roundToSignificantFigures(double x, int nFigures, bool ignoreBeforeDecimalPoint)
+{
+    if (!ignoreBeforeDecimalPoint) return roundToSignificantFigures(x, nFigures);
+    else {
+        double sign = (x >= 0) ? 1 : -1;
+        x = std::fabs(x);
+
+        int xBeforeDecimalPoint = (int)x;
+        double xAfterDecimalPoint = x - xBeforeDecimalPoint;
+
+        return ((double)xBeforeDecimalPoint + roundToSignificantFigures(xAfterDecimalPoint, nFigures))*sign;
+    }
 }
 
 int countOccurances(std::string str, std::string substr)
