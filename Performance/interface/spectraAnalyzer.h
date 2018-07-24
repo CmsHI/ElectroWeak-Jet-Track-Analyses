@@ -153,6 +153,7 @@ public :
 
     std::string getRangeText(int iRange);
 
+    bool isValid();
     void updateTH1();
 
     static std::string getObjectStr(int iObj);
@@ -352,6 +353,17 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     }
 
     return res;
+}
+
+bool spectraAnalyzer::isValid()
+{
+    if (isValid_h)  return true;
+
+    for (int i = 0; i < SPECTRAANA::kN_OBS; ++i) {
+        if (isValid_h1D[i])  return true;
+    }
+
+    return false;
 }
 
 void spectraAnalyzer::updateTH1()

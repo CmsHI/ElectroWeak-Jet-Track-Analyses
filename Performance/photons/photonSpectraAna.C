@@ -1072,47 +1072,47 @@ int  preLoop(TFile* input, bool makeNew)
         if (iEta == 0 && iDep == SPECTRAANA::kETA) {
             strDep = "depEta";
             xTitle = "photon #eta";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iRecoPt == 0 && iDep == SPECTRAANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == SPECTRAANA::kCENT) {
             strDep = "depCent";
             xTitle = "Centrality (%)";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == SPECTRAANA::kSUMISO) {
             strDep = "depSumIso";
             xTitle = "sumIso";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == SPECTRAANA::kECALISO) {
             strDep = "depEcalIso";
             xTitle = "ecalIso";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == SPECTRAANA::kHCALISO) {
             strDep = "depHcalIso";
             xTitle = "hcalIso";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == SPECTRAANA::kTRKISO) {
             strDep = "depTrkIso";
             xTitle = "trkIso";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSieie == 0 && iDep == SPECTRAANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iR9 == 0 && iDep == SPECTRAANA::kR9) {
             strDep = "depR9";
             xTitle = "R9";
-            makeObject = true;
+            makeObject = !sAna[iDep][iAna].isValid();
         }
 
         if (!makeObject)  continue;
