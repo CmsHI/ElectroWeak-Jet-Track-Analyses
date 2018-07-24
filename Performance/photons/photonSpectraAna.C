@@ -1159,12 +1159,30 @@ int  preLoop(TFile* input, bool makeNew)
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
         // then there will not be RecoPt cuts (eg. RecoPt > 20) for this histogram.
         // The x-axis bins will set the cuts.
-        sAnaTmp.ranges[iDep][0] = 0;
-        sAnaTmp.ranges[iDep][1] = -1;
-        if (iDep == SPECTRAANA::kSUMISO || iDep == SPECTRAANA::kECALISO ||
-            iDep == SPECTRAANA::kHCALISO || iDep == SPECTRAANA::kTRKISO) {
+        if (iDep == SPECTRAANA::kETA) {
+            sAnaTmp.ranges[SPECTRAANA::rETA][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rETA][1] = -1;
+        }
+        else if (iDep == SPECTRAANA::kRECOPT) {
+            sAnaTmp.ranges[SPECTRAANA::rRECOPT][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rRECOPT][1] = -1;
+        }
+        else if (iDep == SPECTRAANA::kCENT) {
+            sAnaTmp.ranges[SPECTRAANA::rCENT][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rCENT][1] = -1;
+        }
+        else if (iDep == SPECTRAANA::kSUMISO  || iDep == SPECTRAANA::kECALISO ||
+                 iDep == SPECTRAANA::kHCALISO || iDep == SPECTRAANA::kTRKISO) {
             sAnaTmp.ranges[SPECTRAANA::rSUMISO][0] = -999;
             sAnaTmp.ranges[SPECTRAANA::rSUMISO][1] = -999;
+        }
+        else if (iDep == SPECTRAANA::kSIEIE) {
+            sAnaTmp.ranges[SPECTRAANA::rSIEIE][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rSIEIE][1] = -1;
+        }
+        else if (iDep == SPECTRAANA::kR9) {
+            sAnaTmp.ranges[SPECTRAANA::rR9][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rR9][1] = -1;
         }
 
         int iAxis = iDep;
