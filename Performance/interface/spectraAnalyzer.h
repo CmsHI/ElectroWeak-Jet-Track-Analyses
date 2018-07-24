@@ -257,18 +257,18 @@ bool spectraAnalyzer::insideRange(std::vector<double> vars)
         if (sieie == -1)  sieie = ranges[SPECTRAANA::rSIEIE][0];
         if (r9 == -1)  r9 = ranges[SPECTRAANA::rR9][0];
 
-        if(ranges[SPECTRAANA::rETA][0] <= TMath::Abs(eta) &&
-           (ranges[SPECTRAANA::rETA][1] == -1 || ranges[SPECTRAANA::rETA][1] > TMath::Abs(eta))){
-        if(ranges[SPECTRAANA::rRECOPT][0] <= recoPt       &&
-           (ranges[SPECTRAANA::rRECOPT][1] == -1 || ranges[SPECTRAANA::rRECOPT][1] > recoPt)) {
-        if(ranges[SPECTRAANA::rCENT][0] <= cent           &&
-           (ranges[SPECTRAANA::rCENT][1] == -1 || ranges[SPECTRAANA::rCENT][1] > cent)) {
-        if(ranges[SPECTRAANA::rSUMISO][0] <= sumIso       &&
-           (ranges[SPECTRAANA::rSUMISO][1] == -999 || ranges[SPECTRAANA::rSUMISO][1] > sumIso)) {
-        if(ranges[SPECTRAANA::rSIEIE][0] <= sieie         &&
-           (ranges[SPECTRAANA::rSIEIE][1] == -1 || ranges[SPECTRAANA::rSIEIE][1] > sieie)) {
-        if(ranges[SPECTRAANA::rR9][0] <= r9         &&
-           (ranges[SPECTRAANA::rR9][1] == -1 || ranges[SPECTRAANA::rR9][1] > r9)) {
+        if((ranges[SPECTRAANA::rETA][0] <= TMath::Abs(eta) && TMath::Abs(eta) < ranges[SPECTRAANA::rETA][1]) ||
+           (ranges[SPECTRAANA::rETA][0] > ranges[SPECTRAANA::rETA][1])) {
+        if((ranges[SPECTRAANA::rRECOPT][0] <= recoPt && recoPt < ranges[SPECTRAANA::rRECOPT][1]) ||
+           (ranges[SPECTRAANA::rRECOPT][0] > ranges[SPECTRAANA::rRECOPT][1])) {
+        if((ranges[SPECTRAANA::rCENT][0] <= cent && cent < ranges[SPECTRAANA::rCENT][1]) ||
+           (ranges[SPECTRAANA::rCENT][0] > ranges[SPECTRAANA::rCENT][1])) {
+        if((ranges[SPECTRAANA::rSUMISO][0] <= sumIso && sumIso < ranges[SPECTRAANA::rSUMISO][1]) ||
+           (ranges[SPECTRAANA::rSUMISO][0] > ranges[SPECTRAANA::rSUMISO][1])) {
+        if((ranges[SPECTRAANA::rSIEIE][0] <= sieie && sieie < ranges[SPECTRAANA::rSIEIE][1]) ||
+           (ranges[SPECTRAANA::rSIEIE][0] > ranges[SPECTRAANA::rSIEIE][1])) {
+        if((ranges[SPECTRAANA::rR9][0] <= r9 && r9 < ranges[SPECTRAANA::rR9][1]) ||
+           (ranges[SPECTRAANA::rR9][0] > ranges[SPECTRAANA::rR9][1])) {
                 return true;
         }}}}}}
         return false;
