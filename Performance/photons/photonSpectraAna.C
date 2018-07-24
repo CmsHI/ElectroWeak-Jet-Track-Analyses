@@ -751,8 +751,8 @@ int readConfiguration(std::string configFile)
         bins_cent[1].push_back(-1);
     }
     if (bins_sumIso[0].size() == 0) {
-        bins_sumIso[0].push_back(-999);
-        bins_sumIso[1].push_back(-999);
+        bins_sumIso[0].push_back(0);
+        bins_sumIso[1].push_back(-1);
     }
     if (bins_sieie[0].size() == 0) {
         bins_sieie[0].push_back(0);
@@ -1182,8 +1182,8 @@ int  preLoop(TFile* input, bool makeNew)
         }
         else if (iDep == SPECTRAANA::kSUMISO  || iDep == SPECTRAANA::kECALISO ||
                  iDep == SPECTRAANA::kHCALISO || iDep == SPECTRAANA::kTRKISO) {
-            sAnaTmp.ranges[SPECTRAANA::rSUMISO][0] = -999;
-            sAnaTmp.ranges[SPECTRAANA::rSUMISO][1] = -999;
+            sAnaTmp.ranges[SPECTRAANA::rSUMISO][0] = 0;
+            sAnaTmp.ranges[SPECTRAANA::rSUMISO][1] = -1;
         }
         else if (iDep == SPECTRAANA::kSIEIE) {
             sAnaTmp.ranges[SPECTRAANA::rSIEIE][0] = 0;

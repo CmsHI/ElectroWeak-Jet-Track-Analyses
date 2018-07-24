@@ -290,7 +290,9 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     switch (iRange) {
     case SPECTRAANA::rETA : {
 
-        if (ranges[SPECTRAANA::rETA][0] <= 0 && ranges[SPECTRAANA::rETA][1] > 0)
+        if (ranges[SPECTRAANA::rETA][0] > ranges[SPECTRAANA::rETA][1])
+            break;
+        else if (ranges[SPECTRAANA::rETA][0] <= 0 && ranges[SPECTRAANA::rETA][1] > 0)
             res  = Form("|#eta|<%.2f", ranges[SPECTRAANA::rETA][1]);
         else if (ranges[SPECTRAANA::rETA][0] > 0 && ranges[SPECTRAANA::rETA][1] > 0)
             res  = Form("%.2f<|#eta|<%.2f", ranges[SPECTRAANA::rETA][0], ranges[SPECTRAANA::rETA][1]);
@@ -298,7 +300,9 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     }
     case SPECTRAANA::rRECOPT : {
 
-        if (ranges[SPECTRAANA::rRECOPT][0] > 0 && ranges[SPECTRAANA::rRECOPT][1] <= -1)
+        if (ranges[SPECTRAANA::rRECOPT][0] > ranges[SPECTRAANA::rRECOPT][1])
+            break;
+        else if (ranges[SPECTRAANA::rRECOPT][0] > 0 && ranges[SPECTRAANA::rRECOPT][1] <= -1)
             res  = Form("p_{T}^{reco}>%.0f", ranges[SPECTRAANA::rRECOPT][0]);
         else if (ranges[SPECTRAANA::rRECOPT][0] <= 0 && ranges[SPECTRAANA::rRECOPT][1] > 0)
             res = Form("p_{T}^{reco}<%.0f", ranges[SPECTRAANA::rRECOPT][1]);
@@ -308,16 +312,20 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     }
     case SPECTRAANA::rCENT : {
 
-        if (ranges[SPECTRAANA::rCENT][0] >= 0 && ranges[SPECTRAANA::rCENT][1] > 0)
+        if (ranges[SPECTRAANA::rCENT][0] > ranges[SPECTRAANA::rCENT][1])
+            break;
+        else if (ranges[SPECTRAANA::rCENT][0] >= 0 && ranges[SPECTRAANA::rCENT][1] > 0)
             res = Form("Cent:%.0f-%.0f%%", ranges[SPECTRAANA::rCENT][0], ranges[SPECTRAANA::rCENT][1]);
         break;
     }
     case SPECTRAANA::rSUMISO : {
 
         if (recoObj == SPECTRAANA::kPHOTON) {
-            if (ranges[SPECTRAANA::rSUMISO][0] > -999 && ranges[SPECTRAANA::rSUMISO][1] <= -999)
-                res  = Form("sumIso>%.1f", ranges[SPECTRAANA::rSUMISO][0]);
-            else if (ranges[SPECTRAANA::rSUMISO][0] <= -999 && ranges[SPECTRAANA::rSUMISO][1] > -999)
+            if (ranges[SPECTRAANA::rSUMISO][0] > ranges[SPECTRAANA::rSUMISO][1])
+                break;
+            else if (ranges[SPECTRAANA::rSUMISO][0] > -999 && ranges[SPECTRAANA::rSUMISO][1] <= -999)
+                res = Form("sumIso>%.1f", ranges[SPECTRAANA::rSUMISO][0]);
+            else if (ranges[SPECTRAANA::rSUMISO][0] <= -999 && ranges[SPECTRAANA::rSUMISO][1] < 999)
                 res = Form("sumIso<%.1f", ranges[SPECTRAANA::rSUMISO][1]);
             else if (ranges[SPECTRAANA::rSUMISO][0] > -999 && ranges[SPECTRAANA::rSUMISO][1] > -999)
                 res = Form("%.1f<sumIso<%.1f", ranges[SPECTRAANA::rSUMISO][0], ranges[SPECTRAANA::rSUMISO][1]);
@@ -327,7 +335,9 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     case SPECTRAANA::rSIEIE : {
 
         if (recoObj == SPECTRAANA::kPHOTON) {
-            if (ranges[SPECTRAANA::rSIEIE][0] > 0 && ranges[SPECTRAANA::rSIEIE][1] <= -1)
+            if (ranges[SPECTRAANA::rSIEIE][0] > ranges[SPECTRAANA::rSIEIE][1])
+                break;
+            else if (ranges[SPECTRAANA::rSIEIE][0] > 0 && ranges[SPECTRAANA::rSIEIE][1] <= -1)
                 res  = Form("#sigma_{#eta#eta}>%.2f", ranges[SPECTRAANA::rSIEIE][0]);
             else if (ranges[SPECTRAANA::rSIEIE][0] <= 0 && ranges[SPECTRAANA::rSIEIE][1] > 0)
                 res = Form("#sigma_{#eta#eta}<%.2f", ranges[SPECTRAANA::rSIEIE][1]);
@@ -339,7 +349,9 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
     case SPECTRAANA::rR9 : {
 
         if (recoObj == SPECTRAANA::kPHOTON) {
-            if (ranges[SPECTRAANA::rR9][0] > 0 && ranges[SPECTRAANA::rR9][1] <= -1)
+            if (ranges[SPECTRAANA::rR9][0] > ranges[SPECTRAANA::rR9][1])
+                break;
+            else if (ranges[SPECTRAANA::rR9][0] > 0 && ranges[SPECTRAANA::rR9][1] <= -1)
                 res  = Form("R9>%.2f", ranges[SPECTRAANA::rR9][0]);
             else if (ranges[SPECTRAANA::rR9][0] <= 0 && ranges[SPECTRAANA::rR9][1] > 0)
                 res = Form("R9<%.2f", ranges[SPECTRAANA::rR9][1]);
