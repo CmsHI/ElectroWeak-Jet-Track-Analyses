@@ -4,12 +4,13 @@
  *  1. x-axis is eta.
  *  2. x-axis is reco Pt.
  *  3. x-axis is centrality (hiBin/2)
- *  4. x-axis is isolation (sumIso = ecalIso + hcalIso + trkIso)
- *  5. x-axis is ecal iso
- *  6. x-axis is hcal iso
- *  7. x-axis is track iso
- *  8. x-axis is shower shape (sigmaIEtaIEta_2012)
- *  9. x-axis is R9
+ *  4. x-axis is HoverE
+ *  5. x-axis is isolation (sumIso = ecalIso + hcalIso + trkIso)
+ *  6. x-axis is ecal iso
+ *  7. x-axis is hcal iso
+ *  8. x-axis is track iso
+ *  9. x-axis is shower shape (sigmaIEtaIEta_2012)
+ *  10. x-axis is R9
  * saves histograms to a .root file.
  */
 
@@ -471,6 +472,7 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
 
                     double eta = (*ggHi.phoEta)[iPho];
                     double pt  = (*ggHi.phoEt)[iPho];
+                    double hOverE = (*ggHi.phoHoverE)[iPho];
                     double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iPho];
                     double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iPho];
                     double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iPho];
@@ -482,6 +484,7 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
                     sAna[SPECTRAANA::kETA][iAna].FillH(eta, w, vars);
                     sAna[SPECTRAANA::kRECOPT][iAna].FillH(pt, w, vars);
                     sAna[SPECTRAANA::kCENT][iAna].FillH(cent, w, vars);
+                    sAna[SPECTRAANA::kHOVERE][iAna].FillH(hOverE, w, vars);
                     sAna[SPECTRAANA::kSUMISO][iAna].FillH(sumIso, w, vars);
                     sAna[SPECTRAANA::kECALISO][iAna].FillH(ecalIso, w, vars);
                     sAna[SPECTRAANA::kHCALISO][iAna].FillH(hcalIso, w, vars);
@@ -1058,7 +1061,8 @@ int  preLoop(TFile* input, bool makeNew)
         int iSieie = binIndices[ANABINS::kSieie];
         int iR9 = binIndices[ANABINS::kR9];
 
-        if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0)  continue;
+        bool skipBins = (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0);
+        if (iDep != SPECTRAANA::kHOVERE && skipBins) continue;
 
         // for histograms with a particular dependence,
         // a single index is used in the multidimensional array of spectraAnalyzer objects.
@@ -1082,6 +1086,11 @@ int  preLoop(TFile* input, bool makeNew)
         else if (iCent == 0 && iDep == SPECTRAANA::kCENT) {
             strDep = "depCent";
             xTitle = "Centrality (%)";
+            makeObject = !sAna[iDep][iAna].isValid();
+        }
+        else if (iDep == SPECTRAANA::kHOVERE) {
+            strDep = "depHoverE";
+            xTitle = "H/E";
             makeObject = !sAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == SPECTRAANA::kSUMISO) {
@@ -1246,7 +1255,8 @@ int postLoop()
             if (iDep == SPECTRAANA::kSIEIE && iSieie != 0) continue;
             if (iDep == SPECTRAANA::kR9 && iR9 != 0) continue;
 
-            if (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0) continue;
+            bool skipBins = (iEta > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0 && iR9 > 0);
+            if (iDep != SPECTRAANA::kHOVERE && skipBins) continue;
 
             c = new TCanvas("cnvTmp", "", windowWidth, windowHeight);
             setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
