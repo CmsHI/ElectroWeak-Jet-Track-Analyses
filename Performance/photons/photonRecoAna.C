@@ -1404,32 +1404,32 @@ int  preLoop(TFile* input, bool makeNew)
         if (iEta == 0 && iDep == RECOANA::kETA) {
             strDep = "depEta";
             xTitle = "photon #eta";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iGenPt == 0 && iDep == RECOANA::kGENPT) {
             strDep = "depGenPt";
             xTitle = "Gen p_{T} (GeV/c)";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iRecoPt == 0 && iDep == RECOANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == RECOANA::kCENT) {
             strDep = "depCent";
             xTitle = "Centrality (%)";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == RECOANA::kSUMISO) {
             strDep = "depSumIso";
             xTitle = "sumIso";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iSieie == 0 && iDep == RECOANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
-            makeObject = true;
+            makeObject = !rAna[iDep][iAna].isValid();
         }
 
         if (!makeObject)  continue;

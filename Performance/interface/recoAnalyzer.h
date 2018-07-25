@@ -375,6 +375,7 @@ public :
 
     std::string getBinEdgeText(int binLow, int binUp);
 
+    bool isValid();
     void updateTH1();
     void updateH1DsliceY();
     void updateH1DeScale();
@@ -847,6 +848,39 @@ std::string recoAnalyzer::getBinEdgeText(int binLow, int binUp)
     }
 
     return res;
+}
+
+bool recoAnalyzer::isValid()
+{
+    if (isValid_h2D)  return true;
+    if (isValid_h2Dcc)  return true;
+
+    if (isValid_hMatchNum)  return true;
+    if (isValid_hMatchDenom)  return true;
+    if (isValid_hMatchEff)  return true;
+    if (isValid_gMatchEff)  return true;
+
+    if (isValid_hFakeNum)  return true;
+    if (isValid_hFakeDenom)  return true;
+    if (isValid_hFakeRatio)  return true;
+    if (isValid_gFakeRatio)  return true;
+
+    for (int i = 0; i < nFakeParticles; ++i) {
+        if (isValid_hFakeParticle[i])  return true;
+        if (isValid_hFakeParticleRatio[i])  return true;
+
+        if (isValid_hFakeParticleGenPt[i])  return true;
+        if (isValid_hFakeParticleRatioGenPt[i])  return true;
+    }
+
+    if (isValid_hFakeOther)  return true;
+    if (isValid_hFakeOtherRatio)  return true;
+
+    if (isValid_hFakeOtherRatio)  return true;
+    if (isValid_hFakeOtherRatioGenPt)  return true;
+    if (isValid_hFakeAllGenPt)  return true;
+
+    return false;
 }
 
 void recoAnalyzer::updateTH1()
