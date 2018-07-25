@@ -1846,12 +1846,26 @@ int  preLoop(TFile* input, bool makeNew)
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
         // then there will not be RecoPt cuts (eg. RecoPt > 20) for this histogram.
         // The x-axis bins will set the cuts.
-        tAnaTmp.ranges[iDep][0] = 0;
-        tAnaTmp.ranges[iDep][1] = -1;
-        if (iDep == TRIGGERANA::kSUMISO || iDep == TRIGGERANA::kECALISO ||
-            iDep == TRIGGERANA::kHCALISO || iDep == TRIGGERANA::kTRKISO) {
-            tAnaTmp.ranges[TRIGGERANA::rSUMISO][0] = -999;
-            tAnaTmp.ranges[TRIGGERANA::rSUMISO][1] = -999;
+        if (iDep == TRIGGERANA::kETA) {
+            tAnaTmp.ranges[TRIGGERANA::rETA][0] = 0;
+            tAnaTmp.ranges[TRIGGERANA::rETA][1] = -1;
+        }
+        else if (iDep == TRIGGERANA::kRECOPT) {
+            tAnaTmp.ranges[TRIGGERANA::rRECOPT][0] = 0;
+            tAnaTmp.ranges[TRIGGERANA::rRECOPT][1] = -1;
+        }
+        else if (iDep == TRIGGERANA::kCENT) {
+            tAnaTmp.ranges[TRIGGERANA::rCENT][0] = 0;
+            tAnaTmp.ranges[TRIGGERANA::rCENT][1] = -1;
+        }
+        else if (iDep == TRIGGERANA::kSUMISO || iDep == TRIGGERANA::kECALISO ||
+                 iDep == TRIGGERANA::kHCALISO || iDep == TRIGGERANA::kTRKISO) {
+            tAnaTmp.ranges[TRIGGERANA::rSUMISO][0] = 0;
+            tAnaTmp.ranges[TRIGGERANA::rSUMISO][1] = -1;
+        }
+        else if (iDep == TRIGGERANA::kSIEIE) {
+            tAnaTmp.ranges[TRIGGERANA::rSIEIE][0] = 0;
+            tAnaTmp.ranges[TRIGGERANA::rSIEIE][1] = -1;
         }
 
         int iAxis = iDep;

@@ -1485,11 +1485,29 @@ int  preLoop(TFile* input, bool makeNew)
         // Ex. If the dependence is GenPt (GenPt is the x-axis),
         // then there will not be GenPt cuts (eg. GenPt > 20) for this histogram.
         // The x-axis bins will set the cuts.
-        rAnaTmp.ranges[iDep][0] = 0;
-        rAnaTmp.ranges[iDep][1] = -1;
-        if (iDep == RECOANA::kSUMISO) {
-            rAnaTmp.ranges[iDep][0] = -999;
-            rAnaTmp.ranges[iDep][1] = -999;
+        if (iDep == RECOANA::kETA) {
+            rAnaTmp.ranges[RECOANA::rETA][0] = 0;
+            rAnaTmp.ranges[RECOANA::rETA][1] = -1;
+        }
+        else if (iDep == RECOANA::kGENPT) {
+            rAnaTmp.ranges[RECOANA::rGENPT][0] = 0;
+            rAnaTmp.ranges[RECOANA::rGENPT][1] = -1;
+        }
+        else if (iDep == RECOANA::kRECOPT) {
+            rAnaTmp.ranges[RECOANA::rRECOPT][0] = 0;
+            rAnaTmp.ranges[RECOANA::rRECOPT][1] = -1;
+        }
+        else if (iDep == RECOANA::kCENT) {
+            rAnaTmp.ranges[RECOANA::rCENT][0] = 0;
+            rAnaTmp.ranges[RECOANA::rCENT][1] = -1;
+        }
+        else if (iDep == RECOANA::kSUMISO) {
+            rAnaTmp.ranges[RECOANA::rSUMISO][0] = 0;
+            rAnaTmp.ranges[RECOANA::rSUMISO][1] = -1;
+        }
+        else if (iDep == RECOANA::kSIEIE) {
+            rAnaTmp.ranges[RECOANA::rSIEIE][0] = 0;
+            rAnaTmp.ranges[RECOANA::rSIEIE][1] = -1;
         }
 
         int iAxis = iDep;
