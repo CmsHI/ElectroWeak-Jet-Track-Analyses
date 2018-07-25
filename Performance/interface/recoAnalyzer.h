@@ -782,7 +782,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
                 break;
             else if (ranges[RECOANA::rSUMISO][0] > -999 && ranges[RECOANA::rSUMISO][1] <= -999)
                 res  = Form("sumIso>%.1f", ranges[RECOANA::rSUMISO][0]);
-            else if (ranges[RECOANA::rSUMISO][0] <= -999 && ranges[RECOANA::rSUMISO][1] < 999)
+            else if (ranges[RECOANA::rSUMISO][0] <= -999 && ranges[RECOANA::rSUMISO][1] > -999)
                 res = Form("sumIso<%.1f", ranges[RECOANA::rSUMISO][1]);
             else if (ranges[RECOANA::rSUMISO][0] > -999 && ranges[RECOANA::rSUMISO][1] > -999)
                 res = Form("%.1f<sumIso<%.1f", ranges[RECOANA::rSUMISO][0], ranges[RECOANA::rSUMISO][1]);

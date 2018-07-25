@@ -444,7 +444,7 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
                 break;
             else if (ranges[TRIGGERANA::rSUMISO][0] > -999 && ranges[TRIGGERANA::rSUMISO][1] <= -999)
                 res  = Form("sumIso>%.1f", ranges[TRIGGERANA::rSUMISO][0]);
-            else if (ranges[TRIGGERANA::rSUMISO][0] <= -999 && ranges[TRIGGERANA::rSUMISO][1] < 999)
+            else if (ranges[TRIGGERANA::rSUMISO][0] <= -999 && ranges[TRIGGERANA::rSUMISO][1] > -999)
                 res = Form("sumIso<%.1f", ranges[TRIGGERANA::rSUMISO][1]);
             else if (ranges[TRIGGERANA::rSUMISO][0] > -999 && ranges[TRIGGERANA::rSUMISO][1] > -999)
                 res = Form("%.1f<sumIso<%.1f", ranges[TRIGGERANA::rSUMISO][0], ranges[TRIGGERANA::rSUMISO][1]);

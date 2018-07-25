@@ -325,7 +325,7 @@ std::string spectraAnalyzer::getRangeText(int iRange) {
                 break;
             else if (ranges[SPECTRAANA::rSUMISO][0] > -999 && ranges[SPECTRAANA::rSUMISO][1] <= -999)
                 res = Form("sumIso>%.1f", ranges[SPECTRAANA::rSUMISO][0]);
-            else if (ranges[SPECTRAANA::rSUMISO][0] <= -999 && ranges[SPECTRAANA::rSUMISO][1] < 999)
+            else if (ranges[SPECTRAANA::rSUMISO][0] <= -999 && ranges[SPECTRAANA::rSUMISO][1] > -999)
                 res = Form("sumIso<%.1f", ranges[SPECTRAANA::rSUMISO][1]);
             else if (ranges[SPECTRAANA::rSUMISO][0] > -999 && ranges[SPECTRAANA::rSUMISO][1] > -999)
                 res = Form("%.1f<sumIso<%.1f", ranges[SPECTRAANA::rSUMISO][0], ranges[SPECTRAANA::rSUMISO][1]);
