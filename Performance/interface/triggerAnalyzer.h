@@ -189,6 +189,7 @@ public :
 
     std::string getRangeText(int iRange);
 
+    bool isValid();
     void update();
     void updateTH1();
 
@@ -473,6 +474,29 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
     }
 
     return res;
+}
+
+bool triggerAnalyzer::isValid()
+{
+    if (isValid_hNum)  return true;
+    if (isValid_hDenom)  return true;
+    if (isValid_hEff)  return true;
+    if (isValid_gEff)  return true;
+
+    if (isValid_h2Num)  return true;
+    if (isValid_h2Denom)  return true;
+    if (isValid_h2Eff)  return true;
+
+    if (isValid_hNumInEff)  return true;
+    if (isValid_hInEff)  return true;
+    if (isValid_gInEff)  return true;
+
+    if (isValid_hFakeNum)  return true;
+    if (isValid_hFakeDenom)  return true;
+    if (isValid_hFakeRatio)  return true;
+    if (isValid_gFakeRatio)  return true;
+
+    return false;
 }
 
 void triggerAnalyzer::update()

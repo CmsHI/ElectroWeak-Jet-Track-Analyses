@@ -1740,42 +1740,42 @@ int  preLoop(TFile* input, bool makeNew)
         if (iEta == 0 && iDep == TRIGGERANA::kETA) {
             strDep = "depEta";
             xTitle = "photon #eta";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iRecoPt == 0 && iDep == TRIGGERANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == TRIGGERANA::kCENT) {
             strDep = "depCent";
             xTitle = "Centrality (%)";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == TRIGGERANA::kSUMISO) {
             strDep = "depSumIso";
             xTitle = "sumIso";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == TRIGGERANA::kECALISO) {
             strDep = "depEcalIso";
             xTitle = "ecalIso";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == TRIGGERANA::kHCALISO) {
             strDep = "depHcalIso";
             xTitle = "hcalIso";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iSumIso == 0 && iDep == TRIGGERANA::kTRKISO) {
             strDep = "depTrkIso";
             xTitle = "trkIso";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iSieie == 0 && iDep == TRIGGERANA::kSIEIE) {
             strDep = "depSieie";
             xTitle = "#sigma_{#eta#eta}";
-            makeObject = true;
+            makeObject = !tAna[iDep][iAna].isValid();
         }
 
         if (!makeObject)  continue;
