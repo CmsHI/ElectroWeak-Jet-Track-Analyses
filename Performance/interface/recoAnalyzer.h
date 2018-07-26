@@ -2240,6 +2240,8 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        h1Dcorr[i]->SetMinimum(0.5);
+        h1Dcorr[i]->SetMaximum(1.5);
         h1Dcorr[i]->Draw("e");
         h1Dcorr[i]->Write("",TObject::kOverwrite);
         latex = new TLatex();
