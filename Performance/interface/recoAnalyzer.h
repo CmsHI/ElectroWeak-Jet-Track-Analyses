@@ -744,9 +744,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
     }
     case RECOANA::rGENPT : {
 
-        if (ranges[RECOANA::rGENPT][0] > ranges[RECOANA::rGENPT][1])
-            break;
-        else if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] <= -1)
+        if (ranges[RECOANA::rGENPT][0] > 0 && ranges[RECOANA::rGENPT][1] <= -1)
             res  = Form("p_{T}^{gen}>%.0f", ranges[RECOANA::rGENPT][0]);
         else if (ranges[RECOANA::rGENPT][0] <= 0 && ranges[RECOANA::rGENPT][1] > 0)
             res  = Form("p_{T}^{gen}<%.0f", ranges[RECOANA::rGENPT][1]);
@@ -756,9 +754,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
     }
     case RECOANA::rRECOPT : {
 
-        if (ranges[RECOANA::rRECOPT][0] > ranges[RECOANA::rRECOPT][1])
-            break;
-        else if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] <= -1)
+        if (ranges[RECOANA::rRECOPT][0] > 0 && ranges[RECOANA::rRECOPT][1] <= -1)
             res  = Form("p_{T}^{reco}>%.0f", ranges[RECOANA::rRECOPT][0]);
         else if (ranges[RECOANA::rRECOPT][0] <= 0 && ranges[RECOANA::rRECOPT][1] > 0)
             res = Form("p_{T}^{reco}<%.0f", ranges[RECOANA::rRECOPT][1]);
@@ -768,9 +764,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
     }
     case RECOANA::rCENT : {
 
-        if (ranges[RECOANA::rCENT][0] > ranges[RECOANA::rCENT][1])
-            break;
-        else if (ranges[RECOANA::rCENT][0] >= 0 && ranges[RECOANA::rCENT][1] > 0)
+        if (ranges[RECOANA::rCENT][0] >= 0 && ranges[RECOANA::rCENT][1] > 0)
             res = Form("Cent:%.0f-%.0f%%", ranges[RECOANA::rCENT][0], ranges[RECOANA::rCENT][1]);
         break;
     }
@@ -793,9 +787,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
 
         if (recoObj == RECOANA::kPHOTON) {
 
-            if (ranges[RECOANA::rSIEIE][0] > ranges[RECOANA::rSIEIE][1])
-                break;
-            else if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] <= -1)
+            if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] <= -1)
                 res  = Form("#sigma_{#eta#eta}>%.2f", ranges[RECOANA::rSIEIE][0]);
             else if (ranges[RECOANA::rSIEIE][0] <= 0 && ranges[RECOANA::rSIEIE][1] > 0)
                 res = Form("#sigma_{#eta#eta}<%.2f", ranges[RECOANA::rSIEIE][1]);
@@ -808,9 +800,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
 
         if (recoObj == RECOANA::kPHOTON) {
 
-            if (ranges[RECOANA::rR9][0] > ranges[RECOANA::rR9][1])
-                break;
-            else if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
+            if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
                 res  = Form("R9>%.2f", ranges[RECOANA::rR9][0]);
             else if (ranges[RECOANA::rR9][0] <= 0 && ranges[RECOANA::rR9][1] > 0)
                 res = Form("R9<%.2f", ranges[RECOANA::rR9][1]);

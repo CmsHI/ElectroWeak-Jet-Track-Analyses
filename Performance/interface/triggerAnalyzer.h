@@ -419,9 +419,7 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
     }
     case TRIGGERANA::rRECOPT : {
 
-        if (ranges[TRIGGERANA::rRECOPT][0] > ranges[TRIGGERANA::rRECOPT][1])
-            break;
-        else if (ranges[TRIGGERANA::rRECOPT][0] > 0 && ranges[TRIGGERANA::rRECOPT][1] <= -1)
+        if (ranges[TRIGGERANA::rRECOPT][0] > 0 && ranges[TRIGGERANA::rRECOPT][1] <= -1)
             res  = Form("p_{T}^{reco}>%.0f", ranges[TRIGGERANA::rRECOPT][0]);
         else if (ranges[TRIGGERANA::rRECOPT][0] <= 0 && ranges[TRIGGERANA::rRECOPT][1] > 0)
             res = Form("p_{T}^{reco}<%.0f", ranges[TRIGGERANA::rRECOPT][1]);
@@ -431,9 +429,7 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
     }
     case TRIGGERANA::rCENT : {
 
-        if (ranges[TRIGGERANA::rCENT][0] > ranges[TRIGGERANA::rCENT][1])
-            break;
-        else if (ranges[TRIGGERANA::rCENT][0] >= 0 && ranges[TRIGGERANA::rCENT][1] > 0)
+        if (ranges[TRIGGERANA::rCENT][0] >= 0 && ranges[TRIGGERANA::rCENT][1] > 0)
             res = Form("Cent:%.0f-%.0f%%", ranges[TRIGGERANA::rCENT][0], ranges[TRIGGERANA::rCENT][1]);
         break;
     }
@@ -454,9 +450,7 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
     case TRIGGERANA::rSIEIE : {
 
         if (recoObj == TRIGGERANA::kPHOTON) {
-            if (ranges[TRIGGERANA::rSIEIE][0] > ranges[TRIGGERANA::rSIEIE][1])
-                break;
-            else if (ranges[TRIGGERANA::rSIEIE][0] > 0 && ranges[TRIGGERANA::rSIEIE][1] <= -1)
+            if (ranges[TRIGGERANA::rSIEIE][0] > 0 && ranges[TRIGGERANA::rSIEIE][1] <= -1)
                 res  = Form("#sigma_{#eta#eta}>%.2f", ranges[TRIGGERANA::rSIEIE][0]);
             else if (ranges[TRIGGERANA::rSIEIE][0] <= 0 && ranges[TRIGGERANA::rSIEIE][1] > 0)
                 res = Form("#sigma_{#eta#eta}<%.2f", ranges[TRIGGERANA::rSIEIE][1]);
@@ -468,9 +462,7 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
     case TRIGGERANA::rR9 : {
 
         if (recoObj == TRIGGERANA::kPHOTON) {
-            if (ranges[TRIGGERANA::rR9][0] > ranges[TRIGGERANA::rR9][1])
-                break;
-            else if (ranges[TRIGGERANA::rR9][0] > 0 && ranges[TRIGGERANA::rR9][1] <= -1)
+            if (ranges[TRIGGERANA::rR9][0] > 0 && ranges[TRIGGERANA::rR9][1] <= -1)
                 res  = Form("R9>%.2f", ranges[TRIGGERANA::rR9][0]);
             else if (ranges[TRIGGERANA::rR9][0] <= 0 && ranges[TRIGGERANA::rR9][1] > 0)
                 res = Form("R9<%.2f", ranges[TRIGGERANA::rR9][1]);
