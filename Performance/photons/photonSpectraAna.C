@@ -297,6 +297,10 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
         if (nTriggerPaths > 0) {
             std::string treeHltPath = "hltanalysisReco/HltTree";
             treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
+            if (!treeHlt) {
+                treeHltPath = "hltanalysis/HltTree";
+                treeHlt = (TTree*)fileTmp->Get(treeHltPath.c_str());
+            }
             treeHlt->SetBranchStatus("*",0);     // disable all branches
 
             triggerAnalyzer::setBranchesTrigger(treeHlt, triggerPaths, triggerBits, nTriggerPaths);

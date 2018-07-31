@@ -575,8 +575,12 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
         std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData ||
             runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
-            treeTrigPath = "hltanalysis/HltTree";
+            treeTrigPath = "hltanalysisReco/HltTree";
             treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
+            if (!treeTrig) {
+                treeTrigPath = "hltanalysis/HltTree";
+                treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
+            }
             treeTrig->SetBranchStatus("*",0);     // disable all branches
 
             triggerAnalyzer::setBranchesTrigger(treeTrig, triggerBranches, triggerBits, nTriggerBranches);
