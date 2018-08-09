@@ -12,7 +12,30 @@
 #ifndef MATHUTIL_H_
 #define MATHUTIL_H_
 
+namespace MATHUTIL {
+
+enum FNCS {
+    kDSCB,
+    kN_FNCS
+};
+const std::string FNCNAMES[kN_FNCS] = {
+        "fnc_DSCB"
+    };
+}
+
+typedef double (*fncPointer)(double *, double *);
+
+fncPointer getFncPointer(std::string fncName);
 double fnc_DSCB(double* xx, double* params);
+
+fncPointer getFncPointer(std::string fncName)
+{
+    if (fncName == MATHUTIL::FNCNAMES[MATHUTIL::kDSCB]){
+        return fnc_DSCB;
+    }
+
+    return 0;
+}
 
 /*
  * Double sided crystal ball function
