@@ -15,6 +15,8 @@
 typedef double (*fncPointer)(double *, double *);
 
 fncPointer getFncPointer(std::string fncName);
+int getFncNpar(std::string fncName);
+int getFncNpar(fncPointer fncPtr);
 double fnc_DSCB(double* xx, double* params);
 
 namespace MATHUTIL {
@@ -30,6 +32,13 @@ const std::string FNCNAMES[kN_FNCS] = {
 fncPointer FNCPOINTERS[kN_FNCS] = {
         fnc_DSCB
     };
+
+/*
+ * number of parameters for a function
+ */
+int FNCNPARS[kN_FNCS] = {
+        7
+    };
 }
 
 fncPointer getFncPointer(std::string fncName)
@@ -37,6 +46,25 @@ fncPointer getFncPointer(std::string fncName)
     for (int i = 0; i < MATHUTIL::kN_FNCS; ++i) {
         if (fncName == MATHUTIL::FNCNAMES[i]){
             return MATHUTIL::FNCPOINTERS[i];
+        }
+    }
+
+    return 0;
+}
+
+int getFncNpar(std::string fncName)
+{
+    return getFncNpar(getFncPointer(fncName));
+}
+
+/*
+ * returns the number of parameters for the given function
+ */
+int getFncNpar(fncPointer fncPtr)
+{
+    for (int i = 0; i < MATHUTIL::kN_FNCS; ++i) {
+        if (fncPtr == MATHUTIL::FNCPOINTERS[i]){
+            return MATHUTIL::FNCNPARS[i];
         }
     }
 

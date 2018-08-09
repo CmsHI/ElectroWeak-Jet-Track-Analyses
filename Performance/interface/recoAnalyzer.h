@@ -1444,7 +1444,7 @@ void recoAnalyzer::fitRecoGen()
         for (int iFnc = 0; iFnc < ESANA::kN_FNCS; ++iFnc) {
 
             if (ESANA::FNC_LABELS[iFnc] == "DSCB") {
-                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, 7);
+                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, getFncNpar(fnc_DSCB));
             }
             else {
                 std::string formulaTmp = ESANA::FNC_FORMULAS[iFnc];
