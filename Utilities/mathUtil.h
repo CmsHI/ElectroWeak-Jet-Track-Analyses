@@ -12,6 +12,11 @@
 #ifndef MATHUTIL_H_
 #define MATHUTIL_H_
 
+typedef double (*fncPointer)(double *, double *);
+
+fncPointer getFncPointer(std::string fncName);
+double fnc_DSCB(double* xx, double* params);
+
 namespace MATHUTIL {
 
 enum FNCS {
@@ -21,17 +26,18 @@ enum FNCS {
 const std::string FNCNAMES[kN_FNCS] = {
         "fnc_DSCB"
     };
+
+fncPointer FNCPOINTERS[kN_FNCS] = {
+        fnc_DSCB
+    };
 }
-
-typedef double (*fncPointer)(double *, double *);
-
-fncPointer getFncPointer(std::string fncName);
-double fnc_DSCB(double* xx, double* params);
 
 fncPointer getFncPointer(std::string fncName)
 {
-    if (fncName == MATHUTIL::FNCNAMES[MATHUTIL::kDSCB]){
-        return fnc_DSCB;
+    for (int i = 0; i < MATHUTIL::kN_FNCS; ++i) {
+        if (fncName == MATHUTIL::FNCNAMES[i]){
+            return MATHUTIL::FNCPOINTERS[i];
+        }
     }
 
     return 0;
