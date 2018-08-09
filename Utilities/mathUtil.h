@@ -18,26 +18,31 @@ fncPointer getFncPointer(std::string fncName);
 int getFncNpar(std::string fncName);
 int getFncNpar(fncPointer fncPtr);
 double fnc_DSCB(double* xx, double* params);
+double fnc_energyCorr_eta(double* xx, double* params);
 
 namespace MATHUTIL {
 
 enum FNCS {
-    kDSCB,
+    k_DSCB,
+    k_energyCorr_eta,
     kN_FNCS
 };
 const std::string FNCNAMES[kN_FNCS] = {
-        "fnc_DSCB"
+        "fnc_DSCB",
+        "fnc_energyCorr_eta"
     };
 
 fncPointer FNCPOINTERS[kN_FNCS] = {
-        fnc_DSCB
+        fnc_DSCB,
+        fnc_energyCorr_eta
     };
 
 /*
  * number of parameters for a function
  */
 int FNCNPARS[kN_FNCS] = {
-        7
+        7,
+        2
     };
 }
 
@@ -100,6 +105,28 @@ double fnc_DSCB(double* xx, double* params)
     else if (u < a2)  res *= TMath::Exp(-u*u/2);
     else              res *= A2*TMath::Power(B2+u,-n2);
     return res;
+}
+
+/*
+ * ECAL energy correction as fnc of eta
+ * https://github.com/cms-sw/cmssw/blob/CMSSW_10_3_X/RecoEcal/EgammaCoreTools/plugins/EcalClusterEnergyCorrectionObjectSpecific.cc#L8
+ * https://github.com/cms-sw/cmssw/blob/5d2ce01256b930ecac84b9df357f26ce907e8b9e/RecoEcal/EgammaCoreTools/plugins/EcalClusterEnergyCorrectionObjectSpecific.cc#L8
+ *
+ * Current values
+ * params[0] = 40.2198
+ * params[1] = -0.00000303103
+ */
+double fnc_energyCorr_eta(double* xx, double* params)
+{
+    double x = xx[0];
+    double ieta = TMath::Abs(x)*(5/0.087);
+
+    if (ieta < params[0]) {
+        return 1;
+    }
+    else {
+        return 1/(1.0+params[1]*(ieta-params[0])*(ieta-params[0]));
+    }
 }
 
 #endif /* MATHUTIL_H_ */
