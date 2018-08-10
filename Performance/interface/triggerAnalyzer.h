@@ -382,18 +382,18 @@ bool triggerAnalyzer::insideRange(std::vector<double> vars)
         if (sieie == -1)  sieie = ranges[TRIGGERANA::rSIEIE][0];
         if (r9 == -1)  r9 = ranges[TRIGGERANA::rR9][0];
 
-        if((ranges[TRIGGERANA::rETA][0] <= TMath::Abs(eta) && TMath::Abs(eta) < ranges[TRIGGERANA::rETA][1]) ||
-           (ranges[TRIGGERANA::rETA][0] > ranges[TRIGGERANA::rETA][1])) {
-        if((ranges[TRIGGERANA::rRECOPT][0] <= recoPt && recoPt < ranges[TRIGGERANA::rRECOPT][1]) ||
-           (ranges[TRIGGERANA::rRECOPT][0] > ranges[TRIGGERANA::rRECOPT][1])) {
-        if((ranges[TRIGGERANA::rCENT][0] <= cent && cent < ranges[TRIGGERANA::rCENT][1]) ||
-           (ranges[TRIGGERANA::rCENT][0] > ranges[TRIGGERANA::rCENT][1])) {
+        if(ranges[TRIGGERANA::rETA][0] <= TMath::Abs(eta) &&
+           (ranges[TRIGGERANA::rETA][1] <= -1 || TMath::Abs(eta) < ranges[TRIGGERANA::rETA][1])) {
+        if(ranges[TRIGGERANA::rRECOPT][0] <= recoPt &&
+           (ranges[TRIGGERANA::rRECOPT][1] <= -1 || recoPt < ranges[TRIGGERANA::rRECOPT][1])) {
+        if(ranges[TRIGGERANA::rCENT][0] <= cent &&
+           (ranges[TRIGGERANA::rCENT][1] <= -1 || cent < ranges[TRIGGERANA::rCENT][1])) {
         if((ranges[TRIGGERANA::rSUMISO][0] <= sumIso && sumIso < ranges[TRIGGERANA::rSUMISO][1]) ||
            (ranges[TRIGGERANA::rSUMISO][0] > ranges[TRIGGERANA::rSUMISO][1])) {
-        if((ranges[TRIGGERANA::rSIEIE][0] <= sieie && sieie < ranges[TRIGGERANA::rSIEIE][1]) ||
-           (ranges[TRIGGERANA::rSIEIE][0] > ranges[TRIGGERANA::rSIEIE][1])) {
-        if((ranges[TRIGGERANA::rR9][0] <= r9 && r9 < ranges[TRIGGERANA::rR9][1]) ||
-           (ranges[TRIGGERANA::rR9][0] > ranges[TRIGGERANA::rR9][1])) {
+        if(ranges[TRIGGERANA::rSIEIE][0] <= sieie &&
+           (ranges[TRIGGERANA::rSIEIE][1] <= -1 || sieie < ranges[TRIGGERANA::rSIEIE][1])) {
+        if(ranges[TRIGGERANA::rR9][0] <= r9 &&
+           (ranges[TRIGGERANA::rR9][1] <= -1 || r9 < ranges[TRIGGERANA::rR9][1])) {
                 return true;
         }}}}}}
         return false;

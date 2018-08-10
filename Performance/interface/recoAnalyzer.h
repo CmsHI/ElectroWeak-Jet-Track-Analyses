@@ -705,20 +705,20 @@ bool recoAnalyzer::insideRange(std::vector<double> vars)
         if (sieie == -1)  sieie = ranges[RECOANA::rSIEIE][0];
         if (r9 == -1)  r9 = ranges[RECOANA::rR9][0];
 
-        if((ranges[RECOANA::rETA][0] <= TMath::Abs(eta) && TMath::Abs(eta) < ranges[RECOANA::rETA][1]) ||
-           (ranges[RECOANA::rETA][0] > ranges[RECOANA::rETA][1])) {
-        if((ranges[RECOANA::rGENPT][0] <= genPt && genPt < ranges[RECOANA::rGENPT][1]) ||
-           (ranges[RECOANA::rGENPT][0] > ranges[RECOANA::rGENPT][1])) {
-        if((ranges[RECOANA::rRECOPT][0] <= recoPt && recoPt < ranges[RECOANA::rRECOPT][1]) ||
-           (ranges[RECOANA::rRECOPT][0] > ranges[RECOANA::rRECOPT][1])) {
-        if((ranges[RECOANA::rCENT][0] <= cent && cent < ranges[RECOANA::rCENT][1]) ||
-           (ranges[RECOANA::rCENT][0] > ranges[RECOANA::rCENT][1])) {
+        if(ranges[RECOANA::rETA][0] <= TMath::Abs(eta) &&
+           (ranges[RECOANA::rETA][1] <= -1 || TMath::Abs(eta) < ranges[RECOANA::rETA][1])) {
+        if(ranges[RECOANA::rGENPT][0] <= genPt &&
+           (ranges[RECOANA::rGENPT][1] <= -1 || genPt < ranges[RECOANA::rGENPT][1])) {
+        if(ranges[RECOANA::rRECOPT][0] <= recoPt &&
+           (ranges[RECOANA::rRECOPT][1] <= -1 || recoPt < ranges[RECOANA::rRECOPT][1])) {
+        if(ranges[RECOANA::rCENT][0] <= cent &&
+           (ranges[RECOANA::rCENT][1] <= -1 || cent < ranges[RECOANA::rCENT][1])) {
         if((ranges[RECOANA::rSUMISO][0] <= sumIso && sumIso < ranges[RECOANA::rSUMISO][1]) ||
            (ranges[RECOANA::rSUMISO][0] > ranges[RECOANA::rSUMISO][1])) {
-        if((ranges[RECOANA::rSIEIE][0] <= sieie && sieie < ranges[RECOANA::rSIEIE][1]) ||
-           (ranges[RECOANA::rSIEIE][0] > ranges[RECOANA::rSIEIE][1])) {
-        if((ranges[RECOANA::rR9][0] <= r9 && r9 < ranges[RECOANA::rR9][1]) ||
-           (ranges[RECOANA::rR9][0] > ranges[RECOANA::rR9][1])) {
+        if(ranges[RECOANA::rSIEIE][0] <= sieie &&
+           (ranges[RECOANA::rSIEIE][1] <= -1 || sieie < ranges[RECOANA::rSIEIE][1])) {
+        if(ranges[RECOANA::rR9][0] <= r9 &&
+           (ranges[RECOANA::rR9][1] <= -1 || r9 < ranges[RECOANA::rR9][1])) {
                 return true;
         }}}}}}}
         return false;
