@@ -24,7 +24,7 @@
 #include "../Utilities/interface/CutConfigurationParser.h"
 #include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/interface/HiForestInfoController.h"
-#include "../../phoRaaCuts/yjUtility.h"
+#include "../Utilities/yjUtility.h"
 
 #define _SET_BRANCH_VEC(tree, type, branch)     \
     std::vector<type>* branch = 0;              \
@@ -38,89 +38,99 @@
 
 float dR(float eta1, float eta2, float phi1, float phi2);
 
-void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
-                std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
+void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weights_vz, TH1D* h_weights_cent,
+                int centBins_Ecorr[][7], std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
                 int apply_corrections, TF1** f_ecorr_ptr);
 void fill_hists(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
                 std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
                 int apply_corrections, TH1D** h_ecorr_ptr);
-void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
+void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weights_vz, TH1D* h_weights_cent,
                     std::vector<int> centBins[2], TH1D** h_mass_cent);
 
 void yj_eleMatchedPhotonZPeak_eleCut(
                           bool isPP=false,
                           bool isYJCorr=true,
-                          TString configFile = "./../CutConfigurations/photonRaa_eleMatchedPhotonZPeak.conf", 
+                          bool doReweight = true,
+                          TString func="DSCB",
+                          //TString sample="AllQCD",
                           const int apply_corrections = 1,
+                          TString configFile = "./../CutConfigurations/photonRaa_eleMatchedPhotonZPeak.conf", 
                           const char* fn_data = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pbpb_data_azsigmon-HIRun2015E-PromptReco-AOD-DielectronSkim-ElePt8-v3_forest_csjet_v1_3.root",
-                          const char* fn_mc = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pbpb_mc_Pythia8_Z30eeJet_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13_ext1-FOREST.root",
-                          const char* fn_weights = "") {
+                          const char* fn_mc = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pbpb_mc_Pythia8_Z30eeJet_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13_ext1-FOREST.root") {
                  
     TString corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections.root";  
     TString cap = "pbpb";
 
-    if(!isPP && isYJCorr){ // isYJCorr means using correction factor from fit function produced by yeonju
-        //corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_usingPhotonSample_pbpb_DSCB.root";  
-        //corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_resolution_lowpt.root";  
-        
-        corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pbpb_DSCB_0712.root";  
-        cap = "pbpb_DSCB_0712";
-       // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pbpb_gaus_0712.root";  
-       // cap = "pbpb_gaus_0712";
-    }
-
-    if(isPP){
-        configFile = "./../CutConfigurations/photonRaa_eleMatchedPhotonZPeak_pp.conf", 
+    if(!isPP && isYJCorr){ //PbPb // isYJCorr means using correction factor from fit function produced by yeonju
+        ///// by AllQCDPhoton sample 
+        corrFileName = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pbpb_COMB_AllQCD_0726.root";  
+        //corrFileName = Form("/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pbpb_%s_AllQCD_0713.root",func.Data());  
+        cap = "pbpb_AllQCD_0726";
+        ///// DSCB by ZtoEE sample 
+        //corrFileName = Form("/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pbpb_%s_0712.root",func.Data());  
+        //cap = Form("pbpb_%s_0712",func.Data());
+    } else if(isPP && isYJCorr){//pp
+        configFile = "./../CutConfigurations/photonRaa_eleMatchedPhotonZPeak_pp.conf";
+        ///// DSCB by AllQCDPhoton sample 
+        corrFileName = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_DSCB_AllQCD_0722_finerBinning.root";  
+        corrFileName = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_gaus_AllQCD_0722_finerBinning.root";  
+        corrFileName = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_GED_COMB_AllQCD_0729.root";  
+        cap = "pp_DSCB_AllQCD_0722";
+        cap = "pp_gaus_AllQCD_0722";
+        cap = "pp_GED_COMB_AllQCD_0729";
+        //corrFileName = Form("/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_%s_AllQCD_0713.root",func.Data());  
+        //cap = Form("pp_%s_AllQCD_0713",func.Data());
+        ///// DSCB by ZtoEE sample 
+        //corrFileName = Form("/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_%s_0712.root",func.Data());  
+        //cap = Form("pp_%s_0712",func.Data());
         fn_data = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pp_data_HighPtPhoton30AndZ_HIRun2015E-PromptReco-AOD-dielectron-skim-FOREST.root";
         fn_mc= "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pp_mc_Pythia8_Z30eeJet_HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3_ext1-v1-FOREST.root";
-        fn_weights= "";
+    } else if(isPP && !isYJCorr){
+        configFile = "./../CutConfigurations/photonRaa_eleMatchedPhotonZPeak_pp.conf";
+        fn_data = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pp_data_HighPtPhoton30AndZ_HIRun2015E-PromptReco-AOD-dielectron-skim-FOREST.root";
+        fn_mc= "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pp_mc_Pythia8_Z30eeJet_HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3_ext1-v1-FOREST.root";
         corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp.root";  
         cap = "pp";
-        if(isYJCorr){
-            //corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_usingPhotonSample_pp_DSCB.root";
-            //corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_resolution_lowpt_pp.root";  
-            
-            corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_DSCB_0712.root";  
-            cap = "pp_DSCB_0712";
-           // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/photonEnergyCorrections_pp_gaus_0712.root";  
-           // cap = "pp_gaus_0712";
-        }
     }
+    cout << "corrFileName = " << corrFileName << endl;
 
-
-            
-           // // pp gaus 
-           // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_lowpt_pp_gaus_0629.root";  
-           // cap = "yj_photonEnergyCorrections_lowpt_pp_gaus_0629";
-
-           // // pp DSCB
-           // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_lowpt_pp_DSCB_setSigParLimit.root";  
-           // cap = "yj_photonEnergyCorrections_lowpt_pp_DSCB_setSigParLimit";
-
-
-
-           // // PbPb gaus 
-           // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_lowpt_pbpb_gaus_0629.root";  
-           // cap = "yj_photonEnergyCorrections_lowpt_pbpb_gaus_0629";
-           // 
-           // // PbPb DSCB
-           // corrFileName = "/u/user/goyeonju/PhotonAnalysis2017/ElectroWeak-Jet-Track-Analyses/Corrections/yj_photonEnergyCorrections_lowpt_pbpb_DSCB_setSigParLimit.root";  
-           // cap = "yj_photonEnergyCorrections_lowpt_pbpb_DSCB_setSigParLimit";
-
-
-
+    TString GEDcap = "";
+    if(isPP) GEDcap = "GED";
+    if(doReweight) cap += "_reweighted";
+    else cap += "_noWeight";
 
     TFile* f_data = new TFile(fn_data, "read");
-    TTree* t_photon = (TTree*)f_data->Get("ggHiNtuplizer/EventTree");
+    TTree* t_photon = (TTree*)f_data->Get(Form("ggHiNtuplizer%s/EventTree",GEDcap.Data()));
     TTree* t_event = (TTree*)f_data->Get("hiEvtAnalyzer/HiTree");
 
     InputConfiguration configInput = InputConfigurationParser::Parse(configFile.Data());
     CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
 
-   // TFile* f_weights = new TFile(fn_weights, "read");
-   // TH2D* h_weights = 0;
-   // if (f_weights && f_weights->IsOpen())
-   //     (TH2D*)f_weights->Get("h_weights");
+    const char* fn_weights;
+    if(isPP) fn_weights = "../Histogramming/pp_ZtoEE_MC_weights.root";
+    else fn_weights = "../Histogramming/pbpb_ZtoEE_MC_weights.root";
+    TFile* f_weights = new TFile(fn_weights, "read");
+    TH1D* h_weights_vz = 0;
+    TH1D* h_weights_cent = 0;
+    if (f_weights && f_weights->IsOpen()){
+        h_weights_vz = (TH1D*)f_weights->Get("hvz");
+        h_weights_vz->SetName("hvz_real");
+        if(isPP) {
+            h_weights_cent = (TH1D*)f_weights->Get("hvz"); //fake histogram for pp
+            for(int ibin=1; ibin<=h_weights_cent->GetNbinsX();++ibin)
+                h_weights_cent->SetBinContent(ibin,1);
+        } else { 
+            h_weights_cent = (TH1D*)f_weights->Get("hcent");
+        }
+        
+    }
+    if(!doReweight){
+        for(int ibin=1; ibin<=h_weights_vz->GetNbinsX();++ibin)
+            h_weights_vz->SetBinContent(ibin,1);
+        for(int ibin=1; ibin<=h_weights_cent->GetNbinsX();++ibin)
+            h_weights_cent->SetBinContent(ibin,1);
+    }
+
     cout << "sss" << endl;
     std::vector<int> centBins[2];
     centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
@@ -131,25 +141,33 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     etaBins[0] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_gt]);
     etaBins[1] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_lt]);
     int nEtaBins = etaBins[0].size();
-    
+
+    int centBins_Ecorr[2][7] = {{0,10,20,40,60,100,140},{10,20,40,60,100,140,200}};
+    const int nCentBins_Ecorr = 7;
+    //int centBins[2][4] = {{0,20,60,100},{20,60,100,200}};
+    //int nCentBins = 4;
+    //float etaBins[2][2] = {{0,1.44},{1.44,2.4}};
+    //int nEtaBins = 2; 
+
     if(isPP){
         nCentBins = 1; 
         cout << "PP collisions # of centrality bin = " << nCentBins << endl;
+        
     }
-    cap += Form("_nCentBins%d",nCentBins);
-    //if(isYJCorr && !isPP) nCentBins = 3; 
+    if(!isPP) cap += Form("_nCentBins%d",nCentBins);
+    if(apply_corrections==0) cap += "_noEnergyCorrection";
 
     TFile* energyCorrectionFile = TFile::Open(Form("%s",corrFileName.Data()), "read");
-    TH1D* h_ecorr[nCentBins][nEtaBins];
-    TF1* f_ecorr[nCentBins][nEtaBins];
-    for (int i=0; i<nCentBins; ++i){
+    TH1D* h_ecorr[nCentBins_Ecorr][nEtaBins];
+    TF1* f_ecorr[nCentBins_Ecorr][nEtaBins];
+    for (int i=0; i<nCentBins_Ecorr; ++i){
         for (int j=0; j<nEtaBins; ++j){
             if(isPP) h_ecorr[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_eta%i", j));
             else h_ecorr[i][j] = (TH1D*)energyCorrectionFile->Get(Form("photonEnergyCorr_cent%i_eta%i", i, j));
     }}
             
     if(isYJCorr){
-        for (int i=0; i<nCentBins; ++i){
+        for (int i=0; i<nCentBins_Ecorr; ++i){
             for (int j=0; j<nEtaBins; ++j){
                 if(isPP) f_ecorr[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent0_eta%i", j));
                 else f_ecorr[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent%i_eta%i",i, j));
@@ -167,11 +185,11 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     for (int i=0; i<nCentBins; ++i)
         h_mass_cent[i] = new TH1D(Form("h_mass_cent_%i", i), Form("%i-%i%% Centrality;M_{Inv};", centBins[0][i]/2, centBins[1][i]/2), 30, 60, 120);
 
-    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass, 0, centBins, etaBins, h_mass_cent, apply_corrections, (TF1**)f_ecorr);
+    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass, h_weights_vz,h_weights_cent, centBins_Ecorr, centBins, etaBins, h_mass_cent, apply_corrections, (TF1**)f_ecorr);
     else        fill_hists(t_photon, t_event, h_mass, 0, centBins, etaBins, h_mass_cent, apply_corrections, (TH1D**)h_ecorr);
 
     TFile* f_mc = new TFile(fn_mc, "read");
-    t_photon = (TTree*)f_mc->Get("ggHiNtuplizer/EventTree");
+    t_photon = (TTree*)f_mc->Get(Form("ggHiNtuplizer%s/EventTree",GEDcap.Data()));
     t_event = (TTree*)f_mc->Get("hiEvtAnalyzer/HiTree");
 
     TH1D* h_mass_mc = new TH1D("h_mass_mc", "", 30, 60, 120);
@@ -180,7 +198,7 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     for (int i=0; i<nCentBins; ++i)
         h_mass_cent_mc[i] = new TH1D(Form("h_mass_cent_mc_%i", i), Form("%i-%i%% Centrality;M_{Inv};", centBins[0][i]/2, centBins[1][i]/2), 30, 60, 120);
 
-    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass_mc, 0, centBins, etaBins, h_mass_cent_mc, apply_corrections, (TF1**)f_ecorr);
+    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass_mc, h_weights_vz,h_weights_cent, centBins_Ecorr, centBins, etaBins, h_mass_cent_mc, apply_corrections, (TF1**)f_ecorr);
     else         fill_hists(t_photon, t_event, h_mass_mc, 0, centBins, etaBins, h_mass_cent_mc, apply_corrections, (TH1D**)h_ecorr);
     //fill_hists(t_photon, t_event, h_mass_mc, h_weights, centBins, etaBins, h_mass_cent_mc, apply_corrections, (TH1D**)h_ecorr);
 
@@ -190,7 +208,7 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     for (int i=0; i<nCentBins; ++i)
         h_mass_cent_gen[i] = new TH1D(Form("h_mass_cent_gen_%i", i), Form("%i-%i%% Centrality;M_{Inv};", centBins[0][i]/2, centBins[1][i]/2), 30, 60, 120);
 
-    fill_hists_gen(t_photon, t_event, h_mass_gen, 0, centBins, h_mass_cent_gen);
+    fill_hists_gen(t_photon, t_event, h_mass_gen, h_weights_vz,h_weights_cent, centBins, h_mass_cent_gen);
     //fill_hists_gen(t_photon, t_event, h_mass_gen, h_weights, centBins, h_mass_cent_gen);
 
     RooRealVar x("x", "x", 60, 120);
@@ -221,26 +239,46 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     TH1D* h_z_mass = new TH1D("h_z_mass", "Z Mass;Centrality;M_{Inv}", nCentBins, hist_centBins);
     TH1D* h_z_mass_mc = new TH1D("h_z_mass_mc", "Z Mass;Centrality;M_{Inv}", nCentBins, hist_centBins);
     TH1D* h_z_mass_gen = new TH1D("h_z_mass_gen", "Z Mass;Centrality;M_{Inv}", nCentBins, hist_centBins);
+    TH1D* h_z_mass_width = new TH1D("h_z_mass_width", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
+    TH1D* h_z_mass_width_mc = new TH1D("h_z_mass_width_mc", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
+    TH1D* h_z_mass_width_gen = new TH1D("h_z_mass_width_gen", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
 
+    double invMass[3][nCentBins]; // [0:DATA,1:MC_reco,2:MC_gen][centBins]
+    double invMass_width[3][nCentBins]; // [0:DATA,1:MC_reco,2:MC_gen][centBins]
     for (int i=0; i<nCentBins; ++i) {
         cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
         RooDataHist data_cent("data_cent", "dataset", x, h_mass_cent[i]);
         bw.fitTo(data_cent);
         h_z_mass->SetBinContent(i+1, m0.getVal());
         h_z_mass->SetBinError(i+1, m0.getError());
+        h_z_mass_width->SetBinContent(i+1, width.getVal());
+        h_z_mass_width->SetBinError(i+1, width.getError());
+        invMass[0][i] = h_z_mass->GetBinContent(i+1);
+        invMass_width[0][i] = h_z_mass_width->GetBinContent(i+1);
         cout << "Invariant Mass(DATA RECO): \t" << h_z_mass->GetBinContent(i+1) << endl;
+        cout << "Width of Invariant Mass(DATA RECO): \t" << h_z_mass_width->GetBinContent(i+1) << endl;
 
         RooDataHist data_cent_mc("data_cent_mc", "dataset", x, h_mass_cent_mc[i]);
         bw.fitTo(data_cent_mc);
         h_z_mass_mc->SetBinContent(i+1, m0.getVal());
         h_z_mass_mc->SetBinError(i+1, m0.getError());
+        h_z_mass_width_mc->SetBinContent(i+1, width.getVal());
+        h_z_mass_width_mc->SetBinError(i+1, width.getError());
+        invMass[1][i] = h_z_mass_mc->GetBinContent(i+1);
+        invMass_width[1][i] = h_z_mass_width_mc->GetBinContent(i+1);
         cout << "Invariant Mass(MC RECO): \t" << h_z_mass_mc->GetBinContent(i+1) << endl;
+        cout << "Width of Invariant Mass(MC RECO): \t" << h_z_mass_width_mc->GetBinContent(i+1) << endl;
 
         RooDataHist data_cent_gen("data_cent_gen", "dataset", x, h_mass_cent_gen[i]);
         bw.fitTo(data_cent_gen);
         h_z_mass_gen->SetBinContent(i+1, m0.getVal());
         h_z_mass_gen->SetBinError(i+1, m0.getError());
+        h_z_mass_width_gen->SetBinContent(i+1, width.getVal());
+        h_z_mass_width_gen->SetBinError(i+1, width.getError());
+        invMass[2][i] = h_z_mass_gen->GetBinContent(i+1);
+        invMass_width[2][i] = h_z_mass_width_gen->GetBinContent(i+1);
         cout << "Invariant Mass(MC GEN): \t" << h_z_mass_gen->GetBinContent(i+1) << endl;
+        cout << "Width of Invariant Mass(MC GEN): \t" << h_z_mass_width_gen->GetBinContent(i+1) << endl;
 
     }
 
@@ -268,15 +306,53 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     h_z_mass_mc->Draw("same");
     h_z_mass->Draw("same");
 
-    TLegend* l1 = new TLegend(0.6, 0.64, 0.8, 0.80);
+    TLegend* l1 = new TLegend(0.70, 0.64, 0.90, 0.80);
     l1->SetBorderSize(0);
     l1->SetTextSize(0.04);
     l1->AddEntry(h_z_mass, "Data");
     l1->AddEntry(h_z_mass_mc, "MC Reco");
     l1->AddEntry(h_z_mass_gen, "MC Gen");
     l1->Draw();
+    //drawText(Form("%s",cap.Data()),0.2,0.9);
+    
+    TCanvas* c1_w = new TCanvas("c1_w", "", 400, 400);
+    h_z_mass_width_gen->SetMarkerStyle(21);
+    h_z_mass_width_gen->SetMarkerSize(0.8);
+    h_z_mass_width_gen->SetMarkerColor(4);
+    h_z_mass_width_gen->SetLineColor(4);
+    h_z_mass_width_gen->SetAxisRange(0, 20, "Y");
+    
+    h_z_mass_width_mc->SetMarkerStyle(20);
+    h_z_mass_width_mc->SetMarkerSize(0.8);
+    h_z_mass_width_mc->SetMarkerColor(2);
+    h_z_mass_width_mc->SetLineColor(2);
+    h_z_mass_width_mc->SetAxisRange(0, 20, "Y");
 
-    drawText(Form("%s",cap.Data()),0.2,0.8);
+    h_z_mass_width->SetMarkerStyle(22);
+    h_z_mass_width->SetMarkerSize(0.8);
+    h_z_mass_width->SetMarkerColor(1);
+    h_z_mass_width->SetLineColor(1);
+    h_z_mass_width->SetAxisRange(0, 20, "Y");
+
+    h_z_mass_width_gen->Draw();
+    h_z_mass_width_mc->Draw("same");
+    h_z_mass_width->Draw("same");
+    l1->Draw();
+    //drawText(Form("%s",cap.Data()),0.2,0.9);
+    
+    for (int i=0; i<nCentBins; ++i) {
+        float dy = 0.06;
+        if(isPP){
+        drawText(Form("%.3f / %.3f = %.3f",invMass_width[1][i],invMass_width[0][i],invMass_width[1][i]/invMass_width[0][i]),0.2,0.84-dy*i);
+        } else{
+//%i-%i%% Centrality;M_{Inv};", centBins[0][i]/2, centBins[1][i]/2
+        drawText(Form("%i-%i%% : %.3f / %.3f = %.3f", centBins[0][i]/2, centBins[1][i]/2,invMass_width[1][i],invMass_width[0][i],invMass_width[1][i]/invMass_width[0][i]),0.2,0.84-dy*i);
+
+
+        }
+    }
+    
+
     int nrows = (nCentBins - 1) / 5 + 1;
     TCanvas* c2 = new TCanvas("c2", "", 300*nCentBins, 300);
     //TCanvas* c2 = new TCanvas("c2", "", 1500, 300 * nrows);
@@ -299,15 +375,20 @@ void yj_eleMatchedPhotonZPeak_eleCut(
         h_mass_cent[i]->SetMarkerColor(1);
         h_mass_cent[i]->SetLineColor(1);
         h_mass_cent[i]->Draw("same p e");
-        drawText(Form("%s",cap.Data()),0.2,0.8);
+        drawText(Form("%s",cap.Data()),0.2,0.9);
         if(i==0) l1->Draw("same");
     }
-    c1->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_summary_noWeight_%s.pdf",cap.Data()));
-    c2->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_distributions_noWeight_%s.pdf",cap.Data()));
+    c1->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_summary_%s.pdf",cap.Data()));
+    c1_w->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_width_summary_%s.pdf",cap.Data()));
+    c2->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_distributions_%s.pdf",cap.Data()));
+    //c2_w->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_width_distributions_noWeight_%s.pdf",cap.Data()));
     TFile* f_out = new TFile("eleMatchedPhotonZPeak_noWeight_pp.root", "recreate");
     h_z_mass->Write("h_z_mass", TObject::kOverwrite);
     h_z_mass_mc->Write("h_z_mass_mc", TObject::kOverwrite);
     h_z_mass_gen->Write("h_z_mass_gen", TObject::kOverwrite);
+    h_z_mass_width->Write("h_z_mass_width", TObject::kOverwrite);
+    h_z_mass_width_mc->Write("h_z_mass_width_mc", TObject::kOverwrite);
+    h_z_mass_width_gen->Write("h_z_mass_width_gen", TObject::kOverwrite);
     for (int i=0; i<nCentBins; ++i) {
         h_mass_cent_gen[i]->Write("", TObject::kOverwrite);
         h_mass_cent_mc[i]->Write("", TObject::kOverwrite);
@@ -319,17 +400,32 @@ void yj_eleMatchedPhotonZPeak_eleCut(
 
     printf("\n%s\n", "root -l eleMatchedPhotonZPeak.root");
 
+    for (int i=0; i<nCentBins; ++i) {
+        cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
+        cout << "Invariant Mass(MC RECO) / Invariant Mass(DATA RECO): \t" << invMass[1][i] << " / " << invMass[0][i] << endl;
+    }
+    for (int i=0; i<nCentBins; ++i) {
+        cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
+        cout << "Width of Invariant Mass(MC RECO) / Width of Invariant Mass(DATA RECO): \t" << invMass_width[1][i] << " / " << invMass_width[0][i] << endl;
+    }
+    
     //return 0;
 }
 
-void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
-                std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
+void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weights_vz, TH1D* h_weights_cent,
+                int centBins_Ecorr[][7], std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
+                //std::vector<int> centBins_Ecorr[2], std::vector<int> centBins[2], std::vector<float> etaBins[2], TH1D** h_mass_cent,
                 int apply_corrections, TF1** f_ecorr_ptr) {
+    const int nCentBins_Ecorr = 7; 
     int nCentBins = centBins[1].size();
     int nEtaBins = etaBins[1].size();
+    
+    for (int i=0; i<nCentBins_Ecorr; ++i) {
+        cout << centBins_Ecorr[1][i]<< endl;
+    }
 
-    TF1* f_ecorr[5][nEtaBins];
-    memcpy(f_ecorr, f_ecorr_ptr, 5 * nEtaBins * sizeof(TF1*));
+    TF1* f_ecorr[nCentBins_Ecorr][nEtaBins];
+    memcpy(f_ecorr, f_ecorr_ptr, nCentBins_Ecorr * nEtaBins * sizeof(TF1*));
     //TF1* f_ecorr[nCentBins][nEtaBins];
     //memcpy(f_ecorr, f_ecorr_ptr, nCentBins * nEtaBins * sizeof(TF1*));
 
@@ -372,6 +468,7 @@ void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_we
     _SET_BRANCH_VAR(t_event, int, hiBin);
     _SET_BRANCH_VAR(t_event, float, vz);
 
+    int passEvt = 0;
     int32_t nentries = t_photon->GetEntries();
     for (int32_t i=0; i<nentries; ++i) {
         if (i % 5000 == 0)
@@ -485,7 +582,12 @@ void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_we
                //     cout << "mc index 2 = " << mcindex2 << endl;
                //     //if(abs(mcPID->at(mcindex2))!=11) continue;
                // }
-
+                
+                passEvt++; 
+                int icent_Ecorr = 0;
+                for (; hiBin>=centBins_Ecorr[1][icent_Ecorr] && icent_Ecorr<nCentBins_Ecorr; ++icent_Ecorr);
+                
+        //cout << "icent_Ecorr = " << icent_Ecorr << ", centBins_Ecorr[0][icent_Ecorr] = " << centBins_Ecorr[0][icent_Ecorr] << ", centBins_Ecorr[1][icent_Ecorr] = " << centBins_Ecorr[1][icent_Ecorr] << ", hiBin = " << hiBin << endl;
                 int icent = 0;
                 for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
 
@@ -497,8 +599,8 @@ void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_we
                 float phoEt1 = phoEt->at(j);
                 float phoEt2 = phoEt->at(k);
                 if (apply_corrections) {
-                    phoEt1 /= f_ecorr[icent][ieta1]->Eval(phoEt1);
-                    phoEt2 /= f_ecorr[icent][ieta2]->Eval(phoEt2);
+                    phoEt1 /= f_ecorr[icent_Ecorr][ieta1]->Eval(phoEt1);
+                    phoEt2 /= f_ecorr[icent_Ecorr][ieta2]->Eval(phoEt2);
                 }
 
                 TLorentzVector pho1, pho2;
@@ -506,11 +608,23 @@ void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_we
                 pho2.SetPtEtaPhiM(phoEt2, phoEta->at(k), phoPhi->at(k), 0);
                 TLorentzVector z = pho1 + pho2;
 
-                double weight;
-                if (h_weights)
-                    weight = h_weights->GetBinContent(h_weights->FindBin(hiBin, vz));
-                else
-                    weight = 1;
+                const char* vzname = h_weights_cent->GetName();
+                double weight_vz, weight_cent, weight;
+                if (h_weights_vz){
+                    
+                    weight_vz = h_weights_vz->GetBinContent(h_weights_vz->FindBin(vz));
+                    //cout << "I'm here : "<< weight_vz << endl;
+                }else{
+                    weight_vz = 1;
+                }
+                if (h_weights_cent){
+                    weight_cent = h_weights_cent->GetBinContent(h_weights_cent->FindBin(hiBin));
+                    //cout << "I'm here : "<< weight_cent << endl;
+                }else{
+                    weight_cent = 1;
+                }
+                weight = weight_vz*weight_cent;
+                //cout << "vz = " << h_weights_vz->FindBin(vz) << ", vz weight = " << weight_vz << ", cent weight = " << weight_cent << ", total weight = " << weight << endl;
 
                 if (z.M() != 0) {
                     h_mass->Fill(z.M(), weight);
@@ -519,6 +633,8 @@ void fill_hists_YJCorr(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_we
             }
         }
     }
+    cout << "pass events / total events = " << passEvt << " / " << nentries << endl; 
+
 }
 
 void fill_hists(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
@@ -618,7 +734,7 @@ void fill_hists(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
     }
 }
 
-void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weights,
+void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weights_vz, TH1D* h_weights_cent,
                     std::vector<int> centBins[2], TH1D** h_mass_cent) {
     t_photon->SetBranchStatus("*", 0);
     _SET_BRANCH_VAR(t_photon, int, nMC);
@@ -664,7 +780,7 @@ void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weigh
 
                 if (mcPID->at(j) == mcPID->at(k))
                     continue;
-
+                
                 int icent = 0;
                 int nCentBins = centBins[1].size();
                 for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
@@ -674,11 +790,17 @@ void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH2D* h_weigh
                 ele2.SetPtEtaPhiM(mcPt->at(k), mcEta->at(k), mcPhi->at(k), electronMass);
                 TLorentzVector z = ele1 + ele2;
 
-                double weight;
-                if (h_weights)
-                    weight = h_weights->GetBinContent(h_weights->FindBin(hiBin, vz));
+                double weight_vz, weight_cent, weight;
+                if (h_weights_vz)
+                    weight_vz = h_weights_vz->GetBinContent(h_weights_vz->FindBin(vz));
                 else
-                    weight = 1;
+                    weight_vz = 1;
+                if (h_weights_cent)
+                    weight_cent = h_weights_cent->GetBinContent(h_weights_cent->FindBin(hiBin));
+                else
+                    weight_cent = 1;
+                weight = weight_vz*weight_cent;
+                cout << "vz weight = " << weight_vz << ", cent weight = " << weight_cent << ", total weight = " << weight << endl;
 
                 if (z.M() != 0) {
                     h_mass->Fill(z.M(), weight);

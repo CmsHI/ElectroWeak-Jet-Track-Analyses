@@ -24,7 +24,7 @@ const long MAXTREESIZE = 2000000000000; // set maximum tree size from 10 GB to 1
 
 double getAngleToEP(double angle);
 
-int photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", const int isEmEnr=0, const int nJobs=-1, const int jobNum=-1) {
+int photonRaaSkim(const TString configFile, const TString inputFile, const TString outputFile = "photonRaaSkim.root", const int isEmEnr=0, const int isHighPhotonPD=false, const int nJobs=-1, const int jobNum=-1) {
     std::cout<<"running photonRaaSkim()"<<std::endl;
     std::cout<<"configFile  = "<< configFile.Data() <<std::endl;
     std::cout<<"inputFile   = "<< inputFile.Data() <<std::endl;
@@ -51,6 +51,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     // cut configuration
 
     std::vector<float> mcPthatWeights = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+    //std::vector<float> energyScaleSys = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
     const float cut_vz = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].f[CUTS::EVT::k_vz];
     const float cut_pcollisionEventSelection = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pcollisionEventSelection];
     const int cut_pPAprimaryVertexFilter = configCuts.proc[CUTS::kSKIM].obj[CUTS::kEVENT].i[CUTS::EVT::k_pPAprimaryVertexFilter];
@@ -70,6 +71,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     centBins[0] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_gt]);
     centBins[1] = ConfigurationParser::ParseListInteger(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_hiBin_lt]);
     int nCentBins = centBins[0].size();
+    cout << "nCentBins for energy correction = " << nCentBins << endl;
 
     std::vector<float> etaBins[2];
     etaBins[0] = ConfigurationParser::ParseListFloat(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_eta_gt]);
@@ -87,7 +89,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
         energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
         for (int i=0; i<nCentBins; ++i){
             for (int j=0; j<nEtaBins; ++j){
-                photonEnergyCorrections[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_cent%i_eta%i", i, j));
+                photonEnergyCorrections[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent%i_eta%i", i, j));
                 photonEnergyCorrections_res_rms[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent%i_eta%i", i, j));
                 photonEnergyCorrections_res_sig[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent%i_eta%i", i, j));
             }
@@ -95,15 +97,17 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     } else {
         energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file_pp].c_str());
         for (int i=0; i<nEtaBins; ++i){
-            photonEnergyCorrections_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_mean_cent0_eta%i", i));
+            photonEnergyCorrections_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent0_eta%i", i));
             photonEnergyCorrections_res_rms_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent0_eta%i", i));
             photonEnergyCorrections_res_sig_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent0_eta%i", i));
         }
     }
 
+    int nCentBins_sumIso = 5; 
+    int centBins_sumIso[2][nCentBins_sumIso] = {{0, 20, 60, 100, 140},{20, 60, 100, 140, 200}};
     TFile* sumIsoCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_sumiso_correction_file].c_str());
-    TH1D* sumIsoCorrections[nCentBins] = {0};
-    for (int i=0; i<nCentBins; ++i)
+    TH1D* sumIsoCorrections[nCentBins_sumIso] = {0};
+    for (int i=0; i<nCentBins_sumIso; ++i)
         sumIsoCorrections[i] = (TH1D*)sumIsoCorrectionFile->Get(Form("sumIsoCorrections_cent%i", i));
 
     // mc pthat weighting
@@ -184,11 +188,48 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     float ncoll_data;
     std::vector<float> pho_genPt, pho_genEta, pho_genPhi, pho_genE, pho_genEt, pho_genCalIsoDR03, pho_genCalIsoDR04, pho_genTrkIsoDR03, pho_genTrkIsoDR04;
     std::vector<int> pho_genPID, pho_genStatus, pho_genMomPID;
-    std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIsoCorrected;
+    std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIso, pho_sumIsoCorrected;
+    std::vector<int> phoPreScale;
     std::vector<float> phoEtCorrected_resSys_rms, phoEtCorrected_resSys_sig;
     std::vector<float> phoEtCorrected_resSys_rms2, phoEtCorrected_resSys_sig2;
     std::vector<float> phoEtCorrected_resSys_up, phoEtCorrected_resSys_down;
     std::vector<int> pho_isEle, pho_is2015Noise; 
+   
+    // trigger info for prescale 
+    // pbpb
+    Int_t HLT_HISinglePhoton10_Eta1p5_v1; 
+    Int_t HLT_HISinglePhoton15_Eta1p5_v1; 
+    Int_t HLT_HISinglePhoton20_Eta1p5_v1; 
+    Int_t HLT_HISinglePhoton30_Eta1p5_v1; 
+    Int_t HLT_HISinglePhoton40_Eta1p5_v1; 
+    Int_t HLT_HISinglePhoton10_Eta1p5_v2; 
+    Int_t HLT_HISinglePhoton15_Eta1p5_v2; 
+    Int_t HLT_HISinglePhoton20_Eta1p5_v2; 
+    Int_t HLT_HISinglePhoton10_Eta1p5_v1_Prescl; 
+    Int_t HLT_HISinglePhoton15_Eta1p5_v1_Prescl; 
+    Int_t HLT_HISinglePhoton20_Eta1p5_v1_Prescl; 
+    Int_t HLT_HISinglePhoton30_Eta1p5_v1_Prescl; 
+    Int_t HLT_HISinglePhoton40_Eta1p5_v1_Prescl; 
+    Int_t HLT_HISinglePhoton10_Eta1p5_v2_Prescl; 
+    Int_t HLT_HISinglePhoton15_Eta1p5_v2_Prescl; 
+    Int_t HLT_HISinglePhoton20_Eta1p5_v2_Prescl; 
+    Int_t L1_MinimumBiasHF1_AND; 
+    Int_t L1_MinimumBiasHF2_AND; 
+    Int_t L1_SingleEG7_BptxAND; 
+    Int_t L1_SingleEG21_BptxAND; 
+    Int_t L1_MinimumBiasHF1_AND_Prescl; 
+    Int_t L1_MinimumBiasHF2_AND_Prescl; 
+    Int_t L1_SingleEG7_BptxAND_Prescl; 
+    Int_t L1_SingleEG21_BptxAND_Prescl; 
+
+    // pp
+    Int_t L1_SingleEG5_BptxAND; 
+    Int_t L1_SingleEG12_BptxAND; 
+    Int_t L1_SingleEG20_BptxAND; 
+    Int_t L1_SingleEG5_BptxAND_Prescl; 
+    Int_t L1_SingleEG12_BptxAND_Prescl; 
+    Int_t L1_SingleEG20_BptxAND_Prescl; 
+
     //Int_t pho_isEle, pho_is2015Noise;
     Int_t pcollisionEventSelection;  // this filter is used for HI.
     Int_t HBHENoiseFilterResultRun2Loose;
@@ -220,6 +261,73 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
         treeHLT->SetBranchStatus("*", 0);     // disable all branches
         treeHLT->SetBranchStatus("HLT_HISinglePhoton*_Eta*_v*", 1);     // enable photon branches
         treeHLT->SetBranchStatus("HLT_HIDoublePhoton*_Eta*_v*", 1);     // enable photon branches
+        treeHLT->SetBranchStatus("L1_MinimumBiasHF1_AND*", 1);     // enable photon branches
+        treeHLT->SetBranchStatus("L1_MinimumBiasHF2_AND*", 1);     // enable photon branches
+        treeHLT->SetBranchStatus("L1_SingleEG*_BptxAND*", 1);     // enable photon branches
+        if(!isMC){
+            if (treeHLT->GetBranch("HLT_HISinglePhoton10_Eta1p5_v1")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton10_Eta1p5_v1", &HLT_HISinglePhoton10_Eta1p5_v1);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton15_Eta1p5_v1")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton15_Eta1p5_v1", &HLT_HISinglePhoton15_Eta1p5_v1);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton20_Eta1p5_v1")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton20_Eta1p5_v1", &HLT_HISinglePhoton20_Eta1p5_v1);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton30_Eta1p5_v1")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton30_Eta1p5_v1", &HLT_HISinglePhoton30_Eta1p5_v1);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton40_Eta1p5_v1")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5_v1", &HLT_HISinglePhoton40_Eta1p5_v1);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton10_Eta1p5_v2")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton10_Eta1p5_v2", &HLT_HISinglePhoton10_Eta1p5_v2);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton15_Eta1p5_v2")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton15_Eta1p5_v2", &HLT_HISinglePhoton15_Eta1p5_v2);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton20_Eta1p5_v2")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton20_Eta1p5_v2", &HLT_HISinglePhoton20_Eta1p5_v2);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton10_Eta1p5_v1_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton10_Eta1p5_v1_Prescl", &HLT_HISinglePhoton10_Eta1p5_v1_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton15_Eta1p5_v1_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton15_Eta1p5_v1_Prescl", &HLT_HISinglePhoton15_Eta1p5_v1_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton20_Eta1p5_v1_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton20_Eta1p5_v1_Prescl", &HLT_HISinglePhoton20_Eta1p5_v1_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton30_Eta1p5_v1_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton30_Eta1p5_v1_Prescl", &HLT_HISinglePhoton30_Eta1p5_v1_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton40_Eta1p5_v1_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton40_Eta1p5_v1_Prescl", &HLT_HISinglePhoton40_Eta1p5_v1_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton10_Eta1p5_v2_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton10_Eta1p5_v2_Prescl", &HLT_HISinglePhoton10_Eta1p5_v2_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton15_Eta1p5_v2_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton15_Eta1p5_v2_Prescl", &HLT_HISinglePhoton15_Eta1p5_v2_Prescl);
+            if (treeHLT->GetBranch("HLT_HISinglePhoton20_Eta1p5_v2_Prescl")) 
+                treeHLT->SetBranchAddress("HLT_HISinglePhoton20_Eta1p5_v2_Prescl", &HLT_HISinglePhoton20_Eta1p5_v2_Prescl);
+    
+            if (treeHLT->GetBranch("L1_MinimumBiasHF1_AND")) 
+                treeHLT->SetBranchAddress("L1_MinimumBiasHF1_AND", &L1_MinimumBiasHF1_AND);
+            if (treeHLT->GetBranch("L1_MinimumBiasHF2_AND")) 
+                treeHLT->SetBranchAddress("L1_MinimumBiasHF2_AND", &L1_MinimumBiasHF2_AND);
+            if (treeHLT->GetBranch("L1_SingleEG7_BptxAND")) 
+                treeHLT->SetBranchAddress("L1_SingleEG7_BptxAND", &L1_SingleEG7_BptxAND);
+            if (treeHLT->GetBranch("L1_SingleEG21_BptxAND")) 
+                treeHLT->SetBranchAddress("L1_SingleEG21_BptxAND", &L1_SingleEG21_BptxAND);
+            if (treeHLT->GetBranch("L1_MinimumBiasHF1_AND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_MinimumBiasHF1_AND_Prescl", &L1_MinimumBiasHF1_AND_Prescl);
+            if (treeHLT->GetBranch("L1_MinimumBiasHF2_AND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_MinimumBiasHF2_AND_Prescl", &L1_MinimumBiasHF2_AND_Prescl);
+            if (treeHLT->GetBranch("L1_SingleEG7_BptxAND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_SingleEG7_BptxAND_Prescl", &L1_SingleEG7_BptxAND_Prescl);
+            if (treeHLT->GetBranch("L1_SingleEG21_BptxAND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_SingleEG21_BptxAND_Prescl", &L1_SingleEG21_BptxAND_Prescl);
+           
+            if (treeHLT->GetBranch("L1_SingleEG5_BptxAND")) 
+                treeHLT->SetBranchAddress("L1_SingleEG5_BptxAND", &L1_SingleEG5_BptxAND);
+            if (treeHLT->GetBranch("L1_SingleEG12_BptxAND")) 
+                treeHLT->SetBranchAddress("L1_SingleEG12_BptxAND", &L1_SingleEG12_BptxAND);
+            if (treeHLT->GetBranch("L1_SingleEG20_BptxAND")) 
+                treeHLT->SetBranchAddress("L1_SingleEG20_BptxAND", &L1_SingleEG20_BptxAND);
+            if (treeHLT->GetBranch("L1_SingleEG5_BptxAND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_SingleEG5_BptxAND_Prescl", &L1_SingleEG5_BptxAND_Prescl);
+            if (treeHLT->GetBranch("L1_SingleEG12_BptxAND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_SingleEG12_BptxAND_Prescl", &L1_SingleEG12_BptxAND_Prescl);
+            if (treeHLT->GetBranch("L1_SingleEG20_BptxAND_Prescl")) 
+                treeHLT->SetBranchAddress("L1_SingleEG20_BptxAND_Prescl", &L1_SingleEG20_BptxAND_Prescl);
+        }
 
         // objects for gamma-jet correlations
         ggHiNtuplizer ggHi;
@@ -236,9 +344,11 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
         ggHi.pho_genCalIsoDR04  = &pho_genCalIsoDR04;
         ggHi.pho_genTrkIsoDR03  = &pho_genTrkIsoDR03;
         ggHi.pho_genTrkIsoDR04  = &pho_genTrkIsoDR04;
+        ggHi.phoPreScale= &phoPreScale;
         ggHi.phoEtCorrected = &phoEtCorrected;
         ggHi.phoEtCorrected_sys = &phoEtCorrected_sys;
         ggHi.pho_sumIsoCorrected = &pho_sumIsoCorrected;
+        ggHi.pho_sumIso= &pho_sumIso;
         ggHi.pho_isEle = &pho_isEle;
         ggHi.pho_is2015Noise = &pho_is2015Noise;
 
@@ -257,14 +367,14 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
         // treeHiEvt->SetBranchStatus("hiNevtPlane", 1);
         if(isHI) treeHiEvt->SetBranchStatus("hiEvtPlanes", 1);
         if (isMC) {
-            treeHiEvt->SetBranchStatus("Npart", 1);
-            treeHiEvt->SetBranchStatus("Ncoll", 1);
-            treeHiEvt->SetBranchStatus("Nhard", 1);
-            treeHiEvt->SetBranchStatus("ProcessID", 1);
-            treeHiEvt->SetBranchStatus("pthat", 1);
-            treeHiEvt->SetBranchStatus("alphaQCD", 1);
-            treeHiEvt->SetBranchStatus("alphaQED", 1);
-            treeHiEvt->SetBranchStatus("qScale", 1);
+            if (treeHiEvt->GetBranch("Npart")) treeHiEvt->SetBranchStatus("Npart", 1);
+            if (treeHiEvt->GetBranch("Ncoll"))treeHiEvt->SetBranchStatus("Ncoll", 1);
+            if (treeHiEvt->GetBranch("Nhard"))treeHiEvt->SetBranchStatus("Nhard", 1);
+            if (treeHiEvt->GetBranch("ProcessID"))treeHiEvt->SetBranchStatus("ProcessID", 1);
+            if (treeHiEvt->GetBranch("pthat"))treeHiEvt->SetBranchStatus("pthat", 1);
+            if (treeHiEvt->GetBranch("alphaQCD"))treeHiEvt->SetBranchStatus("alphaQCD", 1);
+            if (treeHiEvt->GetBranch("alphaQED"))treeHiEvt->SetBranchStatus("alphaQED", 1);
+            if (treeHiEvt->GetBranch("aScale"))treeHiEvt->SetBranchStatus("qScale", 1);
         }
 
         float vz;
@@ -360,6 +470,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                 outputTreeggHiNtuplizer->Branch("pho_genTrkIsoDR03", &pho_genTrkIsoDR03);
                 outputTreeggHiNtuplizer->Branch("pho_genTrkIsoDR04", &pho_genTrkIsoDR04);
             }
+            outputTreeggHiNtuplizer->Branch("phoPreScale", &phoPreScale);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected", &phoEtCorrected);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &phoEtCorrected_sys);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms);
@@ -369,6 +480,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_up", &phoEtCorrected_resSys_up);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_down", &phoEtCorrected_resSys_down);
             outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
+            outputTreeggHiNtuplizer->Branch("pho_sumIso", &pho_sumIso);
             outputTreeggHiNtuplizer->Branch("pho_isEle", &pho_isEle);
             outputTreeggHiNtuplizer->Branch("pho_is2015Noise", &pho_is2015Noise);
             outputTreeHiEvt = treeHiEvt->CloneTree(0);
@@ -441,6 +553,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                 pho_genTrkIsoDR03.clear();
                 pho_genTrkIsoDR04.clear();
             }
+            phoPreScale.clear();
             phoEtCorrected.clear();
             phoEtCorrected_sys.clear();
             phoEtCorrected_resSys_rms.clear();
@@ -450,6 +563,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
             phoEtCorrected_resSys_up.clear();
             phoEtCorrected_resSys_down.clear();
             pho_sumIsoCorrected.clear();
+            pho_sumIso.clear();
             pho_isEle.clear();
             pho_is2015Noise.clear();
 
@@ -542,12 +656,15 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                     int icent = 0;
                     for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
 
+                    //cout << "hiBin = " << hiBin << " :: " << centBins[0][icent] << " <  centrality < " << centBins[1][icent] << endl;
                     if ((*ggHi.phoEt)[i] > 10)
                         phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
                         //phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
-
                     phoEtCorrected.push_back(phoEt_corrected);
-                    pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections[icent]->GetBinContent(sumIsoCorrections[icent]->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
+                    pho_sumIso.push_back(sumIso);
+                    int icent_sumIso = 0;
+                    for (; hiBin>=centBins_sumIso[1][icent_sumIso] && icent_sumIso<nCentBins_sumIso; ++icent_sumIso);
+                    pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections[icent_sumIso]->GetBinContent(sumIsoCorrections[icent_sumIso]->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
 
                     // systematic variations from Ran
                     // MC   0 - 30%   Z mass: 9.094649e+01
@@ -556,42 +673,19 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                     // Data 30 - 100% Z mass: 9.064840e+01
                     //phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
                     
-                    // systematic variations from Yeonju from Kaya's energy scale correction 
-                    // MC   0 - 10%   Z mass: 90.6898 
-                    // Data 0 - 10%   Z mass: 89.9488 
-                    // MC   10 - 30%  Z mass: 91.0283 
-                    // Data 10 - 30%  Z mass: 90.0369 
-                    // MC   30 - 100% Z mass: 90.4153 
-                    // Data 30 - 100% Z mass: 90.3944 
-                    //if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.6898 / 89.9488;
-                    //else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 91.0283 / 90.0369; 
-                    //else phoEt_corrected = phoEt_corrected * 90.4153 / 90.3944; 
-                    
-                    // systematic variations from Yeonju from Yeonju's energy scale correction(resolution_lowpt)
-                    // MC       0-10%   Z mass :    90.6713
-                    // DATA     0-10%   Z mass :    90.3055
-                    // MC GEN   0-10%   Z mass :    90.7494
-                    // MC       10-30%  Z mass :    90.7136
-                    // DATA     10-30%  Z mass :    89.9181
-                    // MC GEN   10-30%  Z mass :    90.7445
-                    // MC       30-100% Z mass :    90.0702
-                    // DATA     30-100% Z mass :    90.1195
-                    // MC GEN   30-100% Z mass :    90.7517
-                    
-                    // systematic variations from Yeonju from Yeonju's energy scale correction(resolution_lowpt)
-                    // after electron matching /////// 
-                    // MC      0-10%   Z mass :    90.6448
-                    // DATA    0-10%   Z mass :    90.1938
-                    // MC GEN  0-10%   Z mass :    90.7495
-                    // MC      10-30%  Z mass :    90.7663
-                    // DATA    10-30%  Z mass :    89.9276
-                    // MC GEN  10-30%  Z mass :    90.7445
-                    // MC      30-100% Z mass :    90.1635
-                    // DATA    30-100% Z mass :    90.2506
-                    // MC GEN  30-100% Z mass :    90.7517 
-                    if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.6448 / 90.1938; 
-                    else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 90.7663 / 89.9276; 
-                    else phoEt_corrected = phoEt_corrected * 90.1635 / 90.2506; 
+                    //Corrections/photonEnergyCorrections_pbpb_COMB_AllQCD_0726.root
+                    //Centrality : 0 - 20
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.5593 / 89.9524
+                    //Centrality : 20 - 60
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.5602 / 88.9576
+                    //Centrality : 60 - 100
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.1456 / 89.8954
+                    //Centrality : 100 - 200
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.1842 / 88.9759
+                    if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.5593 / 89.9524 ; 
+                    else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 90.5602 / 88.9576; 
+                    else if(hiBin>=60 && hiBin<100) phoEt_corrected = phoEt_corrected * 90.1456 / 89.8954; 
+                    else phoEt_corrected = phoEt_corrected * 90.1842 / 88.9759; 
                     phoEtCorrected_sys.push_back(phoEt_corrected);
                     
 
@@ -614,19 +708,20 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                     phoEtCorrected_resSys_sig2.push_back(sigCorr2);
                     phoEtCorrected_resSys_up.push_back(resUp);
                     phoEtCorrected_resSys_down.push_back(resDown);
-                    
+
+
                 } else { // pp
                     if ((*ggHi.phoEt)[i] > 10)
                         phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
-                        //phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->GetBinContent(photonEnergyCorrections_pp[ieta]->FindBin((*ggHi.phoEt)[i]));
 
                     phoEtCorrected.push_back(phoEt_corrected);
+                    pho_sumIso.push_back(sumIso);
                     pho_sumIsoCorrected.push_back(sumIso);
-
-                    phoEt_corrected = phoEt_corrected * 89.8724 / 89.06 ;// after electron matching in the systematic
-                    //phoEt_corrected = phoEt_corrected * 90.4818 / 88.9401;// before electron matching 
+                    
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.702 / 92.1719 //pp_DSCB_AllQCD_0713 
+                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.729 / 92.2026 //pp_COMB_AllQCD_0729 
+                    phoEt_corrected = phoEt_corrected * 90.729 / 92.2026;// after electron matching in the systematic
                     phoEtCorrected_sys.push_back(phoEt_corrected);
-                    //phoEtCorrected_sys.push_back((*ggHi.phoEt)[i]);
                     
                     // energy resolution systematic
                     float mean = photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
@@ -647,7 +742,62 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                     phoEtCorrected_resSys_sig2.push_back(sigCorr2);
                     phoEtCorrected_resSys_up.push_back(resUp);
                     phoEtCorrected_resSys_down.push_back(resDown);
+                
                 }
+        
+                //////////////////// PreScale /////////////////////
+                int prescl = 1;
+                if(isMC){ 
+                    prescl = 1; 
+                } else if(isHighPhotonPD){// high pT 
+                    if(isHI){
+                        //if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = HLT_HISinglePhoton40_Eta1p5_v1_Prescl * L1_SingleEG21_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG7_BptxAND_Prescl;
+                        if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = 1; 
+                        else prescl = 0;
+                    } else{
+                        //if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = HLT_HISinglePhoton40_Eta1p5_v1_Prescl * L1_SingleEG20_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG12_BptxAND_Prescl;
+                        if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = 1; 
+                        else prescl = 0;
+                    }
+                } else if(isHI){
+                    if(run >=262620 && run <=263035){ //HIHardProbes prescale 3 for [20-30]
+                       // if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = HLT_HISinglePhoton40_Eta1p5_v1_Prescl * L1_SingleEG21_BptxAND_Prescl;
+                       // else if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG7_BptxAND_Prescl;
+                       // if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG7_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton15_Eta1p5_v1==1) prescl = HLT_HISinglePhoton15_Eta1p5_v1_Prescl * L1_MinimumBiasHF1_AND_Prescl;
+                        //else if(HLT_HISinglePhoton10_Eta1p5_v1==1) prescl = HLT_HISinglePhoton10_Eta1p5_v1_Prescl * L1_MinimumBiasHF1_AND_Prescl;
+                        if(HLT_HISinglePhoton20_Eta1p5_v1==1 && L1_MinimumBiasHF1_AND_Prescl<1000 && L1_MinimumBiasHF1_AND_Prescl>0) prescl = HLT_HISinglePhoton20_Eta1p5_v1_Prescl * L1_MinimumBiasHF1_AND_Prescl;
+                        else if(HLT_HISinglePhoton20_Eta1p5_v1==1 && L1_MinimumBiasHF1_AND_Prescl==-1) prescl = HLT_HISinglePhoton20_Eta1p5_v1_Prescl;
+                        else prescl = 0; 
+                    } else if(run >= 263233 && run <= 263614){ // HIHardProbesPhotons prescale 2 for [20-30]
+                       // if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = HLT_HISinglePhoton40_Eta1p5_v1_Prescl * L1_SingleEG21_BptxAND_Prescl;
+                       // if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG7_BptxAND_Prescl;
+                        if(HLT_HISinglePhoton20_Eta1p5_v2==1 && L1_MinimumBiasHF2_AND_Prescl<1000 && L1_MinimumBiasHF2_AND_Prescl>0) prescl = HLT_HISinglePhoton20_Eta1p5_v2_Prescl * L1_MinimumBiasHF2_AND_Prescl;
+                        else if(HLT_HISinglePhoton20_Eta1p5_v2==1 && L1_MinimumBiasHF2_AND_Prescl==-1) prescl = HLT_HISinglePhoton20_Eta1p5_v2_Prescl;
+                        else prescl = 0; 
+                        //else if(HLT_HISinglePhoton15_Eta1p5_v2==1) prescl = HLT_HISinglePhoton15_Eta1p5_v2_Prescl * L1_MinimumBiasHF2_AND_Prescl;
+                        //else if(HLT_HISinglePhoton10_Eta1p5_v2==1) prescl = HLT_HISinglePhoton10_Eta1p5_v2_Prescl * L1_MinimumBiasHF2_AND_Prescl;
+                       // if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = 1;
+                       // else if(HLT_HISinglePhoton20_Eta1p5_v2==1 || HLT_HISinglePhoton30_Eta1p5_v1==0) prescl = HLT_HISinglePhoton20_Eta1p5_v2_Prescl;
+                       // else prescl = 0; 
+                    } else { // weird run 
+                        prescl = 0; 
+                    }
+                } else{ //pp
+                        //if(HLT_HISinglePhoton40_Eta1p5_v1==1) prescl = HLT_HISinglePhoton40_Eta1p5_v1_Prescl * L1_SingleEG20_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton30_Eta1p5_v1==1) prescl = HLT_HISinglePhoton30_Eta1p5_v1_Prescl * L1_SingleEG12_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton20_Eta1p5_v1==1) prescl = HLT_HISinglePhoton20_Eta1p5_v1_Prescl * L1_SingleEG5_BptxAND_Prescl;
+                        if(HLT_HISinglePhoton20_Eta1p5_v1==1 && L1_SingleEG5_BptxAND_Prescl>0 && L1_SingleEG5_BptxAND_Prescl<1000) prescl = HLT_HISinglePhoton20_Eta1p5_v1_Prescl * L1_SingleEG5_BptxAND_Prescl;
+                        else if(HLT_HISinglePhoton20_Eta1p5_v1==1 && L1_SingleEG5_BptxAND_Prescl==-1) prescl = HLT_HISinglePhoton20_Eta1p5_v1_Prescl;
+                        else prescl = 0; 
+                        //else if(HLT_HISinglePhoton15_Eta1p5_v1==1) prescl = HLT_HISinglePhoton15_Eta1p5_v1_Prescl * L1_SingleEG5_BptxAND_Prescl;
+                        //else if(HLT_HISinglePhoton10_Eta1p5_v1==1) prescl = HLT_HISinglePhoton10_Eta1p5_v1_Prescl * L1_SingleEG5_BptxAND_Prescl;
+                }
+                
+                phoPreScale.push_back(prescl);
+                
                 
                 // fill photon gen variables
                 if(isMC){
@@ -695,6 +845,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                 }
                 pho_is2015Noise.push_back(phois2015Noise);
 
+                // electron rejection
                 int phoisEle = 0;
                 float eleEpTemp = 100.0;
                 if ((*ggHi.phoEt)[i] > 10){
@@ -775,8 +926,12 @@ double getAngleToEP(double angle) {
 }
 
 int main(int argc, char** argv) {
-    if (argc == 7)
+    if (argc == 8)
+        return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7]));
+    else if (argc == 7)
         return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]), atoi(argv[6]));
+    else if (argc == 6)
+        return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]), atoi(argv[5]));
     else if (argc == 5)
         return photonRaaSkim(argv[1], argv[2], argv[3], atoi(argv[4]));
     else if (argc == 4)

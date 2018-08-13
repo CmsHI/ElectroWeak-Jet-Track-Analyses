@@ -12,10 +12,11 @@
 
 #include <vector>
 
-#include "../TreeHeaders/CutConfigurationTree.h"
-#include "../Utilities/interface/CutConfigurationParser.h"
+//#include "../TreeHeaders/CutConfigurationTree.h"
+//#include "../Utilities/interface/CutConfigurationParser.h"
+#include "../Utilities/interface/InputConfigurationParser.h"
 #include "../Utilities/mathUtil.h"
-#include "/u/user/goyeonju/PhotonAnalysis2017/phoRaaCuts/yjUtility.h"
+#include "../../yjUtility.h"
 
 #define _SET_BRANCH_VEC(tree, type, branch)     \
     std::vector<type>* branch = 0;              \
@@ -32,23 +33,48 @@ double myFunc(double *x, double *par){
     return par[0]+ par[1]/sqrt(x[0]) + par[2]/x[0];
 }
 TH1F* getPullHist(TH1F *h1, TF1 *f);
-void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
+void yj_photonEnergyCorrections(bool isPP = true, TString fnc_name = "DSCB", bool doIsoCut=false, bool isPhotonSample=true){
 
+    // caption
     TString collSt = "pbpb";
     if(isPP) collSt = "pp";
-    TString cap = Form("%s_%s_0712",collSt.Data(),fnc_name.Data());
-    TString configFile = "/u/user/goyeonju/PhotonAnalysis2016/ElectroWeak-Jet-Track-Analyses/CutConfigurations/photonRaa_energyCorrection.conf";
-    const char* fn_Zee = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pbpb_mc_Pythia8_Z30eeJet_Hydjet_MB_HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v13_ext1-FOREST.root";
-    TString outfname = Form("photonEnergyCorrections_%s.root",cap.Data());
+    TString GEDcap = "";
+    if(isPP) GEDcap = "GED";
+    TString cap = Form("%s_%s",collSt.Data(),fnc_name.Data());
+    if(isPP) cap = Form("%s_GED_%s",collSt.Data(),fnc_name.Data());
+    if(isPhotonSample) cap += "_AllQCD"; 
+    else cap += "_ZtoEE"; 
+    if (doIsoCut) cap += "_isoCut";
+    cap += "_0729";
+    //cap += "_0721_finerBinning";
 
-    if(isPP){
-        configFile = "/u/user/goyeonju/PhotonAnalysis2016/ElectroWeak-Jet-Track-Analyses/CutConfigurations/photonRaa_energyCorrection.conf";
-        fn_Zee = "/pnfs/knu.ac.kr/data/cms/store/user/ygo/photonOfficialMC2016/Z30eeJet/pp_mc_Pythia8_Z30eeJet_HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_v3_ext1-v1-FOREST.root";
+    // Input Files
+    std::string input = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/ShellScripts/photonRaa/filelist/PbPb_MC_ZtoEE.list";
+    TString outfname = Form("photonEnergyCorrections_%s.root",cap.Data());
+    if(!isPhotonSample && isPP) 
+        input = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/ShellScripts/photonRaa/filelist/pp_MC_ZtoEE.list";
+    else if(isPhotonSample && !isPP) 
+        input = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/ShellScripts/photonRaa/filelist/PbPb_MC_Cymbal.list";
+    else if(isPhotonSample && isPP) 
+        input = "/u/user/goyeonju/ElectroWeak-Jet-Track-Analyses/ShellScripts/photonRaa/filelist/pp_MC_v1.list";
+    else{
+        input = "";
+        cout << "no input file specified" << endl;
     }
 
-    TFile* f_Zee = new TFile(fn_Zee, "read");
-    TTree* t_photon = (TTree*)f_Zee->Get("ggHiNtuplizer/EventTree");
-    TTree* t_event = (TTree*)f_Zee->Get("hiEvtAnalyzer/HiTree");
+    // Get tree 
+    std::vector<std::string> input_list = InputConfigurationParser::ParseFiles(input);
+    printf("number of input files: %zu\n", input_list.size());
+
+    cout <<"photon tree = " <<  Form("ggHiNtuplizer%s/EventTree",GEDcap.Data()) << endl;
+    TChain* t_photon = new TChain(Form("ggHiNtuplizer%s/EventTree",GEDcap.Data()));
+    TChain* t_event= new TChain("hiEvtAnalyzer/HiTree");
+    
+    for (std::vector<std::string>::iterator it = input_list.begin(); it != input_list.end(); ++it){
+        t_photon->Add((*it).c_str());
+        t_event->Add((*it).c_str());
+        cout << (*it).c_str() << endl;
+    }
 
     t_photon->SetBranchStatus("*", 0);
     t_event->SetBranchStatus("*", 0);
@@ -84,21 +110,37 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
 
     _SET_BRANCH_VAR(t_event, int, hiBin);
 
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.Data());
-
-    int centBins[2][5] = {{0,20,60,100,140},{20,60,100,140,200}};
-    int nCentBins = 5;
+    // kinematic ranges
+    int centBins[2][7] = {{0,10,20,40,60,100,140},{10,20,40,60,100,140,200}};
+    int nCentBins = 7;
+    //int centBins[2][5] = {{0,20,60,100,140},{20,60,100,140,200}};
+    //int nCentBins = 5;
     float etaBins[2][2] = {{0,1.44},{1.44,2.4}};
     int nEtaBins = 2; 
 
     if(isPP){ nCentBins = 1;}
     gStyle->SetOptStat(0);
 
-    double ptBins[] = {20,30,40,50,60,70,80,90,100,110,120,140};
+    cout << "sss"<< endl;
+    double ptBins_normal[] = {20,22,24,26,28,30,35,40,50,60,70,80,90,100,110,120,140};
+    const int nPtBins_normal = sizeof(ptBins_normal)/sizeof(double) -1;
+    double ptBins_isoCut[] = {20,25,30,35,40,50,60,70,80,90,100,110,120,140};
+    const int nPtBins_isoCut = sizeof(ptBins_isoCut)/sizeof(double) -1;
+    int nPtBins = nPtBins_normal;
+    if(doIsoCut) nPtBins = nPtBins_isoCut;
+    double ptBins[nPtBins];
+    for(int i=0; i<nPtBins+1; ++i){
+        if(doIsoCut) ptBins[i] = ptBins_isoCut[i];
+        else ptBins[i] = ptBins_normal[i];
+        cout << "ipt = " << i << " : ptBin = " << ptBins[i] << endl;
+    } 
+    
     //double ptBins[] = {10,20,30,40,50,60,70,80,90,100,120,150,200};
     //double ptBins[] = {10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200};
-    const int nPtBins = sizeof(ptBins)/sizeof(double) -1;
+    //const int nPtBins = sizeof(ptBins)/sizeof(double) -1;
     const int nPtBins_2d = 50; 
+    int nbins = 100; //for ratio
+    if(collSt=="pp") nbins = 500;
     TH2F* h_pt[nCentBins][nEtaBins];
     TH2F* h_ptratio[nCentBins][nEtaBins];
     TProfile* h_ptprof[nCentBins][nEtaBins];
@@ -110,8 +152,6 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     TH1F* h_mean[nCentBins][nEtaBins];
     TH1F* h_rms[nCentBins][nEtaBins];
 
-    int nbins = 250;
-    if(collSt=="pp") nbins = 500;
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             TString centSt = Form("%i-%i%%", centBins[0][i]/2, centBins[1][i]/2); 
@@ -147,36 +187,45 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                 continue;
             if (fabs(pho_seedTime->at(j)) > 3)
                 continue;
-
-            int matchedEleIndex = -1;
-            float matchedEoverP = 100;
-            for (uint32_t k=0; k<elePt->size(); ++k) {
-                if (elePt->at(k) < 10)
-                    continue;
-                if (eleSigmaIEtaIEta_2012->at(k) > 0.01107)
-                    continue;
-                if (eleEoverPInv->at(k) > 0.28051)
-                    continue;
-                if (fabs(eledEtaAtVtx->at(k)) > 0.01576)
-                    continue;
-                if (fabs(eledPhiAtVtx->at(k)) > 0.15724)
-                    continue;
-                if (eleHoverE->at(k) > 0.08849)
-                    continue;
-                if (fabs(eleD0->at(k)) > 0.05216)
-                    continue;
-                if (fabs(eleDz->at(k)) > 0.12997)
-                    continue;
-                if (eleMissHits->at(k) > 1)
-                    continue;
-                if (dR(phoEta->at(j), eleEta->at(k), phoPhi->at(j), elePhi->at(k)) > 0.04242)
-                    continue;
-                if (eleEoverP->at(k) > matchedEoverP)
-                    continue;
-                matchedEleIndex = k;
-            }
-            if (matchedEleIndex == -1)
+            if (doIsoCut && phoHoverE->at(j)>0.1) 
                 continue;
+            if (doIsoCut && phoSigmaIEtaIEta_2012->at(j)>0.011) 
+                continue;
+            if (doIsoCut && (pho_ecalClusterIsoR4->at(j)+pho_hcalRechitIsoR4->at(j)+pho_trackIsoR4PtCut20->at(j))>5) 
+                continue;
+
+            if(!isPhotonSample){ //Electron matching is only for ZtoEE sample
+                int matchedEleIndex = -1;
+                float matchedEoverP = 100;
+                for (uint32_t k=0; k<elePt->size(); ++k) {
+                    if (elePt->at(k) < 10)
+                        continue;
+                    if (eleSigmaIEtaIEta_2012->at(k) > 0.01107)
+                        continue;
+                    if (eleEoverPInv->at(k) > 0.28051)
+                        continue;
+                    if (fabs(eledEtaAtVtx->at(k)) > 0.01576)
+                        continue;
+                    if (fabs(eledPhiAtVtx->at(k)) > 0.15724)
+                        continue;
+                    if (eleHoverE->at(k) > 0.08849)
+                        continue;
+                    if (fabs(eleD0->at(k)) > 0.05216)
+                        continue;
+                    if (fabs(eleDz->at(k)) > 0.12997)
+                        continue;
+                    if (eleMissHits->at(k) > 1)
+                        continue;
+                    if (dR(phoEta->at(j), eleEta->at(k), phoPhi->at(j), elePhi->at(k)) > 0.04242)
+                        continue;
+                    if (eleEoverP->at(k) > matchedEoverP)
+                        continue;
+                    matchedEleIndex = k;
+                }
+                if (matchedEleIndex == -1)
+                    continue;
+            }
+
             int icent = 0;
             if(!isPP){
                 for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
@@ -214,9 +263,10 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             c[i][j] = new TCanvas(Form("can_cent%d_eta%d",i,j),"",250*4,250*3);
-            c[i][j]->Divide(4,3);
+            c[i][j]->Divide(5,4);
             for (int k=0; k<nPtBins; ++k) {
                 ctemp->cd();
+                //h_ratio[i][j][k]->Scale(1./h_ratio[i][j][k]->GetMaximum());
                 // gaussian or Double-sided crystal ball fitting 
                 if(fnc_name=="gaus"){ 
                     ff[i][j][k] = cleverGaus(h_ratio[i][j][k], Form("f_%s",h_ratio[i][j][k]->GetName()));
@@ -226,8 +276,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                     Double_t peak =  h_ratio[i][j][k]->GetBinCenter(peakBin);
                     Double_t sigma = h_ratio[i][j][k]->GetRMS(); 
                     if(collSt =="pbpb"){
-                        //if(k<5) {
-                        ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_DSCB, peak-2*sigma, peak+2*sigma, 7);
+                        ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_DSCB, peak-2.5*sigma, peak+2.5*sigma, 7);
                         if(i==0 && j==0 && (k==0)){
                             ff[i][j][k]->SetParameters(peakContent,peak,4.76101e-02,1.28763e+00,6.83786e+00,5.07594e-01,1.20400e+02);
                             ff[i][j][k]->SetParLimits(1,1.04,1.10);
@@ -241,27 +290,38 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                             ff[i][j][k]->SetParameters(peakContent,9.95122e-01,-1.28811e-02,2.33030e+00,2.73892e+00,7.29685e-01,4.33112e+00);
                         else
                             ff[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
-                        // } else{ //double gaussian
-                        //     ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_doubleGaus, peak-2*sigma, peak+2*sigma, 5);
-                        //     ff[i][j][k]->SetParameters(peakContent,peak,sigma,sigma*2,0.2);
-                        // }
                     } else{ // pp
-                        ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_DSCB, peak-2*sigma, peak+2*sigma, 7);
+                        ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_DSCB, peak-2.5*sigma, peak+2.5*sigma, 7);
                         ff[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         if(i==0 && j==0 && (k<=1))
                             ff[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         else if(i==0 && j==0 && (k==2))
                             ff[i][j][k]->SetParameters(peakContent,peak,sigma/2.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         else if(i==0 && j==0 && (k==4 || k==5))
-                            ff[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,    4.69242e+00);
+                            ff[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,4.69242e+00);
                         else if(i==0 && j==0 && (k==9 || k==10))
-                            ff[i][j][k]->SetParameters(peakContent,peak,sigma/5.,2.16937e-01,1.18086e+01,2.16771e-01, 4.69242e+00);
+                            ff[i][j][k]->SetParameters(peakContent,peak,sigma/5.,2.16937e-01,1.18086e+01,2.16771e-01,4.69242e+00);
                     }
                     ff[i][j][k]->SetParLimits(0,peakContent*0.9,peakContent*1.1);
                     ff[i][j][k]->SetParLimits(2,0.005,0.06);
-                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q");
-                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q");
-                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q");
+                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q R");
+                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q R");
+                    h_ratio[i][j][k]->Fit(ff[i][j][k],"LL M O Q R");
+                } else if(fnc_name=="COMB"){
+                    Int_t peakBin  = h_ratio[i][j][k]->GetMaximumBin();
+                    Double_t peakContent  = h_ratio[i][j][k]->GetBinContent(peakBin);
+                    Double_t peak =  h_ratio[i][j][k]->GetBinCenter(peakBin);
+                    Double_t sigma = h_ratio[i][j][k]->GetRMS(); 
+                    if(collSt =="pbpb"){
+                        if(centBins[0][i]==100 || centBins[0][i]==140){
+                            ff[i][j][k] = cleverGaus(h_ratio[i][j][k], Form("f_%s",h_ratio[i][j][k]->GetName()));
+                        } else{
+                            ff[i][j][k] = new TF1(Form("f1_%d_%d_%d",i,j,k), fnc_DSCB, peak-2.5*sigma, peak+2.5*sigma, 7);
+                            ff[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
+                        }
+                    } else{ // pp
+                        ff[i][j][k] = cleverGaus(h_ratio[i][j][k], Form("f_%s",h_ratio[i][j][k]->GetName()));
+                    }
                 }
 
                 //gPad->SetLogy();
@@ -307,11 +367,11 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             c_pull[i][j] = new TCanvas(Form("can_pull_cent%d_eta%d",i,j),"",250*4,250*3);
-            c_pull[i][j]->Divide(4,3);
+            c_pull[i][j]->Divide(5,4);
             for (int k=0; k<nPtBins; ++k) {
                 h_ratio_pull[i][j][k] = getPullHist(h_ratio[i][j][k], ff[i][j][k]);
                 h_ratio_pull[i][j][k]->SetTitle(";#frac{reco p_{T}^{#gamma}}{gen p_{T}^{#gamma}};Pull");
-                h_ratio_pull[i][j][k]->GetYaxis()->SetRangeUser(-10,10);
+                h_ratio_pull[i][j][k]->GetYaxis()->SetRangeUser(-5,5);
                 h_ratio_pull[i][j][k]->GetXaxis()->SetRangeUser(0.7,1.3);
                 c_pull[i][j]->cd(k+1);
                 h_ratio_pull[i][j][k]->Draw("p");
@@ -324,7 +384,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                 drawText(Form("%d<p_{T}^{reco #gamma}<%d GeV", (int)ptBins[k],(int)ptBins[k+1]),xpos,0.84-dy);
                 drawText(Form("%s fitting", fnc_name.Data()),xpos,0.84-2*dy);
             }
-            c_pull[i][j]->SaveAs(Form("figures/photonEnergyCorrection_PullDist_fitting_of_recoPt_over_genPt_inPtbins_%s_cent%d_eta%d.pdf",cap.Data(),i,j));
+            c_pull[i][j]->SaveAs(Form("figures/photonEnergyCorrection_PullDist_fitting_of_recoPt_over_genPt_nPtbins_%s_cent%d_eta%d.pdf",cap.Data(),i,j));
         }
     }
 
@@ -346,8 +406,17 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
             f_mean[i][j] -> SetParNames("C", "S", "N");
             h_mean[i][j] -> Fit(f_mean[i][j], "RLL Q");
             h_mean[i][j] -> Fit(f_mean[i][j], "RLL Q");
+            
+            if(fnc_name=="COMB" && collSt =="pbpb"){
+                if(centBins[0][i]==0 || centBins[0][i]==10 || centBins[0][i]==20 || centBins[0][i]==40){
+                    f_mean_gaus[i][j] -> SetParameter(0,f_mean[i][j]->GetParameter(0));
+                    f_mean_gaus[i][j] -> SetParameter(1,f_mean[i][j]->GetParameter(1));
+                    f_mean_gaus[i][j] -> SetParameter(2,f_mean[i][j]->GetParameter(2));
+                }
+            } 
         }
     }
+    
 
     ////////////////////////////////////////////////////////
     // resolution of reco/gen pt for each pt bin  
@@ -372,16 +441,17 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
 
     //////////////////////////////////////////////////
     //Draw
-    int j=0;
+    int j=0; // plot only barrel photons
 
     int nRow = 1;
     int nCol = 1;
     if(nCentBins<=2){ nCol = nCentBins; }
     else if(nCentBins>2 && nCentBins<=4){ nCol=2; nRow=2;} 
     else if(nCentBins>4 && nCentBins<=6){ nCol=3; nRow=2;} 
-    else if(nCentBins>6 && nCentBins<=9){ nCol=3; nRow=3;} 
+    else if(nCentBins>6 && nCentBins<=9){ nCol=4; nRow=2;} 
     else { nCol=4; nRow=3; }
 
+    // 2D plot : Gen/Reco pT vs. Reco pT 
     TCanvas* c_2d = new TCanvas("c_ratio_vs_recopt", "", 500*nCol, 500 *nRow);
     c_2d->Divide(nCol,nRow);
     c_2d->SetRightMargin(0.10);
@@ -390,6 +460,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         h_ptratio[i][j]->Draw("colz");
     }
     c_2d->SaveAs(Form("figures/photonEnergyCorrection_2D_ratio_vs_recoPt_%s.pdf",cap.Data())); 
+    // 2D plot : Gen vs. Reco pT 
     TCanvas* c_mat = new TCanvas("c_genpt_vs_recopt", "", 500*nCol, 500 *nRow);
     c_mat->Divide(nCol,nRow);
     c_mat->SetRightMargin(0.10);
@@ -399,6 +470,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     }
     c_mat->SaveAs(Form("figures/photonEnergyCorrection_2D_genPt_vs_recoPt_%s.pdf",cap.Data())); 
 
+    // mean(gen/reco pT) vs. Reco pT
     TCanvas* c_mean = new TCanvas("c_mean", "", 500*nCol, 500*nRow);
     c_mean->Divide(nCol,nRow);
     c_mean->SetRightMargin(0.10);
@@ -408,12 +480,12 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         h_mean_gaus[i][j]->SetMarkerStyle(25);
         h_mean_gaus[i][j]->GetYaxis()->SetRangeUser(0.8,1.1);
         h_mean_gaus[i][j]->Draw("p");
-       // h_mean[i][j]->SetMarkerColor(8);
-       // h_mean[i][j]->SetMarkerStyle(24);
-       // h_mean[i][j]->Draw("p same");
+        // h_mean[i][j]->SetMarkerColor(8);
+        // h_mean[i][j]->SetMarkerStyle(24);
+        // h_mean[i][j]->Draw("p same");
 
-       // f_mean[i][j]->SetLineColor(8);
-       // f_mean[i][j]->DrawCopy("same");
+        // f_mean[i][j]->SetLineColor(8);
+        // f_mean[i][j]->DrawCopy("same");
         f_mean_gaus[i][j]->SetLineColor(2);
         f_mean_gaus[i][j]->DrawCopy("same");
         jumSun(ptBins[0],1,ptBins[nPtBins],1);
@@ -424,15 +496,16 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     }
     TLegend* l1 = new TLegend(0.5,0.7,0.9,0.9); 
     legStyle(l1);
-   // l1->AddEntry(h_mean[0][0],"Mean","p");
-   // l1->AddEntry(f_mean[0][0],"Fit Mean","l");
+    // l1->AddEntry(h_mean[0][0],"Mean","p");
+    // l1->AddEntry(f_mean[0][0],"Fit Mean","l");
     l1->AddEntry(h_mean_gaus[0][0],Form("Mean(%s)",fnc_name.Data()),"p");
     l1->AddEntry(f_mean_gaus[0][0],Form("Fit Mean(%s)",fnc_name.Data()),"l");
     l1->Draw("same");
-    
+
     TString st_cnsFun = "C + #frac{N}{#sqrt{p_{T}}} + #frac{S}{p_{T}}";
     c_mean->SaveAs(Form("figures/photonEnergyCorrection_1D_mean_vs_recoPt_%s.pdf",cap.Data())); 
 
+    // resolution(gen/reco pT) vs. Reco pT
     TCanvas* c_res = new TCanvas("c_res", "", 500*nCol, 500*nRow);
     c_res->Divide(nCol,nRow);
     c_res->SetRightMargin(0.10);
@@ -442,15 +515,15 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         h_sig_gaus[i][j]->SetMarkerStyle(25);
         h_sig_gaus[i][j]->GetYaxis()->SetRangeUser(0.0,0.1);
         h_sig_gaus[i][j]->Draw("p");
-       // h_rms[i][j]->SetMarkerColor(8);
-       // h_rms[i][j]->SetMarkerStyle(24);
-       // h_rms[i][j]->Draw("p same");
+        // h_rms[i][j]->SetMarkerColor(8);
+        // h_rms[i][j]->SetMarkerStyle(24);
+        // h_rms[i][j]->Draw("p same");
 
-       // f_rms[i][j]->SetLineColor(8);
-       // f_rms[i][j]->DrawCopy("same");
+        // f_rms[i][j]->SetLineColor(8);
+        // f_rms[i][j]->DrawCopy("same");
         f_sig_gaus[i][j]->SetLineColor(2);
         f_sig_gaus[i][j]->DrawCopy("same");
-        
+
         float c = f_sig_gaus[i][j]->GetParameter(0);
         float n = f_sig_gaus[i][j]->GetParameter(1);
         float s = f_sig_gaus[i][j]->GetParameter(2);
@@ -458,15 +531,15 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     }
     TLegend* l2 = new TLegend(0.5,0.7,0.9,0.9); 
     legStyle(l2);
-   // l2->AddEntry(h_rms[0][0],"RMS","p");
-   // l2->AddEntry(f_rms[0][0],"Fit RMS","l");
+    // l2->AddEntry(h_rms[0][0],"RMS","p");
+    // l2->AddEntry(f_rms[0][0],"Fit RMS","l");
     l2->AddEntry(h_sig_gaus[0][0],Form("#sigma(%s)",fnc_name.Data()),"p");
     l2->AddEntry(f_sig_gaus[0][0],Form("Fit #sigma(%s)",fnc_name.Data()),"l");
     l2->Draw("same");
     c_res->SaveAs(Form("figures/photonEnergyCorrection_1D_resolution_vs_recoPt_%s.pdf",cap.Data())); 
 
 
-#if 1
+#if 0
     ///////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
     // Afer scale, obtain resolution functions
@@ -511,36 +584,44 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                 continue;
             if (fabs(pho_seedTime->at(j)) > 3)
                 continue;
-
-            int matchedEleIndex = -1;
-            float matchedEoverP = 100;
-            for (uint32_t k=0; k<elePt->size(); ++k) {
-                if (elePt->at(k) < 10)
-                    continue;
-                if (eleSigmaIEtaIEta_2012->at(k) > 0.01107)
-                    continue;
-                if (eleEoverPInv->at(k) > 0.28051)
-                    continue;
-                if (fabs(eledEtaAtVtx->at(k)) > 0.01576)
-                    continue;
-                if (fabs(eledPhiAtVtx->at(k)) > 0.15724)
-                    continue;
-                if (eleHoverE->at(k) > 0.08849)
-                    continue;
-                if (fabs(eleD0->at(k)) > 0.05216)
-                    continue;
-                if (fabs(eleDz->at(k)) > 0.12997)
-                    continue;
-                if (eleMissHits->at(k) > 1)
-                    continue;
-                if (dR(phoEta->at(j), eleEta->at(k), phoPhi->at(j), elePhi->at(k)) > 0.04242)
-                    continue;
-                if (eleEoverP->at(k) > matchedEoverP)
-                    continue;
-                matchedEleIndex = k;
-            }
-            if (matchedEleIndex == -1)
+            if (doIsoCut && phoHoverE->at(j)>0.1) 
                 continue;
+            if (doIsoCut && phoSigmaIEtaIEta_2012->at(j)>0.011) 
+                continue;
+            if (doIsoCut && (pho_ecalClusterIsoR4->at(j)+pho_hcalRechitIsoR4->at(j)+pho_trackIsoR4PtCut20->at(j))>5) 
+                continue;
+
+            if(!isPhotonSample){
+                int matchedEleIndex = -1;
+                float matchedEoverP = 100;
+                for (uint32_t k=0; k<elePt->size(); ++k) {
+                    if (elePt->at(k) < 10)
+                        continue;
+                    if (eleSigmaIEtaIEta_2012->at(k) > 0.01107)
+                        continue;
+                    if (eleEoverPInv->at(k) > 0.28051)
+                        continue;
+                    if (fabs(eledEtaAtVtx->at(k)) > 0.01576)
+                        continue;
+                    if (fabs(eledPhiAtVtx->at(k)) > 0.15724)
+                        continue;
+                    if (eleHoverE->at(k) > 0.08849)
+                        continue;
+                    if (fabs(eleD0->at(k)) > 0.05216)
+                        continue;
+                    if (fabs(eleDz->at(k)) > 0.12997)
+                        continue;
+                    if (eleMissHits->at(k) > 1)
+                        continue;
+                    if (dR(phoEta->at(j), eleEta->at(k), phoPhi->at(j), elePhi->at(k)) > 0.04242)
+                        continue;
+                    if (eleEoverP->at(k) > matchedEoverP)
+                        continue;
+                    matchedEleIndex = k;
+                }
+                if (matchedEleIndex == -1)
+                    continue;
+            }
 
             int icent = 0;
             if(!isPP){
@@ -562,6 +643,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
             // for (; fabs(phoEt->at(j))>=ptBins[ipt+1] && ipt<nPtBins; ++ipt){
             //     if(ipt>nPtBins) break;
             // }
+
             // according to the gen pt
             int ipt = 0;
             for (; fabs(mcEt->at(mcindex))>=ptBins[ipt+1] && ipt<nPtBins; ++ipt){
@@ -587,9 +669,10 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             c_afterCorr[i][j] = new TCanvas(Form("can_afterCorr_cent%d_eta%d",i,j),"",250*4,250*3);
-            c_afterCorr[i][j]->Divide(4,3);
+            c_afterCorr[i][j]->Divide(5,4);
             for (int k=0; k<nPtBins; ++k) {
                 ctemp->cd();
+                //h_ratio_afterCorr[i][j][k]->Scale(1./h_ratio_afterCorr[i][j][k]->GetMaximum());
                 // gaussian or Double-sided crystal ball fitting
                 if(fnc_name=="gaus"){
                     ff_afterCorr[i][j][k] = cleverGaus(h_ratio_afterCorr[i][j][k], Form("f1_%s_afterCorr",h_ratio_afterCorr[i][j][k]->GetName()));
@@ -598,55 +681,54 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                     Double_t peakContent  = h_ratio_afterCorr[i][j][k]->GetBinContent(peakBin);
                     Double_t peak =  h_ratio_afterCorr[i][j][k]->GetBinCenter(peakBin);
                     Double_t sigma = h_ratio_afterCorr[i][j][k]->GetRMS();
-                    ff_afterCorr[i][j][k] = new TF1(Form("f1_%d_%d_%d_afterCorr",i,j,k), fnc_DSCB, peak-2*sigma, peak+2*sigma, 7);
+                    ff_afterCorr[i][j][k] = new TF1(Form("f1_%d_%d_%d_afterCorr",i,j,k), fnc_DSCB, peak-2.5*sigma, peak+2.5*sigma, 7);
                     if(collSt == "pbpb"){
-                        if(i==0 && j==0 && k==0){
+                        if(i==0 && j==0 && k==0)
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
-                        } else if(i==0 && j==0 && k==2){
+                        else if(i==0 && j==0 && k==2)
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,1.37638e+00,5.69004e+00,6.33186e-01,1.29222e+02);
-                        } else if(i==1 && j==0 && k==6){
+                        else if(i==1 && j==0 && k==6)
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.79,3.63);
-                        } else if(i==2 && j==0 && k==2){
+                        else if(i==2 && j==0 && k==2)
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,1.00215e+00,-1.43638e-02,9.16937e-01,1.18086e+01,8.16771e-01,4.69242e+00);
-                        } else if(i==3 && j==0 && (k==1 || k==4)){
+                        else if(i==3 && j==0 && (k==1 || k==4))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
-                        } else if(i==3 && j==0 && (k==2 || k==5)){
+                        else if(i==3 && j==0 && (k==2 || k==5))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
-                        } else if(i==3 && j==0 && (k==6 || k==9)){
+                        else if(i==3 && j==0 && (k==6 || k==9))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,4.09805e-01,4.31433e+00,4.09805e-01,4.31433e+00);
-                        } else if(i==4 && j==0 && (k==0)){
+                        else if(i==4 && j==0 && (k==0))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,1.57862e-02,4.09805e-01,4.31433e+00,1.43539e+00,3.52302e+00);
-                        } else if(i==4 && j==0 && (k==1)){
+                        else if(i==4 && j==0 && (k==1))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,9.95122e-01,-1.28811e-02,2.33030e+00,2.73892e+00,7.29685e-01,4.33112e+00);
-                        } else if(i==4 && j==0 && (k==3 || k==5)){
+                        else if(i==4 && j==0 && (k==3 || k==5))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,4.09805e-01,4.31433e+00,4.09805e-01,4.31433e+00);
-                        } else{
+                        else
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma,0.79,3.63,0.59,1.67);
-                        }
+
 
                     } else{ // pp
                         ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         if(i==0 && j==0 && (k<=1))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         else if(i==0 && j==0 && (k==2))
-                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,    4.69242e+00);
+                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,4.69242e+00);
                         else if(i==0 && j==0 && (k==4 || k==5 || k==6))
-                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,    4.69242e+00);
+                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,9.16937e-01,1.18086e+01,8.16771e-01,4.69242e+00);
+                        else if(i==0 && j==0 && (k==8))
+                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                         else if(i==0 && j==0 && (k==9 || k==10))
-                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,2.16937e-01,1.18086e+01,2.16771e-01, 4.69242e+00);
+                            ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/5.,2.16937e-01,1.18086e+01,2.16771e-01,4.69242e+00);
                         else if(i==0 && j==0 && (k==11))
                             ff_afterCorr[i][j][k]->SetParameters(peakContent,peak,sigma/3.,6.33186e-01,1.29222e+02,1.37638e+00,5.69004e+00);
                     }
                     ff_afterCorr[i][j][k]->SetParLimits(0,peakContent*0.9,peakContent*1.1);
                     ff_afterCorr[i][j][k]->SetParLimits(2,0.005,0.06);
-                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
-                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
-                    // cout << "///////////////////////////////////cent" << i << endl;
-                    // cout << "///////////////////////////////////eta" << j << endl;
-                    // cout << "///////////////////////////////////pt" << k << endl;
-                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
-                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
-                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
+                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q R");
+                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q R");
+                    h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q R");
+                   // h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q R");
+                   // h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q R");
 
                 } else if(fnc_name=="CB"){
                     Int_t peakBin  = h_ratio_afterCorr[i][j][k]->GetMaximumBin();
@@ -657,9 +739,10 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                     h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
                     h_ratio_afterCorr[i][j][k]->Fit(ff_afterCorr[i][j][k],"LL M O Q");
                 }
+
+                //closure test
                 if(i==0 && j==0 && k==0) {
                     c_ss->cd();
-                    h_ratio_afterCorr[0][0][0]->Draw();
                     h_ratio_afterCorr[0][0][0]->Draw();
                     c_ss->SaveAs("figures/test_firstbin.pdf");
                 }
@@ -685,6 +768,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
                 c_afterCorr[i][j]->cd(k+1);
                 h_ratio_afterCorr[i][j][k]->GetXaxis()->SetRangeUser(0.7,1.3);
                 h_ratio_afterCorr[i][j][k]->Draw();
+                //text in the ratio plots 
                 TString centSt = Form("%i-%i%%", centBins[0][i]/2, centBins[1][i]/2);
                 if(isPP) centSt = "pp";
                 float xpos = 0.21;
@@ -705,11 +789,11 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             c_pull_afterCorr[i][j] = new TCanvas(Form("can_pull_afterCorr_cent%d_eta%d",i,j),"",250*4,250*3);
-            c_pull_afterCorr[i][j]->Divide(4,3);
+            c_pull_afterCorr[i][j]->Divide(5,4);
             for (int k=0; k<nPtBins; ++k) {
                 h_ratio_pull_afterCorr[i][j][k] = getPullHist(h_ratio_afterCorr[i][j][k], ff_afterCorr[i][j][k]);
                 h_ratio_pull_afterCorr[i][j][k]->SetTitle(";#frac{reco p_{T}^{#gamma}}{gen p_{T}^{#gamma}};Pull");
-                h_ratio_pull_afterCorr[i][j][k]->GetYaxis()->SetRangeUser(-10,10);
+                h_ratio_pull_afterCorr[i][j][k]->GetYaxis()->SetRangeUser(-5,5);
                 h_ratio_pull_afterCorr[i][j][k]->GetXaxis()->SetRangeUser(0.7,1.3);
                 c_pull_afterCorr[i][j]->cd(k+1);
                 h_ratio_pull_afterCorr[i][j][k]->Draw("p");
@@ -780,19 +864,19 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     c_mean_afterCorr->SetRightMargin(0.10);
     for (int i=0; i<nCentBins; ++i){
         c_mean_afterCorr->cd(i+1);
-       // h_mean_gaus_afterCorr[i][j]->SetMarkerColor(2);
-       // h_mean_gaus_afterCorr[i][j]->SetMarkerStyle(25);
-       // h_mean_gaus_afterCorr[i][j]->GetYaxis()->SetRangeUser(0.8,1.1);
-       // h_mean_gaus_afterCorr[i][j]->Draw("p");
-       // f_mean_gaus_afterCorr[i][j]->SetLineColor(2);
-       // f_mean_gaus_afterCorr[i][j]->DrawCopy("same");
-        
-        h_mean_afterCorr[i][j]->SetMarkerColor(8);
-        h_mean_afterCorr[i][j]->SetMarkerStyle(24);
-        h_mean_afterCorr[i][j]->GetYaxis()->SetRangeUser(0.8,1.1);
-        h_mean_afterCorr[i][j]->Draw("p");
-        f_mean_afterCorr[i][j]->SetLineColor(8);
-        f_mean_afterCorr[i][j]->DrawCopy("same");
+        h_mean_gaus_afterCorr[i][j]->SetMarkerColor(2);
+        h_mean_gaus_afterCorr[i][j]->SetMarkerStyle(25);
+        h_mean_gaus_afterCorr[i][j]->GetYaxis()->SetRangeUser(0.8,1.1);
+        h_mean_gaus_afterCorr[i][j]->Draw("p");
+        f_mean_gaus_afterCorr[i][j]->SetLineColor(2);
+        f_mean_gaus_afterCorr[i][j]->DrawCopy("same");
+
+        // h_mean_afterCorr[i][j]->SetMarkerColor(8);
+        // h_mean_afterCorr[i][j]->SetMarkerStyle(24);
+        // h_mean_afterCorr[i][j]->GetYaxis()->SetRangeUser(0.8,1.1);
+        // h_mean_afterCorr[i][j]->Draw("p");
+        // f_mean_afterCorr[i][j]->SetLineColor(8);
+        // f_mean_afterCorr[i][j]->DrawCopy("same");
         jumSun(ptBins[0],1,ptBins[nPtBins],1);
 
         float xpos = 0.21;
@@ -801,7 +885,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         drawText(Form("%s fitting", fnc_name.Data()),xpos,ypos-2*dy);
         drawText("After energy correction",xpos,ypos-3*dy);
         drawText(Form("%s",collSt.Data()),xpos,ypos-4*dy);
-        
+
         float c = f_mean_gaus_afterCorr[i][j]->GetParameter(0);
         float n = f_mean_gaus_afterCorr[i][j]->GetParameter(1);
         float s = f_mean_gaus_afterCorr[i][j]->GetParameter(2);
@@ -811,10 +895,10 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     legStyle(l1_afterCorr);
     // l1_afterCorr->AddEntry(h_mean_afterCorr[0][0],"Mean","p");
     // l1_afterCorr->AddEntry(f_mean_afterCorr[0][0],"Fit Mean","l");
-    l1_afterCorr->AddEntry(h_mean_afterCorr[0][0],Form("Mean%s",""),"p");
-    l1_afterCorr->AddEntry(f_mean_afterCorr[0][0],Form("Fit Mean%s",""),"l");
-   // l1_afterCorr->AddEntry(h_mean_gaus_afterCorr[0][0],Form("Mean(%s)",fnc_name.Data()),"p");
-   // l1_afterCorr->AddEntry(f_mean_gaus_afterCorr[0][0],Form("Fit Mean(%s)",fnc_name.Data()),"l");
+    // l1_afterCorr->AddEntry(h_mean_afterCorr[0][0],Form("Mean%s",""),"p");
+    // l1_afterCorr->AddEntry(f_mean_afterCorr[0][0],Form("Fit Mean%s",""),"l");
+    l1_afterCorr->AddEntry(h_mean_gaus_afterCorr[0][0],Form("Mean(%s)",fnc_name.Data()),"p");
+    l1_afterCorr->AddEntry(f_mean_gaus_afterCorr[0][0],Form("Fit Mean(%s)",fnc_name.Data()),"l");
     l1_afterCorr->Draw("same");
     c_mean_afterCorr->SaveAs(Form("figures/photonEnergyCorrection_afterCorrection_1D_mean_vs_genPt_%s.pdf",cap.Data()));
 
@@ -830,10 +914,10 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         f_sig_gaus_afterCorr[i][j]->SetLineColor(2);
         f_sig_gaus_afterCorr[i][j]->DrawCopy("same");
 
-       // h_rms_afterCorr[i][j]->SetMarkerColor(8);
-       // h_rms_afterCorr[i][j]->SetMarkerStyle(24);
-       // f_rms_afterCorr[i][j]->SetLineColor(8);
-       // f_rms_afterCorr[i][j]->DrawCopy("same");
+        // h_rms_afterCorr[i][j]->SetMarkerColor(8);
+        // h_rms_afterCorr[i][j]->SetMarkerStyle(24);
+        // f_rms_afterCorr[i][j]->SetLineColor(8);
+        // f_rms_afterCorr[i][j]->DrawCopy("same");
 
         float xpos = 0.21;
         float ypos = 0.84;
@@ -841,7 +925,7 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
         drawText(Form("%s fitting", fnc_name.Data()),xpos,ypos-2*dy);
         drawText("After energy correction",xpos,ypos-3*dy);
         drawText(Form("%s",collSt.Data()),xpos,ypos-4*dy);
-        
+
         float c = f_sig_gaus_afterCorr[i][j]->GetParameter(0);
         float n = f_sig_gaus_afterCorr[i][j]->GetParameter(1);
         float s = f_sig_gaus_afterCorr[i][j]->GetParameter(2);
@@ -871,8 +955,8 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
     c_mat->Write("", TObject::kOverwrite);
     c_mean->Write("", TObject::kOverwrite);
     c_res->Write("", TObject::kOverwrite);
-    c_mean_afterCorr->Write("", TObject::kOverwrite);
-    c_res_afterCorr->Write("", TObject::kOverwrite);
+   // c_mean_afterCorr->Write("", TObject::kOverwrite);
+   // c_res_afterCorr->Write("", TObject::kOverwrite);
     for (int i=0; i<nCentBins; ++i) {
         for (int j=0; j<nEtaBins; ++j) {
             h_pt[i][j]->Write(Form("h_matrix_cent%i_eta%i", i, j), TObject::kOverwrite);
@@ -888,20 +972,20 @@ void yj_photonEnergyCorrections(bool isPP = false, TString fnc_name = "gaus"){
             h_rms[i][j]->Write(Form("photonEnergyCorr_rms_cent%i_eta%i", i, j), TObject::kOverwrite);
             c[i][j]->Write(Form("ratio_cent%i_eta%i", i, j), TObject::kOverwrite);
 
-            f_rms_afterCorr[i][j]->Write();
-            f_sig_gaus_afterCorr[i][j]->Write();
-            f_mean_afterCorr[i][j]->Write();
-            f_mean_gaus_afterCorr[i][j]->Write();
-            h_mean_gaus_afterCorr[i][j]->Write(Form("photonEnergyCorr_mean_gaus_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
-            h_sig_gaus_afterCorr[i][j]->Write(Form("photonEnergyCorr_sigma_gaus_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
-            h_mean_afterCorr[i][j]->Write(Form("photonEnergyCorr_mean_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
-            h_rms_afterCorr[i][j]->Write(Form("photonEnergyCorr_rms_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
-            c_afterCorr[i][j]->Write(Form("ratio_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
+           // f_rms_afterCorr[i][j]->Write();
+           // f_sig_gaus_afterCorr[i][j]->Write();
+           // f_mean_afterCorr[i][j]->Write();
+           // f_mean_gaus_afterCorr[i][j]->Write();
+           // h_mean_gaus_afterCorr[i][j]->Write(Form("photonEnergyCorr_mean_gaus_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
+           // h_sig_gaus_afterCorr[i][j]->Write(Form("photonEnergyCorr_sigma_gaus_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
+           // h_mean_afterCorr[i][j]->Write(Form("photonEnergyCorr_mean_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
+           // h_rms_afterCorr[i][j]->Write(Form("photonEnergyCorr_rms_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
+           // c_afterCorr[i][j]->Write(Form("ratio_afterCorr_cent%i_eta%i", i, j), TObject::kOverwrite);
             for (int k=0; k<nPtBins; ++k) {
                 h_ratio[i][j][k]->Write();
                 h_ratio_pull[i][j][k]->Write();
-                h_ratio_afterCorr[i][j][k]->Write();
-                h_ratio_pull_afterCorr[i][j][k]->Write();
+               // h_ratio_afterCorr[i][j][k]->Write();
+               // h_ratio_pull_afterCorr[i][j][k]->Write();
             }
         }
     }

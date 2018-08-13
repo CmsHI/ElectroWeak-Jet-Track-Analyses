@@ -10,8 +10,10 @@ endif
 
 BUILD_DIR = ./build
 
+NOCOMP=Performance/getTrigEff.C Performance/getTrigEff_fromInputHist.C Performance/getTrigEff_prescaleCorrected.C Performance/yj_eleMatchedPhotonZPeak_eleCut.C Histogramming/calcMCweights_usingSkimFile.C Histogramming/calcMCweights_fromInputHist.C Histogramming/calcMCweights.C Corrections/yj_photonEnergyCorrections.C Corrections/makeFinalCorrFile.C  
 SRCS = $(wildcard */*.C)
 SRCS += $(wildcard */*/*.C)
+SRCS := $(filter-out $(NOCOMP), $(SRCS))
 EXES = $(patsubst %.C,%.exe,$(SRCS))
 DEPS = $(patsubst %.C,$(BUILD_DIR)/%.d,$(SRCS))
 

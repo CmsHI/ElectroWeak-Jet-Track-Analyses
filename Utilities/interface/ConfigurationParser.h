@@ -542,7 +542,8 @@ std::vector<std::string> ConfigurationParser::ParseMultipleLists(std::string str
     std::string operatorStr = getMultiListOperator(strLists);
     std::vector<std::string> strListsVec = split(strLists, operatorStr);
 
-    int nLists = strListsVec.size();
+    const int nLists = 3; 
+    //int nLists = strListsVec.size();
     std::vector<std::string> lists[nLists];
 
     for (int iList = 0; iList < nLists; ++iList) {

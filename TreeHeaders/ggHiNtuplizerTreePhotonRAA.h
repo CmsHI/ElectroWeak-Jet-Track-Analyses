@@ -127,6 +127,7 @@ public :
     eleEffAreaTimesRho = 0;
     phoE = 0;
     phoEt = 0;
+    phoPreScale = 0;
     phoEtCorrected = 0;
     phoEtCorrected_sys = 0;
     phoEtCorrected_resSys_sig = 0;
@@ -137,44 +138,81 @@ public :
     phoEtCorrected_resSys_down = 0;
     phoEta = 0;
     phoPhi = 0;
-    phoSCE = 0;
-    phoSCRawE = 0;
-    phoESEn = 0;
-    phoSCEta = 0;
-    phoSCPhi = 0;
-    phoSCEtaWidth = 0;
-    phoSCPhiWidth = 0;
-    phoSCBrem = 0;
-    phohasPixelSeed = 0;
-    phoR9 = 0;
-    phoHoverE = 0;
-    phoSigmaIEtaIEta = 0;
-    pho_isEle = 0;
-    pho_is2015Noise = 0;
-    //phoE1x3 = 0;
-    //phoE2x2 = 0;
-    //phoE2x5Max = 0;
-    phoE3x3 = 0;
-    phoE1x5 = 0;
-    phoE2x5 = 0;
-    phoE5x5 = 0;
-    phoMaxEnergyXtal = 0;
-    phoSigmaEtaEta = 0;
-    phoR1x5 = 0;
-    phoR2x5 = 0;
-    phoESEffSigmaRR = 0;
-    phoSigmaIEtaIEta_2012 = 0;
-    //phoSigmaIEtaIPhi_2012 = 0;
-    //phoSigmaIPhiIPhi_2012 = 0;
-    //phoE1x3_2012 = 0;
-    //phoE2x2_2012 = 0;
-    //phoE2x5Max_2012 = 0;
-    //phoE5x5_2012 = 0;
-    phoE3x3_2012 = 0;
-    phoBC1E = 0;
-    phoBC1Eta = 0;
-    phoBC2E = 0;
-    phoBC2Eta = 0;
+  phoSCE = 0;   //!
+  phoSCRawE = 0;   //!
+  phoSCEta = 0;   //!
+  phoSCPhi = 0;   //!
+  phoSCEtaWidth = 0;   //!
+  phoSCPhiWidth = 0;   //!
+  phoSCBrem = 0;   //!
+  phoSCnHits = 0;   //!
+  phoSCflags = 0;   //!
+  phoSCinClean = 0;   //!
+  phoSCinUnClean = 0;   //!
+  phoSCnBC = 0;   //!
+  phoESEn = 0;   //!
+  phoPSCE = 0;   //!
+  phoPSCRawE = 0;   //!
+  phoPSCEta = 0;   //!
+  phoPSCPhi = 0;   //!
+  phoPSCEtaWidth = 0;   //!
+  phoPSCPhiWidth = 0;   //!
+  phoPSCBrem = 0;   //!
+  phoPSCnHits = 0;   //!
+  phoPSCflags = 0;   //!
+  phoPSCinClean = 0;   //!
+  phoPSCinUnClean = 0;   //!
+  phoPSCnBC = 0;   //!
+  phoPESEn = 0;   //!
+  phoIsPFPhoton = 0;   //!
+  phoIsStandardPhoton = 0;   //!
+  phoHasPixelSeed = 0;   //!
+  phoHasConversionTracks = 0;
+  phoR9 = 0;   //!
+  phoHoverE = 0;   //!
+  phoHadTowerOverEm = 0;   //!
+  phoSigmaIEtaIEta = 0;   //!
+  pho_isEle = 0;   //!
+  pho_is2015Noise = 0;   //!e
+  phoE1x5 = 0;   //!
+  phoE2x5 = 0;   //!
+  phoE3x3 = 0;   //!
+  phoE5x5 = 0;   //!
+  phoMaxEnergyXtal = 0;   //!
+  phoSigmaEtaEta = 0;   //!
+  phoR1x5 = 0;   //!
+  phoR2x5 = 0;   //!
+  phoESEffSigmaRR = 0;   //!
+  phoE1x5_2012 = 0;   //!
+  phoE2x5_2012 = 0;   //!
+  phoE3x3_2012 = 0;   //!
+  phoE5x5_2012 = 0;   //!
+  phoR1x5_2012 = 0;   //!
+  phoR2x5_2012 = 0;   //!
+  phoMaxEnergyXtal_2012 = 0;   //!
+  phoSigmaIEtaIEta_2012 = 0;   //!
+  phoE3x3_2012 = 0;   //!
+  phoBC1E = 0;   //!
+  phoBC1Ecorr = 0;   //!
+  phoBC1Eta = 0;   //!
+  phoBC1Phi = 0;   //!
+  phoBC1size = 0;   //!
+  phoBC1flags = 0;   //!
+  phoBC1inClean = 0;   //!
+  phoBC1inUnClean = 0;   //!
+  phoBC1rawID = 0;   //!
+  phoBC2E = 0;   //!
+  phoBC2Eta = 0;   //!
+  phoBC2Phi = 0;   //!
+  phoE1x3 = 0;   //!
+  phoE2x2 = 0;   //!
+  phoE2x5Max = 0;   //!
+  phoSigmaIEtaIPhi_2012 = 0;   //!
+  phoSigmaIPhiIPhi_2012 = 0;   //!
+  phoE1x3_2012 = 0;   //!
+  phoE2x2_2012 = 0;   //!
+  phoE2x5Max_2012 = 0;   //!
+  phoE5x5_2012 = 0;   //!
     pho_ecalClusterIsoR2 = 0;
     pho_ecalClusterIsoR3 = 0;
     pho_ecalClusterIsoR4 = 0;
@@ -190,6 +228,7 @@ public :
     pho_trackIsoR4PtCut20 = 0;
     pho_trackIsoR5PtCut20 = 0;
     pho_sumIsoCorrected = 0;
+    pho_sumIso = 0;
     pho_swissCrx = 0;
     pho_seedTime = 0;
     pfcIso1 = 0;
@@ -397,6 +436,7 @@ public :
   Int_t           nPho;
   std::vector<float>   *phoE;
   std::vector<float>   *phoEt;
+  std::vector<int>   *phoPreScale;
   std::vector<float>   *phoEtCorrected;
   std::vector<float>   *phoEtCorrected_sys;
   std::vector<float>   *phoEtCorrected_resSys_sig;
@@ -407,44 +447,79 @@ public :
   std::vector<float>   *phoEtCorrected_resSys_down;
   std::vector<float>   *phoEta;
   std::vector<float>   *phoPhi;
-  std::vector<float>   *phoSCE;
-  std::vector<float>   *phoSCRawE;
-  std::vector<float>   *phoESEn;
-  std::vector<float>   *phoSCEta;
-  std::vector<float>   *phoSCPhi;
-  std::vector<float>   *phoSCEtaWidth;
-  std::vector<float>   *phoSCPhiWidth;
-  std::vector<float>   *phoSCBrem;
-  std::vector<int>     *phohasPixelSeed;
-  std::vector<float>   *phoR9;
-  std::vector<float>   *phoHoverE;
-  std::vector<float>   *phoSigmaIEtaIEta;
-  std::vector<int>     *pho_isEle;
-  std::vector<int>     *pho_is2015Noise;
-  //std::vector<float>   *phoE1x3;
-  //std::vector<float>   *phoE2x2;
-  //std::vector<float>   *phoE2x5Max;
-  std::vector<float>   *phoE1x5;
-  std::vector<float>   *phoE2x5;
-  std::vector<float>   *phoE5x5;
-  std::vector<float>   *phoE3x3;
-  std::vector<float> *phoMaxEnergyXtal;
-  std::vector<float> *phoSigmaEtaEta;
-  std::vector<float> *phoR1x5;
-  std::vector<float> *phoR2x5;
-  std::vector<float>   *phoESEffSigmaRR;
-  std::vector<float>   *phoSigmaIEtaIEta_2012;
-  //std::vector<float>   *phoSigmaIEtaIPhi_2012;
-  //std::vector<float>   *phoSigmaIPhiIPhi_2012;
-  //std::vector<float>   *phoE1x3_2012;
-  //std::vector<float>   *phoE2x2_2012;
-  //std::vector<float>   *phoE2x5Max_2012;
-  //std::vector<float>   *phoE5x5_2012;
-  std::vector<float>   *phoE3x3_2012;
-  std::vector<float>   *phoBC1E;
-  std::vector<float>   *phoBC1Eta;
-  std::vector<float>   *phoBC2E;
-  std::vector<float>   *phoBC2Eta;
+  std::vector<float>   *phoSCE;   //!
+  std::vector<float>   *phoSCRawE;   //!
+  std::vector<float>   *phoSCEta;   //!
+  std::vector<float>   *phoSCPhi;   //!
+  std::vector<float>   *phoSCEtaWidth;   //!
+  std::vector<float>   *phoSCPhiWidth;   //!
+  std::vector<float>   *phoSCBrem;   //!
+  std::vector<int>   *phoSCnHits;   //!
+  std::vector<unsigned int>   *phoSCflags;   //!
+  std::vector<int>   *phoSCinClean;   //!
+  std::vector<int>   *phoSCinUnClean;   //!
+  std::vector<int>   *phoSCnBC;   //!
+  std::vector<float>   *phoESEn;   //!
+  std::vector<float>   *phoPSCE;   //!
+  std::vector<float>   *phoPSCRawE;   //!
+  std::vector<float>   *phoPSCEta;   //!
+  std::vector<float>   *phoPSCPhi;   //!
+  std::vector<float>   *phoPSCEtaWidth;   //!
+  std::vector<float>   *phoPSCPhiWidth;   //!
+  std::vector<float>   *phoPSCBrem;   //!
+  std::vector<int>   *phoPSCnHits;   //!
+  std::vector<unsigned int>   *phoPSCflags;   //!
+  std::vector<int>   *phoPSCinClean;   //!
+  std::vector<int>   *phoPSCinUnClean;   //!
+  std::vector<int>   *phoPSCnBC;   //!
+  std::vector<float>   *phoPESEn;   //!
+  std::vector<int>   *phoIsPFPhoton;   //!
+  std::vector<int>   *phoIsStandardPhoton;   //!
+  std::vector<int>   *phoHasPixelSeed;   //!
+  std::vector<int>   *phoHasConversionTracks;
+  std::vector<float>   *phoR9;   //!
+  std::vector<float>   *phoHoverE;   //!
+  std::vector<float>   *phoHadTowerOverEm;   //!
+  std::vector<float>   *phoSigmaIEtaIEta;   //!
+  std::vector<int>   *pho_isEle;   //!
+  std::vector<int>   *pho_is2015Noise;   //!
+  std::vector<float>   *phoE1x5;   //!
+  std::vector<float>   *phoE2x5;   //!
+  std::vector<float>   *phoE3x3;   //!
+  std::vector<float>   *phoE5x5;   //!
+  std::vector<float>   *phoMaxEnergyXtal;   //!
+  std::vector<float>   *phoSigmaEtaEta;   //!
+  std::vector<float>   *phoR1x5;   //!
+  std::vector<float>   *phoR2x5;   //!
+  std::vector<float>   *phoESEffSigmaRR;   //!
+  std::vector<float>   *phoE1x5_2012;   //!
+  std::vector<float>   *phoE2x5_2012;   //!
+  std::vector<float>   *phoE3x3_2012;   //!
+  std::vector<float>   *phoE5x5_2012;   //!
+  std::vector<float>   *phoR1x5_2012;   //!
+  std::vector<float>   *phoR2x5_2012;   //!
+  std::vector<float>   *phoMaxEnergyXtal_2012;   //!
+  std::vector<float>   *phoSigmaIEtaIEta_2012;   //!
+  std::vector<float>   *phoBC1E;   //!
+  std::vector<float>   *phoBC1Ecorr;   //!
+  std::vector<float>   *phoBC1Eta;   //!
+  std::vector<float>   *phoBC1Phi;   //!
+  std::vector<int>   *phoBC1size;   //!
+  std::vector<unsigned int>   *phoBC1flags;   //!
+  std::vector<int>   *phoBC1inClean;   //!
+  std::vector<int>   *phoBC1inUnClean;   //!
+  std::vector<unsigned int>   *phoBC1rawID;   //!
+  std::vector<float>   *phoBC2E;   //!
+  std::vector<float>   *phoBC2Eta;   //!
+  std::vector<float>   *phoBC2Phi;   //!
+  std::vector<float>   *phoE1x3;   //!
+  std::vector<float>   *phoE2x2;   //!
+  std::vector<float>   *phoE2x5Max;   //!
+  std::vector<float>   *phoE1x3_2012;   //!
+  std::vector<float>   *phoE2x2_2012;   //!
+  std::vector<float>   *phoE2x5Max_2012;   //!
+  std::vector<float>   *phoSigmaIEtaIPhi_2012;   //!
+  std::vector<float>   *phoSigmaIPhiIPhi_2012;   //!
   std::vector<float>   *pho_ecalClusterIsoR2;
   std::vector<float>   *pho_ecalClusterIsoR3;
   std::vector<float>   *pho_ecalClusterIsoR4;
@@ -460,6 +535,7 @@ public :
   std::vector<float>   *pho_trackIsoR4PtCut20;
   std::vector<float>   *pho_trackIsoR5PtCut20;
   std::vector<float>   *pho_sumIsoCorrected;
+  std::vector<float>   *pho_sumIso;
   std::vector<float>   *pho_swissCrx;
   std::vector<float>   *pho_seedTime;
   std::vector<float>   *pfcIso1;
@@ -663,6 +739,7 @@ public :
   TBranch        *b_nPho;   //!
   TBranch        *b_phoE;   //!
   TBranch        *b_phoEt;   //!
+  TBranch        *b_phoPreScale; //!
   TBranch        *b_phoEtCorrected;   //!
   TBranch        *b_phoEtCorrected_sys;   //!
   TBranch        *b_phoEtCorrected_resSys_sig;   //!
@@ -673,44 +750,79 @@ public :
   TBranch        *b_phoEtCorrected_resSys_down;   //!
   TBranch        *b_phoEta;   //!
   TBranch        *b_phoPhi;   //!
-  TBranch        *b_phoSCE;   //!
-  TBranch        *b_phoSCRawE;   //!
-  TBranch        *b_phoESEn;   //!
-  TBranch        *b_phoSCEta;   //!
-  TBranch        *b_phoSCPhi;   //!
-  TBranch        *b_phoSCEtaWidth;   //!
-  TBranch        *b_phoSCPhiWidth;   //!
-  TBranch        *b_phoSCBrem;   //!
-  TBranch        *b_phohasPixelSeed;   //!
-  TBranch        *b_phoR9;   //!
-  TBranch        *b_phoHoverE;   //!
-  TBranch        *b_phoSigmaIEtaIEta;   //!
-  TBranch *b_pho_isEle;
-  TBranch *b_pho_is2015Noise;
-  //TBranch        *b_phoE1x3;   //!
-  //TBranch        *b_phoE2x2;   //!
-  //TBranch        *b_phoE2x5Max;   //!
-  TBranch        *b_phoE1x5;
-  TBranch        *b_phoE2x5;
-  TBranch        *b_phoE3x3;
-  TBranch        *b_phoE5x5;   //!
-  TBranch *b_phoMaxEnergyXtal;
-  TBranch        *b_phoSigmaEtaEta;
-  TBranch        *b_phoR1x5;
-  TBranch        *b_phoR2x5;
-  TBranch        *b_phoESEffSigmaRR;   //!
-  TBranch        *b_phoSigmaIEtaIEta_2012;   //!
-  //TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
-  //TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
-  //TBranch        *b_phoE1x3_2012;   //!
-  //TBranch        *b_phoE2x2_2012;   //!
-  //TBranch        *b_phoE2x5Max_2012;   //!
-  //TBranch        *b_phoE5x5_2012;   //!
-  TBranch        *b_phoE3x3_2012;
-  TBranch        *b_phoBC1E;   //!
-  TBranch        *b_phoBC1Eta;   //!
-  TBranch        *b_phoBC2E;   //!
-  TBranch        *b_phoBC2Eta;   //!
+    TBranch        *b_phoSCE;   //!
+    TBranch        *b_phoSCRawE;   //!
+    TBranch        *b_phoSCEta;   //!
+    TBranch        *b_phoSCPhi;   //!
+    TBranch        *b_phoSCEtaWidth;   //!
+    TBranch        *b_phoSCPhiWidth;   //!
+    TBranch        *b_phoSCBrem;   //!
+    TBranch        *b_phoSCnHits;   //!
+    TBranch        *b_phoSCflags;   //!
+    TBranch        *b_phoSCinClean;   //!
+    TBranch        *b_phoSCinUnClean;   //!
+    TBranch        *b_phoSCnBC;   //!
+    TBranch        *b_phoESEn;   //!
+    TBranch        *b_phoPSCE;   //!
+    TBranch        *b_phoPSCRawE;   //!
+    TBranch        *b_phoPSCEta;   //!
+    TBranch        *b_phoPSCPhi;   //!
+    TBranch        *b_phoPSCEtaWidth;   //!
+    TBranch        *b_phoPSCPhiWidth;   //!
+    TBranch        *b_phoPSCBrem;   //!
+    TBranch        *b_phoPSCnHits;   //!
+    TBranch        *b_phoPSCflags;   //!
+    TBranch        *b_phoPSCinClean;   //!
+    TBranch        *b_phoPSCinUnClean;   //!
+    TBranch        *b_phoPSCnBC;   //!
+    TBranch        *b_phoPESEn;   //!
+    TBranch        *b_phoIsPFPhoton;   //!
+    TBranch        *b_phoIsStandardPhoton;   //!
+    TBranch        *b_phoHasPixelSeed;   //!
+    TBranch        *b_phoHasConversionTracks;   //!
+    TBranch        *b_phoR9;   //!
+    TBranch        *b_phoHoverE;   //!
+    TBranch        *b_phoHadTowerOverEm;   //!
+    TBranch        *b_phoSigmaIEtaIEta;   //!
+    TBranch        *b_pho_isEle;   //!
+    TBranch        *b_pho_is2015Noise;   //!e
+    TBranch        *b_phoE1x5;   //!
+    TBranch        *b_phoE2x5;   //!
+    TBranch        *b_phoE3x3;   //!
+    TBranch        *b_phoE5x5;   //!
+    TBranch        *b_phoMaxEnergyXtal;   //!
+    TBranch        *b_phoSigmaEtaEta;   //!
+    TBranch        *b_phoR1x5;   //!
+    TBranch        *b_phoR2x5;   //!
+    TBranch        *b_phoESEffSigmaRR;   //!
+    TBranch        *b_phoE1x5_2012;   //!
+    TBranch        *b_phoE2x5_2012;   //!
+    TBranch        *b_phoE3x3_2012;   //!
+    TBranch        *b_phoE5x5_2012;   //!
+    TBranch        *b_phoR1x5_2012;   //!
+    TBranch        *b_phoR2x5_2012;   //!
+    TBranch        *b_phoMaxEnergyXtal_2012;   //!
+    TBranch        *b_phoSigmaIEtaIEta_2012;   //!
+    TBranch        *b_phoBC1E;   //!
+    TBranch        *b_phoBC1Ecorr;   //!
+    TBranch        *b_phoBC1Eta;   //!
+    TBranch        *b_phoBC1Phi;   //!
+    TBranch        *b_phoBC1size;   //!
+    TBranch        *b_phoBC1flags;   //!
+    TBranch        *b_phoBC1inClean;   //!
+    TBranch        *b_phoBC1inUnClean;   //!
+    TBranch        *b_phoBC1rawID;   //!
+    TBranch        *b_phoBC2E;   //!
+    TBranch        *b_phoBC2Eta;   //!
+    TBranch        *b_phoBC2Phi;   //!
+    TBranch        *b_phoE1x3;   //!
+    TBranch        *b_phoE2x2;   //!
+    TBranch        *b_phoE2x5Max;   //!
+    TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
+    TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
+    TBranch        *b_phoE1x3_2012;   //!
+    TBranch        *b_phoE2x2_2012;   //!
+    TBranch        *b_phoE2x5Max_2012;   //!
   TBranch        *b_pho_ecalClusterIsoR2;   //!
   TBranch        *b_pho_ecalClusterIsoR3;   //!
   TBranch        *b_pho_ecalClusterIsoR4;   //!
@@ -725,7 +837,8 @@ public :
   TBranch        *b_pho_trackIsoR3PtCut20;   //!
   TBranch        *b_pho_trackIsoR4PtCut20;   //!
   TBranch        *b_pho_trackIsoR5PtCut20;   //!
-  TBranch        *b_pho_sumIsoCorrected;
+  TBranch        *b_pho_sumIsoCorrected;   //!
+  TBranch        *b_pho_sumIso;   //!
   TBranch        *b_pho_swissCrx;   //!
   TBranch        *b_pho_seedTime;   //!
   TBranch        *b_pfcIso1;   //!
@@ -932,6 +1045,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
     if (t->GetBranch("phoEt")) t->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
+    if (t->GetBranch("phoPreScale")) t->SetBranchAddress("phoPreScale", &phoPreScale, &b_phoPreScale);
     if (t->GetBranch("phoEtCorrected")) t->SetBranchAddress("phoEtCorrected", &phoEtCorrected, &b_phoEtCorrected);
     if (t->GetBranch("phoEtCorrected_sys")) t->SetBranchAddress("phoEtCorrected_sys", &phoEtCorrected_sys, &b_phoEtCorrected_sys);
     if (t->GetBranch("phoEtCorrected_resSys_sig")) t->SetBranchAddress("phoEtCorrected_resSys_sig", &phoEtCorrected_resSys_sig, &b_phoEtCorrected_resSys_sig);
@@ -944,21 +1058,45 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoPhi")) t->SetBranchAddress("phoPhi", &phoPhi, &b_phoPhi);
     if (t->GetBranch("phoSCE")) t->SetBranchAddress("phoSCE", &phoSCE, &b_phoSCE);
     if (t->GetBranch("phoSCRawE")) t->SetBranchAddress("phoSCRawE", &phoSCRawE, &b_phoSCRawE);
-    if (t->GetBranch("phoESEn")) t->SetBranchAddress("phoESEn", &phoESEn, &b_phoESEn);
     if (t->GetBranch("phoSCEta")) t->SetBranchAddress("phoSCEta", &phoSCEta, &b_phoSCEta);
     if (t->GetBranch("phoSCPhi")) t->SetBranchAddress("phoSCPhi", &phoSCPhi, &b_phoSCPhi);
     if (t->GetBranch("phoSCEtaWidth")) t->SetBranchAddress("phoSCEtaWidth", &phoSCEtaWidth, &b_phoSCEtaWidth);
     if (t->GetBranch("phoSCPhiWidth")) t->SetBranchAddress("phoSCPhiWidth", &phoSCPhiWidth, &b_phoSCPhiWidth);
     if (t->GetBranch("phoSCBrem")) t->SetBranchAddress("phoSCBrem", &phoSCBrem, &b_phoSCBrem);
-    if (t->GetBranch("phohasPixelSeed")) t->SetBranchAddress("phohasPixelSeed", &phohasPixelSeed, &b_phohasPixelSeed);
+    if (t->GetBranch("phoSCnHits")) t->SetBranchAddress("phoSCnHits", &phoSCnHits, &b_phoSCnHits);
+    if (t->GetBranch("phoSCflags")) t->SetBranchAddress("phoSCflags", &phoSCflags, &b_phoSCflags);
+    if (t->GetBranch("phoSCinClean")) t->SetBranchAddress("phoSCinClean", &phoSCinClean, &b_phoSCinClean);
+    if (t->GetBranch("phoSCinUnClean")) t->SetBranchAddress("phoSCinUnClean", &phoSCinUnClean, &b_phoSCinUnClean);
+    if (t->GetBranch("phoSCnBC")) t->SetBranchAddress("phoSCnBC", &phoSCnBC, &b_phoSCnBC);
+    if (t->GetBranch("phoESEn")) t->SetBranchAddress("phoESEn", &phoESEn, &b_phoESEn);
+    if (t->GetBranch("phoPSCE")) t->SetBranchAddress("phoPSCE", &phoPSCE, &b_phoPSCE);
+    if (t->GetBranch("phoPSCRawE")) t->SetBranchAddress("phoPSCRawE", &phoPSCRawE, &b_phoPSCRawE);
+    if (t->GetBranch("phoPSCEta")) t->SetBranchAddress("phoPSCEta", &phoPSCEta, &b_phoPSCEta);
+    if (t->GetBranch("phoPSCPhi")) t->SetBranchAddress("phoPSCPhi", &phoPSCPhi, &b_phoPSCPhi);
+    if (t->GetBranch("phoPSCEtaWidth")) t->SetBranchAddress("phoPSCEtaWidth", &phoPSCEtaWidth, &b_phoPSCEtaWidth);
+    if (t->GetBranch("phoPSCPhiWidth")) t->SetBranchAddress("phoPSCPhiWidth", &phoPSCPhiWidth, &b_phoPSCPhiWidth);
+    if (t->GetBranch("phoPSCBrem")) t->SetBranchAddress("phoPSCBrem", &phoPSCBrem, &b_phoPSCBrem);
+    if (t->GetBranch("phoPSCnHits")) t->SetBranchAddress("phoPSCnHits", &phoPSCnHits, &b_phoPSCnHits);
+    if (t->GetBranch("phoPSCflags")) t->SetBranchAddress("phoPSCflags", &phoPSCflags, &b_phoPSCflags);
+    if (t->GetBranch("phoPSCinClean")) t->SetBranchAddress("phoPSCinClean", &phoPSCinClean, &b_phoPSCinClean);
+    if (t->GetBranch("phoPSCinUnClean")) t->SetBranchAddress("phoPSCinUnClean", &phoPSCinUnClean, &b_phoPSCinUnClean);
+    if (t->GetBranch("phoPSCnBC")) t->SetBranchAddress("phoPSCnBC", &phoPSCnBC, &b_phoPSCnBC);
+    if (t->GetBranch("phoPESEn")) t->SetBranchAddress("phoPESEn", &phoPESEn, &b_phoPESEn);
+    if (t->GetBranch("phoIsPFPhoton")) t->SetBranchAddress("phoIsPFPhoton", &phoIsPFPhoton, &b_phoIsPFPhoton);
+    if (t->GetBranch("phoIsStandardPhoton")) t->SetBranchAddress("phoIsStandardPhoton", &phoIsStandardPhoton, &b_phoIsStandardPhoton);
+    if (t->GetBranch("phoHasPixelSeed")) t->SetBranchAddress("phoHasPixelSeed", &phoHasPixelSeed, &b_phoHasPixelSeed);
+    if (t->GetBranch("phoHasConversionTracks")) t->SetBranchAddress("phoHasConversionTracks", &phoHasConversionTracks, &b_phoHasConversionTracks);
     if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
+    if (t->GetBranch("phoHadTowerOverEm")) t->SetBranchAddress("phoHadTowerOverEm", &phoHadTowerOverEm, &b_phoHadTowerOverEm);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
     if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
     if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
-    //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
-    //if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
-    //if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    
+    if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
+    if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
+    if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    //
     if (t->GetBranch("phoE1x5")) t->SetBranchAddress("phoE1x5", &phoE1x5, &b_phoE1x5);
     if (t->GetBranch("phoE2x5")) t->SetBranchAddress("phoE2x5", &phoE2x5, &b_phoE2x5);
     if (t->GetBranch("phoE3x3")) t->SetBranchAddress("phoE3x3", &phoE3x3, &b_phoE3x3);
@@ -968,18 +1106,35 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR1x5")) t->SetBranchAddress("phoR1x5", &phoR1x5, &b_phoR1x5);
     if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
+    if (t->GetBranch("phoE1x5_2012")) t->SetBranchAddress("phoE1x5_2012", &phoE1x5_2012, &b_phoE1x5_2012);
+    if (t->GetBranch("phoE2x5_2012")) t->SetBranchAddress("phoE2x5_2012", &phoE2x5_2012, &b_phoE2x5_2012);
+    if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    if (t->GetBranch("phoR1x5_2012")) t->SetBranchAddress("phoR1x5_2012", &phoR1x5_2012, &b_phoR1x5_2012);
+    if (t->GetBranch("phoR2x5_2012")) t->SetBranchAddress("phoR2x5_2012", &phoR2x5_2012, &b_phoR2x5_2012);
+    if (t->GetBranch("phoMaxEnergyXtal_2012")) t->SetBranchAddress("phoMaxEnergyXtal_2012", &phoMaxEnergyXtal_2012, &b_phoMaxEnergyXtal_2012);
     if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
-    //if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
-    //if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
-    //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
-    //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
-    //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
-    //if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    
+    if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
+    if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
+    if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
+    if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
+    if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    //
     if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
+    if (t->GetBranch("phoBC1Ecorr")) t->SetBranchAddress("phoBC1Ecorr", &phoBC1Ecorr, &b_phoBC1Ecorr);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);
+    if (t->GetBranch("phoBC1Phi")) t->SetBranchAddress("phoBC1Phi", &phoBC1Phi, &b_phoBC1Phi);
+    if (t->GetBranch("phoBC1size")) t->SetBranchAddress("phoBC1size", &phoBC1size, &b_phoBC1size);
+    if (t->GetBranch("phoBC1flags")) t->SetBranchAddress("phoBC1flags", &phoBC1flags, &b_phoBC1flags);
+    if (t->GetBranch("phoBC1inClean")) t->SetBranchAddress("phoBC1inClean", &phoBC1inClean, &b_phoBC1inClean);
+    if (t->GetBranch("phoBC1inUnClean")) t->SetBranchAddress("phoBC1inUnClean", &phoBC1inUnClean, &b_phoBC1inUnClean);
+    if (t->GetBranch("phoBC1rawID")) t->SetBranchAddress("phoBC1rawID", &phoBC1rawID, &b_phoBC1rawID);
     if (t->GetBranch("phoBC2E")) t->SetBranchAddress("phoBC2E", &phoBC2E, &b_phoBC2E);
     if (t->GetBranch("phoBC2Eta")) t->SetBranchAddress("phoBC2Eta", &phoBC2Eta, &b_phoBC2Eta);
+    if (t->GetBranch("phoBC2Phi")) t->SetBranchAddress("phoBC2Phi", &phoBC2Phi, &b_phoBC2Phi);
     if (t->GetBranch("pho_ecalClusterIsoR2")) t->SetBranchAddress("pho_ecalClusterIsoR2", &pho_ecalClusterIsoR2, &b_pho_ecalClusterIsoR2);
     if (t->GetBranch("pho_ecalClusterIsoR3")) t->SetBranchAddress("pho_ecalClusterIsoR3", &pho_ecalClusterIsoR3, &b_pho_ecalClusterIsoR3);
     if (t->GetBranch("pho_ecalClusterIsoR4")) t->SetBranchAddress("pho_ecalClusterIsoR4", &pho_ecalClusterIsoR4, &b_pho_ecalClusterIsoR4);
@@ -995,6 +1150,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trackIsoR4PtCut20")) t->SetBranchAddress("pho_trackIsoR4PtCut20", &pho_trackIsoR4PtCut20, &b_pho_trackIsoR4PtCut20);
     if (t->GetBranch("pho_trackIsoR5PtCut20")) t->SetBranchAddress("pho_trackIsoR5PtCut20", &pho_trackIsoR5PtCut20, &b_pho_trackIsoR5PtCut20);
     if (t->GetBranch("pho_sumIsoCorrected")) t->SetBranchAddress("pho_sumIsoCorrected", &pho_sumIsoCorrected, &b_pho_sumIsoCorrected);
+    if (t->GetBranch("pho_sumIso")) t->SetBranchAddress("pho_sumIso", &pho_sumIso, &b_pho_sumIso);
     if (t->GetBranch("pho_swissCrx")) t->SetBranchAddress("pho_swissCrx", &pho_swissCrx, &b_pho_swissCrx);
     if (t->GetBranch("pho_seedTime")) t->SetBranchAddress("pho_seedTime", &pho_seedTime, &b_pho_seedTime);
     if (t->GetBranch("pfcIso1")) t->SetBranchAddress("pfcIso1", &pfcIso1, &b_pfcIso1);
