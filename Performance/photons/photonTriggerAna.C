@@ -850,7 +850,11 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                                 double etaL1 = L1Upgrade->egEta[iObj];
                                                 double phiL1 = L1Upgrade->egPhi[iObj];
 
-                                                if (getDR2(etaL1, phiL1, eta, phi) < 0.04) {
+                                                // use position of photon Super Cluster when matching to L1 object
+                                                double etaSC = (*ggHi.phoSCEta)[iMax];
+                                                double phiSC = (*ggHi.phoSCPhi)[iMax];
+
+                                                if (getDR2(etaL1, phiL1, etaSC, phiSC) < 0.04) {
                                                     tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
                                                     tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
                                                     tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
