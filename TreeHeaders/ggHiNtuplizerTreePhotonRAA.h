@@ -132,8 +132,8 @@ public :
     phoEtCorrected_sys = 0;
     phoEtCorrected_resSys_sig = 0;
     phoEtCorrected_resSys_sig2 = 0;
-    phoEtCorrected_resSys_rms = 0;
-    phoEtCorrected_resSys_rms2 = 0;
+//    phoEtCorrected_resSys_rms = 0;
+//    phoEtCorrected_resSys_rms2 = 0;
     phoEtCorrected_resSys_up = 0;
     phoEtCorrected_resSys_down = 0;
     phoEta = 0;
@@ -174,6 +174,7 @@ public :
   phoSigmaIEtaIEta = 0;   //!
   pho_isEle = 0;   //!
   pho_is2015Noise = 0;   //!e
+  pho_isSpike= 0;   //!e
   phoE1x5 = 0;   //!
   phoE2x5 = 0;   //!
   phoE3x3 = 0;   //!
@@ -441,8 +442,8 @@ public :
   std::vector<float>   *phoEtCorrected_sys;
   std::vector<float>   *phoEtCorrected_resSys_sig;
   std::vector<float>   *phoEtCorrected_resSys_sig2;
-  std::vector<float>   *phoEtCorrected_resSys_rms;
-  std::vector<float>   *phoEtCorrected_resSys_rms2;
+//  std::vector<float>   *phoEtCorrected_resSys_rms;
+//  std::vector<float>   *phoEtCorrected_resSys_rms2;
   std::vector<float>   *phoEtCorrected_resSys_up;
   std::vector<float>   *phoEtCorrected_resSys_down;
   std::vector<float>   *phoEta;
@@ -483,6 +484,7 @@ public :
   std::vector<float>   *phoSigmaIEtaIEta;   //!
   std::vector<int>   *pho_isEle;   //!
   std::vector<int>   *pho_is2015Noise;   //!
+  std::vector<int>   *pho_isSpike;   //!
   std::vector<float>   *phoE1x5;   //!
   std::vector<float>   *phoE2x5;   //!
   std::vector<float>   *phoE3x3;   //!
@@ -744,8 +746,8 @@ public :
   TBranch        *b_phoEtCorrected_sys;   //!
   TBranch        *b_phoEtCorrected_resSys_sig;   //!
   TBranch        *b_phoEtCorrected_resSys_sig2;   //!
-  TBranch        *b_phoEtCorrected_resSys_rms;   //!
-  TBranch        *b_phoEtCorrected_resSys_rms2;   //!
+//  TBranch        *b_phoEtCorrected_resSys_rms;   //!
+//  TBranch        *b_phoEtCorrected_resSys_rms2;   //!
   TBranch        *b_phoEtCorrected_resSys_up;   //!
   TBranch        *b_phoEtCorrected_resSys_down;   //!
   TBranch        *b_phoEta;   //!
@@ -785,6 +787,7 @@ public :
     TBranch        *b_phoHadTowerOverEm;   //!
     TBranch        *b_phoSigmaIEtaIEta;   //!
     TBranch        *b_pho_isEle;   //!
+    TBranch        *b_pho_isSpike;   //!
     TBranch        *b_pho_is2015Noise;   //!e
     TBranch        *b_phoE1x5;   //!
     TBranch        *b_phoE2x5;   //!
@@ -1050,8 +1053,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoEtCorrected_sys")) t->SetBranchAddress("phoEtCorrected_sys", &phoEtCorrected_sys, &b_phoEtCorrected_sys);
     if (t->GetBranch("phoEtCorrected_resSys_sig")) t->SetBranchAddress("phoEtCorrected_resSys_sig", &phoEtCorrected_resSys_sig, &b_phoEtCorrected_resSys_sig);
     if (t->GetBranch("phoEtCorrected_resSys_sig2")) t->SetBranchAddress("phoEtCorrected_resSys_sig2", &phoEtCorrected_resSys_sig2, &b_phoEtCorrected_resSys_sig2);
-    if (t->GetBranch("phoEtCorrected_resSys_rms")) t->SetBranchAddress("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms, &b_phoEtCorrected_resSys_rms);
-    if (t->GetBranch("phoEtCorrected_resSys_rms2")) t->SetBranchAddress("phoEtCorrected_resSys_rms2", &phoEtCorrected_resSys_rms2, &b_phoEtCorrected_resSys_rms2);
+//    if (t->GetBranch("phoEtCorrected_resSys_rms")) t->SetBranchAddress("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms, &b_phoEtCorrected_resSys_rms);
+//    if (t->GetBranch("phoEtCorrected_resSys_rms2")) t->SetBranchAddress("phoEtCorrected_resSys_rms2", &phoEtCorrected_resSys_rms2, &b_phoEtCorrected_resSys_rms2);
     if (t->GetBranch("phoEtCorrected_resSys_up")) t->SetBranchAddress("phoEtCorrected_resSys_up", &phoEtCorrected_resSys_up, &b_phoEtCorrected_resSys_up);
     if (t->GetBranch("phoEtCorrected_resSys_down")) t->SetBranchAddress("phoEtCorrected_resSys_down", &phoEtCorrected_resSys_down, &b_phoEtCorrected_resSys_down);
     if (t->GetBranch("phoEta")) t->SetBranchAddress("phoEta", &phoEta, &b_phoEta);
@@ -1091,6 +1094,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoHadTowerOverEm")) t->SetBranchAddress("phoHadTowerOverEm", &phoHadTowerOverEm, &b_phoHadTowerOverEm);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
     if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
+    if (t->GetBranch("pho_isSpike")) t->SetBranchAddress("pho_isSpike", &pho_isSpike, &b_pho_isSpike);
     if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
     
     if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);

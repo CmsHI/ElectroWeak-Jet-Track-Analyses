@@ -16,6 +16,7 @@
 #include "RooFFTConvPdf.h"
 #include "RooPlot.h"
 #include "RooDataHist.h"
+#include "TVirtualFitter.h"
 
 #include <vector>
 
@@ -48,7 +49,7 @@ void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weigh
                     std::vector<int> centBins[2], TH1D** h_mass_cent);
 
 void yj_eleMatchedPhotonZPeak_eleCut(
-                          bool isPP=false,
+                          bool isPP=true,
                           bool isYJCorr=true,
                           bool doReweight = true,
                           TString func="DSCB",
@@ -112,6 +113,8 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     TFile* f_weights = new TFile(fn_weights, "read");
     TH1D* h_weights_vz = 0;
     TH1D* h_weights_cent = 0;
+    TH1D* h_weights_vz_data = 0;
+    TH1D* h_weights_cent_data = 0;
     if (f_weights && f_weights->IsOpen()){
         h_weights_vz = (TH1D*)f_weights->Get("hvz");
         h_weights_vz->SetName("hvz_real");
@@ -122,8 +125,14 @@ void yj_eleMatchedPhotonZPeak_eleCut(
         } else { 
             h_weights_cent = (TH1D*)f_weights->Get("hcent");
         }
-        
     }
+    h_weights_vz_data = (TH1D*) h_weights_vz->Clone("hvz_data");
+    h_weights_cent_data = (TH1D*) h_weights_cent->Clone("hcent_data");
+    for(int ibin=1; ibin<=h_weights_vz_data->GetNbinsX();++ibin)
+        h_weights_vz_data->SetBinContent(ibin,1);
+    for(int ibin=1; ibin<=h_weights_cent_data->GetNbinsX();++ibin)
+        h_weights_cent_data->SetBinContent(ibin,1);
+    
     if(!doReweight){
         for(int ibin=1; ibin<=h_weights_vz->GetNbinsX();++ibin)
             h_weights_vz->SetBinContent(ibin,1);
@@ -185,7 +194,7 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     for (int i=0; i<nCentBins; ++i)
         h_mass_cent[i] = new TH1D(Form("h_mass_cent_%i", i), Form("%i-%i%% Centrality;M_{Inv};", centBins[0][i]/2, centBins[1][i]/2), 30, 60, 120);
 
-    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass, h_weights_vz,h_weights_cent, centBins_Ecorr, centBins, etaBins, h_mass_cent, apply_corrections, (TF1**)f_ecorr);
+    if(isYJCorr) fill_hists_YJCorr(t_photon, t_event, h_mass, h_weights_vz_data,h_weights_cent_data, centBins_Ecorr, centBins, etaBins, h_mass_cent, apply_corrections, (TF1**)f_ecorr);
     else        fill_hists(t_photon, t_event, h_mass, 0, centBins, etaBins, h_mass_cent, apply_corrections, (TH1D**)h_ecorr);
 
     TFile* f_mc = new TFile(fn_mc, "read");
@@ -242,33 +251,17 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     TH1D* h_z_mass_width = new TH1D("h_z_mass_width", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
     TH1D* h_z_mass_width_mc = new TH1D("h_z_mass_width_mc", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
     TH1D* h_z_mass_width_gen = new TH1D("h_z_mass_width_gen", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
+    TH1D* h_z_mass_band = new TH1D("h_z_mass_band", "Z Mass;Centrality;M_{Inv}", nCentBins, hist_centBins);
+    TH1D* h_z_mass_mc_band = new TH1D("h_z_mass_mc_band", "Z Mass;Centrality;M_{Inv}", nCentBins, hist_centBins);
+    TH1D* h_z_mass_width_band = new TH1D("h_z_mass_width_band", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
+    TH1D* h_z_mass_width_mc_band = new TH1D("h_z_mass_width_mc_band", "Z Mass_width;Centrality;Width(M_{Inv})", nCentBins, hist_centBins);
 
     double invMass[3][nCentBins]; // [0:DATA,1:MC_reco,2:MC_gen][centBins]
     double invMass_width[3][nCentBins]; // [0:DATA,1:MC_reco,2:MC_gen][centBins]
+    double invMass_width_err[3][nCentBins]; // [0:DATA,1:MC_reco,2:MC_gen][centBins]
     for (int i=0; i<nCentBins; ++i) {
         cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
-        RooDataHist data_cent("data_cent", "dataset", x, h_mass_cent[i]);
-        bw.fitTo(data_cent);
-        h_z_mass->SetBinContent(i+1, m0.getVal());
-        h_z_mass->SetBinError(i+1, m0.getError());
-        h_z_mass_width->SetBinContent(i+1, width.getVal());
-        h_z_mass_width->SetBinError(i+1, width.getError());
-        invMass[0][i] = h_z_mass->GetBinContent(i+1);
-        invMass_width[0][i] = h_z_mass_width->GetBinContent(i+1);
-        cout << "Invariant Mass(DATA RECO): \t" << h_z_mass->GetBinContent(i+1) << endl;
-        cout << "Width of Invariant Mass(DATA RECO): \t" << h_z_mass_width->GetBinContent(i+1) << endl;
-
-        RooDataHist data_cent_mc("data_cent_mc", "dataset", x, h_mass_cent_mc[i]);
-        bw.fitTo(data_cent_mc);
-        h_z_mass_mc->SetBinContent(i+1, m0.getVal());
-        h_z_mass_mc->SetBinError(i+1, m0.getError());
-        h_z_mass_width_mc->SetBinContent(i+1, width.getVal());
-        h_z_mass_width_mc->SetBinError(i+1, width.getError());
-        invMass[1][i] = h_z_mass_mc->GetBinContent(i+1);
-        invMass_width[1][i] = h_z_mass_width_mc->GetBinContent(i+1);
-        cout << "Invariant Mass(MC RECO): \t" << h_z_mass_mc->GetBinContent(i+1) << endl;
-        cout << "Width of Invariant Mass(MC RECO): \t" << h_z_mass_width_mc->GetBinContent(i+1) << endl;
-
+        
         RooDataHist data_cent_gen("data_cent_gen", "dataset", x, h_mass_cent_gen[i]);
         bw.fitTo(data_cent_gen);
         h_z_mass_gen->SetBinContent(i+1, m0.getVal());
@@ -277,8 +270,37 @@ void yj_eleMatchedPhotonZPeak_eleCut(
         h_z_mass_width_gen->SetBinError(i+1, width.getError());
         invMass[2][i] = h_z_mass_gen->GetBinContent(i+1);
         invMass_width[2][i] = h_z_mass_width_gen->GetBinContent(i+1);
+        invMass_width_err[2][i] = h_z_mass_width_gen->GetBinError(i+1);
         cout << "Invariant Mass(MC GEN): \t" << h_z_mass_gen->GetBinContent(i+1) << endl;
         cout << "Width of Invariant Mass(MC GEN): \t" << h_z_mass_width_gen->GetBinContent(i+1) << endl;
+
+        RooDataHist data_cent("data_cent", "dataset", x, h_mass_cent[i]);
+        bw.fitTo(data_cent);
+        h_z_mass->SetBinContent(i+1, m0.getVal());
+        h_z_mass->SetBinError(i+1, m0.getError());
+        invMass[0][i] = h_z_mass->GetBinContent(i+1);
+        double scale_norm = invMass[2][i]/invMass[0][i];
+        h_z_mass_width->SetBinContent(i+1, width.getVal()*scale_norm);
+        h_z_mass_width->SetBinError(i+1, width.getError());
+        invMass_width[0][i] = h_z_mass_width->GetBinContent(i+1);
+        invMass_width_err[0][i] = h_z_mass_width->GetBinError(i+1);
+        //invMass_width[0][i] = h_z_mass_width->GetBinContent(i+1);
+        cout << "Invariant Mass(DATA RECO): \t" << h_z_mass->GetBinContent(i+1) << endl;
+        cout << "Width of Invariant Mass(DATA RECO): \t" << h_z_mass_width->GetBinContent(i+1) << endl;
+
+        RooDataHist data_cent_mc("data_cent_mc", "dataset", x, h_mass_cent_mc[i]);
+        bw.fitTo(data_cent_mc);
+        h_z_mass_mc->SetBinContent(i+1, m0.getVal());
+        h_z_mass_mc->SetBinError(i+1, m0.getError());
+        invMass[1][i] = h_z_mass_mc->GetBinContent(i+1);
+        scale_norm = invMass[1][i]/invMass[0][i];
+        h_z_mass_width_mc->SetBinContent(i+1, width.getVal()*scale_norm);
+        h_z_mass_width_mc->SetBinError(i+1, width.getError());
+        invMass_width[1][i] = h_z_mass_width_mc->GetBinContent(i+1);
+        invMass_width_err[1][i] = h_z_mass_width_mc->GetBinError(i+1);
+        //invMass_width[1][i] = h_z_mass_width_mc->GetBinContent(i+1);
+        cout << "Invariant Mass(MC RECO): \t" << h_z_mass_mc->GetBinContent(i+1) << endl;
+        cout << "Width of Invariant Mass(MC RECO): \t" << h_z_mass_width_mc->GetBinContent(i+1) << endl;
 
     }
 
@@ -295,6 +317,20 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     h_z_mass_mc->SetMarkerColor(2);
     h_z_mass_mc->SetLineColor(2);
     h_z_mass_mc->SetAxisRange(80, 110, "Y");
+    
+    TF1 *f_mass_mc = new TF1("f_mass_mc","pol1", 0., 200.);
+    if(!isPP){
+    f_mass_mc->SetLineColor(2);
+    h_z_mass_mc->Fit(f_mass_mc,"RLL Q");
+    h_z_mass_mc->Fit(f_mass_mc,"RLL");
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h_z_mass_mc_band);
+    //Now the histogram has the fitted function values as the
+    //bin contents and the confidence intervals as bin errors
+    h_z_mass_mc_band->SetStats(kFALSE);
+    h_z_mass_mc_band->SetFillColor(2);
+    h_z_mass_mc_band->SetFillStyle(3004);
+    h_z_mass_mc_band->SetMarkerSize(0);
+    }
 
     h_z_mass->SetMarkerStyle(22);
     h_z_mass->SetMarkerSize(0.8);
@@ -302,42 +338,124 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     h_z_mass->SetLineColor(1);
     h_z_mass->SetAxisRange(80, 110, "Y");
 
+    TF1 *f_mass = new TF1("f_mass","pol1", 0., 200.);
+    if(!isPP){
+    f_mass->SetLineColor(8);
+    h_z_mass->Fit(f_mass,"RLL Q");
+    h_z_mass->Fit(f_mass,"RLL");
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h_z_mass_band);
+    //Now the histogram has the fitted function values as the
+    //bin contents and the confidence intervals as bin errors
+    h_z_mass_band->SetStats(kFALSE);
+    h_z_mass_band->SetFillColor(8);
+    h_z_mass_band->SetFillStyle(3005);
+    h_z_mass_band->SetMarkerSize(0);
+    }
+
     h_z_mass_gen->Draw();
     h_z_mass_mc->Draw("same");
     h_z_mass->Draw("same");
+    //h_z_mass_mc_band->Draw("e3 same");
+    //h_z_mass_band->Draw("e3 same");
 
     TLegend* l1 = new TLegend(0.70, 0.64, 0.90, 0.80);
     l1->SetBorderSize(0);
     l1->SetTextSize(0.04);
-    l1->AddEntry(h_z_mass, "Data");
-    l1->AddEntry(h_z_mass_mc, "MC Reco");
     l1->AddEntry(h_z_mass_gen, "MC Gen");
+    l1->AddEntry(h_z_mass_mc, "MC Reco");
+    l1->AddEntry(h_z_mass, "Data");
     l1->Draw();
     //drawText(Form("%s",cap.Data()),0.2,0.9);
-    
+   
+/////////////////////////////////////////////////////////////
+// WIDHT!! 
     TCanvas* c1_w = new TCanvas("c1_w", "", 400, 400);
+    
+    //mc gen
     h_z_mass_width_gen->SetMarkerStyle(21);
     h_z_mass_width_gen->SetMarkerSize(0.8);
     h_z_mass_width_gen->SetMarkerColor(4);
     h_z_mass_width_gen->SetLineColor(4);
-    h_z_mass_width_gen->SetAxisRange(0, 20, "Y");
+    h_z_mass_width_gen->SetAxisRange(0, 40, "Y");
     
+    //mc
     h_z_mass_width_mc->SetMarkerStyle(20);
     h_z_mass_width_mc->SetMarkerSize(0.8);
     h_z_mass_width_mc->SetMarkerColor(2);
     h_z_mass_width_mc->SetLineColor(2);
-    h_z_mass_width_mc->SetAxisRange(0, 20, "Y");
+    h_z_mass_width_mc->SetAxisRange(0, 40, "Y");
+    //mc fit    
+    TF1 *f_width_mc = new TF1("f_width_mc","pol1", 0., 200.);
+    if(!isPP){
+    f_width_mc->SetLineColor(2);
+    h_z_mass_width_mc->Fit(f_width_mc,"R Q");
+    h_z_mass_width_mc->Fit(f_width_mc,"R Q");
+    h_z_mass_width_mc->Fit(f_width_mc,"R Q");
+    h_z_mass_width_mc->Fit(f_width_mc,"R");
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h_z_mass_width_mc_band,0.68);
+    //Now the histogram has the fitted function values as the
+    //bin contents and the confidence intervals as bin errors
+    h_z_mass_width_mc_band->SetStats(kFALSE);
+    h_z_mass_width_mc_band->SetFillColor(2);
+    h_z_mass_width_mc_band->SetFillStyle(3004);
+    h_z_mass_width_mc_band->SetMarkerSize(0);
+    }
 
+    //data
     h_z_mass_width->SetMarkerStyle(22);
     h_z_mass_width->SetMarkerSize(0.8);
     h_z_mass_width->SetMarkerColor(1);
     h_z_mass_width->SetLineColor(1);
-    h_z_mass_width->SetAxisRange(0, 20, "Y");
-
+    h_z_mass_width->SetAxisRange(0, 40, "Y");
+    
+    //data fit
+    cout<< "DATA width fit" << endl;
+    TF1 *f_width = new TF1("f_width","pol1", 0., 200.);
+    if(!isPP){
+    f_width->SetLineColor(8);
+    f_width->SetParameters(8.97558e+01,-4.45757e-03);
+    h_z_mass_width->Fit(f_width,"R Q");
+    h_z_mass_width->Fit(f_width,"R Q");
+    h_z_mass_width->Fit(f_width,"R Q");
+    h_z_mass_width->Fit(f_width,"R");
+    (TVirtualFitter::GetFitter())->GetConfidenceIntervals(h_z_mass_width_band,0.68);
+    //Now the histogram has the fitted function values as the
+    //bin contents and the confidence intervals as bin errors
+    h_z_mass_width_band->SetStats(kFALSE);
+    h_z_mass_width_band->SetFillColor(8);
+    h_z_mass_width_band->SetFillStyle(3005);
+    h_z_mass_width_band->SetMarkerSize(0);
+    }
+    
+    //draw
     h_z_mass_width_gen->Draw();
     h_z_mass_width_mc->Draw("same");
     h_z_mass_width->Draw("same");
-    l1->Draw();
+    if(!isPP){
+    h_z_mass_width_mc_band->Draw("e3 same");
+    h_z_mass_width_band->Draw("e3 same");
+    }
+    
+    TLegend* l2 = new TLegend(0.50, 0.44, 0.90, 0.60);
+    l2->SetBorderSize(0);
+    l2->SetTextSize(0.04);
+    l2->AddEntry(h_z_mass_width_gen, "MC Gen");
+    l2->AddEntry(h_z_mass_width_mc, "MC Reco");
+    if(!isPP) l2->AddEntry(h_z_mass_width_mc_band, "MC Reco 68\% C.L.","f");
+    l2->AddEntry(h_z_mass_width, "Data");
+    if(!isPP) l2->AddEntry(h_z_mass_width_band, "Data 68\% C.L.","f");
+    l2->Draw();
+
+    for(int i=1;i<=h_z_mass_width_band->GetNbinsX();++i){
+        
+       double w =  h_z_mass_width_band->GetBinContent(i);
+       double w_e =  h_z_mass_width_band->GetBinError(i);
+       double w_mc =  h_z_mass_width_band->GetBinContent(i);
+       double w_mc_e =  h_z_mass_width_band->GetBinError(i);
+        cout << ">>>>>>>>>>> bin " << i << endl;    
+        cout << "data width = " << w << ", data width error = " << w_e  << ", mc width = " << w_mc << ", mc width error = " << w_mc_e << " error ratio mc/data = " << w_mc_e/w_mc << endl;
+    }
+
     //drawText(Form("%s",cap.Data()),0.2,0.9);
     
     for (int i=0; i<nCentBins; ++i) {
@@ -382,13 +500,23 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     c1_w->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_width_summary_%s.pdf",cap.Data()));
     c2->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_distributions_%s.pdf",cap.Data()));
     //c2_w->SaveAs(Form("figures/eleMatchedPhotonZPeak_Zmass_width_distributions_noWeight_%s.pdf",cap.Data()));
-    TFile* f_out = new TFile("eleMatchedPhotonZPeak_noWeight_pp.root", "recreate");
+    TFile* f_out = new TFile(Form("output/eleMatchedPhotonZPeak_%s.root",cap.Data()), "recreate");
     h_z_mass->Write("h_z_mass", TObject::kOverwrite);
     h_z_mass_mc->Write("h_z_mass_mc", TObject::kOverwrite);
     h_z_mass_gen->Write("h_z_mass_gen", TObject::kOverwrite);
     h_z_mass_width->Write("h_z_mass_width", TObject::kOverwrite);
     h_z_mass_width_mc->Write("h_z_mass_width_mc", TObject::kOverwrite);
     h_z_mass_width_gen->Write("h_z_mass_width_gen", TObject::kOverwrite);
+    if(!isPP){
+    h_z_mass_band->Write("h_z_mass_band", TObject::kOverwrite);
+    h_z_mass_mc_band->Write("h_z_mass_mc_band", TObject::kOverwrite);
+    h_z_mass_width_band->Write("h_z_mass_width_band", TObject::kOverwrite);
+    h_z_mass_width_mc_band->Write("h_z_mass_width_mc_band", TObject::kOverwrite);
+    f_width->Write("f_width", TObject::kOverwrite);
+    f_width_mc->Write("f_width_mc", TObject::kOverwrite);
+    f_mass->Write("f_mass", TObject::kOverwrite);
+    f_mass_mc->Write("f_mass_mc", TObject::kOverwrite);
+    }
     for (int i=0; i<nCentBins; ++i) {
         h_mass_cent_gen[i]->Write("", TObject::kOverwrite);
         h_mass_cent_mc[i]->Write("", TObject::kOverwrite);
@@ -407,6 +535,10 @@ void yj_eleMatchedPhotonZPeak_eleCut(
     for (int i=0; i<nCentBins; ++i) {
         cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
         cout << "Width of Invariant Mass(MC RECO) / Width of Invariant Mass(DATA RECO): \t" << invMass_width[1][i] << " / " << invMass_width[0][i] << endl;
+    }
+    for (int i=0; i<nCentBins; ++i) {
+        cout << "Centrality : "<< centBins[0][i] << " - " << centBins[1][i] << endl;
+        cout << "Width ERROR of Invariant Mass(MC RECO) / Width of ERROR Invariant Mass(DATA RECO): \t" << invMass_width_err[1][i] << " / " << invMass_width_err[0][i] << endl;
     }
     
     //return 0;
@@ -800,7 +932,7 @@ void fill_hists_gen(TTree* t_photon, TTree* t_event, TH1D* h_mass, TH1D* h_weigh
                 else
                     weight_cent = 1;
                 weight = weight_vz*weight_cent;
-                cout << "vz weight = " << weight_vz << ", cent weight = " << weight_cent << ", total weight = " << weight << endl;
+                //cout << "vz weight = " << weight_vz << ", cent weight = " << weight_cent << ", total weight = " << weight << endl;
 
                 if (z.M() != 0) {
                     h_mass->Fill(z.M(), weight);

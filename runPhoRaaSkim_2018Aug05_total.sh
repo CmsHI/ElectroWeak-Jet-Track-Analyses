@@ -2,7 +2,7 @@
 set -x
 
 #DATE=$(date +"%Y-%m-%d_%H_%M_%S")
-DATE=2018-08-05-nominal
+DATE=2018-08-15-nominal
 
 OUTDIR=/u/user/goyeonju/scratch/files/photons2016/GAMMAJETFILES/${DATE}
 
@@ -66,50 +66,53 @@ mkdir -p $OUTDIR
 #CONFIG=./CutConfigurations/photonRaa.conf
 #time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 0 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
 #
-#echo "### PbPb MC AllQCDPhotons Cymbal noFlt30 ###"
-#INFILE=./ShellScripts/photonRaa/filelist/PbPb_MC_Cymbal.list
-#OUTMCSKIM=PbPb_MC_photonRaaSkim_Cymbal.root
-#CONFIG=./CutConfigurations/photonRaa_mc.conf
-#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-##
-#echo "### pp MC AllQCDPhotons ###"
-#INFILE=./ShellScripts/photonRaa/filelist/pp_MC_v1.list
-#OUTMCSKIM=pp_MC_photonRaaSkim.root
-#CONFIG=./CutConfigurations/photonRaa_pp_mc.conf
-#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-#
-#echo "### pp MC EmEnrichedDijet ###"
-#INFILE=./ShellScripts/photonRaa/filelist/pp_EmEnrMC_v1.list
-#OUTMCSKIM=pp_EmEnrMC_photonRaaSkim.root
-#CONFIG=./CutConfigurations/photonRaa_pp_mc_EmEnr.conf
-#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-#
-#echo "### PbPb MC EmEnriched Cymbal ###"
-#INFILE=./ShellScripts/photonRaa/filelist/PbPb_EmEnrMC_Cymbal.list
-#OUTMCSKIM=PbPb_EmEnrMC_photonRaaSkim.root
-#CONFIG=./CutConfigurations/photonRaa_mc_EmEnr.conf
-#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-
-echo "### pp DATA HYBRID ###" #HighPtLowerPhotons for low pt photons
-INFILE=./ShellScripts/photonRaa/filelist/pp_Data_HighPtLowerPhotons.list
-OUTMCSKIM=pp_Data_photonRaaSkim_HighPtLowerPhotons_hybrid.root
-CONFIG=./CutConfigurations/photonRaa_pp_hybrid.conf
-time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-
-echo "### pp DATA HYBRID ###" #HighPtPhoton30AndZ for high pt photons
-INFILE=./ShellScripts/photonRaa/filelist/pp_Data_HighPtPhoton30AndZ.list
-OUTMCSKIM=pp_Data_photonRaaSkim_HighPtPhoton30AndZ_hybrid.root
-CONFIG=./CutConfigurations/photonRaa_pp_hybrid.conf
-time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 0 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
-
-echo "### pp MC AllQCDPhotons HYBRID ###"
+################# MC ####################
+echo "### pp MC AllQCDPhotons ###"
 INFILE=./ShellScripts/photonRaa/filelist/pp_MC_v1.list
-OUTMCSKIM=pp_MC_photonRaaSkim_hybrid.root
-CONFIG=./CutConfigurations/photonRaa_pp_mc_hybrid.conf
+OUTMCSKIM=pp_MC_photonRaaSkim.root
+CONFIG=./CutConfigurations/photonRaa_pp_mc.conf
 time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
 
-echo "### pp MC EmEnrichedDijet HYBRID  ###"
+echo "### PbPb MC AllQCDPhotons Cymbal noFlt30 ###"
+INFILE=./ShellScripts/photonRaa/filelist/PbPb_MC_Cymbal.list
+OUTMCSKIM=PbPb_MC_photonRaaSkim_Cymbal.root
+CONFIG=./CutConfigurations/photonRaa_mc.conf
+time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+#
+echo "### pp MC EmEnrichedDijet ###"
 INFILE=./ShellScripts/photonRaa/filelist/pp_EmEnrMC_v1.list
-OUTMCSKIM=pp_EmEnrMC_photonRaaSkim_hybrid.root
-CONFIG=./CutConfigurations/photonRaa_pp_mc_EmEnr_hybrid.conf
+OUTMCSKIM=pp_EmEnrMC_photonRaaSkim.root
+CONFIG=./CutConfigurations/photonRaa_pp_mc_EmEnr.conf
 time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+
+echo "### PbPb MC EmEnriched Cymbal ###"
+INFILE=./ShellScripts/photonRaa/filelist/PbPb_EmEnrMC_Cymbal.list
+OUTMCSKIM=PbPb_EmEnrMC_photonRaaSkim.root
+CONFIG=./CutConfigurations/photonRaa_mc_EmEnr.conf
+time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+
+
+############### HYBRID ####################
+#echo "### pp DATA HYBRID ###" #HighPtLowerPhotons for low pt photons
+#INFILE=./ShellScripts/photonRaa/filelist/pp_Data_HighPtLowerPhotons.list
+#OUTMCSKIM=pp_Data_photonRaaSkim_HighPtLowerPhotons_hybrid.root
+#CONFIG=./CutConfigurations/photonRaa_pp_hybrid.conf
+#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+#
+#echo "### pp DATA HYBRID ###" #HighPtPhoton30AndZ for high pt photons
+#INFILE=./ShellScripts/photonRaa/filelist/pp_Data_HighPtPhoton30AndZ.list
+#OUTMCSKIM=pp_Data_photonRaaSkim_HighPtPhoton30AndZ_hybrid.root
+#CONFIG=./CutConfigurations/photonRaa_pp_hybrid.conf
+#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 0 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+#
+#echo "### pp MC AllQCDPhotons HYBRID ###"
+#INFILE=./ShellScripts/photonRaa/filelist/pp_MC_v1.list
+#OUTMCSKIM=pp_MC_photonRaaSkim_hybrid.root
+#CONFIG=./CutConfigurations/photonRaa_pp_mc_hybrid.conf
+#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"
+#
+#echo "### pp MC EmEnrichedDijet HYBRID  ###"
+#INFILE=./ShellScripts/photonRaa/filelist/pp_EmEnrMC_v1.list
+#OUTMCSKIM=pp_EmEnrMC_photonRaaSkim_hybrid.root
+#CONFIG=./CutConfigurations/photonRaa_pp_mc_EmEnr_hybrid.conf
+#time ./ForestSkimmers/photons/photonRaaSkim.exe ${CONFIG} ${INFILE} ${OUTDIR}/${OUTMCSKIM} 1 > ${OUTDIR}/${OUTMCSKIM}.log || echo "ERROR"

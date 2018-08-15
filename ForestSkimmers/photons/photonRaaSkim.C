@@ -79,28 +79,55 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     int nEtaBins = etaBins[0].size();
 
     TFile* energyCorrectionFile = 0;
+    TFile* energySysFile = 0;
     TF1* photonEnergyCorrections[nCentBins][nEtaBins] = {0};
-    TF1* photonEnergyCorrections_res_sig[nCentBins][nEtaBins] = {0};
-    TF1* photonEnergyCorrections_res_rms[nCentBins][nEtaBins] = {0};
+   // TF1* photonEnergyCorrections_res_sig[nCentBins][nEtaBins] = {0};
     TF1* photonEnergyCorrections_pp[nEtaBins] = {0};
-    TF1* photonEnergyCorrections_res_sig_pp[nEtaBins] = {0};
-    TF1* photonEnergyCorrections_res_rms_pp[nEtaBins] = {0};
+   // TF1* photonEnergyCorrections_res_sig_pp[nEtaBins] = {0};
+
+    TF1* f_z_mass_data = {0};
+    TF1* f_z_mass_mc = {0};
+    TF1* f_z_width_data = {0}; //for mc smearing
+    TF1* f_z_width_mc = {0}; //for mc smearing
+    TH1D* h_z_width_data = {0};
+    TH1D* h_z_width_mc = {0};
+
+    TH1D* h_z_mass_data_pp = {0};
+    TH1D* h_z_mass_mc_pp = {0};
+    TH1D* h_z_width_data_pp = {0};
+    TH1D* h_z_width_mc_pp = {0};
+    
+   // int nCentBins_eSys= 4; 
+   // int centBins_eSys[2][nCentBins_eSys] = {{0, 20, 60, 100},{20, 60, 100, 200}};
+
     if (isHI) {
         energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file].c_str());
         for (int i=0; i<nCentBins; ++i){
             for (int j=0; j<nEtaBins; ++j){
                 photonEnergyCorrections[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent%i_eta%i", i, j));
-                photonEnergyCorrections_res_rms[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent%i_eta%i", i, j));
-                photonEnergyCorrections_res_sig[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent%i_eta%i", i, j));
+                //photonEnergyCorrections_res_rms[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent%i_eta%i", i, j));
+                //photonEnergyCorrections_res_sig[i][j] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent%i_eta%i", i, j));
             }
         }
+        energySysFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_sys_file].c_str());
+        f_z_mass_data = (TF1*)energySysFile->Get("f_mass");
+        f_z_mass_mc= (TF1*)energySysFile->Get("f_mass_mc");
+        f_z_width_data = (TF1*)energySysFile->Get("f_width");
+        f_z_width_mc= (TF1*)energySysFile->Get("f_width_mc");
+        h_z_width_data= (TH1D*)energySysFile->Get("h_z_mass_width_band");
+        h_z_width_mc= (TH1D*)energySysFile->Get("h_z_mass_width_band_mc");
     } else {
         energyCorrectionFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_correction_file_pp].c_str());
         for (int i=0; i<nEtaBins; ++i){
             photonEnergyCorrections_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_mean_gaus_cent0_eta%i", i));
-            photonEnergyCorrections_res_rms_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent0_eta%i", i));
-            photonEnergyCorrections_res_sig_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent0_eta%i", i));
+            //photonEnergyCorrections_res_rms_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_rms_cent0_eta%i", i));
+            //photonEnergyCorrections_res_sig_pp[i] = (TF1*)energyCorrectionFile->Get(Form("f_sig_gaus_cent0_eta%i", i));
         }
+        energySysFile = TFile::Open(configCuts.proc[CUTS::kCORRECTION].obj[CUTS::kPHOTON].s[CUTS::PHO::k_energy_sys_file_pp].c_str());
+        h_z_width_data_pp= (TH1D*)energySysFile->Get("h_z_mass_width");
+        h_z_width_mc_pp= (TH1D*)energySysFile->Get("h_z_mass_width_mc");
+        h_z_mass_data_pp= (TH1D*)energySysFile->Get("h_z_mass");
+        h_z_mass_mc_pp= (TH1D*)energySysFile->Get("h_z_mass_mc");
     }
 
     int nCentBins_sumIso = 5; 
@@ -190,10 +217,11 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
     std::vector<int> pho_genPID, pho_genStatus, pho_genMomPID;
     std::vector<float> phoEtCorrected, phoEtCorrected_sys, pho_sumIso, pho_sumIsoCorrected;
     std::vector<int> phoPreScale;
-    std::vector<float> phoEtCorrected_resSys_rms, phoEtCorrected_resSys_sig;
-    std::vector<float> phoEtCorrected_resSys_rms2, phoEtCorrected_resSys_sig2;
-    std::vector<float> phoEtCorrected_resSys_up, phoEtCorrected_resSys_down;
-    std::vector<int> pho_isEle, pho_is2015Noise; 
+    std::vector<float> phoEtCorrected_resSys_sig;
+    //std::vector<float> phoEtCorrected_resSys_rms, phoEtCorrected_resSys_sig;
+    //std::vector<float> phoEtCorrected_resSys_rms2, phoEtCorrected_resSys_sig2;
+    //std::vector<float> phoEtCorrected_resSys_up, phoEtCorrected_resSys_down;
+    std::vector<int> pho_isEle, pho_is2015Noise, pho_isSpike; 
    
     // trigger info for prescale 
     // pbpb
@@ -350,6 +378,7 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
         ggHi.pho_sumIsoCorrected = &pho_sumIsoCorrected;
         ggHi.pho_sumIso= &pho_sumIso;
         ggHi.pho_isEle = &pho_isEle;
+        ggHi.pho_isSpike = &pho_isSpike;
         ggHi.pho_is2015Noise = &pho_is2015Noise;
 
         // specify explicitly which branches to store, do not use wildcard
@@ -473,15 +502,16 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
             outputTreeggHiNtuplizer->Branch("phoPreScale", &phoPreScale);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected", &phoEtCorrected);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_sys", &phoEtCorrected_sys);
-            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms);
-            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms2", &phoEtCorrected_resSys_rms2);
+           // outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms", &phoEtCorrected_resSys_rms);
+           // outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_rms2", &phoEtCorrected_resSys_rms2);
             outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_sig", &phoEtCorrected_resSys_sig);
-            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_sig2", &phoEtCorrected_resSys_sig2);
-            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_up", &phoEtCorrected_resSys_up);
-            outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_down", &phoEtCorrected_resSys_down);
+           // outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_sig2", &phoEtCorrected_resSys_sig2);
+           // outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_up", &phoEtCorrected_resSys_up);
+           // outputTreeggHiNtuplizer->Branch("phoEtCorrected_resSys_down", &phoEtCorrected_resSys_down);
             outputTreeggHiNtuplizer->Branch("pho_sumIsoCorrected", &pho_sumIsoCorrected);
             outputTreeggHiNtuplizer->Branch("pho_sumIso", &pho_sumIso);
             outputTreeggHiNtuplizer->Branch("pho_isEle", &pho_isEle);
+            outputTreeggHiNtuplizer->Branch("pho_isSpike", &pho_isSpike);
             outputTreeggHiNtuplizer->Branch("pho_is2015Noise", &pho_is2015Noise);
             outputTreeHiEvt = treeHiEvt->CloneTree(0);
             outputTreeHiEvt->SetName("HiEvt");
@@ -556,15 +586,16 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
             phoPreScale.clear();
             phoEtCorrected.clear();
             phoEtCorrected_sys.clear();
-            phoEtCorrected_resSys_rms.clear();
-            phoEtCorrected_resSys_rms2.clear();
+           // phoEtCorrected_resSys_rms.clear();
+           // phoEtCorrected_resSys_rms2.clear();
             phoEtCorrected_resSys_sig.clear();
-            phoEtCorrected_resSys_sig2.clear();
-            phoEtCorrected_resSys_up.clear();
-            phoEtCorrected_resSys_down.clear();
+           // phoEtCorrected_resSys_sig2.clear();
+           // phoEtCorrected_resSys_up.clear();
+           // phoEtCorrected_resSys_down.clear();
             pho_sumIsoCorrected.clear();
             pho_sumIso.clear();
             pho_isEle.clear();
+            pho_isSpike.clear();
             pho_is2015Noise.clear();
 
             treeHLT->GetEntry(jentry);
@@ -642,106 +673,136 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
 
             for (int i=0; i<ggHi.nPho; ++i) {
                 int ieta = TMath::Abs((*ggHi.phoEta)[i]) < 1.44 ? 0 : 1;
+                
+                int nSmear = 1;
+                if(isMC) nSmear = 10;
+                for(int iSmear =0; iSmear < nSmear; iSmear++){
 
                 // apply corrections to every photon
                 double sumIso = (*ggHi.pho_ecalClusterIsoR4)[i] + (*ggHi.pho_hcalRechitIsoR4)[i] + (*ggHi.pho_trackIsoR4PtCut20)[i];
                 double phoEt_corrected = 0;
-                double resCorr1 = 0; 
-                double resCorr2 = 0;
-                double sigCorr1 = 0;
-                double sigCorr2 = 0;
-                double resUp = 0;
-                double resDown = 0;
-                if (isHI) {
-                    int icent = 0;
-                    for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
+               // double resCorr1 = 0; 
+               // double resCorr2 = 0;
+               // double sigCorr1 = 0;
+               // double sigCorr2 = 0;
+               // double resUp = 0;
+               // double resDown = 0;
 
-                    //cout << "hiBin = " << hiBin << " :: " << centBins[0][icent] << " <  centrality < " << centBins[1][icent] << endl;
-                    if ((*ggHi.phoEt)[i] > 10)
-                        phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
-                        //phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->GetBinContent(photonEnergyCorrections[icent][ieta]->FindBin((*ggHi.phoEt)[i]));
-                    phoEtCorrected.push_back(phoEt_corrected);
+                if (isHI) {
+                    //sumIso
                     pho_sumIso.push_back(sumIso);
                     int icent_sumIso = 0;
                     for (; hiBin>=centBins_sumIso[1][icent_sumIso] && icent_sumIso<nCentBins_sumIso; ++icent_sumIso);
                     pho_sumIsoCorrected.push_back(sumIso - sumIsoCorrections[icent_sumIso]->GetBinContent(sumIsoCorrections[icent_sumIso]->FindBin(getAngleToEP(fabs((*ggHi.phoPhi)[i] - hiEvtPlanes[8])))));
-
-                    // systematic variations from Ran
-                    // MC   0 - 30%   Z mass: 9.094649e+01
-                    // Data 0 - 30%   Z mass: 9.000079e+01
-                    // MC   30 - 100% Z mass: 9.094943e+01
-                    // Data 30 - 100% Z mass: 9.064840e+01
-                    //phoEt_corrected = (hiBin < 60) ? phoEt_corrected * (90.94649 / 90.00079) : phoEt_corrected * (90.94943 / 90.64840);
                     
-                    //Corrections/photonEnergyCorrections_pbpb_COMB_AllQCD_0726.root
-                    //Centrality : 0 - 20
-                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.5593 / 89.9524
-                    //Centrality : 20 - 60
-                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.5602 / 88.9576
-                    //Centrality : 60 - 100
-                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.1456 / 89.8954
-                    //Centrality : 100 - 200
-                    //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.1842 / 88.9759
-                    if(hiBin>=0 && hiBin<20) phoEt_corrected = phoEt_corrected * 90.5593 / 89.9524 ; 
-                    else if(hiBin>=20 && hiBin<60) phoEt_corrected = phoEt_corrected * 90.5602 / 88.9576; 
-                    else if(hiBin>=60 && hiBin<100) phoEt_corrected = phoEt_corrected * 90.1456 / 89.8954; 
-                    else phoEt_corrected = phoEt_corrected * 90.1842 / 88.9759; 
-                    phoEtCorrected_sys.push_back(phoEt_corrected);
-                    
+                    //hiBin for energy correction
+                    int icent = 0;
+                    for (; hiBin>=centBins[1][icent] && icent<nCentBins; ++icent);
 
-                    // energy resolution systematic
-                    float mean = photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
-                    float rms = photonEnergyCorrections_res_rms[icent][ieta]->Eval((*ggHi.phoEt)[i]);
-                    float sig = photonEnergyCorrections_res_sig[icent][ieta]->Eval((*ggHi.phoEt)[i]);
-                    resUp = (*ggHi.phoEt)[i] /(mean+sig);
-                    resDown = (*ggHi.phoEt)[i] /(mean-sig);
-                    if ((*ggHi.phoEt)[i] > 10){
-                        resCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
-                        resCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
-                        sigCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
-                        sigCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
+                    //pt correction, mc smearing
+                    if ((*ggHi.phoEt)[i] > 10)
+                        phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                        
+                    if(isMC){
+                        //pt smearing for mc photons
+                        double dataSigma = f_z_width_data->Eval(hiBin) / 90.74077; 
+                        double mcSigma = f_z_width_mc->Eval(hiBin) / 90.74077;
+                        double smearSigma = TMath::Sqrt(dataSigma*dataSigma-mcSigma*mcSigma);
+                        //phoEt_corrected = phoEt_corrected + r3.Gaus(0, smearSigma);
+                        phoEt_corrected = phoEt_corrected * r3->Gaus(1, smearSigma);
+                        //phoEtCorrected+=r3.Gaus(0, smearSigma);
                     }
-                   // if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
-                    phoEtCorrected_resSys_rms.push_back(resCorr1);
-                    phoEtCorrected_resSys_rms2.push_back(resCorr2);
-                    phoEtCorrected_resSys_sig.push_back(sigCorr1);
-                    phoEtCorrected_resSys_sig2.push_back(sigCorr2);
-                    phoEtCorrected_resSys_up.push_back(resUp);
-                    phoEtCorrected_resSys_down.push_back(resDown);
+                    phoEtCorrected.push_back(phoEt_corrected);
+
+                   // //hiBin for energy correction sys
+                   // int icent_eSys = 0;
+                   // for (; hiBin>=centBins_eSys[1][icent_eSys] && icent_eSys<nCentBins_eSys; ++icent_eSys);
+
+                    //energy correction systematic
+                    double eCorrFactor = f_z_mass_mc->Eval(hiBin)/f_z_mass_data->Eval(hiBin);
+                    double phoEt_corrected_sys = phoEt_corrected*eCorrFactor;
+                    phoEtCorrected_sys.push_back(phoEt_corrected_sys);
+                    
+                    // energy resolution systematic
+                    double dataSigma_e = h_z_width_data->GetBinError(h_z_width_data->FindBin(hiBin)) / 90.74077;
+                    double mcSigma_e = h_z_width_mc->GetBinError(h_z_width_mc->FindBin(hiBin)) / 90.74077;
+                    double smearSigma_e = TMath::Sqrt(dataSigma_e*dataSigma_e + mcSigma_e*mcSigma_e);
+                    //double phoEt_corrected_resSys = phoEt_corrected + r3->Gaus(0,smearSigma_e);
+                    double phoEt_corrected_resSys = phoEt_corrected * r3->Gaus(1,smearSigma_e);
+                    phoEtCorrected_resSys_sig.push_back(phoEt_corrected_resSys);
+
+                   // float mean = photonEnergyCorrections[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                   // //float rms = photonEnergyCorrections_res_rms[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                   // float sig = photonEnergyCorrections_res_sig[icent][ieta]->Eval((*ggHi.phoEt)[i]);
+                   // resUp = (*ggHi.phoEt)[i] /(mean+sig);
+                   // resDown = (*ggHi.phoEt)[i] /(mean-sig);
+                   // if ((*ggHi.phoEt)[i] > 10){
+                   //    // resCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
+                   //    // resCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,rms));
+                   //     sigCorr1 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
+                   //     sigCorr2 = (*ggHi.phoEt)[i] /(r3->Gaus(mean,sig));
+                   // }
+                   // // if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
+                   // // phoEtCorrected_resSys_rms.push_back(resCorr1);
+                   // // phoEtCorrected_resSys_rms2.push_back(resCorr2);
+                   // phoEtCorrected_resSys_sig2.push_back(sigCorr2);
+                   // phoEtCorrected_resSys_up.push_back(resUp);
+                   // phoEtCorrected_resSys_down.push_back(resDown);
 
 
                 } else { // pp
                     if ((*ggHi.phoEt)[i] > 10)
                         phoEt_corrected = (*ggHi.phoEt)[i] / photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                    
+                    if(isMC){ //pt smearing for mc photons
+                        double dataSigma = h_z_width_data_pp->GetBinContent(1) / 90.74077;
+                        double mcSigma = h_z_width_mc_pp->GetBinContent(1) / 90.74077;
+                        double smearSigma = TMath::Sqrt(dataSigma*dataSigma-mcSigma*mcSigma);
+                        //phoEt_corrected = phoEt_corrected + r3.Gaus(0, smearSigma);
+                        phoEt_corrected = phoEt_corrected * r3->Gaus(1, smearSigma);
+                        //phoEtCorrected+=r3.Gaus(0, smearSigma);
+                    }
 
                     phoEtCorrected.push_back(phoEt_corrected);
                     pho_sumIso.push_back(sumIso);
                     pho_sumIsoCorrected.push_back(sumIso);
                     
+                    //energy correction systematic
+                    double eCorrFactor = h_z_mass_mc_pp->GetBinContent(1)/h_z_mass_data_pp->GetBinContent(1);
+                    double phoEt_corrected_sys = phoEt_corrected*eCorrFactor;
+                    phoEtCorrected_sys.push_back(phoEt_corrected_sys);
+                    
                     //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.702 / 92.1719 //pp_DSCB_AllQCD_0713 
                     //Invariant Mass(MC RECO) / Invariant Mass(DATA RECO):    90.729 / 92.2026 //pp_COMB_AllQCD_0729 
-                    phoEt_corrected = phoEt_corrected * 90.729 / 92.2026;// after electron matching in the systematic
-                    phoEtCorrected_sys.push_back(phoEt_corrected);
+                    //phoEt_corrected = phoEt_corrected * 90.729 / 92.2026;// after electron matching in the systematic
+                    //phoEtCorrected_sys.push_back(phoEt_corrected);
                     
                     // energy resolution systematic
-                    float mean = photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
-                    float rms = photonEnergyCorrections_res_rms_pp[ieta]->Eval((*ggHi.phoEt)[i]);
-                    float sig = photonEnergyCorrections_res_sig_pp[ieta]->Eval((*ggHi.phoEt)[i]);
-                    resUp = (*ggHi.phoEt)[i] /(mean+sig);
-                    resDown = (*ggHi.phoEt)[i] /(mean-sig);
-                    if ((*ggHi.phoEt)[i] > 10){
-                        resCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
-                        resCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
-                        sigCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
-                        sigCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
-                    }
-                   // if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
-                    phoEtCorrected_resSys_rms.push_back(resCorr1);
-                    phoEtCorrected_resSys_rms2.push_back(resCorr2);
-                    phoEtCorrected_resSys_sig.push_back(sigCorr1);
-                    phoEtCorrected_resSys_sig2.push_back(sigCorr2);
-                    phoEtCorrected_resSys_up.push_back(resUp);
-                    phoEtCorrected_resSys_down.push_back(resDown);
+                    
+                    double dataSigma_e = h_z_width_data_pp->GetBinError(1) / 90.74077;
+                    double mcSigma_e = h_z_width_mc_pp->GetBinError(1) / 90.74077;
+                    double smearSigma_e = TMath::Sqrt(dataSigma_e*dataSigma_e + mcSigma_e*mcSigma_e);
+                    double phoEt_corrected_resSys = phoEt_corrected * r3->Gaus(1,smearSigma_e);
+                    phoEtCorrected_resSys_sig.push_back(phoEt_corrected_resSys);
+
+                   // float mean = photonEnergyCorrections_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                   // //float rms = photonEnergyCorrections_res_rms_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                   // float sig = photonEnergyCorrections_res_sig_pp[ieta]->Eval((*ggHi.phoEt)[i]);
+                   // resUp = (*ggHi.phoEt)[i] /(mean+sig);
+                   // resDown = (*ggHi.phoEt)[i] /(mean-sig);
+                   // if ((*ggHi.phoEt)[i] > 10){
+                   //    // resCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
+                   //    // resCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,rms));
+                   //     sigCorr1 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
+                   //     sigCorr2 = (*ggHi.phoEt)[i] / (r3->Gaus(mean,sig));
+                   // }
+                   //// if(jentry<50) cout << "pt = " << (*ggHi.phoEt)[i] << ", eta = " << (*ggHi.phoEta)[i] << "scale factor = " << mean << ", resolution = " << rms << ", resCorr = " << resCorr1 << ", "  << resCorr2  << endl; 
+                   //// phoEtCorrected_resSys_rms.push_back(resCorr1);
+                   //// phoEtCorrected_resSys_rms2.push_back(resCorr2);
+                   // phoEtCorrected_resSys_sig.push_back(sigCorr1);
+                   // phoEtCorrected_resSys_sig2.push_back(sigCorr2);
+                   // phoEtCorrected_resSys_up.push_back(resUp);
+                   // phoEtCorrected_resSys_down.push_back(resDown);
                 
                 }
         
@@ -871,19 +932,23 @@ int photonRaaSkim(const TString configFile, const TString inputFile, const TStri
                 bool failedEtaCut = (TMath::Abs(ggHi.phoEta->at(i)) > cutPhoEta);
                 if (failedEtaCut)
                     continue;
+
+                int phoisspike = 0;
                 bool failedSpikeRejection;
                 failedSpikeRejection = (ggHi.phoSigmaIEtaIEta->at(i) < 0.002 ||
                         ggHi.pho_swissCrx->at(i)     > 0.9   ||
                         TMath::Abs(ggHi.pho_seedTime->at(i)) > 3);
                 if (failedSpikeRejection)
-                    continue;
-
+                    phoisspike = 1;
+                pho_isSpike.push_back(phoisspike);
+                    
                 if (ggHi.phoEt->at(i) > maxPhoEt) {
                     maxPhoEt = ggHi.phoEt->at(i);
                     phoIdx = i;
                 }
+                }//smear loop
 
-            }
+            }//photon loop
 
             if (phoIdx == -1)
                 continue;
