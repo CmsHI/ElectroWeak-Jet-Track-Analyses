@@ -7,9 +7,19 @@ triggerFiles=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_EmEnrichedDijet30_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_EmEnrichedDijet50_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
+## EB
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_EmEnrichedDijet30_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_EmEnrichedDijet50_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V29/openHLT_merged.root"
 );
 
 inputList=(
+"Configurations/filelists/HIRun2018PbPb/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
+"Configurations/filelists/HIRun2018PbPb/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
+"Configurations/filelists/HIRun2018PbPb/Pythia8_EmEnrichedDijet30_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
+"Configurations/filelists/HIRun2018PbPb/Pythia8_EmEnrichedDijet50_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
+## EB
 "Configurations/filelists/HIRun2018PbPb/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
 "Configurations/filelists/HIRun2018PbPb/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
 "Configurations/filelists/HIRun2018PbPb/Pythia8_EmEnrichedDijet30_Hydjet_Quenched_Cymbal5Ev8_pp_on_AA_FOREST.list"
@@ -21,6 +31,11 @@ configList=(
 "Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.conf"
 "Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.conf"
 "Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.conf"
+## EB
+"Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.EB.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.EB.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.EB.conf"
+"Configurations/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna.HLT.Pythia.Hydjet.EB.conf"
 );
 
 outDirBase=$EWJTAOUT
@@ -33,6 +48,11 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_Pythia8_AllQ
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_Pythia8_AllQCDPhoton30_"$outputSuffix".root"
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_Pythia8_EmEnrichedDijet30_"$outputSuffix".root"
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_Pythia8_EmEnrichedDijet50_"$outputSuffix".root"
+## EB
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_EB_Pythia8_AllQCDPhoton15_"$outputSuffix".root"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_EB_Pythia8_AllQCDPhoton30_"$outputSuffix".root"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_EB_Pythia8_EmEnrichedDijet30_"$outputSuffix".root"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/photonTriggerAna_EB_Pythia8_EmEnrichedDijet50_"$outputSuffix".root"
 );
 
 arrayIndices=${!outList[*]}
