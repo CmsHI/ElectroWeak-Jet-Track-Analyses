@@ -131,6 +131,7 @@ int textFontCMSProj;
 float textSizeCMSProj;
 
 double statsIncreasePbPb = 10 / 0.404;
+double statsIncreasepPb = (2*208) / 27.4;     // assuming pPb is 5 TeV
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
@@ -1198,7 +1199,7 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasepPb));
     }
 
     // draw histograms
@@ -1271,7 +1272,7 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
     textSizeOverPad = 30;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            "pPb XXX nb^{-1}"
+            "pPb 2 pb^{-1}"
     };
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
