@@ -130,8 +130,12 @@ int textAlignCMSProj;
 int textFontCMSProj;
 float textSizeCMSProj;
 
-double statsIncreasePbPb = 10 / 0.404;
-double statsIncreasepPb = (2*208) / 27.4;     // assuming pPb is 5 TeV
+double projectedLumiPBPB = 10;   // nb
+double currentLumiPBPB = 0.404;  // nb
+double statsIncreasePBPB = projectedLumiPBPB / currentLumiPBPB;
+double projectedLumiPPB = 2;     // pb
+double currentLumiPP = 27.4;     // pb
+double statsIncreasePPB = (projectedLumiPPB*208) / currentLumiPP;     // assuming pPb is 5 TeV
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
@@ -291,7 +295,7 @@ void projectionPlot_xjz(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
     }
     // modify bin contents for projection
     double sf = 0.96;
@@ -528,7 +532,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
 
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
         if (i == 0) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
@@ -935,7 +939,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         drawSysUncBoxes(gr, h1Ds[k_pbpb], h1DsMergedUncCurrent[k_pbpb], sysUseRelUnc[k_pbpb]);
 
         // prepare and draw projected uncertainty
-        scaleBinErrors(h1DsMergedUncProjection[k_pbpb], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1DsMergedUncProjection[k_pbpb], 1./TMath::Sqrt(statsIncreasePBPB));
         if (sysReduction >= 0) {
             h1DsSys[k_pbpb]->Scale(1-sysReduction);
         }
@@ -1199,7 +1203,7 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasepPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePPB));
     }
 
     // draw histograms
@@ -1221,28 +1225,6 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
-
-    /*
-    legendX1 = 0.6;
-    legendY1 = 0.7875;
-    legendWidth = 0.44;
-    legendHeight = 0.1125;
-    legendMargin = 0.15;
-    legendEntryTexts = {
-            "PbPb, 0-30 %",
-    };
-    legendEntryOptions = {
-            "pf",
-    };
-    TLegend* leg = new TLegend();
-
-    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
-    hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
-
-    setLegend(leg);
-    leg->Draw();
-    */
 
     textAlign = 31;
     textFont = 43;
@@ -1401,7 +1383,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
@@ -1656,7 +1638,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
             drawSysUncBoxes(gr, h1Ds[i], h1DsMergedUncCurrent[i], sysUseRelUnc[i]);
 
             // prepare and draw projected uncertainty
-            scaleBinErrors(h1DsMergedUncProjection[i], 1./TMath::Sqrt(statsIncreasePbPb));
+            scaleBinErrors(h1DsMergedUncProjection[i], 1./TMath::Sqrt(statsIncreasePBPB));
             if (sysReduction >= 0) {
                 h1DsSys[i]->Scale(1-sysReduction);
             }
@@ -1927,7 +1909,7 @@ void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysRedu
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
@@ -2200,7 +2182,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
