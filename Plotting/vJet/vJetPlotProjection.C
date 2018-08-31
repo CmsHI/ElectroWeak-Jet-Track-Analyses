@@ -130,7 +130,7 @@ int textAlignCMSProj;
 int textFontCMSProj;
 float textSizeCMSProj;
 
-double statsIncrease = 10 / 0.404;
+double statsIncreasePbPb = 10 / 0.404;
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
@@ -290,7 +290,7 @@ void projectionPlot_xjz(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
     }
     // modify bin contents for projection
     double sf = 0.96;
@@ -527,7 +527,7 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction)
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
 
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
         if (i == 0) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
@@ -934,7 +934,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
         drawSysUncBoxes(gr, h1Ds[k_pbpb], h1DsMergedUncCurrent[k_pbpb], sysUseRelUnc[k_pbpb]);
 
         // prepare and draw projected uncertainty
-        scaleBinErrors(h1DsMergedUncProjection[k_pbpb], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1DsMergedUncProjection[k_pbpb], 1./TMath::Sqrt(statsIncreasePbPb));
         if (sysReduction >= 0) {
             h1DsSys[k_pbpb]->Scale(1-sysReduction);
         }
@@ -1198,7 +1198,7 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
     }
 
     // draw histograms
@@ -1400,7 +1400,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
@@ -1655,7 +1655,7 @@ void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet, double sys
             drawSysUncBoxes(gr, h1Ds[i], h1DsMergedUncCurrent[i], sysUseRelUnc[i]);
 
             // prepare and draw projected uncertainty
-            scaleBinErrors(h1DsMergedUncProjection[i], 1./TMath::Sqrt(statsIncrease));
+            scaleBinErrors(h1DsMergedUncProjection[i], 1./TMath::Sqrt(statsIncreasePbPb));
             if (sysReduction >= 0) {
                 h1DsSys[i]->Scale(1-sysReduction);
             }
@@ -1926,7 +1926,7 @@ void projectionPlot_xi_ratio(std::string inputFile, bool isxijet, double sysRedu
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
@@ -2199,7 +2199,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePbPb));
 
         // set x-axis range
         h1Ds[i]->SetAxisRange(0.5 + 0.001, 4.5 - 0.001, "X");
