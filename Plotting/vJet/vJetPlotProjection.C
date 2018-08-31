@@ -28,6 +28,7 @@ enum FIGURE{
     k_xjz_Theory,
     k_xjz_Theory_MergedUnc,
     k_xjz_pPb,
+    k_xjz_pPb_multBins,
     k_xijet,
     k_xigamma,
     k_xijet_MergedUnc,
@@ -44,6 +45,7 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xjz_Theory",
         "projection_xjz_Theory_MergedUnc",
         "projection_xjz_pPb",
+        "projection_xjz_pPb_multBins",
         "projection_xijet",
         "projection_xigamma",
         "projection_xijet_MergedUnc",
@@ -74,6 +76,7 @@ int yTitleFont;
 double yMin;
 double yMax;
 std::vector<std::string> histPaths;
+std::vector<std::string> histPathsStatUnc;      // paths to hist whose error carry the stats unc
 std::vector<int> markerColors;
 std::vector<int> markerStyles;
 std::vector<float> markerSizes;
@@ -142,6 +145,7 @@ void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction = 0);
+void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
@@ -163,6 +167,8 @@ void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, doubl
 void scaleBinErrors(TH1* h, double scale);
 void fillTH1fromTF1(TH1* h, TF1* f, int binFirst, int binLast);
 void mergeUncWithErrorBar(TH1* h, TH1* hSys, bool doRelUnc = false);
+void setBinErrors(TH1* h, std::vector<double> binErrors);
+std::vector<double> getBinErrors(TH1* h);
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction)
 {
@@ -182,6 +188,9 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_xjz_pPb:
             projectionPlot_xjz_pPb(inputFile, sysReduction);
+            break;
+        case k_xjz_pPb_multBins:
+            projectionPlot_xjz_pPb_multBins(inputFile, sysReduction);
             break;
         case k_xijet:
             projectionPlot_xi(inputFile, true, sysReduction);
@@ -1290,6 +1299,236 @@ void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction)
     input->Close();
 
     std::cout<<"running projectionPlot_xjz_pPb() - END"<<std::endl;
+}
+
+/*
+ * xjz projection for pPb in multiplicity bins
+ * Central values are based on Pythia
+ * Stats unc are based on pp data
+ * Sys unc are based on pp xjz results
+ */
+void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xjz_pPb_multBins()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    TCanvas* c = 0;
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[k_xjz_pPb_multBins].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[k_xjz_pPb_multBins].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[k_xjz_pPb_multBins].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "x_{jZ} = p^{jet}_{T}/p^{Z}_{T}";
+    yTitle = "#frac{1}{N_{Z}} #frac{dN_{jZ}}{dx_{jZ}}";
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 1.4;
+
+    enum HISTLABELS {
+        k_pythia_mult_lt5xmeanNch,
+        k_pythia_mult_5xmeanNch,
+        k_pythia_mult_10xmeanNch,
+        kN_HISTLABELS
+    };
+
+    std::vector<double> eventFractionsInData =
+    {
+            1-0.012,
+            0.012,
+            0.0091
+    };
+
+    histPaths = {
+            "h1D_xjz_pythia_mult_lt5xmeanNch",
+            "h1D_xjz_pythia_mult_5xmeanNch",
+            "h1D_xjz_pythia_mult_10xmeanNch"
+    };
+    histPathsStatUnc = {
+            "h1D_xjz_pp",
+            "h1D_xjz_pp",
+            "h1D_xjz_pp"
+    };
+
+    markerColors = {kBlack, kBlue, kRed};
+    markerStyles = {kFullCircle, kFullSquare, kFullCross};
+    markerSizes = {1.70, 1.70, 1.70};
+    lineColors = {kBlack, kBlue, kRed};
+    lineTransparencies = {1.0, 1.0, 1.0};
+    lineWidths = {3, 3, 3};
+    fillColors = {kBlack, kBlue, kRed};
+    if (sysReduction == -1) fillColors = {0, 0, 0};
+    fillTransparencies = {0.4, 0.4, 0.4};
+    drawOptions = {"e same", "e same", "e same"};
+    sysPaths = {
+            "h1D_sysVar_xjz_pp_rel",
+            "h1D_sysVar_xjz_pp_rel",
+            "h1D_sysVar_xjz_pp_rel"
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+                "NULL",
+                "NULL"
+        };
+    }
+    sysUseRelUnc = {true, true, true};
+    sysColors = {kBlack, kBlue, kRed};
+    sysTransparencies = {0.4, 0.4, 0.4};
+    sysFillStyles = {1001, 1001, 1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsStatUnc(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        h1DsStatUnc[i] = (TH1D*)input->Get(histPathsStatUnc[i].c_str());
+        std::vector<double> errorBars = getBinErrors(h1DsStatUnc[i]);
+        setBinErrors(h1Ds[i], errorBars);
+        double eventFraction = eventFractionsInData[i];
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePPB*eventFraction));
+    }
+
+    // draw histograms
+    // draw in reverse order so that the histograms with larger error bar appears first and stay underneath the other
+    for (int i = nHistPaths-1; i >= 0; --i) {
+
+        if (i == nHistPaths-1) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        if (input->Get(sysPaths[i].c_str())) {
+            h1DsSys[i] = (TH1D*)(input->Get(sysPaths[i].c_str())->Clone(Form("hSys_%d", i)));
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+            //drawSysUncBoxes(gr, h1DsStatUnc[0], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    legendX1 = 0.66;
+    legendY1 = 0.76;
+    legendWidth = 0.52;
+    legendHeight = 0.16;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "< 5 <N_{ch}>",
+            "5-7 <N_{ch}>",
+            "7-10 <N_{ch}>"
+    };
+    legendEntryOptions = {
+            "pf",
+            "pf",
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    for (int i = 0; i < nHistPaths; ++i) {
+        hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmp", h1Ds[i]->GetName()));
+        hTmp->SetLineWidth(0);
+        leg->AddEntry(hTmp, legendEntryTexts[i].c_str(), legendEntryOptions[i].c_str());
+    }
+
+    setLegend(leg);
+    leg->Draw();
+
+    textAlign = 31;
+    textFont = 43;
+    textSize = 32;
+    textLines = {
+            "p_{T}^{Z} > 60 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "#Delta#phi_{jZ} > #frac{7}{8}#pi"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.93;
+    textYs.resize(nTextLines, 0.70);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.056;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "pPb 2 pb^{-1}"
+    };
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.05;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_xjz_pPb_multBins() - END"<<std::endl;
 }
 
 void projectionPlot_xi(std::string inputFile, bool isxijet, double sysReduction)
@@ -2623,6 +2862,40 @@ void mergeUncWithErrorBar(TH1* h, TH1* hSys, bool doRelUnc)
 
         h->SetBinError(bin, errorBar);
     }
+}
+
+/*
+ * function to set bin errors of TH1 histogram.
+ * includes underflow and overflow bins, size of binErrors must be nBins + 2.
+ * avoids looping over the bins in the main program.
+ * helps to keep the code clean.
+ */
+void setBinErrors(TH1* h, std::vector<double> binErrors)
+{
+    int nBins = h->GetNbinsX();
+    int nVec  = binErrors.size();
+    if (nBins+2 != nVec)  return;
+
+    for ( int i = 0; i <= nBins+1; ++i)
+    {
+        h->SetBinError(i, binErrors.at(i));
+    }
+}
+
+/*
+ * returns the bin errors including underflow and overflow bins
+ * size of the vector is nBins+2.
+ */
+std::vector<double> getBinErrors(TH1* h)
+{
+    std::vector<double> res;
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; ++i)
+    {
+        res.push_back(h->GetBinError(i));
+    }
+
+    return res;
 }
 
 int main(int argc, char** argv)
