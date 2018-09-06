@@ -7,6 +7,7 @@ progCode="${progPath/.exe/.C}"
 
 inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V32/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V32_loose_hltRechitInRegionsECAL/openHLT_merged.root"
 );
 
 outDirBase=$EWJTAOUT
@@ -16,6 +17,7 @@ fi
 outputSuffix="Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018_hltTestEgamma_V32"
 outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$outputSuffix".log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$outputSuffix"_loose_hltRechitInRegionsECAL.log"
 );
 
 argFileTmp="./Performance/nTupleGetEntries.args.txt"
@@ -60,6 +62,7 @@ echo "==trees==" >> $argFileTmp
 echo "hltbitanalysis/HltTree" >> $argFileTmp
 
 argFiles=(
+$argFileTmp
 $argFileTmp
 );
 
