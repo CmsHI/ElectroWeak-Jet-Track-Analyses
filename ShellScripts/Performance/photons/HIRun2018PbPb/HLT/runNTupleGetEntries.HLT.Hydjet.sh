@@ -6,14 +6,14 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 inputList=(
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V29/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V32/openHLT_merged.root"
 );
 
 outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
-outputSuffix="Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018_hltTestEgamma_V29"
+outputSuffix="Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018_hltTestEgamma_V32"
 outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$outputSuffix".log"
 );
@@ -28,6 +28,13 @@ echo "HLT_GEDPhoton30 > 0" >> $argFileTmp
 echo "HLT_GEDPhoton40 > 0" >> $argFileTmp
 echo "HLT_GEDPhoton50 > 0" >> $argFileTmp
 echo "HLT_GEDPhoton60 > 0" >> $argFileTmp
+echo "HLT_GEDPhoton10_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton15_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton20_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton30_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton40_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton50_HECut > 0" >> $argFileTmp
+echo "HLT_GEDPhoton60_HECut > 0" >> $argFileTmp
 echo "HLT_GEDPhoton10_EB > 0" >> $argFileTmp
 echo "HLT_GEDPhoton15_EB > 0" >> $argFileTmp
 echo "HLT_GEDPhoton20_EB > 0" >> $argFileTmp
