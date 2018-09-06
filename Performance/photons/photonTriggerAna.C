@@ -597,6 +597,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                 }
 
                 treeTrigObjs[i]->SetBranchStatus("*", 1);
+                hltObjs[i].reset();
                 hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
             }
         }

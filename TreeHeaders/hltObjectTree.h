@@ -16,6 +16,7 @@ public :
         mass = 0;
     };
     ~hltObject(){};
+    void reset(){ hltObject(); };
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
 
