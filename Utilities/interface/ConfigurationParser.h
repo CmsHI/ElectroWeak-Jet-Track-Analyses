@@ -1026,6 +1026,7 @@ std::string ConfigurationParser::ParseSampleName(std::string fileName)
 
     // remove frequently occuring unnecessary information
     res = replaceAll(res, "/mnt/hadoop/cms/store/user/", "", false);
+    res = replaceAll(res, "xrootd.cmsaf.mit.edu", "", false);
     res = replaceAll(res, "/export/d00/scratch/", "", false);
     res = replaceAll(res, ".root", "", false);
     res = replaceAll(res, "PromptReco", "", false);
