@@ -1364,7 +1364,11 @@ std::string triggerAnalyzer::getHLTObjectName(std::string triggerName)
     std::string suffix = "_v";
     int suffixLen = suffix.size();
 
-    return triggerName.substr(0, triggerName.rfind(suffix)+suffixLen);
+    if (triggerName.find(suffix.c_str()) != std::string::npos) {
+        return triggerName.substr(0, triggerName.rfind(suffix)+suffixLen);
+    }
+    else
+        return triggerName;
 }
 
 /*
