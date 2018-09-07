@@ -415,6 +415,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
     Int_t triggerBits[nTriggerBranches];
     Int_t triggerPrescales[nPrescaleBranches];
 
+    std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
 
         std::cout << "### HLT bit analysis file ###" << std::endl;
@@ -439,6 +440,21 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
 
         triggerAnalyzer::setBranchesTrigger(treeTrig, triggerBranches, triggerBits, nTriggerBranches);
         triggerAnalyzer::setBranchesTrigger(treeTrig, prescaleBranches, triggerPrescales, nPrescaleBranches);
+
+        for (int i = 0; i < nTreeTrigObjPaths; ++i) {
+            std::string treeHltObjectPath = treeTrigObjPaths.at(i).c_str();
+            treeTrigObjs[i] = 0;
+            treeTrigObjs[i] = (TTree*)fileTrig->Get(treeHltObjectPath.c_str());
+
+            if (!treeTrigObjs[i]) {
+                std::cout << "tree is not found in the path : "<< treeHltObjectPath.c_str() <<". skipping the tree." << std::endl;
+                continue;
+            }
+
+            treeTrigObjs[i]->SetBranchStatus("*", 1);
+            hltObjs[i].reset();
+            hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
+        }
 
         emTrig = new EventMatcher();
 
@@ -572,7 +588,6 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
             continue;
         }
 
-        std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData ||
             runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
             treeTrigPath = "hltanalysisReco/HltTree";
