@@ -184,7 +184,7 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   if (isJS) {
       xMin = 0;
       xMax = 0.3;
-      yMin = 0.2;
+      yMin = 0.1+0.0001;
       yMax = 900000-0.001;
       yTitle = "#rho(r)";
   }
@@ -302,21 +302,21 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
     if (isJS) {
         if(i==0) {
             latex1X = 0.18;
-            latex1Y = 0.32;
+            latex1Y = 0.34;
             latex2X = 0.18;
-            latex2Y = 0.28;
+            latex2Y = 0.30;
         }
         else if (i==1) {
             latex1X = 0.18;
-            latex1Y = 0.47;
+            latex1Y = 0.49;
             latex2X = 0.18;
-            latex2Y = 0.42;
+            latex2Y = 0.44;
         }
         else if (i==2) {
             latex1X = 0.18;
-            latex1Y = 0.61;
+            latex1Y = 0.62;
             latex2X = 0.18;
-            latex2Y = 0.56;
+            latex2Y = 0.57;
         }
         else if (i==3) {
             latex1X = 0.18;
@@ -355,9 +355,9 @@ void plotCompact(std::string inputFile, int ifig, bool isJS)
   if (isJS) {
       leg1Xmin = 0.18;
       leg1Xmax = 0.48;
-      leg1Ymin = 0.02;
-      if (plotJSDataMC) leg1Ymin = 0.01;
-      leg1Ymax = 0.18;
+      leg1Ymin = 0.04;
+      if (plotJSDataMC) leg1Ymin = 0.03;
+      leg1Ymax = 0.20;
   }
   leg1 = CreateLegend(leg1Xmin, leg1Xmax, leg1Ymin, leg1Ymax, "",txtSize);
   leg1->AddEntry(grSystForLeg[1],strLeg[1].c_str(),"pf");
