@@ -1,0 +1,42 @@
+hjs_final_pbpbdata_corrjsrecoreco_100_200 0
+hjs_final_ppdata_corrjsrecoreco_100_200 1
+hjs_final_ppmc_ref0gen0_100_200 6
+hjs_final_pbpbdata_corrjsrecoreco_100_200 2
+hjs_final_ppmc_ref0gen0_100_200 7
+hjs_final_ppdata_corrjsrecoreco_100_200 3
++
+hjs_final_pbpbdata_corrjsrecoreco_60_100 0
+hjs_final_ppdata_corrjsrecoreco_100_200 1
+hjs_final_pbpbdata_corrjsrecoreco_60_100 2
+hjs_final_ppdata_corrjsrecoreco_100_200 3
++
+hjs_final_pbpbdata_corrjsrecoreco_20_60 0
+hjs_final_ppdata_corrjsrecoreco_100_200 1
+hjs_final_pbpbdata_corrjsrecoreco_20_60 2
+hjs_final_ppdata_corrjsrecoreco_100_200 3
++
+hjs_final_pbpbdata_corrjsrecoreco_0_20 0
+hjs_final_ppdata_corrjsrecoreco_100_200 1
+hjs_final_pbpbdata_corrjsrecoreco_0_20 2
+hjs_final_ppdata_corrjsrecoreco_100_200 3
++
+hjs_final_ratio_100_200 4
+hjs_final_ratio_ppmc_ppdata_100_200 8
+hjs_final_ratio_100_200 5
+hjs_final_ratio_ppmc_ppdata_100_200 9
++
+hjs_final_ratio_60_100 4
+hjs_final_ratio_60_100 5
++
+hjs_final_ratio_20_60 4
+hjs_final_ratio_20_60 5
++
+hjs_final_ratio_0_20 4
+hjs_final_ratio_0_20 5
+=
+PbPb
+pp
+PYTHIA 8
++
+PbPb / pp
+MC / pp
