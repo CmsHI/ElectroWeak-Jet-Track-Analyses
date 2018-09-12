@@ -10,7 +10,7 @@ destinationDir=$1
 sourceDir="./"
 
 sourceFiles=(
-"photonjetJS_compact_fig2.pdf"
+"js_60_30_gxi0_ppmc.pdf"
 );
 
 destinationFiles=(
