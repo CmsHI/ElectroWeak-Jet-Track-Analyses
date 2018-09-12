@@ -534,6 +534,22 @@ std::string set_systematics_style(TGraph* gr, int style) {
             gr->SetFillStyle(1001);
             gr->SetFillColorAlpha(RATIO_COLOUR, 0.7);
             return "same e x0";
+        case 6:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
+            return "same e x0";
+        case 7:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
+            return "same e x0";
+        case 8:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
+            return "same e x0";
+        case 9:
+            gr->SetFillStyle(1001);
+            gr->SetFillColorAlpha(PP_COLOUR, 0.7);
+            return "same e x0";
         default:
             gr->SetFillStyle(1001);
             gr->SetFillColor(1);
@@ -643,6 +659,48 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(kFullSquare);
             h1->SetMarkerSize(1.5);
+            option_strings.push_back("same e x0");
+            option_strings.push_back("pf");
+            break;
+        case 6:     /* pp mc (legend) */
+            h1->SetLineColorAlpha(PP_COLOUR, 0);
+            h1->SetLineWidth(0);
+            h1->SetLineColor(kGreen);
+            h1->SetLineStyle(kDashed);
+            h1->SetLineWidth(2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(kOpenCircle);
+            h1->SetMarkerSize(1.75);
+            option_strings.push_back("same e x0");
+            option_strings.push_back("l");
+            break;
+        case 7:     /* pp mc */
+            h1->SetLineColor(kGreen);
+            h1->SetLineStyle(kDashed);
+            h1->SetLineWidth(2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(kOpenCircle);
+            h1->SetMarkerSize(1.75);
+            option_strings.push_back("same hist x0");
+            option_strings.push_back("l");
+            break;
+        case 8:     /* mc / pp ratio (legend) */
+            h1->SetLineColorAlpha(PP_COLOUR, 0);
+            h1->SetLineWidth(0);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(kOpenSquare);
+            h1->SetMarkerSize(1.75);
+            h1->SetFillStyle(1001);
+            h1->SetFillColorAlpha(PP_COLOUR, 0.7);
+            option_strings.push_back("same e x0");
+            option_strings.push_back("pf");
+            break;
+        case 9:     /* mc / pp ratio */
+            h1->SetLineColor(1);
+            h1->SetLineWidth(1.2);
+            h1->SetMarkerColor(1);
+            h1->SetMarkerStyle(kOpenSquare);
+            h1->SetMarkerSize(1.75);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
