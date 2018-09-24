@@ -14,7 +14,7 @@ sourceFiles=(
 );
 
 destinationFiles=(
-"figures/jetshape_phoet60_jetpt30_paper.pdf"
+"./Figure_001.pdf"
 );
 
 arrayIndices=${!sourceFiles[*]}
