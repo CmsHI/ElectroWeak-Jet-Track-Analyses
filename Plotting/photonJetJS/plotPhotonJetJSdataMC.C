@@ -250,14 +250,14 @@ void plot_js_pp_data_mc(std::string inputFile)
             "hjs_final_ppmc_ref0gen0_100_200",
             "hjs_final_ratio_ppmc_ppdata_100_200"
     };
-    markerColors = {kBlack, kBlack, kBlack};
-    markerStyles = {kFullCircle, kOpenCircle, kFullCircle};
+    markerColors = {TColor::GetColor("#652DC1"), kBlack, TColor::GetColor("#299617")};
+    markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
     markerSizes = {1.70, 1.70, 1.70};
-    lineColors = {kBlack, kRed, kBlack};
+    lineColors = {kBlack, TColor::GetColor("#02ff08"), kBlack};
     lineTransparencies = {1.0, 1.0, 1.0};
     lineWidths = {3, 4, 3};
-    fillColors = {TColor::GetColor("#6699cc"), 0, TColor::GetColor("#6699cc")};
-    fillTransparencies = {0.7, 0, 0.7};
+    fillColors = {TColor::GetColor("#652DC1"), 0, TColor::GetColor("#299617")};
+    fillTransparencies = {0.4, 0, 0.4};
     drawOptions = {"e same", "hist same", "e same"};
     sysPaths = {
             "hjs_final_ppdata_corrjsrecoreco_100_200_systematics",
@@ -265,8 +265,8 @@ void plot_js_pp_data_mc(std::string inputFile)
             "hjs_final_ratio_ppmc_ppdata_100_200_systematics",
     };
     sysUseRelUnc = {false, false, false};
-    sysColors = {TColor::GetColor("#6699cc"), 0, TColor::GetColor("#6699cc")};
-    sysTransparencies = {0.7, 0.7, 0.7};
+    sysColors = {TColor::GetColor("#652DC1"), 0, TColor::GetColor("#299617")};
+    sysTransparencies = {0.4, 0.4, 0.4};
     sysFillStyles = {1001, 1001, 1001};
 
     int nHistPaths = histPaths.size();
