@@ -421,10 +421,10 @@ void plot_js_pp_data_mc(std::string inputFile)
         latex->Draw();
     }
 
-    bool isSupplementary = false;
+    bool isSupplementary = true;
     if (isSupplementary) {
         textXCMSpreliminary = 0.25;
-        textYCMSpreliminary = 0.72;
+        textYCMSpreliminary = 0.78;
         textAlignCMSpreliminary = 11;
         textFontCMSpreliminary = 52;
         textSizeCMSpreliminary = 0.06;

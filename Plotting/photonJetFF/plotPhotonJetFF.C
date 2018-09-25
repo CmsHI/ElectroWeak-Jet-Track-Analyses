@@ -326,7 +326,7 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
                 bool isSupplementary = true; // FF
                 if (isJS) {
                     isPreliminary = false;
-                    isSupplementary = false;
+                    if (canvas_title != "js_60_30_gxi0_ppmc") isSupplementary = true;
                 }
                 if (isPreliminary)  tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Preliminary", 5, cms_latex_size * 0.81, 13, c, r);
                 if (!isPreliminary && isSupplementary)  tiler->draw_latex_on_frame(0.04, 0.96 - cms_latex_size * 0.89, "Supplementary", 5, cms_latex_size * 0.81, 13, c, r);
