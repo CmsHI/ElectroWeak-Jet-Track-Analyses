@@ -253,7 +253,7 @@ void plot_js_pp_data_mc(std::string inputFile)
     markerColors = {TColor::GetColor("#652DC1"), kBlack, TColor::GetColor("#299617")};
     markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
     markerSizes = {1.70, 1.70, 1.70};
-    lineColors = {kBlack, TColor::GetColor("#02ff08"), kBlack};
+    lineColors = {kBlack, TColor::GetColor("#01CC06"), kBlack};
     lineTransparencies = {1.0, 1.0, 1.0};
     lineWidths = {3, 4, 3};
     fillColors = {TColor::GetColor("#652DC1"), 0, TColor::GetColor("#299617")};
