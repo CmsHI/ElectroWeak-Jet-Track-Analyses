@@ -17,6 +17,7 @@ sourceFiles=(
 "js_60_30_gxi0_cent030_ratio.pdf"
 "js_60_30_gxi0_cent1030_cent010_ratio.pdf"
 "js_60_30_gxi0_theory_ratio.pdf"
+"Configurations/photonJetJS/event_fraction/plot.phopt.processID.mcCalIso.fraction.Pythia8.AllQCDPhoton.HINppWinter16DR.pdf"
 );
 
 destinationFiles=(
@@ -27,6 +28,7 @@ destinationFiles=(
 "figures/supplementary/jetshape_phoet60_jetpt30_ratio_cent10030_cent030.pdf"
 "figures/supplementary/jetshape_phoet60_jetpt30_ratio_cent1030_cent010.pdf"
 "figures/supplementary/jetshape_phoet60_jetpt30_theory_ratio.pdf"
+"figures/supplementary/photon_eventfractions_mc.pdf"
 );
 
 arrayIndices=${!sourceFiles[*]}
