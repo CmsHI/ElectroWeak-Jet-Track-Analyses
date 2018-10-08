@@ -1397,12 +1397,12 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     histPaths = {
             "h1D_xjz_pythia_mult_lt5xmeanNch",
             "h1D_xjz_pythia_mult_5xmeanNch",
-            "h1D_xjz_pythia_mult_10xmeanNch"
+            "h1D_xjz_pythia_mult_10xmeanNch_rebin"
     };
     histPathsStatUnc = {
             "h1D_xjz_pp",
             "h1D_xjz_pp",
-            "h1D_xjz_pp"
+            "h1D_xjz_pp_rebin"
     };
 
     markerColors = {kBlack, kBlue, kRed};
