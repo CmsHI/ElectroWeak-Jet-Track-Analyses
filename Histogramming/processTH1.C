@@ -1,5 +1,5 @@
 /*
- * template macro to read TH1 from input file, process them, and write to output file
+ * template macro to read TH1 from input file, process it, and write to output file
  */
 
 #include <TFile.h>
@@ -17,14 +17,16 @@
 #include "../Utilities/systemUtil.h"
 
 void setTH1D(TH1D* h);
-void processTH1(std::string inputFile, std::string outputFile = "processTH1.root", std::string writeMode = "RECREATE");
+void processTH1(std::string inputFile, std::string outputFile = "processTH1.root", std::string writeMode = "RECREATE", std::string hInPath = "", std::string hOutPath = "");
 
-void processTH1(std::string inputFile, std::string outputFile, std::string writeMode)
+void processTH1(std::string inputFile, std::string outputFile, std::string writeMode, std::string hInPath, std::string hOutPath)
 {
     std::cout<<"running processTH1()"<<std::endl;
     std::cout<<"inputFile  = "<< inputFile.c_str()  <<std::endl;
     std::cout<<"outputFile = "<< outputFile.c_str() <<std::endl;
     std::cout<<"writeMode  = "<< writeMode.c_str() <<std::endl;
+    std::cout<<"hInPath  = "<< hInPath.c_str() <<std::endl;
+    std::cout<<"hOutPath = "<< hOutPath.c_str() <<std::endl;
 
     // TH1 objects
     TH1::SetDefaultSumw2();
@@ -42,24 +44,14 @@ void processTH1(std::string inputFile, std::string outputFile, std::string write
     TH1D* hOut = 0;
     //TH2D* h2DOut = 0;
 
-    std::vector<std::string> hInputPaths = {
-            "h1D_xjz_pp",
-            "h1D_xjz_pbpb_cent030"
-    };
+    hIn = 0;
+    hIn = (TH1D*)input->Get(hInPath.c_str());
+    if (hIn == 0) return;
 
-    int nHInputPaths = hInputPaths.size();
-    for (int i = 0; i < nHInputPaths; ++i) {
-        std::string hInputPath = hInputPaths[i];
-        hIn = 0;
-        hIn = (TH1D*)input->Get(hInputPath.c_str());
-        if (hIn == 0) continue;
-
-        std::string hOutputPath = Form("%s_unitNorm", hInputPath.c_str());
-        hOut = (TH1D*)hIn->Clone(hOutputPath.c_str());
-        setTH1D(hOut);
-        hOut->Scale(1.0 / hOut->Integral(), "width");
-        hOut->Write("",TObject::kOverwrite);
-    }
+    hOut = (TH1D*)hIn->Clone(hOutPath.c_str());
+    setTH1D(hOut);
+    hOut->Scale(1.0 / hOut->Integral(), "width");
+    hOut->Write("",TObject::kOverwrite);
 
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
@@ -68,7 +60,15 @@ void processTH1(std::string inputFile, std::string outputFile, std::string write
 
 int main(int argc, char** argv)
 {
-    if (argc == 4) {
+    if (argc == 6) {
+        processTH1(argv[1], argv[2], argv[3], argv[4], argv[5]);
+        return 0;
+    }
+    else if (argc == 5) {
+        processTH1(argv[1], argv[2], argv[3], argv[4]);
+        return 0;
+    }
+    else if (argc == 4) {
         processTH1(argv[1], argv[2], argv[3]);
         return 0;
     }
