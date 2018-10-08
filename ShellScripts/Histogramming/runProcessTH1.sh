@@ -14,6 +14,8 @@ outList=(
 "./Histogramming/processTH1.root"
 );
 
+writeMode="UPDATE"
+
 arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
@@ -24,7 +26,7 @@ do
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
-    $runCmd $progPath $inputFile $outputFile &> $outputFileLOG
-    echo "$runCmd $progPath $inputFile $outputFile &> $outputFileLOG"
+    $runCmd $progPath $inputFile $outputFile $writeMode &> $outputFileLOG
+    echo "$runCmd $progPath $inputFile $outputFile $writeMode &> $outputFileLOG"
 done
 

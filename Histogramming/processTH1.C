@@ -17,13 +17,14 @@
 #include "../Utilities/systemUtil.h"
 
 void setTH1D(TH1D* h);
-void processTH1(std::string inputFile, std::string outputFile = "processTH1.root");
+void processTH1(std::string inputFile, std::string outputFile = "processTH1.root", std::string writeMode = "RECREATE");
 
-void processTH1(std::string inputFile, std::string outputFile)
+void processTH1(std::string inputFile, std::string outputFile, std::string writeMode)
 {
     std::cout<<"running processTH1()"<<std::endl;
-    std::cout<<"inputFile   = "<< inputFile.c_str()  <<std::endl;
-    std::cout<<"outputFile  = "<< outputFile.c_str() <<std::endl;
+    std::cout<<"inputFile  = "<< inputFile.c_str()  <<std::endl;
+    std::cout<<"outputFile = "<< outputFile.c_str() <<std::endl;
+    std::cout<<"writeMode  = "<< writeMode.c_str() <<std::endl;
 
     // TH1 objects
     TH1::SetDefaultSumw2();
@@ -32,7 +33,7 @@ void processTH1(std::string inputFile, std::string outputFile)
     input = TFile::Open(inputFile.c_str(), "READ");
     input->cd();
 
-    TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
+    TFile* output = TFile::Open(outputFile.c_str(), writeMode.c_str());
     output->cd();
 
     TH1D* hIn = 0;
@@ -67,13 +68,17 @@ void processTH1(std::string inputFile, std::string outputFile)
 
 int main(int argc, char** argv)
 {
-    if (argc == 3) {
+    if (argc == 4) {
+        processTH1(argv[1], argv[2], argv[3]);
+        return 0;
+    }
+    else if (argc == 3) {
         processTH1(argv[1], argv[2]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./Histogramming/processTH1.exe <inputFile> <outputFile>"
+                "./Histogramming/processTH1.exe <inputFile> <outputFile> <writeMode>"
                 << std::endl;
         return 1;
     }
