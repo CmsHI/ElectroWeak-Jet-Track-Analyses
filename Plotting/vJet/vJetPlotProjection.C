@@ -1440,6 +1440,8 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     TH1D* hTmp = 0;
     for (int i = 0; i < nHistPaths; ++i) {
 
+        if (i == k_pythia_mult_10xmeanNch) continue;
+
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
         h1DsStatUnc[i] = (TH1D*)input->Get(histPathsStatUnc[i].c_str());
@@ -1458,7 +1460,10 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     // draw in reverse order so that the histograms with larger error bar appears first and stay underneath the other
     for (int i = nHistPaths-1; i >= 0; --i) {
 
-        if (i == nHistPaths-1) {
+        if (i == k_pythia_mult_10xmeanNch) continue;
+
+        if (i == nHistPaths-2) {
+        //if (i == nHistPaths-1) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
         }
@@ -1479,7 +1484,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     legendX1 = 0.66;
     legendY1 = 0.76;
     legendWidth = 0.52;
-    legendHeight = 0.16;
+    legendHeight = 0.16 * 2/3;
     legendMargin = 0.15;
     legendEntryTexts = {
             "< 5 <N_{ch}>",
@@ -1494,6 +1499,9 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     TLegend* leg = new TLegend();
 
     for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i == k_pythia_mult_10xmeanNch) continue;
+
         hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmp", h1Ds[i]->GetName()));
         hTmp->SetLineWidth(0);
         leg->AddEntry(hTmp, legendEntryTexts[i].c_str(), legendEntryOptions[i].c_str());
