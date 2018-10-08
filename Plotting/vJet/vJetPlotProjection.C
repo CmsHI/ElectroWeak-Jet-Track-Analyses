@@ -1391,7 +1391,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     {
             1-0.012,
             0.012,
-            0.0091
+            0.00091
     };
 
     histPaths = {
