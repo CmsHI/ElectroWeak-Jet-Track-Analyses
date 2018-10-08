@@ -42,11 +42,8 @@ void processTH1(std::string inputFile, std::string outputFile)
     //TH2D* h2DOut = 0;
 
     std::vector<std::string> hInputPaths = {
-            "hnPhoJet_ppdata_recoreco_100_200",
-            "hnPhoJet_pbpbdata_recoreco_100_200",
-            "hnPhoJet_pbpbdata_recoreco_0_20",
-            "hnPhoJetjetmix_pbpbdata_recoreco_100_200",
-            "hnPhoJetjetmix_pbpbdata_recoreco_0_20"
+            "h1D_xjz_pp",
+            "h1D_xjz_pbpb_cent030"
     };
 
     int nHInputPaths = hInputPaths.size();
@@ -56,10 +53,10 @@ void processTH1(std::string inputFile, std::string outputFile)
         hIn = (TH1D*)input->Get(hInputPath.c_str());
         if (hIn == 0) continue;
 
-        std::string hOutputPath = replaceAll(hInputPath, "_recoreco", "");
+        std::string hOutputPath = Form("%s_unitNorm", hInputPath.c_str());
         hOut = (TH1D*)hIn->Clone(hOutputPath.c_str());
         setTH1D(hOut);
-        hOut->Scale(1.0 / hOut->Integral());
+        hOut->Scale(1.0 / hOut->Integral(), "width");
         hOut->Write("",TObject::kOverwrite);
     }
 
