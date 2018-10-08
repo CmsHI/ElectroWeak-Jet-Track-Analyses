@@ -30,6 +30,7 @@ enum FIGURE{
     k_xjz_pPb,
     k_xjz_pPb_multBins,
     k_xjz_pp_multBins,
+    k_xjg_pp_multBins,
     k_xijet,
     k_xigamma,
     k_xijet_MergedUnc,
@@ -48,6 +49,7 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xjz_pPb",
         "projection_xjz_pPb_multBins",
         "projection_xjz_pp_multBins",
+        "projection_xjg_pp_multBins",
         "projection_xijet",
         "projection_xigamma",
         "projection_xijet_MergedUnc",
@@ -151,7 +153,8 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
 void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction = 0);
-void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction = 0, int iCollision = 0);
+void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction = 0);
+void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction = 0, int iCollision = 0, int iszjet = 1);
 void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
@@ -200,6 +203,9 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_xjz_pp_multBins:
             projectionPlot_xjz_pp_multBins(inputFile, sysReduction);
+            break;
+        case k_xjg_pp_multBins:
+            projectionPlot_xjg_pp_multBins(inputFile, sysReduction);
             break;
         case k_xijet:
             projectionPlot_xi(inputFile, true, sysReduction);
@@ -1314,7 +1320,7 @@ void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction)
 {
     std::cout<<"running projectionPlot_xjz_pPb_multBins()"<<std::endl;
 
-    projectionPlot_xjz_multBins(inputFile, sysReduction, 1);
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 1, 1);
 
     std::cout<<"running projectionPlot_xjz_pPb_multBins() - END"<<std::endl;
 }
@@ -1323,18 +1329,28 @@ void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction)
 {
     std::cout<<"running projectionPlot_xjz_pp_multBins()"<<std::endl;
 
-    projectionPlot_xjz_multBins(inputFile, sysReduction, 0);
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 1);
 
     std::cout<<"running projectionPlot_xjz_pp_multBins() - END"<<std::endl;
 }
 
+void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xjg_pp_multBins()"<<std::endl;
+
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 0);
+
+    std::cout<<"running projectionPlot_xjg_pp_multBins() - END"<<std::endl;
+}
+
 /*
- * xjz projection for pp or pPb in multiplicity bins
+ * xjz and xjg projections for pp or pPb in multiplicity bins
  * Central values are based on Pythia
  * Stats unc are based on pp data
  * Sys unc are based on pp xjz results
+ * if iszjet = 1, then make xjz plot. Else make xjg plot
  */
-void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int iCollision)
+void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int iCollision, int iszjet)
 {
     TFile* input  = TFile::Open(inputFile.c_str());
 
@@ -1354,7 +1370,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
 
     int iFig = -1;
     if (iCollision == 0)
-        iFig = k_xjz_pp_multBins;
+        iFig = (iszjet == 1) ? k_xjz_pp_multBins : k_xjg_pp_multBins;
     else if (iCollision == 1)
         iFig = k_xjz_pPb_multBins;
 
@@ -1368,8 +1384,10 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     setCanvas(c);
     c->cd();
 
-    xTitle = "x_{jZ} = p^{jet}_{T}/p^{Z}_{T}";
-    yTitle = "#frac{1}{N_{Z}} #frac{dN_{jZ}}{dx_{jZ}}";
+    std::string vStr = (iszjet == 1) ? "Z" : "#gamma";
+
+    xTitle = Form("x_{j%s} = p^{jet}_{T}/p^{%s}_{T}", vStr.c_str(), vStr.c_str());
+    yTitle = Form("#frac{1}{N_{%s}} #frac{dN_{j%s}}{dx_{j%s}}", vStr.c_str(), vStr.c_str(), vStr.c_str());
     xTitleSize = 0.0525;
     yTitleSize = 0.0525;
     xTitleOffset = 1.25;
@@ -1394,16 +1412,30 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
             0.00091
     };
 
-    histPaths = {
-            "h1D_xjz_pythia_mult_lt5xmeanNch",
-            "h1D_xjz_pythia_mult_5xmeanNch",
-            "h1D_xjz_pythia_mult_10xmeanNch_rebin"
-    };
-    histPathsStatUnc = {
-            "h1D_xjz_pp",
-            "h1D_xjz_pp",
-            "h1D_xjz_pp_rebin"
-    };
+    if (iszjet == 1) {
+        histPaths = {
+                "h1D_xjz_pythia_mult_lt5xmeanNch",
+                "h1D_xjz_pythia_mult_5xmeanNch",
+                "h1D_xjz_pythia_mult_10xmeanNch_rebin"
+        };
+        histPathsStatUnc = {
+                "h1D_xjz_pp",
+                "h1D_xjz_pp",
+                "h1D_xjz_pp_rebin"
+        };
+    }
+    else {
+        histPaths = {
+                "hxjg_nlt5",
+                "hxjg_ngt5lt7",
+                "hxjg_ngt7lt10"
+        };
+        histPathsStatUnc = {
+                "hxjg_nlt5",
+                "hxjg_ngt5lt7",
+                "hxjg_ngt7lt10"
+        };
+    }
 
     markerColors = {kBlack, kBlue, kRed};
     markerStyles = {kFullCircle, kFullSquare, kFullCross};
@@ -1415,11 +1447,20 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     if (sysReduction == -1) fillColors = {0, 0, 0};
     fillTransparencies = {0.4, 0.4, 0.4};
     drawOptions = {"e same", "e same", "e same"};
-    sysPaths = {
-            "h1D_sysVar_xjz_pp_rel",
-            "h1D_sysVar_xjz_pp_rel",
-            "h1D_sysVar_xjz_pp_rel"
-    };
+    if (iszjet == 1) {
+        sysPaths = {
+                "h1D_sysVar_xjz_pp_rel",
+                "h1D_sysVar_xjz_pp_rel",
+                "h1D_sysVar_xjz_pp_rel"
+        };
+    }
+    else {
+        sysPaths = {
+                "hxjg_nlt5_sys",
+                "hxjg_ngt5lt7_sys",
+                "hxjg_ngt7lt10_sys"
+        };
+    }
     if (sysReduction == -1) {
         sysPaths = {
                 "NULL",
@@ -1428,6 +1469,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
         };
     }
     sysUseRelUnc = {true, true, true};
+    if (iszjet != 1) sysUseRelUnc = {false, false, false};
     sysColors = {kBlack, kBlue, kRed};
     sysTransparencies = {0.4, 0.4, 0.4};
     sysFillStyles = {1001, 1001, 1001};
@@ -1440,30 +1482,32 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     TH1D* hTmp = 0;
     for (int i = 0; i < nHistPaths; ++i) {
 
-        if (i == k_pythia_mult_10xmeanNch) continue;
+        if (iszjet == 1 && i == k_pythia_mult_10xmeanNch) continue;
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
         h1DsStatUnc[i] = (TH1D*)input->Get(histPathsStatUnc[i].c_str());
         std::vector<double> errorBars = getBinErrors(h1DsStatUnc[i]);
         setBinErrors(h1Ds[i], errorBars);
-        double eventFraction = eventFractionsInData[i];
-        double statsIncrease = 0;
-        if (iCollision == 0)
-            statsIncrease = statsIncreasePP;
-        else if (iCollision == 1)
-            statsIncrease = statsIncreasePPB;
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease*eventFraction));
+
+        if (iszjet == 1) {
+            double eventFraction = eventFractionsInData[i];
+            double statsIncrease = 0;
+            if (iCollision == 0)
+                statsIncrease = statsIncreasePP;
+            else if (iCollision == 1)
+                statsIncrease = statsIncreasePPB;
+            scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease*eventFraction));
+        }
     }
 
     // draw histograms
     // draw in reverse order so that the histograms with larger error bar appears first and stay underneath the other
     for (int i = nHistPaths-1; i >= 0; --i) {
 
-        if (i == k_pythia_mult_10xmeanNch) continue;
+        if (iszjet == 1 && i == k_pythia_mult_10xmeanNch) continue;
 
-        if (i == nHistPaths-2) {
-        //if (i == nHistPaths-1) {
+        if ((iszjet == 1 && i == nHistPaths-2) ||  (iszjet != 1 && i == nHistPaths-1)) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
         }
@@ -1484,7 +1528,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     legendX1 = 0.66;
     legendY1 = 0.76;
     legendWidth = 0.52;
-    legendHeight = 0.16 * 2/3;
+    legendHeight = (iszjet == 1) ? 0.16 * 2/3 : 0.16;
     legendMargin = 0.15;
     legendEntryTexts = {
             "< 5 <N_{ch}>",
@@ -1500,7 +1544,7 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
 
     for (int i = 0; i < nHistPaths; ++i) {
 
-        if (i == k_pythia_mult_10xmeanNch) continue;
+        if (iszjet == 1 && i == k_pythia_mult_10xmeanNch) continue;
 
         hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmp", h1Ds[i]->GetName()));
         hTmp->SetLineWidth(0);
@@ -1513,13 +1557,25 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     textAlign = 31;
     textFont = 43;
     textSize = 32;
-    textLines = {
-            "p_{T}^{Z} > 60 GeV/c",
-            "anti-k_{T} jet R = 0.3",
-            "p_{T}^{jet} > 30 GeV/c",
-            "|#eta^{jet}| < 1.6",
-            "#Delta#phi_{jZ} > #frac{7}{8}#pi"
-    };
+    if (iszjet == 1) {
+        textLines = {
+                Form("p_{T}^{%s} > 60 GeV/c", vStr.c_str()),
+                "anti-k_{T} jet R = 0.3",
+                "p_{T}^{jet} > 30 GeV/c",
+                "|#eta^{jet}| < 1.6",
+                Form("#Delta#phi_{j%s} > #frac{7}{8}#pi", vStr.c_str())
+        };
+    }
+    else {
+        textLines = {
+                Form("p_{T}^{%s} > 60 GeV/c", vStr.c_str()),
+                Form("|#eta^{%s}| < 1.44", vStr.c_str()),
+                "anti-k_{T} jet R = 0.3",
+                "p_{T}^{jet} > 30 GeV/c",
+                "|#eta^{jet}| < 1.6",
+                Form("#Delta#phi_{j%s} > #frac{7}{8}#pi", vStr.c_str())
+        };
+    }
     int nTextLines = textLines.size();
     textX = 0.93;
     textYs.resize(nTextLines, 0.70);
