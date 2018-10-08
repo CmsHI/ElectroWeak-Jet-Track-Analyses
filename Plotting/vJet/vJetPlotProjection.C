@@ -1529,13 +1529,13 @@ void projectionPlot_xjz_multBins(std::string inputFile, double sysReduction, int
     else if (iCollision == 1)
         collisionText = Form("pPb %d pb^{-1}", (int)projectedLumiPPB);
 
-    textXsOverPad = {0.22, 0.96};
+    textXsOverPad = {0.96};  //{0.22, 0.96};
     textYOverPad = 0.96;
-    textAlignsOverPad = {11, 31};
+    textAlignsOverPad = {31};  // {11, 31};
     textFontOverPad = 43;
     textSizeOverPad = 30;
     textOverPadLines = {
-            "#sqrt{s_{NN}} = 5.02 TeV",
+            //"#sqrt{s_{NN}} = 5.02 TeV",
             collisionText.c_str()
     };
     int nTextOverPadLines = textOverPadLines.size();
