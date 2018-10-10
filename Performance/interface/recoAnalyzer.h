@@ -378,6 +378,7 @@ public :
     bool isValid();
     void updateTH1();
     void updateH1DsliceY();
+    void updateH1DsliceYnormE();
     void updateH1DeScale();
     void updateH1Dcorr();
 
@@ -395,7 +396,7 @@ public :
     static std::vector<std::string> splitTextLines(std::vector<std::string> textLines, int nColumns);
 
     void postLoop();
-    void fitRecoGen();
+    void fitRecoGen(bool isNormE = false);
     void calcMatchEff();
     void calcFakeRatio();
     void calcFakeParticleRatio();
@@ -442,6 +443,7 @@ public :
     bool isValid_h2Dcorr[RECOANA::kN_CORRS];
 
     std::vector<TH1D*> h1DsliceY;           // energy scale distribution for each bin along x-axis
+    std::vector<TH1D*> h1DsliceYnormE;           // h1DsliceY, normalized by mean of energy scale
     /*
      * analyzers for 1D energy scale distribution histograms in h1DsliceY
      * esa is 2D vector with [nBinsX][nFitFncs]
@@ -450,6 +452,7 @@ public :
      * esa[i][2] : fit is seeded by FitSlicesY, uses bin range that covers 98% of the integral
      */
     std::vector<std::vector<eScaleAnalyzer>> esa;
+    std::vector<std::vector<eScaleAnalyzer>> esaNormE;
     int indexFncFinal;    // index of the fit function to set the bins of h1DeScale[0], h1DeScale[1]
                           // function whose results will be the final fit results
     std::vector<int> indicesFnc;    // indices of the fit functions to be shown in the 1D energy scale plots
@@ -972,6 +975,49 @@ void recoAnalyzer::updateH1DsliceY()
     }
 }
 
+void recoAnalyzer::updateH1DsliceYnormE()
+{
+    h1DsliceYnormE.clear();
+    h1DsliceYnormE.resize(nBinsX);
+
+    // reco pt / gen pt distributions normalized by mean of the distribution
+    for (int i=1; i<=nBinsX; ++i) {
+
+        h1DsliceYnormE[i-1] = (TH1D*)h1DsliceY[i-1]->Clone(Form("h1D_projYnormEbin%d_%s", i, name.c_str()));
+        h1DsliceYnormE[i-1]->Reset();
+
+        std::string xTitleTmp = Form ("( %s ) / mean", h1DsliceYnormE[i-1]->GetXaxis()->GetTitle());
+        h1DsliceYnormE[i-1]->SetXTitle(xTitleTmp.c_str());
+
+        //h1DsliceYnormE[i-1]->SetMinimum(h1DsliceY[i-1]->GetMinimum());
+        //h1DsliceYnormE[i-1]->SetMaximum(h1DsliceY[i-1]->GetMaximum());
+
+        /*
+        h1DsliceYnormE[i-1]->SetTitleOffset(titleOffsetX, "X");
+        h1DsliceYnormE[i-1]->SetTitleOffset(titleOffsetY, "Y");
+        h1DsliceYnormE[i-1]->SetStats(false);
+        h1DsliceYnormE[i-1]->GetXaxis()->CenterTitle();
+        h1DsliceYnormE[i-1]->GetYaxis()->CenterTitle();
+        h1DsliceYnormE[i-1]->SetMarkerStyle(kFullCircle);
+        */
+
+        double meanTmp = 0;
+        if (esa[i-1][indexFncFinal].isValid_f1) {
+            meanTmp = esa[i-1][indexFncFinal].f1Mean;
+        }
+
+        for (int iBin = 1; iBin <= h1DsliceY[i-1]->GetNbinsX(); ++iBin) {
+            double xNormTmp = h1DsliceY[i-1]->GetBinCenter(iBin) / meanTmp;
+            int binNormTmp = h1DsliceYnormE[i-1]->FindBin(xNormTmp);
+
+            h1DsliceYnormE[i-1]->AddBinContent(binNormTmp, h1DsliceY[i-1]->GetBinContent(iBin));
+            double binErrorTmp = h1DsliceYnormE[i-1]->GetBinError(binNormTmp);
+            double binErrorAdded = h1DsliceY[i-1]->GetBinError(iBin);
+            h1DsliceYnormE[i-1]->SetBinError(binNormTmp, TMath::Sqrt(binErrorTmp*binErrorTmp + binErrorAdded*binErrorAdded));
+        }
+    }
+}
+
 void recoAnalyzer::updateH1DeScale()
 {
     for (int i = 1; i <= nBinsX; ++i) {
@@ -1385,6 +1431,8 @@ void recoAnalyzer::postLoop()
         updateH1DsliceY();
 
         fitRecoGen();
+        updateH1DsliceYnormE();
+        fitRecoGen(true);
         // up to this point bins of h1DeScale[0], h1DeScale[1], h1DeScale[6], h1DeScale[7] are set by the initial fit from TH2::FitSlicesY
         updateH1DeScale();
     }
@@ -1414,23 +1462,37 @@ void recoAnalyzer::postLoop()
  * fit distributions that compare reco-level and gen-level objects
  * Ex. fit reco pt / gen pt distribution
  */
-void recoAnalyzer::fitRecoGen()
+void recoAnalyzer::fitRecoGen(bool isNormE)
 {
     // reco pt / gen pt distributions and fits
     TH1D* hTmp = 0;
     TF1* f1Tmp = 0;
 
-    esa.clear();
-    esa.resize(nBinsX);
+    if (!isNormE) {
+        esa.clear();
+        esa.resize(nBinsX);
+    }
+    else {
+        esaNormE.clear();
+        esaNormE.resize(nBinsX);
+    }
 
     for (int i=1; i<=nBinsX; ++i) {
 
-        hTmp = h1DsliceY[i-1];
+        if (!isNormE) {
+            hTmp = h1DsliceY[i-1];
+        }
+        else {
+            hTmp = h1DsliceYnormE[i-1];
+        }
 
         double p0 = h1DeScale[6]->GetBinContent(i);   // constant
         double p0Err = h1DeScale[6]->GetBinError(i);
 
         double p1 = h1DeScale[RECOANA::kESCALE]->GetBinContent(i);   // mean
+        if (isNormE) {
+            p1 = 1;
+        }
         double p1Err = h1DeScale[RECOANA::kESCALE]->GetBinError(i);
 
         double p2 = h1DeScale[RECOANA::kERES]->GetBinContent(i);   // StdDev
@@ -1444,11 +1506,20 @@ void recoAnalyzer::fitRecoGen()
         for (int iFnc = 0; iFnc < ESANA::kN_FNCS; ++iFnc) {
 
             if (ESANA::FNC_LABELS[iFnc] == "DSCB") {
-                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), fnc_DSCB, 0, 1, getFncNpar(fnc_DSCB));
+                std::string f1NameTmp = Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str());
+                if (isNormE) {
+                    f1NameTmp = Form("f1_normE_bin%d_fnc%d_%s", i, iFnc, name.c_str());
+                }
+                f1Tmp = new TF1(f1NameTmp.c_str(), fnc_DSCB, 0, 1, getFncNpar(fnc_DSCB));
             }
             else {
                 std::string formulaTmp = ESANA::FNC_FORMULAS[iFnc];
-                f1Tmp = new TF1(Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str()), formulaTmp.c_str());
+
+                std::string f1NameTmp = Form("f1_bin%d_fnc%d_%s", i, iFnc, name.c_str());
+                if (isNormE) {
+                    f1NameTmp = Form("f1_normE_bin%d_fnc%d_%s", i, iFnc, name.c_str());
+                }
+                f1Tmp = new TF1(f1NameTmp.c_str(), formulaTmp.c_str());
             }
 
             std::vector<int> fncRange = getLeftRightBins4IntegralFraction(hTmp, binMax, ESANA::intFractions[iFnc]);
@@ -1504,7 +1575,12 @@ void recoAnalyzer::fitRecoGen()
 
             esaTmp[j].update();
         }
-        esa[i-1] = esaTmp;
+        if (!isNormE) {
+            esa[i-1] = esaTmp;
+        }
+        else {
+            esaNormE[i-1] = esaTmp;
+        }
     }
 }
 
@@ -2214,6 +2290,92 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         }
         c->Write("",TObject::kOverwrite);
         // plot pull distributions for energy scale fits - END
+
+
+        // plot normalized 1D reco pt / gen pt distribution for each bin along x-axis
+        int nH1DsliceYnormE = h1DsliceYnormE.size();
+        columns = calcNcolumns(nH1DsliceYnormE);
+        rows = calcNrows(nH1DsliceYnormE);
+
+        c = new TCanvas(Form("cnv_projYnormE_%s", name.c_str()),"",windowWidth,windowHeight);
+        setCanvasSizeMargin(c, normCanvasWidth, normCanvasHeight, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasFinal(c);
+        c->cd();
+
+        divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, 0, topMargin, 0.8, 0.8, 0.05);
+
+        linesTitlesAll.clear();
+        if (title.size() > 0) linesTitlesAll.push_back(title);
+        linesTitlesAll.insert(linesTitlesAll.end(), textLinesAll.begin(), textLinesAll.end());
+        columnTitlesTmp = recoAnalyzer::splitTextLines(linesTitlesAll, columns);
+
+        for (int i = 0; i < nH1DsliceYnormE; ++i) {
+            c->cd(i+1);
+
+            if (i < columns) {
+                h1DsliceYnormE[i]->SetTitle(columnTitlesTmp[i].c_str());
+            }
+            // show title only for histograms in the 1st row
+            else if (i >= columns) {
+                h1DsliceYnormE[i]->SetTitle("");
+            }
+
+            h1DsliceYnormE[i]->SetMarkerSize(markerSize);
+            h1DsliceYnormE[i]->Draw("e");
+
+            pads[i]->Update();
+            float y1 = gPad->GetUymin();
+            float y2 = gPad->GetUymax();
+
+            line = new TLine(1, y1, 1, y2);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+
+            int nFitFncs = esaNormE[i].size();
+            for (int iFnc = 0; iFnc < nFitFncs; ++iFnc) {
+
+                if (std::find(indicesFnc.begin(), indicesFnc.end(), iFnc) == indicesFnc.end()) continue;
+
+                if (esaNormE[i][iFnc].isValid_f1) {
+                    esaNormE[i][iFnc].f1->Draw("same");
+                }
+            }
+
+            h1DsliceYnormE[i]->Draw("e same");   // points should line above functions
+
+            std::vector<std::string> textLinesTmp;
+            std::string textLineTmp = getBinEdgeText(i+1, i+1);
+            if (textLineTmp.size() > 0) textLinesTmp.push_back(textLineTmp.c_str());
+            latex = new TLatex();
+            setTextAlignment(latex, "NW");
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.1);
+
+            // mean values and resolutions from histogram mean and stdDev
+            textLinesTmp = esaNormE[i][indexFncFinal].getTextLines4HistResult();
+            latex->SetLineColor(kBlack);
+            float textSizeTmp = latex->GetTextSize();
+            latex->SetTextSize(textSizeTmp*0.84);
+            drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.18);
+
+            // mean values and resolutions from fit
+            if (esaNormE[i][indexFncFinal].isValid_f1) {
+                textLinesTmp = esaNormE[i][indexFncFinal].getTextLines4FitResult();
+                int lineColor = esaNormE[i][indexFncFinal].f1->GetLineColor();
+                latex->SetTextColor(lineColor);
+                latex->SetTextSize(textSizeTmp*0.84);
+                drawTextLines(latex, pads[i], textLinesTmp, "NW", 0.04, 0.30);
+            }
+        }
+        c->Write("",TObject::kOverwrite);
+        // plot the same canvas in log-scale as well
+        for (int i = 0; i < nH1DsliceYnormE; ++i) {
+            pads[i]->SetLogy(1);
+            pads[i]->Update();
+        }
+        canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
+        c->SetName(canvasName.c_str());
+        c->Write("",TObject::kOverwrite);
+        // plot normalized 1D reco pt / gen pt distribution for each bin along x-axis - END
 
         for (int i = 0; i < nPads; ++i) {
             if (pads[i] != 0)  pads[i]->Delete();
