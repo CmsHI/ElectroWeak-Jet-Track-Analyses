@@ -26,6 +26,7 @@
 #include <TLegend.h>
 #include <TLatex.h>
 #include <TMath.h>
+#include <TLorentzVector.h>
 
 #include <string>
 #include <vector>
@@ -183,6 +184,8 @@ enum MODES_SPECTRA {
     kNULL,
     kInclusive,
     kLeading,       // NOTE : this mode works only for recoPtBin=0, bins with recoPtBin > 0 are ignored.
+    kMatchEle,
+    kMatchProbeEle,
     kN_MODES_SPECTRA
 };
 
@@ -317,6 +320,10 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
             if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
                 std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
             }
+        }
+        if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchEle || runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle) {
+            treeggHiNtuplizer->SetBranchStatus("nEle",1);     // enable electron branches
+            treeggHiNtuplizer->SetBranchStatus("ele*",1);     // enable electron branches
         }
 
         // specify explicitly which branches to use, do not use wildcard
@@ -468,6 +475,322 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
                     if(iMax == -1) continue;
                     // the only candidate is the leading particle
                     candidates.push_back(iMax);
+                }
+                else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchEle) {
+
+                    int candEle1 = -1;
+                    int candEle2 = -1;
+
+                    double eta_max_EB = 1.4442;
+                    double eta_min_EE = 1.566;
+                    double eta_max_EE = 2.5;
+
+                    double elePt_min = 20;
+
+                    // selection of electron based on ECAL regions
+                    double eleSigmaIEtaIEta_2012_EB = isHI ? 0.01107 : 0.0101;
+                    double eledEtaAtVtx_abs_EB = isHI ? 0.01576 : 0.0103;
+                    double eledPhiAtVtx_abs_EB = isHI ? 0.15724 : 0.0336;
+                    double eleHoverE_EB = isHI ? 0.08849 : 0.0876;
+                    double eleEoverPInv_EB = isHI ? 0.28051 : 0.0174;
+                    double eleD0_abs_EB = isHI ? 0.05216 : 0.0118;
+                    double eleDz_abs_EB = isHI ? 0.12997 : 0.373;
+                    double eleMissHits_EB = isHI ? 1 : 2;
+
+                    double eleSigmaIEtaIEta_2012_EE = isHI ? 0.03488 : 0.0283;
+                    double eledEtaAtVtx_abs_EE = isHI ? 0.01707 : 0.00733;
+                    double eledPhiAtVtx_abs_EE = isHI ? 0.35537 : 0.114;
+                    double eleHoverE_EE = isHI ? 0.12275 : 0.0678;
+                    double eleEoverPInv_EE = isHI ? 0.18672 : 0.0898;
+                    double eleD0_abs_EE = isHI ? 0.19092 : 0.0739;
+                    double eleDz_abs_EE = isHI ? 0.26407 : 0.602;
+                    double eleMissHits_EE = isHI ? 1 : 1;
+
+                    double diEleMassMin = 70;
+                    double diEleMassMax = 110;
+                    double zMass = 91.18;
+
+                    double minMassDiff = 999;
+
+                    for (int i = 0; i < ggHi.nEle; ++i) {
+
+                        if (!((*ggHi.elePt)[i] > elePt_min)) continue;
+
+                        if (TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EB)
+                        {
+                            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EB)) continue;
+                            if (!((*ggHi.eleHoverE)[i] < eleHoverE_EB)) continue;
+                            if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EB)) continue;
+                            if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EB)) continue;
+                        }
+                        else if (TMath::Abs((*ggHi.eleSCEta)[i]) > eta_min_EE && TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EE)
+                        {
+                            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EE)) continue;
+                            if (!((*ggHi.eleHoverE)[i] < eleHoverE_EE)) continue;
+                            if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EE)) continue;
+                            if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EE)) continue;
+                        }
+                        else  {
+                            continue;
+                        }
+
+                        for (int j = i+1; j < ggHi.nEle; ++j) {
+
+                            if (!((*ggHi.elePt)[j] > elePt_min)) continue;
+
+                            if (TMath::Abs((*ggHi.eleSCEta)[j]) < eta_max_EB)
+                            {
+                                if (!((*ggHi.eleSigmaIEtaIEta_2012)[j] < eleSigmaIEtaIEta_2012_EB)) continue;
+                                if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[j]) < eledEtaAtVtx_abs_EB)) continue;
+                                if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[j]) < eledPhiAtVtx_abs_EB)) continue;
+                                if (!((*ggHi.eleHoverE)[j] < eleHoverE_EB)) continue;
+                                if (!((*ggHi.eleEoverPInv)[j] < eleEoverPInv_EB)) continue;
+                                if (!(TMath::Abs((*ggHi.eleD0)[j]) < eleD0_abs_EB)) continue;
+                                if (!(TMath::Abs((*ggHi.eleDz)[j]) < eleDz_abs_EB)) continue;
+                                if (!((*ggHi.eleMissHits)[j] <= eleMissHits_EB)) continue;
+                            }
+                            else if (TMath::Abs((*ggHi.eleSCEta)[j]) > eta_min_EE && TMath::Abs((*ggHi.eleSCEta)[j]) < eta_max_EE)
+                            {
+                                if (!((*ggHi.eleSigmaIEtaIEta_2012)[j] < eleSigmaIEtaIEta_2012_EE)) continue;
+                                if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[j]) < eledEtaAtVtx_abs_EE)) continue;
+                                if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[j]) < eledPhiAtVtx_abs_EE)) continue;
+                                if (!((*ggHi.eleHoverE)[j] < eleHoverE_EE)) continue;
+                                if (!((*ggHi.eleEoverPInv)[j] < eleEoverPInv_EE)) continue;
+                                if (!(TMath::Abs((*ggHi.eleD0)[j]) < eleD0_abs_EE)) continue;
+                                if (!(TMath::Abs((*ggHi.eleDz)[j]) < eleDz_abs_EE)) continue;
+                                if (!((*ggHi.eleMissHits)[j] <= eleMissHits_EE)) continue;
+                            }
+                            else  {
+                                continue;
+                            }
+
+                            // dielectron
+                            TLorentzVector v1, v2, vSum;
+                            double mass = 0.000511;
+                            v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass);
+                            v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass);
+                            vSum = v1+v2;
+
+                            if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
+
+                            if (TMath::Abs(vSum.M() - zMass) < minMassDiff) {
+                                minMassDiff = TMath::Abs(vSum.M() - zMass);
+                                candEle1 = i;
+                                candEle2 = j;
+                            }
+                        }
+                    }
+
+                    if(candEle1 == -1 || candEle2 == -1) continue;
+
+                    std::vector<int> candidatesEle;
+                    candidatesEle.push_back(candEle1);
+                    candidatesEle.push_back(candEle2);
+
+                    candidates.clear();
+                    int nCandidatesEle = candidatesEle.size();
+                    for (int iEle = 0; iEle < nCandidatesEle; ++iEle) {
+
+                        iMax = -1;
+                        maxPt = 0;
+                        for (int i = 0; i < ggHi.nPho; ++i) {
+                            if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                            if (isHI && !isMC) {
+                                if (ggHi.is2015EcalNoise(i))  continue;
+                            }
+
+                            if (cut_phoHoverE != 0) {
+                                if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                            }
+
+                            double dR2max = 0.1 * 0.1;
+                            if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
+
+                            if ((*ggHi.phoEt)[i] > maxPt) {
+                                iMax = i;
+                                maxPt = (*ggHi.phoEt)[i];
+                            }
+                        }
+
+                        if(iMax == -1) continue;
+                        candidates.push_back(iMax);
+                    }
+                }
+                else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle) {
+
+
+                    int candEle1 = -1;
+                    int candEle2 = -1;
+
+                    double eta_max_EB = 1.4442;
+                    double eta_min_EE = 1.566;
+                    double eta_max_EE = 2.5;
+
+                    double elePt_min = 20;
+
+                    // selection of electron based on ECAL regions
+                    double eleSigmaIEtaIEta_2012_EB = isHI ? 0.01107 : 0.0101;
+                    double eledEtaAtVtx_abs_EB = isHI ? 0.01576 : 0.0103;
+                    double eledPhiAtVtx_abs_EB = isHI ? 0.15724 : 0.0336;
+                    double eleHoverE_EB = isHI ? 0.08849 : 0.0876;
+                    double eleEoverPInv_EB = isHI ? 0.28051 : 0.0174;
+                    double eleD0_abs_EB = isHI ? 0.05216 : 0.0118;
+                    double eleDz_abs_EB = isHI ? 0.12997 : 0.373;
+                    double eleMissHits_EB = isHI ? 1 : 2;
+
+                    double eleSigmaIEtaIEta_2012_EE = isHI ? 0.03488 : 0.0283;
+                    double eledEtaAtVtx_abs_EE = isHI ? 0.01707 : 0.00733;
+                    double eledPhiAtVtx_abs_EE = isHI ? 0.35537 : 0.114;
+                    double eleHoverE_EE = isHI ? 0.12275 : 0.0678;
+                    double eleEoverPInv_EE = isHI ? 0.18672 : 0.0898;
+                    double eleD0_abs_EE = isHI ? 0.19092 : 0.0739;
+                    double eleDz_abs_EE = isHI ? 0.26407 : 0.602;
+                    double eleMissHits_EE = isHI ? 1 : 1;
+
+                    double diEleMassMin = 70;
+                    double diEleMassMax = 110;
+                    double zMass = 91.18;
+
+                    double minMassDiff = 999;
+
+                    for (int i = 0; i < ggHi.nEle; ++i) {
+
+                        if (!((*ggHi.elePt)[i] > elePt_min)) continue;
+
+                        if (TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EB)
+                        {
+                            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EB)) continue;
+                            if (!((*ggHi.eleHoverE)[i] < eleHoverE_EB)) continue;
+                            if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EB)) continue;
+                            if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EB)) continue;
+                            if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EB)) continue;
+                        }
+                        else if (TMath::Abs((*ggHi.eleSCEta)[i]) > eta_min_EE && TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EE)
+                        {
+                            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EE)) continue;
+                            if (!((*ggHi.eleHoverE)[i] < eleHoverE_EE)) continue;
+                            if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EE)) continue;
+                            if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EE)) continue;
+                            if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EE)) continue;
+                        }
+                        else  {
+                            continue;
+                        }
+
+                        for (int j = i+1; j < ggHi.nEle; ++j) {
+
+                            if (!((*ggHi.elePt)[j] > elePt_min)) continue;
+
+                            double eleSigmaIEtaIEta_2012_EB_probe = isHI ? 0.01107 : 0.0114;
+                            double eledEtaAtVtx_abs_EB_probe = isHI ? 0.01576 : 0.0152;
+                            double eledPhiAtVtx_abs_EB_probe = isHI ? 0.15724 : 0.216;
+                            double eleHoverE_EB_probe = isHI ? 0.08849 : 0.181;
+                            double eleEoverPInv_EB_probe = isHI ? 0.28051 : 0.207;
+                            double eleD0_abs_EB_probe = isHI ? 0.05216 : 0.0564;
+                            double eleDz_abs_EB_probe = isHI ? 0.12997 : 0.472;
+                            double eleMissHits_EB_probe = isHI ? 1 : 2;
+
+                            double eleSigmaIEtaIEta_2012_EE_probe = isHI ? 0.03488 : 0.0352;
+                            double eledEtaAtVtx_abs_EE_probe = isHI ? 0.01707 : 0.0113;
+                            double eledPhiAtVtx_abs_EE_probe = isHI ? 0.35537 : 0.237;
+                            double eleHoverE_EE_probe = isHI ? 0.12275 : 0.116;
+                            double eleEoverPInv_EE_probe = isHI ? 0.18672 : 0.174;
+                            double eleD0_abs_EE_probe = isHI ? 0.19092 : 0.222;
+                            double eleDz_abs_EE_probe = isHI ? 0.26407 : 0.921;
+                            double eleMissHits_EE_probe = isHI ? 1 : 3;
+
+                            if (TMath::Abs((*ggHi.eleSCEta)[j]) < eta_max_EB)
+                            {
+                                if (!((*ggHi.eleSigmaIEtaIEta_2012)[j] < eleSigmaIEtaIEta_2012_EB_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[j]) < eledEtaAtVtx_abs_EB_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[j]) < eledPhiAtVtx_abs_EB_probe)) continue;
+                                if (!((*ggHi.eleHoverE)[j] < eleHoverE_EB_probe)) continue;
+                                if (!((*ggHi.eleEoverPInv)[j] < eleEoverPInv_EB_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eleD0)[j]) < eleD0_abs_EB_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eleDz)[j]) < eleDz_abs_EB_probe)) continue;
+                                if (!((*ggHi.eleMissHits)[j] <= eleMissHits_EB_probe)) continue;
+                            }
+                            else if (TMath::Abs((*ggHi.eleSCEta)[j]) > eta_min_EE && TMath::Abs((*ggHi.eleSCEta)[j]) < eta_max_EE)
+                            {
+                                if (!((*ggHi.eleSigmaIEtaIEta_2012)[j] < eleSigmaIEtaIEta_2012_EE_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[j]) < eledEtaAtVtx_abs_EE_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[j]) < eledPhiAtVtx_abs_EE_probe)) continue;
+                                if (!((*ggHi.eleHoverE)[j] < eleHoverE_EE_probe)) continue;
+                                if (!((*ggHi.eleEoverPInv)[j] < eleEoverPInv_EE_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eleD0)[j]) < eleD0_abs_EE_probe)) continue;
+                                if (!(TMath::Abs((*ggHi.eleDz)[j]) < eleDz_abs_EE_probe)) continue;
+                                if (!((*ggHi.eleMissHits)[j] <= eleMissHits_EE_probe)) continue;
+                            }
+                            else  {
+                                continue;
+                            }
+
+                            // dielectron
+                            TLorentzVector v1, v2, vSum;
+                            double mass = 0.000511;
+                            v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass);
+                            v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass);
+                            vSum = v1+v2;
+
+                            if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
+
+                            if (TMath::Abs(vSum.M() - zMass) < minMassDiff) {
+                                minMassDiff = TMath::Abs(vSum.M() - zMass);
+                                candEle1 = i;
+                                candEle2 = j;
+                            }
+                        }
+                    }
+
+                    if(candEle1 == -1 || candEle2 == -1) continue;
+
+                    std::vector<int> candidatesEle;
+                    candidatesEle.push_back(candEle2);
+
+                    candidates.clear();
+                    int nCandidatesEle = candidatesEle.size();
+                    for (int iEle = 0; iEle < nCandidatesEle; ++iEle) {
+
+                        iMax = -1;
+                        maxPt = 0;
+                        for (int i = 0; i < ggHi.nPho; ++i) {
+                            if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                            if (isHI && !isMC) {
+                                if (ggHi.is2015EcalNoise(i))  continue;
+                            }
+
+                            if (cut_phoHoverE != 0) {
+                                if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                            }
+
+                            double dR2max = 0.1 * 0.1;
+                            if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
+
+                            if ((*ggHi.phoEt)[i] > maxPt) {
+                                iMax = i;
+                                maxPt = (*ggHi.phoEt)[i];
+                            }
+                        }
+
+                        if(iMax == -1) continue;
+                        candidates.push_back(iMax);
+                    }
                 }
 
                 int nCandidates = candidates.size();
