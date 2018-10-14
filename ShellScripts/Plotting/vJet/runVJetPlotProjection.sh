@@ -1,7 +1,10 @@
 #!/bin/bash
 
 set -x
-g++ Plotting/vJet/vJetPlotProjection.C -Wall -Werror -Wextra -O2 `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -o Plotting/vJet/vJetPlotProjection.exe || exit 1
+progPath="./Plotting/vJet/vJetPlotProjection.exe"
+progCode="${progPath/.exe/.C}"
+g++ $progCode -Wall -Werror -Wextra -O2 `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -o $progPath || exit 1
+
 
 progPath="./Plotting/vJet/vJetPlotProjection.exe"
 inputFiles=(
