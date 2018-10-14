@@ -24,9 +24,11 @@ inputFiles=(
 "./Data/photonJetFF/PAS/data_60_30_gxi0_defnFF1-final-and-systematics.root"
 "./Data/photonJetFF/PAS/data_60_30_gxi1_defnFF1-final-and-systematics.root"
 "./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
+"./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
 );
 
-figureIndices=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+figureIndices=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17)
 
 arrayIndices=${!figureIndices[*]}
 for i1 in $arrayIndices

@@ -40,6 +40,8 @@ enum FIGURE{
     k_xijet_ratioOnly,
     k_xigamma_ratioOnly,
     k_js_ratioOnly,
+    k_js_ratioOnly_fit_pol2,
+    k_js_ratioOnly_fit_pol3,
     kN_FIGURES
 };
 
@@ -59,7 +61,9 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xigamma_ratio",
         "projection_xijet_ratioOnly",
         "projection_xigamma_ratioOnly",
-        "projection_js_ratioOnly",};
+        "projection_js_ratioOnly",
+        "projection_js_ratioOnly_fit_pol2",
+        "projection_js_ratioOnly_fit_pol3",};
 
 // Canvas
 int windowWidth;
@@ -161,7 +165,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysRed
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet = true, double sysReduction = 0);
-void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction = 0);
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction = 0, int iFitFnc = -1);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -236,6 +240,12 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_js_ratioOnly:
             projectionPlot_js_ratioOnly(inputFile, sysReduction);
+            break;
+        case k_js_ratioOnly_fit_pol2:
+            projectionPlot_js_ratioOnly(inputFile, sysReduction, 0);
+            break;
+        case k_js_ratioOnly_fit_pol3:
+            projectionPlot_js_ratioOnly(inputFile, sysReduction, 1);
             break;
         default:
             break;
@@ -2661,7 +2671,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
     std::cout<<"running projectionPlot_xi_ratioOnly() - END"<<std::endl;
 }
 
-void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int iFitFnc)
 {
     std::cout<<"running projectionPlot_js_ratioOnly()"<<std::endl;
 
@@ -2681,12 +2691,19 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
     topMargin    = 0.12;
     TCanvas* c = 0 ;
 
+    int jsIndex = k_js_ratioOnly;
+    if (iFitFnc == 0) {
+        jsIndex = k_js_ratioOnly_fit_pol2;
+    }
+    else if (iFitFnc == 1) {
+        jsIndex = k_js_ratioOnly_fit_pol3;
+    }
     if (sysReduction == 0)
-        c = new TCanvas(figureNames[k_js_ratioOnly].c_str(), "", windowWidth, windowHeight);
+        c = new TCanvas(figureNames[jsIndex].c_str(), "", windowWidth, windowHeight);
     else if (sysReduction == -1)
-        c = new TCanvas(Form("%s_noSys", figureNames[k_js_ratioOnly].c_str()), "", windowWidth, windowHeight);
+        c = new TCanvas(Form("%s_noSys", figureNames[jsIndex].c_str()), "", windowWidth, windowHeight);
     else
-        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[k_js_ratioOnly].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[jsIndex].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
 
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
     setCanvas(c);
@@ -2761,9 +2778,21 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
         h1Ds[i]->SetAxisRange(0 + 0.001, 0.3 - 0.001, "X");
 
         h1DsFit[i] = (TH1D*)h1Ds[i]->Clone(Form("%s_Fit", h1Ds[i]->GetName()));
-        f1 = new TF1(Form("%s_tmpF1", h1Ds[i]->GetName()), "pol3", 0.75, 3.75);
-        h1DsFit[i]->Fit(f1, "N M R 0");
-        //fillTH1fromTF1(h1Ds[i], f1, 2, 9);
+        if (iFitFnc > -1) {
+            std::string formulaTmp = "";
+            if (iFitFnc == 0) {
+                formulaTmp = "pol2";
+            }
+            else if (iFitFnc == 1) {
+                formulaTmp = "pol3";
+            }
+
+            if (formulaTmp != "") {
+                f1 = new TF1(Form("%s_tmpF1", h1Ds[i]->GetName()), formulaTmp.c_str(), 0.0, 0.3);
+                h1DsFit[i]->Fit(f1, "N M R 0 L");
+                fillTH1fromTF1(h1Ds[i], f1, h1Ds[i]->FindBin(0), h1Ds[i]->FindBin(0.3)-1);
+            }
+        }
     }
 
     // draw histograms
