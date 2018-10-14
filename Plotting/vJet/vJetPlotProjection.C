@@ -39,6 +39,7 @@ enum FIGURE{
     k_xigamma_ratio,
     k_xijet_ratioOnly,
     k_xigamma_ratioOnly,
+    k_js_ratioOnly,
     kN_FIGURES
 };
 
@@ -57,7 +58,8 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xijet_ratio",
         "projection_xigamma_ratio",
         "projection_xijet_ratioOnly",
-        "projection_xigamma_ratioOnly",};
+        "projection_xigamma_ratioOnly",
+        "projection_js_ratioOnly",};
 
 // Canvas
 int windowWidth;
@@ -159,6 +161,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysRed
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet = true, double sysReduction = 0);
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction = 0);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -230,6 +233,9 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_xigamma_ratioOnly:
             projectionPlot_xi_ratioOnly(inputFile, false, sysReduction);
+            break;
+        case k_js_ratioOnly:
+            projectionPlot_js_ratioOnly(inputFile, sysReduction);
             break;
         default:
             break;
@@ -2653,6 +2659,215 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
     input->Close();
 
     std::cout<<"running projectionPlot_xi_ratioOnly() - END"<<std::endl;
+}
+
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
+{
+    std::cout<<"running projectionPlot_js_ratioOnly()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    TCanvas* c = 0 ;
+
+    if (sysReduction == 0)
+        c = new TCanvas(figureNames[k_js_ratioOnly].c_str(), "", windowWidth, windowHeight);
+    else if (sysReduction == -1)
+        c = new TCanvas(Form("%s_noSys", figureNames[k_js_ratioOnly].c_str()), "", windowWidth, windowHeight);
+    else
+        c = new TCanvas(Form("%s_sysReduced%dPrct", figureNames[k_js_ratioOnly].c_str(), (int)(sysReduction*100)), "", windowWidth, windowHeight);
+
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "r";
+    yTitle = "\rho(r)_{PbPb} / \rho(r)_{pp}";
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0.6;
+    yMax = 3.4;
+
+    enum HISTLABELS {
+        k_ratio,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "hjs_final_ratio_0_20"
+    };
+    markerColors = {kBlack};
+    markerStyles = {kFullSquare};
+    markerSizes = {1.70};
+    lineColors = {kBlack};
+    lineTransparencies = {1.0};
+    lineWidths = {3};
+    fillColors = {TColor::GetColor("#a09f93")};
+    if (sysReduction == -1) fillColors = {0};
+    fillTransparencies = {0.7};
+    drawOptions = {"e same"};
+    sysPaths = {
+            "hjs_final_ratio_0_20_systematics"
+    };
+    if (sysReduction == -1) {
+        sysPaths = {
+                "NULL",
+        };
+    }
+    sysUseRelUnc = {false};
+    sysColors = {TColor::GetColor("#a09f93")};
+    sysTransparencies = {0.7};
+    sysFillStyles = {1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    TF1* f1 = 0;
+    std::vector<TH1D*> h1DsFit(nHistPaths, 0);
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
+
+        // set x-axis range
+        h1Ds[i]->SetAxisRange(0 + 0.001, 0.3 - 0.001, "X");
+
+        h1DsFit[i] = (TH1D*)h1Ds[i]->Clone(Form("%s_Fit", h1Ds[i]->GetName()));
+        f1 = new TF1(Form("%s_tmpF1", h1Ds[i]->GetName()), "pol3", 0.75, 3.75);
+        h1DsFit[i]->Fit(f1, "N M R 0");
+        //fillTH1fromTF1(h1Ds[i], f1, 2, 9);
+    }
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i == 0) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            if (sysReduction >= 0)
+                h1DsSys[i]->Scale(1-sysReduction);
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    /*
+    legendX1 = 0.24;
+    legendY1 = 0.72;
+    legendWidth = 0.54;
+    legendHeight = 0.12;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "PbPb / pp"
+    };
+    legendEntryOptions = {
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp", h1Ds[k_ratio]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_ratio].c_str(), legendEntryOptions[k_ratio].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+    */
+
+    textAlign = 11;
+    textFont = 43;
+    textSize = 26;
+    textLines = {
+            "PbPb Cent. 0-10 %",
+            "p_{T}^{trk} > 1 GeV/c",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6",
+            "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44",
+            "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
+    };
+    int nTextLines = textLines.size();
+    textX = 0.25;
+    textYs.resize(nTextLines, 0.80);
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.056;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 10 nb^{-1}, pp 650 pb^{-1}"
+    };
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMSProj = 0.25;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 61;
+    textSizeCMSProj = 0.06;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "CMS");
+    latex->Draw();
+
+    textXCMSProj = 0.38;
+    textYCMSProj = 0.86;
+    textAlignCMSProj = 11;
+    textFontCMSProj = 52;
+    textSizeCMSProj = 0.05;
+    latex = new TLatex();
+    setLatexCMSProj(latex, "Projection");
+    latex->Draw();
+
+    c->Update();
+
+    TLine* line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running projectionPlot_js_ratioOnly() - END"<<std::endl;
 }
 
 void setTH1D(int iHist, TH1D* h)
