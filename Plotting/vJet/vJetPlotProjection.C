@@ -2676,9 +2676,9 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
     logX = 0;
     logY = 0;
     leftMargin   = 0.21;
-    rightMargin  = 0.03;
+    rightMargin  = 0.06;
     bottomMargin = 0.15;
-    topMargin    = 0.06;
+    topMargin    = 0.12;
     TCanvas* c = 0 ;
 
     if (sysReduction == 0)
@@ -2693,11 +2693,11 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
     c->cd();
 
     xTitle = "r";
-    yTitle = "\rho(r)_{PbPb} / \rho(r)_{pp}";
-    xTitleSize = 0.0525;
-    yTitleSize = 0.0525;
-    xTitleOffset = 1.25;
-    yTitleOffset = 1.5;
+    yTitle = "#rho(r)_{PbPb} / #rho(r)_{pp}";
+    xTitleSize = 0.09;
+    yTitleSize = 0.09;
+    xTitleOffset = 0.80;
+    yTitleOffset = 0.98;
     xTitleFont = 42;
     yTitleFont = 42;
 
@@ -2712,13 +2712,13 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
     histPaths = {
             "hjs_final_ratio_0_20"
     };
-    markerColors = {kBlack};
+    markerColors = {TColor::GetColor("#e60040")};
     markerStyles = {kFullSquare};
-    markerSizes = {1.70};
+    markerSizes = {3.0};
     lineColors = {kBlack};
     lineTransparencies = {1.0};
     lineWidths = {3};
-    fillColors = {TColor::GetColor("#a09f93")};
+    fillColors = {TColor::GetColor("#e60040")};
     if (sysReduction == -1) fillColors = {0};
     fillTransparencies = {0.7};
     drawOptions = {"e same"};
@@ -2731,8 +2731,8 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
         };
     }
     sysUseRelUnc = {false};
-    sysColors = {TColor::GetColor("#a09f93")};
-    sysTransparencies = {0.7};
+    sysColors = {TColor::GetColor("#e60040")};
+    sysTransparencies = {0.4};
     sysFillStyles = {1001};
 
     int nHistPaths = histPaths.size();
@@ -2746,6 +2746,15 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
+        h1Ds[i]->SetNdivisions(504, "X");
+        h1Ds[i]->SetNdivisions(505, "Y");
+
+        h1Ds[i]->GetXaxis()->SetLabelSize(0.08);
+        h1Ds[i]->GetXaxis()->SetTickSize(0.03);
+
+        h1Ds[i]->GetYaxis()->SetLabelSize(0.08);
+        h1Ds[i]->GetYaxis()->SetTickSize(0.03);
+
         scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
 
         // set x-axis range
@@ -2801,31 +2810,47 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
 
     textAlign = 11;
     textFont = 43;
-    textSize = 26;
+    textSize = 40;
     textLines = {
-            "PbPb Cent. 0-10 %",
-            "p_{T}^{trk} > 1 GeV/c",
+            "p_{T}^{#gamma} > 60 GeV/c",
             "anti-k_{T} jet R = 0.3",
-            "p_{T}^{jet} > 30 GeV/c, |#eta^{jet}| < 1.6",
-            "p_{T}^{#gamma} > 60 GeV/c, |#eta^{#gamma}| < 1.44",
+            "p_{T}^{jet} > 30 GeV/c",
             "#Delta#phi_{j#gamma} > #frac{7#pi}{8}"
     };
     int nTextLines = textLines.size();
     textX = 0.25;
-    textYs.resize(nTextLines, 0.80);
+    textYs.resize(nTextLines, 0.62);
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
-        textYs[i] = textYs[0] - i*0.056;
+        textYs[i] = textYs[0] - i*0.07;
         setLatex(i, latex);
         latex->Draw();
     }
 
-    textXsOverPad = {0.22, 0.96};
-    textYOverPad = 0.96;
-    textAlignsOverPad = {11, 31};
+    // centrality info
+    textAlign = 11;
+    textFont = 62;
+    textSize = 0.06;
+    textLines = {
+            "Cent. 0 - 10%"
+    };
+    nTextLines = textLines.size();
+    textX = 0.56;
+    textYs.clear();
+    textYs.resize(nTextLines, 0.80);
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.07;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.22};
+    textYOverPad = -1;
+    textAlignsOverPad = {11, 11};
     textFontOverPad = 43;
-    textSizeOverPad = 30;
+    textSizeOverPad = 40;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
             "PbPb 10 nb^{-1}, pp 650 pb^{-1}"
@@ -2833,24 +2858,25 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction)
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
         latex = new TLatex();
+        textYOverPad = 0.96 - i*0.065;
         setLatexOverPad(i, latex);
         latex->Draw();
     }
 
-    textXCMSProj = 0.25;
-    textYCMSProj = 0.86;
+    textXCMSProj = 0.24;
+    textYCMSProj = 0.80;
     textAlignCMSProj = 11;
     textFontCMSProj = 61;
-    textSizeCMSProj = 0.06;
+    textSizeCMSProj = 0.08;
     latex = new TLatex();
     setLatexCMSProj(latex, "CMS");
     latex->Draw();
 
-    textXCMSProj = 0.38;
-    textYCMSProj = 0.86;
+    textXCMSProj = 0.24;
+    textYCMSProj = 0.74;
     textAlignCMSProj = 11;
     textFontCMSProj = 52;
-    textSizeCMSProj = 0.05;
+    textSizeCMSProj = 0.06;
     latex = new TLatex();
     setLatexCMSProj(latex, "Projection");
     latex->Draw();
