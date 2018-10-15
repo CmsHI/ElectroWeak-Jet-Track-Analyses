@@ -2907,7 +2907,7 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     textSizeOverPad = 40;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            "PbPb 10 nb^{-1}, pp 650 pb^{-1}"
+            Form("PbPb %s nb^{-1}, pp 650 pb^{-1}", (int)projectedLumiPBPB)
     };
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
