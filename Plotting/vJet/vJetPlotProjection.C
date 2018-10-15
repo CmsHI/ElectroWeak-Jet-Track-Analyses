@@ -1515,6 +1515,16 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
                 statsIncrease = statsIncreasePPB;
             scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease*eventFraction));
         }
+        else {
+            // xjg histograms in the file are for a projection of 200/pb pp.
+            // OR xjg histograms in the file contains stats error of 200/pb pp
+            double statsIncrease = 0;
+            if (iCollision == 0)
+                statsIncrease = projectedLumiPP / 200;
+            else if (iCollision == 1)
+                statsIncrease = (projectedLumiPPB*208) / 200;
+            scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
+        }
     }
 
     // draw histograms
