@@ -30,6 +30,7 @@ enum FIGURE{
     k_xjz_pPb,
     k_xjz_pPb_multBins,
     k_xjz_pp_multBins,
+    k_xjg_pPb_multBins,
     k_xjg_pp_multBins,
     k_xijet,
     k_xigamma,
@@ -52,6 +53,7 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xjz_pPb",
         "projection_xjz_pPb_multBins",
         "projection_xjz_pp_multBins",
+        "projection_xjg_pPb_multBins",
         "projection_xjg_pp_multBins",
         "projection_xijet",
         "projection_xigamma",
@@ -159,6 +161,7 @@ void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduct
 void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction = 0);
+void projectionPlot_xjg_pPb_multBins(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction = 0, int iCollision = 0, int iszjet = 1);
 void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysReduction = 0);
@@ -210,6 +213,9 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_xjz_pp_multBins:
             projectionPlot_xjz_pp_multBins(inputFile, sysReduction);
+            break;
+        case k_xjg_pPb_multBins:
+            projectionPlot_xjg_pPb_multBins(inputFile, sysReduction);
             break;
         case k_xjg_pp_multBins:
             projectionPlot_xjg_pp_multBins(inputFile, sysReduction);
@@ -1348,6 +1354,15 @@ void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction)
     projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 1);
 
     std::cout<<"running projectionPlot_xjz_pp_multBins() - END"<<std::endl;
+}
+
+void projectionPlot_xjg_pPb_multBins(std::string inputFile, double sysReduction)
+{
+    std::cout<<"running projectionPlot_xjg_pPb_multBins()"<<std::endl;
+
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 1, 0);
+
+    std::cout<<"running projectionPlot_xjg_pPb_multBins() - END"<<std::endl;
 }
 
 void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction)
