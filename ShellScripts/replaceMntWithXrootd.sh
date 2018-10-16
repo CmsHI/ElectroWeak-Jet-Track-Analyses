@@ -9,5 +9,11 @@ if [ $# -lt 1 ]; then
 fi
 
 inputFile=$1
-sed -i "s,/mnt/hadoop/cms/store,root://xrootd.cmsaf.mit.edu//store,g" $inputFile
+if [[ $inputFile = *.root ]];  # if input is a ROOT file, then just print the new file path
+then
+  echo $inputFile | sed "s,/mnt/hadoop/cms/store,root://xrootd.cmsaf.mit.edu//store,g"
+else
+  sed -i "s,/mnt/hadoop/cms/store,root://xrootd.cmsaf.mit.edu//store,g" $inputFile
+fi
+
 
