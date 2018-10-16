@@ -95,7 +95,7 @@ void printRunLumiEvent(std::string configFile, std::string inputFile, std::strin
     std::cout << "initial reading to get the number of entries (if there is only one input file) and HiForest info" << std::endl;
     // read the first file only to get the HiForest info
     std::string inputPath = inputFiles.at(0).c_str();
-    fileTmp = new TFile(inputPath.c_str(), "READ");
+    fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
@@ -119,7 +119,7 @@ void printRunLumiEvent(std::string configFile, std::string inputFile, std::strin
         std::string inputPath = inputFiles.at(iFile).c_str();
         std::cout <<"iFile = " << iFile << " , " ;
         std::cout <<"reading input file : " << inputPath.c_str() << std::endl;
-        fileTmp = new TFile(inputPath.c_str(), "READ");
+        fileTmp = TFile::Open(inputPath.c_str(), "READ");
 
         // check if the file is usable, if not skip the file.
         if (isGoodFile(fileTmp) != 0) {
