@@ -14,6 +14,7 @@ inputList=(
 ## AllQCDPhoton
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/L1Ntuple_egHOverEcut_EB1_EE1_egEtaCut24/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/L1Ntuple_egHOverEcut_EB1_EE1_egEtaCut24_SK1212/L1Ntuple_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/L1Ntuple_egHOverEcut_EB1_EE1_egEtaCut24_SK1207/L1Ntuple_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/L1Ntuple_egHOverEcut_EB1_EE1_egEtaCut24_SK0908/L1Ntuple_merged.root"
 ## XeXe 2017
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/L1T/L1Ntuple_XeXeRun2017_HIMinimumBias8_egHOverEcut_EB1_EE1_egEtaCut24/L1Ntuple_merged.root"
@@ -39,6 +40,7 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixHydj
 ## AllQCDPhoton
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixAllQCDPhoton".log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixAllQCDPhoton"_SK1212.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixAllQCDPhoton"_SK1207.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixAllQCDPhoton"_SK0908.log"
 ## XeXe 2017
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_"$suffixXeXe2017".log"
@@ -82,6 +84,7 @@ $argFileTmp
 $argFileTmp
 $argFileTmp
 ## AllQCDPhoton
+$argFileTmp
 $argFileTmp
 $argFileTmp
 $argFileTmp
