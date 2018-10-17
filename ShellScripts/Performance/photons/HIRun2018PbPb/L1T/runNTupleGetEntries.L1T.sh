@@ -7,9 +7,9 @@ progCode="${progPath/.exe/.C}"
 
 inputList=(
 ## hltTestEgamma
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI_SK1212/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI_SK1207/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V64/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V64_L1_SK1212/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V64_L1_SK1207/openHLT_merged.root"
 ## hltPbPb2018Photons
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V11/openHLT_merged.root"
 );
@@ -22,9 +22,9 @@ suffixAllQCDPhoton="Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8"
 suffixHydjet="Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018"
 outList=(
 ## hltTestEgamma
-$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI_SK1212.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V49_cmssw_10_2_1_CaloParamsHI_SK1207.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V64.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V64_L1_SK1212.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixAllQCDPhoton"_hltTestEgamma_V64_L1_SK1207.log"
 ## hltPbPb2018Photons
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_hltPbPb2018Photons_V11.log"
 );
