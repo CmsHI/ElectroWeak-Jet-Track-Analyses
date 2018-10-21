@@ -145,14 +145,18 @@ int textAlignCMSProj;
 int textFontCMSProj;
 float textSizeCMSProj;
 
-double projectedLumiPBPB = 10;   // nb
+double projectedLumiPBPB = 10;   // nb, // 13
 double currentLumiPBPB = 0.404;  // nb
 double statsIncreasePBPB = projectedLumiPBPB / currentLumiPBPB;
-double projectedLumiPP = 200;     // pb
+double projectedLumiPP = 2000;     // pb // 2000
 double projectedLumiPPB = 2;     // pb
 double currentLumiPP = 27.4;     // pb
 double statsIncreasePPB = (projectedLumiPPB*208) / currentLumiPP;     // assuming pPb is 5 TeV
 double statsIncreasePP = projectedLumiPP / currentLumiPP;
+double sqrtsPP = 14;
+double sqrtsPPB = 8.8;
+double statsIncreasePhoFrom5TeV14TeV = 3.246; //dir + oneFF photon // 3.222 (dir photon) rough increase of pT = 60 GeV of photons from 5 TeV to 14 TeV
+double statsIncreasePhoFrom5TeV8p8TeV = 1.964; // dir + one FF photon //1.954 (dir photon)  // rough increase of pT = 60 GeV of photons from 5 TeV to 8.8 TeV
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
@@ -1403,7 +1407,7 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     if (iCollision == 0)
         iFig = (iszjet == 1) ? k_xjz_pp_multBins : k_xjg_pp_multBins;
     else if (iCollision == 1)
-        iFig = k_xjz_pPb_multBins;
+        iFig = (iszjet == 1) ? k_xjz_pPb_multBins : k_xjg_pPb_multBins;
 
     if (sysReduction == 0)
         c = new TCanvas(figureNames[iFig].c_str(), "", windowWidth, windowHeight);
@@ -1524,20 +1528,28 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
         if (iszjet == 1) {
             double eventFraction = eventFractionsInData[i];
             double statsIncrease = 0;
-            if (iCollision == 0)
+            if (iCollision == 0) {
                 statsIncrease = statsIncreasePP;
-            else if (iCollision == 1)
+                statsIncrease *= statsIncreasePhoFrom5TeV14TeV;
+            }
+            else if (iCollision == 1) {
                 statsIncrease = statsIncreasePPB;
+                statsIncrease *= statsIncreasePhoFrom5TeV8p8TeV;
+            }
             scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease*eventFraction));
         }
         else {
             // xjg histograms in the file are for a projection of 200/pb pp.
             // OR xjg histograms in the file contains stats error of 200/pb pp
             double statsIncrease = 0;
-            if (iCollision == 0)
+            if (iCollision == 0) {
                 statsIncrease = projectedLumiPP / 200;
-            else if (iCollision == 1)
+                statsIncrease *= statsIncreasePhoFrom5TeV14TeV;
+            }
+            else if (iCollision == 1) {
                 statsIncrease = (projectedLumiPPB*208) / 200;
+                statsIncrease *= statsIncreasePhoFrom5TeV8p8TeV;
+            }
             scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
         }
     }
@@ -1549,6 +1561,7 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
         if (iszjet == 1 && i == k_pythia_mult_10xmeanNch) continue;
 
         if ((iszjet == 1 && i == nHistPaths-2) ||  (iszjet != 1 && i == nHistPaths-1)) {
+        //if (i == nHistPaths-1) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
         }
@@ -1570,6 +1583,7 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     legendY1 = 0.76;
     legendWidth = 0.52;
     legendHeight = (iszjet == 1) ? 0.16 * 2/3 : 0.16;
+    //legendHeight = (iszjet == 1) ? 0.16 : 0.16;
     legendMargin = 0.15;
     legendEntryTexts = {
             "< 5 <N_{ch}>",
@@ -1634,13 +1648,18 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     else if (iCollision == 1)
         collisionText = Form("pPb %d pb^{-1}", (int)projectedLumiPPB);
 
-    textXsOverPad = {0.96};  //{0.22, 0.96};
+    textXsOverPad = {0.22, 0.96};  //{0.96};
     textYOverPad = 0.96;
-    textAlignsOverPad = {31};  // {11, 31};
+    textAlignsOverPad = {11, 31};  // {31};
     textFontOverPad = 43;
     textSizeOverPad = 30;
+    std::string sqrtsText = "";
+    if (iCollision == 0)
+        sqrtsText = Form("#sqrt{s_{NN}} = %d TeV", (int)sqrtsPP);
+    else if (iCollision == 1)
+        sqrtsText = Form("#sqrt{s_{NN}} = %.1f TeV", sqrtsPPB);
     textOverPadLines = {
-            //"#sqrt{s_{NN}} = 5.02 TeV",
+            sqrtsText.c_str(),
             collisionText.c_str()
     };
     int nTextOverPadLines = textOverPadLines.size();
@@ -2907,7 +2926,7 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     textSizeOverPad = 40;
     textOverPadLines = {
             "#sqrt{s_{NN}} = 5.02 TeV",
-            Form("PbPb %s nb^{-1}, pp 650 pb^{-1}", (int)projectedLumiPBPB)
+            Form("PbPb %d nb^{-1}, pp 650 pb^{-1}", (int)projectedLumiPBPB)
     };
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
