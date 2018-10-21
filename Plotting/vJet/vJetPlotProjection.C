@@ -157,6 +157,7 @@ double sqrtsPP = 14;
 double sqrtsPPB = 8.8;
 double statsIncreasePhoFrom5TeV14TeV = 3.246; //dir + oneFF photon // 3.222 (dir photon) rough increase of pT = 60 GeV of photons from 5 TeV to 14 TeV
 double statsIncreasePhoFrom5TeV8p8TeV = 1.964; // dir + one FF photon //1.954 (dir photon)  // rough increase of pT = 60 GeV of photons from 5 TeV to 8.8 TeV
+double statsIncreaseZ0From5TeV14TeV = 4.5;  // rough increase of pT = 60 GeV of Z bosons from 5 TeV to 14 TeV
 
 void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz(std::string inputFile, double sysReduction = 0);
@@ -1530,11 +1531,12 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
             double statsIncrease = 0;
             if (iCollision == 0) {
                 statsIncrease = statsIncreasePP;
-                statsIncrease *= statsIncreasePhoFrom5TeV14TeV;
+                statsIncrease *= statsIncreaseZ0From5TeV14TeV;
             }
             else if (iCollision == 1) {
                 statsIncrease = statsIncreasePPB;
-                statsIncrease *= statsIncreasePhoFrom5TeV8p8TeV;
+                // following line is to be fixed after exact values are obtained for Z+jet.
+                statsIncrease *= (statsIncreasePhoFrom5TeV8p8TeV*1.2);
             }
             scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease*eventFraction));
         }
