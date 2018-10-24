@@ -9,10 +9,16 @@ inputList=(
 ## hltTestEgamma
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V32/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/HIMinimumBias8_XeXeRun2017/hltTestEgamma_V32/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V68/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V68/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V68/openHLT_merged.root"
+## 103X_hltTestEgamma_V68
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1616/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
 ## hltPbPb2018Photons
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V10/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V11/openHLT_merged.root"
@@ -30,10 +36,16 @@ outList=(
 ## hltTestEgamma
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltTestEgamma_V32.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HIMinimumBias8_XeXeRun2017_hltTestEgamma_V32.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltTestEgamma_V68.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_103X_hltTestEgamma_V68.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltTestEgamma_V68.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixAllQCDPhoton15"_hltTestEgamma_V68.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68.log"
+## 103X_hltTestEgamma_V68
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1212.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1207.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1616.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1212.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1207.log"
 ## hltPbPb2018Photons
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V10.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V11.log"
@@ -104,9 +116,15 @@ argFiles=(
 ## hltTestEgamma
 #$argFileTmp
 #$argFileTmp
-$argFileTmp
-$argFileTmp
 #$argFileTmp
+#$argFileTmp
+## 103X_hltTestEgamma_V68
+$argFileTmp
+$argFileTmp
+$argFileTmp
+$argFileTmp
+$argFileTmp
+$argFileTmp
 $argFileTmp
 ## hltPbPb2018Photons
 #$argFileTmp
