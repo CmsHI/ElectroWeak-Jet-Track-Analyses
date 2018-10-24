@@ -184,6 +184,7 @@ enum MODES_SPECTRA {
     kNULL,
     kInclusive,
     kLeading,       // NOTE : this mode works only for recoPtBin=0, bins with recoPtBin > 0 are ignored.
+    kAllGenMatched,
     kMatchEle,
     kMatchProbeEle,
     kN_MODES_SPECTRA
@@ -465,6 +466,15 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
                             iMax = i;
                             maxPt = pt;
                         }
+                    }
+                    else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kAllGenMatched) {
+                        int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                        if (genMatchedIndex < 0)   continue;
+
+                        int genMatchedPID = 22;
+                        if (TMath::Abs((*ggHi.mcPID)[genMatchedIndex]) != genMatchedPID)  continue;
+
+                        candidates.push_back(i);
                     }
                 }
 
