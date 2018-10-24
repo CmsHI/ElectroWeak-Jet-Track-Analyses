@@ -182,7 +182,7 @@ std::vector<int> runMode;
 
 enum MODES_SPECTRA {
     kNULL,
-    kInclusive,
+    kAll,
     kLeading,       // NOTE : this mode works only for recoPtBin=0, bins with recoPtBin > 0 are ignored.
     kAllGenMatched,
     kMatchEle,
@@ -443,7 +443,7 @@ void photonSpectraAna(std::string configFile, std::string inputFile, std::string
                         if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
                     }
 
-                    if (runMode[MODES::kSpectra] == MODES_SPECTRA::kInclusive) {
+                    if (runMode[MODES::kSpectra] == MODES_SPECTRA::kAll) {
                         candidates.push_back(i);
                     }
                     else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
