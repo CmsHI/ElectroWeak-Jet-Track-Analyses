@@ -2250,7 +2250,14 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
                 }
 
                 hTmp->Reset();
-                hTmp->SetMaximum(1.6);
+                if (yMax[0] > yMin[0]) {
+                    hTmp->SetMinimum(yMin[0]);
+                    hTmp->SetMaximum(yMax[0]);
+                }
+                else {
+                    hTmp->SetMinimum(0);
+                    hTmp->SetMaximum(1.6);
+                }
                 hTmp->Draw();
             }
 
@@ -2262,7 +2269,14 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
             hTmp = (TH1D*)tAna[iDep][iAnaTmp].hNum->Clone();
             if (iObs == TRIGGERANA::kFAKE) {
                 hTmp = (TH1D*)tAna[iDep][iAnaTmp].hFakeRatio->Clone();
-                hTmp->SetMaximum(1.6);
+                if (yMax[0] > yMin[0]) {
+                    hTmp->SetMinimum(yMin[0]);
+                    hTmp->SetMaximum(yMax[0]);
+                }
+                else {
+                    hTmp->SetMinimum(0);
+                    hTmp->SetMaximum(1.6);
+                }
             }
 
             hTmp->SetTitle("");
