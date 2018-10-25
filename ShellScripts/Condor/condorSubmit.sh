@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ./ShellScripts/bashUtils.sh
+
 if [ $# -ne 6 ];
 then
   echo "Usage: ./ShellScripts/Condor/condorSubmit.sh <progPath> <configFile> <inputFiles> <output dir> <nJobs> <nFilesPerJob>"
@@ -82,6 +84,16 @@ progName=$(basename $progPath)
 configName=$(basename $configFile)
 inputListName=$(basename $inputList)
 
+# find and copy the imported configuration files
+configListTmp="importedConfigs.list"
+configsAll="allConfigs.tar"
+rm -f $configListTmp
+touch $configListTmp
+findImportedConfigs $configFile $configListTmp
+tar -cvf $configsAll -T $configListTmp
+cp $configsAll $submitDir
+rm -f $configListTmp
+
 ## customizations for submit-hi2.mit.edu and submit.mit.edu machines ##
 # proxy files start with "x509" and they are located under /tmp/ only.
 proxyFilePath=$(find /tmp/ -maxdepth 1 -user $USER -type f -name "x509*" -print | head -1)
@@ -111,7 +123,7 @@ requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi
 job_lease_duration = 240
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = /tmp/$proxyFile,myRun.sh,$progName,$configName,$inputListName
+transfer_input_files = /tmp/$proxyFile,myRun.sh,$progName,$configName,$inputListName,$configsAll
 
 Queue $nJobs
 
@@ -146,6 +158,10 @@ echo "##"
 echo "host : \$(hostname)"
 echo "PWD  : \$PWD"
 echo "##"
+# extract imported configuration files, if any
+if [ -f $configsAll ]; then
+  tar -xvf $configsAll
+fi
 ./myRun.sh "./"\$progExe \$configTmp \$inputListTmp \$outputTmp
 
 echo "## directory content ##"

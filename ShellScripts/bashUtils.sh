@@ -5,6 +5,41 @@
 IFS=$'\n' # very important. force to use only '\n' to split the elements of the array
 ## global variables - END
 
+## recursively find all the configs imported from the given file, write the file paths to given list file
+## $1 : config file for which all imported configs is to be found
+## $2 : file where the paths to found configs is to be written. The entries are not necessarily unique, but this is not a concern, what matters is all the imported ones are found.
+function findImportedConfigs() {
+
+local configFile=$1
+local importedList=$2
+
+echo "findImportedConfigs() ${configFile} ${importedList}"
+
+local lines1=$(grep "import" ${configFile})
+#IFS=$'\n'
+local lines=($lines1) # list of lines with "import" statement
+
+local arrayIndices=${!lines[*]}
+for i1 in $arrayIndices
+do
+  local line=${lines[i1]}
+
+  local importedConf=${line}
+  local importedConf="${importedConf//import.cut =/}"  # remove "import.cut =" if any
+  local importedConf="${importedConf//import.cut=/}"  # remove "import.cut=" if any
+  local importedConf="${importedConf//import.input =/}"  # remove "import.input =" if any
+  local importedConf="${importedConf//import.input=/}"  # remove "import.input=" if any
+  local importedConf="${importedConf// /}"  # remove " " if any
+  #echo "line $i1 is $line"
+  #echo "importedConf $i1 is$importedConf"
+  echo "found imported config : $importedConf"
+  if [ ! -z "$importedConf" ]; then
+    echo ${importedConf} >> $importedList
+    findImportedConfigs $importedConf $importedList
+  fi
+done
+}
+
 ## function to run a program with an "on the fly generated" configuration.
 ## $1 : path to the program to be run
 ## $2 : configuration to be imported and modified
