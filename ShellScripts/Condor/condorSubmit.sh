@@ -195,8 +195,13 @@ cat > $submitDir/mergeOutput.sh <<EOF
 #!/bin/bash
 
 jobOutput=$outputDir"/"job*.root
+nFiles=\$(ls -1 \$jobOutput | wc -l)
 
-hadoopBase="/mnt/hadoop/cms/store/user/"$USER
+USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine[2]}')
+if [ -z "\$USERGRID" ]; then
+  USERGRID=$USER
+fi
+hadoopBase="/mnt/hadoop/cms/store/user/"\$USERGRID
 scratchBase="/export/d00/scratch/"$USER
 
 # merge the output only if a scratch directory exists for that user.
@@ -209,10 +214,23 @@ dirTmp=\$(echo $outputDir | sed "s#\$hadoopBase#\$scratchBase#g")
 mergedOutputName=\$(basename \$dirTmp)".root"
 mergedOutDir=\$(dirname \$dirTmp)
 mergedOutput=\$mergedOutDir"/"\$mergedOutputName
-# if $dirTmp is "my/merged/output/", then $mergedOutput is "my/merged/output.root"
+# if dirTmp is "my/merged/output/", then mergedOutput is "my/merged/output.root"
 
 mkdir -p \$mergedOutDir
-hadd -f \$mergedOutput \$jobOutput
+if [ \$nFiles -eq 1 ];
+then
+  # there is only one output file, no need to use hadd
+  set -x
+  cp \$jobOutput \$mergedOutput
+  # also copy log files since there is only one job
+  outputLog="\${mergedOutput/.root/.log}"
+  cp $submitDir/logs/0.out \$outputLog
+  outputErr="\${mergedOutput/.root/.err}"
+  cp $submitDir/logs/0.err \$outputErr
+  set +x
+else
+  hadd -f \$mergedOutput \$jobOutput
+fi
 
 EOF
 chmod u+x $submitDir/mergeOutput.sh
