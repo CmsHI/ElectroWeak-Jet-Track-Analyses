@@ -38,7 +38,7 @@ TList* getListOfALLCanvases(TDirectoryFile* dir);
 std::string getKeyPath(TKey* key);
 
 void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveGraphsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
@@ -333,12 +333,12 @@ std::string getKeyPath(TKey* key)
 /*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TH1* th1, TCanvas* c)
 {
-    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, c);
+    saveHistogramsToPicture(dir, "", fileType, directoryToBeSavedIn, th1, c);
 }
 
-void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
+void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TH1* th1, TCanvas* c)
 {
     TList* keysHisto = getListOfMatchedKeys(dir, regex, "TH1", true);  // all histograms that inherit from "TH1" will be saved to picture.
 
@@ -357,6 +357,11 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
         }
 
         h = (TH1*)key->ReadObj();
+
+        if (th1) {
+            if (th1->GetMinimum() != -999999) h->SetMinimum(th1->GetMinimum());
+            if (th1->GetMaximum() != -999999) h->SetMaximum(th1->GetMaximum());
+        }
 
         h->Draw();
         if(h->InheritsFrom("TH2"))

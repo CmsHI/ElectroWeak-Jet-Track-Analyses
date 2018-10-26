@@ -64,6 +64,11 @@ void saveAllToPicture(std::string fileName, std::string directory)
     double tmargin = (ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).size() > 0) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).c_str()) : 0.1;
 
+    double ymin = (ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).c_str()) : -999999;
+    double ymax = (ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).c_str()) : -999999;
+
     int logx = (ArgumentParser::ParseOptionInputSingle("--logx", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--logx", argOptions).c_str()) : 0;
     int logy = (ArgumentParser::ParseOptionInputSingle("--logy", argOptions).size() > 0) ?
@@ -95,9 +100,17 @@ void saveAllToPicture(std::string fileName, std::string directory)
     std::cout << "bmargin = " << bmargin << std::endl;
     std::cout << "tmargin = " << tmargin << std::endl;
 
+    std::cout << "ymin = " << ymin << std::endl;
+    std::cout << "ymax = " << ymax << std::endl;
+
     std::cout << "logx = " << logx << std::endl;
     std::cout << "logy = " << logy << std::endl;
     std::cout << "logz = " << logz << std::endl;
+
+    // TH1D to contain reference properties for histograms
+    TH1D* h1D = new TH1D("h1D", "", 1, 0, 1);
+    h1D->SetMinimum(ymin);
+    h1D->SetMaximum(ymax);
 
     // canvas to be used as template for pictures
     TCanvas* c = new TCanvas("c", "", ww, wh);
@@ -113,7 +126,7 @@ void saveAllToPicture(std::string fileName, std::string directory)
         std::string regexStr = "";
         if((*it).size() > 0) regexStr = wildCard2Regex((*it));
 
-        saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
+        saveHistogramsToPicture (file, regexStr, graphicsFormat, directoryToBeSavedIn, h1D, c);
         saveGraphsToPicture     (file, regexStr, graphicsFormat, directoryToBeSavedIn, c);
         saveCanvasesToPicture   (file, regexStr, graphicsFormat, directoryToBeSavedIn, c2);
     }
