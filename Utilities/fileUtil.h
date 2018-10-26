@@ -37,12 +37,12 @@ TList* getListOfALLCanvases(TDirectoryFile* dir);
 
 std::string getKeyPath(TKey* key);
 
-void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
 void saveGraphsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
-void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
-void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
+void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
+void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 
 /*
  * return 0 , if the file is good to read.
@@ -418,12 +418,12 @@ void saveGraphsToPicture(TDirectoryFile* dir, std::string regex, std::string fil
     }
 }
 
-void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
+void saveAllCanvasesToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TH1* th1, TCanvas* c)
 {
-    saveCanvasesToPicture(dir, "", fileType, directoryToBeSavedIn, c);
+    saveCanvasesToPicture(dir, "", fileType, directoryToBeSavedIn, th1, c);
 }
 
-void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TCanvas* c)
+void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string fileType, std::string directoryToBeSavedIn, TH1* th1, TCanvas* c)
 {
     TList* keysCanvas = getListOfMatchedKeys(dir, regex, "TCanvas", true);  // all canvases that inherit from "TCanvas" will be saved to picture.
 
@@ -431,9 +431,27 @@ void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex, std::string f
     TKey* key = 0;
     TIter* iter = new TIter(keysCanvas);
 
+    TList* primitives = 0;
+
     while ((key=(TKey*)iter->Next()))
     {
         cnv = (TCanvas*)key->ReadObj();
+
+        if (th1) {
+            primitives = cnv->GetListOfPrimitives();
+            int nPrimitives = primitives->GetSize();
+            for (int i = 0; i < nPrimitives; ++i) {
+                if (primitives->At(i)->InheritsFrom("TH1")) {
+                    if (th1->GetMinimum() != -999999) {
+                        ((TH1*)primitives->At(i))->SetMinimum(th1->GetMinimum());
+                    }
+                    if (th1->GetMaximum() != -999999) {
+                        ((TH1*)primitives->At(i))->SetMaximum(th1->GetMaximum());
+                    }
+                }
+            }
+        }
+
         if (c)  {
             cnv->SetCanvasSize(c->GetWw(), c->GetWh());
             cnv->SetLogx(c->GetLogx());
