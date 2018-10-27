@@ -30,6 +30,7 @@ TList* getListOfALLKeys (TDirectoryFile* dir);
 TList* getListOfALLKeys (TDirectoryFile* dir, std::string type);
 TList* getListOfALLKeys (TDirectoryFile* dir, std::string type, bool inheritsFrom);
 TList* getListOfMatchedKeys (TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom);
+std::vector<std::string> getListOfMatchedPaths(TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom);
 TList* getListOfHistograms     (TDirectoryFile* dir, std::string pattern="");
 TList* getListOfGIVENHistograms(TDirectoryFile* dir, std::vector<std::string> histoNames);
 TList* getListOfALLHistograms(TDirectoryFile* dir);
@@ -236,6 +237,38 @@ TList* getListOfMatchedKeys(TDirectoryFile* dir, std::string regex, std::string 
     }
 
     return keysOfType;
+}
+
+/*
+ * get list of paths of object "type", sitting in "dir", and matching to "regex"
+ * Ex.
+ * myFile.root has structure
+ * dir1/hist_1_AAA
+ * dir1/hist_1_BBB
+ * dir1/hist_2_AAA
+ * dir2/hist_1_CCC
+ * dir1/hist_3_AAA
+ * dir2/canvas_1_AAA  [TCanvas]
+ *
+ * getListOfMatchedPaths(<pointer to myFile.root>, ".*hist_1.*", "TH1", true) gives
+ * {"dir1/hist_1_AAA", "dir1/hist_1_BBB", "dir2/hist_1_CCC"}
+ * getListOfMatchedPaths(<pointer to myFile.root>, ".*AAA", "TH1", true) gives
+ * {"dir1/hist_1_AAA", "dir1/hist_2_AAA", "dir2/hist_3_AAA"}
+ * getListOfMatchedPaths(<pointer to dir1>, ".*AAA", "TH1", true) gives
+ * {"dir1/hist_1_AAA", "dir1/hist_2_AAA"}
+ */
+std::vector<std::string> getListOfMatchedPaths(TDirectoryFile* dir, std::string regex, std::string type, bool inheritsFrom)
+{
+    TList* keys = getListOfMatchedKeys(dir, regex, type, inheritsFrom);
+
+    std::vector<std::string> paths;
+
+    int nKeys = keys->GetSize();
+    for (int i = 0; i < nKeys; ++i) {
+        paths.push_back(getKeyPath((TKey*)keys->At(i)));
+    }
+
+    return paths;
 }
 
 /*
