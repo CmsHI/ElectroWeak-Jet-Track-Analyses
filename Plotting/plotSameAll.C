@@ -74,6 +74,31 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
 
     std::cout << "graphicsFormat = " << graphicsFormat.c_str() << std::endl;
 
+    // window width
+    int ww = (ArgumentParser::ParseOptionInputSingle("--ww", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--ww", argOptions).c_str()) : 600;
+    // window height
+    int wh = (ArgumentParser::ParseOptionInputSingle("--wh", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--wh", argOptions).c_str()) : 600;
+
+    // margins
+    double lmargin = (ArgumentParser::ParseOptionInputSingle("--lmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--lmargin", argOptions).c_str()) : 0.1;
+    double rmargin = (ArgumentParser::ParseOptionInputSingle("--rmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--rmargin", argOptions).c_str()) : 0.1;
+    double bmargin = (ArgumentParser::ParseOptionInputSingle("--bmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--bmargin", argOptions).c_str()) : 0.1;
+    double tmargin = (ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--tmargin", argOptions).c_str()) : 0.1;
+
+    std::cout << "ww = " << ww << std::endl;
+    std::cout << "wh = " << wh << std::endl;
+
+    std::cout << "lmargin = " << lmargin << std::endl;
+    std::cout << "rmargin = " << rmargin << std::endl;
+    std::cout << "bmargin = " << bmargin << std::endl;
+    std::cout << "tmargin = " << tmargin << std::endl;
+
     // list of paths for TH1 objects to be plotted, wildcards are also accepted
     std::string th1sStr = ArgumentParser::ParseOptionInputSingle("--th1s", argOptions);
     std::vector<std::string> th1Paths = split(th1sStr, ",", false);
@@ -142,17 +167,9 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         tmpPath = replaceAll(tmpPath, "/", "_");
         std::string canvasName = Form("cnv_%s", tmpPath.c_str());
 
-        int windowWidth = 800;
-        int windowHeight = 800;
-
-        double leftMargin = 0.1;
-        double rightMargin = 0.1;
-        double bottomMargin = 0.1;
-        double topMargin = 0.1;
-
-        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c = new TCanvas(canvasName.c_str(), "", ww, wh);
         c->cd();
-        setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+        setCanvasMargin(c, lmargin, rmargin, bmargin, tmargin);
 
         leg = new TLegend();
         // make legend transparent
