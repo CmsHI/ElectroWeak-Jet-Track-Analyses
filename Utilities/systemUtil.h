@@ -22,7 +22,7 @@ std::string replaceAll(std::string str, std::string oldString, std::string newSt
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
 std::string wildCard2Regex(std::string str);
-std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr = true);
+std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr = true, bool emptyVecIfNoDelimiter = true);
 bool startsWith(std::string str, std::string substr);
 bool endsWith(std::string str, std::string substr);
 bool matchesRegex(std::string str, std::string regexStr);
@@ -198,15 +198,20 @@ std::string wildCard2Regex(std::string str)
  * split the string wrt. a delimiter and return a vector of substrings.
  * delimiter can be longer than a single character.
  * if includeEmptySubStr is true, then empty substrings are included.
- * if the delimiter is not found, return an empty vector.
+ * if the delimiter is not found, then
+ *      if "emptyVecIfNoDelimiter", return an empty vector.
+ *      Else, return vector with "str" being only element
  */
-std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr)
+std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr, bool emptyVecIfNoDelimiter)
 {
     std::vector<std::string> v;
 
      size_t posStart = 0;
      size_t pos = str.find(delimiter);
      bool finished = (pos == std::string::npos);
+     if (finished && !emptyVecIfNoDelimiter) {
+         return {str};
+     }
      while (!finished) {
 
          pos = str.find(delimiter, posStart);
