@@ -91,7 +91,19 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
     }
     if (nMarkerStyles > 1 && nMarkerStyles != nInputFiles) {
-        std::cout << "Warning : Number of marker styles does not match number of input files. Default marker styles will be used" << std::endl;
+        std::cout << "Warning : Number of marker styles does not match number of input files. Default marker style will be used" << std::endl;
+    }
+
+    // marker sizes
+    std::string markerSizesStr = ArgumentParser::ParseOptionInputSingle("--msizes", argOptions);
+    std::vector<std::string> markerSizes = split(markerSizesStr, ",", false, false);
+    int nMarkerSizes = markerSizes.size();
+    std::cout << "nMarkerSizes = " << nMarkerSizes << std::endl;
+    for (int i = 0; i < nMarkerSizes; ++i) {
+        std::cout << Form("markerSizes[%d] = %s", i, markerSizes.at(i).c_str()) << std::endl;
+    }
+    if (nMarkerSizes > 1 && nMarkerSizes != nInputFiles) {
+        std::cout << "Warning : Number of marker sizes does not match number of input files. Default marker size will be used" << std::endl;
     }
 
     std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
@@ -209,10 +221,15 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             else if (nColors == nInputFiles) color = GraphicsConfigurationParser::ParseColor(colors.at(i));
             vecTH1[i][j]->SetMarkerColor(color);
 
-            int markerstyle = kFullCircle;
-            if (nMarkerStyles == 1) markerstyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
-            else if (nMarkerStyles == nInputFiles) markerstyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i));
-            vecTH1[i][j]->SetMarkerStyle(markerstyle);
+            int markerStyle = kFullCircle;
+            if (nMarkerStyles == 1) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
+            else if (nMarkerStyles == nInputFiles) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i));
+            vecTH1[i][j]->SetMarkerStyle(markerStyle);
+
+            double markerSize = vecTH1[i][j]->GetMarkerSize();
+            if (nMarkerSizes == 1) markerSize = std::atof(markerSizes.at(0).c_str());
+            else if (nMarkerSizes == nInputFiles) markerSize = std::atof(markerSizes.at(i).c_str());
+            vecTH1[i][j]->SetMarkerSize(markerSize);
 
             std::string drawOption = (i == 0) ? "e" : "e same";
             vecTH1[i][j]->Draw(drawOption.c_str());
@@ -266,6 +283,7 @@ int main(int argc, char** argv)
         std::cout << "--labels=<labels to be used in the legend, separated by ;;;>" << std::endl;
         std::cout << "--colors=<comma separated list of colors>" << std::endl;
         std::cout << "--mstyles=<comma separated list of marker styles>" << std::endl;
+        std::cout << "--msizes=<comma separated list of marker sizes>" << std::endl;
         std::cout << "--format=<graphicsFormat>" << std::endl;
         std::cout << "--ww=<window width>" << std::endl;
         std::cout << "--wh=<window height>" << std::endl;
