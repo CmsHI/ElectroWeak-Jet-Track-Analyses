@@ -210,7 +210,9 @@ std::vector<std::string> split(std::string str, std::string delimiter, bool incl
      size_t pos = str.find(delimiter);
      bool finished = (pos == std::string::npos);
      if (finished && !emptyVecIfNoDelimiter) {
-         return {str};
+         if (str.size() > 0 || includeEmptySubStr) {
+             return {str};
+         }
      }
      while (!finished) {
 
