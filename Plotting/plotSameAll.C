@@ -82,6 +82,18 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << "Warning : Number of colors does not match number of input files. Default colors will be used" << std::endl;
     }
 
+    // marker styles
+    std::string markerStylesStr = ArgumentParser::ParseOptionInputSingle("--mstyles", argOptions);
+    std::vector<std::string> markerStyles = split(markerStylesStr, ",", false, false);
+    int nMarkerStyles = markerStyles.size();
+    std::cout << "nMarkerStyles = " << nMarkerStyles << std::endl;
+    for (int i = 0; i < nMarkerStyles; ++i) {
+        std::cout << Form("markerStyles[%d] = %s", i, markerStyles.at(i).c_str()) << std::endl;
+    }
+    if (nMarkerStyles > 1 && nMarkerStyles != nInputFiles) {
+        std::cout << "Warning : Number of marker styles does not match number of input files. Default marker styles will be used" << std::endl;
+    }
+
     std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions) : "png";
 
@@ -192,12 +204,15 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
 
             vecTH1[i][j]->SetStats(false);
 
-            vecTH1[i][j]->SetMarkerStyle(kFullCircle);
-
             int color = GRAPHICS::colors[i%13];
             if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
             else if (nColors == nInputFiles) color = GraphicsConfigurationParser::ParseColor(colors.at(i));
             vecTH1[i][j]->SetMarkerColor(color);
+
+            int markerstyle = kFullCircle;
+            if (nMarkerStyles == 1) markerstyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(0));
+            else if (nMarkerStyles == nInputFiles) markerstyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(i));
+            vecTH1[i][j]->SetMarkerStyle(markerstyle);
 
             std::string drawOption = (i == 0) ? "e" : "e same";
             vecTH1[i][j]->Draw(drawOption.c_str());
@@ -250,6 +265,7 @@ int main(int argc, char** argv)
         std::cout << "--th1s=<comma separated list of TH1 paths, wildcards can be used>" << std::endl;
         std::cout << "--labels=<labels to be used in the legend, separated by ;;;>" << std::endl;
         std::cout << "--colors=<comma separated list of colors>" << std::endl;
+        std::cout << "--mstyles=<comma separated list of marker styles>" << std::endl;
         std::cout << "--format=<graphicsFormat>" << std::endl;
         std::cout << "--ww=<window width>" << std::endl;
         std::cout << "--wh=<window height>" << std::endl;
