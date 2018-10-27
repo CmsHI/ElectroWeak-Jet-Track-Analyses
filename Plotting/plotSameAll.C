@@ -17,6 +17,7 @@
 #include <string>
 #include <iostream>
 
+#include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/interface/ArgumentParser.h"
 #include "../Utilities/styleUtil.h"
 #include "../Utilities/fileUtil.h"
@@ -67,6 +68,18 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         for (int i = 0; i < nInputFiles; ++i) {
             labels.push_back(Form("file %d", i+1));
         }
+    }
+
+    // marker colors
+    std::string colorsStr = ArgumentParser::ParseOptionInputSingle("--colors", argOptions);
+    std::vector<std::string> colors = split(colorsStr, ",", false, false);
+    int nColors = colors.size();
+    std::cout << "nColors = " << nColors << std::endl;
+    for (int i = 0; i < nColors; ++i) {
+        std::cout << Form("colors[%d] = %s", i, colors.at(i).c_str()) << std::endl;
+    }
+    if (nColors > 1 && nColors != nInputFiles) {
+        std::cout << "Warning : Number of colors does not match number of input files. Default colors will be used" << std::endl;
     }
 
     std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
@@ -154,10 +167,6 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
     TCanvas* c = 0;
     TLegend* leg = 0;
 
-    std::vector<int> markerColors = {kBlack, kBlue, kRed, kOrange,  kViolet, kCyan, kSpring, kYellow,
-            kAzure, kPink, kGreen, kMagenta, kTeal};
-    int nMarkerColors = markerColors.size();
-
     for (int j = 0; j < nTH1; ++j) {
 
         if (!doPlotSame[j])  continue;
@@ -184,7 +193,11 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             vecTH1[i][j]->SetStats(false);
 
             vecTH1[i][j]->SetMarkerStyle(kFullCircle);
-            vecTH1[i][j]->SetMarkerColor(markerColors[i%nMarkerColors]);
+
+            int color = GRAPHICS::colors[i%13];
+            if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
+            else if (nColors == nInputFiles) color = GraphicsConfigurationParser::ParseColor(colors.at(i));
+            vecTH1[i][j]->SetMarkerColor(color);
 
             std::string drawOption = (i == 0) ? "e" : "e same";
             vecTH1[i][j]->Draw(drawOption.c_str());
@@ -236,7 +249,11 @@ int main(int argc, char** argv)
         std::cout << "Options are" << std::endl;
         std::cout << "--th1s=<comma separated list of TH1 paths, wildcards can be used>" << std::endl;
         std::cout << "--labels=<labels to be used in the legend, separated by ;;;>" << std::endl;
+        std::cout << "--colors=<comma separated list of colors>" << std::endl;
         std::cout << "--format=<graphicsFormat>" << std::endl;
+        std::cout << "--ww=<window width>" << std::endl;
+        std::cout << "--wh=<window height>" << std::endl;
+        std::cout << "--lmargin=<left margin>, Similarly rmargin, bmargin, tmargin for right, bottom, and top margins" << std::endl;
         return 1;
     }
     return 0;
