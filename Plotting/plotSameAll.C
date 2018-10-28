@@ -162,6 +162,23 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
     std::cout << "bmargin = " << bmargin << std::endl;
     std::cout << "tmargin = " << tmargin << std::endl;
 
+    int logx = (ArgumentParser::ParseOptionInputSingle("--logx", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logx", argOptions).c_str()) : 0;
+    int logy = (ArgumentParser::ParseOptionInputSingle("--logy", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logy", argOptions).c_str()) : 0;
+    int logz = (ArgumentParser::ParseOptionInputSingle("--logz", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--logz", argOptions).c_str()) : 0;
+
+    if (logx != 0) {
+        std::cout << "logx set to " << logx << std::endl;
+    }
+    if (logy != 0) {
+        std::cout << "logy set to " << logy << std::endl;
+    }
+    if (logz != 0) {
+        std::cout << "logz set to " << logz << std::endl;
+    }
+
     // list of paths for TH1 objects to be plotted, wildcards are also accepted
     std::string th1sStr = ArgumentParser::ParseOptionInputSingle("--th1s", argOptions);
     std::vector<std::string> th1Paths = split(th1sStr, ",", false);
@@ -302,7 +319,8 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         int nLegEntriesTmp = leg->GetNRows();
         if (nLegEntriesTmp > 0)  leg->Draw();
 
-        setCanvasFinal(c);
+        setCanvasFinal(c, logx, logy, logz);
+        c->Update();
         c->Write("",TObject::kOverwrite);
         c->SaveAs(Form("%s/%s.%s", outputDir.c_str(), canvasName.c_str(), graphicsFormat.c_str()));
         c->Close();         // do not use Delete() for TCanvas.
@@ -348,6 +366,7 @@ int main(int argc, char** argv)
         std::cout << "--ww=<window width>" << std::endl;
         std::cout << "--wh=<window height>" << std::endl;
         std::cout << "--lmargin=<left margin>, Similarly rmargin, bmargin, tmargin for right, bottom, and top margins" << std::endl;
+        std::cout << "--logx=<log scale of x-axis>, Similarly for logy and logz" << std::endl;
         return 1;
     }
     return 0;
