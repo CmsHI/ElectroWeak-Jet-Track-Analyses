@@ -255,6 +255,28 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
 
         std::string legendOption = "lpf";
 
+        // estimate a common min/max for TH1 y-axis
+        // if "ymin" / "ymax" were set already, then estimated values will be overwritten
+        std::vector<TH1*> tmpVecTH1;
+        for (int i = 0; i < nInputFiles; ++i) {
+            tmpVecTH1.push_back(vecTH1[i][j]);
+        }
+        double th1Min = getMinimumTH1s(tmpVecTH1, nInputFiles);
+        double th1Max = getMaximumTH1s(tmpVecTH1, nInputFiles);
+        bool isGlobalMin = true;
+        bool isGlobalMax = true;
+        for (int i = 0; i < nInputFiles; ++i) {
+            if (vecTH1[i][j]->GetMinimum() != th1Min) isGlobalMin = false;
+            if (vecTH1[i][j]->GetMaximum() != th1Max) isGlobalMax = false;
+        }
+        // adjust the estimated min/max unless they were shared by all TH1
+        if (!isGlobalMin) {
+            th1Min -= th1Min-TMath::Abs(th1Min)*0.1;
+        }
+        if (!isGlobalMax) {
+            th1Max += TMath::Abs(th1Max)*0.1*TMath::Power(10,logy);
+        }
+
         for (int i = 0; i < nInputFiles; ++i) {
 
             vecTH1[i][j]->SetStats(false);
@@ -297,9 +319,11 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             }
             vecTH1[i][j]->GetXaxis()->SetRangeUser(xMinFinal, xMaxFinal);
 
+            vecTH1[i][j]->SetMinimum(th1Min);
             if (ymin != -999999) {
                 vecTH1[i][j]->SetMinimum(ymin);
             }
+            vecTH1[i][j]->SetMaximum(th1Max);
             if (ymax != -999999) {
                 vecTH1[i][j]->SetMaximum(ymax);
             }
