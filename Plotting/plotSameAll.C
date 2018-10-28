@@ -106,6 +106,19 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << "Warning : Number of marker sizes does not match number of input files. Default marker size will be used" << std::endl;
     }
 
+    // y-axis ranges
+    double ymin = (ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).c_str()) : -999999;
+    double ymax = (ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).c_str()) : -999999;
+
+    if (ymin != -999999) {
+        std::cout << "ymin set to " << ymin << std::endl;
+    }
+    if (ymax != -999999) {
+        std::cout << "ymax set to " << ymax << std::endl;
+    }
+
     std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions) : "png";
 
@@ -231,6 +244,13 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             else if (nMarkerSizes == nInputFiles) markerSize = std::atof(markerSizes.at(i).c_str());
             vecTH1[i][j]->SetMarkerSize(markerSize);
 
+            if (ymin != -999999) {
+                vecTH1[i][j]->SetMinimum(ymin);
+            }
+            if (ymax != -999999) {
+                vecTH1[i][j]->SetMaximum(ymax);
+            }
+
             std::string drawOption = (i == 0) ? "e" : "e same";
             vecTH1[i][j]->Draw(drawOption.c_str());
 
@@ -284,6 +304,8 @@ int main(int argc, char** argv)
         std::cout << "--colors=<comma separated list of colors>" << std::endl;
         std::cout << "--mstyles=<comma separated list of marker styles>" << std::endl;
         std::cout << "--msizes=<comma separated list of marker sizes>" << std::endl;
+        std::cout << "--ymin=<minimum value for y-axis>" << std::endl;
+        std::cout << "--ymax=<maximum value for y-axis>" << std::endl;
         std::cout << "--format=<graphicsFormat>" << std::endl;
         std::cout << "--ww=<window width>" << std::endl;
         std::cout << "--wh=<window height>" << std::endl;
