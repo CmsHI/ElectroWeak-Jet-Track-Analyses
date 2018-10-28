@@ -106,6 +106,19 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << "Warning : Number of marker sizes does not match number of input files. Default marker size will be used" << std::endl;
     }
 
+    // x-axis ranges
+    double xmin = (ArgumentParser::ParseOptionInputSingle("--xmin", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--xmin", argOptions).c_str()) : -999999;
+    double xmax = (ArgumentParser::ParseOptionInputSingle("--xmax", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--xmax", argOptions).c_str()) : -999999;
+
+    if (xmin != -999999) {
+        std::cout << "xmin set to " << xmin << std::endl;
+    }
+    if (xmax != -999999) {
+        std::cout << "xmax set to " << xmax << std::endl;
+    }
+
     // y-axis ranges
     double ymin = (ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).size() > 0) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--ymin", argOptions).c_str()) : -999999;
@@ -244,6 +257,29 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             else if (nMarkerSizes == nInputFiles) markerSize = std::atof(markerSizes.at(i).c_str());
             vecTH1[i][j]->SetMarkerSize(markerSize);
 
+            int nBinsX = vecTH1[i][j]->GetNbinsX();
+            double xMinFinal = vecTH1[i][j]->GetXaxis()->GetXmin();
+            double xMaxFinal = vecTH1[i][j]->GetXaxis()->GetXmax();
+            if (xmin != -999999) {
+                if (xmin < vecTH1[i][j]->GetBinLowEdge(nBinsX+1)) {
+                    xMinFinal = xmin;
+                }
+                else {
+                    std::cout << "Warning : xmin is not smaller than the upper limit of x-axis." << std::endl;
+                    std::cout << "xmin is not set for " << vecTH1[i][j]->GetName() << std::endl;
+                }
+            }
+            if (xmax != -999999) {
+                if (xmax >= vecTH1[i][j]->GetBinLowEdge(1)) {
+                    xMaxFinal = xmax;
+                }
+                else {
+                    std::cout << "Warning : xmax is smaller than the lower limit of x-axis." << std::endl;
+                    std::cout << "xmax is not set for " << vecTH1[i][j]->GetName() << std::endl;
+                }
+            }
+            vecTH1[i][j]->GetXaxis()->SetRangeUser(xMinFinal, xMaxFinal);
+
             if (ymin != -999999) {
                 vecTH1[i][j]->SetMinimum(ymin);
             }
@@ -304,6 +340,8 @@ int main(int argc, char** argv)
         std::cout << "--colors=<comma separated list of colors>" << std::endl;
         std::cout << "--mstyles=<comma separated list of marker styles>" << std::endl;
         std::cout << "--msizes=<comma separated list of marker sizes>" << std::endl;
+        std::cout << "--xmin=<minimum value for x-axis>" << std::endl;
+        std::cout << "--xmax=<maximum value for x-axis>" << std::endl;
         std::cout << "--ymin=<minimum value for y-axis>" << std::endl;
         std::cout << "--ymax=<maximum value for y-axis>" << std::endl;
         std::cout << "--format=<graphicsFormat>" << std::endl;
