@@ -112,6 +112,15 @@ echo "L1_SingleIsoEG7_BptxAND" >> $argFileTmp
 echo "L1_SingleIsoEG12_BptxAND" >> $argFileTmp
 echo "L1_SingleIsoEG15_BptxAND" >> $argFileTmp
 echo "L1_SingleIsoEG21_BptxAND" >> $argFileTmp
+## DoubleEG
+echo "L1_DoubleEG2_BptxAND" >> $argFileTmp
+echo "L1_DoubleEG5_BptxAND" >> $argFileTmp
+echo "L1_DoubleEG8_BptxAND" >> $argFileTmp
+echo "L1_DoubleEG10_BptxAND" >> $argFileTmp
+echo "L1_DoubleEG2_NotMinimumBiasHF2_OR" >> $argFileTmp
+echo "L1_DoubleEG5_NotMinimumBiasHF2_OR" >> $argFileTmp
+echo "L1_DoubleEG2_NotMinimumBiasHF2_AND" >> $argFileTmp
+echo "L1_DoubleEG5_NotMinimumBiasHF2_AND" >> $argFileTmp
 echo "==trees==" >> $argFileTmp
 echo "hltbitanalysis/HltTree" >> $argFileTmp
 
