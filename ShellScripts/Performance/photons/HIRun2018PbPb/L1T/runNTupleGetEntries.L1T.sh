@@ -23,6 +23,7 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_noReEmul/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_defaultSK/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_SK1212/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_SK1207/openHLT_merged.root"
 ## hltPbPb2018Photons
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V11/openHLT_merged.root"
 );
@@ -52,6 +53,7 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffix
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_noReEmul.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_defaultSK.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_SK1212.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_SK1207.log"
 ## hltPbPb2018Photons
 #$outDirBase"/Performance/photons/HIRun2018PbPb/L1T/nTupleGetEntries_L1T_"$suffixHydjet"_hltPbPb2018Photons_V11.log"
 );
@@ -139,6 +141,7 @@ $argFileTmp
 $argFileTmp
 $argFileTmp
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70
+$argFileTmp
 $argFileTmp
 $argFileTmp
 $argFileTmp
