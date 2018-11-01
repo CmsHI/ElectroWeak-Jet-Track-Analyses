@@ -161,6 +161,9 @@ TH1* Graph2Histogram(TGraph* graph)
     xbins[fNpoints]=fX[fNpoints-1]+graph->GetErrorXhigh(fNpoints-1);
 
     TH1* h = new TH1D(graph->GetName(),graph->GetTitle(), fNpoints, xbins);
+    h->SetTitle(graph->GetTitle());
+    h->SetXTitle(graph->GetXaxis()->GetTitle());
+    h->SetYTitle(graph->GetYaxis()->GetTitle());
 
     for (int i=0; i<fNpoints; ++i)  {
         h->SetBinContent(i+1, fY[i]);
