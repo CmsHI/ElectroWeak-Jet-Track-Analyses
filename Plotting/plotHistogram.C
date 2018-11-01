@@ -8,6 +8,8 @@
 #include <TH1.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TGraph.h>
+#include <TGraphAsymmErrors.h>
 #include <THStack.h>
 #include <TF1.h>
 #include <TCanvas.h>
@@ -862,10 +864,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<THStack*> hStack(nHistos, 0);
     std::vector<bool> hStackDrawn(nHistos, false);
 
+    TObject* objTmp = 0;
+    TGraph* grTmp = 0;
+
     TH1* hTmp = 0;
 
-    TGraph* gr = 0;
-    gr = new TGraph();
+    TGraph* grErr = 0;
+    grErr = new TGraph();
 
     // first read all the objects, then make the modifications
     for (int i=0; i<nHistos; ++i) {
@@ -874,12 +879,27 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nInputFiles == nHistos)  inputFile = inputFiles.at(i).c_str();
 
         f[i] = TFile::Open(inputFile.c_str());
-        h[i] = (TH1*)f[i]->Get(TH1_path.c_str());
-        if(h[i] == 0){
-            std::cout << "No histogram found: " << TH1_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+
+        objTmp = 0;
+        objTmp = (TObject*)f[i]->Get(TH1_path.c_str());
+        if (objTmp == 0){
+            std::cout << "No object found: " << TH1_path.c_str() << " file: " << inputFile.c_str() << std::endl;
         }
-        if (h[i]->InheritsFrom("TH2"))  h[i] = (TH2D*)f[i]->Get(TH1_path.c_str());
-        else                            h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
+        // if the input object is TGraph, then convert it to a TH1 and plot the TH1
+        else if (objTmp->InheritsFrom("TGraphAsymmErrors"))  {
+            grTmp = (TGraphAsymmErrors*)f[i]->Get(TH1_path.c_str());
+            h[i] = Graph2Histogram(grTmp);
+        }
+        else if (objTmp->InheritsFrom("TGraph"))  {
+            grTmp = (TGraph*)f[i]->Get(TH1_path.c_str());
+            h[i] = Graph2Histogram(grTmp);
+        }
+        else if (objTmp->InheritsFrom("TH2"))  {
+            h[i] = (TH2D*)f[i]->Get(TH1_path.c_str());
+        }
+        else {
+            h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
+        }
 
         h[i]->SetName(Form("h_%d", i));
         h[i]->SetStats(false);
@@ -1292,9 +1312,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (!hDrawn[i]) {
 
             if (hSysp[i] && hSysm[i]) {
-                gr = new TGraph();
-                gr->SetFillColor(h[i]->GetFillColor());
-                drawSysUncBoxes(gr, h[i], hSysm[i], hSysp[i], false);
+                grErr = new TGraph();
+                grErr->SetFillColor(h[i]->GetFillColor());
+                drawSysUncBoxes(grErr, h[i], hSysm[i], hSysp[i], false);
             }
 
             h[i]->Draw(Form("%s same", drawOption.c_str()));
