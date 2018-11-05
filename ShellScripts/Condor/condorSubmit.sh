@@ -23,9 +23,25 @@ echo "coniguration file : $configFile"
 echo "input list        : $inputList"
 echo "output directory  : $outputDir"
 
-if [[ $outputDir != /mnt/hadoop/* ]]; then
-    echo "output directory must be under /mnt/hadoop/"
-    exit 1
+# check the machine on which this script is run. Currently the script works on lxplus machines and submit.mit.edu. In this context submit.mit.edu includes submit-hi1.mit.edu and submit-hi2.mit.edu
+[[ $HOSTNAME = lxplus*.cern.ch ]] && isLxplus=1 || isLxplus=0
+[[ $HOSTNAME = submit*.mit.edu ]] && isSubmitMIT=1 || isSubmitMIT=0
+echo "Host is ${HOSTNAME} ."
+if [ $isLxplus -gt 0 ]; then
+  echo "This is an lxplus machine."
+elif [ $isSubmitMIT -gt 0 ]; then
+  echo "This is a submit.mit.edu machine."
+else
+  echo "The script cannot run on this machine. Exiting."
+  exit 1
+fi
+
+if [[ $isLxplus -gt 0 && ($outputDir != /afs/* && $outputDir != /eos/*) ]]; then
+  echo "output directory must be under /afs or /eos"
+  exit 1
+elif [[ $isSubmitMIT -gt 0 && $outputDir != /mnt/hadoop/* ]]; then
+  echo "output directory must be under /mnt/hadoop/"
+  exit 1
 fi
 
 timeNow=$(date +"%Y%m%d_%H%M%S")
@@ -62,9 +78,19 @@ if [ "$nFilesToProcess" -lt "$nFiles" ]; then
 fi
 
 # create the directories for condor submission and condor output files
-baseDir="/work/"$USER"/ewjta"
-submitDir=$baseDir"/condorSubmissions/"$timeNow
-condorLogsDir=$submitDir"/logs"
+baseDir=""
+submitDir=""
+condorLogsDir=""
+if [ $isLxplus -gt 0 ]; then
+  firstLetter=${USER:0:1}
+  baseDir="/afs/cern.ch/work/"$firstLetter"/"$USER"/public/ewjta"
+  submitDir=$baseDir"/condorSubmissions/"$timeNow
+  condorLogsDir=$submitDir"/logs"
+elif [ $isSubmitMIT -gt 0 ]; then
+  baseDir="/work/"$USER"/ewjta"
+  submitDir=$baseDir"/condorSubmissions/"$timeNow
+  condorLogsDir=$submitDir"/logs"
+fi
 mkdir -p $submitDir
 mkdir -p $condorLogsDir
 
@@ -94,19 +120,53 @@ tar -cvf $configsAll -T $configListTmp
 cp $configsAll $submitDir
 rm -f $configListTmp
 
-## customizations for submit-hi2.mit.edu and submit.mit.edu machines ##
+## customizations for lxplus and submit.mit.edu machines ##
 # proxy files start with "x509" and they are located under /tmp/ only.
 proxyFilePath=$(find /tmp/ -maxdepth 1 -user $USER -type f -name "x509*" -print | head -1)
 proxyFile=$(basename $proxyFilePath)
 
-srmPrefix="/mnt/hadoop/"
-outputDirSRM=${outputDir#${srmPrefix}}
+if [ $isLxplus -gt 0 ]; then
+  cp $proxyFilePath $submitDir
+fi
 
-gfal-mkdir -p gsiftp://se01.cmsaf.mit.edu:2811/${outputDirSRM}
+if [ $isLxplus -gt 0 ]; then
+  mkdir -p $outputDir
+elif [ $isSubmitMIT -gt 0 ]; then
+  srmPrefix="/mnt/hadoop/"
+  outputDirSRM=${outputDir#${srmPrefix}}
+
+  gfal-mkdir -p gsiftp://se01.cmsaf.mit.edu:2811/${outputDirSRM}
+fi
 ## customizations for submit-hi2.mit.edu and submit.mit.edu machines - END ##
 
-# create the "submit description file"
-cat > $submitDir/submit.condor <<EOF
+## create the "submit description file" for Lxplus and submit.mit.edu
+cat > $submitDir/submit.condor.Lxplus <<EOF
+
+Universe     = vanilla
+Initialdir   = $submitDir
+Notification = Error
+Executable   = $submitDir/condorExecutable.sh
+Arguments    = \$(Process) $nFilesPerJob $progName $configName $inputListName $outputDir
+GetEnv       = True
+Output       = $condorLogsDir/\$(Process).out
+Error        = $condorLogsDir/\$(Process).err
+Log          = $condorLogsDir/\$(Process).log
+Rank         = Mips
+#+AccountingGroup = "group_cmshi.$USER"
+#requirements = OpSysAndVer =?= "CentOS7"
++JobFlavour = "longlunch"
+#+MaxRuntime = 14400 # Number of seconds
+#RequestCpus = 4
+#request_memory = 8000M  # The rule is that 2 GB of memory per CPU core.
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = $proxyFile,myRun.sh,$progName,$configName,$inputListName,$configsAll
+
+Queue $nJobs
+
+EOF
+
+cat > $submitDir/submit.condor.submitMIT <<EOF
 
 Universe     = vanilla
 Initialdir   = $submitDir
@@ -129,8 +189,57 @@ Queue $nJobs
 
 EOF
 
-# create the "executable" file
-cat > $submitDir/condorExecutable.sh <<EOF
+# create the "executable" file for Lxplus and submit.mit.edu
+cat > $submitDir/condorExecutable.Lxplus.sh <<EOF
+#!/bin/bash
+
+jobIndex=\$1
+nFilesTmp=\$2
+inputListTmp="inputList_"\$jobIndex".txt"
+outputTmp="job"\$jobIndex".root"
+
+progExe=\$3
+configTmp=\$4
+outputDirTmp=\$6
+
+# setup grid proxy
+export X509_USER_PROXY=\${PWD}/$proxyFile
+
+lineStart=\$((\$jobIndex * \$nFilesTmp + 1))
+lineEnd=\$((\$lineStart + \$nFilesTmp - 1))
+#echo "lineStart : \$lineStart"
+#echo "lineEnd   : \$lineEnd"
+sed "\$lineStart,\$lineEnd!d" \$5 > \$inputListTmp
+
+echo "##"
+echo "host : \$(hostname)"
+echo "PWD  : \$PWD"
+echo "##"
+# extract imported configuration files, if any
+if [ -f $configsAll ]; then
+  tar -xvf $configsAll
+fi
+./myRun.sh "./"\$progExe \$configTmp \$inputListTmp \$outputTmp
+
+echo "## directory content ##"
+ls -altrh
+echo "## directory content - END ##"
+
+set -x
+mv -f \$outputTmp \$outputDirTmp
+
+set +x
+
+# delete all the files but the .out, .err, and .log files
+ls | grep -v -e ".out" -e ".err" -e ".log" -e "_condor_stdout" -e "_condor_stderr" | xargs rm -rfv
+
+echo "## directory content after deletion ##"
+ls -altrh
+echo "## directory content after deletion - END ##"
+
+EOF
+
+cat > $submitDir/condorExecutable.submitMIT.sh <<EOF
 #!/bin/bash
 
 jobIndex=\$1
@@ -190,7 +299,20 @@ echo "## directory content after deletion - END ##"
 
 EOF
 
-# create a script to merge the output after the jobs finish
+## select the condor submission file and the executable for this machine
+if [ $isLxplus -gt 0 ]; then
+  mv $submitDir/submit.condor.Lxplus $submitDir/submit.condor
+  mv $submitDir/condorExecutable.Lxplus.sh $submitDir/condorExecutable.sh
+  rm $submitDir/submit.condor.submitMIT
+  rm $submitDir/condorExecutable.submitMIT.sh
+elif [ $isSubmitMIT -gt 0 ]; then
+  mv $submitDir/submit.condor.submitMIT $submitDir/submit.condor
+  mv $submitDir/condorExecutable.submitMIT.sh $submitDir/condorExecutable.sh
+  rm $submitDir/submit.condor.Lxplus
+  rm $submitDir/condorExecutable.Lxplus.sh
+fi
+
+# create a script to merge the output after the jobs finish, works only on submit-hi1.mit.edu and submit-hi2.mit.edu
 cat > $submitDir/mergeOutput.sh <<EOF
 #!/bin/bash
 
@@ -243,14 +365,21 @@ rm -rf $outputDir
 
 # $? is the exit status of last run command
 if [ \$? -ne 0 ]; then
-  srmPrefix="/mnt/hadoop/"
-  outputDirTmp=$outputDir
-  outputDirSRM=\${outputDirTmp#\${srmPrefix}}
-  gfal-rm -r gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}
+  if [ $isSubmitMIT -gt 0 ]; then
+    srmPrefix="/mnt/hadoop/"
+    outputDirTmp=$outputDir
+    outputDirSRM=\${outputDirTmp#\${srmPrefix}}
+    gfal-rm -r gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}
+  fi
 fi
 
 EOF
 chmod u+x $submitDir/rmJobOutput.sh
 
+condorSubmitOpt=""
+if [ $isSubmitMIT -gt 0 ]; then
+  condorSubmitOpt="-name submit.mit.edu"
+fi
+
 cat $submitDir/submit.condor
-echo "condor_submit $submitDir/submit.condor -name submit.mit.edu"
+echo "condor_submit $submitDir/submit.condor $condorSubmitOpt"
