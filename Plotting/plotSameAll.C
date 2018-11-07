@@ -12,11 +12,13 @@
 #include <TSystem.h>
 #include <TCanvas.h>
 #include <TLegend.h>
+#include <TLine.h>
 
 #include <vector>
 #include <string>
 #include <iostream>
 
+#include "../Utilities/interface/ConfigurationParser.h"
 #include "../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../Utilities/interface/ArgumentParser.h"
 #include "../Utilities/styleUtil.h"
@@ -132,6 +134,49 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << "ymax set to " << ymax << std::endl;
     }
 
+    // horizontal/vertical lines
+    std::string linesHorizontalArg = ArgumentParser::ParseOptionInputSingle("--hlines", argOptions);
+    std::vector<float> linesHorizontal = ConfigurationParser::ParseListWithoutBracketFloat(linesHorizontalArg, ",");
+    int nLinesHorizontal = linesHorizontal.size();
+    std::cout << "nLinesHorizontal = " << nLinesHorizontal << std::endl;
+    for (int i = 0; i < nLinesHorizontal; ++i) {
+        std::cout << Form("linesHorizontal[%d] = %f", i, linesHorizontal.at(i)) << std::endl;
+    }
+
+    std::string lineStylesHorizontalArg = ArgumentParser::ParseOptionInputSingle("--hlinestyles", argOptions);
+    std::vector<std::string> lineStylesHorizontal = split(lineStylesHorizontalArg, ",", false, false);
+    int nLineStylesHorizontal = lineStylesHorizontal.size();
+    std::cout << "nLineStylesHorizontal = " << nLineStylesHorizontal << std::endl;
+    for (int i = 0; i < nLineStylesHorizontal; ++i) {
+        std::cout << Form("lineStylesHorizontal[%d] = %s", i, lineStylesHorizontal.at(i).c_str()) << std::endl;
+    }
+    if (nLinesHorizontal > 1 && nLineStylesHorizontal > 1 && nLinesHorizontal != nLineStylesHorizontal) {
+        std::cout << "Warning : Number of horizontal lines styles does not match number of lines. Default line style will be used" << std::endl;
+        lineStylesHorizontal = {"kDashed"};
+        nLineStylesHorizontal = lineStylesHorizontal.size();
+    }
+
+    std::string linesVerticalArg = ArgumentParser::ParseOptionInputSingle("--vlines", argOptions);
+    std::vector<float> linesVertical = ConfigurationParser::ParseListWithoutBracketFloat(linesVerticalArg, ",");
+    int nLinesVertical = linesVertical.size();
+    std::cout << "nLinesVertical = " << nLinesVertical << std::endl;
+    for (int i = 0; i < nLinesVertical; ++i) {
+        std::cout << Form("linesVertical[%d] = %f", i, linesVertical.at(i)) << std::endl;
+    }
+
+    std::string lineStylesVerticalArg = ArgumentParser::ParseOptionInputSingle("--vlinestyles", argOptions);
+    std::vector<std::string> lineStylesVertical = split(lineStylesVerticalArg, ",", false, false);
+    int nLineStylesVertical = lineStylesVertical.size();
+    std::cout << "nLineStylesVertical = " << nLineStylesVertical << std::endl;
+    for (int i = 0; i < nLineStylesVertical; ++i) {
+        std::cout << Form("lineStylesVertical[%d] = %s", i, lineStylesVertical.at(i).c_str()) << std::endl;
+    }
+    if (nLinesVertical > 1 && nLineStylesVertical > 1 && nLinesVertical != nLineStylesVertical) {
+        std::cout << "Warning : Number of vertical lines styles does not match number of lines. Default line style will be used" << std::endl;
+        lineStylesVertical = {"kDashed"};
+        nLineStylesVertical = lineStylesVertical.size();
+    }
+
     std::string graphicsFormat = (ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle(ARGUMENTPARSER::format, argOptions) : "png";
 
@@ -233,6 +278,7 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
 
     TCanvas* c = 0;
     TLegend* leg = 0;
+    TLine* line = 0;
 
     for (int j = 0; j < nTH1; ++j) {
 
@@ -277,6 +323,8 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             th1Max += TMath::Abs(th1Max)*0.1*TMath::Power(10,logy);
         }
 
+        double xMinFinal = 0;
+        double xMaxFinal = -1;
         for (int i = 0; i < nInputFiles; ++i) {
 
             vecTH1[i][j]->SetStats(false);
@@ -297,8 +345,8 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             vecTH1[i][j]->SetMarkerSize(markerSize);
 
             int nBinsX = vecTH1[i][j]->GetNbinsX();
-            double xMinFinal = vecTH1[i][j]->GetXaxis()->GetXmin();
-            double xMaxFinal = vecTH1[i][j]->GetXaxis()->GetXmax();
+            xMinFinal = vecTH1[i][j]->GetXaxis()->GetXmin();
+            xMaxFinal = vecTH1[i][j]->GetXaxis()->GetXmax();
             if (xmin != -999999) {
                 if (xmin < vecTH1[i][j]->GetBinLowEdge(nBinsX+1)) {
                     xMinFinal = xmin;
@@ -332,6 +380,45 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
             vecTH1[i][j]->Draw(drawOption.c_str());
 
             leg->AddEntry(vecTH1[i][j], labels[i].c_str(), legendOption.c_str());
+        }
+
+        for (int iLine = 0; iLine < nLinesHorizontal; ++iLine) {
+
+            // draw horizontal line
+            gPad->Update();
+            int lineStyleHorizontal = kDashed;
+            if (nLineStylesHorizontal == 1)
+                lineStyleHorizontal = GraphicsConfigurationParser::ParseLineStyle(lineStylesHorizontal.at(0));
+            else if (nLineStylesHorizontal == nLinesHorizontal)
+                lineStyleHorizontal = GraphicsConfigurationParser::ParseLineStyle(lineStylesHorizontal.at(iLine));
+
+            line = 0;
+            line = new TLine(xMinFinal, linesHorizontal.at(iLine), xMaxFinal, linesHorizontal.at(iLine));
+            line->SetLineStyle(lineStyleHorizontal);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line->Draw();
+        }
+
+        for (int iLine = 0; iLine < nLinesVertical; ++iLine) {
+
+            // draw vertical line
+            gPad->Update();
+            double ymin = gPad->GetUymin();
+            double ymax = gPad->GetUymax();
+            if (gPad->GetLogy() > 0) {
+                ymin = TMath::Power(TMath::Power(10, gPad->GetLogy()), gPad->GetUymin());
+                ymax = TMath::Power(TMath::Power(10, gPad->GetLogy()), gPad->GetUymax());
+            }
+
+            int lineStyleVertical = kDashed;
+            if (nLineStylesVertical == 1)
+                lineStyleVertical = GraphicsConfigurationParser::ParseLineStyle(lineStylesVertical.at(0));
+            else if (nLineStylesVertical == nLinesVertical)
+                lineStyleVertical = GraphicsConfigurationParser::ParseLineStyle(lineStylesVertical.at(iLine));
+
+            line = 0;
+            line = new TLine(linesVertical.at(iLine), ymin, linesVertical.at(iLine), ymax);
+            line->SetLineStyle(lineStyleVertical);   // https://root.cern.ch/doc/master/TAttLine_8h.html#a7092c0c4616367016b70d54e5c680a69
+            line->Draw();
         }
 
         double height = calcTLegendHeight(leg);
