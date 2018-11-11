@@ -12,13 +12,13 @@ inputList=(
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltTestEgamma_V68/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8/hltTestEgamma_V68/openHLT_merged.root"
 ## 103X_hltTestEgamma_V68
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1616/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
-"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8/103X_hltTestEgamma_V68_L1_SK1616/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1212/openHLT_merged.root"
+#"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_hltTestEgamma_V68_L1_SK1207/openHLT_merged.root"
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_noReEmul/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_defaultSK/openHLT_merged.root"
@@ -46,13 +46,13 @@ outList=(
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltTestEgamma_V68.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixAllQCDPhoton15"_hltTestEgamma_V68.log"
 ## 103X_hltTestEgamma_V68
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1212.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1207.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1616.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1212.log"
-$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1207.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1212.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1207.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton30"_103X_hltTestEgamma_V68_L1_SK1616.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1212.log"
+#$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_hltTestEgamma_V68_L1_SK1207.log"
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_noReEmul.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70_L1_defaultSK.log"
@@ -134,13 +134,13 @@ argFiles=(
 #$argFileTmp
 #$argFileTmp
 ## 103X_hltTestEgamma_V68
-$argFileTmp
-$argFileTmp
-$argFileTmp
-$argFileTmp
-$argFileTmp
-$argFileTmp
-$argFileTmp
+#$argFileTmp
+#$argFileTmp
+#$argFileTmp
+#$argFileTmp
+#$argFileTmp
+#$argFileTmp
+#$argFileTmp
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V70
 $argFileTmp
 $argFileTmp
