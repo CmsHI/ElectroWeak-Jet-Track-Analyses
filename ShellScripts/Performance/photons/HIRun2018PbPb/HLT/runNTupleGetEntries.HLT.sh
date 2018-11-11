@@ -30,6 +30,8 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_defaultSK/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1212/openHLT_merged.root"
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1207/openHLT_merged.root"
+## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207/openHLT_merged.root"
 ## hltPbPb2018Photons
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V10/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V11/openHLT_merged.root"
@@ -68,6 +70,8 @@ outList=(
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_defaultSK.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1212.log"
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1207.log"
+## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207.log"
 ## hltPbPb2018Photons
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V10.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V11.log"
@@ -89,12 +93,12 @@ echo "HLT_HIGEDPhoton30_EB_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton40_EB_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton50_EB_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton60_EB_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton10_Eta3p1_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton20_Eta3p1_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton30_Eta3p1_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton40_Eta3p1_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton50_Eta3p1_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton60_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton10_Eta2p4_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton20_Eta2p4_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton30_Eta2p4_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton40_Eta2p4_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton50_Eta2p4_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton60_Eta2p4_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton10_Eta1p5_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton20_Eta1p5_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton30_Eta1p5_v1 > 0" >> $argFileTmp
@@ -106,15 +110,30 @@ echo "HLT_HIGEDPhoton10_Cent30_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton20_Cent30_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton30_Cent30_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton40_Cent30_100_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton10_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton20_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton30_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
-echo "HLT_HIIslandPhoton40_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton10_Eta2p4_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton20_Eta2p4_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton30_Eta2p4_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton40_Eta2p4_Cent30_100_v1 > 0" >> $argFileTmp
 ## Cent50_100
 echo "HLT_HIGEDPhoton10_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton20_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton30_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton40_Cent50_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton10_Eta2p4_Cent50_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton20_Eta2p4_Cent50_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton30_Eta2p4_Cent50_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton40_Eta2p4_Cent50_100_v1 > 0" >> $argFileTmp
+## Island Eta3p1
+echo "HLT_HIIslandPhoton10_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton20_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton30_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton40_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton50_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton60_Eta3p1_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton10_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton20_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton30_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
+echo "HLT_HIIslandPhoton40_Eta3p1_Cent30_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton10_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton20_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton30_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
@@ -159,6 +178,8 @@ argFiles=(
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72
 $argFileTmp
 $argFileTmp
+$argFileTmp
+## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
 $argFileTmp
 ## hltPbPb2018Photons
 #$argFileTmp
