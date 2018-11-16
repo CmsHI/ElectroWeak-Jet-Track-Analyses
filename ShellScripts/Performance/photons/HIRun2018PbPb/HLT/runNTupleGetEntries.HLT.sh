@@ -151,6 +151,24 @@ echo "HLT_HIGEDPhoton30_EB_HECut_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton40_EB_HECut_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton50_EB_HECut_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton60_EB_HECut_v1 > 0" >> $argFileTmp
+## L1EG3
+echo "HLT_HIGEDPhoton10_L1EG3_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_L1EG3_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton10_EB_L1EG3_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_EB_L1EG3_v1 > 0" >> $argFileTmp
+## L1Seeded
+echo "HLT_HIGEDPhoton10_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton30_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton40_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton50_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton60_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton10_EB_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_EB_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton30_EB_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton40_EB_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton50_EB_L1Seeded_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton60_EB_L1Seeded_v1 > 0" >> $argFileTmp
 echo "==trees==" >> $argFileTmp
 echo "hltbitanalysis/HltTree" >> $argFileTmp
 
