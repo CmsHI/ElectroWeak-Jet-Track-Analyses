@@ -32,6 +32,7 @@ inputList=(
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1207/openHLT_merged.root"
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
 "/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207/openHLT_merged.root"
+"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Pythia8_AllQCDPhoton15_bias_Hydjet_Drum5Ev8_5020GeV/103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207/openHLT_merged.root"
 ## hltPbPb2018Photons
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V10/openHLT_merged.root"
 #"/mnt/hadoop/cms/store/user/katatar/HIRun2018PbPb/HLT/Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018/hltPbPb2018Photons_V11/openHLT_merged.root"
@@ -42,8 +43,7 @@ outDirBase=$EWJTAOUT
 if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
-suffixAllQCDPhoton15="Pythia8_AllQCDPhoton15_Hydjet_Quenched_Cymbal5Ev8"
-suffixAllQCDPhoton30="Pythia8_AllQCDPhoton30_Hydjet_Quenched_Cymbal5Ev8"
+suffixAllQCDPhoton15="Pythia8_AllQCDPhoton15_bias_Hydjet_Drum5Ev8_5020GeV"
 suffixHydjet="Hydjet_Quenched_Drum5Ev8_PbPbMinBias_5020GeV_2018"
 outList=(
 ## hltTestEgamma
@@ -72,6 +72,7 @@ $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffix
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V72_L1_SK1207.log"
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
 $outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixHydjet"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207.log"
+$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_HLT_"$suffixAllQCDPhoton15"_103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73_L1_SK1207.log"
 ## hltPbPb2018Photons
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V10.log"
 #$outDirBase"/Performance/photons/HIRun2018PbPb/HLT/nTupleGetEntries_"$suffixHydjet"_hltPbPb2018Photons_V11.log"
@@ -138,19 +139,6 @@ echo "HLT_HIIslandPhoton10_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton20_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton30_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
 echo "HLT_HIIslandPhoton40_Eta3p1_Cent50_100_v1 > 0" >> $argFileTmp
-## HECut
-echo "HLT_HIGEDPhoton10_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton20_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton30_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton40_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton50_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton60_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton10_EB_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton20_EB_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton30_EB_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton40_EB_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton50_EB_HECut_v1 > 0" >> $argFileTmp
-echo "HLT_HIGEDPhoton60_EB_HECut_v1 > 0" >> $argFileTmp
 ## L1EG3
 echo "HLT_HIGEDPhoton10_L1EG3_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton20_L1EG3_v1 > 0" >> $argFileTmp
@@ -169,6 +157,19 @@ echo "HLT_HIGEDPhoton30_EB_L1Seeded_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton40_EB_L1Seeded_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton50_EB_L1Seeded_v1 > 0" >> $argFileTmp
 echo "HLT_HIGEDPhoton60_EB_L1Seeded_v1 > 0" >> $argFileTmp
+## HECut
+echo "HLT_HIGEDPhoton10_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton30_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton40_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton50_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton60_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton10_EB_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton20_EB_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton30_EB_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton40_EB_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton50_EB_HECut_v1 > 0" >> $argFileTmp
+echo "HLT_HIGEDPhoton60_EB_HECut_v1 > 0" >> $argFileTmp
 echo "==trees==" >> $argFileTmp
 echo "hltbitanalysis/HltTree" >> $argFileTmp
 
@@ -198,6 +199,7 @@ $argFileTmp
 $argFileTmp
 $argFileTmp
 ## 103X_upgrade2018_realistic_HI_v7_hltTestEgamma_V73
+$argFileTmp
 $argFileTmp
 ## hltPbPb2018Photons
 #$argFileTmp
