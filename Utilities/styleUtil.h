@@ -334,6 +334,9 @@ void setLegendPosition(TLegend* legend, std::string position, TPad* pad, double 
     if (width>0.50) legend->SetMargin(0.075);     // if the legend is wide, then keep the length of the line not wide.
     else if (width>0.25) legend->SetMargin(0.15);     // if the legend is wide, then keep the length of the line not wide.
     // TLegend::SetMargin() helps to set the length of the line in the legend entry.
+
+    // override NDC option, looks like SetX1NDC() not working as it did in ROOT v6.06.02 (smth must have changed between v6.06.02 and v6.12)
+    useNDC = false;
     if (!useNDC) {
         if (position == "NW") { // upper-left corner
             legend->SetX1(pad->GetLeftMargin() + offsetX);
