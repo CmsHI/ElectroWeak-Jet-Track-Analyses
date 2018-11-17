@@ -6,14 +6,14 @@ g++ Plotting/photonJetFF/plotPhotonJetFF.C $(root-config --cflags --libs) -Werro
 
 progPath="./Plotting/photonJetFF/plotPhotonJetFF.exe"
 inputFiles=(
-"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi0_defnFF1-final-and-systematics.root"
-"./Data/photonJetFF/data_60_30_gxi1_defnFF1-final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
+"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
 );
 
 histLists=(
