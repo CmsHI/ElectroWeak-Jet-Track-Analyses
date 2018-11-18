@@ -11,6 +11,14 @@ tables=(
 "6"
 "7"
 "8"
+"9"
+"10"
+"11"
+"12"
+"13"
+"14"
+"15"
+"16"
 );
 
 figures=(
@@ -18,6 +26,14 @@ figures=(
 "1"
 "1"
 "1"
+"1"
+"1"
+"1"
+"1"
+"2"
+"2"
+"2"
+"2"
 "2"
 "2"
 "2"
@@ -29,26 +45,29 @@ topBottoms=(
 "top"
 "top"
 "top"
+"bottom"
+"bottom"
+"bottom"
+"bottom"
 "top"
 "top"
 "top"
 "top"
-#"bottom"
-#"bottom"
-);
-
-isXiJet=(
-1
-1
-1
-1
-0
-0
-0
-0
+"bottom"
+"bottom"
+"bottom"
+"bottom"
 );
 
 centralities=(
+"50-100%"
+"30-50%"
+"10-30%"
+"0-10%"
+"50-100%"
+"30-50%"
+"10-30%"
+"0-10%"
 "50-100%"
 "30-50%"
 "10-30%"
@@ -70,6 +89,44 @@ centralities=(
 #"XI_T_(GAMMA) distribution for jets associated with an isolated photon in pp collisions. The resolutions of the measured jet energy and azimuthal angle are smeared to match those of the 30-50% centrality PbPb sample."
 #);
 
+observables=(
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"PBPB / PP"
+"PBPB / PP"
+"PBPB / PP"
+"PBPB / PP"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"PBPB / PP"
+"PBPB / PP"
+"PBPB / PP"
+"PBPB / PP"
+);
+
+obsDescList=(
+"XI_(JET)"
+"XI_(JET)"
+"XI_(JET)"
+"XI_(JET)"
+"PbPb / pp ratio of XI_(JET)"
+"PbPb / pp ratio of XI_(JET)"
+"PbPb / pp ratio of XI_(JET)"
+"PbPb / pp ratio of XI_(JET)"
+"XI_T_(GAMMA)"
+"XI_T_(GAMMA)"
+"XI_T_(GAMMA)"
+"XI_T_(GAMMA)"
+"PbPb / pp ratio of XI_T_(GAMMA)"
+"PbPb / pp ratio of XI_T_(GAMMA)"
+"PbPb / pp ratio of XI_T_(GAMMA)"
+"PbPb / pp ratio of XI_T_(GAMMA)"
+);
+
 reactions=(
 "P P --> X, PB PB --> X"
 "P P --> X, PB PB --> X"
@@ -79,17 +136,14 @@ reactions=(
 "P P --> X, PB PB --> X"
 "P P --> X, PB PB --> X"
 "P P --> X, PB PB --> X"
-);
-
-observables=(
-"1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
-"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
-"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
-"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
 );
 
 rm -f $outputFile
@@ -102,13 +156,14 @@ for i1 in $arrayIndices
 do
     table=${tables[i1]}
 
-    xiStr="XI_(JET)"
-    if [ ${isXiJet[i1]} == 0 ]; then
-      xiStr="XI_T_(GAMMA)"
-    fi
     centrality=${centralities[i1]}
 
-    description="${xiStr} distribution for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
+    obsDesc=${obsDescList[i1]}
+    description="${obsDesc} distributions for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
+    if [[ $obsDesc = *ratio* ]]; then
+      description="${obsDesc} distributions for ${centrality} centrality collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
+    fi
+
     reaction=${reactions[i1]}
 
     echo "---" >> $outputFile
