@@ -6,33 +6,69 @@ outputBase="./Data/photonJetFF/hepdata"
 outputFiles=(
 $outputBase"/data1.yaml"
 $outputBase"/data2.yaml"
+$outputBase"/data3.yaml"
+$outputBase"/data4.yaml"
+$outputBase"/data5.yaml"
+$outputBase"/data6.yaml"
+$outputBase"/data7.yaml"
+$outputBase"/data8.yaml"
 );
 
 oldLine1="  values:"
 newLines1=(
 "- header: {name: XI_(JET)}"
+"- header: {name: XI_(JET)}"
+"- header: {name: XI_(JET)}"
+"- header: {name: XI_(JET)}"
+"- header: {name: XI_T_(GAMMA)}"
+"- header: {name: XI_T_(GAMMA)}"
+"- header: {name: XI_T_(GAMMA)}"
 "- header: {name: XI_T_(GAMMA)}"
 );
 
 oldLine2="  values:"
 newLines2=(
 "- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP}"
 "- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP}"
 );
 
 newLines3=(
 "- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
+"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
 "- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
 );
 
 linesReaction=(
 "  - {name: RE, value: P P --> X PB PB --> X}"
 "  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
+"  - {name: RE, value: P P --> X PB PB --> X}"
 );
 
 linesCentrality=(
 "  - {name: CENTRALITY, value: '50 - 100%'}"
+"  - {name: CENTRALITY, value: '30 - 50%'}"
+"  - {name: CENTRALITY, value: '10 - 30%'}"
+"  - {name: CENTRALITY, value: '0 - 10%'}"
 "  - {name: CENTRALITY, value: '50 - 100%'}"
+"  - {name: CENTRALITY, value: '30 - 50%'}"
+"  - {name: CENTRALITY, value: '10 - 30%'}"
+"  - {name: CENTRALITY, value: '0 - 10%'}"
 );
 
 linesKinematics=(

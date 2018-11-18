@@ -5,14 +5,32 @@ outputFile="./Data/photonJetFF/hepdata/submission.yaml"
 tables=(
 "1"
 "2"
+"3"
+"4"
+"5"
+"6"
+"7"
+"8"
 );
 
 figures=(
 "1"
+"1"
+"1"
+"1"
+"2"
+"2"
+"2"
 "2"
 );
 
 topBottoms=(
+"top"
+"top"
+"top"
+"top"
+"top"
+"top"
 "top"
 "top"
 #"bottom"
@@ -21,12 +39,24 @@ topBottoms=(
 
 isXiJet=(
 1
+1
+1
+1
+0
+0
+0
 0
 );
 
 centralities=(
 "50-100%"
+"30-50%"
+"10-30%"
+"0-10%"
 "50-100%"
+"30-50%"
+"10-30%"
+"0-10%"
 );
 
 #descriptions=(
@@ -43,11 +73,23 @@ centralities=(
 reactions=(
 "P P --> X, PB PB --> X"
 "P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
 );
 
 observables=(
 "1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_T_(PHOTON)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_(JET)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
+"1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
 );
 
 rm -f $outputFile
@@ -66,7 +108,7 @@ do
     fi
     centrality=${centralities[i1]}
 
-    description="${xiStr} distribution for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those of the PbPb sample."
+    description="${xiStr} distribution for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
     reaction=${reactions[i1]}
 
     echo "---" >> $outputFile
