@@ -5,20 +5,14 @@ outputFile="./Data/photonJetFF/hepdata/submission.yaml"
 tables=(
 "1"
 "2"
-"3"
-"4"
 );
 
 figures=(
 "1"
-"1"
-"2"
 "2"
 );
 
 topBottoms=(
-"top"
-"top"
 "top"
 "top"
 #"bottom"
@@ -27,14 +21,10 @@ topBottoms=(
 
 isXiJet=(
 1
-1
-0
 0
 );
 
 centralities=(
-"50-100%"
-"50-100%"
 "50-100%"
 "50-100%"
 );
@@ -51,16 +41,12 @@ centralities=(
 #);
 
 reactions=(
-"PB PB"
-"P P"
-"PB PB"
-"P P"
+"P P --> X, PB PB --> X"
+"P P --> X, PB PB --> X"
 );
 
 observables=(
 "1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_(JET)"
-"1/N(JET) * DN(TRK))/DXI_T_(PHOTON)"
 "1/N(JET) * DN(TRK))/DXI_T_(PHOTON)"
 );
 
@@ -80,18 +66,15 @@ do
     fi
     centrality=${centralities[i1]}
 
-    description="${xiStr} distribution for jets associated with an isolated photon in ${centrality} centrality PbPb collisions."
+    description="${xiStr} distribution for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those of the PbPb sample."
     reaction=${reactions[i1]}
-    if [[ $reaction != "PB PB" ]]; then
-      description="${xiStr} distribution for jets associated with an isolated photon in pp collisions. The resolutions of the measured jet energy and azimuthal angle are smeared to match those of the ${centrality} centrality PbPb sample."
-    fi
 
     echo "---" >> $outputFile
     echo "name: \"Table ${table}\"" >> $outputFile
     echo "location: Data from ${topBottoms[i1]} panel of Fig. ${figures[i1]}" >> $outputFile
     echo "description: ${description}" >> $outputFile
     echo "keywords:" >> $outputFile
-    echo "  - {name: reactions, values: [${reaction} --> X]}" >> $outputFile
+    echo "  - {name: reactions, values: [${reaction}]}" >> $outputFile
     echo "  - {name: observables, values: [${observables[i1]}]}" >> $outputFile
     echo "  - {name: cmenergies, values: [5020.0]}" >> $outputFile
     echo "  - {name: phrases, values: []}" >> $outputFile

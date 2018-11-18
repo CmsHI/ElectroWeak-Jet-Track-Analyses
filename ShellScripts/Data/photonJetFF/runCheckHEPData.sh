@@ -14,10 +14,10 @@ inputFiles1=(
 );
 
 histPaths1=(
-"hff_final_pbpbdata_recoreco_100_200"
 "hff_final_ppdata_srecoreco_100_200"
 "hff_final_pbpbdata_recoreco_100_200"
 "hff_final_ppdata_srecoreco_100_200"
+"hff_final_pbpbdata_recoreco_100_200"
 );
 
 inputFiles2=(
@@ -33,9 +33,9 @@ inputFiles2=(
 
 histPaths2=(
 "Table 1/Hist1D_y1"
+"Table 1/Hist1D_y2"
 "Table 2/Hist1D_y1"
-"Table 3/Hist1D_y1"
-"Table 4/Hist1D_y1"
+"Table 2/Hist1D_y2"
 );
 
 xiList=(

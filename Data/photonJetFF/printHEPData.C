@@ -14,9 +14,9 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/systemUtil.h"
 
-void printHEPData(std::string inputFile, std::string outputFile, std::string hPath, std::string hSysPath, double xMin = 0, double xMax = -1);
+void printHEPData(std::string inputFile, std::string outputFile, std::string hPath, std::string hSysPath, double xMin = 0, double xMax = -1, bool doIndepVar = true);
 
-void printHEPData(std::string inputFile, std::string outputFile, std::string hPath, std::string hSysPath, double xMin, double xMax)
+void printHEPData(std::string inputFile, std::string outputFile, std::string hPath, std::string hSysPath, double xMin, double xMax, bool doIndepVar)
 {
    std::cout<<"running printHEPData()"<<std::endl;
 
@@ -26,6 +26,7 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
    std::cout << "hSysPath : " << hSysPath.c_str() << std::endl;
    std::cout << "xMin : " << xMin << std::endl;
    std::cout << "xMax : " << xMax << std::endl;
+   std::cout << "doIndepVar : " << doIndepVar << std::endl;
 
    // TH1 objects
    TH1::SetDefaultSumw2();
@@ -59,7 +60,8 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
        binLast = h->FindBin(xMax)-1;
    }
 
-   std::ios_base::openmode openMode = std::ios_base::out | std::ios_base::trunc;    // default mode, overwrites existing file
+   //std::ios_base::openmode openMode = std::ios_base::out | std::ios_base::trunc;    // default mode, overwrites existing file
+   std::ios_base::openmode openMode = std::ios_base::out | std::ios_base::app;    // append to existing file
    std::ofstream outFileStream(outputFile.c_str(), openMode);
 
    if (!outFileStream.is_open()) {
@@ -67,15 +69,17 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
        std::cout << "Exiting" << std::endl;
    }
 
-   //independent_variables:
-   //- header: {name: X-axis}
-   outFileStream << "  values:" << std::endl;
-   for (int iBin = binFirst; iBin <= binLast; ++iBin) {
-       double xLow = h->GetBinLowEdge(iBin);
-       xLow = roundToSignificantFigures(xLow, 2, true);
-       double xUp = h->GetBinLowEdge(iBin+1);
-       xUp = roundToSignificantFigures(xUp, 2, true);
-       outFileStream << "  - {high: " << Form("%.3f", xUp) << ", low: " << Form("%.3f", xLow) << "}" << std::endl;
+   if (doIndepVar) {
+       //independent_variables:
+       //- header: {name: X-axis}
+       outFileStream << "  values:" << std::endl;
+       for (int iBin = binFirst; iBin <= binLast; ++iBin) {
+           double xLow = h->GetBinLowEdge(iBin);
+           xLow = roundToSignificantFigures(xLow, 2, true);
+           double xUp = h->GetBinLowEdge(iBin+1);
+           xUp = roundToSignificantFigures(xUp, 2, true);
+           outFileStream << "  - {high: " << Form("%.3f", xUp) << ", low: " << Form("%.3f", xLow) << "}" << std::endl;
+       }
    }
 
    //dependent_variables:
@@ -104,7 +108,11 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
 
 int main(int argc, char** argv)
 {
-    if (argc == 7) {
+    if (argc == 8) {
+        printHEPData(argv[1], argv[2], argv[3], argv[4], std::atof(argv[5]), std::atof(argv[6]), std::atoi(argv[7]));
+        return 0;
+    }
+    else if (argc == 7) {
         printHEPData(argv[1], argv[2], argv[3], argv[4], std::atof(argv[5]), std::atof(argv[6]));
         return 0;
     }
@@ -118,7 +126,7 @@ int main(int argc, char** argv)
     }
     else {
         std::cout << "Usage : \n" <<
-                "./printHEPData.exe <inputFile> <outputFile> <hPath> <hSysPath> <xMin> <xMax>"
+                "./printHEPData.exe <inputFile> <outputFile> <hPath> <hSysPath> <xMin> <xMax> <doIndepVar>"
                 << std::endl;
         return 1;
     }

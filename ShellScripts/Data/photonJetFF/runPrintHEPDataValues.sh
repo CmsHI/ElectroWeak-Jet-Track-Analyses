@@ -16,27 +16,40 @@ inputFiles=(
 outputBase="./Data/photonJetFF/hepdata"
 outputFiles=(
 $outputBase"/data1.yaml"
+$outputBase"/data1.yaml"
 $outputBase"/data2.yaml"
-$outputBase"/data3.yaml"
-$outputBase"/data4.yaml"
+$outputBase"/data2.yaml"
 );
 
 hPaths=(
-"hff_final_pbpbdata_recoreco_100_200"
 "hff_final_ppdata_srecoreco_100_200"
 "hff_final_pbpbdata_recoreco_100_200"
 "hff_final_ppdata_srecoreco_100_200"
+"hff_final_pbpbdata_recoreco_100_200"
 );
 
 hSysPaths=(
-"hff_final_pbpbdata_recoreco_100_200_systematics"
 "hff_final_ppdata_srecoreco_100_200_systematics"
 "hff_final_pbpbdata_recoreco_100_200_systematics"
 "hff_final_ppdata_srecoreco_100_200_systematics"
+"hff_final_pbpbdata_recoreco_100_200_systematics"
+);
+
+doIndepVars=(
+1
+0
+1
+0
 );
 
 xMin=0.5
 xMax=4.5
+
+## rm all output files from previous
+for tmpFile in "${outputFiles[@]}"
+do
+  rm -rf $tmpFile
+done
 
 arrayIndices=${!hPaths[*]}
 for i1 in $arrayIndices
@@ -45,7 +58,8 @@ do
     outputFile=${outputFiles[i1]}
     hPath=${hPaths[i1]}
     hSysPath=${hSysPaths[i1]}
-    $progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax
-    echo "$progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax"
+    doIndepVar=${doIndepVars[i1]}
+    $progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax $doIndepVar
+    echo "$progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax $doIndepVar"
 done
 
