@@ -65,6 +65,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> titles = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_title]));
     std::vector<std::string> titlesX = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleX]));
     std::vector<std::string> titlesY = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_titleY]));
+    std::vector<float> titleSizesX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleSizeX]);
+    std::vector<float> titleSizesY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleSizeY]);
     std::vector<float> titleOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleOffsetX]);
     std::vector<float> titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleOffsetY]);
     std::vector<int> centerTitleX = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleX]);
@@ -189,6 +191,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<int> setLogy = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_setLogy]);
 
     // set default values
+    if (titleSizesX.size() == 0) titleSizesX = {-1};     // -1 means "do not change title size"
+    if (titleSizesY.size() == 0) titleSizesY = {-1};     // -1 means "do not change title size"
+
     if (titleOffsetsX.size() == 0) titleOffsetsX = {INPUT_DEFAULT::titleOffsetX};
     if (titleOffsetsY.size() == 0) titleOffsetsY = {INPUT_DEFAULT::titleOffsetY};
 
@@ -326,6 +331,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nTitles = titles.size();
     int nTitlesX = titlesX.size();
     int nTitlesY = titlesY.size();
+    int nTitleSizesX = titleSizesX.size();
+    int nTitleSizesY = titleSizesY.size();
     int nTitleOffsetX = titleOffsetsX.size();
     int nTitleOffsetY = titleOffsetsY.size();
     int nCenterTitleX = centerTitleX.size();
@@ -423,6 +430,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "nTitlesY = " << nTitlesY << std::endl;
     for (int i = 0; i<nTitlesY; ++i) {
         std::cout << Form("titlesY[%d] = %s", i, titlesY.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTitleSizesX = " << nTitleSizesX << std::endl;
+    for (int i = 0; i<nTitleSizesX; ++i) {
+        std::cout << Form("titleSizesX[%d] = %f", i, titleSizesX.at(i)) << std::endl;
+    }
+    std::cout << "nTitleSizesY = " << nTitleSizesY << std::endl;
+    for (int i = 0; i<nTitleSizesY; ++i) {
+        std::cout << Form("titleSizesY[%d] = %f", i, titleSizesY.at(i)) << std::endl;
     }
     std::cout << "nTitleOffsetX = " << nTitleOffsetX << std::endl;
     for (int i = 0; i<nTitleOffsetX; ++i) {
@@ -1104,6 +1119,18 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         float yMaxTmp = yMax.at(0);
         if (nyMax == nPads) yMaxTmp = yMax.at(indexPad);
         if (yMaxTmp > yMinTmp)       h[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
+
+        float titleSizeX = titleSizesX.at(0);
+        if (nTitleSizesX == nPads)  titleSizeX = titleSizesX.at(indexPad);
+        if (titleSizeX > -1) {
+            h[i]->SetTitleSize(titleSizeX,"X");
+        }
+
+        float titleSizeY = titleSizesY.at(0);
+        if (nTitleSizesY == nPads)  titleSizeY = titleSizesY.at(indexPad);
+        if (titleSizeY > -1) {
+            h[i]->SetTitleSize(titleSizeY,"Y");
+        }
 
         float titleOffsetX = titleOffsetsX.at(0);
         if (nTitleOffsetX == nPads)  titleOffsetX = titleOffsetsX.at(indexPad);

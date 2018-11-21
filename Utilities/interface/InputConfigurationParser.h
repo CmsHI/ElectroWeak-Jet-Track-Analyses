@@ -124,6 +124,8 @@ enum TYPE_F {
     k_topMargin,
     k_xMargin,                  // horizontal margin between pads
     k_yMargin,                  // vertical margin between pads
+    k_titleSizeX,
+    k_titleSizeY,
     k_titleOffsetX,
     k_titleOffsetY,
     k_TH1_xMin,
@@ -181,6 +183,8 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "topMargin",
     "xMargin",
     "yMargin",
+    "titleSizeX",
+    "titleSizeY",
     "titleOffsetX",
     "titleOffsetY",
     "TH1_xMin",
