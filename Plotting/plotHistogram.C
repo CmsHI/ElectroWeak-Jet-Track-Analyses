@@ -121,6 +121,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> textSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_textSize]);
     std::vector<float> textOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_textOffsetX]);
     std::vector<float> textOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_textOffsetY]);
+    std::vector<float> textLineOffsets = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_textLineOffset]);
 
     std::string tmpTextAbovePad = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_textAbovePad]);
     std::vector<std::pair<std::string, int>> textAbovePadEntries = ConfigurationParser::ParseListOfList(tmpTextAbovePad);
@@ -201,6 +202,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     if (textOffsetsX.size() == 0)  textOffsetsX = {INPUT_DEFAULT::textOffsetX};
     if (textOffsetsY.size() == 0)  textOffsetsY = {INPUT_DEFAULT::textOffsetY};
+    if (textLineOffsets.size() == 0)  textLineOffsets = {INPUT_DEFAULT::textLineOffset};
 
     if (textAbovePadFonts.size() == 0)  textAbovePadFonts = {INPUT_DEFAULT::textAbovePadFont};
     if (textAbovePadSizes.size() == 0)  textAbovePadSizes = {INPUT_DEFAULT::textAbovePadSize};
@@ -363,6 +365,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nTextSizes = textSizes.size();
     int nTextOffsetsX = textOffsetsX.size();
     int nTextOffsetsY = textOffsetsY.size();
+    int nTextLineOffsets = textLineOffsets.size();
     int nTextsAbovePad = textsAbovePad.size();
     int nTextsAbovePadAlignments = textsAbovePadAlignments.size();
     int nTextAbovePadFonts = textAbovePadFonts.size();
@@ -625,6 +628,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << "nTextOffsetsY = " << nTextOffsetsY << std::endl;
         for (int i = 0; i<nTextOffsetsY; ++i) {
                 std::cout << Form("textOffsetsY[%d] = %f", i, textOffsetsY.at(i)) << std::endl;
+        }
+        std::cout << "nTextLineOffsets = " << nTextLineOffsets << std::endl;
+        for (int i = 0; i<nTextLineOffsets; ++i) {
+                std::cout << Form("textLineOffsets[%d] = %f", i, textLineOffsets.at(i)) << std::endl;
         }
     }
 
@@ -1405,6 +1412,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             float textOffsetY = textOffsetsY.at(0);
             if (nTextOffsetsY == nPads) textOffsetY = textOffsetsY.at(iPad);
 
+            float textLineOffset = textLineOffsets.at(0);
+            if (nTextLineOffsets == nPads) textLineOffset = textLineOffsets.at(iPad);
+
             std::vector<std::string> textLinesTmp;
             for (int iLine = 0; iLine < nTextLines; ++iLine) {
                 if (textLinePadIndices.at(iLine) == iPad)
@@ -1412,7 +1422,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             }
 
             int nTextLinesTmp = textLinesTmp.size();
-            std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY);
+            std::vector<std::pair<float,float>> textCoordinates = calcTextCoordinates(textLinesTmp, textPosition, c, textOffsetX, textOffsetY, textLineOffset);
             for (int i = 0; i<nTextLinesTmp; ++i){
                 float x = textCoordinates.at(i).first;
                 float y = textCoordinates.at(i).second;

@@ -138,6 +138,7 @@ enum TYPE_F {
     k_textSize,
     k_textOffsetX,
     k_textOffsetY,
+    k_textLineOffset,
     k_textAbovePadSize,
     k_textAbovePadOffsetX,
     k_textAbovePadOffsetY,
@@ -194,6 +195,7 @@ const std::string TYPE_F_LABELS[kN_TYPES_F] = {
     "textSize",
     "textOffsetX",
     "textOffsetY",
+    "textLineOffset",
     "textAbovePadSize",
     "textAbovePadOffsetX",
     "textAbovePadOffsetY",
@@ -411,6 +413,7 @@ const float markerSize = 1;
 const float textSize = 20;
 const float textOffsetX = 0.04;
 const float textOffsetY = 0.04;
+const float textLineOffset = 0.05;
 const float textAbovePadSize = 20;
 const float textAbovePadOffsetX = 0;
 const float textAbovePadOffsetY = 0;
