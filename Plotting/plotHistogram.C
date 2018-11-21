@@ -1448,8 +1448,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             float textAbovePadOffsetX = textAbovePadOffsetsX.at(0);
             if (nTextAbovePadOffsetsX == nPads) textAbovePadOffsetX = textAbovePadOffsetsX.at(iPad);
 
-            float textAbovePadOffsetY = textAbovePadOffsetsX.at(0);
-            if (nTextAbovePadOffsetsY == nPads) textAbovePadOffsetY = textAbovePadOffsetsX.at(iPad);
+            float textAbovePadOffsetY = textAbovePadOffsetsY.at(0);
+            if (nTextAbovePadOffsetsY == nPads) textAbovePadOffsetY = textAbovePadOffsetsY.at(iPad);
 
             for (int iText = 0; iText < nTextsAbovePad; ++iText) {
                 if (textsAbovePadPadIndices.at(iText) != iPad)  continue;
