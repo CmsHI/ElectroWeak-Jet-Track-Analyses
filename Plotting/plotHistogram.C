@@ -71,6 +71,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<float> titleOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_titleOffsetY]);
     std::vector<int> centerTitleX = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleX]);
     std::vector<int> centerTitleY = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_centerTitleY]);
+    std::vector<float> labelSizesX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_labelSizeX]);
+    std::vector<float> labelSizesY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_labelSizeY]);
+    std::vector<float> labelOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_labelOffsetX]);
+    std::vector<float> labelOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_labelOffsetY]);
     std::vector<std::string> TH1error_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1error_path]));
     std::vector<std::string> TH1sysp_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysp_path]));
     std::vector<std::string> TH1sysm_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysm_path]));
@@ -191,9 +195,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<int> setLogy = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_setLogy]);
 
     // set default values
-    if (titleSizesX.size() == 0) titleSizesX = {-1};     // -1 means "do not change title size"
-    if (titleSizesY.size() == 0) titleSizesY = {-1};     // -1 means "do not change title size"
-
     if (titleOffsetsX.size() == 0) titleOffsetsX = {INPUT_DEFAULT::titleOffsetX};
     if (titleOffsetsY.size() == 0) titleOffsetsY = {INPUT_DEFAULT::titleOffsetY};
 
@@ -337,6 +338,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nTitleOffsetY = titleOffsetsY.size();
     int nCenterTitleX = centerTitleX.size();
     int nCenterTitleY = centerTitleY.size();
+    int nLabelSizesX = labelSizesX.size();
+    int nLabelSizesY = labelSizesY.size();
+    int nLabelOffsetsX = labelOffsetsX.size();
+    int nLabelOffsetsY = labelOffsetsY.size();
     int nHistosErr = TH1error_paths.size();
     int nHistosSysp = TH1sysp_paths.size();
     int nHistosSysm = TH1sysm_paths.size();
@@ -454,6 +459,22 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::cout << "nCenterTitleY = " << nCenterTitleY << std::endl;
     for (int i = 0; i<nCenterTitleY; ++i) {
         std::cout << Form("centerTitleY[%d] = %d", i, centerTitleY.at(i)) << std::endl;
+    }
+    std::cout << "nLabelSizesX = " << nLabelSizesX << std::endl;
+    for (int i = 0; i<nLabelSizesX; ++i) {
+        std::cout << Form("labelSizesX[%d] = %f", i, labelSizesX.at(i)) << std::endl;
+    }
+    std::cout << "nLabelSizesY = " << nLabelSizesY << std::endl;
+    for (int i = 0; i<nLabelSizesY; ++i) {
+        std::cout << Form("labelSizesY[%d] = %f", i, labelSizesY.at(i)) << std::endl;
+    }
+    std::cout << "nLabelOffsetsX = " << nLabelOffsetsX << std::endl;
+    for (int i = 0; i<nLabelOffsetsX; ++i) {
+        std::cout << Form("labelOffsetsX[%d] = %f", i, labelOffsetsX.at(i)) << std::endl;
+    }
+    std::cout << "nLabelOffsetsY = " << nLabelOffsetsY << std::endl;
+    for (int i = 0; i<nLabelOffsetsY; ++i) {
+        std::cout << Form("labelOffsetsY[%d] = %f", i, labelOffsetsY.at(i)) << std::endl;
     }
     std::cout << "nTH1error_paths  = " << nHistosErr << std::endl;
     for (int i = 0; i<nHistosErr; ++i) {
@@ -1120,17 +1141,16 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nyMax == nPads) yMaxTmp = yMax.at(indexPad);
         if (yMaxTmp > yMinTmp)       h[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
 
-        float titleSizeX = titleSizesX.at(0);
-        if (nTitleSizesX == nPads)  titleSizeX = titleSizesX.at(indexPad);
-        if (titleSizeX > -1) {
-            h[i]->SetTitleSize(titleSizeX,"X");
-        }
 
-        float titleSizeY = titleSizesY.at(0);
+        float titleSizeX = -1;
+        if (nTitleSizesX == 1)  titleSizeX = titleSizesX.at(0);
+        if (nTitleSizesX == nPads)  titleSizeX = titleSizesX.at(indexPad);
+        if (titleSizeX > -1) h[i]->SetTitleSize(titleSizeX,"X");
+
+        float titleSizeY = -1;
+        if (nTitleSizesY == 1)  titleSizeY = titleSizesY.at(0);
         if (nTitleSizesY == nPads)  titleSizeY = titleSizesY.at(indexPad);
-        if (titleSizeY > -1) {
-            h[i]->SetTitleSize(titleSizeY,"Y");
-        }
+        if (titleSizeY > -1) h[i]->SetTitleSize(titleSizeY,"Y");
 
         float titleOffsetX = titleOffsetsX.at(0);
         if (nTitleOffsetX == nPads)  titleOffsetX = titleOffsetsX.at(indexPad);
@@ -1149,6 +1169,26 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nCenterTitleY == 1) centerTitleYTmp = centerTitleY.at(0);
         else if (nCenterTitleY == nPads)  centerTitleYTmp = centerTitleY.at(indexPad);
         if (centerTitleYTmp > 0)  h[i]->GetYaxis()->CenterTitle();
+
+        float labelSizeX = -1;
+        if (nLabelSizesX == 1)  labelSizeX = labelSizesX.at(0);
+        if (nLabelSizesX == nPads)  labelSizeX = labelSizesX.at(indexPad);
+        if (labelSizeX > -1) h[i]->SetLabelSize(labelSizeX,"X");
+
+        float labelSizeY = -1;
+        if (nLabelSizesY == 1)  labelSizeY = labelSizesY.at(0);
+        if (nLabelSizesY == nPads)  labelSizeY = labelSizesY.at(indexPad);
+        if (labelSizeY > -1) h[i]->SetLabelSize(labelSizeY,"Y");
+
+        float labelOffsetX = -1;
+        if (nLabelOffsetsX == 1)  labelOffsetX = labelOffsetsX.at(0);
+        if (nLabelOffsetsX == nPads)  labelOffsetX = labelOffsetsX.at(indexPad);
+        if (labelOffsetX > -1) h[i]->SetLabelOffset(labelOffsetX,"X");
+
+        float labelOffsetY = -1;
+        if (nLabelOffsetsY == 1)  labelOffsetY = labelOffsetsY.at(0);
+        if (nLabelOffsetsY == nPads)  labelOffsetY = labelOffsetsY.at(indexPad);
+        if (labelOffsetY > -1) h[i]->SetLabelOffset(labelOffsetY,"Y");
 
         int fitTH1Tmp = fitTH1.at(0);
         if (nFitTH1 == nHistos)  fitTH1Tmp = fitTH1.at(i);
