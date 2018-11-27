@@ -312,7 +312,7 @@ elif [ $isSubmitMIT -gt 0 ]; then
   rm $submitDir/condorExecutable.Lxplus.sh
 fi
 
-# create a script to merge the output after the jobs finish, works only on submit-hi1.mit.edu and submit-hi2.mit.edu
+# create a script to merge the output after the jobs finish
 cat > $submitDir/mergeOutput.sh <<EOF
 #!/bin/bash
 
@@ -323,16 +323,36 @@ USERGRID=$(voms-proxy-info -issuer | awk '{split($0,myLine,"/CN="); print myLine
 if [ -z "\$USERGRID" ]; then
   USERGRID=$USER
 fi
-hadoopBase="/mnt/hadoop/cms/store/user/"\$USERGRID
-scratchBase="/export/d00/scratch/"$USER
 
-# merge the output only if a scratch directory exists for that user.
-if [ ! -d "\$scratchBase" ]; then
-  echo "scratch directory does not exist : \$scratchBase"
+outputBase=""
+if [[ $isLxplus -gt 0 && $outputDir == /afs/* ]]; then
+  outputBase="/afs/cern.ch/work/"$firstLetter"/"$USER"/public"
+elif [[ $isLxplus -gt 0 && $outputDir == /eos/* ]]; then
+  outputBase="/eos/cms/store/group/phys_heavyions/"\$USER
+elif [[ $isSubmitMIT -gt 0 && $outputDir == /mnt/hadoop/* ]]; then
+  outputBase="/mnt/hadoop/cms/store/user/"\$USERGRID
+fi
+
+if [[ -z "\$outputBase" || ! -d "\$outputBase" ]]; then
+  echo "Output directory does not exist : \$outputBase"
   exit 1
 fi
 
-dirTmp=\$(echo $outputDir | sed "s#\$hadoopBase#\$scratchBase#g")
+# merge the output only if a scratch/work directory exists for that user.
+tmpHaddDir=""
+if [ $isLxplus -gt 0 ]; then
+  firstLetter=${USER:0:1}
+  tmpHaddDir="/afs/cern.ch/work/"$firstLetter"/"$USER"/public"
+elif [ $isSubmitMIT -gt 0 ]; then
+  tmpHaddDir="/export/d00/scratch/"$USER
+fi
+
+if [[ -z "\$tmpHaddDir" || ! -d "\$tmpHaddDir" ]]; then
+  echo "Temporary directory for hadd does not exist : \$tmpHaddDir"
+  exit 1
+fi
+
+dirTmp=\$(echo $outputDir | sed "s#\$outputBase#\$tmpHaddDir#g")
 mergedOutputName=\$(basename \$dirTmp)".root"
 mergedOutDir=\$(dirname \$dirTmp)
 mergedOutput=\$mergedOutDir"/"\$mergedOutputName
