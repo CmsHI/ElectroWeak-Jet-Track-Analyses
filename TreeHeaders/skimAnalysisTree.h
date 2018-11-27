@@ -39,9 +39,11 @@ public :
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
     void enableBranchesHI(TTree *t);
+    void enableBranchesHI2015(TTree *t);
     void enableBranchesPP(TTree *t);
     void checkBranches(TTree *t);
     bool passedEventSelectionHI();
+    bool passedEventSelectionHI2015();
     bool passedEventSelectionPP();
 
     // Declaration of leaf types
@@ -71,6 +73,21 @@ public :
     Int_t           pVertexFilterCutGplus;
     Int_t           pVertexFilterCutE;
     Int_t           pVertexFilterCutEandG;
+    // 2018
+    Int_t           collisionEventSelectionAOD;
+    Int_t           collisionEventSelectionAODv2;
+    Int_t           phfCoincFilter1Th3;
+    Int_t           phfCoincFilter2Th3;
+    Int_t           phfCoincFilter3Th3;
+    Int_t           phfCoincFilter4Th3;
+    Int_t           phfCoincFilter5Th3;
+    Int_t           phfCoincFilter1Th4;
+    Int_t           phfCoincFilter2Th4;
+    Int_t           phfCoincFilter3Th4;
+    Int_t           phfCoincFilter4Th4;
+    Int_t           phfCoincFilter5Th4;
+    Int_t           phfCoincFilter1Th5;
+    Int_t           phfCoincFilter4Th2;
 
     // List of branches
     // PbPb
@@ -99,6 +116,21 @@ public :
     TBranch        *b_pVertexFilterCutGplus;   //!
     TBranch        *b_pVertexFilterCutE;   //!
     TBranch        *b_pVertexFilterCutEandG;   //!
+    // 2018
+    TBranch        *b_collisionEventSelectionAOD;
+    TBranch        *b_collisionEventSelectionAODv2;
+    TBranch        *b_phfCoincFilter1Th3;
+    TBranch        *b_phfCoincFilter2Th3;
+    TBranch        *b_phfCoincFilter3Th3;
+    TBranch        *b_phfCoincFilter4Th3;
+    TBranch        *b_phfCoincFilter5Th3;
+    TBranch        *b_phfCoincFilter1Th4;
+    TBranch        *b_phfCoincFilter2Th4;
+    TBranch        *b_phfCoincFilter3Th4;
+    TBranch        *b_phfCoincFilter4Th4;
+    TBranch        *b_phfCoincFilter5Th4;
+    TBranch        *b_phfCoincFilter1Th5;
+    TBranch        *b_phfCoincFilter4Th2;
 
     // flags to check if the tree has the branches
     bool has_ana_step;
@@ -117,7 +149,7 @@ public :
     bool has_phfCoincFilter5;
     bool has_pclusterCompatibilityFilter;
     bool has_superFilterPath;
-        // pp, pA
+    // pp, pA
     bool has_pPAprimaryVertexFilter;
     bool has_pBeamScrapingFilter;
     bool has_pVertexFilterCutG;
@@ -126,6 +158,21 @@ public :
     bool has_pVertexFilterCutGplus;
     bool has_pVertexFilterCutE;
     bool has_pVertexFilterCutEandG;
+    // 2018
+    bool has_collisionEventSelectionAOD;
+    bool has_collisionEventSelectionAODv2;
+    bool has_phfCoincFilter1Th3;
+    bool has_phfCoincFilter2Th3;
+    bool has_phfCoincFilter3Th3;
+    bool has_phfCoincFilter4Th3;
+    bool has_phfCoincFilter5Th3;
+    bool has_phfCoincFilter1Th4;
+    bool has_phfCoincFilter2Th4;
+    bool has_phfCoincFilter3Th4;
+    bool has_phfCoincFilter4Th4;
+    bool has_phfCoincFilter5Th4;
+    bool has_phfCoincFilter1Th5;
+    bool has_phfCoincFilter4Th2;
 };
 
 void skimAnalysis::setupTreeForReading(TTree *t)
@@ -156,6 +203,21 @@ void skimAnalysis::setupTreeForReading(TTree *t)
     if (t->GetBranch("pVertexFilterCutGplus"))  t->SetBranchAddress("pVertexFilterCutGplus", &pVertexFilterCutGplus, &b_pVertexFilterCutGplus);
     if (t->GetBranch("pVertexFilterCutE"))  t->SetBranchAddress("pVertexFilterCutE", &pVertexFilterCutE, &b_pVertexFilterCutE);
     if (t->GetBranch("pVertexFilterCutEandG"))  t->SetBranchAddress("pVertexFilterCutEandG", &pVertexFilterCutEandG, &b_pVertexFilterCutEandG);
+
+    if (t->GetBranch("collisionEventSelectionAOD"))  t->SetBranchAddress("collisionEventSelectionAOD", &collisionEventSelectionAOD, &b_collisionEventSelectionAOD);
+    if (t->GetBranch("collisionEventSelectionAODv2"))  t->SetBranchAddress("collisionEventSelectionAODv2", &collisionEventSelectionAODv2, &b_collisionEventSelectionAODv2);
+    if (t->GetBranch("phfCoincFilter1Th3"))  t->SetBranchAddress("phfCoincFilter1Th3", &phfCoincFilter1Th3, &b_phfCoincFilter1Th3);
+    if (t->GetBranch("phfCoincFilter2Th3"))  t->SetBranchAddress("phfCoincFilter2Th3", &phfCoincFilter2Th3, &b_phfCoincFilter2Th3);
+    if (t->GetBranch("phfCoincFilter3Th3"))  t->SetBranchAddress("phfCoincFilter3Th3", &phfCoincFilter3Th3, &b_phfCoincFilter3Th3);
+    if (t->GetBranch("phfCoincFilter4Th3"))  t->SetBranchAddress("phfCoincFilter4Th3", &phfCoincFilter4Th3, &b_phfCoincFilter4Th3);
+    if (t->GetBranch("phfCoincFilter5Th3"))  t->SetBranchAddress("phfCoincFilter5Th3", &phfCoincFilter5Th3, &b_phfCoincFilter5Th3);
+    if (t->GetBranch("phfCoincFilter1Th4"))  t->SetBranchAddress("phfCoincFilter1Th4", &phfCoincFilter1Th4, &b_phfCoincFilter1Th4);
+    if (t->GetBranch("phfCoincFilter2Th4"))  t->SetBranchAddress("phfCoincFilter2Th4", &phfCoincFilter2Th4, &b_phfCoincFilter2Th4);
+    if (t->GetBranch("phfCoincFilter3Th4"))  t->SetBranchAddress("phfCoincFilter3Th4", &phfCoincFilter3Th4, &b_phfCoincFilter3Th4);
+    if (t->GetBranch("phfCoincFilter4Th4"))  t->SetBranchAddress("phfCoincFilter4Th4", &phfCoincFilter4Th4, &b_phfCoincFilter4Th4);
+    if (t->GetBranch("phfCoincFilter5Th4"))  t->SetBranchAddress("phfCoincFilter5Th4", &phfCoincFilter5Th4, &b_phfCoincFilter5Th4);
+    if (t->GetBranch("phfCoincFilter1Th5"))  t->SetBranchAddress("phfCoincFilter1Th5", &phfCoincFilter1Th5, &b_phfCoincFilter1Th5);
+    if (t->GetBranch("phfCoincFilter4Th2"))  t->SetBranchAddress("phfCoincFilter4Th2", &phfCoincFilter4Th2, &b_phfCoincFilter4Th2);
 }
 
 void skimAnalysis::setupTreeForWriting(TTree *t)
@@ -185,9 +247,31 @@ void skimAnalysis::setupTreeForWriting(TTree *t)
     t->Branch("pVertexFilterCutGplus",&pVertexFilterCutGplus,"pVertexFilterCutGplus/I");
     t->Branch("pVertexFilterCutE",&pVertexFilterCutE,"pVertexFilterCutE/I");
     t->Branch("pVertexFilterCutEandG",&pVertexFilterCutEandG,"pVertexFilterCutEandG/I");
+
+    t->Branch("collisionEventSelectionAOD",&collisionEventSelectionAOD,"collisionEventSelectionAOD/I");
+    t->Branch("collisionEventSelectionAODv2",&collisionEventSelectionAODv2,"collisionEventSelectionAODv2/I");
+    t->Branch("phfCoincFilter1Th3",&phfCoincFilter1Th3,"phfCoincFilter1Th3/I");
+    t->Branch("phfCoincFilter2Th3",&phfCoincFilter2Th3,"phfCoincFilter2Th3/I");
+    t->Branch("phfCoincFilter3Th3",&phfCoincFilter3Th3,"phfCoincFilter3Th3/I");
+    t->Branch("phfCoincFilter4Th3",&phfCoincFilter4Th3,"phfCoincFilter4Th3/I");
+    t->Branch("phfCoincFilter5Th3",&phfCoincFilter5Th3,"phfCoincFilter5Th3/I");
+    t->Branch("phfCoincFilter1Th4",&phfCoincFilter1Th4,"phfCoincFilter1Th4/I");
+    t->Branch("phfCoincFilter2Th4",&phfCoincFilter2Th4,"phfCoincFilter2Th4/I");
+    t->Branch("phfCoincFilter3Th4",&phfCoincFilter3Th4,"phfCoincFilter3Th4/I");
+    t->Branch("phfCoincFilter4Th4",&phfCoincFilter4Th4,"phfCoincFilter4Th4/I");
+    t->Branch("phfCoincFilter5Th4",&phfCoincFilter5Th4,"phfCoincFilter5Th4/I");
+    t->Branch("phfCoincFilter1Th5",&phfCoincFilter1Th5,"phfCoincFilter1Th5/I");
+    t->Branch("phfCoincFilter4Th2",&phfCoincFilter4Th2,"phfCoincFilter4Th2/I");
 }
 
 void skimAnalysis::enableBranchesHI(TTree *t)
+{
+    t->SetBranchStatus("pprimaryVertexFilter",1);
+    t->SetBranchStatus("pclusterCompatibilityFilter",1);
+    t->SetBranchStatus("phfCoincFilter2Th4",1);
+}
+
+void skimAnalysis::enableBranchesHI2015(TTree *t)
 {
     t->SetBranchStatus("pcollisionEventSelection",1);
 }
@@ -225,9 +309,31 @@ void skimAnalysis::checkBranches(TTree *t)
     has_pVertexFilterCutGplus = t->GetBranch("pVertexFilterCutGplus");
     has_pVertexFilterCutE = t->GetBranch("pVertexFilterCutE");
     has_pVertexFilterCutEandG = t->GetBranch("pVertexFilterCutEandG");
+
+    has_collisionEventSelectionAOD = t->GetBranch("collisionEventSelectionAOD");
+    has_collisionEventSelectionAODv2 = t->GetBranch("collisionEventSelectionAODv2");
+    has_phfCoincFilter1Th3 = t->GetBranch("phfCoincFilter1Th3");
+    has_phfCoincFilter2Th3 = t->GetBranch("phfCoincFilter2Th3");
+    has_phfCoincFilter3Th3 = t->GetBranch("phfCoincFilter3Th3");
+    has_phfCoincFilter4Th3 = t->GetBranch("phfCoincFilter4Th3");
+    has_phfCoincFilter5Th3 = t->GetBranch("phfCoincFilter5Th3");
+    has_phfCoincFilter1Th4 = t->GetBranch("phfCoincFilter1Th4");
+    has_phfCoincFilter2Th4 = t->GetBranch("phfCoincFilter2Th4");
+    has_phfCoincFilter3Th4 = t->GetBranch("phfCoincFilter3Th4");
+    has_phfCoincFilter4Th4 = t->GetBranch("phfCoincFilter4Th4");
+    has_phfCoincFilter5Th4 = t->GetBranch("phfCoincFilter5Th4");
+    has_phfCoincFilter1Th5 = t->GetBranch("phfCoincFilter1Th5");
+    has_phfCoincFilter4Th2 = t->GetBranch("phfCoincFilter4Th2");
 }
 
 bool skimAnalysis::passedEventSelectionHI()
+{
+    return ((!has_pprimaryVertexFilter || pprimaryVertexFilter > 0) &&
+            (!has_pclusterCompatibilityFilter || pclusterCompatibilityFilter > 0) &&
+            (!has_phfCoincFilter2Th4 || phfCoincFilter2Th4 > 0));
+}
+
+bool skimAnalysis::passedEventSelectionHI2015()
 {
     return (!has_pcollisionEventSelection || pcollisionEventSelection > 0);
 }
