@@ -19,6 +19,8 @@ namespace COLL {
         kPPMC,
         kPA,
         kPAMC,
+        kHI2018,
+        kHIMC2018,
         kN_COLL
     };
 
@@ -28,7 +30,9 @@ namespace COLL {
             "PP",
             "PPMC",
             "PA",
-            "PAMC"
+            "PAMC",
+            "HI2018",
+            "HIMC2018"
     };
 
     std::string EVENTSEL[kN_COLL] = {
@@ -37,7 +41,9 @@ namespace COLL {
             "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
             "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
             "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0 && pVertexFilterCutGplus > 0",
-            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0 && pVertexFilterCutGplus > 0"
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0 && pVertexFilterCutGplus > 0",
+            "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0",
+            "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0"
     };
 };
 

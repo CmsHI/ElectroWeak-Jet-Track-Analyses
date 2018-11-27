@@ -181,6 +181,13 @@ int HiForestInfoController::getCollisionType(TTree* treeSkim, bool isData)
         if (isData)  return COLL::kPP;
         else         return COLL::kPPMC;
     }
+    if (treeSkim->GetBranch("pprimaryVertexFilter") &&
+        treeSkim->GetBranch("pclusterCompatibilityFilter") &&
+        treeSkim->GetBranch("phfCoincFilter2Th4"))
+    {
+        if (isData)  return COLL::kHI2018;
+        else         return COLL::kHIMC2018;
+    }
     else
         return -1;
 }
