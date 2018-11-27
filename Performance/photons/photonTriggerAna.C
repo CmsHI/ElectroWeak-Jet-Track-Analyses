@@ -1888,7 +1888,7 @@ int  preLoop(TFile* input, bool makeNew)
         std::string nameNumInEff = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNumInEff);
         std::string nameFakeNum = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeNum);
         std::string nameFakeDenom = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeDenom);
-        std::string nameEscale = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::keScale);
+        std::string nameEscale2D = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::keScale, triggerAnalyzer::TOBJ::kTH2D);
 
         // disable the cuts/ranges for this dependence
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
@@ -1939,10 +1939,10 @@ int  preLoop(TFile* input, bool makeNew)
             if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj || runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
                 if (makeNew) {
                     tAnaTmp.h2eScale =
-                            new TH2D(nameEscale.c_str(), Form(";%s;online p_{T} / offline p_{T}", xTitle.c_str()), nBins, arr, 50, 0, 2);
+                            new TH2D(nameEscale2D.c_str(), Form(";%s;online p_{T} / offline p_{T}", xTitle.c_str()), nBins, arr, 50, 0, 2);
                 }
                 else {
-                    tAnaTmp.h2eScale = (TH2D*)input->Get(nameEscale.c_str());
+                    tAnaTmp.h2eScale = (TH2D*)input->Get(nameEscale2D.c_str());
                 }
             }
 

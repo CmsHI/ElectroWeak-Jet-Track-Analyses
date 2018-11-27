@@ -142,6 +142,7 @@ public :
         isValid_gFakeRatio = false;
 
         h2eScale = 0;
+        heScaleArith = 0;
         isValid_h2eScale = false;
 
         pathNum = "";
@@ -213,6 +214,7 @@ public :
     void calcEff2D();
     void calcInEff();
     void calcFakeRatio();
+    void calcEScale();
     void writeObjects(TCanvas* c);
 
     static void setPad4Observable(TPad* p, int iObs, int iDep);
@@ -268,6 +270,7 @@ public :
 
     // objects for online vs offline energy scale
     TH2D* h2eScale;
+    TH1D* heScaleArith;
     bool isValid_h2eScale;
 
     std::string pathNum;
@@ -787,6 +790,7 @@ void triggerAnalyzer::postLoop()
     calcEff2D();
     calcInEff();
     calcFakeRatio();
+    calcEScale();
 }
 
 void triggerAnalyzer::calcEff()
@@ -957,6 +961,41 @@ void triggerAnalyzer::calcFakeRatio()
     hFakeRatio->SetMaximum(1.2);
 
     isValid_hFakeRatio = true;
+}
+
+void triggerAnalyzer::calcEScale()
+{
+    if (!isValid_h2eScale) return;
+
+    h2eScale->SetTitle(title.c_str());
+    h2eScale->SetXTitle(titleX.c_str());
+    setTH1_efficiency(h2eScale, titleOffsetX, titleOffsetY);
+
+    std::string tmpName = getObjectName(triggerAnalyzer::OBJ::keScale, triggerAnalyzer::TOBJ::kTH1D);
+    heScaleArith = (TH1D*)h2eScale->ProjectionX(tmpName.c_str());
+    heScaleArith->Reset();
+
+    int nBinsX = heScaleArith->GetNbinsX();
+    for (int iBin = 1; iBin <= nBinsX; ++iBin) {
+        double entriesTmp = h2eScale->ProjectionY("hTmp", iBin, iBin)->GetEntries();
+        double mean = h2eScale->ProjectionY("hTmp", iBin, iBin)->GetMean();
+        double meanErr = h2eScale->ProjectionY("hTmp", iBin, iBin)->GetMeanError();
+        if (meanErr < 0.000001) meanErr = 0.000001;
+
+        if (entriesTmp > 0) {
+            heScaleArith->SetBinContent(iBin, mean);
+            heScaleArith->SetBinError(iBin, meanErr);
+        }
+    }
+
+    heScaleArith->SetMinimum(h2eScale->GetYaxis()->GetXmin());
+    heScaleArith->SetMaximum(h2eScale->GetYaxis()->GetXmax());
+
+    std::string yTitleTmp = Form("< %s >", h2eScale->GetYaxis()->GetTitle());
+    heScaleArith->SetTitle(title.c_str());
+    heScaleArith->SetXTitle(titleX.c_str());
+    heScaleArith->SetYTitle(yTitleTmp.c_str());
+    setTH1_efficiency(heScaleArith, titleOffsetX, titleOffsetY);
 }
 
 void triggerAnalyzer::writeObjects(TCanvas* c)
@@ -1289,18 +1328,15 @@ void triggerAnalyzer::writeObjects(TCanvas* c)
         c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
         c->cd();
         setCanvasMargin(c, leftMargin, rightMargin+0.08, bottomMargin, topMargin);
-        h2eScale->SetTitle(title.c_str());
-        h2eScale->SetXTitle(titleX.c_str());
-        h2eScale->SetTitleOffset(titleOffsetX, "X");
-        h2eScale->SetTitleOffset(titleOffsetY, "Y");
-        h2eScale->GetXaxis()->CenterTitle();
-        h2eScale->GetYaxis()->CenterTitle();
-        h2eScale->SetStats(false);
-        h2eScale->SetMarkerStyle(kFullCircle);
 
         h2eScale->SetMarkerSize(markerSize);
         h2eScale->Draw("colz");
         h2eScale->Write("",TObject::kOverwrite);
+
+        heScaleArith->SetMarkerSize(markerSize);
+        heScaleArith->SetMarkerColor(kRed);
+        heScaleArith->Draw("e same");
+        heScaleArith->Write("",TObject::kOverwrite);
 
         latex = new TLatex();
         setLatex(latex, "NE");
