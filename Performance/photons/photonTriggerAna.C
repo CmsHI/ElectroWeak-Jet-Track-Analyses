@@ -847,6 +847,16 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
 
                                         tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
 
+                                        double eScale = ptHLT / pt;
+                                        tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
+                                        tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
+                                        tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
+                                        tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
+                                        tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
+                                        tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
+                                        tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
+                                        tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
+
                                         break;
                                     }
                                 }
@@ -863,6 +873,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                                 // the fact that there is an L1 EG with pt > threshold is not enough.
                                                 // make sure they match also in eta-phi.
 
+                                                double ptL1 = L1Upgrade->egEt[iObj];
                                                 double etaL1 = L1Upgrade->egEta[iObj];
                                                 double phiL1 = L1Upgrade->egPhi[iObj];
 
@@ -881,6 +892,16 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                                     tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
 
                                                     tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+
+                                                    double eScale = ptL1 / pt;
+                                                    tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
+                                                    tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
 
                                                     break;
                                                 }
@@ -1867,6 +1888,7 @@ int  preLoop(TFile* input, bool makeNew)
         std::string nameNumInEff = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kNumInEff);
         std::string nameFakeNum = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeNum);
         std::string nameFakeDenom = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::kFakeDenom);
+        std::string nameEscale = tAnaTmp.getObjectName(triggerAnalyzer::OBJ::keScale);
 
         // disable the cuts/ranges for this dependence
         // Ex. If the dependence is RecoPt (RecoPt is the x-axis),
@@ -1912,6 +1934,16 @@ int  preLoop(TFile* input, bool makeNew)
             else {
                 tAnaTmp.hNum = (TH1D*)input->Get(nameNum.c_str());
                 tAnaTmp.hDenom = (TH1D*)input->Get(nameDenom.c_str());
+            }
+
+            if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj || runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+                if (makeNew) {
+                    tAnaTmp.h2eScale =
+                            new TH2D(nameEscale.c_str(), Form(";%s;online p_{T} / offline p_{T}", xTitle.c_str()), nBins, arr, 50, 0, 2);
+                }
+                else {
+                    tAnaTmp.h2eScale = (TH2D*)input->Get(nameEscale.c_str());
+                }
             }
 
             if (iDep == TRIGGERANA::kETA) {

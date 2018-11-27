@@ -96,10 +96,11 @@ enum OBS {
     kEFF,        // trigger efficiency
     kINEFF,      // trigger inefficiency
     kFAKE,       // trigger fake is a trigger fire without a matching offline object
+    kESCALE,     // online vs offline energy scale
     kN_OBS
 };
 
-const std::string OBS_LABELS[kN_OBS] = {"eff", "ineff", "fake"};
+const std::string OBS_LABELS[kN_OBS] = {"eff", "ineff", "fake", "eScale"};
 
 };
 
@@ -140,6 +141,9 @@ public :
         isValid_hFakeRatio = false;
         isValid_gFakeRatio = false;
 
+        h2eScale = 0;
+        isValid_h2eScale = false;
+
         pathNum = "";
         pathDenom = "";
         pathNumText = "";
@@ -179,6 +183,7 @@ public :
     void FillHNumInEff(double x, double w, std::vector<double> vars);
     void FillHNumFake(double x, double w, std::vector<double> vars);
     void FillHDenomFake(double x, double w, std::vector<double> vars);
+    void FillH2eScale(double x, double eScale, double w, std::vector<double> vars);
 
     std::string getPathNum() { return pathNum; };
     std::string getPathDenom() { return pathDenom; };
@@ -261,6 +266,10 @@ public :
     bool isValid_hFakeRatio;
     bool isValid_gFakeRatio;
 
+    // objects for online vs offline energy scale
+    TH2D* h2eScale;
+    bool isValid_h2eScale;
+
     std::string pathNum;
     std::string pathDenom;
     std::string pathNumText;
@@ -276,6 +285,7 @@ public :
         kFakeNum,
         kFakeDenom,
         kFakeRatio,
+        keScale,
         kN_OBJ
     };
 
@@ -357,6 +367,12 @@ void triggerAnalyzer::FillHDenomFake(double x, double w, std::vector<double> var
 
     if (isValid_hFakeDenom && insideRange(vars))
         hFakeDenom->Fill(x, w);
+}
+
+void triggerAnalyzer::FillH2eScale(double x, double eScale, double w, std::vector<double> vars)
+{
+    if (isValid_h2eScale && insideRange(vars))
+        h2eScale->Fill(x, eScale, w);
 }
 
 /*
@@ -500,6 +516,8 @@ bool triggerAnalyzer::isValid()
     if (isValid_hFakeRatio)  return true;
     if (isValid_gFakeRatio)  return true;
 
+    if (isValid_h2eScale) return true;
+
     return false;
 }
 
@@ -539,6 +557,8 @@ void triggerAnalyzer::updateTH1()
     isValid_hFakeRatio = (hFakeRatio != 0 && !hFakeRatio->IsZombie());
     isValid_gFakeRatio = (gFakeRatio != 0 && !gFakeRatio->IsZombie());
 
+    isValid_h2eScale = (h2eScale != 0 && !h2eScale->IsZombie());
+
     if (isValid_hNum) {
         nBinsX = hNum->GetXaxis()->GetNbins();
     }
@@ -575,6 +595,23 @@ void triggerAnalyzer::updateTH1()
     if(isValid_gInEff) {
         gInEff->SetTitle(title.c_str());
     }
+
+    if (isValid_hFakeNum) {
+        hFakeNum->SetTitle(title.c_str());
+    }
+    if (isValid_hFakeDenom) {
+        hFakeDenom->SetTitle(title.c_str());
+    }
+    if (isValid_hFakeRatio) {
+        hFakeRatio->SetTitle(title.c_str());
+    }
+    if (isValid_gFakeRatio) {
+        gFakeRatio->SetTitle(title.c_str());
+    }
+
+    if (isValid_h2eScale) {
+        h2eScale->SetTitle(title.c_str());
+    }
 }
 
 std::string triggerAnalyzer::getObjectStr(int iObj)
@@ -596,6 +633,8 @@ std::string triggerAnalyzer::getObjectStr(int iObj)
         return "FakeDenom";
     case triggerAnalyzer::OBJ::kFakeRatio :
         return "FakeRatio";
+    case triggerAnalyzer::OBJ::keScale :
+        return "eScale";
     default :
         return "";
     }
@@ -1243,6 +1282,37 @@ void triggerAnalyzer::writeObjects(TCanvas* c)
         hTmp->Delete();
     }
 
+    // online vs offline energy scale
+    if (isValid_h2eScale) {
+        int iObs = TRIGGERANA::kESCALE;
+        canvasName = Form("cnv2D_%s_%s", TRIGGERANA::OBS_LABELS[iObs].c_str() , name.c_str());
+        c = new TCanvas(canvasName.c_str(), "", windowWidth, windowHeight);
+        c->cd();
+        setCanvasMargin(c, leftMargin, rightMargin+0.08, bottomMargin, topMargin);
+        h2eScale->SetTitle(title.c_str());
+        h2eScale->SetXTitle(titleX.c_str());
+        h2eScale->SetTitleOffset(titleOffsetX, "X");
+        h2eScale->SetTitleOffset(titleOffsetY, "Y");
+        h2eScale->GetXaxis()->CenterTitle();
+        h2eScale->GetYaxis()->CenterTitle();
+        h2eScale->SetStats(false);
+        h2eScale->SetMarkerStyle(kFullCircle);
+
+        h2eScale->SetMarkerSize(markerSize);
+        h2eScale->Draw("colz");
+        h2eScale->Write("",TObject::kOverwrite);
+
+        latex = new TLatex();
+        setLatex(latex, "NE");
+        drawTextLines(latex, c, textLinesAll, "NE", textOffsetX, textOffsetY);
+
+        setPad4Observable((TPad*) c, iObs);
+        drawLine4PtThreshold((TPad*) c);
+        setCanvasFinal(c);
+        c->Write("",TObject::kOverwrite);
+        c->Close();         // do not use Delete() for TCanvas.
+    }
+
      if (line != 0)  line->Delete();
      latex->Delete();
 }
@@ -1253,7 +1323,7 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
 
     p->Update();
     bool hasH2D = containsClassInstance(p, "TH2");
-    if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE)) {
+    if ((!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE)) || iObs == TRIGGERANA::kESCALE) {
 
         // draw line y = 1
         double x1 = p->GetUxmin();
@@ -1382,6 +1452,11 @@ double triggerAnalyzer::extractPtThreshold(std::string triggerName)
         // this is L1 trigger, look for EG
         strSub = "EG";
     }
+
+    if (triggerName.find(strSub.c_str()) == std::string::npos) {
+        strSub = "EG";
+    }
+
     int len = strSub.size();
     size_t indexStart = triggerName.find(strSub.c_str()) + len;
 
