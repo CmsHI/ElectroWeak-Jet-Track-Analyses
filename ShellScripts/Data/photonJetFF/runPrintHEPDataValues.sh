@@ -6,60 +6,7 @@ progCode="${progPath/.exe/.C}"
 
 runCmd="./ShellScripts/myRun.sh"
 
-inputFiles=(
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-"./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
-);
-
 outputBase="./Data/photonJetFF/hepdata"
-outputFiles=(
-$outputBase"/data1.yaml"
-$outputBase"/data1.yaml"
-$outputBase"/data2.yaml"
-$outputBase"/data2.yaml"
-$outputBase"/data3.yaml"
-$outputBase"/data3.yaml"
-$outputBase"/data4.yaml"
-$outputBase"/data4.yaml"
-$outputBase"/data5.yaml"
-$outputBase"/data6.yaml"
-$outputBase"/data7.yaml"
-$outputBase"/data8.yaml"
-$outputBase"/data9.yaml"
-$outputBase"/data9.yaml"
-$outputBase"/data10.yaml"
-$outputBase"/data10.yaml"
-$outputBase"/data11.yaml"
-$outputBase"/data11.yaml"
-$outputBase"/data12.yaml"
-$outputBase"/data12.yaml"
-$outputBase"/data13.yaml"
-$outputBase"/data14.yaml"
-$outputBase"/data15.yaml"
-$outputBase"/data16.yaml"
-);
 
 hPaths=(
 "hff_final_ppdata_srecoreco_100_200"
@@ -88,77 +35,40 @@ hPaths=(
 "hff_final_ratio_0_20"
 );
 
-hSysPaths=(
-"hff_final_ppdata_srecoreco_100_200_systematics"
-"hff_final_pbpbdata_recoreco_100_200_systematics"
-"hff_final_ppdata_srecoreco_60_100_systematics"
-"hff_final_pbpbdata_recoreco_60_100_systematics"
-"hff_final_ppdata_srecoreco_20_60_systematics"
-"hff_final_pbpbdata_recoreco_20_60_systematics"
-"hff_final_ppdata_srecoreco_0_20_systematics"
-"hff_final_pbpbdata_recoreco_0_20_systematics"
-"hff_final_ratio_100_200_systematics"
-"hff_final_ratio_60_100_systematics"
-"hff_final_ratio_20_60_systematics"
-"hff_final_ratio_0_20_systematics"
-"hff_final_ppdata_srecoreco_100_200_systematics"
-"hff_final_pbpbdata_recoreco_100_200_systematics"
-"hff_final_ppdata_srecoreco_60_100_systematics"
-"hff_final_pbpbdata_recoreco_60_100_systematics"
-"hff_final_ppdata_srecoreco_20_60_systematics"
-"hff_final_pbpbdata_recoreco_20_60_systematics"
-"hff_final_ppdata_srecoreco_0_20_systematics"
-"hff_final_pbpbdata_recoreco_0_20_systematics"
-"hff_final_ratio_100_200_systematics"
-"hff_final_ratio_60_100_systematics"
-"hff_final_ratio_20_60_systematics"
-"hff_final_ratio_0_20_systematics"
-);
-
-doIndepVars=(
-1
-0
-1
-0
-1
-0
-1
-0
-1
-1
-1
-1
-1
-0
-1
-0
-1
-0
-1
-0
-1
-1
-1
-1
-);
-
 xMin=0.5
 xMax=4.5
 
 ## rm all output files from previous
-for tmpFile in "${outputFiles[@]}"
-do
-  rm -rf $tmpFile
-done
+rm $outputBase"/data"?".yaml"
+rm $outputBase"/data"??".yaml"
 
 arrayIndices=${!hPaths[*]}
 for i1 in $arrayIndices
 do
-    inputFile=${inputFiles[i1]}
-    outputFile=${outputFiles[i1]}
     hPath=${hPaths[i1]}
-    hSysPath=${hSysPaths[i1]}
-    doIndepVar=${doIndepVars[i1]}
+    hSysPath=$hPath"_systematics"
+
+    inputFile="./Data/photonJetFF/ffdata_data_60_30_gxi0_obs1_ffjs_final-and-systematics.root"
+    if [ $i1 -ge 12 ]; then
+      inputFile="./Data/photonJetFF/ffdata_data_60_30_gxi1_obs1_ffjs_final-and-systematics.root"
+    fi
+
+    iTable=$((i1 % 12))
+    if [ $iTable -lt 8 ]; then
+      iTable=$((iTable / 2 + 1))
+    else
+      iTable=$((iTable - 4 + 1))
+    fi
+    if [ $i1 -ge 12 ]; then
+      iTable=$((iTable + 8))
+    fi
+    outputFile=$outputBase"/data"$iTable".yaml"
+
+    doIndepVar=1
+    if [[ $hPath = *pbpb* ]]; then
+      doIndepVar=0
+    fi
+
     $progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax $doIndepVar
     echo "$progPath $inputFile $outputFile $hPath $hSysPath $xMin $xMax $doIndepVar"
 done

@@ -1,123 +1,13 @@
 #!/bin/bash
 
-# must be run after runPrintHEPData.sh
+# must be run after runPrintHEPDataValues.sh
+
+tables=($(seq 1 1 16))
 
 outputBase="./Data/photonJetFF/hepdata"
-outputFiles=(
-$outputBase"/data1.yaml"
-$outputBase"/data2.yaml"
-$outputBase"/data3.yaml"
-$outputBase"/data4.yaml"
-$outputBase"/data5.yaml"
-$outputBase"/data6.yaml"
-$outputBase"/data7.yaml"
-$outputBase"/data8.yaml"
-$outputBase"/data9.yaml"
-$outputBase"/data10.yaml"
-$outputBase"/data11.yaml"
-$outputBase"/data12.yaml"
-$outputBase"/data13.yaml"
-$outputBase"/data14.yaml"
-$outputBase"/data15.yaml"
-$outputBase"/data16.yaml"
-);
 
 oldLine1="  values:"
-newLines1=(
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_(JET)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-"- header: {name: XI_T_(GAMMA)}"
-);
-
 oldLine2="  values:"
-newLines2=(
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP smeared}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP smeared}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP smeared}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-"- header: {name: PBPB / PP}"
-);
-
-newLines3=(
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
-"PLACEHOLDER"
-"PLACEHOLDER"
-"PLACEHOLDER"
-"PLACEHOLDER"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
-"- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
-"PLACEHOLDER"
-"PLACEHOLDER"
-"PLACEHOLDER"
-"PLACEHOLDER"
-);
-
-linesReaction=(
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-"  - {name: RE, value: P P --> X PB PB --> X}"
-);
-
-linesCentrality=(
-"  - {name: CENTRALITY, value: '50 - 100%'}"
-"  - {name: CENTRALITY, value: '30 - 50%'}"
-"  - {name: CENTRALITY, value: '10 - 30%'}"
-"  - {name: CENTRALITY, value: '0 - 10%'}"
-"  - {name: CENTRALITY, value: '50 - 100%'}"
-"  - {name: CENTRALITY, value: '30 - 50%'}"
-"  - {name: CENTRALITY, value: '10 - 30%'}"
-"  - {name: CENTRALITY, value: '0 - 10%'}"
-"  - {name: CENTRALITY, value: '50 - 100%'}"
-"  - {name: CENTRALITY, value: '30 - 50%'}"
-"  - {name: CENTRALITY, value: '10 - 30%'}"
-"  - {name: CENTRALITY, value: '0 - 10%'}"
-"  - {name: CENTRALITY, value: '50 - 100%'}"
-"  - {name: CENTRALITY, value: '30 - 50%'}"
-"  - {name: CENTRALITY, value: '10 - 30%'}"
-"  - {name: CENTRALITY, value: '0 - 10%'}"
-);
 
 linesKinematics=(
 "  - {name: PT(GAMMA), units: GEV/C, value: '> 60'}"
@@ -141,25 +31,57 @@ do
 done
 
 #set -x
-arrayIndices=${!outputFiles[*]}
+arrayIndices=${!tables[*]}
 for i1 in $arrayIndices
 do
-    outputFile=${outputFiles[i1]}
+    table=${tables[i1]}
+
+    outputFile=$outputBase"/data"$table".yaml"
+
+    newLine1="- header: {name: XI_(JET)}"
+    if [ $i1 -ge 8 ]; then
+      newLine1="- header: {name: XI_T_(GAMMA)}"
+    fi
+
+    newLine2=""
+    newLine3=""
+    if [ $i1 -lt 4 ]; then
+      newLine2="- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PP smeared}"
+      newLine3="- header: {name: 1/N(JET) * DN(TRK))/DXI_(JET) PBPB}"
+    elif [ $i1 -ge 8 ] && [ $i1 -lt 12 ]; then
+      newLine2="- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PP smeared}"
+      newLine3="- header: {name: 1/N(JET) * DN(TRK))/XI_T_(GAMMA) PBPB}"
+    else
+      newLine2="- header: {name: PBPB / PP}"
+      newLine3="PLACEHOLDER"
+    fi
+
+    lineCentrality=""
+    if [ $(($i1 % 4)) -eq 0 ]; then
+      lineCentrality="  - {name: CENTRALITY, value: '50 - 100%'}"
+    elif [ $(($i1 % 4)) -eq 1 ]; then
+      lineCentrality="  - {name: CENTRALITY, value: '30 - 50%'}"
+    elif [ $(($i1 % 4)) -eq 2 ]; then
+      lineCentrality="  - {name: CENTRALITY, value: '10 - 30%'}"
+    else
+      lineCentrality="  - {name: CENTRALITY, value: '0 - 10%'}"
+    fi
 
     # add header for "independent variables"
     oldLine=$oldLine1
-    newLine="independent_variables:\n"${newLines1[i1]}"\n"$oldLine
+    newLine="independent_variables:\n"${newLine1}"\n"$oldLine
     sed -i "0,/${oldLine}/ s/${oldLine}/${newLine}/" $outputFile # replace the 1st occurance in the file
 
+    lineReaction="  - {name: RE, value: P P --> X PB PB --> X}"
     # add header following 1st "dependent variables"
     oldLine=$oldLine2
-    newLine="dependent_variables:\n"${newLines2[i1]}"\n  qualifiers:\n"${linesReaction[i1]}"\n"${linesCentrality[i1]}"\n"$textKinematics"\n"$oldLine
+    newLine="dependent_variables:\n"${newLine2}"\n  qualifiers:\n"${lineReaction}"\n"${lineCentrality}"\n"$textKinematics"\n"$oldLine
     sed -i "0,/${oldLine}/! {0,/${oldLine}/ s;${oldLine};${newLine};}" $outputFile  # replace only the 2nd occurance in the file
 
-    if [[ ! ${newLines3[i1]} = "PLACEHOLDER" ]]; then
+    if [[ ! ${newLine3} = "PLACEHOLDER" ]]; then
       # add header following 2nd "dependent variables"
       oldLine=$oldLine2
-      newLine=${newLines3[i1]}"\n  qualifiers:\n"${linesReaction[i1]}"\n"${linesCentrality[i1]}"\n"$textKinematics"\n"$oldLine
+      newLine=${newLine3}"\n  qualifiers:\n"${lineReaction}"\n"${lineCentrality}"\n"$textKinematics"\n"$oldLine
       outputFileTmp=$outputFile".tmp"
       mv $outputFile $outputFileTmp
       # replace only the 3rd occurance in the file
