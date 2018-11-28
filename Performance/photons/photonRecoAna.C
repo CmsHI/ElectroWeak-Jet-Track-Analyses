@@ -299,7 +299,9 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
     // done with initial reading
 
     bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-    bool isHI = collisionIsHI((COLL::TYPE)collisionType);
+    bool isHI15 = collisionIsHI((COLL::TYPE)collisionType);
+    bool isHI18 = collisionIsHI2018((COLL::TYPE)collisionType);
+    bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
     if (!isMC) {
@@ -378,7 +380,8 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
         hiGen.setupTreeForReading(treeHiGenParticle);
 
         skimAnalysis skimAna;
-        if (isHI) skimAna.enableBranchesHI(treeSkim);
+        if (isHI15) skimAna.enableBranchesHI(treeSkim);
+        else if (isHI18) skimAna.enableBranchesHI2018(treeSkim);
         else if (isPP) skimAna.enableBranchesPP(treeSkim);
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
@@ -409,7 +412,8 @@ void photonRecoAna(std::string configFile, std::string inputFile, std::string ou
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
 
-            if (isHI && !skimAna.passedEventSelectionHI())  continue;
+            if (isHI15 && !skimAna.passedEventSelectionHI())  continue;
+            else if (isHI18 && !skimAna.passedEventSelectionHI2018())  continue;
             else if (isPP && !skimAna.passedEventSelectionPP())  continue;
 
             entriesAnalyzed++;

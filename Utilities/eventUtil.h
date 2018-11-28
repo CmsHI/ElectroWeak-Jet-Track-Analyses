@@ -51,6 +51,7 @@ std::string getCollisionTypeName (COLL::TYPE collision);
 bool collisionIsMC(COLL::TYPE collision);
 bool collisionIsDATA(COLL::TYPE collision);
 bool collisionIsHI(COLL::TYPE collision);
+bool collisionIsHI2018(COLL::TYPE collision);
 bool collisionIsPP(COLL::TYPE collision);
 bool collisionIsPA(COLL::TYPE collision);
 std::string getEventSelection(COLL::TYPE collision);
@@ -82,6 +83,11 @@ bool collisionIsDATA(COLL::TYPE collision) {
 bool collisionIsHI(COLL::TYPE collision) {
 
     return (collision == COLL::kHI || collision == COLL::kHIMC);
+}
+
+bool collisionIsHI2018(COLL::TYPE collision) {
+
+    return (collision == COLL::kHI2018 || collision == COLL::kHIMC2018);
 }
 
 bool collisionIsPP(COLL::TYPE collision) {
