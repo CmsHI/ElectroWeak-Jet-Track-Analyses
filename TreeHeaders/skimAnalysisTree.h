@@ -39,11 +39,11 @@ public :
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
     void enableBranchesHI(TTree *t);
-    void enableBranchesHI2015(TTree *t);
+    void enableBranchesHI2018(TTree *t);
     void enableBranchesPP(TTree *t);
     void checkBranches(TTree *t);
     bool passedEventSelectionHI();
-    bool passedEventSelectionHI2015();
+    bool passedEventSelectionHI2018();
     bool passedEventSelectionPP();
 
     // Declaration of leaf types
@@ -266,14 +266,14 @@ void skimAnalysis::setupTreeForWriting(TTree *t)
 
 void skimAnalysis::enableBranchesHI(TTree *t)
 {
+    t->SetBranchStatus("pcollisionEventSelection",1);
+}
+
+void skimAnalysis::enableBranchesHI2018(TTree *t)
+{
     t->SetBranchStatus("pprimaryVertexFilter",1);
     t->SetBranchStatus("pclusterCompatibilityFilter",1);
     t->SetBranchStatus("phfCoincFilter2Th4",1);
-}
-
-void skimAnalysis::enableBranchesHI2015(TTree *t)
-{
-    t->SetBranchStatus("pcollisionEventSelection",1);
 }
 
 void skimAnalysis::enableBranchesPP(TTree *t)
@@ -328,14 +328,14 @@ void skimAnalysis::checkBranches(TTree *t)
 
 bool skimAnalysis::passedEventSelectionHI()
 {
+    return (!has_pcollisionEventSelection || pcollisionEventSelection > 0);
+}
+
+bool skimAnalysis::passedEventSelectionHI2018()
+{
     return ((!has_pprimaryVertexFilter || pprimaryVertexFilter > 0) &&
             (!has_pclusterCompatibilityFilter || pclusterCompatibilityFilter > 0) &&
             (!has_phfCoincFilter2Th4 || phfCoincFilter2Th4 > 0));
-}
-
-bool skimAnalysis::passedEventSelectionHI2015()
-{
-    return (!has_pcollisionEventSelection || pcollisionEventSelection > 0);
 }
 
 bool skimAnalysis::passedEventSelectionPP()
