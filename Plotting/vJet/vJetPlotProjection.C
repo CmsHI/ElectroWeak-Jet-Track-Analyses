@@ -43,6 +43,7 @@ enum FIGURE{
     k_js_ratioOnly,
     k_js_ratioOnly_fit_pol2,
     k_js_ratioOnly_fit_pol3,
+    k_js_ratioOnly_fit_pol3_MergedUnc,
     kN_FIGURES
 };
 
@@ -65,7 +66,8 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xigamma_ratioOnly",
         "projection_js_ratioOnly",
         "projection_js_ratioOnly_fit_pol2",
-        "projection_js_ratioOnly_fit_pol3",};
+        "projection_js_ratioOnly_fit_pol3",
+        "projection_js_ratioOnly_fit_pol3_MergedUnc"};
 
 // Canvas
 int windowWidth;
@@ -173,7 +175,7 @@ void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysRed
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet = true, double sysReduction = 0);
-void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction = 0, int iFitFnc = -1);
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction = 0, int iFitFnc = -1, bool doMergedUnc = false);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -257,6 +259,9 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
             break;
         case k_js_ratioOnly_fit_pol3:
             projectionPlot_js_ratioOnly(inputFile, sysReduction, 1);
+            break;
+        case k_js_ratioOnly_fit_pol3_MergedUnc:
+            projectionPlot_js_ratioOnly(inputFile, sysReduction, 1, true);
             break;
         default:
             break;
@@ -1552,6 +1557,8 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
                 statsIncrease = (projectedLumiPPB*208) / 200;
                 statsIncrease *= statsIncreasePhoFrom5TeV8p8TeV;
             }
+            // xjg histograms are already binned in multiplicity bins and contain relevent stat unc.
+            // no need to scale with eventFraction
             scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncrease));
         }
     }
@@ -2717,7 +2724,7 @@ void projectionPlot_xi_ratioOnly(std::string inputFile, bool isxijet, double sys
     std::cout<<"running projectionPlot_xi_ratioOnly() - END"<<std::endl;
 }
 
-void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int iFitFnc)
+void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int iFitFnc, bool doMergedUnc)
 {
     std::cout<<"running projectionPlot_js_ratioOnly()"<<std::endl;
 
@@ -2743,6 +2750,9 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     }
     else if (iFitFnc == 1) {
         jsIndex = k_js_ratioOnly_fit_pol3;
+        if (doMergedUnc) {
+            jsIndex = k_js_ratioOnly_fit_pol3_MergedUnc;
+        }
     }
     if (sysReduction == 0)
         c = new TCanvas(figureNames[jsIndex].c_str(), "", windowWidth, windowHeight);
@@ -2797,6 +2807,17 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     sysColors = {TColor::GetColor("#e60040")};
     sysTransparencies = {0.4};
     sysFillStyles = {1001};
+    if (doMergedUnc) {
+        // styles for histograms
+        lineWidths = {0};
+
+        // styles for sys bands (2 x # of histograms)
+        sysUseRelUnc = {false, false};
+        //sysColors = {TColor::GetColor("#a09f93"), 43, TColor::GetColor("#ad33ff"), TColor::GetColor("#29a329")};
+        sysColors = {TColor::GetColor("#a09f93"), TColor::GetColor("#ad33ff")};
+        sysTransparencies = {0.8, 0.8};
+        sysFillStyles = {1001, 3245};
+    }
 
     int nHistPaths = histPaths.size();
     std::vector<TH1D*> h1Ds(nHistPaths, 0);
@@ -2805,6 +2826,10 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     TH1D* hTmp = 0;
     TF1* f1 = 0;
     std::vector<TH1D*> h1DsFit(nHistPaths, 0);
+
+    std::vector<TH1D*> h1DsMergedUncCurrent(nHistPaths, 0);
+    std::vector<TH1D*> h1DsMergedUncProjection(nHistPaths, 0);
+
     for (int i = 0; i < nHistPaths; ++i) {
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
@@ -2818,10 +2843,18 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
         h1Ds[i]->GetYaxis()->SetLabelSize(0.08);
         h1Ds[i]->GetYaxis()->SetTickSize(0.03);
 
-        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
-
         // set x-axis range
         h1Ds[i]->SetAxisRange(0 + 0.001, 0.3 - 0.001, "X");
+
+        if (doMergedUnc) {
+            for (int i = 0; i < nHistPaths; ++i) {
+
+                h1DsMergedUncCurrent[i] =(TH1D*)h1Ds[i]->Clone(Form("%s_MergedUncCurrent", h1Ds[i]->GetName()));
+                h1DsMergedUncProjection[i] =(TH1D*)h1Ds[i]->Clone(Form("%s_MergedUncProjection", h1Ds[i]->GetName()));
+            }
+        }
+
+        scaleBinErrors(h1Ds[i], 1./TMath::Sqrt(statsIncreasePBPB));
 
         h1DsFit[i] = (TH1D*)h1Ds[i]->Clone(Form("%s_Fit", h1Ds[i]->GetName()));
         if (iFitFnc > -1) {
@@ -2851,37 +2884,95 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
 
         h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
         if (h1DsSys[i] != 0) {
-            if (sysReduction >= 0)
-                h1DsSys[i]->Scale(1-sysReduction);
-            gr = new TGraph();
-            setTGraphSys(i, gr);
-            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+
+            if (!doMergedUnc) {
+                if (sysReduction >= 0)
+                    h1DsSys[i]->Scale(1-sysReduction);
+                gr = new TGraph();
+                setTGraphSys(i, gr);
+                drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+            }
+            else {
+                // prepare and draw current uncertainty
+                mergeUncWithErrorBar(h1DsMergedUncCurrent[i], h1DsSys[i], sysUseRelUnc[i]);
+
+                for (int iBin = 1; iBin <= h1DsMergedUncCurrent[i]->GetNbinsX(); ++iBin) {
+                    double binContent = h1DsMergedUncCurrent[i]->GetBinContent(iBin);
+                    double binError = h1DsMergedUncCurrent[i]->GetBinError(iBin);
+                    if (sysUseRelUnc[i])
+                        h1DsMergedUncCurrent[i]->SetBinContent(iBin, binError/binContent);
+                    else
+                        h1DsMergedUncCurrent[i]->SetBinContent(iBin, binError);
+                }
+
+                gr = new TGraph();
+                setTGraphSys(i, gr);
+                gr->SetLineWidth(3);
+                drawSysUncBoxes(gr, h1Ds[i], h1DsMergedUncCurrent[i], sysUseRelUnc[i]);
+
+                // prepare and draw projected uncertainty
+                scaleBinErrors(h1DsMergedUncProjection[i], 1./TMath::Sqrt(statsIncreasePBPB));
+                if (sysReduction >= 0) {
+                    h1DsSys[i]->Scale(1-sysReduction);
+                }
+                mergeUncWithErrorBar(h1DsMergedUncProjection[i], h1DsSys[i], sysUseRelUnc[i]);
+
+                for (int iBin = 1; iBin <= h1DsMergedUncProjection[i]->GetNbinsX(); ++iBin) {
+                    double binContent = h1DsMergedUncProjection[i]->GetBinContent(iBin);
+                    double binError = h1DsMergedUncProjection[i]->GetBinError(iBin);
+                    if (sysUseRelUnc[i])
+                        h1DsMergedUncProjection[i]->SetBinContent(iBin, binError/binContent);
+                    else
+                        h1DsMergedUncProjection[i]->SetBinContent(iBin, binError);
+                }
+
+                gr = new TGraph();
+                setTGraphSys(i+1, gr);
+                gr->SetLineWidth(3);
+                drawSysUncBoxes(gr, h1Ds[i], h1DsMergedUncProjection[i], sysUseRelUnc[i]);
+            }
         }
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
 
-    /*
-    legendX1 = 0.24;
-    legendY1 = 0.72;
-    legendWidth = 0.54;
-    legendHeight = 0.12;
-    legendMargin = 0.15;
-    legendEntryTexts = {
-            "PbPb / pp"
-    };
-    legendEntryOptions = {
-            "pf"
-    };
-    TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp", h1Ds[k_ratio]->GetName()));
-    hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_ratio].c_str(), legendEntryOptions[k_ratio].c_str());
+    TLegend* leg = 0;
 
-    setLegend(leg);
-    leg->Draw();
-    */
+    if (doMergedUnc) {
+        legendX1 = 0.24;
+        legendY1 = 0.60;
+        legendWidth = 0.54;
+        legendHeight = 0.12;
+        legendMargin = 0.15;
+        legendEntryTexts = {"Current Unc.", "Projected Unc."};
+        legendEntryOptions = {"f", "f"};
+
+        leg = new TLegend();
+
+        /*
+        hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp", h1Ds[k_ratio]->GetName()));
+        hTmp->SetLineWidth(0);
+        leg->AddEntry(hTmp, legendEntryTexts[k_ratio].c_str(), legendEntryOptions[k_ratio].c_str());
+        */
+
+        hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp1", h1Ds[k_ratio]->GetName()));
+        hTmp->SetLineWidth(0);
+        hTmp->SetFillColor(sysColors[k_ratio]);
+        hTmp->SetFillColorAlpha(sysColors[k_ratio], sysTransparencies[k_ratio]);
+        hTmp->SetFillStyle(sysFillStyles[k_ratio]);
+        leg->AddEntry(hTmp, legendEntryTexts[0].c_str(), legendEntryOptions[0].c_str());
+
+        hTmp = (TH1D*)h1Ds[k_ratio]->Clone(Form("%s_tmp2", h1Ds[k_ratio]->GetName()));
+        hTmp->SetLineWidth(0);
+        hTmp->SetFillColor(sysColors[k_ratio+1]);
+        hTmp->SetFillColorAlpha(sysColors[k_ratio+1], sysTransparencies[k_ratio+1]);
+        hTmp->SetFillStyle(sysFillStyles[k_ratio+1]);
+        leg->AddEntry(hTmp, legendEntryTexts[1].c_str(), legendEntryOptions[1].c_str());
+
+        setLegend(leg);
+        leg->Draw();
+    }
 
     textAlign = 11;
     textFont = 43;
@@ -2894,7 +2985,10 @@ void projectionPlot_js_ratioOnly(std::string inputFile, double sysReduction, int
     };
     int nTextLines = textLines.size();
     textX = 0.25;
-    textYs.resize(nTextLines, 0.62);
+    float textY1tmp = 0.62;
+    if (doMergedUnc)
+        textY1tmp = 0.54;
+    textYs.resize(nTextLines, textY1tmp);
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
