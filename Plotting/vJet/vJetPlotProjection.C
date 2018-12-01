@@ -30,8 +30,10 @@ enum FIGURE{
     k_xjz_pPb,
     k_xjz_pPb_multBins,
     k_xjz_pp_multBins,
+    k_xjz_pp_multBins_multLumi,
     k_xjg_pPb_multBins,
     k_xjg_pp_multBins,
+    k_xjg_pp_multBins_multLumi,
     k_xijet,
     k_xigamma,
     k_xijet_MergedUnc,
@@ -54,8 +56,10 @@ std::string figureNames[kN_FIGURES] = {
         "projection_xjz_pPb",
         "projection_xjz_pPb_multBins",
         "projection_xjz_pp_multBins",
+        "projection_xjz_pp_multBins_multLumi",
         "projection_xjg_pPb_multBins",
         "projection_xjg_pp_multBins",
+        "projection_xjg_pp_multBins_multLumi",
         "projection_xijet",
         "projection_xigamma",
         "projection_xijet_MergedUnc",
@@ -150,11 +154,12 @@ float textSizeCMSProj;
 double projectedLumiPBPB = 10;   // nb, // 13
 double currentLumiPBPB = 0.404;  // nb
 double statsIncreasePBPB = projectedLumiPBPB / currentLumiPBPB;
-double projectedLumiPP = 2000;     // pb // 2000
+double projectedLumiPPv1 = 2000;    // pb
+double projectedLumiPPv2 = 200;     // pb
 double projectedLumiPPB = 2;     // pb
 double currentLumiPP = 27.4;     // pb
 double statsIncreasePPB = (projectedLumiPPB*208) / currentLumiPP;     // assuming pPb is 5 TeV
-double statsIncreasePP = projectedLumiPP / currentLumiPP;
+double statsIncreasePP = projectedLumiPPv1 / currentLumiPP;
 double sqrtsPP = 14;
 double sqrtsPPB = 8.8;
 double statsIncreasePhoFrom5TeV14TeV = 3.246; //dir + oneFF photon // 3.222 (dir photon) rough increase of pT = 60 GeV of photons from 5 TeV to 14 TeV
@@ -167,10 +172,10 @@ void projectionPlot_xjz_Theory(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_Theory_MergedUnc(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pPb(std::string inputFile, double sysReduction = 0);
 void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction = 0);
-void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction = 0);
+void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction = 0, bool doMultLumi = false);
 void projectionPlot_xjg_pPb_multBins(std::string inputFile, double sysReduction = 0);
-void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction = 0);
-void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction = 0, int iCollision = 0, int iszjet = 1);
+void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction = 0, bool doMultLumi = false);
+void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction = 0, int iCollision = 0, int iszjet = 1, bool doMultLumi = false);
 void projectionPlot_xi(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_MergedUnc(std::string inputFile, bool isxijet = true, double sysReduction = 0);
 void projectionPlot_xi_ratio(std::string inputFile, bool isxijet = true, double sysReduction = 0);
@@ -221,11 +226,17 @@ void vJetPlotProjection(int figureIndex, std::string inputFile, double sysReduct
         case k_xjz_pp_multBins:
             projectionPlot_xjz_pp_multBins(inputFile, sysReduction);
             break;
+        case k_xjz_pp_multBins_multLumi:
+            projectionPlot_xjz_pp_multBins(inputFile, sysReduction, true);
+            break;
         case k_xjg_pPb_multBins:
             projectionPlot_xjg_pPb_multBins(inputFile, sysReduction);
             break;
         case k_xjg_pp_multBins:
             projectionPlot_xjg_pp_multBins(inputFile, sysReduction);
+            break;
+        case k_xjg_pp_multBins_multLumi:
+            projectionPlot_xjg_pp_multBins(inputFile, sysReduction, true);
             break;
         case k_xijet:
             projectionPlot_xi(inputFile, true, sysReduction);
@@ -1357,11 +1368,11 @@ void projectionPlot_xjz_pPb_multBins(std::string inputFile, double sysReduction)
     std::cout<<"running projectionPlot_xjz_pPb_multBins() - END"<<std::endl;
 }
 
-void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction)
+void projectionPlot_xjz_pp_multBins(std::string inputFile, double sysReduction, bool doMultLumi)
 {
     std::cout<<"running projectionPlot_xjz_pp_multBins()"<<std::endl;
 
-    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 1);
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 1, doMultLumi);
 
     std::cout<<"running projectionPlot_xjz_pp_multBins() - END"<<std::endl;
 }
@@ -1375,11 +1386,11 @@ void projectionPlot_xjg_pPb_multBins(std::string inputFile, double sysReduction)
     std::cout<<"running projectionPlot_xjg_pPb_multBins() - END"<<std::endl;
 }
 
-void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction)
+void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction, bool doMultLumi)
 {
     std::cout<<"running projectionPlot_xjg_pp_multBins()"<<std::endl;
 
-    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 0);
+    projectionPlot_xjv_multBins(inputFile, sysReduction, 0, 0, doMultLumi);
 
     std::cout<<"running projectionPlot_xjg_pp_multBins() - END"<<std::endl;
 }
@@ -1391,13 +1402,18 @@ void projectionPlot_xjg_pp_multBins(std::string inputFile, double sysReduction)
  * Sys unc are based on pp xjz results
  * if iszjet = 1, then make xjz plot. Else make xjg plot
  */
-void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int iCollision, int iszjet)
+void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int iCollision, int iszjet, bool doMultLumi)
 {
     TFile* input  = TFile::Open(inputFile.c_str());
 
     // no horizontal error bars
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
+    if (doMultLumi) {
+        gStyle->SetEndErrorSize(14);
+        gStyle->SetLineStyleString(28,"8 8");
+        gStyle->SetLineStyleString(13,"16 4");
+    }
 
     windowWidth = 800;
     windowHeight = 800;
@@ -1410,10 +1426,17 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     TCanvas* c = 0;
 
     int iFig = -1;
-    if (iCollision == 0)
-        iFig = (iszjet == 1) ? k_xjz_pp_multBins : k_xjg_pp_multBins;
-    else if (iCollision == 1)
+    if (iCollision == 0) {
+        if (iszjet == 1) {
+            iFig = (doMultLumi) ? k_xjz_pp_multBins_multLumi : k_xjz_pp_multBins;
+        }
+        else {
+            iFig = (doMultLumi) ? k_xjg_pp_multBins_multLumi : k_xjg_pp_multBins;
+        }
+    }
+    else if (iCollision == 1) {
         iFig = (iszjet == 1) ? k_xjz_pPb_multBins : k_xjg_pPb_multBins;
+    }
 
     if (sysReduction == 0)
         c = new TCanvas(figureNames[iFig].c_str(), "", windowWidth, windowHeight);
@@ -1515,6 +1538,14 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     sysTransparencies = {0.4, 0.4, 0.4};
     sysFillStyles = {1001, 1001, 1001};
 
+    if (doMultLumi) {
+        drawOptions = {"e1 same", "e1 same", "e1 same"};
+
+        lineColors = {kBlack, kBlue, kRed, kBlack, kBlue, kRed}; // TColor::GetColor("#299617")
+        lineTransparencies = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+        lineWidths = {3, 3, 3, 4, 4, 4};
+    }
+
     int nHistPaths = histPaths.size();
     std::vector<TH1D*> h1Ds(nHistPaths, 0);
     std::vector<TH1D*> h1DsStatUnc(nHistPaths, 0);
@@ -1527,6 +1558,7 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
+        h1Ds[i]->SetLineStyle(kSolid);
         h1DsStatUnc[i] = (TH1D*)input->Get(histPathsStatUnc[i].c_str());
         std::vector<double> errorBars = getBinErrors(h1DsStatUnc[i]);
         setBinErrors(h1Ds[i], errorBars);
@@ -1550,7 +1582,7 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
             // OR xjg histograms in the file contains stats error of 200/pb pp
             double statsIncrease = 0;
             if (iCollision == 0) {
-                statsIncrease = projectedLumiPP / 200;
+                statsIncrease = projectedLumiPPv1 / 200;
                 statsIncrease *= statsIncreasePhoFrom5TeV14TeV;
             }
             else if (iCollision == 1) {
@@ -1586,10 +1618,24 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
         }
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
+        if (doMultLumi) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_lumi2", h1Ds[i]->GetName()));
+
+            double statsIncreaseLumi2 = projectedLumiPPv2 / projectedLumiPPv1;
+            scaleBinErrors(hTmp, 1./TMath::Sqrt(statsIncreaseLumi2));
+
+            hTmp->SetLineColor(lineColors[i+3]);
+            hTmp->SetLineColorAlpha(lineColors[i+3], lineTransparencies[i+3]);
+            hTmp->SetLineWidth(lineWidths[i+3]);
+            hTmp->SetLineStyle(28);
+
+            gStyle->SetEndErrorSize(14);
+            hTmp->Draw("e1 same");
+        }
     }
 
     legendX1 = 0.66;
-    legendY1 = 0.76;
+    legendY1 = (iszjet == 1) ? 0.80 : 0.76;
     legendWidth = 0.52;
     legendHeight = (iszjet == 1) ? 0.16 * 2/3 : 0.16;
     //legendHeight = (iszjet == 1) ? 0.16 : 0.16;
@@ -1613,6 +1659,25 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
         hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmp", h1Ds[i]->GetName()));
         hTmp->SetLineWidth(0);
         leg->AddEntry(hTmp, legendEntryTexts[i].c_str(), legendEntryOptions[i].c_str());
+    }
+
+    if (doMultLumi) {
+
+        legendHeight += 0.13;
+        legendY1 -= 0.13;
+        leg->SetEntrySeparation(0.30);
+
+        hTmp = (TH1D*)h1Ds[0]->Clone(Form("%s_multLumi2", h1Ds[0]->GetName()));
+        hTmp->SetMarkerSize(0);
+        hTmp->SetLineColor(lineColors[3]);
+        hTmp->SetLineColorAlpha(lineColors[3], lineTransparencies[3]);
+        hTmp->SetLineWidth(lineWidths[3]);
+        hTmp->SetLineStyle(28);
+        leg->AddEntry(hTmp, Form("%d pb^{-1}", (int)projectedLumiPPv2), "l");
+
+        hTmp = (TH1D*)h1Ds[0]->Clone(Form("%s_multLumi1", h1Ds[0]->GetName()));
+        hTmp->SetMarkerSize(0);
+        leg->AddEntry(hTmp, Form("%d pb^{-1}", (int)projectedLumiPPv1), "l");
     }
 
     setLegend(leg);
@@ -1642,7 +1707,10 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     }
     int nTextLines = textLines.size();
     textX = 0.93;
-    textYs.resize(nTextLines, 0.70);
+    float textYtmp = 0.70;
+    if (doMultLumi)
+        textYtmp = 0.58;
+    textYs.resize(nTextLines, textYtmp);
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
         latex = new TLatex();
@@ -1653,7 +1721,9 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
 
     std::string collisionText = "";
     if (iCollision == 0)
-        collisionText = Form("pp %d pb^{-1}", (int)projectedLumiPP);
+        collisionText = Form("pp %d pb^{-1}", (int)projectedLumiPPv1);
+        if (doMultLumi)
+            collisionText = "pp";
     else if (iCollision == 1)
         collisionText = Form("pPb %d pb^{-1}", (int)projectedLumiPPB);
 
