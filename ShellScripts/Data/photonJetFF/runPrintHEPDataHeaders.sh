@@ -72,7 +72,7 @@ do
     newLine="independent_variables:\n"${newLine1}"\n"$oldLine
     sed -i "0,/${oldLine}/ s/${oldLine}/${newLine}/" $outputFile # replace the 1st occurance in the file
 
-    lineReaction="  - {name: RE, value: P P --> X PB PB --> X}"
+    lineReaction="  - {name: RE, value: P P --> GAMMA JET PB PB --> GAMMA JET}"
     # add header following 1st "dependent variables"
     oldLine=$oldLine2
     newLine="dependent_variables:\n"${newLine2}"\n  qualifiers:\n"${lineReaction}"\n"${lineCentrality}"\n"$textKinematics"\n"$oldLine

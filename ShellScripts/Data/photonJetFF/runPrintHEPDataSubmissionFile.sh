@@ -40,16 +40,16 @@ do
     obsDesc=""
     if [ $(((table-1) / 4)) -eq 0 ]; then
       observable="1/N(JET) * DN(TRK))/DXI_(JET)"
-      obsDesc="XI_(JET)"
+      obsDesc="XI_{JET}"
     elif [ $(((table-1) / 4)) -eq 1 ]; then
       observable="PBPB / PP"
-      obsDesc="PbPb / pp ratio of XI_(JET)"
+      obsDesc="PbPb / pp ratio of XI_{JET}"
     elif [ $(((table-1) / 4)) -eq 2 ]; then
       observable="1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
-      obsDesc="XI_T_(GAMMA)"
+      obsDesc="XI_T_{GAMMA}"
     else
       observable="PBPB / PP"
-      obsDesc="PbPb / pp ratio of XI_T_(GAMMA)"
+      obsDesc="PbPb / pp ratio of XI_T_{GAMMA}"
     fi
 
     description="${obsDesc} distributions for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
@@ -57,7 +57,7 @@ do
       description="${obsDesc} distributions for ${centrality} centrality collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
     fi
 
-    reaction="P P --> X, PB PB --> X"
+    reaction="P P --> GAMMA JET, PB PB --> GAMMA JET"
 
     echo "---" >> $outputFile
     echo "name: \"Table ${table}\"" >> $outputFile
