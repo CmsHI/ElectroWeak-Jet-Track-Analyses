@@ -416,4 +416,6 @@ void setTH1(TH1 *h) {
 
     h->SetTitle("");
     h->SetStats(false);
+
+    h->GetXaxis()->SetLabelOffset(0.018);
 }

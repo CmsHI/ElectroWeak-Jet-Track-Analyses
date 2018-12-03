@@ -122,6 +122,8 @@ void jetpt_vs_xi()
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
 
+        f1->GetXaxis()->SetLabelOffset(0.016);
+
         f1s.push_back(f1);
     }
 
@@ -244,6 +246,8 @@ void jetpt_vs_xi(int trkPt, double deltaR)
 
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
+
+        f1->GetXaxis()->SetLabelOffset(0.016);
 
         f1s.push_back(f1);
     }
@@ -396,6 +400,8 @@ void jetpt_vs_xi_plusminus(int trkPt, double deta)
             f1->GetXaxis()->SetTitleOffset(1.75/grScale);
             f1->GetYaxis()->SetTitleOffset(1.75/grScale);
 
+            f1->GetXaxis()->SetLabelOffset(0.016);
+
             f1s[i].push_back(f1);
         }
     }
@@ -545,6 +551,8 @@ void trackpt_vs_xi()
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
 
+        f1->GetXaxis()->SetLabelOffset(0.016);
+
         f1s.push_back(f1);
     }
 
@@ -690,6 +698,8 @@ void trackpt_vs_xi_plusminus(int jetPt, double deta)
 
             f1->GetXaxis()->SetTitleOffset(1.75/grScale);
             f1->GetYaxis()->SetTitleOffset(1.75/grScale);
+
+            f1->GetXaxis()->SetLabelOffset(0.016);
 
             f1s[i].push_back(f1);
         }
@@ -840,6 +850,8 @@ void phopt_vs_xi()
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
 
+        f1->GetXaxis()->SetLabelOffset(0.016);
+
         f1s.push_back(f1);
     }
 
@@ -965,6 +977,8 @@ void phopt_vs_xi(int trkPt)
 
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
+
+        f1->GetXaxis()->SetLabelOffset(0.016);
 
         f1s.push_back(f1);
     }
@@ -1094,6 +1108,8 @@ void trackpt_vs_xigamma()
 
         f1->GetXaxis()->SetTitleOffset(1.75/grScale);
         f1->GetYaxis()->SetTitleOffset(1.75/grScale);
+
+        f1->GetXaxis()->SetLabelOffset(0.016);
 
         f1s.push_back(f1);
     }
@@ -1228,6 +1244,8 @@ void trackpt_vs_xigamma(int phoPt)
          f1->GetXaxis()->SetTitleOffset(1.75/grScale);
          f1->GetYaxis()->SetTitleOffset(1.75/grScale);
 
+         f1->GetXaxis()->SetLabelOffset(0.016);
+
          f1s.push_back(f1);
      }
 
@@ -1335,4 +1353,5 @@ void copyAxisTitle(TAxis* axis1, TAxis* axis2)
     axis1->SetTitleSize(axis2->GetTitleSize());
     axis1->CenterTitle(axis2->GetCenterTitle());
     axis1->RotateTitle(axis2->GetRotateTitle());
+    axis1->SetLabelOffset(axis2->GetLabelOffset());
 }
