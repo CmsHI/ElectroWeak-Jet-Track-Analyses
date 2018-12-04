@@ -40,16 +40,16 @@ do
     obsDesc=""
     if [ $(((table-1) / 4)) -eq 0 ]; then
       observable="1/N(JET) * DN(TRK))/DXI_(JET)"
-      obsDesc="XI_{JET}"
+      obsDesc="$\xi^\mathrm{jet}$"
     elif [ $(((table-1) / 4)) -eq 1 ]; then
       observable="PBPB / PP"
-      obsDesc="PbPb / pp ratio of XI_{JET}"
+      obsDesc="PbPb / pp ratio of $\xi^\mathrm{jet}$"
     elif [ $(((table-1) / 4)) -eq 2 ]; then
       observable="1/N(JET) * DN(TRK))/DXI_T_(GAMMA)"
-      obsDesc="XI_T_{GAMMA}"
+      obsDesc="$\xi^\gamma_{\mathrm{T}}$"
     else
       observable="PBPB / PP"
-      obsDesc="PbPb / pp ratio of XI_T_{GAMMA}"
+      obsDesc="PbPb / pp ratio of $\xi^\gamma_{\mathrm{T}}$"
     fi
 
     description="${obsDesc} distributions for jets associated with an isolated photon in pp and ${centrality} centrality PbPb collisions. The resolutions of the measured jet energy and azimuthal angle in pp are smeared to match those in the PbPb sample."
