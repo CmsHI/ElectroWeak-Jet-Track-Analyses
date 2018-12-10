@@ -238,8 +238,12 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                     if (l < 2) {
                         TRASH_TH1(histograms[l]);
                     } else {
-                        TH1_TO_TGRAPH(histograms[l], graphs[l]);
-                        generic[l] = graphs[l];
+                        if ((canvas_title.find("pp") == std::string::npos &&
+                                canvas_title.find("pbpb") == std::string::npos) ||
+                                l > 4) {
+                            TH1_TO_TGRAPH(histograms[l], graphs[l]);
+                            generic[l] = graphs[l];
+                        }
                     }
                 }
 
@@ -465,6 +469,38 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                 plotInfo.push_back(Form("Purity: %.2f", purity[c]));
             }
 
+            /* for xjg_theory_pp_smeared */
+            if ((canvas_title == "xjg_theory_pp_smeared" || canvas_title == "dphi_theory_pp_smeared")
+                    && c == 0) {
+                if (r == 0) plotInfo.push_back("Cent. 0 - 30%");
+                if (r == 1) plotInfo.push_back("Cent. 30 - 100%");
+            }
+
+            if (canvas_title == "xjg_cent_theory_pbpb" || canvas_title == "xjg_cent_theory_pp") {
+                plotInfo.pop_back();
+                int cent_label_bins[2][4] = { {50, 30, 10, 0}, {100, 50, 30, 10} };
+                plotInfo.push_back(Form("Cent. %i - %i%%", cent_label_bins[0][c], cent_label_bins[1][c]));
+                if (c == 0) plotInfo.push_back("p_{T}^{#gamma} > 60 GeV/c");
+            }
+
+            if (canvas_title == "xjg_mean_rjg_ptBinAll_pp") {
+                if (r == 1) {
+                    plotInfo.clear();
+                    int cent_label_bins[2][4] = { {30, 0}, {100, 30} };
+                    plotInfo.push_back(Form("Cent. %i - %i%%", cent_label_bins[0][1-c], cent_label_bins[1][1-c]));
+                }
+            }
+
+            if (canvas_title == "iaa_theory" && r == 0) {
+                if (c == 3) {
+                    plotInfo.push_back("p_{T}^{jet} > 30 GeV/c");
+                    plotInfo.push_back("#left|#eta^{jet}#right| < 1.6");
+                } else if (c == 4) {
+                    plotInfo.push_back("#left|#eta^{#gamma}#right| < 1.44");
+                    plotInfo.push_back("#Delta#phi_{j#gamma} > #frac{7#pi}{8}");
+                }
+            }
+
             float line_pos = i_y[r*columns + c];
             int latex_align = (i_x[r*columns + c] > 0.8) ? 33 : 11;
             for (std::size_t q=0; q<plotInfo.size(); ++q) {
@@ -492,11 +528,27 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
 
     // draw CMS label
     tiler->draw_latex_on_canvas(canvas_margin_left + 0.006, 1.0 - canvas_margin_top / 2, "CMS", 6, cms_latex_size, 12);
+    if (canvas_title == "dphi_theory_pp_smeared" ||
+            canvas_title == "iaa_theory" ||
+            canvas_title == "xjg_cent_theory_pbpb" ||
+            canvas_title == "xjg_cent_theory_pp" ||
+            canvas_title == "xjg_mean_rjg_centBinAll_pbpb" ||
+            canvas_title == "xjg_mean_rjg_centBinAll_pp" ||
+            canvas_title == "xjg_mean_rjg_ptBinAll_pbpb" ||
+            canvas_title == "xjg_mean_rjg_ptBinAll_pp" ||
+            canvas_title == "xjg_theory_pp_smeared") {
+        if (columns == 2)
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.1, 1.0 - canvas_margin_top / 2 - 0.008, "Supplemental", 5, cms_latex_size * 0.7, 12);
+        else if (columns == 4)
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.06, 1.0 - canvas_margin_top / 2 - 0.01, "Supplemental", 5, cms_latex_size * 0.7, 12);
+        else
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.064, 1.0 - canvas_margin_top / 2 - 0.005, "Supplemental", 5, cms_latex_size * 0.7, 12);
+    }
 
     // draw common information
     std::string lumiInfo = "#sqrt{s_{NN}} = 5.02 TeV";
     if (canvas_title.find("pp") == std::string::npos) { lumiInfo += ", PbPb 404 #mub^{-1}"; }
-    if (hist_type != "purity" && canvas_title != "xjg_theory") { lumiInfo += ", pp 27.4 pb^{-1}"; }
+    if (hist_type != "purity" && canvas_title != "xjg_theory" && canvas_title.find("pbpb") == std::string::npos) { lumiInfo += ", pp 27.4 pb^{-1}"; }
     tiler->draw_latex_on_canvas(1 - canvas_margin_right - 0.006, 1.0 - canvas_margin_top / 2, lumiInfo.c_str(), 4, canvas_latex_size, 32);
 
     std::string commonInfo;
@@ -510,11 +562,19 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             commonInfo += ", #Delta#phi_{j#gamma} > #frac{7#pi}{8}";
     }
     float middle_align = (canvas_margin_left + 1.0 - canvas_margin_right) / 2;
-    if (canvas_title.find("theory") == std::string::npos) {
+    if (canvas_title.find("theory") == std::string::npos || canvas_title == "iaa_theory") {
         if (canvas_title == "xjg_cent") { middle_align -= 0.116; }
         else { middle_align -= 0.125; }
     } else if (canvas_title.find("xjg") != std::string::npos) {
         middle_align -= 0.072;
+    }
+    if (canvas_title == "xjg_cent_theory_pp" || canvas_title == "xjg_cent_theory_pbpb")
+        middle_align += 0.048;
+    if (canvas_title == "xjg_theory_pp_smeared")
+        middle_align += 0.045;
+    if (canvas_title == "iaa_theory") {
+        commonInfo = "anti-k_{T} jet R = 0.3";
+        middle_align += 0.05;
     }
     tiler->draw_latex_on_canvas(middle_align, 1.0 - canvas_margin_top / 2, commonInfo.c_str(), 4, canvas_latex_size, 22);
 
