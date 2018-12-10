@@ -538,11 +538,11 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
             canvas_title == "xjg_mean_rjg_ptBinAll_pp" ||
             canvas_title == "xjg_theory_pp_smeared") {
         if (columns == 2)
-            tiler->draw_latex_on_canvas(canvas_margin_left + 0.1, 1.0 - canvas_margin_top / 2 - 0.008, "Supplemental", 5, cms_latex_size * 0.7, 12);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.1, 1.0 - canvas_margin_top / 2 - 0.008, "Supplementary", 5, cms_latex_size * 0.7, 12);
         else if (columns == 4)
-            tiler->draw_latex_on_canvas(canvas_margin_left + 0.06, 1.0 - canvas_margin_top / 2 - 0.01, "Supplemental", 5, cms_latex_size * 0.7, 12);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.06, 1.0 - canvas_margin_top / 2 - 0.01, "Supplementary", 5, cms_latex_size * 0.7, 12);
         else
-            tiler->draw_latex_on_canvas(canvas_margin_left + 0.064, 1.0 - canvas_margin_top / 2 - 0.005, "Supplemental", 5, cms_latex_size * 0.7, 12);
+            tiler->draw_latex_on_canvas(canvas_margin_left + 0.064, 1.0 - canvas_margin_top / 2 - 0.005, "Supplementary", 5, cms_latex_size * 0.7, 12);
     }
 
     // draw common information
