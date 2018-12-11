@@ -1,0 +1,9 @@
+if (canvas_title == "dphi_theory_pp" ||
+        canvas_title == "iaa_theory" ||
+        canvas_title == "xjg_cent_pbpb" ||
+        canvas_title == "xjg_cent_pp" ||
+        canvas_title == "xjg_mean_rjg_centBinAll_pbpb" ||
+        canvas_title == "xjg_mean_rjg_centBinAll_pp" ||
+        canvas_title == "xjg_mean_rjg_ptBinAll_pbpb" ||
+        canvas_title == "xjg_mean_rjg_ptBinAll_pp" ||
+        canvas_title == "xjg_theory_pp") {

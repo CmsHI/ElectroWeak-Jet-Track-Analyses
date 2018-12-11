@@ -1,0 +1,29 @@
+h1D_xjg_ptBin1_hiBin6_pp_Data 1
+h1D_xjg_ptBin1_hiBin6_pp_Data 5
+h1D_xjg_ptBin1_hiBin6_pp_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin6_pp_Data 5
++
+h1D_xjg_ptBin1_hiBin5_pp_Data 1
+h1D_xjg_ptBin1_hiBin5_pp_Data 5
+h1D_xjg_ptBin1_hiBin5_pp_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin5_pp_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin5_pp_Data 5
++
+h1D_xjg_ptBin1_hiBin4_pp_Data 1
+h1D_xjg_ptBin1_hiBin4_pp_Data 5
+h1D_xjg_ptBin1_hiBin4_pp_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin4_pp_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin4_pp_Data 5
++
+h1D_xjg_ptBin1_hiBin3_pp_Data 1
+h1D_xjg_ptBin1_hiBin3_pp_Data 5
+h1D_xjg_ptBin1_hiBin3_pp_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin3_pp_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin3_pp_Data 5
+=
+pp (smeared)
++
+@@
+@@
+Hybrid
+J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}

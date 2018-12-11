@@ -1,0 +1,29 @@
+h1D_xjg_ptBin1_hiBin6_PbPb_Data 0
+h1D_xjg_ptBin1_hiBin6_PbPb_Data 4
+h1D_xjg_ptBin1_hiBin6_PbPb_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin6_PbPb_Data 4
++
+h1D_xjg_ptBin1_hiBin5_PbPb_Data 0
+h1D_xjg_ptBin1_hiBin5_PbPb_Data 4
+h1D_xjg_ptBin1_hiBin5_PbPb_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin5_PbPb_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin5_PbPb_Data 4
++
+h1D_xjg_ptBin1_hiBin4_PbPb_Data 0
+h1D_xjg_ptBin1_hiBin4_PbPb_Data 4
+h1D_xjg_ptBin1_hiBin4_PbPb_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin4_PbPb_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin4_PbPb_Data 4
++
+h1D_xjg_ptBin1_hiBin3_PbPb_Data 0
+h1D_xjg_ptBin1_hiBin3_PbPb_Data 4
+h1D_xjg_ptBin1_hiBin3_PbPb_Data_Hybrid 11
+h1D_xjg_ptBin1_hiBin3_PbPb_Data_JEWEL 9
+h1D_xjg_ptBin1_hiBin3_PbPb_Data 4
+=
+PbPb
++
+@@
+@@
+Hybrid
+J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}

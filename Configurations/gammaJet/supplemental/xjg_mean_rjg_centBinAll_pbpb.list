@@ -1,0 +1,34 @@
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data 0
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data 4
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data_Hybrid 11
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data_JEWEL 9
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data_LBT 10
+h1D_xjg_mean_centBinAll_ptBin1_PbPb_Data 4
++
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data 0
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data 4
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data_Hybrid 11
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data_JEWEL 9
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data_LBT 10
+h1D_xjg_mean_centBinAll_ptBin5_PbPb_Data 4
++
+h1D_rjg_centBinAll_ptBin1_PbPb_Data 0
+h1D_rjg_centBinAll_ptBin1_PbPb_Data 4
+h1D_rjg_centBinAll_ptBin1_PbPb_Data_Hybrid 11
+h1D_rjg_centBinAll_ptBin1_PbPb_Data_JEWEL 9
+h1D_rjg_centBinAll_ptBin1_PbPb_Data_LBT 10
+h1D_rjg_centBinAll_ptBin1_PbPb_Data 4
++
+h1D_rjg_centBinAll_ptBin5_PbPb_Data 0
+h1D_rjg_centBinAll_ptBin5_PbPb_Data 4
+h1D_rjg_centBinAll_ptBin5_PbPb_Data_Hybrid 11
+h1D_rjg_centBinAll_ptBin5_PbPb_Data_JEWEL 9
+h1D_rjg_centBinAll_ptBin5_PbPb_Data_LBT 10
+h1D_rjg_centBinAll_ptBin5_PbPb_Data 4
+=
+PbPb
++
+@@
+@@
+Hybrid
+J#scale[0.8]{EWEL} + P#scale[0.8]{YTHIA}
