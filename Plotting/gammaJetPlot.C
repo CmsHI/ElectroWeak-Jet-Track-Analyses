@@ -347,6 +347,9 @@ int gammaJetPlot(const std::string input_file, const std::string sys_file, const
                         4, legend_latex_size, c, r
                     );
 
+                    if (canvas_title == "iaa_theory" && c == 2 && r == 0)
+                        l1->SetHeader("pQCD jet E-loss");
+
                     for (std::size_t t=0; t<legend_labels[s].size(); ++t) {
                         if (legend_labels[s][t] == "@@") { continue; }
                         if (legend_labels[s][t][0] == '$') {
@@ -899,6 +902,24 @@ void set_graph_style(TGraph* g1, int style, std::vector<std::string>& option_str
             g1->SetLineWidth(2.4);
             g1->SetMarkerSize(0);
             g1->SetFillColorAlpha(kMagenta, 0.7);
+            option_strings.push_back("same l e3");
+            option_strings.push_back("l");
+            break;
+        case 12:
+            g1->SetLineColorAlpha(kAzure+10, 0.7);
+            g1->SetLineStyle(1);
+            g1->SetLineWidth(2.4);
+            g1->SetMarkerSize(0);
+            g1->SetFillColorAlpha(kAzure+10, 0.7);
+            option_strings.push_back("same l e3");
+            option_strings.push_back("l");
+            break;
+        case 13:
+            g1->SetLineColorAlpha(kAzure+10, 0.7);
+            g1->SetLineStyle(3);
+            g1->SetLineWidth(2.4);
+            g1->SetMarkerSize(0);
+            g1->SetFillColorAlpha(kAzure+10, 0.7);
             option_strings.push_back("same l e3");
             option_strings.push_back("l");
             break;
