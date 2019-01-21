@@ -758,6 +758,10 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
             // efficiency or inefficiency
             if (runMode[MODES::kEff] || runMode[MODES::kInEff]) {
 
+                bool debug = false;
+                bool debug_isPrinted = false;
+                double debug_ptThreshold = (debug) ? 40 : -1;
+
                 for (int iAna = 0;  iAna < nTriggerAna; ++iAna) {
 
                     int iMax = -1;
@@ -837,6 +841,9 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                 int iHltObj = getIndexTrigObj4TriggerBranch(indicesTriggerNum[iAna]);
 
                                 int nHltObjs = hltObjs[iHltObj].pt->size();
+
+                                bool debug_isFoundHltObj = false;
+
                                 for (int iObj = 0; iObj < nHltObjs; ++iObj) {
 
                                     double ptHLT = (*hltObjs[iHltObj].pt)[iObj];
@@ -865,7 +872,29 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                         tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
                                         tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
 
+                                        if (debug) debug_isFoundHltObj = true;
                                         break;
+                                    }
+                                }
+                                if (debug) {
+                                    if (!debug_isFoundHltObj && !debug_isPrinted && pt > 45 && TMath::Abs(eta) < 1.44 && sumIso < 5 && sieie < 0.01 && tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold == debug_ptThreshold) {
+                                        std::cout << "No trigger match for photon" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
+                                        std::cout << "j_entry = " << j_entry << std::endl;
+                                        std::cout << "run = " << hiEvt.run << " lumis = " << hiEvt.lumi << " event = " << hiEvt.evt << std::endl;
+                                        std::cout << "pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
+                                        std::cout << "hovere = " << (*ggHi.phoHoverE)[iMax] << " sumIso = " << sumIso << " sieie = " << sieie << std::endl;
+
+                                        std::cout << "nHltObjs = " << nHltObjs << std::endl;
+                                        for (int iObj = 0; iObj < nHltObjs; ++iObj) {
+                                            double ptHLT = (*hltObjs[iHltObj].pt)[iObj];
+                                            double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
+                                            double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
+
+                                            std::cout << "ptHLT = " << ptHLT << " etaHLT = " << etaHLT << " phiHLT = " << phiHLT << std::endl;
+                                            std::cout << "dR = " << getDR(etaHLT, phiHLT, eta, phi) << std::endl;
+                                        }
+
+                                        debug_isPrinted = true;
                                     }
                                 }
                             }
@@ -916,6 +945,18 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                        else {
+                            if (debug) {
+                                if (!debug_isPrinted && pt > 45 && TMath::Abs(eta) < 1.44 && sumIso < 5 && sieie < 0.01 && tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold == debug_ptThreshold) {
+                                    std::cout << "photon" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " missed :" << std::endl;
+                                    std::cout << "j_entry = " << j_entry << " vz = " << hiEvt.vz << " hiBin = " << hiEvt.hiBin << std::endl;
+                                    std::cout << "run = " << hiEvt.run << " lumis = " << hiEvt.lumi << " event = " << hiEvt.evt << std::endl;
+                                    std::cout << "pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
+                                    std::cout << "hovere = " << (*ggHi.phoHoverE)[iMax] << " sumIso = " << sumIso << " sieie = " << sieie << std::endl;
+                                    debug_isPrinted = true;
                                 }
                             }
                         }
