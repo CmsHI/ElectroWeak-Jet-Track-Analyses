@@ -445,6 +445,10 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
             std::string treeHltObjectPath = treeTrigObjPaths.at(i).c_str();
             treeTrigObjs[i] = 0;
             treeTrigObjs[i] = (TTree*)fileTrig->Get(treeHltObjectPath.c_str());
+            if (!treeTrigObjs[i]) {
+                treeHltObjectPath = replaceAll(treeHltObjectPath, "_v", "");
+            }
+            treeTrigObjs[i] = (TTree*)fileTrig->Get(treeHltObjectPath.c_str());
 
             if (!treeTrigObjs[i]) {
                 std::cout << "tree is not found in the path : "<< treeHltObjectPath.c_str() <<". skipping the tree." << std::endl;
