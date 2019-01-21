@@ -470,11 +470,11 @@ std::string triggerAnalyzer::getRangeText(int iRange) {
 
         if (recoObj == TRIGGERANA::kPHOTON) {
             if (ranges[TRIGGERANA::rSIEIE][0] > 0 && ranges[TRIGGERANA::rSIEIE][1] <= -1)
-                res  = Form("#sigma_{#eta#eta}>%.2f", ranges[TRIGGERANA::rSIEIE][0]);
+                res  = Form("#sigma_{#eta#eta}>%.4f", ranges[TRIGGERANA::rSIEIE][0]);
             else if (ranges[TRIGGERANA::rSIEIE][0] <= 0 && ranges[TRIGGERANA::rSIEIE][1] > 0)
-                res = Form("#sigma_{#eta#eta}<%.2f", ranges[TRIGGERANA::rSIEIE][1]);
+                res = Form("#sigma_{#eta#eta}<%.4f", ranges[TRIGGERANA::rSIEIE][1]);
             else if (ranges[TRIGGERANA::rSIEIE][0] > 0 && ranges[TRIGGERANA::rSIEIE][1] > 0)
-                res = Form("%.2f<#sigma_{#eta#eta}<%.2f", ranges[TRIGGERANA::rSIEIE][0], ranges[TRIGGERANA::rSIEIE][1]);
+                res = Form("%.2f<#sigma_{#eta#eta}<%.4f", ranges[TRIGGERANA::rSIEIE][0], ranges[TRIGGERANA::rSIEIE][1]);
         }
         break;
     }
