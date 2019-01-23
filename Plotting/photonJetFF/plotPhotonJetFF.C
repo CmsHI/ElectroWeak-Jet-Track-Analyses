@@ -44,6 +44,9 @@ int plotPhotonJetFF(const char* sys_file, const char* hist_list, const char* con
     gStyle->SetOptTitle(0);
     gStyle->SetOptStat(0);
 
+    gStyle->SetLineStyleString(12,"5 5");
+    gStyle->SetLineStyleString(13,"16 4");
+
     TFile* fsys = new TFile(sys_file, "read");
 
     InputConfiguration config = InputConfigurationParser::Parse(config_file);
@@ -582,11 +585,11 @@ std::string set_systematics_style(TGraph* gr, int style, bool isJS) {
                 return "same e x0";
             case 4:
                 gr->SetFillStyle(1001);
-                gr->SetFillColorAlpha(RATIO_COLOUR_JS, 0.4);
+                gr->SetFillColorAlpha(RATIO_COLOUR_JS, 0.3);
                 return "same e x0";
             case 5:
                 gr->SetFillStyle(1001);
-                gr->SetFillColorAlpha(RATIO_COLOUR_JS, 0.4);
+                gr->SetFillColorAlpha(RATIO_COLOUR_JS, 0.3);
                 return "same e x0";
             case 6:
                 gr->SetFillStyle(1001);
@@ -598,11 +601,11 @@ std::string set_systematics_style(TGraph* gr, int style, bool isJS) {
                 return "same e x0";
             case 8:
                 gr->SetFillStyle(1001);
-                gr->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.4);
+                gr->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.8);
                 return "same e x0";
             case 9:
                 gr->SetFillStyle(1001);
-                gr->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.4);
+                gr->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.8);
                 return "same e x0";
             default:
                 gr->SetFillStyle(1001);
@@ -698,7 +701,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        case 4:     /* systematics (legend) */
+        case 4:     /* PbPb / pp (legend) */
             h1->SetLineColorAlpha(RATIO_COLOUR_FF, 0);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(1);
@@ -709,7 +712,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        case 5:     /* systematics */
+        case 5:     /* PbPb / pp */
             h1->SetLineColor(1);
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(1);
@@ -775,7 +778,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetMarkerStyle(kFullCircle);
             h1->SetMarkerSize(2.0);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(PBPB_COLOUR_JS, 0.6);
+            h1->SetFillColorAlpha(PBPB_COLOUR_JS, 0.4);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -786,7 +789,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerSize(2.0);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(PP_COLOUR_JS, 0.6);
+            h1->SetFillColorAlpha(PP_COLOUR_JS, 0.4);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
@@ -808,18 +811,18 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        case 4:     /* systematics (legend) */
+        case 4:     /* PbPb / pp (legend) */
             h1->SetLineColorAlpha(RATIO_COLOUR_JS, 0);
             h1->SetLineWidth(0);
             h1->SetMarkerColor(RATIO_COLOUR_JS);
             h1->SetMarkerStyle(kFullSquare);
             h1->SetMarkerSize(2.0);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(RATIO_COLOUR_JS, 0.4);
+            h1->SetFillColorAlpha(RATIO_COLOUR_JS, 0.3);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
-        case 5:     /* systematics */
+        case 5:     /* PbPb / pp */
             h1->SetLineColor(1);
             h1->SetLineWidth(1.2);
             h1->SetMarkerColor(RATIO_COLOUR_JS);
@@ -832,7 +835,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
             h1->SetLineColorAlpha(PPMC_COLOUR_JS, 1);
             h1->SetLineWidth(0);
             h1->SetLineStyle(kDashed);
-            h1->SetLineWidth(2);
+            h1->SetLineWidth(3);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerSize(2.0);
@@ -842,7 +845,7 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
         case 7:     /* pp mc */
             h1->SetLineColorAlpha(PPMC_COLOUR_JS, 1);
             h1->SetLineStyle(kDashed);
-            h1->SetLineWidth(2);
+            h1->SetLineWidth(3);
             h1->SetMarkerColor(1);
             h1->SetMarkerStyle(kOpenCircle);
             h1->SetMarkerSize(2.0);
@@ -852,19 +855,19 @@ void set_histogram_style(TH1* h1, int style, std::vector<std::string>& option_st
         case 8:     /* mc / pp ratio (legend) */
             h1->SetLineColorAlpha(PPMC_RATIO_COLOUR_JS, 0);
             h1->SetLineWidth(0);
-            h1->SetMarkerColor(PPMC_RATIO_COLOUR_JS);
-            h1->SetMarkerStyle(kFullSquare);
+            h1->SetMarkerColor(kBlack);
+            h1->SetMarkerStyle(kOpenSquare);
             h1->SetMarkerSize(2.0);
             h1->SetFillStyle(1001);
-            h1->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.4);
+            h1->SetFillColorAlpha(PPMC_RATIO_COLOUR_JS, 0.8);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
             break;
         case 9:     /* mc / pp ratio */
             h1->SetLineColor(1);
             h1->SetLineWidth(1.2);
-            h1->SetMarkerColor(PPMC_RATIO_COLOUR_JS);
-            h1->SetMarkerStyle(kFullSquare);
+            h1->SetMarkerColor(kBlack);
+            h1->SetMarkerStyle(kOpenSquare);
             h1->SetMarkerSize(2.0);
             option_strings.push_back("same e x0");
             option_strings.push_back("pf");
