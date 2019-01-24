@@ -108,13 +108,17 @@ void readHiForestTrees()
     if (ntEvent != 0)
         std::cout << "TNtuple* ntEvent = rechitanalyzer/ntEvent" << std::endl;
 
-    teg->AddFriend(tskim);
-    teg->AddFriend(tevt);
-    teg->AddFriend(t3);
-    teg->AddFriend(t3pp);
+    if (teg != 0) {
+        teg->AddFriend(tskim);
+        teg->AddFriend(tevt);
+        teg->AddFriend(t3);
+        teg->AddFriend(t3pp);
+    }
 
-    tegGED->AddFriend(tskim);
-    tegGED->AddFriend(tevt);
-    tegGED->AddFriend(t3);
-    tegGED->AddFriend(t3pp);
+    if (tegGED != 0) {
+        tegGED->AddFriend(tskim);
+        tegGED->AddFriend(tevt);
+        tegGED->AddFriend(t3);
+        tegGED->AddFriend(t3pp);
+    }
 }
