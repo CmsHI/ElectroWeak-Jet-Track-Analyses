@@ -4,6 +4,7 @@
  */
 
 TTree* thlt = 0;
+TTree* tl1obj = 0;
 TTree* teg = 0;
 TTree* tegGED = 0;
 TTree* tskim = 0;
@@ -31,6 +32,7 @@ TNtuple* ntEvent = 0;
 void readHiForestTrees()
 {
     thlt = (TTree*)gFile->Get("hltanalysis/HltTree");
+    tl1obj = (TTree*)gFile->Get("l1object/L1UpgradeFlatTree");
     teg = (TTree*)gFile->Get("ggHiNtuplizer/EventTree");
     tegGED = (TTree*)gFile->Get("ggHiNtuplizerGED/EventTree");
     tskim = (TTree*)gFile->Get("skimanalysis/HltTree");
@@ -57,6 +59,8 @@ void readHiForestTrees()
 
     if (thlt != 0)
         std::cout << "Tree* thlt = hltanalysis/HltTree" << std::endl;
+    if (tl1obj != 0)
+        std::cout << "Tree* tl1obj = l1object/L1UpgradeFlatTree" << std::endl;
     if (teg != 0)
         std::cout << "Tree* teg = ggHiNtuplizer/EventTree" << std::endl;
     if (tegGED != 0)
