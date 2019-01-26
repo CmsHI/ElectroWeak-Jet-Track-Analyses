@@ -62,7 +62,7 @@ void checkHEPData(std::string inputFile1, std::string histPath1, std::string inp
         std::cout << "val1 = " << val1 << ", val2 = " << val2 << std::endl;
         std::cout << "normDiffVal = " << normDiffVal << std::endl;
 
-        double diffLimit = 0.001;
+        double diffLimit = 0.005;
         if (TMath::Abs(normDiffVal) > diffLimit) {
             std::cout << "WARNING : Values do NOT agree by more than " << diffLimit;
             std::cout << " ( normDiffVal = " << normDiffVal << " )" << std::endl;
