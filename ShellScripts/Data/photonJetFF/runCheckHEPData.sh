@@ -1,6 +1,6 @@
 #!/bin/bash
 
-progPath="./Data/photonJetFF/checkHEPData.exe"
+progPath="./Data/checkHEPData.exe"
 progCode="${progPath/.exe/.C}"
 g++ $progCode $(root-config --cflags --libs) -Werror -Wall -O2 -o $progPath || exit 1
 

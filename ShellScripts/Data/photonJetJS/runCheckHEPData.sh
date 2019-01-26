@@ -1,6 +1,6 @@
 #!/bin/bash
 
-progPath="./Data/photonJetFF/checkHEPData.exe"
+progPath="./Data/checkHEPData.exe"
 progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -O2 -o $progPath || exit 1
 
@@ -37,7 +37,7 @@ arrayIndices=${!histPaths1[*]}
 for i1 in $arrayIndices
 do
     inputFile1="./Data/photonJetJS/jsdata_data_60_30_gxi0_obs2_ffjs_final-and-systematics.root"
-    inputFile2="./Data/photonJetJS/hepdata/HEPData-1548463189-v1-root.root"
+    inputFile2="./Data/photonJetJS/hepdata/HEPData-1548465285-v1-root.root"
 
     histPath1=${histPaths1[i1]}
     histPath2=${histPaths2[i1]}

@@ -1,5 +1,5 @@
 /*
- * macro to save HEP DATA tables for photon+jet FF at 5.02 TeV
+ * macro to save HEP DATA tables (e.g. tables for photon+jet FF and JS at 5.02 TeV)
  */
 #include <TFile.h>
 #include <TDirectoryFile.h>
@@ -11,8 +11,8 @@
 #include <fstream>      // ifstream, ofstream
 #include <ios>      // ifstream, ofstream
 
-#include "../../Utilities/th1Util.h"
-#include "../../Utilities/systemUtil.h"
+#include "../Utilities/th1Util.h"
+#include "../Utilities/systemUtil.h"
 
 void printHEPData(std::string inputFile, std::string outputFile, std::string hPath, std::string hSysPath, double xMin = 0, double xMax = -1, bool doIndepVar = true);
 

@@ -13,10 +13,10 @@
 #include <vector>
 #include <iostream>
 
-#include "../../Utilities/interface/InputConfigurationParser.h"
-#include "../../Utilities/interface/HiForestInfoController.h"
-#include "../../Utilities/fileUtil.h"
-#include "../../Utilities/systemUtil.h"
+#include "../Utilities/interface/InputConfigurationParser.h"
+#include "../Utilities/interface/HiForestInfoController.h"
+#include "../Utilities/fileUtil.h"
+#include "../Utilities/systemUtil.h"
 
 void checkHEPData(std::string inputFile1, std::string histPath1, std::string inputFile2, std::string histPath2, double xMin = 0, double xMax = -1);
 
