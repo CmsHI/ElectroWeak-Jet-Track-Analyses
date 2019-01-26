@@ -299,11 +299,22 @@ double roundToSignificantFigures(double x, int nFigures)
     double res = 0;
 
     while (nFigures > 0) {
-        int tmpDigit = ((int)(x / std::pow(10, orderOfMag)) % 10);
+        double tmpDouble = (x / std::pow(10, orderOfMag));
+        /*
+         * 3.0 is stored as 2.9999... Casting it to integer will give 2.
+         * Add small number to close the gap and so that casting gives the correct result.
+         * Double-check addition of this small number does not break things for you.
+         */
+        if (tmpDouble > 0) tmpDouble += 0.000000001; // 0.3 is stored as 0.2999... Add the missing gap so that the casting gives correct result.
+
+        int tmpDigit =((int)(tmpDouble) % 10);
 
         if (nFigures == 1) {
             // check the digit to the right of last significant figure
-            if (((int)(x / std::pow(10, orderOfMag-1)) % 10) >= 5)  tmpDigit++;
+            double tmpDouble2 = (x / std::pow(10, orderOfMag-1));
+            if (tmpDouble2 > 0) tmpDouble2 += 0.000000001;
+
+            if (((int)(tmpDouble2) % 10) >= 5)  tmpDigit++;
         }
         res += (double)(tmpDigit) * std::pow(10, orderOfMag);
 
