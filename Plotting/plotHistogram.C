@@ -969,8 +969,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 hSysp[i] = (TH1D*)f[i]->Get(TH1sysp_path.c_str());
                 if(hSysp[i] == 0){
                     std::cout << "No histogram found for TH1sysp_path: " << TH1sysp_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+                    hSysp[i] = (TH1D*)h[i]->Clone(Form("hSysp_%d", i));
+                    hSysp[i]->Reset();
                 }
-                hSysp[i]->SetName(Form("hSysp_%d", i));
+                else {
+                    hSysp[i]->SetName(Form("hSysp_%d", i));
+                }
             }
         }
         if (nHistosSysm == nHistos) {
@@ -980,8 +984,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 hSysm[i] = (TH1D*)f[i]->Get(TH1sysm_path.c_str());
                 if(hSysm[i] == 0){
                     std::cout << "No histogram found for TH1sysm_path: " << TH1sysm_path.c_str() << " file: " << inputFile.c_str() << std::endl;
+                    hSysm[i] = (TH1D*)h[i]->Clone(Form("hSysm_%d", i));
+                    hSysm[i]->Reset();
                 }
-                hSysm[i]->SetName(Form("hSysm_%d", i));
+                else {
+                    hSysm[i]->SetName(Form("hSysm_%d", i));
+                }
             }
         }
         if (hSysp[i] && hSysm[i]) {
@@ -1664,6 +1672,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                     int fitTH1_lowerPad_Start =
                             int(std::find(TF1_lowerPad_Indices.begin(), TF1_lowerPad_Indices.end(), iPad+1) - TF1_lowerPad_Indices.begin());
                     int iFit_Pad = iFit - fitTH1_lowerPad_Start;
+
                     h_lowerPad[iFit_Pad]->Fit(f1_lowerPad.GetName(), fitOption_lowerPad.c_str());
                 }
             }
