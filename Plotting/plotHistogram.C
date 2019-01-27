@@ -1644,37 +1644,37 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 if (nyMax_lowerPad > 1 && nyMax_lowerPad == nPads) yMax_lowerPadTmp = yMax_lowerPad.at(iPad);
 
                 if (yMax_lowerPadTmp > yMin_lowerPadTmp)   h_lowerPad[i]->GetYaxis()->SetRangeUser(yMin_lowerPadTmp, yMax_lowerPadTmp);
+            }
 
-                for (int iFit = 0; iFit < nTF1_formulas_lowerPad; ++iFit) {
+            for (int iFit = 0; iFit < nTF1_formulas_lowerPad; ++iFit) {
 
-                    if (TF1_lowerPad_Indices.at(iFit)-1 != iPad)  continue;
+                if (TF1_lowerPad_Indices.at(iFit)-1 != iPad)  continue;
 
-                    std::string TF1_formula_lowerPad = TF1_formulas_lowerPad.at(iFit).c_str();
-                    if (TF1_formula_lowerPad == CONFIGPARSER::nullInput.c_str()) continue;
+                std::string TF1_formula_lowerPad = TF1_formulas_lowerPad.at(iFit).c_str();
+                if (TF1_formula_lowerPad == CONFIGPARSER::nullInput.c_str()) continue;
 
-                    double TF1_xMin_lowerPad = TF1_ranges_lowerPad[0].at(iFit);
-                    double TF1_xMax_lowerPad = TF1_ranges_lowerPad[1].at(iFit);
+                double TF1_xMin_lowerPad = TF1_ranges_lowerPad[0].at(iFit);
+                double TF1_xMax_lowerPad = TF1_ranges_lowerPad[1].at(iFit);
 
-                    std::string fitOption_lowerPad = INPUT_DEFAULT::fitOption.c_str();
-                    if (nFitOptions_lowerPad == 1)  fitOption_lowerPad = fitOptions_lowerPad.at(0).c_str();
-                    if (nFitOptions_lowerPad == nFitTH1_lowerPad)  fitOption_lowerPad = fitOptions_lowerPad.at(iFit).c_str();
+                std::string fitOption_lowerPad = INPUT_DEFAULT::fitOption.c_str();
+                if (nFitOptions_lowerPad == 1)  fitOption_lowerPad = fitOptions_lowerPad.at(0).c_str();
+                if (nFitOptions_lowerPad == nFitTH1_lowerPad)  fitOption_lowerPad = fitOptions_lowerPad.at(iFit).c_str();
 
-                    int fitColor_lowerPad = INPUT_DEFAULT::fitColor;
-                    if (nFitColors == 1) fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(0));
-                    else if (nFitColors_lowerPad == nFitTH1_lowerPad) {
-                        if (fitColors_lowerPad.at(iFit) != CONFIGPARSER::nullInput)
-                            fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(iFit));
-                    }
-
-                    TF1 f1_lowerPad(Form("f1_%d", iFit), TF1_formula_lowerPad.c_str(), TF1_xMin_lowerPad, TF1_xMax_lowerPad);
-                    f1_lowerPad.SetLineColor(fitColor_lowerPad);
-
-                    int fitTH1_lowerPad_Start =
-                            int(std::find(TF1_lowerPad_Indices.begin(), TF1_lowerPad_Indices.end(), iPad+1) - TF1_lowerPad_Indices.begin());
-                    int iFit_Pad = iFit - fitTH1_lowerPad_Start;
-
-                    h_lowerPad[iFit_Pad]->Fit(f1_lowerPad.GetName(), fitOption_lowerPad.c_str());
+                int fitColor_lowerPad = INPUT_DEFAULT::fitColor;
+                if (nFitColors == 1) fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(0));
+                else if (nFitColors_lowerPad == nFitTH1_lowerPad) {
+                    if (fitColors_lowerPad.at(iFit) != CONFIGPARSER::nullInput)
+                        fitColor_lowerPad = GraphicsConfigurationParser::ParseColor(fitColors_lowerPad.at(iFit));
                 }
+
+                TF1 f1_lowerPad(Form("f1_%d", iFit), TF1_formula_lowerPad.c_str(), TF1_xMin_lowerPad, TF1_xMax_lowerPad);
+                f1_lowerPad.SetLineColor(fitColor_lowerPad);
+
+                int fitTH1_lowerPad_Start =
+                        int(std::find(TF1_lowerPad_Indices.begin(), TF1_lowerPad_Indices.end(), iPad+1) - TF1_lowerPad_Indices.begin());
+                int iFit_Pad = iFit - fitTH1_lowerPad_Start;
+
+                h_lowerPad[iFit_Pad]->Fit(f1_lowerPad.GetName(), fitOption_lowerPad.c_str());
             }
 
             // set maximum/minimum of y-axis in the lower pad
