@@ -46,13 +46,14 @@ do
     fi
 
     description="The differential jet shape, ${obsDesc}, for jets associated with an isolated photon in ${centrality} centrality PbPb collisions."
+    reaction="PB PB --> GAMMA JET"
     if [ $table -eq 1 ]; then
       description="The differential jet shape, ${obsDesc}, for jets associated with an isolated photon in pp collisions."
+      reaction="P P --> GAMMA JET"
     elif [ $table -ge 6 ]; then
       description="${obsDesc} for ${centrality} centrality PbPb collisions."
+      reaction="P P --> GAMMA JET, PB PB --> GAMMA JET"
     fi
-
-    reaction="P P --> GAMMA JET, PB PB --> GAMMA JET"
 
     echo "---" >> $outputFile
     echo "name: \"Table ${table}\"" >> $outputFile

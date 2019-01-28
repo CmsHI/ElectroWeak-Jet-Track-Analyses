@@ -41,23 +41,30 @@ do
     newLine1="- header: {name: R}"
 
     newLine2=""
-    if [ $i1 -lt 1 ]; then
+    if [ $table -eq 1 ]; then
       newLine2="- header: {name: RHO_(R) PP}"
-    elif [ $i1 -lt 5 ]; then
+    elif [ $table -le 5 ]; then
       newLine2="- header: {name: RHO_(R) PBPB}"
     else
       newLine2="- header: {name: PBPB / PP}"
     fi
 
     lineCentrality=""
-    if [ $(($i1 % 4)) -eq 0 ]; then
+    if [ $table -eq 2 ] || [ $table -eq 6 ]; then
       lineCentrality="  - {name: CENTRALITY, value: '50 - 100%'}"
-    elif [ $(($i1 % 4)) -eq 1 ]; then
+    elif [ $table -eq 3 ] || [ $table -eq 7 ]; then
       lineCentrality="  - {name: CENTRALITY, value: '30 - 50%'}"
-    elif [ $(($i1 % 4)) -eq 2 ]; then
+    elif [ $table -eq 4 ] || [ $table -eq 8 ]; then
       lineCentrality="  - {name: CENTRALITY, value: '10 - 30%'}"
-    else
+    elif [ $table -eq 5 ] || [ $table -eq 9 ]; then
       lineCentrality="  - {name: CENTRALITY, value: '0 - 10%'}"
+    fi
+
+    lineReaction="  - {name: RE, value: P P --> GAMMA JET}"
+    if [ $table -ge 2 ] && [ $table -le 5 ]; then
+      lineReaction="  - {name: RE, value: PB PB --> GAMMA JET}"
+    elif [ $table -ge 6 ] && [ $table -le 9 ]; then
+      lineReaction="  - {name: RE, value: P P --> GAMMA JET PB PB --> GAMMA JET}"
     fi
 
     # add header for "independent variables"
@@ -65,10 +72,13 @@ do
     newLine="independent_variables:\n"${newLine1}"\n"$oldLine
     sed -i "0,/${oldLine}/ s/${oldLine}/${newLine}/" $outputFile # replace the 1st occurance in the file
 
-    lineReaction="  - {name: RE, value: P P --> GAMMA JET PB PB --> GAMMA JET}"
     # add header following 1st "dependent variables"
     oldLine=$oldLine2
-    newLine="dependent_variables:\n"${newLine2}"\n  qualifiers:\n"${lineReaction}"\n"${lineCentrality}"\n"$textKinematics"\n"$oldLine
+    if [ -z "$lineCentrality" ]; then
+      newLine="dependent_variables:\n"${newLine2}"\n  qualifiers:\n"${lineReaction}"\n"$textKinematics"\n"$oldLine
+    else
+      newLine="dependent_variables:\n"${newLine2}"\n  qualifiers:\n"${lineReaction}"\n"${lineCentrality}"\n"$textKinematics"\n"$oldLine
+    fi
     sed -i "0,/${oldLine}/! {0,/${oldLine}/ s;${oldLine};${newLine};}" $outputFile  # replace only the 2nd occurance in the file
 
     echo "modified : "$outputFile
