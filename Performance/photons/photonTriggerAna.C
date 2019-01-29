@@ -929,6 +929,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
 
                                 bool matchedL1Obj = false;
                                 double eScale = -1;
+                                double maxDR2 = 0.04;
 
                                 if (hasPseudoTriggerBranches) {
                                     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
@@ -948,7 +949,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                                 double etaSC = (*ggHi.phoSCEta)[iMax];
                                                 double phiSC = (*ggHi.phoSCPhi)[iMax];
 
-                                                if (getDR2(etaL1, phiL1, etaSC, phiSC) < 0.04) {
+                                                if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
 
                                                     matchedL1Obj = true;
                                                     eScale = ptL1 / pt;
@@ -969,7 +970,7 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                         double etaSC = (*ggHi.phoSCEta)[iMax];
                                         double phiSC = (*ggHi.phoSCPhi)[iMax];
 
-                                        if (getDR2(etaL1, phiL1, etaSC, phiSC) < 0.04) {
+                                        if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
 
                                             matchedL1Obj = true;
                                             eScale = ptL1 / pt;
