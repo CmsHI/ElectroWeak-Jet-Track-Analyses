@@ -33,6 +33,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/hltObjectTree.h"
+#include "../../TreeHeaders/l1ObjectTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
@@ -348,6 +349,11 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
     std::vector<TTree*> treeTrigObjs;
     std::vector<std::string> treeTrigObjPaths;
     TTree* treeEventTrig = 0;
+
+    TTree* treeL1obj = 0;
+    std::string treeL1objPath = "";
+    l1Object l1Obj;
+
     EventMatcher* emTrig = 0;
 
     L1Analysis::L1AnalysisEventDataFormat* L1Event = 0;
@@ -621,6 +627,24 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                 hltObjs[i].reset();
                 hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
             }
+
+            if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+                treeL1objPath = "l1object/L1UpgradeFlatTree";   // L1 objects are in the forest file
+
+                treeL1obj = 0;
+                treeL1obj = (TTree*)fileTmp->Get(treeL1objPath.c_str());
+
+                if (!treeL1obj) {
+                    std::cout << "tree is not found in the path : "<< treeL1objPath.c_str() <<". skipping the tree." << std::endl;
+                    continue;
+                }
+
+                treeL1obj->SetBranchStatus("*", 0);
+                treeL1obj->SetBranchStatus("nEGs", 1);
+                treeL1obj->SetBranchStatus("eg*", 1);
+
+                l1Obj.setupTreeForReading(treeL1obj);
+            }
         }
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
@@ -715,6 +739,9 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
 
             for (int i = 0; i < nTreeTrigObjPaths; ++i) {
                 treeTrigObjs[i]->GetEntry(entryTrig);
+            }
+            if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData && runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+                treeL1obj->GetEntry(entryTrig);
             }
 
             if (!passedDenomGlobal(triggerBits)) continue;
@@ -900,6 +927,9 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                             }
                             else if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
 
+                                bool matchedL1Obj = false;
+                                double eScale = -1;
+
                                 if (hasPseudoTriggerBranches) {
                                     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
 
@@ -919,32 +949,55 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
                                                 double phiSC = (*ggHi.phoSCPhi)[iMax];
 
                                                 if (getDR2(etaL1, phiL1, etaSC, phiSC) < 0.04) {
-                                                    tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                                                    tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                                                    tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                                                    tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                                                    tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
-                                                    tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
-                                                    tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
-                                                    tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
 
-                                                    tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
-
-                                                    double eScale = ptL1 / pt;
-                                                    tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
-                                                    tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
-
+                                                    matchedL1Obj = true;
+                                                    eScale = ptL1 / pt;
                                                     break;
                                                 }
                                             }
                                         }
                                     }
+                                }
+                                else {
+                                    for (int iObj = 0; iObj < (int)l1Obj.nEGs; ++iObj) {
+
+                                        double ptL1 = (*l1Obj.egEt)[iObj];
+                                        double etaL1 = (*l1Obj.egEta)[iObj];
+                                        double phiL1 = (*l1Obj.egPhi)[iObj];
+
+                                        // use position of photon Super Cluster when matching to L1 object
+                                        double etaSC = (*ggHi.phoSCEta)[iMax];
+                                        double phiSC = (*ggHi.phoSCPhi)[iMax];
+
+                                        if (getDR2(etaL1, phiL1, etaSC, phiSC) < 0.04) {
+
+                                            matchedL1Obj = true;
+                                            eScale = ptL1 / pt;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (matchedL1Obj) {
+                                    tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                    tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                    tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                    tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                    tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                    tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                    tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                    tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                                    tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+
+                                    tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
+                                    tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
+                                    tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
+                                    tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
+                                    tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
+                                    tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
+                                    tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
+                                    tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
                                 }
                             }
                         }
