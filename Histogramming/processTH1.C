@@ -29,7 +29,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     std::cout << "hOutPath = " << hOutPath.c_str() << std::endl;
     std::cout << "operation = " << operation.c_str() << std::endl;
 
-    operation = toLowerCase(operation);
+    operation = toUpperCase(operation);
 
     // TH1 objects
     TH1::SetDefaultSumw2();
@@ -47,7 +47,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         std::cout << "Exiting." << std::endl;
         return;
     }
-    if (operation == "unitnorm" && nInputHist > 1) {
+    if (operation == "UNITNORM" && nInputHist > 1) {
         std::cout << "There should be only one input histogram if operation is unit normalization." << std::endl;
         std::cout << "nInputHist = " << nInputHist << std::endl;
         std::cout << "Exiting." << std::endl;
@@ -83,31 +83,31 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     output->cd();
 
     TH1D* hOut = 0;
-    if (operation == "add") {
+    if (operation == "ADD") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Add(hInVec[i]);
         }
     }
-    else if (operation == "sub") {
+    else if (operation == "SUB") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Add(hInVec[i], -1);
         }
     }
-    else if (operation == "mul") {
+    else if (operation == "MUL") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Multiply(hInVec[i]);
         }
     }
-    else if (operation == "div") {
+    else if (operation == "DIV") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Divide(hInVec[i]);
         }
     }
-    else if (operation == "unitnorm") {
+    else if (operation == "UNITNORM") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         hOut->Scale(1.0 / hOut->Integral(), "width");
     }
