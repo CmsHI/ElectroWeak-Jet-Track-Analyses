@@ -21,6 +21,7 @@ std::string replaceAll(std::string str, std::string oldString, std::string newSt
 std::string replaceAll(std::string str, std::string oldString, std::string newString, bool matchCase);
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
+std::string toUpperCase(std::string str);
 std::string wildCard2Regex(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr = true, bool emptyVecIfNoDelimiter = true);
 bool startsWith(std::string str, std::string substr);
@@ -166,6 +167,12 @@ std::string trim(std::string str)
 std::string toLowerCase(std::string str)
 {
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+}
+
+std::string toUpperCase(std::string str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
     return str;
 }
 
