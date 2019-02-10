@@ -38,6 +38,8 @@ void setBinErrors(TH1* h, std::vector<double> binErrors);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
+void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis = true);
+void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis = true);
 std::vector<double> getBinContents(TH1* h);
 std::vector<double> getBinErrors(TH1* h);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
@@ -356,6 +358,82 @@ void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError)
         h->SetBinContent(i, h->GetBinContent(i)*scaleContent);
         h->SetBinError(i,   h->GetBinError(i)*scaleError);
     }
+}
+
+/*
+ * take slices of 2D histogram h2.
+ * set bins of h such that
+ * bin content is the mean of distribution along the corresponding slice
+ * bin error is error in the corresponding mean
+ */
+void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis)
+{
+    int nBins = h->GetNbinsX();
+    int nBins2D = (alongYaxis) ? h2->GetXaxis()->GetNbins() : h2->GetYaxis()->GetNbins();
+
+    if (nBins != nBins2D) {
+        return;
+    }
+
+    std::vector<double> binContents;
+    std::vector<double> binErrors;
+
+    for (int i = 0; i <= nBins2D+1; ++i) {
+
+        double tmpContent = -1;
+        double tmpErr = -1;
+        if (alongYaxis) {
+            tmpContent = h2->ProjectionY("", i, i)->GetMean();
+            tmpErr = h2->ProjectionY("", i, i)->GetMeanError();
+        }
+        else {
+            tmpContent = h2->ProjectionX("", i, i)->GetMean();
+            tmpErr = h2->ProjectionX("", i, i)->GetMeanError();
+        }
+
+        binContents.push_back(tmpContent);
+        binErrors.push_back(tmpErr);
+    }
+
+    setBinContentsErrors(h, binContents, binErrors);
+}
+
+/*
+ * take slices of 2D histogram h2.
+ * set bins of h such that
+ * bin content is the std deviation of distribution along the corresponding slice
+ * bin error is error in the corresponding std dev
+ */
+void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis)
+{
+    int nBins = h->GetNbinsX();
+    int nBins2D = (alongYaxis) ? h2->GetXaxis()->GetNbins() : h2->GetYaxis()->GetNbins();
+
+    if (nBins != nBins2D) {
+        return;
+    }
+
+    std::vector<double> binContents;
+    std::vector<double> binErrors;
+
+    for (int i = 0; i <= nBins2D+1; ++i) {
+
+        double tmpContent = -1;
+        double tmpErr = -1;
+        if (alongYaxis) {
+            tmpContent = h2->ProjectionY("", i, i)->GetStdDev();
+            tmpErr = h2->ProjectionY("", i, i)->GetStdDevError();
+        }
+        else {
+            tmpContent = h2->ProjectionX("", i, i)->GetStdDev();
+            tmpErr = h2->ProjectionX("", i, i)->GetStdDevError();
+        }
+
+        binContents.push_back(tmpContent);
+        binErrors.push_back(tmpErr);
+    }
+
+    setBinContentsErrors(h, binContents, binErrors);
 }
 
 /*
