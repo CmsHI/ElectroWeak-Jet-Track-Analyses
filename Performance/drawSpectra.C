@@ -1184,20 +1184,9 @@ int postLoop()
                 std::string projYTitle = (iProj == 0) ? ((TH2D*)h[i])->GetYaxis()->GetTitle() : ((TH2D*)h[i])->GetXaxis()->GetTitle();
                 hProj[2]->SetYTitle(Form("< %s >", projYTitle.c_str()));
                 hProj[3]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
-                for (int iProjBin = 1; iProjBin <= hProj[0]->GetNbinsX(); ++iProjBin) {
-                    if (iProj == 0) {
-                        hProj[2]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetMean());
-                        hProj[2]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetMeanError());
-                        hProj[3]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetStdDev());
-                        hProj[3]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionY("", iProjBin, iProjBin)->GetStdDevError());
-                    }
-                    else {
-                        hProj[2]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetMean());
-                        hProj[2]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetMeanError());
-                        hProj[3]->SetBinContent(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetStdDev());
-                        hProj[3]->SetBinError(iProjBin, ((TH2D*)h[i])->ProjectionX("", iProjBin, iProjBin)->GetStdDevError());
-                    }
-                }
+
+                setBinsFromTH2sliceMean(hProj[2], (TH2D*)h[i], (iProj == 0));
+                setBinsFromTH2sliceStdDev(hProj[3], (TH2D*)h[i], (iProj == 0));
 
                 hProj[2]->Write("",TObject::kOverwrite);
                 hProj[3]->Write("",TObject::kOverwrite);
