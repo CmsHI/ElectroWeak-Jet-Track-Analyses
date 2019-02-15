@@ -829,6 +829,11 @@ void photonTriggerAna(std::string configFile, std::string triggerFile, std::stri
 
                         double pt = (*ggHi.phoEt)[iMax];
                         double eta = (*ggHi.phoEta)[iMax];
+                        /*
+                         * uncomment if want to use SC eT instead of offline pt
+                        double sceta = (*ggHi.phoSCEta)[iMax];
+                        double pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
+                         */
                         double phi = (*ggHi.phoPhi)[iMax];
                         double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iMax];
                         double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iMax];
@@ -1895,6 +1900,10 @@ int  preLoop(TFile* input, bool makeNew)
         else if (iRecoPt == 0 && iDep == TRIGGERANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
+            /*
+             * uncomment if want to use SC eT instead of offline pt
+             xTitle = "SC E_{T} (GeV/c)";
+             */
             makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == TRIGGERANA::kCENT) {
