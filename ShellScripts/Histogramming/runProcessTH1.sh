@@ -16,9 +16,11 @@ $input1","$input1
 $input1","$input1
 $input1","$input1
 $input1","$input1
+$input1
 );
 
 outList=(
+"./Histogramming/processTH1.root"
 "./Histogramming/processTH1.root"
 "./Histogramming/processTH1.root"
 "./Histogramming/processTH1.root"
@@ -38,6 +40,7 @@ hInPathsList=(
 "h1D_xjzMean_pp,h1D_rjz_pp"
 "h1D_xjz_pp_cent030,h1D_xjz_pp"
 "h1D_xjzMean_pbpb_cent030,h1D_xjzMean_pp"
+"h1D_xjzMean_pp_cent030"
 );
 
 hOutPathList=(
@@ -49,6 +52,7 @@ hOutPathList=(
 "h1D_xjzMean_rjz_pp_MULTIPLIED"
 "h1D_xjz_pp_cent030_pp_DIVIDED"
 "h1D_xjzMean_pbpb_cent030_pp_DIVIDED"
+"h1D_xjzMean_pp_cent030_SCALED_0p135"
 );
 
 writeMode="UPDATE"
@@ -62,6 +66,7 @@ operationList=(
 "mul"
 "div"
 "div"
+"scale:0.135"
 );
 
 

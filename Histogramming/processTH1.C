@@ -40,6 +40,12 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     std::vector<std::string> hInputPaths = split(hInPaths, ",", false, false);
     int nInputHist = hInputPaths.size();
 
+    std::vector<std::string> strParams;
+    if (operation.find("SCALE") != std::string::npos) {
+        strParams = split(operation, ":", false, false);
+        operation = "SCALE";
+    }
+
     if (nInputFiles != 1 && nInputHist != 1 && nInputFiles != nInputHist) {
         std::cout << "Mismatch in number of input files and number of input histograms." << std::endl;
         std::cout << "nInputFiles = " << nInputFiles << std::endl;
@@ -47,11 +53,13 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         std::cout << "Exiting." << std::endl;
         return;
     }
-    if (operation == "UNITNORM" && nInputHist > 1) {
-        std::cout << "There should be only one input histogram if operation is unit normalization." << std::endl;
-        std::cout << "nInputHist = " << nInputHist << std::endl;
-        std::cout << "Exiting." << std::endl;
-        return;
+    if (nInputHist > 1) {
+        if (operation == "SCALE" || operation == "UNITNORM") {
+            std::cout << "There should be only one input histogram if operation is " << operation.c_str() << "." << std::endl;
+            std::cout << "nInputHist = " << nInputHist << std::endl;
+            std::cout << "Exiting." << std::endl;
+            return;
+        }
     }
 
     std::cout << "nInputFiles = " << nInputFiles << std::endl;
@@ -106,6 +114,11 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Divide(hInVec[i]);
         }
+    }
+    else if (operation == "SCALE") {
+        hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
+        double paramTmp = std::atof(strParams[1].c_str());
+        hOut->Scale(paramTmp);
     }
     else if (operation == "UNITNORM") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
