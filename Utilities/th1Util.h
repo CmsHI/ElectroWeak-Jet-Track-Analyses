@@ -6,6 +6,7 @@
 
 #include <TH1.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TF1.h>
 #include <TGraph.h>
 #include <TGraphAsymmErrors.h>
@@ -383,12 +384,12 @@ void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis)
         double tmpContent = -1;
         double tmpErr = -1;
         if (alongYaxis) {
-            tmpContent = h2->ProjectionY("", i, i)->GetMean();
-            tmpErr = h2->ProjectionY("", i, i)->GetMeanError();
+            tmpContent = ((TH2D*)h2)->ProjectionY("", i, i)->GetMean();
+            tmpErr = ((TH2D*)h2)->ProjectionY("", i, i)->GetMeanError();
         }
         else {
-            tmpContent = h2->ProjectionX("", i, i)->GetMean();
-            tmpErr = h2->ProjectionX("", i, i)->GetMeanError();
+            tmpContent = ((TH2D*)h2)->ProjectionX("", i, i)->GetMean();
+            tmpErr = ((TH2D*)h2)->ProjectionX("", i, i)->GetMeanError();
         }
 
         binContents.push_back(tmpContent);
@@ -421,12 +422,12 @@ void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis)
         double tmpContent = -1;
         double tmpErr = -1;
         if (alongYaxis) {
-            tmpContent = h2->ProjectionY("", i, i)->GetStdDev();
-            tmpErr = h2->ProjectionY("", i, i)->GetStdDevError();
+            tmpContent = ((TH2D*)h2)->ProjectionY("", i, i)->GetStdDev();
+            tmpErr = ((TH2D*)h2)->ProjectionY("", i, i)->GetStdDevError();
         }
         else {
-            tmpContent = h2->ProjectionX("", i, i)->GetStdDev();
-            tmpErr = h2->ProjectionX("", i, i)->GetStdDevError();
+            tmpContent = ((TH2D*)h2)->ProjectionX("", i, i)->GetStdDev();
+            tmpErr = ((TH2D*)h2)->ProjectionX("", i, i)->GetStdDevError();
         }
 
         binContents.push_back(tmpContent);
