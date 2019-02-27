@@ -134,6 +134,13 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::cout << "ymax set to " << ymax << std::endl;
     }
 
+    int binToMatch = (ArgumentParser::ParseOptionInputSingle("--binToMatch", argOptions).size() > 0) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--binToMatch", argOptions).c_str()) : -1;
+
+    if (binToMatch > 0) {
+        std::cout << "binToMatch = " << binToMatch << std::endl;
+    }
+
     // horizontal/vertical lines
     std::string linesHorizontalArg = ArgumentParser::ParseOptionInputSingle("--hlines", argOptions);
     std::vector<float> linesHorizontal = ConfigurationParser::ParseListWithoutBracketFloat(linesHorizontalArg, ",");
@@ -301,6 +308,12 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
 
         std::string legendOption = "lpf";
 
+        if (binToMatch > 0) {
+            for (int i = 0; i < nInputFiles; ++i) {
+                vecTH1[i][j]->Scale(vecTH1[0][j]->GetBinContent(binToMatch) / vecTH1[i][j]->GetBinContent(binToMatch));
+            }
+        }
+
         // estimate a common min/max for TH1 y-axis
         // if "ymin" / "ymax" were set already, then estimated values will be overwritten
         std::vector<TH1*> tmpVecTH1;
@@ -426,7 +439,7 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         std::string legendPosition = "NW";
         double legendOffsetX = 0.04;
         double legendOffsetY = 0.04;
-        setLegendPosition(leg, legendPosition, (TPad*)c, height, width, legendOffsetX, legendOffsetY, true);
+        setLegendPosition(leg, legendPosition, (TPad*)c, height, width, legendOffsetX, legendOffsetY, false);
         int nLegEntriesTmp = leg->GetNRows();
         if (nLegEntriesTmp > 0)  leg->Draw();
 
