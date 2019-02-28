@@ -56,6 +56,10 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
     }
     gSystem->mkdir(outputDir.c_str(), true);
 
+    std::string title = ArgumentParser::ParseOptionInputSingle("--title", argOptions).c_str();
+    if (title.size() > 0) {
+        std::cout << "title set to " << title.c_str() << std::endl;
+    }
 
     // labels for each file, will be used as legend entries
     std::string labelsStr = ArgumentParser::ParseOptionInputSingle("--labels", argOptions);
@@ -341,6 +345,15 @@ void plotSameAll(std::string inputFiles, std::string outputFile, std::string out
         for (int i = 0; i < nInputFiles; ++i) {
 
             vecTH1[i][j]->SetStats(false);
+
+            if (title.size() > 0) {
+                if (title == "NULL") {
+                    vecTH1[i][j]->SetTitle("");
+                }
+                else {
+                    vecTH1[i][j]->SetTitle(title.c_str());
+                }
+            }
 
             int color = GRAPHICS::colors[i%13];
             if (nColors == 1) color = GraphicsConfigurationParser::ParseColor(colors.at(0));
