@@ -699,12 +699,13 @@ bool recoAnalyzer::insideRange(std::vector<double> vars)
     if (recoPt == -1)  recoPt = ranges[RECOANA::rRECOPT][0];
     if (cent == -1)  cent = ranges[RECOANA::rCENT][0];
 
-    if (recoObj == RECOANA::OBJS::kPHOTON) {
+    if (recoObj == RECOANA::OBJS::kPHOTON || recoObj == RECOANA::OBJS::kELECTRON) {
         double sumIso = vars[RECOANA::rSUMISO];
         double sieie = vars[RECOANA::rSIEIE];
         double r9 = vars[RECOANA::rR9];
 
-        if (sumIso == -999)  sumIso = ranges[RECOANA::rSUMISO][0];
+        if (sumIso == -999 || recoObj == RECOANA::OBJS::kELECTRON)
+            sumIso = ranges[RECOANA::rSUMISO][0];
         if (sieie == -1)  sieie = ranges[RECOANA::rSIEIE][0];
         if (r9 == -1)  r9 = ranges[RECOANA::rR9][0];
 
@@ -788,7 +789,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
     }
     case RECOANA::rSIEIE : {
 
-        if (recoObj == RECOANA::kPHOTON) {
+        if (recoObj == RECOANA::kPHOTON || recoObj == RECOANA::kELECTRON) {
 
             if (ranges[RECOANA::rSIEIE][0] > 0 && ranges[RECOANA::rSIEIE][1] <= -1)
                 res  = Form("#sigma_{#eta#eta}>%.2f", ranges[RECOANA::rSIEIE][0]);
@@ -801,7 +802,7 @@ std::string recoAnalyzer::getRangeText(int iRange) {
     }
     case RECOANA::rR9 : {
 
-        if (recoObj == RECOANA::kPHOTON) {
+        if (recoObj == RECOANA::kPHOTON || recoObj == RECOANA::kELECTRON) {
 
             if (ranges[RECOANA::rR9][0] > 0 && ranges[RECOANA::rR9][1] <= -1)
                 res  = Form("R9>%.2f", ranges[RECOANA::rR9][0]);
