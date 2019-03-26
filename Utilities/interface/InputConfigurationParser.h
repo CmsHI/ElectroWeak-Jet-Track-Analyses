@@ -460,6 +460,7 @@ class InputConfigurationParser : public ConfigurationParser {
     static std::vector<std::string> ParseFileArgument(std::string fileArgument);
     static void copyConfiguration(InputConfiguration& config, InputConfiguration configCopy);
     static void replaceKeyWords(InputConfiguration& config, std::string dataFile);
+    static std::vector<std::string> parseKeyWords(std::string dataFile);
     static InputConfiguration Parse(std::string inFile);
 };
 
@@ -627,14 +628,7 @@ void InputConfigurationParser::copyConfiguration(InputConfiguration& config, Inp
 
 void InputConfigurationParser::replaceKeyWords(InputConfiguration& config, std::string dataFile)
 {
-    std::vector<std::string> dataFiles = InputConfigurationParser::ParseFiles(dataFile);
-    if (dataFiles.size() == 0) return;
-
-    // use the information from first file only
-    std::vector<std::string> argsStr = {dataFiles[0]};
-    std::vector<int> argsInt = {HiForestInfoController::getCollisionType(dataFiles[0])};
-
-    std::vector<std::string> parsedKeyWords = ConfigurationParser::ParseKeyWords(argsStr, argsInt);
+    std::vector<std::string> parsedKeyWords = InputConfigurationParser::parseKeyWords(dataFile);
 
     for (int iKey = 0; iKey < CONFIGPARSER::kN_KEYWORDS; ++iKey)
     {
@@ -660,6 +654,18 @@ void InputConfigurationParser::replaceKeyWords(InputConfiguration& config, std::
             }
         }
     }
+}
+
+std::vector<std::string> InputConfigurationParser::parseKeyWords(std::string dataFile)
+{
+    std::vector<std::string> dataFiles = InputConfigurationParser::ParseFiles(dataFile);
+    if (dataFiles.size() == 0) return {};
+
+    // use the information from first file only
+    std::vector<std::string> argsStr = {dataFiles[0]};
+    std::vector<int> argsInt = {HiForestInfoController::getCollisionType(dataFiles[0])};
+
+    return ConfigurationParser::ParseKeyWords(argsStr, argsInt);
 }
 
 InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
