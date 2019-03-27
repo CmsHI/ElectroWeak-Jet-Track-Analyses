@@ -27,6 +27,7 @@ const std::string plus = "$PLUS$";       // operator for multiple lists
 const std::string importStatement = "import.";
 const std::string importInputStatement = "import.input";
 const std::string importCutStatement = "import.cut";
+const std::string importConfigStatement = "import.config";
 const std::string varDefinition = "var.";
 const std::string varDefinitionString = "var.string";
 
@@ -119,6 +120,11 @@ struct TH1Scaling {
 class ConfigurationParser {
 
 public :
+public:
+    ConfigurationParser() {
+    };
+    ~ConfigurationParser() {};
+
     static bool isList(std::string str, std::string bracketLeft = "{", std::string bracketRight = "}");
     static bool isMultipleList(std::string str);
     static bool isComment(std::string line);
@@ -126,6 +132,7 @@ public :
     static bool isImportStatement(std::string line);
     static bool isImportInputStatement(std::string line);
     static bool isImportCutStatement(std::string line);
+    static bool isImportConfigStatement(std::string line);
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
     static std::string getMultiListOperator(std::string strList);
@@ -164,6 +171,7 @@ public :
     static unsigned long long ParseEventNumber(std::string strRunLumiEvent);
     static std::string ParseSampleName(std::string fileName);
     static std::vector<std::string> ParseKeyWords(std::vector<std::string> argsStr, std::vector<int> argsInt);
+    static std::string replaceKeyWords(std::string value, std::vector<std::string> parsedKW);
     static std::vector<std::vector<float>> ParseListMultiplet(std::string strList, int n);
     static std::vector<std::vector<float>> ParseListTriplet(std::string strList);
     static std::vector<std::vector<float>> ParseListTH1D_Bins(std::string strList);
@@ -179,6 +187,21 @@ public :
     static std::vector<std::string> ParseListTF1Formula(std::string strList);
     static std::vector<std::vector<double>> ParseListTF1Range(std::string strList);
 
+    std::string replaceKeyWords(std::string value);
+    int openConfigFile(std::string fileName);
+    std::string ReadConfigValue(std::string configName);
+    int ReadConfigValueInteger(std::string configName);
+    float ReadConfigValueFloat(std::string configName);
+    std::string ReadConfigValue(std::ifstream& fin, std::string configName);
+    std::string ReadConfigValue(std::string fileName, std::string configName);
+    int ReadConfigValueInteger(std::string fileName, std::string configName);
+    float ReadConfigValueFloat(std::string fileName, std::string configName);
+
+    std::ifstream ifConfFile;
+
+    std::map<std::string, std::string> mapVarStr;    // map of variables of type string
+
+    std::vector<std::string> parsedKeyWords;
 };
 
 /*
@@ -235,6 +258,12 @@ bool ConfigurationParser::isImportCutStatement(std::string line)
 {
     std::string tmp = trim(line);
     return (tmp.find(CONFIGPARSER::importCutStatement.c_str()) == 0);
+}
+
+bool ConfigurationParser::isImportConfigStatement(std::string line)
+{
+    std::string tmp = trim(line);
+    return (tmp.find(CONFIGPARSER::importConfigStatement.c_str()) == 0);
 }
 
 bool ConfigurationParser::isVarDefinition(std::string line)
@@ -1102,6 +1131,22 @@ std::vector<std::string> ConfigurationParser::ParseKeyWords(std::vector<std::str
     return res;
 }
 
+std::string ConfigurationParser::replaceKeyWords(std::string value, std::vector<std::string> parsedKW)
+{
+    int nKW = parsedKW.size();
+
+    if (nKW == CONFIGPARSER::kN_KEYWORDS) {
+        for (int i = 0; i < nKW; ++i)
+        {
+            if (parsedKW[i].size() == 0)  continue;
+
+            value = replaceAll(value, CONFIGPARSER::KW_LABELS[i], parsedKW[i]);
+        }
+    }
+
+    return value;
+}
+
 /*
  * parse list where each item is a sequence of "n" many numbers
  */
@@ -1439,6 +1484,110 @@ std::vector<std::vector<double>> ConfigurationParser::ParseListTF1Range(std::str
     }
 
     return list;
+}
+
+std::string ConfigurationParser::replaceKeyWords(std::string value)
+{
+    return replaceKeyWords(value, parsedKeyWords);
+}
+
+int ConfigurationParser::openConfigFile(std::string fileName)
+{
+    if (ifConfFile.is_open()) {
+        ifConfFile.close();
+    }
+
+    ifConfFile.open(fileName.c_str(), std::ifstream::in);
+
+    if (ifConfFile.good()) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+}
+
+std::string ConfigurationParser::ReadConfigValue(std::string configName)
+{
+    std::string res = ReadConfigValue(ifConfFile, configName);
+    res = replaceKeyWords(res);
+    return res;
+}
+
+int ConfigurationParser::ReadConfigValueInteger(std::string configName)
+{
+    return std::atoi(ReadConfigValue(configName).c_str());
+}
+
+float ConfigurationParser::ReadConfigValueFloat(std::string configName)
+{
+    return std::atof(ReadConfigValue(configName).c_str());
+}
+
+std::string ConfigurationParser::ReadConfigValue(std::ifstream& fin, std::string configName)
+{
+    std::string endSignal = "#CONFIG-END#";
+
+    std::string res = "";
+
+    if ((fin.rdstate() & std::ifstream::failbit) != 0) {
+        std::cout << "I/O Error opening file." << std::endl;
+        return res;
+    }
+
+    // fstream does not have to at the beginnig of file, can EOF, roll back to beginning
+    fin.clear();
+    fin.seekg(0, std::ifstream::beg);
+
+    std::string configNameTmp = Form("%s ", configName.c_str());
+
+    std::string line;
+    while (getline(fin, line)) {
+
+        line = trim(line);
+        if (line.find(endSignal) != std::string::npos) break;
+        if (ConfigurationParser::isComment(line)) continue;  //skip all lines starting with comment sign #
+        if (line.find("=") == std::string::npos) continue; //skip all lines without an =
+        //if (line.find(".") == std::string::npos) continue; //skip all lines without a dot
+        size_t pos = line.find("=") + 1;
+        size_t posLast = line.find(CONFIGPARSER::comment.c_str());    // allow inline comment signs with #
+        std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
+        value = ConfigurationParser::substituteVarString(value, mapVarStr);
+        value = ConfigurationParser::substituteEnv(value);
+
+        line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
+        bool isCommand = ConfigurationParser::isCommand(line);
+        bool configFound = (line.find(configNameTmp.c_str()) == 0);
+        if (isCommand) {
+            if (ConfigurationParser::isVarDefinitionString(line)) {
+                mapVarStr.insert(ConfigurationParser::ParseVarDefinitionString(line, value));
+            } else if (ConfigurationParser::isImportConfigStatement(line)) {
+
+                res = ReadConfigValue(value, configName);
+            }
+        }
+        else if (configFound) {
+            res = value;
+        }
+    }
+
+    return res;
+}
+
+std::string ConfigurationParser::ReadConfigValue(std::string fileName, std::string configName)
+{
+    std::ifstream fin(fileName);
+    return ReadConfigValue(fin, configName);
+}
+
+int ConfigurationParser::ReadConfigValueInteger(std::string fileName, std::string configName)
+{
+    return std::atoi(ReadConfigValue(fileName, configName).c_str());
+}
+
+float ConfigurationParser::ReadConfigValueFloat(std::string fileName, std::string configName)
+{
+    return std::atof(ReadConfigValue(fileName, configName).c_str());
 }
 
 #endif
