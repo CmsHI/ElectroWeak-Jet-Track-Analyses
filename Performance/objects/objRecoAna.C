@@ -39,7 +39,8 @@
 #include "../../TreeHeaders/hiGenParticleTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
-#include "../../Utilities/interface/CutConfigurationParser.h"
+#include "../../Utilities/interface/ConfigurationParser.h"
+#include "../../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/eventUtil.h"
@@ -1102,85 +1103,73 @@ int main(int argc, char** argv)
 
 int readConfiguration(std::string configFile, std::string inputFile)
 {
-    InputConfiguration configInput = InputConfigurationParser::Parse(configFile.c_str());
-    CutConfiguration configCuts = CutConfigurationParser::Parse(configFile.c_str());
+    ConfigurationParser confParser;
+    confParser.openConfigFile(configFile);
 
-    if (!configInput.isValid) {
-        std::cout << "Input configuration is invalid." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return -1;
-    }
-    if (!configCuts.isValid) {
-        std::cout << "Cut configuration is invalid." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return -1;
-    }
+    confParser.parsedKeyWords = InputConfigurationParser::parseKeyWords(inputFile);
 
-    InputConfigurationParser::replaceKeyWords(configInput, inputFile.c_str());
-
-    // input configuration
-    mode = configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_mode];
+    mode = confParser.ReadConfigValue("mode");
     recoObj = parseRecoObj(mode);
     std::string modeTmp = mode.substr(1);
     runMode = parseMode(modeTmp);
 
     // input for TTree
-    treePath  = configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_treePath];
-    collisionType = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_collisionType];
+    treePath = confParser.ReadConfigValue("treePath");
+    collisionType = confParser.ReadConfigValueInteger("collisionType");
 
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
     // this bin list will be used for histograms where x-axis is eta.
-    TH1D_Axis_List = ConfigurationParser::ParseListTH1D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1D_Bins_List]);
+    TH1D_Axis_List = ConfigurationParser::ParseListTH1D_Axis(confParser.ReadConfigValue("TH1D_Bins_List"));
     // nBinsx, xLow, xUp, nBinsy, yLow, yUp for a TH2D histogram
     // this bin list will be used for gen pt - reco pt correlation histogram.
-    TH2D_Axis_List = ConfigurationParser::ParseListTH2D_Axis(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH2D_Bins_List]);
+    TH2D_Axis_List = ConfigurationParser::ParseListTH2D_Axis(confParser.ReadConfigValue("TH2D_Bins_List"));
 
-    title = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_TH1_title]);
-    titleOffsetX = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetX];
-    titleOffsetY = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_titleOffsetY];
+    title = confParser.ReadConfigValue("TH1_title");
+    titleOffsetX = confParser.ReadConfigValueFloat("titleOffsetX");
+    titleOffsetY = confParser.ReadConfigValueFloat("titleOffsetY");
 
     // min. y-axis value of energy Scale histogram default : 0.8
-    yMin = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_TH1_yMin]);
+    yMin = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("TH1_yMin"));
     // max. y-axis value of energy Scale histogram default : 1.5
-    yMax = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_TH1_yMax]);
+    yMax = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("TH1_yMax"));
 
     // input for TH1
-    markerSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_markerSize]);
-    markerStyles = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_markerStyle]);
-    colors = ConfigurationParser::ParseList(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_color]);
+    markerSizes = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("markerSize"));
+    markerStyles = ConfigurationParser::ParseList(confParser.ReadConfigValue("markerStyle"));
+    colors = ConfigurationParser::ParseList(confParser.ReadConfigValue("color"));
 
     // input for TLegend
-    tmpLegend = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendEntryLabel]);
+    tmpLegend = ConfigurationParser::ParseLatex(confParser.ReadConfigValue("legendEntryLabel"));
     legendEntries = ConfigurationParser::ParseListOfList(tmpLegend);
     legendEntryLabels = ConfigurationParser::getVecString(legendEntries);
     legendEntryPadIndices = ConfigurationParser::getVecIndex(legendEntries);
-    legendPositions = ConfigurationParser::ParseListOrString(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_legendPosition]);
-    legendOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_legendOffsetX]);
-    legendOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_legendOffsetY]);
-    legendBorderSizes = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_legendBorderSize]);
-    legendWidths = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_legendWidth]);
-    legendHeights = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_legendHeight]);
-    legendTextSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_legendTextSize]);
+    legendPositions = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("legendPosition"));
+    legendOffsetsX = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("legendOffsetX"));
+    legendOffsetsY = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("legendOffsetY"));
+    legendBorderSizes = ConfigurationParser::ParseListOrInteger(confParser.ReadConfigValue("legendBorderSize"));
+    legendWidths = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("legendWidth"));
+    legendHeights = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("legendHeight"));
+    legendTextSizes = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("legendTextSizes"));
 
     // input for text objects
-    std::string tmpText = ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_text]);
+    std::string tmpText = ConfigurationParser::ParseLatex(confParser.ReadConfigValue("text"));
     textEntries = ConfigurationParser::ParseListOfList(tmpText);
     textLines = ConfigurationParser::getVecString(textEntries);
     textLinePadIndices = ConfigurationParser::getVecIndex(textEntries);
-    textPositions = ConfigurationParser::ParseListOrString(configInput.proc[INPUT::kPERFORMANCE].s[INPUT::k_textPosition]);
-    textFonts = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPERFORMANCE].str_i[INPUT::k_textFont]);
-    textSizes = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textSize]);
-    textOffsetsX = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textOffsetX]);
-    textOffsetsY = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPERFORMANCE].str_f[INPUT::k_textOffsetY]);
+    textPositions = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("textPosition"));
+    textFonts = ConfigurationParser::ParseListOrInteger(confParser.ReadConfigValue("textFont"));
+    textSizes = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("textSize"));
+    textOffsetsX = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("textOffsetX"));
+    textOffsetsY = ConfigurationParser::ParseListOrFloat(confParser.ReadConfigValue("textOffsetY"));
 
     // input for TCanvas
-    windowWidth = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowWidth];
-    windowHeight = configInput.proc[INPUT::kPERFORMANCE].i[INPUT::k_windowHeight];
-    leftMargin   = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_leftMargin];
-    rightMargin  = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_rightMargin];
-    bottomMargin = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_bottomMargin];
-    topMargin    = configInput.proc[INPUT::kPERFORMANCE].f[INPUT::k_topMargin];
+    windowWidth = confParser.ReadConfigValueInteger("windowWidth");
+    windowHeight = confParser.ReadConfigValueInteger("windowHeight");
+    leftMargin   = confParser.ReadConfigValueFloat("leftMargin");
+    rightMargin  = confParser.ReadConfigValueFloat("rightMargin");
+    bottomMargin = confParser.ReadConfigValueFloat("bottomMargin");
+    topMargin    = confParser.ReadConfigValueFloat("topMargin");
 
     // set default values
     if (treePath.size() == 0) treePath = "ggHiNtuplizer/EventTree";
@@ -1252,49 +1241,43 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // cut configuration
     // for now cut configuration for any object are parsed through kPHOTON
-    bins_eta[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_gt]);
-    bins_eta[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_eta_lt]);
-    bins_genPt[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_gt]);
-    bins_genPt[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_mcPt_lt]);
-    bins_recoPt[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_gt]);
-    bins_recoPt[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_pt_lt]);
-    bins_cent[0] = ConfigurationParser::ParseListInteger(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_cent_gt]);
-    bins_cent[1] = ConfigurationParser::ParseListInteger(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_bins_cent_lt]);
-    bins_sumIso[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sumIso_gt]);
-    bins_sumIso[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sumIso_lt]);
-    bins_sieie[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sieie_gt]);
-    bins_sieie[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_sieie_lt]);
-    bins_r9[0] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_r9_gt]);
-    bins_r9[1] = ConfigurationParser::ParseListFloat(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].s[CUTS::PHO::k_bins_r9_lt]);
+
+    //confParser.ReadConfigValue("textOffsetY"));
+
+    bins_eta[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_eta_gt"));
+    bins_eta[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_eta_lt"));
+
+    bins_genPt[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_mcPt_gt"));
+    bins_genPt[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_mcPt_lt"));
+
+    bins_recoPt[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_pt_gt"));
+    bins_recoPt[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_pt_lt"));
+
+    bins_cent[0] = ConfigurationParser::ParseListInteger(confParser.ReadConfigValue("bins_cent_gt"));
+    bins_cent[1] = ConfigurationParser::ParseListInteger(confParser.ReadConfigValue("bins_cent_lt"));
+
+    bins_sumIso[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sumIso_gt"));
+    bins_sumIso[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sumIso_lt"));
+
+    bins_sieie[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sieie_gt"));
+    bins_sieie[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sieie_lt"));
+
+    bins_r9[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_r9_gt"));
+    bins_r9[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_r9_lt"));
 
     // event cuts/weights
-    doEventWeight = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].i[CUTS::EVT::k_doEventWeight];
-    pthatWeights = ConfigurationParser::ParseListTriplet(
-            configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kEVENT].s[CUTS::EVT::k_eventWeight]);
+    doEventWeight = confParser.ReadConfigValueInteger("doEventWeight");
+    pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("eventWeight"));
 
     nPthatWeights = pthatWeights[0].size();
 
     // RECO photon cuts
-    cut_phoHoverE = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_phoHoverE];
+    cut_phoHoverE = confParser.ReadConfigValueFloat("phoHoverE");
 
     // GEN photon cuts
-    cut_mcCalIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcCalIsoDR04];
-    cut_mcTrkIsoDR04 = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcTrkIsoDR04];
-    cut_mcSumIso = configCuts.proc[CUTS::kPERFORMANCE].obj[CUTS::kPHOTON].f[CUTS::PHO::k_mcSumIso];
+    cut_mcCalIsoDR04 = confParser.ReadConfigValueFloat("mcCalIsoDR04");
+    cut_mcTrkIsoDR04 = confParser.ReadConfigValueFloat("mcTrkIsoDR04");
+    cut_mcSumIso = confParser.ReadConfigValueFloat("mcSumIso");
 
     // set default values
     if (bins_eta[0].size() == 0) {
@@ -1346,7 +1329,6 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nBins_r9 = bins_r9[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
     nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie * nBins_r9;
-
     return 0;
 }
 
