@@ -54,12 +54,9 @@
 /// configuration variables
 // input configuration
 /*
-* Each character in "mode" is a flag.
-* 1st character : reco object
 * mode is a string of characters.
 * Each character in "mode" is a flag.
-* First character is reco object. "0" is photon, "1" is electron
-* remaining characters are modes for EnergyScale, Correction, MatchEff, FakeRate, FakeRateComposition
+* Characters are modes for EnergyScale, Correction, MatchEff, FakeRate, FakeRateComposition
 * If "0", then do not run the corresponding mode
 */
 std::string mode;
@@ -247,7 +244,7 @@ std::vector<recoAnalyzer> rAna[RECOANA::kN_DEPS];
 
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
-int parseRecoObj(std::string mode);
+int parseRecoObj(std::string recoObjStr);
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
@@ -1108,10 +1105,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     confParser.parsedKeyWords = InputConfigurationParser::parseKeyWords(inputFile);
 
+    recoObj = parseRecoObj(confParser.ReadConfigValue("recoObj"));
     mode = confParser.ReadConfigValue("mode");
-    recoObj = parseRecoObj(mode);
-    std::string modeTmp = mode.substr(1);
-    runMode = parseMode(modeTmp);
+    runMode = parseMode(mode);
 
     // input for TTree
     treePath = confParser.ReadConfigValue("treePath");
@@ -1340,8 +1336,12 @@ void printConfiguration()
 {
     // verbose about input configuration
     std::cout<<"Input Configuration :"<<std::endl;
-    std::cout << "mode = " << mode.c_str() << std::endl;
     std::cout << "reco object = " << recoObjsStr[recoObj].c_str() << std::endl;
+    if (recoObj < 0 || recoObj >= RECOOBJS::kN_RECOOBJS) {
+        std::cout << "ERROR : no valid reco object given" << std::endl;
+        std::cout << "recoObj (index for reco object) = " << recoObj << std::endl;
+    }
+    std::cout << "mode = " << mode.c_str() << std::endl;
     for (int i = 0; i < (int)runMode.size(); ++i) {
         std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
     }
@@ -1503,16 +1503,20 @@ void printConfiguration()
     std::cout << "topMargin    = " << topMargin << std::endl;
 }
 
-/*
- * reco object is given by the first character in "mode"
- */
-int parseRecoObj(std::string mode)
+int parseRecoObj(std::string recoObjStr)
 {
-    std::istringstream sin(mode.substr(0, 1));
-    int in;
-    sin >> in;
+    recoObjStr = trim(recoObjStr);
+    recoObjStr = toLowerCase(recoObjStr);
 
-    return in;
+    if (recoObjStr == "pho" || recoObjStr == "photon" || recoObjStr == "0") {
+        return RECOOBJS::kPhoton;
+    }
+    else if (recoObjStr == "ele" || recoObjStr == "electron" || recoObjStr == "1") {
+        return RECOOBJS::kElectron;
+    }
+    else {
+        return -1;
+    }
 }
 
 std::vector<int> parseMode(std::string mode)
