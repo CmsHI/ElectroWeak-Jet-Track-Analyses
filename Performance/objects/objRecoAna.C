@@ -170,7 +170,7 @@ int doEventWeight;
 std::vector<std::vector<float>> pthatWeights;
 
 // RECO object cuts
-float cut_phoHoverE;
+float cut_hovere;
 
 // GEN object cuts
 float cut_mcCalIsoDR04;
@@ -521,8 +521,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         // selections on RECO particle
                         if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                        if (cut_phoHoverE != 0) {
-                            if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                        if (cut_hovere != 0) {
+                            if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
                         double eta = (*ggHi.phoEta)[i];
@@ -567,8 +567,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         // selections on RECO particle
                         if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                        if (cut_phoHoverE != 0) {
-                            if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                        if (cut_hovere != 0) {
+                            if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];
@@ -662,8 +662,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] > 0.002 && (*ggHi.pho_swissCrx)[j] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[j]) < 3)) continue;
 
-                            if (cut_phoHoverE != 0) {
-                                if (!((*ggHi.phoHoverE)[j] < cut_phoHoverE))   continue;
+                            if (cut_hovere != 0) {
+                                if (!((*ggHi.phoHoverE)[j] < cut_hovere))   continue;
                             }
 
                             if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
@@ -711,8 +711,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         // selections on RECO particle
                         if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                        if (cut_phoHoverE != 0) {
-                            if (!((*ggHi.phoHoverE)[i] < cut_phoHoverE))   continue;
+                        if (cut_hovere != 0) {
+                            if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];
@@ -1272,7 +1272,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nPthatWeights = pthatWeights[0].size();
 
     // RECO photon cuts
-    cut_phoHoverE = confParser.ReadConfigValueFloat("phoHoverE");
+    cut_hovere = confParser.ReadConfigValueFloat("hovere");
 
     // GEN photon cuts
     cut_mcCalIsoDR04 = confParser.ReadConfigValueFloat("mcCalIsoDR04");
@@ -1389,7 +1389,7 @@ void printConfiguration()
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
 
-    std::cout<<"cut_phoHoverE = "<< cut_phoHoverE <<std::endl;
+    std::cout<<"cut_hovere = "<< cut_hovere <<std::endl;
 
     std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
     std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
