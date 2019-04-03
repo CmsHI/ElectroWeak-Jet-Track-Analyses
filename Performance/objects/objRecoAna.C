@@ -1235,11 +1235,6 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nTextOffsetsX = textOffsetsX.size();
     nTextOffsetsY = textOffsetsY.size();
 
-    // cut configuration
-    // for now cut configuration for any object are parsed through kPHOTON
-
-    //confParser.ReadConfigValue("textOffsetY"));
-
     bins_eta[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_eta_gt"));
     bins_eta[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_eta_lt"));
 
@@ -1334,8 +1329,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
  */
 void printConfiguration()
 {
-    // verbose about input configuration
-    std::cout<<"Input Configuration :"<<std::endl;
+    // verbose configuration
     std::cout << "reco object = " << recoObjsStr[recoObj].c_str() << std::endl;
     if (recoObj < 0 || recoObj >= RECOOBJS::kN_RECOOBJS) {
         std::cout << "ERROR : no valid reco object given" << std::endl;
@@ -1349,8 +1343,6 @@ void printConfiguration()
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
 
-    // verbose about cut configuration
-    std::cout<<"Cut Configuration :"<<std::endl;
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
     for (int i=0; i<nBins_eta; ++i) {
         std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
