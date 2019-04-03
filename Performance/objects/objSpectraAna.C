@@ -55,7 +55,6 @@
 
 ///// global variables
 /// configuration variables
-// input configuration
 /*
 * mode is a string of bits.
 * If bit j = 0, then do not run the corresponding mode
@@ -65,6 +64,9 @@ std::string mode;
 // input for TTree
 std::string treePath;
 int collisionType;
+
+std::vector<std::pair<std::string, int>> runRangesTmp;
+std::vector<std::string> runRanges;
 
 // input for TH1
 // nBins, xLow, xUp for the TH1D histogram
@@ -116,6 +118,7 @@ float bottomMargin;
 float topMargin;
 
 std::string collisionName;
+int nRunRanges;
 int nTH1D_Axis_List;
 
 int nTitles;
@@ -145,7 +148,6 @@ int nTextSizes;
 int nTextOffsetsX;
 int nTextOffsetsY;
 
-// cut configuration
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
 // list of pt cuts for RECO photons
 std::vector<float> bins_recoPt[2];      // array of vectors for recoPt bins, each array element is a vector, should function also as
@@ -213,6 +215,9 @@ int nSpectraAna;
 // object for set of all spectra analysis
 std::vector<spectraAnalyzer> sAna[SPECTRAANA::kN_DEPS];
 // Each vector will have size nSpectraAna
+
+std::vector<unsigned int> runMinsMaxs[2];
+int nRunMinsMaxs;
 ///// global variables - END
 
 int readConfiguration(std::string configFile, std::string inputFile);
@@ -221,6 +226,8 @@ int parseRecoObj(std::string recoObjStr);
 std::vector<int> parseMode(std::string mode);
 int getVecIndex(std::vector<int> binIndices);
 std::vector<int> getBinIndices(int i);
+void setRunMinsMaxs();
+bool passedRun(unsigned int run);
 int  preLoop(TFile* input = 0, bool makeNew = true);
 int  postLoop();
 void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices);
@@ -295,6 +302,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
     Long64_t entries = 0;
     Long64_t entriesAnalyzed = 0;
+
+    setRunMinsMaxs();
+    if (nRunMinsMaxs > 0) {
+        std::cout << "nRunMinsMaxs (run ranges to process) = " << nRunMinsMaxs << std::endl;
+        for (int i = 0; i < nRunMinsMaxs; ++i) {
+            std::cout << Form("{min Run, max Run}[%d] = {%d, %d}", i, runMinsMaxs[0][i], runMinsMaxs[1][i]) << std::endl;
+        }
+    }
 
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -400,6 +415,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                 duplicateEntries++;
                 continue;
             }
+
+            if (!passedRun(hiEvt.run))  continue;
 
             // event selection
             if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
@@ -936,6 +953,12 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treePath = confParser.ReadConfigValue("treePath");
     collisionType = confParser.ReadConfigValueInteger("collisionType");
 
+    // runRanges contains the run ranges to process
+    // runRanges = {222333, 222555;;; 333000, 333999} means that
+    // events with 222333 <= Run <= 222555 OR 333000 <= Run <= 333999 will be processed.
+    runRangesTmp = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("runRanges"));
+    runRanges = ConfigurationParser::getVecString(runRangesTmp);
+
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
     // this bin list will be used for histograms where x-axis is eta.
@@ -1022,6 +1045,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+    nRunRanges = runRanges.size();
     nTH1D_Axis_List = TH1D_Axis_List.size();
 
     nLegendEntryLabels = legendEntryLabels.size();
@@ -1122,8 +1146,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
  */
 void printConfiguration()
 {
-    // verbose about input configuration
-    std::cout<<"Input Configuration :"<<std::endl;
+    std::cout<<"Configuration :"<<std::endl;
     std::cout << "mode = " << mode.c_str() << std::endl;
     for (int i = 0; i < (int)runMode.size(); ++i) {
         std::cout << "run " << modesStr[i].c_str() << " = " << runMode.at(i) << std::endl;
@@ -1132,8 +1155,12 @@ void printConfiguration()
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
 
-    // verbose about cut configuration
-    std::cout<<"Cut Configuration :"<<std::endl;
+    std::cout << "nRunRanges (run ranges to process) = " << nRunRanges << std::endl;
+    for (int i = 0; i < nRunRanges; i+=2) {
+        std::cout << Form("runRanges[%d] = %s, %s", (i/2),
+                runRanges.at(i).c_str(), runRanges.at(i+1).c_str()) << std::endl;
+    }
+
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
     for (int i=0; i<nBins_eta; ++i) {
         std::cout << Form("bins_eta[%d] = [%f, %f)", i, bins_eta[0].at(i), bins_eta[1].at(i)) << std::endl;
@@ -1379,6 +1406,34 @@ std::vector<int> getBinIndices(int i)
     binIndices[ANABINS::kR9] = iTmp / nTmp;
 
     return binIndices;
+}
+
+void setRunMinsMaxs()
+{
+    runMinsMaxs[0].clear();
+    runMinsMaxs[1].clear();
+
+    if (nRunRanges % 2 != 0)  return;
+
+    for (int i = 0; i < nRunRanges; i+=2) {
+
+        runMinsMaxs[0].push_back(std::atoi(runRanges.at(i).c_str()));
+        runMinsMaxs[1].push_back(std::atoi(runRanges.at(i+1).c_str()));
+    }
+
+    nRunMinsMaxs = runMinsMaxs[0].size();
+}
+
+bool passedRun(unsigned int run)
+{
+    if (nRunMinsMaxs == 0)  return true;
+
+    for (int i = 0; i < nRunMinsMaxs; ++i) {
+        if (run >= runMinsMaxs[0][i] && run <= runMinsMaxs[1][i])
+            return true;
+    }
+
+    return false;
 }
 
 /*
