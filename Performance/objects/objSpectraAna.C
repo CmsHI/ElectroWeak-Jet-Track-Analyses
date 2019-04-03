@@ -167,6 +167,7 @@ std::vector<std::vector<float>> pthatWeights;
 
 // RECO photon cuts
 float cut_hovere;
+bool excludeHI18HEMfailure;
 
 int nPthatWeights;
 
@@ -470,6 +471,10 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                             if (isHI15 && !isMC) {
                                 if (ggHi.is2015EcalNoise(i))  continue;
+                            }
+
+                            if (excludeHI18HEMfailure){
+                                if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                             }
 
                             if (cut_hovere != 0) {
@@ -1094,6 +1099,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // RECO photon cuts
     cut_hovere = confParser.ReadConfigValueFloat("hovere");
+    excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     nTriggerPaths = triggerPaths.size();
 
@@ -1201,8 +1207,7 @@ void printConfiguration()
     }
 
     std::cout<<"cut_hovere = "<< cut_hovere <<std::endl;
-
-    std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
+    std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
     for (int i=0; i<nTH1D_Axis_List; ++i) {
