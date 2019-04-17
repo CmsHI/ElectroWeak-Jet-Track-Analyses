@@ -52,7 +52,6 @@
 
 ///// global variables
 /// configuration variables
-// input configuration
 /*
 * mode is a string of characters.
 * Each character in "mode" is a flag.
@@ -150,7 +149,6 @@ int nTextSizes;
 int nTextOffsetsX;
 int nTextOffsetsY;
 
-// cut configuration
 std::vector<float> bins_eta[2];         // array of vectors for eta bins, each array element is a vector.
 // list of pt cuts for GEN-level object matched to RECO object
 std::vector<float> bins_genPt[2];       // array of vectors for genPt bins, each array element is a vector, should function also as
@@ -1215,7 +1213,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
-    collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
+    collisionName = getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nTH1D_Axis_List = TH1D_Axis_List.size();
     nTH2D_Axis_List = TH2D_Axis_List.size();
 
@@ -1258,7 +1256,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // event cuts/weights
     doEventWeight = confParser.ReadConfigValueInteger("doEventWeight");
-    pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("eventWeight"));
+    pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
     nPthatWeights = pthatWeights[0].size();
 
@@ -1329,7 +1327,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
  */
 void printConfiguration()
 {
-    // verbose configuration
+    std::cout<<"Configuration :"<<std::endl;
     std::cout << "reco object = " << recoObjsStr[recoObj].c_str() << std::endl;
     if (recoObj < 0 || recoObj >= RECOOBJS::kN_RECOOBJS) {
         std::cout << "ERROR : no valid reco object given" << std::endl;
