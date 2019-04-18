@@ -42,6 +42,7 @@ std::vector<std::string> treeBranchesSpec;
 
 std::string tmvaFactoryOptions;
 std::vector<std::pair<std::string, int>> tmvaMethodsList;
+std::vector<std::string> tmvaMethodTypes;
 std::vector<std::string> tmvaMethodTitles;
 std::vector<std::string> tmvaMethodBaseOptions;
 int nTmvaMethods;
@@ -66,6 +67,7 @@ int nTrainVars;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
+std::vector<std::string> parseTmvaMethodTypes(std::vector<std::pair<std::string, int>> listOfList);
 std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList);
 std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::string, int>> listOfList);
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string jobLabel = "");
@@ -202,15 +204,19 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     for (int i = 0; i < nTmvaMethods; ++i) {
 
+        int methodTypeCode = parseTmvaMethodType(tmvaMethodTypes[i].c_str());
+
         std::string methodOption = tmvaMethodBaseOptions[i];
-        if (methodOptionsTrainVar.size() > 0)
+        if (methodOptionsTrainVar.size() > 0 && (TMVA::Types::EMVA)methodTypeCode == TMVA::Types::EMVA::kCuts)
         {
             methodOption = Form("%s:%s", tmvaMethodBaseOptions[i].c_str(), methodOptionsTrainVar.c_str());
         }
+
+        std::cout << "Method type : " << tmvaMethodTypes[i].c_str() << " , type code : " << methodTypeCode << std::endl;
         std::cout << "Method title : " << tmvaMethodTitles[i].c_str() << std::endl;
         std::cout << "Final method option : " << methodOption.c_str() << std::endl;
 
-        factory->BookMethod(dataloader, TMVA::Types::kCuts, tmvaMethodTitles[i].c_str(), methodOption.c_str());
+        factory->BookMethod(dataloader, (TMVA::Types::EMVA)methodTypeCode, tmvaMethodTitles[i].c_str(), methodOption.c_str());
     }
 
     // Train MVAs using the set of training events
@@ -269,6 +275,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
     tmvaMethodsList = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaMethods"));
+    tmvaMethodTypes = parseTmvaMethodTypes(tmvaMethodsList);
     tmvaMethodTitles = parseTmvaMethodTitles(tmvaMethodsList);
     tmvaMethodBaseOptions = parseTmvaMethodBaseOptions(tmvaMethodsList);
 
@@ -330,6 +337,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
         tmvaFactoryOptions = "!V:!Silent:Color=False:DrawProgressBar:AnalysisType=Classification";
     }
     if (tmvaMethodTitles.size() == 0) {
+        tmvaMethodTypes.push_back("kCuts");
         tmvaMethodTitles.push_back("");
 
         // "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60"
@@ -387,7 +395,8 @@ void printConfiguration()
     for (int i = 0; i < nTmvaMethods; ++i){
 
         std::cout << Form("method[%d] : ", i) << std::endl;
-        std::cout << Form(" title = %s , base option = %s",
+        std::cout << Form(" type = %s , title = %s , base option = %s",
+                            tmvaMethodTypes[i].c_str(),
                             tmvaMethodTitles[i].c_str(),
                             tmvaMethodBaseOptions[i].c_str()) << std::endl;
     }
@@ -426,14 +435,27 @@ void setBranchesStatus(TTree* t, std::vector<std::string> branchList)
     }
 }
 
+std::vector<std::string> parseTmvaMethodTypes(std::vector<std::pair<std::string, int>> listOfList)
+{
+
+    std::vector<std::string> res;
+
+    int n = listOfList.size();
+    for (int i = 0; i < n; i+=3) {
+        res.push_back(listOfList[i].first);
+    }
+
+    return res;
+}
+
 std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList)
 {
 
     std::vector<std::string> res;
 
     int n = listOfList.size();
-    for (int i = 0; i < n; i+=2) {
-        res.push_back(listOfList[i].first);
+    for (int i = 0; i < n; i+=3) {
+        res.push_back(listOfList[i+1].first);
     }
 
     return res;
@@ -445,8 +467,8 @@ std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::s
     std::vector<std::string> res;
 
     int n = listOfList.size();
-    for (int i = 0; i < n; i+=2) {
-        res.push_back(listOfList[i+1].first);
+    for (int i = 0; i < n; i+=3) {
+        res.push_back(listOfList[i+2].first);
     }
 
     return res;
