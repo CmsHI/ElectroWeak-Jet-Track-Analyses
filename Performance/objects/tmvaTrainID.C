@@ -38,6 +38,7 @@ std::string treePathB;
 
 std::vector<std::string> treeBranchesS;
 std::vector<std::string> treeBranchesB;
+std::vector<std::string> treeBranchesSpec;
 
 std::string tmvaFactoryOptions;
 std::string tmvaMethodOptionsBase;
@@ -52,6 +53,7 @@ std::vector<std::pair<std::string, int>> trainVarsList;
 
 int nTreeBranchesS;
 int nTreeBranchesB;
+int nTreeBranchesSpec;
 
 /// configuration variables - END
 std::vector<TMVAANA::trainVar> trainVars;
@@ -174,6 +176,9 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     dataloader->AddSpectator("pho_trackIsoR4PtCut20");
     dataloader->AddSpectator("pho_genMatchedIndex");
     */
+    for (int i = 0; i < nTreeBranchesSpec; ++i) {
+        dataloader->AddSpectator(treeBranchesSpec[i].c_str());
+    }
 
     /*
     std::string genSigStr = "mcCalIsoDR04 < 5 && (abs(mcMomPID) <= 22 || mcMomPID == -999)";
@@ -296,6 +301,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     treeBranchesS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSigBranches"));
     treeBranchesB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeBkgBranches"));
+    treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
 
     tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
     tmvaMethodOptionsBase = confParser.ReadConfigValue("tmvaMethodOptionsBase");
@@ -371,6 +377,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     nTreeBranchesS = treeBranchesS.size();
     nTreeBranchesB = treeBranchesB.size();
+    nTreeBranchesSpec = treeBranchesSpec.size();
 
     nTrainVars = trainVars.size();
 
@@ -397,6 +404,11 @@ void printConfiguration()
     std::cout << "nTreeBranchesB = " << nTreeBranchesB << std::endl;
     for (int i = 0; i < nTreeBranchesB; ++i) {
         std::cout << Form("treeBranchesB[%d] = %s", i, treeBranchesB.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nTreeBranchesSpec = " << nTreeBranchesSpec << std::endl;
+    for (int i = 0; i < nTreeBranchesSpec; ++i) {
+        std::cout << Form("treeBranchesSpec[%d] = %s", i, treeBranchesSpec.at(i).c_str()) << std::endl;
     }
 
     std::cout << "tmvaFactoryOptions = " << tmvaFactoryOptions.c_str() << std::endl;
