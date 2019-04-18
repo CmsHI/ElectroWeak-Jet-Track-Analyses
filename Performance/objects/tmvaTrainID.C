@@ -41,8 +41,10 @@ std::vector<std::string> treeBranchesB;
 std::vector<std::string> treeBranchesSpec;
 
 std::string tmvaFactoryOptions;
-std::string tmvaMethodTitle;
-std::string tmvaMethodOptionsBase;
+std::vector<std::pair<std::string, int>> tmvaMethodsList;
+std::vector<std::string> tmvaMethodTitles;
+std::vector<std::string> tmvaMethodBaseOptions;
+int nTmvaMethods;
 
 std::string preselectionS;
 std::string preselectionB;
@@ -64,6 +66,8 @@ int nTrainVars;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
+std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList);
+std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::string, int>> listOfList);
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string jobLabel = "");
 
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string jobLabel)
@@ -196,15 +200,18 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     }
     methodOptionsTrainVar = methodOptionsTrainVar.substr(0, methodOptionsTrainVar.size()-1);    // trim last character, ":"
 
-    std::string methodOptions = tmvaMethodOptionsBase;
-    if (methodOptionsTrainVar.size() > 0)
-    {
-        methodOptions = Form("%s:%s", tmvaMethodOptionsBase.c_str(), methodOptionsTrainVar.c_str());
+    for (int i = 0; i < nTmvaMethods; ++i) {
+
+        std::string methodOption = tmvaMethodBaseOptions[i];
+        if (methodOptionsTrainVar.size() > 0)
+        {
+            methodOption = Form("%s:%s", tmvaMethodBaseOptions[i].c_str(), methodOptionsTrainVar.c_str());
+        }
+        std::cout << "Method title : " << tmvaMethodTitles[i].c_str() << std::endl;
+        std::cout << "Final method option : " << methodOption.c_str() << std::endl;
+
+        factory->BookMethod(dataloader, TMVA::Types::kCuts, tmvaMethodTitles[i].c_str(), methodOption.c_str());
     }
-
-    std::cout << "methodOptions = " << methodOptions.c_str() << std::endl;
-
-    factory->BookMethod(dataloader, TMVA::Types::kCuts, tmvaMethodTitle.c_str(), methodOptions.c_str());
 
     // Train MVAs using the set of training events
     factory->TrainAllMethods();
@@ -261,8 +268,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
 
     tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
-    tmvaMethodTitle = confParser.ReadConfigValue("tmvaMethodTitle");
-    tmvaMethodOptionsBase = confParser.ReadConfigValue("tmvaMethodOptionsBase");
+    tmvaMethodsList = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaMethods"));
+    tmvaMethodTitles = parseTmvaMethodTitles(tmvaMethodsList);
+    tmvaMethodBaseOptions = parseTmvaMethodBaseOptions(tmvaMethodsList);
 
     preselectionS = confParser.ReadConfigValue("preselectionSig");
     preselectionB = confParser.ReadConfigValue("preselectionBkg");
@@ -321,11 +329,11 @@ int readConfiguration(std::string configFile, std::string inputFile)
         */
         tmvaFactoryOptions = "!V:!Silent:Color=False:DrawProgressBar:AnalysisType=Classification";
     }
-    if (tmvaMethodOptionsBase == "") {
-        /*
-        tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60";
-        */
-        tmvaMethodOptionsBase = "!H:!V:FitMethod=GA:EffMethod=EffSEl";
+    if (tmvaMethodTitles.size() == 0) {
+        tmvaMethodTitles.push_back("");
+
+        // "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60"
+        tmvaMethodBaseOptions.push_back("!H:!V:FitMethod=GA:EffMethod=EffSEl");
     }
 
     if (fracTrainEvtS <= 0) {
@@ -334,6 +342,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (fracTrainEvtB <= 0) {
         fracTrainEvtB = 0.5;
     }
+
+    nTmvaMethods = tmvaMethodTitles.size();
 
     nTreeBranchesS = treeBranchesS.size();
     nTreeBranchesB = treeBranchesB.size();
@@ -372,8 +382,15 @@ void printConfiguration()
     }
 
     std::cout << "tmvaFactoryOptions = " << tmvaFactoryOptions.c_str() << std::endl;
-    std::cout << "tmvaMethodTitle = " << tmvaMethodTitle.c_str() << std::endl;
-    std::cout << "tmvaMethodOptionsBase = " << tmvaMethodOptionsBase.c_str() << std::endl;
+
+    std::cout << "nTmvaMethods = " << nTmvaMethods << std::endl;
+    for (int i = 0; i < nTmvaMethods; ++i){
+
+        std::cout << Form("method[%d] : ", i) << std::endl;
+        std::cout << Form(" title = %s , base option = %s",
+                            tmvaMethodTitles[i].c_str(),
+                            tmvaMethodBaseOptions[i].c_str()) << std::endl;
+    }
 
     std::cout << "preselectionS = " << preselectionS.c_str() << std::endl;
     std::cout << "preselectionB = " << preselectionB.c_str() << std::endl;
@@ -381,6 +398,7 @@ void printConfiguration()
     std::cout << "fracTrainEvtS = " << fracTrainEvtS << std::endl;
     std::cout << "fracTrainEvtB = " << fracTrainEvtB << std::endl;
 
+    std::cout << "nTrainVars = " << nTrainVars << std::endl;
     for (int i = 0; i < nTrainVars; ++i){
 
         std::cout << Form("trainVar[%d] : ", i) << std::endl;
@@ -406,4 +424,30 @@ void setBranchesStatus(TTree* t, std::vector<std::string> branchList)
     for (std::vector<std::string>::iterator it = branchList.begin(); it != branchList.end(); ++it) {
         t->SetBranchStatus((*it).c_str(), 1);
     }
+}
+
+std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList)
+{
+
+    std::vector<std::string> res;
+
+    int n = listOfList.size();
+    for (int i = 0; i < n; i+=2) {
+        res.push_back(listOfList[i].first);
+    }
+
+    return res;
+}
+
+
+std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::string, int>> listOfList)
+{
+    std::vector<std::string> res;
+
+    int n = listOfList.size();
+    for (int i = 0; i < n; i+=2) {
+        res.push_back(listOfList[i+1].first);
+    }
+
+    return res;
 }
