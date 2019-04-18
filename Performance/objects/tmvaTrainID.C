@@ -67,9 +67,6 @@ int nTrainVars;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
-std::vector<std::string> parseTmvaMethodTypes(std::vector<std::pair<std::string, int>> listOfList);
-std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList);
-std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::string, int>> listOfList);
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string jobLabel = "");
 
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string jobLabel)
@@ -275,9 +272,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
     tmvaMethodsList = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaMethods"));
-    tmvaMethodTypes = parseTmvaMethodTypes(tmvaMethodsList);
-    tmvaMethodTitles = parseTmvaMethodTitles(tmvaMethodsList);
-    tmvaMethodBaseOptions = parseTmvaMethodBaseOptions(tmvaMethodsList);
+    tmvaMethodTypes = ConfigurationParser::getVecString(tmvaMethodsList, 3, 0);
+    tmvaMethodTitles = ConfigurationParser::getVecString(tmvaMethodsList, 3, 1);
+    tmvaMethodBaseOptions = ConfigurationParser::getVecString(tmvaMethodsList, 3, 2);
 
     preselectionS = confParser.ReadConfigValue("preselectionSig");
     preselectionB = confParser.ReadConfigValue("preselectionBkg");
@@ -433,43 +430,4 @@ void setBranchesStatus(TTree* t, std::vector<std::string> branchList)
     for (std::vector<std::string>::iterator it = branchList.begin(); it != branchList.end(); ++it) {
         t->SetBranchStatus((*it).c_str(), 1);
     }
-}
-
-std::vector<std::string> parseTmvaMethodTypes(std::vector<std::pair<std::string, int>> listOfList)
-{
-
-    std::vector<std::string> res;
-
-    int n = listOfList.size();
-    for (int i = 0; i < n; i+=3) {
-        res.push_back(listOfList[i].first);
-    }
-
-    return res;
-}
-
-std::vector<std::string> parseTmvaMethodTitles(std::vector<std::pair<std::string, int>> listOfList)
-{
-
-    std::vector<std::string> res;
-
-    int n = listOfList.size();
-    for (int i = 0; i < n; i+=3) {
-        res.push_back(listOfList[i+1].first);
-    }
-
-    return res;
-}
-
-
-std::vector<std::string> parseTmvaMethodBaseOptions(std::vector<std::pair<std::string, int>> listOfList)
-{
-    std::vector<std::string> res;
-
-    int n = listOfList.size();
-    for (int i = 0; i < n; i+=3) {
-        res.push_back(listOfList[i+2].first);
-    }
-
-    return res;
 }

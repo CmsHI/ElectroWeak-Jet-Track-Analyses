@@ -136,7 +136,7 @@ public:
     static bool isVarDefinition(std::string line);
     static bool isVarDefinitionString(std::string line);
     static std::string getMultiListOperator(std::string strList);
-    static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex);
+    static std::vector<std::string> getVecString(std::vector<std::pair<std::string, int>> vecStringIndex, int increment = 1, int offset = 0);
     static std::vector<int> getVecInteger(std::vector<std::pair<int, int>> vecIntegerIndex);
     static std::vector<float> getVecFloat(std::vector<std::pair<float, int>> vecFloatIndex);
     static std::vector<int> getVecIndex(std::vector<std::pair<std::string, int>> vecStringIndex);
@@ -289,13 +289,18 @@ std::string ConfigurationParser::getMultiListOperator(std::string strList)
     return res;
 }
 
-std::vector<std::string> ConfigurationParser::getVecString(std::vector<std::pair<std::string, int>> vecStringIndex)
+std::vector<std::string> ConfigurationParser::getVecString(std::vector<std::pair<std::string, int>> vecStringIndex, int increment, int offset)
 {
     std::vector<std::string> list;
 
+    if (offset >= increment) {
+        // wrong input
+        return list;
+    }
+
     int n = vecStringIndex.size();
-    for (int i = 0; i < n; ++i) {
-        list.push_back(vecStringIndex.at(i).first.c_str());
+    for (int i = 0; i < n; i+=increment) {
+        list.push_back(vecStringIndex.at(i+offset).first);
     }
 
     return list;
