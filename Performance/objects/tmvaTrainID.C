@@ -92,13 +92,6 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     }
     std::cout << "##### END #####" << std::endl;
 
-    // Register the training and test trees
-//    TFile* inputSig = 0;
-//    inputSig = TFile::Open(signalFile.c_str(), "READ");
-
-//    TFile* inputBkg = 0;
-//    inputBkg = TFile::Open(backgroundFile.c_str(), "READ");
-
     TChain *treeSig = 0;
     TChain *treeBkg = 0;
 
@@ -118,7 +111,6 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     setBranchesStatus(treeSig, treeBranchesS);
     setBranchesStatus(treeBkg, treeBranchesB);
 
-    // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
     TFile* output = 0;
     output = TFile::Open(outputFile.c_str(), "RECREATE" );
 
@@ -153,43 +145,15 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     dataloader->AddBackgroundTree(treeBkg, weightBkg);
 
     /*
-    int phoEtMin = 40;
-    TCut preSelection = Form("phoEt > %d && abs(phoSCEta) < 1.48 && phoHoverE < 0.1", phoEtMin);
-    TCut cut_genMatched = "mcPID == 22";
-    cut_genMatched = "pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22";
-    */
-
-    //trainVars.push_back(TMVAANA::trainVar("phoHoverE", "F", "FSmart", 0, 0.5));
-    //trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.14));
-    //trainVars.push_back(TMVAANA::trainVar("sumIso := pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20", "F", "FSmart", -1000, 50));
-    //trainVars.push_back(TMVAANA::trainVar("ecalIso := pho_ecalClusterIsoR4", "F", "FMin", -100, 50));
-    //trainVars.push_back(TMVAANA::trainVar("hcalIso := pho_hcalRechitIsoR4", "F", "FMin", -100, 50));
-    //trainVars.push_back(TMVAANA::trainVar("trkIso := pho_trackIsoR4PtCut20", "F", "FMin", -100, 50));
-
-    /*
     dataloader->AddSpectator("phoEt");
-    dataloader->AddSpectator("phoEta");
-    dataloader->AddSpectator("phoPhi");
-    dataloader->AddSpectator("phoHoverE");
-    dataloader->AddSpectator("pho_ecalClusterIsoR4");
-    dataloader->AddSpectator("pho_hcalRechitIsoR4");
-    dataloader->AddSpectator("pho_trackIsoR4PtCut20");
-    dataloader->AddSpectator("pho_genMatchedIndex");
     */
     for (int i = 0; i < nTreeBranchesSpec; ++i) {
         dataloader->AddSpectator(treeBranchesSpec[i].c_str());
     }
 
     /*
-    std::string genSigStr = "mcCalIsoDR04 < 5 && (abs(mcMomPID) <= 22 || mcMomPID == -999)";
-    genSigStr = "mcCalIsoDR04[pho_genMatchedIndex] < 5 && (abs(mcMomPID[pho_genMatchedIndex]) <= 22 || mcMomPID[pho_genMatchedIndex] == -999)";
-    std::string genBkgStr = Form("!(%s)", genSigStr.c_str());
+    TCut("phoEt > 40 && abs(phoSCEta) < 1.48 && phoHoverE < 0.1 && pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22")
     */
-
-    /*
-    TCut preSelS = preSelection && cut_genMatched && TCut(genSigStr.c_str());
-    TCut preSelB = preSelection && cut_genMatched && TCut(genBkgStr.c_str());
-     */
     TCut preselS = TCut(preselectionS.c_str());
     TCut preselB = TCut(preselectionB.c_str());
 
@@ -214,6 +178,10 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     std::string methodOptionsTrainVar = "";
 
+    /*
+    trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.015));
+    trainVars.push_back(TMVAANA::trainVar("sumIso := pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20", "F", "FSmart", -400, 50));
+    */
     for (int i = 0; i < nTrainVars; ++i) {
         TMVAANA::trainVar varTmp = trainVars.at(i);
         dataloader->AddVariable(varTmp.expression, varTmp.type.at(0));
@@ -241,8 +209,6 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     factory->BookMethod(dataloader, TMVA::Types::kCuts, "Cuts_tmvaTrainID", methodOptions.c_str());
 
-    // Now you can tell the factory to train, test, and evaluate the MVAs
-    //
     // Train MVAs using the set of training events
     factory->TrainAllMethods();
 
@@ -252,12 +218,6 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     // Evaluate and compare performance of all configured MVAs
     factory->EvaluateAllMethods();
 
-    // --------------------------------------------------------------
-
-    //inputSig->Close();
-    //inputBkg->Close();
-
-    // Save the output
     output->Close();
 
     std::cout << "==> Wrote root file: " << output->GetName() << std::endl;
@@ -358,13 +318,15 @@ int readConfiguration(std::string configFile, std::string inputFile)
     }
 
     if (tmvaFactoryOptions == "") {
-        //tmvaFactoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
-        //tmvaFactoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;G,D:AnalysisType=Classification";
+        /*
+        tmvaFactoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
+        */
         tmvaFactoryOptions = "!V:!Silent:Color=False:DrawProgressBar:AnalysisType=Classification";
     }
     if (tmvaMethodOptionsBase == "") {
-        //tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=1600:Steps=8";
-        //tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60";
+        /*
+        tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60";
+        */
         tmvaMethodOptionsBase = "!H:!V:FitMethod=GA:EffMethod=EffSEl";
     }
 
@@ -385,7 +347,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 }
 
 /*
- * print information read from input/cut configurations
+ * print information read from configuration
  * assumes that readConfiguration() is run before
  */
 void printConfiguration()
