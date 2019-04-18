@@ -20,21 +20,21 @@ outList=(
 $outDirBase"/Performance/photons/identification/tmvatrainID_template.root"
 );
 
-methodLabelList=(
-"phoEt40_EB_hoe0p1_vars_sieieMin0Max0p02_sumIsoMinM400Max50"
+jobLabelList=(
+"tmvaTrainID_FactoryJob_phoEt40_EB_hoe0p1_vars_sieieMin0Max0p02_sumIsoMinM400Max50"
 );
 
 arrayIndices=${!outList[*]}
 for i1 in $arrayIndices
 do
     configFile=${configList[i1]}
-    methodLabel=${methodLabelList[i1]}
+    jobLabel=${jobLabelList[i1]}
     outputFile=${outList[i1]}
-    outputFile="${outputFile/.root/_${methodLabel}.root}"
+    outputFile="${outputFile/.root/_${jobLabel}.root}"
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
-    $runCmd $progPath $configFile $inputSig $inputBkg $outputFile $methodLabel &> $outputFileLOG &
-    echo "$runCmd $progPath $configFile $inputSig $inputBkg $outputFile $methodLabel &> $outputFileLOG &"
+    $runCmd $progPath $configFile $inputSig $inputBkg $outputFile $jobLabel &> $outputFileLOG &
+    echo "$runCmd $progPath $configFile $inputSig $inputBkg $outputFile $jobLabel &> $outputFileLOG &"
 done
 

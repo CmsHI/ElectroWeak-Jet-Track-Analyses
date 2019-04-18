@@ -63,15 +63,15 @@ int nTrainVars;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
-int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string methodLabel = "");
+int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string jobLabel = "");
 
-int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string methodLabel)
+int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string jobLabel)
 {
     std::cout << "configFile = " << configFile.c_str() << std::endl;
     std::cout << "signalFile = " << signalFile.c_str() << std::endl;
     std::cout << "backgroundFile = " << backgroundFile.c_str() << std::endl;
     std::cout << "outputFile = " << outputFile.c_str() << std::endl;
-    std::cout << "methodLabel = " << methodLabel.c_str() << std::endl;
+    std::cout << "jobLabel = " << jobLabel.c_str() << std::endl;
 
     if (readConfiguration(configFile, signalFile) != 0)  return -1;
     printConfiguration();
@@ -126,7 +126,7 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     // front of the "Silent" argument in the option string
 
     TMVA::Factory* factory = 0;
-    factory = new TMVA::Factory(Form("tmvaTrainIDFactoryJob_method%s", methodLabel.c_str()), output, tmvaFactoryOptions.c_str());
+    factory = new TMVA::Factory(jobLabel.c_str(), output, tmvaFactoryOptions.c_str());
 
     TMVA::DataLoader* dataloader = 0;
     dataloader = new TMVA::DataLoader("dataset");
