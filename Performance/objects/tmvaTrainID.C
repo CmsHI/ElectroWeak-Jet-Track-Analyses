@@ -25,8 +25,42 @@
 #include <algorithm>
 
 #include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/interface/ArgumentParser.h"
+#include "../../Utilities/interface/ConfigurationParser.h"
 #include "../interface/tmvaAnalyzer.h"
 
+///// global variables
+/// configuration variables
+
+// TTree
+std::string treePathS;
+std::string treePathB;
+
+std::vector<std::string> treeBranchesS;
+std::vector<std::string> treeBranchesB;
+
+std::string tmvaFactoryOptions;
+std::string tmvaMethodOptionsBase;
+
+std::string preselectionS;
+std::string preselectionB;
+
+float fracTrainEvtS;
+float fracTrainEvtB;
+
+std::vector<std::pair<std::string, int>> trainVarsList;
+
+int nTreeBranchesS;
+int nTreeBranchesB;
+
+/// configuration variables - END
+std::vector<TMVAANA::trainVar> trainVars;
+int nTrainVars;
+///// global variables - END
+
+int readConfiguration(std::string configFile, std::string inputFile);
+void printConfiguration();
+void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string methodLabel = "");
 
 int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string methodLabel)
@@ -37,16 +71,8 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     std::cout << "outputFile = " << outputFile.c_str() << std::endl;
     std::cout << "methodLabel = " << methodLabel.c_str() << std::endl;
 
-    bool isInputFlatTree = false;
-    std::string treePathSig = "treeSig";
-    std::string treePathBkg = "treeBkg";
-    if (!isInputFlatTree) {
-        treePathSig = "ggHiNtuplizerGED/EventTree";
-        treePathBkg = "ggHiNtuplizerGED/EventTree";
-    }
-
-    std::cout << "treePathSig = " << treePathSig.c_str() << std::endl;
-    std::cout << "treePathBkg = " << treePathBkg.c_str() << std::endl;
+    if (readConfiguration(configFile, signalFile) != 0)  return -1;
+    printConfiguration();
 
     std::vector<std::string> signalFiles = InputConfigurationParser::ParseFiles(signalFile.c_str());
     std::cout << "signal ROOT files : num = " << signalFiles.size() << std::endl;
@@ -74,8 +100,8 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     TChain *treeSig = 0;
     TChain *treeBkg = 0;
 
-    treeSig = new TChain(treePathSig.c_str());
-    treeBkg = new TChain(treePathBkg.c_str());
+    treeSig = new TChain(treePathS.c_str());
+    treeBkg = new TChain(treePathB.c_str());
 
     for (std::vector<std::string>::iterator it = signalFiles.begin() ; it != signalFiles.end(); ++it) {
         treeSig->Add((*it).c_str());
@@ -87,17 +113,8 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     Long64_t entriesSig = treeSig->GetEntries();
     Long64_t entriesBkg = treeBkg->GetEntries();
 
-    treeSig->SetBranchStatus("*", 0);
-    treeSig->SetBranchStatus("nPho", 1);
-    treeSig->SetBranchStatus("pho*", 1);
-    treeSig->SetBranchStatus("nMC", 1);
-    treeSig->SetBranchStatus("mc*", 1);
-
-    treeBkg->SetBranchStatus("*", 0);
-    treeBkg->SetBranchStatus("nPho", 1);
-    treeBkg->SetBranchStatus("pho*", 1);
-    treeBkg->SetBranchStatus("nMC", 1);
-    treeBkg->SetBranchStatus("mc*", 1);
+    setBranchesStatus(treeSig, treeBranchesS);
+    setBranchesStatus(treeBkg, treeBranchesB);
 
     // Create a ROOT output file where TMVA will store ntuples, histograms, etc.
     TFile* output = 0;
@@ -114,49 +131,40 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     // All TMVA output can be suppressed by removing the "!" (not) in
     // front of the "Silent" argument in the option string
 
-    //std::string factoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
-    //std::string factoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;G,D:AnalysisType=Classification";
-    std::string factoryOptions = "!V:!Silent:Color=False:DrawProgressBar:AnalysisType=Classification";
-
     TMVA::Factory* factory = 0;
-    factory = new TMVA::Factory(Form("tmvaTrainIDFactoryJob_method%s", methodLabel.c_str()), output, factoryOptions.c_str());
+    factory = new TMVA::Factory(Form("tmvaTrainIDFactoryJob_method%s", methodLabel.c_str()), output, tmvaFactoryOptions.c_str());
 
     TMVA::DataLoader* dataloader = 0;
     dataloader = new TMVA::DataLoader("dataset");
 
-    if (isInputFlatTree) {
-        dataloader->SetSignalTree(treeSig);
-        dataloader->SetSignalWeightExpression("weight");
+    /*
+    dataloader->SetSignalTree(treeSig);
+    dataloader->SetSignalWeightExpression("weight");
 
-        dataloader->SetBackgroundTree(treeBkg);
-        dataloader->SetBackgroundWeightExpression("weight");
-    }
-    else {
-        double weightSig = 1;
-        double weightBkg = 1;
-        dataloader->AddSignalTree(treeSig, weightSig);
-        dataloader->AddBackgroundTree(treeBkg, weightBkg);
-    }
+    dataloader->SetBackgroundTree(treeBkg);
+    dataloader->SetBackgroundWeightExpression("weight");
+    */
 
+    double weightSig = 1;
+    double weightBkg = 1;
+    dataloader->AddSignalTree(treeSig, weightSig);
+    dataloader->AddBackgroundTree(treeBkg, weightBkg);
+
+    /*
     int phoEtMin = 40;
-    // flatTree
     TCut preSelection = Form("phoEt > %d && abs(phoSCEta) < 1.48 && phoHoverE < 0.1", phoEtMin);
-    //TCut preSelection = Form("phoEt > %d && abs(phoSCEta) < 1.48", phoEtMin);
     TCut cut_genMatched = "mcPID == 22";
-    if (!isInputFlatTree) {
-        cut_genMatched = "pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22";
-    }
+    cut_genMatched = "pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22";
+    */
 
-    std::vector<TMVAANA::trainVar> trainVars;
     //trainVars.push_back(TMVAANA::trainVar("phoHoverE", "F", "FSmart", 0, 0.5));
-    trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.14));
-    trainVars.push_back(TMVAANA::trainVar("sumIso := pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20", "F", "FSmart", -1000, 50));
+    //trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.14));
+    //trainVars.push_back(TMVAANA::trainVar("sumIso := pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20", "F", "FSmart", -1000, 50));
     //trainVars.push_back(TMVAANA::trainVar("ecalIso := pho_ecalClusterIsoR4", "F", "FMin", -100, 50));
     //trainVars.push_back(TMVAANA::trainVar("hcalIso := pho_hcalRechitIsoR4", "F", "FMin", -100, 50));
     //trainVars.push_back(TMVAANA::trainVar("trkIso := pho_trackIsoR4PtCut20", "F", "FMin", -100, 50));
 
-    int nTrainVars = trainVars.size();
-
+    /*
     dataloader->AddSpectator("phoEt");
     dataloader->AddSpectator("phoEta");
     dataloader->AddSpectator("phoPhi");
@@ -165,43 +173,39 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     dataloader->AddSpectator("pho_hcalRechitIsoR4");
     dataloader->AddSpectator("pho_trackIsoR4PtCut20");
     dataloader->AddSpectator("pho_genMatchedIndex");
+    */
 
+    /*
     std::string genSigStr = "mcCalIsoDR04 < 5 && (abs(mcMomPID) <= 22 || mcMomPID == -999)";
-    if (!isInputFlatTree) {
-        genSigStr = "mcCalIsoDR04[pho_genMatchedIndex] < 5 && (abs(mcMomPID[pho_genMatchedIndex]) <= 22 || mcMomPID[pho_genMatchedIndex] == -999)";
-    }
+    genSigStr = "mcCalIsoDR04[pho_genMatchedIndex] < 5 && (abs(mcMomPID[pho_genMatchedIndex]) <= 22 || mcMomPID[pho_genMatchedIndex] == -999)";
     std::string genBkgStr = Form("!(%s)", genSigStr.c_str());
-    //    std::string genBkgStr = "abs(mcMomPID[pho_genMatchedIndex]) == 111";
+    */
 
-    TCut preSelectionSig = preSelection && cut_genMatched && TCut(genSigStr.c_str());
-    TCut preSelectionBkg = preSelection && cut_genMatched && TCut(genBkgStr.c_str());
+    /*
+    TCut preSelS = preSelection && cut_genMatched && TCut(genSigStr.c_str());
+    TCut preSelB = preSelection && cut_genMatched && TCut(genBkgStr.c_str());
+     */
+    TCut preselS = TCut(preselectionS.c_str());
+    TCut preselB = TCut(preselectionB.c_str());
 
-    std::cout << "preSelectionSig = " << preSelectionSig.GetTitle() << std::endl;
-    std::cout << "preSelectionBkg = " << preSelectionBkg.GetTitle() << std::endl;
+    std::cout << "preselectionSig = " << preselS.GetTitle() << std::endl;
+    std::cout << "preselectionBkg = " << preselB.GetTitle() << std::endl;
 
-    Long64_t entriesPreSelSig = treeSig->GetEntries(preSelectionSig.GetTitle());
-    Long64_t entriesPreSelBkg = treeBkg->GetEntries(preSelectionBkg.GetTitle());
+    Long64_t entriesPreSelSig = treeSig->GetEntries(preselS.GetTitle());
+    Long64_t entriesPreSelBkg = treeBkg->GetEntries(preselB.GetTitle());
 
     std::cout << "entriesSig = " << entriesSig << std::endl;
     std::cout << "entriesBkg = " << entriesBkg << std::endl;
     std::cout << "entriesPreSelSig = " << entriesPreSelSig << std::endl;
     std::cout << "entriesPreSelBkg = " << entriesPreSelBkg << std::endl;
 
-    double splitFactor = 3;
-    int nPreSelectSig = entriesPreSelSig;
-    int nTrainSig = nPreSelectSig / splitFactor;
-    //int nTestSig = nPreSelectSig * (1 - 1/splitFactor);
-    int nPreSelectBkg = entriesPreSelBkg;
-    int nTrainBkg = nPreSelectBkg / splitFactor;
-    //int nTestBkg = nPreSelectBkg * (1 - 1/splitFactor);
-    std::string options1 = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=NumEvents", nTrainSig, nTrainBkg);
+    int nTrainSig = entriesPreSelSig * fracTrainEvtS;
+    int nTrainBkg = entriesPreSelBkg * fracTrainEvtB;
+    std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=NumEvents", nTrainSig, nTrainBkg);
 
-    dataloader->PrepareTrainingAndTestTree(preSelectionSig, preSelectionBkg, options1.c_str());
+    dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
 
-    std::string methodOptionsCommon = "";
-    methodOptionsCommon += "!H:!V:FitMethod=GA:EffMethod=EffSEl";
-    //methodOptionsCommon += "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=1600:Steps=8";
-    //methodOptionsCommon += "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60";
+    std::string methodOptionsAll = tmvaMethodOptionsBase;
 
     std::string methodOptionsTrainVar = "";
 
@@ -222,10 +226,10 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     methodOptionsTrainVar = methodOptionsTrainVar.substr(0, methodOptionsTrainVar.size()-1);    // trim last character, ":"
 
-    std::string methodOptions = methodOptionsCommon;
+    std::string methodOptions = methodOptionsAll;
     if (methodOptionsTrainVar.size() > 0)
     {
-        methodOptions = Form("%s:%s", methodOptionsCommon.c_str(), methodOptionsTrainVar.c_str());
+        methodOptions = Form("%s:%s", methodOptionsAll.c_str(), methodOptionsTrainVar.c_str());
     }
 
     std::cout << "methodOptions = " << methodOptions.c_str() << std::endl;
@@ -245,8 +249,8 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     // --------------------------------------------------------------
 
-//    inputSig->Close();
-//    inputBkg->Close();
+    //inputSig->Close();
+    //inputBkg->Close();
 
     // Save the output
     output->Close();
@@ -276,5 +280,157 @@ int main(int argc, char** argv)
                 "./tmvaTrainID.exe <arg1> <arg2> <arg3> <arg4> <arg5>"
                 << std::endl;
         return 1;
+    }
+}
+
+int readConfiguration(std::string configFile, std::string inputFile)
+{
+    ConfigurationParser confParser;
+    confParser.openConfigFile(configFile);
+
+    confParser.parsedKeyWords = InputConfigurationParser::parseKeyWords(inputFile);
+
+    // TTree
+    treePathS = confParser.ReadConfigValue("treePathSig");
+    treePathB = confParser.ReadConfigValue("treePathBkg");
+
+    treeBranchesS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSigBranches"));
+    treeBranchesB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeBkgBranches"));
+
+    tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
+    tmvaMethodOptionsBase = confParser.ReadConfigValue("tmvaMethodOptionsBase");
+
+    preselectionS = confParser.ReadConfigValue("preselectionSig");
+    preselectionB = confParser.ReadConfigValue("preselectionBkg");
+
+    fracTrainEvtS = confParser.ReadConfigValueFloat("fracTrainEvtSig");
+    fracTrainEvtB = confParser.ReadConfigValueFloat("fracTrainEvtBkg");
+
+    // list of training variables separated by ";;;"
+    trainVarsList = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("trainVariables"));
+    int indexTmp = trainVarsList.size() - 1;
+    int nVarsTmp = trainVarsList.at(indexTmp).second + 1;
+    int j = 0;
+    for (int iVar = 0; iVar < nVarsTmp; ++iVar){
+
+        TMVAANA::trainVar varTmp;
+        varTmp.expression = trainVarsList.at(j).first;
+        j++;
+
+        if (j <= indexTmp && trainVarsList.at(j).second == iVar) {
+            varTmp.type = trainVarsList.at(j).first;
+            j++;
+        }
+        if (j <= indexTmp && trainVarsList.at(j).second == iVar) {
+            varTmp.varProp = trainVarsList.at(j).first;
+            j++;
+        }
+        if (j <= indexTmp && trainVarsList.at(j).second == iVar) {
+            varTmp.cutRangeMin = std::atof(trainVarsList.at(j).first.c_str());
+            j++;
+        }
+        if (j <= indexTmp && trainVarsList.at(j).second == iVar) {
+            varTmp.cutRangeMax = std::atof(trainVarsList.at(j).first.c_str());
+            j++;
+        }
+
+        trainVars.push_back(varTmp);
+    }
+
+    if (treePathS == "") {
+        treePathS = "ggHiNtuplizerGED/EventTree";
+    }
+    if (treePathB == "") {
+        treePathB = "ggHiNtuplizerGED/EventTree";
+    }
+
+    if (treeBranchesS.size() == 0) {
+        treeBranchesS.push_back("*");
+    }
+    if (treeBranchesB.size() == 0) {
+        treeBranchesB.push_back("*");
+    }
+
+    if (tmvaFactoryOptions == "") {
+        //tmvaFactoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification";
+        //tmvaFactoryOptions = "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;G,D:AnalysisType=Classification";
+        tmvaFactoryOptions = "!V:!Silent:Color=False:DrawProgressBar:AnalysisType=Classification";
+    }
+    if (tmvaMethodOptionsBase == "") {
+        //tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=1600:Steps=8";
+        //tmvaFactoryMethodOptions = "!H:!V:FitMethod=GA:EffMethod=EffSEl:PopSize=800:Steps=60";
+        tmvaMethodOptionsBase = "!H:!V:FitMethod=GA:EffMethod=EffSEl";
+    }
+
+    if (fracTrainEvtS <= 0) {
+        fracTrainEvtS = 0.5;
+    }
+    if (fracTrainEvtB <= 0) {
+        fracTrainEvtB = 0.5;
+    }
+
+    nTreeBranchesS = treeBranchesS.size();
+    nTreeBranchesB = treeBranchesB.size();
+
+    nTrainVars = trainVars.size();
+
+    return 0;
+}
+
+/*
+ * print information read from input/cut configurations
+ * assumes that readConfiguration() is run before
+ */
+void printConfiguration()
+{
+    std::cout<<"Configuration :"<<std::endl;
+
+    std::cout << "treePathS = " << treePathS.c_str() << std::endl;
+    std::cout << "treePathB = " << treePathB.c_str() << std::endl;
+
+    // branches activated in signal and background trees
+    std::cout << "nTreeBranchesS = " << nTreeBranchesS << std::endl;
+    for (int i = 0; i < nTreeBranchesS; ++i) {
+        std::cout << Form("treeBranchesS[%d] = %s", i, treeBranchesS.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nTreeBranchesB = " << nTreeBranchesB << std::endl;
+    for (int i = 0; i < nTreeBranchesB; ++i) {
+        std::cout << Form("treeBranchesB[%d] = %s", i, treeBranchesB.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "tmvaFactoryOptions = " << tmvaFactoryOptions.c_str() << std::endl;
+    std::cout << "tmvaMethodOptionsBase = " << tmvaMethodOptionsBase.c_str() << std::endl;
+
+    std::cout << "preselectionS = " << preselectionS.c_str() << std::endl;
+    std::cout << "preselectionB = " << preselectionB.c_str() << std::endl;
+
+    std::cout << "fracTrainEvtS = " << fracTrainEvtS << std::endl;
+    std::cout << "fracTrainEvtB = " << fracTrainEvtB << std::endl;
+
+    for (int i = 0; i < nTrainVars; ++i){
+
+        std::cout << Form("trainVar[%d] : ", i) << std::endl;
+        std::cout << Form(" expression = %s", trainVars[i].expression.c_str()) << std::endl;
+        std::cout << Form(" type = %s , varProp = %s , min = %f , max = %f",
+                            trainVars[i].type.c_str(),
+                            trainVars[i].varProp.c_str(),
+                            trainVars[i].cutRangeMin,
+                            trainVars[i].cutRangeMax) << std::endl;
+    }
+}
+
+/*
+t->SetBranchStatus("*", 0);
+t->SetBranchStatus("nPho", 1);
+t->SetBranchStatus("pho*", 1);
+t->SetBranchStatus("nMC", 1);
+t->SetBranchStatus("mc*", 1);
+*/
+void setBranchesStatus(TTree* t, std::vector<std::string> branchList)
+{
+    t->SetBranchStatus("*", 0);
+    for (std::vector<std::string>::iterator it = branchList.begin(); it != branchList.end(); ++it) {
+        t->SetBranchStatus((*it).c_str(), 1);
     }
 }
