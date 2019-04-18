@@ -41,6 +41,7 @@ std::vector<std::string> treeBranchesB;
 std::vector<std::string> treeBranchesSpec;
 
 std::string tmvaFactoryOptions;
+std::string tmvaMethodTitle;
 std::string tmvaMethodOptionsBase;
 
 std::string preselectionS;
@@ -174,14 +175,11 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
 
-    std::string methodOptionsAll = tmvaMethodOptionsBase;
-
-    std::string methodOptionsTrainVar = "";
-
     /*
     trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.015));
     trainVars.push_back(TMVAANA::trainVar("sumIso := pho_ecalClusterIsoR4 + pho_hcalRechitIsoR4 + pho_trackIsoR4PtCut20", "F", "FSmart", -400, 50));
     */
+    std::string methodOptionsTrainVar = "";
     for (int i = 0; i < nTrainVars; ++i) {
         TMVAANA::trainVar varTmp = trainVars.at(i);
         dataloader->AddVariable(varTmp.expression, varTmp.type.at(0));
@@ -196,18 +194,17 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
             methodOptionsTrainVar += Form("CutRangeMax[%d]=%f:", i, varTmp.cutRangeMax);
         }
     }
-
     methodOptionsTrainVar = methodOptionsTrainVar.substr(0, methodOptionsTrainVar.size()-1);    // trim last character, ":"
 
-    std::string methodOptions = methodOptionsAll;
+    std::string methodOptions = tmvaMethodOptionsBase;
     if (methodOptionsTrainVar.size() > 0)
     {
-        methodOptions = Form("%s:%s", methodOptionsAll.c_str(), methodOptionsTrainVar.c_str());
+        methodOptions = Form("%s:%s", tmvaMethodOptionsBase.c_str(), methodOptionsTrainVar.c_str());
     }
 
     std::cout << "methodOptions = " << methodOptions.c_str() << std::endl;
 
-    factory->BookMethod(dataloader, TMVA::Types::kCuts, "Cuts_tmvaTrainID", methodOptions.c_str());
+    factory->BookMethod(dataloader, TMVA::Types::kCuts, tmvaMethodTitle.c_str(), methodOptions.c_str());
 
     // Train MVAs using the set of training events
     factory->TrainAllMethods();
@@ -264,6 +261,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
 
     tmvaFactoryOptions = confParser.ReadConfigValue("tmvaFactoryOptions");
+    tmvaMethodTitle = confParser.ReadConfigValue("tmvaMethodTitle");
     tmvaMethodOptionsBase = confParser.ReadConfigValue("tmvaMethodOptionsBase");
 
     preselectionS = confParser.ReadConfigValue("preselectionSig");
@@ -374,6 +372,7 @@ void printConfiguration()
     }
 
     std::cout << "tmvaFactoryOptions = " << tmvaFactoryOptions.c_str() << std::endl;
+    std::cout << "tmvaMethodTitle = " << tmvaMethodTitle.c_str() << std::endl;
     std::cout << "tmvaMethodOptionsBase = " << tmvaMethodOptionsBase.c_str() << std::endl;
 
     std::cout << "preselectionS = " << preselectionS.c_str() << std::endl;
