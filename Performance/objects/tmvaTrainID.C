@@ -35,6 +35,8 @@
 // TTree
 std::string treePathS;
 std::string treePathB;
+std::vector<std::string> treeFriendPathsS;
+std::vector<std::string> treeFriendPathsB;
 
 std::vector<std::string> treeBranchesS;
 std::vector<std::string> treeBranchesB;
@@ -54,6 +56,9 @@ float fracTrainEvtS;
 float fracTrainEvtB;
 
 std::vector<std::pair<std::string, int>> trainVarsList;
+
+int nTreeFriendPathsS;
+int nTreeFriendPathsB;
 
 int nTreeBranchesS;
 int nTreeBranchesB;
@@ -96,17 +101,42 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     }
     std::cout << "##### END #####" << std::endl;
 
-    TChain *treeSig = 0;
-    TChain *treeBkg = 0;
+    TChain* treeSig = 0;
+    TChain* treeBkg = 0;
 
     treeSig = new TChain(treePathS.c_str());
     treeBkg = new TChain(treePathB.c_str());
 
+    TChain* treeFriendsSig[nTreeFriendPathsS];
+    for (int i = 0; i < nTreeFriendPathsS; ++i) {
+        treeFriendsSig[i] = 0;
+        treeFriendsSig[i] = new TChain(treeFriendPathsS[i].c_str());
+    }
+
+    TChain* treeFriendsBkg[nTreeFriendPathsB];
+    for (int i = 0; i < nTreeFriendPathsB; ++i) {
+        treeFriendsBkg[i] = 0;
+        treeFriendsBkg[i] = new TChain(treeFriendPathsB[i].c_str());
+    }
+
     for (std::vector<std::string>::iterator it = signalFiles.begin() ; it != signalFiles.end(); ++it) {
         treeSig->Add((*it).c_str());
+        for (int i = 0; i < nTreeFriendPathsS; ++i) {
+            treeFriendsSig[i]->Add((*it).c_str());
+        }
     }
     for (std::vector<std::string>::iterator it = backgroundFiles.begin() ; it != backgroundFiles.end(); ++it) {
         treeBkg->Add((*it).c_str());
+        for (int i = 0; i < nTreeFriendPathsB; ++i) {
+            treeFriendsBkg[i]->Add((*it).c_str());
+        }
+    }
+
+    for (int i = 0; i < nTreeFriendPathsS; ++i) {
+        treeSig->AddFriend(treeFriendsSig[i], Form("t%d", i));
+    }
+    for (int i = 0; i < nTreeFriendPathsB; ++i) {
+        treeBkg->AddFriend(treeFriendsBkg[i], Form("t%d", i));
     }
 
     Long64_t entriesSig = treeSig->GetEntries();
@@ -266,6 +296,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treePathS = confParser.ReadConfigValue("treePathSig");
     treePathB = confParser.ReadConfigValue("treePathBkg");
 
+    treeFriendPathsS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeFriendPathsSig"));
+    treeFriendPathsB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeFriendPathsBkg"));
+
     treeBranchesS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSigBranches"));
     treeBranchesB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeBkgBranches"));
     treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
@@ -350,6 +383,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     nTmvaMethods = tmvaMethodTitles.size();
 
+    nTreeFriendPathsS = treeFriendPathsS.size();
+    nTreeFriendPathsB = treeFriendPathsB.size();
+
     nTreeBranchesS = treeBranchesS.size();
     nTreeBranchesB = treeBranchesB.size();
     nTreeBranchesSpec = treeBranchesSpec.size();
@@ -369,6 +405,17 @@ void printConfiguration()
 
     std::cout << "treePathS = " << treePathS.c_str() << std::endl;
     std::cout << "treePathB = " << treePathB.c_str() << std::endl;
+
+    // paths to friend trees for signal and background
+    std::cout << "nTreeFriendPathsS = " << nTreeFriendPathsS << std::endl;
+    for (int i = 0; i < nTreeFriendPathsS; ++i) {
+        std::cout << Form("treeFriendPathsS[%d] = %s", i, treeFriendPathsS.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nTreeFriendPathsB = " << nTreeFriendPathsB << std::endl;
+    for (int i = 0; i < nTreeFriendPathsB; ++i) {
+        std::cout << Form("treeFriendPathsB[%d] = %s", i, treeFriendPathsB.at(i).c_str()) << std::endl;
+    }
 
     // branches activated in signal and background trees
     std::cout << "nTreeBranchesS = " << nTreeBranchesS << std::endl;
