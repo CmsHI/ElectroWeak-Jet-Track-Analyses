@@ -38,6 +38,9 @@ std::string treePathB;
 std::vector<std::string> treeFriendPathsS;
 std::vector<std::string> treeFriendPathsB;
 
+std::string weightExpressionS;
+std::string weightExpressionB;
+
 std::vector<std::string> treeBranchesS;
 std::vector<std::string> treeBranchesB;
 std::vector<std::string> treeBranchesSpec;
@@ -165,18 +168,15 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     TMVA::DataLoader* dataloader = 0;
     dataloader = new TMVA::DataLoader("dataset");
 
-    /*
     dataloader->SetSignalTree(treeSig);
-    dataloader->SetSignalWeightExpression("weight");
+    if (weightExpressionS.size() > 0) {
+        dataloader->SetSignalWeightExpression(weightExpressionS.c_str());
+    }
 
     dataloader->SetBackgroundTree(treeBkg);
-    dataloader->SetBackgroundWeightExpression("weight");
-    */
-
-    double weightSig = 1;
-    double weightBkg = 1;
-    dataloader->AddSignalTree(treeSig, weightSig);
-    dataloader->AddBackgroundTree(treeBkg, weightBkg);
+    if (weightExpressionB.size() > 0) {
+        dataloader->SetBackgroundWeightExpression(weightExpressionB.c_str());
+    }
 
     /*
     dataloader->AddSpectator("phoEt");
@@ -299,6 +299,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treeFriendPathsS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeFriendPathsSig"));
     treeFriendPathsB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeFriendPathsBkg"));
 
+    weightExpressionS = confParser.ReadConfigValue("weightExpressionSig");
+    weightExpressionB = confParser.ReadConfigValue("weightExpressionBkg");
+
     treeBranchesS = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSigBranches"));
     treeBranchesB = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeBkgBranches"));
     treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
@@ -416,6 +419,9 @@ void printConfiguration()
     for (int i = 0; i < nTreeFriendPathsB; ++i) {
         std::cout << Form("treeFriendPathsB[%d] = %s", i, treeFriendPathsB.at(i).c_str()) << std::endl;
     }
+
+    std::cout << "weightExpressionS = " << weightExpressionS.c_str() << std::endl;
+    std::cout << "weightExpressionB = " << weightExpressionB.c_str() << std::endl;
 
     // branches activated in signal and background trees
     std::cout << "nTreeBranchesS = " << nTreeBranchesS << std::endl;

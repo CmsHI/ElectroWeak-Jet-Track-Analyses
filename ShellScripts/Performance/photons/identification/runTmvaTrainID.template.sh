@@ -1,7 +1,7 @@
 #!/bin/bash
 
-inputSig="Configurations/filelists/Pythia8_Photon30_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
-inputBkg="root://xrootd.cmsaf.mit.edu//store/user/rbi/merged/Pythia8_EmEnrDijet50_pp502_TuneCUETP8M1-HINppWinter16DR-75X_mcRun2_asymptotic_ppAt5TeV_forest_v1/0.root"
+inputSig="Configurations/filelists/Pythia8_PhotonXX_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
+inputBkg="Configurations/filelists/Pythia8_EmEnrDijetXX_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
 
 runCmd="./ShellScripts/myRun.sh"
 progPath="./Performance/objects/tmvaTrainID.exe"
@@ -21,7 +21,7 @@ $outDirBase"/Performance/photons/identification/tmvatrainID_template.root"
 );
 
 jobLabelList=(
-"tmvaTrainID_FactoryJob_phoEt40_EB_hoe0p1_vars_sieieMin0Max0p02_sumIsoMinM400Max50"
+"tmvaTrainID_FactoryJob_HINppWinter16DR_phoEt40_EB_hoe0p1_vars_sieieMin0Max0p02_sumIsoMinM400Max50"
 );
 
 arrayIndices=${!outList[*]}
