@@ -149,6 +149,7 @@ public:
     static std::string substituteVarString(std::string value, std::map<std::string, std::string> mapVarString);
     static std::string substituteEnv(std::string line);
     static std::pair<std::string, std::string> ParseVarDefinitionString(std::string command, std::string value);
+    static void insertVarString(std::pair<std::string, std::string> pairKeyValue, std::map<std::string, std::string>& mapVarString);
     static std::vector<std::string> ParseList(std::string strList, std::string separator = "");
     static std::vector<std::string> ParseListOrString(std::string strListOrString);
     static std::vector<std::string> ParseMultipleLists(std::string strLists, std::string separator = "");
@@ -483,6 +484,21 @@ std::pair<std::string, std::string> ConfigurationParser::ParseVarDefinitionStrin
     varName = trim(varName);
     value = trim(value);
     return (std::pair<std::string, std::string>(varName, value));
+}
+
+/*
+ * insert "pairKeyValue" into "mapVarString".
+ * If the key of "pairKeyValue" already exists in "mapVarString", then overwrite it in "mapVarString" with the value in "pairKeyValue"
+ */
+void ConfigurationParser::insertVarString(std::pair<std::string, std::string> pairKeyValue, std::map<std::string, std::string>& mapVarString)
+{
+    std::map<std::string, std::string>::iterator it = mapVarString.find(pairKeyValue.first.c_str());
+    if (it != mapVarString.end()) {
+        it->second = pairKeyValue.second;
+    }
+    else {
+        mapVarString.insert(pairKeyValue);
+    }
 }
 
 std::vector<std::string> ConfigurationParser::ParseList(std::string strList, std::string separator)
@@ -1565,7 +1581,7 @@ std::string ConfigurationParser::ReadConfigValue(std::ifstream& fin, std::string
         bool configFound = (line.find(configNameTmp.c_str()) == 0);
         if (isCommand) {
             if (ConfigurationParser::isVarDefinitionString(line)) {
-                mapVarStr.insert(ConfigurationParser::ParseVarDefinitionString(line, value));
+                insertVarString(ConfigurationParser::ParseVarDefinitionString(line, value), mapVarStr);
             } else if (ConfigurationParser::isImportConfigStatement(line)) {
 
                 res = ReadConfigValue(value, configName);
