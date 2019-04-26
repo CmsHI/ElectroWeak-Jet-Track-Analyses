@@ -259,6 +259,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                     ggHiOut.clearEntry();
                     ggHiOut.weight = w;
+                    ggHiOut.hiBin = hiEvt.hiBin;
 
                     if (!((*ggHi.phoEt)[i] > 20))  continue;
 
