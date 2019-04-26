@@ -161,6 +161,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(inputTreePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
+        treeggHiNtuplizer->SetBranchStatus("run",1);   // enable event information
+        treeggHiNtuplizer->SetBranchStatus("event",1);
+        treeggHiNtuplizer->SetBranchStatus("lumis",1);
         if (recoObj == RECOOBJS::kPhoton) {
             treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
             treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
@@ -274,12 +277,21 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 w *= pthatWeight;
             }
 
+            ggHiOut.clearEntry();
+
+            ggHiOut.weight = w;
+            ggHiOut.hiBin = hiEvt.hiBin;
+            ggHiOut.run = ggHi.run;
+            ggHiOut.event = ggHi.event;
+            ggHiOut.lumis = ggHi.lumis;
+
             if (recoObj == RECOOBJS::kPhoton) {
                 for (int i=0; i<ggHi.nPho; ++i) {
 
-                    ggHiOut.clearEntry();
-                    ggHiOut.weight = w;
-                    ggHiOut.hiBin = hiEvt.hiBin;
+                    ggHiOut.clearEntryPho();
+                    if (ggHiOut.doMC) {
+                        ggHiOut.clearEntryGen();
+                    }
 
                     if (!((*ggHi.phoEt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.phoEt)[i] < ptMax))  continue;
@@ -301,9 +313,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             else if (recoObj == RECOOBJS::kElectron) {
                 for (int i=0; i<ggHi.nEle; ++i) {
 
-                    ggHiOut.clearEntry();
-                    ggHiOut.weight = w;
-                    ggHiOut.hiBin = hiEvt.hiBin;
+                    ggHiOut.clearEntryEle();
+                    if (ggHiOut.doMC) {
+                        ggHiOut.clearEntryGen();
+                    }
 
                     if (!((*ggHi.elePt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.elePt)[i] < ptMax))  continue;
@@ -320,9 +333,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             else if (recoObj == RECOOBJS::kMuon) {
                 for (int i=0; i<ggHi.nMu; ++i) {
 
-                    ggHiOut.clearEntry();
-                    ggHiOut.weight = w;
-                    ggHiOut.hiBin = hiEvt.hiBin;
+                    ggHiOut.clearEntryMu();
+                    if (ggHiOut.doMC) {
+                        ggHiOut.clearEntryGen();
+                    }
 
                     if (!((*ggHi.muPt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.muPt)[i] < ptMax))  continue;

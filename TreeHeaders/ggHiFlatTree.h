@@ -20,6 +20,10 @@ public :
   void setupTreeForReading(TTree *t);
   void setupTreeForWriting(TTree* t);
   void clearEntry();
+  void clearEntryEle();
+  void clearEntryPho();
+  void clearEntryMu();
+  void clearEntryGen();
   void copyEle(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyPho(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyMu(ggHiNtuplizer &tggHiNtuplizer, int i);
@@ -958,32 +962,14 @@ void ggHiFlat::clearEntry()
     nPU = -987987;
     puBX = -987987;
     puTrue = -987987;
-    if (doMC) {
-        //nMC = 0;
-        mcPID = -987987;
-        mcStatus = -987987;
-        mcVtx_x = -987987;
-        mcVtx_y = -987987;
-        mcVtx_z = -987987;
-        mcPt = -987987;
-        mcEta = -987987;
-        mcPhi = -987987;
-        mcE = -987987;
-        mcEt = -987987;
-        mcMass = -987987;
-        mcParentage = -987987;
-        mcMomPID = -987987;
-        mcMomPt = -987987;
-        mcMomEta = -987987;
-        mcMomPhi = -987987;
-        mcMomMass = -987987;
-        mcGMomPID = -987987;
-        mcIndex = -987987;
-        mcCalIsoDR03 = -987987;
-        mcCalIsoDR04 = -987987;
-        mcTrkIsoDR03 = -987987;
-        mcTrkIsoDR04 = -987987;
-    }
+    clearEntryEle();
+    clearEntryPho();
+    clearEntryMu();
+    clearEntryGen();
+}
+
+void ggHiFlat::clearEntryEle()
+{
     if (doEle) {
         //nEle = 0;
         eleCharge = -987987;
@@ -1062,6 +1048,10 @@ void ggHiFlat::clearEntry()
         elepassConversionVeto = -987987;
         eleEffAreaTimesRho = -987987;
     }
+}
+
+void ggHiFlat::clearEntryPho()
+{
     if (doPho) {
         //nPho = 0;
         phoE = -987987;
@@ -1137,6 +1127,10 @@ void ggHiFlat::clearEntry()
         pfnIso4 = -987987;
         pfnIso5 = -987987;
     }
+}
+
+void ggHiFlat::clearEntryMu()
+{
     if (doMu) {
         //nMu = 0;
         muPt = -987987;
@@ -1161,6 +1155,36 @@ void ggHiFlat::clearEntry()
         muPFPhoIso = -987987;
         muPFNeuIso = -987987;
         muPFPUIso = -987987;
+    }
+}
+
+void ggHiFlat::clearEntryGen()
+{
+    if (doMC) {
+        //nMC = 0;
+        mcPID = -987987;
+        mcStatus = -987987;
+        mcVtx_x = -987987;
+        mcVtx_y = -987987;
+        mcVtx_z = -987987;
+        mcPt = -987987;
+        mcEta = -987987;
+        mcPhi = -987987;
+        mcE = -987987;
+        mcEt = -987987;
+        mcMass = -987987;
+        mcParentage = -987987;
+        mcMomPID = -987987;
+        mcMomPt = -987987;
+        mcMomEta = -987987;
+        mcMomPhi = -987987;
+        mcMomMass = -987987;
+        mcGMomPID = -987987;
+        mcIndex = -987987;
+        mcCalIsoDR03 = -987987;
+        mcCalIsoDR04 = -987987;
+        mcTrkIsoDR03 = -987987;
+        mcTrkIsoDR04 = -987987;
     }
 }
 
