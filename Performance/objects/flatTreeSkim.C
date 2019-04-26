@@ -198,6 +198,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeHiEvt->SetBranchStatus("lumi",1);
         treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
+        treeHiEvt->SetBranchStatus("hiHF",1);
         if (isMC) {
             treeHiEvt->SetBranchStatus("weight", 1);
         }
@@ -279,6 +280,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             ggHiOut.weight = w;
             ggHiOut.weightCent = wCent;
             ggHiOut.hiBin = hiEvt.hiBin;
+            ggHiOut.hiHF = hiEvt.hiHF;
             ggHiOut.run = ggHi.run;
             ggHiOut.event = ggHi.event;
             ggHiOut.lumis = ggHi.lumis;
