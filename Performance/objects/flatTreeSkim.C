@@ -39,6 +39,7 @@ int collisionType;
 std::string collisionName;
 
 // event cuts/weights
+bool doWeightCent;
 std::vector<std::vector<float>> pthatWeights;
 
 // object cuts
@@ -86,7 +87,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     bool isMC = collisionIsMC((COLL::TYPE)collisionType);
     bool isHI15 = collisionIsHI((COLL::TYPE)collisionType);
     bool isHI18 = collisionIsHI2018((COLL::TYPE)collisionType);
-    //bool isHI = (isHI15 || isHI18);
+    bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
     if (!isMC) {
@@ -197,8 +198,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeHiEvt->SetBranchStatus("lumi",1);
         treeHiEvt->SetBranchStatus("vz",1);
         treeHiEvt->SetBranchStatus("hiBin",1);
-        bool doEventWeight = (nPthatWeights > 0);
-        if (doEventWeight) {
+        if (isMC) {
             treeHiEvt->SetBranchStatus("weight", 1);
         }
         if (nPthatWeights > 0) {
@@ -250,20 +250,17 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             entriesAnalyzed++;
 
-            double w = 1;
+            double w = hiEvt.weight;
+            double wCent = 1;
+            //double wVertex = 1;
+
             /*
-            int hiBin = hiEvt.hiBin;
-            int cent = hiBin/2;
-             */
-            if (doEventWeight) {
-                w = hiEvt.weight;
-                /*
-                double vertexWeight = 1;
-                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
-                double centWeight = 1;
-                if (isHI && isMC)  centWeight = findNcoll(hiBin);
-                w *= vertexWeight * centWeight;
-                 */
+            if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
+            */
+
+            if (doWeightCent) {
+                if (isHI && isMC)  wCent = findNcoll(hiEvt.hiBin);
+                w *= wCent;
             }
 
             if (nPthatWeights > 0) {
@@ -280,6 +277,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             ggHiOut.clearEntry();
 
             ggHiOut.weight = w;
+            ggHiOut.weightCent = wCent;
             ggHiOut.hiBin = hiEvt.hiBin;
             ggHiOut.run = ggHi.run;
             ggHiOut.event = ggHi.event;
@@ -409,6 +407,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     collisionType = confParser.ReadConfigValueInteger("collisionType");
 
     // event cuts/weights
+    doWeightCent = (confParser.ReadConfigValueInteger("doWeightCent") > 0);
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
     // object cuts
@@ -448,6 +447,8 @@ void printConfiguration()
     std::cout << "outputTreePath = " << outputTreePath.c_str() << std::endl;
 
     std::cout << "collision = " << collisionName.c_str() << std::endl;
+
+    std::cout << "doWeightCent = " << doWeightCent << std::endl;
 
     std::cout << "nPthatWeights = " << nPthatWeights << std::endl;
     for (int i = 0; i < nPthatWeights; ++i) {

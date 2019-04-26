@@ -36,6 +36,7 @@ public :
 
   // Declaration of leaf types
   float weight;
+  float weightCent;
   int hiBin;
   UInt_t          run;
   ULong64_t       event;
@@ -248,6 +249,7 @@ public :
 
   // List of branches
   TBranch        *b_weight;   //!
+  TBranch        *b_weightCent;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_run;   //!
   TBranch        *b_event;   //!
@@ -521,6 +523,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
 {
     // Set branch addresses and branch pointers
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
+    if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("run")) t->SetBranchAddress("run", &run, &b_run);
     if (t->GetBranch("event")) t->SetBranchAddress("event", &event, &b_event);
@@ -733,6 +736,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
 void ggHiFlat::setupTreeForWriting(TTree* t)
 {
     t->Branch("weight", &weight);
+    t->Branch("weightCent", &weightCent);
     t->Branch("hiBin", &hiBin);
     t->Branch("run", &run);
     t->Branch("event", &event);
@@ -952,7 +956,8 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
 
 void ggHiFlat::clearEntry()
 {
-    weight = -987987;;
+    weight = -987987;
+    weightCent = -987987;
     hiBin = -1;
     run = 987987;
     event = 987987;
