@@ -82,12 +82,28 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     }
     std::cout<<"##### END #####"<< std::endl;
 
+    bool isMC = collisionIsMC((COLL::TYPE)collisionType);
+    bool isHI15 = collisionIsHI((COLL::TYPE)collisionType);
+    bool isHI18 = collisionIsHI2018((COLL::TYPE)collisionType);
+    //bool isHI = (isHI15 || isHI18);
+    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
+
+    if (!isMC) {
+        std::cout << "This macro runs on simulation samples only." << std::endl;
+        std::cout << "Change the collisionType to a simulated collisions." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return;
+    }
+
     TFile* output = TFile::Open(outputFile.c_str(),"UPDATE");
     output->cd();
 
     TTree* outputTree = new TTree(outputTreePath.c_str(), Form("skim of %s", inputTreePath.c_str()));
 
     ggHiFlat ggHiOut;
+    ggHiOut.doEle = (recoObj == RECOOBJS::kElectron);
+    ggHiOut.doPho = (recoObj == RECOOBJS::kPhoton);
+    ggHiOut.doMC = (recoObj == RECOOBJS::kPhoton && isMC);
     ggHiOut.setupTreeForWriting(outputTree);
 
     int nFiles = inputFiles.size();
@@ -119,19 +135,6 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
     fileTmp->Close();
     // done with initial reading
-
-    bool isMC = collisionIsMC((COLL::TYPE)collisionType);
-    bool isHI15 = collisionIsHI((COLL::TYPE)collisionType);
-    bool isHI18 = collisionIsHI2018((COLL::TYPE)collisionType);
-    //bool isHI = (isHI15 || isHI18);
-    bool isPP = collisionIsPP((COLL::TYPE)collisionType);
-
-    if (!isMC) {
-        std::cout << "This macro runs on simulation samples only." << std::endl;
-        std::cout << "Change the collisionType to a simulated collisions." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
