@@ -53,9 +53,10 @@ int nPthatWeights;
 enum RECOOBJS {
     kPhoton,
     kElectron,
+    kMuon,
     kN_RECOOBJS
 };
-const std::string recoObjsStr[kN_RECOOBJS] = {"photon", "electron"};
+const std::string recoObjsStr[kN_RECOOBJS] = {"photon", "electron", "muon"};
 int recoObj;
 ///// global variables - END
 
@@ -103,6 +104,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     ggHiFlat ggHiOut;
     ggHiOut.doEle = (recoObj == RECOOBJS::kElectron);
     ggHiOut.doPho = (recoObj == RECOOBJS::kPhoton);
+    ggHiOut.doMu = (recoObj == RECOOBJS::kMuon);
     ggHiOut.doMC = (recoObj == RECOOBJS::kPhoton && isMC);
     ggHiOut.setupTreeForWriting(outputTree);
 
@@ -410,6 +412,9 @@ int parseRecoObj(std::string recoObjStr)
     }
     else if (recoObjStr == "ele" || recoObjStr == "electron" || recoObjStr == "1") {
         return RECOOBJS::kElectron;
+    }
+    else if (recoObjStr == "mu" || recoObjStr == "muon" || recoObjStr == "2") {
+        return RECOOBJS::kMuon;
     }
     else {
         return -1;
