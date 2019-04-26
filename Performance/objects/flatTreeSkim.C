@@ -169,9 +169,18 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         else if (recoObj == RECOOBJS::kElectron) {
             treeggHiNtuplizer->SetBranchStatus("nEle",1);
             treeggHiNtuplizer->SetBranchStatus("ele*",1);
+            treeggHiNtuplizer->SetBranchStatus("NClusters",1);
+            treeggHiNtuplizer->SetBranchStatus("NEcalClusters",1);
         }
-        treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
-        treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+        else if (recoObj == RECOOBJS::kMuon) {
+            treeggHiNtuplizer->SetBranchStatus("nMu",1);
+            treeggHiNtuplizer->SetBranchStatus("mu*",1);
+        }
+
+        if (isMC) {
+            treeggHiNtuplizer->SetBranchStatus("nMC",1);     // enable GEN particle branches
+            treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+        }
         // check existence of genMatching branch
         if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
             std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
@@ -284,6 +293,44 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     if (genMatchedIndex >= 0) {
                         ggHiOut.copyGen(ggHi, genMatchedIndex);
                     }
+
+                    outputTree->Fill();
+                    objectsSkimmed++;
+                }
+            }
+            else if (recoObj == RECOOBJS::kElectron) {
+                for (int i=0; i<ggHi.nEle; ++i) {
+
+                    ggHiOut.clearEntry();
+                    ggHiOut.weight = w;
+                    ggHiOut.hiBin = hiEvt.hiBin;
+
+                    if (!((*ggHi.elePt)[i] >= ptMin))  continue;
+                    if (ptMax > 0 && !((*ggHi.elePt)[i] < ptMax))  continue;
+
+                    if (!(TMath::Abs((*ggHi.eleEta)[i]) >= etaMin))  continue;
+                    if (etaMax > 0 && !(TMath::Abs((*ggHi.eleEta)[i]) < etaMax))  continue;
+
+                    ggHiOut.copyEle(ggHi, i);
+
+                    outputTree->Fill();
+                    objectsSkimmed++;
+                }
+            }
+            else if (recoObj == RECOOBJS::kMuon) {
+                for (int i=0; i<ggHi.nMu; ++i) {
+
+                    ggHiOut.clearEntry();
+                    ggHiOut.weight = w;
+                    ggHiOut.hiBin = hiEvt.hiBin;
+
+                    if (!((*ggHi.muPt)[i] >= ptMin))  continue;
+                    if (ptMax > 0 && !((*ggHi.muPt)[i] < ptMax))  continue;
+
+                    if (!(TMath::Abs((*ggHi.muEta)[i]) >= etaMin))  continue;
+                    if (etaMax > 0 && !(TMath::Abs((*ggHi.muEta)[i]) < etaMax))  continue;
+
+                    ggHiOut.copyMu(ggHi, i);
 
                     outputTree->Fill();
                     objectsSkimmed++;

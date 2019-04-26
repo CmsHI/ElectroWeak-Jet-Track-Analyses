@@ -20,7 +20,9 @@ public :
   void setupTreeForReading(TTree *t);
   void setupTreeForWriting(TTree* t);
   void clearEntry();
+  void copyEle(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyPho(ggHiNtuplizer &tggHiNtuplizer, int i);
+  void copyMu(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyGen(ggHiNtuplizer &tggHiNtuplizer, int i);
 
   bool doEle;
@@ -1162,6 +1164,95 @@ void ggHiFlat::clearEntry()
     }
 }
 
+void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
+{
+    //nEle = 1;
+
+    eleCharge = (*tggHiNtuplizer.eleCharge)[i];
+    eleChargeConsistent = (*tggHiNtuplizer.eleChargeConsistent)[i];
+    eleSCPixCharge = (*tggHiNtuplizer.eleSCPixCharge)[i];
+    eleCtfCharge = (*tggHiNtuplizer.eleCtfCharge)[i];
+    eleEn = (*tggHiNtuplizer.eleEn)[i];
+    eleD0 = (*tggHiNtuplizer.eleD0)[i];
+    eleDz = (*tggHiNtuplizer.eleDz)[i];
+    eleD0Err = (*tggHiNtuplizer.eleD0Err)[i];
+    eleDzErr = (*tggHiNtuplizer.eleDzErr)[i];
+    eleTrkPt = (*tggHiNtuplizer.eleTrkPt)[i];
+    eleTrkEta = (*tggHiNtuplizer.eleTrkEta)[i];
+    eleTrkPhi = (*tggHiNtuplizer.eleTrkPhi)[i];
+    eleTrkCharge = (*tggHiNtuplizer.eleTrkCharge)[i];
+    eleTrkChi2 = (*tggHiNtuplizer.eleTrkChi2)[i];
+    eleTrkNdof = (*tggHiNtuplizer.eleTrkNdof)[i];
+    eleTrkNormalizedChi2 = (*tggHiNtuplizer.eleTrkNormalizedChi2)[i];
+    eleTrkValidHits = (*tggHiNtuplizer.eleTrkValidHits)[i];
+    eleTrkLayers = (*tggHiNtuplizer.eleTrkLayers)[i];
+    elePt = (*tggHiNtuplizer.elePt)[i];
+    eleEta = (*tggHiNtuplizer.eleEta)[i];
+    elePhi = (*tggHiNtuplizer.elePhi)[i];
+    eleSCEn = (*tggHiNtuplizer.eleSCEn)[i];
+    eleESEn = (*tggHiNtuplizer.eleESEn)[i];
+    eleSCEta = (*tggHiNtuplizer.eleSCEta)[i];
+    eleSCPhi = (*tggHiNtuplizer.eleSCPhi)[i];
+    eleSCRawEn = (*tggHiNtuplizer.eleSCRawEn)[i];
+    eleSCEtaWidth = (*tggHiNtuplizer.eleSCEtaWidth)[i];
+    eleSCPhiWidth = (*tggHiNtuplizer.eleSCPhiWidth)[i];
+    eleHoverE = (*tggHiNtuplizer.eleHoverE)[i];
+    eleHoverEBc = (*tggHiNtuplizer.eleHoverEBc)[i];
+    eleEoverP = (*tggHiNtuplizer.eleEoverP)[i];
+    eleEoverPInv = (*tggHiNtuplizer.eleEoverPInv)[i];
+    eleBrem = (*tggHiNtuplizer.eleBrem)[i];
+    eledEtaAtVtx = (*tggHiNtuplizer.eledEtaAtVtx)[i];
+    eledPhiAtVtx = (*tggHiNtuplizer.eledPhiAtVtx)[i];
+    eleSigmaIEtaIEta = (*tggHiNtuplizer.eleSigmaIEtaIEta)[i];
+    eleSigmaIEtaIEta_2012 = (*tggHiNtuplizer.eleSigmaIEtaIEta_2012)[i];
+    eleSigmaIPhiIPhi = (*tggHiNtuplizer.eleSigmaIPhiIPhi)[i];
+    eleMissHits = (*tggHiNtuplizer.eleMissHits)[i];
+    if (tggHiNtuplizer.eleESEffSigmaRR->size() > 0) {
+        eleESEffSigmaRR = (*tggHiNtuplizer.eleESEffSigmaRR)[i];
+    }
+    elePFChIso = (*tggHiNtuplizer.elePFChIso)[i];
+    elePFPhoIso = (*tggHiNtuplizer.elePFPhoIso)[i];
+    elePFNeuIso = (*tggHiNtuplizer.elePFNeuIso)[i];
+    elePFPUIso = (*tggHiNtuplizer.elePFPUIso)[i];
+    elePFChIso03 = (*tggHiNtuplizer.elePFChIso03)[i];
+    elePFPhoIso03 = (*tggHiNtuplizer.elePFPhoIso03)[i];
+    elePFNeuIso03 = (*tggHiNtuplizer.elePFNeuIso03)[i];
+    elePFChIso04 = (*tggHiNtuplizer.elePFChIso04)[i];
+    elePFPhoIso04 = (*tggHiNtuplizer.elePFPhoIso04)[i];
+    elePFNeuIso04 = (*tggHiNtuplizer.elePFNeuIso04)[i];
+    eleR9 = (*tggHiNtuplizer.eleR9)[i];
+    eleE3x3 = (*tggHiNtuplizer.eleE3x3)[i];
+    eleE5x5 = (*tggHiNtuplizer.eleE5x5)[i];
+    eleR9Full5x5 = (*tggHiNtuplizer.eleR9Full5x5)[i];
+    eleE3x3Full5x5 = (*tggHiNtuplizer.eleE3x3Full5x5)[i];
+    eleE5x5Full5x5 = (*tggHiNtuplizer.eleE5x5Full5x5)[i];
+    NClusters = (*tggHiNtuplizer.NClusters)[i];
+    NEcalClusters = (*tggHiNtuplizer.NEcalClusters)[i];
+    eleSeedEn = (*tggHiNtuplizer.eleSeedEn)[i];
+    eleSeedEta = (*tggHiNtuplizer.eleSeedEta)[i];
+    eleSeedPhi = (*tggHiNtuplizer.eleSeedPhi)[i];
+    eleSeedCryEta = (*tggHiNtuplizer.eleSeedCryEta)[i];
+    eleSeedCryPhi = (*tggHiNtuplizer.eleSeedCryPhi)[i];
+    eleSeedCryIeta = (*tggHiNtuplizer.eleSeedCryIeta)[i];
+    eleSeedCryIphi = (*tggHiNtuplizer.eleSeedCryIphi)[i];
+    if (tggHiNtuplizer.eleBC1E->size() > 0) {
+        eleBC1E = (*tggHiNtuplizer.eleBC1E)[i];
+        eleBC1Eta = (*tggHiNtuplizer.eleBC1Eta)[i];
+    }
+    if (tggHiNtuplizer.eleBC2E->size() > 0) {
+        eleBC2E = (*tggHiNtuplizer.eleBC2E)[i];
+        eleBC2Eta = (*tggHiNtuplizer.eleBC2Eta)[i];
+    }
+    if (tggHiNtuplizer.eleEffAreaTimesRho->size() > 0) {
+        eleIDVeto = (*tggHiNtuplizer.eleIDVeto)[i];
+        eleIDLoose = (*tggHiNtuplizer.eleIDLoose)[i];
+        eleIDMedium = (*tggHiNtuplizer.eleIDMedium)[i];
+        eleIDTight = (*tggHiNtuplizer.eleIDTight)[i];
+        elepassConversionVeto = (*tggHiNtuplizer.elepassConversionVeto)[i];
+        eleEffAreaTimesRho = (*tggHiNtuplizer.eleEffAreaTimesRho)[i];
+    }
+}
+
 void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
 {
     //nPho = 1;
@@ -1245,6 +1336,34 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         pfnIso4 = (*tggHiNtuplizer.pfnIso4)[i];
         pfnIso5 = (*tggHiNtuplizer.pfnIso5)[i];
     }
+}
+
+void ggHiFlat::copyMu(ggHiNtuplizer &tggHiNtuplizer, int i)
+{
+    //nMC = 1;
+
+    muPt = (*tggHiNtuplizer.muPt)[i];
+    muEta = (*tggHiNtuplizer.muEta)[i];
+    muPhi = (*tggHiNtuplizer.muPhi)[i];
+    muCharge = (*tggHiNtuplizer.muCharge)[i];
+    muType = (*tggHiNtuplizer.muType)[i];
+    muIsGood = (*tggHiNtuplizer.muIsGood)[i];
+    muD0 = (*tggHiNtuplizer.muD0)[i];
+    muDz = (*tggHiNtuplizer.muDz)[i];
+    muChi2NDF = (*tggHiNtuplizer.muChi2NDF)[i];
+    muInnerD0 = (*tggHiNtuplizer.muInnerD0)[i];
+    muInnerDz = (*tggHiNtuplizer.muInnerDz)[i];
+    muTrkLayers = (*tggHiNtuplizer.muTrkLayers)[i];
+    muPixelLayers = (*tggHiNtuplizer.muPixelLayers)[i];
+    muPixelHits = (*tggHiNtuplizer.muPixelHits)[i];
+    muMuonHits = (*tggHiNtuplizer.muMuonHits)[i];
+    muTrkQuality = (*tggHiNtuplizer.muTrkQuality)[i];
+    muStations = (*tggHiNtuplizer.muStations)[i];
+    muIsoTrk = (*tggHiNtuplizer.muIsoTrk)[i];
+    muPFChIso = (*tggHiNtuplizer.muPFChIso)[i];
+    muPFPhoIso = (*tggHiNtuplizer.muPFPhoIso)[i];
+    muPFNeuIso = (*tggHiNtuplizer.muPFNeuIso)[i];
+    muPFPUIso = (*tggHiNtuplizer.muPFPUIso)[i];
 }
 
 void ggHiFlat::copyGen(ggHiNtuplizer &tggHiNtuplizer, int i)
