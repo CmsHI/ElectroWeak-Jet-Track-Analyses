@@ -41,6 +41,12 @@ std::string collisionName;
 // event cuts/weights
 std::vector<std::vector<float>> pthatWeights;
 
+// object cuts
+float ptMin;
+float ptMax;
+float etaMin;
+float etaMax;
+
 int nPthatWeights;
 
 /// configuration variables - END
@@ -261,7 +267,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     ggHiOut.weight = w;
                     ggHiOut.hiBin = hiEvt.hiBin;
 
-                    if (!((*ggHi.phoEt)[i] > 20))  continue;
+                    if (!((*ggHi.phoEt)[i] >= ptMin))  continue;
+                    if (ptMax > 0 && !((*ggHi.phoEt)[i] < ptMax))  continue;
+
+                    if (!(TMath::Abs((*ggHi.phoEta)[i]) >= etaMin))  continue;
+                    if (etaMax > 0 && !(TMath::Abs((*ggHi.phoEta)[i]) < etaMax))  continue;
 
                     ggHiOut.copyPho(ggHi, i);
 
@@ -335,11 +345,20 @@ int readConfiguration(std::string configFile, std::string inputFile)
     // event cuts/weights
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
+    // object cuts
+    ptMin = confParser.ReadConfigValueFloat("ptMin");
+    ptMax = confParser.ReadConfigValueFloat("ptMax");
+    etaMin = confParser.ReadConfigValueFloat("etaMin");
+    etaMax = confParser.ReadConfigValueFloat("etaMax");
+
     nPthatWeights = pthatWeights[0].size();
 
     // set default values
     if (inputTreePath.size() == 0) inputTreePath = "ggHiNtuplizer/EventTree";
     if (outputTreePath.size() == 0) outputTreePath = "treeSignal";
+
+    if (ptMax == 0)  ptMax = -1;
+    if (etaMax == 0)  etaMax = -1;
 
     collisionName = getCollisionTypeName((COLL::TYPE)collisionType).c_str();
 
@@ -371,6 +390,11 @@ void printConfiguration()
         std::cout << Form("%f, ", pthatWeights[1].at(i));
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
+
+    std::cout << "ptMin = " << ptMin << std::endl;
+    std::cout << "ptMax = " << ptMax << std::endl;
+    std::cout << "etaMin = " << etaMin << std::endl;
+    std::cout << "etaMax = " << etaMax << std::endl;
 }
 
 int parseRecoObj(std::string recoObjStr)
