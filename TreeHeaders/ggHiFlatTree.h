@@ -39,7 +39,7 @@ public :
   int nPU;
   int puBX;
   float puTrue;
-  int nMC;
+  //int nMC;
   int mcPID;
   int mcStatus;
   float mcVtx_x;
@@ -64,7 +64,7 @@ public :
   float mcTrkIsoDR03;
   float mcTrkIsoDR04;
   int pho_genMatchedIndex;
-  int nEle;
+  //int nEle;
   int eleCharge;
   int eleChargeConsistent;
   int eleSCPixCharge;
@@ -140,7 +140,7 @@ public :
   int eleIDTight;
   int elepassConversionVeto;
   float eleEffAreaTimesRho;
-  int nPho;
+  //int nPho;
   float phoE;
   float phoEt;
   float phoEta;
@@ -214,7 +214,7 @@ public :
   float pfnIso3;
   float pfnIso4;
   float pfnIso5;
-  int nMu;
+  //int nMu;
   float muPt;
   float muEta;
   float muPhi;
@@ -524,7 +524,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("nPU")) t->SetBranchAddress("nPU", &nPU, &b_nPU);
     if (t->GetBranch("puBX")) t->SetBranchAddress("puBX", &puBX, &b_puBX);
     if (t->GetBranch("puTrue")) t->SetBranchAddress("puTrue", &puTrue, &b_puTrue);
-    if (t->GetBranch("nMC")) t->SetBranchAddress("nMC", &nMC, &b_nMC);
+    //if (t->GetBranch("nMC")) t->SetBranchAddress("nMC", &nMC, &b_nMC);
     if (t->GetBranch("mcPID")) t->SetBranchAddress("mcPID", &mcPID, &b_mcPID);
     if (t->GetBranch("mcStatus")) t->SetBranchAddress("mcStatus", &mcStatus, &b_mcStatus);
     if (t->GetBranch("mcVtx_x")) t->SetBranchAddress("mcVtx_x", &mcVtx_x, &b_mcVtx_x);
@@ -549,7 +549,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("mcTrkIsoDR03")) t->SetBranchAddress("mcTrkIsoDR03", &mcTrkIsoDR03, &b_mcTrkIsoDR03);
     if (t->GetBranch("mcTrkIsoDR04")) t->SetBranchAddress("mcTrkIsoDR04", &mcTrkIsoDR04, &b_mcTrkIsoDR04);
     if (t->GetBranch("pho_genMatchedIndex")) t->SetBranchAddress("pho_genMatchedIndex", &pho_genMatchedIndex, &b_pho_genMatchedIndex);
-    if (t->GetBranch("nEle")) t->SetBranchAddress("nEle", &nEle, &b_nEle);
+    //if (t->GetBranch("nEle")) t->SetBranchAddress("nEle", &nEle, &b_nEle);
     if (t->GetBranch("eleCharge")) t->SetBranchAddress("eleCharge", &eleCharge, &b_eleCharge);
     if (t->GetBranch("eleChargeConsistent")) t->SetBranchAddress("eleChargeConsistent", &eleChargeConsistent, &b_eleChargeConsistent);
     if (t->GetBranch("eleSCPixCharge")) t->SetBranchAddress("eleSCPixCharge", &eleSCPixCharge, &b_eleSCPixCharge);
@@ -625,7 +625,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleIDTight")) t->SetBranchAddress("eleIDTight", &eleIDTight, &b_eleIDTight);
     if (t->GetBranch("elepassConversionVeto")) t->SetBranchAddress("elepassConversionVeto", &elepassConversionVeto, &b_elepassConversionVeto);
     if (t->GetBranch("eleEffAreaTimesRho")) t->SetBranchAddress("eleEffAreaTimesRho", &eleEffAreaTimesRho, &b_eleEffAreaTimesRho);
-    if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
+    //if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
     if (t->GetBranch("phoEt")) t->SetBranchAddress("phoEt", &phoEt, &b_phoEt);
     if (t->GetBranch("phoEta")) t->SetBranchAddress("phoEta", &phoEta, &b_phoEta);
@@ -699,7 +699,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
-    if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
+    //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
     if (t->GetBranch("muPhi")) t->SetBranchAddress("muPhi", &muPhi, &b_muPhi);
@@ -737,7 +737,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("puBX", &puBX);
     t->Branch("puTrue", &puTrue);
     if (doMC) {
-        t->Branch("nMC", &nMC);
+        //t->Branch("nMC", &nMC);
         t->Branch("mcPID", &mcPID);
         t->Branch("mcStatus", &mcStatus);
         t->Branch("mcVtx_x", &mcVtx_x);
@@ -764,7 +764,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pho_genMatchedIndex", &pho_genMatchedIndex);
     }
     if (doEle) {
-        t->Branch("nEle", &nEle);
+        //t->Branch("nEle", &nEle);
         t->Branch("eleCharge", &eleCharge);
         t->Branch("eleChargeConsistent", &eleChargeConsistent);
         t->Branch("eleSCPixCharge", &eleSCPixCharge);
@@ -842,7 +842,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("eleEffAreaTimesRho", &eleEffAreaTimesRho);
     }
     if (doPho) {
-        t->Branch("nPho", &nPho);
+        //t->Branch("nPho", &nPho);
         t->Branch("phoE", &phoE);
         t->Branch("phoEt", &phoEt);
         t->Branch("phoEta", &phoEta);
@@ -918,7 +918,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso5", &pfnIso5);
     }
     if (doMu) {
-        t->Branch("nMu", &nMu);
+        //t->Branch("nMu", &nMu);
         t->Branch("muPt", &muPt);
         t->Branch("muEta", &muEta);
         t->Branch("muPhi", &muPhi);
@@ -957,7 +957,7 @@ void ggHiFlat::clearEntry()
     puBX = -987987;
     puTrue = -987987;
     if (doMC) {
-        nMC = 0;
+        //nMC = 0;
         mcPID = -987987;
         mcStatus = -987987;
         mcVtx_x = -987987;
@@ -984,7 +984,7 @@ void ggHiFlat::clearEntry()
         pho_genMatchedIndex = -987987;
     }
     if (doEle) {
-        nEle = 0;
+        //nEle = 0;
         eleCharge = -987987;
         eleChargeConsistent = -987987;
         eleSCPixCharge = -987987;
@@ -1062,7 +1062,7 @@ void ggHiFlat::clearEntry()
         eleEffAreaTimesRho = -987987;
     }
     if (doPho) {
-        nPho = 0;
+        //nPho = 0;
         phoE = -987987;
         phoEt = -987987;
         phoEta = -987987;
@@ -1136,7 +1136,7 @@ void ggHiFlat::clearEntry()
         pfnIso5 = -987987;
     }
     if (doMu) {
-        nMu = 0;
+        //nMu = 0;
         muPt = -987987;
         muEta = -987987;
         muPhi = -987987;
@@ -1164,7 +1164,7 @@ void ggHiFlat::clearEntry()
 
 void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
 {
-    nPho = 1;
+    //nPho = 1;
 
     pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
     phoE = (*tggHiNtuplizer.phoE)[i];
@@ -1249,7 +1249,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
 
 void ggHiFlat::copyGen(ggHiNtuplizer &tggHiNtuplizer, int i)
 {
-    nMC = 1;
+    //nMC = 1;
 
     mcPID = (*tggHiNtuplizer.mcPID)[i];
     mcStatus = (*tggHiNtuplizer.mcStatus)[i];
