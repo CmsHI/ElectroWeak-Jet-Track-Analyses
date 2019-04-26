@@ -65,7 +65,6 @@ public :
   float mcCalIsoDR04;
   float mcTrkIsoDR03;
   float mcTrkIsoDR04;
-  int pho_genMatchedIndex;
   //int nEle;
   int eleCharge;
   int eleChargeConsistent;
@@ -201,6 +200,7 @@ public :
   float pho_trackIsoR5PtCut20;
   float pho_swissCrx;
   float pho_seedTime;
+  int pho_genMatchedIndex;
   float pfcIso1;
   float pfcIso2;
   float pfcIso3;
@@ -277,7 +277,6 @@ public :
   TBranch        *b_mcCalIsoDR04;   //!
   TBranch        *b_mcTrkIsoDR03;   //!
   TBranch        *b_mcTrkIsoDR04;   //!
-  TBranch        *b_pho_genMatchedIndex;
   TBranch        *b_nEle;   //!
   TBranch        *b_eleCharge;   //!
   TBranch        *b_eleChargeConsistent;   //!
@@ -413,6 +412,7 @@ public :
   TBranch        *b_pho_trackIsoR5PtCut20;   //!
   TBranch        *b_pho_swissCrx;   //!
   TBranch        *b_pho_seedTime;   //!
+  TBranch        *b_pho_genMatchedIndex;
   TBranch        *b_pfcIso1;   //!
   TBranch        *b_pfcIso2;   //!
   TBranch        *b_pfcIso3;   //!
@@ -550,7 +550,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("mcCalIsoDR04")) t->SetBranchAddress("mcCalIsoDR04", &mcCalIsoDR04, &b_mcCalIsoDR04);
     if (t->GetBranch("mcTrkIsoDR03")) t->SetBranchAddress("mcTrkIsoDR03", &mcTrkIsoDR03, &b_mcTrkIsoDR03);
     if (t->GetBranch("mcTrkIsoDR04")) t->SetBranchAddress("mcTrkIsoDR04", &mcTrkIsoDR04, &b_mcTrkIsoDR04);
-    if (t->GetBranch("pho_genMatchedIndex")) t->SetBranchAddress("pho_genMatchedIndex", &pho_genMatchedIndex, &b_pho_genMatchedIndex);
     //if (t->GetBranch("nEle")) t->SetBranchAddress("nEle", &nEle, &b_nEle);
     if (t->GetBranch("eleCharge")) t->SetBranchAddress("eleCharge", &eleCharge, &b_eleCharge);
     if (t->GetBranch("eleChargeConsistent")) t->SetBranchAddress("eleChargeConsistent", &eleChargeConsistent, &b_eleChargeConsistent);
@@ -686,6 +685,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trackIsoR5PtCut20")) t->SetBranchAddress("pho_trackIsoR5PtCut20", &pho_trackIsoR5PtCut20, &b_pho_trackIsoR5PtCut20);
     if (t->GetBranch("pho_swissCrx")) t->SetBranchAddress("pho_swissCrx", &pho_swissCrx, &b_pho_swissCrx);
     if (t->GetBranch("pho_seedTime")) t->SetBranchAddress("pho_seedTime", &pho_seedTime, &b_pho_seedTime);
+    if (t->GetBranch("pho_genMatchedIndex")) t->SetBranchAddress("pho_genMatchedIndex", &pho_genMatchedIndex, &b_pho_genMatchedIndex);
     if (t->GetBranch("pfcIso1")) t->SetBranchAddress("pfcIso1", &pfcIso1, &b_pfcIso1);
     if (t->GetBranch("pfcIso2")) t->SetBranchAddress("pfcIso2", &pfcIso2, &b_pfcIso2);
     if (t->GetBranch("pfcIso3")) t->SetBranchAddress("pfcIso3", &pfcIso3, &b_pfcIso3);
@@ -763,7 +763,6 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("mcCalIsoDR04", &mcCalIsoDR04);
         t->Branch("mcTrkIsoDR03", &mcTrkIsoDR03);
         t->Branch("mcTrkIsoDR04", &mcTrkIsoDR04);
-        t->Branch("pho_genMatchedIndex", &pho_genMatchedIndex);
     }
     if (doEle) {
         //t->Branch("nEle", &nEle);
@@ -903,6 +902,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pho_trackIsoR5PtCut20", &pho_trackIsoR5PtCut20);
         t->Branch("pho_swissCrx", &pho_swissCrx);
         t->Branch("pho_seedTime", &pho_seedTime);
+        t->Branch("pho_genMatchedIndex", &pho_genMatchedIndex);
         t->Branch("pfcIso1", &pfcIso1);
         t->Branch("pfcIso2", &pfcIso2);
         t->Branch("pfcIso3", &pfcIso3);
@@ -983,7 +983,6 @@ void ggHiFlat::clearEntry()
         mcCalIsoDR04 = -987987;
         mcTrkIsoDR03 = -987987;
         mcTrkIsoDR04 = -987987;
-        pho_genMatchedIndex = -987987;
     }
     if (doEle) {
         //nEle = 0;
@@ -1121,6 +1120,7 @@ void ggHiFlat::clearEntry()
         pho_trackIsoR5PtCut20 = -987987;
         pho_swissCrx = -987987;
         pho_seedTime = -987987;
+        pho_genMatchedIndex = -987987;
         pfcIso1 = -987987;
         pfcIso2 = -987987;
         pfcIso3 = -987987;
@@ -1257,7 +1257,6 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
 {
     //nPho = 1;
 
-    pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
     phoE = (*tggHiNtuplizer.phoE)[i];
     phoEt = (*tggHiNtuplizer.phoEt)[i];
     phoEta = (*tggHiNtuplizer.phoEta)[i];
@@ -1318,6 +1317,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     pho_trackIsoR5PtCut20 = (*tggHiNtuplizer.pho_trackIsoR5PtCut20)[i];
     pho_swissCrx = (*tggHiNtuplizer.pho_swissCrx)[i];
     pho_seedTime = (*tggHiNtuplizer.pho_seedTime)[i];
+    pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
 
     if (tggHiNtuplizer.pfcIso1->size() > 0) {
         pfcIso1 = (*tggHiNtuplizer.pfcIso1)[i];
