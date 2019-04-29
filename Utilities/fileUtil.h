@@ -51,6 +51,11 @@ void saveCanvasesToPicture(TDirectoryFile* dir, std::string regex = "", std::str
  */
 int isGoodFile(TFile* file, bool verbose)
 {
+    if (file == 0) {
+        if (verbose) std::cout << "File is NULL." << std::endl;
+        return 1;
+    }
+
     int res = 0;
     if (file->IsZombie()) {
         res = 1;
