@@ -39,6 +39,7 @@ public :
   float weightCent;
   int hiBin;
   int hiHF;
+  float rho;
   UInt_t          run;
   ULong64_t       event;
   UInt_t          lumis;
@@ -253,6 +254,7 @@ public :
   TBranch        *b_weightCent;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
+  TBranch        *b_rho;   //!
   TBranch        *b_run;   //!
   TBranch        *b_event;   //!
   TBranch        *b_lumis;   //!
@@ -528,6 +530,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
+    if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("run")) t->SetBranchAddress("run", &run, &b_run);
     if (t->GetBranch("event")) t->SetBranchAddress("event", &event, &b_event);
     if (t->GetBranch("lumis")) t->SetBranchAddress("lumis", &lumis, &b_lumis);
@@ -742,6 +745,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("weightCent", &weightCent);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
+    t->Branch("rho", &rho);
     t->Branch("run", &run);
     t->Branch("event", &event);
     t->Branch("lumis", &lumis);
@@ -964,6 +968,7 @@ void ggHiFlat::clearEntry()
     weightCent = -987987;
     hiBin = -1;
     hiHF = -1;
+    rho = -1;
     run = 987987;
     event = 987987;
     lumis = 987987;

@@ -18,6 +18,7 @@
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
+#include "../../TreeHeaders/hiFJRhoTree.h"
 #include "../../TreeHeaders/ggHiFlatTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/ConfigurationParser.h"
@@ -121,6 +122,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     TTree* treeHiEvt = 0;
     TTree* treeHiForestInfo = 0;
     TTree* treeSkim = 0;
+    TTree* treeHiFJRho = 0;
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
@@ -146,6 +148,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     Long64_t entriesAnalyzed = 0;
     Long64_t objectsSkimmed = 0;
 
+    int nFilesSkipped = 0;
     std::cout<< "Loop : " << inputTreePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
@@ -157,6 +160,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         // check if the file is usable, if not skip the file.
         if (isGoodFile(fileTmp) != 0) {
             std::cout << "File is not good. skipping file." << std::endl;
+            nFilesSkipped++;
             continue;
         }
 
@@ -209,6 +213,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         treeSkim->SetBranchStatus("*",0);     // disable all branches
 
+        treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
+        treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
+        treeHiFJRho->SetBranchStatus("etaMin", 1);
+        treeHiFJRho->SetBranchStatus("etaMax", 1);
+        treeHiFJRho->SetBranchStatus("rho", 1);
+
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
 
@@ -222,6 +232,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
+        hiFJRho hiFJRho;
+        hiFJRho.setupTreeForReading(treeHiFJRho);
+
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
@@ -234,6 +247,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
+            treeHiFJRho->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -275,12 +289,24 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 w *= pthatWeight;
             }
 
+            // calc eta-ave rho
+            int nEtaBins = hiFJRho.rho->size();
+            double rhoEtaAve = 0;
+            double totEta = 0;
+            for (int i = 0; i < nEtaBins; ++i) {
+                double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
+                totEta += dEtaTmp;
+                rhoEtaAve += (*hiFJRho.rho)[i] * dEtaTmp;
+            }
+            rhoEtaAve = rhoEtaAve / totEta;
+
             ggHiOut.clearEntry();
 
             ggHiOut.weight = w;
             ggHiOut.weightCent = wCent;
             ggHiOut.hiBin = hiEvt.hiBin;
             ggHiOut.hiHF = hiEvt.hiHF;
+            ggHiOut.rho = rhoEtaAve;
             ggHiOut.run = ggHi.run;
             ggHiOut.event = ggHi.event;
             ggHiOut.lumis = ggHi.lumis;
@@ -358,6 +384,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
     std::cout << "objectsSkimmed    = " << objectsSkimmed << std::endl;
+    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
 
     // overwrite existing trees
     output->cd();
