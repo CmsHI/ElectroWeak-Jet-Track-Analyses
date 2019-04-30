@@ -331,6 +331,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
     Long64_t entries = 0;
     Long64_t entriesAnalyzed = 0;
 
+    int nFilesSkipped = 0;
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
@@ -342,6 +343,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         // check if the file is usable, if not skip the file.
         if (isGoodFile(fileTmp) != 0) {
             std::cout << "File is not good. skipping file." << std::endl;
+            nFilesSkipped++;
             continue;
         }
 
@@ -1027,6 +1029,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         fileTmp->Close();
     }
     std::cout<<  "Loop ENDED : " << treePath.c_str() <<std::endl;
+    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
@@ -1322,7 +1325,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 }
 
 /*
- * print information read from input/cut configurations
+ * print information read from configuration
  * assumes that readConfiguration() is run before
  */
 void printConfiguration()

@@ -381,11 +381,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         fileTmp->Close();
     }
     std::cout<<  "Loop ENDED : " << inputTreePath.c_str() <<std::endl;
+    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
     std::cout << "objectsSkimmed    = " << objectsSkimmed << std::endl;
-    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
 
     // overwrite existing trees
     output->cd();
