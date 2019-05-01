@@ -11,6 +11,8 @@
 #include "TSystem.h"
 #include "TROOT.h"
 
+#include "TMVA/IMethod.h"
+#include "TMVA/MethodBase.h"
 #include "TMVA/Factory.h"
 #include "TMVA/DataLoader.h"
 #include "TMVA/Tools.h"
@@ -253,6 +255,10 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     // Train MVAs using the set of training events
     if (runTmvaFactoryTrain) {
         factory->TrainAllMethods();
+    }
+    else {
+        //TMVA::MethodBase* mBase = dynamic_cast<TMVA::MethodBase*>(factory->GetMethod("dataset", "CutsGA"));
+        //factory->WriteDataInformation(mBase->DataInfo());
     }
 
     // Evaluate all MVAs using the set of test events
