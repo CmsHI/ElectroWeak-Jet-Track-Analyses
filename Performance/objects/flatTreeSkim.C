@@ -211,11 +211,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
         treeSkim->SetBranchStatus("*",0);     // disable all branches
 
+        treeHiFJRho = 0;
         treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
-        treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
-        treeHiFJRho->SetBranchStatus("etaMin", 1);
-        treeHiFJRho->SetBranchStatus("etaMax", 1);
-        treeHiFJRho->SetBranchStatus("rho", 1);
+        if (treeHiFJRho != 0) {
+            treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
+            treeHiFJRho->SetBranchStatus("etaMin", 1);
+            treeHiFJRho->SetBranchStatus("etaMax", 1);
+            treeHiFJRho->SetBranchStatus("rho", 1);
+        }
 
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
@@ -231,7 +234,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
         hiFJRho hiFJRho;
-        hiFJRho.setupTreeForReading(treeHiFJRho);
+        if (treeHiFJRho != 0) {
+            hiFJRho.setupTreeForReading(treeHiFJRho);
+        }
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
@@ -245,7 +250,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
-            treeHiFJRho->GetEntry(j_entry);
+            if (treeHiFJRho != 0) {
+                treeHiFJRho->GetEntry(j_entry);
+            }
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -288,15 +295,17 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
 
             // calc eta-ave rho
-            int nEtaBins = hiFJRho.rho->size();
             double rhoEtaAve = 0;
             double totEta = 0;
-            for (int i = 0; i < nEtaBins; ++i) {
-                double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
-                totEta += dEtaTmp;
-                rhoEtaAve += (*hiFJRho.rho)[i] * dEtaTmp;
+            if (treeHiFJRho != 0) {
+                int nEtaBins = hiFJRho.rho->size();
+                for (int i = 0; i < nEtaBins; ++i) {
+                    double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
+                    totEta += dEtaTmp;
+                    rhoEtaAve += (*hiFJRho.rho)[i] * dEtaTmp;
+                }
+                rhoEtaAve = rhoEtaAve / totEta;
             }
-            rhoEtaAve = rhoEtaAve / totEta;
 
             ggHiOut.clearEntry();
 
