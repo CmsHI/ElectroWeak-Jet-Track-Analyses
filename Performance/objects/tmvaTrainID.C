@@ -52,6 +52,10 @@ std::vector<std::string> tmvaMethodTitles;
 std::vector<std::string> tmvaMethodBaseOptions;
 int nTmvaMethods;
 
+bool runTmvaFactoryTrain;
+bool runTmvaFactoryTest;
+bool runTmvaFactoryEval;
+
 std::string preselectionS;
 std::string preselectionB;
 
@@ -247,13 +251,19 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     }
 
     // Train MVAs using the set of training events
-    factory->TrainAllMethods();
+    if (runTmvaFactoryTrain) {
+        factory->TrainAllMethods();
+    }
 
     // Evaluate all MVAs using the set of test events
-    factory->TestAllMethods();
+    if (runTmvaFactoryTest) {
+        factory->TestAllMethods();
+    }
 
     // Evaluate and compare performance of all configured MVAs
-    factory->EvaluateAllMethods();
+    if (runTmvaFactoryEval) {
+        factory->EvaluateAllMethods();
+    }
 
     output->Close();
 
@@ -311,6 +321,10 @@ int readConfiguration(std::string configFile, std::string inputFile)
     tmvaMethodTypes = ConfigurationParser::getVecString(tmvaMethodsList, 3, 0);
     tmvaMethodTitles = ConfigurationParser::getVecString(tmvaMethodsList, 3, 1);
     tmvaMethodBaseOptions = ConfigurationParser::getVecString(tmvaMethodsList, 3, 2);
+
+    runTmvaFactoryTrain = (confParser.ReadConfigValueInteger("runTmvaFactoryTrain") > 0);
+    runTmvaFactoryTest = (confParser.ReadConfigValueInteger("runTmvaFactoryTest") > 0);
+    runTmvaFactoryEval = (confParser.ReadConfigValueInteger("runTmvaFactoryEval") > 0);
 
     preselectionS = confParser.ReadConfigValue("preselectionSig");
     preselectionB = confParser.ReadConfigValue("preselectionBkg");
@@ -450,6 +464,10 @@ void printConfiguration()
                             tmvaMethodTitles[i].c_str(),
                             tmvaMethodBaseOptions[i].c_str()) << std::endl;
     }
+
+    std::cout << "runTmvaFactoryTrain = " << runTmvaFactoryTrain << std::endl;
+    std::cout << "runTmvaFactoryTest = " << runTmvaFactoryTest << std::endl;
+    std::cout << "runTmvaFactoryEval = " << runTmvaFactoryEval << std::endl;
 
     std::cout << "preselectionS = " << preselectionS.c_str() << std::endl;
     std::cout << "preselectionB = " << preselectionB.c_str() << std::endl;
