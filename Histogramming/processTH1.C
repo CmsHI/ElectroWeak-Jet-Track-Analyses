@@ -15,6 +15,7 @@
 
 #include "../Utilities/fileUtil.h"
 #include "../Utilities/systemUtil.h"
+#include "../Utilities/th1Util.h"
 
 void setTH1D(TH1D* h);
 void processTH1(std::string inputFiles, std::string outputFile = "processTH1.root", std::string writeMode = "RECREATE", std::string hInPaths = "", std::string hOutPath = "", std::string operation = "add");
@@ -56,6 +57,14 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
             strParams.push_back("-1");
         }
     }
+    else if (operation.find("MEANPROJ") == 0) {
+        strParams = split(operation, ":", false, false);
+        operation = "MEANPROJ";
+    }
+    else if (operation.find("STDDEVPROJ") == 0) {
+        strParams = split(operation, ":", false, false);
+        operation = "STDDEVPROJ";
+    }
 
     if (nInputFiles != 1 && nInputHist != 1 && nInputFiles != nInputHist) {
         std::cout << "Mismatch in number of input files and number of input histograms." << std::endl;
@@ -65,7 +74,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         return;
     }
     if (nInputHist > 1) {
-        if (operation == "SCALE" || operation == "UNITNORM" || operation == "PROJ") {
+        if (operation == "SCALE" || operation == "UNITNORM" || operation.find("PROJ") != std::string::npos) {
             std::cout << "There should be only one input histogram if operation is " << operation.c_str() << "." << std::endl;
             std::cout << "nInputHist = " << nInputHist << std::endl;
             std::cout << "Exiting." << std::endl;
@@ -147,6 +156,29 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         }
         else if (axisStr == "Y") {
             hOut = (TH1D*)(h2Dtmp->ProjectionY(hOutPath.c_str(), bin1, bin2));
+        }
+    }
+    else if (operation == "MEANPROJ" || operation == "STDDEVPROJ") {
+        h2Dtmp = (TH2D*)hInVec[0]->Clone(Form("%s_tmp", hOutPath.c_str()));
+
+        std::string titleY = "";
+        std::string axisStr = strParams[1];
+        if (axisStr == "X") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionX(hOutPath.c_str()));
+            titleY = h2Dtmp->GetYaxis()->GetTitle();
+        }
+        else if (axisStr == "Y") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionY(hOutPath.c_str()));
+            titleY = h2Dtmp->GetXaxis()->GetTitle();
+        }
+
+        if (operation == "MEANPROJ") {
+            hOut->SetYTitle(Form("< %s >", titleY.c_str()));
+            setBinsFromTH2sliceMean(hOut, h2Dtmp, (axisStr == "X"));
+        }
+        else if (operation == "STDDEVPROJ") {
+            hOut->SetYTitle(Form("#sigma( %s )", titleY.c_str()));
+            setBinsFromTH2sliceStdDev(hOut, h2Dtmp, (axisStr == "X"));
         }
     }
     else {
