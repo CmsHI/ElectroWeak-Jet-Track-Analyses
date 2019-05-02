@@ -45,6 +45,17 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         strParams = split(operation, ":", false, false);
         operation = "SCALE";
     }
+    else if (operation.find("PROJ") == 0) {
+        strParams = split(operation, ":", false, false);
+        operation = "PROJ";
+        if (strParams.size() == 2) {
+            strParams.push_back("0");
+            strParams.push_back("-1");
+        }
+        else if (strParams.size() == 3) {
+            strParams.push_back("-1");
+        }
+    }
 
     if (nInputFiles != 1 && nInputHist != 1 && nInputFiles != nInputHist) {
         std::cout << "Mismatch in number of input files and number of input histograms." << std::endl;
@@ -54,7 +65,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         return;
     }
     if (nInputHist > 1) {
-        if (operation == "SCALE" || operation == "UNITNORM") {
+        if (operation == "SCALE" || operation == "UNITNORM" || operation == "PROJ") {
             std::cout << "There should be only one input histogram if operation is " << operation.c_str() << "." << std::endl;
             std::cout << "nInputHist = " << nInputHist << std::endl;
             std::cout << "Exiting." << std::endl;
@@ -90,6 +101,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     TFile* output = TFile::Open(outputFile.c_str(), writeMode.c_str());
     output->cd();
 
+    TH2D* h2Dtmp = 0;
     TH1D* hOut = 0;
     if (operation == "ADD") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
@@ -123,6 +135,19 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     else if (operation == "UNITNORM") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         hOut->Scale(1.0 / hOut->Integral(), "width");
+    }
+    else if (operation == "PROJ") {
+        h2Dtmp = (TH2D*)hInVec[0]->Clone(Form("%s_tmp", hOutPath.c_str()));
+
+        std::string axisStr = strParams[1];
+        int bin1 = std::atoi(strParams[2].c_str());
+        int bin2 = std::atoi(strParams[3].c_str());
+        if (axisStr == "X") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionX(hOutPath.c_str(), bin1, bin2));
+        }
+        else if (axisStr == "Y") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionY(hOutPath.c_str(), bin1, bin2));
+        }
     }
     else {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
