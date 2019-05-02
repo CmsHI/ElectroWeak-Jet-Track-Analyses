@@ -78,12 +78,12 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         inputs[i] = TFile::Open(inputFilePaths.at(i).c_str(), "READ");
     }
 
-    std::vector<TH1D*> hInVec(nInputHist, 0);
+    std::vector<TH1*> hInVec(nInputHist, 0);
     for (int i = 0; i < nInputHist; ++i) {
 
         hInVec[i] = 0;
         int iFile = (nInputFiles == 1) ? 0 : i;
-        hInVec[i] = (TH1D*)inputs[iFile]->Get(hInputPaths[i].c_str());
+        hInVec[i] = (TH1*)inputs[iFile]->Get(hInputPaths[i].c_str());
         if (hInVec[i] == 0) continue;
     }
 
