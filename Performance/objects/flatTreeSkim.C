@@ -329,6 +329,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.clearEntryGen();
                     }
 
+                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
                     if (!((*ggHi.phoEt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.phoEt)[i] < ptMax))  continue;
 
