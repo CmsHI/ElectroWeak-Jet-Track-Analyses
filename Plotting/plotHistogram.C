@@ -193,6 +193,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int columns = configInput.proc[INPUT::kPLOTTING].i[INPUT::k_columns];
     std::vector<int> setLogx = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_setLogx]);
     std::vector<int> setLogy = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_setLogy]);
+    std::vector<int> setLogz = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_setLogz]);
 
     // set default values
     if (titleOffsetsX.size() == 0) titleOffsetsX = {INPUT_DEFAULT::titleOffsetX};
@@ -238,6 +239,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nSetLogx = setLogx.size();
     if (setLogy.size() == 0)  setLogy = {0};
     int nSetLogy = setLogy.size();
+    if (setLogz.size() == 0)  setLogz = {0};
+    int nSetLogz = setLogz.size();
 
     // xMin, xMax
     if (xMin.size() == 0)  xMin = {0};
@@ -859,6 +862,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nSetLogy; ++i) {
         std::cout << Form("setLogy[%d] = %d", i, setLogy.at(i)) << std::endl;
     }
+    std::cout << "nSetLogz = " << nSetLogz << std::endl;
+    for (int i = 0; i<nSetLogz; ++i) {
+        std::cout << Form("setLogz[%d] = %d", i, setLogz.at(i)) << std::endl;
+    }
 
     // verbose about cut configuration
     std::cout<<"Cut Configuration :"<<std::endl;
@@ -1274,8 +1281,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nSetLogx == nPads) setLogxTmp = setLogx.at(iPad);
         int setLogyTmp = setLogy.at(0);
         if (nSetLogy == nPads) setLogyTmp = setLogy.at(iPad);
+        int setLogzTmp = setLogz.at(0);
+        if (nSetLogz == nPads) setLogzTmp = setLogz.at(iPad);
 
-        setPadFinal(pads[iPad], setLogxTmp, setLogyTmp);
+        setPadFinal(pads[iPad], setLogxTmp, setLogyTmp, setLogzTmp);
     }
 
     if (doDrawRatio || doDrawDiff) {
