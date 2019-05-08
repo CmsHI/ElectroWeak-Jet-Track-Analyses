@@ -6,7 +6,7 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 inputList=(
-"Configurations/filelists/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list"
+"Configurations/filelists/Pythia8_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list"
 );
 
 configList=(
@@ -18,7 +18,7 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outList=(
-$outDirBase"/Performance/photons/skim/HIRun2015PbPb/flatTreeSkim_island_Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
+$outDirBase"/Performance/photons/skim/HIRun2015PbPb/flatTreeSkim_island_Pythia8_AllQCDPhotonXX_Hydjet_Cymbal_MB_HINPbPbWinter16DR.root"
 );
 
 arrayIndices=${!outList[*]}

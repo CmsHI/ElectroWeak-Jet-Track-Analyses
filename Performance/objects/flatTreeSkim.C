@@ -43,6 +43,11 @@ std::string collisionName;
 bool doWeightCent;
 std::vector<std::vector<float>> pthatWeights;
 
+// effective areas
+std::vector<std::vector<float>> effAreaC;   // charged
+std::vector<std::vector<float>> effAreaP;   // photon
+std::vector<std::vector<float>> effAreaN;   // neutral
+
 // object cuts
 float ptMin;
 float ptMax;
@@ -50,6 +55,10 @@ float etaMin;
 float etaMax;
 
 int nPthatWeights;
+
+int nEffAreaC;
+int nEffAreaP;
+int nEffAreaN;
 
 /// configuration variables - END
 enum RECOOBJS {
@@ -65,6 +74,7 @@ int recoObj;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 int parseRecoObj(std::string recoObjStr);
+double getEffArea(double eta, std::vector<float> &minEtas, std::vector<float> &maxEtas, std::vector<float> &effAreas, int nEffAreas);
 void flatTreeSkim(std::string configFile, std::string inputFile, std::string outputFile = "flatTreeSkim.root");
 
 void flatTreeSkim(std::string configFile, std::string inputFile, std::string outputFile)
@@ -344,6 +354,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.copyGen(ggHi, genMatchedIndex);
                     }
 
+                    ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
+                    ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
+                    ggHiOut.phoEAn = getEffArea((*ggHi.phoSCEta)[i], effAreaN[0], effAreaN[1], effAreaN[2], nEffAreaN);
+
                     outputTree->Fill();
                     objectsSkimmed++;
                 }
@@ -451,6 +465,10 @@ int readConfiguration(std::string configFile, std::string inputFile)
     doWeightCent = (confParser.ReadConfigValueInteger("doWeightCent") > 0);
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
+    effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
+    effAreaP = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaP"));
+    effAreaN = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaN"));
+
     // object cuts
     ptMin = confParser.ReadConfigValueFloat("ptMin");
     ptMax = confParser.ReadConfigValueFloat("ptMax");
@@ -458,6 +476,10 @@ int readConfiguration(std::string configFile, std::string inputFile)
     etaMax = confParser.ReadConfigValueFloat("etaMax");
 
     nPthatWeights = pthatWeights[0].size();
+
+    nEffAreaC = effAreaC[0].size();
+    nEffAreaP = effAreaP[0].size();
+    nEffAreaN = effAreaN[0].size();
 
     // set default values
     if (inputTreePath.size() == 0) inputTreePath = "ggHiNtuplizer/EventTree";
@@ -499,6 +521,30 @@ void printConfiguration()
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
 
+    std::cout << "nEffAreaC = " << nEffAreaC << std::endl;
+    for (int i = 0; i < nEffAreaC; ++i) {
+        std::cout << Form("effAreaC[%d] = { ", i);
+        std::cout << Form("%.0f, ", effAreaC[0].at(i));
+        std::cout << Form("%f, ", effAreaC[1].at(i));
+        std::cout << Form("%f }", effAreaC[2].at(i)) << std::endl;;
+    }
+
+    std::cout << "nEffAreaP = " << nEffAreaP << std::endl;
+    for (int i = 0; i < nEffAreaP; ++i) {
+        std::cout << Form("effAreaP[%d] = { ", i);
+        std::cout << Form("%.0f, ", effAreaP[0].at(i));
+        std::cout << Form("%f, ", effAreaP[1].at(i));
+        std::cout << Form("%f }", effAreaP[2].at(i)) << std::endl;;
+    }
+
+    std::cout << "nEffAreaN = " << nEffAreaN << std::endl;
+    for (int i = 0; i < nEffAreaN; ++i) {
+        std::cout << Form("effAreaN[%d] = { ", i);
+        std::cout << Form("%.0f, ", effAreaN[0].at(i));
+        std::cout << Form("%f, ", effAreaN[1].at(i));
+        std::cout << Form("%f }", effAreaN[2].at(i)) << std::endl;;
+    }
+
     std::cout << "ptMin = " << ptMin << std::endl;
     std::cout << "ptMax = " << ptMax << std::endl;
     std::cout << "etaMin = " << etaMin << std::endl;
@@ -524,4 +570,14 @@ int parseRecoObj(std::string recoObjStr)
     }
 }
 
+double getEffArea(double eta, std::vector<float> &minEtas, std::vector<float> &maxEtas, std::vector<float> &effAreas, int nEffAreas)
+{
+    for (int i = 0; i < nEffAreas; ++i) {
+        if (TMath::Abs(eta) >= minEtas[i] && TMath::Abs(eta) < maxEtas[i]) {
+            return effAreas[i];
+        }
+    }
+
+    return 0;
+}
 
