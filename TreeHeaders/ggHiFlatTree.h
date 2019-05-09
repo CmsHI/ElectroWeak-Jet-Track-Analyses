@@ -224,6 +224,9 @@ public :
   float pfnIso3;
   float pfnIso4;
   float pfnIso5;
+  float phoEAc;
+  float phoEAp;
+  float phoEAn;
   //int nMu;
   float muPt;
   float muEta;
@@ -440,6 +443,9 @@ public :
   TBranch        *b_pfnIso3;   //!
   TBranch        *b_pfnIso4;   //!
   TBranch        *b_pfnIso5;   //!
+  TBranch        *b_phoEAc;   //!
+  TBranch        *b_phoEAp;   //!
+  TBranch        *b_phoEAn;   //!
   TBranch        *b_pfcVsIso1;   //!
   TBranch        *b_pfcVsIso2;   //!
   TBranch        *b_pfcVsIso3;   //!
@@ -717,6 +723,9 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
+    if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
+    if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
+    if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
     //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
@@ -938,6 +947,9 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso3", &pfnIso3);
         t->Branch("pfnIso4", &pfnIso4);
         t->Branch("pfnIso5", &pfnIso5);
+        t->Branch("phoEAc", &phoEAc);
+        t->Branch("phoEAp", &phoEAp);
+        t->Branch("phoEAn", &phoEAn);
     }
     if (doMu) {
         //t->Branch("nMu", &nMu);
@@ -1146,6 +1158,9 @@ void ggHiFlat::clearEntryPho()
         pfnIso3 = -987987;
         pfnIso4 = -987987;
         pfnIso5 = -987987;
+        phoEAc = 0;
+        phoEAp = 0;
+        phoEAn = 0;
     }
 }
 
