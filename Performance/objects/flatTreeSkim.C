@@ -43,6 +43,8 @@ std::string collisionName;
 bool doWeightCent;
 std::vector<std::vector<float>> pthatWeights;
 
+bool calcRhoEtaAve;
+
 // effective areas
 std::vector<std::vector<float>> effAreaC;   // charged
 std::vector<std::vector<float>> effAreaP;   // photon
@@ -183,12 +185,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
             treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
             treeggHiNtuplizer->SetBranchStatus("pf*",1);     // enable photon branches
+            treeggHiNtuplizer->SetBranchStatus("rho",1);
         }
         else if (recoObj == RECOOBJS::kElectron) {
             treeggHiNtuplizer->SetBranchStatus("nEle",1);
             treeggHiNtuplizer->SetBranchStatus("ele*",1);
             treeggHiNtuplizer->SetBranchStatus("NClusters",1);
             treeggHiNtuplizer->SetBranchStatus("NEcalClusters",1);
+            treeggHiNtuplizer->SetBranchStatus("rho",1);
         }
         else if (recoObj == RECOOBJS::kMuon) {
             treeggHiNtuplizer->SetBranchStatus("nMu",1);
@@ -222,12 +226,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeSkim->SetBranchStatus("*",0);     // disable all branches
 
         treeHiFJRho = 0;
-        treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
-        if (treeHiFJRho != 0) {
-            treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
-            treeHiFJRho->SetBranchStatus("etaMin", 1);
-            treeHiFJRho->SetBranchStatus("etaMax", 1);
-            treeHiFJRho->SetBranchStatus("rho", 1);
+        if (calcRhoEtaAve) {
+            treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
+            if (treeHiFJRho != 0) {
+                treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
+                treeHiFJRho->SetBranchStatus("etaMin", 1);
+                treeHiFJRho->SetBranchStatus("etaMax", 1);
+                treeHiFJRho->SetBranchStatus("rho", 1);
+            }
         }
 
         ggHiNtuplizer ggHi;
@@ -305,16 +311,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
 
             // calc eta-ave rho
-            double rhoEtaAve = 0;
-            double totEta = 0;
-            if (treeHiFJRho != 0) {
+            double rho = -1;
+            if (calcRhoEtaAve && treeHiFJRho != 0) {
+                rho = 0;
+                double totEta = 0;
                 int nEtaBins = hiFJRho.rho->size();
                 for (int i = 0; i < nEtaBins; ++i) {
                     double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
                     totEta += dEtaTmp;
-                    rhoEtaAve += (*hiFJRho.rho)[i] * dEtaTmp;
+                    rho += (*hiFJRho.rho)[i] * dEtaTmp;
                 }
-                rhoEtaAve = rhoEtaAve / totEta;
+                rho = rho / totEta;
+            }
+            else if (ggHi.b_rho != 0) {
+                rho = ggHi.rho;
             }
 
             ggHiOut.clearEntry();
@@ -326,7 +336,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
             ggHiOut.hiBin = hiEvt.hiBin;
             ggHiOut.hiHF = hiEvt.hiHF;
-            ggHiOut.rho = rhoEtaAve;
+            ggHiOut.rho = rho;
             ggHiOut.run = ggHi.run;
             ggHiOut.event = ggHi.event;
             ggHiOut.lumis = ggHi.lumis;
@@ -465,6 +475,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     doWeightCent = (confParser.ReadConfigValueInteger("doWeightCent") > 0);
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
+    calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
+
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
     effAreaP = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaP"));
     effAreaN = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaN"));
@@ -520,6 +532,8 @@ void printConfiguration()
         std::cout << Form("%f, ", pthatWeights[1].at(i));
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
+
+    std::cout << "calcRhoEtaAve = " << calcRhoEtaAve << std::endl;
 
     std::cout << "nEffAreaC = " << nEffAreaC << std::endl;
     for (int i = 0; i < nEffAreaC; ++i) {
