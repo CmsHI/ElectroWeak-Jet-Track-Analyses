@@ -185,6 +185,21 @@ public :
     pfnIso3 = 0;
     pfnIso4 = 0;
     pfnIso5 = 0;
+    pfcIso1subUE = 0;
+    pfcIso2subUE = 0;
+    pfcIso3subUE = 0;
+    pfcIso4subUE = 0;
+    pfcIso5subUE = 0;
+    pfpIso1subUE = 0;
+    pfpIso2subUE = 0;
+    pfpIso3subUE = 0;
+    pfpIso4subUE = 0;
+    pfpIso5subUE = 0;
+    pfnIso1subUE = 0;
+    pfnIso2subUE = 0;
+    pfnIso3subUE = 0;
+    pfnIso4subUE = 0;
+    pfnIso5subUE = 0;
     muPt = 0;
     muEta = 0;
     muPhi = 0;
@@ -401,6 +416,21 @@ public :
   std::vector<float>   *pfnIso3;
   std::vector<float>   *pfnIso4;
   std::vector<float>   *pfnIso5;
+  std::vector<float>   *pfcIso1subUE;
+  std::vector<float>   *pfcIso2subUE;
+  std::vector<float>   *pfcIso3subUE;
+  std::vector<float>   *pfcIso4subUE;
+  std::vector<float>   *pfcIso5subUE;
+  std::vector<float>   *pfpIso1subUE;
+  std::vector<float>   *pfpIso2subUE;
+  std::vector<float>   *pfpIso3subUE;
+  std::vector<float>   *pfpIso4subUE;
+  std::vector<float>   *pfpIso5subUE;
+  std::vector<float>   *pfnIso1subUE;
+  std::vector<float>   *pfnIso2subUE;
+  std::vector<float>   *pfnIso3subUE;
+  std::vector<float>   *pfnIso4subUE;
+  std::vector<float>   *pfnIso5subUE;
   Int_t           nMu;
   std::vector<float>   *muPt;
   std::vector<float>   *muEta;
@@ -615,6 +645,21 @@ public :
   TBranch        *b_pfnIso3;   //!
   TBranch        *b_pfnIso4;   //!
   TBranch        *b_pfnIso5;   //!
+  TBranch        *b_pfcIso1subUE;   //!
+  TBranch        *b_pfcIso2subUE;   //!
+  TBranch        *b_pfcIso3subUE;   //!
+  TBranch        *b_pfcIso4subUE;   //!
+  TBranch        *b_pfcIso5subUE;   //!
+  TBranch        *b_pfpIso1subUE;   //!
+  TBranch        *b_pfpIso2subUE;   //!
+  TBranch        *b_pfpIso3subUE;   //!
+  TBranch        *b_pfpIso4subUE;   //!
+  TBranch        *b_pfpIso5subUE;   //!
+  TBranch        *b_pfnIso1subUE;   //!
+  TBranch        *b_pfnIso2subUE;   //!
+  TBranch        *b_pfnIso3subUE;   //!
+  TBranch        *b_pfnIso4subUE;   //!
+  TBranch        *b_pfnIso5subUE;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -830,6 +875,21 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
+    if (t->GetBranch("pfcIso1subUE")) t->SetBranchAddress("pfcIso1subUE", &pfcIso1subUE, &b_pfcIso1subUE);
+    if (t->GetBranch("pfcIso2subUE")) t->SetBranchAddress("pfcIso2subUE", &pfcIso2subUE, &b_pfcIso2subUE);
+    if (t->GetBranch("pfcIso3subUE")) t->SetBranchAddress("pfcIso3subUE", &pfcIso3subUE, &b_pfcIso3subUE);
+    if (t->GetBranch("pfcIso4subUE")) t->SetBranchAddress("pfcIso4subUE", &pfcIso4subUE, &b_pfcIso4subUE);
+    if (t->GetBranch("pfcIso5subUE")) t->SetBranchAddress("pfcIso5subUE", &pfcIso5subUE, &b_pfcIso5subUE);
+    if (t->GetBranch("pfpIso1subUE")) t->SetBranchAddress("pfpIso1subUE", &pfpIso1subUE, &b_pfpIso1subUE);
+    if (t->GetBranch("pfpIso2subUE")) t->SetBranchAddress("pfpIso2subUE", &pfpIso2subUE, &b_pfpIso2subUE);
+    if (t->GetBranch("pfpIso3subUE")) t->SetBranchAddress("pfpIso3subUE", &pfpIso3subUE, &b_pfpIso3subUE);
+    if (t->GetBranch("pfpIso4subUE")) t->SetBranchAddress("pfpIso4subUE", &pfpIso4subUE, &b_pfpIso4subUE);
+    if (t->GetBranch("pfpIso5subUE")) t->SetBranchAddress("pfpIso5subUE", &pfpIso5subUE, &b_pfpIso5subUE);
+    if (t->GetBranch("pfnIso1subUE")) t->SetBranchAddress("pfnIso1subUE", &pfnIso1subUE, &b_pfnIso1subUE);
+    if (t->GetBranch("pfnIso2subUE")) t->SetBranchAddress("pfnIso2subUE", &pfnIso2subUE, &b_pfnIso2subUE);
+    if (t->GetBranch("pfnIso3subUE")) t->SetBranchAddress("pfnIso3subUE", &pfnIso3subUE, &b_pfnIso3subUE);
+    if (t->GetBranch("pfnIso4subUE")) t->SetBranchAddress("pfnIso4subUE", &pfnIso4subUE, &b_pfnIso4subUE);
+    if (t->GetBranch("pfnIso5subUE")) t->SetBranchAddress("pfnIso5subUE", &pfnIso5subUE, &b_pfnIso5subUE);
     if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);

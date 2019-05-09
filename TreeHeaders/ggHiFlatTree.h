@@ -227,6 +227,21 @@ public :
   float phoEAc;
   float phoEAp;
   float phoEAn;
+  float pfcIso1subUE;
+  float pfcIso2subUE;
+  float pfcIso3subUE;
+  float pfcIso4subUE;
+  float pfcIso5subUE;
+  float pfpIso1subUE;
+  float pfpIso2subUE;
+  float pfpIso3subUE;
+  float pfpIso4subUE;
+  float pfpIso5subUE;
+  float pfnIso1subUE;
+  float pfnIso2subUE;
+  float pfnIso3subUE;
+  float pfnIso4subUE;
+  float pfnIso5subUE;
   //int nMu;
   float muPt;
   float muEta;
@@ -446,6 +461,21 @@ public :
   TBranch        *b_phoEAc;   //!
   TBranch        *b_phoEAp;   //!
   TBranch        *b_phoEAn;   //!
+  TBranch        *b_pfcIso1subUE;   //!
+  TBranch        *b_pfcIso2subUE;   //!
+  TBranch        *b_pfcIso3subUE;   //!
+  TBranch        *b_pfcIso4subUE;   //!
+  TBranch        *b_pfcIso5subUE;   //!
+  TBranch        *b_pfpIso1subUE;   //!
+  TBranch        *b_pfpIso2subUE;   //!
+  TBranch        *b_pfpIso3subUE;   //!
+  TBranch        *b_pfpIso4subUE;   //!
+  TBranch        *b_pfpIso5subUE;   //!
+  TBranch        *b_pfnIso1subUE;   //!
+  TBranch        *b_pfnIso2subUE;   //!
+  TBranch        *b_pfnIso3subUE;   //!
+  TBranch        *b_pfnIso4subUE;   //!
+  TBranch        *b_pfnIso5subUE;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -666,6 +696,21 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
     if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
     if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
+    if (t->GetBranch("pfcIso1subUE")) t->SetBranchAddress("pfcIso1subUE", &pfcIso1subUE, &b_pfcIso1subUE);
+    if (t->GetBranch("pfcIso2subUE")) t->SetBranchAddress("pfcIso2subUE", &pfcIso2subUE, &b_pfcIso2subUE);
+    if (t->GetBranch("pfcIso3subUE")) t->SetBranchAddress("pfcIso3subUE", &pfcIso3subUE, &b_pfcIso3subUE);
+    if (t->GetBranch("pfcIso4subUE")) t->SetBranchAddress("pfcIso4subUE", &pfcIso4subUE, &b_pfcIso4subUE);
+    if (t->GetBranch("pfcIso5subUE")) t->SetBranchAddress("pfcIso5subUE", &pfcIso5subUE, &b_pfcIso5subUE);
+    if (t->GetBranch("pfpIso1subUE")) t->SetBranchAddress("pfpIso1subUE", &pfpIso1subUE, &b_pfpIso1subUE);
+    if (t->GetBranch("pfpIso2subUE")) t->SetBranchAddress("pfpIso2subUE", &pfpIso2subUE, &b_pfpIso2subUE);
+    if (t->GetBranch("pfpIso3subUE")) t->SetBranchAddress("pfpIso3subUE", &pfpIso3subUE, &b_pfpIso3subUE);
+    if (t->GetBranch("pfpIso4subUE")) t->SetBranchAddress("pfpIso4subUE", &pfpIso4subUE, &b_pfpIso4subUE);
+    if (t->GetBranch("pfpIso5subUE")) t->SetBranchAddress("pfpIso5subUE", &pfpIso5subUE, &b_pfpIso5subUE);
+    if (t->GetBranch("pfnIso1subUE")) t->SetBranchAddress("pfnIso1subUE", &pfnIso1subUE, &b_pfnIso1subUE);
+    if (t->GetBranch("pfnIso2subUE")) t->SetBranchAddress("pfnIso2subUE", &pfnIso2subUE, &b_pfnIso2subUE);
+    if (t->GetBranch("pfnIso3subUE")) t->SetBranchAddress("pfnIso3subUE", &pfnIso3subUE, &b_pfnIso3subUE);
+    if (t->GetBranch("pfnIso4subUE")) t->SetBranchAddress("pfnIso4subUE", &pfnIso4subUE, &b_pfnIso4subUE);
+    if (t->GetBranch("pfnIso5subUE")) t->SetBranchAddress("pfnIso5subUE", &pfnIso5subUE, &b_pfnIso5subUE);
     //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
@@ -890,6 +935,21 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoEAc", &phoEAc);
         t->Branch("phoEAp", &phoEAp);
         t->Branch("phoEAn", &phoEAn);
+        t->Branch("pfcIso1subUE", &pfcIso1subUE);
+        t->Branch("pfcIso2subUE", &pfcIso2subUE);
+        t->Branch("pfcIso3subUE", &pfcIso3subUE);
+        t->Branch("pfcIso4subUE", &pfcIso4subUE);
+        t->Branch("pfcIso5subUE", &pfcIso5subUE);
+        t->Branch("pfpIso1subUE", &pfpIso1subUE);
+        t->Branch("pfpIso2subUE", &pfpIso2subUE);
+        t->Branch("pfpIso3subUE", &pfpIso3subUE);
+        t->Branch("pfpIso4subUE", &pfpIso4subUE);
+        t->Branch("pfpIso5subUE", &pfpIso5subUE);
+        t->Branch("pfnIso1subUE", &pfnIso1subUE);
+        t->Branch("pfnIso2subUE", &pfnIso2subUE);
+        t->Branch("pfnIso3subUE", &pfnIso3subUE);
+        t->Branch("pfnIso4subUE", &pfnIso4subUE);
+        t->Branch("pfnIso5subUE", &pfnIso5subUE);
     }
     if (doMu) {
         //t->Branch("nMu", &nMu);
@@ -1101,6 +1161,21 @@ void ggHiFlat::clearEntryPho()
         phoEAc = 0;
         phoEAp = 0;
         phoEAn = 0;
+        pfcIso1subUE = -987987;
+        pfcIso2subUE = -987987;
+        pfcIso3subUE = -987987;
+        pfcIso4subUE = -987987;
+        pfcIso5subUE = -987987;
+        pfpIso1subUE = -987987;
+        pfpIso2subUE = -987987;
+        pfpIso3subUE = -987987;
+        pfpIso4subUE = -987987;
+        pfpIso5subUE = -987987;
+        pfnIso1subUE = -987987;
+        pfnIso2subUE = -987987;
+        pfnIso3subUE = -987987;
+        pfnIso4subUE = -987987;
+        pfnIso5subUE = -987987;
     }
 }
 
@@ -1336,6 +1411,23 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         pfnIso3 = (*tggHiNtuplizer.pfnIso3)[i];
         pfnIso4 = (*tggHiNtuplizer.pfnIso4)[i];
         pfnIso5 = (*tggHiNtuplizer.pfnIso5)[i];
+    }
+    if (tggHiNtuplizer.pfcIso1subUE->size() > 0) {
+        pfcIso1subUE = (*tggHiNtuplizer.pfcIso1subUE)[i];
+        pfcIso2subUE = (*tggHiNtuplizer.pfcIso2subUE)[i];
+        pfcIso3subUE = (*tggHiNtuplizer.pfcIso3subUE)[i];
+        pfcIso4subUE = (*tggHiNtuplizer.pfcIso4subUE)[i];
+        pfcIso5subUE = (*tggHiNtuplizer.pfcIso5subUE)[i];
+        pfpIso1subUE = (*tggHiNtuplizer.pfpIso1subUE)[i];
+        pfpIso2subUE = (*tggHiNtuplizer.pfpIso2subUE)[i];
+        pfpIso3subUE = (*tggHiNtuplizer.pfpIso3subUE)[i];
+        pfpIso4subUE = (*tggHiNtuplizer.pfpIso4subUE)[i];
+        pfpIso5subUE = (*tggHiNtuplizer.pfpIso5subUE)[i];
+        pfnIso1subUE = (*tggHiNtuplizer.pfnIso1subUE)[i];
+        pfnIso2subUE = (*tggHiNtuplizer.pfnIso2subUE)[i];
+        pfnIso3subUE = (*tggHiNtuplizer.pfnIso3subUE)[i];
+        pfnIso4subUE = (*tggHiNtuplizer.pfnIso4subUE)[i];
+        pfnIso5subUE = (*tggHiNtuplizer.pfnIso5subUE)[i];
     }
 }
 
