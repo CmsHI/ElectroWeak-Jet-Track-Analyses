@@ -503,6 +503,237 @@ public :
 
 void ggHiFlat::setupTreeForReading(TTree *t)
 {
+    b_weight = 0;
+    b_weightCent = 0;
+    b_pthat = 0;
+    b_hiBin = 0;
+    b_hiHF = 0;
+    b_rho = 0;
+    b_run = 0;
+    b_event = 0;
+    b_lumis = 0;
+    b_isData = 0;
+    b_nPUInfo = 0;
+    b_nPU = 0;
+    b_puBX = 0;
+    b_puTrue = 0;
+    b_nMC = 0;
+    b_mcPID = 0;
+    b_mcStatus = 0;
+    b_mcVtx_x = 0;
+    b_mcVtx_y = 0;
+    b_mcVtx_z = 0;
+    b_mcPt = 0;
+    b_mcEta = 0;
+    b_mcPhi = 0;
+    b_mcE = 0;
+    b_mcEt = 0;
+    b_mcMass = 0;
+    b_mcParentage = 0;
+    b_mcMomPID = 0;
+    b_mcMomPt = 0;
+    b_mcMomEta = 0;
+    b_mcMomPhi = 0;
+    b_mcMomMass = 0;
+    b_mcGMomPID = 0;
+    b_mcIndex = 0;
+    b_mcCalIsoDR03 = 0;
+    b_mcCalIsoDR04 = 0;
+    b_mcTrkIsoDR03 = 0;
+    b_mcTrkIsoDR04 = 0;
+    b_nEle = 0;
+    b_eleCharge = 0;
+    b_eleChargeConsistent = 0;
+    b_eleSCPixCharge = 0;
+    b_eleCtfCharge = 0;
+    b_eleEn = 0;
+    b_eleD0 = 0;
+    b_eleDz = 0;
+    b_eleD0Err = 0;
+    b_eleDzErr = 0;
+    b_eleTrkPt = 0;
+    b_eleTrkEta = 0;
+    b_eleTrkPhi = 0;
+    b_eleTrkCharge = 0;
+    b_eleTrkChi2 = 0;
+    b_eleTrkNdof = 0;
+    b_eleTrkNormalizedChi2 = 0;
+    b_eleTrkValidHits = 0;
+    b_eleTrkLayers = 0;
+    b_elePt = 0;
+    b_eleEta = 0;
+    b_elePhi = 0;
+    b_eleSCEn = 0;
+    b_eleESEn = 0;
+    b_eleSCEta = 0;
+    b_eleSCPhi = 0;
+    b_eleSCRawEn = 0;
+    b_eleSCEtaWidth = 0;
+    b_eleSCPhiWidth = 0;
+    b_eleHoverE = 0;
+    b_eleHoverEBc = 0;
+    b_eleEoverP = 0;
+    b_eleEoverPInv = 0;
+    b_eleBrem = 0;
+    b_eledEtaAtVtx = 0;
+    b_eledPhiAtVtx = 0;
+    b_eleSigmaIEtaIEta = 0;
+    b_eleSigmaIEtaIEta_2012 = 0;
+    b_eleSigmaIPhiIPhi = 0;
+    b_eleMissHits = 0;
+    b_eleESEffSigmaRR = 0;
+    b_elePFChIso = 0;
+    b_elePFPhoIso = 0;
+    b_elePFNeuIso = 0;
+    b_elePFPUIso = 0;
+    b_elePFChIso03 = 0;
+    b_elePFPhoIso03 = 0;
+    b_elePFNeuIso03 = 0;
+    b_elePFChIso04 = 0;
+    b_elePFPhoIso04 = 0;
+    b_elePFNeuIso04 = 0;
+    b_eleR9 = 0;
+    b_eleE3x3 = 0;
+    b_eleE5x5 = 0;
+    b_eleR9Full5x5 = 0;
+    b_eleE3x3Full5x5 = 0;
+    b_eleE5x5Full5x5 = 0;
+    b_NClusters = 0;
+    b_NEcalClusters = 0;
+    b_eleSeedEn = 0;
+    b_eleSeedEta = 0;
+    b_eleSeedPhi = 0;
+    b_eleSeedCryEta = 0;
+    b_eleSeedCryPhi = 0;
+    b_eleSeedCryIeta = 0;
+    b_eleSeedCryIphi = 0;
+    b_eleBC1E = 0;
+    b_eleBC1Eta = 0;
+    b_eleBC2E = 0;
+    b_eleBC2Eta = 0;
+    b_eleIDVeto = 0;
+    b_eleIDLoose = 0;
+    b_eleIDMedium = 0;
+    b_eleIDTight = 0;
+    b_elepassConversionVeto = 0;
+    b_eleEffAreaTimesRho = 0;
+    b_nPho = 0;
+    b_phoE = 0;
+    b_phoEt = 0;
+    b_phoEta = 0;
+    b_phoPhi = 0;
+    b_phoSCE = 0;
+    b_phoSCRawE = 0;
+    b_phoESEn = 0;
+    b_phoSCEta = 0;
+    b_phoSCPhi = 0;
+    b_phoSCEtaWidth = 0;
+    b_phoSCPhiWidth = 0;
+    b_phoSCBrem = 0;
+    b_phohasPixelSeed = 0;
+    b_phoR9 = 0;
+    b_phoHoverE = 0;
+    b_phoSigmaIEtaIEta = 0;
+    TBranch *b_pho_isEle;
+    TBranch *b_pho_is2015Noise;
+    //b_phoE1x3 = 0;
+    //b_phoE2x2 = 0;
+    //b_phoE2x5Max = 0;
+    b_phoE1x5 = 0;
+    b_phoE2x5 = 0;
+    b_phoE3x3 = 0;
+    b_phoE5x5 = 0;
+    TBranch *b_phoMaxEnergyXtal;
+    b_phoSigmaEtaEta = 0;
+    b_phoR1x5 = 0;
+    b_phoR2x5 = 0;
+    b_phoESEffSigmaRR = 0;
+    b_phoSigmaIEtaIEta_2012 = 0;
+    //b_phoSigmaIEtaIPhi_2012 = 0;
+    //b_phoSigmaIPhiIPhi_2012 = 0;
+    //b_phoE1x3_2012 = 0;
+    //b_phoE2x2_2012 = 0;
+    //b_phoE2x5Max_2012 = 0;
+    //b_phoE5x5_2012 = 0;
+    b_phoE3x3_2012 = 0;
+    b_phoBC1E = 0;
+    b_phoBC1Eta = 0;
+    //b_phoBC2E = 0;
+    //b_phoBC2Eta = 0;
+    b_pho_ecalClusterIsoR2 = 0;
+    b_pho_ecalClusterIsoR3 = 0;
+    b_pho_ecalClusterIsoR4 = 0;
+    b_pho_ecalClusterIsoR5 = 0;
+    b_pho_hcalRechitIsoR1 = 0;
+    b_pho_hcalRechitIsoR2 = 0;
+    b_pho_hcalRechitIsoR3 = 0;
+    b_pho_hcalRechitIsoR4 = 0;
+    b_pho_hcalRechitIsoR5 = 0;
+    b_pho_trackIsoR1PtCut20 = 0;
+    b_pho_trackIsoR2PtCut20 = 0;
+    b_pho_trackIsoR3PtCut20 = 0;
+    b_pho_trackIsoR4PtCut20 = 0;
+    b_pho_trackIsoR5PtCut20 = 0;
+    b_pho_swissCrx = 0;
+    b_pho_seedTime = 0;
+    b_pho_genMatchedIndex = 0;
+    b_pfcIso1 = 0;
+    b_pfcIso2 = 0;
+    b_pfcIso3 = 0;
+    b_pfcIso4 = 0;
+    b_pfcIso5 = 0;
+    b_pfpIso1 = 0;
+    b_pfpIso2 = 0;
+    b_pfpIso3 = 0;
+    b_pfpIso4 = 0;
+    b_pfpIso5 = 0;
+    b_pfnIso1 = 0;
+    b_pfnIso2 = 0;
+    b_pfnIso3 = 0;
+    b_pfnIso4 = 0;
+    b_pfnIso5 = 0;
+    b_phoEAc = 0;
+    b_phoEAp = 0;
+    b_phoEAn = 0;
+    b_pfcIso1subUE = 0;
+    b_pfcIso2subUE = 0;
+    b_pfcIso3subUE = 0;
+    b_pfcIso4subUE = 0;
+    b_pfcIso5subUE = 0;
+    b_pfpIso1subUE = 0;
+    b_pfpIso2subUE = 0;
+    b_pfpIso3subUE = 0;
+    b_pfpIso4subUE = 0;
+    b_pfpIso5subUE = 0;
+    b_pfnIso1subUE = 0;
+    b_pfnIso2subUE = 0;
+    b_pfnIso3subUE = 0;
+    b_pfnIso4subUE = 0;
+    b_pfnIso5subUE = 0;
+    b_nMu = 0;
+    b_muPt = 0;
+    b_muEta = 0;
+    b_muPhi = 0;
+    b_muCharge = 0;
+    b_muType = 0;
+    b_muIsGood = 0;
+    b_muD0 = 0;
+    b_muDz = 0;
+    b_muChi2NDF = 0;
+    b_muInnerD0 = 0;
+    b_muInnerDz = 0;
+    b_muTrkLayers = 0;
+    b_muPixelLayers = 0;
+    b_muPixelHits = 0;
+    b_muMuonHits = 0;
+    b_muTrkQuality = 0;
+    b_muStations = 0;
+    b_muIsoTrk = 0;
+    b_muPFChIso = 0;
+    b_muPFPhoIso = 0;
+    b_muPFNeuIso = 0;
+    b_muPFPUIso = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
@@ -1281,7 +1512,7 @@ void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
     eleSigmaIEtaIEta_2012 = (*tggHiNtuplizer.eleSigmaIEtaIEta_2012)[i];
     eleSigmaIPhiIPhi = (*tggHiNtuplizer.eleSigmaIPhiIPhi)[i];
     eleMissHits = (*tggHiNtuplizer.eleMissHits)[i];
-    if (tggHiNtuplizer.eleESEffSigmaRR->size() > 0) {
+    if (tggHiNtuplizer.b_eleESEffSigmaRR != 0) {
         eleESEffSigmaRR = (*tggHiNtuplizer.eleESEffSigmaRR)[i];
     }
     elePFChIso = (*tggHiNtuplizer.elePFChIso)[i];
@@ -1309,15 +1540,15 @@ void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
     eleSeedCryPhi = (*tggHiNtuplizer.eleSeedCryPhi)[i];
     eleSeedCryIeta = (*tggHiNtuplizer.eleSeedCryIeta)[i];
     eleSeedCryIphi = (*tggHiNtuplizer.eleSeedCryIphi)[i];
-    if (tggHiNtuplizer.eleBC1E->size() > 0) {
+    if (tggHiNtuplizer.b_eleBC1E != 0) {
         eleBC1E = (*tggHiNtuplizer.eleBC1E)[i];
         eleBC1Eta = (*tggHiNtuplizer.eleBC1Eta)[i];
     }
-    if (tggHiNtuplizer.eleBC2E->size() > 0) {
+    if (tggHiNtuplizer.b_eleBC2E != 0) {
         eleBC2E = (*tggHiNtuplizer.eleBC2E)[i];
         eleBC2Eta = (*tggHiNtuplizer.eleBC2Eta)[i];
     }
-    if (tggHiNtuplizer.eleEffAreaTimesRho->size() > 0) {
+    if (tggHiNtuplizer.b_eleEffAreaTimesRho != 0) {
         eleIDVeto = (*tggHiNtuplizer.eleIDVeto)[i];
         eleIDLoose = (*tggHiNtuplizer.eleIDLoose)[i];
         eleIDMedium = (*tggHiNtuplizer.eleIDMedium)[i];
@@ -1367,7 +1598,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     //phoE2x5Max_2012 = (*tggHiNtuplizer.//phoE2x5Max_2012)[i];
     //phoE5x5_2012 = (*tggHiNtuplizer.//phoE5x5_2012)[i];
     phoE3x3_2012 = (*tggHiNtuplizer.phoE3x3_2012)[i];
-    if (tggHiNtuplizer.phoBC1E->size() > 0) {
+    if (tggHiNtuplizer.b_phoBC1E != 0) {
         phoBC1E = (*tggHiNtuplizer.phoBC1E)[i];
         phoBC1Eta = (*tggHiNtuplizer.phoBC1Eta)[i];
     }
@@ -1395,7 +1626,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     pho_seedTime = (*tggHiNtuplizer.pho_seedTime)[i];
     pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
 
-    if (tggHiNtuplizer.pfcIso1->size() > 0) {
+    if (tggHiNtuplizer.b_pfcIso1 != 0) {
         pfcIso1 = (*tggHiNtuplizer.pfcIso1)[i];
         pfcIso2 = (*tggHiNtuplizer.pfcIso2)[i];
         pfcIso3 = (*tggHiNtuplizer.pfcIso3)[i];
@@ -1412,7 +1643,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         pfnIso4 = (*tggHiNtuplizer.pfnIso4)[i];
         pfnIso5 = (*tggHiNtuplizer.pfnIso5)[i];
     }
-    if (tggHiNtuplizer.pfcIso1subUE->size() > 0) {
+    if (tggHiNtuplizer.b_pfcIso1subUE != 0) {
         pfcIso1subUE = (*tggHiNtuplizer.pfcIso1subUE)[i];
         pfcIso2subUE = (*tggHiNtuplizer.pfcIso2subUE)[i];
         pfcIso3subUE = (*tggHiNtuplizer.pfcIso3subUE)[i];
