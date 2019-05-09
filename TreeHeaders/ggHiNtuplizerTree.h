@@ -278,6 +278,7 @@ public :
   ULong64_t       event;
   UInt_t          lumis;
   Bool_t          isData;
+  Float_t         rho;
   Int_t           nPUInfo;
   std::vector<int>     *nPU;
   std::vector<int>     *puBX;
@@ -551,6 +552,7 @@ public :
   TBranch        *b_event;   //!
   TBranch        *b_lumis;   //!
   TBranch        *b_isData;   //!
+  TBranch        *b_rho;   //!
   TBranch        *b_nPUInfo;   //!
   TBranch        *b_nPU;   //!
   TBranch        *b_puBX;   //!
@@ -825,6 +827,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("event")) t->SetBranchAddress("event", &event, &b_event);
     if (t->GetBranch("lumis")) t->SetBranchAddress("lumis", &lumis, &b_lumis);
     if (t->GetBranch("isData")) t->SetBranchAddress("isData", &isData, &b_isData);
+    if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("nPUInfo")) t->SetBranchAddress("nPUInfo", &nPUInfo, &b_nPUInfo);
     if (t->GetBranch("nPU")) t->SetBranchAddress("nPU", &nPU, &b_nPU);
     if (t->GetBranch("puBX")) t->SetBranchAddress("puBX", &puBX, &b_puBX);
