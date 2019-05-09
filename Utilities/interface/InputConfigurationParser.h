@@ -710,7 +710,7 @@ InputConfiguration InputConfigurationParser::Parse(std::string inFile) {
         line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
         if (isCommand) {
             if (ConfigurationParser::isVarDefinitionString(line)) {
-                mapVarString.insert(ConfigurationParser::ParseVarDefinitionString(line, value));
+                ConfigurationParser::insertVarString(ConfigurationParser::ParseVarDefinitionString(line, value), mapVarString);
             } else if (ConfigurationParser::isImportInputStatement(line)) {
                 InputConfiguration importedConfig = InputConfigurationParser::Parse(value);
                 InputConfigurationParser::copyConfiguration(config, importedConfig);
