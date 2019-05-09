@@ -190,8 +190,8 @@ public :
   float phoE3x3_2012;
   float phoBC1E;
   float phoBC1Eta;
-  float phoBC2E;
-  float phoBC2Eta;
+  //float phoBC2E;
+  //float phoBC2Eta;
   float pho_ecalClusterIsoR2;
   float pho_ecalClusterIsoR3;
   float pho_ecalClusterIsoR4;
@@ -409,8 +409,8 @@ public :
   TBranch        *b_phoE3x3_2012;
   TBranch        *b_phoBC1E;   //!
   TBranch        *b_phoBC1Eta;   //!
-  TBranch        *b_phoBC2E;   //!
-  TBranch        *b_phoBC2Eta;   //!
+  //TBranch        *b_phoBC2E;   //!
+  //TBranch        *b_phoBC2Eta;   //!
   TBranch        *b_pho_ecalClusterIsoR2;   //!
   TBranch        *b_pho_ecalClusterIsoR3;   //!
   TBranch        *b_pho_ecalClusterIsoR4;   //!
@@ -689,8 +689,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);
-    if (t->GetBranch("phoBC2E")) t->SetBranchAddress("phoBC2E", &phoBC2E, &b_phoBC2E);
-    if (t->GetBranch("phoBC2Eta")) t->SetBranchAddress("phoBC2Eta", &phoBC2Eta, &b_phoBC2Eta);
+    //if (t->GetBranch("phoBC2E")) t->SetBranchAddress("phoBC2E", &phoBC2E, &b_phoBC2E);
+    //if (t->GetBranch("phoBC2Eta")) t->SetBranchAddress("phoBC2Eta", &phoBC2Eta, &b_phoBC2Eta);
     if (t->GetBranch("pho_ecalClusterIsoR2")) t->SetBranchAddress("pho_ecalClusterIsoR2", &pho_ecalClusterIsoR2, &b_pho_ecalClusterIsoR2);
     if (t->GetBranch("pho_ecalClusterIsoR3")) t->SetBranchAddress("pho_ecalClusterIsoR3", &pho_ecalClusterIsoR3, &b_pho_ecalClusterIsoR3);
     if (t->GetBranch("pho_ecalClusterIsoR4")) t->SetBranchAddress("pho_ecalClusterIsoR4", &pho_ecalClusterIsoR4, &b_pho_ecalClusterIsoR4);
@@ -891,9 +891,9 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
         t->Branch("pho_isEle", &pho_isEle);
         t->Branch("pho_is2015Noise", &pho_is2015Noise);
-    //    t->Branch("phoE1x3", &phoE1x3);
-    //    t->Branch("phoE2x2", &phoE2x2);
-    //    t->Branch("phoE2x5Max", &phoE2x5Max);
+        //t->Branch("phoE1x3", &phoE1x3);
+        //t->Branch("phoE2x2", &phoE2x2);
+        //t->Branch("phoE2x5Max", &phoE2x5Max);
         t->Branch("phoE1x5", &phoE1x5);
         t->Branch("phoE2x5", &phoE2x5);
         t->Branch("phoE3x3", &phoE3x3);
@@ -904,17 +904,17 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoR2x5", &phoR2x5);
         t->Branch("phoESEffSigmaRR", &phoESEffSigmaRR);
         t->Branch("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012);
-    //    t->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
-    //    t->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
-    //    t->Branch("phoE1x3_2012", &phoE1x3_2012);
-    //    t->Branch("phoE2x2_2012", &phoE2x2_2012);
-    //    t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
-    //    t->Branch("phoE5x5_2012", &phoE5x5_2012);
+        //t->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
+        //t->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
+        //t->Branch("phoE1x3_2012", &phoE1x3_2012);
+        //t->Branch("phoE2x2_2012", &phoE2x2_2012);
+        //t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
+        //t->Branch("phoE5x5_2012", &phoE5x5_2012);
         t->Branch("phoE3x3_2012", &phoE3x3_2012);
         t->Branch("phoBC1E", &phoBC1E);
         t->Branch("phoBC1Eta", &phoBC1Eta);
-        t->Branch("phoBC2E", &phoBC2E);
-        t->Branch("phoBC2Eta", &phoBC2Eta);
+        //t->Branch("phoBC2E", &phoBC2E);
+        //t->Branch("phoBC2Eta", &phoBC2Eta);
         t->Branch("pho_ecalClusterIsoR2", &pho_ecalClusterIsoR2);
         t->Branch("pho_ecalClusterIsoR3", &pho_ecalClusterIsoR3);
         t->Branch("pho_ecalClusterIsoR4", &pho_ecalClusterIsoR4);
@@ -1124,8 +1124,8 @@ void ggHiFlat::clearEntryPho()
         phoE3x3_2012 = -987987;
         phoBC1E = -987987;
         phoBC1Eta = -987987;
-        phoBC2E = -987987;
-        phoBC2Eta = -987987;
+        //phoBC2E = -987987;
+        //phoBC2Eta = -987987;
         pho_ecalClusterIsoR2 = -987987;
         pho_ecalClusterIsoR3 = -987987;
         pho_ecalClusterIsoR4 = -987987;
@@ -1356,10 +1356,12 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         phoBC1E = (*tggHiNtuplizer.phoBC1E)[i];
         phoBC1Eta = (*tggHiNtuplizer.phoBC1Eta)[i];
     }
+    /*
     if (tggHiNtuplizer.phoBC2E->size() > 0) {
         phoBC2E = (*tggHiNtuplizer.phoBC2E)[i];
         phoBC2Eta = (*tggHiNtuplizer.phoBC2Eta)[i];
     }
+    */
     pho_ecalClusterIsoR2 = (*tggHiNtuplizer.pho_ecalClusterIsoR2)[i];
     pho_ecalClusterIsoR3 = (*tggHiNtuplizer.pho_ecalClusterIsoR3)[i];
     pho_ecalClusterIsoR4 = (*tggHiNtuplizer.pho_ecalClusterIsoR4)[i];
