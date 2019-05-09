@@ -185,66 +185,6 @@ public :
     pfnIso3 = 0;
     pfnIso4 = 0;
     pfnIso5 = 0;
-    pfcVsIso1 = 0;
-    pfcVsIso2 = 0;
-    pfcVsIso3 = 0;
-    pfcVsIso4 = 0;
-    pfcVsIso5 = 0;
-    pfcVsIso1th1 = 0;
-    pfcVsIso2th1 = 0;
-    pfcVsIso3th1 = 0;
-    pfcVsIso4th1 = 0;
-    pfcVsIso5th1 = 0;
-    pfcVsIso1th2 = 0;
-    pfcVsIso2th2 = 0;
-    pfcVsIso3th2 = 0;
-    pfcVsIso4th2 = 0;
-    pfcVsIso5th2 = 0;
-    pfnVsIso1 = 0;
-    pfnVsIso2 = 0;
-    pfnVsIso3 = 0;
-    pfnVsIso4 = 0;
-    pfnVsIso5 = 0;
-    pfnVsIso1th1 = 0;
-    pfnVsIso2th1 = 0;
-    pfnVsIso3th1 = 0;
-    pfnVsIso4th1 = 0;
-    pfnVsIso5th1 = 0;
-    pfnVsIso1th2 = 0;
-    pfnVsIso2th2 = 0;
-    pfnVsIso3th2 = 0;
-    pfnVsIso4th2 = 0;
-    pfnVsIso5th2 = 0;
-    pfpVsIso1 = 0;
-    pfpVsIso2 = 0;
-    pfpVsIso3 = 0;
-    pfpVsIso4 = 0;
-    pfpVsIso5 = 0;
-    pfpVsIso1th1 = 0;
-    pfpVsIso2th1 = 0;
-    pfpVsIso3th1 = 0;
-    pfpVsIso4th1 = 0;
-    pfpVsIso5th1 = 0;
-    pfpVsIso1th2 = 0;
-    pfpVsIso2th2 = 0;
-    pfpVsIso3th2 = 0;
-    pfpVsIso4th2 = 0;
-    pfpVsIso5th2 = 0;
-    towerIso1 = 0;
-    towerIso2 = 0;
-    towerIso3 = 0;
-    towerIso4 = 0;
-    towerIso5 = 0;
-    towerVsIso1 = 0;
-    towerVsIso2 = 0;
-    towerVsIso3 = 0;
-    towerVsIso4 = 0;
-    towerVsIso5 = 0;
-    towerVsSubIso1 = 0;
-    towerVsSubIso2 = 0;
-    towerVsSubIso3 = 0;
-    towerVsSubIso4 = 0;
-    towerVsSubIso5 = 0;
     muPt = 0;
     muEta = 0;
     muPhi = 0;
@@ -461,66 +401,6 @@ public :
   std::vector<float>   *pfnIso3;
   std::vector<float>   *pfnIso4;
   std::vector<float>   *pfnIso5;
-  std::vector<float>   *pfcVsIso1;
-  std::vector<float>   *pfcVsIso2;
-  std::vector<float>   *pfcVsIso3;
-  std::vector<float>   *pfcVsIso4;
-  std::vector<float>   *pfcVsIso5;
-  std::vector<float>   *pfcVsIso1th1;
-  std::vector<float>   *pfcVsIso2th1;
-  std::vector<float>   *pfcVsIso3th1;
-  std::vector<float>   *pfcVsIso4th1;
-  std::vector<float>   *pfcVsIso5th1;
-  std::vector<float>   *pfcVsIso1th2;
-  std::vector<float>   *pfcVsIso2th2;
-  std::vector<float>   *pfcVsIso3th2;
-  std::vector<float>   *pfcVsIso4th2;
-  std::vector<float>   *pfcVsIso5th2;
-  std::vector<float>   *pfnVsIso1;
-  std::vector<float>   *pfnVsIso2;
-  std::vector<float>   *pfnVsIso3;
-  std::vector<float>   *pfnVsIso4;
-  std::vector<float>   *pfnVsIso5;
-  std::vector<float>   *pfnVsIso1th1;
-  std::vector<float>   *pfnVsIso2th1;
-  std::vector<float>   *pfnVsIso3th1;
-  std::vector<float>   *pfnVsIso4th1;
-  std::vector<float>   *pfnVsIso5th1;
-  std::vector<float>   *pfnVsIso1th2;
-  std::vector<float>   *pfnVsIso2th2;
-  std::vector<float>   *pfnVsIso3th2;
-  std::vector<float>   *pfnVsIso4th2;
-  std::vector<float>   *pfnVsIso5th2;
-  std::vector<float>   *pfpVsIso1;
-  std::vector<float>   *pfpVsIso2;
-  std::vector<float>   *pfpVsIso3;
-  std::vector<float>   *pfpVsIso4;
-  std::vector<float>   *pfpVsIso5;
-  std::vector<float>   *pfpVsIso1th1;
-  std::vector<float>   *pfpVsIso2th1;
-  std::vector<float>   *pfpVsIso3th1;
-  std::vector<float>   *pfpVsIso4th1;
-  std::vector<float>   *pfpVsIso5th1;
-  std::vector<float>   *pfpVsIso1th2;
-  std::vector<float>   *pfpVsIso2th2;
-  std::vector<float>   *pfpVsIso3th2;
-  std::vector<float>   *pfpVsIso4th2;
-  std::vector<float>   *pfpVsIso5th2;
-  std::vector<float>   *towerIso1;
-  std::vector<float>   *towerIso2;
-  std::vector<float>   *towerIso3;
-  std::vector<float>   *towerIso4;
-  std::vector<float>   *towerIso5;
-  std::vector<float>   *towerVsIso1;
-  std::vector<float>   *towerVsIso2;
-  std::vector<float>   *towerVsIso3;
-  std::vector<float>   *towerVsIso4;
-  std::vector<float>   *towerVsIso5;
-  std::vector<float>   *towerVsSubIso1;
-  std::vector<float>   *towerVsSubIso2;
-  std::vector<float>   *towerVsSubIso3;
-  std::vector<float>   *towerVsSubIso4;
-  std::vector<float>   *towerVsSubIso5;
   Int_t           nMu;
   std::vector<float>   *muPt;
   std::vector<float>   *muEta;
@@ -735,66 +615,6 @@ public :
   TBranch        *b_pfnIso3;   //!
   TBranch        *b_pfnIso4;   //!
   TBranch        *b_pfnIso5;   //!
-  TBranch        *b_pfcVsIso1;   //!
-  TBranch        *b_pfcVsIso2;   //!
-  TBranch        *b_pfcVsIso3;   //!
-  TBranch        *b_pfcVsIso4;   //!
-  TBranch        *b_pfcVsIso5;   //!
-  TBranch        *b_pfcVsIso1th1;   //!
-  TBranch        *b_pfcVsIso2th1;   //!
-  TBranch        *b_pfcVsIso3th1;   //!
-  TBranch        *b_pfcVsIso4th1;   //!
-  TBranch        *b_pfcVsIso5th1;   //!
-  TBranch        *b_pfcVsIso1th2;   //!
-  TBranch        *b_pfcVsIso2th2;   //!
-  TBranch        *b_pfcVsIso3th2;   //!
-  TBranch        *b_pfcVsIso4th2;   //!
-  TBranch        *b_pfcVsIso5th2;   //!
-  TBranch        *b_pfnVsIso1;   //!
-  TBranch        *b_pfnVsIso2;   //!
-  TBranch        *b_pfnVsIso3;   //!
-  TBranch        *b_pfnVsIso4;   //!
-  TBranch        *b_pfnVsIso5;   //!
-  TBranch        *b_pfnVsIso1th1;   //!
-  TBranch        *b_pfnVsIso2th1;   //!
-  TBranch        *b_pfnVsIso3th1;   //!
-  TBranch        *b_pfnVsIso4th1;   //!
-  TBranch        *b_pfnVsIso5th1;   //!
-  TBranch        *b_pfnVsIso1th2;   //!
-  TBranch        *b_pfnVsIso2th2;   //!
-  TBranch        *b_pfnVsIso3th2;   //!
-  TBranch        *b_pfnVsIso4th2;   //!
-  TBranch        *b_pfnVsIso5th2;   //!
-  TBranch        *b_pfpVsIso1;   //!
-  TBranch        *b_pfpVsIso2;   //!
-  TBranch        *b_pfpVsIso3;   //!
-  TBranch        *b_pfpVsIso4;   //!
-  TBranch        *b_pfpVsIso5;   //!
-  TBranch        *b_pfpVsIso1th1;   //!
-  TBranch        *b_pfpVsIso2th1;   //!
-  TBranch        *b_pfpVsIso3th1;   //!
-  TBranch        *b_pfpVsIso4th1;   //!
-  TBranch        *b_pfpVsIso5th1;   //!
-  TBranch        *b_pfpVsIso1th2;   //!
-  TBranch        *b_pfpVsIso2th2;   //!
-  TBranch        *b_pfpVsIso3th2;   //!
-  TBranch        *b_pfpVsIso4th2;   //!
-  TBranch        *b_pfpVsIso5th2;   //!
-  TBranch        *b_towerIso1;   //!
-  TBranch        *b_towerIso2;   //!
-  TBranch        *b_towerIso3;   //!
-  TBranch        *b_towerIso4;   //!
-  TBranch        *b_towerIso5;   //!
-  TBranch        *b_towerVsIso1;   //!
-  TBranch        *b_towerVsIso2;   //!
-  TBranch        *b_towerVsIso3;   //!
-  TBranch        *b_towerVsIso4;   //!
-  TBranch        *b_towerVsIso5;   //!
-  TBranch        *b_towerVsSubIso1;   //!
-  TBranch        *b_towerVsSubIso2;   //!
-  TBranch        *b_towerVsSubIso3;   //!
-  TBranch        *b_towerVsSubIso4;   //!
-  TBranch        *b_towerVsSubIso5;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -1010,66 +830,6 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
-    if (t->GetBranch("pfcVsIso1")) t->SetBranchAddress("pfcVsIso1", &pfcVsIso1, &b_pfcVsIso1);
-    if (t->GetBranch("pfcVsIso2")) t->SetBranchAddress("pfcVsIso2", &pfcVsIso2, &b_pfcVsIso2);
-    if (t->GetBranch("pfcVsIso3")) t->SetBranchAddress("pfcVsIso3", &pfcVsIso3, &b_pfcVsIso3);
-    if (t->GetBranch("pfcVsIso4")) t->SetBranchAddress("pfcVsIso4", &pfcVsIso4, &b_pfcVsIso4);
-    if (t->GetBranch("pfcVsIso5")) t->SetBranchAddress("pfcVsIso5", &pfcVsIso5, &b_pfcVsIso5);
-    if (t->GetBranch("pfcVsIso1th1")) t->SetBranchAddress("pfcVsIso1th1", &pfcVsIso1th1, &b_pfcVsIso1th1);
-    if (t->GetBranch("pfcVsIso2th1")) t->SetBranchAddress("pfcVsIso2th1", &pfcVsIso2th1, &b_pfcVsIso2th1);
-    if (t->GetBranch("pfcVsIso3th1")) t->SetBranchAddress("pfcVsIso3th1", &pfcVsIso3th1, &b_pfcVsIso3th1);
-    if (t->GetBranch("pfcVsIso4th1")) t->SetBranchAddress("pfcVsIso4th1", &pfcVsIso4th1, &b_pfcVsIso4th1);
-    if (t->GetBranch("pfcVsIso5th1")) t->SetBranchAddress("pfcVsIso5th1", &pfcVsIso5th1, &b_pfcVsIso5th1);
-    if (t->GetBranch("pfcVsIso1th2")) t->SetBranchAddress("pfcVsIso1th2", &pfcVsIso1th2, &b_pfcVsIso1th2);
-    if (t->GetBranch("pfcVsIso2th2")) t->SetBranchAddress("pfcVsIso2th2", &pfcVsIso2th2, &b_pfcVsIso2th2);
-    if (t->GetBranch("pfcVsIso3th2")) t->SetBranchAddress("pfcVsIso3th2", &pfcVsIso3th2, &b_pfcVsIso3th2);
-    if (t->GetBranch("pfcVsIso4th2")) t->SetBranchAddress("pfcVsIso4th2", &pfcVsIso4th2, &b_pfcVsIso4th2);
-    if (t->GetBranch("pfcVsIso5th2")) t->SetBranchAddress("pfcVsIso5th2", &pfcVsIso5th2, &b_pfcVsIso5th2);
-    if (t->GetBranch("pfnVsIso1")) t->SetBranchAddress("pfnVsIso1", &pfnVsIso1, &b_pfnVsIso1);
-    if (t->GetBranch("pfnVsIso2")) t->SetBranchAddress("pfnVsIso2", &pfnVsIso2, &b_pfnVsIso2);
-    if (t->GetBranch("pfnVsIso3")) t->SetBranchAddress("pfnVsIso3", &pfnVsIso3, &b_pfnVsIso3);
-    if (t->GetBranch("pfnVsIso4")) t->SetBranchAddress("pfnVsIso4", &pfnVsIso4, &b_pfnVsIso4);
-    if (t->GetBranch("pfnVsIso5")) t->SetBranchAddress("pfnVsIso5", &pfnVsIso5, &b_pfnVsIso5);
-    if (t->GetBranch("pfnVsIso1th1")) t->SetBranchAddress("pfnVsIso1th1", &pfnVsIso1th1, &b_pfnVsIso1th1);
-    if (t->GetBranch("pfnVsIso2th1")) t->SetBranchAddress("pfnVsIso2th1", &pfnVsIso2th1, &b_pfnVsIso2th1);
-    if (t->GetBranch("pfnVsIso3th1")) t->SetBranchAddress("pfnVsIso3th1", &pfnVsIso3th1, &b_pfnVsIso3th1);
-    if (t->GetBranch("pfnVsIso4th1")) t->SetBranchAddress("pfnVsIso4th1", &pfnVsIso4th1, &b_pfnVsIso4th1);
-    if (t->GetBranch("pfnVsIso5th1")) t->SetBranchAddress("pfnVsIso5th1", &pfnVsIso5th1, &b_pfnVsIso5th1);
-    if (t->GetBranch("pfnVsIso1th2")) t->SetBranchAddress("pfnVsIso1th2", &pfnVsIso1th2, &b_pfnVsIso1th2);
-    if (t->GetBranch("pfnVsIso2th2")) t->SetBranchAddress("pfnVsIso2th2", &pfnVsIso2th2, &b_pfnVsIso2th2);
-    if (t->GetBranch("pfnVsIso3th2")) t->SetBranchAddress("pfnVsIso3th2", &pfnVsIso3th2, &b_pfnVsIso3th2);
-    if (t->GetBranch("pfnVsIso4th2")) t->SetBranchAddress("pfnVsIso4th2", &pfnVsIso4th2, &b_pfnVsIso4th2);
-    if (t->GetBranch("pfnVsIso5th2")) t->SetBranchAddress("pfnVsIso5th2", &pfnVsIso5th2, &b_pfnVsIso5th2);
-    if (t->GetBranch("pfpVsIso1")) t->SetBranchAddress("pfpVsIso1", &pfpVsIso1, &b_pfpVsIso1);
-    if (t->GetBranch("pfpVsIso2")) t->SetBranchAddress("pfpVsIso2", &pfpVsIso2, &b_pfpVsIso2);
-    if (t->GetBranch("pfpVsIso3")) t->SetBranchAddress("pfpVsIso3", &pfpVsIso3, &b_pfpVsIso3);
-    if (t->GetBranch("pfpVsIso4")) t->SetBranchAddress("pfpVsIso4", &pfpVsIso4, &b_pfpVsIso4);
-    if (t->GetBranch("pfpVsIso5")) t->SetBranchAddress("pfpVsIso5", &pfpVsIso5, &b_pfpVsIso5);
-    if (t->GetBranch("pfpVsIso1th1")) t->SetBranchAddress("pfpVsIso1th1", &pfpVsIso1th1, &b_pfpVsIso1th1);
-    if (t->GetBranch("pfpVsIso2th1")) t->SetBranchAddress("pfpVsIso2th1", &pfpVsIso2th1, &b_pfpVsIso2th1);
-    if (t->GetBranch("pfpVsIso3th1")) t->SetBranchAddress("pfpVsIso3th1", &pfpVsIso3th1, &b_pfpVsIso3th1);
-    if (t->GetBranch("pfpVsIso4th1")) t->SetBranchAddress("pfpVsIso4th1", &pfpVsIso4th1, &b_pfpVsIso4th1);
-    if (t->GetBranch("pfpVsIso5th1")) t->SetBranchAddress("pfpVsIso5th1", &pfpVsIso5th1, &b_pfpVsIso5th1);
-    if (t->GetBranch("pfpVsIso1th2")) t->SetBranchAddress("pfpVsIso1th2", &pfpVsIso1th2, &b_pfpVsIso1th2);
-    if (t->GetBranch("pfpVsIso2th2")) t->SetBranchAddress("pfpVsIso2th2", &pfpVsIso2th2, &b_pfpVsIso2th2);
-    if (t->GetBranch("pfpVsIso3th2")) t->SetBranchAddress("pfpVsIso3th2", &pfpVsIso3th2, &b_pfpVsIso3th2);
-    if (t->GetBranch("pfpVsIso4th2")) t->SetBranchAddress("pfpVsIso4th2", &pfpVsIso4th2, &b_pfpVsIso4th2);
-    if (t->GetBranch("pfpVsIso5th2")) t->SetBranchAddress("pfpVsIso5th2", &pfpVsIso5th2, &b_pfpVsIso5th2);
-    if (t->GetBranch("towerIso1")) t->SetBranchAddress("towerIso1", &towerIso1, &b_towerIso1);
-    if (t->GetBranch("towerIso2")) t->SetBranchAddress("towerIso2", &towerIso2, &b_towerIso2);
-    if (t->GetBranch("towerIso3")) t->SetBranchAddress("towerIso3", &towerIso3, &b_towerIso3);
-    if (t->GetBranch("towerIso4")) t->SetBranchAddress("towerIso4", &towerIso4, &b_towerIso4);
-    if (t->GetBranch("towerIso5")) t->SetBranchAddress("towerIso5", &towerIso5, &b_towerIso5);
-    if (t->GetBranch("towerVsIso1")) t->SetBranchAddress("towerVsIso1", &towerVsIso1, &b_towerVsIso1);
-    if (t->GetBranch("towerVsIso2")) t->SetBranchAddress("towerVsIso2", &towerVsIso2, &b_towerVsIso2);
-    if (t->GetBranch("towerVsIso3")) t->SetBranchAddress("towerVsIso3", &towerVsIso3, &b_towerVsIso3);
-    if (t->GetBranch("towerVsIso4")) t->SetBranchAddress("towerVsIso4", &towerVsIso4, &b_towerVsIso4);
-    if (t->GetBranch("towerVsIso5")) t->SetBranchAddress("towerVsIso5", &towerVsIso5, &b_towerVsIso5);
-    if (t->GetBranch("towerVsSubIso1")) t->SetBranchAddress("towerVsSubIso1", &towerVsSubIso1, &b_towerVsSubIso1);
-    if (t->GetBranch("towerVsSubIso2")) t->SetBranchAddress("towerVsSubIso2", &towerVsSubIso2, &b_towerVsSubIso2);
-    if (t->GetBranch("towerVsSubIso3")) t->SetBranchAddress("towerVsSubIso3", &towerVsSubIso3, &b_towerVsSubIso3);
-    if (t->GetBranch("towerVsSubIso4")) t->SetBranchAddress("towerVsSubIso4", &towerVsSubIso4, &b_towerVsSubIso4);
-    if (t->GetBranch("towerVsSubIso5")) t->SetBranchAddress("towerVsSubIso5", &towerVsSubIso5, &b_towerVsSubIso5);
     if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);

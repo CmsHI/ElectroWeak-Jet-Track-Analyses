@@ -446,66 +446,6 @@ public :
   TBranch        *b_phoEAc;   //!
   TBranch        *b_phoEAp;   //!
   TBranch        *b_phoEAn;   //!
-  TBranch        *b_pfcVsIso1;   //!
-  TBranch        *b_pfcVsIso2;   //!
-  TBranch        *b_pfcVsIso3;   //!
-  TBranch        *b_pfcVsIso4;   //!
-  TBranch        *b_pfcVsIso5;   //!
-  TBranch        *b_pfcVsIso1th1;   //!
-  TBranch        *b_pfcVsIso2th1;   //!
-  TBranch        *b_pfcVsIso3th1;   //!
-  TBranch        *b_pfcVsIso4th1;   //!
-  TBranch        *b_pfcVsIso5th1;   //!
-  TBranch        *b_pfcVsIso1th2;   //!
-  TBranch        *b_pfcVsIso2th2;   //!
-  TBranch        *b_pfcVsIso3th2;   //!
-  TBranch        *b_pfcVsIso4th2;   //!
-  TBranch        *b_pfcVsIso5th2;   //!
-  TBranch        *b_pfnVsIso1;   //!
-  TBranch        *b_pfnVsIso2;   //!
-  TBranch        *b_pfnVsIso3;   //!
-  TBranch        *b_pfnVsIso4;   //!
-  TBranch        *b_pfnVsIso5;   //!
-  TBranch        *b_pfnVsIso1th1;   //!
-  TBranch        *b_pfnVsIso2th1;   //!
-  TBranch        *b_pfnVsIso3th1;   //!
-  TBranch        *b_pfnVsIso4th1;   //!
-  TBranch        *b_pfnVsIso5th1;   //!
-  TBranch        *b_pfnVsIso1th2;   //!
-  TBranch        *b_pfnVsIso2th2;   //!
-  TBranch        *b_pfnVsIso3th2;   //!
-  TBranch        *b_pfnVsIso4th2;   //!
-  TBranch        *b_pfnVsIso5th2;   //!
-  TBranch        *b_pfpVsIso1;   //!
-  TBranch        *b_pfpVsIso2;   //!
-  TBranch        *b_pfpVsIso3;   //!
-  TBranch        *b_pfpVsIso4;   //!
-  TBranch        *b_pfpVsIso5;   //!
-  TBranch        *b_pfpVsIso1th1;   //!
-  TBranch        *b_pfpVsIso2th1;   //!
-  TBranch        *b_pfpVsIso3th1;   //!
-  TBranch        *b_pfpVsIso4th1;   //!
-  TBranch        *b_pfpVsIso5th1;   //!
-  TBranch        *b_pfpVsIso1th2;   //!
-  TBranch        *b_pfpVsIso2th2;   //!
-  TBranch        *b_pfpVsIso3th2;   //!
-  TBranch        *b_pfpVsIso4th2;   //!
-  TBranch        *b_pfpVsIso5th2;   //!
-  TBranch        *b_towerIso1;   //!
-  TBranch        *b_towerIso2;   //!
-  TBranch        *b_towerIso3;   //!
-  TBranch        *b_towerIso4;   //!
-  TBranch        *b_towerIso5;   //!
-  TBranch        *b_towerVsIso1;   //!
-  TBranch        *b_towerVsIso2;   //!
-  TBranch        *b_towerVsIso3;   //!
-  TBranch        *b_towerVsIso4;   //!
-  TBranch        *b_towerVsIso5;   //!
-  TBranch        *b_towerVsSubIso1;   //!
-  TBranch        *b_towerVsSubIso2;   //!
-  TBranch        *b_towerVsSubIso3;   //!
-  TBranch        *b_towerVsSubIso4;   //!
-  TBranch        *b_towerVsSubIso5;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
