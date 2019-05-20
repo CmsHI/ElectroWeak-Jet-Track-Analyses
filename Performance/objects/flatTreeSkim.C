@@ -4,6 +4,9 @@
 
 #include <TFile.h>
 #include <TTree.h>
+#include <TH1.h>
+#include <TH1D.h>
+#include <TH2D.h>
 #include <TObjArray.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
@@ -42,6 +45,9 @@ std::string collisionName;
 // event cuts/weights
 bool doWeightCent;
 std::vector<std::vector<float>> pthatWeights;
+
+std::string fileKinWeight;
+std::string histKinWeight;
 
 bool calcRhoEtaAve;
 
@@ -152,6 +158,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
     fileTmp->Close();
     // done with initial reading
+
+    // kinematics weights
+    fileTmp = 0;
+    TH2D* h2D_weightKin = 0;
+    if (fileKinWeight.size() > 0 && histKinWeight.size() > 0) {
+        fileTmp = TFile::Open(fileKinWeight.c_str(), "READ");
+        h2D_weightKin = (TH2D*)fileTmp->Get(histKinWeight.c_str());
+    }
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -332,6 +346,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             if (isMC) {
                 ggHiOut.weight = w;
                 ggHiOut.weightCent = wCent;
+                ggHiOut.weightKin = 0;
                 ggHiOut.pthat = hiEvt.pthat;
             }
             ggHiOut.hiBin = hiEvt.hiBin;
@@ -367,6 +382,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
                     ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
                     ggHiOut.phoEAn = getEffArea((*ggHi.phoSCEta)[i], effAreaN[0], effAreaN[1], effAreaN[2], nEffAreaN);
+
+                    if (h2D_weightKin != 0) {
+                        int binTmp = h2D_weightKin->FindBin((*ggHi.phoEt)[i], (*ggHi.phoEta)[i]);
+                        ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
+                    }
 
                     outputTree->Fill();
                     objectsSkimmed++;
@@ -475,6 +495,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     doWeightCent = (confParser.ReadConfigValueInteger("doWeightCent") > 0);
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
+    fileKinWeight = confParser.ReadConfigValue("fileKinWeight");
+    histKinWeight = confParser.ReadConfigValue("histKinWeight");
+
     calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
 
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
@@ -532,6 +555,9 @@ void printConfiguration()
         std::cout << Form("%f, ", pthatWeights[1].at(i));
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
+
+    std::cout << "fileKinWeight = " << fileKinWeight.c_str() << std::endl;
+    std::cout << "histKinWeight = " << histKinWeight.c_str() << std::endl;
 
     std::cout << "calcRhoEtaAve = " << calcRhoEtaAve << std::endl;
 

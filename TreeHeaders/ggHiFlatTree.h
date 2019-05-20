@@ -37,6 +37,7 @@ public :
   // Declaration of leaf types
   float weight;
   float weightCent;
+  float weightKin;      // weight for kinematics : pt, eta
   float pthat;
   int hiBin;
   int hiHF;
@@ -271,6 +272,7 @@ public :
   // List of branches
   TBranch        *b_weight;   //!
   TBranch        *b_weightCent;   //!
+  TBranch        *b_weightKin;   //!
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
@@ -505,6 +507,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
 {
     b_weight = 0;
     b_weightCent = 0;
+    b_weightKin = 0;
     b_pthat = 0;
     b_hiBin = 0;
     b_hiHF = 0;
@@ -737,6 +740,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     // Set branch addresses and branch pointers
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
+    if (t->GetBranch("weightKin")) t->SetBranchAddress("weightKin", &weightKin, &b_weightKin);
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
@@ -971,6 +975,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
 {
     t->Branch("weight", &weight);
     t->Branch("weightCent", &weightCent);
+    t->Branch("weightKin", &weightKin);
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
@@ -1213,6 +1218,7 @@ void ggHiFlat::clearEntry()
 {
     weight = -1;
     weightCent = -1;
+    weightKin = -1;
     pthat = -1;
     hiBin = -1;
     hiHF = -1;
