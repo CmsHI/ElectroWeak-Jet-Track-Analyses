@@ -18,7 +18,7 @@ variableList=(
 );
 
 sigEffList=(
-0.7
+0.6,0.65,0.7,0.75,0.8
 );
 
 specList1="phoEt,phoEta,phoPhi,phoSCEta,phoSCPhi,phoHoverE,pho_ecalClusterIsoR4,pho_hcalRechitIsoR4,pho_trackIsoR4PtCut20,pho_genMatchedIndex"
