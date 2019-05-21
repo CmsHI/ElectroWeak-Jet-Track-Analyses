@@ -210,7 +210,7 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 
     int nTrainSig = entriesPreSelSig * fracTrainEvtS;
     int nTrainBkg = entriesPreSelBkg * fracTrainEvtB;
-    std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=NumEvents", nTrainSig, nTrainBkg);
+    std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=EqualNumEvents", nTrainSig, nTrainBkg);
 
     dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
 
