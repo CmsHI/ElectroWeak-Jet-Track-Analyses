@@ -151,7 +151,9 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     Long64_t entriesSig = treeSig->GetEntries();
     Long64_t entriesBkg = treeBkg->GetEntries();
 
+    treeSig->SetBranchStatus("*", 0);
     setBranchesStatus(treeSig, treeBranchesS);
+    treeBkg->SetBranchStatus("*", 0);
     setBranchesStatus(treeBkg, treeBranchesB);
 
     TFile* output = 0;
@@ -295,7 +297,7 @@ int main(int argc, char** argv)
     }
     else {
         std::cout << "Usage : \n" <<
-                "./tmvaTrainID.exe <arg1> <arg2> <arg3> <arg4> <arg5>"
+                "./tmvaTrainID.exe <configFile> <signalFile> <backgroundFile> <outputFile> <jobLabel>"
                 << std::endl;
         return 1;
     }
@@ -503,7 +505,6 @@ t->SetBranchStatus("mc*", 1);
 */
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList)
 {
-    t->SetBranchStatus("*", 0);
     for (std::vector<std::string>::iterator it = branchList.begin(); it != branchList.end(); ++it) {
         t->SetBranchStatus((*it).c_str(), 1);
     }
