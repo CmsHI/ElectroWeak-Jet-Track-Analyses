@@ -174,6 +174,7 @@ int doEventWeight;
 
 // RECO photon cuts
 float cut_hovere;
+bool excludeHI18HEMfailure;
 
 int nTriggerBranchesNum;
 int nTriggerBranchesDenomGlobal;
@@ -828,6 +829,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                  }
 
+                                 if (excludeHI18HEMfailure){
+                                     if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                 }
+
                                  pt = (*ggHi.phoEt)[i];
                                  eta = (*ggHi.phoEta)[i];
                                  sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
@@ -839,6 +844,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              else if (recoObj == RECOOBJS::kElectron) {
 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
+
+                                 if (excludeHI18HEMfailure){
+                                     if (((*ggHi.eleSCEta)[i] < -1.5 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
+                                 }
 
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];
@@ -1145,6 +1154,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                  }
 
+                                 if (excludeHI18HEMfailure){
+                                     if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                 }
+
                                  pt = (*ggHi.phoEt)[i];
                                  eta = (*ggHi.phoEta)[i];
                                  sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
@@ -1156,6 +1169,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              else if (recoObj == RECOOBJS::kElectron) {
 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
+
+                                 if (excludeHI18HEMfailure){
+                                     if (((*ggHi.eleSCEta)[i] < -1.5 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
+                                 }
 
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];
@@ -1432,6 +1449,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // RECO photon cuts
     cut_hovere = confParser.ReadConfigValueFloat("hovere");
+    excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     // set default values
     if (bins_eta[0].size() == 0) {
@@ -1585,6 +1603,7 @@ void printConfiguration()
     std::cout << "doEventWeight = " << doEventWeight << std::endl;
 
     std::cout << "cut_hovere = " << cut_hovere << std::endl;
+    std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
     for (int i=0; i<nTH1D_Axis_List; ++i) {
