@@ -289,6 +289,7 @@ void setTH1(TH1D* h, int iHist);
 void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
+bool passedEleSelection(ggHiNtuplizer ggHi, int i, int hiBin);
 void objTriggerAna(std::string configFile, std::string triggerFile, std::string inputFile, std::string outputFile = "objTriggerAna.root");
 void objTriggerAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "objTriggerAna.root");
 
@@ -836,6 +837,9 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  r9 = (*ggHi.phoR9)[i];
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
+
+                                 if (!passedEleSelection(ggHi, i, hiBin))  continue;
+
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];
                                  sumIso = 0;
@@ -1150,6 +1154,9 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  r9 = (*ggHi.phoR9)[i];
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
+
+                                 if (!passedEleSelection(ggHi, i, hiBin))  continue;
+
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];
                                  sumIso = 0;
@@ -2780,4 +2787,63 @@ void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> tex
     }
 
     drawTextLines(latex, pad, textLines, textPosition, textOffsetX, textOffsetY);
+}
+
+bool passedEleSelection(ggHiNtuplizer ggHi, int i, int hiBin)
+{
+    // preliminary electron ID (May 2019) : loose WP
+    if (hiBin >= 0 && hiBin < 60) {
+        // selection on RECO electron based on ECAL regions
+        if (TMath::Abs((*ggHi.eleSCEta)[i]) < 1.4442)
+        {
+            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.0161)) return false;
+            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.0053)) return false;
+            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.0288)) return false;
+            if (!((*ggHi.eleHoverE)[i] < 0.1984)) return false;
+            if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.1129)) return false;
+            if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.01)) return false;
+            if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.04)) return false;
+            if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
+        }
+        else if (TMath::Abs((*ggHi.eleSCEta)[i]) > 1.566 && TMath::Abs((*ggHi.eleSCEta)[i]) < 2.5)
+        {
+            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.0479)) return false;
+            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.0145)) return false;
+            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.0516)) return false;
+            if (!((*ggHi.eleHoverE)[i] < 0.1910)) return false;
+            if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.0115)) return false;
+            if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.02)) return false;
+            if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.04)) return false;
+            if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
+        }
+    }
+    else if (hiBin >= 60 && hiBin < 200) {
+        if (TMath::Abs((*ggHi.eleSCEta)[i]) < 1.4442)
+        {
+            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.0117)) return false;
+            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.0071)) return false;
+            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.0221)) return false;
+            if (!((*ggHi.eleHoverE)[i] < 0.1892)) return false;
+            if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.0405)) return false;
+            if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.01)) return false;
+            if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.04)) return false;
+            if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
+        }
+        else if (TMath::Abs((*ggHi.eleSCEta)[i]) > 1.566 && TMath::Abs((*ggHi.eleSCEta)[i]) < 2.5)
+        {
+            if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.0447)) return false;
+            if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.0108)) return false;
+            if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.0301)) return false;
+            if (!((*ggHi.eleHoverE)[i] < 0.1627)) return false;
+            if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.0281)) return false;
+            if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.02)) return false;
+            if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.04)) return false;
+            if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
+        }
+    }
+    else {
+        return false;
+    }
+
+    return true;
 }
