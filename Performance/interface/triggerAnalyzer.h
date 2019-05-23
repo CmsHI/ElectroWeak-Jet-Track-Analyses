@@ -392,12 +392,13 @@ bool triggerAnalyzer::insideRange(std::vector<double> vars)
     if (recoPt == -1)  recoPt = ranges[TRIGGERANA::rRECOPT][0];
     if (cent == -1)  cent = ranges[TRIGGERANA::rCENT][0];
 
-    if (recoObj == TRIGGERANA::OBJS::kPHOTON) {
+    if (recoObj == TRIGGERANA::OBJS::kPHOTON || recoObj == TRIGGERANA::OBJS::kELECTRON) {
         double sumIso = vars[TRIGGERANA::rSUMISO];
         double sieie = vars[TRIGGERANA::rSIEIE];
         double r9 = vars[TRIGGERANA::rR9];
 
-        if (sumIso == -999)  sumIso = ranges[TRIGGERANA::rSUMISO][0];
+        if (sumIso == -999 || recoObj == TRIGGERANA::OBJS::kELECTRON)
+            sumIso = ranges[TRIGGERANA::rSUMISO][0];
         if (sieie == -1)  sieie = ranges[TRIGGERANA::rSIEIE][0];
         if (r9 == -1)  r9 = ranges[TRIGGERANA::rR9][0];
 

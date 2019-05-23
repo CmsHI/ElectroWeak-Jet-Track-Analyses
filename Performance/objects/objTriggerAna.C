@@ -41,7 +41,8 @@
 #include "../../TreeHeaders/L1AnalysisEventDataFormat.h"
 #include "../../TreeHeaders/L1AnalysisL1UpgradeDataFormat.h"
 #include "../../Utilities/interface/ArgumentParser.h"
-#include "../../Utilities/interface/CutConfigurationParser.h"
+#include "../../Utilities/interface/ConfigurationParser.h"
+#include "../../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/eventUtil.h"
@@ -795,7 +796,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                 }
             }
 
-            if (recoObj == RECOOBJS::kPhoton) {
+            if (recoObj == RECOOBJS::kPhoton || recoObj == RECOOBJS::kElectron) {
                 // efficiency or inefficiency
                  if (runMode[MODES::kEff] || runMode[MODES::kInEff]) {
 
@@ -807,21 +808,41 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                          int iMax = -1;
                          double maxPt = 0;
-                         for (int i=0; i<ggHi.nPho; ++i) {
+                         int nObjs = 0;
+                         if (recoObj == RECOOBJS::kPhoton) nObjs = ggHi.nPho;
+                         else if (recoObj == RECOOBJS::kElectron) nObjs = ggHi.nEle;
 
-                             if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                         for (int i=0; i < nObjs; ++i) {
 
-                             if (cut_hovere != 0) {
-                                 if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                             double pt = -1;
+                             double eta = -999;
+                             double sumIso = 0;
+                             double sieie = -1;
+                             double r9 = -1;
+
+                             if (recoObj == RECOOBJS::kPhoton) {
+                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                                 if (cut_hovere != 0) {
+                                     if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                                 }
+
+                                 pt = (*ggHi.phoEt)[i];
+                                 eta = (*ggHi.phoEta)[i];
+                                 sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                         (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                         (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                                 sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                                 r9 = (*ggHi.phoR9)[i];
+                             }
+                             else if (recoObj == RECOOBJS::kElectron) {
+                                 pt = (*ggHi.elePt)[i];
+                                 eta = (*ggHi.eleEta)[i];
+                                 sumIso = 0;
+                                 sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
+                                 r9 = (*ggHi.eleR9)[i];
                              }
 
-                             double pt = (*ggHi.phoEt)[i];
-                             double eta = (*ggHi.phoEta)[i];
-                             double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                                     (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                                     (*ggHi.pho_trackIsoR4PtCut20)[i]);
-                             double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                             double r9 = (*ggHi.phoR9)[i];
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
                              // triggerAnalyzer object with reco pt dependency is the correct one for this decision
@@ -841,20 +862,43 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                          if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
-                             double pt = (*ggHi.phoEt)[iMax];
-                             double eta = (*ggHi.phoEta)[iMax];
+                             double pt = -1;
                              /*
                               * uncomment if want to use SC eT instead of offline pt
                              double sceta = (*ggHi.phoSCEta)[iMax];
                              double pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
                               */
-                             double phi = (*ggHi.phoPhi)[iMax];
-                             double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iMax];
-                             double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iMax];
-                             double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iMax];
+                             double eta = -999;
+                             double phi = -999;
+                             double ecalIso = 0;
+                             double hcalIso = 0;
+                             double trkIso = 0;
                              double sumIso = ecalIso + hcalIso + trkIso;
-                             double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
-                             double r9 = (*ggHi.phoR9)[iMax];
+                             double sieie = -1;
+                             double r9 = -1;
+                             if (recoObj == RECOOBJS::kPhoton) {
+                                 pt = (*ggHi.phoEt)[iMax];
+                                 eta = (*ggHi.phoEta)[iMax];
+                                 phi = (*ggHi.phoPhi)[iMax];
+                                 ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iMax];
+                                 hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iMax];
+                                 trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iMax];
+                                 sumIso = ecalIso + hcalIso + trkIso;
+                                 sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
+                                 r9 = (*ggHi.phoR9)[iMax];
+                             }
+                             else if (recoObj == RECOOBJS::kElectron) {
+                                 pt = (*ggHi.elePt)[iMax];
+                                 eta = (*ggHi.eleEta)[iMax];
+                                 phi = (*ggHi.elePhi)[iMax];
+                                 ecalIso = 0;
+                                 hcalIso = 0;
+                                 trkIso = 0;
+                                 sumIso = ecalIso + hcalIso + trkIso;
+                                 sieie = (*ggHi.eleSigmaIEtaIEta_2012)[iMax];
+                                 r9 = (*ggHi.eleR9)[iMax];
+                             }
+
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
                              tAna[TRIGGERANA::kETA][iAna].FillHDenom(eta, w, vars);
@@ -924,7 +968,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      }
                                      if (debug) {
                                          if (!debug_isFoundHltObj && !debug_isPrinted && pt > 45 && TMath::Abs(eta) < 1.44 && sumIso < 5 && sieie < 0.01 && tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold == debug_ptThreshold) {
-                                             std::cout << "No trigger match for photon" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
+                                             std::cout << "No trigger match for object" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
                                              std::cout << "j_entry = " << j_entry << std::endl;
                                              std::cout << "run = " << hiEvt.run << " lumis = " << hiEvt.lumi << " event = " << hiEvt.evt << std::endl;
                                              std::cout << "pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
@@ -948,7 +992,13 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                      bool matchedL1Obj = false;
                                      double eScale = -1;
-                                     double maxDR2 = 0.04;
+                                     double maxDR2 = -1;
+                                     if (recoObj == RECOOBJS::kPhoton) {
+                                         maxDR2 = 0.04;
+                                     }
+                                     else if (recoObj == RECOOBJS::kElectron) {
+                                         maxDR2 = 0.09;
+                                     }
 
                                      if (hasPseudoTriggerBranches) {
                                          if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
@@ -964,9 +1014,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                                      double etaL1 = L1Upgrade->egEta[iObj];
                                                      double phiL1 = L1Upgrade->egPhi[iObj];
 
-                                                     // use position of photon Super Cluster when matching to L1 object
-                                                     double etaSC = (*ggHi.phoSCEta)[iMax];
-                                                     double phiSC = (*ggHi.phoSCPhi)[iMax];
+                                                     // use position of object Super Cluster when matching to L1 object
+                                                     double etaSC = -999;
+                                                     double phiSC = -999;
+                                                     if (recoObj == RECOOBJS::kPhoton) {
+                                                         etaSC = (*ggHi.phoSCEta)[iMax];
+                                                         phiSC = (*ggHi.phoSCPhi)[iMax];
+                                                     }
+                                                     else if (recoObj == RECOOBJS::kElectron) {
+                                                         etaSC = (*ggHi.eleSCEta)[iMax];
+                                                         phiSC = (*ggHi.eleSCPhi)[iMax];
+                                                     }
 
                                                      if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
 
@@ -985,9 +1043,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                              double etaL1 = (*l1Obj.egEta)[iObj];
                                              double phiL1 = (*l1Obj.egPhi)[iObj];
 
-                                             // use position of photon Super Cluster when matching to L1 object
-                                             double etaSC = (*ggHi.phoSCEta)[iMax];
-                                             double phiSC = (*ggHi.phoSCPhi)[iMax];
+                                             // use position of object Super Cluster when matching to L1 object
+                                             double etaSC = -999;
+                                             double phiSC = -999;
+                                             if (recoObj == RECOOBJS::kPhoton) {
+                                                 etaSC = (*ggHi.phoSCEta)[iMax];
+                                                 phiSC = (*ggHi.phoSCPhi)[iMax];
+                                             }
+                                             else if (recoObj == RECOOBJS::kElectron) {
+                                                 etaSC = (*ggHi.eleSCEta)[iMax];
+                                                 phiSC = (*ggHi.eleSCPhi)[iMax];
+                                             }
 
                                              if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
 
@@ -1055,21 +1121,42 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                          int iMax = -1;
                          double maxPt = 0;
-                         for (int i=0; i<ggHi.nPho; ++i) {
 
-                             if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                         int nObjs = 0;
+                         if (recoObj == RECOOBJS::kPhoton) nObjs = ggHi.nPho;
+                         else if (recoObj == RECOOBJS::kElectron) nObjs = ggHi.nEle;
 
-                             if (cut_hovere != 0) {
-                                 if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                         for (int i=0; i<nObjs; ++i) {
+
+                             double pt = -1;
+                             double eta = -999;
+                             double sumIso = 0;
+                             double sieie = -1;
+                             double r9 = -1;
+
+                             if (recoObj == RECOOBJS::kPhoton) {
+                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+
+                                 if (cut_hovere != 0) {
+                                     if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                                 }
+
+                                 pt = (*ggHi.phoEt)[i];
+                                 eta = (*ggHi.phoEta)[i];
+                                 sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
+                                         (*ggHi.pho_hcalRechitIsoR4)[i]  +
+                                         (*ggHi.pho_trackIsoR4PtCut20)[i]);
+                                 sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
+                                 r9 = (*ggHi.phoR9)[i];
+                             }
+                             else if (recoObj == RECOOBJS::kElectron) {
+                                 pt = (*ggHi.elePt)[i];
+                                 eta = (*ggHi.eleEta)[i];
+                                 sumIso = 0;
+                                 sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
+                                 r9 = (*ggHi.eleR9)[i];
                              }
 
-                             double pt = (*ggHi.phoEt)[i];
-                             double eta = (*ggHi.phoEta)[i];
-                             double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
-                                     (*ggHi.pho_hcalRechitIsoR4)[i]  +
-                                     (*ggHi.pho_trackIsoR4PtCut20)[i]);
-                             double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                             double r9 = (*ggHi.phoR9)[i];
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
                              // triggerAnalyzer object with reco pt dependency is the correct one for this decision
@@ -1101,12 +1188,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  }
                              }
                          }
-
                      }
                  }
-            }
-            else if (recoObj == RECOOBJS::kElectron) {
-
             }
         }
         fileTmp->Close();
