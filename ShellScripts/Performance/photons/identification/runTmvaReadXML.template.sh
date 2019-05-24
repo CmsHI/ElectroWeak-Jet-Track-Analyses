@@ -17,13 +17,13 @@ variableList=(
 "phoHoverE,phoSigmaIEtaIEta_2012"
 );
 
-sigEffList=(
-0.6,0.65,0.7,0.75,0.8
-);
-
 specList1="phoEt,phoEta,phoPhi,phoSCEta,phoSCPhi,phoHoverE,pho_ecalClusterIsoR4,pho_hcalRechitIsoR4,pho_trackIsoR4PtCut20,pho_genMatchedIndex"
 spectatorList=(
 ${specList1}
+);
+
+sigEffList=(
+0.6,0.65,0.7,0.75,0.8
 );
 
 outDirBase=$EWJTAOUT
@@ -40,13 +40,13 @@ do
     inputFile=${inputList[i1]}
     methodName=${methodNameList[i1]}
     variables=${variableList[i1]}
-    sigEff=${sigEffList[i1]}
     spectators=${spectatorList[i1]}
+    sigEff=${sigEffList[i1]}
     outputFile=${outList[i1]}
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFileLOG}")
     mkdir -p $outDir
-    $runCmd $progPath $inputFile $methodName $variables $outputFile $sigEff --spectators=${spectators} &> $outputFileLOG &
-    echo "$runCmd $progPath $inputFile $methodName $variables $outputFile $sigEff --spectators=${spectators} &> $outputFileLOG &"
+    $runCmd $progPath $inputFile $methodName $variables $outputFile --spectators=${spectators} --signalEffs=${sigEff} &> $outputFileLOG &
+    echo "$runCmd $progPath $inputFile $methodName $variables $outputFile --spectators=${spectators} --signalEffs=${sigEff} &> $outputFileLOG &"
 done
 

@@ -30,9 +30,9 @@
 
 std::vector<std::string> argOptions;
 
-void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr);
+void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile);
 
-void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr)
+void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile)
 {
     std::cout << "##### Parameters #####" << std::endl;
     std::cout << "running tmvaReadXML()" << std::endl;
@@ -40,26 +40,17 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
     std::cout << "methodName = " << methodName.c_str() << std::endl;
     std::cout << "variables = " << variablesStr.c_str() << std::endl;
     std::cout << "outputFile = " << outputFile.c_str() << std::endl;
-    std::cout << "signal efficiencies = " << sigEffStr.c_str() << std::endl;
     std::cout << "##### Parameters - END #####" << std::endl;
 
     std::string spectatorsStr = (ArgumentParser::ParseOptionInputSingle("--spectators", argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle("--spectators", argOptions).c_str() : "";
+    std::string sigEffStr = (ArgumentParser::ParseOptionInputSingle("--signalEffs", argOptions).size() > 0) ?
+            ArgumentParser::ParseOptionInputSingle("--signalEffs", argOptions).c_str() : "";
 
     std::cout << "##### Optional Arguments #####" << std::endl;
     std::cout << "spectators = " << spectatorsStr.c_str() << std::endl;
+    std::cout << "signal efficiencies = " << sigEffStr.c_str() << std::endl;
     std::cout << "##### Optional Arguments - END #####" << std::endl;
-
-    std::vector<std::string> sigEffStrVec = split(sigEffStr, ",", false, false);
-    std::vector<float> sigEffs;
-    for (std::vector<std::string>::iterator it = sigEffStrVec.begin() ; it != sigEffStrVec.end(); ++it) {
-        sigEffs.push_back(std::atof((*it).c_str()));
-    }
-    int nSigEffs = sigEffs.size();
-    std::cout << "nSigEffs = " << nSigEffs << std::endl;
-    for (int i = 0; i < nSigEffs; ++i) {
-        std::cout << Form("sigEffs[%d] = %.3f", i, sigEffs.at(i)) << std::endl;
-    }
 
     std::vector<std::string> variables = split(variablesStr, ",", false, false);
     int nVariables = variables.size();
@@ -75,6 +66,17 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
     std::cout << "nSpectators = " << nSpectators << std::endl;
     for (int i = 0; i < nSpectators; ++i) {
         std::cout << Form("spectators[%d] = %s", i, spectators.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<std::string> sigEffStrVec = split(sigEffStr, ",", false, false);
+    std::vector<float> sigEffs;
+    for (std::vector<std::string>::iterator it = sigEffStrVec.begin() ; it != sigEffStrVec.end(); ++it) {
+        sigEffs.push_back(std::atof((*it).c_str()));
+    }
+    int nSigEffs = sigEffs.size();
+    std::cout << "nSigEffs = " << nSigEffs << std::endl;
+    for (int i = 0; i < nSigEffs; ++i) {
+        std::cout << Form("sigEffs[%d] = %.3f", i, sigEffs.at(i)) << std::endl;
     }
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
@@ -180,8 +182,8 @@ int main(int argc, char** argv)
 
     argOptions = ArgumentParser::ParseOptions(argc, argv);
 
-    if (nArgStr == 6) {
-        tmvaReadXML(argv[1], argv[2], argv[3], argv[4], argv[5]);
+    if (nArgStr == 5) {
+        tmvaReadXML(argv[1], argv[2], argv[3], argv[4]);
         return 0;
     }
     else {
@@ -189,7 +191,8 @@ int main(int argc, char** argv)
                 "./tmvaReadXML.exe <fileXML> <method name> <variables> <output file> <signal efficiencies>"
                 << std::endl;
         std::cout << "Options are" << std::endl;
-        std::cout << "spectators=<comma separated list of spectators" << std::endl;
+        std::cout << "spectators=<comma separated list of spectators>" << std::endl;
+        std::cout << "signalEffs=<signal efficiencies for which cuts are to be printed>" << std::endl;
         return 1;
     }
 }
