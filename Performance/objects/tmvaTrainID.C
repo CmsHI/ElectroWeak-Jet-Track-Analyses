@@ -257,6 +257,17 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
     // Train MVAs using the set of training events
     if (runTmvaFactoryTrain) {
         factory->TrainAllMethods();
+
+        TMVA::MethodBase* mBase = 0;
+        for (int i = 0; i < nTmvaMethods; ++i) {
+
+            mBase = dynamic_cast<TMVA::MethodBase*>(factory->GetMethod("dataset", tmvaMethodTitles[i].c_str()));
+
+            std::string xmlFileCurrent = mBase->GetWeightFileName().Data();
+            std::string xmlFileFinal = replaceAll(outputFile, ".root", Form("_%s.xml", tmvaMethodTitles[i].c_str()));
+            std::cout << "Moving file " << xmlFileCurrent.c_str() << " to " << xmlFileFinal.c_str() << std::endl;
+            gSystem->Exec(Form("mv -v %s %s", xmlFileCurrent.c_str(), xmlFileFinal.c_str()));
+        }
     }
     else {
         //TMVA::MethodBase* mBase = dynamic_cast<TMVA::MethodBase*>(factory->GetMethod("dataset", "CutsGA"));
