@@ -151,6 +151,20 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
         }
     }
 
+    // create copies of histograms named using name of the variable, not its index
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nVariables; ++i) {
+        std::string tmpName = "";
+
+        tmpName = replaceAll(h_var_cutMin_vs_sigEff[i]->GetName(), Form("_var%d", i), Form("_%s", variables[i].c_str()));
+        hTmp = (TH1D*)h_var_cutMin_vs_sigEff[i]->Clone(tmpName.c_str());
+        hTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceAll(h_var_cutMax_vs_sigEff[i]->GetName(), Form("_var%d", i), Form("_%s", variables[i].c_str()));
+        hTmp = (TH1D*)h_var_cutMax_vs_sigEff[i]->Clone(tmpName.c_str());
+        hTmp->Write("",TObject::kOverwrite);
+    }
+
     std::cout<<"Writing the output file."<<std::endl;
     output->Write("",TObject::kOverwrite);
     std::cout<<"Closing the output file."<<std::endl;
