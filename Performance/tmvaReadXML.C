@@ -126,6 +126,31 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
 
     output->cd();
 
+    // plot variable minimum/maximum cut as function of signal efficiency
+    std::vector<TH1D*> h_var_cutMin_vs_sigEff(nVariables, 0);
+    std::vector<TH1D*> h_var_cutMax_vs_sigEff(nVariables, 0);
+    int nBinsSigEff = 100;
+    for (int i = 0; i < nVariables; ++i) {
+        h_var_cutMin_vs_sigEff[i] = new TH1D(Form("h_var%d_cutMin_vs_sigEff", i), Form(";signal efficiency;minimum of %s", variables[i].c_str()), nBinsSigEff, 0, 1);
+        h_var_cutMax_vs_sigEff[i] = new TH1D(Form("h_var%d_cutMax_vs_sigEff", i), Form(";signal efficiency;maximum of %s", variables[i].c_str()), nBinsSigEff, 0, 1);
+    }
+
+    for (int i = 0; i < nBinsSigEff; ++i) {
+        double sigEffTmp = (double)(i) / 100;
+
+        std::vector<double> cutMins;
+        std::vector<double> cutMaxs;
+        mCuts->GetCuts(sigEffTmp, cutMins, cutMaxs);
+
+        for (int iVar = 0; iVar < nVariables; ++iVar) {
+            h_var_cutMin_vs_sigEff[iVar]->SetBinContent(i+1, cutMins[iVar]);
+            h_var_cutMin_vs_sigEff[iVar]->SetBinError(i+1, 0.00001);
+
+            h_var_cutMax_vs_sigEff[iVar]->SetBinContent(i+1, cutMaxs[iVar]);
+            h_var_cutMax_vs_sigEff[iVar]->SetBinError(i+1, 0.00001);
+        }
+    }
+
     std::cout<<"Writing the output file."<<std::endl;
     output->Write("",TObject::kOverwrite);
     std::cout<<"Closing the output file."<<std::endl;
