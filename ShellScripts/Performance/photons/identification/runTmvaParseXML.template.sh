@@ -6,7 +6,7 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 inputList=(
-$EWJTAOUT"/Performance/photons/identification/pbpb18/dataset/weights/tmvatrainID_EB_minPt40_HoE_sieie_CutsGA.weights.xml"
+$EWJTAOUT"/Performance/photons/identification/pbpb18/tmvaTrainID_EB_minPt40_HoE_sieie_CutsGA.xml"
 );
 
 methodNameList=(
@@ -31,7 +31,7 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outList=(
-$outDirBase"/Performance/photons/identification/pbpb18/tmvaParseXML_tmvaTrainID_EB_minPt40_HoE_sieie.log"
+$outDirBase"/Performance/photons/identification/pbpb18/tmvaParseXML_tmvaTrainID_EB_minPt40_HoE_sieie_CutsGA.root"
 );
 
 arrayIndices=${!outList[*]}
@@ -42,10 +42,11 @@ do
     variables=${variableList[i1]}
     sigEff=${sigEffList[i1]}
     spectators=${spectatorList[i1]}
-    outputFileLOG=${outList[i1]}
+    outputFile=${outList[i1]}
+    outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFileLOG}")
     mkdir -p $outDir
-    $runCmd $progPath $inputFile $methodName $variables $sigEff --spectators=${spectators} &> $outputFileLOG &
-    echo "$runCmd $progPath $inputFile $methodName $variables $sigEff --spectators=${spectators} &> $outputFileLOG &"
+    $runCmd $progPath $inputFile $methodName $variables $outputFile $sigEff --spectators=${spectators} &> $outputFileLOG &
+    echo "$runCmd $progPath $inputFile $methodName $variables $outputFile $sigEff --spectators=${spectators} &> $outputFileLOG &"
 done
 

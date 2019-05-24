@@ -30,15 +30,16 @@
 
 std::vector<std::string> argOptions;
 
-void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string sigEffStr);
+void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr);
 
-void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string sigEffStr)
+void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr)
 {
     std::cout << "##### Parameters #####" << std::endl;
     std::cout << "running tmvaParseXML()" << std::endl;
     std::cout << "fileXML = " << fileXML.c_str() << std::endl;
     std::cout << "methodName = " << methodName.c_str() << std::endl;
     std::cout << "variables = " << variablesStr.c_str() << std::endl;
+    std::cout << "outputFile = " << outputFile.c_str() << std::endl;
     std::cout << "signal efficiencies = " << sigEffStr.c_str() << std::endl;
     std::cout << "##### Parameters - END #####" << std::endl;
 
@@ -75,6 +76,9 @@ void tmvaParseXML(std::string fileXML, std::string methodName, std::string varia
     for (int i = 0; i < nSpectators; ++i) {
         std::cout << Form("spectators[%d] = %s", i, spectators.at(i).c_str()) << std::endl;
     }
+
+    TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
+    output->cd();
 
     TMVA::Reader *reader = new TMVA::Reader("!Color");
 
@@ -120,6 +124,13 @@ void tmvaParseXML(std::string fileXML, std::string methodName, std::string varia
         }
     }
 
+    output->cd();
+
+    std::cout<<"Writing the output file."<<std::endl;
+    output->Write("",TObject::kOverwrite);
+    std::cout<<"Closing the output file."<<std::endl;
+    output->Close();
+
     std::cout << "running tmvaParseXML() - END" << std::endl;
 }
 
@@ -130,13 +141,13 @@ int main(int argc, char** argv)
 
     argOptions = ArgumentParser::ParseOptions(argc, argv);
 
-    if (nArgStr == 5) {
-        tmvaParseXML(argv[1], argv[2], argv[3], argv[4]);
+    if (nArgStr == 6) {
+        tmvaParseXML(argv[1], argv[2], argv[3], argv[4], argv[5]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./tmvaParseXML.exe <fileXML> <methodName> <variables> <signal efficiencies>"
+                "./tmvaParseXML.exe <fileXML> <method name> <variables> <output file> <signal efficiencies>"
                 << std::endl;
         std::cout << "Options are" << std::endl;
         std::cout << "spectators=<comma separated list of spectators" << std::endl;
