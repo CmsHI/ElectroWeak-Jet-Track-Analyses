@@ -1,7 +1,7 @@
 #!/bin/bash
 
 runCmd="./ShellScripts/myRun.sh"
-progPath="./Performance/tmvaParseXML.exe"
+progPath="./Performance/tmvaReadXML.exe"
 progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
@@ -31,7 +31,7 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 outList=(
-$outDirBase"/Performance/photons/identification/pbpb18/tmvaParseXML_tmvaTrainID_EB_minPt40_HoE_sieie_CutsGA.root"
+$outDirBase"/Performance/photons/identification/pbpb18/tmvaReadXML_tmvaTrainID_EB_minPt40_HoE_sieie_CutsGA.root"
 );
 
 arrayIndices=${!outList[*]}

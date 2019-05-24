@@ -1,5 +1,5 @@
 /*
- * macro to parse information from XML file produced by TMVA classification
+ * macro to read information from XML file produced by TMVA classification
  * -- prints cut value for the given signal efficiency
  */
 #include "TChain.h"
@@ -30,12 +30,12 @@
 
 std::vector<std::string> argOptions;
 
-void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr);
+void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr);
 
-void tmvaParseXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr)
+void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile, std::string sigEffStr)
 {
     std::cout << "##### Parameters #####" << std::endl;
-    std::cout << "running tmvaParseXML()" << std::endl;
+    std::cout << "running tmvaReadXML()" << std::endl;
     std::cout << "fileXML = " << fileXML.c_str() << std::endl;
     std::cout << "methodName = " << methodName.c_str() << std::endl;
     std::cout << "variables = " << variablesStr.c_str() << std::endl;
@@ -131,7 +131,7 @@ void tmvaParseXML(std::string fileXML, std::string methodName, std::string varia
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
 
-    std::cout << "running tmvaParseXML() - END" << std::endl;
+    std::cout << "running tmvaReadXML() - END" << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -142,12 +142,12 @@ int main(int argc, char** argv)
     argOptions = ArgumentParser::ParseOptions(argc, argv);
 
     if (nArgStr == 6) {
-        tmvaParseXML(argv[1], argv[2], argv[3], argv[4], argv[5]);
+        tmvaReadXML(argv[1], argv[2], argv[3], argv[4], argv[5]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./tmvaParseXML.exe <fileXML> <method name> <variables> <output file> <signal efficiencies>"
+                "./tmvaReadXML.exe <fileXML> <method name> <variables> <output file> <signal efficiencies>"
                 << std::endl;
         std::cout << "Options are" << std::endl;
         std::cout << "spectators=<comma separated list of spectators" << std::endl;
