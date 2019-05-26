@@ -7,27 +7,28 @@ progCode="${progPath/.exe/.C}"
 
 inputList=(
 $EWJTAOUT"/Performance/photons/identification/pbpb18/tmvaTrainID_EB_minPt40_HoE_sieie.root"
-$EWJTAOUT"/Performance/photons/identification/pbpb18/tmvaTrainID_EB_minPt40_HoE_sieie.root"
+$EWJTAOUT"/Performance/photons/identification/pbpb18/tmvaTrainID_EB_minPt40_HoE_sieie_sumIso4.root"
+$EWJTAOUT"/Performance/photons/identification/pbpb18/tmvaBook_EB_minPt40.root"
 );
 
 dirPath="dataset/InputVariables_Id"
 
 variableList=(
-"phoHoverE"
-"phoSigmaIEtaIEta_2012"
+""
+"phoHoverE,phoSigmaIEtaIEta_2012,sumIso4"
+""
 );
 
 arrayIndices=${!inputList[*]}
 for i1 in $arrayIndices
 do
     inputFile=${inputList[i1]}
-    variable=${variableList[i1]}
-    outputFile=${inputFile[i1]}
-    outputFile="${inputFile/.root//plot_${variable}}"
-    outputFileLOG=${outputFile}".log"
-    outDir=$(dirname "${outputFileLOG}")
-    mkdir -p $outDir
-    $runCmd $progPath $inputFile $dirPath $variable $outputFile &> $outputFileLOG &
-    echo "$runCmd $progPath $inputFile $dirPath $variable $outputFile &> $outputFileLOG &"
+    variables=${variableList[i1]}
+    outputDir="${inputFile/.root/_plots}"
+    outputFileLOG=${outputDir}".log"
+    mkdir -p $outputDir
+    $runCmd $progPath $inputFile $dirPath $outputDir --variables=${variables} &> $outputFileLOG &
+    echo "$runCmd $progPath $inputFile $dirPath $outputDir --variables=${variables} &> $outputFileLOG &"
+    wait
 done
 
