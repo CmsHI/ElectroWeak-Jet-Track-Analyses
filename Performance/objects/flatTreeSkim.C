@@ -116,7 +116,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         return;
     }
 
-    TFile* output = TFile::Open(outputFile.c_str(),"UPDATE");
+    TFile* output = TFile::Open(outputFile.c_str(), "UPDATE");
     output->cd();
 
     TTree* outputTree = new TTree(outputTreePath.c_str(), Form("skim of %s", inputTreePath.c_str()));
@@ -346,7 +346,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             if (isMC) {
                 ggHiOut.weight = w;
                 ggHiOut.weightCent = wCent;
-                ggHiOut.weightKin = 0;
+                ggHiOut.weightKin = 1;
                 ggHiOut.pthat = hiEvt.pthat;
             }
             ggHiOut.hiBin = hiEvt.hiBin;
