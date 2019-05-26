@@ -1,5 +1,5 @@
 /*
- * macro to draw performance plots for generic object reconstruction.
+ * macro to make performance plots for generic object reconstruction.
  * Plots for photons are eta, gen Pt, reco Pt, centrality, isolation, and shower shape dependent.
  * Plots for electrons are eta, gen Pt, reco Pt, centrality, and shower shape dependent.
  * The macro can make at most 6 types of plots
@@ -166,6 +166,7 @@ std::vector<std::vector<float>> pthatWeights;
 
 // RECO object cuts
 float cut_hovere;
+bool excludeHI18HEMfailure;
 
 // GEN object cuts
 float cut_mcCalIsoDR04;
@@ -522,6 +523,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
+                        if (excludeHI18HEMfailure){
+                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                        }
+
                         double eta = (*ggHi.phoEta)[i];
                         double pt  = (*ggHi.phoEt)[i];
                         double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
@@ -566,6 +571,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (cut_hovere != 0) {
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                        }
+
+                        if (excludeHI18HEMfailure){
+                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];
@@ -651,6 +660,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
+                        if (excludeHI18HEMfailure){
+                            if ((genEta < -1.5 && genPhi < -0.9 && genPhi > -1.6))  continue;
+                        }
+
                         // look for matching RECO particle
                         double deltaR2 = 0.15*0.15;
                         int iReco = -1;
@@ -661,6 +674,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (cut_hovere != 0) {
                                 if (!((*ggHi.phoHoverE)[j] < cut_hovere))   continue;
+                            }
+
+                            if (excludeHI18HEMfailure){
+                                if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                             }
 
                             if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
@@ -710,6 +727,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (cut_hovere != 0) {
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                        }
+
+                        if (excludeHI18HEMfailure){
+                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];
@@ -1265,6 +1286,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // RECO photon cuts
     cut_hovere = confParser.ReadConfigValueFloat("hovere");
+    excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     // GEN photon cuts
     cut_mcCalIsoDR04 = confParser.ReadConfigValueFloat("mcCalIsoDR04");
@@ -1383,6 +1405,7 @@ void printConfiguration()
     }
 
     std::cout<<"cut_hovere = "<< cut_hovere <<std::endl;
+    std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
     std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
