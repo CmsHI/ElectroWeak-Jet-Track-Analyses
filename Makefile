@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS += -Wall -Werror -Wextra -O2
 ROOTFLAGS := `root-config --cflags --libs`
-EXTRAFLAGS := -lTMVA -lRooFitCore -lRooFit
+EXTRAFLAGS := -lTMVA -lTMVAGui -lRooFitCore -lRooFit
 
 GCCVERSION := $(shell expr `gcc -dumpversion | cut -f1 -d.` \>= 6)
 ifeq "$(GCCVERSION)" "1"
