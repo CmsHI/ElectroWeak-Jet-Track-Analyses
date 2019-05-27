@@ -52,7 +52,7 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
     std::cout << "signal efficiencies = " << sigEffStr.c_str() << std::endl;
     std::cout << "##### Optional Arguments - END #####" << std::endl;
 
-    std::vector<std::string> variables = split(variablesStr, ",", false, false);
+    std::vector<std::string> variables = split(variablesStr, ";", false, false);
     int nVariables = variables.size();
 
     std::cout << "nVariables = " << nVariables << std::endl;
@@ -60,7 +60,7 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
         std::cout << Form("variables[%d] = %s", i, variables.at(i).c_str()) << std::endl;
     }
 
-    std::vector<std::string> spectators = split(spectatorsStr, ",", false, false);
+    std::vector<std::string> spectators = split(spectatorsStr, ";", false, false);
     int nSpectators = spectators.size();
 
     std::cout << "nSpectators = " << nSpectators << std::endl;
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
                 "./tmvaReadXML.exe <fileXML> <method name> <variables> <output file> <signal efficiencies>"
                 << std::endl;
         std::cout << "Options are" << std::endl;
-        std::cout << "spectators=<comma separated list of spectators>" << std::endl;
+        std::cout << "spectators=<list of spectators separated by ';'>" << std::endl;
         std::cout << "signalEffs=<signal efficiencies for which cuts are to be printed>" << std::endl;
         return 1;
     }

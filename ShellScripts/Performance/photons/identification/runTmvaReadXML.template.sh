@@ -14,10 +14,10 @@ methodNameList=(
 );
 
 variableList=(
-"phoHoverE,phoSigmaIEtaIEta_2012"
+"phoHoverE;phoSigmaIEtaIEta_2012"
 );
 
-specList1="phoEt,phoEta,phoPhi,phoSCEta,phoSCPhi,phoHoverE,pho_ecalClusterIsoR4,pho_hcalRechitIsoR4,pho_trackIsoR4PtCut20,pho_genMatchedIndex"
+specList1="phoEt;phoEta;phoPhi;phoSCEta;phoSCPhi;phoHoverE;pho_ecalClusterIsoR4;pho_hcalRechitIsoR4;pho_trackIsoR4PtCut20;pho_genMatchedIndex"
 spectatorList=(
 ${specList1}
 );
