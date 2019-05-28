@@ -638,7 +638,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                 hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
             }
 
-            if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+            if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj || hasPseudoTriggerBranches) {
                 treeL1objPath = "l1object/L1UpgradeFlatTree";   // L1 objects are in the forest file
 
                 treeL1obj = 0;
@@ -654,6 +654,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                 treeL1obj->SetBranchStatus("eg*", 1);
 
                 l1Obj.setupTreeForReading(treeL1obj);
+            }
+
+            if (hasPseudoTriggerBranches) {
+                triggerThresholds.clear();
+                triggerAnalyzer tAnaPseudo;
+                for (int i = 0; i < nTriggerBranches; ++i) {
+                    triggerThresholds.push_back(tAnaPseudo.extractPtThreshold(triggerBranches.at(i)));
+                }
+                for (int i = 0; i < nTriggerBranches; ++i ) {
+                    std::cout << Form("triggerThresholds[%d] = %f", i, triggerThresholds[i]) << std::endl;
+                }
             }
         }
 
@@ -756,7 +767,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
             for (int i = 0; i < nTreeTrigObjPaths; ++i) {
                 treeTrigObjs[i]->GetEntry(entryTrig);
             }
-            if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData && runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+            if ((runMode[MODES::kAnaType] == MODES_ANATYPE::kData && runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj)
+                    || hasPseudoTriggerBranches) {
                 treeL1obj->GetEntry(entryTrig);
             }
 
@@ -785,9 +797,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
             }
 
             if (hasPseudoTriggerBranches) {
-                if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
-                    for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
-                        triggerBits[iTrig] = 0;
+                for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+                    triggerBits[iTrig] = 0;
+                    if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
+                        for (int i = 0; i < (int)l1Obj.nEGs; ++i) {
+                            if ((*l1Obj.egEt)[i] > triggerThresholds[iTrig]) {
+                                triggerBits[iTrig] = 1;
+                                break;
+                            }
+                        }
+                    }
+                    else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
                         for (int i = 0; i < L1Upgrade->nEGs; ++i) {
                             if (L1Upgrade->egEt[i] > triggerThresholds[iTrig]) {
                                 triggerBits[iTrig] = 1;
@@ -1013,38 +1033,36 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          maxDR2 = 0.09;
                                      }
 
-                                     if (hasPseudoTriggerBranches) {
-                                         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
+                                     if (hasPseudoTriggerBranches && runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
 
-                                             int iL1Obj = getIndexTrig4TriggerNum(indicesTriggerNum[iAna]);
+                                         int iL1Obj = getIndexTrig4TriggerNum(indicesTriggerNum[iAna]);
 
-                                             for (int iObj = 0; iObj < L1Upgrade->nEGs; ++iObj) {
-                                                 if (L1Upgrade->egEt[iObj] > triggerThresholds[iL1Obj]) {
-                                                     // the fact that there is an L1 EG with pt > threshold is not enough.
-                                                     // make sure they match also in eta-phi.
+                                         for (int iObj = 0; iObj < L1Upgrade->nEGs; ++iObj) {
+                                             if (L1Upgrade->egEt[iObj] > triggerThresholds[iL1Obj]) {
+                                                 // the fact that there is an L1 EG with pt > threshold is not enough.
+                                                 // make sure they match also in eta-phi.
 
-                                                     double ptL1 = L1Upgrade->egEt[iObj];
-                                                     double etaL1 = L1Upgrade->egEta[iObj];
-                                                     double phiL1 = L1Upgrade->egPhi[iObj];
+                                                 double ptL1 = L1Upgrade->egEt[iObj];
+                                                 double etaL1 = L1Upgrade->egEta[iObj];
+                                                 double phiL1 = L1Upgrade->egPhi[iObj];
 
-                                                     // use position of object Super Cluster when matching to L1 object
-                                                     double etaSC = -999;
-                                                     double phiSC = -999;
-                                                     if (recoObj == RECOOBJS::kPhoton) {
-                                                         etaSC = (*ggHi.phoSCEta)[iMax];
-                                                         phiSC = (*ggHi.phoSCPhi)[iMax];
-                                                     }
-                                                     else if (recoObj == RECOOBJS::kElectron) {
-                                                         etaSC = (*ggHi.eleSCEta)[iMax];
-                                                         phiSC = (*ggHi.eleSCPhi)[iMax];
-                                                     }
+                                                 // use position of object Super Cluster when matching to L1 object
+                                                 double etaSC = -999;
+                                                 double phiSC = -999;
+                                                 if (recoObj == RECOOBJS::kPhoton) {
+                                                     etaSC = (*ggHi.phoSCEta)[iMax];
+                                                     phiSC = (*ggHi.phoSCPhi)[iMax];
+                                                 }
+                                                 else if (recoObj == RECOOBJS::kElectron) {
+                                                     etaSC = (*ggHi.eleSCEta)[iMax];
+                                                     phiSC = (*ggHi.eleSCPhi)[iMax];
+                                                 }
 
-                                                     if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
+                                                 if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
 
-                                                         matchedL1Obj = true;
-                                                         eScale = ptL1 / pt;
-                                                         break;
-                                                     }
+                                                     matchedL1Obj = true;
+                                                     eScale = ptL1 / pt;
+                                                     break;
                                                  }
                                              }
                                          }
