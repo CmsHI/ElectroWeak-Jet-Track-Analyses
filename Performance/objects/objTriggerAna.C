@@ -849,9 +849,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                  }
 
-                                 if (excludeHI18HEMfailure){
-                                     if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                                 }
+                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                                  pt = (*ggHi.phoEt)[i];
                                  eta = (*ggHi.phoEta)[i];
@@ -865,9 +863,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
 
-                                 if (excludeHI18HEMfailure){
-                                     if (((*ggHi.eleSCEta)[i] < -1.39 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
-                                 }
+                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];
@@ -1172,9 +1168,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                  }
 
-                                 if (excludeHI18HEMfailure){
-                                     if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                                 }
+                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                                  pt = (*ggHi.phoEt)[i];
                                  eta = (*ggHi.phoEta)[i];
@@ -1188,9 +1182,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
 
-                                 if (excludeHI18HEMfailure){
-                                     if (((*ggHi.eleSCEta)[i] < -1.39 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
-                                 }
+                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
                                  pt = (*ggHi.elePt)[i];
                                  eta = (*ggHi.eleEta)[i];

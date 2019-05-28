@@ -227,6 +227,9 @@ public :
   ~ggHiNtuplizer(){};
   void setupTreeForReading(TTree *t);
   bool is2015EcalNoise(int iPho);
+  bool passedHI18HEMfailurePho(int i);
+  bool passedHI18HEMfailureEle(int i);
+  bool passedHI18HEMfailureGen(int i);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1153,6 +1156,21 @@ bool ggHiNtuplizer::is2015EcalNoise(int iPho)
            ((*phoE2x5)[iPho]/(*phoE5x5)[iPho] > 2./3.-0.03 &&
             (*phoE2x5)[iPho]/(*phoE5x5)[iPho] < 2./3.+0.03);
     return failedNoiseCut;
+}
+
+bool ggHiNtuplizer::passedHI18HEMfailurePho(int i)
+{
+    return !((*phoSCEta)[i] < -1.39 && (*phoSCPhi)[i] < -0.9 && (*phoSCPhi)[i] > -1.6);
+}
+
+bool ggHiNtuplizer::passedHI18HEMfailureEle(int i)
+{
+    return !((*eleSCEta)[i] < -1.39 && (*eleSCPhi)[i] < -0.9 && (*eleSCPhi)[i] > -1.6);
+}
+
+bool ggHiNtuplizer::passedHI18HEMfailureGen(int i)
+{
+    return !((*mcEta)[i] < -1.39 && (*mcPhi)[i] < -0.9 && (*mcPhi)[i] > -1.6);
 }
 
 #endif /* TREEHEADERS_GGHINTUPLIZERTREE_H_ */

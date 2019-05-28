@@ -523,9 +523,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
-                        if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                        }
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                         double eta = (*ggHi.phoEta)[i];
                         double pt  = (*ggHi.phoEt)[i];
@@ -573,9 +571,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
-                        if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                        }
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                         double pt  = (*ggHi.phoEt)[i];
                         double eta = (*ggHi.phoEta)[i];
@@ -660,9 +656,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
-                        if (excludeHI18HEMfailure){
-                            if ((genEta < -1.39 && genPhi < -0.9 && genPhi > -1.6))  continue;
-                        }
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
 
                         // look for matching RECO particle
                         double deltaR2 = 0.15*0.15;
@@ -676,9 +670,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 if (!((*ggHi.phoHoverE)[j] < cut_hovere))   continue;
                             }
 
-                            if (excludeHI18HEMfailure){
-                                if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                            }
+                            if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                             if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
                                 iReco = j;
@@ -729,9 +721,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                         }
 
-                        if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                        }
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                         double pt  = (*ggHi.phoEt)[i];
                         double eta = (*ggHi.phoEta)[i];
@@ -822,6 +812,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!passedEleSelection(ggHi, i))  continue;
 
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+
                         double pt  = (*ggHi.elePt)[i];
                         double eta = (*ggHi.eleEta)[i];
                         double phi = (*ggHi.elePhi)[i];
@@ -868,6 +860,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!passedEleSelection(ggHi, i))  continue;
 
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+
                         double pt  = (*ggHi.elePt)[i];
                         double eta = (*ggHi.eleEta)[i];
                         double sumIso = -999;
@@ -909,6 +903,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         int genMatchedPID = 11;
                         if (TMath::Abs((*ggHi.mcPID)[i]) != genMatchedPID)  continue;
 
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
+
                         double genPt = (*ggHi.mcPt)[i];
                         double genEta = (*ggHi.mcEta)[i];
                         double genPhi = (*ggHi.mcPhi)[i];
@@ -920,6 +916,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         for (int j = 0; j < ggHi.nEle; ++j) {
 
                             if (!passedEleSelection(ggHi, j))  continue;
+
+                            if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
                             if (getDR2((*ggHi.eleEta)[j], (*ggHi.elePhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.elePt)[j] > recoPt ) {
                                 iReco = j;
@@ -962,6 +960,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         // selections on RECO particle
                         if (!passedEleSelection(ggHi, i))   continue;
+
+                        if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
                         double pt  = (*ggHi.elePt)[i];
                         double eta = (*ggHi.eleEta)[i];

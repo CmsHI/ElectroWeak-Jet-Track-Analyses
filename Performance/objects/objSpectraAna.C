@@ -475,13 +475,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 if (ggHi.is2015EcalNoise(i))  continue;
                             }
 
-                            if (excludeHI18HEMfailure){
-                                if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
-                            }
-
                             if (cut_hovere != 0) {
                                 if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                             }
+
+                            if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                             if (runMode[MODES::kSpectra] == MODES_SPECTRA::kAll) {
                                 candidates.push_back(i);
@@ -564,6 +562,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                             for (int i = 0; i < ggHi.nEle; ++i) {
 
+                                if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+
                                 if (!((*ggHi.elePt)[i] > elePt_min)) continue;
 
                                 if (TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EB)
@@ -593,6 +593,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 }
 
                                 for (int j = i+1; j < ggHi.nEle; ++j) {
+
+                                    if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
                                     if (!((*ggHi.elePt)[j] > elePt_min)) continue;
 
@@ -662,6 +664,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                         if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                     }
 
+                                    if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
+
                                     double dR2max = 0.1 * 0.1;
                                     if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
 
@@ -714,6 +718,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                             for (int i = 0; i < ggHi.nEle; ++i) {
 
+                                if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+
                                 if (!((*ggHi.elePt)[i] > elePt_min)) continue;
 
                                 if (TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EB)
@@ -743,6 +749,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 }
 
                                 for (int j = i+1; j < ggHi.nEle; ++j) {
+
+                                    if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
                                     if (!((*ggHi.elePt)[j] > elePt_min)) continue;
 
@@ -828,6 +836,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                     if (cut_hovere != 0) {
                                         if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
                                     }
+
+                                    if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                                     double dR2max = 0.1 * 0.1;
                                     if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
