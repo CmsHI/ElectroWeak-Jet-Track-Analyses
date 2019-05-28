@@ -1,5 +1,5 @@
 /*
- * macro to draw spectra plots for generic reco objects.
+ * macro to make spectra plots for generic reco objects.
  * Plots for photons are eta, reco Pt, centrality, isolation, and shower shape dependent.
  * The macro can make 9 types of plots
  *  1. x-axis is eta.
@@ -476,7 +476,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             }
 
                             if (excludeHI18HEMfailure){
-                                if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                             }
 
                             if (cut_hovere != 0) {

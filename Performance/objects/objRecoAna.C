@@ -524,7 +524,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                         }
 
                         double eta = (*ggHi.phoEta)[i];
@@ -574,7 +574,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];
@@ -661,7 +661,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (excludeHI18HEMfailure){
-                            if ((genEta < -1.5 && genPhi < -0.9 && genPhi > -1.6))  continue;
+                            if ((genEta < -1.39 && genPhi < -0.9 && genPhi > -1.6))  continue;
                         }
 
                         // look for matching RECO particle
@@ -677,7 +677,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             }
 
                             if (excludeHI18HEMfailure){
-                                if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                             }
 
                             if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
@@ -730,7 +730,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (excludeHI18HEMfailure){
-                            if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                            if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                         }
 
                         double pt  = (*ggHi.phoEt)[i];

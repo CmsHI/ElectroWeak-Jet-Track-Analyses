@@ -850,7 +850,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  }
 
                                  if (excludeHI18HEMfailure){
-                                     if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                     if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                                  }
 
                                  pt = (*ggHi.phoEt)[i];
@@ -866,7 +866,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
 
                                  if (excludeHI18HEMfailure){
-                                     if (((*ggHi.eleSCEta)[i] < -1.5 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
+                                     if (((*ggHi.eleSCEta)[i] < -1.39 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
                                  }
 
                                  pt = (*ggHi.elePt)[i];
@@ -1173,7 +1173,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  }
 
                                  if (excludeHI18HEMfailure){
-                                     if (((*ggHi.phoSCEta)[i] < -1.5 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
+                                     if (((*ggHi.phoSCEta)[i] < -1.39 && (*ggHi.phoSCPhi)[i] < -0.9 && (*ggHi.phoSCPhi)[i] > -1.6))  continue;
                                  }
 
                                  pt = (*ggHi.phoEt)[i];
@@ -1189,7 +1189,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  if (!passedEleSelection(ggHi, i, hiBin))  continue;
 
                                  if (excludeHI18HEMfailure){
-                                     if (((*ggHi.eleSCEta)[i] < -1.5 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
+                                     if (((*ggHi.eleSCEta)[i] < -1.39 && (*ggHi.eleSCPhi)[i] < -0.9 && (*ggHi.eleSCPhi)[i] > -1.6))  continue;
                                  }
 
                                  pt = (*ggHi.elePt)[i];
