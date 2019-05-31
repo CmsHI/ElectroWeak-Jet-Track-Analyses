@@ -185,6 +185,11 @@ public :
     pfnIso3 = 0;
     pfnIso4 = 0;
     pfnIso5 = 0;
+    pfpIso1subSC = 0;
+    pfpIso2subSC = 0;
+    pfpIso3subSC = 0;
+    pfpIso4subSC = 0;
+    pfpIso5subSC = 0;
     pfcIso1subUE = 0;
     pfcIso2subUE = 0;
     pfcIso3subUE = 0;
@@ -200,6 +205,11 @@ public :
     pfnIso3subUE = 0;
     pfnIso4subUE = 0;
     pfnIso5subUE = 0;
+    pfpIso1subSCsubUE = 0;
+    pfpIso2subSCsubUE = 0;
+    pfpIso3subSCsubUE = 0;
+    pfpIso4subSCsubUE = 0;
+    pfpIso5subSCsubUE = 0;
     muPt = 0;
     muEta = 0;
     muPhi = 0;
@@ -419,6 +429,11 @@ public :
   std::vector<float>   *pfnIso3;
   std::vector<float>   *pfnIso4;
   std::vector<float>   *pfnIso5;
+  std::vector<float>   *pfpIso1subSC;
+  std::vector<float>   *pfpIso2subSC;
+  std::vector<float>   *pfpIso3subSC;
+  std::vector<float>   *pfpIso4subSC;
+  std::vector<float>   *pfpIso5subSC;
   std::vector<float>   *pfcIso1subUE;
   std::vector<float>   *pfcIso2subUE;
   std::vector<float>   *pfcIso3subUE;
@@ -434,6 +449,11 @@ public :
   std::vector<float>   *pfnIso3subUE;
   std::vector<float>   *pfnIso4subUE;
   std::vector<float>   *pfnIso5subUE;
+  std::vector<float>   *pfpIso1subSCsubUE;
+  std::vector<float>   *pfpIso2subSCsubUE;
+  std::vector<float>   *pfpIso3subSCsubUE;
+  std::vector<float>   *pfpIso4subSCsubUE;
+  std::vector<float>   *pfpIso5subSCsubUE;
   Int_t           nMu;
   std::vector<float>   *muPt;
   std::vector<float>   *muEta;
@@ -648,6 +668,11 @@ public :
   TBranch        *b_pfnIso3;   //!
   TBranch        *b_pfnIso4;   //!
   TBranch        *b_pfnIso5;   //!
+  TBranch        *b_pfpIso1subSC;   //!
+  TBranch        *b_pfpIso2subSC;   //!
+  TBranch        *b_pfpIso3subSC;   //!
+  TBranch        *b_pfpIso4subSC;   //!
+  TBranch        *b_pfpIso5subSC;   //!
   TBranch        *b_pfcIso1subUE;   //!
   TBranch        *b_pfcIso2subUE;   //!
   TBranch        *b_pfcIso3subUE;   //!
@@ -663,6 +688,11 @@ public :
   TBranch        *b_pfnIso3subUE;   //!
   TBranch        *b_pfnIso4subUE;   //!
   TBranch        *b_pfnIso5subUE;   //!
+  TBranch        *b_pfpIso1subSCsubUE;   //!
+  TBranch        *b_pfpIso2subSCsubUE;   //!
+  TBranch        *b_pfpIso3subSCsubUE;   //!
+  TBranch        *b_pfpIso4subSCsubUE;   //!
+  TBranch        *b_pfpIso5subSCsubUE;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -877,6 +907,11 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_pfnIso3 = 0;
     b_pfnIso4 = 0;
     b_pfnIso5 = 0;
+    b_pfpIso1subSC = 0;
+    b_pfpIso2subSC = 0;
+    b_pfpIso3subSC = 0;
+    b_pfpIso4subSC = 0;
+    b_pfpIso5subSC = 0;
     b_pfcIso1subUE = 0;
     b_pfcIso2subUE = 0;
     b_pfcIso3subUE = 0;
@@ -892,6 +927,11 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_pfnIso3subUE = 0;
     b_pfnIso4subUE = 0;
     b_pfnIso5subUE = 0;
+    b_pfpIso1subSCsubUE = 0;
+    b_pfpIso2subSCsubUE = 0;
+    b_pfpIso3subSCsubUE = 0;
+    b_pfpIso4subSCsubUE = 0;
+    b_pfpIso5subSCsubUE = 0;
     b_nMu = 0;
     b_muPt = 0;
     b_muEta = 0;
@@ -1104,6 +1144,11 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
+    if (t->GetBranch("pfpIso1subSC")) t->SetBranchAddress("pfpIso1subSC", &pfpIso1subSC, &b_pfpIso1subSC);
+    if (t->GetBranch("pfpIso2subSC")) t->SetBranchAddress("pfpIso2subSC", &pfpIso2subSC, &b_pfpIso2subSC);
+    if (t->GetBranch("pfpIso3subSC")) t->SetBranchAddress("pfpIso3subSC", &pfpIso3subSC, &b_pfpIso3subSC);
+    if (t->GetBranch("pfpIso4subSC")) t->SetBranchAddress("pfpIso4subSC", &pfpIso4subSC, &b_pfpIso4subSC);
+    if (t->GetBranch("pfpIso5subSC")) t->SetBranchAddress("pfpIso5subSC", &pfpIso5subSC, &b_pfpIso5subSC);
     if (t->GetBranch("pfcIso1subUE")) t->SetBranchAddress("pfcIso1subUE", &pfcIso1subUE, &b_pfcIso1subUE);
     if (t->GetBranch("pfcIso2subUE")) t->SetBranchAddress("pfcIso2subUE", &pfcIso2subUE, &b_pfcIso2subUE);
     if (t->GetBranch("pfcIso3subUE")) t->SetBranchAddress("pfcIso3subUE", &pfcIso3subUE, &b_pfcIso3subUE);
@@ -1119,6 +1164,11 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3subUE")) t->SetBranchAddress("pfnIso3subUE", &pfnIso3subUE, &b_pfnIso3subUE);
     if (t->GetBranch("pfnIso4subUE")) t->SetBranchAddress("pfnIso4subUE", &pfnIso4subUE, &b_pfnIso4subUE);
     if (t->GetBranch("pfnIso5subUE")) t->SetBranchAddress("pfnIso5subUE", &pfnIso5subUE, &b_pfnIso5subUE);
+    if (t->GetBranch("pfpIso1subSCsubUE")) t->SetBranchAddress("pfpIso1subSCsubUE", &pfpIso1subSCsubUE, &b_pfpIso1subSCsubUE);
+    if (t->GetBranch("pfpIso2subSCsubUE")) t->SetBranchAddress("pfpIso2subSCsubUE", &pfpIso2subSCsubUE, &b_pfpIso2subSCsubUE);
+    if (t->GetBranch("pfpIso3subSCsubUE")) t->SetBranchAddress("pfpIso3subSCsubUE", &pfpIso3subSCsubUE, &b_pfpIso3subSCsubUE);
+    if (t->GetBranch("pfpIso4subSCsubUE")) t->SetBranchAddress("pfpIso4subSCsubUE", &pfpIso4subSCsubUE, &b_pfpIso4subSCsubUE);
+    if (t->GetBranch("pfpIso5subSCsubUE")) t->SetBranchAddress("pfpIso5subSCsubUE", &pfpIso5subSCsubUE, &b_pfpIso5subSCsubUE);
     if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
