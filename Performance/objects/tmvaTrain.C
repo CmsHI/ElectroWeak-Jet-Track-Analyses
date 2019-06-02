@@ -1,5 +1,5 @@
 /*
- * code for training and testing TMVA classifiers
+ * code for training, testing, and evaluating TMVA classification and regression analysis
  * derived from tutorial code TMVAClassification.C
  */
 
@@ -74,12 +74,21 @@ int nTreeBranchesB;
 int nTreeBranchesSpec;
 
 /// configuration variables - END
+enum ANATYPES {
+    kClassification,
+    kRegression,
+    kN_ANATYPES
+};
+const std::string anaTypesStr[kN_ANATYPES] = {"classification", "regression"};
+int anaType;
+
 std::vector<TMVAANA::trainVar> trainVars;
 int nTrainVars;
 ///// global variables - END
 
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
+int parseAnaType(std::string anaTypeStr);
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
 int tmvaTrain(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrain.root", std::string jobLabel = "");
 
@@ -102,30 +111,25 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
     }
     std::cout << "##### END #####" << std::endl;
 
-    std::vector<std::string> backgroundFiles = InputConfigurationParser::ParseFiles(backgroundFile.c_str());
-    std::cout << "background ROOT files : num = " << backgroundFiles.size() << std::endl;
-    std::cout << "#####" << std::endl;
-    for (std::vector<std::string>::iterator it = backgroundFiles.begin() ; it != backgroundFiles.end(); ++it) {
-        std::cout << (*it).c_str() << std::endl;
+    std::vector<std::string> backgroundFiles;
+    if (anaType == ANATYPES::kClassification) {
+        backgroundFiles = InputConfigurationParser::ParseFiles(backgroundFile.c_str());
+        std::cout << "background ROOT files : num = " << backgroundFiles.size() << std::endl;
+        std::cout << "#####" << std::endl;
+        for (std::vector<std::string>::iterator it = backgroundFiles.begin() ; it != backgroundFiles.end(); ++it) {
+            std::cout << (*it).c_str() << std::endl;
+        }
+        std::cout << "##### END #####" << std::endl;
     }
-    std::cout << "##### END #####" << std::endl;
 
     TChain* treeSig = 0;
-    TChain* treeBkg = 0;
 
     treeSig = new TChain(treePathS.c_str());
-    treeBkg = new TChain(treePathB.c_str());
 
     TChain* treeFriendsSig[nTreeFriendPathsS];
     for (int i = 0; i < nTreeFriendPathsS; ++i) {
         treeFriendsSig[i] = 0;
         treeFriendsSig[i] = new TChain(treeFriendPathsS[i].c_str());
-    }
-
-    TChain* treeFriendsBkg[nTreeFriendPathsB];
-    for (int i = 0; i < nTreeFriendPathsB; ++i) {
-        treeFriendsBkg[i] = 0;
-        treeFriendsBkg[i] = new TChain(treeFriendPathsB[i].c_str());
     }
 
     for (std::vector<std::string>::iterator it = signalFiles.begin() ; it != signalFiles.end(); ++it) {
@@ -134,27 +138,43 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
             treeFriendsSig[i]->Add((*it).c_str());
         }
     }
-    for (std::vector<std::string>::iterator it = backgroundFiles.begin() ; it != backgroundFiles.end(); ++it) {
-        treeBkg->Add((*it).c_str());
-        for (int i = 0; i < nTreeFriendPathsB; ++i) {
-            treeFriendsBkg[i]->Add((*it).c_str());
-        }
-    }
+
 
     for (int i = 0; i < nTreeFriendPathsS; ++i) {
         treeSig->AddFriend(treeFriendsSig[i], Form("t%d", i));
     }
-    for (int i = 0; i < nTreeFriendPathsB; ++i) {
-        treeBkg->AddFriend(treeFriendsBkg[i], Form("t%d", i));
+
+    TChain* treeBkg = 0;
+    TChain* treeFriendsBkg[nTreeFriendPathsB];
+
+    if (anaType == ANATYPES::kClassification) {
+        treeBkg = new TChain(treePathB.c_str());
+        for (int i = 0; i < nTreeFriendPathsB; ++i) {
+            treeFriendsBkg[i] = 0;
+            treeFriendsBkg[i] = new TChain(treeFriendPathsB[i].c_str());
+        }
+        for (std::vector<std::string>::iterator it = backgroundFiles.begin() ; it != backgroundFiles.end(); ++it) {
+            treeBkg->Add((*it).c_str());
+            for (int i = 0; i < nTreeFriendPathsB; ++i) {
+                treeFriendsBkg[i]->Add((*it).c_str());
+            }
+        }
+        for (int i = 0; i < nTreeFriendPathsB; ++i) {
+            treeBkg->AddFriend(treeFriendsBkg[i], Form("t%d", i));
+        }
     }
 
     Long64_t entriesSig = treeSig->GetEntries();
-    Long64_t entriesBkg = treeBkg->GetEntries();
 
     treeSig->SetBranchStatus("*", 0);
     setBranchesStatus(treeSig, treeBranchesS);
-    treeBkg->SetBranchStatus("*", 0);
-    setBranchesStatus(treeBkg, treeBranchesB);
+
+    Long64_t entriesBkg = 0;
+    if (anaType == ANATYPES::kClassification) {
+        entriesBkg = treeBkg->GetEntries();
+        treeBkg->SetBranchStatus("*", 0);
+        setBranchesStatus(treeBkg, treeBranchesB);
+    }
 
     TFile* output = 0;
     output = TFile::Open(outputFile.c_str(), "RECREATE" );
@@ -176,14 +196,39 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
     TMVA::DataLoader* dataloader = 0;
     dataloader = new TMVA::DataLoader("dataset");
 
-    dataloader->SetSignalTree(treeSig);
-    if (weightExpressionS.size() > 0) {
-        dataloader->SetSignalWeightExpression(weightExpressionS.c_str());
-    }
+    if (anaType == ANATYPES::kClassification) {
+        dataloader->SetSignalTree(treeSig);
+        if (weightExpressionS.size() > 0) {
+            dataloader->SetSignalWeightExpression(weightExpressionS.c_str());
+        }
 
-    dataloader->SetBackgroundTree(treeBkg);
-    if (weightExpressionB.size() > 0) {
-        dataloader->SetBackgroundWeightExpression(weightExpressionB.c_str());
+        dataloader->SetBackgroundTree(treeBkg);
+        if (weightExpressionB.size() > 0) {
+            dataloader->SetBackgroundWeightExpression(weightExpressionB.c_str());
+        }
+
+        /*
+        TCut("phoEt > 40 && abs(phoSCEta) < 1.48 && phoHoverE < 0.1 && pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22")
+        */
+        TCut preselS = TCut(preselectionS.c_str());
+        TCut preselB = TCut(preselectionB.c_str());
+
+        std::cout << "preselectionSig = " << preselS.GetTitle() << std::endl;
+        std::cout << "preselectionBkg = " << preselB.GetTitle() << std::endl;
+
+        Long64_t entriesPreSelSig = treeSig->GetEntries(preselS.GetTitle());
+        Long64_t entriesPreSelBkg = treeBkg->GetEntries(preselB.GetTitle());
+
+        std::cout << "entriesSig = " << entriesSig << std::endl;
+        std::cout << "entriesBkg = " << entriesBkg << std::endl;
+        std::cout << "entriesPreSelSig = " << entriesPreSelSig << std::endl;
+        std::cout << "entriesPreSelBkg = " << entriesPreSelBkg << std::endl;
+
+        int nTrainSig = entriesPreSelSig * fracTrainEvtS;
+        int nTrainBkg = entriesPreSelBkg * fracTrainEvtB;
+        std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=EqualNumEvents", nTrainSig, nTrainBkg);
+
+        dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
     }
 
     /*
@@ -192,29 +237,6 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
     for (int i = 0; i < nTreeBranchesSpec; ++i) {
         dataloader->AddSpectator(treeBranchesSpec[i].c_str());
     }
-
-    /*
-    TCut("phoEt > 40 && abs(phoSCEta) < 1.48 && phoHoverE < 0.1 && pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22")
-    */
-    TCut preselS = TCut(preselectionS.c_str());
-    TCut preselB = TCut(preselectionB.c_str());
-
-    std::cout << "preselectionSig = " << preselS.GetTitle() << std::endl;
-    std::cout << "preselectionBkg = " << preselB.GetTitle() << std::endl;
-
-    Long64_t entriesPreSelSig = treeSig->GetEntries(preselS.GetTitle());
-    Long64_t entriesPreSelBkg = treeBkg->GetEntries(preselB.GetTitle());
-
-    std::cout << "entriesSig = " << entriesSig << std::endl;
-    std::cout << "entriesBkg = " << entriesBkg << std::endl;
-    std::cout << "entriesPreSelSig = " << entriesPreSelSig << std::endl;
-    std::cout << "entriesPreSelBkg = " << entriesPreSelBkg << std::endl;
-
-    int nTrainSig = entriesPreSelSig * fracTrainEvtS;
-    int nTrainBkg = entriesPreSelBkg * fracTrainEvtB;
-    std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=EqualNumEvents", nTrainSig, nTrainBkg);
-
-    dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
 
     /*
     trainVars.push_back(TMVAANA::trainVar("phoSigmaIEtaIEta_2012", "F", "FSmart", 0, 0.015));
@@ -320,6 +342,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     confParser.openConfigFile(configFile);
 
     confParser.parsedKeyWords = InputConfigurationParser::parseKeyWords(inputFile);
+
+    anaType = parseAnaType(confParser.ReadConfigValue("analysisType"));
 
     // TTree
     treePathS = confParser.ReadConfigValue("treePathSig");
@@ -439,6 +463,16 @@ void printConfiguration()
 {
     std::cout<<"Configuration :"<<std::endl;
 
+    std::cout << "analysis type = " << anaTypesStr[anaType].c_str() << std::endl;
+    if (anaType < 0 || anaType >= ANATYPES::kN_ANATYPES) {
+        std::cout << "ERROR : no valid analysis type given" << std::endl;
+        std::cout << "anaType (index for analysis type) = " << anaType << std::endl;
+    }
+    if (anaType == ANATYPES::kRegression) {
+        std::cout << "Configurations related to 'background' will be omitted for this analysis." << std::endl;
+        std::cout << "Configurations related to 'signal' will be used as regression input." << std::endl;
+    }
+
     std::cout << "treePathS = " << treePathS.c_str() << std::endl;
     std::cout << "treePathB = " << treePathB.c_str() << std::endl;
 
@@ -504,6 +538,22 @@ void printConfiguration()
                             trainVars[i].varProp.c_str(),
                             trainVars[i].cutRangeMin,
                             trainVars[i].cutRangeMax) << std::endl;
+    }
+}
+
+int parseAnaType(std::string anaTypeStr)
+{
+    anaTypeStr = trim(anaTypeStr);
+    anaTypeStr = toLowerCase(anaTypeStr);
+
+    if (anaTypeStr == "classification" || anaTypeStr == "0") {
+        return ANATYPES::kClassification;
+    }
+    else if (anaTypeStr == "regression" || anaTypeStr == "1") {
+        return ANATYPES::kRegression;
+    }
+    else {
+        return -1;
     }
 }
 
