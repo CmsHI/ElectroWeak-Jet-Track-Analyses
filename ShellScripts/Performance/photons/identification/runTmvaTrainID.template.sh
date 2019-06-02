@@ -4,7 +4,7 @@ inputSig="Configurations/filelists/Pythia8_PhotonXX_pp502_TuneCUETP8M1_HINppWint
 inputBkg="Configurations/filelists/Pythia8_EmEnrDijetXX_pp502_TuneCUETP8M1_HINppWinter16DR_FOREST.list"
 
 runCmd="./ShellScripts/myRun.sh"
-progPath="./Performance/objects/tmvaTrainID.exe"
+progPath="./Performance/objects/tmvaTrain.exe"
 progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 

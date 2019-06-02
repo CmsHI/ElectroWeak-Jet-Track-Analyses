@@ -81,9 +81,9 @@ int nTrainVars;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 void setBranchesStatus(TTree* t, std::vector<std::string> branchList);
-int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrainID.root", std::string jobLabel = "");
+int tmvaTrain(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile = "tmvaTrain.root", std::string jobLabel = "");
 
-int tmvaTrainID(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string jobLabel)
+int tmvaTrain(std::string configFile, std::string signalFile, std::string backgroundFile, std::string outputFile, std::string jobLabel)
 {
     std::cout << "configFile = " << configFile.c_str() << std::endl;
     std::cout << "signalFile = " << signalFile.c_str() << std::endl;
@@ -295,20 +295,20 @@ int tmvaTrainID(std::string configFile, std::string signalFile, std::string back
 int main(int argc, char** argv)
 {
     if (argc == 6) {
-        tmvaTrainID(argv[1], argv[2], argv[3], argv[4], argv[5]);
+        tmvaTrain(argv[1], argv[2], argv[3], argv[4], argv[5]);
         return 0;
     }
     else if (argc == 5) {
-        tmvaTrainID(argv[1], argv[2], argv[3], argv[4]);
+        tmvaTrain(argv[1], argv[2], argv[3], argv[4]);
         return 0;
     }
     else if (argc == 4) {
-        tmvaTrainID(argv[1], argv[2], argv[3]);
+        tmvaTrain(argv[1], argv[2], argv[3]);
         return 0;
     }
     else {
         std::cout << "Usage : \n" <<
-                "./tmvaTrainID.exe <configFile> <signalFile> <backgroundFile> <outputFile> <jobLabel>"
+                "./tmvaTrain.exe <configFile> <signalFile> <backgroundFile> <outputFile> <jobLabel>"
                 << std::endl;
         return 1;
     }
