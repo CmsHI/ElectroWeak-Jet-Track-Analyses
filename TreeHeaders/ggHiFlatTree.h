@@ -657,8 +657,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoR9 = 0;
     b_phoHoverE = 0;
     b_phoSigmaIEtaIEta = 0;
-    TBranch *b_pho_isEle;
-    TBranch *b_pho_is2015Noise;
+    b_pho_isEle = 0;
+    b_pho_is2015Noise = 0;
     //b_phoE1x3 = 0;
     //b_phoE2x2 = 0;
     //b_phoE2x5Max = 0;
@@ -666,7 +666,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoE2x5 = 0;
     b_phoE3x3 = 0;
     b_phoE5x5 = 0;
-    TBranch *b_phoMaxEnergyXtal;
+    b_phoMaxEnergyXtal = 0;
     b_phoSigmaEtaEta = 0;
     b_phoR1x5 = 0;
     b_phoR2x5 = 0;
