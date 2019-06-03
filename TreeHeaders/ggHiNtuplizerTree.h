@@ -147,7 +147,7 @@ public :
     //phoE1x3_2012 = 0;
     //phoE2x2_2012 = 0;
     //phoE2x5Max_2012 = 0;
-    //phoE5x5_2012 = 0;
+    phoE5x5_2012 = 0;
     phoE3x3_2012 = 0;
     phoBC1E = 0;
     phoBC1Eta = 0;
@@ -391,7 +391,7 @@ public :
   //std::vector<float>   *phoE1x3_2012;
   //std::vector<float>   *phoE2x2_2012;
   //std::vector<float>   *phoE2x5Max_2012;
-  //std::vector<float>   *phoE5x5_2012;
+  std::vector<float>   *phoE5x5_2012;
   std::vector<float>   *phoE3x3_2012;
   std::vector<float>   *phoBC1E;
   std::vector<float>   *phoBC1Eta;
@@ -630,7 +630,7 @@ public :
   //TBranch        *b_phoE1x3_2012;   //!
   //TBranch        *b_phoE2x2_2012;   //!
   //TBranch        *b_phoE2x5Max_2012;   //!
-  //TBranch        *b_phoE5x5_2012;   //!
+  TBranch        *b_phoE5x5_2012;   //!
   TBranch        *b_phoE3x3_2012;
   TBranch        *b_phoBC1E;   //!
   TBranch        *b_phoBC1Eta;   //!
@@ -869,7 +869,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     //b_phoE1x3_2012 = 0;
     //b_phoE2x2_2012 = 0;
     //b_phoE2x5Max_2012 = 0;
-    //b_phoE5x5_2012 = 0;
+    b_phoE5x5_2012 = 0;
     b_phoE3x3_2012 = 0;
     b_phoBC1E = 0;
     b_phoBC1Eta = 0;
@@ -1106,7 +1106,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
     //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
     //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
-    //if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
     if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);

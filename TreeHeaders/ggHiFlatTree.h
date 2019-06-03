@@ -187,7 +187,7 @@ public :
   //float phoE1x3_2012;
   //float phoE2x2_2012;
   //float phoE2x5Max_2012;
-  //float phoE5x5_2012;
+  float phoE5x5_2012;
   float phoE3x3_2012;
   float phoBC1E;
   float phoBC1Eta;
@@ -432,7 +432,7 @@ public :
   //TBranch        *b_phoE1x3_2012;   //!
   //TBranch        *b_phoE2x2_2012;   //!
   //TBranch        *b_phoE2x5Max_2012;   //!
-  //TBranch        *b_phoE5x5_2012;   //!
+  TBranch        *b_phoE5x5_2012;   //!
   TBranch        *b_phoE3x3_2012;
   TBranch        *b_phoBC1E;   //!
   TBranch        *b_phoBC1Eta;   //!
@@ -677,7 +677,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     //b_phoE1x3_2012 = 0;
     //b_phoE2x2_2012 = 0;
     //b_phoE2x5Max_2012 = 0;
-    //b_phoE5x5_2012 = 0;
+    b_phoE5x5_2012 = 0;
     b_phoE3x3_2012 = 0;
     b_phoBC1E = 0;
     b_phoBC1Eta = 0;
@@ -920,7 +920,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
     //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
     //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
-    //if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
     if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);
@@ -1170,7 +1170,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         //t->Branch("phoE1x3_2012", &phoE1x3_2012);
         //t->Branch("phoE2x2_2012", &phoE2x2_2012);
         //t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
-        //t->Branch("phoE5x5_2012", &phoE5x5_2012);
+        t->Branch("phoE5x5_2012", &phoE5x5_2012);
         t->Branch("phoE3x3_2012", &phoE3x3_2012);
         t->Branch("phoBC1E", &phoBC1E);
         t->Branch("phoBC1Eta", &phoBC1Eta);
@@ -1407,7 +1407,7 @@ void ggHiFlat::clearEntryPho()
         //phoE1x3_2012 = -987987;
         //phoE2x2_2012 = -987987;
         //phoE2x5Max_2012 = -987987;
-        //phoE5x5_2012 = -987987;
+        phoE5x5_2012 = -987987;
         phoE3x3_2012 = -987987;
         phoBC1E = -987987;
         phoBC1Eta = -987987;
@@ -1662,7 +1662,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     //phoE1x3_2012 = (*tggHiNtuplizer.//phoE1x3_2012)[i];
     //phoE2x2_2012 = (*tggHiNtuplizer.//phoE2x2_2012)[i];
     //phoE2x5Max_2012 = (*tggHiNtuplizer.//phoE2x5Max_2012)[i];
-    //phoE5x5_2012 = (*tggHiNtuplizer.//phoE5x5_2012)[i];
+    phoE5x5_2012 = (*tggHiNtuplizer.phoE5x5_2012)[i];
     phoE3x3_2012 = (*tggHiNtuplizer.phoE3x3_2012)[i];
     if (tggHiNtuplizer.b_phoBC1E != 0) {
         phoBC1E = (*tggHiNtuplizer.phoBC1E)[i];
