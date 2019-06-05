@@ -2,13 +2,11 @@
  * macro to read information from XML file produced by TMVA classification
  * -- prints cut value for the given signal efficiency
  */
-#include "TChain.h"
-#include "TFile.h"
-#include "TTree.h"
-#include "TString.h"
-#include "TObjString.h"
-#include "TSystem.h"
-#include "TROOT.h"
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1.h>
+#include <TH1D.h>
+#include <TH2D.h>
 
 #include "TMVA/IMethod.h"
 #include "TMVA/MethodBase.h"
