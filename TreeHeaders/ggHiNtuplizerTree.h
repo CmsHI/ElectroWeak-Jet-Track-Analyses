@@ -129,6 +129,8 @@ public :
     phoR9 = 0;
     phoHoverE = 0;
     phoSigmaIEtaIEta = 0;
+    phoSigmaIEtaIPhi = 0;
+    phoSigmaIPhiIPhi = 0;
     //phoE1x3 = 0;
     //phoE2x2 = 0;
     //phoE2x5Max = 0;
@@ -142,8 +144,8 @@ public :
     phoR2x5 = 0;
     phoESEffSigmaRR = 0;
     phoSigmaIEtaIEta_2012 = 0;
-    //phoSigmaIEtaIPhi_2012 = 0;
-    //phoSigmaIPhiIPhi_2012 = 0;
+    phoSigmaIEtaIPhi_2012 = 0;
+    phoSigmaIPhiIPhi_2012 = 0;
     //phoE1x3_2012 = 0;
     //phoE2x2_2012 = 0;
     //phoE2x5Max_2012 = 0;
@@ -371,6 +373,8 @@ public :
   std::vector<float>   *phoR9;
   std::vector<float>   *phoHoverE;
   std::vector<float>   *phoSigmaIEtaIEta;
+  std::vector<float>   *phoSigmaIEtaIPhi;
+  std::vector<float>   *phoSigmaIPhiIPhi;
   Int_t pho_isEle;
   Int_t pho_is2015Noise;
   //std::vector<float>   *phoE1x3;
@@ -386,8 +390,8 @@ public :
   std::vector<float> *phoR2x5;
   std::vector<float>   *phoESEffSigmaRR;
   std::vector<float>   *phoSigmaIEtaIEta_2012;
-  //std::vector<float>   *phoSigmaIEtaIPhi_2012;
-  //std::vector<float>   *phoSigmaIPhiIPhi_2012;
+  std::vector<float>   *phoSigmaIEtaIPhi_2012;
+  std::vector<float>   *phoSigmaIPhiIPhi_2012;
   //std::vector<float>   *phoE1x3_2012;
   //std::vector<float>   *phoE2x2_2012;
   //std::vector<float>   *phoE2x5Max_2012;
@@ -610,6 +614,8 @@ public :
   TBranch        *b_phoR9;   //!
   TBranch        *b_phoHoverE;   //!
   TBranch        *b_phoSigmaIEtaIEta;   //!
+  TBranch        *b_phoSigmaIEtaIPhi;   //!
+  TBranch        *b_phoSigmaIPhiIPhi;   //!
   TBranch *b_pho_isEle;
   TBranch *b_pho_is2015Noise;
   //TBranch        *b_phoE1x3;   //!
@@ -625,8 +631,8 @@ public :
   TBranch        *b_phoR2x5;
   TBranch        *b_phoESEffSigmaRR;   //!
   TBranch        *b_phoSigmaIEtaIEta_2012;   //!
-  //TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
-  //TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
+  TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
+  TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
   //TBranch        *b_phoE1x3_2012;   //!
   //TBranch        *b_phoE2x2_2012;   //!
   //TBranch        *b_phoE2x5Max_2012;   //!
@@ -849,6 +855,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phoR9 = 0;
     b_phoHoverE = 0;
     b_phoSigmaIEtaIEta = 0;
+    b_phoSigmaIEtaIPhi = 0;
+    b_phoSigmaIPhiIPhi = 0;
     b_pho_isEle = 0;
     b_pho_is2015Noise = 0;
     //b_phoE1x3 = 0;
@@ -864,8 +872,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phoR2x5 = 0;
     b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
-    //b_phoSigmaIEtaIPhi_2012 = 0;
-    //b_phoSigmaIPhiIPhi_2012 = 0;
+    b_phoSigmaIEtaIPhi_2012 = 0;
+    b_phoSigmaIPhiIPhi_2012 = 0;
     //b_phoE1x3_2012 = 0;
     //b_phoE2x2_2012 = 0;
     //b_phoE2x5Max_2012 = 0;
@@ -1086,6 +1094,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
+    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
+    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
     if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
     if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
     //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
@@ -1101,8 +1111,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
     if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
-    //if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
-    //if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
+    if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
+    if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
     //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
     //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
     //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);

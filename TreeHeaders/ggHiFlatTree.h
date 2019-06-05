@@ -167,6 +167,8 @@ public :
   float phoR9;
   float phoHoverE;
   float phoSigmaIEtaIEta;
+  float phoSigmaIEtaIPhi;
+  float phoSigmaIPhiIPhi;
   int pho_isEle;
   int pho_is2015Noise;
   //float phoE1x3;
@@ -182,8 +184,8 @@ public :
   float phoR2x5;
   float phoESEffSigmaRR;
   float phoSigmaIEtaIEta_2012;
-  //float phoSigmaIEtaIPhi_2012;
-  //float phoSigmaIPhiIPhi_2012;
+  float phoSigmaIEtaIPhi_2012;
+  float phoSigmaIPhiIPhi_2012;
   //float phoE1x3_2012;
   //float phoE2x2_2012;
   //float phoE2x5Max_2012;
@@ -412,8 +414,10 @@ public :
   TBranch        *b_phoR9;   //!
   TBranch        *b_phoHoverE;   //!
   TBranch        *b_phoSigmaIEtaIEta;   //!
-  TBranch *b_pho_isEle;
-  TBranch *b_pho_is2015Noise;
+  TBranch        *b_phoSigmaIEtaIPhi;   //!
+  TBranch        *b_phoSigmaIPhiIPhi;   //!
+  TBranch        *b_pho_isEle;
+  TBranch        *b_pho_is2015Noise;
   //TBranch        *b_phoE1x3;   //!
   //TBranch        *b_phoE2x2;   //!
   //TBranch        *b_phoE2x5Max;   //!
@@ -421,14 +425,14 @@ public :
   TBranch        *b_phoE2x5;
   TBranch        *b_phoE3x3;
   TBranch        *b_phoE5x5;   //!
-  TBranch *b_phoMaxEnergyXtal;
+  TBranch        *b_phoMaxEnergyXtal;
   TBranch        *b_phoSigmaEtaEta;
   TBranch        *b_phoR1x5;
   TBranch        *b_phoR2x5;
   TBranch        *b_phoESEffSigmaRR;   //!
   TBranch        *b_phoSigmaIEtaIEta_2012;   //!
-  //TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
-  //TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
+  TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
+  TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
   //TBranch        *b_phoE1x3_2012;   //!
   //TBranch        *b_phoE2x2_2012;   //!
   //TBranch        *b_phoE2x5Max_2012;   //!
@@ -657,6 +661,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoR9 = 0;
     b_phoHoverE = 0;
     b_phoSigmaIEtaIEta = 0;
+    b_phoSigmaIEtaIPhi = 0;
+    b_phoSigmaIPhiIPhi = 0;
     b_pho_isEle = 0;
     b_pho_is2015Noise = 0;
     //b_phoE1x3 = 0;
@@ -672,8 +678,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoR2x5 = 0;
     b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
-    //b_phoSigmaIEtaIPhi_2012 = 0;
-    //b_phoSigmaIPhiIPhi_2012 = 0;
+    b_phoSigmaIEtaIPhi_2012 = 0;
+    b_phoSigmaIPhiIPhi_2012 = 0;
     //b_phoE1x3_2012 = 0;
     //b_phoE2x2_2012 = 0;
     //b_phoE2x5Max_2012 = 0;
@@ -900,6 +906,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
+    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
+    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
     if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
     if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
     //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
@@ -915,8 +923,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
     if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
-    //if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
-    //if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
+    if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
+    if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
     //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
     //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
     //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
@@ -1150,6 +1158,8 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoR9", &phoR9);
         t->Branch("phoHoverE", &phoHoverE);
         t->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
+        t->Branch("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi);
+        t->Branch("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi);
         t->Branch("pho_isEle", &pho_isEle);
         t->Branch("pho_is2015Noise", &pho_is2015Noise);
         //t->Branch("phoE1x3", &phoE1x3);
@@ -1165,8 +1175,8 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoR2x5", &phoR2x5);
         t->Branch("phoESEffSigmaRR", &phoESEffSigmaRR);
         t->Branch("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012);
-        //t->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
-        //t->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
+        t->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
+        t->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
         //t->Branch("phoE1x3_2012", &phoE1x3_2012);
         //t->Branch("phoE2x2_2012", &phoE2x2_2012);
         //t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
@@ -1389,6 +1399,8 @@ void ggHiFlat::clearEntryPho()
         phoR9 = -987987;
         phoHoverE = -987987;
         phoSigmaIEtaIEta = -987987;
+        phoSigmaIEtaIPhi = -987987;
+        phoSigmaIPhiIPhi = -987987;
         //phoE1x3 = -987987;
         //phoE2x2 = -987987;
         //phoE2x5Max = -987987;
@@ -1402,8 +1414,8 @@ void ggHiFlat::clearEntryPho()
         phoR2x5 = -987987;
         phoESEffSigmaRR = -987987;
         phoSigmaIEtaIEta_2012 = -987987;
-        //phoSigmaIEtaIPhi_2012 = -987987;
-        //phoSigmaIPhiIPhi_2012 = -987987;
+        phoSigmaIEtaIPhi_2012 = -987987;
+        phoSigmaIPhiIPhi_2012 = -987987;
         //phoE1x3_2012 = -987987;
         //phoE2x2_2012 = -987987;
         //phoE2x5Max_2012 = -987987;
@@ -1643,7 +1655,11 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     //phohasPixelSeed = (*tggHiNtuplizer.phohasPixelSeed)[i];
     phoR9 = (*tggHiNtuplizer.phoR9)[i];
     phoHoverE = (*tggHiNtuplizer.phoHoverE)[i];
-    //phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];
+    phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];
+    if (tggHiNtuplizer.b_phoSigmaIEtaIPhi != 0) {
+        phoSigmaIEtaIPhi = (*tggHiNtuplizer.phoSigmaIEtaIPhi)[i];
+        phoSigmaIPhiIPhi = (*tggHiNtuplizer.phoSigmaIPhiIPhi)[i];
+    }
     //phoE1x3 = (*tggHiNtuplizer.//phoE1x3)[i];
     //phoE2x2 = (*tggHiNtuplizer.//phoE2x2)[i];
     //phoE2x5Max = (*tggHiNtuplizer.//phoE2x5Max)[i];
@@ -1657,8 +1673,10 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     phoR2x5 = (*tggHiNtuplizer.phoR2x5)[i];
     //phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
     phoSigmaIEtaIEta_2012 = (*tggHiNtuplizer.phoSigmaIEtaIEta_2012)[i];
-    //phoSigmaIEtaIPhi_2012 = (*tggHiNtuplizer.//phoSigmaIEtaIPhi_2012)[i];
-    //phoSigmaIPhiIPhi_2012 = (*tggHiNtuplizer.//phoSigmaIPhiIPhi_2012)[i];
+    if (tggHiNtuplizer.b_phoSigmaIEtaIPhi_2012 != 0) {
+        phoSigmaIEtaIPhi_2012 = (*tggHiNtuplizer.phoSigmaIEtaIPhi_2012)[i];
+        phoSigmaIPhiIPhi_2012 = (*tggHiNtuplizer.phoSigmaIPhiIPhi_2012)[i];
+    }
     //phoE1x3_2012 = (*tggHiNtuplizer.//phoE1x3_2012)[i];
     //phoE2x2_2012 = (*tggHiNtuplizer.//phoE2x2_2012)[i];
     //phoE2x5Max_2012 = (*tggHiNtuplizer.//phoE2x5Max_2012)[i];
