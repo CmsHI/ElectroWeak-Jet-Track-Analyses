@@ -52,9 +52,11 @@ std::string histKinWeight;
 bool calcRhoEtaAve;
 
 // effective areas
-std::vector<std::vector<float>> effAreaC;   // charged
-std::vector<std::vector<float>> effAreaP;   // photon
-std::vector<std::vector<float>> effAreaN;   // neutral
+std::vector<std::vector<float>> effAreaC;   // PF charged iso
+std::vector<std::vector<float>> effAreaP;   // PF photon iso
+std::vector<std::vector<float>> effAreaN;   // PF neutral iso
+std::vector<std::vector<float>> effAreaHoE;   // for H/E
+std::vector<std::vector<float>> effAreaSieie;   // for phoSigmaIEtaIEta_2012
 
 // object cuts
 float ptMin;
@@ -67,6 +69,8 @@ int nPthatWeights;
 int nEffAreaC;
 int nEffAreaP;
 int nEffAreaN;
+int nEffAreaHoE;
+int nEffAreaSieie;
 
 /// configuration variables - END
 enum RECOOBJS {
@@ -382,6 +386,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
                     ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
                     ggHiOut.phoEAn = getEffArea((*ggHi.phoSCEta)[i], effAreaN[0], effAreaN[1], effAreaN[2], nEffAreaN);
+                    ggHiOut.phoEAhoe = getEffArea((*ggHi.phoSCEta)[i], effAreaHoE[0], effAreaHoE[1], effAreaHoE[2], nEffAreaHoE);
+                    ggHiOut.phoEAsieie = getEffArea((*ggHi.phoSCEta)[i], effAreaSieie[0], effAreaSieie[1], effAreaSieie[2], nEffAreaSieie);
 
                     if (h2D_weightKin != 0) {
                         int binTmp = h2D_weightKin->FindBin((*ggHi.phoEt)[i], (*ggHi.phoEta)[i]);
@@ -503,6 +509,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
     effAreaP = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaP"));
     effAreaN = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaN"));
+    effAreaHoE = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaHoE"));
+    effAreaSieie = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaSieie"));
 
     // object cuts
     ptMin = confParser.ReadConfigValueFloat("ptMin");
@@ -515,6 +523,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nEffAreaC = effAreaC[0].size();
     nEffAreaP = effAreaP[0].size();
     nEffAreaN = effAreaN[0].size();
+    nEffAreaHoE = effAreaHoE[0].size();
+    nEffAreaSieie = effAreaSieie[0].size();
 
     // set default values
     if (inputTreePath.size() == 0) inputTreePath = "ggHiNtuplizer/EventTree";
@@ -564,7 +574,7 @@ void printConfiguration()
     std::cout << "nEffAreaC = " << nEffAreaC << std::endl;
     for (int i = 0; i < nEffAreaC; ++i) {
         std::cout << Form("effAreaC[%d] = { ", i);
-        std::cout << Form("%.0f, ", effAreaC[0].at(i));
+        std::cout << Form("%f, ", effAreaC[0].at(i));
         std::cout << Form("%f, ", effAreaC[1].at(i));
         std::cout << Form("%f }", effAreaC[2].at(i)) << std::endl;;
     }
@@ -572,7 +582,7 @@ void printConfiguration()
     std::cout << "nEffAreaP = " << nEffAreaP << std::endl;
     for (int i = 0; i < nEffAreaP; ++i) {
         std::cout << Form("effAreaP[%d] = { ", i);
-        std::cout << Form("%.0f, ", effAreaP[0].at(i));
+        std::cout << Form("%f, ", effAreaP[0].at(i));
         std::cout << Form("%f, ", effAreaP[1].at(i));
         std::cout << Form("%f }", effAreaP[2].at(i)) << std::endl;;
     }
@@ -580,9 +590,25 @@ void printConfiguration()
     std::cout << "nEffAreaN = " << nEffAreaN << std::endl;
     for (int i = 0; i < nEffAreaN; ++i) {
         std::cout << Form("effAreaN[%d] = { ", i);
-        std::cout << Form("%.0f, ", effAreaN[0].at(i));
+        std::cout << Form("%f, ", effAreaN[0].at(i));
         std::cout << Form("%f, ", effAreaN[1].at(i));
         std::cout << Form("%f }", effAreaN[2].at(i)) << std::endl;;
+    }
+
+    std::cout << "nEffAreaHoE = " << nEffAreaHoE << std::endl;
+    for (int i = 0; i < nEffAreaHoE; ++i) {
+        std::cout << Form("effAreaHoE[%d] = { ", i);
+        std::cout << Form("%f, ", effAreaHoE[0].at(i));
+        std::cout << Form("%f, ", effAreaHoE[1].at(i));
+        std::cout << Form("%f }", effAreaHoE[2].at(i)) << std::endl;;
+    }
+
+    std::cout << "nEffAreaSieie = " << nEffAreaSieie << std::endl;
+    for (int i = 0; i < nEffAreaSieie; ++i) {
+        std::cout << Form("effAreaSieie[%d] = { ", i);
+        std::cout << Form("%f, ", effAreaSieie[0].at(i));
+        std::cout << Form("%f, ", effAreaSieie[1].at(i));
+        std::cout << Form("%f }", effAreaSieie[2].at(i)) << std::endl;;
     }
 
     std::cout << "ptMin = " << ptMin << std::endl;
