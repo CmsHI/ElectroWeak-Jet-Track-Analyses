@@ -126,31 +126,72 @@ public :
     phoSCPhiWidth = 0;
     phoSCBrem = 0;
     phohasPixelSeed = 0;
-    phoR9 = 0;
+
     phoHoverE = 0;
+    phoHoverEValid = 0;
     phoSigmaIEtaIEta = 0;
-    phoSigmaIEtaIPhi = 0;
-    phoSigmaIPhiIPhi = 0;
-    //phoE1x3 = 0;
-    //phoE2x2 = 0;
-    //phoE2x5Max = 0;
-    phoE3x3 = 0;
+    phoR9 = 0;
     phoE1x5 = 0;
     phoE2x5 = 0;
+    phoE3x3 = 0;
     phoE5x5 = 0;
     phoMaxEnergyXtal = 0;
     phoSigmaEtaEta = 0;
-    phoR1x5 = 0;
-    phoR2x5 = 0;
     phoESEffSigmaRR = 0;
     phoSigmaIEtaIEta_2012 = 0;
+    phoR9_2012 = 0;
+    phoE1x5_2012 = 0;
+    phoE2x5_2012 = 0;
+    phoE3x3_2012 = 0;
+    phoE5x5_2012 = 0;
+    phoMaxEnergyXtal_2012 = 0;
+    phoSigmaEtaEta_2012 = 0;
+
+    phoHadTowerOverEm1 = 0;
+    phoHadTowerOverEm2 = 0;
+    phoHoverE1 = 0;
+    phoHoverE2 = 0;
+
+    phoSigmaIEtaIPhi = 0;
+    phoSigmaIPhiIPhi = 0;
+    phoR1x5 = 0;
+    phoR2x5 = 0;
+    phoE2nd = 0;
+    phoETop = 0;
+    phoEBottom = 0;
+    phoELeft = 0;
+    phoERight = 0;
+    phoE1x3 = 0;
+    phoE2x2 = 0;
+    phoE2x5Max = 0;
+    phoE2x5Top = 0;
+    phoE2x5Bottom = 0;
+    phoE2x5Left = 0;
+    phoE2x5Right = 0;
+    //phoSMMajor = 0;   // TODO: enable when they become available in future releases
+    //phoSMMinor = 0;   // TODO: enable when they become available in future releases
+    //phoSMAlpha = 0;   // TODO: enable when they become available in future releases
+
     phoSigmaIEtaIPhi_2012 = 0;
     phoSigmaIPhiIPhi_2012 = 0;
-    //phoE1x3_2012 = 0;
-    //phoE2x2_2012 = 0;
-    //phoE2x5Max_2012 = 0;
-    phoE5x5_2012 = 0;
-    phoE3x3_2012 = 0;
+    phoR1x5_2012 = 0;
+    phoR2x5_2012 = 0;
+    phoE2nd_2012 = 0;
+    phoETop_2012 = 0;
+    phoEBottom_2012 = 0;
+    phoELeft_2012 = 0;
+    phoERight_2012 = 0;
+    phoE1x3_2012 = 0;
+    phoE2x2_2012 = 0;
+    phoE2x5Max_2012 = 0;
+    phoE2x5Top_2012 = 0;
+    phoE2x5Bottom_2012 = 0;
+    phoE2x5Left_2012 = 0;
+    phoE2x5Right_2012 = 0;
+    //phoSMMajor_2012 = 0;   // TODO: enable when they become available in future releases
+    //phoSMMinor_2012 = 0;   // TODO: enable when they become available in future releases
+    //phoSMAlpha_2012 = 0;   // TODO: enable when they become available in future releases
+
     phoBC1E = 0;
     phoBC1Eta = 0;
     phoBC2E = 0;
@@ -370,33 +411,74 @@ public :
   std::vector<float>   *phoSCPhiWidth;
   std::vector<float>   *phoSCBrem;
   std::vector<int>     *phohasPixelSeed;
-  std::vector<float>   *phoR9;
   std::vector<float>   *phoHoverE;
+  std::vector<int>     *phoHoverEValid;
   std::vector<float>   *phoSigmaIEtaIEta;
-  std::vector<float>   *phoSigmaIEtaIPhi;
-  std::vector<float>   *phoSigmaIPhiIPhi;
-  Int_t pho_isEle;
-  Int_t pho_is2015Noise;
-  //std::vector<float>   *phoE1x3;
-  //std::vector<float>   *phoE2x2;
-  //std::vector<float>   *phoE2x5Max;
+  std::vector<float>   *phoR9;
   std::vector<float>   *phoE1x5;
   std::vector<float>   *phoE2x5;
-  std::vector<float>   *phoE5x5;
   std::vector<float>   *phoE3x3;
-  std::vector<float> *phoMaxEnergyXtal;
-  std::vector<float> *phoSigmaEtaEta;
-  std::vector<float> *phoR1x5;
-  std::vector<float> *phoR2x5;
+  std::vector<float>   *phoE5x5;
+  std::vector<float>   *phoMaxEnergyXtal;
+  std::vector<float>   *phoSigmaEtaEta;
   std::vector<float>   *phoESEffSigmaRR;
   std::vector<float>   *phoSigmaIEtaIEta_2012;
-  std::vector<float>   *phoSigmaIEtaIPhi_2012;
-  std::vector<float>   *phoSigmaIPhiIPhi_2012;
-  //std::vector<float>   *phoE1x3_2012;
-  //std::vector<float>   *phoE2x2_2012;
-  //std::vector<float>   *phoE2x5Max_2012;
-  std::vector<float>   *phoE5x5_2012;
+  std::vector<float>   *phoR9_2012;
+  std::vector<float>   *phoE1x5_2012;
+  std::vector<float>   *phoE2x5_2012;
   std::vector<float>   *phoE3x3_2012;
+  std::vector<float>   *phoE5x5_2012;
+  std::vector<float>   *phoMaxEnergyXtal_2012;
+  std::vector<float>   *phoSigmaEtaEta_2012;
+
+  Int_t pho_isEle;
+  Int_t pho_is2015Noise;
+
+  std::vector<float>  *phoHadTowerOverEm1;
+  std::vector<float>  *phoHadTowerOverEm2;
+  std::vector<float>  *phoHoverE1;
+  std::vector<float>  *phoHoverE2;
+
+  std::vector<float>  *phoSigmaIEtaIPhi;
+  std::vector<float>  *phoSigmaIPhiIPhi;
+  std::vector<float>  *phoR1x5;
+  std::vector<float>  *phoR2x5;
+  std::vector<float>  *phoE2nd;
+  std::vector<float>  *phoETop;
+  std::vector<float>  *phoEBottom;
+  std::vector<float>  *phoELeft;
+  std::vector<float>  *phoERight;
+  std::vector<float>  *phoE1x3;
+  std::vector<float>  *phoE2x2;
+  std::vector<float>  *phoE2x5Max;
+  std::vector<float>  *phoE2x5Top;
+  std::vector<float>  *phoE2x5Bottom;
+  std::vector<float>  *phoE2x5Left;
+  std::vector<float>  *phoE2x5Right;
+  //std::vector<float>  *phoSMMajor;   // TODO: enable when they become available in future releases
+  //std::vector<float>  *phoSMMinor;   // TODO: enable when they become available in future releases
+  //std::vector<float>  *phoSMAlpha;   // TODO: enable when they become available in future releases
+
+  std::vector<float>  *phoSigmaIEtaIPhi_2012;
+  std::vector<float>  *phoSigmaIPhiIPhi_2012;
+  std::vector<float>  *phoR1x5_2012;
+  std::vector<float>  *phoR2x5_2012;
+  std::vector<float>  *phoE2nd_2012;
+  std::vector<float>  *phoETop_2012;
+  std::vector<float>  *phoEBottom_2012;
+  std::vector<float>  *phoELeft_2012;
+  std::vector<float>  *phoERight_2012;
+  std::vector<float>  *phoE1x3_2012;
+  std::vector<float>  *phoE2x2_2012;
+  std::vector<float>  *phoE2x5Max_2012;
+  std::vector<float>  *phoE2x5Top_2012;
+  std::vector<float>  *phoE2x5Bottom_2012;
+  std::vector<float>  *phoE2x5Left_2012;
+  std::vector<float>  *phoE2x5Right_2012;
+  //std::vector<float>  *phoSMMajor_2012;   // TODO: enable when they become available in future releases
+  //std::vector<float>  *phoSMMinor_2012;   // TODO: enable when they become available in future releases
+//std::vector<float>  *phoSMAlpha_2012;   // TODO: enable when they become available in future releases
+
   std::vector<float>   *phoBC1E;
   std::vector<float>   *phoBC1Eta;
   std::vector<float>   *phoBC2E;
@@ -611,33 +693,75 @@ public :
   TBranch        *b_phoSCPhiWidth;   //!
   TBranch        *b_phoSCBrem;   //!
   TBranch        *b_phohasPixelSeed;   //!
-  TBranch        *b_phoR9;   //!
-  TBranch        *b_phoHoverE;   //!
-  TBranch        *b_phoSigmaIEtaIEta;   //!
-  TBranch        *b_phoSigmaIEtaIPhi;   //!
-  TBranch        *b_phoSigmaIPhiIPhi;   //!
-  TBranch *b_pho_isEle;
-  TBranch *b_pho_is2015Noise;
-  //TBranch        *b_phoE1x3;   //!
-  //TBranch        *b_phoE2x2;   //!
-  //TBranch        *b_phoE2x5Max;   //!
+
+  TBranch        *b_phoHoverE;
+  TBranch        *b_phoHoverEValid;
+  TBranch        *b_phoSigmaIEtaIEta;
+  TBranch        *b_phoR9;
   TBranch        *b_phoE1x5;
   TBranch        *b_phoE2x5;
   TBranch        *b_phoE3x3;
-  TBranch        *b_phoE5x5;   //!
-  TBranch *b_phoMaxEnergyXtal;
+  TBranch        *b_phoE5x5;
+  TBranch        *b_phoMaxEnergyXtal;
   TBranch        *b_phoSigmaEtaEta;
+  TBranch        *b_phoESEffSigmaRR;
+  TBranch        *b_phoSigmaIEtaIEta_2012;
+  TBranch        *b_phoR9_2012;
+  TBranch        *b_phoE1x5_2012;
+  TBranch        *b_phoE2x5_2012;
+  TBranch        *b_phoE3x3_2012;
+  TBranch        *b_phoE5x5_2012;
+  TBranch        *b_phoMaxEnergyXtal_2012;
+  TBranch        *b_phoSigmaEtaEta_2012;
+
+  TBranch        *b_pho_isEle;
+  TBranch        *b_pho_is2015Noise;
+
+  TBranch        *b_phoHadTowerOverEm1;
+  TBranch        *b_phoHadTowerOverEm2;
+  TBranch        *b_phoHoverE1;
+  TBranch        *b_phoHoverE2;
+
+  TBranch        *b_phoSigmaIEtaIPhi;
+  TBranch        *b_phoSigmaIPhiIPhi;
   TBranch        *b_phoR1x5;
   TBranch        *b_phoR2x5;
-  TBranch        *b_phoESEffSigmaRR;   //!
-  TBranch        *b_phoSigmaIEtaIEta_2012;   //!
-  TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
-  TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
-  //TBranch        *b_phoE1x3_2012;   //!
-  //TBranch        *b_phoE2x2_2012;   //!
-  //TBranch        *b_phoE2x5Max_2012;   //!
-  TBranch        *b_phoE5x5_2012;   //!
-  TBranch        *b_phoE3x3_2012;
+  TBranch        *b_phoE2nd;
+  TBranch        *b_phoETop;
+  TBranch        *b_phoEBottom;
+  TBranch        *b_phoELeft;
+  TBranch        *b_phoERight;
+  TBranch        *b_phoE1x3;
+  TBranch        *b_phoE2x2;
+  TBranch        *b_phoE2x5Max;
+  TBranch        *b_phoE2x5Top;
+  TBranch        *b_phoE2x5Bottom;
+  TBranch        *b_phoE2x5Left;
+  TBranch        *b_phoE2x5Right;
+  //TBranch        *b_phoSMMajor;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMMinor;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMAlpha;   // TODO: enable when they become available in future releases
+
+  TBranch        *b_phoSigmaIEtaIPhi_2012;
+  TBranch        *b_phoSigmaIPhiIPhi_2012;
+  TBranch        *b_phoR1x5_2012;
+  TBranch        *b_phoR2x5_2012;
+  TBranch        *b_phoE2nd_2012;
+  TBranch        *b_phoETop_2012;
+  TBranch        *b_phoEBottom_2012;
+  TBranch        *b_phoELeft_2012;
+  TBranch        *b_phoERight_2012;
+  TBranch        *b_phoE1x3_2012;
+  TBranch        *b_phoE2x2_2012;
+  TBranch        *b_phoE2x5Max_2012;
+  TBranch        *b_phoE2x5Top_2012;
+  TBranch        *b_phoE2x5Bottom_2012;
+  TBranch        *b_phoE2x5Left_2012;
+  TBranch        *b_phoE2x5Right_2012;
+  //TBranch        *b_phoSMMajor_2012;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMMinor_2012;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMAlpha_2012;   // TODO: enable when they become available in future releases
+
   TBranch        *b_phoBC1E;   //!
   TBranch        *b_phoBC1Eta;   //!
   TBranch        *b_phoBC2E;   //!
@@ -852,33 +976,75 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phoSCPhiWidth = 0;
     b_phoSCBrem = 0;
     b_phohasPixelSeed = 0;
-    b_phoR9 = 0;
+
     b_phoHoverE = 0;
+    b_phoHoverEValid = 0;
     b_phoSigmaIEtaIEta = 0;
-    b_phoSigmaIEtaIPhi = 0;
-    b_phoSigmaIPhiIPhi = 0;
-    b_pho_isEle = 0;
-    b_pho_is2015Noise = 0;
-    //b_phoE1x3 = 0;
-    //b_phoE2x2 = 0;
-    //b_phoE2x5Max = 0;
+    b_phoR9 = 0;
     b_phoE1x5 = 0;
     b_phoE2x5 = 0;
     b_phoE3x3 = 0;
     b_phoE5x5 = 0;
     b_phoMaxEnergyXtal = 0;
     b_phoSigmaEtaEta = 0;
-    b_phoR1x5 = 0;
-    b_phoR2x5 = 0;
     b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
+    b_phoR9_2012 = 0;
+    b_phoE1x5_2012 = 0;
+    b_phoE2x5_2012 = 0;
+    b_phoE3x3_2012 = 0;
+    b_phoE5x5_2012 = 0;
+    b_phoMaxEnergyXtal_2012 = 0;
+    b_phoSigmaEtaEta_2012 = 0;
+
+    b_pho_isEle = 0;
+    b_pho_is2015Noise = 0;
+
+    b_phoHadTowerOverEm1 = 0;
+    b_phoHadTowerOverEm2 = 0;
+    b_phoHoverE1 = 0;
+    b_phoHoverE2 = 0;
+
+    b_phoSigmaIEtaIPhi = 0;
+    b_phoSigmaIPhiIPhi = 0;
+    b_phoR1x5 = 0;
+    b_phoR2x5 = 0;
+    b_phoE2nd = 0;
+    b_phoETop = 0;
+    b_phoEBottom = 0;
+    b_phoELeft = 0;
+    b_phoERight = 0;
+    b_phoE1x3 = 0;
+    b_phoE2x2 = 0;
+    b_phoE2x5Max = 0;
+    b_phoE2x5Top = 0;
+    b_phoE2x5Bottom = 0;
+    b_phoE2x5Left = 0;
+    b_phoE2x5Right = 0;
+    //b_phoSMMajor = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMMinor = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMAlpha = 0;   // TODO: enable when they become available in future releases
+
     b_phoSigmaIEtaIPhi_2012 = 0;
     b_phoSigmaIPhiIPhi_2012 = 0;
-    //b_phoE1x3_2012 = 0;
-    //b_phoE2x2_2012 = 0;
-    //b_phoE2x5Max_2012 = 0;
-    b_phoE5x5_2012 = 0;
-    b_phoE3x3_2012 = 0;
+    b_phoR1x5_2012 = 0;
+    b_phoR2x5_2012 = 0;
+    b_phoE2nd_2012 = 0;
+    b_phoETop_2012 = 0;
+    b_phoEBottom_2012 = 0;
+    b_phoELeft_2012 = 0;
+    b_phoERight_2012 = 0;
+    b_phoE1x3_2012 = 0;
+    b_phoE2x2_2012 = 0;
+    b_phoE2x5Max_2012 = 0;
+    b_phoE2x5Top_2012 = 0;
+    b_phoE2x5Bottom_2012 = 0;
+    b_phoE2x5Left_2012 = 0;
+    b_phoE2x5Right_2012 = 0;
+    //b_phoSMMajor_2012 = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMMinor_2012 = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMAlpha_2012 = 0;   // TODO: enable when they become available in future releases
+
     b_phoBC1E = 0;
     b_phoBC1Eta = 0;
     b_phoBC2E = 0;
@@ -1091,33 +1257,75 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoSCPhiWidth")) t->SetBranchAddress("phoSCPhiWidth", &phoSCPhiWidth, &b_phoSCPhiWidth);
     if (t->GetBranch("phoSCBrem")) t->SetBranchAddress("phoSCBrem", &phoSCBrem, &b_phoSCBrem);
     if (t->GetBranch("phohasPixelSeed")) t->SetBranchAddress("phohasPixelSeed", &phohasPixelSeed, &b_phohasPixelSeed);
-    if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
+
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
+    if (t->GetBranch("phoHoverEValid")) t->SetBranchAddress("phoHoverEValid", &phoHoverEValid, &b_phoHoverEValid);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
-    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
-    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
-    if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
-    if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
-    //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
-    //if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
-    //if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoE1x5")) t->SetBranchAddress("phoE1x5", &phoE1x5, &b_phoE1x5);
     if (t->GetBranch("phoE2x5")) t->SetBranchAddress("phoE2x5", &phoE2x5, &b_phoE2x5);
     if (t->GetBranch("phoE3x3")) t->SetBranchAddress("phoE3x3", &phoE3x3, &b_phoE3x3);
     if (t->GetBranch("phoE5x5")) t->SetBranchAddress("phoE5x5", &phoE5x5, &b_phoE5x5);
     if (t->GetBranch("phoMaxEnergyXtal")) t->SetBranchAddress("phoMaxEnergyXtal", &phoMaxEnergyXtal, &b_phoMaxEnergyXtal);
     if (t->GetBranch("phoSigmaEtaEta")) t->SetBranchAddress("phoSigmaEtaEta", &phoSigmaEtaEta, &b_phoSigmaEtaEta);
-    if (t->GetBranch("phoR1x5")) t->SetBranchAddress("phoR1x5", &phoR1x5, &b_phoR1x5);
-    if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
     if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
+    if (t->GetBranch("phoR9_2012")) t->SetBranchAddress("phoR9_2012", &phoR9_2012, &b_phoR9_2012);
+    if (t->GetBranch("phoE1x5_2012")) t->SetBranchAddress("phoE1x5_2012", &phoE1x5_2012, &b_phoE1x5_2012);
+    if (t->GetBranch("phoE2x5_2012")) t->SetBranchAddress("phoE2x5_2012", &phoE2x5_2012, &b_phoE2x5_2012);
+    if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    if (t->GetBranch("phoMaxEnergyXtal_2012")) t->SetBranchAddress("phoMaxEnergyXtal_2012", &phoMaxEnergyXtal_2012, &b_phoMaxEnergyXtal_2012);
+    if (t->GetBranch("phoSigmaEtaEta_2012")) t->SetBranchAddress("phoSigmaEtaEta_2012", &phoSigmaEtaEta_2012, &b_phoSigmaEtaEta_2012);
+
+    if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
+    if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
+
+    if (t->GetBranch("phoHadTowerOverEm1")) t->SetBranchAddress("phoHadTowerOverEm1", &phoHadTowerOverEm1, &b_phoHadTowerOverEm1);
+    if (t->GetBranch("phoHadTowerOverEm2")) t->SetBranchAddress("phoHadTowerOverEm2", &phoHadTowerOverEm2, &b_phoHadTowerOverEm2);
+    if (t->GetBranch("phoHoverE1")) t->SetBranchAddress("phoHoverE1", &phoHoverE1, &b_phoHoverE1);
+    if (t->GetBranch("phoHoverE2")) t->SetBranchAddress("phoHoverE2", &phoHoverE2, &b_phoHoverE2);
+
+    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
+    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
+    if (t->GetBranch("phoR1x5")) t->SetBranchAddress("phoR1x5", &phoR1x5, &b_phoR1x5);
+    if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
+    if (t->GetBranch("phoE2nd")) t->SetBranchAddress("phoE2nd", &phoE2nd, &b_phoE2nd);
+    if (t->GetBranch("phoETop")) t->SetBranchAddress("phoETop", &phoETop, &b_phoETop);
+    if (t->GetBranch("phoEBottom")) t->SetBranchAddress("phoEBottom", &phoEBottom, &b_phoEBottom);
+    if (t->GetBranch("phoELeft")) t->SetBranchAddress("phoELeft", &phoELeft, &b_phoELeft);
+    if (t->GetBranch("phoERight")) t->SetBranchAddress("phoERight", &phoERight, &b_phoERight);
+    if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
+    if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
+    if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    if (t->GetBranch("phoE2x5Top")) t->SetBranchAddress("phoE2x5Top", &phoE2x5Top, &b_phoE2x5Top);
+    if (t->GetBranch("phoE2x5Bottom")) t->SetBranchAddress("phoE2x5Bottom", &phoE2x5Bottom, &b_phoE2x5Bottom);
+    if (t->GetBranch("phoE2x5Left")) t->SetBranchAddress("phoE2x5Left", &phoE2x5Left, &b_phoE2x5Left);
+    if (t->GetBranch("phoE2x5Right")) t->SetBranchAddress("phoE2x5Right", &phoE2x5Right, &b_phoE2x5Right);
+    //if (t->GetBranch("phoSMMajor")) t->SetBranchAddress("phoSMMajor", &phoSMMajor, &b_phoSMMajor);
+    //if (t->GetBranch("phoSMMinor")) t->SetBranchAddress("phoSMMinor", &phoSMMinor, &b_phoSMMinor);
+    //if (t->GetBranch("phoSMAlpha")) t->SetBranchAddress("phoSMAlpha", &phoSMAlpha, &b_phoSMAlpha);
+
     if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
     if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
-    //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
-    //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
-    //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
-    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
-    if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
+    if (t->GetBranch("phoR1x5_2012")) t->SetBranchAddress("phoR1x5_2012", &phoR1x5_2012, &b_phoR1x5_2012);
+    if (t->GetBranch("phoR2x5_2012")) t->SetBranchAddress("phoR2x5_2012", &phoR2x5_2012, &b_phoR2x5_2012);
+    if (t->GetBranch("phoE2nd_2012")) t->SetBranchAddress("phoE2nd_2012", &phoE2nd_2012, &b_phoE2nd_2012);
+    if (t->GetBranch("phoETop_2012")) t->SetBranchAddress("phoETop_2012", &phoETop_2012, &b_phoETop_2012);
+    if (t->GetBranch("phoEBottom_2012")) t->SetBranchAddress("phoEBottom_2012", &phoEBottom_2012, &b_phoEBottom_2012);
+    if (t->GetBranch("phoELeft_2012")) t->SetBranchAddress("phoELeft_2012", &phoELeft_2012, &b_phoELeft_2012);
+    if (t->GetBranch("phoERight_2012")) t->SetBranchAddress("phoERight_2012", &phoERight_2012, &b_phoERight_2012);
+    if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
+    if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
+    if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
+    if (t->GetBranch("phoE2x5Top_2012")) t->SetBranchAddress("phoE2x5Top_2012", &phoE2x5Top_2012, &b_phoE2x5Top_2012);
+    if (t->GetBranch("phoE2x5Bottom_2012")) t->SetBranchAddress("phoE2x5Bottom_2012", &phoE2x5Bottom_2012, &b_phoE2x5Bottom_2012);
+    if (t->GetBranch("phoE2x5Left_2012")) t->SetBranchAddress("phoE2x5Left_2012", &phoE2x5Left_2012, &b_phoE2x5Left_2012);
+    if (t->GetBranch("phoE2x5Right_2012")) t->SetBranchAddress("phoE2x5Right_2012", &phoE2x5Right_2012, &b_phoE2x5Right_2012);
+    //if (t->GetBranch("phoSMMajor_2012")) t->SetBranchAddress("phoSMMajor_2012", &phoSMMajor_2012, &b_phoSMMajor_2012);
+    //if (t->GetBranch("phoSMMinor_2012")) t->SetBranchAddress("phoSMMinor_2012", &phoSMMinor_2012, &b_phoSMMinor_2012);
+    //if (t->GetBranch("phoSMAlpha_2012")) t->SetBranchAddress("phoSMAlpha_2012", &phoSMAlpha_2012, &b_phoSMAlpha_2012);
+
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);
     if (t->GetBranch("phoBC2E")) t->SetBranchAddress("phoBC2E", &phoBC2E, &b_phoBC2E);

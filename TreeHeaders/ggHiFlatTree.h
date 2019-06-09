@@ -164,33 +164,75 @@ public :
   float phoSCPhiWidth;
   float phoSCBrem;
   int phohasPixelSeed;
-  float phoR9;
+
   float phoHoverE;
+  int   phoHoverEValid;
   float phoSigmaIEtaIEta;
-  float phoSigmaIEtaIPhi;
-  float phoSigmaIPhiIPhi;
-  int pho_isEle;
-  int pho_is2015Noise;
-  //float phoE1x3;
-  //float phoE2x2;
-  //float phoE2x5Max;
+  float phoR9;
   float phoE1x5;
   float phoE2x5;
-  float phoE5x5;
   float phoE3x3;
+  float phoE5x5;
   float phoMaxEnergyXtal;
   float phoSigmaEtaEta;
-  float phoR1x5;
-  float phoR2x5;
   float phoESEffSigmaRR;
   float phoSigmaIEtaIEta_2012;
-  float phoSigmaIEtaIPhi_2012;
-  float phoSigmaIPhiIPhi_2012;
-  //float phoE1x3_2012;
-  //float phoE2x2_2012;
-  //float phoE2x5Max_2012;
-  float phoE5x5_2012;
+  float phoR9_2012;
+  float phoE1x5_2012;
+  float phoE2x5_2012;
   float phoE3x3_2012;
+  float phoE5x5_2012;
+  float phoMaxEnergyXtal_2012;
+  float phoSigmaEtaEta_2012;
+
+  int pho_isEle;
+  int pho_is2015Noise;
+
+  float  phoHadTowerOverEm1;
+  float  phoHadTowerOverEm2;
+  float  phoHoverE1;
+  float  phoHoverE2;
+
+  float  phoSigmaIEtaIPhi;
+  float  phoSigmaIPhiIPhi;
+  float  phoR1x5;
+  float  phoR2x5;
+  float  phoE2nd;
+  float  phoETop;
+  float  phoEBottom;
+  float  phoELeft;
+  float  phoERight;
+  float  phoE1x3;
+  float  phoE2x2;
+  float  phoE2x5Max;
+  float  phoE2x5Top;
+  float  phoE2x5Bottom;
+  float  phoE2x5Left;
+  float  phoE2x5Right;
+  //float  phoSMMajor;   // TODO: enable when they become available in future releases
+  //float  phoSMMinor;   // TODO: enable when they become available in future releases
+  //float  phoSMAlpha;   // TODO: enable when they become available in future releases
+
+  float  phoSigmaIEtaIPhi_2012;
+  float  phoSigmaIPhiIPhi_2012;
+  float  phoR1x5_2012;
+  float  phoR2x5_2012;
+  float  phoE2nd_2012;
+  float  phoETop_2012;
+  float  phoEBottom_2012;
+  float  phoELeft_2012;
+  float  phoERight_2012;
+  float  phoE1x3_2012;
+  float  phoE2x2_2012;
+  float  phoE2x5Max_2012;
+  float  phoE2x5Top_2012;
+  float  phoE2x5Bottom_2012;
+  float  phoE2x5Left_2012;
+  float  phoE2x5Right_2012;
+  //float  phoSMMajor_2012;   // TODO: enable when they become available in future releases
+  //float  phoSMMinor_2012;   // TODO: enable when they become available in future releases
+//float  phoSMAlpha_2012;   // TODO: enable when they become available in future releases
+
   float phoBC1E;
   float phoBC1Eta;
   //float phoBC2E;
@@ -411,33 +453,75 @@ public :
   TBranch        *b_phoSCPhiWidth;   //!
   TBranch        *b_phoSCBrem;   //!
   TBranch        *b_phohasPixelSeed;   //!
-  TBranch        *b_phoR9;   //!
-  TBranch        *b_phoHoverE;   //!
-  TBranch        *b_phoSigmaIEtaIEta;   //!
-  TBranch        *b_phoSigmaIEtaIPhi;   //!
-  TBranch        *b_phoSigmaIPhiIPhi;   //!
-  TBranch        *b_pho_isEle;
-  TBranch        *b_pho_is2015Noise;
-  //TBranch        *b_phoE1x3;   //!
-  //TBranch        *b_phoE2x2;   //!
-  //TBranch        *b_phoE2x5Max;   //!
+
+  TBranch        *b_phoHoverE;
+  TBranch        *b_phoHoverEValid;
+  TBranch        *b_phoSigmaIEtaIEta;
+  TBranch        *b_phoR9;
   TBranch        *b_phoE1x5;
   TBranch        *b_phoE2x5;
   TBranch        *b_phoE3x3;
-  TBranch        *b_phoE5x5;   //!
+  TBranch        *b_phoE5x5;
   TBranch        *b_phoMaxEnergyXtal;
   TBranch        *b_phoSigmaEtaEta;
+  TBranch        *b_phoESEffSigmaRR;
+  TBranch        *b_phoSigmaIEtaIEta_2012;
+  TBranch        *b_phoR9_2012;
+  TBranch        *b_phoE1x5_2012;
+  TBranch        *b_phoE2x5_2012;
+  TBranch        *b_phoE3x3_2012;
+  TBranch        *b_phoE5x5_2012;
+  TBranch        *b_phoMaxEnergyXtal_2012;
+  TBranch        *b_phoSigmaEtaEta_2012;
+
+  TBranch        *b_pho_isEle;
+  TBranch        *b_pho_is2015Noise;
+
+  TBranch        *b_phoHadTowerOverEm1;
+  TBranch        *b_phoHadTowerOverEm2;
+  TBranch        *b_phoHoverE1;
+  TBranch        *b_phoHoverE2;
+
+  TBranch        *b_phoSigmaIEtaIPhi;
+  TBranch        *b_phoSigmaIPhiIPhi;
   TBranch        *b_phoR1x5;
   TBranch        *b_phoR2x5;
-  TBranch        *b_phoESEffSigmaRR;   //!
-  TBranch        *b_phoSigmaIEtaIEta_2012;   //!
-  TBranch        *b_phoSigmaIEtaIPhi_2012;   //!
-  TBranch        *b_phoSigmaIPhiIPhi_2012;   //!
-  //TBranch        *b_phoE1x3_2012;   //!
-  //TBranch        *b_phoE2x2_2012;   //!
-  //TBranch        *b_phoE2x5Max_2012;   //!
-  TBranch        *b_phoE5x5_2012;   //!
-  TBranch        *b_phoE3x3_2012;
+  TBranch        *b_phoE2nd;
+  TBranch        *b_phoETop;
+  TBranch        *b_phoEBottom;
+  TBranch        *b_phoELeft;
+  TBranch        *b_phoERight;
+  TBranch        *b_phoE1x3;
+  TBranch        *b_phoE2x2;
+  TBranch        *b_phoE2x5Max;
+  TBranch        *b_phoE2x5Top;
+  TBranch        *b_phoE2x5Bottom;
+  TBranch        *b_phoE2x5Left;
+  TBranch        *b_phoE2x5Right;
+  //TBranch        *b_phoSMMajor;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMMinor;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMAlpha;   // TODO: enable when they become available in future releases
+
+  TBranch        *b_phoSigmaIEtaIPhi_2012;
+  TBranch        *b_phoSigmaIPhiIPhi_2012;
+  TBranch        *b_phoR1x5_2012;
+  TBranch        *b_phoR2x5_2012;
+  TBranch        *b_phoE2nd_2012;
+  TBranch        *b_phoETop_2012;
+  TBranch        *b_phoEBottom_2012;
+  TBranch        *b_phoELeft_2012;
+  TBranch        *b_phoERight_2012;
+  TBranch        *b_phoE1x3_2012;
+  TBranch        *b_phoE2x2_2012;
+  TBranch        *b_phoE2x5Max_2012;
+  TBranch        *b_phoE2x5Top_2012;
+  TBranch        *b_phoE2x5Bottom_2012;
+  TBranch        *b_phoE2x5Left_2012;
+  TBranch        *b_phoE2x5Right_2012;
+  //TBranch        *b_phoSMMajor_2012;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMMinor_2012;   // TODO: enable when they become available in future releases
+  //TBranch        *b_phoSMAlpha_2012;   // TODO: enable when they become available in future releases
+
   TBranch        *b_phoBC1E;   //!
   TBranch        *b_phoBC1Eta;   //!
   //TBranch        *b_phoBC2E;   //!
@@ -658,32 +742,75 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoSCPhiWidth = 0;
     b_phoSCBrem = 0;
     b_phohasPixelSeed = 0;
-    b_phoR9 = 0;
+
     b_phoHoverE = 0;
+    b_phoHoverEValid = 0;
     b_phoSigmaIEtaIEta = 0;
-    b_phoSigmaIEtaIPhi = 0;
-    b_phoSigmaIPhiIPhi = 0;
-    b_pho_isEle = 0;
-    b_pho_is2015Noise = 0;
-    //b_phoE1x3 = 0;
-    //b_phoE2x2 = 0;
-    //b_phoE2x5Max = 0;
+    b_phoR9 = 0;
     b_phoE1x5 = 0;
     b_phoE2x5 = 0;
     b_phoE3x3 = 0;
     b_phoE5x5 = 0;
     b_phoMaxEnergyXtal = 0;
     b_phoSigmaEtaEta = 0;
-    b_phoR1x5 = 0;
-    b_phoR2x5 = 0;
     b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
+    b_phoR9_2012 = 0;
+    b_phoE1x5_2012 = 0;
+    b_phoE2x5_2012 = 0;
+    b_phoE3x3_2012 = 0;
+    b_phoE5x5_2012 = 0;
+    b_phoMaxEnergyXtal_2012 = 0;
+    b_phoSigmaEtaEta_2012 = 0;
+
+    b_pho_isEle = 0;
+    b_pho_is2015Noise = 0;
+
+    b_phoHadTowerOverEm1 = 0;
+    b_phoHadTowerOverEm2 = 0;
+    b_phoHoverE1 = 0;
+    b_phoHoverE2 = 0;
+
+    b_phoSigmaIEtaIPhi = 0;
+    b_phoSigmaIPhiIPhi = 0;
+    b_phoR1x5 = 0;
+    b_phoR2x5 = 0;
+    b_phoE2nd = 0;
+    b_phoETop = 0;
+    b_phoEBottom = 0;
+    b_phoELeft = 0;
+    b_phoERight = 0;
+    b_phoE1x3 = 0;
+    b_phoE2x2 = 0;
+    b_phoE2x5Max = 0;
+    b_phoE2x5Top = 0;
+    b_phoE2x5Bottom = 0;
+    b_phoE2x5Left = 0;
+    b_phoE2x5Right = 0;
+    //b_phoSMMajor = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMMinor = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMAlpha = 0;   // TODO: enable when they become available in future releases
+
     b_phoSigmaIEtaIPhi_2012 = 0;
     b_phoSigmaIPhiIPhi_2012 = 0;
-    //b_phoE1x3_2012 = 0;
-    //b_phoE2x2_2012 = 0;
-    //b_phoE2x5Max_2012 = 0;
-    b_phoE5x5_2012 = 0;
+    b_phoR1x5_2012 = 0;
+    b_phoR2x5_2012 = 0;
+    b_phoE2nd_2012 = 0;
+    b_phoETop_2012 = 0;
+    b_phoEBottom_2012 = 0;
+    b_phoELeft_2012 = 0;
+    b_phoERight_2012 = 0;
+    b_phoE1x3_2012 = 0;
+    b_phoE2x2_2012 = 0;
+    b_phoE2x5Max_2012 = 0;
+    b_phoE2x5Top_2012 = 0;
+    b_phoE2x5Bottom_2012 = 0;
+    b_phoE2x5Left_2012 = 0;
+    b_phoE2x5Right_2012 = 0;
+    //b_phoSMMajor_2012 = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMMinor_2012 = 0;   // TODO: enable when they become available in future releases
+    //b_phoSMAlpha_2012 = 0;   // TODO: enable when they become available in future releases
+
     b_phoE3x3_2012 = 0;
     b_phoBC1E = 0;
     b_phoBC1Eta = 0;
@@ -1396,31 +1523,75 @@ void ggHiFlat::clearEntryPho()
         phoSCPhiWidth = -987987;
         phoSCBrem = -987987;
         phohasPixelSeed = -987987;
-        phoR9 = -987987;
+
         phoHoverE = -987987;
+        phoHoverEValid = -987987;
         phoSigmaIEtaIEta = -987987;
-        phoSigmaIEtaIPhi = -987987;
-        phoSigmaIPhiIPhi = -987987;
-        //phoE1x3 = -987987;
-        //phoE2x2 = -987987;
-        //phoE2x5Max = -987987;
-        phoE3x3 = -987987;
+        phoR9 = -987987;
         phoE1x5 = -987987;
         phoE2x5 = -987987;
+        phoE3x3 = -987987;
         phoE5x5 = -987987;
         phoMaxEnergyXtal = -987987;
         phoSigmaEtaEta = -987987;
-        phoR1x5 = -987987;
-        phoR2x5 = -987987;
         phoESEffSigmaRR = -987987;
         phoSigmaIEtaIEta_2012 = -987987;
+        phoR9_2012 = -987987;
+        phoE1x5_2012 = -987987;
+        phoE2x5_2012 = -987987;
+        phoE3x3_2012 = -987987;
+        phoE5x5_2012 = -987987;
+        phoMaxEnergyXtal_2012 = -987987;
+        phoSigmaEtaEta_2012 = -987987;
+
+        pho_isEle = -987987;
+        pho_is2015Noise = -987987;
+
+        phoHadTowerOverEm1 = -987987;
+        phoHadTowerOverEm2 = -987987;
+        phoHoverE1 = -987987;
+        phoHoverE2 = -987987;
+
+        phoSigmaIEtaIPhi = -987987;
+        phoSigmaIPhiIPhi = -987987;
+        phoR1x5 = -987987;
+        phoR2x5 = -987987;
+        phoE2nd = -987987;
+        phoETop = -987987;
+        phoEBottom = -987987;
+        phoELeft = -987987;
+        phoERight = -987987;
+        phoE1x3 = -987987;
+        phoE2x2 = -987987;
+        phoE2x5Max = -987987;
+        phoE2x5Top = -987987;
+        phoE2x5Bottom = -987987;
+        phoE2x5Left = -987987;
+        phoE2x5Right = -987987;
+        //b_phoSMMajor = -987987;   // TODO: enable when they become available in future releases
+        //b_phoSMMinor = -987987;   // TODO: enable when they become available in future releases
+        //b_phoSMAlpha = -987987;   // TODO: enable when they become available in future releases
+
         phoSigmaIEtaIPhi_2012 = -987987;
         phoSigmaIPhiIPhi_2012 = -987987;
-        //phoE1x3_2012 = -987987;
-        //phoE2x2_2012 = -987987;
-        //phoE2x5Max_2012 = -987987;
-        phoE5x5_2012 = -987987;
-        phoE3x3_2012 = -987987;
+        phoR1x5_2012 = -987987;
+        phoR2x5_2012 = -987987;
+        phoE2nd_2012 = -987987;
+        phoETop_2012 = -987987;
+        phoEBottom_2012 = -987987;
+        phoELeft_2012 = -987987;
+        phoERight_2012 = -987987;
+        phoE1x3_2012 = -987987;
+        phoE2x2_2012 = -987987;
+        phoE2x5Max_2012 = -987987;
+        phoE2x5Top_2012 = -987987;
+        phoE2x5Bottom_2012 = -987987;
+        phoE2x5Left_2012 = -987987;
+        phoE2x5Right_2012 = -987987;
+        //b_phoSMMajor_2012 = -987987;   // TODO: enable when they become available in future releases
+        //b_phoSMMinor_2012 = -987987;   // TODO: enable when they become available in future releases
+        //b_phoSMAlpha_2012 = -987987;   // TODO: enable when they become available in future releases
+
         phoBC1E = -987987;
         phoBC1Eta = -987987;
         //phoBC2E = -987987;
@@ -1653,35 +1824,83 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     phoSCPhiWidth = (*tggHiNtuplizer.phoSCPhiWidth)[i];
     phoSCBrem = (*tggHiNtuplizer.phoSCBrem)[i];
     //phohasPixelSeed = (*tggHiNtuplizer.phohasPixelSeed)[i];
-    phoR9 = (*tggHiNtuplizer.phoR9)[i];
+
     phoHoverE = (*tggHiNtuplizer.phoHoverE)[i];
+    phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
     phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];
-    if (tggHiNtuplizer.b_phoSigmaIEtaIPhi != 0) {
-        phoSigmaIEtaIPhi = (*tggHiNtuplizer.phoSigmaIEtaIPhi)[i];
-        phoSigmaIPhiIPhi = (*tggHiNtuplizer.phoSigmaIPhiIPhi)[i];
-    }
-    //phoE1x3 = (*tggHiNtuplizer.//phoE1x3)[i];
-    //phoE2x2 = (*tggHiNtuplizer.//phoE2x2)[i];
-    //phoE2x5Max = (*tggHiNtuplizer.//phoE2x5Max)[i];
-    phoE3x3 = (*tggHiNtuplizer.phoE3x3)[i];
+    phoR9 = (*tggHiNtuplizer.phoR9)[i];
     phoE1x5 = (*tggHiNtuplizer.phoE1x5)[i];
     phoE2x5 = (*tggHiNtuplizer.phoE2x5)[i];
+    phoE3x3 = (*tggHiNtuplizer.phoE3x3)[i];
     phoE5x5 = (*tggHiNtuplizer.phoE5x5)[i];
     phoMaxEnergyXtal = (*tggHiNtuplizer.phoMaxEnergyXtal)[i];
     phoSigmaEtaEta = (*tggHiNtuplizer.phoSigmaEtaEta)[i];
-    phoR1x5 = (*tggHiNtuplizer.phoR1x5)[i];
-    phoR2x5 = (*tggHiNtuplizer.phoR2x5)[i];
-    //phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
+    phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
     phoSigmaIEtaIEta_2012 = (*tggHiNtuplizer.phoSigmaIEtaIEta_2012)[i];
+    phoR9_2012 = (*tggHiNtuplizer.phoR9_2012)[i];
+    phoE1x5_2012 = (*tggHiNtuplizer.phoE1x5_2012)[i];
+    phoE2x5_2012 = (*tggHiNtuplizer.phoE2x5_2012)[i];
+    phoE3x3_2012 = (*tggHiNtuplizer.phoE3x3_2012)[i];
+    phoE5x5_2012 = (*tggHiNtuplizer.phoE5x5_2012)[i];
+    phoMaxEnergyXtal_2012 = (*tggHiNtuplizer.phoMaxEnergyXtal_2012)[i];
+    phoSigmaEtaEta_2012 = (*tggHiNtuplizer.phoSigmaEtaEta_2012)[i];
+
+    //pho_isEle = (*tggHiNtuplizer.pho_isEle)[i];
+    //pho_is2015Noise = (*tggHiNtuplizer.pho_is2015Noise)[i];
+
+    if (tggHiNtuplizer.b_phoHadTowerOverEm1 != 0) {
+        phoHadTowerOverEm1 = (*tggHiNtuplizer.phoHadTowerOverEm1)[i];
+        phoHadTowerOverEm2 = (*tggHiNtuplizer.phoHadTowerOverEm2)[i];
+        phoHoverE1 = (*tggHiNtuplizer.phoHoverE1)[i];
+        phoHoverE2 = (*tggHiNtuplizer.phoHoverE2)[i];
+    }
+
+    if (tggHiNtuplizer.b_phoSigmaIEtaIPhi != 0) {
+
+        phoSigmaIEtaIPhi = (*tggHiNtuplizer.phoSigmaIEtaIPhi)[i];
+        phoSigmaIPhiIPhi = (*tggHiNtuplizer.phoSigmaIPhiIPhi)[i];
+        phoR1x5 = (*tggHiNtuplizer.phoR1x5)[i];
+        phoR2x5 = (*tggHiNtuplizer.phoR2x5)[i];
+        phoE2nd = (*tggHiNtuplizer.phoE2nd)[i];
+        phoETop = (*tggHiNtuplizer.phoETop)[i];
+        phoEBottom = (*tggHiNtuplizer.phoEBottom)[i];
+        phoELeft = (*tggHiNtuplizer.phoELeft)[i];
+        phoERight = (*tggHiNtuplizer.phoERight)[i];
+        phoE1x3 = (*tggHiNtuplizer.phoE1x3)[i];
+        phoE2x2 = (*tggHiNtuplizer.phoE2x2)[i];
+        phoE2x5Max = (*tggHiNtuplizer.phoE2x5Max)[i];
+        phoE2x5Top = (*tggHiNtuplizer.phoE2x5Top)[i];
+        phoE2x5Bottom = (*tggHiNtuplizer.phoE2x5Bottom)[i];
+        phoE2x5Left = (*tggHiNtuplizer.phoE2x5Left)[i];
+        phoE2x5Right = (*tggHiNtuplizer.phoE2x5Right)[i];
+        //b_phoSMMajor = (*tggHiNtuplizer.b_phoSMMajor)[i];
+        //b_phoSMMinor = (*tggHiNtuplizer.b_phoSMMinor)[i];
+        //b_phoSMAlpha = (*tggHiNtuplizer.b_phoSMAlpha)[i];
+    }
+
     if (tggHiNtuplizer.b_phoSigmaIEtaIPhi_2012 != 0) {
+
         phoSigmaIEtaIPhi_2012 = (*tggHiNtuplizer.phoSigmaIEtaIPhi_2012)[i];
         phoSigmaIPhiIPhi_2012 = (*tggHiNtuplizer.phoSigmaIPhiIPhi_2012)[i];
+        phoR1x5_2012 = (*tggHiNtuplizer.phoR1x5_2012)[i];
+        phoR2x5_2012 = (*tggHiNtuplizer.phoR2x5_2012)[i];
+        phoE2nd_2012 = (*tggHiNtuplizer.phoE2nd_2012)[i];
+        phoETop_2012 = (*tggHiNtuplizer.phoETop_2012)[i];
+        phoEBottom_2012 = (*tggHiNtuplizer.phoEBottom_2012)[i];
+        phoELeft_2012 = (*tggHiNtuplizer.phoELeft_2012)[i];
+        phoERight_2012 = (*tggHiNtuplizer.phoERight_2012)[i];
+        phoE1x3_2012 = (*tggHiNtuplizer.phoE1x3_2012)[i];
+        phoE2x2_2012 = (*tggHiNtuplizer.phoE2x2_2012)[i];
+        phoE2x5Max_2012 = (*tggHiNtuplizer.phoE2x5Max_2012)[i];
+        phoE2x5Top_2012 = (*tggHiNtuplizer.phoE2x5Top_2012)[i];
+        phoE2x5Bottom_2012 = (*tggHiNtuplizer.phoE2x5Bottom_2012)[i];
+        phoE2x5Left_2012 = (*tggHiNtuplizer.phoE2x5Left_2012)[i];
+        phoE2x5Right_2012 = (*tggHiNtuplizer.phoE2x5Right_2012)[i];
+        //b_phoSMMajor_2012 = (*tggHiNtuplizer.b_phoSMMajor_2012)[i];
+        //b_phoSMMinor_2012 = (*tggHiNtuplizer.b_phoSMMinor_2012)[i];
+        //b_phoSMAlpha_2012 = (*tggHiNtuplizer.b_phoSMAlpha_2012)[i];
     }
-    //phoE1x3_2012 = (*tggHiNtuplizer.//phoE1x3_2012)[i];
-    //phoE2x2_2012 = (*tggHiNtuplizer.//phoE2x2_2012)[i];
-    //phoE2x5Max_2012 = (*tggHiNtuplizer.//phoE2x5Max_2012)[i];
-    phoE5x5_2012 = (*tggHiNtuplizer.phoE5x5_2012)[i];
-    phoE3x3_2012 = (*tggHiNtuplizer.phoE3x3_2012)[i];
+
     if (tggHiNtuplizer.b_phoBC1E != 0) {
         phoBC1E = (*tggHiNtuplizer.phoBC1E)[i];
         phoBC1Eta = (*tggHiNtuplizer.phoBC1Eta)[i];
