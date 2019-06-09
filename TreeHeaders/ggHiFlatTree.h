@@ -164,6 +164,7 @@ public :
   float phoSCPhiWidth;
   float phoSCBrem;
   int phohasPixelSeed;
+  float phoESEffSigmaRR;
 
   float phoHoverE;
   int   phoHoverEValid;
@@ -175,7 +176,6 @@ public :
   float phoE5x5;
   float phoMaxEnergyXtal;
   float phoSigmaEtaEta;
-  float phoESEffSigmaRR;
   float phoSigmaIEtaIEta_2012;
   float phoR9_2012;
   float phoE1x5_2012;
@@ -231,7 +231,7 @@ public :
   float  phoE2x5Right_2012;
   //float  phoSMMajor_2012;   // TODO: enable when they become available in future releases
   //float  phoSMMinor_2012;   // TODO: enable when they become available in future releases
-//float  phoSMAlpha_2012;   // TODO: enable when they become available in future releases
+  //float  phoSMAlpha_2012;   // TODO: enable when they become available in future releases
 
   float phoBC1E;
   float phoBC1Eta;
@@ -274,9 +274,6 @@ public :
   float pfpIso3subSC;
   float pfpIso4subSC;
   float pfpIso5subSC;
-  float phoEAc;
-  float phoEAp;
-  float phoEAn;
   float pfcIso1subUE;
   float pfcIso2subUE;
   float pfcIso3subUE;
@@ -297,6 +294,10 @@ public :
   float pfpIso3subSCsubUE;
   float pfpIso4subSCsubUE;
   float pfpIso5subSCsubUE;
+  float phoEAc;
+  float phoEAp;
+  float phoEAn;
+
   //int nMu;
   float muPt;
   float muEta;
@@ -453,6 +454,7 @@ public :
   TBranch        *b_phoSCPhiWidth;   //!
   TBranch        *b_phoSCBrem;   //!
   TBranch        *b_phohasPixelSeed;   //!
+  TBranch        *b_phoESEffSigmaRR;
 
   TBranch        *b_phoHoverE;
   TBranch        *b_phoHoverEValid;
@@ -464,7 +466,6 @@ public :
   TBranch        *b_phoE5x5;
   TBranch        *b_phoMaxEnergyXtal;
   TBranch        *b_phoSigmaEtaEta;
-  TBranch        *b_phoESEffSigmaRR;
   TBranch        *b_phoSigmaIEtaIEta_2012;
   TBranch        *b_phoR9_2012;
   TBranch        *b_phoE1x5_2012;
@@ -563,9 +564,6 @@ public :
   TBranch        *b_pfpIso3subSC;   //!
   TBranch        *b_pfpIso4subSC;   //!
   TBranch        *b_pfpIso5subSC;   //!
-  TBranch        *b_phoEAc;   //!
-  TBranch        *b_phoEAp;   //!
-  TBranch        *b_phoEAn;   //!
   TBranch        *b_pfcIso1subUE;   //!
   TBranch        *b_pfcIso2subUE;   //!
   TBranch        *b_pfcIso3subUE;   //!
@@ -586,6 +584,10 @@ public :
   TBranch        *b_pfpIso3subSCsubUE;   //!
   TBranch        *b_pfpIso4subSCsubUE;   //!
   TBranch        *b_pfpIso5subSCsubUE;   //!
+  TBranch        *b_phoEAc;   //!
+  TBranch        *b_phoEAp;   //!
+  TBranch        *b_phoEAn;   //!
+
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -742,6 +744,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoSCPhiWidth = 0;
     b_phoSCBrem = 0;
     b_phohasPixelSeed = 0;
+    b_phoESEffSigmaRR = 0;
 
     b_phoHoverE = 0;
     b_phoHoverEValid = 0;
@@ -753,7 +756,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoE5x5 = 0;
     b_phoMaxEnergyXtal = 0;
     b_phoSigmaEtaEta = 0;
-    b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
     b_phoR9_2012 = 0;
     b_phoE1x5_2012 = 0;
@@ -853,9 +855,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfpIso3subSC = 0;
     b_pfpIso4subSC = 0;
     b_pfpIso5subSC = 0;
-    b_phoEAc = 0;
-    b_phoEAp = 0;
-    b_phoEAn = 0;
     b_pfcIso1subUE = 0;
     b_pfcIso2subUE = 0;
     b_pfcIso3subUE = 0;
@@ -876,6 +875,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfpIso3subSCsubUE = 0;
     b_pfpIso4subSCsubUE = 0;
     b_pfpIso5subSCsubUE = 0;
+    b_phoEAc = 0;
+    b_phoEAp = 0;
+    b_phoEAn = 0;
+
     b_nMu = 0;
     b_muPt = 0;
     b_muEta = 0;
@@ -1030,33 +1033,75 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoSCPhiWidth")) t->SetBranchAddress("phoSCPhiWidth", &phoSCPhiWidth, &b_phoSCPhiWidth);
     if (t->GetBranch("phoSCBrem")) t->SetBranchAddress("phoSCBrem", &phoSCBrem, &b_phoSCBrem);
     if (t->GetBranch("phohasPixelSeed")) t->SetBranchAddress("phohasPixelSeed", &phohasPixelSeed, &b_phohasPixelSeed);
-    if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
+    if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
+
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
+    if (t->GetBranch("phoHoverEValid")) t->SetBranchAddress("phoHoverEValid", &phoHoverEValid, &b_phoHoverEValid);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
-    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
-    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
-    if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
-    if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
-    //if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
-    //if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
-    //if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    if (t->GetBranch("phoR9")) t->SetBranchAddress("phoR9", &phoR9, &b_phoR9);
     if (t->GetBranch("phoE1x5")) t->SetBranchAddress("phoE1x5", &phoE1x5, &b_phoE1x5);
     if (t->GetBranch("phoE2x5")) t->SetBranchAddress("phoE2x5", &phoE2x5, &b_phoE2x5);
     if (t->GetBranch("phoE3x3")) t->SetBranchAddress("phoE3x3", &phoE3x3, &b_phoE3x3);
     if (t->GetBranch("phoE5x5")) t->SetBranchAddress("phoE5x5", &phoE5x5, &b_phoE5x5);
     if (t->GetBranch("phoMaxEnergyXtal")) t->SetBranchAddress("phoMaxEnergyXtal", &phoMaxEnergyXtal, &b_phoMaxEnergyXtal);
     if (t->GetBranch("phoSigmaEtaEta")) t->SetBranchAddress("phoSigmaEtaEta", &phoSigmaEtaEta, &b_phoSigmaEtaEta);
+    if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
+    if (t->GetBranch("phoR9_2012")) t->SetBranchAddress("phoR9_2012", &phoR9_2012, &b_phoR9_2012);
+    if (t->GetBranch("phoE1x5_2012")) t->SetBranchAddress("phoE1x5_2012", &phoE1x5_2012, &b_phoE1x5_2012);
+    if (t->GetBranch("phoE2x5_2012")) t->SetBranchAddress("phoE2x5_2012", &phoE2x5_2012, &b_phoE2x5_2012);
+    if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
+    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
+    if (t->GetBranch("phoMaxEnergyXtal_2012")) t->SetBranchAddress("phoMaxEnergyXtal_2012", &phoMaxEnergyXtal_2012, &b_phoMaxEnergyXtal_2012);
+    if (t->GetBranch("phoSigmaEtaEta_2012")) t->SetBranchAddress("phoSigmaEtaEta_2012", &phoSigmaEtaEta_2012, &b_phoSigmaEtaEta_2012);
+
+    if (t->GetBranch("pho_isEle")) t->SetBranchAddress("pho_isEle", &pho_isEle, &b_pho_isEle);
+    if (t->GetBranch("pho_is2015Noise")) t->SetBranchAddress("pho_is2015Noise", &pho_is2015Noise, &b_pho_is2015Noise);
+
+    if (t->GetBranch("phoHadTowerOverEm1")) t->SetBranchAddress("phoHadTowerOverEm1", &phoHadTowerOverEm1, &b_phoHadTowerOverEm1);
+    if (t->GetBranch("phoHadTowerOverEm2")) t->SetBranchAddress("phoHadTowerOverEm2", &phoHadTowerOverEm2, &b_phoHadTowerOverEm2);
+    if (t->GetBranch("phoHoverE1")) t->SetBranchAddress("phoHoverE1", &phoHoverE1, &b_phoHoverE1);
+    if (t->GetBranch("phoHoverE2")) t->SetBranchAddress("phoHoverE2", &phoHoverE2, &b_phoHoverE2);
+
+    if (t->GetBranch("phoSigmaIEtaIPhi")) t->SetBranchAddress("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi, &b_phoSigmaIEtaIPhi);
+    if (t->GetBranch("phoSigmaIPhiIPhi")) t->SetBranchAddress("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi, &b_phoSigmaIPhiIPhi);
     if (t->GetBranch("phoR1x5")) t->SetBranchAddress("phoR1x5", &phoR1x5, &b_phoR1x5);
     if (t->GetBranch("phoR2x5")) t->SetBranchAddress("phoR2x5", &phoR2x5, &b_phoR2x5);
-    if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
-    if (t->GetBranch("phoSigmaIEtaIEta_2012")) t->SetBranchAddress("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012, &b_phoSigmaIEtaIEta_2012);
+    if (t->GetBranch("phoE2nd")) t->SetBranchAddress("phoE2nd", &phoE2nd, &b_phoE2nd);
+    if (t->GetBranch("phoETop")) t->SetBranchAddress("phoETop", &phoETop, &b_phoETop);
+    if (t->GetBranch("phoEBottom")) t->SetBranchAddress("phoEBottom", &phoEBottom, &b_phoEBottom);
+    if (t->GetBranch("phoELeft")) t->SetBranchAddress("phoELeft", &phoELeft, &b_phoELeft);
+    if (t->GetBranch("phoERight")) t->SetBranchAddress("phoERight", &phoERight, &b_phoERight);
+    if (t->GetBranch("phoE1x3")) t->SetBranchAddress("phoE1x3", &phoE1x3, &b_phoE1x3);
+    if (t->GetBranch("phoE2x2")) t->SetBranchAddress("phoE2x2", &phoE2x2, &b_phoE2x2);
+    if (t->GetBranch("phoE2x5Max")) t->SetBranchAddress("phoE2x5Max", &phoE2x5Max, &b_phoE2x5Max);
+    if (t->GetBranch("phoE2x5Top")) t->SetBranchAddress("phoE2x5Top", &phoE2x5Top, &b_phoE2x5Top);
+    if (t->GetBranch("phoE2x5Bottom")) t->SetBranchAddress("phoE2x5Bottom", &phoE2x5Bottom, &b_phoE2x5Bottom);
+    if (t->GetBranch("phoE2x5Left")) t->SetBranchAddress("phoE2x5Left", &phoE2x5Left, &b_phoE2x5Left);
+    if (t->GetBranch("phoE2x5Right")) t->SetBranchAddress("phoE2x5Right", &phoE2x5Right, &b_phoE2x5Right);
+    //if (t->GetBranch("phoSMMajor")) t->SetBranchAddress("phoSMMajor", &phoSMMajor, &b_phoSMMajor);
+    //if (t->GetBranch("phoSMMinor")) t->SetBranchAddress("phoSMMinor", &phoSMMinor, &b_phoSMMinor);
+    //if (t->GetBranch("phoSMAlpha")) t->SetBranchAddress("phoSMAlpha", &phoSMAlpha, &b_phoSMAlpha);
+
     if (t->GetBranch("phoSigmaIEtaIPhi_2012")) t->SetBranchAddress("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012, &b_phoSigmaIEtaIPhi_2012);
     if (t->GetBranch("phoSigmaIPhiIPhi_2012")) t->SetBranchAddress("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012, &b_phoSigmaIPhiIPhi_2012);
-    //if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
-    //if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
-    //if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
-    if (t->GetBranch("phoE5x5_2012")) t->SetBranchAddress("phoE5x5_2012", &phoE5x5_2012, &b_phoE5x5_2012);
-    if (t->GetBranch("phoE3x3_2012")) t->SetBranchAddress("phoE3x3_2012", &phoE3x3_2012, &b_phoE3x3_2012);
+    if (t->GetBranch("phoR1x5_2012")) t->SetBranchAddress("phoR1x5_2012", &phoR1x5_2012, &b_phoR1x5_2012);
+    if (t->GetBranch("phoR2x5_2012")) t->SetBranchAddress("phoR2x5_2012", &phoR2x5_2012, &b_phoR2x5_2012);
+    if (t->GetBranch("phoE2nd_2012")) t->SetBranchAddress("phoE2nd_2012", &phoE2nd_2012, &b_phoE2nd_2012);
+    if (t->GetBranch("phoETop_2012")) t->SetBranchAddress("phoETop_2012", &phoETop_2012, &b_phoETop_2012);
+    if (t->GetBranch("phoEBottom_2012")) t->SetBranchAddress("phoEBottom_2012", &phoEBottom_2012, &b_phoEBottom_2012);
+    if (t->GetBranch("phoELeft_2012")) t->SetBranchAddress("phoELeft_2012", &phoELeft_2012, &b_phoELeft_2012);
+    if (t->GetBranch("phoERight_2012")) t->SetBranchAddress("phoERight_2012", &phoERight_2012, &b_phoERight_2012);
+    if (t->GetBranch("phoE1x3_2012")) t->SetBranchAddress("phoE1x3_2012", &phoE1x3_2012, &b_phoE1x3_2012);
+    if (t->GetBranch("phoE2x2_2012")) t->SetBranchAddress("phoE2x2_2012", &phoE2x2_2012, &b_phoE2x2_2012);
+    if (t->GetBranch("phoE2x5Max_2012")) t->SetBranchAddress("phoE2x5Max_2012", &phoE2x5Max_2012, &b_phoE2x5Max_2012);
+    if (t->GetBranch("phoE2x5Top_2012")) t->SetBranchAddress("phoE2x5Top_2012", &phoE2x5Top_2012, &b_phoE2x5Top_2012);
+    if (t->GetBranch("phoE2x5Bottom_2012")) t->SetBranchAddress("phoE2x5Bottom_2012", &phoE2x5Bottom_2012, &b_phoE2x5Bottom_2012);
+    if (t->GetBranch("phoE2x5Left_2012")) t->SetBranchAddress("phoE2x5Left_2012", &phoE2x5Left_2012, &b_phoE2x5Left_2012);
+    if (t->GetBranch("phoE2x5Right_2012")) t->SetBranchAddress("phoE2x5Right_2012", &phoE2x5Right_2012, &b_phoE2x5Right_2012);
+    //if (t->GetBranch("phoSMMajor_2012")) t->SetBranchAddress("phoSMMajor_2012", &phoSMMajor_2012, &b_phoSMMajor_2012);
+    //if (t->GetBranch("phoSMMinor_2012")) t->SetBranchAddress("phoSMMinor_2012", &phoSMMinor_2012, &b_phoSMMinor_2012);
+    //if (t->GetBranch("phoSMAlpha_2012")) t->SetBranchAddress("phoSMAlpha_2012", &phoSMAlpha_2012, &b_phoSMAlpha_2012);
+
     if (t->GetBranch("phoBC1E")) t->SetBranchAddress("phoBC1E", &phoBC1E, &b_phoBC1E);
     if (t->GetBranch("phoBC1Eta")) t->SetBranchAddress("phoBC1Eta", &phoBC1Eta, &b_phoBC1Eta);
     //if (t->GetBranch("phoBC2E")) t->SetBranchAddress("phoBC2E", &phoBC2E, &b_phoBC2E);
@@ -1098,9 +1143,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3")) t->SetBranchAddress("pfnIso3", &pfnIso3, &b_pfnIso3);
     if (t->GetBranch("pfnIso4")) t->SetBranchAddress("pfnIso4", &pfnIso4, &b_pfnIso4);
     if (t->GetBranch("pfnIso5")) t->SetBranchAddress("pfnIso5", &pfnIso5, &b_pfnIso5);
-    if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
-    if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
-    if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
     if (t->GetBranch("pfcIso1subUE")) t->SetBranchAddress("pfcIso1subUE", &pfcIso1subUE, &b_pfcIso1subUE);
     if (t->GetBranch("pfcIso2subUE")) t->SetBranchAddress("pfcIso2subUE", &pfcIso2subUE, &b_pfcIso2subUE);
     if (t->GetBranch("pfcIso3subUE")) t->SetBranchAddress("pfcIso3subUE", &pfcIso3subUE, &b_pfcIso3subUE);
@@ -1121,6 +1163,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfpIso3subSCsubUE")) t->SetBranchAddress("pfpIso3subSCsubUE", &pfpIso3subSCsubUE, &b_pfpIso3subSCsubUE);
     if (t->GetBranch("pfpIso4subSCsubUE")) t->SetBranchAddress("pfpIso4subSCsubUE", &pfpIso4subSCsubUE, &b_pfpIso4subSCsubUE);
     if (t->GetBranch("pfpIso5subSCsubUE")) t->SetBranchAddress("pfpIso5subSCsubUE", &pfpIso5subSCsubUE, &b_pfpIso5subSCsubUE);
+    if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
+    if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
+    if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
+
     //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
@@ -1282,33 +1328,75 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoSCPhiWidth", &phoSCPhiWidth);
         t->Branch("phoSCBrem", &phoSCBrem);
         t->Branch("phohasPixelSeed", &phohasPixelSeed);
-        t->Branch("phoR9", &phoR9);
+        t->Branch("phoESEffSigmaRR", &phoESEffSigmaRR);
+
         t->Branch("phoHoverE", &phoHoverE);
+        t->Branch("phoHoverEValid", &phoHoverEValid);
         t->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
-        t->Branch("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi);
-        t->Branch("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi);
-        t->Branch("pho_isEle", &pho_isEle);
-        t->Branch("pho_is2015Noise", &pho_is2015Noise);
-        //t->Branch("phoE1x3", &phoE1x3);
-        //t->Branch("phoE2x2", &phoE2x2);
-        //t->Branch("phoE2x5Max", &phoE2x5Max);
+        t->Branch("phoR9", &phoR9);
         t->Branch("phoE1x5", &phoE1x5);
         t->Branch("phoE2x5", &phoE2x5);
         t->Branch("phoE3x3", &phoE3x3);
         t->Branch("phoE5x5", &phoE5x5);
         t->Branch("phoMaxEnergyXtal", &phoMaxEnergyXtal);
         t->Branch("phoSigmaEtaEta", &phoSigmaEtaEta);
+        t->Branch("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012);
+        t->Branch("phoR9_2012", &phoR9_2012);
+        t->Branch("phoE1x5_2012", &phoE1x5_2012);
+        t->Branch("phoE2x5_2012", &phoE2x5_2012);
+        t->Branch("phoE3x3_2012", &phoE3x3_2012);
+        t->Branch("phoE5x5_2012", &phoE5x5_2012);
+        t->Branch("phoMaxEnergyXtal_2012", &phoMaxEnergyXtal_2012);
+        t->Branch("phoSigmaEtaEta_2012", &phoSigmaEtaEta_2012);
+
+        t->Branch("pho_isEle", &pho_isEle);
+        t->Branch("pho_is2015Noise", &pho_is2015Noise);
+
+        t->Branch("phoHadTowerOverEm1", &phoHadTowerOverEm1);
+        t->Branch("phoHadTowerOverEm2", &phoHadTowerOverEm2);
+        t->Branch("phoHoverE1", &phoHoverE1);
+        t->Branch("phoHoverE2", &phoHoverE2);
+
+        t->Branch("phoSigmaIEtaIPhi", &phoSigmaIEtaIPhi);
+        t->Branch("phoSigmaIPhiIPhi", &phoSigmaIPhiIPhi);
         t->Branch("phoR1x5", &phoR1x5);
         t->Branch("phoR2x5", &phoR2x5);
-        t->Branch("phoESEffSigmaRR", &phoESEffSigmaRR);
-        t->Branch("phoSigmaIEtaIEta_2012", &phoSigmaIEtaIEta_2012);
+        t->Branch("phoE2nd", &phoE2nd);
+        t->Branch("phoETop", &phoETop);
+        t->Branch("phoEBottom", &phoEBottom);
+        t->Branch("phoELeft", &phoELeft);
+        t->Branch("phoERight", &phoERight);
+        t->Branch("phoE1x3", &phoE1x3);
+        t->Branch("phoE2x2", &phoE2x2);
+        t->Branch("phoE2x5Max", &phoE2x5Max);
+        t->Branch("phoE2x5Top", &phoE2x5Top);
+        t->Branch("phoE2x5Bottom", &phoE2x5Bottom);
+        t->Branch("phoE2x5Left", &phoE2x5Left);
+        t->Branch("phoE2x5Right", &phoE2x5Right);
+        //t->Branch("phoSMMajor", &phoSMMajor);
+        //t->Branch("phoSMMinor", &phoSMMinor);
+        //t->Branch("phoSMAlpha", &phoSMAlpha);
+
         t->Branch("phoSigmaIEtaIPhi_2012", &phoSigmaIEtaIPhi_2012);
         t->Branch("phoSigmaIPhiIPhi_2012", &phoSigmaIPhiIPhi_2012);
-        //t->Branch("phoE1x3_2012", &phoE1x3_2012);
-        //t->Branch("phoE2x2_2012", &phoE2x2_2012);
-        //t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
-        t->Branch("phoE5x5_2012", &phoE5x5_2012);
-        t->Branch("phoE3x3_2012", &phoE3x3_2012);
+        t->Branch("phoR1x5_2012", &phoR1x5_2012);
+        t->Branch("phoR2x5_2012", &phoR2x5_2012);
+        t->Branch("phoE2nd_2012", &phoE2nd_2012);
+        t->Branch("phoETop_2012", &phoETop_2012);
+        t->Branch("phoEBottom_2012", &phoEBottom_2012);
+        t->Branch("phoELeft_2012", &phoELeft_2012);
+        t->Branch("phoERight_2012", &phoERight_2012);
+        t->Branch("phoE1x3_2012", &phoE1x3_2012);
+        t->Branch("phoE2x2_2012", &phoE2x2_2012);
+        t->Branch("phoE2x5Max_2012", &phoE2x5Max_2012);
+        t->Branch("phoE2x5Top_2012", &phoE2x5Top_2012);
+        t->Branch("phoE2x5Bottom_2012", &phoE2x5Bottom_2012);
+        t->Branch("phoE2x5Left_2012", &phoE2x5Left_2012);
+        t->Branch("phoE2x5Right_2012", &phoE2x5Right_2012);
+        //t->Branch("phoSMMajor_2012", &phoSMMajor_2012);
+        //t->Branch("phoSMMinor_2012", &phoSMMinor_2012);
+        //t->Branch("phoSMAlpha_2012", &phoSMAlpha_2012);
+
         t->Branch("phoBC1E", &phoBC1E);
         t->Branch("phoBC1Eta", &phoBC1Eta);
         //t->Branch("phoBC2E", &phoBC2E);
@@ -1350,9 +1438,6 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfpIso3subSC", &pfpIso3subSC);
         t->Branch("pfpIso4subSC", &pfpIso4subSC);
         t->Branch("pfpIso5subSC", &pfpIso5subSC);
-        t->Branch("phoEAc", &phoEAc);
-        t->Branch("phoEAp", &phoEAp);
-        t->Branch("phoEAn", &phoEAn);
         t->Branch("pfcIso1subUE", &pfcIso1subUE);
         t->Branch("pfcIso2subUE", &pfcIso2subUE);
         t->Branch("pfcIso3subUE", &pfcIso3subUE);
@@ -1373,6 +1458,9 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfpIso3subSCsubUE", &pfpIso3subSCsubUE);
         t->Branch("pfpIso4subSCsubUE", &pfpIso4subSCsubUE);
         t->Branch("pfpIso5subSCsubUE", &pfpIso5subSCsubUE);
+        t->Branch("phoEAc", &phoEAc);
+        t->Branch("phoEAp", &phoEAp);
+        t->Branch("phoEAn", &phoEAn);
     }
     if (doMu) {
         //t->Branch("nMu", &nMu);
@@ -1523,6 +1611,7 @@ void ggHiFlat::clearEntryPho()
         phoSCPhiWidth = -987987;
         phoSCBrem = -987987;
         phohasPixelSeed = -987987;
+        phoESEffSigmaRR = -987987;
 
         phoHoverE = -987987;
         phoHoverEValid = -987987;
@@ -1534,7 +1623,6 @@ void ggHiFlat::clearEntryPho()
         phoE5x5 = -987987;
         phoMaxEnergyXtal = -987987;
         phoSigmaEtaEta = -987987;
-        phoESEffSigmaRR = -987987;
         phoSigmaIEtaIEta_2012 = -987987;
         phoR9_2012 = -987987;
         phoE1x5_2012 = -987987;
@@ -1633,9 +1721,6 @@ void ggHiFlat::clearEntryPho()
         pfpIso3subSC = -987987;
         pfpIso4subSC = -987987;
         pfpIso5subSC = -987987;
-        phoEAc = 0;
-        phoEAp = 0;
-        phoEAn = 0;
         pfcIso1subUE = -987987;
         pfcIso2subUE = -987987;
         pfcIso3subUE = -987987;
@@ -1656,6 +1741,9 @@ void ggHiFlat::clearEntryPho()
         pfpIso3subSCsubUE = -987987;
         pfpIso4subSCsubUE = -987987;
         pfpIso5subSCsubUE = -987987;
+        phoEAc = 0;
+        phoEAp = 0;
+        phoEAn = 0;
     }
 }
 
@@ -1824,6 +1912,9 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     phoSCPhiWidth = (*tggHiNtuplizer.phoSCPhiWidth)[i];
     phoSCBrem = (*tggHiNtuplizer.phoSCBrem)[i];
     //phohasPixelSeed = (*tggHiNtuplizer.phohasPixelSeed)[i];
+    if (tggHiNtuplizer.b_phoESEffSigmaRR != 0) {
+        phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
+    }
 
     phoHoverE = (*tggHiNtuplizer.phoHoverE)[i];
     phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
@@ -1835,7 +1926,6 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     phoE5x5 = (*tggHiNtuplizer.phoE5x5)[i];
     phoMaxEnergyXtal = (*tggHiNtuplizer.phoMaxEnergyXtal)[i];
     phoSigmaEtaEta = (*tggHiNtuplizer.phoSigmaEtaEta)[i];
-    phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
     phoSigmaIEtaIEta_2012 = (*tggHiNtuplizer.phoSigmaIEtaIEta_2012)[i];
     phoR9_2012 = (*tggHiNtuplizer.phoR9_2012)[i];
     phoE1x5_2012 = (*tggHiNtuplizer.phoE1x5_2012)[i];
