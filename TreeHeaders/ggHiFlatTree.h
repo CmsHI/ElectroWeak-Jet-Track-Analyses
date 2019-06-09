@@ -163,9 +163,12 @@ public :
   float phoSCEtaWidth;
   float phoSCPhiWidth;
   float phoSCBrem;
-  int phohasPixelSeed;
+
   float phoESEffSigmaRR;
 
+  int   phoHasPixelSeed;
+  int   phoHasConversionTracks;
+  float phoHadTowerOverEm;
   float phoHoverE;
   int   phoHoverEValid;
   float phoSigmaIEtaIEta;
@@ -455,9 +458,12 @@ public :
   TBranch        *b_phoSCEtaWidth;   //!
   TBranch        *b_phoSCPhiWidth;   //!
   TBranch        *b_phoSCBrem;   //!
-  TBranch        *b_phohasPixelSeed;   //!
+
   TBranch        *b_phoESEffSigmaRR;
 
+  TBranch        *b_phoHasPixelSeed;   //!
+  TBranch        *b_phoHasConversionTracks;
+  TBranch        *b_phoHadTowerOverEm;
   TBranch        *b_phoHoverE;
   TBranch        *b_phoHoverEValid;
   TBranch        *b_phoSigmaIEtaIEta;
@@ -747,9 +753,12 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoSCEtaWidth = 0;
     b_phoSCPhiWidth = 0;
     b_phoSCBrem = 0;
-    b_phohasPixelSeed = 0;
+
     b_phoESEffSigmaRR = 0;
 
+    b_phoHasPixelSeed = 0;
+    b_phoHasConversionTracks = 0;
+    b_phoHadTowerOverEm = 0;
     b_phoHoverE = 0;
     b_phoHoverEValid = 0;
     b_phoSigmaIEtaIEta = 0;
@@ -1038,9 +1047,12 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoSCEtaWidth")) t->SetBranchAddress("phoSCEtaWidth", &phoSCEtaWidth, &b_phoSCEtaWidth);
     if (t->GetBranch("phoSCPhiWidth")) t->SetBranchAddress("phoSCPhiWidth", &phoSCPhiWidth, &b_phoSCPhiWidth);
     if (t->GetBranch("phoSCBrem")) t->SetBranchAddress("phoSCBrem", &phoSCBrem, &b_phoSCBrem);
-    if (t->GetBranch("phohasPixelSeed")) t->SetBranchAddress("phohasPixelSeed", &phohasPixelSeed, &b_phohasPixelSeed);
+
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
 
+    if (t->GetBranch("phoHasPixelSeed")) t->SetBranchAddress("phoHasPixelSeed", &phoHasPixelSeed, &b_phoHasPixelSeed);
+    if (t->GetBranch("phoHasConversionTracks")) t->SetBranchAddress("phoHasConversionTracks", &phoHasConversionTracks, &b_phoHasConversionTracks);
+    if (t->GetBranch("phoHadTowerOverEm")) t->SetBranchAddress("phoHadTowerOverEm", &phoHadTowerOverEm, &b_phoHadTowerOverEm);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
     if (t->GetBranch("phoHoverEValid")) t->SetBranchAddress("phoHoverEValid", &phoHoverEValid, &b_phoHoverEValid);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
@@ -1335,9 +1347,12 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoSCEtaWidth", &phoSCEtaWidth);
         t->Branch("phoSCPhiWidth", &phoSCPhiWidth);
         t->Branch("phoSCBrem", &phoSCBrem);
-        t->Branch("phohasPixelSeed", &phohasPixelSeed);
+
         t->Branch("phoESEffSigmaRR", &phoESEffSigmaRR);
 
+        t->Branch("phoHasPixelSeed", &phoHasPixelSeed);
+        t->Branch("phoHasConversionTracks", &phoHasConversionTracks);
+        t->Branch("phoHadTowerOverEm", &phoHadTowerOverEm);
         t->Branch("phoHoverE", &phoHoverE);
         t->Branch("phoHoverEValid", &phoHoverEValid);
         t->Branch("phoSigmaIEtaIEta", &phoSigmaIEtaIEta);
@@ -1620,9 +1635,12 @@ void ggHiFlat::clearEntryPho()
         phoSCEtaWidth = -987987;
         phoSCPhiWidth = -987987;
         phoSCBrem = -987987;
-        phohasPixelSeed = -987987;
+
         phoESEffSigmaRR = -987987;
 
+        phoHasPixelSeed = -987987;
+        phoHasConversionTracks = -987987;
+        phoHadTowerOverEm = -987987;
         phoHoverE = -987987;
         phoHoverEValid = -987987;
         phoSigmaIEtaIEta = -987987;
@@ -1923,11 +1941,18 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     phoSCEtaWidth = (*tggHiNtuplizer.phoSCEtaWidth)[i];
     phoSCPhiWidth = (*tggHiNtuplizer.phoSCPhiWidth)[i];
     phoSCBrem = (*tggHiNtuplizer.phoSCBrem)[i];
-    //phohasPixelSeed = (*tggHiNtuplizer.phohasPixelSeed)[i];
+
     if (tggHiNtuplizer.b_phoESEffSigmaRR != 0) {
         phoESEffSigmaRR = (*tggHiNtuplizer.phoESEffSigmaRR)[i];
     }
 
+    if (tggHiNtuplizer.b_phoHasPixelSeed != 0) {
+        phoHasPixelSeed = (*tggHiNtuplizer.phoHasPixelSeed)[i];
+    }
+    if (tggHiNtuplizer.b_phoHasConversionTracks != 0) {
+        phoHasConversionTracks = (*tggHiNtuplizer.phoHasConversionTracks)[i];
+    }
+    phoHadTowerOverEm = (*tggHiNtuplizer.phoHadTowerOverEm)[i];
     phoHoverE = (*tggHiNtuplizer.phoHoverE)[i];
     phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
     phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];

@@ -125,8 +125,12 @@ public :
     phoSCEtaWidth = 0;
     phoSCPhiWidth = 0;
     phoSCBrem = 0;
-    phohasPixelSeed = 0;
 
+    phoESEffSigmaRR = 0;
+
+    phoHasPixelSeed = 0;
+    phoHasConversionTracks = 0;
+    phoHadTowerOverEm = 0;
     phoHoverE = 0;
     phoHoverEValid = 0;
     phoSigmaIEtaIEta = 0;
@@ -137,7 +141,6 @@ public :
     phoE5x5 = 0;
     phoMaxEnergyXtal = 0;
     phoSigmaEtaEta = 0;
-    phoESEffSigmaRR = 0;
     phoSigmaIEtaIEta_2012 = 0;
     phoR9_2012 = 0;
     phoE1x5_2012 = 0;
@@ -410,7 +413,12 @@ public :
   std::vector<float>   *phoSCEtaWidth;
   std::vector<float>   *phoSCPhiWidth;
   std::vector<float>   *phoSCBrem;
-  std::vector<int>     *phohasPixelSeed;
+
+  std::vector<float>   *phoESEffSigmaRR;
+
+  std::vector<int>     *phoHasPixelSeed;
+  std::vector<int>     *phoHasConversionTracks;
+  std::vector<float>   *phoHadTowerOverEm;
   std::vector<float>   *phoHoverE;
   std::vector<int>     *phoHoverEValid;
   std::vector<float>   *phoSigmaIEtaIEta;
@@ -421,7 +429,6 @@ public :
   std::vector<float>   *phoE5x5;
   std::vector<float>   *phoMaxEnergyXtal;
   std::vector<float>   *phoSigmaEtaEta;
-  std::vector<float>   *phoESEffSigmaRR;
   std::vector<float>   *phoSigmaIEtaIEta_2012;
   std::vector<float>   *phoR9_2012;
   std::vector<float>   *phoE1x5_2012;
@@ -692,8 +699,12 @@ public :
   TBranch        *b_phoSCEtaWidth;   //!
   TBranch        *b_phoSCPhiWidth;   //!
   TBranch        *b_phoSCBrem;   //!
-  TBranch        *b_phohasPixelSeed;   //!
 
+  TBranch        *b_phoESEffSigmaRR;
+
+  TBranch        *b_phoHasPixelSeed;   //!
+  TBranch        *b_phoHasConversionTracks;
+  TBranch        *b_phoHadTowerOverEm;
   TBranch        *b_phoHoverE;
   TBranch        *b_phoHoverEValid;
   TBranch        *b_phoSigmaIEtaIEta;
@@ -704,7 +715,6 @@ public :
   TBranch        *b_phoE5x5;
   TBranch        *b_phoMaxEnergyXtal;
   TBranch        *b_phoSigmaEtaEta;
-  TBranch        *b_phoESEffSigmaRR;
   TBranch        *b_phoSigmaIEtaIEta_2012;
   TBranch        *b_phoR9_2012;
   TBranch        *b_phoE1x5_2012;
@@ -975,8 +985,12 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phoSCEtaWidth = 0;
     b_phoSCPhiWidth = 0;
     b_phoSCBrem = 0;
-    b_phohasPixelSeed = 0;
 
+    b_phoESEffSigmaRR = 0;
+
+    b_phoHasPixelSeed = 0;
+    b_phoHasConversionTracks = 0;
+    b_phoHadTowerOverEm = 0;
     b_phoHoverE = 0;
     b_phoHoverEValid = 0;
     b_phoSigmaIEtaIEta = 0;
@@ -987,7 +1001,6 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phoE5x5 = 0;
     b_phoMaxEnergyXtal = 0;
     b_phoSigmaEtaEta = 0;
-    b_phoESEffSigmaRR = 0;
     b_phoSigmaIEtaIEta_2012 = 0;
     b_phoR9_2012 = 0;
     b_phoE1x5_2012 = 0;
@@ -1256,9 +1269,12 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoSCEtaWidth")) t->SetBranchAddress("phoSCEtaWidth", &phoSCEtaWidth, &b_phoSCEtaWidth);
     if (t->GetBranch("phoSCPhiWidth")) t->SetBranchAddress("phoSCPhiWidth", &phoSCPhiWidth, &b_phoSCPhiWidth);
     if (t->GetBranch("phoSCBrem")) t->SetBranchAddress("phoSCBrem", &phoSCBrem, &b_phoSCBrem);
-    if (t->GetBranch("phohasPixelSeed")) t->SetBranchAddress("phohasPixelSeed", &phohasPixelSeed, &b_phohasPixelSeed);
+
     if (t->GetBranch("phoESEffSigmaRR")) t->SetBranchAddress("phoESEffSigmaRR", &phoESEffSigmaRR, &b_phoESEffSigmaRR);
 
+    if (t->GetBranch("phoHasPixelSeed")) t->SetBranchAddress("phoHasPixelSeed", &phoHasPixelSeed, &b_phoHasPixelSeed);
+    if (t->GetBranch("phoHasConversionTracks")) t->SetBranchAddress("phoHasConversionTracks", &phoHasConversionTracks, &b_phoHasConversionTracks);
+    if (t->GetBranch("phoHadTowerOverEm")) t->SetBranchAddress("phoHadTowerOverEm", &phoHadTowerOverEm, &b_phoHadTowerOverEm);
     if (t->GetBranch("phoHoverE")) t->SetBranchAddress("phoHoverE", &phoHoverE, &b_phoHoverE);
     if (t->GetBranch("phoHoverEValid")) t->SetBranchAddress("phoHoverEValid", &phoHoverEValid, &b_phoHoverEValid);
     if (t->GetBranch("phoSigmaIEtaIEta")) t->SetBranchAddress("phoSigmaIEtaIEta", &phoSigmaIEtaIEta, &b_phoSigmaIEtaIEta);
