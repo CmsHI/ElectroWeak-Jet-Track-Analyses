@@ -64,6 +64,8 @@ std::string preselectionB;
 float fracTrainEvtS;
 float fracTrainEvtB;
 
+std::vector<std::string> targetVars;
+
 std::vector<std::pair<std::string, int>> trainVarsList;
 
 int nTreeFriendPathsS;
@@ -72,6 +74,8 @@ int nTreeFriendPathsB;
 int nTreeBranchesS;
 int nTreeBranchesB;
 int nTreeBranchesSpec;
+
+int nTargetVars;
 
 /// configuration variables - END
 enum ANATYPES {
@@ -196,6 +200,15 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
     TMVA::DataLoader* dataloader = 0;
     dataloader = new TMVA::DataLoader("dataset");
 
+    /*
+    TCut("phoEt > 40 && abs(phoSCEta) < 1.48 && phoHoverE < 0.1 && pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22")
+    */
+    TCut preselS = TCut(preselectionS.c_str());
+    Long64_t entriesPreSelSig = treeSig->GetEntries(preselS.GetTitle());
+    int nTrainSig = entriesPreSelSig * fracTrainEvtS;
+
+    std::string splitOptionBase = "SplitMode=Random:SplitSeed=12345:NormMode=EqualNumEvents";
+    std::string splitOption = "";
     if (anaType == ANATYPES::kClassification) {
         dataloader->SetSignalTree(treeSig);
         if (weightExpressionS.size() > 0) {
@@ -207,16 +220,10 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
             dataloader->SetBackgroundWeightExpression(weightExpressionB.c_str());
         }
 
-        /*
-        TCut("phoEt > 40 && abs(phoSCEta) < 1.48 && phoHoverE < 0.1 && pho_genMatchedIndex > -1 && mcPID[pho_genMatchedIndex] == 22")
-        */
-        TCut preselS = TCut(preselectionS.c_str());
         TCut preselB = TCut(preselectionB.c_str());
 
-        std::cout << "preselectionSig = " << preselS.GetTitle() << std::endl;
         std::cout << "preselectionBkg = " << preselB.GetTitle() << std::endl;
 
-        Long64_t entriesPreSelSig = treeSig->GetEntries(preselS.GetTitle());
         Long64_t entriesPreSelBkg = treeBkg->GetEntries(preselB.GetTitle());
 
         std::cout << "entriesSig = " << entriesSig << std::endl;
@@ -224,11 +231,31 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
         std::cout << "entriesPreSelSig = " << entriesPreSelSig << std::endl;
         std::cout << "entriesPreSelBkg = " << entriesPreSelBkg << std::endl;
 
-        int nTrainSig = entriesPreSelSig * fracTrainEvtS;
         int nTrainBkg = entriesPreSelBkg * fracTrainEvtB;
-        std::string splitOption = Form("nTrain_Signal=%d:nTrain_Background=%d:SplitMode=Random:SplitSeed=12345:NormMode=EqualNumEvents", nTrainSig, nTrainBkg);
+
+        std::string splitOptionTmp = Form("nTrain_Signal=%d:nTrain_Background=%d", nTrainSig, nTrainBkg);
+        splitOption = Form("%s:%s", splitOptionTmp.c_str(), splitOptionBase.c_str());
 
         dataloader->PrepareTrainingAndTestTree(preselS, preselB, splitOption.c_str());
+    }
+    else if (anaType == ANATYPES::kRegression) {
+        dataloader->AddRegressionTree(treeSig);
+        if (weightExpressionS.size() > 0) {
+            dataloader->SetWeightExpression(weightExpressionS.c_str());
+        }
+
+        for (int i = 0; i < nTargetVars; ++i) {
+            dataloader->AddTarget(targetVars[i].c_str());
+        }
+
+        std::cout << "preselection = " << preselS.GetTitle() << std::endl;
+        std::cout << "entries = " << entriesSig << std::endl;
+        std::cout << "entriesPreSel = " << entriesPreSelSig << std::endl;
+
+        std::string splitOptionTmp = Form("nTrain_Regression=%d", nTrainSig);
+        splitOption = Form("%s:%s", splitOptionTmp.c_str(), splitOptionBase.c_str());
+
+        dataloader->PrepareTrainingAndTestTree(preselS, splitOption.c_str());
     }
 
     /*
@@ -375,6 +402,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     fracTrainEvtS = confParser.ReadConfigValueFloat("fracTrainEvtSig");
     fracTrainEvtB = confParser.ReadConfigValueFloat("fracTrainEvtBkg");
 
+    // list of target variables for regression
+    targetVars = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("targetVariables"));
+
     // list of training variables separated by ";;;"
     trainVarsList = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("trainVariables"));
     int indexTmp = trainVarsList.size() - 1;
@@ -405,6 +435,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
         trainVars.push_back(varTmp);
     }
+
+    treeBranchesSpec = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("treeSpectatorBranches"));
 
     if (treePathS == "") {
         treePathS = "ggHiNtuplizerGED/EventTree";
@@ -449,6 +481,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nTreeBranchesS = treeBranchesS.size();
     nTreeBranchesB = treeBranchesB.size();
     nTreeBranchesSpec = treeBranchesSpec.size();
+
+    nTargetVars = targetVars.size();
 
     nTrainVars = trainVars.size();
 
@@ -527,6 +561,11 @@ void printConfiguration()
 
     std::cout << "fracTrainEvtS = " << fracTrainEvtS << std::endl;
     std::cout << "fracTrainEvtB = " << fracTrainEvtB << std::endl;
+
+    std::cout << "nTargetVars = " << nTargetVars << std::endl;
+    for (int i = 0; i < nTargetVars; ++i) {
+        std::cout << Form("targetVars[%d] = %s", i, targetVars.at(i).c_str()) << std::endl;
+    }
 
     std::cout << "nTrainVars = " << nTrainVars << std::endl;
     for (int i = 0; i < nTrainVars; ++i){
