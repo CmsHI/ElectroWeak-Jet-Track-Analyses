@@ -37,7 +37,8 @@ enum FIGURE{
     k_M_Zee_pbpb,
     k_M_Zmm_pbpb,
     k_bkgSubtraction_dphijz_pbpb,
-    k_xjz_xjg,
+    k_xjz_xjg_pp,
+    k_xjz_xjg_pbpb,
     kN_FIGURES
 };
 
@@ -48,7 +49,7 @@ std::string figureNames[kN_FIGURES] = {"zJet_xjz", "zJet_dphijz", "zJet_rjz", "z
         "zJet_xjzMean_pp_Theory", "zJet_xjzMean_pbpb_Theory",
         "zJet_M_Zee_pbpb", "zJet_M_Zmm_pbpb",
         "zJet_bkgSubtraction_dphijz_pbpb",
-        "zJet_xjz_xjg"};
+        "zJet_xjz_xjg_pp", "zJet_xjz_xjg_pbpb"};
 
 // Canvas
 int windowWidth;
@@ -143,7 +144,9 @@ void zJetPlot_xjzMean_pbpb_Theory(std::string inputFile);
 void zJetPlot_M_Zee_pbpb(std::string inputFile);
 void zJetPlot_M_Zmm_pbpb(std::string inputFile);
 void zJetPlot_bkgSubtraction_dphijz_pbpb(std::string inputFile);
-void zJetPlot_xjz_xjg(std::string inputFile);
+void zJetPlot_xjz_xjg(std::string inputFile, bool isPP);
+void zJetPlot_xjz_xjg_pp(std::string inputFile);
+void zJetPlot_xjz_xjg_pbpb(std::string inputFile);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -207,8 +210,11 @@ void zJetPlotPublic(int figureIndex, std::string inputFile)
         case k_bkgSubtraction_dphijz_pbpb:
             zJetPlot_bkgSubtraction_dphijz_pbpb(inputFile);
             break;
-        case k_xjz_xjg:
-            zJetPlot_xjz_xjg(inputFile);
+        case k_xjz_xjg_pp:
+            zJetPlot_xjz_xjg_pp(inputFile);
+            break;
+        case k_xjz_xjg_pbpb:
+            zJetPlot_xjz_xjg_pbpb(inputFile);
             break;
         default:
             break;
@@ -3211,7 +3217,7 @@ void zJetPlot_bkgSubtraction_dphijz_pbpb(std::string inputFile)
     std::cout<<"running zJetPlot_bkgSubtraction_dphijz_pbpb() - END"<<std::endl;
 }
 
-void zJetPlot_xjz_xjg(std::string inputFile)
+void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
 {
     std::cout<<"running zJetPlot_xjz_xjg()"<<std::endl;
 
@@ -3229,7 +3235,8 @@ void zJetPlot_xjz_xjg(std::string inputFile)
     rightMargin  = 0.03;
     bottomMargin = 0.15;
     topMargin    = 0.06;
-    TCanvas* c = new TCanvas(figureNames[k_xjz_xjg].c_str(), "", windowWidth, windowHeight);
+    std::string figureName = (isPP) ? figureNames[k_xjz_xjg_pp] : figureNames[k_xjz_xjg_pbpb];
+    TCanvas* c = new TCanvas(figureName.c_str(), "", windowWidth, windowHeight);
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
     setCanvas(c);
     c->cd();
@@ -3247,8 +3254,8 @@ void zJetPlot_xjz_xjg(std::string inputFile)
     yMax = 1;
 
     enum HISTLABELS {
-        k_pbpb_xjz,
-        k_pbpb_xjg,
+        k_xjz,
+        k_xjg,
         kN_HISTLABELS
     };
 
@@ -3256,6 +3263,12 @@ void zJetPlot_xjz_xjg(std::string inputFile)
             "h1D_xjz_pbpb_cent030",
             "h1D_xjg_pbpb_cent010"
     };
+    if (isPP) {
+        histPaths = {
+                "h1D_xjz_pp_cent030",
+                "h1D_xjg_pp_cent010"
+        };
+    }
     markerColors = {kBlack, kBlack};
     markerStyles = {kFullCircle, kOpenSquare};
     markerSizes = {2, 2};
@@ -3269,6 +3282,12 @@ void zJetPlot_xjz_xjg(std::string inputFile)
             "h1D_sysVar_xjz_pbpb_cent030_rel",
             "h1D_sysVar_xjg_pbpb_cent010_rel"
     };
+    if (isPP) {
+        sysPaths = {
+                "h1D_sysVar_xjz_pp_cent030_rel",
+                "h1D_sysVar_xjg_pp_cent010_rel"
+        };
+    }
     sysUseRelUnc = {true, true};
     sysColors = {46, 37};
     sysTransparencies = {0.7, 0.7};
@@ -3298,17 +3317,23 @@ void zJetPlot_xjz_xjg(std::string inputFile)
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
-    h1Ds[k_pbpb_xjg]->Draw("e same");
+    h1Ds[k_xjg]->Draw("e same");
 
     legendX1 = 0.6;
     legendY1 = 0.6875;
-    legendWidth = 0.44;
+    legendWidth = 0.36;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
             "Z+jet, 0-30 %",
             "#gamma+jet, 0-10 %"
     };
+    if (isPP) {
+        legendEntryTexts = {
+                "Z+jet, Smeared pp",
+                "#gamma+jet, Smeared pp"
+        };
+    }
     std::vector<std::string> legendEntryTexts2nd = {
             "HIN-15-013",
             "HIN-16-002"
@@ -3319,24 +3344,24 @@ void zJetPlot_xjz_xjg(std::string inputFile)
     };
     TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_pbpb_xjz]->Clone(Form("%s_tmp", h1Ds[k_pbpb_xjz]->GetName()));
+    hTmp = (TH1D*)h1Ds[k_xjz]->Clone(Form("%s_tmp", h1Ds[k_xjz]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb_xjz].c_str(), legendEntryOptions[k_pbpb_xjz].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_pbpb_xjz].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[k_xjz].c_str(), legendEntryOptions[k_xjz].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjz].c_str(), "");
 
-    hTmp = (TH1D*)h1Ds[k_pbpb_xjg]->Clone(Form("%s_tmp", h1Ds[k_pbpb_xjg]->GetName()));
+    hTmp = (TH1D*)h1Ds[k_xjg]->Clone(Form("%s_tmp", h1Ds[k_xjg]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb_xjg].c_str(), legendEntryOptions[k_pbpb_xjg].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_pbpb_xjg].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[k_xjg].c_str(), legendEntryOptions[k_xjg].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjg].c_str(), "");
 
     setLegend(leg);
     leg->Draw();
 
-    textX = 0.93;
+    textX = 0.94;
     textYs = {0.62, 0.57, 0.5133, 0.4576, 0.4029, 0.3492};
     textAlign = 31;
     textFont = 43;
-    textSize = 32;
+    textSize = 30;
     textLines = {
             "V = Z, #gamma",
             "p_{T}^{V} > 60 GeV/c",
@@ -3362,6 +3387,12 @@ void zJetPlot_xjz_xjg(std::string inputFile)
             "#sqrt{s_{NN}} = 5.02 TeV",
             "PbPb 404 #mub^{-1}"
     };
+    if (isPP) {
+        textOverPadLines = {
+                "#sqrt{s_{NN}} = 5.02 TeV",
+                "pp 27.4 pb^{-1}"
+        };
+    }
     int nTextOverPadLines = textOverPadLines.size();
     for (int i = 0; i < nTextOverPadLines; ++i) {
         latex = new TLatex();
@@ -3391,6 +3422,24 @@ void zJetPlot_xjz_xjg(std::string inputFile)
     input->Close();
 
     std::cout<<"running zJetPlot_xjz_xjg() - END"<<std::endl;
+}
+
+void zJetPlot_xjz_xjg_pp(std::string inputFile)
+{
+    std::cout<<"running zJetPlot_xjz_xjg_pp()"<<std::endl;
+
+    zJetPlot_xjz_xjg(inputFile, true);
+
+    std::cout<<"running zJetPlot_xjz_xjg_pp() - END"<<std::endl;
+}
+
+void zJetPlot_xjz_xjg_pbpb(std::string inputFile)
+{
+    std::cout<<"running zJetPlot_xjz_xjg_pbpb()"<<std::endl;
+
+    zJetPlot_xjz_xjg(inputFile, false);
+
+    std::cout<<"running zJetPlot_xjz_xjg_pbpb() - END"<<std::endl;
 }
 
 void setTH1D(int iHist, TH1D* h)
