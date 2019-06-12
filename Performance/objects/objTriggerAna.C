@@ -589,6 +589,11 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
+    double maxDR2_HLT = 0.01;
+
+    double maxDR2_pho_L1 = 0.04;
+    double maxDR2_ele_L1 = 0.09;
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -980,7 +985,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
                                          double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
 
-                                         if (ptHLT > 0 && getDR2(etaHLT, phiHLT, eta, phi) < 0.01) {
+                                         if (ptHLT > 0 && getDR2(etaHLT, phiHLT, eta, phi) < maxDR2_HLT) {
 
                                              matchedHltObj = true;
 
@@ -994,10 +999,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                          double maxDR2 = -1;
                                          if (recoObj == RECOOBJS::kPhoton) {
-                                             maxDR2 = 0.04;
+                                             maxDR2 = maxDR2_pho_L1;
                                          }
                                          else if (recoObj == RECOOBJS::kElectron) {
-                                             maxDR2 = 0.09;
+                                             maxDR2 = maxDR2_ele_L1;
                                          }
 
                                          for (int iObj = 0; iObj < (int)l1Obj.nEGs; ++iObj) {
@@ -1082,10 +1087,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      double eScale = -1;
                                      double maxDR2 = -1;
                                      if (recoObj == RECOOBJS::kPhoton) {
-                                         maxDR2 = 0.04;
+                                         maxDR2 = maxDR2_pho_L1;
                                      }
                                      else if (recoObj == RECOOBJS::kElectron) {
-                                         maxDR2 = 0.09;
+                                         maxDR2 = maxDR2_ele_L1;
                                      }
 
                                      if (hasPseudoTriggerBranches && runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
