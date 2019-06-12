@@ -224,7 +224,7 @@ public :
 
     std::string getTriggerPathText(std::string triggerPath);
     static std::string getHLTObjectName(std::string triggerName);
-    double extractPtThreshold(std::string triggerName);
+    double extractPtThreshold(std::string triggerName, bool L1fromHLT = false);
     double extractEtaThreshold(std::string triggerName);
     double getOffset4PtThreshold(double ptThreshold);
 
@@ -1482,7 +1482,7 @@ std::string triggerAnalyzer::getHLTObjectName(std::string triggerName)
  * extract pt threshold from the name of trigger
  * Ex. "HLT_HISinglePhoton15_Eta3p1_v5" should return 15
  */
-double triggerAnalyzer::extractPtThreshold(std::string triggerName)
+double triggerAnalyzer::extractPtThreshold(std::string triggerName, bool L1fromHLT)
 {
     std::string strSub = "Photon";
     if (triggerName.find("L1") == 0) {
@@ -1503,6 +1503,22 @@ double triggerAnalyzer::extractPtThreshold(std::string triggerName)
 
     float res;
     sin >> res;
+
+    if (L1fromHLT) {
+
+        if (res == 30) {
+            return 7;
+        }
+        else if (res == 40 || res == 50) {
+            return 21;
+        }
+        else if (res == 60) {
+            return 30;
+        }
+        else {
+            return 0;
+        }
+    }
 
     return res;
 }

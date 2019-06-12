@@ -220,6 +220,7 @@ enum MODES_EFF {
     kTriggerBit,
     kMatchHltObj,
     kMatchL1Obj,
+    kMatchHltandL1Obj,
     kN_MODES_EFF
 };
 
@@ -394,7 +395,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     }
 
     int nTreeTrigObjPaths = 0;
-    if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
+    if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj) {
 
         indexTriggerBranches4TrigObj();
         nTreeTrigObjPaths = triggerBranches4TrigObj.size();
@@ -612,6 +613,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
         if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData ||
             runMode[MODES::kAnaType] == MODES_ANATYPE::kDataMatchL1ObjEvts) {
+
             treeTrigPath = "hltanalysisReco/HltTree";
             treeTrig = (TTree*)fileTmp->Get(treeTrigPath.c_str());
             if (!treeTrig) {
@@ -638,7 +640,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                 hltObjs[i].setupTreeForReading(treeTrigObjs[i]);
             }
 
-            if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj || hasPseudoTriggerBranches) {
+            if (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj
+                                                               || hasPseudoTriggerBranches) {
                 treeL1objPath = "l1object/L1UpgradeFlatTree";   // L1 objects are in the forest file
 
                 treeL1obj = 0;
@@ -656,14 +659,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                 l1Obj.setupTreeForReading(treeL1obj);
             }
 
-            if (hasPseudoTriggerBranches) {
+            if (hasPseudoTriggerBranches || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj) {
                 triggerThresholds.clear();
                 triggerAnalyzer tAnaPseudo;
                 for (int i = 0; i < nTriggerBranches; ++i) {
-                    triggerThresholds.push_back(tAnaPseudo.extractPtThreshold(triggerBranches.at(i)));
+                    bool getL1fromHLT = (runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj);
+                    triggerThresholds.push_back(tAnaPseudo.extractPtThreshold(triggerBranches.at(i), getL1fromHLT));
                 }
-                for (int i = 0; i < nTriggerBranches; ++i ) {
-                    std::cout << Form("triggerThresholds[%d] = %f", i, triggerThresholds[i]) << std::endl;
+                if (nFiles < 10 || (iFile % (int)(nFiles/10) == 0)) {    // print info for ~10 files, not for each of them
+                    for (int i = 0; i < nTriggerBranches; ++i ) {
+                        std::cout << Form("triggerThresholds[%d] = %f", i, triggerThresholds[i]) << std::endl;
+                    }
                 }
             }
         }
@@ -767,7 +773,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
             for (int i = 0; i < nTreeTrigObjPaths; ++i) {
                 treeTrigObjs[i]->GetEntry(entryTrig);
             }
-            if ((runMode[MODES::kAnaType] == MODES_ANATYPE::kData && runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj)
+            if ((runMode[MODES::kAnaType] == MODES_ANATYPE::kData &&
+                (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj))
                     || hasPseudoTriggerBranches) {
                 treeL1obj->GetEntry(entryTrig);
             }
@@ -955,7 +962,11 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                      tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
                                  }
-                                 else if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj) {
+                                 else if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj ||
+                                          runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj) {
+
+                                     double ptHLT = -1;
+                                     bool matchedHltObj = false;
 
                                      int iHltObj = getIndexTrigObj4TriggerBranch(indicesTriggerNum[iAna]);
 
@@ -965,36 +976,84 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                      for (int iObj = 0; iObj < nHltObjs; ++iObj) {
 
-                                         double ptHLT = (*hltObjs[iHltObj].pt)[iObj];
+                                         ptHLT = (*hltObjs[iHltObj].pt)[iObj];
                                          double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
                                          double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
 
                                          if (ptHLT > 0 && getDR2(etaHLT, phiHLT, eta, phi) < 0.01) {
-                                             tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
-                                             tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
-                                             tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
-                                             tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
-                                             tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
-                                             tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
-                                             tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
-                                             tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
 
-                                             tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
-
-                                             double eScale = ptHLT / pt;
-                                             tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
-                                             tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
-                                             tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
-                                             tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
-                                             tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
-                                             tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
-                                             tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
-                                             tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
+                                             matchedHltObj = true;
 
                                              if (debug) debug_isFoundHltObj = true;
                                              break;
                                          }
                                      }
+
+                                     bool matchedL1Obj = false;
+                                     if (runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj) {
+
+                                         double maxDR2 = -1;
+                                         if (recoObj == RECOOBJS::kPhoton) {
+                                             maxDR2 = 0.04;
+                                         }
+                                         else if (recoObj == RECOOBJS::kElectron) {
+                                             maxDR2 = 0.09;
+                                         }
+
+                                         for (int iObj = 0; iObj < (int)l1Obj.nEGs; ++iObj) {
+
+                                             double ptL1 = (*l1Obj.egEt)[iObj];
+                                             if (!(ptL1 >= triggerThresholds[iHltObj]))  continue;
+
+                                             double etaL1 = (*l1Obj.egEta)[iObj];
+                                             double phiL1 = (*l1Obj.egPhi)[iObj];
+
+                                             // use position of object Super Cluster when matching to L1 object
+                                             double etaSC = -999;
+                                             double phiSC = -999;
+                                             if (recoObj == RECOOBJS::kPhoton) {
+                                                 etaSC = (*ggHi.phoSCEta)[iMax];
+                                                 phiSC = (*ggHi.phoSCPhi)[iMax];
+                                             }
+                                             else if (recoObj == RECOOBJS::kElectron) {
+                                                 etaSC = (*ggHi.eleSCEta)[iMax];
+                                                 phiSC = (*ggHi.eleSCPhi)[iMax];
+                                             }
+
+                                             if (getDR2(etaL1, phiL1, etaSC, phiSC) < maxDR2) {
+
+                                                 matchedL1Obj = true;
+                                                 break;
+                                             }
+                                         }
+                                     }
+
+                                     bool matchedObj = ((runMode[MODES::kEff] == MODES_EFF::kMatchHltObj && matchedHltObj) ||
+                                                        (runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj && matchedHltObj && matchedL1Obj));
+
+                                     if (matchedObj) {
+                                         tAna[TRIGGERANA::kETA][iAna].FillHNum(eta, w, vars);
+                                         tAna[TRIGGERANA::kRECOPT][iAna].FillHNum(pt, w, vars);
+                                         tAna[TRIGGERANA::kCENT][iAna].FillHNum(cent, w, vars);
+                                         tAna[TRIGGERANA::kSUMISO][iAna].FillHNum(sumIso, w, vars);
+                                         tAna[TRIGGERANA::kECALISO][iAna].FillHNum(ecalIso, w, vars);
+                                         tAna[TRIGGERANA::kHCALISO][iAna].FillHNum(hcalIso, w, vars);
+                                         tAna[TRIGGERANA::kTRKISO][iAna].FillHNum(trkIso, w, vars);
+                                         tAna[TRIGGERANA::kSIEIE][iAna].FillHNum(sieie, w, vars);
+
+                                         tAna[TRIGGERANA::kETA][iAna].FillH2Num(eta, phi, w, vars);
+
+                                         double eScale = ptHLT / pt;
+                                         tAna[TRIGGERANA::kETA][iAna].FillH2eScale(eta, eScale, w, vars);
+                                         tAna[TRIGGERANA::kRECOPT][iAna].FillH2eScale(pt, eScale, w, vars);
+                                         tAna[TRIGGERANA::kCENT][iAna].FillH2eScale(cent, eScale, w, vars);
+                                         tAna[TRIGGERANA::kSUMISO][iAna].FillH2eScale(sumIso, eScale, w, vars);
+                                         tAna[TRIGGERANA::kECALISO][iAna].FillH2eScale(ecalIso, eScale, w, vars);
+                                         tAna[TRIGGERANA::kHCALISO][iAna].FillH2eScale(hcalIso, eScale, w, vars);
+                                         tAna[TRIGGERANA::kTRKISO][iAna].FillH2eScale(trkIso, eScale, w, vars);
+                                         tAna[TRIGGERANA::kSIEIE][iAna].FillH2eScale(sieie, eScale, w, vars);
+                                     }
+
                                      if (debug) {
                                          if (!debug_isFoundHltObj && !debug_isPrinted && pt > 45 && TMath::Abs(eta) < 1.44 && sumIso < 5 && sieie < 0.01 && tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold == debug_ptThreshold) {
                                              std::cout << "No trigger match for object" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
@@ -2184,7 +2243,8 @@ int  preLoop(TFile* input, bool makeNew)
                 tAnaTmp.hDenom = (TH1D*)input->Get(nameDenom.c_str());
             }
 
-            if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj || runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj) {
+            if (runMode[MODES::kEff] == MODES_EFF::kMatchHltObj || runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj
+                                                                || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj) {
                 if (makeNew) {
                     tAnaTmp.h2eScale =
                             new TH2D(nameEscale2D.c_str(), Form(";%s;online p_{T} / offline p_{T}", xTitle.c_str()), nBins, arr, 50, 0, 2);
