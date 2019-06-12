@@ -3298,12 +3298,13 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     std::vector<TH1D*> h1DsSys(nHistPaths, 0);
     TGraph* gr = 0;
     TH1D* hTmp = 0;
-    for (int i = 0; i < nHistPaths; ++i) {
+    for (int i = nHistPaths - 1; i >= 0; --i) {     // first draw photon+jet, then Z+jet
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
+        h1Ds[i]->SetStats(false);
 
-        if (i == 0) {
+        if (i == nHistPaths - 1) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
         }
@@ -3317,7 +3318,7 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
-    h1Ds[k_xjg]->Draw("e same");
+    h1Ds[k_xjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
     legendX1 = 0.6;
     legendY1 = 0.6875;
