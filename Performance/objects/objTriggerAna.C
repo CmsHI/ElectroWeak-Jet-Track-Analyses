@@ -813,7 +813,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                     triggerBits[iTrig] = 0;
                     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kData) {
                         for (int i = 0; i < (int)l1Obj.nEGs; ++i) {
-                            if ((*l1Obj.egEt)[i] > triggerThresholds[iTrig]) {
+                            if ((*l1Obj.egEt)[i] >= triggerThresholds[iTrig]) {
                                 triggerBits[iTrig] = 1;
                                 break;
                             }
@@ -821,7 +821,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                     }
                     else if (runMode[MODES::kAnaType] == MODES_ANATYPE::kL1Objects) {
                         for (int i = 0; i < L1Upgrade->nEGs; ++i) {
-                            if (L1Upgrade->egEt[i] > triggerThresholds[iTrig]) {
+                            if (L1Upgrade->egEt[i] >= triggerThresholds[iTrig]) {
                                 triggerBits[iTrig] = 1;
                                 break;
                             }
@@ -1098,7 +1098,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          int iL1Obj = getIndexTrig4TriggerNum(indicesTriggerNum[iAna]);
 
                                          for (int iObj = 0; iObj < L1Upgrade->nEGs; ++iObj) {
-                                             if (L1Upgrade->egEt[iObj] > triggerThresholds[iL1Obj]) {
+                                             if (L1Upgrade->egEt[iObj] >= triggerThresholds[iL1Obj]) {
                                                  // the fact that there is an L1 EG with pt > threshold is not enough.
                                                  // make sure they match also in eta-phi.
 
