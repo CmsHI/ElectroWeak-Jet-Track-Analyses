@@ -41,6 +41,8 @@ enum FIGURE{
     k_xjz_xjg_pbpb,
     k_xjzMean_xjgMean_pp,
     k_xjzMean_xjgMean_pbpb,
+    k_rjz_rjg_pp,
+    k_rjz_rjg_pbpb,
     kN_FIGURES
 };
 
@@ -52,7 +54,8 @@ std::string figureNames[kN_FIGURES] = {"zJet_xjz", "zJet_dphijz", "zJet_rjz", "z
         "zJet_M_Zee_pbpb", "zJet_M_Zmm_pbpb",
         "zJet_bkgSubtraction_dphijz_pbpb",
         "zJet_xjz_xjg_pp", "zJet_xjz_xjg_pbpb",
-        "zJet_xjzMean_xjgMean_pp", "zJet_xjzMean_xjgMean_pbpb"};
+        "zJet_xjzMean_xjgMean_pp", "zJet_xjzMean_xjgMean_pbpb",
+        "zJet_rjz_rjg_pp", "zJet_rjz_rjg_pbpb"};
 
 // Canvas
 int windowWidth;
@@ -153,6 +156,9 @@ void zJetPlot_xjz_xjg_pbpb(std::string inputFile);
 void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP);
 void zJetPlot_xjzMean_xjgMean_pp(std::string inputFile);
 void zJetPlot_xjzMean_xjgMean_pbpb(std::string inputFile);
+void zJetPlot_rjz_rjg(std::string inputFile, bool isPP);
+void zJetPlot_rjz_rjg_pp(std::string inputFile);
+void zJetPlot_rjz_rjg_pbpb(std::string inputFile);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -227,6 +233,12 @@ void zJetPlotPublic(int figureIndex, std::string inputFile)
             break;
         case k_xjzMean_xjgMean_pbpb:
             zJetPlot_xjzMean_xjgMean_pbpb(inputFile);
+            break;
+        case k_rjz_rjg_pp:
+            zJetPlot_rjz_rjg_pp(inputFile);
+            break;
+        case k_rjz_rjg_pbpb:
+            zJetPlot_rjz_rjg_pbpb(inputFile);
             break;
         default:
             break;
@@ -3685,6 +3697,232 @@ void zJetPlot_xjzMean_xjgMean_pbpb(std::string inputFile)
     zJetPlot_xjzMean_xjgMean(inputFile, false);
 
     std::cout<<"running zJetPlot_xjzMean_xjgMean_pbpb() - END"<<std::endl;
+}
+
+void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
+{
+    std::cout<<"running zJetPlot_rjz_rjg()"<<std::endl;
+
+    TFile* input  = TFile::Open(inputFile.c_str());
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.21;
+    rightMargin  = 0.03;
+    bottomMargin = 0.15;
+    topMargin    = 0.06;
+    std::string figureName = (isPP) ? figureNames[k_rjz_rjg_pp] : figureNames[k_rjz_rjg_pbpb];
+    TCanvas* c = new TCanvas(figureName.c_str(), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = "p^{V}_{T} (GeV/c)";
+    yTitle = "R_{jV}";
+    xTitleSize = 0.0525;
+    yTitleSize = 0.0525;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.5;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 1;
+
+    enum HISTLABELS {
+        k_rjg,
+        k_rjz,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            "h1D_rjg_pbpb_cent030",
+            "h1D_rjz_pbpb_cent030",
+    };
+    if (isPP) {
+        histPaths = {
+                "h1D_rjg_pp_cent030",
+                "h1D_rjz_pp_cent030",
+        };
+    }
+    markerColors = {kBlack, kBlack};
+    markerStyles = {kOpenSquare, kFullCircle};
+    markerSizes = {2, 2};
+    lineColors = {kBlack, 46};
+    lineTransparencies = {1.0, 0.7};
+    lineWidths = {2, 3};
+    fillColors = {37, 46};
+    fillTransparencies = {0.7, 0.7};
+    drawOptions = {"e same", "e same"};
+    sysPaths = {
+            "h1D_sysVar_rjg_pbpb_cent030_rel",
+            "h1D_sysVar_rjz_pbpb_cent030_rel"
+    };
+    if (isPP) {
+        sysPaths = {
+                "h1D_sysVar_rjg_pp_cent030_rel",
+                "h1D_sysVar_rjz_pp_cent030_rel",
+        };
+    }
+    sysUseRelUnc = {true, true};
+    sysColors = {37, 46};
+    sysTransparencies = {0.7, 0.7};
+    sysFillStyles = {1001, 1001};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+        h1Ds[i]->SetStats(false);
+
+        if (i == 0) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)input->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+    h1Ds[HISTLABELS::k_rjz]->Draw("e same");    // redraw to enhance look of error bars
+    h1Ds[HISTLABELS::k_rjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
+
+    legendX1 = 0.6;
+    legendY1 = 0.18;
+    legendWidth = 0.36;
+    legendHeight = 0.22;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            "#gamma+jet, 0-30 %",
+            "Z+jet, 0-30 %",
+    };
+    if (isPP) {
+        legendEntryTexts = {
+                "#gamma+jet, Smeared pp",
+                "Z+jet, Smeared pp",
+        };
+    }
+    std::vector<std::string> legendEntryTexts2nd = {
+            "HIN-16-002",
+            "HIN-15-013",
+    };
+    legendEntryOptions = {
+            "pf",
+            "pf",
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_rjz]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_rjz]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_rjz].c_str(), legendEntryOptions[HISTLABELS::k_rjz].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_rjz].c_str(), "");
+
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_rjg]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_rjg]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_rjg].c_str(), legendEntryOptions[HISTLABELS::k_rjg].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_rjg].c_str(), "");
+
+    setLegend(leg);
+    leg->Draw();
+
+    textX = 0.25;
+    textYs = {0.80, 0.75, 0.70, 0.64, 0.59};
+    textAlign = 11;
+    textFont = 43;
+    textSize = 32;
+    textLines = {
+            "V = Z, #gamma",
+            "anti-k_{T} jet R = 0.3",
+            "p_{T}^{jet} > 30 GeV/c",
+            "|#eta^{jet}| < 1.6",
+            "#Delta#phi_{jV} > #frac{7}{8}#pi"
+    };
+    int nTextLines = textLines.size();
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.22, 0.96};
+    textYOverPad = 0.96;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 30;
+    textOverPadLines = {
+            "#sqrt{s_{NN}} = 5.02 TeV",
+            "PbPb 404 #mub^{-1}"
+    };
+    if (isPP) {
+        textOverPadLines = {
+                "#sqrt{s_{NN}} = 5.02 TeV",
+                "pp 27.4 pb^{-1}"
+        };
+    }
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMS = 0.25;
+    textYCMS = 0.86;
+    textAlignCMS = 11;
+    textFontCMS = 61;
+    textSizeCMS = 0.06299999;
+    latex = new TLatex();
+    setLatexCMS(latex);
+    latex->Draw();
+
+    c->Update();
+
+    TLine* line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+    input->Close();
+
+    std::cout<<"running zJetPlot_rjz_rjg() - END"<<std::endl;
+}
+
+void zJetPlot_rjz_rjg_pp(std::string inputFile)
+{
+    std::cout<<"running zJetPlot_rjz_rjg_pp()"<<std::endl;
+
+    zJetPlot_rjz_rjg(inputFile, true);
+
+    std::cout<<"running zJetPlot_rjz_rjg_pp() - END"<<std::endl;
+}
+
+void zJetPlot_rjz_rjg_pbpb(std::string inputFile)
+{
+    std::cout<<"running zJetPlot_rjz_rjg_pbpb()"<<std::endl;
+
+    zJetPlot_rjz_rjg(inputFile, false);
+
+    std::cout<<"running zJetPlot_rjz_rjg_pbpb() - END"<<std::endl;
 }
 
 void setTH1D(int iHist, TH1D* h)
