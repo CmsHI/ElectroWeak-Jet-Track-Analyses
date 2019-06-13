@@ -3361,8 +3361,8 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
         };
     }
     std::vector<std::string> legendEntryTexts2nd = {
-            "HIN-16-002",
-            "HIN-15-013",
+            "PLB 785 (2018) 14",
+            "PRL 119 (2017) 082301",
     };
     legendEntryOptions = {
             "pf",
@@ -3572,9 +3572,9 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
     h1Ds[HISTLABELS::k_xjzMean]->Draw("e same");    // redraw to enhance look of error bars
     h1Ds[HISTLABELS::k_xjgMean]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
-    legendX1 = 0.6;
+    legendX1 = 0.56;
     legendY1 = 0.6875;
-    legendWidth = 0.36;
+    legendWidth = 0.40;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
@@ -3588,8 +3588,8 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
         };
     }
     std::vector<std::string> legendEntryTexts2nd = {
-            "HIN-16-002",
-            "HIN-15-013",
+            "PLB 785 (2018) 14",
+            "PRL 119 (2017) 082301",
     };
     legendEntryOptions = {
             "pf",
@@ -3803,9 +3803,9 @@ void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
     h1Ds[HISTLABELS::k_rjz]->Draw("e same");    // redraw to enhance look of error bars
     h1Ds[HISTLABELS::k_rjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
-    legendX1 = 0.6;
+    legendX1 = 0.56;
     legendY1 = 0.18;
-    legendWidth = 0.36;
+    legendWidth = 0.40;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
@@ -3819,8 +3819,8 @@ void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
         };
     }
     std::vector<std::string> legendEntryTexts2nd = {
-            "HIN-16-002",
-            "HIN-15-013",
+            "PLB 785 (2018) 14",
+            "PRL 119 (2017) 082301",
     };
     legendEntryOptions = {
             "pf",
@@ -3845,7 +3845,7 @@ void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
     textYs = {0.80, 0.75, 0.70, 0.64, 0.59};
     textAlign = 11;
     textFont = 43;
-    textSize = 32;
+    textSize = 30;
     textLines = {
             "V = Z, #gamma",
             "anti-k_{T} jet R = 0.3",
