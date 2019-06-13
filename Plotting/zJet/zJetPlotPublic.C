@@ -3415,7 +3415,7 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     };
     if (isPP) {
         textOverPadLines = {
-                "#sqrt{s_{NN}} = 5.02 TeV",
+                "#sqrt{s} = 5.02 TeV",
                 "pp 27.4 pb^{-1}"
         };
     }
@@ -3646,7 +3646,7 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
     };
     if (isPP) {
         textOverPadLines = {
-                "#sqrt{s_{NN}} = 5.02 TeV",
+                "#sqrt{s} = 5.02 TeV",
                 "pp 27.4 pb^{-1}"
         };
     }
@@ -3872,7 +3872,7 @@ void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
     };
     if (isPP) {
         textOverPadLines = {
-                "#sqrt{s_{NN}} = 5.02 TeV",
+                "#sqrt{s} = 5.02 TeV",
                 "pp 27.4 pb^{-1}"
         };
     }
