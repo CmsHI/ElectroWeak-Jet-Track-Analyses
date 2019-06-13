@@ -3266,42 +3266,42 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     yMax = 1;
 
     enum HISTLABELS {
-        k_xjz,
         k_xjg,
+        k_xjz,
         kN_HISTLABELS
     };
 
     histPaths = {
+            "h1D_xjg_pbpb_cent010",
             "h1D_xjz_pbpb_cent030",
-            "h1D_xjg_pbpb_cent010"
     };
     if (isPP) {
         histPaths = {
+                "h1D_xjg_pp_cent010",
                 "h1D_xjz_pp_cent030",
-                "h1D_xjg_pp_cent010"
         };
     }
     markerColors = {kBlack, kBlack};
-    markerStyles = {kFullCircle, kOpenSquare};
+    markerStyles = {kOpenSquare, kFullCircle};
     markerSizes = {2, 2};
-    lineColors = {46, kBlack};
-    lineTransparencies = {0.7, 1.0};
-    lineWidths = {3, 2};
-    fillColors = {46, 37};
+    lineColors = {kBlack, 46};
+    lineTransparencies = {1.0, 0.7};
+    lineWidths = {2, 3};
+    fillColors = {37, 46};
     fillTransparencies = {0.7, 0.7};
     drawOptions = {"e same", "e same"};
     sysPaths = {
+            "h1D_sysVar_xjg_pbpb_cent010_rel",
             "h1D_sysVar_xjz_pbpb_cent030_rel",
-            "h1D_sysVar_xjg_pbpb_cent010_rel"
     };
     if (isPP) {
         sysPaths = {
+                "h1D_sysVar_xjg_pp_cent010_rel",
                 "h1D_sysVar_xjz_pp_cent030_rel",
-                "h1D_sysVar_xjg_pp_cent010_rel"
         };
     }
     sysUseRelUnc = {true, true};
-    sysColors = {46, 37};
+    sysColors = {37, 46};
     sysTransparencies = {0.7, 0.7};
     sysFillStyles = {1001, 1001};
 
@@ -3310,13 +3310,13 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     std::vector<TH1D*> h1DsSys(nHistPaths, 0);
     TGraph* gr = 0;
     TH1D* hTmp = 0;
-    for (int i = nHistPaths - 1; i >= 0; --i) {     // first draw photon+jet, then Z+jet
+    for (int i = 0; i < nHistPaths; ++i) {
 
         h1Ds[i] = (TH1D*)input->Get(histPaths[i].c_str());
         setTH1D(i, h1Ds[i]);
         h1Ds[i]->SetStats(false);
 
-        if (i == nHistPaths - 1) {
+        if (i == 0) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             hTmp->Draw("e");
         }
@@ -3330,7 +3330,8 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
-    h1Ds[k_xjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
+    h1Ds[HISTLABELS::k_xjz]->Draw("e same");    // redraw to enhance look of error bars
+    h1Ds[HISTLABELS::k_xjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
     legendX1 = 0.6;
     legendY1 = 0.6875;
@@ -3338,18 +3339,18 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
+            "#gamma+jet, 0-10 %",
             "Z+jet, 0-30 %",
-            "#gamma+jet, 0-10 %"
     };
     if (isPP) {
         legendEntryTexts = {
+                "#gamma+jet, Smeared pp",
                 "Z+jet, Smeared pp",
-                "#gamma+jet, Smeared pp"
         };
     }
     std::vector<std::string> legendEntryTexts2nd = {
+            "HIN-16-002",
             "HIN-15-013",
-            "HIN-16-002"
     };
     legendEntryOptions = {
             "pf",
@@ -3357,15 +3358,15 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     };
     TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_xjz]->Clone(Form("%s_tmp", h1Ds[k_xjz]->GetName()));
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_xjz]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_xjz]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_xjz].c_str(), legendEntryOptions[k_xjz].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjz].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_xjz].c_str(), legendEntryOptions[HISTLABELS::k_xjz].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_xjz].c_str(), "");
 
-    hTmp = (TH1D*)h1Ds[k_xjg]->Clone(Form("%s_tmp", h1Ds[k_xjg]->GetName()));
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_xjg]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_xjg]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_xjg].c_str(), legendEntryOptions[k_xjg].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjg].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_xjg].c_str(), legendEntryOptions[HISTLABELS::k_xjg].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_xjg].c_str(), "");
 
     setLegend(leg);
     leg->Draw();
@@ -3556,8 +3557,8 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
 
         h1Ds[i]->Draw(drawOptions[i].c_str());
     }
-    h1Ds[k_xjzMean]->Draw("e same");    // redraw to enhance look of error bars
-    h1Ds[k_xjgMean]->Draw("e same");    // redraw photon+jet to bring it to foreground
+    h1Ds[HISTLABELS::k_xjzMean]->Draw("e same");    // redraw to enhance look of error bars
+    h1Ds[HISTLABELS::k_xjgMean]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
     legendX1 = 0.6;
     legendY1 = 0.6875;
@@ -3584,15 +3585,15 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
     };
     TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_xjzMean]->Clone(Form("%s_tmp", h1Ds[k_xjzMean]->GetName()));
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_xjzMean]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_xjzMean]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_xjzMean].c_str(), legendEntryOptions[k_xjzMean].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjzMean].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_xjzMean].c_str(), legendEntryOptions[HISTLABELS::k_xjzMean].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_xjzMean].c_str(), "");
 
-    hTmp = (TH1D*)h1Ds[k_xjgMean]->Clone(Form("%s_tmp", h1Ds[k_xjgMean]->GetName()));
+    hTmp = (TH1D*)h1Ds[HISTLABELS::k_xjgMean]->Clone(Form("%s_tmp", h1Ds[HISTLABELS::k_xjgMean]->GetName()));
     hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_xjgMean].c_str(), legendEntryOptions[k_xjgMean].c_str());
-    leg->AddEntry(hTmp, legendEntryTexts2nd[k_xjgMean].c_str(), "");
+    leg->AddEntry(hTmp, legendEntryTexts[HISTLABELS::k_xjgMean].c_str(), legendEntryOptions[HISTLABELS::k_xjgMean].c_str());
+    leg->AddEntry(hTmp, legendEntryTexts2nd[HISTLABELS::k_xjgMean].c_str(), "");
 
     setLegend(leg);
     leg->Draw();
