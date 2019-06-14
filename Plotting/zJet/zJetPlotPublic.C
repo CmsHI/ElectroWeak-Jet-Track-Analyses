@@ -3276,6 +3276,9 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
 
     yMin = -0.05;
     yMax = 1;
+    if (isPP) {
+        yMax = 1.25;
+    }
 
     enum HISTLABELS {
         k_xjg,
@@ -3345,9 +3348,9 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     h1Ds[HISTLABELS::k_xjz]->Draw("e same");    // redraw to enhance look of error bars
     h1Ds[HISTLABELS::k_xjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
-    legendX1 = 0.6;
+    legendX1 = 0.54;
     legendY1 = 0.6875;
-    legendWidth = 0.36;
+    legendWidth = 0.42;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
@@ -3383,7 +3386,7 @@ void zJetPlot_xjz_xjg(std::string inputFile, bool isPP)
     setLegend(leg);
     leg->Draw();
 
-    textX = 0.94;
+    textX = 0.93;
     textYs = {0.62, 0.57, 0.5133, 0.4576, 0.4029, 0.3492};
     textAlign = 31;
     textFont = 43;
@@ -3572,9 +3575,9 @@ void zJetPlot_xjzMean_xjgMean(std::string inputFile, bool isPP)
     h1Ds[HISTLABELS::k_xjzMean]->Draw("e same");    // redraw to enhance look of error bars
     h1Ds[HISTLABELS::k_xjgMean]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
-    legendX1 = 0.56;
+    legendX1 = 0.54;
     legendY1 = 0.6875;
-    legendWidth = 0.40;
+    legendWidth = 0.42;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
@@ -3803,9 +3806,9 @@ void zJetPlot_rjz_rjg(std::string inputFile, bool isPP)
     h1Ds[HISTLABELS::k_rjz]->Draw("e same");    // redraw to enhance look of error bars
     h1Ds[HISTLABELS::k_rjg]->Draw("e same");    // redraw photon+jet to bring it to foreground
 
-    legendX1 = 0.56;
+    legendX1 = 0.54;
     legendY1 = 0.18;
-    legendWidth = 0.40;
+    legendWidth = 0.42;
     legendHeight = 0.22;
     legendMargin = 0.15;
     legendEntryTexts = {
