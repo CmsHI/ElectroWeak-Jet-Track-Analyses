@@ -202,9 +202,10 @@ enum MODES {
     kEff,
     kInEff,
     kFakeRate,
+    kOfflineEnergy,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"AnaType", "Eff", "InEff", "FakeRate"};
+const std::string modesStr[kN_MODES] = {"AnaType", "Eff", "InEff", "FakeRate", "OfflineEnergy"};
 std::vector<int> runMode;
 
 enum MODES_ANATYPE {
@@ -222,6 +223,13 @@ enum MODES_EFF {
     kMatchL1Obj,
     kMatchHltandL1Obj,
     kN_MODES_EFF
+};
+
+enum MODES_OFFLINEENERGY {
+    k_off_RecoPt,
+    k_off_SCE,       // super cluster energy
+    k_off_SCRawE,       // super cluster raw energy
+    kN_MODES_OFFLINEENERGY
 };
 
 enum ANABINS {
@@ -870,6 +878,14 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.phoSCEta)[i];
+                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.phoSCEta)[i];
+                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(sceta);
+                                 }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
 
@@ -882,6 +898,14 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = 0;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.eleR9)[i];
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.eleSCEta)[i];
+                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.eleSCEta)[i];
+                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
+                                 }
                              }
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
@@ -904,11 +928,6 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                          if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
                              double pt = -1;
-                             /*
-                              * uncomment if want to use SC eT instead of offline pt
-                             double sceta = (*ggHi.phoSCEta)[iMax];
-                             double pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
-                              */
                              double eta = -999;
                              double phi = -999;
                              double ecalIso = 0;
@@ -927,6 +946,14 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = ecalIso + hcalIso + trkIso;
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
                                  r9 = (*ggHi.phoR9)[iMax];
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.phoSCEta)[iMax];
+                                     pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.phoSCEta)[iMax];
+                                     pt = (*ggHi.phoSCRawE)[iMax]/TMath::CosH(sceta);
+                                 }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
                                  pt = (*ggHi.elePt)[iMax];
@@ -938,6 +965,14 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = ecalIso + hcalIso + trkIso;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[iMax];
                                  r9 = (*ggHi.eleR9)[iMax];
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.eleSCEta)[iMax];
+                                     pt = (*ggHi.eleSCEn)[iMax]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.eleSCEta)[iMax];
+                                     pt = (*ggHi.eleSCRawEn)[iMax]/TMath::CosH(sceta);
+                                 }
                              }
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
@@ -1241,6 +1276,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
+
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.phoSCEta)[i];
+                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.phoSCEta)[i];
+                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(sceta);
+                                 }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
 
@@ -1253,6 +1297,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = 0;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.eleR9)[i];
+
+                                 if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                                     double sceta = (*ggHi.eleSCEta)[i];
+                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(sceta);
+                                 }
+                                 else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                                     double sceta = (*ggHi.eleSCEta)[i];
+                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
+                                 }
                              }
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
@@ -2094,10 +2147,12 @@ int  preLoop(TFile* input, bool makeNew)
         else if (iRecoPt == 0 && iDep == TRIGGERANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
-            /*
-             * uncomment if want to use SC eT instead of offline pt
-             xTitle = "SC E_{T} (GeV/c)";
-             */
+            if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
+                xTitle = "SC E_{T} (GeV)";
+            }
+            else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
+                xTitle = "SC raw E_{T} (GeV)";
+            }
             makeObject = !tAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == TRIGGERANA::kCENT) {
