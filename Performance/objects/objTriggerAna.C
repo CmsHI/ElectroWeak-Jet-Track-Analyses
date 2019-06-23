@@ -173,7 +173,7 @@ std::vector<float>   bins_r9[2];
 int doEventWeight;
 
 // RECO photon cuts
-float cut_hovere;
+std::vector<float> cuts_hovere;
 bool excludeHI18HEMfailure;
 
 int nTriggerBranchesNum;
@@ -300,6 +300,8 @@ void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool passedEleSelection(ggHiNtuplizer ggHi, int i, int hiBin);
+bool insideEB(float objEta);
+bool insideEE(float objEta);
 void objTriggerAna(std::string configFile, std::string triggerFile, std::string inputFile, std::string outputFile = "objTriggerAna.root");
 void objTriggerAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "objTriggerAna.root");
 
@@ -868,9 +870,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              if (recoObj == RECOOBJS::kPhoton) {
                                  if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                                 if (cut_hovere != 0) {
-                                     if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                                 scEta = (*ggHi.phoSCEta)[i];
+                                 double tmp_cut_hovere = -1;
+                                 if (insideEB(scEta)) {
+                                     tmp_cut_hovere = cuts_hovere[0];
                                  }
+                                 else if (insideEE(scEta)) {
+                                     tmp_cut_hovere = cuts_hovere[1];
+                                 }
+                                 if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
@@ -881,14 +889,11 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
-                                 scEta = (*ggHi.phoSCEta)[i];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.phoSCEta)[i];
-                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.phoSCEta)[i];
-                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(scEta);
                                  }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
@@ -904,18 +909,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  r9 = (*ggHi.eleR9)[i];
                                  scEta = (*ggHi.eleSCEta)[i];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.eleSCEta)[i];
-                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.eleSCEta)[i];
-                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(scEta);
                                  }
                              }
 
                              // exclude ECAL transition region
-                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
-                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
+                             if (!(insideEB(scEta) || insideEE(scEta)))  continue;
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
@@ -958,12 +960,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  r9 = (*ggHi.phoR9)[iMax];
                                  scEta = (*ggHi.phoSCEta)[iMax];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.phoSCEta)[iMax];
-                                     pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.phoSCEta)[iMax];
-                                     pt = (*ggHi.phoSCRawE)[iMax]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCRawE)[iMax]/TMath::CosH(scEta);
                                  }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
@@ -978,18 +978,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  r9 = (*ggHi.eleR9)[iMax];
                                  scEta = (*ggHi.eleSCEta)[iMax];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.eleSCEta)[iMax];
-                                     pt = (*ggHi.eleSCEn)[iMax]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCEn)[iMax]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.eleSCEta)[iMax];
-                                     pt = (*ggHi.eleSCRawEn)[iMax]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCRawEn)[iMax]/TMath::CosH(scEta);
                                  }
                              }
 
                              // exclude ECAL transition region
-                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
-                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
+                             if (!(insideEB(scEta) || insideEE(scEta)))  continue;
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
@@ -1280,9 +1277,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              if (recoObj == RECOOBJS::kPhoton) {
                                  if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
 
-                                 if (cut_hovere != 0) {
-                                     if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
+                                 scEta = (*ggHi.phoSCEta)[i];
+                                 double tmp_cut_hovere = -1;
+                                 if (insideEB(scEta)) {
+                                     tmp_cut_hovere = cuts_hovere[0];
                                  }
+                                 else if (insideEE(scEta)) {
+                                     tmp_cut_hovere = cuts_hovere[1];
+                                 }
+                                 if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
@@ -1293,15 +1296,12 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
-                                 scEta = (*ggHi.phoSCEta)[i];
 
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.phoSCEta)[i];
-                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCE)[i]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.phoSCEta)[i];
-                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(scEta);
                                  }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
@@ -1318,19 +1318,15 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  scEta = (*ggHi.eleSCEta)[i];
 
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
-                                     double sceta = (*ggHi.eleSCEta)[i];
-                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCEn)[i]/TMath::CosH(scEta);
                                  }
                                  else if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCRawE) {
-                                     double sceta = (*ggHi.eleSCEta)[i];
-                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
+                                     pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(scEta);
                                  }
                              }
 
                              // exclude ECAL transition region
-                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
-                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
-
+                             if (!(insideEB(scEta) || insideEE(scEta)))  continue;
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
@@ -1600,7 +1596,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     doEventWeight = confParser.ReadConfigValueInteger("doEventWeight");
 
     // RECO photon cuts
-    cut_hovere = confParser.ReadConfigValueFloat("hovere");
+    cuts_hovere = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("hovere"));
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     // set default values
@@ -1627,6 +1623,19 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (bins_r9[0].size() == 0) {
         bins_r9[0].push_back(0);
         bins_r9[1].push_back(-1);
+    }
+
+    if (cuts_hovere.size() == 0) {
+        cuts_hovere = {999, 999};
+    }
+    else if (cuts_hovere.size() == 1) {
+        cuts_hovere.push_back(999);
+    }
+    else if (cuts_hovere.size() > 2) {
+        std::cout << "Number of given hovere cuts = " << cuts_hovere.size() << std::endl;
+        std::cout << "There can be at most 2 hovere cuts, one for EB, one for EE." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
     }
 
     if (bins_recoPt[1].size() < bins_recoPt[0].size()) {
@@ -1754,7 +1763,8 @@ void printConfiguration()
 
     std::cout << "doEventWeight = " << doEventWeight << std::endl;
 
-    std::cout << "cut_hovere = " << cut_hovere << std::endl;
+    std::cout << "cut_hovere for EB = " << cuts_hovere[0] << std::endl;
+    std::cout << "cut_hovere for EE = " << cuts_hovere[1] << std::endl;
     std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
@@ -3020,4 +3030,14 @@ bool passedEleSelection(ggHiNtuplizer ggHi, int i, int hiBin)
     }
 
     return true;
+}
+
+bool insideEB(float objEta)
+{
+    return (TMath::Abs(objEta) < TRIGGERANA::ECAL_boundary_1);
+}
+
+bool insideEE(float objEta)
+{
+    return (TMath::Abs(objEta) > TRIGGERANA::ECAL_boundary_2 && TMath::Abs(objEta) < 3);
 }
