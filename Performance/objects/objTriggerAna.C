@@ -863,6 +863,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              double sumIso = 0;
                              double sieie = -1;
                              double r9 = -1;
+                             double scEta = -999;
 
                              if (recoObj == RECOOBJS::kPhoton) {
                                  if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
@@ -880,6 +881,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
+                                 scEta = (*ggHi.phoSCEta)[i];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.phoSCEta)[i];
                                      pt = (*ggHi.phoSCE)[i]/TMath::CosH(sceta);
@@ -900,6 +902,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = 0;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.eleR9)[i];
+                                 scEta = (*ggHi.eleSCEta)[i];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.eleSCEta)[i];
                                      pt = (*ggHi.eleSCEn)[i]/TMath::CosH(sceta);
@@ -909,6 +912,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
                                  }
                              }
+
+                             // exclude ECAL transition region
+                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
+                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
@@ -938,6 +945,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              double sumIso = ecalIso + hcalIso + trkIso;
                              double sieie = -1;
                              double r9 = -1;
+                             double scEta = -999;
                              if (recoObj == RECOOBJS::kPhoton) {
                                  pt = (*ggHi.phoEt)[iMax];
                                  eta = (*ggHi.phoEta)[iMax];
@@ -948,6 +956,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = ecalIso + hcalIso + trkIso;
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[iMax];
                                  r9 = (*ggHi.phoR9)[iMax];
+                                 scEta = (*ggHi.phoSCEta)[iMax];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.phoSCEta)[iMax];
                                      pt = (*ggHi.phoSCE)[iMax]/TMath::CosH(sceta);
@@ -967,6 +976,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = ecalIso + hcalIso + trkIso;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[iMax];
                                  r9 = (*ggHi.eleR9)[iMax];
+                                 scEta = (*ggHi.eleSCEta)[iMax];
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.eleSCEta)[iMax];
                                      pt = (*ggHi.eleSCEn)[iMax]/TMath::CosH(sceta);
@@ -976,6 +986,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      pt = (*ggHi.eleSCRawEn)[iMax]/TMath::CosH(sceta);
                                  }
                              }
+
+                             // exclude ECAL transition region
+                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
+                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 
@@ -1261,6 +1275,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              double sumIso = 0;
                              double sieie = -1;
                              double r9 = -1;
+                             double scEta = -999;
 
                              if (recoObj == RECOOBJS::kPhoton) {
                                  if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
@@ -1278,6 +1293,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          (*ggHi.pho_trackIsoR4PtCut20)[i]);
                                  sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.phoR9)[i];
+                                 scEta = (*ggHi.phoSCEta)[i];
 
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.phoSCEta)[i];
@@ -1299,6 +1315,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sumIso = 0;
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.eleR9)[i];
+                                 scEta = (*ggHi.eleSCEta)[i];
 
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      double sceta = (*ggHi.eleSCEta)[i];
@@ -1309,6 +1326,11 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(sceta);
                                  }
                              }
+
+                             // exclude ECAL transition region
+                             if (TRIGGERANA::ECAL_boundary_1 < TMath::Abs(scEta) &&
+                                     TMath::Abs(scEta) < TRIGGERANA::ECAL_boundary_2) continue;
+
 
                              std::vector<double> vars = {eta, pt, (double)cent, sumIso, sieie, r9};
 

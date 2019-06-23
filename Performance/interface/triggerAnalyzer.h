@@ -102,6 +102,9 @@ enum OBS {
 
 const std::string OBS_LABELS[kN_OBS] = {"eff", "ineff", "fake", "eScale"};
 
+double ECAL_boundary_1 = 1.4442;
+double ECAL_boundary_2 = 1.566;
+
 };
 
 class triggerAnalyzer {
@@ -1376,16 +1379,14 @@ void triggerAnalyzer::setPad4Observable(TPad* p, int iObs, int iDep)
     }
 
     if (iDep == TRIGGERANA::kETA) {
-        // draw line for EE-EB transition
-        double ECAL_boundary_1 = 1.4442;
-        double ECAL_boundary_2 = 1.566;
 
         double yMin = p->GetUymin();
         double yMax = p->GetUymax();
         if (!hasH2D && (iObs == TRIGGERANA::kEFF || iObs == TRIGGERANA::kINEFF || iObs == TRIGGERANA::kFAKE))  yMax = 1;
 
         // draw lines for ECAL transition region
-        std::vector<double> lineXvalues {-1*ECAL_boundary_1, ECAL_boundary_1, -1*ECAL_boundary_2, ECAL_boundary_2};
+        std::vector<double> lineXvalues {-1*TRIGGERANA::ECAL_boundary_1, TRIGGERANA::ECAL_boundary_1,
+                                         -1*TRIGGERANA::ECAL_boundary_2, TRIGGERANA::ECAL_boundary_2};
         for (std::vector<double>::const_iterator itLine = lineXvalues.begin(); itLine !=lineXvalues.end(); ++itLine) {
 
             line = new TLine((*itLine), yMin, (*itLine), yMax);
