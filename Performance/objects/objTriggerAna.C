@@ -610,6 +610,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     Long64_t entriesPassedDenomGlobal = 0;
     Long64_t entriesAnalyzed = 0;
 
+    int nFilesSkipped = 0;
     std::cout << "Loop : " << treePath.c_str() << std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
 
@@ -621,6 +622,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
         // check if the file is usable, if not skip the file.
         if (isGoodFile(fileTmp) != 0) {
             std::cout << "File is not good. skipping file." << std::endl;
+            nFilesSkipped++;
             continue;
         }
 
@@ -1346,6 +1348,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
         fileTmp->Close();
     }
     std::cout <<  "Loop ENDED : " << treePath.c_str() << std::endl;
+    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
     std::cout << "entries            = " << entries << std::endl;
     std::cout << "duplicateEntries   = " << duplicateEntries << std::endl;
     std::cout << "entriesNotFoundinTrigger = " << entriesNotFoundinTrigger << std::endl;
