@@ -23,13 +23,17 @@
 #include <iostream>
 
 enum FIGURE{
-    k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2,
-    k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3,
     kN_FIGURES
 };
 
-std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2",
-                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3"};
+std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3",
+                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3"};
 
 // Canvas
 int windowWidth;
@@ -109,7 +113,7 @@ int textFontCMS;
 float textSizeCMS;
 
 void triggerPlotPublic(int figureIndex, std::string inputFile);
-void triggerPlotPublicGeneric(std::string inputFile, int figureIndex = 0);
+void triggerPlotPublicGeneric(std::string inputFile, int figIndex = 0);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -128,11 +132,17 @@ void triggerPlotPublic(int figureIndex, std::string inputFile)
     std::cout<<"inputFile = "<< inputFile.c_str() <<std::endl;
 
     switch (figureIndex) {
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2);
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2);
             break;
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3);
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3);
+            break;
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2);
+            break;
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3);
             break;
         default:
             break;
@@ -141,7 +151,7 @@ void triggerPlotPublic(int figureIndex, std::string inputFile)
     std::cout<<"triggerPlotPublic() - END"<<std::endl;
 }
 
-void triggerPlotPublicGeneric(std::string inputFile, int figureIndex)
+void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
 {
     std::cout<<"running triggerPlotPublicGeneric()"<<std::endl;
 
@@ -159,13 +169,16 @@ void triggerPlotPublicGeneric(std::string inputFile, int figureIndex)
     rightMargin  = 0.03;
     bottomMargin = 0.15;
     topMargin    = 0.06;
-    TCanvas* c = new TCanvas(figureNames[figureIndex].c_str(), "", windowWidth, windowHeight);
+    TCanvas* c = new TCanvas(figureNames[figIndex].c_str(), "", windowWidth, windowHeight);
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
     setCanvas(c);
     c->cd();
 
+    bool isHLTL1 = (figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2 ||
+                    figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3);
+
     xTitle = "p^{#gamma}_{T} (GeV/c)";
-    yTitle = "L1+HLT efficiency";
+    yTitle = (isHLTL1) ? "L1+HLT efficiency" : "HLT efficiency";
     xTitleSize = 0.0525;
     yTitleSize = 0.0525;
     xTitleOffset = 1.25;
@@ -183,13 +196,15 @@ void triggerPlotPublicGeneric(std::string inputFile, int figureIndex)
         kN_OBJLABELS
     };
 
-    if (figureIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2) {
+    bool is_nPaths2 = (figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2 ||
+                    figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2);
+    if (is_nPaths2) {
         objPaths = {
                 "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
                 "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
         };
     }
-    else if (figureIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3) {
+    else {
         objPaths = {
                 "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
                 "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
