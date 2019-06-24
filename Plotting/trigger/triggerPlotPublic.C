@@ -23,11 +23,13 @@
 #include <iostream>
 
 enum FIGURE{
-    k_HIRun2018PbPb_HIGEDPhoton_EB,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2,
+    k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3,
     kN_FIGURES
 };
 
-std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB"};
+std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3"};
 
 // Canvas
 int windowWidth;
@@ -107,7 +109,7 @@ int textFontCMS;
 float textSizeCMS;
 
 void triggerPlotPublic(int figureIndex, std::string inputFile);
-void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile);
+void triggerPlotPublicGeneric(std::string inputFile, int figureIndex = 0);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -126,8 +128,11 @@ void triggerPlotPublic(int figureIndex, std::string inputFile)
     std::cout<<"inputFile = "<< inputFile.c_str() <<std::endl;
 
     switch (figureIndex) {
-        case k_HIRun2018PbPb_HIGEDPhoton_EB:
-            triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(inputFile);
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2);
+            break;
+        case k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3);
             break;
         default:
             break;
@@ -136,9 +141,9 @@ void triggerPlotPublic(int figureIndex, std::string inputFile)
     std::cout<<"triggerPlotPublic() - END"<<std::endl;
 }
 
-void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
+void triggerPlotPublicGeneric(std::string inputFile, int figureIndex)
 {
-    std::cout<<"running triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB()"<<std::endl;
+    std::cout<<"running triggerPlotPublicGeneric()"<<std::endl;
 
     TFile* input  = TFile::Open(inputFile.c_str());
 
@@ -154,7 +159,7 @@ void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
     rightMargin  = 0.03;
     bottomMargin = 0.15;
     topMargin    = 0.06;
-    TCanvas* c = new TCanvas(figureNames[k_HIRun2018PbPb_HIGEDPhoton_EB].c_str(), "", windowWidth, windowHeight);
+    TCanvas* c = new TCanvas(figureNames[figureIndex].c_str(), "", windowWidth, windowHeight);
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
     setCanvas(c);
     c->cd();
@@ -178,11 +183,20 @@ void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
         kN_OBJLABELS
     };
 
-    objPaths = {
-            "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
-            "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
-            "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig5",
-    };
+    if (figureIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths2) {
+        objPaths = {
+                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
+                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
+        };
+    }
+    else if (figureIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_nPaths3) {
+        objPaths = {
+                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
+                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
+                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig5",
+        };
+    }
+
     graphMarkerColors = {kBlack, kBlue, kRed};
     graphMarkerStyles = {kFullCircle, kFullCircle, kFullCircle};
     graphMarkerSizes = {1.8, 1.8, 1.8};
@@ -230,9 +244,9 @@ void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
     }
 
     legendX1 = 0.6;
-    legendY1 = 0.20;
+    legendY1 = 0.20 + (3-nObjPaths) * 0.16 / 3;
     legendWidth = 0.5;
-    legendHeight = 0.16;
+    legendHeight = (0.16 * nObjPaths / 3);
     legendMargin = 0.10;
     legendEntryTexts = {
             "HLT GED Photon 40",
@@ -256,7 +270,7 @@ void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
     leg->Draw();
 
     textX = 0.93;
-    textYs = {legendY1+0.2};
+    textYs = {legendY1+legendHeight+0.04};
     textAlign = 31;
     textFont = 43;
     textSize = 34;
@@ -310,7 +324,7 @@ void triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB(std::string inputFile)
     std::cout<<"Closing the input file"<<std::endl;
     input->Close();
 
-    std::cout<<"running triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB() - END"<<std::endl;
+    std::cout<<"running triggerPlotPublicGeneric() - END"<<std::endl;
 }
 
 void setTH1D(int iHist, TH1D* h)
