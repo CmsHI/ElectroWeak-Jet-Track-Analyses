@@ -31,3 +31,5 @@ done
 set -x
 mkdir -p triggerPlots/
 mv triggerPlot_*.pdf triggerPlots/
+mv triggerPlot_*.png triggerPlots/
+mv triggerPlot_*.C triggerPlots/
