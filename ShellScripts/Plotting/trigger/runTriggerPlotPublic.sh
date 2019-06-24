@@ -6,13 +6,13 @@ progCode="${progPath/.exe/.C}"
 
 substr="HIMinimumBias012_04Apr2019_v1_Cert_326381_327564_filterPhoPt15"
 inputList=(
-${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_matchHLTandL1obj.root"
-${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_matchHLTandL1obj.root"
+${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_matchHLTandL1obj_recoPt_xMax150.root"
+${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_matchHLTandL1obj_recoPt_xMax150.root"
 ${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_denomL1_matchHLTobj.root"
 ${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_EB_"${substr}"_denomL1_matchHLTobj.root"
 ##
-${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_matchHLTandL1obj.root"
-${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_matchHLTandL1obj.root"
+${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_matchHLTandL1obj_recoPt_xMax150.root"
+${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_matchHLTandL1obj_recoPt_xMax150.root"
 ${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_denomL1_matchHLTobj.root"
 ${EWJTAOUT}"/Performance/photons/HIRun2018PbPb/HLT/objTriggerAna_HIGEDPhoton_"${substr}"_denomL1_matchHLTobj.root"
 );

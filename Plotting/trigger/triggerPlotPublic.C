@@ -227,7 +227,7 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
                    figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3 ||
                    figIndex == k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2 ||
                    figIndex == k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3);
-    std::string objPathSubStr = (isEBEE) ? "etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin0" : "etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1";
+    std::string objPathSubStr = (isEBEE) ? "etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin0" : "etaBin0_recoPtBin0_centBin0_sumIsoBin1_sieieBin1";
 
     if (is_nPaths2) {
         objPaths = {
@@ -264,7 +264,7 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
     fillColors = markerColors;
     fillTransparencies = lineTransparencies;
     // dummy histogram to be used as template for the graph
-    TH1D* hTmp = new TH1D("hTmp", "", 100, 20, 109.99);
+    TH1D* hTmp = new TH1D("hTmp", "", 100, 20, 121);
     setTH1D(0, hTmp);
     hTmp->SetStats(false);
     hTmp->GetXaxis()->SetLabelSize(0.045);
