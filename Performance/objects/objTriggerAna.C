@@ -174,6 +174,7 @@ int doEventWeight;
 
 // RECO photon cuts
 std::vector<float> cuts_hovere_EB_EE;
+std::vector<float> cuts_sieie_EB_EE;
 bool excludeHI18HEMfailure;
 
 int nTriggerBranchesNum;
@@ -872,13 +873,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;
+                                 double tmp_cut_sieie = -1;
                                  if (insideEB(scEta)) {
                                      tmp_cut_hovere = cuts_hovere_EB_EE[0];
+                                     tmp_cut_sieie = cuts_sieie_EB_EE[0];
                                  }
                                  else if (insideEE(scEta)) {
                                      tmp_cut_hovere = cuts_hovere_EB_EE[1];
+                                     tmp_cut_sieie = cuts_sieie_EB_EE[1];
                                  }
                                  if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
+                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < tmp_cut_sieie))   continue;
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
@@ -1279,13 +1284,17 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;
+                                 double tmp_cut_sieie = -1;
                                  if (insideEB(scEta)) {
                                      tmp_cut_hovere = cuts_hovere_EB_EE[0];
+                                     tmp_cut_sieie = cuts_sieie_EB_EE[0];
                                  }
                                  else if (insideEE(scEta)) {
                                      tmp_cut_hovere = cuts_hovere_EB_EE[1];
+                                     tmp_cut_sieie = cuts_sieie_EB_EE[1];
                                  }
                                  if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
+                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] < tmp_cut_sieie))   continue;
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
@@ -1597,6 +1606,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     // RECO photon cuts
     cuts_hovere_EB_EE = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("hovere_EB_EE"));
+    cuts_sieie_EB_EE = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("sieie_EB_EE"));
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     // set default values
@@ -1634,6 +1644,19 @@ int readConfiguration(std::string configFile, std::string inputFile)
     else if (cuts_hovere_EB_EE.size() > 2) {
         std::cout << "Number of given hovere cuts = " << cuts_hovere_EB_EE.size() << std::endl;
         std::cout << "There can be at most 2 hovere cuts, one for EB, one for EE." << std::endl;
+        std::cout << "exiting" << std::endl;
+        return -1;
+    }
+
+    if (cuts_sieie_EB_EE.size() == 0) {
+        cuts_sieie_EB_EE = {999, 999};
+    }
+    else if (cuts_sieie_EB_EE.size() == 1) {
+        cuts_sieie_EB_EE.push_back(999);
+    }
+    else if (cuts_sieie_EB_EE.size() > 2) {
+        std::cout << "Number of given sieie cuts = " << cuts_sieie_EB_EE.size() << std::endl;
+        std::cout << "There can be at most 2 sieie cuts, one for EB, one for EE." << std::endl;
         std::cout << "exiting" << std::endl;
         return -1;
     }
@@ -1765,6 +1788,8 @@ void printConfiguration()
 
     std::cout << "hovere cut for EB = " << cuts_hovere_EB_EE[0] << std::endl;
     std::cout << "hovere cut for EE = " << cuts_hovere_EB_EE[1] << std::endl;
+    std::cout << "sieie cut for EB = " << cuts_sieie_EB_EE[0] << std::endl;
+    std::cout << "sieie cut for EE = " << cuts_sieie_EB_EE[1] << std::endl;
     std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
