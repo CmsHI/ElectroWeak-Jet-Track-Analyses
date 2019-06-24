@@ -23,17 +23,25 @@
 #include <iostream>
 
 enum FIGURE{
-    k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2,
-    k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3,
-    k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2,
-    k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3,
+    k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2,
+    k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths3,
+    k_HIRun2018PbPb_Photon_EB_HLT_nPaths2,
+    k_HIRun2018PbPb_Photon_EB_HLT_nPaths3,
+    k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2,
+    k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3,
+    k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2,
+    k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3,
     kN_FIGURES
 };
 
-std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2",
-                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3",
-                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2",
-                                       "triggerPlot_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3"};
+std::string figureNames[kN_FIGURES] = {"triggerPlot_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EB_HLTL1_nPaths3",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EB_HLT_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EB_HLT_nPaths3",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2",
+                                       "triggerPlot_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3"};
 
 // Canvas
 int windowWidth;
@@ -132,17 +140,29 @@ void triggerPlotPublic(int figureIndex, std::string inputFile)
     std::cout<<"inputFile = "<< inputFile.c_str() <<std::endl;
 
     switch (figureIndex) {
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2);
+        case k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2);
             break;
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3);
+        case k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths3);
             break;
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2);
+        case k_HIRun2018PbPb_Photon_EB_HLT_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EB_HLT_nPaths2);
             break;
-        case k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3:
-            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths3);
+        case k_HIRun2018PbPb_Photon_EB_HLT_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EB_HLT_nPaths3);
+            break;
+        case k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2);
+            break;
+        case k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3);
+            break;
+        case k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2);
+            break;
+        case k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3:
+            triggerPlotPublicGeneric(inputFile, k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3);
             break;
         default:
             break;
@@ -174,8 +194,10 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
     setCanvas(c);
     c->cd();
 
-    bool isHLTL1 = (figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2 ||
-                    figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths3);
+    bool isHLTL1 = (figIndex == k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2 ||
+                    figIndex == k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths3 ||
+                    figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2 ||
+                    figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3);
 
     xTitle = "p^{#gamma}_{T} (GeV/c)";
     yTitle = (isHLTL1) ? "L1+HLT efficiency" : "HLT efficiency";
@@ -196,19 +218,28 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
         kN_OBJLABELS
     };
 
-    bool is_nPaths2 = (figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLTL1_nPaths2 ||
-                    figIndex == k_HIRun2018PbPb_HIGEDPhoton_EB_HLT_nPaths2);
+    bool is_nPaths2 = (figIndex == k_HIRun2018PbPb_Photon_EB_HLTL1_nPaths2 ||
+                       figIndex == k_HIRun2018PbPb_Photon_EB_HLT_nPaths2 ||
+                       figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2 ||
+                       figIndex == k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2);
+
+    bool isEBEE = (figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths2 ||
+                   figIndex == k_HIRun2018PbPb_Photon_EBEE_HLTL1_nPaths3 ||
+                   figIndex == k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths2 ||
+                   figIndex == k_HIRun2018PbPb_Photon_EBEE_HLT_nPaths3);
+    std::string objPathSubStr = (isEBEE) ? "etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin0" : "etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1";
+
     if (is_nPaths2) {
         objPaths = {
-                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
-                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
+                Form("gEff_depRecoPt_%s_trig3", objPathSubStr.c_str()),
+                Form("gEff_depRecoPt_%s_trig4", objPathSubStr.c_str()),
         };
     }
     else {
         objPaths = {
-                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig3",
-                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig4",
-                "gEff_depRecoPt_etaBin1_recoPtBin0_centBin0_sumIsoBin1_sieieBin1_trig5",
+                Form("gEff_depRecoPt_%s_trig3", objPathSubStr.c_str()),
+                Form("gEff_depRecoPt_%s_trig4", objPathSubStr.c_str()),
+                Form("gEff_depRecoPt_%s_trig5", objPathSubStr.c_str()),
         };
     }
 
@@ -289,9 +320,16 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
     textAlign = 31;
     textFont = 43;
     textSize = 34;
-    textLines = {
-            "|#eta^{#gamma}| < 1.44"
-    };
+    if (isEBEE) {
+        textLines = {
+                "|#eta^{#gamma}| < 2.1"
+        };
+    }
+    else {
+        textLines = {
+                "|#eta^{#gamma}| < 1.44"
+        };
+    }
     int nTextLines = textLines.size();
     TLatex* latex = 0;
     for (int i = 0; i < nTextLines; ++i) {
