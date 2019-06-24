@@ -173,7 +173,7 @@ std::vector<float>   bins_r9[2];
 int doEventWeight;
 
 // RECO photon cuts
-std::vector<float> cuts_hovere;
+std::vector<float> cuts_hovere_EB_EE;
 bool excludeHI18HEMfailure;
 
 int nTriggerBranchesNum;
@@ -873,10 +873,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;
                                  if (insideEB(scEta)) {
-                                     tmp_cut_hovere = cuts_hovere[0];
+                                     tmp_cut_hovere = cuts_hovere_EB_EE[0];
                                  }
                                  else if (insideEE(scEta)) {
-                                     tmp_cut_hovere = cuts_hovere[1];
+                                     tmp_cut_hovere = cuts_hovere_EB_EE[1];
                                  }
                                  if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
 
@@ -1280,10 +1280,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;
                                  if (insideEB(scEta)) {
-                                     tmp_cut_hovere = cuts_hovere[0];
+                                     tmp_cut_hovere = cuts_hovere_EB_EE[0];
                                  }
                                  else if (insideEE(scEta)) {
-                                     tmp_cut_hovere = cuts_hovere[1];
+                                     tmp_cut_hovere = cuts_hovere_EB_EE[1];
                                  }
                                  if (!((*ggHi.phoHoverE)[i] < tmp_cut_hovere))   continue;
 
@@ -1596,7 +1596,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     doEventWeight = confParser.ReadConfigValueInteger("doEventWeight");
 
     // RECO photon cuts
-    cuts_hovere = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("hovere"));
+    cuts_hovere_EB_EE = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("hovere_EB_EE"));
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
     // set default values
@@ -1625,14 +1625,14 @@ int readConfiguration(std::string configFile, std::string inputFile)
         bins_r9[1].push_back(-1);
     }
 
-    if (cuts_hovere.size() == 0) {
-        cuts_hovere = {999, 999};
+    if (cuts_hovere_EB_EE.size() == 0) {
+        cuts_hovere_EB_EE = {999, 999};
     }
-    else if (cuts_hovere.size() == 1) {
-        cuts_hovere.push_back(999);
+    else if (cuts_hovere_EB_EE.size() == 1) {
+        cuts_hovere_EB_EE.push_back(999);
     }
-    else if (cuts_hovere.size() > 2) {
-        std::cout << "Number of given hovere cuts = " << cuts_hovere.size() << std::endl;
+    else if (cuts_hovere_EB_EE.size() > 2) {
+        std::cout << "Number of given hovere cuts = " << cuts_hovere_EB_EE.size() << std::endl;
         std::cout << "There can be at most 2 hovere cuts, one for EB, one for EE." << std::endl;
         std::cout << "exiting" << std::endl;
         return -1;
@@ -1763,8 +1763,8 @@ void printConfiguration()
 
     std::cout << "doEventWeight = " << doEventWeight << std::endl;
 
-    std::cout << "cut_hovere for EB = " << cuts_hovere[0] << std::endl;
-    std::cout << "cut_hovere for EE = " << cuts_hovere[1] << std::endl;
+    std::cout << "hovere cut for EB = " << cuts_hovere_EB_EE[0] << std::endl;
+    std::cout << "hovere cut for EE = " << cuts_hovere_EB_EE[1] << std::endl;
     std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "nTH1D_Axis_List = " << nTH1D_Axis_List << std::endl;
