@@ -600,10 +600,10 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
-    double maxDR2_HLT = 0.01;
+    double maxDR2_HLT = 0.09;
 
-    double maxDR2_pho_L1 = 0.04;
-    double maxDR2_ele_L1 = 0.09;
+    double maxDR2_pho_L1 = 0.16;
+    double maxDR2_ele_L1 = 0.16;
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
