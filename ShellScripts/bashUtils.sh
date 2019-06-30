@@ -25,6 +25,8 @@ do
   local line=${lines[i1]}
 
   local importedConf=${line}
+  local importedConf="${importedConf//import.config =/}"  # remove "import.config =" if any
+  local importedConf="${importedConf//import.config=/}"  # remove "import.config=" if any
   local importedConf="${importedConf//import.cut =/}"  # remove "import.cut =" if any
   local importedConf="${importedConf//import.cut=/}"  # remove "import.cut=" if any
   local importedConf="${importedConf//import.input =/}"  # remove "import.input =" if any
