@@ -52,6 +52,10 @@ public:
         return map_.size();
     }
 
+    void clear() {
+        map_.clear();
+    }
+
 private:
 
     struct Key {
