@@ -135,7 +135,6 @@ void readWriteTTree(std::string inputFile, std::string outputFile, std::string a
     std::vector<TTree*> outTrees(nTrees, 0);
 
     Long64_t entries = 0;
-    Long64_t entriesWritten = 0;
 
     std::cout<< "Loop STARTED" << std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -163,6 +162,10 @@ void readWriteTTree(std::string inputFile, std::string outputFile, std::string a
             }
         }
 
+        Long64_t entriesTmp = trees[0]->GetEntries();
+        entries += entriesTmp;
+        std::cout << "entries in File = " << entriesTmp << std::endl;
+
         output->cd();
 
         long MAXTREESIZE = 50000000000;
@@ -177,31 +180,14 @@ void readWriteTTree(std::string inputFile, std::string outputFile, std::string a
             }
         }
 
-        Long64_t entriesTmp = trees[0]->GetEntries();
-        entries += entriesTmp;
-        std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
-        {
-            if (j_entry % 2000 == 0)  {
-              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
-            }
-
-            for (int i = 0; i < nTrees; ++i) {
-                trees[i]->GetEntry(j_entry);
-            }
-
-            for (int i = 0; i < nTrees; ++i) {
-                outTrees[i]->Fill();
-            }
-
-            entriesWritten++;
+        for (int i = 0; i < nTrees; ++i) {
+            outTrees[i]->CopyEntries(trees[i]);
         }
 
         fileTmp->Close();
     }
     std::cout<<  "Loop ENDED" <<std::endl;
     std::cout << "entries            = " << entries << std::endl;
-    std::cout << "entriesWritten     = " << entriesWritten << std::endl;
     for (int i = 0; i < nTrees; ++i) {
         std::cout << Form("outTrees[%d]->GetEntries() ", i) << outTrees[i]->GetEntries() << std::endl;
     }
