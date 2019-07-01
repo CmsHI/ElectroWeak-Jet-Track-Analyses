@@ -206,6 +206,8 @@ void readWriteTTree(std::string inputFile, std::string outputFile, std::string a
         std::cout << Form("outTrees[%d]->GetEntries() ", i) << outTrees[i]->GetEntries() << std::endl;
     }
 
+    std::cout<<"Writing the output file."<<std::endl;
+    output->Write("",TObject::kOverwrite);
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
     std::cout<<"running readWriteTTree() - END"<<std::endl;
