@@ -38,7 +38,8 @@ int lhadd(std::string input, std::string output) {
         std::cout <<"file : " << filePath.c_str() << std::endl;
         if (!merger.AddFile(file_list[i].c_str())) {
             std::cout << "failed adding file : " << filePath.c_str() << std::endl;
-            return 1;
+            std::cout << "skipping file" << std::endl;
+            continue;
         }
     }
     std::cout<< "adding files - END" <<std::endl;
