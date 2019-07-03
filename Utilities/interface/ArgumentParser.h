@@ -31,6 +31,7 @@ public :
     static std::vector<std::string> ParseOptionInput(std::string optionType, std::string option);
     static std::vector<std::string> ParseOptionInput(std::string optionType, std::vector<std::string> options);
     static std::string ParseOptionInputSingle(std::string optionType, std::vector<std::string> options);
+    static bool optionExists(std::string optionType, std::vector<std::string> options);
 };
 
 /*
@@ -117,6 +118,11 @@ std::string ArgumentParser::ParseOptionInputSingle(std::string optionType, std::
     std::vector<std::string> inputAsList =  ArgumentParser::ParseOptionInput(optionType, options);
     if (inputAsList.size()) return inputAsList.at(0);
     else                    return "";
+}
+
+bool ArgumentParser::optionExists(std::string optionType, std::vector<std::string> options)
+{
+    return (ArgumentParser::ParseOptionInputSingle(optionType, options).size() > 0);
 }
 
 #endif
