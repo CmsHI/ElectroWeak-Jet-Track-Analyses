@@ -33,6 +33,7 @@ double roundToPrecision(double x, int precision);
 double roundToSignificantFigures(double x, int nFigures);
 double roundToSignificantFigures(double x, int nFigures, bool ignoreBeforeDecimalPoint);
 int  countOccurances(std::string str, std::string substr);
+bool containsElement(std::vector<std::string> vec, std::string str);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
@@ -359,6 +360,14 @@ int countOccurances(std::string str, std::string substr)
         pos += substr.length();
     }
     return n;
+}
+
+/*
+ * return if "str" is in vector vSearch
+ */
+bool containsElement(std::vector<std::string> vec, std::string str)
+{
+    return (std::find(vec.begin(), vec.end(), str.c_str()) != vec.end());
 }
 
 /*
