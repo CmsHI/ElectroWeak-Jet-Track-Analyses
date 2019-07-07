@@ -3,7 +3,7 @@
 #g++ -Wall -Werror -Wextra -O2 -Wno-narrowing `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -MMD -MF ./build/Performance/drawSpectra.d Performance/drawSpectra.C -o Performance/drawSpectra.exe
 
 runCmd="./ShellScripts/myRun.sh"
-progPath="./Performance/drawSpectra.exe"
+progPath="./Performance/drawTree.exe"
 inputFiles=(
 "Configurations/filelists/Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.list"
 "Configurations/filelists/Pythia8_AllQCDPhoton80Flt30_Hydjet_Cymbal_MB_HINPbPbWinter16DR_FOREST.list"
