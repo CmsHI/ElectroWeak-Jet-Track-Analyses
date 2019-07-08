@@ -2044,7 +2044,9 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     }
     phoHadTowerOverEm = (*tggHiNtuplizer.phoHadTowerOverEm)[i];
     phoHoverE = (*tggHiNtuplizer.phoHoverE)[i];
-    phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
+    if (tggHiNtuplizer.b_phoHoverEValid != 0) {
+        phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
+    }
     phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];
     phoR9 = (*tggHiNtuplizer.phoR9)[i];
     phoE1x5 = (*tggHiNtuplizer.phoE1x5)[i];
