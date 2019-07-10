@@ -63,6 +63,7 @@ std::vector<CONFIGPARSER::TH1Axis> formula_TH1D_Bins;
 std::vector<std::string> sigSels;
 std::vector<std::string> bkgSels;
 
+std::vector<std::string> references;
 std::vector<std::string> targets;
 
 std::string preselection;
@@ -83,6 +84,7 @@ int nFormula_TH1D_Bins;
 int nSigSels;
 int nBkgSels;
 
+int nReferences;
 int nTargets;
 
 int nSigEffs;
@@ -371,12 +373,27 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
     }
 
     // plot variable minimum/maximum cut as function of signal efficiency
+    std::vector<TH1D*> h_ref(nReferences, 0);
+    std::vector<TH1D*> h_diff_ref_true(nReferences, 0);
+    std::vector<TH1D*> h_ratio_ref_true(nReferences, 0);
+
     std::vector<TH1D*> h_target_true(nTargets, 0);
     std::vector<TH1D*> h_target_regr(nTargets, 0);
     std::vector<TH1D*> h_diff_target_regr_true(nTargets, 0);
     std::vector<TH1D*> h_ratio_target_regr_true(nTargets, 0);
     if (runMode[MODES::kRegression]) {
         int nBinsTmp = 100;
+        for (int i = 0; i < nReferences; ++i) {
+            h_ref[i] = new TH1D(Form("h_ref_%d", i),
+                                        Form(";%s;", references[i].c_str()), nBinsTmp, 0, 200);
+
+            h_diff_ref_true[i] = new TH1D(Form("h_diff_ref_true_%d", i),
+                                        Form(";%s ref - true ;", references[i].c_str()), nBinsTmp, -20, 20);
+
+            h_ratio_ref_true[i] = new TH1D(Form("h_ratio_ref_true_%d", i),
+                                        Form(";%s ref / true;", references[i].c_str()), nBinsTmp, 0, 2);
+        }
+
         for (int i = 0; i < nTargets; ++i) {
             h_target_true[i] = new TH1D(Form("h_target_true_%d", i),
                                         Form(";%s truth;", targets[i].c_str()), nBinsTmp, 0, 200);
@@ -428,6 +445,7 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
         setBranchesStatus(tree, variablesT);
         setBranchesStatus(tree, spectatorsT);
         setBranchesStatus(tree, weights);
+        setBranchesStatus(tree, references);
         setBranchesStatus(tree, targets);
 
         Long64_t entriesTmp = tree->GetEntries();
@@ -439,6 +457,11 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
             float varsT[nVariablesT];
             for (int i = 0; i < nVariablesT; ++i) {
                 tree->SetBranchAddress(variablesT[i].c_str(), &(varsT[i]));
+            }
+
+            float referencesT[nReferences];
+            for (int i = 0; i < nReferences; ++i) {
+                tree->SetBranchAddress(references[i].c_str(), &(referencesT[i]));
             }
 
             float targetsT[nTargets];
@@ -496,6 +519,15 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
                 }
 
                 if (runMode[MODES::kRegression]) {
+                    for (int i = 0; i < nReferences; ++i) {
+                        float target_true = targetsT[i];
+                        float refTmp = referencesT[i];
+
+                        h_ref[i]->Fill(refTmp, w);
+                        h_diff_ref_true[i]->Fill(refTmp - target_true, w);
+                        h_ratio_ref_true[i]->Fill(refTmp / target_true, w);
+                    }
+
                     std::vector<float> targets_regr = reader->EvaluateRegression(methodName.c_str());
                     for (int i = 0; i < nTargets; ++i) {
                         float target_true = targetsT[i];
@@ -587,6 +619,19 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
         }
     }
 
+    for (int i = 0; i < nReferences; ++i) {
+
+        if (h_ref[i] != 0) {
+            h_ref[i]->Write("",TObject::kOverwrite);
+        }
+        if (h_diff_ref_true[i] != 0) {
+            h_diff_ref_true[i]->Write("",TObject::kOverwrite);
+        }
+        if (h_ratio_ref_true[i] != 0) {
+            h_ratio_ref_true[i]->Write("",TObject::kOverwrite);
+        }
+    }
+
     for (int i = 0; i < nTargets; ++i) {
 
         if (h_target_true[i] != 0) {
@@ -656,6 +701,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     sigSels = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("sigSelections"));
     bkgSels = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("bkgSelections"));
 
+    references = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("referenceVariables"));
     targets = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("targetVariables"));
 
     preselection = confParser.ReadConfigValue("preselection");
@@ -694,6 +740,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nSigSels = sigSels.size();
     nBkgSels = bkgSels.size();
 
+    nReferences = references.size();
     nTargets = targets.size();
 
     nSigEffs = sigEffs.size();
@@ -772,6 +819,11 @@ void printConfiguration()
     std::cout << "nBkgSels = " << nBkgSels << std::endl;
     for (int i = 0; i < nBkgSels; ++i) {
         std::cout << Form("bkgSels[%d] = %s", i, bkgSels.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nReferences = " << nReferences << std::endl;
+    for (int i = 0; i < nReferences; ++i) {
+        std::cout << Form("references[%d] = %s", i, references.at(i).c_str()) << std::endl;
     }
 
     std::cout << "nTargets = " << nTargets << std::endl;
