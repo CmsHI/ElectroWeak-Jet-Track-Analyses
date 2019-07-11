@@ -472,7 +472,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                         double maxPt = 0;
                         std::vector<int> candidates;
                         for (int i = 0; i < ggHi.nPho; ++i) {
-                            if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                            if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                             if (isHI15 && !isMC) {
                                 if (ggHi.is2015EcalNoise(i))  continue;
@@ -586,7 +586,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 iMax = -1;
                                 maxPt = 0;
                                 for (int i = 0; i < ggHi.nPho; ++i) {
-                                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                                    if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                                     if (isHI && !isMC) {
                                         if (ggHi.is2015EcalNoise(i))  continue;
@@ -669,7 +669,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 iMax = -1;
                                 maxPt = 0;
                                 for (int i = 0; i < ggHi.nPho; ++i) {
-                                    if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                                    if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                                     if (isHI && !isMC) {
                                         if (ggHi.is2015EcalNoise(i))  continue;
@@ -751,7 +751,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                  iMax = -1;
                                  maxPt = 0;
                                  for (int i = 0; i < ggHi.nPho; ++i) {
-                                     if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                                     if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                                      if (isHI && !isMC) {
                                          if (ggHi.is2015EcalNoise(i))  continue;

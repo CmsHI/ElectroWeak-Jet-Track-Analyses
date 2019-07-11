@@ -869,7 +869,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              double scEta = -999;
 
                              if (recoObj == RECOOBJS::kPhoton) {
-                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                                 if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;
@@ -1280,7 +1280,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              double scEta = -999;
 
                              if (recoObj == RECOOBJS::kPhoton) {
-                                 if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                                 if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                                  scEta = (*ggHi.phoSCEta)[i];
                                  double tmp_cut_hovere = -1;

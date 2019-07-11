@@ -300,6 +300,7 @@ public :
   ~ggHiNtuplizer(){};
   void setupTreeForReading(TTree *t);
   bool is2015EcalNoise(int iPho);
+  bool passedPhoSpikeRejection(int i);
   bool passedHI18HEMfailurePho(int i);
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
@@ -1518,6 +1519,11 @@ bool ggHiNtuplizer::is2015EcalNoise(int iPho)
            ((*phoE2x5)[iPho]/(*phoE5x5)[iPho] > 2./3.-0.03 &&
             (*phoE2x5)[iPho]/(*phoE5x5)[iPho] < 2./3.+0.03);
     return failedNoiseCut;
+}
+
+bool ggHiNtuplizer::passedPhoSpikeRejection(int i)
+{
+    return ( (*phoSigmaIEtaIEta_2012)[i] > 0.002 && (*pho_swissCrx)[i] < 0.9 && std::fabs((*pho_seedTime)[i]) < 3 );
 }
 
 bool ggHiNtuplizer::passedHI18HEMfailurePho(int i)

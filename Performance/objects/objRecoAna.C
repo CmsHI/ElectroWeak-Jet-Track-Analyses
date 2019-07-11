@@ -553,7 +553,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         // selections on RECO particle
-                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                        if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                         if (cut_hovere != 0) {
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
@@ -610,7 +610,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int i=0; i<ggHi.nPho; ++i) {
 
                         // selections on RECO particle
-                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                        if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                         if (cut_hovere != 0) {
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
@@ -709,7 +709,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double recoPt = -1;
                         for (int j = 0; j < ggHi.nPho; ++j) {
 
-                            if (!((*ggHi.phoSigmaIEtaIEta_2012)[j] > 0.002 && (*ggHi.pho_swissCrx)[j] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[j]) < 3)) continue;
+                            if (!ggHi.passedPhoSpikeRejection(j)) continue;
 
                             if (cut_hovere != 0) {
                                 if (!((*ggHi.phoHoverE)[j] < cut_hovere))   continue;
@@ -760,7 +760,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int i=0; i<ggHi.nPho; ++i) {
 
                         // selections on RECO particle
-                        if (!((*ggHi.phoSigmaIEtaIEta_2012)[i] > 0.002 && (*ggHi.pho_swissCrx)[i] < 0.9 && TMath::Abs((*ggHi.pho_seedTime)[i]) < 3)) continue;
+                        if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
                         if (cut_hovere != 0) {
                             if (!((*ggHi.phoHoverE)[i] < cut_hovere))   continue;
