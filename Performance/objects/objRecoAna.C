@@ -389,6 +389,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
             tmvaReaders[iXML]->BookMVA(tmvaMethodNames[iXML].c_str(), tmvaXMLFiles[iXML].c_str());
         }
     }
+    std::vector<float> ptFinal;  // corrected pT
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
@@ -530,6 +531,39 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (recoObj == RECOOBJS::kPhoton) {
+
+                // correct pT if corrections exist
+                ptFinal.clear();
+                for (int i = 0; i < ggHi.nPho; ++i) {
+
+                    double pt = (*ggHi.phoEt)[i];
+                    if (doTMVA) {
+
+                        double scEta = (*ggHi.phoSCEta)[i];
+                        int offset = 0;
+                        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+                            bool insideEtaRange = (
+                                    (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
+                                    (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
+                            bool insidePtRange = (
+                                    (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
+                                    (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
+
+                            if (insideEtaRange && insidePtRange) {
+                                copy2TmvaVars(ggHi, i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
+                                std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
+                                double energy = targets_regr[0];
+                                pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
+                                break;
+                            }
+
+                            offset += nReaderVarsInFile[iXML];
+                        }
+                    }
+
+                    ptFinal.push_back(pt);
+                }
+
                 // energy scale
                 if (runMode[MODES::kEnergyScale]) {
                     for (int i=0; i<ggHi.nPho; ++i) {
@@ -591,38 +625,13 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
                         double eta = (*ggHi.phoEta)[i];
-                        double pt  = (*ggHi.phoEt)[i];
+                        double pt  = ptFinal[i];
                         double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
                                 (*ggHi.pho_hcalRechitIsoR4)[i]  +
                                 (*ggHi.pho_trackIsoR4PtCut20)[i]);
                         double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                         double r9 = (*ggHi.phoR9)[i];
                         double energyScale = -1;
-
-                        if (doTMVA) {
-
-                            int offset = 0;
-                            for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
-
-                                double scEta = (*ggHi.phoSCEta)[i];
-                                bool insideEtaRange = (
-                                        (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
-                                        (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
-                                bool insidePtRange = (
-                                        (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
-                                        (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
-
-                                if (insideEtaRange && insidePtRange) {
-                                    copy2TmvaVars(ggHi, i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
-                                    std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
-                                    double energy = targets_regr[0];
-                                    pt = energy / TMath::CosH(eta);
-                                    break;
-                                }
-
-                                offset += nReaderVarsInFile[iXML];
-                            }
-                        }
 
                         if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
                                 runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0 ||
@@ -663,7 +672,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
-                        double pt  = (*ggHi.phoEt)[i];
+                        double pt  = ptFinal[i];
                         double eta = (*ggHi.phoEta)[i];
                         double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
                                 (*ggHi.pho_hcalRechitIsoR4)[i]  +
@@ -762,9 +771,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
-                            if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && (*ggHi.phoEt)[j] > recoPt ) {
+                            if (getDR2((*ggHi.phoEta)[j], (*ggHi.phoPhi)[j], genEta, genPhi) < deltaR2 && ptFinal[j] > recoPt ) {
                                 iReco = j;
-                                recoPt = (*ggHi.phoEt)[j];
+                                recoPt = ptFinal[j];
                             }
                         }
                         bool matched2RECO = (iReco > -1);
@@ -780,7 +789,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             //rAna[RECOANA::kSIEIE][iAna].FillHDenom(sieie, w, varsDenom);
 
                             if (matched2RECO) {
-                                double pt  = (*ggHi.phoEt)[iReco];
+                                double pt  = ptFinal[iReco];
                                 double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[iReco] +
                                         (*ggHi.pho_hcalRechitIsoR4)[iReco]  +
                                         (*ggHi.pho_trackIsoR4PtCut20)[iReco]);
@@ -813,7 +822,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailurePho(i))  continue;
 
-                        double pt  = (*ggHi.phoEt)[i];
+                        double pt  = ptFinal[i];
                         double eta = (*ggHi.phoEta)[i];
                         double phi = (*ggHi.phoPhi)[i];
                         double sumIso = ((*ggHi.pho_ecalClusterIsoR4)[i] +
