@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "../Utilities/eventUtil.h"
+
 class ggHiNtuplizer {
 public :
   ggHiNtuplizer() {
@@ -301,6 +303,7 @@ public :
   bool passedHI18HEMfailurePho(int i);
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
+  bool passedEleSelection(int i, int collType, int hiBin);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1530,6 +1533,120 @@ bool ggHiNtuplizer::passedHI18HEMfailureEle(int i)
 bool ggHiNtuplizer::passedHI18HEMfailureGen(int i)
 {
     return !((*mcEta)[i] < -1.39 && (*mcPhi)[i] < -0.9 && (*mcPhi)[i] > -1.6);
+}
+
+bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin)
+{
+    // preliminary electron ID (May 2019) : loose WP
+    if (collisionIsHI2018((COLL::TYPE)collType)) {
+        if (hiBin >= 0 && hiBin < 60) {
+            // selection on RECO electron based on ECAL regions
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0161)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0053)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0288)) return false;
+                if (!((*eleHoverE)[i] < 0.1984)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.1129)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0479)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0145)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0516)) return false;
+                if (!((*eleHoverE)[i] < 0.1910)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0115)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+        }
+        else if (hiBin >= 60 && hiBin < 200) {
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0117)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0071)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0221)) return false;
+                if (!((*eleHoverE)[i] < 0.1892)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0405)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0447)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0108)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0301)) return false;
+                if (!((*eleHoverE)[i] < 0.1627)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0281)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+        }
+        else {
+            return false;
+        }
+    }
+    else if (collisionIsHI((COLL::TYPE)collType)) {     // pbpb 2015
+
+        // selection on RECO electron based on ECAL regions
+        if (std::fabs((*eleSCEta)[i]) < 1.4442)
+        {
+            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.01107)) return false;
+            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01576)) return false;
+            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.15724)) return false;
+            if (!((*eleHoverE)[i] < 0.08849)) return false;
+            if (!(std::fabs((*eleEoverPInv)[i]) < 0.28051)) return false;
+            if (!(std::fabs((*eleD0)[i]) < 0.05216)) return false;
+            if (!(std::fabs((*eleDz)[i]) < 0.12997)) return false;
+            if (!((*eleMissHits)[i] <= 1)) return false;
+        }
+        else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+        {
+            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.03488)) return false;
+            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01707)) return false;
+            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.35537)) return false;
+            if (!((*eleHoverE)[i] < 0.12275)) return false;
+            if (!(std::fabs((*eleEoverPInv)[i]) < 0.18672)) return false;
+            if (!(std::fabs((*eleD0)[i]) < 0.19092)) return false;
+            if (!(std::fabs((*eleDz)[i]) < 0.26407)) return false;
+            if (!((*eleMissHits)[i] <= 1)) return false;
+        }
+        else  {
+            return false;
+        }
+    }
+    else if (collisionIsPP((COLL::TYPE)collType)) {
+        if (std::fabs((*eleSCEta)[i]) < 1.4442)
+        {
+            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0101)) return false;
+            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0103)) return false;
+            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0336)) return false;
+            if (!((*eleHoverE)[i] < 0.0876)) return false;
+            if (!(std::fabs((*eleEoverPInv)[i]) < 0.0174)) return false;
+            if (!(std::fabs((*eleD0)[i]) < 0.0118)) return false;
+            if (!(std::fabs((*eleDz)[i]) < 0.373)) return false;
+            if (!((*eleMissHits)[i] <= 2)) return false;
+        }
+        else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+        {
+            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0283)) return false;
+            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.00733)) return false;
+            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.114)) return false;
+            if (!((*eleHoverE)[i] < 0.0678)) return false;
+            if (!(std::fabs((*eleEoverPInv)[i]) < 0.0898)) return false;
+            if (!(std::fabs((*eleD0)[i]) < 0.0739)) return false;
+            if (!(std::fabs((*eleDz)[i]) < 0.602)) return false;
+            if (!((*eleMissHits)[i] <= 1)) return false;
+        }
+    }
+
+    return true;
 }
 
 #endif /* TREEHEADERS_GGHINTUPLIZERTREE_H_ */

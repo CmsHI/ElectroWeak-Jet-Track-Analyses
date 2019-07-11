@@ -270,7 +270,6 @@ void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool isNeutralMeson(int pdg);
-bool passedEleSelection(ggHiNtuplizer& ggHi, int i);
 void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars);
 double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName);
 int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
@@ -856,7 +855,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 if (runMode[MODES::kEnergyScale]) {
                     for (int i=0; i<ggHi.nEle; ++i) {
 
-                        if (!passedEleSelection(ggHi, i))  continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
@@ -904,7 +903,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 if (runMode[MODES::kCorrection]) {
                     for (int i=0; i<ggHi.nEle; ++i) {
 
-                        if (!passedEleSelection(ggHi, i))  continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
@@ -961,7 +960,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double recoPt = -1;
                         for (int j = 0; j < ggHi.nEle; ++j) {
 
-                            if (!passedEleSelection(ggHi, j))  continue;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin))  continue;
 
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
@@ -1005,7 +1004,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int i=0; i<ggHi.nEle; ++i) {
 
                         // selections on RECO particle
-                        if (!passedEleSelection(ggHi, i))   continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
@@ -2577,38 +2576,6 @@ bool isNeutralMeson(int pdg)
         if (pdg == RECOANA::neutralMesons[i].PDG[0]) return true;
     }
     return false;
-}
-
-bool passedEleSelection(ggHiNtuplizer& ggHi, int i)
-{
-    // selection on RECO electron based on ECAL regions
-    if (TMath::Abs((*ggHi.eleSCEta)[i]) < 1.4442)
-    {
-        if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.01107)) return false;
-        if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.01576)) return false;
-        if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.15724)) return false;
-        if (!((*ggHi.eleHoverE)[i] < 0.08849)) return false;
-        if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.28051)) return false;
-        if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.05216)) return false;
-        if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.12997)) return false;
-        if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
-    }
-    else if (TMath::Abs((*ggHi.eleSCEta)[i]) > 1.566 && TMath::Abs((*ggHi.eleSCEta)[i]) < 2.5)
-    {
-        if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < 0.03488)) return false;
-        if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < 0.01707)) return false;
-        if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < 0.35537)) return false;
-        if (!((*ggHi.eleHoverE)[i] < 0.12275)) return false;
-        if (!(TMath::Abs((*ggHi.eleEoverPInv)[i]) < 0.18672)) return false;
-        if (!(TMath::Abs((*ggHi.eleD0)[i]) < 0.19092)) return false;
-        if (!(TMath::Abs((*ggHi.eleDz)[i]) < 0.26407)) return false;
-        if (!((*ggHi.eleMissHits)[i] <= 1)) return false;
-    }
-    else  {
-        return false;
-    }
-
-    return true;
 }
 
 void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars)
