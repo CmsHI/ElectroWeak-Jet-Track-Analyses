@@ -26,6 +26,12 @@
 #include <TMath.h>
 #include <TLorentzVector.h>
 
+#include "TMVA/IMethod.h"
+#include "TMVA/MethodBase.h"
+#include "TMVA/MethodCuts.h"
+#include "TMVA/Tools.h"
+#include "TMVA/Reader.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -63,6 +69,12 @@ std::string mode;
 // input for TTree
 std::string treePath;
 int collisionType;
+
+// input for TMVA regression
+std::string tmvaFileXML;
+std::string tmvaMethodName;
+std::vector<std::string> tmvaReaderVars;
+std::vector<std::string> tmvaReaderSpectators;
 
 // input for TH1
 // nBins, xLow, xUp for the TH1D histogram
@@ -109,6 +121,9 @@ std::vector<int> textFonts;
 std::vector<float> textSizes;
 std::vector<float> textOffsetsX;
 std::vector<float> textOffsetsY;
+
+int nTmvaReaderVars;
+int nTmvaReaderSpectators;
 
 // input for TCanvas
 int windowWidth;
@@ -255,8 +270,10 @@ void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool isNeutralMeson(int pdg);
-bool passedEleSelection(ggHiNtuplizer ggHi, int i);
-int findGenMatchedIndex(ggHiNtuplizer ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
+bool passedEleSelection(ggHiNtuplizer& ggHi, int i);
+void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars);
+double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName);
+int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
 void objRecoAna(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
 void objRecoAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
 
@@ -326,6 +343,25 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         return;
     }
 
+    bool doTMVA = (tmvaFileXML.size() != 0 && tmvaMethodName.size() != 0);
+
+    TMVA::Reader* reader = 0;
+    float varsR[nTmvaReaderVars];
+    float specsR[nTmvaReaderSpectators];
+    if (doTMVA) {
+        reader = new TMVA::Reader("!Color");
+
+        for (int i = 0; i < nTmvaReaderVars; ++i) {
+            reader->AddVariable(tmvaReaderVars[i].c_str(), &(varsR[i]));
+        }
+
+        for (int i = 0; i < nTmvaReaderSpectators; ++i) {
+            reader->AddSpectator(tmvaReaderSpectators[i].c_str(), &(specsR[i]));
+        }
+
+        reader->BookMVA(tmvaMethodName.c_str(), tmvaFileXML.c_str());
+    }
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -360,6 +396,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         }
         treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
         treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+        treeggHiNtuplizer->SetBranchStatus("rho",1);
         // check existence of genMatching branch
         if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
             std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
@@ -533,6 +570,15 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
                         double r9 = (*ggHi.phoR9)[i];
                         double energyScale = -1;
+
+                        double energy = (*ggHi.phoE)[i];
+
+                        if (doTMVA) {
+                            copy2TmvaVars(ggHi, i, varsR, tmvaReaderVars, nTmvaReaderVars);
+                            std::vector<float> targets_regr = reader->EvaluateRegression(tmvaMethodName.c_str());
+                            energy = targets_regr[0];
+                            pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
+                        }
 
                         if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
                                 runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0 ||
@@ -1135,6 +1181,12 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treePath = confParser.ReadConfigValue("treePath");
     collisionType = confParser.ReadConfigValueInteger("collisionType");
 
+    // input for TMVA
+    tmvaFileXML = confParser.ReadConfigValue("tmvaFileXML");
+    tmvaMethodName = confParser.ReadConfigValue("tmvaMethodName");
+    tmvaReaderVars = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaReaderVariables"));
+    tmvaReaderSpectators = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaReaderSpectators"));
+
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
     // this bin list will be used for histograms where x-axis is eta.
@@ -1236,6 +1288,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (rightMargin == 0) rightMargin = 0.05;
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
+
+    nTmvaReaderVars = tmvaReaderVars.size();
+    nTmvaReaderSpectators = tmvaReaderSpectators.size();
 
     collisionName = getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nTH1D_Axis_List = TH1D_Axis_List.size();
@@ -1365,6 +1420,17 @@ void printConfiguration()
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
+
+    std::cout << "tmvaFileXML = " << tmvaFileXML.c_str() << std::endl;
+    std::cout << "tmvaMethodNamed = " << tmvaMethodName.c_str() << std::endl;
+    std::cout << "nTmvaReaderVars   = " << nTmvaReaderVars << std::endl;
+    for (int i = 0; i<nTmvaReaderVars; ++i) {
+        std::cout << Form("tmvaReaderVars[%d] = %s", i, tmvaReaderVars.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTmvaReaderSpectators   = " << nTmvaReaderSpectators << std::endl;
+    for (int i = 0; i<nTmvaReaderSpectators; ++i) {
+        std::cout << Form("tmvaReaderSpectators[%d] = %s", i, tmvaReaderSpectators.at(i).c_str()) << std::endl;
+    }
 
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
     for (int i=0; i<nBins_eta; ++i) {
@@ -2513,7 +2579,7 @@ bool isNeutralMeson(int pdg)
     return false;
 }
 
-bool passedEleSelection(ggHiNtuplizer ggHi, int i)
+bool passedEleSelection(ggHiNtuplizer& ggHi, int i)
 {
     // selection on RECO electron based on ECAL regions
     if (TMath::Abs((*ggHi.eleSCEta)[i]) < 1.4442)
@@ -2545,7 +2611,93 @@ bool passedEleSelection(ggHiNtuplizer ggHi, int i)
     return true;
 }
 
-int findGenMatchedIndex(ggHiNtuplizer ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID)
+void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars)
+{
+    for (int j = 0; j < nVars; ++j) {
+        vals[j] = getValueByName(ggHi, i, tmvaVarNames[j]);
+    }
+}
+
+double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName)
+{
+    if (varName == "phoE") {
+        return (double)((*ggHi.phoE)[i]);
+    }
+    else if (varName == "phoEt") {
+        return (double)((*ggHi.phoEt)[i]);
+    }
+    else if (varName == "phoEta") {
+        return (double)((*ggHi.phoEta)[i]);
+    }
+    else if (varName == "phoPhi") {
+        return (double)((*ggHi.phoPhi)[i]);
+    }
+    else if (varName == "phoSCE") {
+        return (double)((*ggHi.phoSCE)[i]);
+    }
+    else if (varName == "phoSCRawE") {
+        return (double)((*ggHi.phoSCRawE)[i]);
+    }
+    else if (varName == "phoSCEta") {
+        return (double)((*ggHi.phoSCEta)[i]);
+    }
+    else if (varName == "phoSCPhi") {
+        return (double)((*ggHi.phoSCPhi)[i]);
+    }
+    else if (varName == "phoSCEtaWidth") {
+        return (double)((*ggHi.phoSCEtaWidth)[i]);
+    }
+    else if (varName == "phoSCPhiWidth") {
+        return (double)((*ggHi.phoSCPhiWidth)[i]);
+    }
+    else if (varName == "phoE3x3_2012") {
+        return (double)((*ggHi.phoE3x3_2012)[i]);
+    }
+    else if (varName == "phoMaxEnergyXtal_2012") {
+        return (double)((*ggHi.phoMaxEnergyXtal_2012)[i]);
+    }
+    else if (varName == "phoE2nd_2012") {
+        return (double)((*ggHi.phoE2nd_2012)[i]);
+    }
+    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+
+        if ((*ggHi.phoELeft_2012)[i] != 0 || (*ggHi.phoERight_2012)[i] != 0) {
+            return (double)(((*ggHi.phoELeft_2012)[i]-(*ggHi.phoERight_2012)[i])/((*ggHi.phoELeft_2012)[i]+(*ggHi.phoERight_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+
+        if ((*ggHi.phoETop_2012)[i] != 0 || (*ggHi.phoEBottom_2012)[i] != 0) {
+            return (double)(((*ggHi.phoETop_2012)[i]-(*ggHi.phoEBottom_2012)[i])/((*ggHi.phoETop_2012)[i]+(*ggHi.phoEBottom_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoSigmaIEtaIEta_2012") {
+        return (double)((*ggHi.phoSigmaIEtaIEta_2012)[i]);
+    }
+    else if (varName == "phoSigmaIEtaIPhi_2012") {
+        return (double)((*ggHi.phoSigmaIEtaIPhi_2012)[i]);
+    }
+    else if (varName == "phoSigmaIPhiIPhi_2012") {
+        return (double)((*ggHi.phoSigmaIPhiIPhi_2012)[i]);
+    }
+    else if (varName == "rho") {
+        return (double)((ggHi.rho));
+    }
+    else if (varName == "phoESEn") {
+        return (double)((*ggHi.phoESEn)[i]);
+    }
+    else {
+        return -998877;
+    }
+}
+
+int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID)
 {
     double genPt = -1;
     int genMatchedIndex = -1;
