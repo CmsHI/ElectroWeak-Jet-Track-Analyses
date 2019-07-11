@@ -276,7 +276,6 @@ void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool isNeutralMeson(int pdg);
 void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset);
-double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName);
 int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
 void objRecoAna(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
 void objRecoAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
@@ -2681,86 +2680,7 @@ bool isNeutralMeson(int pdg)
 void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset)
 {
     for (int j = 0; j < nVars; ++j) {
-        vals[j+offset] = getValueByName(ggHi, i, tmvaVarNames[j]);
-    }
-}
-
-double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName)
-{
-    if (varName == "phoE") {
-        return (double)((*ggHi.phoE)[i]);
-    }
-    else if (varName == "phoEt") {
-        return (double)((*ggHi.phoEt)[i]);
-    }
-    else if (varName == "phoEta") {
-        return (double)((*ggHi.phoEta)[i]);
-    }
-    else if (varName == "phoPhi") {
-        return (double)((*ggHi.phoPhi)[i]);
-    }
-    else if (varName == "phoSCE") {
-        return (double)((*ggHi.phoSCE)[i]);
-    }
-    else if (varName == "phoSCRawE") {
-        return (double)((*ggHi.phoSCRawE)[i]);
-    }
-    else if (varName == "phoSCEta") {
-        return (double)((*ggHi.phoSCEta)[i]);
-    }
-    else if (varName == "phoSCPhi") {
-        return (double)((*ggHi.phoSCPhi)[i]);
-    }
-    else if (varName == "phoSCEtaWidth") {
-        return (double)((*ggHi.phoSCEtaWidth)[i]);
-    }
-    else if (varName == "phoSCPhiWidth") {
-        return (double)((*ggHi.phoSCPhiWidth)[i]);
-    }
-    else if (varName == "phoE3x3_2012") {
-        return (double)((*ggHi.phoE3x3_2012)[i]);
-    }
-    else if (varName == "phoMaxEnergyXtal_2012") {
-        return (double)((*ggHi.phoMaxEnergyXtal_2012)[i]);
-    }
-    else if (varName == "phoE2nd_2012") {
-        return (double)((*ggHi.phoE2nd_2012)[i]);
-    }
-    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
-
-        if ((*ggHi.phoELeft_2012)[i] != 0 || (*ggHi.phoERight_2012)[i] != 0) {
-            return (double)(((*ggHi.phoELeft_2012)[i]-(*ggHi.phoERight_2012)[i])/((*ggHi.phoELeft_2012)[i]+(*ggHi.phoERight_2012)[i]));
-        }
-        else {
-            return 0;
-        }
-    }
-    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
-
-        if ((*ggHi.phoETop_2012)[i] != 0 || (*ggHi.phoEBottom_2012)[i] != 0) {
-            return (double)(((*ggHi.phoETop_2012)[i]-(*ggHi.phoEBottom_2012)[i])/((*ggHi.phoETop_2012)[i]+(*ggHi.phoEBottom_2012)[i]));
-        }
-        else {
-            return 0;
-        }
-    }
-    else if (varName == "phoSigmaIEtaIEta_2012") {
-        return (double)((*ggHi.phoSigmaIEtaIEta_2012)[i]);
-    }
-    else if (varName == "phoSigmaIEtaIPhi_2012") {
-        return (double)((*ggHi.phoSigmaIEtaIPhi_2012)[i]);
-    }
-    else if (varName == "phoSigmaIPhiIPhi_2012") {
-        return (double)((*ggHi.phoSigmaIPhiIPhi_2012)[i]);
-    }
-    else if (varName == "rho") {
-        return (double)((ggHi.rho));
-    }
-    else if (varName == "phoESEn") {
-        return (double)((*ggHi.phoESEn)[i]);
-    }
-    else {
-        return -998877;
+        vals[j+offset] = ggHi.getValueByName(i, tmvaVarNames[j]);
     }
 }
 

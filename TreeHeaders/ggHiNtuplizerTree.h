@@ -305,6 +305,7 @@ public :
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
+  double getValueByName(int i, std::string varName);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1733,6 +1734,85 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
     }
 
     return true;
+}
+
+double ggHiNtuplizer::getValueByName(int i, std::string varName)
+{
+    if (varName == "phoE") {
+        return (double)((*phoE)[i]);
+    }
+    else if (varName == "phoEt") {
+        return (double)((*phoEt)[i]);
+    }
+    else if (varName == "phoEta") {
+        return (double)((*phoEta)[i]);
+    }
+    else if (varName == "phoPhi") {
+        return (double)((*phoPhi)[i]);
+    }
+    else if (varName == "phoSCE") {
+        return (double)((*phoSCE)[i]);
+    }
+    else if (varName == "phoSCRawE") {
+        return (double)((*phoSCRawE)[i]);
+    }
+    else if (varName == "phoSCEta") {
+        return (double)((*phoSCEta)[i]);
+    }
+    else if (varName == "phoSCPhi") {
+        return (double)((*phoSCPhi)[i]);
+    }
+    else if (varName == "phoSCEtaWidth") {
+        return (double)((*phoSCEtaWidth)[i]);
+    }
+    else if (varName == "phoSCPhiWidth") {
+        return (double)((*phoSCPhiWidth)[i]);
+    }
+    else if (varName == "phoE3x3_2012") {
+        return (double)((*phoE3x3_2012)[i]);
+    }
+    else if (varName == "phoMaxEnergyXtal_2012") {
+        return (double)((*phoMaxEnergyXtal_2012)[i]);
+    }
+    else if (varName == "phoE2nd_2012") {
+        return (double)((*phoE2nd_2012)[i]);
+    }
+    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+
+        if ((*phoELeft_2012)[i] != 0 || (*phoERight_2012)[i] != 0) {
+            return (double)(((*phoELeft_2012)[i]-(*phoERight_2012)[i])/((*phoELeft_2012)[i]+(*phoERight_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+
+        if ((*phoETop_2012)[i] != 0 || (*phoEBottom_2012)[i] != 0) {
+            return (double)(((*phoETop_2012)[i]-(*phoEBottom_2012)[i])/((*phoETop_2012)[i]+(*phoEBottom_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoSigmaIEtaIEta_2012") {
+        return (double)((*phoSigmaIEtaIEta_2012)[i]);
+    }
+    else if (varName == "phoSigmaIEtaIPhi_2012") {
+        return (double)((*phoSigmaIEtaIPhi_2012)[i]);
+    }
+    else if (varName == "phoSigmaIPhiIPhi_2012") {
+        return (double)((*phoSigmaIPhiIPhi_2012)[i]);
+    }
+    else if (varName == "rho") {
+        return (double)((rho));
+    }
+    else if (varName == "phoESEn") {
+        return (double)((*phoESEn)[i]);
+    }
+    else {
+        return -998877;
+    }
 }
 
 #endif /* TREEHEADERS_GGHINTUPLIZERTREE_H_ */
