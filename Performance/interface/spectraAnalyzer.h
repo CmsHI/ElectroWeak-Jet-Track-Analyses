@@ -58,6 +58,7 @@ enum DEPS {   // dependencies (x-axis)
     kTRKISO,
     kSIEIE,
     kR9,
+    kMASS,
     kN_DEPS
 };
 
@@ -71,7 +72,8 @@ const std::string DEP_LABELS[kN_DEPS] = {
         "HCALISO",
         "TRKISO",
         "SIEIE",
-        "R9"
+        "R9",
+        "MASS",
 };
 
 enum RANGES {   // ranges/cuts
