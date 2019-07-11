@@ -538,7 +538,6 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                             double diEleMassMin = 70;
                             double diEleMassMax = 110;
-                            double zMass = 91.18;
 
                             double minMassDiff = 999;
 
@@ -560,15 +559,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                     // dielectron
                                     TLorentzVector v1, v2, vSum;
-                                    double mass = 0.000511;
-                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass);
-                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass);
+                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                     vSum = v1+v2;
 
                                     if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
 
-                                    if (TMath::Abs(vSum.M() - zMass) < minMassDiff) {
-                                        minMassDiff = TMath::Abs(vSum.M() - zMass);
+                                    if (TMath::Abs(vSum.M() - mass_Z) < minMassDiff) {
+                                        minMassDiff = TMath::Abs(vSum.M() - mass_Z);
                                         candEle1 = i;
                                         candEle2 = j;
                                     }
@@ -624,7 +622,6 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                             double diEleMassMin = 70;
                             double diEleMassMax = 110;
-                            double zMass = 91.18;
 
                             double minMassDiff = 999;
 
@@ -646,15 +643,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                     // dielectron
                                     TLorentzVector v1, v2, vSum;
-                                    double mass = 0.000511;
-                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass);
-                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass);
+                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                     vSum = v1+v2;
 
                                     if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
 
-                                    if (TMath::Abs(vSum.M() - zMass) < minMassDiff) {
-                                        minMassDiff = TMath::Abs(vSum.M() - zMass);
+                                    if (TMath::Abs(vSum.M() - mass_Z) < minMassDiff) {
+                                        minMassDiff = TMath::Abs(vSum.M() - mass_Z);
                                         candEle1 = i;
                                         candEle2 = j;
                                     }
@@ -707,7 +703,6 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                              double diEleMassMin = 60;
                              double diEleMassMax = 120;
-                             double zMass = 91.18;
 
                              double minMassDiff = 999;
 
@@ -729,15 +724,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                      // dielectron
                                      TLorentzVector v1, v2, vSum;
-                                     double mass = 0.000511;
-                                     v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass);
-                                     v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass);
+                                     v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                     v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                      vSum = v1+v2;
 
                                      if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
 
-                                     if (TMath::Abs(vSum.M() - zMass) < minMassDiff) {
-                                         minMassDiff = TMath::Abs(vSum.M() - zMass);
+                                     if (TMath::Abs(vSum.M() - mass_Z) < minMassDiff) {
+                                         minMassDiff = TMath::Abs(vSum.M() - mass_Z);
                                          candEle1 = i;
                                          candEle2 = j;
                                      }
@@ -837,9 +831,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 int i2 = candidates[1];
 
                                 TLorentzVector v1, v2, vSum;
-                                double mass = 0.000511;
-                                v1.SetPtEtaPhiM( (*ggHi.phoEt)[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass);
-                                v2.SetPtEtaPhiM( (*ggHi.phoEt)[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass);
+                                v1.SetPtEtaPhiM( (*ggHi.phoEt)[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass_ele);
+                                v2.SetPtEtaPhiM( (*ggHi.phoEt)[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass_ele);
                                 vSum = v1+v2;
 
                                 std::vector<double> varsTmp = {-999, -1, -1, -999, -1, -1};

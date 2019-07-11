@@ -12,6 +12,9 @@
 #ifndef PHYSICSUTIL_H_
 #define PHYSICSUTIL_H_
 
+const double mass_Z = 91.18;
+const double mass_ele = 0.000511;
+
 double getDETA(double eta1, double eta2);
 double getDPHI(double phi1, double phi2);
 double getAbsDPHI(double phi1, double phi2);
