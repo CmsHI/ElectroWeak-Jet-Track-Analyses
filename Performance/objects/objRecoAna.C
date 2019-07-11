@@ -54,6 +54,7 @@
 #include "../../Utilities/th1Util.h"
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
+#include "../../Utilities/systemUtil.h"
 #include "../interface/recoAnalyzer.h"
 
 ///// global variables
@@ -71,10 +72,12 @@ std::string treePath;
 int collisionType;
 
 // input for TMVA regression
-std::string tmvaFileXML;
-std::string tmvaMethodName;
-std::vector<std::string> tmvaReaderVars;
-std::vector<std::string> tmvaReaderSpectators;
+std::vector<std::string> tmvaXMLFiles;
+std::vector<std::string> tmvaMethodNames;
+std::vector<std::pair<std::string, int>> tmvaReaderVars;
+std::vector<std::pair<std::string, int>> tmvaReaderSpectators;
+std::vector<float> tmva_bins_eta[2];  // eta range for which a TMVA file will be used
+std::vector<float> tmva_bins_pt[2];   // pT range for which a TMVA file will be used
 
 // input for TH1
 // nBins, xLow, xUp for the TH1D histogram
@@ -122,8 +125,10 @@ std::vector<float> textSizes;
 std::vector<float> textOffsetsX;
 std::vector<float> textOffsetsY;
 
-int nTmvaReaderVars;
-int nTmvaReaderSpectators;
+int nTmvaXMLFiles;
+int nTmvaMethods;
+int nTmva_bins_eta;
+int nTmva_bins_pt;
 
 // input for TCanvas
 int windowWidth;
@@ -270,7 +275,7 @@ void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool isNeutralMeson(int pdg);
-void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars);
+void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset);
 double getValueByName(ggHiNtuplizer& ggHi, int i, std::string varName);
 int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
 void objRecoAna(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
@@ -342,23 +347,48 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         return;
     }
 
-    bool doTMVA = (tmvaFileXML.size() != 0 && tmvaMethodName.size() != 0);
+    bool doTMVA = (nTmvaXMLFiles != 0 && nTmvaMethods);
 
-    TMVA::Reader* reader = 0;
+    std::vector<TMVA::Reader*> tmvaReaders(nTmvaXMLFiles, 0);
+    int nTmvaReaderVars = tmvaReaderVars.size();
+    int nTmvaReaderSpectators = tmvaReaderSpectators.size();
     float varsR[nTmvaReaderVars];
     float specsR[nTmvaReaderSpectators];
+    std::vector<std::string> tmvaReaderVarsStr[nTmvaXMLFiles];
+    std::vector<int> nReaderVarsInFile(nTmvaXMLFiles, 0);
+    std::vector<std::string> tmvaReaderSpecsStr[nTmvaXMLFiles];
     if (doTMVA) {
-        reader = new TMVA::Reader("!Color");
 
-        for (int i = 0; i < nTmvaReaderVars; ++i) {
-            reader->AddVariable(tmvaReaderVars[i].c_str(), &(varsR[i]));
+        std::vector<std::string> tmvaReaderVarsStrAll = ConfigurationParser::getVecString(tmvaReaderVars);
+        std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+        std::vector<std::string> tmvaReaderSpecsStrAll = ConfigurationParser::getVecString(tmvaReaderSpectators);
+        std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+
+        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+
+            tmvaReaders[iXML] = new TMVA::Reader("!Color");
+
+            int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+            nReaderVarsInFile[iXML] = nVarsTmp;
+
+            int iStart = findInVector(tmvaReaderVarIndices, iXML);
+            for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+                tmvaReaders[iXML]->AddVariable(tmvaReaderVarsStrAll[i].c_str(), &(varsR[i]));
+            }
+            tmvaReaderVarsStr[iXML].assign(tmvaReaderVarsStrAll.begin()+iStart, tmvaReaderVarsStrAll.begin()+iStart+nVarsTmp);
+
+            int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+
+            iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+            for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+                tmvaReaders[iXML]->AddSpectator(tmvaReaderSpecsStrAll[i].c_str(), &(specsR[i]));
+            }
+            tmvaReaderSpecsStr[iXML].assign(tmvaReaderSpecsStrAll.begin()+iStart, tmvaReaderSpecsStrAll.begin()+iStart+nSpecsTmp);
+
+            tmvaReaders[iXML]->BookMVA(tmvaMethodNames[iXML].c_str(), tmvaXMLFiles[iXML].c_str());
         }
-
-        for (int i = 0; i < nTmvaReaderSpectators; ++i) {
-            reader->AddSpectator(tmvaReaderSpectators[i].c_str(), &(specsR[i]));
-        }
-
-        reader->BookMVA(tmvaMethodName.c_str(), tmvaFileXML.c_str());
     }
 
     EventMatcher* em = new EventMatcher();
@@ -570,13 +600,29 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double r9 = (*ggHi.phoR9)[i];
                         double energyScale = -1;
 
-                        double energy = (*ggHi.phoE)[i];
-
                         if (doTMVA) {
-                            copy2TmvaVars(ggHi, i, varsR, tmvaReaderVars, nTmvaReaderVars);
-                            std::vector<float> targets_regr = reader->EvaluateRegression(tmvaMethodName.c_str());
-                            energy = targets_regr[0];
-                            pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
+
+                            int offset = 0;
+                            for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+
+                                double scEta = (*ggHi.phoSCEta)[i];
+                                bool insideEtaRange = (
+                                        (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
+                                        (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
+                                bool insidePtRange = (
+                                        (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
+                                        (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
+
+                                if (insideEtaRange && insidePtRange) {
+                                    copy2TmvaVars(ggHi, i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
+                                    std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
+                                    double energy = targets_regr[0];
+                                    pt = energy / TMath::CosH(eta);
+                                    break;
+                                }
+
+                                offset += nReaderVarsInFile[iXML];
+                            }
                         }
 
                         if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
@@ -1181,10 +1227,16 @@ int readConfiguration(std::string configFile, std::string inputFile)
     collisionType = confParser.ReadConfigValueInteger("collisionType");
 
     // input for TMVA
-    tmvaFileXML = confParser.ReadConfigValue("tmvaFileXML");
-    tmvaMethodName = confParser.ReadConfigValue("tmvaMethodName");
-    tmvaReaderVars = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaReaderVariables"));
-    tmvaReaderSpectators = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaReaderSpectators"));
+    tmvaXMLFiles = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaXMLFiles"));
+    tmvaMethodNames = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaMethodNames"));
+    tmvaReaderVars = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderVariables"));
+    tmvaReaderSpectators = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderSpectators"));
+
+    tmva_bins_eta[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_eta_gt"));
+    tmva_bins_eta[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_eta_lt"));
+
+    tmva_bins_pt[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_pt_gt"));
+    tmva_bins_pt[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_pt_lt"));
 
     // input for TH1
     // nBins, xLow, xUp for the TH1D histogram
@@ -1288,8 +1340,22 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
-    nTmvaReaderVars = tmvaReaderVars.size();
-    nTmvaReaderSpectators = tmvaReaderSpectators.size();
+    nTmvaXMLFiles = tmvaXMLFiles.size();
+    nTmvaMethods = tmvaMethodNames.size();
+    while ((int)tmva_bins_eta[0].size() < nTmvaXMLFiles) {
+        tmva_bins_eta[0].push_back(0);
+    }
+    while ((int)tmva_bins_eta[1].size() < nTmvaXMLFiles) {
+        tmva_bins_eta[1].push_back(-1);
+    }
+    while ((int)tmva_bins_pt[0].size() < nTmvaXMLFiles) {
+        tmva_bins_pt[0].push_back(0);
+    }
+    while ((int)tmva_bins_pt[1].size() < nTmvaXMLFiles) {
+        tmva_bins_pt[1].push_back(-1);
+    }
+    nTmva_bins_eta = tmva_bins_eta[0].size();
+    nTmva_bins_pt = tmva_bins_pt[0].size();
 
     collisionName = getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nTH1D_Axis_List = TH1D_Axis_List.size();
@@ -1420,15 +1486,49 @@ void printConfiguration()
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
 
-    std::cout << "tmvaFileXML = " << tmvaFileXML.c_str() << std::endl;
-    std::cout << "tmvaMethodNamed = " << tmvaMethodName.c_str() << std::endl;
-    std::cout << "nTmvaReaderVars   = " << nTmvaReaderVars << std::endl;
-    for (int i = 0; i<nTmvaReaderVars; ++i) {
-        std::cout << Form("tmvaReaderVars[%d] = %s", i, tmvaReaderVars.at(i).c_str()) << std::endl;
+    std::cout << "nTmvaXMLFiles = " << nTmvaXMLFiles << std::endl;
+    for (int i = 0; i < nTmvaXMLFiles; ++i) {
+        std::cout << Form("tmvaXMLFiles[%d] = %s", i, tmvaXMLFiles.at(i).c_str()) << std::endl;
     }
-    std::cout << "nTmvaReaderSpectators   = " << nTmvaReaderSpectators << std::endl;
-    for (int i = 0; i<nTmvaReaderSpectators; ++i) {
-        std::cout << Form("tmvaReaderSpectators[%d] = %s", i, tmvaReaderSpectators.at(i).c_str()) << std::endl;
+    std::cout << "nTmvaMethod = " << nTmvaMethods << std::endl;
+    for (int i = 0; i < nTmvaMethods; ++i) {
+        std::cout << Form("tmvaMethodNames[%d] = %s", i, tmvaMethodNames.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<std::string> tmvaReaderVarsStr = ConfigurationParser::getVecString(tmvaReaderVars);
+    std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+    std::vector<std::string> tmvaReaderSpecsStr = ConfigurationParser::getVecString(tmvaReaderSpectators);
+    std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+    for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+        int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+        std::cout << "Number of reader variables for XML file " << iXML << " = " << nVarsTmp << std::endl;
+        std::cout << "Reader variables for XML file " << iXML << " are :" << std::endl;
+
+        int iStart = findInVector(tmvaReaderVarIndices, iXML);
+        for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderVars[%d] = %s", i-iStart, tmvaReaderVarsStr.at(i).c_str()) << std::endl;
+        }
+
+        int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+        std::cout << "Number of spectators for XML file " << iXML << " = " << nSpecsTmp << std::endl;
+        std::cout << "Spectators for XML file " << iXML << " are :" << std::endl;
+
+        iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+        for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderSpectators[%d] = %s", i-iStart, tmvaReaderSpecsStr.at(i).c_str()) << std::endl;
+        }
+    }
+
+    std::cout << "nTmva_bins_eta = " << nTmva_bins_eta << std::endl;
+    for (int i=0; i<nTmva_bins_eta; ++i) {
+        std::cout << Form("tmva_bins_eta[%d] = [%f, %f)", i, tmva_bins_eta[0].at(i), tmva_bins_eta[1].at(i)) << std::endl;
+    }
+    std::cout << "nTmva_bins_pt = " << nTmva_bins_pt << std::endl;
+    for (int i=0; i<nTmva_bins_pt; ++i) {
+        std::cout << Form("tmva_bins_pt[%d] = [%f, %f)", i, tmva_bins_pt[0].at(i), tmva_bins_pt[1].at(i)) << std::endl;
     }
 
     std::cout << "nBins_eta = " << nBins_eta << std::endl;
@@ -2578,10 +2678,10 @@ bool isNeutralMeson(int pdg)
     return false;
 }
 
-void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars)
+void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset)
 {
     for (int j = 0; j < nVars; ++j) {
-        vals[j] = getValueByName(ggHi, i, tmvaVarNames[j]);
+        vals[j+offset] = getValueByName(ggHi, i, tmvaVarNames[j]);
     }
 }
 
