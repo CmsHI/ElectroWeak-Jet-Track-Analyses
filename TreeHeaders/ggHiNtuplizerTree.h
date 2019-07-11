@@ -303,7 +303,7 @@ public :
   bool passedHI18HEMfailurePho(int i);
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
-  bool passedEleSelection(int i, int collType, int hiBin);
+  bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1535,10 +1535,21 @@ bool ggHiNtuplizer::passedHI18HEMfailureGen(int i)
     return !((*mcEta)[i] < -1.39 && (*mcPhi)[i] < -0.9 && (*mcPhi)[i] > -1.6);
 }
 
-bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin)
+bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPindex)
 {
-    // preliminary electron ID (May 2019) : loose WP
+    /*
+     * options for WPindex
+     *
+     * 0 : default
+     * 1 : veto
+     * 2 : loose
+     * 3 : medium
+     * 4 : tight
+     * 5 : very tight
+     */
+
     if (collisionIsHI2018((COLL::TYPE)collType)) {
+        // preliminary electron ID (May 2019) : loose WP
         if (hiBin >= 0 && hiBin < 60) {
             // selection on RECO electron based on ECAL regions
             if (std::fabs((*eleSCEta)[i]) < 1.4442)
@@ -1594,55 +1605,124 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin)
     }
     else if (collisionIsHI((COLL::TYPE)collType)) {     // pbpb 2015
 
+        // default WP for 2015 pbpb is veto.
+        if (WPindex == 0) WPindex = 1;
+
         // selection on RECO electron based on ECAL regions
-        if (std::fabs((*eleSCEta)[i]) < 1.4442)
-        {
-            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.01107)) return false;
-            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01576)) return false;
-            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.15724)) return false;
-            if (!((*eleHoverE)[i] < 0.08849)) return false;
-            if (!(std::fabs((*eleEoverPInv)[i]) < 0.28051)) return false;
-            if (!(std::fabs((*eleD0)[i]) < 0.05216)) return false;
-            if (!(std::fabs((*eleDz)[i]) < 0.12997)) return false;
-            if (!((*eleMissHits)[i] <= 1)) return false;
+        if (WPindex == 1) {
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.01107)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01576)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.15724)) return false;
+                if (!((*eleHoverE)[i] < 0.08849)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.28051)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.05216)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.12997)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.03488)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01707)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.35537)) return false;
+                if (!((*eleHoverE)[i] < 0.12275)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.18672)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.19092)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.26407)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else  {
+                return false;
+            }
         }
-        else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
-        {
-            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.03488)) return false;
-            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01707)) return false;
-            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.35537)) return false;
-            if (!((*eleHoverE)[i] < 0.12275)) return false;
-            if (!(std::fabs((*eleEoverPInv)[i]) < 0.18672)) return false;
-            if (!(std::fabs((*eleD0)[i]) < 0.19092)) return false;
-            if (!(std::fabs((*eleDz)[i]) < 0.26407)) return false;
-            if (!((*eleMissHits)[i] <= 1)) return false;
+        else if (WPindex == 3) {
+
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.01058)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.01494)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.03396)) return false;
+                if (!((*eleHoverE)[i] < 0.03329)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.01482)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.01602)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.06939)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.02995)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.00860)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.12246)) return false;
+                if (!((*eleHoverE)[i] < 0.09265)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.12623)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.08725)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.20320)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+            else  {
+                return false;
+            }
         }
-        else  {
+        else {
             return false;
         }
     }
     else if (collisionIsPP((COLL::TYPE)collType)) {
-        if (std::fabs((*eleSCEta)[i]) < 1.4442)
-        {
-            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0101)) return false;
-            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0103)) return false;
-            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0336)) return false;
-            if (!((*eleHoverE)[i] < 0.0876)) return false;
-            if (!(std::fabs((*eleEoverPInv)[i]) < 0.0174)) return false;
-            if (!(std::fabs((*eleD0)[i]) < 0.0118)) return false;
-            if (!(std::fabs((*eleDz)[i]) < 0.373)) return false;
-            if (!((*eleMissHits)[i] <= 2)) return false;
+
+        // default WP for 2015 pp is medium.
+        if (WPindex == 0) WPindex = 3;
+
+        if (WPindex == 1) {
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0114)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0152)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.216)) return false;
+                if (!((*eleHoverE)[i] < 0.181)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.207)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.0564)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.472)) return false;
+                if (!((*eleMissHits)[i] <= 2)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0352)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0113)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.237)) return false;
+                if (!((*eleHoverE)[i] < 0.116)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.174)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.222)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.921)) return false;
+                if (!((*eleMissHits)[i] <= 3)) return false;
+            }
         }
-        else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
-        {
-            if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0283)) return false;
-            if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.00733)) return false;
-            if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.114)) return false;
-            if (!((*eleHoverE)[i] < 0.0678)) return false;
-            if (!(std::fabs((*eleEoverPInv)[i]) < 0.0898)) return false;
-            if (!(std::fabs((*eleD0)[i]) < 0.0739)) return false;
-            if (!(std::fabs((*eleDz)[i]) < 0.602)) return false;
-            if (!((*eleMissHits)[i] <= 1)) return false;
+        else if (WPindex == 3) {
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0101)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0103)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0336)) return false;
+                if (!((*eleHoverE)[i] < 0.0876)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0174)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.0118)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.373)) return false;
+                if (!((*eleMissHits)[i] <= 2)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0283)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.00733)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.114)) return false;
+                if (!((*eleHoverE)[i] < 0.0678)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0898)) return false;
+                if (!(std::fabs((*eleD0)[i]) < 0.0739)) return false;
+                if (!(std::fabs((*eleDz)[i]) < 0.602)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+            }
+        }
+        else {
+            return false;
         }
     }
 

@@ -615,34 +615,12 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                         }
                         else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle) {
 
-
                             int candEle1 = -1;
                             int candEle2 = -1;
-
-                            double eta_max_EB = 1.4442;
-                            double eta_min_EE = 1.566;
-                            double eta_max_EE = 2.5;
 
                             double elePt_min = 20;
 
                             // tight selection of electron based on ECAL regions
-                            double eleSigmaIEtaIEta_2012_EB = isHI ? 0.01107 : 0.0101;
-                            double eledEtaAtVtx_abs_EB = isHI ? 0.01576 : 0.0103;
-                            double eledPhiAtVtx_abs_EB = isHI ? 0.15724 : 0.0336;
-                            double eleHoverE_EB = isHI ? 0.08849 : 0.0876;
-                            double eleEoverPInv_EB = isHI ? 0.28051 : 0.0174;
-                            double eleD0_abs_EB = isHI ? 0.05216 : 0.0118;
-                            double eleDz_abs_EB = isHI ? 0.12997 : 0.373;
-                            double eleMissHits_EB = isHI ? 1 : 2;
-
-                            double eleSigmaIEtaIEta_2012_EE = isHI ? 0.03488 : 0.0283;
-                            double eledEtaAtVtx_abs_EE = isHI ? 0.01707 : 0.00733;
-                            double eledPhiAtVtx_abs_EE = isHI ? 0.35537 : 0.114;
-                            double eleHoverE_EE = isHI ? 0.12275 : 0.0678;
-                            double eleEoverPInv_EE = isHI ? 0.18672 : 0.0898;
-                            double eleD0_abs_EE = isHI ? 0.19092 : 0.0739;
-                            double eleDz_abs_EE = isHI ? 0.26407 : 0.602;
-                            double eleMissHits_EE = isHI ? 1 : 1;
 
                             double diEleMassMin = 70;
                             double diEleMassMax = 110;
@@ -656,31 +634,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                 if (!((*ggHi.elePt)[i] > elePt_min)) continue;
 
-                                if (TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EB)
-                                {
-                                    if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EB)) continue;
-                                    if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EB)) continue;
-                                    if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EB)) continue;
-                                    if (!((*ggHi.eleHoverE)[i] < eleHoverE_EB)) continue;
-                                    if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EB)) continue;
-                                    if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EB)) continue;
-                                    if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EB)) continue;
-                                    if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EB)) continue;
-                                }
-                                else if (TMath::Abs((*ggHi.eleSCEta)[i]) > eta_min_EE && TMath::Abs((*ggHi.eleSCEta)[i]) < eta_max_EE)
-                                {
-                                    if (!((*ggHi.eleSigmaIEtaIEta_2012)[i] < eleSigmaIEtaIEta_2012_EE)) continue;
-                                    if (!(TMath::Abs((*ggHi.eledEtaAtVtx)[i]) < eledEtaAtVtx_abs_EE)) continue;
-                                    if (!(TMath::Abs((*ggHi.eledPhiAtVtx)[i]) < eledPhiAtVtx_abs_EE)) continue;
-                                    if (!((*ggHi.eleHoverE)[i] < eleHoverE_EE)) continue;
-                                    if (!((*ggHi.eleEoverPInv)[i] < eleEoverPInv_EE)) continue;
-                                    if (!(TMath::Abs((*ggHi.eleD0)[i]) < eleD0_abs_EE)) continue;
-                                    if (!(TMath::Abs((*ggHi.eleDz)[i]) < eleDz_abs_EE)) continue;
-                                    if (!((*ggHi.eleMissHits)[i] <= eleMissHits_EE)) continue;
-                                }
-                                else  {
-                                    continue;
-                                }
+                                if (!ggHi.passedEleSelection(i, collisionType, hiBin, 3))  continue;
 
                                 for (int j = i+1; j < ggHi.nEle; ++j) {
 
@@ -688,7 +642,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                     if (!((*ggHi.elePt)[j] > elePt_min)) continue;
 
-                                    if (!ggHi.passedEleSelection(j, collisionType, hiBin))  continue;
+                                    if (!ggHi.passedEleSelection(j, collisionType, hiBin, 1))  continue;
 
                                     // dielectron
                                     TLorentzVector v1, v2, vSum;
