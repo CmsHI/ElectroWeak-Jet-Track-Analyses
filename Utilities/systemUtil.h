@@ -35,6 +35,8 @@ double roundToSignificantFigures(double x, int nFigures, bool ignoreBeforeDecima
 int  countOccurances(std::string str, std::string substr);
 bool containsElement(std::vector<std::string> vec, std::string str);
 int  findPositionInVector(std::vector<std::string> vSearch, std::string str);
+template <typename T>
+int  findInVector(const std::vector<T>  & vec, const T  & element);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 std::string getEnvironmentVariable(std::string envName);
@@ -383,6 +385,22 @@ int findPositionInVector(std::vector<std::string> vSearch, std::string str)
     if (it != vSearch.end())  return int(it - vSearch.begin());
     else                return -1;
 }
+
+template <typename T>
+int findInVector(const std::vector<T>  & vec, const T  & element)
+{
+    auto it = std::find(vec.begin(), vec.end(), element);
+
+    if (it != vec.end())
+    {
+        return int(it - vec.begin());
+    }
+    else
+    {
+        return -1;
+    }
+}
+
 
 /*
  * return a vector of unique elements
