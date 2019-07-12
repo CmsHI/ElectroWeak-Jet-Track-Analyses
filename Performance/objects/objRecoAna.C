@@ -275,7 +275,6 @@ void setTGraph(TGraph* g, int iGraph);
 void setLegend(TPad* pad, TLegend* leg, int iLeg);
 void setLatex(TPad* pad, TLatex* latex, int iLatex, std::vector<std::string> textLines, TLegend* leg);
 bool isNeutralMeson(int pdg);
-void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset);
 int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID);
 void objRecoAna(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
 void objRecoAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "objRecoAna.root");
@@ -550,7 +549,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                     (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
 
                             if (insideEtaRange && insidePtRange) {
-                                copy2TmvaVars(ggHi, i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
+                                ggHi.copy2Vars(i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
                                 std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
                                 double energy = targets_regr[0];
                                 pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
@@ -2684,13 +2683,6 @@ bool isNeutralMeson(int pdg)
         if (pdg == RECOANA::neutralMesons[i].PDG[0]) return true;
     }
     return false;
-}
-
-void copy2TmvaVars(ggHiNtuplizer& ggHi, int i, float *vals, std::vector<std::string>& tmvaVarNames, int nVars, int offset)
-{
-    for (int j = 0; j < nVars; ++j) {
-        vals[j+offset] = ggHi.getValueByName(i, tmvaVarNames[j]);
-    }
 }
 
 int findGenMatchedIndex(ggHiNtuplizer& ggHi, double recoEta, double recoPhi, double deltaR2, int genMatchedPID)

@@ -306,6 +306,7 @@ public :
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
   double getValueByName(int i, std::string varName);
+  void copy2Vars(int i, float *vals, std::vector<std::string>& varNames, int nVars, int offset);
 
   // Declaration of leaf types
   UInt_t          run;
@@ -1556,54 +1557,54 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
      */
 
     if (collisionIsHI2018((COLL::TYPE)collType)) {
-        // preliminary electron ID (May 2019) : loose WP
+        // preliminary electron ID (July 2019) : loose WP
         if (hiBin >= 0 && hiBin < 60) {
             // selection on RECO electron based on ECAL regions
             if (std::fabs((*eleSCEta)[i]) < 1.4442)
             {
-                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0161)) return false;
-                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0053)) return false;
-                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0288)) return false;
-                if (!((*eleHoverE)[i] < 0.1984)) return false;
-                if (!(std::fabs((*eleEoverPInv)[i]) < 0.1129)) return false;
-                if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
-                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
-                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0147)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0041)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0853)) return false;
+                if (!((*eleHoverEBc)[i] < 0.2733)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0367)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 3)) return false;
             }
             else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
             {
-                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0479)) return false;
-                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0145)) return false;
-                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0516)) return false;
-                if (!((*eleHoverE)[i] < 0.1910)) return false;
-                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0115)) return false;
-                if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
-                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
-                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.048)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0097)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.2348)) return false;
+                if (!((*eleHoverEBc)[i] < 0.1898)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0300)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 3)) return false;
             }
         }
         else if (hiBin >= 60 && hiBin < 200) {
             if (std::fabs((*eleSCEta)[i]) < 1.4442)
             {
-                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0117)) return false;
-                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0071)) return false;
-                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0221)) return false;
-                if (!((*eleHoverE)[i] < 0.1892)) return false;
-                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0405)) return false;
-                if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
-                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
-                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0113)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0037)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.1280)) return false;
+                if (!((*eleHoverEBc)[i] < 0.1814)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.1065)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 3)) return false;
             }
             else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
             {
-                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0447)) return false;
-                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0108)) return false;
-                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0301)) return false;
-                if (!((*eleHoverE)[i] < 0.1627)) return false;
-                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0281)) return false;
-                if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
-                if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
-                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0376)) return false;
+                if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0074)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.2085)) return false;
+                if (!((*eleHoverEBc)[i] < 0.1138)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.0237)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                if (!((*eleMissHits)[i] <= 3)) return false;
             }
         }
         else {
@@ -1812,6 +1813,13 @@ double ggHiNtuplizer::getValueByName(int i, std::string varName)
     }
     else {
         return -998877;
+    }
+}
+
+void ggHiNtuplizer::copy2Vars(int i, float *vals, std::vector<std::string>& varNames, int nVars, int offset)
+{
+    for (int j = 0; j < nVars; ++j) {
+        vals[j+offset] = getValueByName(i, varNames[j]);
     }
 }
 
