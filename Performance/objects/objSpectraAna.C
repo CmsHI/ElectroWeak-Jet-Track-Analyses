@@ -29,6 +29,12 @@
 #include <TMath.h>
 #include <TLorentzVector.h>
 
+#include "TMVA/IMethod.h"
+#include "TMVA/MethodBase.h"
+#include "TMVA/MethodCuts.h"
+#include "TMVA/Tools.h"
+#include "TMVA/Reader.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -64,6 +70,14 @@ std::string mode;
 // input for TTree
 std::string treePath;
 int collisionType;
+
+// input for TMVA regression
+std::vector<std::string> tmvaXMLFiles;
+std::vector<std::string> tmvaMethodNames;
+std::vector<std::pair<std::string, int>> tmvaReaderVars;
+std::vector<std::pair<std::string, int>> tmvaReaderSpectators;
+std::vector<float> tmva_bins_eta[2];  // eta range for which a TMVA file will be used
+std::vector<float> tmva_bins_pt[2];   // pT range for which a TMVA file will be used
 
 std::vector<std::pair<std::string, int>> runRangesTmp;
 std::vector<std::string> runRanges;
@@ -108,6 +122,11 @@ std::vector<int> textFonts;
 std::vector<float> textSizes;
 std::vector<float> textOffsetsX;
 std::vector<float> textOffsetsY;
+
+int nTmvaXMLFiles;
+int nTmvaMethods;
+int nTmva_bins_eta;
+int nTmva_bins_pt;
 
 // input for TCanvas
 int windowWidth;
@@ -300,6 +319,51 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
     bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
+    bool doTMVA = (nTmvaXMLFiles != 0 && nTmvaMethods);
+
+    std::vector<TMVA::Reader*> tmvaReaders(nTmvaXMLFiles, 0);
+    int nTmvaReaderVars = tmvaReaderVars.size();
+    int nTmvaReaderSpectators = tmvaReaderSpectators.size();
+    float varsR[nTmvaReaderVars];
+    float specsR[nTmvaReaderSpectators];
+    std::vector<std::string> tmvaReaderVarsStr[nTmvaXMLFiles];
+    std::vector<int> nReaderVarsInFile(nTmvaXMLFiles, 0);
+    std::vector<std::string> tmvaReaderSpecsStr[nTmvaXMLFiles];
+    if (doTMVA) {
+
+        std::vector<std::string> tmvaReaderVarsStrAll = ConfigurationParser::getVecString(tmvaReaderVars);
+        std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+        std::vector<std::string> tmvaReaderSpecsStrAll = ConfigurationParser::getVecString(tmvaReaderSpectators);
+        std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+
+        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+
+            tmvaReaders[iXML] = new TMVA::Reader("!Color");
+
+            int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+            nReaderVarsInFile[iXML] = nVarsTmp;
+
+            int iStart = findInVector(tmvaReaderVarIndices, iXML);
+            for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+                tmvaReaders[iXML]->AddVariable(tmvaReaderVarsStrAll[i].c_str(), &(varsR[i]));
+            }
+            tmvaReaderVarsStr[iXML].assign(tmvaReaderVarsStrAll.begin()+iStart, tmvaReaderVarsStrAll.begin()+iStart+nVarsTmp);
+
+            int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+
+            iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+            for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+                tmvaReaders[iXML]->AddSpectator(tmvaReaderSpecsStrAll[i].c_str(), &(specsR[i]));
+            }
+            tmvaReaderSpecsStr[iXML].assign(tmvaReaderSpecsStrAll.begin()+iStart, tmvaReaderSpecsStrAll.begin()+iStart+nSpecsTmp);
+
+            tmvaReaders[iXML]->BookMVA(tmvaMethodNames[iXML].c_str(), tmvaXMLFiles[iXML].c_str());
+        }
+    }
+    std::vector<float> ptFinal;  // corrected pT
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -347,6 +411,9 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
         treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
         treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
+        if (doTMVA) {
+            treeggHiNtuplizer->SetBranchStatus("rho",1);
+        }
         if (isMC) {
             treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
             treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
@@ -465,6 +532,39 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
             }
 
             if (recoObj == RECOOBJS::kPhoton) {
+
+                // correct pT if corrections exist
+                ptFinal.clear();
+                for (int i = 0; i < ggHi.nPho; ++i) {
+
+                    double pt = (*ggHi.phoEt)[i];
+                    if (doTMVA) {
+
+                        double scEta = (*ggHi.phoSCEta)[i];
+                        int offset = 0;
+                        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+                            bool insideEtaRange = (
+                                    (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
+                                    (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
+                            bool insidePtRange = (
+                                    (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
+                                    (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
+
+                            if (insideEtaRange && insidePtRange) {
+                                ggHi.copy2Vars(i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
+                                std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
+                                double energy = targets_regr[0];
+                                pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
+                                break;
+                            }
+
+                            offset += nReaderVarsInFile[iXML];
+                        }
+                    }
+
+                    ptFinal.push_back(pt);
+                }
+
                 if (runMode[MODES::kSpectra]) {
                     for (int iAna = 0;  iAna < nSpectraAna; ++iAna) {
 
@@ -490,7 +590,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
 
                                 double eta = (*ggHi.phoEta)[i];
-                                double pt  = (*ggHi.phoEt)[i];
+                                double pt  = ptFinal[i];
                                 double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[i];
                                 double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[i];
                                 double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[i];
@@ -601,9 +701,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                     double dR2max = 0.1 * 0.1;
                                     if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
 
-                                    if ((*ggHi.phoEt)[i] > maxPt) {
+                                    double pt = ptFinal[i];
+
+                                    if (pt > maxPt) {
                                         iMax = i;
-                                        maxPt = (*ggHi.phoEt)[i];
+                                        maxPt = pt;
                                     }
                                 }
 
@@ -684,9 +786,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                     double dR2max = 0.1 * 0.1;
                                     if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
 
-                                    if ((*ggHi.phoEt)[i] > maxPt) {
+                                    double pt = ptFinal[i];
+
+                                    if (pt > maxPt) {
                                         iMax = i;
-                                        maxPt = (*ggHi.phoEt)[i];
+                                        maxPt = pt;
                                     }
                                 }
 
@@ -766,9 +870,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                      double dR2max = 0.1 * 0.1;
                                      if (getDR2((*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], (*ggHi.eleEta)[iEle], (*ggHi.elePhi)[iEle]) > dR2max) continue;
 
-                                     if ((*ggHi.phoEt)[i] > maxPt) {
+                                     double pt = ptFinal[i];
+
+                                     if (pt > maxPt) {
                                          iMax = i;
-                                         maxPt = (*ggHi.phoEt)[i];
+                                         maxPt = pt;
                                      }
                                  }
 
@@ -782,7 +888,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             int iPho = candidates[i];
 
                             double eta = (*ggHi.phoEta)[iPho];
-                            double pt  = (*ggHi.phoEt)[iPho];
+                            double pt  = ptFinal[iPho];
                             double hOverE = (*ggHi.phoHoverE)[iPho];
                             double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iPho];
                             double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iPho];
@@ -811,7 +917,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 int iPho = candidates[i];
 
                                 double eta = (*ggHi.phoEta)[iPho];
-                                double pt  = (*ggHi.phoEt)[iPho];
+                                double pt  = ptFinal[iPho];
                                 double ecalIso = (*ggHi.pho_ecalClusterIsoR4)[iPho];
                                 double hcalIso = (*ggHi.pho_hcalRechitIsoR4)[iPho];
                                 double trkIso = (*ggHi.pho_trackIsoR4PtCut20)[iPho];
@@ -831,8 +937,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 int i2 = candidates[1];
 
                                 TLorentzVector v1, v2, vSum;
-                                v1.SetPtEtaPhiM( (*ggHi.phoEt)[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass_ele);
-                                v2.SetPtEtaPhiM( (*ggHi.phoEt)[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass_ele);
+                                v1.SetPtEtaPhiM( ptFinal[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass_ele);
+                                v2.SetPtEtaPhiM( ptFinal[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass_ele);
                                 vSum = v1+v2;
 
                                 std::vector<double> varsTmp = {-999, -1, -1, -999, -1, -1};
@@ -931,6 +1037,18 @@ int readConfiguration(std::string configFile, std::string inputFile)
     treePath = confParser.ReadConfigValue("treePath");
     collisionType = confParser.ReadConfigValueInteger("collisionType");
 
+    // input for TMVA
+    tmvaXMLFiles = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaXMLFiles"));
+    tmvaMethodNames = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaMethodNames"));
+    tmvaReaderVars = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderVariables"));
+    tmvaReaderSpectators = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderSpectators"));
+
+    tmva_bins_eta[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_eta_gt"));
+    tmva_bins_eta[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_eta_lt"));
+
+    tmva_bins_pt[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_pt_gt"));
+    tmva_bins_pt[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("tmva_bins_pt_lt"));
+
     // runRanges contains the run ranges to process
     // runRanges = {222333, 222555;;; 333000, 333999} means that
     // events with 222333 <= Run <= 222555 OR 333000 <= Run <= 333999 will be processed.
@@ -1021,6 +1139,23 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (rightMargin == 0) rightMargin = 0.05;
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
+
+    nTmvaXMLFiles = tmvaXMLFiles.size();
+    nTmvaMethods = tmvaMethodNames.size();
+    while ((int)tmva_bins_eta[0].size() < nTmvaXMLFiles) {
+        tmva_bins_eta[0].push_back(0);
+    }
+    while ((int)tmva_bins_eta[1].size() < nTmvaXMLFiles) {
+        tmva_bins_eta[1].push_back(-1);
+    }
+    while ((int)tmva_bins_pt[0].size() < nTmvaXMLFiles) {
+        tmva_bins_pt[0].push_back(0);
+    }
+    while ((int)tmva_bins_pt[1].size() < nTmvaXMLFiles) {
+        tmva_bins_pt[1].push_back(-1);
+    }
+    nTmva_bins_eta = tmva_bins_eta[0].size();
+    nTmva_bins_pt = tmva_bins_pt[0].size();
 
     collisionName =  getCollisionTypeName((COLL::TYPE)collisionType).c_str();
     nRunRanges = runRanges.size();
@@ -1133,6 +1268,51 @@ void printConfiguration()
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "collision = " << collisionName.c_str() << std::endl;
+
+    std::cout << "nTmvaXMLFiles = " << nTmvaXMLFiles << std::endl;
+    for (int i = 0; i < nTmvaXMLFiles; ++i) {
+        std::cout << Form("tmvaXMLFiles[%d] = %s", i, tmvaXMLFiles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTmvaMethod = " << nTmvaMethods << std::endl;
+    for (int i = 0; i < nTmvaMethods; ++i) {
+        std::cout << Form("tmvaMethodNames[%d] = %s", i, tmvaMethodNames.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<std::string> tmvaReaderVarsStr = ConfigurationParser::getVecString(tmvaReaderVars);
+    std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+    std::vector<std::string> tmvaReaderSpecsStr = ConfigurationParser::getVecString(tmvaReaderSpectators);
+    std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+    for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+        int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+        std::cout << "Number of reader variables for XML file " << iXML << " = " << nVarsTmp << std::endl;
+        std::cout << "Reader variables for XML file " << iXML << " are :" << std::endl;
+
+        int iStart = findInVector(tmvaReaderVarIndices, iXML);
+        for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderVars[%d] = %s", i-iStart, tmvaReaderVarsStr.at(i).c_str()) << std::endl;
+        }
+
+        int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+        std::cout << "Number of spectators for XML file " << iXML << " = " << nSpecsTmp << std::endl;
+        std::cout << "Spectators for XML file " << iXML << " are :" << std::endl;
+
+        iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+        for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderSpectators[%d] = %s", i-iStart, tmvaReaderSpecsStr.at(i).c_str()) << std::endl;
+        }
+    }
+
+    std::cout << "nTmva_bins_eta = " << nTmva_bins_eta << std::endl;
+    for (int i=0; i<nTmva_bins_eta; ++i) {
+        std::cout << Form("tmva_bins_eta[%d] = [%f, %f)", i, tmva_bins_eta[0].at(i), tmva_bins_eta[1].at(i)) << std::endl;
+    }
+    std::cout << "nTmva_bins_pt = " << nTmva_bins_pt << std::endl;
+    for (int i=0; i<nTmva_bins_pt; ++i) {
+        std::cout << Form("tmva_bins_pt[%d] = [%f, %f)", i, tmva_bins_pt[0].at(i), tmva_bins_pt[1].at(i)) << std::endl;
+    }
 
     std::cout << "nRunRanges (run ranges to process) = " << nRunRanges << std::endl;
     for (int i = 0; i < nRunRanges; i+=2) {
