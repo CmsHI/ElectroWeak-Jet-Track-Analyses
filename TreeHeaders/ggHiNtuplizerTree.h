@@ -314,7 +314,7 @@ public :
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
-  bool passedMuSelection(int i);
+  bool passedMuSelection(int i, int collType);
   double getValueByName(int i, std::string varName);
   void copy2Vars(int i, float *vals, std::vector<std::string>& varNames, int nVars, int offset);
 
@@ -1783,21 +1783,56 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
     return true;
 }
 
-bool ggHiNtuplizer::passedMuSelection(int i)
+bool ggHiNtuplizer::passedMuSelection(int i, int collType)
 {
-    // tight muon ID from 2015 PbPb
-    if (std::fabs((*muEta)[i]) < 2.4)
-    {
-        if (!((*muChi2NDF)[i] < 10)) return false;
-        if (!(std::fabs((*muInnerD0)[i]) < 0.2)) return false;
-        if (!(std::fabs((*muInnerDz)[i]) < 0.5)) return false;
-        if (!((*muMuonHits)[i] > 0)) return false;
-        if (!((*muStations)[i] > 1)) return false;
-        if (!((*muTrkLayers)[i] > 5)) return false;
-        if (!((*muPixelHits)[i] > 0)) return false;
+    if (collisionIsHI((COLL::TYPE)collType)) {
+        // tight muon ID from 2015 PbPb
+        if (std::fabs((*muEta)[i]) < 2.4)
+        {
+            if (!((*muChi2NDF)[i] < 10)) return false;
+            if (!(std::fabs((*muInnerD0)[i]) < 0.2)) return false;
+            if (!(std::fabs((*muInnerDz)[i]) < 0.5)) return false;
+            if (!((*muMuonHits)[i] > 0)) return false;
+            if (!((*muStations)[i] > 1)) return false;
+            if (!((*muTrkLayers)[i] > 5)) return false;
+            if (!((*muPixelHits)[i] > 0)) return false;
+        }
+        else {
+            return false;
+        }
+    }
+    else if (collisionIsHI2018((COLL::TYPE)collType)) {
+        // tight muon ID from 2018 PbPb
+        if (std::fabs((*muEta)[i]) < 2.4)
+        {
+            if (!((*muIsGlobal)[i] > 0)) return false;
+            if (!((*muIsPF)[i] > 0)) return false;
+            if (!((*muChi2NDF)[i] < 10)) return false;
+            if (!(std::fabs((*muInnerD0)[i]) < 0.2)) return false;
+            if (!(std::fabs((*muInnerDz)[i]) < 0.5)) return false;
+            if (!((*muMuonHits)[i] > 0)) return false;
+            if (!((*muStations)[i] > 1)) return false;
+            if (!((*muTrkLayers)[i] > 5)) return false;
+            if (!((*muPixelHits)[i] > 0)) return false;
+        }
+        else {
+            return false;
+        }
     }
     else {
-        return false;
+        if (std::fabs((*muEta)[i]) < 2.4)
+        {
+            if (!((*muChi2NDF)[i] < 10)) return false;
+            if (!(std::fabs((*muInnerD0)[i]) < 0.2)) return false;
+            if (!(std::fabs((*muInnerDz)[i]) < 0.5)) return false;
+            if (!((*muMuonHits)[i] > 0)) return false;
+            if (!((*muStations)[i] > 1)) return false;
+            if (!((*muTrkLayers)[i] > 5)) return false;
+            if (!((*muPixelHits)[i] > 0)) return false;
+        }
+        else {
+            return false;
+        }
     }
 
     return true;
