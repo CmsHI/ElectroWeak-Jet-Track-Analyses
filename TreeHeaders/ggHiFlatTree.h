@@ -325,11 +325,20 @@ public :
   int muCharge;
   int muType;
   int muIsGood;
+  int muIsGlobal;
+  int muIsTracker;
+  int muIsPF;
+  int muIsSTA;
   float muD0;
   float muDz;
   float muChi2NDF;
   float muInnerD0;
   float muInnerDz;
+  float muInnerD0Err;
+  float muInnerDzErr;
+  float muInnerPt;
+  float muInnerPtErr;
+  float muInnerEta;
   int muTrkLayers;
   int muPixelLayers;
   int muPixelHits;
@@ -635,11 +644,20 @@ public :
   TBranch        *b_muCharge;   //!
   TBranch        *b_muType;   //!
   TBranch        *b_muIsGood;   //!
+  TBranch        *b_muIsGlobal;   //!
+  TBranch        *b_muIsTracker;   //!
+  TBranch        *b_muIsPF;   //!
+  TBranch        *b_muIsSTA;   //!
   TBranch        *b_muD0;   //!
   TBranch        *b_muDz;   //!
   TBranch        *b_muChi2NDF;   //!
   TBranch        *b_muInnerD0;   //!
   TBranch        *b_muInnerDz;   //!
+  TBranch        *b_muInnerD0Err;   //!
+  TBranch        *b_muInnerDzErr;   //!
+  TBranch        *b_muInnerPt;   //!
+  TBranch        *b_muInnerPtErr;   //!
+  TBranch        *b_muInnerEta;   //!
   TBranch        *b_muTrkLayers;   //!
   TBranch        *b_muPixelLayers;   //!
   TBranch        *b_muPixelHits;   //!
@@ -946,11 +964,20 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_muCharge = 0;
     b_muType = 0;
     b_muIsGood = 0;
+    b_muIsGlobal = 0;
+    b_muIsTracker = 0;
+    b_muIsPF = 0;
+    b_muIsSTA = 0;
     b_muD0 = 0;
     b_muDz = 0;
     b_muChi2NDF = 0;
     b_muInnerD0 = 0;
     b_muInnerDz = 0;
+    b_muInnerD0Err = 0;
+    b_muInnerDzErr = 0;
+    b_muInnerPt = 0;
+    b_muInnerPtErr = 0;
+    b_muInnerEta = 0;
     b_muTrkLayers = 0;
     b_muPixelLayers = 0;
     b_muPixelHits = 0;
@@ -1254,11 +1281,20 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("muCharge")) t->SetBranchAddress("muCharge", &muCharge, &b_muCharge);
     if (t->GetBranch("muType")) t->SetBranchAddress("muType", &muType, &b_muType);
     if (t->GetBranch("muIsGood")) t->SetBranchAddress("muIsGood", &muIsGood, &b_muIsGood);
+    if (t->GetBranch("muIsGlobal")) t->SetBranchAddress("muIsGlobal", &muIsGlobal, &b_muIsGlobal);
+    if (t->GetBranch("muIsTracker")) t->SetBranchAddress("muIsTracker", &muIsTracker, &b_muIsTracker);
+    if (t->GetBranch("muIsPF")) t->SetBranchAddress("muIsPF", &muIsPF, &b_muIsPF);
+    if (t->GetBranch("muIsSTA")) t->SetBranchAddress("muIsSTA", &muIsSTA, &b_muIsSTA);
     if (t->GetBranch("muD0")) t->SetBranchAddress("muD0", &muD0, &b_muD0);
     if (t->GetBranch("muDz")) t->SetBranchAddress("muDz", &muDz, &b_muDz);
     if (t->GetBranch("muChi2NDF")) t->SetBranchAddress("muChi2NDF", &muChi2NDF, &b_muChi2NDF);
     if (t->GetBranch("muInnerD0")) t->SetBranchAddress("muInnerD0", &muInnerD0, &b_muInnerD0);
     if (t->GetBranch("muInnerDz")) t->SetBranchAddress("muInnerDz", &muInnerDz, &b_muInnerDz);
+    if (t->GetBranch("muInnerD0Err")) t->SetBranchAddress("muInnerD0Err", &muInnerD0Err, &b_muInnerD0Err);
+    if (t->GetBranch("muInnerDzErr")) t->SetBranchAddress("muInnerDzErr", &muInnerDzErr, &b_muInnerDzErr);
+    if (t->GetBranch("muInnerPt")) t->SetBranchAddress("muInnerPt", &muInnerPt, &b_muInnerPt);
+    if (t->GetBranch("muInnerPtErr")) t->SetBranchAddress("muInnerPtErr", &muInnerPtErr, &b_muInnerPtErr);
+    if (t->GetBranch("muInnerEta")) t->SetBranchAddress("muInnerEta", &muInnerEta, &b_muInnerEta);
     if (t->GetBranch("muTrkLayers")) t->SetBranchAddress("muTrkLayers", &muTrkLayers, &b_muTrkLayers);
     if (t->GetBranch("muPixelLayers")) t->SetBranchAddress("muPixelLayers", &muPixelLayers, &b_muPixelLayers);
     if (t->GetBranch("muPixelHits")) t->SetBranchAddress("muPixelHits", &muPixelHits, &b_muPixelHits);
@@ -1570,11 +1606,20 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("muCharge", &muCharge);
         t->Branch("muType", &muType);
         t->Branch("muIsGood", &muIsGood);
+        t->Branch("muIsGlobal", &muIsGlobal);
+        t->Branch("muIsTracker", &muIsTracker);
+        t->Branch("muIsPF", &muIsPF);
+        t->Branch("muIsSTA", &muIsSTA);
         t->Branch("muD0", &muD0);
         t->Branch("muDz", &muDz);
         t->Branch("muChi2NDF", &muChi2NDF);
         t->Branch("muInnerD0", &muInnerD0);
         t->Branch("muInnerDz", &muInnerDz);
+        t->Branch("muInnerD0Err", &muInnerD0Err);
+        t->Branch("muInnerDzErr", &muInnerDzErr);
+        t->Branch("muInnerPt", &muInnerPt);
+        t->Branch("muInnerPtErr", &muInnerPtErr);
+        t->Branch("muInnerEta", &muInnerEta);
         t->Branch("muTrkLayers", &muTrkLayers);
         t->Branch("muPixelLayers", &muPixelLayers);
         t->Branch("muPixelHits", &muPixelHits);
@@ -1877,11 +1922,20 @@ void ggHiFlat::clearEntryMu()
         muCharge = -987987;
         muType = -987987;
         muIsGood = -987987;
+        muIsGlobal = -987987;
+        muIsTracker = -987987;
+        muIsPF = -987987;
+        muIsSTA = -987987;
         muD0 = -987987;
         muDz = -987987;
         muChi2NDF = -987987;
         muInnerD0 = -987987;
         muInnerDz = -987987;
+        muInnerD0Err = -987987;
+        muInnerDzErr = -987987;
+        muInnerPt = -987987;
+        muInnerPtErr = -987987;
+        muInnerEta = -987987;
         muTrkLayers = -987987;
         muPixelLayers = -987987;
         muPixelHits = -987987;
@@ -2225,11 +2279,20 @@ void ggHiFlat::copyMu(ggHiNtuplizer &tggHiNtuplizer, int i)
     muCharge = (*tggHiNtuplizer.muCharge)[i];
     muType = (*tggHiNtuplizer.muType)[i];
     muIsGood = (*tggHiNtuplizer.muIsGood)[i];
+    muIsGlobal = (*tggHiNtuplizer.muIsGlobal)[i];
+    muIsTracker = (*tggHiNtuplizer.muIsTracker)[i];
+    muIsPF = (*tggHiNtuplizer.muIsPF)[i];
+    muIsSTA = (*tggHiNtuplizer.muIsSTA)[i];
     muD0 = (*tggHiNtuplizer.muD0)[i];
     muDz = (*tggHiNtuplizer.muDz)[i];
     muChi2NDF = (*tggHiNtuplizer.muChi2NDF)[i];
     muInnerD0 = (*tggHiNtuplizer.muInnerD0)[i];
     muInnerDz = (*tggHiNtuplizer.muInnerDz)[i];
+    muInnerD0Err = (*tggHiNtuplizer.muInnerD0Err)[i];
+    muInnerDzErr = (*tggHiNtuplizer.muInnerDzErr)[i];
+    muInnerPt = (*tggHiNtuplizer.muInnerPt)[i];
+    muInnerPtErr = (*tggHiNtuplizer.muInnerPtErr)[i];
+    muInnerEta = (*tggHiNtuplizer.muInnerEta)[i];
     muTrkLayers = (*tggHiNtuplizer.muTrkLayers)[i];
     muPixelLayers = (*tggHiNtuplizer.muPixelLayers)[i];
     muPixelHits = (*tggHiNtuplizer.muPixelHits)[i];

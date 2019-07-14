@@ -279,11 +279,20 @@ public :
     muCharge = 0;
     muType = 0;
     muIsGood = 0;
+    muIsGlobal = 0;
+    muIsTracker = 0;
+    muIsPF = 0;
+    muIsSTA = 0;
     muD0 = 0;
     muDz = 0;
     muChi2NDF = 0;
     muInnerD0 = 0;
     muInnerDz = 0;
+    muInnerD0Err = 0;
+    muInnerDzErr = 0;
+    muInnerPt = 0;
+    muInnerPtErr = 0;
+    muInnerEta = 0;
     muTrkLayers = 0;
     muPixelLayers = 0;
     muPixelHits = 0;
@@ -591,11 +600,20 @@ public :
   std::vector<int>     *muCharge;
   std::vector<int>     *muType;
   std::vector<int>     *muIsGood;
+  std::vector<int>     *muIsGlobal;
+  std::vector<int>     *muIsTracker;
+  std::vector<int>     *muIsPF;
+  std::vector<int>     *muIsSTA;
   std::vector<float>   *muD0;
   std::vector<float>   *muDz;
   std::vector<float>   *muChi2NDF;
   std::vector<float>   *muInnerD0;
   std::vector<float>   *muInnerDz;
+  std::vector<float>   *muInnerD0Err;
+  std::vector<float>   *muInnerDzErr;
+  std::vector<float>   *muInnerPt;
+  std::vector<float>   *muInnerPtErr;
+  std::vector<float>   *muInnerEta;
   std::vector<int>     *muTrkLayers;
   std::vector<int>     *muPixelLayers;
   std::vector<int>     *muPixelHits;
@@ -892,11 +910,20 @@ public :
   TBranch        *b_muCharge;   //!
   TBranch        *b_muType;   //!
   TBranch        *b_muIsGood;   //!
+  TBranch        *b_muIsGlobal;   //!
+  TBranch        *b_muIsTracker;   //!
+  TBranch        *b_muIsPF;   //!
+  TBranch        *b_muIsSTA;   //!
   TBranch        *b_muD0;   //!
   TBranch        *b_muDz;   //!
   TBranch        *b_muChi2NDF;   //!
   TBranch        *b_muInnerD0;   //!
   TBranch        *b_muInnerDz;   //!
+  TBranch        *b_muInnerD0Err;   //!
+  TBranch        *b_muInnerDzErr;   //!
+  TBranch        *b_muInnerPt;   //!
+  TBranch        *b_muInnerPtErr;   //!
+  TBranch        *b_muInnerEta;   //!
   TBranch        *b_muTrkLayers;   //!
   TBranch        *b_muPixelLayers;   //!
   TBranch        *b_muPixelHits;   //!
@@ -1193,11 +1220,20 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_muCharge = 0;
     b_muType = 0;
     b_muIsGood = 0;
+    b_muIsGlobal = 0;
+    b_muIsTracker = 0;
+    b_muIsPF = 0;
+    b_muIsSTA = 0;
     b_muD0 = 0;
     b_muDz = 0;
     b_muChi2NDF = 0;
     b_muInnerD0 = 0;
     b_muInnerDz = 0;
+    b_muInnerD0Err = 0;
+    b_muInnerDzErr = 0;
+    b_muInnerPt = 0;
+    b_muInnerPtErr = 0;
+    b_muInnerEta = 0;
     b_muTrkLayers = 0;
     b_muPixelLayers = 0;
     b_muPixelHits = 0;
@@ -1492,11 +1528,20 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("muCharge")) t->SetBranchAddress("muCharge", &muCharge, &b_muCharge);
     if (t->GetBranch("muType")) t->SetBranchAddress("muType", &muType, &b_muType);
     if (t->GetBranch("muIsGood")) t->SetBranchAddress("muIsGood", &muIsGood, &b_muIsGood);
+    if (t->GetBranch("muIsGlobal")) t->SetBranchAddress("muIsGlobal", &muIsGlobal, &b_muIsGlobal);
+    if (t->GetBranch("muIsTracker")) t->SetBranchAddress("muIsTracker", &muIsTracker, &b_muIsTracker);
+    if (t->GetBranch("muIsPF")) t->SetBranchAddress("muIsPF", &muIsPF, &b_muIsPF);
+    if (t->GetBranch("muIsSTA")) t->SetBranchAddress("muIsSTA", &muIsSTA, &b_muIsSTA);
     if (t->GetBranch("muD0")) t->SetBranchAddress("muD0", &muD0, &b_muD0);
     if (t->GetBranch("muDz")) t->SetBranchAddress("muDz", &muDz, &b_muDz);
     if (t->GetBranch("muChi2NDF")) t->SetBranchAddress("muChi2NDF", &muChi2NDF, &b_muChi2NDF);
     if (t->GetBranch("muInnerD0")) t->SetBranchAddress("muInnerD0", &muInnerD0, &b_muInnerD0);
     if (t->GetBranch("muInnerDz")) t->SetBranchAddress("muInnerDz", &muInnerDz, &b_muInnerDz);
+    if (t->GetBranch("muInnerD0Err")) t->SetBranchAddress("muInnerD0Err", &muInnerD0Err, &b_muInnerD0Err);
+    if (t->GetBranch("muInnerDzErr")) t->SetBranchAddress("muInnerDzErr", &muInnerDzErr, &b_muInnerDzErr);
+    if (t->GetBranch("muInnerPt")) t->SetBranchAddress("muInnerPt", &muInnerPt, &b_muInnerPt);
+    if (t->GetBranch("muInnerPtErr")) t->SetBranchAddress("muInnerPtErr", &muInnerPtErr, &b_muInnerPtErr);
+    if (t->GetBranch("muInnerEta")) t->SetBranchAddress("muInnerEta", &muInnerEta, &b_muInnerEta);
     if (t->GetBranch("muTrkLayers")) t->SetBranchAddress("muTrkLayers", &muTrkLayers, &b_muTrkLayers);
     if (t->GetBranch("muPixelLayers")) t->SetBranchAddress("muPixelLayers", &muPixelLayers, &b_muPixelLayers);
     if (t->GetBranch("muPixelHits")) t->SetBranchAddress("muPixelHits", &muPixelHits, &b_muPixelHits);
