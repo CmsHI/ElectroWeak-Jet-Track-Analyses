@@ -3,12 +3,9 @@
 
 #include <TTree.h>
 #include <TMath.h>
-#include <TLorentzVector.h>
 #include <TVector3.h>
 
 #include <vector>
-
-#include "../Utilities/physicsUtil.h"
 
 class mixEventSkim {
 public :
