@@ -174,6 +174,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool vIsZee = (toLowerCase(vType).find("zee") == 0);
     bool vIsZ = vIsZmm || vIsZee;
 
+    bool doTrkVtx = isPP;
+
     // input trees
     TTree* treeHLT = 0;
     TTree* treeggHiNtuplizer = 0;
@@ -314,7 +316,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 setTreeJet(treesMixJet[i][iJ], isMC);
             }
             treeMixTrack[i] = (TTree*)mixFiles[i]->Get(treePathTrack.c_str());
-            setTreeTrack(treeMixTrack[i]);
+            setTreeTrack(treeMixTrack[i], doTrkVtx);
             treeMixSkim[i] = (TTree*)mixFiles[i]->Get(treePathSkimAna.c_str());
             setTreeSkimAna(treeMixSkim[i]);
             if (isMC) {
@@ -408,7 +410,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-                setTreeTrack(treeMixTrack[i]);
+                setTreeTrack(treeMixTrack[i], doTrkVtx);
             }
         }
         std::cout <<"### Splitting mix events into event categories - END"<<std::endl;
@@ -484,7 +486,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         }
 
         treeTrack = (TTree*)fileTmp->Get(treePathTrack.c_str());
-        setTreeTrack(treeTrack);
+        setTreeTrack(treeTrack, doTrkVtx);
 
         // specify explicitly which branches to use, do not use wildcard
         treeSkim = (TTree*)fileTmp->Get(treePathSkimAna.c_str());
@@ -750,7 +752,13 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 trkskim.pfEcal.push_back(trks.pfEcal[i]);
                 trkskim.pfHcal.push_back(trks.pfHcal[i]);
                 trkskim.trkWeight.push_back(1);
+                if (doTrkVtx) {
+                    trkskim.trkNVtx.push_back(trks.trkNVtx[i]);
+                }
                 trkskim.nTrk++;
+            }
+            if (doTrkVtx) {
+                trkskim.nVtx = trks.nVtx;
             }
 
             if (isMC) {

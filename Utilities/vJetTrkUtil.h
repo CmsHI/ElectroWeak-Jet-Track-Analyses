@@ -33,7 +33,7 @@ const std::string ewObjsStr[kN_EWOBJS] = {"photon", "zBoson"};
 int ewObj;
 
 // variables for mix event files
-const int nCentBins = 800;  // event size can be centrality, multiplicity, transverse energy
+const int nCentBins = 800;  // event activity can be centrality, multiplicity, transverse energy, energy density, etc.
 const int nVzBins = 15;
 const int nEventPlaneBins = 8;
 
@@ -69,7 +69,7 @@ enum RBS {
 
 void setTreeHiEvt(TTree* t, bool isMC = false);
 void setTreeJet(TTree* t, bool isMC = false);
-void setTreeTrack(TTree* t);
+void setTreeTrack(TTree* t, bool enableVtx = false);
 void setTreeSkimAna(TTree* t);
 void setTreeHiGenParticle(TTree* t);
 int getHiBin(int hiBin);
@@ -142,7 +142,7 @@ void setTreeJet(TTree* t, bool isMC)
     }
 }
 
-void setTreeTrack(TTree* t)
+void setTreeTrack(TTree* t, bool enableVtx)
 {
     // specify explicitly which branches to use, do not use wildcard
     t->SetBranchStatus("*",0);     // disable all branches
@@ -167,6 +167,14 @@ void setTreeTrack(TTree* t)
     //t->SetBranchStatus("loose",1);
     t->SetBranchStatus("pfHcal",1);
     t->SetBranchStatus("pfEcal",1);
+
+    if (enableVtx) {
+        // vertex related
+        t->SetBranchStatus("nVtx",1);
+        t->SetBranchStatus("trkNVtx",1);
+        t->SetBranchStatus("nTrkTimesnVtx",1);
+        t->SetBranchStatus("trkAssocVtx",1);
+    }
 }
 
 void setTreeSkimAna(TTree* t)

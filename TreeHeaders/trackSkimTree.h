@@ -61,7 +61,9 @@ public :
 
     // to be used when writing
     // tracks
-    Int_t nTrk;
+    int nTrk;
+    int nVtx;
+
     std::vector<float>   trkPt;
     std::vector<float>   trkEta;
     std::vector<float>   trkPhi;
@@ -80,6 +82,7 @@ public :
     std::vector<float>   trkMVA;
     std::vector<float>   pfEcal;
     std::vector<float>   pfHcal;
+    std::vector<unsigned char> trkNVtx;
     std::vector<float>   trkWeight;
 
     // gen particles
@@ -127,6 +130,7 @@ public :
     std::vector<float> *p_trkMVA;
     std::vector<float> *p_pfEcal;
     std::vector<float> *p_pfHcal;
+    std::vector<unsigned char> *p_trkNVtx;
     std::vector<float> *p_trkWeight;
 
     // gen particles
@@ -154,6 +158,8 @@ public :
 
      // List of branches
     TBranch *b_nTrk;
+    TBranch *b_nVtx;
+
     TBranch *b_trkPt;
     TBranch *b_trkEta;
     TBranch *b_trkPhi;
@@ -172,6 +178,7 @@ public :
     TBranch *b_trkMVA;
     TBranch *b_pfEcal;
     TBranch *b_pfHcal;
+    TBranch *b_trkNVtx;
     TBranch *b_trkWeight;
 
     TBranch *b_mult;
@@ -202,6 +209,8 @@ public :
 void trackSkim::setupTreeForReading(TTree *t)
 {
     b_nTrk = 0;
+    b_nVtx = 0;
+
     b_trkPt = 0;
     b_trkEta = 0;
     b_trkPhi = 0;
@@ -220,6 +229,7 @@ void trackSkim::setupTreeForReading(TTree *t)
     b_trkMVA = 0;
     b_pfEcal = 0;
     b_pfHcal = 0;
+    b_trkNVtx = 0;
     b_trkWeight = 0;
 
     b_mult = 0;
@@ -247,6 +257,8 @@ void trackSkim::setupTreeForReading(TTree *t)
     b_evtgen_mix = 0;
 
     if (t->GetBranch("nTrk"))  t->SetBranchAddress("nTrk", &nTrk, &b_nTrk);
+    if (t->GetBranch("nVtx"))  t->SetBranchAddress("nVtx", &nVtx, &b_nVtx);
+
     if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &p_trkPt, &b_trkPt);
     if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &p_trkEta, &b_trkEta);
     if (t->GetBranch("trkPhi"))  t->SetBranchAddress("trkPhi", &p_trkPhi, &b_trkPhi);
@@ -265,6 +277,7 @@ void trackSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("trkMVA"))  t->SetBranchAddress("trkMVA", &p_trkMVA, &b_trkMVA);
     if (t->GetBranch("pfEcal"))  t->SetBranchAddress("pfEcal", &p_pfEcal, &b_pfEcal);
     if (t->GetBranch("pfHcal"))  t->SetBranchAddress("pfHcal", &p_pfHcal, &b_pfHcal);
+    if (t->GetBranch("trkNVtx"))  t->SetBranchAddress("trkNVtx", &p_trkNVtx, &b_trkNVtx);
     if (t->GetBranch("trkWeight"))  t->SetBranchAddress("trkWeight", &p_trkWeight, &b_trkWeight);
 
     if (t->GetBranch("mult"))  t->SetBranchAddress("mult", &mult, &b_mult);
@@ -295,6 +308,8 @@ void trackSkim::setupTreeForReading(TTree *t)
 void trackSkim::setupTreeForWriting(TTree *t)
 {
     t->Branch("nTrk", &nTrk);
+    t->Branch("nVtx", &nVtx);
+
     t->Branch("trkPt", &trkPt);
     t->Branch("trkEta", &trkEta);
     t->Branch("trkPhi", &trkPhi);
@@ -314,6 +329,7 @@ void trackSkim::setupTreeForWriting(TTree *t)
     t->Branch("pfEcal", &pfEcal);
     t->Branch("pfHcal", &pfHcal);
     t->Branch("trkWeight", &trkWeight);
+    t->Branch("trkNVtx", &trkNVtx);
 
     t->Branch("mult", &mult);
     t->Branch("pt", &pt);
@@ -344,6 +360,7 @@ void trackSkim::clearEvent()
 {
     nTrk = 0;
     mult = 0;
+    nVtx = 0;
 
     trkPt.clear();
     trkEta.clear();
@@ -363,6 +380,7 @@ void trackSkim::clearEvent()
     trkMVA.clear();
     pfEcal.clear();
     pfHcal.clear();
+    trkNVtx.clear();
     trkWeight.clear();
 
     pt.clear();
