@@ -185,9 +185,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* treeSkim = 0;
 
     std::string treePathHLT = "hltanalysis/HltTree";
-    if (isPP17data) {
-        //treePathHLT = "hltanalysisReco/HltTree";
-    }
     std::string treePathHiEvt = "hiEvtAnalyzer/HiTree";
     std::string treePathTrack = "ppTrack/trackTree";
     if (isPbPb15) {
@@ -413,38 +410,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                 setTreeTrack(treeMixTrack[i]);
             }
-
-            {
-//                treeMixHiEvt[i]->SetCacheSize(90000000000U);
-//                treeMixTrack[i]->SetCacheSize(90000000000U);
-//                treeMixSkim[i]->SetCacheSize(90000000000U);
-//                for (int iJ = 0; iJ < nJetCollections; ++iJ) {
-//                    treesMixJet[i][iJ]->SetCacheSize(90000000000U);
-//                }
-//                treeMixHiEvt[i]->AddBranchToCache("*");
-//                treeMixTrack[i]->AddBranchToCache("*");
-//                treeMixSkim[i]->AddBranchToCache("*");
-//                std::cout << "treeMixHiEvt[i]->SetCacheEntryRange = " << treeMixHiEvt[i]->SetCacheEntryRange(0, entriesMixTmp) << std::endl;
-//                std::cout << "treeMixTrack[i]->SetCacheEntryRange = " << treeMixTrack[i]->SetCacheEntryRange(0, entriesMixTmp) << std::endl;
-//                std::cout << "treeMixSkim[i]->SetCacheEntryRange = " << treeMixSkim[i]->SetCacheEntryRange(0, entriesMixTmp) << std::endl;
-//                for (int iJ = 0; iJ < nJetCollections; ++iJ) {
-//                    std::cout << "treesMixJet[i][iJ]->SetCacheEntryRange = " << treesMixJet[i][iJ]->SetCacheEntryRange(0, entriesMixTmp) << std::endl;
-//                }
-//                treeMixHiEvt[i]->SetCircular(50000);
-//                treeMixTrack[i]->SetCircular(50000);
-//                treeMixSkim[i]->SetCircular(50000);
-//                treeMixHiEvt[i]->KeepCircular();
-//                treeMixTrack[i]->KeepCircular();
-//                treeMixSkim[i]->KeepCircular();
-            }
         }
         std::cout <<"### Splitting mix events into event categories - END"<<std::endl;
 
         for (int iCent = 0; iCent < VJT::nCentBins; ++iCent) {
             for (int iVz = 0; iVz < VJT::nVzBins; ++iVz) {
                 for (int iEP = 0; iEP < VJT::nEventPlaneBins; ++iEP) {
-
-                    //if (VJT::mixMethod == VJT::MIXMETHODS::k_match_multperp && iCent > 0) continue;
 
                     int nTmp = entriesMixedEvent[iCent][iVz][iEP].v.size();
 
@@ -463,27 +434,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         }
 
     }
-
-    /*
-    int startMixFile[nHiBins][nVzBins][nEventPlaneBins];
-    Long64_t startMixEvent[nHiBins][nVzBins][nEventPlaneBins];
-    int indexMixEvent[nHiBins][nVzBins][nEventPlaneBins];
-    bool usedAllMixEvents[nHiBins][nVzBins][nEventPlaneBins];
-    bool rolledBack[nHiBins][nVzBins][nEventPlaneBins];
-    if (mixEvents) {
-        for (int i1 = 0; i1 < nHiBins; ++i1) {
-            for (int i2 = 0; i2 < nVzBins; ++i2) {
-                for (int i3 = 0; i3 < nEventPlaneBins; ++i3) {
-                    startMixFile[i1][i2][i3] = 0;
-                    startMixEvent[i1][i2][i3] = 0;
-                    indexMixEvent[i1][i2][i3] = 0;
-                    usedAllMixEvents[i1][i2][i3] = false;
-                    rolledBack[i1][i2][i3] = false;
-                }
-            }
-        }
-    }
-    */
 
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
