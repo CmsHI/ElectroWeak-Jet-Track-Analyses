@@ -8,8 +8,8 @@
 
 const unsigned int maxNVtx = 10;
 const unsigned int maxNVtxSim = 10;
-const unsigned int maxNTrk = 100000;
-const unsigned int maxNTrkTimesnVtx = 100000;
+const unsigned int maxNTrk = 50000;
+const unsigned int maxNTrkTimesnVtx = 50000;
 
 class Tracks {
 public :
@@ -152,6 +152,70 @@ public :
 
 void Tracks::setupTreeForReading(TTree *t)
 {
+    b_nEv = 0;
+    b_nLumi = 0;
+    b_nBX = 0;
+    b_nRun = 0;
+    b_N = 0;
+    b_nVtx = 0;
+    b_nTrk = 0;
+    b_maxPtVtx = 0;
+    b_maxMultVtx = 0;
+    b_nTrkVtx = 0;
+    b_normChi2Vtx = 0;
+    b_sumPtVtx = 0;
+    b_xVtx = 0;
+    b_yVtx = 0;
+    b_zVtx = 0;
+    b_xVtxErr = 0;
+    b_yVtxErr = 0;
+    b_zVtxErr = 0;
+    b_vtxDist2D = 0;
+    b_vtxDist2DErr = 0;
+    b_vtxDist2DSig = 0;
+    b_vtxDist3D = 0;
+    b_vtxDist3DErr = 0;
+    b_vtxDist3DSig = 0;
+
+    b_nVtxSim = 0;
+    b_xVtxSim = 0;
+    b_yVtxSim = 0;
+    b_zVtxSim = 0;
+
+    b_trkPt = 0;
+    b_trkPtError = 0;
+    b_trkNHit = 0;
+    b_trkNlayer = 0;
+    b_trkEta = 0;
+    b_trkPhi = 0;
+    b_trkCharge = 0;
+    b_trkNVtx = 0;
+    b_trkVtxIndex = 0;
+    b_nTrkTimesnVtx = 0;
+    b_trkAssocVtx = 0;
+    b_trkDxyOverDxyError = 0;
+    b_trkDzOverDzError = 0;
+    b_highPurity = 0;
+    b_tight = 0;
+    b_loose = 0;
+    b_trkChi2 = 0;
+    b_trkNdof = 0;
+    b_trkDxy1 = 0;
+    b_trkDxyError1 = 0;
+    b_trkDz1 = 0;
+    b_trkDzError1 = 0;
+    b_trkFake = 0;
+    b_trkAlgo = 0;
+    b_trkOriginalAlgo = 0;
+    b_trkMVA = 0;
+    b_trkMVALoose = 0;
+    b_trkMVATight = 0;
+    b_dedx = 0;
+    b_pfType = 0;
+    b_pfCandPt = 0;
+    b_pfEcal = 0;
+    b_pfHcal = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("nEv"))  t->SetBranchAddress("nEv", &nEv, &b_nEv);
     if (t->GetBranch("nLumi"))  t->SetBranchAddress("nLumi", &nLumi, &b_nLumi);
