@@ -84,6 +84,33 @@ public :
 
 void hiGenParticle::setupTreeForReading(TTree *t)
 {
+    b_event = 0;
+    b_b = 0;
+    b_npart = 0;
+    b_ncoll = 0;
+    b_nhard = 0;
+    b_phi0 = 0;
+    b_scale = 0;
+    b_n = 0;
+    b_ptav = 0;
+    b_mult = 0;
+    b_pt = 0;
+    b_eta = 0;
+    b_phi = 0;
+    b_pdg = 0;
+    b_chg = 0;
+    b_matchingID = 0;
+    b_nMothers = 0;
+    b_motherIdx = 0;
+    b_nDaughters = 0;
+    b_daughterIdx = 0;
+    b_sta = 0;
+    b_sube = 0;
+    b_vx = 0;
+    b_vy = 0;
+    b_vz = 0;
+    b_vr = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("event"))  t->SetBranchAddress("event", &event, &b_event);
     if (t->GetBranch("b"))  t->SetBranchAddress("b", &b, &b_b);
