@@ -413,6 +413,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         treeMixggHiNtuplizer[i]->GetEntry(j_entry_mix);
                         iCent = getRhoBin(ggHiMix[i].rho);
                     }
+                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
+                        treeMixPFCand[i]->GetEntry(j_entry_mix);
+                        std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                        iCent = getPFHFtotEBin(pf_HF_totE[0]);
+                    }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                         treeMixTrack[i]->GetEntry(j_entry_mix);
                         iCent = getNTrkBin(trksMix[i].nTrk, nTrkMax4nTrkBin);
@@ -787,7 +792,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             evtskim.clearEvent();
             evtskim.rho = ggHi.rho;
-            std::vector<float> pf_HF_totE = getPFHFtotE(pf, 3, 5);
+            std::vector<float> pf_HF_totE = getPFHFtotE(pf, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
             evtskim.pf_h_HF_totE = pf_HF_totE[0];
             evtskim.pf_eg_HF_totE = pf_HF_totE[1];
 
@@ -871,6 +876,14 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         //iCent = getRhoBin(ggHi.rho - getRhoDiff(ggHi.rho));
                         //iCent = getRhoBin(ggHi.rho-0.5);
                         iCent = getRhoBin(ggHi.rho-2.0);
+                    }
+                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
+
+                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-690);
+                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-590);
+                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-790);
+                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-490);
+                        iCent = getPFHFtotEBin(pf_HF_totE[0]-890);
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                         iCent = getNTrkBin(nTrkperp * 2, nTrkMax4nTrkBin);
@@ -1030,7 +1043,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         mixevtskim.Ncoll_mix.push_back(hiEvtMix[iMF].Ncoll);
                         mixevtskim.Nhard_mix.push_back(hiEvtMix[iMF].Nhard);
                     }
-                    std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], 3, 5);
+                    std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
                     mixevtskim.pf_h_HF_totE_mix.push_back(pf_HF_totE_mix[0]);
                     mixevtskim.pf_eg_HF_totE_mix.push_back(pf_HF_totE_mix[1]);
                     mixevtskim.nmix++;

@@ -37,18 +37,23 @@ const int nCentBins = 800;  // event activity can be centrality, multiplicity, t
 const int nVzBins = 15;
 const int nEventPlaneBins = 8;
 
+const double etaMin_pf_HF = 3;
+const double etaMax_pf_HF = 5;
+
 enum MIXMETHODS {
     k_match_hiBin,
     k_match_Npart,
     k_match_hiHF,
     k_match_hiHFhit,
     k_match_rho,
+    k_match_PF_HF_totE,
     k_match_nTrk,
     k_match_multperp,      // multiplicity perpendicular to tag
     k_match_energyperp,    // energy perpendicular to tag
     kN_MITMETHODS
 };
 const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_hiHFhit", "match_rho",
+                                                  "match_PF_HF_totE",
                                                   "match_nTrk", "match_multperp", "match_energyperp"};
 int mixMethod;
 
@@ -81,6 +86,7 @@ int getNTrkBin(int nTrk, int nTrkMax = 14280);
 int getHiHFBin(float hiHF, float hiHFMax = 6000);
 int getHiHFhitBin(float hiHFhit, float hiHFhitMax = 180000);
 int getRhoBin(double rho, double rhoMax = 250);
+int getPFHFtotEBin(double PF_HF_totE, double totEMax = 150000);
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax);
 double getRhoDiff(double rho);
 int parseEWObj(std::string ewObjStr);
@@ -274,6 +280,11 @@ int getRhoBin(double rho, double rhoMax)
     return getEventEnergyBin(rho, rhoMax);
 }
 
+int getPFHFtotEBin(double PF_HF_totE, double totEMax)
+{
+    return getEventEnergyBin(PF_HF_totE, totEMax);
+}
+
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax)
 {
     if (evtEnergy <= 0) return 0;
@@ -335,13 +346,16 @@ int parseMixMethod(std::string mixMethodStr)
     else if (mixMethodStr == "match_rho" || mixMethodStr == "4") {
         return VJT::MIXMETHODS::k_match_rho;
     }
-    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "5") {
+    else if (mixMethodStr == "match_pf_hf_tote" || mixMethodStr == "5") {
+        return VJT::MIXMETHODS::k_match_PF_HF_totE;
+    }
+    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "6") {
         return VJT::MIXMETHODS::k_match_nTrk;
     }
-    else if (mixMethodStr == "match_multperp" || mixMethodStr == "6") {
+    else if (mixMethodStr == "match_multperp" || mixMethodStr == "7") {
         return VJT::MIXMETHODS::k_match_multperp;
     }
-    else if (mixMethodStr == "match_energyperp" || mixMethodStr == "7") {
+    else if (mixMethodStr == "match_energyperp" || mixMethodStr == "8") {
         return VJT::MIXMETHODS::k_match_energyperp;
     }
     else {
