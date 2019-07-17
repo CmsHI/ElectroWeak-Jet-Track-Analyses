@@ -70,6 +70,7 @@ enum RBS {
 void setTreeHiEvt(TTree* t, bool isMC = false);
 void setTreeJet(TTree* t, bool isMC = false);
 void setTreeTrack(TTree* t, bool enableVtx = false);
+void setTreePFCand(TTree* t);
 void setTreeSkimAna(TTree* t);
 void setTreeHiGenParticle(TTree* t);
 int getHiBin(int hiBin);
@@ -98,6 +99,7 @@ bool passedTrkSelection(Tracks& trks, int i, int collType);
 int getNTrkPerp(Tracks& trks, double vPhi);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
+std::vector<float> getPFHFtotE(pfCand& pf, float etaMin = 3, float etaMax = 5);
 
 void setTreeHiEvt(TTree* t, bool isMC)
 {
@@ -175,6 +177,17 @@ void setTreeTrack(TTree* t, bool enableVtx)
         t->SetBranchStatus("nTrkTimesnVtx",1);
         t->SetBranchStatus("trkAssocVtx",1);
     }
+}
+
+void setTreePFCand(TTree* t)
+{
+    t->SetBranchStatus("*",0);     // disable all branches
+    t->SetBranchStatus("nPFpart",1);
+    t->SetBranchStatus("pfId",1);
+    t->SetBranchStatus("pfEnergy",1);
+    t->SetBranchStatus("pfEta",1);
+    t->SetBranchStatus("pfEcalE",1);
+    t->SetBranchStatus("pfHcalE",1);
 }
 
 void setTreeSkimAna(TTree* t)
@@ -538,5 +551,25 @@ int getTrkMultPerp(Tracks& trks, int collType, double vPhi)
     return res;
 }
 
+std::vector<float> getPFHFtotE(pfCand& pf, float etaMin, float etaMax)
+{
+    float h_HF_totE = 0;
+    float eg_HF_totE = 0;
+
+    for (int i = 0; i < pf.nPFpart; ++i) {
+
+        if ( !(etaMin < std::fabs((*pf.pfEta)[i])) )  continue;
+        if ( !(etaMax > std::fabs((*pf.pfEta)[i])) )  continue;
+
+        if ((*pf.pfId)[i] == 6) {
+            h_HF_totE += (*pf.pfEnergy)[i];
+        }
+        else if ((*pf.pfId)[i] == 7) {
+            eg_HF_totE += (*pf.pfEnergy)[i];
+        }
+    }
+
+    return {h_HF_totE, eg_HF_totE};
+}
 
 #endif
