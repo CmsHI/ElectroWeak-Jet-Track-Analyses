@@ -21,8 +21,10 @@
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/JetTree.h"
 #include "../../TreeHeaders/trackTree.h"
+#include "../../TreeHeaders/pfCandTree.h"
 #include "../../TreeHeaders/hiGenParticleTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
+#include "../../TreeHeaders/eventSkimTree.h"
 #include "../../TreeHeaders/mixEventSkimTree.h"
 #include "../../TreeHeaders/jetSkimTree.h"
 #include "../../TreeHeaders/trackSkimTree.h"
@@ -182,6 +184,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* treeHiEvt = 0;
     std::vector<TTree*> treesJet(nJetCollections, 0);
     TTree* treeTrack = 0;
+    TTree* treePFCand = 0;
     TTree* treeHiGenParticle = 0;
     TTree* treeHiForestInfo = 0;
     TTree* treeSkim = 0;
@@ -192,6 +195,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     if (isPbPb15) {
         treePathTrack = "anaTrack/trackTree";
     }
+    std::string treePathPFCand = "pfcandAnalyzer/pfTree";
     std::string treePathSkimAna = "skimanalysis/HltTree";
     std::string treePathGen = "HiGenParticleAna/hi";
 
@@ -227,9 +231,15 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* outTreeHLT = 0;
     TTree* outTreeggHiNtuplizer = 0;
     TTree* outTreeHiEvt = 0;
+    TTree* eventSkimTree = 0;
     TTree* mixEventSkimTree = 0;
     std::vector<TTree*> jetSkimTrees(nJetCollections, 0);
     TTree* trackSkimTree = 0;
+
+    eventSkimTree= new TTree("eventSkim", "additional event info that is not in hiEvt");
+    eventSkimTree->SetMaxTreeSize(MAXTREESIZE);
+    eventSkim evtskim;
+    evtskim.setupTreeForWriting(eventSkimTree);
 
     mixEventSkimTree = new TTree("mixEventSkim", "event info about mix events");
     mixEventSkimTree->SetMaxTreeSize(MAXTREESIZE);
@@ -265,6 +275,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::vector<TTree*> treeMixggHiNtuplizer(nMixFiles, 0);
     std::vector<std::vector<TTree*>> treesMixJet(nMixFiles);
     std::vector<TTree*> treeMixTrack(nMixFiles, 0);
+    std::vector<TTree*> treeMixPFCand(nMixFiles, 0);
     std::vector<TTree*> treeMixHiGenParticle(nMixFiles, 0);
     std::vector<TTree*> treeMixSkim(nMixFiles, 0);
 
@@ -272,6 +283,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::vector<ggHiNtuplizer> ggHiMix(nMixFiles);
     std::vector<std::vector<Jets>> jetsMix(nMixFiles);
     std::vector<Tracks> trksMix(nMixFiles);
+    std::vector<pfCand> pfMix(nMixFiles);
     std::vector<hiGenParticle> hiGenMix(nMixFiles);
     std::vector<skimAnalysis> skimAnaMix(nMixFiles);
 
@@ -317,6 +329,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
             treeMixTrack[i] = (TTree*)mixFiles[i]->Get(treePathTrack.c_str());
             setTreeTrack(treeMixTrack[i], doTrkVtx);
+
+            treeMixPFCand[i] = (TTree*)mixFiles[i]->Get(treePathPFCand.c_str());
+            setTreePFCand(treeMixPFCand[i]);
+
             treeMixSkim[i] = (TTree*)mixFiles[i]->Get(treePathSkimAna.c_str());
             setTreeSkimAna(treeMixSkim[i]);
             if (isMC) {
@@ -335,6 +351,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             trksMix[i].setupTreeForReading(treeMixTrack[i]);
+            pfMix[i].setupTreeForReading(treeMixPFCand[i]);
             skimAnaMix[i].setupTreeForReading(treeMixSkim[i]);
             if (isMC) {
                 hiGenMix[i].setupTreeForReading(treeMixHiGenParticle[i]);
@@ -488,6 +505,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         treeTrack = (TTree*)fileTmp->Get(treePathTrack.c_str());
         setTreeTrack(treeTrack, doTrkVtx);
 
+        treePFCand = (TTree*)fileTmp->Get(treePathPFCand.c_str());
+        setTreePFCand(treePFCand);
+
         // specify explicitly which branches to use, do not use wildcard
         treeSkim = (TTree*)fileTmp->Get(treePathSkimAna.c_str());
         setTreeSkimAna(treeSkim);
@@ -516,6 +536,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
         Tracks trks;
         trks.setupTreeForReading(treeTrack);
+
+        pfCand pf;
+        pf.setupTreeForReading(treePFCand);
 
         hiGenParticle hiGen;
         if (isMC) {
@@ -689,6 +712,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 treesJet[i]->GetEntry(j_entry);
             }
             treeTrack->GetEntry(j_entry);
+            treePFCand->GetEntry(j_entry);
 
             for (int iJ = 0; iJ < nJetCollections; ++iJ) {
                 jetskims[iJ].clearEvent();
@@ -760,6 +784,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             if (doTrkVtx) {
                 trkskim.nVtx = trks.nVtx;
             }
+
+            evtskim.clearEvent();
+            evtskim.rho = ggHi.rho;
+            std::vector<float> pf_HF_totE = getPFHFtotE(pf, 3, 5);
+            evtskim.pf_h_HF_totE = pf_HF_totE[0];
+            evtskim.pf_eg_HF_totE = pf_HF_totE[1];
 
             if (isMC) {
                 for (int i = 0; i < hiGen.mult; ++i) {
@@ -981,6 +1011,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     for (int i = 0; i < nJetCollections; ++i) {
                         treesMixJet[iMF][i]->GetEntry(j_entry_mix);
                     }
+                    treeMixPFCand[iMF]->GetEntry(j_entry_mix);
                     if (isMC) {
                         treeMixHiGenParticle[iMF]->GetEntry(j_entry_mix);
                     }
@@ -999,6 +1030,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         mixevtskim.Ncoll_mix.push_back(hiEvtMix[iMF].Ncoll);
                         mixevtskim.Nhard_mix.push_back(hiEvtMix[iMF].Nhard);
                     }
+                    std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], 3, 5);
+                    mixevtskim.pf_h_HF_totE_mix.push_back(pf_HF_totE_mix[0]);
+                    mixevtskim.pf_eg_HF_totE_mix.push_back(pf_HF_totE_mix[1]);
                     mixevtskim.nmix++;
 
                     for (int iJ = 0; iJ < nJetCollections; ++iJ) {
@@ -1082,6 +1116,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             outTreeHLT->Fill();
             outTreeggHiNtuplizer->Fill();
             outTreeHiEvt->Fill();
+            eventSkimTree->Fill();
             mixEventSkimTree->Fill();
             for (int i=0; i<nJetCollections; ++i) {
                 jetSkimTrees[i]->Fill();
