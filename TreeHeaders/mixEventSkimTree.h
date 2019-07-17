@@ -23,6 +23,8 @@ public :
         p_Npart_mix = 0;
         p_Ncoll_mix = 0;
         p_Nhard_mix = 0;
+        p_pf_h_HF_totE_mix = 0;
+        p_pf_eg_HF_totE_mix = 0;
     }
     ~mixEventSkim(){};
     void setupTreeForReading(TTree *t);
@@ -44,6 +46,8 @@ public :
     std::vector<float>   Npart_mix;
     std::vector<float>   Ncoll_mix;
     std::vector<float>   Nhard_mix;
+    std::vector<float>   pf_h_HF_totE_mix;
+    std::vector<float>   pf_eg_HF_totE_mix;
 
     // pointer for vectors (to be used when reading)
     std::vector<float>   *p_vz_mix;
@@ -58,6 +62,8 @@ public :
     std::vector<float>   *p_Npart_mix;
     std::vector<float>   *p_Ncoll_mix;
     std::vector<float>   *p_Nhard_mix;
+    std::vector<float>   *p_pf_h_HF_totE_mix;
+    std::vector<float>   *p_pf_eg_HF_totE_mix;
 
      // List of branches
     TBranch *b_nmix;
@@ -73,6 +79,8 @@ public :
     TBranch *b_Npart_mix;
     TBranch *b_Ncoll_mix;
     TBranch *b_Nhard_mix;
+    TBranch *b_pf_h_HF_totE_mix;
+    TBranch *b_pf_eg_HF_totE_mix;
 };
 
 void mixEventSkim::setupTreeForReading(TTree *t)
@@ -90,6 +98,8 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     b_Npart_mix = 0;
     b_Ncoll_mix = 0;
     b_Nhard_mix = 0;
+    b_pf_h_HF_totE_mix = 0;
+    b_pf_eg_HF_totE_mix = 0;
 
     if (t->GetBranch("nmix"))  t->SetBranchAddress("nmix", &nmix, &b_nmix);
     if (t->GetBranch("vz_mix"))  t->SetBranchAddress("vz_mix", &p_vz_mix, &b_vz_mix);
@@ -104,6 +114,8 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("Npart_mix"))  t->SetBranchAddress("Npart_mix", &p_Npart_mix, &b_Npart_mix);
     if (t->GetBranch("Ncoll_mix"))  t->SetBranchAddress("Ncoll_mix", &p_Ncoll_mix, &b_Ncoll_mix);
     if (t->GetBranch("Nhard_mix"))  t->SetBranchAddress("Nhard_mix", &p_Nhard_mix, &b_Nhard_mix);
+    if (t->GetBranch("pf_h_HF_totE_mix"))  t->SetBranchAddress("pf_h_HF_totE_mix", &p_pf_h_HF_totE_mix, &b_pf_h_HF_totE_mix);
+    if (t->GetBranch("pf_eg_HF_totE_mix"))  t->SetBranchAddress("pf_eg_HF_totE_mix", &p_pf_eg_HF_totE_mix, &b_pf_eg_HF_totE_mix);
 }
 
 void mixEventSkim::setupTreeForWriting(TTree *t)
@@ -121,6 +133,8 @@ void mixEventSkim::setupTreeForWriting(TTree *t)
     t->Branch("Npart_mix", &Npart_mix);
     t->Branch("Ncoll_mix", &Ncoll_mix);
     t->Branch("Nhard_mix", &Nhard_mix);
+    t->Branch("pf_h_HF_totE_mix", &pf_h_HF_totE_mix);
+    t->Branch("pf_eg_HF_totE_mix", &pf_eg_HF_totE_mix);
 }
 
 void mixEventSkim::clearEvent()
@@ -139,6 +153,8 @@ void mixEventSkim::clearEvent()
     Npart_mix.clear();
     Ncoll_mix.clear();
     Nhard_mix.clear();
+    pf_h_HF_totE_mix.clear();
+    pf_eg_HF_totE_mix.clear();
 }
 
 #endif /* TREEHEADERS_MIXEVENTSKIMTREE_H_ */

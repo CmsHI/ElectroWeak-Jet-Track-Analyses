@@ -71,7 +71,6 @@ public :
     Int_t           hiNevtPlane;
     Float_t         hiEvtPlanes[29];   //[hiNevtPlane]
 
-
     // List of branches
     TBranch        *b_run;   //!
     TBranch        *b_evt;   //!
