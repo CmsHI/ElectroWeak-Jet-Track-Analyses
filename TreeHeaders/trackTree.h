@@ -323,170 +323,170 @@ void Tracks::setupTreeForWriting(TTree *t)
     t->Branch("zVtxSim",zVtxSim,"zVtx[nVtxSim]/F");
 
     // Tracks
-    t->Branch("trkPt",&trkPt,"trkPt[nTrk]/F");
-    t->Branch("trkPtError",&trkPtError,"trkPtError[nTrk]/F");
-    t->Branch("trkNHit",&trkNHit,"trkNHit[nTrk]/b");
-    t->Branch("trkNlayer",&trkNlayer,"trkNlayer[nTrk]/b");
-    t->Branch("trkEta",&trkEta,"trkEta[nTrk]/F");
-    t->Branch("trkPhi",&trkPhi,"trkPhi[nTrk]/F");
-    t->Branch("trkCharge",&trkCharge,"trkCharge[nTrk]/I");
+    t->Branch("trkPt",trkPt,"trkPt[nTrk]/F");
+    t->Branch("trkPtError",trkPtError,"trkPtError[nTrk]/F");
+    t->Branch("trkNHit",trkNHit,"trkNHit[nTrk]/b");
+    t->Branch("trkNlayer",trkNlayer,"trkNlayer[nTrk]/b");
+    t->Branch("trkEta",trkEta,"trkEta[nTrk]/F");
+    t->Branch("trkPhi",trkPhi,"trkPhi[nTrk]/F");
+    t->Branch("trkCharge",trkCharge,"trkCharge[nTrk]/I");
     // if(doTrackVtxWImpPar_)
     {
-        t->Branch("trkNVtx",&trkNVtx,"trkNVtx[nTrk]/b");
+        t->Branch("trkNVtx",trkNVtx,"trkNVtx[nTrk]/b");
         t->Branch("nTrkTimesnVtx",&nTrkTimesnVtx,"nTrkTimesnVtx/I");
-        t->Branch("trkAssocVtx",&trkAssocVtx,"trkAssocVtx[nTrkTimesnVtx]/O");
-        t->Branch("trkDxyOverDxyError",&trkDxyOverDxyError,"trkDxyOverDxyError[nTrkTimesnVtx]/F");
-        t->Branch("trkDzOverDzError",&trkDzOverDzError,"trkDzOverDzError[nTrkTimesnVtx]/F");
+        t->Branch("trkAssocVtx",trkAssocVtx,"trkAssocVtx[nTrkTimesnVtx]/O");
+        t->Branch("trkDxyOverDxyError",trkDxyOverDxyError,"trkDxyOverDxyError[nTrkTimesnVtx]/F");
+        t->Branch("trkDzOverDzError",trkDzOverDzError,"trkDzOverDzError[nTrkTimesnVtx]/F");
     }
     // else
     {
-        t->Branch("trkVtxIndex",&trkVtxIndex,"trkVtxIndex[nTrk]/I");
+        t->Branch("trkVtxIndex",trkVtxIndex,"trkVtxIndex[nTrk]/I");
     }
 
     // if (doDeDx_)
     {
-        t->Branch("dedx",&dedx,"dedx[nTrk]/F");
+        t->Branch("dedx",dedx,"dedx[nTrk]/F");
     }
 
-    //  t->Branch("trkQual",&trkQual,"trkQual[nTrk]/I");
+    //  t->Branch("trkQual",trkQual,"trkQual[nTrk]/I");
 
 //    for(unsigned int i  = 0; i < qualityStrings_.size(); ++i)
 //    {
 //        t->Branch(qualityStrings_[i].data(),&trkQual[i],(qualityStrings_[i]+"[nTrk]/O").data());
 //    }
-    t->Branch("highPurity",&highPurity,"highPurity[nTrk]/0");
-    t->Branch("tight",&tight,"tight[nTrk]/0");
-    t->Branch("loose",&loose,"loose[nTrk]/0");
+    t->Branch("highPurity",highPurity,"highPurity[nTrk]/O");
+    t->Branch("tight",tight,"tight[nTrk]/O");
+    t->Branch("loose",loose,"loose[nTrk]/O");
 
-    t->Branch("trkChi2",&trkChi2,"trkChi2[nTrk]/F");
-    t->Branch("trkNdof",&trkNdof,"trkNdof[nTrk]/b");
-    t->Branch("trkDxy1",&trkDxy1,"trkDxy1[nTrk]/F");
-    t->Branch("trkDxyError1",&trkDxyError1,"trkDxyError1[nTrk]/F");
-    t->Branch("trkDz1",&trkDz1,"trkDz1[nTrk]/F");
-    t->Branch("trkDzError1",&trkDzError1,"trkDzError1[nTrk]/F");
-    //t->Branch("trkDzError2",&trkDzError2,"trkDzError2[nTrk]/F");
-    //t->Branch("trkDxy2",&trkDxy2,"trkDxy2[nTrk]/F");
-    //t->Branch("trkDz2",&trkDz2,"trkDz2[nTrk]/F");
-    //t->Branch("trkDxyError2",&trkDxyError2,"trkDxyError2[nTrk]/F");
-    t->Branch("trkFake",&trkFake,"trkFake[nTrk]/O");
-    t->Branch("trkAlgo",&trkAlgo,"trkAlgo[nTrk]/b");
-    t->Branch("trkOriginalAlgo",&trkOriginalAlgo,"trkOriginalAlgo[nTrk]/b");
+    t->Branch("trkChi2",trkChi2,"trkChi2[nTrk]/F");
+    t->Branch("trkNdof",trkNdof,"trkNdof[nTrk]/b");
+    t->Branch("trkDxy1",trkDxy1,"trkDxy1[nTrk]/F");
+    t->Branch("trkDxyError1",trkDxyError1,"trkDxyError1[nTrk]/F");
+    t->Branch("trkDz1",trkDz1,"trkDz1[nTrk]/F");
+    t->Branch("trkDzError1",trkDzError1,"trkDzError1[nTrk]/F");
+    //t->Branch("trkDzError2",trkDzError2,"trkDzError2[nTrk]/F");
+    //t->Branch("trkDxy2",trkDxy2,"trkDxy2[nTrk]/F");
+    //t->Branch("trkDz2",trkDz2,"trkDz2[nTrk]/F");
+    //t->Branch("trkDxyError2",trkDxyError2,"trkDxyError2[nTrk]/F");
+    t->Branch("trkFake",trkFake,"trkFake[nTrk]/O");
+    t->Branch("trkAlgo",trkAlgo,"trkAlgo[nTrk]/b");
+    t->Branch("trkOriginalAlgo",trkOriginalAlgo,"trkOriginalAlgo[nTrk]/b");
     // if(doMVA_)
     {
-        t->Branch("trkMVA",&trkMVA,"trkMVA[nTrk]/F");
+        t->Branch("trkMVA",trkMVA,"trkMVA[nTrk]/F");
         // if(mvaSrcLabel_.label() == "generalTracks")
         {
-            t->Branch("trkMVALoose",&trkMVALoose,"trkMVALoose[nTrk]/O");
-            t->Branch("trkMVATight",&trkMVATight,"trkMVATight[nTrk]/O");
+            t->Branch("trkMVALoose",trkMVALoose,"trkMVALoose[nTrk]/O");
+            t->Branch("trkMVATight",trkMVATight,"trkMVATight[nTrk]/O");
         }
 //        // if(mvaSrcLabel_.label() == "hiGeneralTracks")
 //        {
-//            t->Branch("trkMVATight",&trkMVATight,"trkMVATight[nTrk]/O");
+//            t->Branch("trkMVATight",trkMVATight,"trkMVATight[nTrk]/O");
 //        }
     }
 
     // if (doPFMatching_)
     {
-        t->Branch("pfType",&pfType,"pfType[nTrk]/I");
-        t->Branch("pfCandPt",&pfCandPt,"pfCandPt[nTrk]/F");
-        t->Branch("pfEcal",&pfEcal,"pfEcal[nTrk]/F");
-        t->Branch("pfHcal",&pfHcal,"pfHcal[nTrk]/F");
+        t->Branch("pfType",pfType,"pfType[nTrk]/I");
+        t->Branch("pfCandPt",pfCandPt,"pfCandPt[nTrk]/F");
+        t->Branch("pfEcal",pfEcal,"pfEcal[nTrk]/F");
+        t->Branch("pfHcal",pfHcal,"pfHcal[nTrk]/F");
     }
 
 /*
     // if (doDebug_)
     {
-        t->Branch("trkNlayer3D",&trkNlayer3D,"trkNlayer3D[nTrk]/I");
-        t->Branch("trkDxyBS",&trkDxyBS,"trkDxyBS[nTrk]/F");
-        t->Branch("trkDxyErrorBS",&trkDxyErrorBS,"trkDxyErrorBS[nTrk]/F");
-        t->Branch("trkDxy",&trkDxy,"trkDxy[nTrk]/F");
-        t->Branch("trkDz",&trkDz,"trkDz[nTrk]/F");
-        t->Branch("trkDxyError",&trkDxyError,"trkDxyError[nTrk]/F");
-        t->Branch("trkDzError",&trkDzError,"trkDzError[nTrk]/F");
-        t->Branch("trkChi2hit1D",&trkChi2hit1D,"trkChi2hit1D[nTrk]/F");
-        t->Branch("trkVx",&trkVx,"trkVx[nTrk]/F");
-        t->Branch("trkVy",&trkVy,"trkVy[nTrk]/F");
-        t->Branch("trkVz",&trkVz,"trkVz[nTrk]/F");
+        t->Branch("trkNlayer3D",trkNlayer3D,"trkNlayer3D[nTrk]/I");
+        t->Branch("trkDxyBS",trkDxyBS,"trkDxyBS[nTrk]/F");
+        t->Branch("trkDxyErrorBS",trkDxyErrorBS,"trkDxyErrorBS[nTrk]/F");
+        t->Branch("trkDxy",trkDxy,"trkDxy[nTrk]/F");
+        t->Branch("trkDz",trkDz,"trkDz[nTrk]/F");
+        t->Branch("trkDxyError",trkDxyError,"trkDxyError[nTrk]/F");
+        t->Branch("trkDzError",trkDzError,"trkDzError[nTrk]/F");
+        t->Branch("trkChi2hit1D",trkChi2hit1D,"trkChi2hit1D[nTrk]/F");
+        t->Branch("trkVx",trkVx,"trkVx[nTrk]/F");
+        t->Branch("trkVy",trkVy,"trkVy[nTrk]/F");
+        t->Branch("trkVz",trkVz,"trkVz[nTrk]/F");
     }
 
     // Track Extra
     // if (doTrackExtra_)
     {
-        t->Branch("trkExpHit1Eta",&trkExpHit1Eta,"trkExpHit1Eta[nTrk]/F");
-        t->Branch("trkExpHit2Eta",&trkExpHit2Eta,"trkExpHit2Eta[nTrk]/F");
-        t->Branch("trkExpHit3Eta",&trkExpHit3Eta,"trkExpHit3Eta[nTrk]/F");
+        t->Branch("trkExpHit1Eta",trkExpHit1Eta,"trkExpHit1Eta[nTrk]/F");
+        t->Branch("trkExpHit2Eta",trkExpHit2Eta,"trkExpHit2Eta[nTrk]/F");
+        t->Branch("trkExpHit3Eta",trkExpHit3Eta,"trkExpHit3Eta[nTrk]/F");
     }
 
     // Sim Tracks
     // if (doSimTrack_)
     {
-        t->Branch("trkStatus",&trkStatus,"trkStatus[nTrk]/F");
-        t->Branch("trkPId",&trkPId,"trkPId[nTrk]/F");
-        t->Branch("trkMPId",&trkMPId,"trkMPId[nTrk]/F");
-        t->Branch("trkGMPId",&trkGMPId,"trkGMPId[nTrk]/F");
-        t->Branch("matchedGenID",&matchedGenID,"matchedGenID[nTrk][5]/I");
+        t->Branch("trkStatus",trkStatus,"trkStatus[nTrk]/F");
+        t->Branch("trkPId",trkPId,"trkPId[nTrk]/F");
+        t->Branch("trkMPId",trkMPId,"trkMPId[nTrk]/F");
+        t->Branch("trkGMPId",trkGMPId,"trkGMPId[nTrk]/F");
+        t->Branch("matchedGenID",matchedGenID,"matchedGenID[nTrk][5]/I");
 
         // if(fillSimTrack_)
         {
 
             t->Branch("nParticle",&nParticle,"nParticle/I");
-            t->Branch("pStatus",&pStatus,"pStatus[nParticle]/I");
-            t->Branch("pPId",&pPId,"pPId[nParticle]/I");
-            t->Branch("pEta",&pEta,"pEta[nParticle]/F");
-            t->Branch("pPhi",&pPhi,"pPhi[nParticle]/F");
-            t->Branch("pPt",&pPt,"pPt[nParticle]/F");
-            t->Branch("pAcc",&pAcc,"pAcc[nParticle]/F");
-            t->Branch("pAccPair",&pAccPair,"pAccPair[nParticle]/F");
-            t->Branch("pNRec",&pNRec,"pNRec[nParticle]/I");
-            t->Branch("pNHit",&pNHit,"pNHit[nParticle]/I");
-            t->Branch("mtrkPt",&mtrkPt,"mtrkPt[nParticle]/F");
-            t->Branch("mtrkPtError",&mtrkPtError,"mtrkPtError[nParticle]/F");
-            t->Branch("mtrkNHit",&mtrkNHit,"mtrkNHit[nParticle]/I");
-            t->Branch("mtrkNlayer",&mtrkNlayer,"mtrkNlayer[nParticle]/I");
-            t->Branch("mtrkNlayer3D",&mtrkNlayer3D,"mtrkNlayer3D[nParticle]/I");
-            // t->Branch("mtrkQual",&mtrkQual,"mtrkQual[nParticle]/I");
+            t->Branch("pStatus",pStatus,"pStatus[nParticle]/I");
+            t->Branch("pPId",pPId,"pPId[nParticle]/I");
+            t->Branch("pEta",pEta,"pEta[nParticle]/F");
+            t->Branch("pPhi",pPhi,"pPhi[nParticle]/F");
+            t->Branch("pPt",pPt,"pPt[nParticle]/F");
+            t->Branch("pAcc",pAcc,"pAcc[nParticle]/F");
+            t->Branch("pAccPair",pAccPair,"pAccPair[nParticle]/F");
+            t->Branch("pNRec",pNRec,"pNRec[nParticle]/I");
+            t->Branch("pNHit",pNHit,"pNHit[nParticle]/I");
+            t->Branch("mtrkPt",mtrkPt,"mtrkPt[nParticle]/F");
+            t->Branch("mtrkPtError",mtrkPtError,"mtrkPtError[nParticle]/F");
+            t->Branch("mtrkNHit",mtrkNHit,"mtrkNHit[nParticle]/I");
+            t->Branch("mtrkNlayer",mtrkNlayer,"mtrkNlayer[nParticle]/I");
+            t->Branch("mtrkNlayer3D",mtrkNlayer3D,"mtrkNlayer3D[nParticle]/I");
+            // t->Branch("mtrkQual",mtrkQual,"mtrkQual[nParticle]/I");
 //            for(unsigned int i  = 0; i < qualityStrings_.size(); ++i)
 //            {
 //                t->Branch(("m"+qualityStrings_[i]).data(),&mtrkQual[i],("m"+qualityStrings_[i]+"[nParticle]/O").data());
 //            }
-            t->Branch("mtrkChi2",&mtrkChi2,"mtrkChi2[nParticle]/F");
-            t->Branch("mtrkNdof",&mtrkNdof,"mtrkNdof[nParticle]/I");
-            t->Branch("mtrkDz1",&mtrkDz1,"mtrkDz1[nParticle]/F");
-            t->Branch("mtrkDzError1",&mtrkDzError1,"mtrkDzError1[nParticle]/F");
-            t->Branch("mtrkDxy1",&mtrkDxy1,"mtrkDxy1[nParticle]/F");
-            t->Branch("mtrkDxyError1",&mtrkDxyError1,"mtrkDxyError1[nParticle]/F");
-            //t->Branch("mtrkDz2",&mtrkDz2,"mtrkDz2[nParticle]/F");
-            //t->Branch("mtrkDzError2",&mtrkDzError2,"mtrkDzError2[nParticle]/F");
-            //t->Branch("mtrkDxy2",&mtrkDxy2,"mtrkDxy2[nParticle]/F");
-            //t->Branch("mtrkDxyError2",&mtrkDxyError2,"mtrkDxyError2[nParticle]/F");
-            t->Branch("mtrkAlgo",&mtrkAlgo,"mtrkAlgo[nParticle]/I");
-            t->Branch("mtrkOriginalAlgo",&mtrkOriginalAlgo,"mtrkOriginalAlgo[nParticle]/I");
+            t->Branch("mtrkChi2",mtrkChi2,"mtrkChi2[nParticle]/F");
+            t->Branch("mtrkNdof",mtrkNdof,"mtrkNdof[nParticle]/I");
+            t->Branch("mtrkDz1",mtrkDz1,"mtrkDz1[nParticle]/F");
+            t->Branch("mtrkDzError1",mtrkDzError1,"mtrkDzError1[nParticle]/F");
+            t->Branch("mtrkDxy1",mtrkDxy1,"mtrkDxy1[nParticle]/F");
+            t->Branch("mtrkDxyError1",mtrkDxyError1,"mtrkDxyError1[nParticle]/F");
+            //t->Branch("mtrkDz2",mtrkDz2,"mtrkDz2[nParticle]/F");
+            //t->Branch("mtrkDzError2",mtrkDzError2,"mtrkDzError2[nParticle]/F");
+            //t->Branch("mtrkDxy2",mtrkDxy2,"mtrkDxy2[nParticle]/F");
+            //t->Branch("mtrkDxyError2",mtrkDxyError2,"mtrkDxyError2[nParticle]/F");
+            t->Branch("mtrkAlgo",mtrkAlgo,"mtrkAlgo[nParticle]/I");
+            t->Branch("mtrkOriginalAlgo",mtrkOriginalAlgo,"mtrkOriginalAlgo[nParticle]/I");
             // if(doTrackVtxWImpPar_)
             {
                 t->Branch("nParticleTimesnVtx",&nParticleTimesnVtx,"nParticleTimesnVtx/I");
-                t->Branch("mtrkDzOverDzError",&mtrkDzOverDzError,"mtrkDzOverDzError[nParticleTimesnVtx]/F");
-                t->Branch("mtrkDxyOverDxyError",&mtrkDxyOverDxyError,"mtrkDxyOverDxyError[nParticleTimesnVtx]/F");
+                t->Branch("mtrkDzOverDzError",mtrkDzOverDzError,"mtrkDzOverDzError[nParticleTimesnVtx]/F");
+                t->Branch("mtrkDxyOverDxyError",mtrkDxyOverDxyError,"mtrkDxyOverDxyError[nParticleTimesnVtx]/F");
             }
             // if(doMVA_)
             {
-                t->Branch("mtrkMVA",&mtrkMVA,"mtrkMVA[nParticle]/F");
+                t->Branch("mtrkMVA",mtrkMVA,"mtrkMVA[nParticle]/F");
 
                 // if(mvaSrcLabel_.label() == "generalTracks")
                 {
-                    t->Branch("mtrkMVALoose",&mtrkMVALoose,"mtrkMVALoose[nTrk]/O");
-                    t->Branch("mtrkMVATight",&mtrkMVATight,"mtrkMVATight[nTrk]/O");
+                    t->Branch("mtrkMVALoose",mtrkMVALoose,"mtrkMVALoose[nTrk]/O");
+                    t->Branch("mtrkMVATight",mtrkMVATight,"mtrkMVATight[nTrk]/O");
                 }
                 // if(mvaSrcLabel_.label() == "hiGeneralTracks")
                 {
-                    t->Branch("mtrkMVATight",&mtrkMVATight,"mtrkMVATight[nTrk]/O");
+                    t->Branch("mtrkMVATight",mtrkMVATight,"mtrkMVATight[nTrk]/O");
                 }
             }
             // if (doPFMatching_)
             {
-                t->Branch("mtrkPfType",&mtrkPfType,"mtrkPfType[nParticle]/I");
-                t->Branch("mtrkPfCandPt",&mtrkPfCandPt,"mtrkPfCandPt[nParticle]/F");
-                t->Branch("mtrkPfEcal",&mtrkPfEcal,"mtrkPfEcal[nParticle]/F");
-                t->Branch("mtrkPfHcal",&mtrkPfHcal,"mtrkPfHcal[nParticle]/F");
+                t->Branch("mtrkPfType",mtrkPfType,"mtrkPfType[nParticle]/I");
+                t->Branch("mtrkPfCandPt",mtrkPfCandPt,"mtrkPfCandPt[nParticle]/F");
+                t->Branch("mtrkPfEcal",mtrkPfEcal,"mtrkPfEcal[nParticle]/F");
+                t->Branch("mtrkPfHcal",mtrkPfHcal,"mtrkPfHcal[nParticle]/F");
             }
         }
     }
