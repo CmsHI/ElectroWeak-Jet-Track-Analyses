@@ -448,11 +448,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         if (isMixForest[i]) {
                             treeMixPFCand[i]->GetEntry(j_entry_mix);
                             std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                            tmpTotE = pf_HF_totE[0];
+                            tmpTotE = pf_HF_totE[0]+pf_HF_totE[1];
                         }
                         else {
                             treeMixEventSkim[i]->GetEntry(j_entry_mix);
-                            tmpTotE = eventSkimMix[i].pf_h_HF_totE;
+                            tmpTotE = eventSkimMix[i].pf_h_HF_totE + eventSkimMix[i].pf_eg_HF_totE;
                         }
                         iCent = getPFHFtotEBin(tmpTotE);
                     }
@@ -916,11 +916,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
-                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-690.0);
-                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-590.0);
-                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-790.0);
-                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-490.0);
-                        iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-890.0);
+                        iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0);
+                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0); // 682 - 20%
+                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0); // 682 + 20%
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                         iCent = getNTrkBin(nTrkperp * 2, nTrkMax4nTrkBin);
