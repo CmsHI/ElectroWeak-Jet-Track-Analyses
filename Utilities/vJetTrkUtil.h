@@ -45,17 +45,12 @@ enum MIXMETHODS {
     k_match_hiBin,
     k_match_Npart,
     k_match_hiHF,
-    k_match_hiHFhit,
     k_match_rho,
     k_match_PF_HF_totE,
-    k_match_nTrk,
-    k_match_multperp,      // multiplicity perpendicular to tag
-    k_match_energyperp,    // energy perpendicular to tag
     kN_MITMETHODS
 };
-const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_hiHFhit", "match_rho",
-                                                  "match_PF_HF_totE",
-                                                  "match_nTrk", "match_multperp", "match_energyperp"};
+const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_rho",
+                                                  "match_PF_HF_totE"};
 int mixMethod;
 
 enum RECOGEN {
@@ -341,23 +336,11 @@ int parseMixMethod(std::string mixMethodStr)
     else if (mixMethodStr == "match_hihf" || mixMethodStr == "2") {
         return VJT::MIXMETHODS::k_match_hiHF;
     }
-    else if (mixMethodStr == "match_hihfhit" || mixMethodStr == "3") {
-        return VJT::MIXMETHODS::k_match_hiHFhit;
-    }
-    else if (mixMethodStr == "match_rho" || mixMethodStr == "4") {
+    else if (mixMethodStr == "match_rho" || mixMethodStr == "3") {
         return VJT::MIXMETHODS::k_match_rho;
     }
-    else if (mixMethodStr == "match_pf_hf_tote" || mixMethodStr == "5") {
+    else if (mixMethodStr == "match_pf_hf_tote" || mixMethodStr == "4") {
         return VJT::MIXMETHODS::k_match_PF_HF_totE;
-    }
-    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "6") {
-        return VJT::MIXMETHODS::k_match_nTrk;
-    }
-    else if (mixMethodStr == "match_multperp" || mixMethodStr == "7") {
-        return VJT::MIXMETHODS::k_match_multperp;
-    }
-    else if (mixMethodStr == "match_energyperp" || mixMethodStr == "8") {
-        return VJT::MIXMETHODS::k_match_energyperp;
     }
     else {
         return -1;

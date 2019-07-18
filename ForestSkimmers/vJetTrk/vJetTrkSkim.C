@@ -294,7 +294,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     // match_hiBin
     static entryVec entriesMixedEvent[VJT::nCentBins][VJT::nVzBins][VJT::nEventPlaneBins];
 
-    int nTrkMax4nTrkBin = 12000;
     if (mixEvents) {
 
         for (int i = 0; i < nMixFiles; ++i) {
@@ -398,11 +397,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             std::cout <<"iFileMix = " << i << " , " << std::endl;
 
-            if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-                treeMixTrack[i]->SetBranchStatus("*", 0);
-                treeMixTrack[i]->SetBranchStatus("nTrk", 1);
-            }
-
             Long64_t entriesMixTmp = treeMixHiEvt[i]->GetEntries();
             for (Long64_t j_entry_mix = 0; j_entry_mix < entriesMixTmp; ++j_entry_mix) {
 
@@ -435,9 +429,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF) {
                         iCent = getHiHFBin(hiEvtMix[i].hiHF);
                     }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHFhit) {
-                        iCent = getHiHFhitBin(hiEvtMix[i].hiHFhit);
-                    }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
                         treeMixggHiNtuplizer[i]->GetEntry(j_entry_mix);
                         iCent = getRhoBin(ggHiMix[i].rho);
@@ -456,21 +447,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         }
                         iCent = getPFHFtotEBin(tmpTotE);
                     }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-                        treeMixTrack[i]->GetEntry(j_entry_mix);
-                        iCent = getNTrkBin(trksMix[i].nTrk, nTrkMax4nTrkBin);
-                    }
-                }
-
-                if (VJT::mixMethod == VJT::MIXMETHODS::k_match_multperp) {
                 }
 
                 entriesMixedEvent[iCent][ivz][iEventPlane].files.push_back(i);
                 entriesMixedEvent[iCent][ivz][iEventPlane].v.push_back(j_entry_mix);
-            }
-
-            if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-                setTreeTrack(treeMixTrack[i], doTrkVtx);
             }
         }
         std::cout <<"### Splitting mix events into event categories - END"<<std::endl;
@@ -663,7 +643,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             double vPt = -1;
             double vEta = -999999;
-            double vPhi = -999999;
 
             if (vIsPho) {
                 for (int i = 0; i < ggHi.nPho; ++i) {
@@ -738,7 +717,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
                             vPt = vecll.Pt();
                             vEta = vecll.Eta();
-                            vPhi = vecll.Phi();
                         }
                     }
                 }
@@ -849,17 +827,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
             }
 
-            int nTrkperp = 0;
-            int multperp = 0;
-            if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-
-                nTrkperp = getNTrkPerp(trks, vPhi);
-            }
-            else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_multperp) {
-
-                multperp = getTrkMultPerp(trks, isPbPb, vPhi);
-            }
-
             mixevtskim.clearEvent();
             for (int iJ = 0; iJ < nJetCollections; ++iJ) {
                 jetskims[iJ].clearMixEvent();
@@ -893,19 +860,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart) {
                         iCent = getNpartBin(hiEvt.Npart);
                     }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF) {
-                        //iCent = getHiHFBin(hiEvt.hiHF);
-                        iCent = getHiHFBin(hiEvt.hiHF - 20.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 30.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 25.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 35.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 40.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 50.0);
-                        //iCent = getHiHFBin(hiEvt.hiHF - 60.0);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHFhit) {
-                        iCent = getHiHFhitBin(hiEvt.hiHFhit-800);
-                    }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
                         //iCent = getRhoBin(ggHi.rho-1.45);
                         //iCent = getRhoBin(ggHi.rho-1.32);
@@ -919,17 +873,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0);
                         //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0); // 682 - 20%
                         //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0); // 682 + 20%
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
-                        iCent = getNTrkBin(nTrkperp * 2, nTrkMax4nTrkBin);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_multperp) {
-                        iCent += 2;
-                        if (iCent >= VJT::nCentBins) {
-                            iCent = VJT::nCentBins-1;
-                        }
-                        usedAdjacentCents.clear();
-                        usedAdjacentCents.resize(10, false);    // must be a multiple of 2
                     }
                 }
 
@@ -1012,39 +955,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                     nEventsAttempted++;
 
-                    if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHFhit ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_rho ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE ||
-                        VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk
-                        ) {
-
-                        std::cout << " nMixed = " << nMixed << " , iMF = " << iMF << " , j_entry_mix = " << j_entry_mix << std::endl;
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_multperp) {
-
-                        int multperp_mix = getTrkMultPerp(trksMix[iMF], isPbPb, vPhi);
-
-                        //double normDiff = (double)(std::fabs(multperp_mix - multperp)) / (double(multperp));
-                        double normDiff = (double)(std::fabs(multperp_mix - multperp));
-                        //double normDiff = (double)(std::fabs(multperp_mix - multperp)) / (double(multperp_mix + multperp));
-
-                        //if ( !(normDiff < 0.2) ) {
-                        if ( !(normDiff < 10) ) {
-                        //if ( !(normDiff < 0.1) ) {
-
-                            iME = (iME+1 == nMixEventsAvail) ? 0 : iME+1;
-                            continue;
-                        }
-
-                        std::cout << " multperp = " << multperp << std::endl;
-                        std::cout << " multperp_mix = " << multperp_mix << std::endl;
-                        std::cout << " normDiff = " << normDiff << std::endl;
-
-                        std::cout << " nMixed = " << nMixed << " , iMF = " << iMF << " , iME = " << iME << " , j_entry_mix = " << j_entry_mix << std::endl;
-                    }
+                    std::cout << " nMixed = " << nMixed << " , iMF = " << iMF << " , j_entry_mix = " << j_entry_mix << std::endl;
 
                     bool mixEvtAdded;
                     mixEvtAdded = emMix->addEvent(hiEvtMix[iMF].run, hiEvtMix[iMF].lumi, hiEvtMix[iMF].evt, j_entry_mix);
