@@ -185,10 +185,12 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
 
         // pick a unique, but also not complicated name for zJet Trees
         // jet collection names which are complicated will be put into tree title
-        std::string treeJetSkimName = Form("skim_%s", jetCollections.at(i).c_str());
         std::string treeJetSkimTitle = Form("skim of %s", jetCollections.at(i).c_str());
 
-        outTreesJet[i] = new TTree(treeJetSkimName.c_str(),treeJetSkimTitle.c_str());
+        output->cd();
+        output->mkdir(jetCollections.at(i).c_str());
+        output->cd(jetCollections.at(i).c_str());
+        outTreesJet[i] = new TTree("t", treeJetSkimTitle.c_str());
         outTreesJet[i]->SetMaxTreeSize(MAXTREESIZE);
     }
     std::vector<Jets> jetsOut(nJetCollections);
@@ -196,14 +198,20 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
         jetsOut[i].setupTreeForWriting(outTreesJet[i]);
     }
 
-    outTreeTrack = new TTree("skim_trackTree", "skim of tracks");
+    output->cd();
+    output->mkdir("ppTrack");
+    output->cd("ppTrack");
+    outTreeTrack = new TTree("trackTree", "skim of tracks");
     outTreeTrack->SetMaxTreeSize(MAXTREESIZE);
     Tracks trksOut;
     trksOut.setupTreeForWriting(outTreeTrack);
 
     hiGenParticle hiGenOut;
     if (isMC) {
-        outTreeHiGenParticle = new TTree("skim_HiGenParticleAna", "skim of gen particles");
+        output->cd();
+        output->mkdir("HiGenParticleAna");
+        output->cd("HiGenParticleAna");
+        outTreeHiGenParticle = new TTree("hi", "skim of gen particles");
         outTreeHiGenParticle->SetMaxTreeSize(MAXTREESIZE);
         hiGenOut.setupTreeForWriting(outTreeHiGenParticle);
     }
@@ -289,9 +297,24 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
         output->cd();
 
         if (iFile == 0) {
+            output->cd();
+            output->mkdir("hltanalysis");
+            output->cd("hltanalysis");
             outTreeHLT = treeHLT->CloneTree(0);
+
+            output->cd();
+            output->mkdir("ggHiNtuplizerGED");
+            output->cd("ggHiNtuplizerGED");
             outTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
+
+            output->cd();
+            output->mkdir("hiEvtAnalyzer");
+            output->cd("hiEvtAnalyzer");
             outTreeHiEvt = treeHiEvt->CloneTree(0);
+
+            output->cd();
+            output->mkdir("skimanalysis");
+            output->cd("skimanalysis");
             outTreeSkimAna = treeSkim->CloneTree(0);
 
             outTreeHLT->SetMaxTreeSize(MAXTREESIZE);
@@ -301,7 +324,6 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
 
             //outTreeHLT->SetName("hltTree");
             //outTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
-            outTreeSkimAna->SetName("skimana");
         }
         else {
             treeHLT->CopyAddresses(outTreeHLT);
