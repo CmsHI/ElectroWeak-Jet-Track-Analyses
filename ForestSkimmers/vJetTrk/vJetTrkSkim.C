@@ -331,7 +331,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             treeMixHiEvt[i] = (TTree*)mixFiles[i]->Get(treePathHiEvt.c_str());
-            setTreeHiEvt(treeMixHiEvt[i], isMC);
+            setBranchStatusTreeHiEvt(treeMixHiEvt[i], isMC);
 
             treeMixggHiNtuplizer[i] = (TTree*)mixFiles[i]->Get(treePath.c_str());
             treeMixggHiNtuplizer[i]->SetBranchStatus("*", 0);
@@ -340,20 +340,20 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             for (int iJ = 0; iJ < nJetCollections; ++iJ) {
                 std::string treeMixPathJet = Form("%s/t", jetCollections[iJ].c_str());
                 treesMixJet[i][iJ] = (TTree*)mixFiles[i]->Get(treeMixPathJet.c_str());
-                setTreeJet(treesMixJet[i][iJ], isMC);
+                setBranchStatusTreeJet(treesMixJet[i][iJ], isMC);
             }
             treeMixTrack[i] = (TTree*)mixFiles[i]->Get(treePathTrack.c_str());
-            setTreeTrack(treeMixTrack[i], doTrkVtx);
+            setBranchStatusTreeTrack(treeMixTrack[i], doTrkVtx);
 
             treeMixSkim[i] = (TTree*)mixFiles[i]->Get(treePathSkimAna.c_str());
-            setTreeSkimAna(treeMixSkim[i]);
+            setBranchStatusTreeSkimAna(treeMixSkim[i]);
             if (isMC) {
 
                 treeMixHiEvt[i]->SetBranchStatus("weight", 1);
                 treeMixHiEvt[i]->SetBranchStatus("pthat",1);
 
                 treeMixHiGenParticle[i] = (TTree*)mixFiles[i]->Get(treePathGen.c_str());
-                setTreeHiGenParticle(treeMixHiGenParticle[i]);
+                setBranchStatusTreeHiGenParticle(treeMixHiGenParticle[i]);
             }
 
             hiEvtMix[i].setupTreeForReading(treeMixHiEvt[i]);
@@ -370,7 +370,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             if (isForest[i]) {
                 treeMixPFCand[i] = (TTree*)mixFiles[i]->Get(treePathPFCand.c_str());
-                setTreePFCand(treeMixPFCand[i]);
+                setBranchStatusTreePFCand(treeMixPFCand[i]);
                 pfMix[i].setupTreeForReading(treeMixPFCand[i]);
             }
             else {
@@ -510,23 +510,23 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         treeggHiNtuplizer->SetBranchStatus("rho",1);
 
         treeHiEvt = (TTree*)fileTmp->Get(treePathHiEvt.c_str());
-        setTreeHiEvt(treeHiEvt, isMC);
+        setBranchStatusTreeHiEvt(treeHiEvt, isMC);
 
         for (int i = 0; i < nJetCollections; ++i) {
 
             treesJet[i] = (TTree*)fileTmp->Get(Form("%s/t", jetCollections[i].c_str()));
-            setTreeJet(treesJet[i], isMC);
+            setBranchStatusTreeJet(treesJet[i], isMC);
         }
 
         treeTrack = (TTree*)fileTmp->Get(treePathTrack.c_str());
-        setTreeTrack(treeTrack, doTrkVtx);
+        setBranchStatusTreeTrack(treeTrack, doTrkVtx);
 
         treePFCand = (TTree*)fileTmp->Get(treePathPFCand.c_str());
-        setTreePFCand(treePFCand);
+        setBranchStatusTreePFCand(treePFCand);
 
         // specify explicitly which branches to use, do not use wildcard
         treeSkim = (TTree*)fileTmp->Get(treePathSkimAna.c_str());
-        setTreeSkimAna(treeSkim);
+        setBranchStatusTreeSkimAna(treeSkim);
 
         if (isMC) {
             treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
@@ -536,7 +536,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             treeHiEvt->SetBranchStatus("pthat",1);
 
             treeHiGenParticle = (TTree*)fileTmp->Get(treePathGen.c_str());
-            setTreeHiGenParticle(treeHiGenParticle);
+            setBranchStatusTreeHiGenParticle(treeHiGenParticle);
         }
 
         ggHiNtuplizer ggHi;

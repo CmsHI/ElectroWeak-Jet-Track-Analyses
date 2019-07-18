@@ -68,12 +68,12 @@ enum RBS {
 
 }
 
-void setTreeHiEvt(TTree* t, bool isMC = false);
-void setTreeJet(TTree* t, bool isMC = false);
-void setTreeTrack(TTree* t, bool enableVtx = false);
-void setTreePFCand(TTree* t);
-void setTreeSkimAna(TTree* t);
-void setTreeHiGenParticle(TTree* t);
+void setBranchStatusTreeHiEvt(TTree* t, bool isMC = false);
+void setBranchStatusTreeJet(TTree* t, bool isMC = false);
+void setBranchStatusTreeTrack(TTree* t, bool enableVtx = false);
+void setBranchStatusTreePFCand(TTree* t);
+void setBranchStatusTreeSkimAna(TTree* t);
+void setBranchStatusTreeHiGenParticle(TTree* t);
 int getHiBin(int hiBin);
 int getVzBin(float vz);
 int getEventPlaneBin(double eventPlaneAngle);
@@ -103,7 +103,7 @@ bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 std::vector<float> getPFHFtotE(pfCand& pf, float etaMin = 3, float etaMax = 5);
 
-void setTreeHiEvt(TTree* t, bool isMC)
+void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
     // specify explicitly which branches to use, do not use wildcard
     t->SetBranchStatus("*",0);     // disable all branches
@@ -124,7 +124,7 @@ void setTreeHiEvt(TTree* t, bool isMC)
     }
 }
 
-void setTreeJet(TTree* t, bool isMC)
+void setBranchStatusTreeJet(TTree* t, bool isMC)
 {
     t->SetBranchStatus("*",0);     // disable all branches
     t->SetBranchStatus("nref",1);
@@ -146,7 +146,7 @@ void setTreeJet(TTree* t, bool isMC)
     }
 }
 
-void setTreeTrack(TTree* t, bool enableVtx)
+void setBranchStatusTreeTrack(TTree* t, bool enableVtx)
 {
     // specify explicitly which branches to use, do not use wildcard
     t->SetBranchStatus("*",0);     // disable all branches
@@ -181,7 +181,7 @@ void setTreeTrack(TTree* t, bool enableVtx)
     }
 }
 
-void setTreePFCand(TTree* t)
+void setBranchStatusTreePFCand(TTree* t)
 {
     t->SetBranchStatus("*",0);     // disable all branches
     t->SetBranchStatus("nPFpart",1);
@@ -192,12 +192,12 @@ void setTreePFCand(TTree* t)
     t->SetBranchStatus("pfHcalE",1);
 }
 
-void setTreeSkimAna(TTree* t)
+void setBranchStatusTreeSkimAna(TTree* t)
 {
     t->SetBranchStatus("*",1);
 }
 
-void setTreeHiGenParticle(TTree* t)
+void setBranchStatusTreeHiGenParticle(TTree* t)
 {
     t->SetBranchStatus("*",0);     // disable all branches
     t->SetBranchStatus("mult",1);

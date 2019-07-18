@@ -251,18 +251,18 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
         for (int i = 0; i < nJetCollections; ++i) {
 
             treesJet[i] = (TTree*)fileTmp->Get(Form("%s/t", jetCollections[i].c_str()));
-            setTreeJet(treesJet[i], isMC);
+            setBranchStatusTreeJet(treesJet[i], isMC);
         }
 
         treeTrack = (TTree*)fileTmp->Get(treePathTrack.c_str());
-        setTreeTrack(treeTrack, true);
+        setBranchStatusTreeTrack(treeTrack, true);
 
         treePFCand = (TTree*)fileTmp->Get(treePathPFCand.c_str());
-        setTreePFCand(treePFCand);
+        setBranchStatusTreePFCand(treePFCand);
 
         if (isMC) {
             treeHiGenParticle = (TTree*)fileTmp->Get(treePathGen.c_str());
-            setTreeHiGenParticle(treeHiGenParticle);
+            setBranchStatusTreeHiGenParticle(treeHiGenParticle);
         }
 
         ggHiNtuplizer ggHi;
