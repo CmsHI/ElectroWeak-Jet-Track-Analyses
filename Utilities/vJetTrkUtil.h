@@ -19,6 +19,7 @@
 
 #include "../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../TreeHeaders/trackTree.h"
+#include "../TreeHeaders/pfCandTree.h"
 #include "../TreeHeaders/trackSkimTree.h"
 #include "systemUtil.h"
 
