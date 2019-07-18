@@ -278,6 +278,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::vector<TTree*> treeMixPFCand(nMixFiles, 0);
     std::vector<TTree*> treeMixHiGenParticle(nMixFiles, 0);
     std::vector<TTree*> treeMixSkim(nMixFiles, 0);
+    std::vector<TTree*> treeMixEventSkim(nMixFiles, 0);
 
     std::vector<hiEvt> hiEvtMix(nMixFiles);
     std::vector<ggHiNtuplizer> ggHiMix(nMixFiles);
@@ -286,6 +287,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::vector<pfCand> pfMix(nMixFiles);
     std::vector<hiGenParticle> hiGenMix(nMixFiles);
     std::vector<skimAnalysis> skimAnaMix(nMixFiles);
+    std::vector<eventSkim> eventSkimMix(nMixFiles);
+
+    std::vector<bool> isMixForest(nMixFiles);
 
     // match_hiBin
     static entryVec entriesMixedEvent[VJT::nCentBins][VJT::nVzBins][VJT::nEventPlaneBins];
@@ -316,31 +320,46 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             isMixFileGood[i] = true;
 
+            // check if mix file is forest or skim
+            treeMixHiEvt[i] = 0;
             treeMixHiEvt[i] = (TTree*)mixFiles[i]->Get(treePathHiEvt.c_str());
+            isMixForest[i] = (treeMixHiEvt[i] != 0);
+
+            if (i < 10) {
+                std::cout << "isMixForest = " << isMixForest[i] << std::endl;
+            }
+
+            std::string treeMixPathHiEvt = (isMixForest[i]) ? treePathHiEvt : "HiTree";
+            std::string treeMixPath = (isMixForest[i]) ? treePath : "EventTree";
+            std::string treeMixPathTrack = (isMixForest[i]) ? treePathTrack : "skim_trackTree";
+            std::string treeMixPathPFCand = (isMixForest[i]) ? treePathPFCand : "";
+            std::string treeMixPathSkimAna = (isMixForest[i]) ? treePathSkimAna : "skimana";
+            std::string treeMixPathGen = (isMixForest[i]) ? treePathGen : "skim_HiGenParticleAna";
+            std::string treeMixPathEventSkim = (isMixForest[i]) ? "" : "eventSkim";
+
+            treeMixHiEvt[i] = (TTree*)mixFiles[i]->Get(treeMixPathHiEvt.c_str());
             setTreeHiEvt(treeMixHiEvt[i], isMC);
 
-            treeMixggHiNtuplizer[i] = (TTree*)mixFiles[i]->Get(treePath.c_str());
+            treeMixggHiNtuplizer[i] = (TTree*)mixFiles[i]->Get(treeMixPath.c_str());
             treeMixggHiNtuplizer[i]->SetBranchStatus("*", 0);
             treeMixggHiNtuplizer[i]->SetBranchStatus("rho", 1);
 
             for (int iJ = 0; iJ < nJetCollections; ++iJ) {
-                treesMixJet[i][iJ] = (TTree*)mixFiles[i]->Get(Form("%s/t", jetCollections[iJ].c_str()));
+                std::string treeMixPathJet = (isMixForest[i]) ? Form("%s/t", jetCollections[iJ].c_str()) : Form("skim_%s", jetCollections[iJ].c_str());
+                treesMixJet[i][iJ] = (TTree*)mixFiles[i]->Get(treeMixPathJet.c_str());
                 setTreeJet(treesMixJet[i][iJ], isMC);
             }
-            treeMixTrack[i] = (TTree*)mixFiles[i]->Get(treePathTrack.c_str());
+            treeMixTrack[i] = (TTree*)mixFiles[i]->Get(treeMixPathTrack.c_str());
             setTreeTrack(treeMixTrack[i], doTrkVtx);
 
-            treeMixPFCand[i] = (TTree*)mixFiles[i]->Get(treePathPFCand.c_str());
-            setTreePFCand(treeMixPFCand[i]);
-
-            treeMixSkim[i] = (TTree*)mixFiles[i]->Get(treePathSkimAna.c_str());
+            treeMixSkim[i] = (TTree*)mixFiles[i]->Get(treeMixPathSkimAna.c_str());
             setTreeSkimAna(treeMixSkim[i]);
             if (isMC) {
 
                 treeMixHiEvt[i]->SetBranchStatus("weight", 1);
                 treeMixHiEvt[i]->SetBranchStatus("pthat",1);
 
-                treeMixHiGenParticle[i] = (TTree*)mixFiles[i]->Get(treePathGen.c_str());
+                treeMixHiGenParticle[i] = (TTree*)mixFiles[i]->Get(treeMixPathGen.c_str());
                 setTreeHiGenParticle(treeMixHiGenParticle[i]);
             }
 
@@ -351,10 +370,20 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             trksMix[i].setupTreeForReading(treeMixTrack[i]);
-            pfMix[i].setupTreeForReading(treeMixPFCand[i]);
             skimAnaMix[i].setupTreeForReading(treeMixSkim[i]);
             if (isMC) {
                 hiGenMix[i].setupTreeForReading(treeMixHiGenParticle[i]);
+            }
+
+            if (isMixForest[i]) {
+                treeMixPFCand[i] = (TTree*)mixFiles[i]->Get(treeMixPathPFCand.c_str());
+                setTreePFCand(treeMixPFCand[i]);
+                pfMix[i].setupTreeForReading(treeMixPFCand[i]);
+            }
+            else {
+                treeMixEventSkim[i] = (TTree*)mixFiles[i]->Get(treeMixPathEventSkim.c_str());
+                treeMixEventSkim[i]->SetBranchStatus("*", 1);
+                eventSkimMix[i].setupTreeForReading(treeMixEventSkim[i]);
             }
 
             Long64_t entriesTmp = treeMixHiEvt[i]->GetEntries();
@@ -414,9 +443,18 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         iCent = getRhoBin(ggHiMix[i].rho);
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
-                        treeMixPFCand[i]->GetEntry(j_entry_mix);
-                        std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                        iCent = getPFHFtotEBin(pf_HF_totE[0]);
+
+                        float tmpTotE = -1;
+                        if (isMixForest[i]) {
+                            treeMixPFCand[i]->GetEntry(j_entry_mix);
+                            std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                            tmpTotE = pf_HF_totE[0];
+                        }
+                        else {
+                            treeMixEventSkim[i]->GetEntry(j_entry_mix);
+                            tmpTotE = eventSkimMix[i].pf_h_HF_totE;
+                        }
+                        iCent = getPFHFtotEBin(tmpTotE);
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                         treeMixTrack[i]->GetEntry(j_entry_mix);
@@ -456,7 +494,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
             }
         }
-
     }
 
     EventMatcher* em = new EventMatcher();
@@ -1025,7 +1062,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     for (int i = 0; i < nJetCollections; ++i) {
                         treesMixJet[iMF][i]->GetEntry(j_entry_mix);
                     }
-                    treeMixPFCand[iMF]->GetEntry(j_entry_mix);
                     if (isMC) {
                         treeMixHiGenParticle[iMF]->GetEntry(j_entry_mix);
                     }
@@ -1044,9 +1080,17 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         mixevtskim.Ncoll_mix.push_back(hiEvtMix[iMF].Ncoll);
                         mixevtskim.Nhard_mix.push_back(hiEvtMix[iMF].Nhard);
                     }
-                    std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                    mixevtskim.pf_h_HF_totE_mix.push_back(pf_HF_totE_mix[0]);
-                    mixevtskim.pf_eg_HF_totE_mix.push_back(pf_HF_totE_mix[1]);
+                    if (isMixForest[iMF]) {
+                        treeMixPFCand[iMF]->GetEntry(j_entry_mix);
+                        std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                        mixevtskim.pf_h_HF_totE_mix.push_back(pf_HF_totE_mix[0]);
+                        mixevtskim.pf_eg_HF_totE_mix.push_back(pf_HF_totE_mix[1]);
+                    }
+                    else {
+                        treeMixEventSkim[iMF]->GetEntry(j_entry_mix);
+                        mixevtskim.pf_h_HF_totE_mix.push_back(eventSkimMix[iMF].pf_h_HF_totE);
+                        mixevtskim.pf_eg_HF_totE_mix.push_back(eventSkimMix[iMF].pf_eg_HF_totE);
+                    }
                     mixevtskim.nmix++;
 
                     for (int iJ = 0; iJ < nJetCollections; ++iJ) {
