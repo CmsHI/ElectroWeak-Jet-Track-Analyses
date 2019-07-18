@@ -879,11 +879,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
-                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-690);
-                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-590);
-                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-790);
-                        //iCent = getPFHFtotEBin(pf_HF_totE[0]-490);
-                        iCent = getPFHFtotEBin(pf_HF_totE[0]-890);
+                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-690.0);
+                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-590.0);
+                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-790.0);
+                        //iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-490.0);
+                        iCent = getPFHFtotEBin(evtskim.pf_h_HF_totE-890.0);
                     }
                     else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
                         iCent = getNTrkBin(nTrkperp * 2, nTrkMax4nTrkBin);
@@ -982,6 +982,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF ||
                         VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHFhit ||
                         VJT::mixMethod == VJT::MIXMETHODS::k_match_rho ||
+                        VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE ||
                         VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk
                         ) {
 
