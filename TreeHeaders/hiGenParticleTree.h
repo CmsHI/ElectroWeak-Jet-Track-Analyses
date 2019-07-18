@@ -24,6 +24,7 @@ public :
     ~hiGenParticle(){};
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
+    void clearEvent();
 
    // Declaration of leaf types
    Int_t           event;
@@ -52,6 +53,20 @@ public :
    Float_t         vy;
    Float_t         vz;
    Float_t         vr;
+
+   // objects to be used when writing
+   std::vector<float>   out_pt;
+   std::vector<float>   out_eta;
+   std::vector<float>   out_phi;
+   std::vector<int>     out_pdg;
+   std::vector<int>     out_chg;
+   std::vector<int>     out_matchingID;
+   std::vector<int>     out_nMothers;
+   std::vector<std::vector<int> > out_motherIdx;
+   std::vector<int>     out_nDaughters;
+   std::vector<std::vector<int> > out_daughterIdx;
+   std::vector<int>     out_sta;
+   std::vector<int>     out_sube;
 
    // List of branches
    TBranch        *b_event;   //!
@@ -150,24 +165,42 @@ void hiGenParticle::setupTreeForWriting(TTree *t)
     t->Branch("phi0", &phi0, "phi0/F");
     t->Branch("scale", &scale, "scale/F");
     t->Branch("n", &n, "n[3]/I");
-    t->Branch("ptav", &ptav, "ptav[3]/I");
+    t->Branch("ptav", &ptav, "ptav[3]/F");
     t->Branch("mult", &mult, "mult/I");
-    t->Branch("pt", &pt);
-    t->Branch("eta", &eta);
-    t->Branch("phi", &phi);
-    t->Branch("pdg", &pdg);
-    t->Branch("chg", &chg);
-    t->Branch("matchingID", &matchingID);
-    t->Branch("nMothers", &nMothers);
-    t->Branch("motherIdx", &motherIdx);
-    t->Branch("nDaughters", &nDaughters);
-    t->Branch("daughterIdx", &daughterIdx);
-    t->Branch("sta", &sta);
-    t->Branch("sube", &sube);
+    t->Branch("pt", &out_pt);
+    t->Branch("eta", &out_eta);
+    t->Branch("phi", &out_phi);
+    t->Branch("pdg", &out_pdg);
+    t->Branch("chg", &out_chg);
+    t->Branch("matchingID", &out_matchingID);
+    t->Branch("nMothers", &out_nMothers);
+    t->Branch("motherIdx", &out_motherIdx);
+    t->Branch("nDaughters", &out_nDaughters);
+    t->Branch("daughterIdx", &out_daughterIdx);
+    t->Branch("sta", &out_sta);
+    t->Branch("sube", &out_sube);
     t->Branch("vx", &vx, "vx/F");
     t->Branch("vy", &vy, "vy/F");
     t->Branch("vz", &vz, "vz/F");
     t->Branch("vr", &vr, "vr/F");
+}
+
+void hiGenParticle::clearEvent()
+{
+    mult = 0;
+
+    out_pt.clear();
+    out_eta.clear();
+    out_phi.clear();
+    out_pdg.clear();
+    out_chg.clear();
+    out_matchingID.clear();
+    out_nMothers.clear();
+    out_motherIdx.clear();
+    out_nDaughters.clear();
+    out_daughterIdx.clear();
+    out_sta.clear();
+    out_sube.clear();
 }
 
 #endif
