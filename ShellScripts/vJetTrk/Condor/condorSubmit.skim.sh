@@ -324,7 +324,7 @@ mv -f \$outputTmp \$outputDirTmp
 
 # $? is the exit status of last run command
 if [ \$? -ne 0 ]; then
-  gfal-copy -f file://\${PWD}/\${outputTmp} gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}/\${outputTmp}
+  gfal-copy -f -t 180000 -T 180000 file://\${PWD}/\${outputTmp} gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}/\${outputTmp}
 
   if [ \$? -ne 0 ]; then
     srmcp -2 \$outputTmp gsiftp://se01.cmsaf.mit.edu:2811/\${outputDirSRM}/\${outputTmp}
