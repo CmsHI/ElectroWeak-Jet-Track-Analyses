@@ -26,6 +26,7 @@ private:
   bool isQuiet;
 
   TFile * trkEff;
+  TFile * trkFake;
   TH3F * eff;
   TH3F * fake;
 
@@ -116,13 +117,20 @@ TrkEff2018PbPb::TrkEff2018PbPb(std::string collectionName, bool isQuiet_, std::s
   if( collectionName.compare("general") == 0 ){
     if(!isQuiet) std::cout << "TrkEff2018PbPb class opening in general tracks mode!  WARNING, THESE ARE STILL PRELIMINARY!" << std::endl;
     
-    trkEff = TFile::Open( (filePath + "2018PbPb_Efficiency_GeneralTracks.root").c_str(),"open");
+    trkEff = TFile::Open( (filePath + "2018PbPb_Efficiency_GeneralTracks_highPt.root").c_str(),"open");
     
     if( !(trkEff->IsOpen() ) ){
       std::cout << "WARNING, COULD NOT FIND TRACK EFFICIENCY FILE FOR GENERAL TRACKS!" << std::endl;
     } else {
       eff = (TH3F*) trkEff->Get("Eff3D");
-      fake = (TH3F*) trkEff->Get("Fak3D");
+    }
+
+    trkFake = TFile::Open( (filePath + "2018PbPb_Efficiency_GeneralTracks_MB.root").c_str(),"open");
+
+    if( !(trkFake->IsOpen() ) ){
+      std::cout << "WARNING, COULD NOT FIND TRACK FAKE FILE FOR GENERAL TRACKS!" << std::endl;
+    } else {
+      fake = (TH3F*) trkFake->Get("Fak3D");
     }
 
 
@@ -152,6 +160,7 @@ TrkEff2018PbPb::TrkEff2018PbPb(std::string collectionName, bool isQuiet_, std::s
 
 TrkEff2018PbPb::~TrkEff2018PbPb(){
   trkEff->Close();
+  trkFake->Close();
 }
 
 #endif
