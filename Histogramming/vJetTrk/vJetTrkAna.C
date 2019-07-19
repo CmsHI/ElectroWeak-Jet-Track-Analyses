@@ -41,7 +41,7 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
-#include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelimv1/trackingEfficiency2018PbPb.h"
+#include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
 
 ///// global variables
 /// configuration variables
@@ -203,7 +203,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isBkgTrk = isBkgObj(trkRBS);
     bool isSigTrk = isSigObj(trkRBS);
 
-    TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelimv1/");
+    TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
