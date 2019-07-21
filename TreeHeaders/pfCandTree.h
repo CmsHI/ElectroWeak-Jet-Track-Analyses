@@ -87,22 +87,22 @@ void pfCand::setupTreeForReading(TTree *t)
     b_trkNdof = 0;
 
     // Set branch addresses and branch pointers
-    t->SetBranchAddress("nPFpart", &nPFpart, &b_nPFpart);
-    t->SetBranchAddress("pfId", &pfId, &b_pfId);
-    t->SetBranchAddress("pfPt", &pfPt, &b_pfPt);
-    t->SetBranchAddress("pfEnergy", &pfEnergy, &b_pfEnergy);
-    t->SetBranchAddress("pfEta", &pfEta, &b_pfEta);
-    t->SetBranchAddress("pfPhi", &pfPhi, &b_pfPhi);
-    t->SetBranchAddress("pfM", &pfM, &b_pfM);
-    t->SetBranchAddress("pfEcalE", &pfEcalE, &b_pfEcalE);
-    t->SetBranchAddress("pfEcalEraw", &pfEcalEraw, &b_pfEcalEraw);
-    t->SetBranchAddress("pfHcalE", &pfHcalE, &b_pfHcalE);
-    t->SetBranchAddress("pfHcalEraw", &pfHcalEraw, &b_pfHcalEraw);
-    t->SetBranchAddress("trkAlgo", &trkAlgo, &b_trkAlgo);
-    t->SetBranchAddress("trkPtError", &trkPtError, &b_trkPtError);
-    t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
-    t->SetBranchAddress("trkChi2", &trkChi2, &b_trkChi2);
-    t->SetBranchAddress("trkNdof", &trkNdof, &b_trkNdof);
+    if (t->GetBranch("nPFpart"))  t->SetBranchAddress("nPFpart", &nPFpart, &b_nPFpart);
+    if (t->GetBranch("pfId"))  t->SetBranchAddress("pfId", &pfId, &b_pfId);
+    if (t->GetBranch("pfPt"))  t->SetBranchAddress("pfPt", &pfPt, &b_pfPt);
+    if (t->GetBranch("pfEnergy"))  t->SetBranchAddress("pfEnergy", &pfEnergy, &b_pfEnergy);
+    if (t->GetBranch("pfEta"))  t->SetBranchAddress("pfEta", &pfEta, &b_pfEta);
+    if (t->GetBranch("pfPhi"))  t->SetBranchAddress("pfPhi", &pfPhi, &b_pfPhi);
+    if (t->GetBranch("pfM"))  t->SetBranchAddress("pfM", &pfM, &b_pfM);
+    if (t->GetBranch("pfEcalE"))  t->SetBranchAddress("pfEcalE", &pfEcalE, &b_pfEcalE);
+    if (t->GetBranch("pfEcalEraw"))  t->SetBranchAddress("pfEcalEraw", &pfEcalEraw, &b_pfEcalEraw);
+    if (t->GetBranch("pfHcalE"))  t->SetBranchAddress("pfHcalE", &pfHcalE, &b_pfHcalE);
+    if (t->GetBranch("pfHcalEraw"))  t->SetBranchAddress("pfHcalEraw", &pfHcalEraw, &b_pfHcalEraw);
+    if (t->GetBranch("trkAlgo"))  t->SetBranchAddress("trkAlgo", &trkAlgo, &b_trkAlgo);
+    if (t->GetBranch("trkPtError"))  t->SetBranchAddress("trkPtError", &trkPtError, &b_trkPtError);
+    if (t->GetBranch("trkNHit"))  t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
+    if (t->GetBranch("trkChi2"))  t->SetBranchAddress("trkChi2", &trkChi2, &b_trkChi2);
+    if (t->GetBranch("trkNdof"))  t->SetBranchAddress("trkNdof", &trkNdof, &b_trkNdof);
 }
 
 #endif
