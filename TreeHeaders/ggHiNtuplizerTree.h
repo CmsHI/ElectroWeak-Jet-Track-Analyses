@@ -1659,7 +1659,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
             }
         }
         else if (WPindex == 4) {
-            // preliminary electron ID (July 2019) : loose WP
+            // preliminary electron ID (July 2019) : tight WP
             if (hiBin >= 0 && hiBin < 60) {
                 // selection on RECO electron based on ECAL regions
                 if (std::fabs((*eleSCEta)[i]) < 1.4442)
@@ -1710,8 +1710,9 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 }
             }
         }
-
-        return false;
+        else {
+            return false;
+        }
     }
     else if (collisionIsHI((COLL::TYPE)collType)) {     // pbpb 2015
 
@@ -1768,8 +1769,9 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (!((*eleMissHits)[i] <= 1)) return false;
             }
         }
-
-        return false;
+        else {
+            return false;
+        }
     }
     else if (collisionIsPP((COLL::TYPE)collType)) {
 
