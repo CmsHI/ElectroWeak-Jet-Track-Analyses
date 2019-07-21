@@ -416,37 +416,41 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 else if (isPbPb18 && !skimAnaMix[i].passedEventSelectionHI2018())  continue;
                 else if (!isPbPb && !skimAnaMix[i].passedEventSelectionPP())  continue;
 
-                int iCent = 0;
-                if (isPbPb) {
-                    iCent = -1;
-                    if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin) {
-                        iCent = getHiBin(hiEvtMix[i].hiBin);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart) {
-                        iCent = getNpartBin(hiEvtMix[i].Npart);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF) {
-                        iCent = getHiHFBin(hiEvtMix[i].hiHF);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
-                        treeMixggHiNtuplizer[i]->GetEntry(j_entry_mix);
-                        iCent = getRhoBin(ggHiMix[i].rho);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
-
-                        float tmpTotE = -1;
-                        if (isForest[i]) {
-                            treeMixPFCand[i]->GetEntry(j_entry_mix);
-                            std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                            tmpTotE = pf_HF_totE[0]+pf_HF_totE[1];
-                        }
-                        else {
-                            treeMixEventSkim[i]->GetEntry(j_entry_mix);
-                            tmpTotE = eventSkimMix[i].pf_h_HF_totE + eventSkimMix[i].pf_eg_HF_totE;
-                        }
-                        iCent = getPFHFtotEBin(tmpTotE);
-                    }
+                int iCent = -1;
+                if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin) {
+                    iCent = getHiBin(hiEvtMix[i].hiBin);
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart) {
+                    iCent = getNpartBin(hiEvtMix[i].Npart);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiHF) {
+                    iCent = getHiHFBin(hiEvtMix[i].hiHF);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
+                    treeMixggHiNtuplizer[i]->GetEntry(j_entry_mix);
+                    iCent = getRhoBin(ggHiMix[i].rho);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
+
+                    float tmpTotE = -1;
+                    if (isForest[i]) {
+                        treeMixPFCand[i]->GetEntry(j_entry_mix);
+                        std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                        tmpTotE = pf_HF_totE[0]+pf_HF_totE[1];
+                    }
+                    else {
+                        treeMixEventSkim[i]->GetEntry(j_entry_mix);
+                        tmpTotE = eventSkimMix[i].pf_h_HF_totE + eventSkimMix[i].pf_eg_HF_totE;
+                    }
+                    iCent = getPFHFtotEBin(tmpTotE);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
+
+                    treeMixTrack[i]->GetEntry(j_entry_mix);
+                    iCent = getNVtxBin(trksMix[i].nVtx);
+                }
+
+                if (iCent < 0) continue;
 
                 entriesMixedEvent[iCent][ivz][iEventPlane].files.push_back(i);
                 entriesMixedEvent[iCent][ivz][iEventPlane].v.push_back(j_entry_mix);
@@ -854,38 +858,41 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 if (ivz < 0) continue;
                 if (iEventPlane < 0) continue;
 
-                int iCent = 0;
                 std::vector<bool> usedAdjacentCents;
 
-                if (isPbPb) {
-                    iCent = -1;
-                    if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin) {
-                        iCent = getHiBin(hiBin);
-                        //iCent += 1;
-                        //if (iCent > 199) iCent = 199;
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart) {
-                        iCent = getNpartBin(hiEvt.Npart);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
-                        //iCent = getRhoBin(ggHi.rho-1.45);
-                        //iCent = getRhoBin(ggHi.rho-1.32);
-                        //iCent = getRhoBin(ggHi.rho-1.26);
-                        //iCent = getRhoBin(ggHi.rho - getRhoDiff(ggHi.rho));
-                        //iCent = getRhoBin(ggHi.rho-0.5);
-                        iCent = getRhoBin(ggHi.rho-2.0);
-                    }
-                    else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
-
-                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0);
-                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0); // 682 - 20%
-                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0); // 682 + 20%
-                        // data
-                        iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5);
-                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46));
-                        //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46));
-                    }
+                int iCent = -1;
+                if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin) {
+                    iCent = getHiBin(hiBin);
+                    //iCent += 1;
+                    //if (iCent > 199) iCent = 199;
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_Npart) {
+                    iCent = getNpartBin(hiEvt.Npart);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_rho) {
+                    //iCent = getRhoBin(ggHi.rho-1.45);
+                    //iCent = getRhoBin(ggHi.rho-1.32);
+                    //iCent = getRhoBin(ggHi.rho-1.26);
+                    //iCent = getRhoBin(ggHi.rho - getRhoDiff(ggHi.rho));
+                    //iCent = getRhoBin(ggHi.rho-0.5);
+                    iCent = getRhoBin(ggHi.rho-2.0);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
+
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0); // 682 - 20%
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0); // 682 + 20%
+                    // data
+                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46));
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46));
+                }
+                if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
+
+                    iCent = getNVtxBin(trks.nVtx-1);
+                }
+
+                if (iCent < 0) continue;
 
                 int nAdjacentCents = usedAdjacentCents.size();
                 bool centsAdjacentAvail = (nAdjacentCents > 0);

@@ -47,10 +47,11 @@ enum MIXMETHODS {
     k_match_hiHF,
     k_match_rho,
     k_match_PF_HF_totE,
+    k_match_nVtx,
     kN_MITMETHODS
 };
 const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_rho",
-                                                  "match_PF_HF_totE"};
+                                                  "match_PF_HF_totE", "match_nVtx"};
 int mixMethod;
 
 enum RECOGEN {
@@ -84,6 +85,7 @@ int getHiHFhitBin(float hiHFhit, float hiHFhitMax = 180000);
 int getRhoBin(double rho, double rhoMax = 250);
 int getPFHFtotEBin(double PF_HF_totE, double totEMax = 150000);
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax);
+int getNVtxBin(int nVtx);
 double getRhoDiff(double rho);
 int parseEWObj(std::string ewObjStr);
 int parseMixMethod(std::string mixMethodStr);
@@ -295,6 +297,18 @@ int getEventEnergyBin(double evtEnergy, double evtEnergyMax)
     }
 }
 
+int getNVtxBin(int nVtx)
+{
+    if (nVtx <= 0) return -1;
+
+    if (nVtx < VJT::nCentBins) {
+        return nVtx - 1;
+    }
+    else {
+        return (VJT::nCentBins)-1;
+    }
+}
+
 double getRhoDiff(double rho)
 {
     double rho1 = 0.696165;
@@ -341,6 +355,9 @@ int parseMixMethod(std::string mixMethodStr)
     }
     else if (mixMethodStr == "match_pf_hf_tote" || mixMethodStr == "4") {
         return VJT::MIXMETHODS::k_match_PF_HF_totE;
+    }
+    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "5") {
+        return VJT::MIXMETHODS::k_match_nVtx;
     }
     else {
         return -1;
