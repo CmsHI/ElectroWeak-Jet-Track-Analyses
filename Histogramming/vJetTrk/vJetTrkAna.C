@@ -157,6 +157,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<int> centsMax(centsMaxTmp.begin(), centsMaxTmp.end());
     int nCents = centsMin.size();
 
+    int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
+
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
     std::cout << "nVPts = " << nVPts << std::endl;
@@ -183,6 +186,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nCents; ++i) {
         std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
     }
+
+    std::cout << "maxNVtx = " << maxNVtx << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -692,6 +697,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus(Form("sube%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("evtgen%s", mix_str.c_str()),1);
         }
+        if (maxNVtx > 0) {
+            treeTrackSkim->SetBranchStatus("nVtx",1);
+        }
 
         treeEvtSkim = (TTree*)fileTmp->Get(treePathEvtSkim.c_str());
         treeEvtSkim->SetBranchStatus("*",0);
@@ -790,6 +798,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::cout << "skipping event " << std::endl;
                 entriesNoMixEvt++;
                 continue;  // TODO : remove isPbPb or nmix requirement
+            }
+            if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
+                continue;
             }
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
