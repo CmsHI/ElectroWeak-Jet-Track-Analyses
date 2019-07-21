@@ -46,9 +46,11 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
     operations = toUpperCase(operations);
     std::vector<std::string> operationList = split(operations, ",", false, false);
+    bool doSCALEBINW = containsElement(operationList, "SCALEBINW");
     bool doBKGSUB = containsElement(operationList, "BKGSUB");
     bool doNORMV = containsElement(operationList, "NORMV");
 
+    std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
     std::cout << "doNORMV = " << doNORMV << std::endl;
 
@@ -165,13 +167,22 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             // write objects
             hTmp = (TH1D*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
             hTmp->Scale(1.0 / nV);
+            if (doSCALEBINW) {
+                hTmp->Scale(1.0, "width");
+            }
             hTmp->Write("", TObject::kOverwrite);
 
             hTmp = (TH1D*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
             hTmp->Scale(1.0 / nV);
+            if (doSCALEBINW) {
+                hTmp->Scale(1.0, "width");
+            }
             hTmp->Write("", TObject::kOverwrite);
 
             hOut->Scale(1.0 / nV);
+            if (doSCALEBINW) {
+                hOut->Scale(1.0, "width");
+            }
             hOut->Write("",TObject::kOverwrite);
         }
     }
@@ -211,6 +222,9 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             double nV = hTmp->Integral(binMin, binMax);
 
             hOut->Scale(1.0 / nV);
+            if (doSCALEBINW) {
+                hOut->Scale(1.0, "width");
+            }
             hOut->Write("",TObject::kOverwrite);
         }
     }

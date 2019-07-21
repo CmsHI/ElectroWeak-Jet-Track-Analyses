@@ -9,6 +9,7 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wextra -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 ### USER INPUT START
+doSCALEBINW=1
 doBKGSUB=1
 doNORMV=1
 trkRG="g" # Options are "r" (reco) or "g" (gen)
@@ -119,12 +120,14 @@ do
   if [ ${sampleFlags[i1]} == 1 ]; then
  
     operation=""
-    if [[ ${doBKGSUB} == 1 && ${doNORMV} == 1 ]]; then
-      operation="BKGSUB,NORMV"
-    elif [[ ${doBKGSUB} == 1 ]]; then
-      operation="BKGSUB"
-    elif [[ ${doNORMV} == 1 ]]; then
-      operation="NORMV"
+    if [[ ${doSCALEBINW} == 1 ]]; then
+      operation=${operation}",SCALEBINW"
+    fi
+    if [[ ${doBKGSUB} == 1 ]]; then
+      operation=${operation}",BKGSUB"
+    fi
+    if [[ ${doNORMV} == 1 ]]; then
+      operation=${operation}",NORMV"
     fi
 
     inputFileList="vJetTrkCalc_inputFiles.list"
@@ -155,8 +158,8 @@ do
     outDir=$(dirname "${outputFile}")
     mkdir -p $outDir
 
-    $runCmd $progPath ${inputFileList} ${inputObjList} $outputFile ${writeMode} ${operation} ${optionStr} &> $outputFileLOG
-    echo "$runCmd $progPath ${inputFileList} ${inputObjList} $outputFile ${writeMode} ${operation} ${optionStr} &> $outputFileLOG"
+    $runCmd $progPath ${inputFileList} ${inputObjList} $outputFile ${writeMode} ${operation} &> $outputFileLOG
+    echo "$runCmd $progPath ${inputFileList} ${inputObjList} $outputFile ${writeMode} ${operation} &> $outputFileLOG"
   fi
 done
 
