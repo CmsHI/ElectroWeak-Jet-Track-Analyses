@@ -229,6 +229,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_vtxz[nCents][nVPts];
     TH2D* h2_hiHF_vs_vPt[nCents];
     TH2D* h2_rho_vs_vPt[nCents];
+    TH2D* h2_PFHFtotE_vs_vPt[nCents];
 
     TH1D* h_trkPt[nCents][nVPts];
     TH1D* h_trkEta[nCents][nVPts][nTrkPts];
@@ -298,6 +299,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h2_rho_vs_vPt[i] = 0;
         h2_rho_vs_vPt[i] = new TH2D(name_h2_rho_vs_vPt.c_str(), title_h2_rho_vs_vPt.c_str(), 30, 0, 150, 2000, 0, 400);
         vec_h2D.push_back(h2_rho_vs_vPt[i]);
+
+        std::string name_h2_PFHFtotE_vs_vPt = Form("h2_PFHFtotE_vs_vPt_%s", label_cent.c_str());
+        std::string title_h2_PFHFtotE_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vEta.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        h2_PFHFtotE_vs_vPt[i] = 0;
+        h2_PFHFtotE_vs_vPt[i] = new TH2D(name_h2_PFHFtotE_vs_vPt.c_str(), title_h2_PFHFtotE_vs_vPt.c_str(), 30, 0, 150, 2000, 0, 200000);
+        vec_h2D.push_back(h2_PFHFtotE_vs_vPt[i]);
         for (int j = 0; j < nVPts; ++j) {
 
             std::string label_vPt = Form("vPt%d_%d", (int)(vPtsMin[j]), (int)(vPtsMax[j]));
@@ -704,6 +714,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         treeEvtSkim = (TTree*)fileTmp->Get(treePathEvtSkim.c_str());
         treeEvtSkim->SetBranchStatus("*",0);
         treeEvtSkim->SetBranchStatus("pf_h_HF_totE",1);
+        treeEvtSkim->SetBranchStatus("pf_eg_HF_totE",1);
 
         treeHiEvtMix = (TTree*)fileTmp->Get(treePathHiEvtMix.c_str());
         treeHiEvtMix->SetBranchStatus("*",0);     // disable all branches
@@ -941,6 +952,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_vPt[i]->Fill(vPt, wV);
                         h2_hiHF_vs_vPt[i]->Fill(vPt, hiEvt.hiHF, wV);
                         h2_rho_vs_vPt[i]->Fill(vPt, ggHi.rho, wV);
+                        h2_PFHFtotE_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                     }
 
                     for (int j = 0; j < nVPts; ++j) {
