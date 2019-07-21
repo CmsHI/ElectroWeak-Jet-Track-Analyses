@@ -92,10 +92,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isPbPb15 = isPbPb && (sampleType.find("2015") != std::string::npos);
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
+    bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
 
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb15 = " << isPbPb15 << std::endl;
     std::cout << "isPbPb18 = " << isPbPb18 << std::endl;
+    std::cout << "isPP17 = " << isPP17 << std::endl;
 
     int collisionType = -1;
     if (isPbPb15) {
@@ -697,6 +699,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus(Form("highPurity%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
+            treeTrackSkim->SetBranchStatus(Form("evttrk%s", mix_str.c_str()),1);
         }
         else {
             treeTrackSkim->SetBranchStatus(Form("mult%s", mix_str.c_str()),1);
@@ -829,7 +832,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (doEventWeight > 0) {
                 w = hiEvt.weight;
                 double vertexWeight = 1;
-                if (isPbPb && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));
+                if (isPbPb18 && isMC)  {
+                    vertexWeight = 1.19357*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-(-22.3784))/39.7459, 2));
+                }
+                else if (isPbPb15 && isMC)  {
+                    vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));
+                }
+                else if (isPP17 && isMC)  {
+                    vertexWeight = 1.0/(1.10749*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-(-0.504278))/13.5601, 2)));
+                }
                 double centWeight = 1;
                 if (isPbPb && isMC)  centWeight = findNcoll(hiBin);
                 w *= vertexWeight * centWeight;
