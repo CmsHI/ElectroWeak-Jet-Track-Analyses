@@ -164,12 +164,17 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout<<"##### END #####"<< std::endl;
 
     std::vector<std::string> mixFileList = InputConfigurationParser::ParseFiles(mixFile.c_str());
-    std::cout<<"mix ROOT files : num = "<<mixFileList.size()<< std::endl;
-    std::cout<<"#####"<< std::endl;
-    for (std::vector<std::string>::iterator it = mixFileList.begin() ; it != mixFileList.end(); ++it) {
-        std::cout<<(*it).c_str()<< std::endl;
+    if (mixEvents) {
+        std::cout<<"mix ROOT files : num = "<<mixFileList.size()<< std::endl;
+        std::cout<<"#####"<< std::endl;
+        for (std::vector<std::string>::iterator it = mixFileList.begin() ; it != mixFileList.end(); ++it) {
+            std::cout<<(*it).c_str()<< std::endl;
+        }
+        std::cout<<"##### END #####"<< std::endl;
     }
-    std::cout<<"##### END #####"<< std::endl;
+    else {
+        std::cout<<"No event mixing will be done."<< std::endl;
+    }
 
     bool vIsPho = (toLowerCase(vType).find("pho") == 0);
     bool vIsZmm = (toLowerCase(vType).find("zmm") == 0);
