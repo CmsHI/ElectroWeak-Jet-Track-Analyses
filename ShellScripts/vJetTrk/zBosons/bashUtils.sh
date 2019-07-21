@@ -26,7 +26,7 @@ forest_pbpb_2015_data_zmm="Configurations/filelists/HIRun2015PbPb/HIEWQExo_HIRun
 forest_pbpb_2015_data_zee="Configurations/filelists/HIRun2015PbPb/HIPhoton40AndZ_HIRun2015_PromptReco_v1_AOD_dielectron_skim_FOREST_unmerged.list"
 
 ### forests - mix event
-forest_pp_2017_mc_mix="DUMMY.root"
+forest_pp_2017_mc_mix="Configurations/filelists/HIRun2017PP/official/MinBias_TuneCUETP8M1_2017_5p02TeV_pythia8_RunIIpp5Spring18DR_94X_mc2017_realistic_forppRef5TeV_v1_FOREST.list"
 forest_pp_2017_data_mix="Configurations/filelists/HIRun2017PP/ParkingL1MinimumBias6_Run2017G_17Nov2017_v1_Cert_306546_306826_FOREST.list"
 
 forest_pbpb_2018_mc_mix="Configurations/filelists/HIRun2018PbPb/official/MinBias_Hydjet_Drum5F_2018_5p02TeV_HINPbPbAutumn18DR_NoPUmva98_103X_upgrade2018_realistic_HI_v11_v1_FOREST.list"
@@ -70,6 +70,9 @@ skim_pbpb_2015_data_zee="Configurations/filelists/vJetTrk/zBoson/vJetTrkSkim_pbp
 
 ### skims - mix event
 skim_pbpb_2018_mc_mix="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_mc_mix.list"
+skim_pbpb_2018_data_mix="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix.list"
+skim_pbpb_2018_data_mix_1="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_1.list"
+skim_pbpb_2018_data_mix_2="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_2.list"
 
 ## pbpb 2018 noPU
 skim_pbpb_2018_mc_zmm_noPU="Configurations/filelists/vJetTrk/zBoson/vJetTrkSkim_pbpb_2018_mc_zmm_noPU.list"
