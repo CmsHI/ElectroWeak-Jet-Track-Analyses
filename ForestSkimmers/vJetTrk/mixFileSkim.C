@@ -237,6 +237,9 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
 
         // trees for which all info in a branch will be written
         treeHLT = (TTree*)fileTmp->Get(treePathHLT.c_str());
+        if (treeHLT == 0) {
+            treeHLT = (TTree*)fileTmp->Get("hltanalysisReco/HltTree");
+        }
         treeHLT->SetBranchStatus("*",1);
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePathggHi.c_str());
@@ -425,7 +428,12 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
                 trksOut.trkDz1[iOut] = trks.trkDz1[i];
                 trksOut.trkDzError1[iOut] = trks.trkDzError1[i];
                 trksOut.trkAlgo[iOut] = trks.trkAlgo[i];
-                trksOut.trkMVA[iOut] = trks.trkMVA[i];
+                if (trks.b_trkMVA != 0) {
+                    trksOut.trkMVA[iOut] = trks.trkMVA[i];
+                }
+                else {
+                    trksOut.trkMVA[iOut] = -987987;
+                }
                 trksOut.pfEcal[iOut] = trks.pfEcal[i];
                 trksOut.pfHcal[iOut] = trks.pfHcal[i];
                 trksOut.trkNVtx[iOut] = trks.trkNVtx[i];

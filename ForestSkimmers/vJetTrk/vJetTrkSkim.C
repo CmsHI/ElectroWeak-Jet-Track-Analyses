@@ -502,6 +502,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         }
 
         treeHLT = (TTree*)fileTmp->Get(treePathHLT.c_str());
+        if (treeHLT == 0) {
+            treeHLT = (TTree*)fileTmp->Get("hltanalysisReco/HltTree");
+        }
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
@@ -791,7 +794,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 trkskim.trkDz1.push_back(trks.trkDz1[i]);
                 trkskim.trkDzError1.push_back(trks.trkDzError1[i]);
                 trkskim.trkAlgo.push_back(trks.trkAlgo[i]);
-                trkskim.trkMVA.push_back(trks.trkMVA[i]);
+                if (trks.b_trkMVA != 0) {
+                    trkskim.trkMVA.push_back(trks.trkMVA[i]);
+                }
+                else {
+                    trkskim.trkMVA.push_back(-987987);
+                }
                 trkskim.pfEcal.push_back(trks.pfEcal[i]);
                 trkskim.pfHcal.push_back(trks.pfHcal[i]);
                 trkskim.trkWeight.push_back(1);
