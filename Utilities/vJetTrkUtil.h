@@ -104,6 +104,9 @@ int getNTrkPerp(Tracks& trks, double vPhi);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 std::vector<float> getPFHFtotE(pfCand& pf, float etaMin = 3, float etaMax = 5);
+// histogram util
+double parseVPtMin(std::string histPath);
+double parseVPtMax(std::string histPath);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -587,6 +590,46 @@ std::vector<float> getPFHFtotE(pfCand& pf, float etaMin, float etaMax)
     }
 
     return {h_HF_totE, eg_HF_totE};
+}
+
+/*
+ * parse the min vPt used when filling the given TH1
+ * Example : returns 20 if given "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+ */
+double parseVPtMin(std::string histPath)
+{
+    // histPath = "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+    size_t pos = histPath.find("vPt");
+    std::string strTmp = histPath.substr(pos + std::string("vPt").size());
+    // strTmp = "20_40_trkPt1_2_cent0_30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    // strTmp = "20"
+
+    return std::atof(strTmp.c_str());
+}
+
+/*
+ * parse the max vPt used when filling the given TH1
+ * Example : returns 40 if given "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+ */
+double parseVPtMax(std::string histPath)
+{
+    // histPath = "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+    size_t pos = histPath.find("vPt");
+    std::string strTmp = histPath.substr(pos + std::string("vPt").size());
+    // strTmp = "20_40_trkPt1_2_cent0_30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(pos+1);
+    // strTmp = "40_trkPt1_2_cent0_30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    // strTmp = "40"
+
+    return std::atof(strTmp.c_str());
 }
 
 #endif
