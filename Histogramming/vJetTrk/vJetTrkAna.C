@@ -60,6 +60,7 @@ std::vector<std::vector<float>> pthatWeights;
 bool excludeHI18HEMfailure;
 
 bool redoTrkWeights;
+bool rotateEvtPlane;
 
 int nPthatWeights;
 
@@ -740,6 +741,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeHiEvtMix->SetBranchStatus("*",0);     // disable all branches
             treeHiEvtMix->SetBranchStatus("nmix",1);
             treeHiEvtMix->SetBranchStatus("hiBin_mix",1);
+            if (rotateEvtPlane) {
+                treeHiEvtMix->SetBranchStatus("hiEvtPlanes_mix",1);
+            }
         }
 
         if (isMC) {
@@ -1078,6 +1082,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
 
+                float t_pt = (*p_pt)[i];
+                float t_eta = (*p_eta)[i];
+                float t_phi = (*p_phi)[i];
+
+                if (isBkgTrk && rotateEvtPlane) {
+                    int iEvt = (*p_evtIndex)[i];
+                    t_phi += (hiEvt.hiEvtPlanes[8] - (*mixEvents.p_hiEvtPlanes_mix)[iEvt]);
+                    t_phi = correctPhiRange(t_phi);
+                }
+
+                double trkWeightTmp = (*p_weight)[i];
+                if (isRecoTrk && redoTrkWeights) {
+
+                    int hiBinTmp = hiBin;
+                    if (isBkgTrk) {
+                        int iEvt = (*p_evtIndex)[i];
+                        hiBinTmp = (*mixEvents.p_hiBin_mix)[iEvt];
+                    }
+
+                    if (isPbPb18) {
+                        trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
+                    }
+                }
+                double wTrk = trkWeightTmp * wMixEvts;
+
                 for (int iCent = 0; iCent < nCents; ++iCent) {
 
                     if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
@@ -1085,27 +1114,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
 
                         if (!(vPtsMin[iVPt] <= vPt && vPt < vPtsMax[iVPt]))  continue;
-
-                        float t_pt = (*p_pt)[i];
-                        float t_eta = (*p_eta)[i];
-
-                        double trkWeightTmp = (*p_weight)[i];
-                        if (isRecoTrk && redoTrkWeights) {
-
-                            int hiBinTmp = hiBin;
-                            if (isBkgTrk) {
-                                int iEvt = (*p_evtIndex)[i];
-                                hiBinTmp = (*mixEvents.p_hiBin_mix)[iEvt];
-                            }
-
-                            if (isPbPb18) {
-                                trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
-                            }
-                        }
-
-                        double wTrk = trkWeightTmp * wMixEvts;
-
-                        float t_phi = (*p_phi)[i];
 
                         float dphi = std::fabs(getDPHI(vPhi, t_phi));
                         double dphiMinTmp = vTrkDphiMin * TMath::Pi();
@@ -1277,6 +1285,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     redoTrkWeights = (confParser.ReadConfigValueInteger("redoTrkWeights") > 0);
 
+    rotateEvtPlane = (confParser.ReadConfigValueInteger("rotateEvtPlane") > 0);
+
     nPthatWeights = pthatWeights[0].size();
 
     return 0;
@@ -1313,6 +1323,8 @@ void printConfiguration()
     std::cout << "excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout << "redoTrkWeights = " << redoTrkWeights << std::endl;
+
+    std::cout << "rotateEvtPlane = " << rotateEvtPlane << std::endl;
 }
 
 int parseRecoObj(std::string recoObjStr)
