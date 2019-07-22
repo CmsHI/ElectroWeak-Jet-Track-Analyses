@@ -614,6 +614,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp = TFile::Open(inputPath.c_str(), "READ");
     fileTmp->cd();
 
+    bool isvJetTrkSkim = true;
+    treeggHiNtuplizer = 0;
+    treeggHiNtuplizer = (TTree*)fileTmp->Get("EventTree");
+    isvJetTrkSkim = (treeggHiNtuplizer != 0);
+    if (!isvJetTrkSkim) {
+        treePath = "ggHiNtuplizerGED/EventTree";
+        treePathHLT = "hltanalysis/HltTree";
+        treePathHiEvt = "hiEvtAnalyzer/HiTree";
+        treePathTrack = "ppTrack/trackTree";
+        treePathEvtSkim = "NULL";
+        treePathHiEvtMix = "NULL";
+    }
+
     if (nFiles == 1) {
         // read one tree only to get the number of entries
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
@@ -714,15 +727,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus("nVtx",1);
         }
 
-        treeEvtSkim = (TTree*)fileTmp->Get(treePathEvtSkim.c_str());
-        treeEvtSkim->SetBranchStatus("*",0);
-        treeEvtSkim->SetBranchStatus("pf_h_HF_totE",1);
-        treeEvtSkim->SetBranchStatus("pf_eg_HF_totE",1);
+        if (isvJetTrkSkim) {
+            treeEvtSkim = (TTree*)fileTmp->Get(treePathEvtSkim.c_str());
+            treeEvtSkim->SetBranchStatus("*",0);
+            treeEvtSkim->SetBranchStatus("pf_h_HF_totE",1);
+            treeEvtSkim->SetBranchStatus("pf_eg_HF_totE",1);
 
-        treeHiEvtMix = (TTree*)fileTmp->Get(treePathHiEvtMix.c_str());
-        treeHiEvtMix->SetBranchStatus("*",0);     // disable all branches
-        treeHiEvtMix->SetBranchStatus("nmix",1);
-        treeHiEvtMix->SetBranchStatus("hiBin_mix",1);
+            treeHiEvtMix = (TTree*)fileTmp->Get(treePathHiEvtMix.c_str());
+            treeHiEvtMix->SetBranchStatus("*",0);     // disable all branches
+            treeHiEvtMix->SetBranchStatus("nmix",1);
+            treeHiEvtMix->SetBranchStatus("hiBin_mix",1);
+        }
 
         if (isMC) {
             treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
@@ -747,10 +762,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         trks.setupTreeForReading(treeTrackSkim);
 
         eventSkim evtskim;
-        evtskim.setupTreeForReading(treeEvtSkim);
-
         mixEventSkim mixEvents;
-        mixEvents.setupTreeForReading(treeHiEvtMix);
+        if (isvJetTrkSkim) {
+
+            evtskim.setupTreeForReading(treeEvtSkim);
+            mixEvents.setupTreeForReading(treeHiEvtMix);
+        }
 
         if (isRecoTrk) {
             p_pt = trks.p_trkPt;
@@ -800,21 +817,25 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
-            if (anaJets) {
-                treeJetSkim->GetEntry(j_entry);
-            }
-            treeTrackSkim->GetEntry(j_entry);
-            treeEvtSkim->GetEntry(j_entry);
-            treeHiEvtMix->GetEntry(j_entry);
-            if (isPbPb && mixEvents.nmix == 0)  {
-                std::cout << "WARNING : no mixed event for j_entry = " << j_entry
-                          << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
-                std::cout << "skipping event " << std::endl;
-                entriesNoMixEvt++;
-                continue;  // TODO : remove isPbPb or nmix requirement
-            }
-            if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
-                continue;
+            if (isvJetTrkSkim) {
+                if (anaJets) {
+                    treeJetSkim->GetEntry(j_entry);
+                }
+
+                treeTrackSkim->GetEntry(j_entry);
+                treeEvtSkim->GetEntry(j_entry);
+                treeHiEvtMix->GetEntry(j_entry);
+
+                if (isPbPb && mixEvents.nmix == 0)  {
+                    std::cout << "WARNING : no mixed event for j_entry = " << j_entry
+                              << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
+                    std::cout << "skipping event " << std::endl;
+                    entriesNoMixEvt++;
+                    continue;  // TODO : remove isPbPb or nmix requirement
+                }
+                if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
+                    continue;
+                }
             }
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
@@ -912,6 +933,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
                     else if (vIsZee) {
+                        if (!(std::fabs((*lEta)[i]) < 2.1)) continue;
                         if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                     }
@@ -924,6 +946,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
                         else if (vIsZee) {
+                            if (!(std::fabs((*lEta)[j]) < 2.1)) continue;
                             if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
@@ -963,7 +986,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_vPt[i]->Fill(vPt, wV);
                         h2_hiHF_vs_vPt[i]->Fill(vPt, hiEvt.hiHF, wV);
                         h2_rho_vs_vPt[i]->Fill(vPt, ggHi.rho, wV);
-                        h2_PFHFtotE_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                        if (isvJetTrkSkim) {
+                            h2_PFHFtotE_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                        }
                     }
 
                     for (int j = 0; j < nVPts; ++j) {
@@ -1014,6 +1039,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             if (!(vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax))  continue;
             if (vIsZ && !ll_os) continue;
+
+            if (!isvJetTrkSkim) continue;
 
             TLorentzVector vV;
             vV.SetPtEtaPhiM(vPt, 0, vPhi, vM);
