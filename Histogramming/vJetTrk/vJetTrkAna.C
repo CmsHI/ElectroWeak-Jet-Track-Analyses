@@ -161,6 +161,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
+    int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
 
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
@@ -190,6 +192,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
 
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
+    std::cout << "minNVtx = " << minNVtx << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -723,7 +726,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus(Form("sube%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("evtgen%s", mix_str.c_str()),1);
         }
-        if (maxNVtx > 0) {
+        if (maxNVtx > 0 || minNVtx > -1) {
             treeTrackSkim->SetBranchStatus("nVtx",1);
         }
 
@@ -834,6 +837,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     continue;  // TODO : remove isPbPb or nmix requirement
                 }
                 if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
+                    continue;
+                }
+                if (minNVtx > -1 && trks.nVtx < minNVtx) {
                     continue;
                 }
             }
