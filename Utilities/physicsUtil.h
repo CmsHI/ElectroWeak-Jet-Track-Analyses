@@ -20,6 +20,7 @@ double getDPHI(double phi1, double phi2);
 double getAbsDPHI(double phi1, double phi2);
 double getDR(double eta1, double phi1, double eta2, double phi2);
 double getDR2(double eta1, double phi1, double eta2, double phi2);
+double correctPhiRange(double phi);
 
 double getDETA(double eta1, double eta2)
 {
@@ -66,6 +67,15 @@ double getDR2(double eta1, double phi1, double eta2, double phi2)
     return (deta*deta + dphi*dphi);
 }
 
+double correctPhiRange(double phi){
+
+    while (TMath::Abs(phi) > TMath::Pi())
+    {
+        if ( phi >    TMath::Pi() )  phi -= 2*TMath::Pi();
+        if ( phi < -1*TMath::Pi() )  phi += 2*TMath::Pi();
+    }
+    return phi;
+}
 
 #endif /* PHYSICSUTIL_H_ */
 
