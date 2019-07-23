@@ -315,6 +315,7 @@ public :
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
   bool passedMuSelection(int i, int collType);
+  double getElePtCorrFactor(int i, int collType, int hiBin);
   double getValueByName(int i, std::string varName);
   void copy2Vars(int i, float *vals, std::vector<std::string>& varNames, int nVars, int offset);
 
@@ -1887,6 +1888,71 @@ bool ggHiNtuplizer::passedMuSelection(int i, int collType)
     }
 
     return true;
+}
+
+double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
+{
+    if (collisionIsHI2018((COLL::TYPE)collType)) {
+
+        if (collisionIsDATA((COLL::TYPE)collType)) {
+
+            if (std::fabs((*eleSCEta)[i]) < 1.4442) {
+
+                if (hiBin < 20) {
+                    return 0.990;
+                }
+                else if (hiBin < 60) {
+                    return 1.006;
+                }
+                else {
+                    return 1.016;
+                }
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
+
+                if (hiBin < 20) {
+                    return 0.976;
+                }
+                else if (hiBin < 60) {
+                    return 1.015;
+                }
+                else {
+                    return 1.052;
+                }
+            }
+
+        }
+        else if (collisionIsMC((COLL::TYPE)collType)) {
+
+            if (std::fabs((*eleSCEta)[i]) < 1.4442) {
+
+                if (hiBin < 20) {
+                    return 0.974;
+                }
+                else if (hiBin < 60) {
+                    return 0.992;
+                }
+                else {
+                    return 1.005;
+                }
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
+
+                if (hiBin < 20) {
+                    return 0.913;
+                }
+                else if (hiBin < 60) {
+                    return 0.952;
+                }
+                else {
+                    return 0.992;
+                }
+            }
+
+        }
+    }
+
+    return 1;
 }
 
 double ggHiNtuplizer::getValueByName(int i, std::string varName)
