@@ -893,6 +893,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double vPhi = -999999;
             double vM = 0;
             bool ll_os = false;     // dilepton opposite charge
+            std::vector<float> llEta = {-998877, -998877};
+            std::vector<float> llPhi = {-998877, -998877};
+            float minDR2_lep_trk = 0.09;
 
             if (vIsPho) {
                 for (int i = 0; i < ggHi.nPho; ++i) {
@@ -983,6 +986,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vPhi = vecll.Phi();
                             vM = vecll.M();
                             ll_os = ((*lChg)[i] != (*lChg)[j]);
+
+                            llEta = {(*lEta)[i], (*lEta)[j]};
+                            llPhi = {(*lPhi)[i], (*lPhi)[j]};
                         }
                     }
                 }
@@ -1098,6 +1104,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     int iEvt = (*p_evtIndex)[i];
                     t_phi += (hiEvt.hiEvtPlanes[8] - (*mixEvents.p_hiEvtPlanes_mix)[iEvt]);
                     t_phi = correctPhiRange(t_phi);
+                }
+
+                if (vIsZ) {
+                    if (getDR2(t_eta, t_phi, llEta[0], llPhi[0]) < minDR2_lep_trk)  continue;
+                    if (getDR2(t_eta, t_phi, llEta[1], llPhi[1]) < minDR2_lep_trk)  continue;
                 }
 
                 double trkWeightTmp = (*p_weight)[i];
