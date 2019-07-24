@@ -7,6 +7,8 @@
 #include <TH1.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TGraph.h>
+#include <TGraphAsymmErrors.h>
 #include <TObjArray.h>
 #include <TCanvas.h>
 #include <TPad.h>
@@ -225,6 +227,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TH2D*> vec_h2D;
 
     TH1D* h_vPt[nCents];
+    TH1D* h_vPt_trig[nCents];
     TH1D* h_vEta[nCents][nVPts];
     TH1D* h_vPhi[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
@@ -287,6 +290,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         h_vPt[i] = 0;
         h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), 30, 0, 150);
+
+        std::string name_h_vPt_trig = Form("h_vPt_trig_%s", label_cent.c_str());
+        std::string title_h_vPt_trig = Form("%s, %s;%s;", text_range_vEta.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        h_vPt_trig[i] = 0;
+        h_vPt_trig[i] = new TH1D(name_h_vPt_trig.c_str(), title_h_vPt_trig.c_str(), 30, 0, 150);
 
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
@@ -597,6 +608,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<float> dummy_vec_F1(150000, 1);
 
     TTree* treeggHiNtuplizer = 0;
+    TTree* treeHLT = 0;
     TTree* treeHiEvt = 0;
     TTree* treeJetSkim = 0;
     TTree* treeTrackSkim = 0;
@@ -608,6 +620,33 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::string treePathTrack = "trackSkim";
     std::string treePathEvtSkim = "eventSkim";
     std::string treePathHiEvtMix = "mixEventSkim";
+
+    /*
+     * HLT_HIL2Mu20_v1, HLT_HIL2Mu15_v2, HLT_HIL1DoubleMu10_v1, HLT_HIL1DoubleMu0_v1, HLT_HIL3Mu15_v1, HLT_HIL3Mu20_v1
+     */
+
+    std::vector<std::string> triggerBranches;
+    if (isPP17) {
+        if (vIsZmm) {
+            triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1", "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"};
+        }
+        else if (vIsZee) {
+            triggerBranches = {"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v8",
+                               "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v9",
+                               "HLT_HIEle15_WPLoose_Gsf_v1"
+                               "HLT_HIEle20_WPLoose_Gsf_v1",
+                               };
+        }
+    }
+    else if (isPbPb18) {
+        if (vIsZmm) {
+            triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1", "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"};
+        }
+        else if (vIsZee) {
+            triggerBranches = {"HLT_HIDoubleEle10Gsf_v1", "HLT_HIEle20Gsf_v1"};
+        }
+    }
+    int nTriggerBranches = triggerBranches.size();
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -680,6 +719,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeggHiNtuplizer->SetBranchStatus("ele*",1);
         }
         treeggHiNtuplizer->SetBranchStatus("rho",1);
+
+        treeHLT = (TTree*)fileTmp->Get(treePathHLT.c_str());
+        treeHLT->SetBranchStatus("*",0);     // disable all branches
+        int triggerBits[nTriggerBranches];
+        for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+            if (treeHLT->GetBranch(triggerBranches[iTrig].c_str())) {
+                treeHLT->SetBranchStatus(triggerBranches[iTrig].c_str(), 1);
+                treeHLT->SetBranchAddress(triggerBranches[iTrig].c_str(), &(triggerBits[iTrig]));
+            }
+            else {
+                triggerBits[iTrig] = 0;
+            }
+        }
 
         // specify explicitly which branches to use, do not use wildcard
         treeHiEvt = (TTree*)fileTmp->Get(treePathHiEvt.c_str());
@@ -823,6 +875,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
+            treeHLT->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             if (isvJetTrkSkim) {
                 if (anaJets) {
@@ -853,6 +906,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             {
                 duplicateEntries++;
                 continue;
+            }
+
+            bool passedTrig = (nTriggerBranches == 0);
+            for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+                if (triggerBits[iTrig] > 0) {
+                    passedTrig = true;
+                    break;
+                }
             }
 
             entriesAnalyzed++;
@@ -1008,6 +1069,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
                         h_vPt[i]->Fill(vPt, wV);
+                        if (passedTrig) {
+                            h_vPt_trig[i]->Fill(vPt, wV);
+                        }
                         h2_hiHF_vs_vPt[i]->Fill(vPt, hiEvt.hiHF, wV);
                         h2_rho_vs_vPt[i]->Fill(vPt, ggHi.rho, wV);
                         if (isvJetTrkSkim) {
@@ -1220,6 +1284,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             hProj[1]->Write("",TObject::kOverwrite);
             hProj[2]->Write("",TObject::kOverwrite);
         }
+    }
+
+    TGraphAsymmErrors* gTmp = 0;
+    for (int i = 0; i < nCents; ++i) {
+        std::string tmpName = replaceAll(h_vPt_trig[i]->GetName(), "h_vPt", "gEff_vPt");
+
+        gTmp = new TGraphAsymmErrors();
+        gTmp->SetName(tmpName.c_str());
+        gTmp->BayesDivide(h_vPt_trig[i], h_vPt[i]);
+        gTmp->SetTitle(h_vPt_trig[i]->GetTitle());
+        gTmp->GetXaxis()->SetTitle(h_vPt_trig[i]->GetXaxis()->GetTitle());
+        gTmp->GetYaxis()->SetTitle("Efficiency");
+        gTmp->SetMarkerStyle(kFullCircle);
+        gTmp->Write("",TObject::kOverwrite);
     }
 
     std::cout << "post loop processing - END" << std::endl;
