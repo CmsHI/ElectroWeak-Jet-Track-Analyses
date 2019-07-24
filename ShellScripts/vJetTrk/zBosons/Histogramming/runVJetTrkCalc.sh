@@ -12,6 +12,7 @@ progCode="${progPath/.exe/.C}"
 doSCALEBINW=1
 doBKGSUB=1
 doNORMV=1
+doMERGE=1
 trkRG="g" # Options are "r" (reco) or "g" (gen)
 trkRBS="raw" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
@@ -21,21 +22,29 @@ sampleFlags=(
 0 # pp_2017_mc_zee
 0 # pp_2017_data_zmm
 0 # pp_2017_data_zee
+0 # pp_2017_mc_zll
+0 # pp_2017_data_zll
 ## pbpb 2018
 1 # pbpb_2018_mc_zmm
 0 # pbpb_2018_mc_zee
 0 # pbpb_2018_data_zmm
 0 # pbpb_2018_data_zee
+0 # pbpb_2018_mc_zll
+0 # pbpb_2018_data_zll
 ## pp 2015
 0 # pp_2015_mc_zmm
 0 # pp_2015_mc_zee
 0 # pp_2015_data_zmm
 0 # pp_2015_data_zee
+0 # pp_2015_mc_zll
+0 # pp_2015_data_zll
 ## pbpb 2015
 0 # pbpb_2015_mc_zmm
 0 # pbpb_2015_mc_zee
 0 # pbpb_2015_data_zmm
 0 # pbpb_2015_data_zee
+0 # pbpb_2015_mc_zll
+0 # pbpb_2015_data_zll
 );
 
 labels_obs=(
@@ -130,6 +139,14 @@ do
       operation=${operation}",NORMV"
     fi
 
+    if [[ ${doMERGE} == 1 ]]; then
+      operation="MERGE"
+      # MERGE cannot be combined with other operations
+      doSCALEBINW=0
+      doBKGSUB=0
+      doNORMV=0
+    fi
+
     inputFileList="vJetTrkCalc_inputFiles.list"
     rm -rf ${inputFileList}
 
@@ -148,6 +165,21 @@ do
 
       inputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
       echo ${inputFile} >> ${inputFileList}
+
+      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+    elif [ ${doMERGE} == 1 ]; then
+
+      outputSuffix=${mergeSuffixList[i1]}
+      rm -rf ${inputObjList}
+      touch ${inputObjList}
+
+      inputSuffix_zmm="${inputSuffix/vJetTrkCalc_/vJetTrkAna_}"
+      inputSuffix_zmm="${inputSuffix_zmm/_zll_merge/_zmm}"
+      inputFile_zmm=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zmm}"_trk_"${trkRG}"_"${trkRBS}".root"
+      inputSuffix_zee="${inputSuffix_zmm/_zmm/_zee}"
+      inputFile_zee=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zee}"_trk_"${trkRG}"_"${trkRBS}".root"
+      echo ${inputFile_zmm} >> ${inputFileList}
+      echo ${inputFile_zee} >> ${inputFileList}
 
       outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
     fi

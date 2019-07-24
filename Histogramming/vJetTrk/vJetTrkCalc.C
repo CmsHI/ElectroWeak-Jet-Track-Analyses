@@ -3,10 +3,14 @@
  */
 
 #include <TFile.h>
+#include <TDirectoryFile.h>
 #include <TH1.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TObject.h>
 #include <TObjArray.h>
+#include <TList.h>
+#include <TKey.h>
 #include <TMath.h>
 
 #include <string>
@@ -47,10 +51,18 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doSCALEBINW = containsElement(operationList, "SCALEBINW");
     bool doBKGSUB = containsElement(operationList, "BKGSUB");
     bool doNORMV = containsElement(operationList, "NORMV");
+    bool doMERGE = containsElement(operationList, "MERGE");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
     std::cout << "doNORMV = " << doNORMV << std::endl;
+    std::cout << "doMERGE = " << doMERGE << std::endl;
+
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doNORMV)) {
+        std::cout << "MERGE cannot be combined with other operations" << std::endl;
+        std::cout << "Exiting" << std::endl;
+        return;
+    }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFileList.c_str());
     std::cout<<"ROOT files containing input TH1 : num = "<<inputFiles.size()<< std::endl;
@@ -91,14 +103,20 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
         inputs[i] = TFile::Open(inputFiles[i].c_str(), "READ");
     }
 
+    std::vector<TList*> keyList(nInputFiles, 0);
+
+    TKey* key = 0;
+    TIter* iter = 0;
+
     std::vector<TH1*> hIn(nInputObjs, 0);
+    TH1* hOut = 0;
 
     TFile* output = TFile::Open(outputFile.c_str(), writeMode.c_str());
     output->cd();
 
-    TH1D* hTmp = 0;
-    TH1D* hTmpBkg = 0;
-    TH1D* hOut = 0;
+    TH1D* h1Tmp = 0;
+    TH1D* h1TmpBkg = 0;
+    TH1D* h1Out = 0;
 
     if (doBKGSUB) {
         if (nInputFiles != 2) {
@@ -144,44 +162,44 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
                 std::string tmpName = hIn[iRaw]->GetName();
                 std::string histPath_vPt = parsePathTH1vPt(tmpName);
-                hTmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
+                h1Tmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
 
-                int binMin = hTmp->FindBin(parseVPtMin(tmpName));
-                int binMax = hTmp->FindBin(parseVPtMax(tmpName)) - 1;
+                int binMin = h1Tmp->FindBin(parseVPtMin(tmpName));
+                int binMax = h1Tmp->FindBin(parseVPtMax(tmpName)) - 1;
                 if (binMax < binMin) {
-                    binMax = hTmp->GetNbinsX() + 1;
+                    binMax = h1Tmp->GetNbinsX() + 1;
                 }
-                nV = hTmp->Integral(binMin, binMax);
+                nV = h1Tmp->Integral(binMin, binMax);
             }
 
             setTH1D((TH1D*)hIn[iRaw]);
             setTH1D((TH1D*)hIn[iBkg]);
 
-            hTmpBkg = (TH1D*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+            h1TmpBkg = (TH1D*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
 
-            hOut = (TH1D*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
-            hOut->Add(hTmpBkg, -1);
+            h1Out = (TH1D*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
+            h1Out->Add(h1TmpBkg, -1);
 
             // write objects
-            hTmp = (TH1D*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
-            hTmp->Scale(1.0 / nV);
+            h1Tmp = (TH1D*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+            h1Tmp->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                hTmp->Scale(1.0, "width");
+                h1Tmp->Scale(1.0, "width");
             }
-            hTmp->Write("", TObject::kOverwrite);
+            h1Tmp->Write("", TObject::kOverwrite);
 
-            hTmp = (TH1D*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
-            hTmp->Scale(1.0 / nV);
+            h1Tmp = (TH1D*)h1TmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+            h1Tmp->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                hTmp->Scale(1.0, "width");
+                h1Tmp->Scale(1.0, "width");
             }
-            hTmp->Write("", TObject::kOverwrite);
+            h1Tmp->Write("", TObject::kOverwrite);
 
-            hOut->Scale(1.0 / nV);
+            h1Out->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                hOut->Scale(1.0, "width");
+                h1Out->Scale(1.0, "width");
             }
-            hOut->Write("",TObject::kOverwrite);
+            h1Out->Write("",TObject::kOverwrite);
         }
     }
     else if (doNORMV) {
@@ -207,23 +225,108 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             }
 
             std::string tmpName = hIn[i]->GetName();
-            hOut = (TH1D*)hIn[i]->Clone(tmpName.c_str());
+            h1Out = (TH1D*)hIn[i]->Clone(tmpName.c_str());
 
             std::string histPath_vPt = parsePathTH1vPt(tmpName);
-            hTmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
+            h1Tmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
 
-            int binMin = hTmp->FindBin(parseVPtMin(tmpName));
-            int binMax = hTmp->FindBin(parseVPtMax(tmpName)) - 1;
+            int binMin = h1Tmp->FindBin(parseVPtMin(tmpName));
+            int binMax = h1Tmp->FindBin(parseVPtMax(tmpName)) - 1;
             if (binMax < binMin) {
-                binMax = hTmp->GetNbinsX() + 1;
+                binMax = h1Tmp->GetNbinsX() + 1;
             }
-            double nV = hTmp->Integral(binMin, binMax);
+            double nV = h1Tmp->Integral(binMin, binMax);
 
-            hOut->Scale(1.0 / nV);
+            h1Out->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                hOut->Scale(1.0, "width");
+                h1Out->Scale(1.0, "width");
             }
+            h1Out->Write("",TObject::kOverwrite);
+        }
+    }
+    else if (doMERGE) {
+        if (nInputFiles != 2) {
+            std::cout << "There must be 2 input files for MERGE operation : one for Zmm, one for Zee" << std::endl;
+            std::cout << "Exiting." << std::endl;
+            return;
+        }
+
+        // assume that first file is for Zmm, second for Zee
+
+        keyList[0] = getListOfALLKeys(inputs[0]);
+        keyList[1] = getListOfALLKeys(inputs[1]);
+
+        std::cout << "Number of keys in file 1 = " << keyList[0]->GetSize() << std::endl;
+        std::cout << "Number of keys in file 2 = " << keyList[1]->GetSize() << std::endl;
+
+        key = 0;
+        iter = new TIter(keyList[0]);
+
+        std::vector<TH2D*> vec_h2D;
+
+        double w1 = 1;
+        double w2 = 1;
+
+        hIn.clear();
+        hIn.assign(2, 0);
+
+        while ((key=(TKey*)iter->Next()))
+        {
+            if (!(key->ReadObj()->InheritsFrom("TH1D") || key->ReadObj()->InheritsFrom("TH2D")))  continue;
+
+            hIn[0] = 0;
+            hIn[0] = (TH1*)key->ReadObj();
+
+            std::string objName = hIn[0]->GetName();
+
+            if (!keyList[1]->Contains(objName.c_str()))  continue;
+
+            hIn[1] = (TH1*)inputs[1]->Get(objName.c_str());
+
+            hIn[0]->Scale(w1);
+            hIn[1]->Scale(w2);
+
+            hOut = 0;
+            hOut = (TH1*)hIn[0]->Clone();
+            hOut->Add(hIn[1]);
+
+            if (hOut->InheritsFrom("TH2D")) {
+                vec_h2D.push_back((TH2D*)hOut);
+            }
+
             hOut->Write("",TObject::kOverwrite);
+            std::cout << "wrote object : " << hOut->GetName() << std::endl;
+        }
+
+        int nVec_h2D = vec_h2D.size();
+        for (int i = 0; i < nVec_h2D; ++i) {
+
+            std::vector<TH1D*> hProj(3, 0);
+            for (int iProj = 0; iProj < 2; ++iProj) {
+                if (iProj == 0) {
+                    hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionX(Form("%s_projX", vec_h2D[i]->GetName()));
+                }
+                else {
+                    hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionY(Form("%s_projY", vec_h2D[i]->GetName()));
+                }
+
+                hProj[0]->Write("",TObject::kOverwrite);
+
+                hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
+                hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
+
+                std::string projYTitle = (iProj == 0) ? ((TH2D*)vec_h2D[i])->GetYaxis()->GetTitle() : ((TH2D*)vec_h2D[i])->GetXaxis()->GetTitle();
+                hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
+                hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
+
+                setBinsFromTH2sliceMean(hProj[1], (TH2D*)vec_h2D[i], (iProj == 0));
+                setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)vec_h2D[i], (iProj == 0));
+
+                hProj[1]->Write("",TObject::kOverwrite);
+                hProj[2]->Write("",TObject::kOverwrite);
+            }
+
+            std::cout << "wrote 1D projections for : " << vec_h2D[i]->GetName() << std::endl;
         }
     }
 
