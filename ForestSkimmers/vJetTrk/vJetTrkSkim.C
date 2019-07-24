@@ -861,6 +861,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 std::vector<bool> usedAdjacentCents;
 
                 int iCent = -1;
+                bool skipMix = false;
                 if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiBin) {
                     iCent = getHiBin(hiBin);
                     //iCent += 1;
@@ -886,13 +887,14 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46));
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46));
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300));
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300));
                 }
                 if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
                     iCent = getNVtxBin(trks.nVtx-1);
+                    skipMix = (iCent < 0);
                 }
-
-                if (iCent < 0) continue;
 
                 int nAdjacentCents = usedAdjacentCents.size();
                 bool centsAdjacentAvail = (nAdjacentCents > 0);
@@ -916,7 +918,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 std::cout << " indexMixEvent = " << iME << " nMixEventsAvail = " << nMixEventsAvail << std::endl;
 
                 int nMixEventsTmp = (nMixEventsAvail >= nMixEvents) ? nMixEvents : nMixEventsAvail;
-                while (nMixed < nMixEventsTmp) {
+                while ((nMixed < nMixEventsTmp) && !skipMix) {
 
                     if (nEventsAttempted == nMixEventsAvail) {
 
