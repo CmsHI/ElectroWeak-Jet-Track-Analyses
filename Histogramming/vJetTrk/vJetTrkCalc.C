@@ -242,6 +242,10 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 h1Out->Scale(1.0, "width");
             }
             h1Out->Write("",TObject::kOverwrite);
+
+            // if no bkg, then this is sig
+            h1Out->SetName(Form("%s_sig", h1Out->GetName()));
+            h1Out->Write("",TObject::kOverwrite);
         }
     }
     else if (doMERGE) {
