@@ -252,6 +252,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_zh[nCents][nVPts][nTrkPts];
     TH1D* h_zh_T[nCents][nVPts][nTrkPts];
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
+
+    int nBinsX_vPt = 30;
+    int nBinsX_trkPt = 60;
+    int nBinsX_dphi = 20;
+
+    double xMax_vPt = 150;
+    double xMax_trkPt = 30;
+    double xMax_phi = TMath::Pi()+1e-12;
     for (int i = 0; i < nCents; ++i) {
 
         std::string label_cent = Form("cent%d_%d", centsMin[i], centsMax[i]);
@@ -290,7 +298,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                      text_vPt.c_str());
 
         h_vPt[i] = 0;
-        h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), 30, 0, 150);
+        h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
 
         std::string name_h_vPt_trig_num = Form("h_vPt_trig_num_%s", label_cent.c_str());
         h_vPt_trig_num[i] = 0;
@@ -306,7 +314,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                      text_vPt.c_str());
 
         h2_hiHF_vs_vPt[i] = 0;
-        h2_hiHF_vs_vPt[i] = new TH2D(name_h2_hiHF_vs_vPt.c_str(), title_h2_hiHF_vs_vPt.c_str(), 30, 0, 150, 2000, 0, 8000);
+        h2_hiHF_vs_vPt[i] = new TH2D(name_h2_hiHF_vs_vPt.c_str(), title_h2_hiHF_vs_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt, 2000, 0, 8000);
         vec_h2D.push_back(h2_hiHF_vs_vPt[i]);
 
         std::string name_h2_rho_vs_vPt = Form("h2_rho_vs_vPt_%s", label_cent.c_str());
@@ -315,7 +323,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                      text_vPt.c_str());
 
         h2_rho_vs_vPt[i] = 0;
-        h2_rho_vs_vPt[i] = new TH2D(name_h2_rho_vs_vPt.c_str(), title_h2_rho_vs_vPt.c_str(), 30, 0, 150, 2000, 0, 400);
+        h2_rho_vs_vPt[i] = new TH2D(name_h2_rho_vs_vPt.c_str(), title_h2_rho_vs_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt, 2000, 0, 400);
         vec_h2D.push_back(h2_rho_vs_vPt[i]);
 
         std::string name_h2_PFHFtotE_vs_vPt = Form("h2_PFHFtotE_vs_vPt_%s", label_cent.c_str());
@@ -324,7 +332,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                      text_vPt.c_str());
 
         h2_PFHFtotE_vs_vPt[i] = 0;
-        h2_PFHFtotE_vs_vPt[i] = new TH2D(name_h2_PFHFtotE_vs_vPt.c_str(), title_h2_PFHFtotE_vs_vPt.c_str(), 30, 0, 150, 2000, 0, 200000);
+        h2_PFHFtotE_vs_vPt[i] = new TH2D(name_h2_PFHFtotE_vs_vPt.c_str(), title_h2_PFHFtotE_vs_vPt.c_str(),
+                                         nBinsX_vPt, 0, xMax_vPt, 2000, 0, 200000);
         vec_h2D.push_back(h2_PFHFtotE_vs_vPt[i]);
         for (int j = 0; j < nVPts; ++j) {
 
@@ -347,9 +356,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             std::string name_h_vPhi = Form("h_vPhi_%s", name_h_suffix.c_str());
             std::string title_h_vPhi = Form("%s;%s;", title_h_suffix.c_str(), text_vPhi.c_str());
-            double xmax_phi = TMath::Pi()+1e-12;
             h_vPhi[i][j] = 0;
-            h_vPhi[i][j] = new TH1D(name_h_vPhi.c_str(), title_h_vPhi.c_str(), 20, -1*xmax_phi, xmax_phi);
+            h_vPhi[i][j] = new TH1D(name_h_vPhi.c_str(), title_h_vPhi.c_str(), 20, -1*xMax_phi, xMax_phi);
 
             std::string name_h_vM_os = Form("h_vM_os_%s", name_h_suffix.c_str());
             std::string title_h_vM_os = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
@@ -410,7 +418,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_trkPt = Form("%s;%s;", title_h_suffix.c_str(),
                                                        text_trkPt.c_str());
             h_trkPt[i][j] = 0;
-            h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), 60, 0, 30);
+            h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), nBinsX_trkPt, 0, xMax_trkPt);
 
             for (int k = 0; k < nTrkPts; ++k) {
 
@@ -443,7 +451,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::string title_h_trkPhi = Form("%s;%s;", title_h_suffix.c_str(),
                                                             text_trkPhi.c_str());
                 h_trkPhi[i][j][k] = 0;
-                h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), 20, -1*xmax_phi, xmax_phi);
+                h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), 20, -1*xMax_phi, xMax_phi);
 
                 title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
                                                         text_range_trkPt.c_str(),
@@ -454,7 +462,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::string title_h_dphi = Form("%s;%s;", title_h_suffix.c_str(),
                                                           text_defn_dphi.c_str());
                 h_dphi[i][j][k] = 0;
-                h_dphi[i][j][k] = new TH1D(name_h_dphi.c_str(), title_h_dphi.c_str(), 20, 0, xmax_phi);
+                h_dphi[i][j][k] = new TH1D(name_h_dphi.c_str(), title_h_dphi.c_str(), nBinsX_dphi, 0, xMax_phi);
 
                 std::string text_deta = Form("#Delta#eta_{%s%s}", text_trk.c_str(),
                                                                   text_V.c_str());
@@ -489,7 +497,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::string title_h_dR = Form("%s;%s;", title_h_suffix.c_str(),
                                                         text_dR.c_str());
                 h_dR[i][j][k] = 0;
-                h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xmax_phi);
+                h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
 
 
                 title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
@@ -1269,8 +1277,48 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "entriesNoMixEvt    = " << entriesNoMixEvt << std::endl;
 
     output->cd();
-    std::cout << "post loop processing - START" << std::endl;
+    std::cout << "### post loop processing - START ###" << std::endl;
 
+    std::cout << "rebin" << std::endl;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nCents; ++i) {
+        for (int j = 0; j < nVPts; ++j) {
+
+            std::string tmpName;
+            double binW = 0;
+            std::vector<double> binsX;
+            int nBinsX = 0;
+
+            // rebin trkPt
+            //binW = h_trkPt[i][j]->GetBinWidth(1);
+            binsX = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
+            nBinsX = binsX.size()-1;
+
+            double arr_trkPt[nBinsX+1];
+            std::copy(binsX.begin(), binsX.end(), arr_trkPt);
+
+            tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin");
+            hTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
+            hTmp->Write("",TObject::kOverwrite);
+
+            for (int k = 0; k < nTrkPts; ++k) {
+
+                // rebin dphi
+                binW = h_dphi[i][j][k]->GetBinWidth(1);
+                binsX = {0, binW*3, binW*6, binW*9, binW*12, binW*14, binW*16, binW*18, binW*19, binW*20};
+                nBinsX = binsX.size()-1;
+
+                double arr_dphi[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arr_dphi);
+
+                tmpName = replaceAll(h_dphi[i][j][k]->GetName(), "h_dphi", "h_dphi_rebin");
+                hTmp = (TH1D*)h_dphi[i][j][k]->Rebin(nBinsX, tmpName.c_str(), arr_dphi);
+                hTmp->Write("",TObject::kOverwrite);
+            }
+        }
+    }
+
+    std::cout << "projections of TH2D to TH1D" << std::endl;
     int nVec_h2D = vec_h2D.size();
     for (int i = 0; i < nVec_h2D; ++i) {
 
@@ -1300,6 +1348,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
     }
 
+    std::cout << "efficiency" << std::endl;
     TGraphAsymmErrors* gTmp = 0;
     for (int i = 0; i < nCents; ++i) {
         std::string tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "gEff_vPt");
@@ -1314,7 +1363,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         gTmp->Write("",TObject::kOverwrite);
     }
 
-    std::cout << "post loop processing - END" << std::endl;
+    std::cout << "### post loop processing - END ###" << std::endl;
 
     std::cout<<"Writing the output file."<<std::endl;
     output->Write("",TObject::kOverwrite);
