@@ -49,8 +49,10 @@ sampleFlags=(
 
 labels_obs=(
 dphi
+dphi_rebin
 deta
 trkPt
+trkPt_rebin
 trkEta
 zh
 zh_T
@@ -99,7 +101,7 @@ do
 
         hPath="h_"${lbl_obs}"_vPt"${lbl_vPt}"_trkPt"${lbl_trkPt}"_cent"${lbl_cent}
         ## Ex. hPath = h_dphi_vPt20_40_trkPt1_2_cent0_30
-        if [ ${lbl_obs} == trkPt ]; then
+        if [[ ${lbl_obs} == trkPt || ${lbl_obs} == trkPt_rebin ]]; then
           hPath="h_"${lbl_obs}"_vPt"${lbl_vPt}"_cent"${lbl_cent}
         fi
 
