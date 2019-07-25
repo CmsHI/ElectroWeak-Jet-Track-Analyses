@@ -1209,6 +1209,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     if (isPbPb18) {
                         trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
                     }
+                    else if (isPP17) {
+                        trkWeightTmp = 1.15;
+                    }
                 }
                 double wTrk = trkWeightTmp * wMixEvts;
 
