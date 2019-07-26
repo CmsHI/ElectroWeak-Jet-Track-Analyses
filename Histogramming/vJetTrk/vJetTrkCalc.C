@@ -52,14 +52,20 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doBKGSUB = containsElement(operationList, "BKGSUB");
     bool doNORMV = containsElement(operationList, "NORMV");
     bool doMERGE = containsElement(operationList, "MERGE");
+    bool doRATIO = containsElement(operationList, "RATIO");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
     std::cout << "doNORMV = " << doNORMV << std::endl;
     std::cout << "doMERGE = " << doMERGE << std::endl;
 
-    if (doMERGE && (doSCALEBINW || doBKGSUB || doNORMV)) {
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doNORMV || doRATIO)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
+        std::cout << "Exiting" << std::endl;
+        return;
+    }
+    else if (doRATIO && (doSCALEBINW || doBKGSUB || doNORMV || doMERGE)) {
+        std::cout << "RATIO cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
@@ -118,26 +124,31 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TH1D* h1TmpBkg = 0;
     TH1D* h1Out = 0;
 
-    if (doBKGSUB) {
+    if (doBKGSUB || doRATIO) {
         if (nInputFiles != 2) {
-            std::cout << "There must be 2 input files for BKGSUB operation : one RAW, one BKG object" << std::endl;
+            std::cout << "There must be 2 input files for BKGSUB (RATIO) operation : "
+                    "       one RAW (NUMERATOR), one BKG (DENOMINATOR) file" << std::endl;
             std::cout << "Exiting." << std::endl;
             return;
         }
         if (nInputObjs % 2 != 0) {
-            std::cout << "Input objects must come in pairs for BKGSUB operation : one RAW, one BKG object" << std::endl;
+            std::cout << "Input objects must come in pairs for BKGSUB (RATIO) operation : "
+                    "       one RAW (NUMERATOR), one BKG (DENOMINATOR) object" << std::endl;
             std::cout << "Exiting." << std::endl;
             return;
         }
 
         for (int i = 0; i < nInputObjs; ++i) {
-            // i % 2 == 0 --> raw
-            // i % 2 == 1 --> bkg
+            // i % 2 == 0 --> raw or numerator
+            // i % 2 == 1 --> bkg or denominator
 
             hIn[i] = 0;
             int iFile = (i % 2 == 0) ? 0 : 1;
             hIn[i] = (TH1D*)inputs[iFile]->Get(inputObjs[i].c_str());
         }
+    }
+
+    if (doBKGSUB) {
 
         for (int i = 0; i < nInputObjs; i+=2) {
 
@@ -199,6 +210,48 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             if (doSCALEBINW) {
                 h1Out->Scale(1.0, "width");
             }
+            h1Out->Write("",TObject::kOverwrite);
+        }
+    }
+    else if (doRATIO) {
+        for (int i = 0; i < nInputObjs; i+=2) {
+
+            int iNum = i;
+            int iDnm = i+1;
+
+            if (hIn[iNum] == 0) {
+                std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
+                std::cout << "relevant file : " << inputFiles[0].c_str() << std::endl;
+                std::cout << "skipping calculation involving this object" << std::endl;
+                continue;
+            }
+            if (hIn[iDnm] == 0) {
+                std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
+                std::cout << "relevant file : " << inputFiles[1].c_str() << std::endl;
+                std::cout << "skipping calculation involving this object" << std::endl;
+                continue;
+            }
+
+            setTH1D((TH1D*)hIn[iNum]);
+            setTH1D((TH1D*)hIn[iDnm]);
+
+            h1Tmp = (TH1D*)hIn[iDnm]->Clone(Form("%s_tmpDenom", hIn[iDnm]->GetName()));
+
+            std::string tmpName;
+            tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_ratio_");
+            h1Out = (TH1D*)hIn[iNum]->Clone(tmpName.c_str());
+            h1Out->Divide(h1Tmp);
+            h1Out->SetYTitle("PbPb / pp");
+
+            // write objects
+            tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_num_");
+            h1Tmp = (TH1D*)hIn[iNum]->Clone(tmpName.c_str());
+            h1Tmp->Write("", TObject::kOverwrite);
+
+            tmpName = replaceFirst(hIn[iDnm]->GetName(), "h_", "h_denom_");
+            h1Tmp = (TH1D*)hIn[iDnm]->Clone(tmpName.c_str());
+            h1Tmp->Write("", TObject::kOverwrite);
+
             h1Out->Write("",TObject::kOverwrite);
         }
     }
