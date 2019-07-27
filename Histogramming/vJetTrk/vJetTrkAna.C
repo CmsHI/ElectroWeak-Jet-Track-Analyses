@@ -1035,7 +1035,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             bool ll_os = false;     // dilepton opposite charge
             std::vector<float> llEta = {-998877, -998877};
             std::vector<float> llPhi = {-998877, -998877};
-            float minDR2_lep_trk = 0.09;
+            float minDR2_lep_trk = 0.64;
 
             if (vIsPho) {
                 for (int i = 0; i < ggHi.nPho; ++i) {
