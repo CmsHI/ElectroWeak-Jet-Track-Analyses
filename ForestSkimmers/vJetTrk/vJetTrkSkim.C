@@ -37,6 +37,7 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
+#include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
 
 struct entryVec
 {
@@ -62,6 +63,8 @@ int nMixEvents;
 
 // RECO object cuts
 bool excludeHI18HEMfailure;
+
+bool doTrkWeights;
 
 int nJetCollections;
 int nPthatWeights;
@@ -102,7 +105,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     bool isPbPb15 = isPbPb && (sampleType.find("2015") != std::string::npos);
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
-    bool isPP17data = !isPbPb && !isMC && (sampleType.find("2017") != std::string::npos);
+    bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
+
     bool mixEvents = (nMixEvents > 0);
 
     int collisionType = -1;
@@ -119,7 +123,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb15 = " << isPbPb15 << std::endl;
     std::cout << "isPbPb18 = " << isPbPb18 << std::endl;
-    std::cout << "isPP17data = " << isPP17data << std::endl;
+    std::cout << "isPP17 = " << isPP17 << std::endl;
 
     int rndSeed= (ArgumentParser::optionExists("--rndSeed", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--rndSeed", argOptions).c_str()) : -1;
@@ -182,6 +186,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool vIsZ = vIsZmm || vIsZee;
 
     bool doTrkVtx = isPP;
+
+    TrkEff2018PbPb trkEff2018 = TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
 
     // input trees
     TTree* treeHLT = 0;
@@ -807,7 +813,18 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
                 trkskim.pfEcal.push_back(trks.pfEcal[i]);
                 trkskim.pfHcal.push_back(trks.pfHcal[i]);
-                trkskim.trkWeight.push_back(1);
+
+                float trkWeightTmp = 1;
+                if (doTrkWeights) {
+                    if (isPP17) {
+                        trkWeightTmp = 1.10;
+                    }
+                    else if (isPbPb18) {
+                        trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
+                    }
+                }
+                trkskim.trkWeight.push_back(trkWeightTmp);
+
                 if (doTrkVtx) {
                     trkskim.trkNVtx.push_back(trks.trkNVtx[i]);
                 }
@@ -886,11 +903,17 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     // data
-                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300), totEMax);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300), totEMax);  // m, UE energy down
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-150), totEMax);  // p, UE energy up
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+150), totEMax);  // m, UE energy down
+
+                    // pbpb 15
+                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
                 }
                 if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
@@ -1069,7 +1092,16 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkskim.trkPt_mix.push_back(trksMix[iMF].trkPt[i]);
                         trkskim.trkEta_mix.push_back(trksMix[iMF].trkEta[i]);
                         trkskim.trkPhi_mix.push_back(trksMix[iMF].trkPhi[i]);
-                        trkskim.trkWeight_mix.push_back(1);
+                        float trkWeightTmp = 1;
+                        if (doTrkWeights) {
+                            if (isPP17) {
+                                trkWeightTmp = 1.10;
+                            }
+                            else if (isPbPb18) {
+                                trkWeightTmp = trkEff2018.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], hiEvtMix[iMF].hiBin);
+                            }
+                        }
+                        trkskim.trkWeight_mix.push_back(trkWeightTmp);
                         trkskim.evttrk_mix.push_back(nMixed);
                         trkskim.nTrk_mix++;
                     }
@@ -1111,8 +1143,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 jetSkimTrees[i]->Fill();
             }
             trackSkimTree->Fill();
+            if (entriesSelected > 5) break;
         }
         fileTmp->Close();
+        if (entriesSelected > 5) break;
     }
     for (int i = 0; i < nMixFiles; ++i) {
         if (isMixFileGood[i])  {
@@ -1193,6 +1227,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     // RECO cuts
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
+    doTrkWeights = (confParser.ReadConfigValueInteger("doTrkWeights") > 0);
+
     nJetCollections = jetCollections.size();
 
     nPthatWeights = pthatWeights[0].size();
@@ -1238,4 +1274,6 @@ void printConfiguration()
     std::cout << "nMixEvents = " << nMixEvents << std::endl;
 
     std::cout << "excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
+
+    std::cout << "doTrkWeights = " << doTrkWeights << std::endl;
 }
