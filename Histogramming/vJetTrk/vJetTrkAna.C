@@ -228,8 +228,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TH2D*> vec_h2D;
 
     TH1D* h_vPt[nCents];
-    TH1D* h_vPt_trig_num[nCents];
-    TH1D* h_vPt_trig_denom[nCents];
+    TH1D* h_trig_num_vPt[nCents];
+    TH1D* h_trig_denom_vPt[nCents];
     TH1D* h_vEta[nCents][nVPts];
     TH1D* h_vPhi[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
@@ -310,13 +310,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h_vPt[i] = 0;
         h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
 
-        std::string name_h_vPt_trig_num = Form("h_vPt_trig_num_%s", label_cent.c_str());
-        h_vPt_trig_num[i] = 0;
-        h_vPt_trig_num[i] = (TH1D*)h_vPt[i]->Clone(name_h_vPt_trig_num.c_str());
+        std::string name_h_trig_num_vPt = Form("h_trig_num_vPt_%s", label_cent.c_str());
+        h_trig_num_vPt[i] = 0;
+        h_trig_num_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_num_vPt.c_str());
 
-        std::string name_h_vPt_trig_denom = Form("h_vPt_trig_denom_%s", label_cent.c_str());
-        h_vPt_trig_denom[i] = 0;
-        h_vPt_trig_denom[i] = (TH1D*)h_vPt[i]->Clone(name_h_vPt_trig_denom.c_str());
+        std::string name_h_trig_denom_vPt = Form("h_trig_denom_vPt_%s", label_cent.c_str());
+        h_trig_denom_vPt[i] = 0;
+        h_trig_denom_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_denom_vPt.c_str());
 
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
@@ -1176,9 +1176,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
-                    h_vPt_trig_denom[i]->Fill(vPt, wV);
+                    h_trig_denom_vPt[i]->Fill(vPt, wV);
                     if (passedTrig) {
-                        h_vPt_trig_num[i]->Fill(vPt, wV);
+                        h_trig_num_vPt[i]->Fill(vPt, wV);
                     }
                 }
             }
@@ -1462,20 +1462,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "efficiency" << std::endl;
     TGraphAsymmErrors* gTmp = 0;
     for (int i = 0; i < nCents; ++i) {
-        std::string tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "gEff_trig_vPt");
+        std::string tmpName = replaceAll(h_trig_num_vPt[i]->GetName(), "h_trig_num_vPt", "g_trig_eff_vPt");
 
         gTmp = new TGraphAsymmErrors();
         gTmp->SetName(tmpName.c_str());
-        gTmp->BayesDivide(h_vPt_trig_num[i], h_vPt_trig_denom[i]);
-        gTmp->SetTitle(h_vPt_trig_num[i]->GetTitle());
-        gTmp->GetXaxis()->SetTitle(h_vPt_trig_num[i]->GetXaxis()->GetTitle());
+        gTmp->BayesDivide(h_trig_num_vPt[i], h_trig_denom_vPt[i]);
+        gTmp->SetTitle(h_trig_num_vPt[i]->GetTitle());
+        gTmp->GetXaxis()->SetTitle(h_trig_num_vPt[i]->GetXaxis()->GetTitle());
         gTmp->GetYaxis()->SetTitle("Efficiency");
         gTmp->SetMarkerStyle(kFullCircle);
         gTmp->Write("",TObject::kOverwrite);
 
-        tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "hEff_trig_vPt");
-        hTmp = (TH1D*)h_vPt_trig_num[i]->Clone(tmpName.c_str());
-        hTmp->Divide(h_vPt_trig_denom[i]);
+        tmpName = replaceAll(h_trig_num_vPt[i]->GetName(), "h_trig_num_vPt", "h_trig_eff_vPt");
+        hTmp = (TH1D*)h_trig_num_vPt[i]->Clone(tmpName.c_str());
+        hTmp->Divide(h_trig_denom_vPt[i]);
         hTmp->GetYaxis()->SetTitle("Efficiency");
         hTmp->Write("",TObject::kOverwrite);
     }
