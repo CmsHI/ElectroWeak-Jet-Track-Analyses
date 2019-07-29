@@ -137,6 +137,13 @@ void setBranchStatusTreeJet(TTree* t, bool isMC)
     t->SetBranchStatus("jteta",1);
     t->SetBranchStatus("jtphi",1);
     t->SetBranchStatus("rawpt",1);
+
+    t->SetBranchStatus("chargedMax",1);
+    t->SetBranchStatus("chargedSum",1);
+    t->SetBranchStatus("chargedN",1);
+    t->SetBranchStatus("chargedHardSum",1);
+    t->SetBranchStatus("chargedHardN",1);
+
     if (isMC) {
         t->SetBranchStatus("subid",1);
         t->SetBranchStatus("refpt",1);
