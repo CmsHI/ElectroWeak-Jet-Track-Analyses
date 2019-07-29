@@ -57,6 +57,10 @@ trkEta
 zh
 zh_T
 xivh
+dphi_vs_trkPt
+dphi_vs_deta
+dphi_vs_trkEta
+trkPhi_vs_trkEta
 );
 
 labels_vPt=(
@@ -105,6 +109,11 @@ do
         ## Ex. hPath = h_dphi_vPt20_40_trkPt1_2_cent0_30
         if [[ ${lbl_obs} == trkPt || ${lbl_obs} == trkPt_rebin ]]; then
           hPath="h_"${lbl_obs}"_vPt"${lbl_vPt}"_cent"${lbl_cent}
+        elif [[ ${lbl_obs} == *_vs_* ]]; then
+          hPath="h2_"${lbl_obs}"_vPt"${lbl_vPt}"_trkPt"${lbl_trkPt}"_cent"${lbl_cent}
+          if [[ ${lbl_obs} == *trkPt* ]]; then
+            hPath="h2_"${lbl_obs}"_vPt"${lbl_vPt}"_cent"${lbl_cent}
+          fi
         fi
 
         if [ ${doBKGSUB} == 1 ]; then
