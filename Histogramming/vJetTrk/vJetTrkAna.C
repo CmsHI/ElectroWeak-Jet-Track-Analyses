@@ -230,12 +230,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TH1D*> vec_h_denom;
 
     TH1D* h_vPt[nCents];
-    TH1D* h_trig_num_vPt[nCents];
-    TH1D* h_trig_denom_vPt[nCents];
     TH1D* h_vEta[nCents][nVPts];
     TH1D* h_vPhi[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
     TH1D* h_vM_ss[nCents][nVPts];
+
+    // trig eff
+    TH1D* h_trig_num_vPt[nCents];
+    TH1D* h_trig_denom_vPt[nCents];
+
+    // reco eff
+    TH1D* h_reco_num_vPt[nCents];
+    TH1D* h_reco_denom_vPt[nCents];
+    TH1D* h_reco_num_vEta[nCents][nVPts];
+    TH1D* h_reco_denom_vEta[nCents][nVPts];
 
     // event observables
     TH1D* h_cent[nVPts];
@@ -322,6 +330,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h_trig_denom_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_denom_vPt.c_str());
         vec_h_denom.push_back(h_trig_denom_vPt[i]);
 
+        std::string name_h_reco_num_vPt = Form("h_reco_num_vPt_%s", label_cent.c_str());
+        h_reco_num_vPt[i] = 0;
+        h_reco_num_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_reco_num_vPt.c_str());
+        vec_h_num.push_back(h_reco_num_vPt[i]);
+
+        std::string name_h_reco_denom_vPt = Form("h_reco_denom_vPt_%s", label_cent.c_str());
+        h_reco_denom_vPt[i] = 0;
+        h_reco_denom_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_reco_denom_vPt.c_str());
+        vec_h_denom.push_back(h_reco_denom_vPt[i]);
+
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
                                                      text_range_cent.c_str(),
@@ -365,6 +383,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vEta = Form("%s;%s;", title_h_suffix.c_str(), text_vEta.c_str());
             h_vEta[i][j] = 0;
             h_vEta[i][j] = new TH1D(name_h_vEta.c_str(), title_h_vEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+
+            std::string name_h_reco_num_vEta = Form("h_reco_num_vEta_%s", name_h_suffix.c_str());
+            h_reco_num_vEta[i][j] = 0;
+            h_reco_num_vEta[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_num_vEta.c_str());
+            vec_h_num.push_back(h_reco_num_vEta[i][j]);
+
+            std::string name_h_reco_denom_vEta = Form("h_reco_denom_vEta_%s", name_h_suffix.c_str());
+            h_reco_denom_vEta[i][j] = 0;
+            h_reco_denom_vEta[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_denom_vEta.c_str());
+            vec_h_denom.push_back(h_reco_denom_vEta[i][j]);
 
             title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vEta.c_str(), text_range_cent.c_str());
 
@@ -1042,6 +1070,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::vector<float> llPhi = {-998877, -998877};
             float minDR2_lep_trk = 0.64;
 
+            double genVPt = -1;
+            double genVEta = -999999;
+            double genVPhi = -999999;
+            float maxDR2_reco_gen_V = 0.16;
+
             if (vIsPho) {
                 for (int i = 0; i < ggHi.nPho; ++i) {
 
@@ -1096,6 +1129,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lEta = ggHi.mcEta;
                     lPhi = ggHi.mcPhi;
                     lChg = ggHi.mcPID;
+                }
+                else if (isMC && isRecoV) {
+
+                    float maxGenVPt = -1;
+                    for (int i = 0; i < ggHi.nMC; ++i) {
+
+                        if ((*ggHi.mcPID)[i] != 23)  continue;
+                        if ((*ggHi.mcStatus)[i] != 62)  continue;
+                        if (!((*ggHi.mcMass)[i] >= 60 && (*ggHi.mcMass)[i] <= 120)) continue;
+
+                        if ((*ggHi.mcPt)[i] > maxGenVPt) {
+                            genVPt = (*ggHi.mcPt)[i];
+                            genVEta = (*ggHi.mcEta)[i];
+                            genVPhi = (*ggHi.mcPhi)[i];
+
+                            maxGenVPt = genVPt;
+                        }
+                    }
                 }
 
                 for (int i = 0; i < nL; ++i) {
@@ -1168,11 +1219,42 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            double wV = w;
+
+            // reco eff
+            if (isMC && isRecoV && genVPt > 0) {
+
+                double matchedRG = ((vIsPho || ll_os) && vPt >= 0 && getDR2(genVEta, genVPhi, vEta, vPhi) < maxDR2_reco_gen_V);
+
+                for (int i = 0; i < nCents; ++i) {
+
+                    if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
+
+                    double genVEtaAbs = std::fabs(genVEta);
+
+                    if (vEtaMin <= genVEtaAbs && genVEtaAbs < vEtaMax) {
+
+                        h_reco_denom_vPt[i]->Fill(genVPt, wV);
+                        if (matchedRG) {
+                            h_reco_num_vPt[i]->Fill(genVPt, wV);
+                        }
+                    }
+
+                    for (int j = 0; j < nVPts; ++j) {
+
+                        if (!(vPtsMin[j] <= genVPt && genVPt < vPtsMax[j]))  continue;
+
+                        h_reco_denom_vEta[i][j]->Fill(genVEta, wV);
+                        if (matchedRG) {
+                            h_reco_num_vEta[i][j]->Fill(genVEta, wV);
+                        }
+                    }
+                }
+            }
+
             if (vPt < 0) continue;
 
             double vEtaAbs = std::fabs(vEta);
-
-            double wV = w;
 
             // fill trigger eff histograms
             if (vIsPho || ll_os) {
