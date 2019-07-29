@@ -33,7 +33,7 @@
 std::vector<std::string> argOptions;
 ///// global variables - END
 
-void setTH1D(TH1D* h);
+void setTH1(TH1* h);
 std::string parsePathTH1vPt(std::string histPath);
 void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::string outputFile = "vJetTrkCalc.root", std::string writeMode = "RECREATE", std::string operations = "add");
 
@@ -115,14 +115,13 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TIter* iter = 0;
 
     std::vector<TH1*> hIn(nInputObjs, 0);
-    TH1* hOut = 0;
 
     TFile* output = TFile::Open(outputFile.c_str(), writeMode.c_str());
     output->cd();
 
-    TH1D* h1Tmp = 0;
-    TH1D* h1TmpBkg = 0;
-    TH1D* h1Out = 0;
+    TH1* hTmp = 0;
+    TH1* hTmpBkg = 0;
+    TH1* hOut = 0;
 
     if (doBKGSUB || doRATIO) {
         if (nInputFiles != 2) {
@@ -144,7 +143,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
             hIn[i] = 0;
             int iFile = (i % 2 == 0) ? 0 : 1;
-            hIn[i] = (TH1D*)inputs[iFile]->Get(inputObjs[i].c_str());
+            hIn[i] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
         }
     }
 
@@ -173,44 +172,44 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
                 std::string tmpName = hIn[iRaw]->GetName();
                 std::string histPath_vPt = parsePathTH1vPt(tmpName);
-                h1Tmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
+                hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
 
-                int binMin = h1Tmp->FindBin(parseVPtMin(tmpName));
-                int binMax = h1Tmp->FindBin(parseVPtMax(tmpName)) - 1;
+                int binMin = hTmp->GetXaxis()->FindBin(parseVPtMin(tmpName));
+                int binMax = hTmp->GetXaxis()->FindBin(parseVPtMax(tmpName)) - 1;
                 if (binMax < binMin) {
-                    binMax = h1Tmp->GetNbinsX() + 1;
+                    binMax = hTmp->GetNbinsX() + 1;
                 }
-                nV = h1Tmp->Integral(binMin, binMax);
+                nV = hTmp->Integral(binMin, binMax);
             }
 
-            setTH1D((TH1D*)hIn[iRaw]);
-            setTH1D((TH1D*)hIn[iBkg]);
+            setTH1(hIn[iRaw]);
+            setTH1(hIn[iBkg]);
 
-            h1TmpBkg = (TH1D*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+            hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
 
-            h1Out = (TH1D*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
-            h1Out->Add(h1TmpBkg, -1);
+            hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
+            hOut->Add(hTmpBkg, -1);
 
             // write objects
-            h1Tmp = (TH1D*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
-            h1Tmp->Scale(1.0 / nV);
+            hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+            hTmp->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                h1Tmp->Scale(1.0, "width");
+                hTmp->Scale(1.0, "width");
             }
-            h1Tmp->Write("", TObject::kOverwrite);
+            hTmp->Write("", TObject::kOverwrite);
 
-            h1Tmp = (TH1D*)h1TmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
-            h1Tmp->Scale(1.0 / nV);
+            hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+            hTmp->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                h1Tmp->Scale(1.0, "width");
+                hTmp->Scale(1.0, "width");
             }
-            h1Tmp->Write("", TObject::kOverwrite);
+            hTmp->Write("", TObject::kOverwrite);
 
-            h1Out->Scale(1.0 / nV);
+            hOut->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                h1Out->Scale(1.0, "width");
+                hOut->Scale(1.0, "width");
             }
-            h1Out->Write("",TObject::kOverwrite);
+            hOut->Write("",TObject::kOverwrite);
         }
     }
     else if (doRATIO) {
@@ -232,27 +231,27 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 continue;
             }
 
-            setTH1D((TH1D*)hIn[iNum]);
-            setTH1D((TH1D*)hIn[iDnm]);
+            setTH1(hIn[iNum]);
+            setTH1(hIn[iDnm]);
 
-            h1Tmp = (TH1D*)hIn[iDnm]->Clone(Form("%s_tmpDenom", hIn[iDnm]->GetName()));
+            hTmp = (TH1*)hIn[iDnm]->Clone(Form("%s_tmpDenom", hIn[iDnm]->GetName()));
 
             std::string tmpName;
             tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_ratio_");
-            h1Out = (TH1D*)hIn[iNum]->Clone(tmpName.c_str());
-            h1Out->Divide(h1Tmp);
-            h1Out->SetYTitle("PbPb / pp");
+            hOut = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
+            hOut->Divide(hTmp);
+            hOut->SetYTitle("PbPb / pp");
 
             // write objects
             tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_num_");
-            h1Tmp = (TH1D*)hIn[iNum]->Clone(tmpName.c_str());
-            h1Tmp->Write("", TObject::kOverwrite);
+            hTmp = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
+            hTmp->Write("", TObject::kOverwrite);
 
             tmpName = replaceFirst(hIn[iDnm]->GetName(), "h_", "h_denom_");
-            h1Tmp = (TH1D*)hIn[iDnm]->Clone(tmpName.c_str());
-            h1Tmp->Write("", TObject::kOverwrite);
+            hTmp = (TH1*)hIn[iDnm]->Clone(tmpName.c_str());
+            hTmp->Write("", TObject::kOverwrite);
 
-            h1Out->Write("",TObject::kOverwrite);
+            hOut->Write("",TObject::kOverwrite);
         }
     }
     else if (doNORMV) {
@@ -265,7 +264,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
         for (int i = 0; i < nInputObjs; ++i) {
 
             hIn[i] = 0;
-            hIn[i] = (TH1D*)inputs[0]->Get(inputObjs[i].c_str());
+            hIn[i] = (TH1*)inputs[0]->Get(inputObjs[i].c_str());
         }
 
         for (int i = 0; i < nInputObjs; ++i) {
@@ -278,27 +277,27 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             }
 
             std::string tmpName = hIn[i]->GetName();
-            h1Out = (TH1D*)hIn[i]->Clone(tmpName.c_str());
+            hOut = (TH1*)hIn[i]->Clone(tmpName.c_str());
 
             std::string histPath_vPt = parsePathTH1vPt(tmpName);
-            h1Tmp = (TH1D*)inputs[0]->Get(histPath_vPt.c_str());
+            hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
 
-            int binMin = h1Tmp->FindBin(parseVPtMin(tmpName));
-            int binMax = h1Tmp->FindBin(parseVPtMax(tmpName)) - 1;
+            int binMin = hTmp->GetXaxis()->FindBin(parseVPtMin(tmpName));
+            int binMax = hTmp->GetXaxis()->FindBin(parseVPtMax(tmpName)) - 1;
             if (binMax < binMin) {
-                binMax = h1Tmp->GetNbinsX() + 1;
+                binMax = hTmp->GetNbinsX() + 1;
             }
-            double nV = h1Tmp->Integral(binMin, binMax);
+            double nV = hTmp->Integral(binMin, binMax);
 
-            h1Out->Scale(1.0 / nV);
+            hOut->Scale(1.0 / nV);
             if (doSCALEBINW) {
-                h1Out->Scale(1.0, "width");
+                hOut->Scale(1.0, "width");
             }
-            h1Out->Write("",TObject::kOverwrite);
+            hOut->Write("",TObject::kOverwrite);
 
             // if no bkg, then this is sig
-            h1Out->SetName(Form("%s_sig", h1Out->GetName()));
-            h1Out->Write("",TObject::kOverwrite);
+            hOut->SetName(Form("%s_sig", hOut->GetName()));
+            hOut->Write("",TObject::kOverwrite);
         }
     }
     else if (doMERGE) {
@@ -417,7 +416,7 @@ int main(int argc, char** argv)
     }
 }
 
-void setTH1D(TH1D* h)
+void setTH1(TH1* h)
 {
     h->SetMarkerStyle(kFullCircle);
     h->SetMarkerColor(kBlack);
