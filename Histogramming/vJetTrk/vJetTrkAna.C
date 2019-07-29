@@ -245,6 +245,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_reco_num_vEta[nCents][nVPts];
     TH1D* h_reco_denom_vEta[nCents][nVPts];
 
+    // reco/gen diff
+    TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
+    TH2D* h2_rgVPhi_diff_vs_vPt[nCents];
+
     // event observables
     TH1D* h_cent[nVPts];
     TH1D* h_vtxz[nCents][nVPts];
@@ -333,12 +337,33 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string name_h_reco_num_vPt = Form("h_reco_num_vPt_%s", label_cent.c_str());
         h_reco_num_vPt[i] = 0;
         h_reco_num_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_reco_num_vPt.c_str());
+        h_reco_num_vPt[i]->SetXTitle(Form("gen %s", h_vPt[i]->GetXaxis()->GetTitle()));
         vec_h_num.push_back(h_reco_num_vPt[i]);
 
         std::string name_h_reco_denom_vPt = Form("h_reco_denom_vPt_%s", label_cent.c_str());
         h_reco_denom_vPt[i] = 0;
-        h_reco_denom_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_reco_denom_vPt.c_str());
+        h_reco_denom_vPt[i] = (TH1D*)h_reco_num_vPt[i]->Clone(name_h_reco_denom_vPt.c_str());
         vec_h_denom.push_back(h_reco_denom_vPt[i]);
+
+        std::string name_h2_rgVPt_ratio_vs_vPt = Form("h2_rgVPt_ratio_vs_vPt_%s", label_cent.c_str());
+        std::string title_h2_rgVPt_ratio_vs_vPt = Form("%s, %s;gen %s;p_{T}^{reco} / p_{T}^{gen}", text_range_vEta.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        h2_rgVPt_ratio_vs_vPt[i] = 0;
+        h2_rgVPt_ratio_vs_vPt[i] = new TH2D(name_h2_rgVPt_ratio_vs_vPt.c_str(), title_h2_rgVPt_ratio_vs_vPt.c_str(),
+                                                     nBinsX_vPt, 0, xMax_vPt, 60, 0.4, 1.6);
+        vec_h2D.push_back(h2_rgVPt_ratio_vs_vPt[i]);
+
+        std::string name_h2_rgVPhi_diff_vs_vPt = Form("h2_rgVPhi_diff_vs_vPt_%s", label_cent.c_str());
+        std::string title_h2_rgVPhi_diff_vs_vPt = Form("%s, %s;gen %s;#phi^{reco} - #phi^{gen}", text_range_vEta.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        h2_rgVPhi_diff_vs_vPt[i] = 0;
+        h2_rgVPhi_diff_vs_vPt[i] = new TH2D(name_h2_rgVPhi_diff_vs_vPt.c_str(), title_h2_rgVPhi_diff_vs_vPt.c_str(),
+                                                     nBinsX_vPt, 0, xMax_vPt, 80, -0.4, 0.4);
+        vec_h2D.push_back(h2_rgVPhi_diff_vs_vPt[i]);
 
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
@@ -387,11 +412,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string name_h_reco_num_vEta = Form("h_reco_num_vEta_%s", name_h_suffix.c_str());
             h_reco_num_vEta[i][j] = 0;
             h_reco_num_vEta[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_num_vEta.c_str());
+            h_reco_num_vEta[i][j]->SetXTitle(Form("gen %s", h_vEta[i][j]->GetXaxis()->GetTitle()));
             vec_h_num.push_back(h_reco_num_vEta[i][j]);
 
             std::string name_h_reco_denom_vEta = Form("h_reco_denom_vEta_%s", name_h_suffix.c_str());
             h_reco_denom_vEta[i][j] = 0;
-            h_reco_denom_vEta[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_denom_vEta.c_str());
+            h_reco_denom_vEta[i][j] = (TH1D*)h_reco_num_vEta[i][j]->Clone(name_h_reco_denom_vEta.c_str());
             vec_h_denom.push_back(h_reco_denom_vEta[i][j]);
 
             title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vEta.c_str(), text_range_cent.c_str());
@@ -1237,6 +1263,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_reco_denom_vPt[i]->Fill(genVPt, wV);
                         if (matchedRG) {
                             h_reco_num_vPt[i]->Fill(genVPt, wV);
+
+                            h2_rgVPt_ratio_vs_vPt[i]->Fill(genVPt, vPt / genVPt, wV);
+                            h2_rgVPhi_diff_vs_vPt[i]->Fill(genVPt, getDPHI(vPhi, genVPhi), wV);
                         }
                     }
 
