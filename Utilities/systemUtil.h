@@ -19,6 +19,8 @@ std::vector<std::string> getLines(std::string file);
 int         replaceStringInFile(std::string file, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString);
 std::string replaceAll(std::string str, std::string oldString, std::string newString, bool matchCase);
+std::string replaceFirst(std::string str, std::string oldString, std::string newString);
+std::string replaceFirst(std::string str, std::string oldString, std::string newString, bool matchCase);
 std::string trim(std::string str);
 std::string toLowerCase(std::string str);
 std::string toUpperCase(std::string str);
@@ -143,6 +145,43 @@ std::string replaceAll(std::string str, std::string oldString, std::string newSt
             str.replace(pos, oldString.length(), newString);
             strLow.replace(pos, oldStringLow.length(), newString);
             pos += newString.length();
+        }
+        return str;
+    }
+}
+
+/*
+ * replace first occurence of "oldString" in string "str" with "newString"
+ */
+std::string replaceFirst(std::string str, std::string oldString, std::string newString)
+{
+    if(str.empty())
+        return str;
+
+    size_t pos = 0;
+    if ((pos = str.find(oldString, pos)) != std::string::npos) {
+        str.replace(pos, oldString.length(), newString);
+    }
+    return str;
+}
+
+/*
+ * replace first occurence of "oldString" in string "str" with "newString"
+ * If matchCase = false, then replacement is not case sensitive.
+ */
+std::string replaceFirst(std::string str, std::string oldString, std::string newString, bool matchCase)
+{
+    if (matchCase)  return replaceAll(str, oldString, newString);
+    else {
+        if(str.empty())
+            return str;
+
+        size_t pos = 0;
+        std::string strLow = toLowerCase(str);
+        std::string oldStringLow = toLowerCase(oldString);
+        if((pos = strLow.find(oldStringLow, pos)) != std::string::npos) {
+            str.replace(pos, oldString.length(), newString);
+            strLow.replace(pos, oldStringLow.length(), newString);
         }
         return str;
     }
