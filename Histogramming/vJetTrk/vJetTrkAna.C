@@ -226,6 +226,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1::SetDefaultSumw2();
 
     std::vector<TH2D*> vec_h2D;
+    std::vector<TH1D*> vec_h_num;
+    std::vector<TH1D*> vec_h_denom;
 
     TH1D* h_vPt[nCents];
     TH1D* h_trig_num_vPt[nCents];
@@ -313,10 +315,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string name_h_trig_num_vPt = Form("h_trig_num_vPt_%s", label_cent.c_str());
         h_trig_num_vPt[i] = 0;
         h_trig_num_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_num_vPt.c_str());
+        vec_h_num.push_back(h_trig_num_vPt[i]);
 
         std::string name_h_trig_denom_vPt = Form("h_trig_denom_vPt_%s", label_cent.c_str());
         h_trig_denom_vPt[i] = 0;
         h_trig_denom_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_denom_vPt.c_str());
+        vec_h_denom.push_back(h_trig_denom_vPt[i]);
 
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
@@ -1461,23 +1465,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "efficiency" << std::endl;
     TGraphAsymmErrors* gTmp = 0;
-    for (int i = 0; i < nCents; ++i) {
-        std::string tmpName = replaceAll(h_trig_num_vPt[i]->GetName(), "h_trig_num_vPt", "g_trig_eff_vPt");
+    hTmp = 0;
+    int nVec_h_num = vec_h_num.size();
+    int nVec_h_denom = vec_h_denom.size();
+    if (nVec_h_num != nVec_h_denom) {
+        std::cout << "ERROR : different number of numerator and denominators" << std::endl;
+    }
+    for (int i = 0; i < nVec_h_num; ++i) {
+        std::string tmpName = replaceFirst(vec_h_num[i]->GetName(), "_num_", "_eff_");
+
+        hTmp = (TH1D*)vec_h_num[i]->Clone(tmpName.c_str());
+        hTmp->Divide(vec_h_denom[i]);
+        hTmp->GetYaxis()->SetTitle("Efficiency");
+        hTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceFirst(vec_h_num[i]->GetName(), "_num_", "_eff_");
+        tmpName = replaceFirst(tmpName, "h_", "g_");
 
         gTmp = new TGraphAsymmErrors();
         gTmp->SetName(tmpName.c_str());
-        gTmp->BayesDivide(h_trig_num_vPt[i], h_trig_denom_vPt[i]);
-        gTmp->SetTitle(h_trig_num_vPt[i]->GetTitle());
-        gTmp->GetXaxis()->SetTitle(h_trig_num_vPt[i]->GetXaxis()->GetTitle());
+        gTmp->BayesDivide(vec_h_num[i], vec_h_denom[i]);
+        gTmp->SetTitle(vec_h_num[i]->GetTitle());
+        gTmp->GetXaxis()->SetTitle(vec_h_num[i]->GetXaxis()->GetTitle());
         gTmp->GetYaxis()->SetTitle("Efficiency");
         gTmp->SetMarkerStyle(kFullCircle);
         gTmp->Write("",TObject::kOverwrite);
-
-        tmpName = replaceAll(h_trig_num_vPt[i]->GetName(), "h_trig_num_vPt", "h_trig_eff_vPt");
-        hTmp = (TH1D*)h_trig_num_vPt[i]->Clone(tmpName.c_str());
-        hTmp->Divide(h_trig_denom_vPt[i]);
-        hTmp->GetYaxis()->SetTitle("Efficiency");
-        hTmp->Write("",TObject::kOverwrite);
     }
 
     std::cout << "### post loop processing - END ###" << std::endl;
