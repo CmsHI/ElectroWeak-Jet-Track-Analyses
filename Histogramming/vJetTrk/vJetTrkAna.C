@@ -1462,7 +1462,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "efficiency" << std::endl;
     TGraphAsymmErrors* gTmp = 0;
     for (int i = 0; i < nCents; ++i) {
-        std::string tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "gEff_vPt");
+        std::string tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "gEff_trig_vPt");
 
         gTmp = new TGraphAsymmErrors();
         gTmp->SetName(tmpName.c_str());
@@ -1472,6 +1472,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         gTmp->GetYaxis()->SetTitle("Efficiency");
         gTmp->SetMarkerStyle(kFullCircle);
         gTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceAll(h_vPt_trig_num[i]->GetName(), "h_vPt_trig_num", "hEff_trig_vPt");
+        hTmp = (TH1D*)h_vPt_trig_num[i]->Clone(tmpName.c_str());
+        hTmp->Divide(h_vPt_trig_denom[i]);
+        hTmp->GetYaxis()->SetTitle("Efficiency");
+        hTmp->Write("",TObject::kOverwrite);
     }
 
     std::cout << "### post loop processing - END ###" << std::endl;
