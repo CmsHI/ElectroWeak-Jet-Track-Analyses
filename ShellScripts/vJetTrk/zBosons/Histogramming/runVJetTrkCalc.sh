@@ -73,6 +73,7 @@ labels_trkPt=(
 2_3
 3_4
 4_8
+1_20
 );
 
 labels_cent=(
@@ -82,6 +83,7 @@ labels_cent=(
 0_10
 10_30
 30_50
+50_90
 50_100
 );
 ### USER INPUT END

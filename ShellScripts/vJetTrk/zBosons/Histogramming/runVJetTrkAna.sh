@@ -115,17 +115,17 @@ configList=(
 #optionBase="--vType=zmm --vPtMin=10 --jetPtMin=20 --jetEtaMax=1.6 --trkPtMin=0.7 --trkEtaMax=2.4"
 optionList=(
 ## pp 2017
-"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1" #  --maxNVtx=1 --minNVtx=2
+"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
 "DUMMY"
 "DUMMY"
 ## pbpb 2018
-"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90"
-"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90"
-"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90"
-"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90"
+"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90,0:100"
+"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90,0:100"
+"--vType=zmm --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90,0:100"
+"--vType=zee --vPts=10:20,20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=1:0,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,0:10,10:30,30:50,50:90,0:100"
 "DUMMY"
 "DUMMY"
 ### pp 2015
