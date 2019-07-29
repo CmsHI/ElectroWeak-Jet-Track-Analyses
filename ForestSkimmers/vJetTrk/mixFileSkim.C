@@ -199,8 +199,14 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
     }
 
     output->cd();
-    output->mkdir("ppTrack");
-    output->cd("ppTrack");
+    if (!isPbPb15) {
+        output->mkdir("ppTrack");
+        output->cd("ppTrack");
+    }
+    else {
+        output->mkdir("anaTrack");
+        output->cd("anaTrack");
+    }
     outTreeTrack = new TTree("trackTree", "skim of tracks");
     outTreeTrack->SetMaxTreeSize(MAXTREESIZE);
     Tracks trksOut;
