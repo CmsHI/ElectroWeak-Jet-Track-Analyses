@@ -904,7 +904,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     // data
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
+                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
@@ -913,7 +913,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+150), totEMax);  // m, UE energy down
 
                     // pbpb 15
-                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
                 }
                 if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
@@ -1143,10 +1143,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 jetSkimTrees[i]->Fill();
             }
             trackSkimTree->Fill();
-            if (entriesSelected > 5) break;
         }
         fileTmp->Close();
-        if (entriesSelected > 5) break;
     }
     for (int i = 0; i < nMixFiles; ++i) {
         if (isMixFileGood[i])  {
