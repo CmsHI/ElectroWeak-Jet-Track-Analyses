@@ -210,6 +210,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool vIsZee = (toLowerCase(vType).find("zee") == 0);
     bool vIsZ = vIsZmm || vIsZee;
 
+    bool isRecoV = isRecoObj(vRG);
     bool isRecoJet = isRecoObj(jetRG);
     bool isRecoTrk = isRecoObj(trkRG);
 
@@ -359,7 +360,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string name_h_vEta = Form("h_vEta_%s", name_h_suffix.c_str());
             std::string title_h_vEta = Form("%s;%s;", title_h_suffix.c_str(), text_vEta.c_str());
             h_vEta[i][j] = 0;
-            h_vEta[i][j] = new TH1D(name_h_vEta.c_str(), title_h_vPt.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+            h_vEta[i][j] = new TH1D(name_h_vEta.c_str(), title_h_vEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
             title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vEta.c_str(), text_range_cent.c_str());
 
@@ -1053,63 +1054,92 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 TLorentzVector vecll;
 
                 double lMass = -1;
+                int pdgCode = -1;
                 int nL = 0;
                 std::vector<float> *lPt;
                 std::vector<float> *lEta;
                 std::vector<float> *lPhi;
                 std::vector<int>   *lChg;
 
+                double lEtaMax = -1;
+
                 if (vIsZmm) {
 
                     lMass = 0.105658;
+                    pdgCode = 13;
                     nL = ggHi.nMu;
                     lPt = ggHi.muPt;
                     lEta = ggHi.muEta;
                     lPhi = ggHi.muPhi;
                     lChg = ggHi.muCharge;
+                    lEtaMax = 2.4;
                 }
                 else if (vIsZee) {
 
                     lMass = 0.000511;
+                    pdgCode = 11;
                     nL = ggHi.nEle;
                     lPt = ggHi.elePt;
                     lEta = ggHi.eleEta;
                     lPhi = ggHi.elePhi;
                     lChg = ggHi.eleCharge;
+                    lEtaMax = 2.1;
+                }
+
+                if (!isRecoV) {
+                    nL = ggHi.nMC;
+                    lPt = ggHi.mcPt;
+                    lEta = ggHi.mcEta;
+                    lPhi = ggHi.mcPhi;
+                    lChg = ggHi.mcPID;
                 }
 
                 for (int i = 0; i < nL; ++i) {
 
                     float l1pt = (*lPt)[i];
-                    if (vIsZee) {
+                    if (vIsZee && isRecoV) {
                         l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
                     }
                     if (!(l1pt > 20)) continue;
+                    if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
 
-                    if (vIsZmm) {
+                    if (vIsZmm && isRecoV) {
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
-                    else if (vIsZee) {
-                        if (!(std::fabs((*lEta)[i]) < 2.1)) continue;
+                    else if (vIsZee && isRecoV) {
                         if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+                    }
+                    else if (!isRecoV) {
+                        if (std::fabs((*ggHi.mcPID)[i]) != pdgCode) continue;
+                        else if (vIsZee) {
+                            if (1.4442 < std::fabs((*lEta)[i]) && std::fabs((*lEta)[i]) < 1.566) continue;
+                            if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
+                        }
                     }
 
                     for (int j = i+1; j < nL; ++j) {
 
                         float l2pt = (*lPt)[j];
-                        if (vIsZee) {
+                        if (vIsZee && isRecoV) {
                             l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
                         }
                         if (!(l2pt > 20)) continue;
+                        if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
 
-                        if (vIsZmm) {
+                        if (vIsZmm && isRecoV) {
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
-                        else if (vIsZee) {
-                            if (!(std::fabs((*lEta)[j]) < 2.1)) continue;
+                        else if (vIsZee && isRecoV) {
                             if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
+                        }
+                        else if (!isRecoV) {
+                            if (std::fabs((*ggHi.mcPID)[j]) != pdgCode) continue;
+                            if (vIsZee) {
+                                if (1.4442 < std::fabs((*lEta)[j]) && std::fabs((*lEta)[j]) < 1.566) continue;
+                                if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(j))  continue;
+                            }
                         }
 
                         vecl1.SetPtEtaPhiM(l1pt, (*lEta)[i], (*lPhi)[i], lMass);
@@ -1125,7 +1155,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vEta = vecll.Eta();
                             vPhi = vecll.Phi();
                             vM = vecll.M();
-                            ll_os = ((*lChg)[i] != (*lChg)[j]);
+                            ll_os = (((*lChg)[i] == -1*(*lChg)[j]));
 
                             llEta = {(*lEta)[i], (*lEta)[j]};
                             llPhi = {(*lPhi)[i], (*lPhi)[j]};

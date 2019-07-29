@@ -9,6 +9,7 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wextra -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 ### USER INPUT START
+vRG="g" # Options are "r" (reco) or "g" (gen)
 trkRG="g" # Options are "r" (reco) or "g" (gen)
 trkRBS="bkg" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
@@ -162,13 +163,14 @@ do
     options=${optionList[i1]}
 
     ## append specific options
+    options=${options}" --vRG"=${vRG}
     options=${options}" --trkRG"=${trkRG}
     options=${options}" --trkRBS"=${trkRBS}
 
     outputSuffix=${anaSuffixList[i1]}
     outputFile=${outDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}".root"
     ## modify output name based on options
-    outputFile="${outputFile/.root/_trk_${trkRG}_${trkRBS}.root}"
+    outputFile="${outputFile/.root/_v${vRG}_trk_${trkRG}_${trkRBS}.root}"
 
     outputFileLOG="${outputFile/.root/.log}"
     outDir=$(dirname "${outputFile}")
