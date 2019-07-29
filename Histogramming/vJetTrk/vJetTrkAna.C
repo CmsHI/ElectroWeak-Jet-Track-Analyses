@@ -495,8 +495,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_trkPt[i][j] = 0;
             h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), nBinsX_trkPt, 0, xMax_trkPt);
 
+            std::string title_h_suffix_dphi = Form("%s, %s, %s", text_range_vPt.c_str(),
+                                                    text_range_trkEta.c_str(),
+                                                    text_range_cent.c_str());
+
             std::string name_h2_dphi_vs_trkPt = Form("h2_dphi_vs_trkPt_%s", name_h_suffix.c_str());
-            std::string title_h2_dphi_vs_trkPt = Form("%s;%s;%s", title_h_suffix.c_str(),
+            std::string title_h2_dphi_vs_trkPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
                                                         text_trkPt.c_str(),
                                                         text_dphi.c_str());
 
@@ -547,13 +551,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_dphi_evtPlane_trk[i][j][k] = new TH1D(name_h_dphi_evtPlane_trk.c_str(), title_h_dphi_evtPlane_trk.c_str(),
                                                                                             nBinsX_dphi, 0, xMax_phi);
 
-                title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix_dphi = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
                                                         text_range_trkPt.c_str(),
                                                         text_range_trkEta.c_str(),
                                                         text_range_cent.c_str());
 
                 std::string name_h_dphi = Form("h_dphi_%s", name_h_suffix.c_str());
-                std::string title_h_dphi = Form("%s;%s;", title_h_suffix.c_str(),
+                std::string title_h_dphi = Form("%s;%s;", title_h_suffix_dphi.c_str(),
                                                           text_defn_dphi.c_str());
                 h_dphi[i][j][k] = 0;
                 h_dphi[i][j][k] = new TH1D(name_h_dphi.c_str(), title_h_dphi.c_str(), nBinsX_dphi, 0, xMax_phi);
@@ -683,7 +687,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
 
                 std::string name_h2_dphi_vs_deta = Form("h2_dphi_vs_deta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_deta = Form("%s;%s;%s", title_h_suffix.c_str(),
+                std::string title_h2_dphi_vs_deta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
                                                             text_deta.c_str(),
                                                             text_dphi.c_str());
 
@@ -694,7 +698,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 vec_h2D.push_back(h2_dphi_vs_deta[i][j][k]);
 
                 std::string name_h2_dphi_vs_trkEta = Form("h2_dphi_vs_trkEta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
+                std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
                                                             text_trkEta.c_str(),
                                                             text_dphi.c_str());
 
