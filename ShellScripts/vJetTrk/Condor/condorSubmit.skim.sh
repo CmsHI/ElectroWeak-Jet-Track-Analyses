@@ -139,6 +139,19 @@ findImportedConfigs $configFile $configListTmp
 tar -cvf $configsAll -T $configListTmp
 cp $configsAll $submitDir
 rm -f $configListTmp
+rm -f $configsAll
+
+# copy the correction files
+corrFileList="corrFiles.list"
+corrFilesAll="allCorrFiles.tar"
+rm -f $corrFileList
+echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_GeneralTracks_highPt.root" >> ${corrFileList}
+echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_GeneralTracks_MB.root" >> ${corrFileList}
+echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_PixelTracks.root" >> ${corrFileList}
+tar -cvf $corrFilesAll -T $corrFileList
+cp $corrFilesAll $submitDir
+rm -f $corrFileList
+rm -f $corrFilesAll
 
 ## customizations for lxplus and submit.mit.edu machines ##
 # proxy files start with "x509" and they are located under /tmp/ only.
@@ -180,7 +193,7 @@ Rank         = Mips
 #request_memory = 8000M  # The rule is that 2 GB of memory per CPU core.
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = $proxyFile,myRun.sh,$progName,$configName,$inputListName,$mixFilesListName,$optsFileName,$configsAll
+transfer_input_files = $proxyFile,myRun.sh,$progName,$configName,$inputListName,$mixFilesListName,$optsFileName,$configsAll,$corrFilesAll
 
 Queue $nJobs
 
@@ -203,7 +216,7 @@ requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi
 job_lease_duration = 240
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
-transfer_input_files = /tmp/$proxyFile,myRun.sh,$progName,$configName,$inputListName,$mixFilesListName,$optsFileName,$configsAll
+transfer_input_files = /tmp/$proxyFile,myRun.sh,$progName,$configName,$inputListName,$mixFilesListName,$optsFileName,$configsAll,$corrFilesAll
 
 Queue $nJobs
 
@@ -249,6 +262,10 @@ echo "##"
 # extract imported configuration files, if any
 if [ -f $configsAll ]; then
   tar -xvf $configsAll
+fi
+# extract imported correction files, if any
+if [ -f $corrFilesAll ]; then
+  tar -xvf $corrFilesAll
 fi
 ./myRun.sh "./"\$progExe \$configTmp \$inputListTmp \$outputTmp \$mixFileListTmp \${optionsTmp}
 
@@ -312,6 +329,10 @@ echo "##"
 # extract imported configuration files, if any
 if [ -f $configsAll ]; then
   tar -xvf $configsAll
+fi
+# extract imported correction files, if any
+if [ -f $corrFilesAll ]; then
+  tar -xvf $corrFilesAll
 fi
 ./myRun.sh "./"\$progExe \$configTmp \$inputListTmp \$outputTmp \$mixFileListTmp \${optionsTmp}
 
