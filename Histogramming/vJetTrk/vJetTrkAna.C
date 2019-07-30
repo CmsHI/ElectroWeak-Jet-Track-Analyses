@@ -44,6 +44,7 @@
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
 #include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
+#include "../../Corrections/tracks/2015/getTrkCorr.h"
 
 ///// global variables
 /// configuration variables
@@ -95,11 +96,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isPbPb15 = isPbPb && (sampleType.find("2015") != std::string::npos);
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
+    bool isPP15 = isPP && (sampleType.find("2015") != std::string::npos);
     bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
 
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb15 = " << isPbPb15 << std::endl;
     std::cout << "isPbPb18 = " << isPbPb18 << std::endl;
+    std::cout << "isPP15 = " << isPP15 << std::endl;
     std::cout << "isPP17 = " << isPP17 << std::endl;
 
     int collisionType = -1;
@@ -218,6 +221,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isSigTrk = isSigObj(trkRBS);
 
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
+
+    TrkCorr* trkCorr2015 = 0;
+    if (redoTrkWeights) {
+        if (isPP15) {
+            trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_July22_Iterative_pp_eta2p4/");
+        }
+        else if (isPbPb15) {
+            trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
+        }
+    }
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
@@ -1425,7 +1438,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         hiBinTmp = (*mixEvents.p_hiBin_mix)[iEvt];
                     }
 
-                    if (isPP17) {
+                    if (isPP) {
+                        hiBinTmp = 0;
+                    }
+
+                    if (isPP15 || isPbPb15) {
+                        trkWeightTmp = trkCorr2015->getTrkCorr(t_pt, t_eta, t_phi, hiBinTmp);
+                    }
+                    else if (isPP17) {
                         trkWeightTmp = 1.10;
                     }
                     else if (isPbPb18) {
