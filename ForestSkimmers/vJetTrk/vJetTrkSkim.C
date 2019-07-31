@@ -38,6 +38,7 @@
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
 #include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
+#include "../../Corrections/tracks/2015/getTrkCorr.h"
 
 struct entryVec
 {
@@ -105,6 +106,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     bool isPbPb15 = isPbPb && (sampleType.find("2015") != std::string::npos);
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
+    bool isPP15 = isPP && (sampleType.find("2015") != std::string::npos);
     bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
 
     bool mixEvents = (nMixEvents > 0);
@@ -123,6 +125,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb15 = " << isPbPb15 << std::endl;
     std::cout << "isPbPb18 = " << isPbPb18 << std::endl;
+    std::cout << "isPP15 = " << isPP15 << std::endl;
     std::cout << "isPP17 = " << isPP17 << std::endl;
 
     int rndSeed= (ArgumentParser::optionExists("--rndSeed", argOptions)) ?
@@ -188,6 +191,16 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool doTrkVtx = isPP;
 
     TrkEff2018PbPb trkEff2018 = TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
+
+    TrkCorr* trkCorr2015 = 0;
+    if (doTrkWeights) {
+        if (isPP15) {
+            trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_July22_Iterative_pp_eta2p4/");
+        }
+        else if (isPbPb15) {
+            trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
+        }
+    }
 
     // input trees
     TTree* treeHLT = 0;
@@ -816,7 +829,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                 float trkWeightTmp = 1;
                 if (doTrkWeights) {
-                    if (isPP17) {
+                    if (isPP15 || isPbPb15) {
+                        int hiBinTmp = (isPbPb15) ? hiBin : 0;
+                        trkWeightTmp = trkCorr2015->getTrkCorr(trks.trkPt[i], trks.trkEta[i], trks.trkPhi[i], hiBinTmp);
+                    }
+                    else if (isPP17) {
                         trkWeightTmp = 1.10;
                     }
                     else if (isPbPb18) {
@@ -903,8 +920,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     // data
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
-                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
+                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
@@ -914,6 +931,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                     // pbpb 15
                     //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
+                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 677, totEMax);
                 }
                 if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
@@ -1094,7 +1112,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkskim.trkPhi_mix.push_back(trksMix[iMF].trkPhi[i]);
                         float trkWeightTmp = 1;
                         if (doTrkWeights) {
-                            if (isPP17) {
+                            if (isPP15 || isPbPb15) {
+                                int hiBinTmp = (isPbPb15) ? hiEvtMix[iMF].hiBin : 0;
+                                trkWeightTmp = trkCorr2015->getTrkCorr(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], trksMix[iMF].trkPhi[i], hiBinTmp);
+                            }
+                            else if (isPP17) {
                                 trkWeightTmp = 1.10;
                             }
                             else if (isPbPb18) {
