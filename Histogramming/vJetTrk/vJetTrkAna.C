@@ -62,7 +62,7 @@ std::vector<std::vector<float>> pthatWeights;
 // RECO object cuts
 bool excludeHI18HEMfailure;
 
-bool redoTrkWeights;
+int applyTrkWeights;
 bool rotateEvtPlane;
 
 int nPthatWeights;
@@ -219,6 +219,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isBkgTrk = isBkgObj(trkRBS);
     bool isSigTrk = isSigObj(trkRBS);
+
+    bool noTrkWeights = (applyTrkWeights == 0);
+    bool redoTrkWeights = (applyTrkWeights == 2);
 
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
 
@@ -1430,7 +1433,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 double trkWeightTmp = (*p_weight)[i];
-                if (isRecoTrk && redoTrkWeights) {
+                if (isRecoTrk && noTrkWeights) {
+                    trkWeightTmp = 1;
+                }
+                else if (isRecoTrk && redoTrkWeights) {
 
                     int hiBinTmp = hiBin;
                     if (isBkgTrk) {
@@ -1707,7 +1713,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     // RECO cuts
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
-    redoTrkWeights = (confParser.ReadConfigValueInteger("redoTrkWeights") > 0);
+    applyTrkWeights = confParser.ReadConfigValueInteger("applyTrkWeights");
 
     rotateEvtPlane = (confParser.ReadConfigValueInteger("rotateEvtPlane") > 0);
 
@@ -1746,7 +1752,7 @@ void printConfiguration()
 
     std::cout << "excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
-    std::cout << "redoTrkWeights = " << redoTrkWeights << std::endl;
+    std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
 
     std::cout << "rotateEvtPlane = " << rotateEvtPlane << std::endl;
 }
