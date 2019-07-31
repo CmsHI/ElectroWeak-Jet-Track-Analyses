@@ -199,6 +199,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hTmp->Write("", TObject::kOverwrite);
 
             hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+            hTmpBkg->Delete();
             hTmp->Scale(1.0 / nV);
             if (doSCALEBINW) {
                 hTmp->Scale(1.0, "width");
