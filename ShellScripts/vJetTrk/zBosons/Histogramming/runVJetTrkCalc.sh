@@ -13,6 +13,7 @@ doSCALEBINW=1
 doBKGSUB=1
 doNORMV=1
 doMERGE=1
+vRG="r" # Options are "r" (reco) or "g" (gen)
 trkRG="g" # Options are "r" (reco) or "g" (gen)
 trkRBS="raw" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
@@ -168,18 +169,23 @@ do
     outputFile=""
     if [ ${doBKGSUB} == 1 ]; then
 
-      inputFile_trkRAW=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_raw.root"
-      inputFile_trkBKG=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_bkg.root"
+#      inputFile_trkRAW=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_raw.root"
+#      inputFile_trkBKG=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_bkg.root"
+      inputFile_trkRAW=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_v"${vRG}"_trk_"${trkRG}"_raw.root"
+      inputFile_trkBKG=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_v"${vRG}"_trk_"${trkRG}"_bkg.root"
       echo ${inputFile_trkRAW} >> ${inputFileList}
       echo ${inputFile_trkBKG} >> ${inputFileList}
 
-      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_bkgsub.root"
+#      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_bkgsub.root"
+      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_v"${vRG}"_trk_"${trkRG}"_bkgsub.root"
     elif [ ${doNORMV} == 1 ]; then
 
-      inputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+#      inputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+      inputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_v"${vRG}"_trk_"${trkRG}"_"${trkRBS}".root"
       echo ${inputFile} >> ${inputFileList}
 
-      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+#      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_v"${vRG}"_trk_"${trkRG}"_"${trkRBS}".root"
     elif [ ${doMERGE} == 1 ]; then
 
       outputSuffix=${mergeSuffixList[i1]}
@@ -188,13 +194,16 @@ do
 
       inputSuffix_zmm="${inputSuffix/vJetTrkCalc_/vJetTrkAna_}"
       inputSuffix_zmm="${inputSuffix_zmm/_zll_merge/_zmm}"
-      inputFile_zmm=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zmm}"_trk_"${trkRG}"_"${trkRBS}".root"
+#      inputFile_zmm=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zmm}"_trk_"${trkRG}"_"${trkRBS}".root"
+      inputFile_zmm=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zmm}"_v"${vRG}"_trk_"${trkRG}"_"${trkRBS}".root"
       inputSuffix_zee="${inputSuffix_zmm/_zmm/_zee}"
-      inputFile_zee=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zee}"_trk_"${trkRG}"_"${trkRBS}".root"
+#      inputFile_zee=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zee}"_trk_"${trkRG}"_"${trkRBS}".root"
+      inputFile_zee=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix_zee}"_v"${vRG}"_trk_"${trkRG}"_"${trkRBS}".root"
       echo ${inputFile_zmm} >> ${inputFileList}
       echo ${inputFile_zee} >> ${inputFileList}
 
-      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+#      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
+      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_v"${vRG}"_trk_"${trkRG}"_"${trkRBS}".root"
     fi
 
     writeMode="RECREATE"
