@@ -432,6 +432,9 @@ void setTH1(TH1* h)
  */
 std::string parsePathTH1vPt(std::string histPath)
 {
+    histPath = replaceAll(histPath, "_projX", "");
+    histPath = replaceAll(histPath, "_projY", "");
+
     size_t pos = histPath.find("_cent");
     std::string strCent = histPath.substr(pos);
 

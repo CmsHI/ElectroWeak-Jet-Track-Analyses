@@ -12,9 +12,9 @@ progCode="${progPath/.exe/.C}"
 doSCALEBINW=1
 doBKGSUB=1
 doNORMV=1
-doMERGE=1
+doMERGE=0
 vRG="r" # Options are "r" (reco) or "g" (gen)
-trkRG="g" # Options are "r" (reco) or "g" (gen)
+trkRG="r" # Options are "r" (reco) or "g" (gen)
 trkRBS="raw" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
 sampleFlags=(
@@ -121,9 +121,24 @@ do
 
           echo ${hPath} >> ${inputObjList}   ## add raw obj
           echo ${hPath} >> ${inputObjList}   ## add bkg obj
+
+          if [[ ${hPath} == h2_* ]]; then
+            ## calc 1D projections of TH2D
+            echo ${hPath}"_projX" >> ${inputObjList}   ## add raw obj
+            echo ${hPath}"_projX" >> ${inputObjList}   ## add bkg obj
+
+            echo ${hPath}"_projY" >> ${inputObjList}   ## add raw obj
+            echo ${hPath}"_projY" >> ${inputObjList}   ## add bkg obj
+          fi
         elif [ ${doNORMV} == 1 ]; then
 
           echo ${hPath} >> ${inputObjList}
+
+          if [[ ${hPath} == h2_* ]]; then
+            ## calc 1D projections of TH2D
+            echo ${hPath}"_projX" >> ${inputObjList}
+            echo ${hPath}"_projY" >> ${inputObjList}
+          fi
         fi
 
       done
