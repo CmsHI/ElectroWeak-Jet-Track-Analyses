@@ -238,17 +238,19 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hTmp = (TH1*)hIn[iDnm]->Clone(Form("%s_tmpDenom", hIn[iDnm]->GetName()));
 
             std::string tmpName;
-            tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_ratio_");
+            std::string strOld = (hIn[iNum]->InheritsFrom("TH2D")) ? "h2_" : "h_";
+            tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"ratio_");
+
             hOut = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
             hOut->Divide(hTmp);
             hOut->SetYTitle("PbPb / pp");
 
             // write objects
-            tmpName = replaceFirst(hIn[iNum]->GetName(), "h_", "h_num_");
+            tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"num_");
             hTmp = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
             hTmp->Write("", TObject::kOverwrite);
 
-            tmpName = replaceFirst(hIn[iDnm]->GetName(), "h_", "h_denom_");
+            tmpName = replaceFirst(hIn[iDnm]->GetName(), strOld, strOld+"denom_");
             hTmp = (TH1*)hIn[iDnm]->Clone(tmpName.c_str());
             hTmp->Write("", TObject::kOverwrite);
 
