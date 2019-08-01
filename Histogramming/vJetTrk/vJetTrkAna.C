@@ -260,6 +260,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_reco_denom_vPt[nCents];
     TH1D* h_reco_num_vEta[nCents][nVPts];
     TH1D* h_reco_denom_vEta[nCents][nVPts];
+    TH1D* h_reco_num_cent[nVPts];
+    TH1D* h_reco_denom_cent[nVPts];
 
     // reco/gen diff
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
@@ -454,11 +456,21 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_vM_ss[i][j] = new TH1D(name_h_vM_ss.c_str(), title_h_vM_ss.c_str(), 30, 60, 120);
 
             if (i == 0) {
-                std::string name_h_cent = Form("h_hiBin_%s", label_vPt.c_str());
-                std::string title_h_cent = Form("%s;hiBin;", text_range_vPt.c_str());
+                std::string name_h_cent = Form("h_halfHiBin_%s", label_vPt.c_str());
+                std::string title_h_cent = Form("%s;Centrality (%%);", text_range_vPt.c_str());
 
                 h_cent[j] = 0;
-                h_cent[j] = new TH1D(name_h_cent.c_str(), title_h_cent.c_str(), 100, 0, 100);
+                h_cent[j] = new TH1D(name_h_cent.c_str(), title_h_cent.c_str(), 20, 0, 100);
+
+                std::string name_h_reco_num_cent = Form("h_reco_num_halfHiBin_%s", label_vPt.c_str());
+                h_reco_num_cent[j] = 0;
+                h_reco_num_cent[j] = (TH1D*)h_cent[j]->Clone(name_h_reco_num_cent.c_str());
+                vec_h_num.push_back(h_reco_num_cent[j]);
+
+                std::string name_h_reco_denom_cent = Form("h_reco_denom_halfHiBin_%s", label_vPt.c_str());
+                h_reco_denom_cent[j] = 0;
+                h_reco_denom_cent[j] = (TH1D*)h_reco_num_cent[j]->Clone(name_h_reco_denom_cent.c_str());
+                vec_h_denom.push_back(h_reco_denom_cent[j]);
             }
 
             std::string name_h_vtxz = Form("h_vtxz_%s", name_h_suffix.c_str());
@@ -1272,11 +1284,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 double matchedRG = ((vIsPho || ll_os) && vPt >= 0 && getDR2(genVEta, genVPhi, vEta, vPhi) < maxDR2_reco_gen_V);
 
+                double genVEtaAbs = std::fabs(genVEta);
+
                 for (int i = 0; i < nCents; ++i) {
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
-
-                    double genVEtaAbs = std::fabs(genVEta);
 
                     if (vEtaMin <= genVEtaAbs && genVEtaAbs < vEtaMax) {
 
@@ -1298,6 +1310,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_reco_num_vEta[i][j]->Fill(genVEta, wV);
                         }
                     }
+                }
+
+                for (int j = 0; j < nVPts; ++j) {
+
+                    if (!(vPtsMin[j] <= genVPt && genVPt < vPtsMax[j]))  continue;
+
+                    if (vEtaMin <= genVEtaAbs && genVEtaAbs < vEtaMax) {
+
+                        h_reco_denom_cent[j]->Fill(cent, wV);
+                        if (matchedRG) {
+                            h_reco_num_cent[j]->Fill(cent, wV);
+                        }
+                    }
+
                 }
             }
 
