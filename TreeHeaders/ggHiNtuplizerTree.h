@@ -73,6 +73,7 @@ public :
     eleBrem = 0;
     eledEtaAtVtx = 0;
     eledPhiAtVtx = 0;
+    eledEtaSeedAtVtx = 0;
     eleSigmaIEtaIEta = 0;
     eleSigmaIEtaIEta_2012 = 0;
     eleSigmaIPhiIPhi = 0;
@@ -390,6 +391,7 @@ public :
   std::vector<float>   *eleBrem;
   std::vector<float>   *eledEtaAtVtx;
   std::vector<float>   *eledPhiAtVtx;
+  std::vector<float>   *eledEtaSeedAtVtx;
   std::vector<float>   *eleSigmaIEtaIEta;
   std::vector<float>   *eleSigmaIEtaIEta_2012;
   std::vector<float>   *eleSigmaIPhiIPhi;
@@ -700,6 +702,7 @@ public :
   TBranch        *b_eleBrem;   //!
   TBranch        *b_eledEtaAtVtx;   //!
   TBranch        *b_eledPhiAtVtx;   //!
+  TBranch        *b_eledEtaSeedAtVtx;   //!
   TBranch        *b_eleSigmaIEtaIEta;   //!
   TBranch        *b_eleSigmaIEtaIEta_2012;   //!
   TBranch        *b_eleSigmaIPhiIPhi;   //!
@@ -1010,6 +1013,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_eleBrem = 0;
     b_eledEtaAtVtx = 0;
     b_eledPhiAtVtx = 0;
+    b_eledEtaSeedAtVtx = 0;
     b_eleSigmaIEtaIEta = 0;
     b_eleSigmaIEtaIEta_2012 = 0;
     b_eleSigmaIPhiIPhi = 0;
@@ -1318,6 +1322,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleBrem")) t->SetBranchAddress("eleBrem", &eleBrem, &b_eleBrem);
     if (t->GetBranch("eledEtaAtVtx")) t->SetBranchAddress("eledEtaAtVtx", &eledEtaAtVtx, &b_eledEtaAtVtx);
     if (t->GetBranch("eledPhiAtVtx")) t->SetBranchAddress("eledPhiAtVtx", &eledPhiAtVtx, &b_eledPhiAtVtx);
+    if (t->GetBranch("eledEtaSeedAtVtx")) t->SetBranchAddress("eledEtaSeedAtVtx", &eledEtaSeedAtVtx, &b_eledEtaSeedAtVtx);
     if (t->GetBranch("eleSigmaIEtaIEta")) t->SetBranchAddress("eleSigmaIEtaIEta", &eleSigmaIEtaIEta, &b_eleSigmaIEtaIEta);
     if (t->GetBranch("eleSigmaIEtaIEta_2012")) t->SetBranchAddress("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012, &b_eleSigmaIEtaIEta_2012);
     if (t->GetBranch("eleSigmaIPhiIPhi")) t->SetBranchAddress("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi, &b_eleSigmaIPhiIPhi);
@@ -1614,7 +1619,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (std::fabs((*eleSCEta)[i]) < 1.4442)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0147)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0041)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0041)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0853)) return false;
                     if (!((*eleHoverEBc)[i] < 0.2733)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0367)) return false;
@@ -1625,7 +1630,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.048)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0097)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0097)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.2348)) return false;
                     if (!((*eleHoverEBc)[i] < 0.1898)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0300)) return false;
@@ -1638,7 +1643,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (std::fabs((*eleSCEta)[i]) < 1.4442)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0113)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0037)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0037)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.1280)) return false;
                     if (!((*eleHoverEBc)[i] < 0.1814)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.1065)) return false;
@@ -1649,7 +1654,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0376)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0074)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0074)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.2085)) return false;
                     if (!((*eleHoverEBc)[i] < 0.1138)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0237)) return false;
@@ -1666,7 +1671,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (std::fabs((*eleSCEta)[i]) < 1.4442)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0101)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0029)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0029)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0206)) return false;
                     if (!((*eleHoverEBc)[i] < 0.1459)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0105)) return false;
@@ -1677,7 +1682,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0358)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0051)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0051)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0266)) return false;
                     if (!((*eleHoverEBc)[i] < 0.0925)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0065)) return false;
@@ -1690,7 +1695,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (std::fabs((*eleSCEta)[i]) < 1.4442)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0099)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0026)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0026)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0170)) return false;
                     if (!((*eleHoverEBc)[i] < 0.0067)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0077)) return false;
@@ -1701,7 +1706,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
                     if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0288)) return false;
-                    if (!(std::fabs((*eledEtaAtVtx)[i]) < 0.0044)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0044)) return false;
                     if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0266)) return false;
                     if (!((*eleHoverEBc)[i] < 0.0655)) return false;
                     if (!(std::fabs((*eleEoverPInv)[i]) < 0.0123)) return false;
