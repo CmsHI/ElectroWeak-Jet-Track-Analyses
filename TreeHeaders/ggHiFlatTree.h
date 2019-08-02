@@ -110,6 +110,7 @@ public :
   float eleBrem;
   float eledEtaAtVtx;
   float eledPhiAtVtx;
+  float eledEtaSeedAtVtx;
   float eleSigmaIEtaIEta;
   float eleSigmaIEtaIEta_2012;
   float eleSigmaIPhiIPhi;
@@ -429,6 +430,7 @@ public :
   TBranch        *b_eleBrem;   //!
   TBranch        *b_eledEtaAtVtx;   //!
   TBranch        *b_eledPhiAtVtx;   //!
+  TBranch        *b_eledEtaSeedAtVtx;   //!
   TBranch        *b_eleSigmaIEtaIEta;   //!
   TBranch        *b_eleSigmaIEtaIEta_2012;   //!
   TBranch        *b_eleSigmaIPhiIPhi;   //!
@@ -748,6 +750,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_eleBrem = 0;
     b_eledEtaAtVtx = 0;
     b_eledPhiAtVtx = 0;
+    b_eledEtaSeedAtVtx = 0;
     b_eleSigmaIEtaIEta = 0;
     b_eleSigmaIEtaIEta_2012 = 0;
     b_eleSigmaIPhiIPhi = 0;
@@ -1066,6 +1069,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleBrem")) t->SetBranchAddress("eleBrem", &eleBrem, &b_eleBrem);
     if (t->GetBranch("eledEtaAtVtx")) t->SetBranchAddress("eledEtaAtVtx", &eledEtaAtVtx, &b_eledEtaAtVtx);
     if (t->GetBranch("eledPhiAtVtx")) t->SetBranchAddress("eledPhiAtVtx", &eledPhiAtVtx, &b_eledPhiAtVtx);
+    if (t->GetBranch("eledEtaSeedAtVtx")) t->SetBranchAddress("eledEtaSeedAtVtx", &eledEtaSeedAtVtx, &b_eledEtaSeedAtVtx);
     if (t->GetBranch("eleSigmaIEtaIEta")) t->SetBranchAddress("eleSigmaIEtaIEta", &eleSigmaIEtaIEta, &b_eleSigmaIEtaIEta);
     if (t->GetBranch("eleSigmaIEtaIEta_2012")) t->SetBranchAddress("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012, &b_eleSigmaIEtaIEta_2012);
     if (t->GetBranch("eleSigmaIPhiIPhi")) t->SetBranchAddress("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi, &b_eleSigmaIPhiIPhi);
@@ -1388,6 +1392,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("eleBrem", &eleBrem);
         t->Branch("eledEtaAtVtx", &eledEtaAtVtx);
         t->Branch("eledPhiAtVtx", &eledPhiAtVtx);
+        t->Branch("eledEtaSeedAtVtx", &eledEtaSeedAtVtx);
         t->Branch("eleSigmaIEtaIEta", &eleSigmaIEtaIEta);
         t->Branch("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012);
         t->Branch("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi);
@@ -1696,6 +1701,7 @@ void ggHiFlat::clearEntryEle()
         eleBrem = -987987;
         eledEtaAtVtx = -987987;
         eledPhiAtVtx = -987987;
+        eledEtaSeedAtVtx = -987987;
         eleSigmaIEtaIEta = -987987;
         eleSigmaIEtaIEta_2012 = -987987;
         eleSigmaIPhiIPhi = -987987;
@@ -2019,6 +2025,9 @@ void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
     eleBrem = (*tggHiNtuplizer.eleBrem)[i];
     eledEtaAtVtx = (*tggHiNtuplizer.eledEtaAtVtx)[i];
     eledPhiAtVtx = (*tggHiNtuplizer.eledPhiAtVtx)[i];
+    if (tggHiNtuplizer.b_eledEtaSeedAtVtx != 0) {
+        eledEtaSeedAtVtx = (*tggHiNtuplizer.eledEtaSeedAtVtx)[i];
+    }
     eleSigmaIEtaIEta = (*tggHiNtuplizer.eleSigmaIEtaIEta)[i];
     eleSigmaIEtaIEta_2012 = (*tggHiNtuplizer.eleSigmaIEtaIEta_2012)[i];
     eleSigmaIPhiIPhi = (*tggHiNtuplizer.eleSigmaIPhiIPhi)[i];
