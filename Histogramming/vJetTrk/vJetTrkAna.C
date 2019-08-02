@@ -540,11 +540,26 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             for (int k = 0; k < nTrkPts; ++k) {
 
-                std::string label_trkPt = Form("trkPt%d_%d", (int)(trkPtsMin[k]), (int)(trkPtsMax[k]));
-                std::string text_range_trkPt = Form("%d < %s < %d", (int)(trkPtsMin[k]), text_trkPt.c_str(), (int)(trkPtsMax[k]));
+                double tmpTrkPt = -1;
+                tmpTrkPt = trkPtsMin[k];
+                std::string label_trkPtMin = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+                if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                    label_trkPtMin = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+                }
+
+                tmpTrkPt = trkPtsMax[k];
+                std::string label_trkPtMax = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+                if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                    label_trkPtMax = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+                }
+                std::string label_trkPt = Form("trkPt%s_%s", label_trkPtMin.c_str(), label_trkPtMax.c_str());
+
+                std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
+                std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
+                std::string text_range_trkPt = Form("%s < %s < %s", text_trkPtMin.c_str(), text_trkPt.c_str(), text_trkPtMax.c_str());
                 if (trkPtsMax[k] < trkPtsMin[k]) {
-                    label_trkPt = Form("trkPt%d_0", (int)(trkPtsMin[k]));
-                    text_range_trkPt = Form("%s > %d", text_trkPt.c_str(), (int)(trkPtsMin[k]));
+                    label_trkPt = Form("trkPt%s_0", label_trkPtMin.c_str());
+                    text_range_trkPt = Form("%s > %s", text_trkPt.c_str(), text_trkPtMin.c_str());
                 }
 
                 name_h_suffix = Form("%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
