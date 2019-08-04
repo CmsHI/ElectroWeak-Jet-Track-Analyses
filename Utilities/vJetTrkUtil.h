@@ -41,6 +41,9 @@ const int nEventPlaneBins = 8;
 const double etaMin_pf_HF = 3;
 const double etaMax_pf_HF = 5;
 
+const double etaMin_pf_HE = 2.5;
+const double etaMax_pf_HE = 2.9;
+
 enum MIXMETHODS {
     k_match_hiBin,
     k_match_Npart,
@@ -104,6 +107,7 @@ int getNTrkPerp(Tracks& trks, double vPhi);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 std::vector<float> getPFHFtotE(pfCand& pf, float etaMin = 3, float etaMax = 5);
+float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
@@ -597,6 +601,23 @@ std::vector<float> getPFHFtotE(pfCand& pf, float etaMin, float etaMax)
     }
 
     return {h_HF_totE, eg_HF_totE};
+}
+
+float getPFtotE(pfCand& pf, int pfId, float etaMin, float etaMax)
+{
+    float res = 0;
+
+    for (int i = 0; i < pf.nPFpart; ++i) {
+
+        if ( !(etaMin < std::fabs((*pf.pfEta)[i])) )  continue;
+        if ( !(etaMax > std::fabs((*pf.pfEta)[i])) )  continue;
+
+        if ((*pf.pfId)[i] == pfId) {
+            res += (*pf.pfEnergy)[i];
+        }
+    }
+
+    return res;
 }
 
 /*

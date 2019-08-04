@@ -454,8 +454,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     float tmpTotE = -1;
                     if (isForest[i]) {
                         treeMixPFCand[i]->GetEntry(j_entry_mix);
-                        std::vector<float> pf_HF_totE = getPFHFtotE(pfMix[i], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                        tmpTotE = pf_HF_totE[0]+pf_HF_totE[1];
+                        float tmpTotE_h = getPFtotE(pfMix[i], 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                        float tmpTotE_eg = getPFtotE(pfMix[i], 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+                        tmpTotE = tmpTotE_h + tmpTotE_eg;
                     }
                     else {
                         treeMixEventSkim[i]->GetEntry(j_entry_mix);
@@ -853,9 +854,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             evtskim.clearEvent();
             evtskim.rho = ggHi.rho;
-            std::vector<float> pf_HF_totE = getPFHFtotE(pf, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-            evtskim.pf_h_HF_totE = pf_HF_totE[0];
-            evtskim.pf_eg_HF_totE = pf_HF_totE[1];
+            evtskim.pf_h_HF_totE = getPFtotE(pf, 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+            evtskim.pf_eg_HF_totE = getPFtotE(pf, 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
 
             if (isMC) {
                 for (int i = 0; i < hiGen.mult; ++i) {
@@ -1054,9 +1054,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     }
                     if (isForest[iMF]) {
                         treeMixPFCand[iMF]->GetEntry(j_entry_mix);
-                        std::vector<float> pf_HF_totE_mix = getPFHFtotE(pfMix[iMF], VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
-                        mixevtskim.pf_h_HF_totE_mix.push_back(pf_HF_totE_mix[0]);
-                        mixevtskim.pf_eg_HF_totE_mix.push_back(pf_HF_totE_mix[1]);
+                        mixevtskim.pf_h_HF_totE_mix.push_back(getPFtotE(pfMix[iMF], 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF));
+                        mixevtskim.pf_eg_HF_totE_mix.push_back(getPFtotE(pfMix[iMF], 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF));
                     }
                     else {
                         treeMixEventSkim[iMF]->GetEntry(j_entry_mix);
