@@ -825,8 +825,18 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 else {
                     trkskim.trkMVA.push_back(-987987);
                 }
-                trkskim.pfEcal.push_back(trks.pfEcal[i]);
-                trkskim.pfHcal.push_back(trks.pfHcal[i]);
+                if (trks.b_pfType != 0) {
+                    trkskim.pfType.push_back(trks.pfType[i]);
+                    trkskim.pfCandPt.push_back(trks.pfCandPt[i]);
+                    trkskim.pfEcal.push_back(trks.pfEcal[i]);
+                    trkskim.pfHcal.push_back(trks.pfHcal[i]);
+                }
+                else {
+                    trkskim.pfType.push_back(-776655);
+                    trkskim.pfCandPt.push_back(-776655);
+                    trkskim.pfEcal.push_back(-776655);
+                    trkskim.pfHcal.push_back(-776655);
+                }
 
                 float trkWeightTmp = 1;
                 if (doTrkWeights) {
@@ -1124,6 +1134,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkskim.trkPt_mix.push_back(trksMix[iMF].trkPt[i]);
                         trkskim.trkEta_mix.push_back(trksMix[iMF].trkEta[i]);
                         trkskim.trkPhi_mix.push_back(trksMix[iMF].trkPhi[i]);
+
+                        if (trksMix[iMF].b_pfType != 0) {
+                            trkskim.pfType_mix.push_back(trksMix[iMF].pfType[i]);
+                            trkskim.pfCandPt_mix.push_back(trksMix[iMF].pfCandPt[i]);
+                        }
+
                         float trkWeightTmp = 1;
                         if (doTrkWeights) {
                             if (isPP15 || isPbPb15) {

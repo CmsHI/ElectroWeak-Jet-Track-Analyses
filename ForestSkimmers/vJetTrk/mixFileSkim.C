@@ -440,8 +440,18 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
                 else {
                     trksOut.trkMVA[iOut] = -987987;
                 }
-                trksOut.pfEcal[iOut] = trks.pfEcal[i];
-                trksOut.pfHcal[iOut] = trks.pfHcal[i];
+                if (trks.b_pfType != 0) {
+                    trksOut.pfType[iOut] = trks.pfType[i];
+                    trksOut.pfCandPt[iOut] = trks.pfCandPt[i];
+                    trksOut.pfEcal[iOut] = trks.pfEcal[i];
+                    trksOut.pfHcal[iOut] = trks.pfHcal[i];
+                }
+                else {
+                    trksOut.pfType[iOut] = -776655;
+                    trksOut.pfCandPt[iOut] = -776655;
+                    trksOut.pfEcal[iOut] = -776655;
+                    trksOut.pfHcal[iOut] = -776655;
+                }
                 trksOut.trkNVtx[iOut] = trks.trkNVtx[i];
                 iOut++;
             }

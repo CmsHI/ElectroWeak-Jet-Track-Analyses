@@ -185,8 +185,10 @@ void setBranchStatusTreeTrack(TTree* t, bool enableVtx)
     t->SetBranchStatus("highPurity",1);
     //t->SetBranchStatus("tight",1);
     //t->SetBranchStatus("loose",1);
-    t->SetBranchStatus("pfHcal",1);
+    t->SetBranchStatus("pfType",1);
+    t->SetBranchStatus("pfCandPt",1);
     t->SetBranchStatus("pfEcal",1);
+    t->SetBranchStatus("pfHcal",1);
 
     if (enableVtx) {
         // vertex related
