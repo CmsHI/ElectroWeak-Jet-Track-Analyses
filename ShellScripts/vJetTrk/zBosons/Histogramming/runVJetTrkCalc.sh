@@ -73,7 +73,9 @@ labels_vPt=(
 );
 
 labels_trkPt=(
+0p5_0
 1_0
+0p5_1
 1_2
 2_3
 3_4
@@ -85,10 +87,12 @@ labels_cent=(
 0_100
 0_30
 30_100
+30_90
 0_10
 10_30
 30_50
 50_90
+70_90
 50_100
 );
 ### USER INPUT END
@@ -123,7 +127,7 @@ do
           echo ${hPath} >> ${inputObjList}   ## add bkg obj
 
           if [[ ${hPath} == h2_* ]]; then
-            ## calc 1D projections of TH2D
+            ## add 1D projections of TH2D
             echo ${hPath}"_projX" >> ${inputObjList}   ## add raw obj
             echo ${hPath}"_projX" >> ${inputObjList}   ## add bkg obj
 
@@ -135,7 +139,7 @@ do
           echo ${hPath} >> ${inputObjList}
 
           if [[ ${hPath} == h2_* ]]; then
-            ## calc 1D projections of TH2D
+            ## add 1D projections of TH2D
             echo ${hPath}"_projX" >> ${inputObjList}
             echo ${hPath}"_projY" >> ${inputObjList}
           fi
