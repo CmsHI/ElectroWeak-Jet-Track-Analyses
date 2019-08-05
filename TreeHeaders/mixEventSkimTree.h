@@ -142,10 +142,10 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("pf_h_HF_totE_mix"))  t->SetBranchAddress("pf_h_HF_totE_mix", &p_pf_h_HF_totE_mix, &b_pf_h_HF_totE_mix);
     if (t->GetBranch("pf_eg_HF_totE_mix"))  t->SetBranchAddress("pf_eg_HF_totE_mix", &p_pf_eg_HF_totE_mix, &b_pf_eg_HF_totE_mix);
     if (t->GetBranch("pf_h_HE_totE_mix"))  t->SetBranchAddress("pf_h_HE_totE_mix", &p_pf_h_HE_totE_mix, &b_pf_h_HE_totE_mix);
-    if (t->GetBranch("pf_e_HE_totE_mix"))  t->SetBranchAddress("pf_e_HE_totE_mix", &pf_e_HE_totE_mix, &b_pf_e_HE_totE_mix);
-    if (t->GetBranch("pf_mu_HE_totE_mix"))  t->SetBranchAddress("pf_mu_HE_totE_mix", &pf_mu_HE_totE_mix, &b_pf_mu_HE_totE_mix);
-    if (t->GetBranch("pf_gamma_HE_totE_mix"))  t->SetBranchAddress("pf_gamma_HE_totE_mix", &pf_gamma_HE_totE_mix, &b_pf_gamma_HE_totE_mix);
-    if (t->GetBranch("pf_h0_HE_totE_mix"))  t->SetBranchAddress("pf_h0_HE_totE_mix", &pf_h0_HE_totE_mix, &b_pf_h0_HE_totE_mix);
+    if (t->GetBranch("pf_e_HE_totE_mix"))  t->SetBranchAddress("pf_e_HE_totE_mix", &p_pf_e_HE_totE_mix, &b_pf_e_HE_totE_mix);
+    if (t->GetBranch("pf_mu_HE_totE_mix"))  t->SetBranchAddress("pf_mu_HE_totE_mix", &p_pf_mu_HE_totE_mix, &b_pf_mu_HE_totE_mix);
+    if (t->GetBranch("pf_gamma_HE_totE_mix"))  t->SetBranchAddress("pf_gamma_HE_totE_mix", &p_pf_gamma_HE_totE_mix, &b_pf_gamma_HE_totE_mix);
+    if (t->GetBranch("pf_h0_HE_totE_mix"))  t->SetBranchAddress("pf_h0_HE_totE_mix", &p_pf_h0_HE_totE_mix, &b_pf_h0_HE_totE_mix);
 }
 
 void mixEventSkim::setupTreeForWriting(TTree *t)
