@@ -32,10 +32,15 @@ forest_pp_2017_data_mix="Configurations/filelists/HIRun2017PP/ParkingL1MinimumBi
 forest_pbpb_2018_mc_mix="Configurations/filelists/HIRun2018PbPb/official/MinBias_Hydjet_Drum5F_2018_5p02TeV_HINPbPbAutumn18DR_NoPUmva98_103X_upgrade2018_realistic_HI_v11_v1_FOREST.list"
 forest_pbpb_2018_data_mix_1="Configurations/filelists/HIRun2018PbPb/HIMinimumBias0_HIRun2018A_04Apr2019_v1_Run326801_327200_FOREST.list"
 forest_pbpb_2018_data_mix_2="Configurations/filelists/HIRun2018PbPb/HIMinimumBias0_HIRun2018A_04Apr2019_v1_Run327201_327400_FOREST.list"
+forest_pbpb_2018_data_mix_3="Configurations/filelists/HIRun2018PbPb/HIMinimumBias0_HIRun2018A_04Apr2019_v1_Run326381_326800_FOREST.list"
+forest_pbpb_2018_data_mix_4="Configurations/filelists/HIRun2018PbPb/HIMinimumBias0_HIRun2018A_04Apr2019_v1_Run327401_327564_FOREST.list"
 forest_pbpb_2018_data_mix="Configurations/filelists/HIRun2018PbPb/HIMinimumBias0_HIRun2018A_04Apr2019_v1_Run326801_327400_FOREST.list"
 
 forest_pp_2015_mc_mix="DUMMY.root"
-forest_pp_2015_data_mix="DUMMY.root"
+forest_pp_2015_data_mix_1="Configurations/filelists/HIRun2015PP/MinimumBias1_Run2015E_PromptReco_v1_Run262163_262328_Cert_FOREST.list"
+forest_pp_2015_data_mix_2="Configurations/filelists/HIRun2015PP/MinimumBias2_Run2015E_PromptReco_v1_Run262163_262328_Cert_FOREST.list"
+forest_pp_2015_data_mix_3="Configurations/filelists/HIRun2015PP/MinimumBias3_Run2015E_PromptReco_v1_Run262163_262328_Cert_FOREST.list"
+forest_pp_2015_data_mix="Configurations/filelists/HIRun2015PP/MinimumBias123_Run2015E_PromptReco_v1_Run262163_262328_Cert_FOREST.list"
 
 forest_pbpb_2015_mc_mix="Configurations/filelists/official/HIRun2015PbPb/Hydjet_Quenched_Cymbal5Ev8_PbPbMinBias_5020GeV.list"
 forest_pbpb_2015_data_mix_1="Configurations/filelists/HIRun2015PbPb/HIMinimumBias2_HIRun2015_PromptReco_v1_Run263322_263333_FOREST.list"
@@ -73,6 +78,12 @@ skim_pbpb_2018_mc_mix="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_
 skim_pbpb_2018_data_mix="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix.list"
 skim_pbpb_2018_data_mix_1="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_1.list"
 skim_pbpb_2018_data_mix_2="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_2.list"
+skim_pbpb_2018_data_mix_3="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_3.list"
+skim_pbpb_2018_data_mix_4="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2018_data_mix_4.list"
+
+skim_pbpb_2015_data_mix="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2015_data_mix.list"
+skim_pbpb_2015_data_mix_1="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2015_data_mix_1.list"
+skim_pbpb_2015_data_mix_2="Configurations/filelists/vJetTrk/zBoson/mixFileSkim_pbpb_2015_data_mix_2.list"
 
 ## pbpb 2018 noPU
 skim_pbpb_2018_mc_zmm_noPU="Configurations/filelists/vJetTrk/zBoson/vJetTrkSkim_pbpb_2018_mc_zmm_noPU.list"
@@ -186,7 +197,7 @@ calcSuffixList=(
 "vJetTrkCalc_pp_2017_data_zmm"
 "vJetTrkCalc_pp_2017_data_zee"
 "vJetTrkCalc_pp_2017_mc_zll"
-"vJetTrkCalc_data_2017_mc_zll"
+"vJetTrkCalc_pp_2017_data_zll"
 ##
 "vJetTrkCalc_pbpb_2018_mc_zmm"
 "vJetTrkCalc_pbpb_2018_mc_zee"
@@ -200,7 +211,7 @@ calcSuffixList=(
 "vJetTrkCalc_pp_2015_data_zmm"
 "vJetTrkCalc_pp_2015_data_zee"
 "vJetTrkCalc_pp_2015_mc_zll"
-"vJetTrkCalc_data_2015_mc_zll"
+"vJetTrkCalc_pp_2015_data_zll"
 ##
 "vJetTrkCalc_pbpb_2015_mc_zmm"
 "vJetTrkCalc_pbpb_2015_mc_zee"
