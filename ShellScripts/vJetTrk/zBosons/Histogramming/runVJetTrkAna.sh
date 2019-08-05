@@ -9,9 +9,9 @@ progCode="${progPath/.exe/.C}"
 #g++ $progCode $(root-config --cflags --libs) -Werror -Wall -Wextra -Wno-narrowing -lTMVA -lRooFitCore -lRooFit -O2 -o $progPath || exit 1
 
 ### USER INPUT START
-vRG="g" # Options are "r" (reco) or "g" (gen)
-trkRG="g" # Options are "r" (reco) or "g" (gen)
-trkRBS="bkg" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
+vRG="r" # Options are "r" (reco) or "g" (gen)
+trkRG="r" # Options are "r" (reco) or "g" (gen)
+trkRBS="raw" # Options are "raw" (v+jet event), "bkg" (mix event) or "sig" (sube==0 particles from v+jet event)
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
 sampleFlags=(
 0 # pp_2017_mc_zmm
