@@ -245,6 +245,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hOut->Divide(hTmp);
             hOut->SetYTitle("PbPb / pp");
 
+            hTmp->Delete();
+
             // write objects
             tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"num_");
             hTmp = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
