@@ -856,6 +856,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             evtskim.rho = ggHi.rho;
             evtskim.pf_h_HF_totE = getPFtotE(pf, 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
             evtskim.pf_eg_HF_totE = getPFtotE(pf, 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+            evtskim.pf_h_HE_totE = getPFtotE(pf, 1, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_e_HE_totE = getPFtotE(pf, 2, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_mu_HE_totE = getPFtotE(pf, 3, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_gamma_HE_totE = getPFtotE(pf, 4, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_h0_HE_totE = getPFtotE(pf, 5, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
 
             if (isMC) {
                 for (int i = 0; i < hiGen.mult; ++i) {
@@ -1056,11 +1061,21 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         treeMixPFCand[iMF]->GetEntry(j_entry_mix);
                         mixevtskim.pf_h_HF_totE_mix.push_back(getPFtotE(pfMix[iMF], 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF));
                         mixevtskim.pf_eg_HF_totE_mix.push_back(getPFtotE(pfMix[iMF], 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF));
+                        mixevtskim.pf_h_HE_totE_mix.push_back(getPFtotE(pfMix[iMF], 1, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE));
+                        mixevtskim.pf_e_HE_totE_mix.push_back(getPFtotE(pfMix[iMF], 2, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE));
+                        mixevtskim.pf_mu_HE_totE_mix.push_back(getPFtotE(pfMix[iMF], 3, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE));
+                        mixevtskim.pf_gamma_HE_totE_mix.push_back(getPFtotE(pfMix[iMF], 4, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE));
+                        mixevtskim.pf_h0_HE_totE_mix.push_back(getPFtotE(pfMix[iMF], 5, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE));
                     }
                     else {
                         treeMixEventSkim[iMF]->GetEntry(j_entry_mix);
                         mixevtskim.pf_h_HF_totE_mix.push_back(eventSkimMix[iMF].pf_h_HF_totE);
                         mixevtskim.pf_eg_HF_totE_mix.push_back(eventSkimMix[iMF].pf_eg_HF_totE);
+                        mixevtskim.pf_h_HE_totE_mix.push_back(eventSkimMix[iMF].pf_h_HE_totE);
+                        mixevtskim.pf_e_HE_totE_mix.push_back(eventSkimMix[iMF].pf_e_HE_totE);
+                        mixevtskim.pf_mu_HE_totE_mix.push_back(eventSkimMix[iMF].pf_mu_HE_totE);
+                        mixevtskim.pf_gamma_HE_totE_mix.push_back(eventSkimMix[iMF].pf_gamma_HE_totE);
+                        mixevtskim.pf_h0_HE_totE_mix.push_back(eventSkimMix[iMF].pf_h0_HE_totE);
                     }
                     mixevtskim.nmix++;
 

@@ -25,6 +25,11 @@ public :
         p_Nhard_mix = 0;
         p_pf_h_HF_totE_mix = 0;
         p_pf_eg_HF_totE_mix = 0;
+        p_pf_h_HE_totE_mix = 0;
+        p_pf_e_HE_totE_mix = 0;
+        p_pf_mu_HE_totE_mix = 0;
+        p_pf_gamma_HE_totE_mix = 0;
+        p_pf_h0_HE_totE_mix = 0;
     }
     ~mixEventSkim(){};
     void setupTreeForReading(TTree *t);
@@ -48,6 +53,11 @@ public :
     std::vector<float>   Nhard_mix;
     std::vector<float>   pf_h_HF_totE_mix;
     std::vector<float>   pf_eg_HF_totE_mix;
+    std::vector<float>   pf_h_HE_totE_mix;
+    std::vector<float>   pf_e_HE_totE_mix;
+    std::vector<float>   pf_mu_HE_totE_mix;
+    std::vector<float>   pf_gamma_HE_totE_mix;
+    std::vector<float>   pf_h0_HE_totE_mix;
 
     // pointer for vectors (to be used when reading)
     std::vector<float>   *p_vz_mix;
@@ -64,6 +74,11 @@ public :
     std::vector<float>   *p_Nhard_mix;
     std::vector<float>   *p_pf_h_HF_totE_mix;
     std::vector<float>   *p_pf_eg_HF_totE_mix;
+    std::vector<float>   *p_pf_h_HE_totE_mix;
+    std::vector<float>   *p_pf_e_HE_totE_mix;
+    std::vector<float>   *p_pf_mu_HE_totE_mix;
+    std::vector<float>   *p_pf_gamma_HE_totE_mix;
+    std::vector<float>   *p_pf_h0_HE_totE_mix;
 
      // List of branches
     TBranch *b_nmix;
@@ -81,6 +96,11 @@ public :
     TBranch *b_Nhard_mix;
     TBranch *b_pf_h_HF_totE_mix;
     TBranch *b_pf_eg_HF_totE_mix;
+    TBranch *b_pf_h_HE_totE_mix;
+    TBranch *b_pf_e_HE_totE_mix;
+    TBranch *b_pf_mu_HE_totE_mix;
+    TBranch *b_pf_gamma_HE_totE_mix;
+    TBranch *b_pf_h0_HE_totE_mix;
 };
 
 void mixEventSkim::setupTreeForReading(TTree *t)
@@ -100,6 +120,11 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     b_Nhard_mix = 0;
     b_pf_h_HF_totE_mix = 0;
     b_pf_eg_HF_totE_mix = 0;
+    b_pf_h_HE_totE_mix = 0;
+    b_pf_e_HE_totE_mix = 0;
+    b_pf_mu_HE_totE_mix = 0;
+    b_pf_gamma_HE_totE_mix = 0;
+    b_pf_h0_HE_totE_mix = 0;
 
     if (t->GetBranch("nmix"))  t->SetBranchAddress("nmix", &nmix, &b_nmix);
     if (t->GetBranch("vz_mix"))  t->SetBranchAddress("vz_mix", &p_vz_mix, &b_vz_mix);
@@ -116,6 +141,11 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("Nhard_mix"))  t->SetBranchAddress("Nhard_mix", &p_Nhard_mix, &b_Nhard_mix);
     if (t->GetBranch("pf_h_HF_totE_mix"))  t->SetBranchAddress("pf_h_HF_totE_mix", &p_pf_h_HF_totE_mix, &b_pf_h_HF_totE_mix);
     if (t->GetBranch("pf_eg_HF_totE_mix"))  t->SetBranchAddress("pf_eg_HF_totE_mix", &p_pf_eg_HF_totE_mix, &b_pf_eg_HF_totE_mix);
+    if (t->GetBranch("pf_h_HE_totE_mix"))  t->SetBranchAddress("pf_h_HE_totE_mix", &p_pf_h_HE_totE_mix, &b_pf_h_HE_totE_mix);
+    if (t->GetBranch("pf_e_HE_totE_mix"))  t->SetBranchAddress("pf_e_HE_totE_mix", &pf_e_HE_totE_mix, &b_pf_e_HE_totE_mix);
+    if (t->GetBranch("pf_mu_HE_totE_mix"))  t->SetBranchAddress("pf_mu_HE_totE_mix", &pf_mu_HE_totE_mix, &b_pf_mu_HE_totE_mix);
+    if (t->GetBranch("pf_gamma_HE_totE_mix"))  t->SetBranchAddress("pf_gamma_HE_totE_mix", &pf_gamma_HE_totE_mix, &b_pf_gamma_HE_totE_mix);
+    if (t->GetBranch("pf_h0_HE_totE_mix"))  t->SetBranchAddress("pf_h0_HE_totE_mix", &pf_h0_HE_totE_mix, &b_pf_h0_HE_totE_mix);
 }
 
 void mixEventSkim::setupTreeForWriting(TTree *t)
@@ -135,6 +165,11 @@ void mixEventSkim::setupTreeForWriting(TTree *t)
     t->Branch("Nhard_mix", &Nhard_mix);
     t->Branch("pf_h_HF_totE_mix", &pf_h_HF_totE_mix);
     t->Branch("pf_eg_HF_totE_mix", &pf_eg_HF_totE_mix);
+    t->Branch("pf_h_HE_totE_mix", &pf_h_HE_totE_mix);
+    t->Branch("pf_e_HE_totE_mix", &pf_e_HE_totE_mix);
+    t->Branch("pf_mu_HE_totE_mix", &pf_mu_HE_totE_mix);
+    t->Branch("pf_gamma_HE_totE_mix", &pf_gamma_HE_totE_mix);
+    t->Branch("pf_h0_HE_totE_mix", &pf_h0_HE_totE_mix);
 }
 
 void mixEventSkim::clearEvent()
@@ -155,6 +190,11 @@ void mixEventSkim::clearEvent()
     Nhard_mix.clear();
     pf_h_HF_totE_mix.clear();
     pf_eg_HF_totE_mix.clear();
+    pf_h_HE_totE_mix.clear();
+    pf_e_HE_totE_mix.clear();
+    pf_mu_HE_totE_mix.clear();
+    pf_gamma_HE_totE_mix.clear();
+    pf_h0_HE_totE_mix.clear();
 }
 
 #endif /* TREEHEADERS_MIXEVENTSKIMTREE_H_ */

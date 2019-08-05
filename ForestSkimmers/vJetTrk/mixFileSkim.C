@@ -452,6 +452,11 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
             evtskim.rho = ggHi.rho;
             evtskim.pf_h_HF_totE = getPFtotE(pf, 6, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
             evtskim.pf_eg_HF_totE = getPFtotE(pf, 7, VJT::etaMin_pf_HF, VJT::etaMax_pf_HF);
+            evtskim.pf_h_HE_totE = getPFtotE(pf, 1, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_e_HE_totE = getPFtotE(pf, 2, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_mu_HE_totE = getPFtotE(pf, 3, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_gamma_HE_totE = getPFtotE(pf, 4, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
+            evtskim.pf_h0_HE_totE = getPFtotE(pf, 5, VJT::etaMin_pf_HE, VJT::etaMax_pf_HE);
 
             hiGenOut.clearEvent();
             if (isMC) {
