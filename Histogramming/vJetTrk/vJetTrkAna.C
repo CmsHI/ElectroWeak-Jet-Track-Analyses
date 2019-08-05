@@ -1590,7 +1590,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             // rebin trkPt
             //binW = h_trkPt[i][j]->GetBinWidth(1);
-            binsX = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
+            binsX = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
             nBinsX = binsX.size()-1;
 
             double arr_trkPt[nBinsX+1];
