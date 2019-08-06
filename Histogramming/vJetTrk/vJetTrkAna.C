@@ -220,6 +220,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isBkgTrk = isBkgObj(trkRBS);
     bool isSigTrk = isSigObj(trkRBS);
 
+    bool isMixTrk = isBkgTrk;
+
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = (applyTrkWeights == 2);
 
@@ -942,7 +944,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         treeTrackSkim = (TTree*)fileTmp->Get(treePathTrack.c_str());
         treeTrackSkim->SetBranchStatus("*",0);     // disable all branches
 
-        std::string mix_str = (isBkgTrk) ? "_mix" : "";
+        std::string mix_str = (isMixTrk) ? "_mix" : "";
         if (isRecoTrk) {
             treeTrackSkim->SetBranchStatus(Form("nTrk%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("trkPt%s", mix_str.c_str()),1);
@@ -1021,7 +1023,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_sube = &dummy_vec_I1;
             p_weight = trks.p_trkWeight;
             p_evtIndex = &dummy_vec_I0;
-            if (isBkgTrk) {
+            if (isMixTrk) {
                 p_pt = trks.p_trkPt_mix;
                 p_eta = trks.p_trkEta_mix;
                 p_phi = trks.p_trkPhi_mix;
@@ -1039,7 +1041,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_sube = trks.p_sube;
             p_weight = &dummy_vec_F1;
             p_evtIndex = &dummy_vec_I0;
-            if (isBkgTrk) {
+            if (isMixTrk) {
                 p_pt = trks.p_pt_mix;
                 p_eta = trks.p_eta_mix;
                 p_phi = trks.p_phi_mix;
@@ -1431,13 +1433,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             TLorentzVector vV;
             vV.SetPtEtaPhiM(vPt, 0, vPhi, vM);
 
-            if (isRecoTrk && !isBkgTrk) {
+            if (isRecoTrk && !isMixTrk) {
                 nParticles = trks.nTrk;
             }
-            else if (isRecoTrk && isBkgTrk) {
+            else if (isRecoTrk && isMixTrk) {
                 nParticles = trks.nTrk_mix;
             }
-            else if (!isRecoTrk && !isBkgTrk) {
+            else if (!isRecoTrk && !isMixTrk) {
                 nParticles = trks.mult;
             }
             else {
@@ -1445,7 +1447,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             double wMixEvts = wV;
-            if (isBkgTrk) {
+            if (isMixTrk) {
                 wMixEvts *= (1.0 / (double(mixEvents.nmix)));
             }
             for (int i = 0; i < nParticles; ++i) {
@@ -1462,7 +1464,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 float t_eta = (*p_eta)[i];
                 float t_phi = (*p_phi)[i];
 
-                if (isBkgTrk && rotateEvtPlane) {
+                if (isMixTrk && rotateEvtPlane) {
                     int iEvt = (*p_evtIndex)[i];
                     t_phi += (hiEvt.hiEvtPlanes[8] - (*mixEvents.p_hiEvtPlanes_mix)[iEvt]);
                     t_phi = correctPhiRange(t_phi);
@@ -1480,7 +1482,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 else if (isRecoTrk && redoTrkWeights) {
 
                     int hiBinTmp = hiBin;
-                    if (isBkgTrk) {
+                    if (isMixTrk) {
                         int iEvt = (*p_evtIndex)[i];
                         hiBinTmp = (*mixEvents.p_hiBin_mix)[iEvt];
                     }
