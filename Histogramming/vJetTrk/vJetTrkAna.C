@@ -818,6 +818,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<float>* p_eta;
     std::vector<float>* p_phi;
     std::vector<int>* p_chg;
+    std::vector<int>* p_pid;
     std::vector<int>* p_sube;
     std::vector<float>* p_weight;
     std::vector<int>* p_evtIndex;
@@ -986,6 +987,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus(Form("trkCharge%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("highPurity%s", mix_str.c_str()),1);
+            treeTrackSkim->SetBranchStatus(Form("pfType%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("evttrk%s", mix_str.c_str()),1);
@@ -996,6 +998,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeTrackSkim->SetBranchStatus(Form("eta%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("phi%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("chg%s", mix_str.c_str()),1);
+            treeTrackSkim->SetBranchStatus(Form("pdg%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("sube%s", mix_str.c_str()),1);
             treeTrackSkim->SetBranchStatus(Form("evtgen%s", mix_str.c_str()),1);
         }
@@ -1054,6 +1057,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_eta = trks.p_trkEta;
             p_phi = trks.p_trkPhi;
             p_chg = trks.p_trkCharge;
+            p_pid = trks.p_pfType;
             p_sube = &dummy_vec_I1;
             p_weight = trks.p_trkWeight;
             p_evtIndex = &dummy_vec_I0;
@@ -1062,6 +1066,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_eta = trks.p_trkEta_mix;
                 p_phi = trks.p_trkPhi_mix;
                 p_chg = &dummy_vec_I1;
+                p_pid = trks.p_pfType_mix;
                 p_sube = &dummy_vec_I1;
                 p_weight = trks.p_trkWeight_mix;
                 p_evtIndex = trks.p_evttrk_mix;
@@ -1072,6 +1077,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_eta = trks.p_eta;
             p_phi = trks.p_phi;
             p_chg = trks.p_chg;
+            p_pid = trks.p_pdg;
             p_sube = trks.p_sube;
             p_weight = &dummy_vec_F1;
             p_evtIndex = &dummy_vec_I0;
@@ -1080,6 +1086,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_eta = trks.p_eta_mix;
                 p_phi = trks.p_phi_mix;
                 p_chg = trks.p_chg_mix;
+                p_pid = trks.p_pdg_mix;
                 p_sube = trks.p_sube_mix;
                 p_weight = &dummy_vec_F1;
                 p_evtIndex = trks.p_evtgen_mix;
@@ -1511,6 +1518,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 if (vIsZ) {
                     if (getDR2(t_eta, t_phi, llEta[0], llPhi[0]) < minDR2_lep_trk)  continue;
                     if (getDR2(t_eta, t_phi, llEta[1], llPhi[1]) < minDR2_lep_trk)  continue;
+                }
+
+                // lepton rej
+                if (isRecoTrk) {
+                    // PF id
+                    if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3)  continue;
+                }
+                else {
+                    if (std::fabs((*p_pid)[i]) == 11 || std::fabs((*p_pid)[i]) == 13)  continue;
                 }
 
                 double trkWeightTmp = (*p_weight)[i];
