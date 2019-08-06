@@ -225,6 +225,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = (applyTrkWeights == 2);
 
+    bool doResidualTrkW = (outputFile.find("resTrkW") != std::string::npos && redoTrkWeights);
+    std::cout << "doResidualTrkW = " << doResidualTrkW << std::endl;
+
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
 
     TrkCorr* trkCorr2015 = 0;
@@ -234,6 +237,25 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
         else if (isPbPb15) {
             trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
+        }
+    }
+
+    TFile* fileResTrkW = 0;
+    TH1D* h_resTrkW[4][3];
+    if (doResidualTrkW) {
+        fileResTrkW = TFile::Open("/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_5_8_PFHFtotE_m682/trkgetEff/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root", "READ");
+        std::vector<std::string> tmpLblsCent = {"cent0_10", "cent10_30", "cent30_50", "cent50_90"};
+        std::vector<std::string> tmpLblsTrkPt = {"trkPt0p5_1", "trkPt1_2", "trkPt2_3"};
+        for (int i = 0; i < 4; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                h_resTrkW[i][j] = 0;
+                std::string tmpName = Form("h_ratio_dphi_rebin_vPt30_0_%s_%s_sig", tmpLblsTrkPt[j].c_str(), tmpLblsCent[i].c_str());
+                h_resTrkW[i][j] = (TH1D*)fileResTrkW->Get(tmpName.c_str());
+
+                if (h_resTrkW[i][j] == 0) {
+                    std::cout << "WARNING : object not found : " << tmpName.c_str() << std::endl;
+                }
+            }
         }
     }
 
@@ -1517,6 +1539,46 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         //trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
                         float effTmp = (trkEff2018.getEfficiency(t_pt, t_eta, hiBinTmp, true));
                         trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
+
+                        float tmpResCorr = 1;
+                        if (doResidualTrkW) {
+                            int iResBinPt = -1;
+                            if (0.5 <= t_pt && t_pt < 1) {
+                                iResBinPt = 0;
+                            }
+                            else if (1 <= t_pt && t_pt < 2) {
+                                iResBinPt = 1;
+                            }
+                            else if (2 <= t_pt && t_pt < 3) {
+                                iResBinPt = 2;
+                            }
+                            if (iResBinPt >= 0) {
+
+                                int iResBinCent = -1;
+                                if (cent < 10) {
+                                    iResBinCent = 0;
+                                }
+                                else if (cent < 30) {
+                                    iResBinCent = 1;
+                                }
+                                else if (cent < 50) {
+                                    iResBinCent = 2;
+                                }
+                                else if (cent < 90) {
+                                    iResBinCent = 3;
+                                }
+
+                                if (iResBinCent >= 0) {
+                                    float dphi = std::fabs(getDPHI(vPhi, t_phi));
+                                    int iResBinHist = h_resTrkW[iResBinCent][iResBinPt]->FindBin(dphi);
+                                    tmpResCorr = h_resTrkW[iResBinCent][iResBinPt]->GetBinContent(iResBinHist);
+                                    if (tmpResCorr > 1.5) tmpResCorr = 1.5;
+                                    if (tmpResCorr < 0.5) tmpResCorr = 0.5;
+                                }
+                            }
+                        }
+
+                        trkWeightTmp /= tmpResCorr;
                     }
                 }
                 double wTrk = trkWeightTmp * wMixEvts;
