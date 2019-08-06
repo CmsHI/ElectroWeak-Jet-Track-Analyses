@@ -1036,7 +1036,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                     nEventsAttempted++;
 
-                    std::cout << " nMixed = " << nMixed << " , iMF = " << iMF << " , j_entry_mix = " << j_entry_mix << std::endl;
+                    if (verbose) {
+                        std::cout << " nMixed = " << nMixed << " , iMF = " << iMF << " , j_entry_mix = " << j_entry_mix << std::endl;
+                    }
 
                     bool mixEvtAdded;
                     mixEvtAdded = emMix->addEvent(hiEvtMix[iMF].run, hiEvtMix[iMF].lumi, hiEvtMix[iMF].evt, j_entry_mix);
@@ -1183,7 +1185,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     if ((nMixed >= nMixEvents) ||
                         (!centsAdjacentAvail && nMixed >= nMixEventsTmp)) {
                         entriesMixedEvent[iCent][ivz][iEventPlane].current = iME;
-                        std::cout << "End mixing at indexMixEvent = " << iME << std::endl;
+                        if (verbose) {
+                            std::cout << "End mixing at indexMixEvent = " << iME << std::endl;
+                        }
                         break;
                     }
                 }
