@@ -42,6 +42,8 @@ public :
         p_trkPt_mix = 0;
         p_trkEta_mix = 0;
         p_trkPhi_mix = 0;
+        p_pfType_mix = 0;
+        p_pfCandPt_mix = 0;
         p_trkWeight_mix = 0;
         p_evttrk_mix = 0;
 
