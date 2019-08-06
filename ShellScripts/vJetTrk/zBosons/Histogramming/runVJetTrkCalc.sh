@@ -99,6 +99,7 @@ labels_cent=(
 
 inputObjList="vJetTrkCalc_inputObjs.list"
 rm -rf ${inputObjList}
+inputFileList="vJetTrkCalc_inputFiles.list"
 
 ## create list of input objects
 for lbl_obs in "${labels_obs[@]}"
@@ -180,7 +181,6 @@ do
       doNORMV=0
     fi
 
-    inputFileList="vJetTrkCalc_inputFiles.list"
     rm -rf ${inputFileList}
 
     inputSuffix=${anaSuffixList[i1]}
@@ -237,3 +237,4 @@ do
 done
 
 rm -rf ${inputObjList}
+rm -rf ${inputFileList}
