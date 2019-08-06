@@ -966,14 +966,17 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                 int iME = entriesMixedEvent[iCent][ivz][iEventPlane].current;
 
-                std::cout << "entriesSelected = "<< entriesSelected << std::endl;
-                std::cout << "Start mixing for event with hiBin = " << hiBin << " , vz = " << hiEvt.vz << " , evtPlane = " << hiEvt.hiEvtPlanes[8] << std::endl;
-                std::cout << "                       with NPart = " << hiEvt.Npart  << std::endl;
-                std::cout << "                       with hiHF = " << hiEvt.hiHF  << std::endl;
-                std::cout << "                       with hiHFhit = " << hiEvt.hiHFhit << std::endl;
-                std::cout << "                       with rho = " << ggHi.rho << std::endl;
-                std::cout << " iCent = " << iCent << " ivz = " << ivz << " , iEvtPlane = " << iEventPlane << std::endl;
-                std::cout << " indexMixEvent = " << iME << " nMixEventsAvail = " << nMixEventsAvail << std::endl;
+                bool verbose = false;
+                if (verbose) {
+                    std::cout << "entriesSelected = "<< entriesSelected << std::endl;
+                    std::cout << "Start mixing for event with hiBin = " << hiBin << " , vz = " << hiEvt.vz << " , evtPlane = " << hiEvt.hiEvtPlanes[8] << std::endl;
+                    std::cout << "                       with NPart = " << hiEvt.Npart  << std::endl;
+                    std::cout << "                       with hiHF = " << hiEvt.hiHF  << std::endl;
+                    std::cout << "                       with hiHFhit = " << hiEvt.hiHFhit << std::endl;
+                    std::cout << "                       with rho = " << ggHi.rho << std::endl;
+                    std::cout << " iCent = " << iCent << " ivz = " << ivz << " , iEvtPlane = " << iEventPlane << std::endl;
+                    std::cout << " indexMixEvent = " << iME << " nMixEventsAvail = " << nMixEventsAvail << std::endl;
+                }
 
                 int nMixEventsTmp = (nMixEventsAvail >= nMixEvents) ? nMixEvents : nMixEventsAvail;
                 while ((nMixed < nMixEventsTmp) && !skipMix) {
