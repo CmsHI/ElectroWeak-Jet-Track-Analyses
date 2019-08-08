@@ -42,6 +42,7 @@ int  findInVector(const std::vector<T>  & vec, const T  & element);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 std::string getEnvironmentVariable(std::string envName);
+std::string getHostName();
 
 /*
  * just check if the file exists. better use this short function to check existence of a file,
@@ -479,6 +480,18 @@ std::string getEnvironmentVariable(std::string envName)
     const char* envValueChar = std::getenv(envName.c_str());
     std::string res = envValueChar ? envValueChar : "";
     return res;
+}
+
+std::string getHostName()
+{
+    char hostname[4096];
+
+    if (gethostname(hostname, 4096) == 0) {
+        return std::string(hostname);
+    }
+    else {
+        return "";
+    }
 }
 
 #endif
