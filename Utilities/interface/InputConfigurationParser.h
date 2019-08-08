@@ -455,6 +455,8 @@ class InputConfigurationParser : public ConfigurationParser {
     static bool isListFile(std::string fileName);
     static bool isConfigurationFile(TString fileName);
     static bool isConfigurationFile(std::string fileName);
+    static std::vector<std::string> replaceMntWithXrootd(std::vector<std::string> & fileNames);
+    static std::vector<std::string> replaceXrootdWithMnt(std::vector<std::string> & fileNames);
     static std::vector<std::string> ParseFiles(std::string fileName);
     static std::vector<std::string> ParseEvents(std::string fileName);
     static std::vector<std::string> ParseFileArgument(std::string fileArgument);
@@ -489,6 +491,28 @@ bool InputConfigurationParser::isConfigurationFile(TString fileName) {
 bool InputConfigurationParser::isConfigurationFile(std::string fileName) {
     TString tstr = fileName.c_str();
     return isConfigurationFile(tstr);
+}
+
+std::vector<std::string> InputConfigurationParser::replaceMntWithXrootd(std::vector<std::string> & fileNames)
+{
+    std::vector<std::string> res;
+
+    for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
+        res.push_back(replaceAll((*it), "/mnt/hadoop/cms/store", "root://xrootd.cmsaf.mit.edu//store"));
+    }
+
+    return res;
+}
+
+std::vector<std::string> InputConfigurationParser::replaceXrootdWithMnt(std::vector<std::string> & fileNames)
+{
+    std::vector<std::string> res;
+
+    for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
+        res.push_back(replaceAll((*it), "root://xrootd.cmsaf.mit.edu//store", "/mnt/hadoop/cms/store"));
+    }
+
+    return res;
 }
 
 std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileName) {
