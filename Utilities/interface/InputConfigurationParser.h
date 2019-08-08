@@ -564,6 +564,17 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
         }
     }
 
+    std::string hostName = getHostName();
+    if (matchesWildCard(hostName, "submit*.mit.edu") ||
+        matchesWildCard(hostName, "lxplus*.cern.ch")) {
+
+        fileNames = InputConfigurationParser::replaceMntWithXrootd(fileNames);
+    }
+    else if (matchesWildCard(hostName, "*cmsaf.mit.edu")) {
+
+        fileNames = InputConfigurationParser::replaceXrootdWithMnt(fileNames);
+    }
+
     return fileNames;
 }
 
