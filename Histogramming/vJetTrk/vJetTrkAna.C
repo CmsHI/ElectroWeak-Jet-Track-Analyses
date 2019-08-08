@@ -201,6 +201,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "minNVtx = " << minNVtx << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
+    inputFiles = InputConfigurationParser::replaceMntWithXrootd(inputFiles);
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
     std::cout<<"#####"<< std::endl;
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
