@@ -157,6 +157,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double vTrkDphiMax = (ArgumentParser::optionExists("--vTrkDphiMax", argOptions)) ?
                     std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDphiMax", argOptions).c_str()) : 1.5;
 
+    double vTrkDetaMin = (ArgumentParser::optionExists("--vTrkDetaMin", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDetaMin", argOptions).c_str()) : 0;
+    double vTrkDetaMax = (ArgumentParser::optionExists("--vTrkDetaMax", argOptions)) ?
+                    std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDetaMax", argOptions).c_str()) : -1;
+
     std::string centRangesStr = (ArgumentParser::optionExists("--cents", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--cents", argOptions).c_str() : "0:30,30:100";
     std::vector<double> centsMinTmp = parseRangesMin(centRangesStr);
@@ -191,6 +196,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "trkEtaMax = " << trkEtaMax << std::endl;
     std::cout << "vTrkDphiMin (as fraction of PI) = " << vTrkDphiMin << std::endl;
     std::cout << "vTrkDphiMax (as fraction of PI) = " << vTrkDphiMax << std::endl;
+    std::cout << "vTrkDetaMin = " << vTrkDetaMin << std::endl;
+    std::cout << "vTrkDetaMax = " << vTrkDetaMax << std::endl;
 
     std::cout << "nCents = " << nCents << std::endl;
     for (int i = 0; i < nCents; ++i) {
@@ -540,6 +547,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                                 text_trkPhi.c_str(),
                                                                 text_vPhi.c_str());
 
+            std::string text_deta = Form("#Delta#eta_{%s%s}", text_trk.c_str(),
+                                                              text_V.c_str());
+            std::string text_defn_deta = Form("%s = |%s - %s|", text_deta.c_str(),
+                                                                text_trkEta.c_str(),
+                                                                text_vEta.c_str());
+
             std::string text_dphineg = Form("#Delta#phi_{%s -%s}", text_trk.c_str(),
                                                                    text_V.c_str());
             std::string text_defn_dphineg = Form("%s = |%s - -%s|", text_dphineg.c_str(),
@@ -554,10 +567,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (vTrkDphiMax > 1) {
                 text_range_dphi = Form("%s > %.3f #pi", text_dphi.c_str(), vTrkDphiMin);
             }
+            std::string text_range_deta = Form("%.1f < %s < %.1f", vTrkDetaMin, text_deta.c_str(), vTrkDphiMax);
+            if (vTrkDetaMax < vTrkDetaMin) {
+                text_range_deta = Form("%s > %.1f", text_deta.c_str(), vTrkDetaMin);
+            }
 
-            title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+            title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                     text_range_trkEta.c_str(),
                                                     text_range_dphi.c_str(),
+                                                    text_range_deta.c_str(),
                                                     text_range_cent.c_str());
 
             std::string name_h_trkPt = Form("h_trkPt_%s", name_h_suffix.c_str());
@@ -566,8 +584,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_trkPt[i][j] = 0;
             h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), nBinsX_trkPt, 0, xMax_trkPt);
 
-            std::string title_h_suffix_dphi = Form("%s, %s, %s", text_range_vPt.c_str(),
+            std::string title_h_suffix_dphi = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
                                                     text_range_trkEta.c_str(),
+                                                    text_range_deta.c_str(),
                                                     text_range_cent.c_str());
 
             std::string name_h2_dphi_vs_trkPt = Form("h2_dphi_vs_trkPt_%s", name_h_suffix.c_str());
@@ -606,9 +625,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 name_h_suffix = Form("%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                         text_range_trkPt.c_str(),
                                                         text_range_dphi.c_str(),
+                                                        text_range_deta.c_str(),
                                                         text_range_cent.c_str());
 
                 std::string name_h_trkEta = Form("h_trkEta_%s", name_h_suffix.c_str());
@@ -617,10 +637,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_trkEta[i][j][k] = 0;
                 h_trkEta[i][j][k] = new TH1D(name_h_trkEta.c_str(), title_h_trkEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
                                                             text_range_trkEta.c_str(),
                                                             text_range_dphi.c_str(),
+                                                            text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
                 std::string name_h_trkPhi = Form("h_trkPhi_%s", name_h_suffix.c_str());
@@ -637,9 +658,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_dphi_evtPlane_trk[i][j][k] = new TH1D(name_h_dphi_evtPlane_trk.c_str(), title_h_dphi_evtPlane_trk.c_str(),
                                                                                             nBinsX_dphi, 0, xMax_phi);
 
-                title_h_suffix_dphi = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix_dphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                         text_range_trkPt.c_str(),
                                                         text_range_trkEta.c_str(),
+                                                        text_range_deta.c_str(),
                                                         text_range_cent.c_str());
 
                 std::string name_h_dphi = Form("h_dphi_%s", name_h_suffix.c_str());
@@ -654,10 +676,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                                     text_trkEta.c_str(),
                                                                     text_vEta.c_str());
 
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
                                                             text_range_trkEta.c_str(),
                                                             text_range_dphi.c_str(),
+                                                            text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
                 std::string name_h_deta = Form("h_deta_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
@@ -672,9 +695,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                                            text_dphi.c_str(),
                                                                            text_deta.c_str());
 
-                title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
                                                             text_range_trkEta.c_str(),
+                                                            text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
                 std::string name_h_dR = Form("h_dR_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
@@ -684,9 +708,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
 
 
-                title_h_suffix = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
                                                             text_range_trkEta.c_str(),
+                                                            text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
                 std::string text_dRneg = Form("#DeltaR_{%s -%s}", text_trk.c_str(),
@@ -707,10 +732,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                                 text_trkPt.c_str(),
                                                                 text_vPt.c_str());
 
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
                                                             text_range_trkEta.c_str(),
                                                             text_range_dphi.c_str(),
+                                                            text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
                 std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
@@ -818,6 +844,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
     if (trkEtaMax < trkEtaMin) {
         trkEtaMax = 999999;
+    }
+    if (vTrkDetaMax < vTrkDetaMin) {
+        vTrkDetaMax = 999999;
     }
 
     // pointers to particle info
@@ -1515,6 +1544,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
+                if (!(vTrkDetaMin <= std::fabs((*p_eta)[i] - vEta) && std::fabs((*p_eta)[i] - vEta) < vTrkDetaMax))  continue;
 
                 float t_pt = (*p_pt)[i];
                 float t_eta = (*p_eta)[i];
