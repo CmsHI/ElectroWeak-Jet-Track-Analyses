@@ -272,6 +272,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_vPt[nCents];
     TH1D* h_vEta[nCents][nVPts];
     TH1D* h_vPhi[nCents][nVPts];
+    TH1D* h_vY[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
     TH1D* h_vM_ss[nCents][nVPts];
 
@@ -345,6 +346,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string text_vEta = Form("#eta^{%s}", text_V.c_str());
         std::string text_vEtaAbs = Form("|%s|", text_vEta.c_str());
         std::string text_vPhi = Form("#phi^{%s}", text_V.c_str());
+        std::string text_vY = Form("y^{%s}", text_V.c_str());
+        std::string text_vYAbs = Form("|%s|", text_vY.c_str());
         std::string text_l = "";
         if (vIsZ) {
             text_l = vIsZmm ? "#mu" : "e^{+}";
@@ -479,6 +482,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vPhi = Form("%s;%s;", title_h_suffix.c_str(), text_vPhi.c_str());
             h_vPhi[i][j] = 0;
             h_vPhi[i][j] = new TH1D(name_h_vPhi.c_str(), title_h_vPhi.c_str(), nBinsX_dphi, -1*xMax_phi, xMax_phi);
+
+            std::string name_h_vY = Form("h_vY_%s", name_h_suffix.c_str());
+            std::string title_h_vY = Form("%s;%s;", title_h_suffix.c_str(), text_vY.c_str());
+            h_vY[i][j] = 0;
+            h_vY[i][j] = new TH1D(name_h_vY.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
             std::string name_h_vM_os = Form("h_vM_os_%s", name_h_suffix.c_str());
             std::string title_h_vM_os = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
@@ -1180,6 +1188,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double vPt = -1;
             double vEta = -999999;
             double vPhi = -999999;
+            double vY = -999999;
             double vM = 0;
             bool ll_os = false;     // dilepton opposite charge
             std::vector<float> llEta = {-998877, -998877};
@@ -1325,6 +1334,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vPt = vecll.Pt();
                             vEta = vecll.Eta();
                             vPhi = vecll.Phi();
+                            vY = vecll.Rapidity();
                             vM = vecll.M();
                             ll_os = (((*lChg)[i] == -1*(*lChg)[j]));
 
@@ -1428,6 +1438,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
 
                         h_vEta[i][j]->Fill(vEta, wV);
+                        h_vY[i][j]->Fill(vY, wV);
 
                         if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
 
