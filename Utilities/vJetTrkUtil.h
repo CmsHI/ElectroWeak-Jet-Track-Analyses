@@ -108,7 +108,6 @@ bool passedTrkSelection(Tracks& trks, int i, int collType);
 int getNTrkPerp(Tracks& trks, double vPhi);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
-std::vector<float> getPFHFtotE(pfCand& pf, float etaMin = 3, float etaMax = 5);
 float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
 // histogram util
 double parseVPtMin(std::string histPath);
@@ -592,27 +591,6 @@ int getTrkMultPerp(Tracks& trks, int collType, double vPhi)
     }
 
     return res;
-}
-
-std::vector<float> getPFHFtotE(pfCand& pf, float etaMin, float etaMax)
-{
-    float h_HF_totE = 0;
-    float eg_HF_totE = 0;
-
-    for (int i = 0; i < pf.nPFpart; ++i) {
-
-        if ( !(etaMin < std::fabs((*pf.pfEta)[i])) )  continue;
-        if ( !(etaMax > std::fabs((*pf.pfEta)[i])) )  continue;
-
-        if ((*pf.pfId)[i] == 6) {
-            h_HF_totE += (*pf.pfEnergy)[i];
-        }
-        else if ((*pf.pfId)[i] == 7) {
-            eg_HF_totE += (*pf.pfEnergy)[i];
-        }
-    }
-
-    return {h_HF_totE, eg_HF_totE};
 }
 
 float getPFtotE(pfCand& pf, int pfId, float etaMin, float etaMax)
