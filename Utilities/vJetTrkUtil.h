@@ -599,7 +599,7 @@ float getPFtotE(pfCand& pf, int pfId, float etaMin, float etaMax)
 
     for (int i = 0; i < pf.nPFpart; ++i) {
 
-        if ( !(etaMin < std::fabs((*pf.pfEta)[i])) )  continue;
+        if ( !(etaMin <= std::fabs((*pf.pfEta)[i])) )  continue;
         if ( !(etaMax > std::fabs((*pf.pfEta)[i])) )  continue;
 
         if ((*pf.pfId)[i] == pfId) {
