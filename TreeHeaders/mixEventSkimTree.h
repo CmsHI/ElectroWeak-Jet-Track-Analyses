@@ -25,6 +25,8 @@ public :
         p_Nhard_mix = 0;
         p_pf_h_HF_totE_mix = 0;
         p_pf_eg_HF_totE_mix = 0;
+        p_pf_HF_E_eta3to4_mix = 0;
+        p_pf_HF_E_eta4to5_mix = 0;
         p_pf_h_HE_totE_mix = 0;
         p_pf_e_HE_totE_mix = 0;
         p_pf_mu_HE_totE_mix = 0;
@@ -53,6 +55,8 @@ public :
     std::vector<float>   Nhard_mix;
     std::vector<float>   pf_h_HF_totE_mix;
     std::vector<float>   pf_eg_HF_totE_mix;
+    std::vector<float>   pf_HF_E_eta3to4_mix;
+    std::vector<float>   pf_HF_E_eta4to5_mix;
     std::vector<float>   pf_h_HE_totE_mix;
     std::vector<float>   pf_e_HE_totE_mix;
     std::vector<float>   pf_mu_HE_totE_mix;
@@ -74,6 +78,8 @@ public :
     std::vector<float>   *p_Nhard_mix;
     std::vector<float>   *p_pf_h_HF_totE_mix;
     std::vector<float>   *p_pf_eg_HF_totE_mix;
+    std::vector<float>   *p_pf_HF_E_eta3to4_mix;
+    std::vector<float>   *p_pf_HF_E_eta4to5_mix;
     std::vector<float>   *p_pf_h_HE_totE_mix;
     std::vector<float>   *p_pf_e_HE_totE_mix;
     std::vector<float>   *p_pf_mu_HE_totE_mix;
@@ -96,6 +102,8 @@ public :
     TBranch *b_Nhard_mix;
     TBranch *b_pf_h_HF_totE_mix;
     TBranch *b_pf_eg_HF_totE_mix;
+    TBranch *b_pf_HF_E_eta3to4_mix;
+    TBranch *b_pf_HF_E_eta4to5_mix;
     TBranch *b_pf_h_HE_totE_mix;
     TBranch *b_pf_e_HE_totE_mix;
     TBranch *b_pf_mu_HE_totE_mix;
@@ -120,6 +128,8 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     b_Nhard_mix = 0;
     b_pf_h_HF_totE_mix = 0;
     b_pf_eg_HF_totE_mix = 0;
+    b_pf_HF_E_eta3to4_mix = 0;
+    b_pf_HF_E_eta4to5_mix = 0;
     b_pf_h_HE_totE_mix = 0;
     b_pf_e_HE_totE_mix = 0;
     b_pf_mu_HE_totE_mix = 0;
@@ -141,6 +151,8 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("Nhard_mix"))  t->SetBranchAddress("Nhard_mix", &p_Nhard_mix, &b_Nhard_mix);
     if (t->GetBranch("pf_h_HF_totE_mix"))  t->SetBranchAddress("pf_h_HF_totE_mix", &p_pf_h_HF_totE_mix, &b_pf_h_HF_totE_mix);
     if (t->GetBranch("pf_eg_HF_totE_mix"))  t->SetBranchAddress("pf_eg_HF_totE_mix", &p_pf_eg_HF_totE_mix, &b_pf_eg_HF_totE_mix);
+    if (t->GetBranch("pf_HF_E_eta3to4_mix"))  t->SetBranchAddress("pf_HF_E_eta3to4_mix", &p_pf_HF_E_eta3to4_mix, &b_pf_HF_E_eta3to4_mix);
+    if (t->GetBranch("pf_HF_E_eta4to5_mix"))  t->SetBranchAddress("pf_HF_E_eta4to5_mix", &p_pf_HF_E_eta4to5_mix, &b_pf_HF_E_eta4to5_mix);
     if (t->GetBranch("pf_h_HE_totE_mix"))  t->SetBranchAddress("pf_h_HE_totE_mix", &p_pf_h_HE_totE_mix, &b_pf_h_HE_totE_mix);
     if (t->GetBranch("pf_e_HE_totE_mix"))  t->SetBranchAddress("pf_e_HE_totE_mix", &p_pf_e_HE_totE_mix, &b_pf_e_HE_totE_mix);
     if (t->GetBranch("pf_mu_HE_totE_mix"))  t->SetBranchAddress("pf_mu_HE_totE_mix", &p_pf_mu_HE_totE_mix, &b_pf_mu_HE_totE_mix);
@@ -165,6 +177,8 @@ void mixEventSkim::setupTreeForWriting(TTree *t)
     t->Branch("Nhard_mix", &Nhard_mix);
     t->Branch("pf_h_HF_totE_mix", &pf_h_HF_totE_mix);
     t->Branch("pf_eg_HF_totE_mix", &pf_eg_HF_totE_mix);
+    t->Branch("pf_HF_E_eta3to4_mix", &pf_HF_E_eta3to4_mix);
+    t->Branch("pf_HF_E_eta4to5_mix", &pf_HF_E_eta4to5_mix);
     t->Branch("pf_h_HE_totE_mix", &pf_h_HE_totE_mix);
     t->Branch("pf_e_HE_totE_mix", &pf_e_HE_totE_mix);
     t->Branch("pf_mu_HE_totE_mix", &pf_mu_HE_totE_mix);
@@ -190,6 +204,8 @@ void mixEventSkim::clearEvent()
     Nhard_mix.clear();
     pf_h_HF_totE_mix.clear();
     pf_eg_HF_totE_mix.clear();
+    pf_HF_E_eta3to4_mix.clear();
+    pf_HF_E_eta4to5_mix.clear();
     pf_h_HE_totE_mix.clear();
     pf_e_HE_totE_mix.clear();
     pf_mu_HE_totE_mix.clear();
