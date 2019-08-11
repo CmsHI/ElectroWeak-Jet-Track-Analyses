@@ -232,6 +232,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = (applyTrkWeights == 2);
 
+    rotateEvtPlane = (rotateEvtPlane && isPbPb);
+
     bool doResidualTrkW = (outputFile.find("resTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualTrkW = " << doResidualTrkW << std::endl;
 
