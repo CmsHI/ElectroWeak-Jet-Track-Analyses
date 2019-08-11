@@ -1092,6 +1092,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         trackSkim trks;
         trks.setupTreeForReading(treeTrackSkim);
+        bool has_pfType = (trks.b_pfType != 0 || trks.b_pfType_mix != 0);
 
         eventSkim evtskim;
         mixEventSkim mixEvents;
@@ -1106,7 +1107,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_eta = trks.p_trkEta;
             p_phi = trks.p_trkPhi;
             p_chg = trks.p_trkCharge;
-            p_pid = trks.p_pfType;
+            p_pid = (has_pfType) ? trks.p_pfType : &dummy_vec_I0;
             p_sube = &dummy_vec_I1;
             p_weight = trks.p_trkWeight;
             p_evtIndex = &dummy_vec_I0;
@@ -1115,7 +1116,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_eta = trks.p_trkEta_mix;
                 p_phi = trks.p_trkPhi_mix;
                 p_chg = &dummy_vec_I1;
-                p_pid = trks.p_pfType_mix;
+                p_pid = (has_pfType) ? trks.p_pfType_mix : &dummy_vec_I0;
                 p_sube = &dummy_vec_I1;
                 p_weight = trks.p_trkWeight_mix;
                 p_evtIndex = trks.p_evttrk_mix;
@@ -1234,7 +1235,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             bool ll_os = false;     // dilepton opposite charge
             std::vector<float> llEta = {-998877, -998877};
             std::vector<float> llPhi = {-998877, -998877};
-            float minDR2_lep_trk = 0.0;
+            float minDR2_lep_trk = (has_pfType) ? 0.0 : 0.04;
 
             double genVPt = -1;
             double genVEta = -999999;
