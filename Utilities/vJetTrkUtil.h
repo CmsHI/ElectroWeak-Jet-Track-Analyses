@@ -43,6 +43,8 @@ const double etaMax_pf_HF = 5;
 
 const double PF_HF_totE_max = 150000;
 
+const double PF_HF_E_eta4to5_max = 100000;
+
 const double etaMin_pf_HE = 2.5;
 const double etaMax_pf_HE = 2.9;
 
@@ -54,12 +56,13 @@ enum MIXMETHODS {
     k_match_hiHF,
     k_match_rho,
     k_match_PF_HF_totE,
+    k_match_PF_HF_E_eta4to5,
     k_match_PF_HE_totE,
     k_match_nVtx,
     kN_MITMETHODS
 };
 const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_rho",
-                                                  "match_PF_HF_totE", "match_PF_HE_totE", "match_nVtx"};
+                                                  "match_PF_HF_totE", "match_PF_HF_E_eta4to5", "match_PF_HE_totE", "match_nVtx"};
 int mixMethod;
 
 enum RECOGEN {
@@ -376,10 +379,13 @@ int parseMixMethod(std::string mixMethodStr)
     else if (mixMethodStr == "match_pf_hf_tote" || mixMethodStr == "4") {
         return VJT::MIXMETHODS::k_match_PF_HF_totE;
     }
-    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "5") {
+    else if (mixMethodStr == "match_pf_hf_e_eta4to5" || mixMethodStr == "5") {
+        return VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5;
+    }
+    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "6") {
         return VJT::MIXMETHODS::k_match_PF_HE_totE;
     }
-    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "6") {
+    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "7") {
         return VJT::MIXMETHODS::k_match_nVtx;
     }
     else {

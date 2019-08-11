@@ -465,6 +465,22 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
                     iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+
+                    float tmpTotE = -1;
+                    if (isForest[i]) {
+                        treeMixPFCand[i]->GetEntry(j_entry_mix);
+                        float tmpTotE_h = getPFtotE(pfMix[i], 6, 4, 5);
+                        float tmpTotE_eg = getPFtotE(pfMix[i], 7, 4, 5);
+                        tmpTotE = tmpTotE_h + tmpTotE_eg;
+                    }
+                    else {
+                        treeMixEventSkim[i]->GetEntry(j_entry_mix);
+                        tmpTotE = eventSkimMix[i].pf_h_HF_E_eta4to5 + eventSkimMix[i].pf_eg_HF_E_eta4to5;
+                    }
+                    double totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
+                    iCent = getPFEnergyBin(tmpTotE, totEMax);
+                }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
                     float tmpTotE = -1;
@@ -955,7 +971,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
-                    double totEMax = (isMC) ? 150000 : 120000;
+                    double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
@@ -972,6 +988,15 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     // pbpb 15
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 677, totEMax);
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+
+                    double totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 393.0, totEMax);
+                    // data
+                    iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 343.0, totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0-(172.0/2)), totEMax); // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0+(172.0/2)), totEMax); // m, UE energy down
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
