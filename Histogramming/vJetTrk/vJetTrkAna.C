@@ -873,7 +873,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<float>* p_weight;
     std::vector<int>* p_evtIndex;
 
-    std::vector<int> dummy_vec_I0(150000, 1);
+    std::vector<int> dummy_vec_I0(150000, 0);
     std::vector<int> dummy_vec_I1(150000, 1);
     std::vector<float> dummy_vec_F1(150000, 1);
 
