@@ -41,8 +41,12 @@ const int nEventPlaneBins = 8;
 const double etaMin_pf_HF = 3;
 const double etaMax_pf_HF = 5;
 
+const double PF_HF_totE_max = 150000;
+
 const double etaMin_pf_HE = 2.5;
 const double etaMax_pf_HE = 2.9;
+
+const double PF_HE_totE_max = 14000;
 
 enum MIXMETHODS {
     k_match_hiBin,
@@ -87,8 +91,7 @@ int getNTrkBin(int nTrk, int nTrkMax = 14280);
 int getHiHFBin(float hiHF, float hiHFMax = 6000);
 int getHiHFhitBin(float hiHFhit, float hiHFhitMax = 180000);
 int getRhoBin(double rho, double rhoMax = 250);
-int getPFHFtotEBin(double PF_HF_totE, double totEMax = 150000);
-int getPFHEtotEBin(double PF_HE_totE, double totEMax = 14000);
+int getPFEnergyBin(double PF_E, double PF_E_max);
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax);
 int getNVtxBin(int nVtx);
 double getRhoDiff(double rho);
@@ -295,14 +298,9 @@ int getRhoBin(double rho, double rhoMax)
     return getEventEnergyBin(rho, rhoMax);
 }
 
-int getPFHFtotEBin(double PF_HF_totE, double totEMax)
+int getPFEnergyBin(double PF_E, double PF_E_max)
 {
-    return getEventEnergyBin(PF_HF_totE, totEMax);
-}
-
-int getPFHEtotEBin(double PF_HE_totE, double totEMax)
-{
-    return getEventEnergyBin(PF_HE_totE, totEMax);
+    return getEventEnergyBin(PF_E, PF_E_max);
 }
 
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax)

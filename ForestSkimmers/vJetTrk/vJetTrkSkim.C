@@ -462,8 +462,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         treeMixEventSkim[i]->GetEntry(j_entry_mix);
                         tmpTotE = eventSkimMix[i].pf_h_HF_totE + eventSkimMix[i].pf_eg_HF_totE;
                     }
-                    double totEMax = (isMC) ? 150000 : 120000;
-                    iCent = getPFHFtotEBin(tmpTotE, totEMax);
+                    double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
+                    iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
@@ -484,7 +484,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                                                                + eventSkimMix[i].pf_gamma_HE_totE
                                                                + eventSkimMix[i].pf_h0_HE_totE;
                     }
-                    iCent = getPFHEtotEBin(tmpTotE);
+                    iCent = getPFEnergyBin(tmpTotE, VJT::PF_HE_totE_max);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
@@ -956,22 +956,22 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
                     double totEMax = (isMC) ? 150000 : 120000;
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     // data
-                    iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300), totEMax);  // m, UE energy down
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-150), totEMax);  // p, UE energy up
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+150), totEMax);  // m, UE energy down
+                    iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300), totEMax);  // m, UE energy down
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-150), totEMax);  // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+150), totEMax);  // m, UE energy down
 
                     // pbpb 15
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
-                    //iCent = getPFHFtotEBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 677, totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 677, totEMax);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
@@ -981,9 +981,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                                                          + evtskim.pf_h0_HE_totE;
 
                     // data
-                    iCent = getPFHEtotEBin(tmpHEtotE - 45);
-                    //iCent = getPFHEtotEBin(tmpHEtotE - (45-25));  // p, UE energy up
-                    //iCent = getPFHEtotEBin(tmpHEtotE - (45+25));  // m, UE energy down
+                    iCent = getPFEnergyBin(tmpHEtotE - 45, VJT::PF_HE_totE_max);
+                    //iCent = getPFHEtotEBin(tmpHEtotE - (45-25), VJT::PF_HE_totE_max);  // p, UE energy up
+                    //iCent = getPFHEtotEBin(tmpHEtotE - (45+25), VJT::PF_HE_totE_max);  // m, UE energy down
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
