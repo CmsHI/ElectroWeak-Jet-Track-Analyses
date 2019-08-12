@@ -315,6 +315,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_trkEta[nCents][nVPts][nTrkPts];
     TH1D* h_trkPhi[nCents][nVPts][nTrkPts];
     TH1D* h_dphi_evtPlane_trk[nCents][nVPts][nTrkPts];
+    TH2D* h2_deta_vs_trkPt[nCents][nVPts];
 
     TH1D* h_dphi[nCents][nVPts][nTrkPts];
     TH1D* h_deta[nCents][nVPts][nTrkPts];
@@ -324,9 +325,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
 
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
-    TH2D* h2_dphi_vs_deta[nCents][nVPts][nTrkPts];
+    TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
     TH2D* h2_dphi_vs_trkEta[nCents][nVPts][nTrkPts];
+    TH2D* h2_deta_vs_xivh[nCents][nVPts][nTrkPts];
 
     int nBinsX_vPt = 30;
     int nBinsX_trkPt = 60;
@@ -612,6 +614,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                       nBinsX_dphi, 0, xMax_phi);
             vec_h2D.push_back(h2_dphi_vs_trkPt[i][j]);
 
+            std::string name_h2_deta_vs_trkPt = Form("h2_deta_vs_trkPt_%s", name_h_suffix.c_str());
+            std::string title_h2_deta_vs_trkPt = Form("%s;%s;%s;", title_h_suffix.c_str(),
+                                                                text_trkPt.c_str(),
+                                                                text_deta.c_str());
+
+            h2_deta_vs_trkPt[i][j] = 0;
+            h2_deta_vs_trkPt[i][j] = new TH2D(name_h2_deta_vs_trkPt.c_str(), title_h2_deta_vs_trkPt.c_str(),
+                                                      nBinsX_trkPt, 0, xMax_trkPt,
+                                                      nBinsX_eta, 0, 5);
+            vec_h2D.push_back(h2_deta_vs_trkPt[i][j]);
+
             for (int k = 0; k < nTrkPts; ++k) {
 
                 double tmpTrkPt = -1;
@@ -798,16 +811,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 vec_h2D.push_back(h2_trkPhi_vs_trkEta[i][j][k]);
 
 
-                std::string name_h2_dphi_vs_deta = Form("h2_dphi_vs_deta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_deta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_deta.c_str(),
-                                                            text_dphi.c_str());
+                std::string name_h2_deta_vs_dphi = Form("h2_deta_vs_dphi_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            text_dphi.c_str(),
+                                                            text_deta.c_str());
 
-                h2_dphi_vs_deta[i][j][k] = 0;
-                h2_dphi_vs_deta[i][j][k] = new TH2D(name_h2_dphi_vs_deta.c_str(), title_h2_dphi_vs_deta.c_str(),
-                                                          nBinsX_eta, 0, 5,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_deta[i][j][k]);
+                h2_deta_vs_dphi[i][j][k] = 0;
+                h2_deta_vs_dphi[i][j][k] = new TH2D(name_h2_deta_vs_dphi.c_str(), title_h2_deta_vs_dphi.c_str(),
+                                                          nBinsX_dphi, 0, xMax_phi,
+                                                          nBinsX_eta, 0, 5);
+                vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
+
 
                 std::string name_h2_dphi_vs_trkEta = Form("h2_dphi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
@@ -819,6 +833,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_eta, -1*xMax_eta,  xMax_eta,
                                                           nBinsX_dphi, 0, xMax_phi);
                 vec_h2D.push_back(h2_dphi_vs_trkEta[i][j][k]);
+
+                std::string name_h2_deta_vs_xivh = Form("h2_deta_vs_xivh_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            text_xivh.c_str(),
+                                                            text_deta.c_str());
+
+                h2_deta_vs_xivh[i][j][k] = 0;
+                h2_deta_vs_xivh[i][j][k] = new TH2D(name_h2_deta_vs_xivh.c_str(), title_h2_deta_vs_xivh.c_str(),
+                                                          nBins_xivh, 0, 5,
+                                                          nBinsX_eta, 0, 5);
+                vec_h2D.push_back(h2_deta_vs_xivh[i][j][k]);
             }
         }
     }
@@ -1653,8 +1678,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         double dphiMinTmp = vTrkDphiMin * TMath::Pi();
                         double dphiMaxTmp = vTrkDphiMax * TMath::Pi();
 
+                        float deta = std::fabs(vEta - t_eta);
+
                         if (dphiMinTmp < dphi && dphi <= dphiMaxTmp) {
                             h_trkPt[iCent][iVPt]->Fill(t_pt, wTrk);
+                            h2_deta_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta, wTrk);
                         }
 
                         h2_dphi_vs_trkPt[iCent][iVPt]->Fill(t_pt, dphi, wTrk);
@@ -1663,13 +1691,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (!(trkPtsMin[iTrkPt] <= t_pt && t_pt < trkPtsMax[iTrkPt]))  continue;
 
-                            float deta = std::fabs(vEta - t_eta);
                             float dR = std::sqrt( dphi*dphi + deta*deta );
 
                             h_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, wTrk);
                             h_dR[iCent][iVPt][iTrkPt]->Fill(dR, wTrk);
 
-                            h2_dphi_vs_deta[iCent][iVPt][iTrkPt]->Fill(deta, dphi, wTrk);
+                            h2_deta_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
                             h2_dphi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, dphi, wTrk);
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
@@ -1693,6 +1720,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_zh[iCent][iVPt][iTrkPt]->Fill(z_vt, wTrk);
                             h_zh_T[iCent][iVPt][iTrkPt]->Fill(z_vt_T, wTrk);
                             h_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, wTrk);
+
+                            h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
                         }
 
                     }
