@@ -319,7 +319,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dphi[nCents][nVPts][nTrkPts];
     TH1D* h_deta[nCents][nVPts][nTrkPts];
     TH1D* h_dR[nCents][nVPts][nTrkPts];
-    TH1D* h_dRneg[nCents][nVPts][nTrkPts];
     TH1D* h_zh[nCents][nVPts][nTrkPts];
     TH1D* h_zh_T[nCents][nVPts][nTrkPts];
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
@@ -726,18 +725,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                             text_range_trkEta.c_str(),
                                                             text_range_deta.c_str(),
                                                             text_range_cent.c_str());
-
-                std::string text_dRneg = Form("#DeltaR_{%s -%s}", text_trk.c_str(),
-                                                                  text_V.c_str());
-                std::string text_defn_dRneg = Form("%s = #sqrt{%s^2 + %s^2}", text_dRneg.c_str(),
-                                                                           text_dphineg.c_str(),
-                                                                           text_deta.c_str());
-
-                std::string name_h_dRneg = Form("h_dRneg_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_dRneg = Form("%s;%s;", title_h_suffix.c_str(),
-                                                           text_dRneg.c_str());
-                h_dRneg[i][j][k] = 0;
-                h_dRneg[i][j][k] = new TH1D(name_h_dRneg.c_str(), title_h_dRneg.c_str(), 20, 0, 1);
 
                 std::string text_zh = Form("z_{%s%s}", text_trk.c_str(),
                                                      text_V.c_str());
@@ -1694,11 +1681,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_deta[iCent][iVPt][iTrkPt]->Fill(deta, wTrk);
 
                             h2_trkPhi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-
-                            float vPhiNeg = (-1*vV).Phi();
-                            float dphineg = std::fabs(getDPHI(vPhiNeg, t_phi));
-                            float dRneg = std::sqrt( dphineg*dphineg + deta*deta );
-                            h_dRneg[iCent][iVPt][iTrkPt]->Fill(dRneg, wTrk);
 
                             float z_vt = t_pt / vPt;
 
