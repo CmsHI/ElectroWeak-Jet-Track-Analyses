@@ -1625,7 +1625,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             TH1* hTest2 = 0;
             for (int i=0; i<nHistos_lowerPad; ++i) {
 
-                h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
+                if (h[iStart+2*i]->InheritsFrom("TH2")) {
+                    h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
+                }
+                else {
+                    h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
+                }
                 h_lowerPad[i]->Reset();    // start from scratch, reset the undesired properties inherited from the original histogram.
                 h_lowerPad[i]->Add(h[iStart+2*i]);
 
@@ -1714,7 +1719,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 h_lowerPad[i]->SetMarkerColor(h[iStart+2*i]->GetMarkerColor());
                 h_lowerPad[i]->SetMarkerStyle(h[iStart+2*i]->GetMarkerStyle());
 
-                h_lowerPad[i]->Draw("e same");
+                if (h[iStart+2*i]->InheritsFrom("TH2")) {
+                    h_lowerPad[i]->Draw("colz");
+                }
+                else {
+                    h_lowerPad[i]->Draw("e same");
+                }
             }
             // add TLine to the lower pad
             TLine* line_horizontal_lowerPad[nTLines_horizontal_lowerPad];
