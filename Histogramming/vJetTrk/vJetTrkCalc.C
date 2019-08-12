@@ -50,25 +50,35 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     std::vector<std::string> operationList = split(operations, ",", false, false);
     bool doSCALEBINW = containsElement(operationList, "SCALEBINW");
     bool doBKGSUB = containsElement(operationList, "BKGSUB");
+    bool doSBSUB = containsElement(operationList, "SBSUB");
     bool doNORMV = containsElement(operationList, "NORMV");
     bool doMERGE = containsElement(operationList, "MERGE");
     bool doRATIO = containsElement(operationList, "RATIO");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
+    std::cout << "doSBSUB = " << doSBSUB << std::endl;
     std::cout << "doNORMV = " << doNORMV << std::endl;
     std::cout << "doMERGE = " << doMERGE << std::endl;
+    std::cout << "doRATIO = " << doRATIO << std::endl;
 
-    if (doMERGE && (doSCALEBINW || doBKGSUB || doNORMV || doRATIO)) {
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doNORMV || doRATIO)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doRATIO && (doSCALEBINW || doBKGSUB || doNORMV || doMERGE)) {
+    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doNORMV || doMERGE)) {
         std::cout << "RATIO cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
+    else if (doBKGSUB && doSBSUB) {
+        std::cout << "BKGSUB and SBSUB cannot be combined" << std::endl;
+        std::cout << "Exiting" << std::endl;
+        return;
+    }
+
+    bool doSUB = (doBKGSUB || doSBSUB);
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFileList.c_str());
     std::cout<<"ROOT files containing input TH1 : num = "<<inputFiles.size()<< std::endl;
@@ -123,15 +133,15 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TH1* hTmpBkg = 0;
     TH1* hOut = 0;
 
-    if (doBKGSUB || doRATIO) {
+    if (doSUB || doRATIO) {
         if (nInputFiles != 2) {
-            std::cout << "There must be 2 input files for BKGSUB (RATIO) operation : "
+            std::cout << "There must be 2 input files for SUB (RATIO) operation : "
                     "       one RAW (NUMERATOR), one BKG (DENOMINATOR) file" << std::endl;
             std::cout << "Exiting." << std::endl;
             return;
         }
         if (nInputObjs % 2 != 0) {
-            std::cout << "Input objects must come in pairs for BKGSUB (RATIO) operation : "
+            std::cout << "Input objects must come in pairs for SUB (RATIO) operation : "
                     "       one RAW (NUMERATOR), one BKG (DENOMINATOR) object" << std::endl;
             std::cout << "Exiting." << std::endl;
             return;
@@ -147,7 +157,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
         }
     }
 
-    if (doBKGSUB) {
+    if (doSUB) {
 
         for (int i = 0; i < nInputObjs; i+=2) {
 
@@ -185,32 +195,142 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             setTH1(hIn[iRaw]);
             setTH1(hIn[iBkg]);
 
-            hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+            if (doBKGSUB) {
+                hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
 
-            hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
-            hOut->Add(hTmpBkg, -1);
+                hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
+                hOut->Add(hTmpBkg, -1);
 
-            // write objects
-            hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
-            hTmp->Scale(1.0 / nV);
-            if (doSCALEBINW) {
-                hTmp->Scale(1.0, "width");
+                // write objects
+                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+                hTmp->Scale(1.0 / nV);
+                if (doSCALEBINW) {
+                    hTmp->Scale(1.0, "width");
+                }
+                hTmp->Write("", TObject::kOverwrite);
+
+                hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+                hTmpBkg->Delete();
+                hTmp->Scale(1.0 / nV);
+                if (doSCALEBINW) {
+                    hTmp->Scale(1.0, "width");
+                }
+                hTmp->Write("", TObject::kOverwrite);
+
+                hOut->Scale(1.0 / nV);
+                if (doSCALEBINW) {
+                    hOut->Scale(1.0, "width");
+                }
+                hOut->Write("",TObject::kOverwrite);
             }
-            hTmp->Write("", TObject::kOverwrite);
+            else if (doSBSUB) {
+                // assume x-axis contains dphi, trkPt, xivh
+                // assume y-axis contains deta
 
-            hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
-            hTmpBkg->Delete();
-            hTmp->Scale(1.0 / nV);
-            if (doSCALEBINW) {
-                hTmp->Scale(1.0, "width");
-            }
-            hTmp->Write("", TObject::kOverwrite);
+                if (!(hIn[iRaw]->InheritsFrom("TH2D"))) {
+                    continue;
+                }
+                if (std::string(hIn[iRaw]->GetName()).find("h2_deta_vs_") == std::string::npos) {
+                    std::cout << "deta is not on y-axis : " << inputObjs[i].c_str() << std::endl;
+                    std::cout << "skipping calculation involving this object" << std::endl;
+                    continue;
+                }
 
-            hOut->Scale(1.0 / nV);
-            if (doSCALEBINW) {
-                hOut->Scale(1.0, "width");
+                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+                hTmp->Write("", TObject::kOverwrite);
+
+                hTmp = (TH1*)hIn[iBkg]->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+                hTmp->Write("", TObject::kOverwrite);
+
+                hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+
+                // first bin along x-axis and y-axis contains the BKG normalization.
+                double normBKG = hTmpBkg->GetBinContent(1, 1);
+
+                // raw corrected for acceptance
+                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw_accCorr", hIn[iRaw]->GetName()));
+                //hTmp->Divide(hTmpBkg);
+                for (int iBinX = 1; iBinX <= hTmp->GetNbinsX(); ++iBinX) {
+                    for (int iBinY = 1; iBinY <= hTmp->GetNbinsY(); ++iBinY) {
+                        double binC = hTmp->GetBinContent(iBinX, iBinY) / hTmpBkg->GetBinContent(iBinX, iBinY);
+                        double binErr = hTmp->GetBinError(iBinX, iBinY) / hTmpBkg->GetBinContent(iBinX, iBinY);
+                        hTmp->SetBinContent(iBinX, iBinY, binC);
+                        hTmp->SetBinError(iBinX, iBinY, binErr);
+                    }
+                }
+                hTmpBkg->Delete();
+                hTmp->Scale(normBKG);
+                hTmp->Scale(1.0 / nV);
+                hTmp->Write("", TObject::kOverwrite);
+
+                // sr = short-range
+                // lr = long-range
+                double detaMinSR = 0;
+                double detaMaxSR = 1.2;
+
+                double detaMinLR = 2.0;
+                double detaMaxLR = 3.2;
+
+                int binDetaMinSR = hTmp->GetYaxis()->FindBin(detaMinSR);
+                int binDetaMaxSR = hTmp->GetYaxis()->FindBin(detaMaxSR);
+
+                int binDetaMinLR = hTmp->GetYaxis()->FindBin(detaMinLR);
+                int binDetaMaxLR = hTmp->GetYaxis()->FindBin(detaMaxLR);
+
+                double detaSR = hTmp->GetYaxis()->GetBinLowEdge(binDetaMaxSR+1) - hTmp->GetYaxis()->GetBinLowEdge(binDetaMinSR);
+                double detaLR = hTmp->GetYaxis()->GetBinLowEdge(binDetaMaxLR+1) - hTmp->GetYaxis()->GetBinLowEdge(binDetaMinLR);
+                double normLRtoSR = detaSR / detaLR;
+
+                std::string name1D = replaceFirst(hIn[iRaw]->GetName(), "h2_deta_vs_", "h_");
+
+                // lr
+                hTmpBkg = (TH1D*)(((TH2D*)hTmp)->ProjectionX(Form("%s_bkg", name1D.c_str()), binDetaMinLR, binDetaMaxLR));
+                hTmpBkg->Scale(normLRtoSR);
+
+                // sr
+                hOut = (TH1D*)(((TH2D*)hTmp)->ProjectionX(Form("%s_raw", name1D.c_str()), binDetaMinSR, binDetaMaxSR));
+
+                if (doSCALEBINW) {
+                    hTmpBkg->Scale(1.0, "width");
+                    hOut->Scale(1.0, "width");
+                }
+                hTmpBkg->Write("", TObject::kOverwrite);
+                hOut->Write("", TObject::kOverwrite);
+
+                hOut->SetName(Form("%s_sig", name1D.c_str()));
+                hOut->Add(hTmpBkg, -1);
+                hOut->Write("", TObject::kOverwrite);
+
+                // rebin
+                if (name1D.find("h_dphi_") == 0) {
+                    double binW = hOut->GetBinWidth(1);
+                    std::vector<double> binsX = {0, binW*3, binW*6, binW*9, binW*12, binW*14, binW*16, binW*18, binW*19, binW*20};
+                    int nBinsX = binsX.size()-1;
+
+                    double arr_dphi[nBinsX+1];
+                    std::copy(binsX.begin(), binsX.end(), arr_dphi);
+
+                    name1D = replaceAll(name1D, "h_dphi", "h_dphi_rebin");
+                    hTmp = (TH1D*)hOut->Rebin(nBinsX, Form("%s_sig", name1D.c_str()), arr_dphi);
+                    hTmp->Scale(binW, "width");
+                    hTmp->Write("",TObject::kOverwrite);
+                }
+                else if (name1D.find("h_trkPt_") == 0) {
+                    double binW = 0.5;
+                    double xMax_trkPt = 30;
+                    std::vector<double> binsX = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
+
+                    int nBinsX = binsX.size()-1;
+
+                    double tmpArr[nBinsX+1];
+                    std::copy(binsX.begin(), binsX.end(), tmpArr);
+
+                    name1D = replaceAll(name1D, "h_trkPt", "h_trkPt_rebin");
+                    hTmp = (TH1D*)hOut->Rebin(nBinsX, Form("%s_sig", name1D.c_str()), tmpArr);
+                    hTmp->Scale(binW, "width");
+                    hTmp->Write("",TObject::kOverwrite);
+                }
             }
-            hOut->Write("",TObject::kOverwrite);
         }
     }
     else if (doRATIO) {
