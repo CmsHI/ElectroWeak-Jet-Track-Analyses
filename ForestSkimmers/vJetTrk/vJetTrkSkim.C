@@ -136,8 +136,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     double vPtMin = (ArgumentParser::optionExists("--vPtMin", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--vPtMin", argOptions).c_str()) : 10;
-    double vEtaMax = (ArgumentParser::optionExists("--vEtaMax", argOptions)) ?
-                std::atof(ArgumentParser::ParseOptionInputSingle("--vEtaMax", argOptions).c_str()) : 999999;
+    double vYMax = (ArgumentParser::optionExists("--vYMax", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--vYMax", argOptions).c_str()) : 999999;
 
     double jetPtMin = (ArgumentParser::optionExists("--jetPtMin", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--jetPtMin", argOptions).c_str()) : 10;
@@ -154,7 +154,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vPtMin = " << vPtMin << std::endl;
-    std::cout << "vEtaMax = " << vEtaMax << std::endl;
+    std::cout << "vYMax = " << vYMax << std::endl;
 
     std::cout << "jetPtMin = " << jetPtMin << std::endl;
     std::cout << "jetEtaMax = " << jetEtaMax << std::endl;
@@ -706,7 +706,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             double vPt = -1;
-            double vEta = -999999;
+            double vY = -999999;
 
             if (vIsPho) {
                 for (int i = 0; i < ggHi.nPho; ++i) {
@@ -780,7 +780,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
                             vPt = vecll.Pt();
-                            vEta = vecll.Eta();
+                            vY = vecll.Rapidity();
                         }
                     }
                 }
@@ -788,7 +788,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
             if (vPt < vPtMin) continue;
 
-            if (!(std::fabs(vEta) < vEtaMax))  continue;
+            if (!(std::fabs(vY) < vYMax))  continue;
 
             entriesSelected++;
 
