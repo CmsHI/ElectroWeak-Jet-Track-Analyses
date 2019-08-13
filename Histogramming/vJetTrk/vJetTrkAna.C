@@ -333,12 +333,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     int nBinsX_vPt = 30;
     int nBinsX_trkPt = 60;
     int nBinsX_dphi = 20;
-    int nBinsX_eta = 25;
+    int nBinsX_eta = 26;
 
     double xMax_vPt = 150;
     double xMax_trkPt = 30;
     double xMax_phi = TMath::Pi()+1e-12;
-    double xMax_eta = 2.5;
+    double xMax_eta = 2.6;
     for (int i = 0; i < nCents; ++i) {
 
         std::string label_cent = Form("cent%d_%d", centsMin[i], centsMax[i]);
@@ -622,7 +622,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h2_deta_vs_trkPt[i][j] = 0;
             h2_deta_vs_trkPt[i][j] = new TH2D(name_h2_deta_vs_trkPt.c_str(), title_h2_deta_vs_trkPt.c_str(),
                                                       nBinsX_trkPt, 0, xMax_trkPt,
-                                                      nBinsX_eta, 0, 5);
+                                                      nBinsX_eta, 0, 5.2);
             vec_h2D.push_back(h2_deta_vs_trkPt[i][j]);
 
             for (int k = 0; k < nTrkPts; ++k) {
@@ -819,7 +819,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h2_deta_vs_dphi[i][j][k] = 0;
                 h2_deta_vs_dphi[i][j][k] = new TH2D(name_h2_deta_vs_dphi.c_str(), title_h2_deta_vs_dphi.c_str(),
                                                           nBinsX_dphi, 0, xMax_phi,
-                                                          nBinsX_eta, 0, 5);
+                                                          nBinsX_eta, 0, 5.2);
                 vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
 
 
@@ -842,7 +842,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h2_deta_vs_xivh[i][j][k] = 0;
                 h2_deta_vs_xivh[i][j][k] = new TH2D(name_h2_deta_vs_xivh.c_str(), title_h2_deta_vs_xivh.c_str(),
                                                           nBins_xivh, 0, 5,
-                                                          nBinsX_eta, 0, 5);
+                                                          nBinsX_eta, 0, 5.2);
                 vec_h2D.push_back(h2_deta_vs_xivh[i][j][k]);
             }
         }
