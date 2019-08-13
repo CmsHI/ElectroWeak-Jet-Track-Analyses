@@ -117,35 +117,38 @@ configList=(
 #" --vTrkDphiMin=0 --vTrkDphiMax=0.5"
 optionList=(
 ## pp 2017
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1" #  --maxNVtx=1 --minNVtx=2
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+#  --vTrkDetaMax=1.0, --vTrkDetaMin=1.5 --vTrkDetaMax=2.5
+#  --maxNVtx=1 --minNVtx=2
+"--vType=zmm --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zee --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zmm --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zee --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
 "DUMMY"
 "DUMMY"
 ## pbpb 2018
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
+## --reflectEta
+"--vType=zmm --vPts=20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"  #  --vTrkDetaMax=1.0, --vTrkDetaMin=1.5 --vTrkDetaMax=2.5
+"--vType=zee --vPts=20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
+"--vType=zmm --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=1.0 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100 --vTrkDetaMax=1.0"
+"--vType=zee --vPts=10:0,20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,70:90,0:100"
 "DUMMY"
 "DUMMY"
 ## pp 2015
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1" #  --maxNVtx=1 --minNVtx=2
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1" #  --maxNVtx=1 --minNVtx=2
+"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
+"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1"
 "DUMMY"
 "DUMMY"
 ## pbpb 2015
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
-"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
+"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
+"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
+"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
+"--vType=zee --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:30,30:100,30:90,0:10,10:30,30:50,50:90,0:100"
 "DUMMY"
 "DUMMY"
 ## pbpb 2018 noPU
-"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vEtaMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1 --maxNVtx=1"
+"--vType=zmm --vPts=20:40,20:0,30:0,40:0 --vYMax=2.4 --trkPts=0.5:0,1:0,0.5:1,1:2,2:3,3:4,4:8,1:20 --trkEtaMax=2.4 --vTrkDphiMin=0.875 --cents=0:-1 --maxNVtx=1"
 );
 
 outDirBase=$EWJTAOUT
