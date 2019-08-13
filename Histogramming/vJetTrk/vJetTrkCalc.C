@@ -237,15 +237,19 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 }
 
                 hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+                hTmp->Scale(1.0 / nV);
                 hTmp->Write("", TObject::kOverwrite);
 
                 hTmp = (TH1*)hIn[iBkg]->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+                hTmp->Scale(1.0 / nV);
                 hTmp->Write("", TObject::kOverwrite);
 
                 hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
 
-                // first bin along x-axis and y-axis contains the BKG normalization.
-                double normBKG = hTmpBkg->GetBinContent(1, 1);
+                // bin with deta=0 contains the BKG normalization.
+                //double normBKG = hTmpBkg->GetBinContent(1, 1);
+                double normBKG = ((TH2D*)hTmpBkg)->ProjectionX("", 1, 1)->Integral();
+                normBKG /= ((TH2D*)hTmpBkg)->ProjectionX("", 1, 1)->GetNbinsX();
 
                 // raw corrected for acceptance
                 hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw_accCorr", hIn[iRaw]->GetName()));
@@ -266,10 +270,10 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 // sr = short-range
                 // lr = long-range
                 double detaMinSR = 0;
-                double detaMaxSR = 1.2;
+                double detaMaxSR = 1.0;
 
-                double detaMinLR = 2.0;
-                double detaMaxLR = 3.2;
+                double detaMinLR = 1.6;
+                double detaMaxLR = 3.6;
 
                 int binDetaMinSR = hTmp->GetYaxis()->FindBin(detaMinSR);
                 int binDetaMaxSR = hTmp->GetYaxis()->FindBin(detaMaxSR);
