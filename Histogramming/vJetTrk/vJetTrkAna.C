@@ -127,10 +127,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<double> vPtsMax = parseRangesMax(vPtRangesStr);
     int nVPts = vPtsMin.size();
 
-    double vEtaMin = (ArgumentParser::optionExists("--vEtaMin", argOptions)) ?
-            std::atof(ArgumentParser::ParseOptionInputSingle("--vEtaMin", argOptions).c_str()) : 0;
-    double vEtaMax = (ArgumentParser::optionExists("--vEtaMax", argOptions)) ?
-                std::atof(ArgumentParser::ParseOptionInputSingle("--vEtaMax", argOptions).c_str()) : 1.44;
+    double vYMin = (ArgumentParser::optionExists("--vYMin", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--vYMin", argOptions).c_str()) : 0;
+    double vYMax = (ArgumentParser::optionExists("--vYMax", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--vYMax", argOptions).c_str()) : 1.44;
 
     std::string jetRG = (ArgumentParser::optionExists("--jetRG", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--jetRG", argOptions).c_str() : "r";
@@ -181,8 +181,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nVPts; ++i) {
         std::cout << Form("vPts[%d] = [%f, %f)", i, vPtsMin[i], vPtsMax[i]) << std::endl;
     }
-    std::cout << "vEtaMin = " << vEtaMin << std::endl;
-    std::cout << "vEtaMax = " << vEtaMax << std::endl;
+    std::cout << "vYMin = " << vYMin << std::endl;
+    std::cout << "vYMax = " << vYMax << std::endl;
 
     std::cout << "jetRG = " << jetRG << std::endl;
 
@@ -292,8 +292,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     // reco eff
     TH1D* h_reco_num_vPt[nCents];
     TH1D* h_reco_denom_vPt[nCents];
-    TH1D* h_reco_num_vEta[nCents][nVPts];
-    TH1D* h_reco_denom_vEta[nCents][nVPts];
+    TH1D* h_reco_num_vY[nCents][nVPts];
+    TH1D* h_reco_denom_vY[nCents][nVPts];
     TH1D* h_reco_num_cent[nVPts];
     TH1D* h_reco_denom_cent[nVPts];
 
@@ -354,27 +354,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         std::string text_V = vIsPho ? "#gamma" : "Z";
         std::string text_vPt = Form("p^{%s}_{T}", text_V.c_str());
+        std::string text_vY = Form("y^{%s}", text_V.c_str());
+        std::string text_vYAbs = Form("|%s|", text_vY.c_str());
         std::string text_vEta = Form("#eta^{%s}", text_V.c_str());
         std::string text_vEtaAbs = Form("|%s|", text_vEta.c_str());
         std::string text_vPhi = Form("#phi^{%s}", text_V.c_str());
-        std::string text_vY = Form("y^{%s}", text_V.c_str());
-        std::string text_vYAbs = Form("|%s|", text_vY.c_str());
         std::string text_l = "";
         if (vIsZ) {
             text_l = vIsZmm ? "#mu" : "e^{+}";
+        }
+        else if (vIsPho) {
+            text_vY = text_vEta;
+            text_vYAbs = text_vEtaAbs;
         }
         std::string text_ll_os = Form("%s^{+}%s^{-}", text_l.c_str(), text_l.c_str());
         std::string text_ll_ss = Form("%s^{#pm}%s^{#pm}", text_l.c_str(), text_l.c_str());
         std::string text_vM_os = Form("M^{%s}", text_ll_os.c_str());
         std::string text_vM_ss = Form("M^{%s}", text_ll_ss.c_str());
 
-        std::string text_range_vEta = Form("%.1f < %s < %.1f", vEtaMin, text_vEtaAbs.c_str(), vEtaMax);
-        if (vEtaMax < vEtaMin) {
-            text_range_vEta = Form("%.1f < %s", vEtaMin, text_vEtaAbs.c_str());
+        std::string text_range_vY = Form("%.1f < %s < %.1f", vYMin, text_vYAbs.c_str(), vYMax);
+        if (vYMax < vYMin) {
+            text_range_vY = Form("%.1f < %s", vYMin, text_vYAbs.c_str());
         }
 
         std::string name_h_vPt = Form("h_vPt_%s", label_cent.c_str());
-        std::string title_h_vPt = Form("%s, %s;%s;", text_range_vEta.c_str(),
+        std::string title_h_vPt = Form("%s, %s;%s;", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -403,7 +407,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h_denom.push_back(h_reco_denom_vPt[i]);
 
         std::string name_h2_rgVPt_ratio_vs_vPt = Form("h2_rgVPt_ratio_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_rgVPt_ratio_vs_vPt = Form("%s, %s;gen %s;p_{T}^{reco} / p_{T}^{gen}", text_range_vEta.c_str(),
+        std::string title_h2_rgVPt_ratio_vs_vPt = Form("%s, %s;gen %s;p_{T}^{reco} / p_{T}^{gen}", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -413,7 +417,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_rgVPt_ratio_vs_vPt[i]);
 
         std::string name_h2_rgVPhi_diff_vs_vPt = Form("h2_rgVPhi_diff_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_rgVPhi_diff_vs_vPt = Form("%s, %s;gen %s;#phi^{reco} - #phi^{gen}", text_range_vEta.c_str(),
+        std::string title_h2_rgVPhi_diff_vs_vPt = Form("%s, %s;gen %s;#phi^{reco} - #phi^{gen}", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -423,7 +427,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_rgVPhi_diff_vs_vPt[i]);
 
         std::string name_h2_hiHF_vs_vPt = Form("h2_hiHF_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vEta.c_str(),
+        std::string title_h2_hiHF_vs_vPt = Form("%s, %s;%s;hiHF", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -432,7 +436,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_hiHF_vs_vPt[i]);
 
         std::string name_h2_rho_vs_vPt = Form("h2_rho_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_rho_vs_vPt = Form("%s, %s;%s;rho", text_range_vEta.c_str(),
+        std::string title_h2_rho_vs_vPt = Form("%s, %s;%s;rho", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -441,7 +445,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_rho_vs_vPt[i]);
 
         std::string name_h2_PFHFtotE_vs_vPt = Form("h2_PFHFtotE_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_PFHFtotE_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vEta.c_str(),
+        std::string title_h2_PFHFtotE_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -451,7 +455,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_PFHFtotE_vs_vPt[i]);
 
         std::string name_h2_PFHFtotE_eta4to5_vs_vPt = Form("h2_PFHFtotE_eta4to5_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_PFHFtotE_eta4to5_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vEta.c_str(),
+        std::string title_h2_PFHFtotE_eta4to5_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -461,7 +465,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vec_h2D.push_back(h2_PFHFtotE_eta4to5_vs_vPt[i]);
 
         std::string name_h2_PFHEtotE_vs_vPt = Form("h2_PFHEtotE_vs_vPt_%s", label_cent.c_str());
-        std::string title_h2_PFHEtotE_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vEta.c_str(),
+        std::string title_h2_PFHEtotE_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
                                                      text_vPt.c_str());
 
@@ -486,18 +490,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_vEta[i][j] = 0;
             h_vEta[i][j] = new TH1D(name_h_vEta.c_str(), title_h_vEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
-            std::string name_h_reco_num_vEta = Form("h_reco_num_vEta_%s", name_h_suffix.c_str());
-            h_reco_num_vEta[i][j] = 0;
-            h_reco_num_vEta[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_num_vEta.c_str());
-            h_reco_num_vEta[i][j]->SetXTitle(Form("gen %s", h_vEta[i][j]->GetXaxis()->GetTitle()));
-            vec_h_num.push_back(h_reco_num_vEta[i][j]);
+            std::string name_h_reco_num_vY = Form("h_reco_num_vY_%s", name_h_suffix.c_str());
+            h_reco_num_vY[i][j] = 0;
+            h_reco_num_vY[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_num_vY.c_str());
+            h_reco_num_vY[i][j]->SetXTitle(Form("gen %s", h_vEta[i][j]->GetXaxis()->GetTitle()));
+            vec_h_num.push_back(h_reco_num_vY[i][j]);
 
-            std::string name_h_reco_denom_vEta = Form("h_reco_denom_vEta_%s", name_h_suffix.c_str());
-            h_reco_denom_vEta[i][j] = 0;
-            h_reco_denom_vEta[i][j] = (TH1D*)h_reco_num_vEta[i][j]->Clone(name_h_reco_denom_vEta.c_str());
-            vec_h_denom.push_back(h_reco_denom_vEta[i][j]);
+            std::string name_h_reco_denom_vY = Form("h_reco_denom_vY_%s", name_h_suffix.c_str());
+            h_reco_denom_vY[i][j] = 0;
+            h_reco_denom_vY[i][j] = (TH1D*)h_reco_num_vY[i][j]->Clone(name_h_reco_denom_vY.c_str());
+            vec_h_denom.push_back(h_reco_denom_vY[i][j]);
 
-            title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vEta.c_str(), text_range_cent.c_str());
+            title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vY.c_str(), text_range_cent.c_str());
 
             std::string name_h_vPhi = Form("h_vPhi_%s", name_h_suffix.c_str());
             std::string title_h_vPhi = Form("%s;%s;", title_h_suffix.c_str(), text_vPhi.c_str());
@@ -859,8 +863,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             vPtsMax[i] = 999999;
         }
     }
-    if (vEtaMax < vEtaMin) {
-        vEtaMax = 999999;
+    if (vYMax < vYMin) {
+        vYMax = 999999;
     }
     for (int i = 0; i < nTrkPts; ++i) {
         if (trkPtsMax[i] < trkPtsMin[i]) {
@@ -1250,8 +1254,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             float minDR2_lep_trk = (has_pfType) ? 0.0 : 0.04;
 
             double genVPt = -1;
+            double genVY = -999999;
             double genVEta = -999999;
             double genVPhi = -999999;
+            double genVMass = -1;
             float maxDR2_reco_gen_V = 0.16;
 
             if (vIsPho) {
@@ -1322,6 +1328,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             genVPt = (*ggHi.mcPt)[i];
                             genVEta = (*ggHi.mcEta)[i];
                             genVPhi = (*ggHi.mcPhi)[i];
+                            genVMass = (*ggHi.mcMass)[i];
+
+                            TLorentzVector vecTmp;
+                            vecTmp.SetPtEtaPhiM(genVPt, genVEta, genVPhi, genVMass);
+                            genVY = vecTmp.Rapidity();
 
                             maxGenVPt = genVPt;
                         }
@@ -1404,15 +1415,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             // reco eff
             if (isMC && isRecoV && genVPt > 0) {
 
-                double matchedRG = ((vIsPho || ll_os) && vPt >= 0 && getDR2(genVEta, genVPhi, vEta, vPhi) < maxDR2_reco_gen_V);
+                double matchedRG = ((vIsPho || ll_os) && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
 
-                double genVEtaAbs = std::fabs(genVEta);
+                double genVYAbs = std::fabs(genVY);
 
                 for (int i = 0; i < nCents; ++i) {
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
-                    if (vEtaMin <= genVEtaAbs && genVEtaAbs < vEtaMax) {
+                    if (vYMin <= genVYAbs && genVYAbs < vYMax) {
 
                         h_reco_denom_vPt[i]->Fill(genVPt, wV);
                         if (matchedRG) {
@@ -1427,9 +1438,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!(vPtsMin[j] <= genVPt && genVPt < vPtsMax[j]))  continue;
 
-                        h_reco_denom_vEta[i][j]->Fill(genVEta, wV);
+                        h_reco_denom_vY[i][j]->Fill(genVY, wV);
                         if (matchedRG) {
-                            h_reco_num_vEta[i][j]->Fill(genVEta, wV);
+                            h_reco_num_vY[i][j]->Fill(genVY, wV);
                         }
                     }
                 }
@@ -1438,7 +1449,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (!(vPtsMin[j] <= genVPt && genVPt < vPtsMax[j]))  continue;
 
-                    if (vEtaMin <= genVEtaAbs && genVEtaAbs < vEtaMax) {
+                    if (vYMin <= genVYAbs && genVYAbs < vYMax) {
 
                         h_reco_denom_cent[j]->Fill(cent, wV);
                         if (matchedRG) {
@@ -1451,7 +1462,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             if (vPt < 0) continue;
 
-            double vEtaAbs = std::fabs(vEta);
+            double vYAbs = std::fabs(vY);
 
             // fill trigger eff histograms
             if (vIsPho || ll_os) {
@@ -1474,7 +1485,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
-                    if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
+                    if (vYMin <= vYAbs && vYAbs < vYMax) {
                         h_vPt[i]->Fill(vPt, wV);
                         h2_hiHF_vs_vPt[i]->Fill(vPt, hiEvt.hiHF, wV);
                         h2_rho_vs_vPt[i]->Fill(vPt, ggHi.rho, wV);
@@ -1495,7 +1506,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_vEta[i][j]->Fill(vEta, wV);
                         h_vY[i][j]->Fill(vY, wV);
 
-                        if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
+                        if (vYMin <= vYAbs && vYAbs < vYMax) {
 
                             h_vPhi[i][j]->Fill(vPhi, wV);
                             h_vM_os[i][j]->Fill(vM, wV);
@@ -1511,7 +1522,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
 
-                    if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
+                    if (vYMin <= vYAbs && vYAbs < vYMax) {
 
                         h_cent[j]->Fill(cent, wV);
                     }
@@ -1528,7 +1539,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
 
-                        if (vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax) {
+                        if (vYMin <= vYAbs && vYAbs < vYMax) {
 
                             h_vM_ss[i][j]->Fill(vM, wV);
                         }
@@ -1536,7 +1547,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
-            if (!(vEtaMin <= vEtaAbs && vEtaAbs < vEtaMax))  continue;
+            if (!(vYMin <= vYAbs && vYAbs < vYMax))  continue;
             if (vIsZ && !ll_os) continue;
 
             if (!isvJetTrkSkim) continue;
@@ -1570,7 +1581,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
-                if (!(vTrkDetaMin <= std::fabs((*p_eta)[i] - vEta) && std::fabs((*p_eta)[i] - vEta) < vTrkDetaMax))  continue;
+                if (!(vTrkDetaMin <= std::fabs((*p_eta)[i] - vY) && std::fabs((*p_eta)[i] - vY) < vTrkDetaMax))  continue;
 
                 float t_pt = (*p_pt)[i];
                 float t_eta = (*p_eta)[i];
@@ -1678,7 +1689,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         double dphiMinTmp = vTrkDphiMin * TMath::Pi();
                         double dphiMaxTmp = vTrkDphiMax * TMath::Pi();
 
-                        float deta = std::fabs(vEta - t_eta);
+                        float deta = std::fabs(vY - t_eta);
 
                         if (dphiMinTmp < dphi && dphi <= dphiMaxTmp) {
                             h_trkPt[iCent][iVPt]->Fill(t_pt, wTrk);
