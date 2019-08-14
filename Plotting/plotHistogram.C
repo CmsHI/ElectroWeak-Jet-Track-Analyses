@@ -1025,25 +1025,48 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         CONFIGPARSER::TH1Scaling th1Scaling;
         if (nTH1Scalings == 1)  th1Scaling = TH1Scalings.at(0);
         else if (nTH1Scalings == nHistos)  th1Scaling = TH1Scalings.at(i);
-        if (th1Scaling.scaleFactor != 0) {
-            if (th1Scaling.histIndexValid()) {
-                int iTmp = th1Scaling.histIndex;
+        if (th1Scaling.scaleFactor != -998877) {
+            if (th1Scaling.operation == "scale") {
+                if (th1Scaling.histIndexValid()) {
+                    int iTmp = th1Scaling.histIndex;
 
-                int binTmp = -1;
-                if (th1Scaling.scaleUsingBin())
-                    binTmp = th1Scaling.bin;
-                else
-                    binTmp = h[iTmp]->FindBin(th1Scaling.x);
+                    int binTmp = -1;
+                    if (th1Scaling.scaleUsingBin())
+                        binTmp = th1Scaling.bin;
+                    else
+                        binTmp = h[iTmp]->FindBin(th1Scaling.x);
 
-                double contentTmp = h[iTmp]->GetBinContent(binTmp);
-                h[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
-                if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
-                if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                    double contentTmp = h[iTmp]->GetBinContent(binTmp);
+                    h[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                }
+                else {
+                    h[i]->Scale(th1Scaling.scaleFactor);
+                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor);
+                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor);
+                }
             }
-            else {
-                h[i]->Scale(th1Scaling.scaleFactor);
-                if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor);
-                if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor);
+            else if (th1Scaling.operation == "add") {
+                double contentDiff = 0;
+                if (th1Scaling.histIndexValid()) {
+                    int iTmp = th1Scaling.histIndex;
+
+                    int binTmp = -1;
+                    if (th1Scaling.scaleUsingBin())
+                        binTmp = th1Scaling.bin;
+                    else
+                        binTmp = h[iTmp]->FindBin(th1Scaling.x);
+
+                    contentDiff = h[iTmp]->GetBinContent(binTmp) - h[i]->GetBinContent(binTmp);
+                }
+
+                for (int iBinTmp = 1; iBinTmp <= h[i]->GetNbinsX(); ++iBinTmp) {
+
+                    h[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + h[i]->GetBinContent(iBinTmp));
+                    if(hSysp[i] != 0)  hSysp[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + hSysp[i]->GetBinContent(iBinTmp));
+                    if(hSysm[i] != 0)  hSysm[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + hSysm[i]->GetBinContent(iBinTmp));
+                }
             }
         }
 

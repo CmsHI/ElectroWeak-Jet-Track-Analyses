@@ -93,7 +93,7 @@ struct TH2DAxis {
  * object for reading TH1 scaling information from configuration file
  */
 struct TH1Scaling {
-    TH1Scaling() : histIndex(-1), bin(-1), x(-999), scaleFactor(0) {}
+    TH1Scaling() : histIndex(-1), bin(-1), x(-999), scaleFactor(-998877) {}
     bool histIndexValid() {
         return (histIndex != -1);
     }
@@ -105,7 +105,8 @@ struct TH1Scaling {
         res.append(Form("{ histIndex = %d, ", histIndex));
         res.append(Form("bin = %d, ", bin));
         res.append(Form("x = %f, ", x));
-        res.append(Form("scaleFactor = %f }", scaleFactor));
+        res.append(Form("scaleFactor = %f, ", scaleFactor));
+        res.append(Form("operation = %s }", operation.c_str()));
         return res;
     }
 
@@ -113,6 +114,7 @@ struct TH1Scaling {
     int bin;            // bin wrt which the scaling will be done
     double x;           // Scaling will be done wrt. the bin corresponding to x value
     double scaleFactor;
+    std::string operation;  // "scale", "add"
 };
 
 }
@@ -1377,9 +1379,17 @@ std::vector<CONFIGPARSER::TH1Scaling> ConfigurationParser::ParseListTH1Scaling(s
             }
 
             th1Scaling.scaleFactor = std::atof(listParams.at(2).c_str());
+
+            if ((int)(listParams.size()) == 4) {
+                th1Scaling.operation = listParams.at(3);
+            }
+            else {
+                th1Scaling.operation = "scale";
+            }
         }
         else {
             th1Scaling.scaleFactor = std::atof(strTH1Scaling.c_str());
+            th1Scaling.operation = "scale";
         }
 
         list.push_back(th1Scaling);
