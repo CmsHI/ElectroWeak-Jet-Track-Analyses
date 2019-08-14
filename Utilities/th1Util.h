@@ -37,6 +37,8 @@ void setConstantBinContentError(TH1* h, double constantContent, double  constant
 void setBinContents(TH1* h, std::vector<double> binContents);
 void setBinErrors(TH1* h, std::vector<double> binErrors);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
+void setBinErrorsPartialCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom);
+void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* hNum, TH1D* hDenom);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis = true);
@@ -341,6 +343,88 @@ void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<d
 {
     setBinContents(h, binContents);
     setBinErrors(h, binErrors);
+}
+
+void setBinErrorsPartialCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom)
+{
+    // reference : https://www.phenix.bnl.gov/WWW/publish/elke/EIC/Files-for-Wiki/lara.02-008.errors.pdf
+    for (int i=1; i<=hRatio->GetNbinsX(); ++i) {
+
+        double nA = hNum->GetBinContent(i);
+        double errA = hNum->GetBinError(i);
+
+        double nB = hDenom->GetBinContent(i);
+        double errB= hDenom->GetBinError(i);
+
+        double errA2 = errA*errA;
+        double errB2 = errB*errB;
+
+        // entries that left the bin
+        double nBminusA = 0;
+        // entries that entered the bin
+        double nAminusB = 0;
+
+        // Assumption : entries that left the bin = entries that entered the bin
+        nBminusA = TMath::Abs(nA - nB) / 2;
+        nAminusB = nBminusA;
+
+        double nAintersectB = 0.5 * (nA + nB - nBminusA - nAminusB);
+        /*
+         * 2 linear equation, 2 unknowns : errBminusA2, errAintersectB2
+         * nB / errB2 = nBminusA / errBminusA2 + nAintersectB / errAintersectB2
+         *  1 / errB2 =        1 / errBminusA2 +            1 / errAintersectB2
+         */
+        double invErrB2 = 1./errB2;
+        double invErrBminusA2 = invErrB2 * ((nB - nAintersectB) / (nBminusA - nAintersectB));
+        double invErrAintersectB2 = 0.5/nAintersectB *  (invErrB2*(nB + nAintersectB) - invErrBminusA2*(nBminusA + nAintersectB));
+
+        double binError = nA / nB * TMath::Sqrt(TMath::Abs(errA2/(nA*nA) + errB2/(nB*nB) - 2/(nA*nB) * errA2 * errB2 * invErrAintersectB2));
+        if (binError < 0.0000001)
+            binError = 0.0000001;   // protect against absolute 0.
+
+        hRatio->SetBinError(i, binError);
+    }
+}
+
+void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* hNum, TH1D* hDenom)
+{
+    // reference : https://www.phenix.bnl.gov/WWW/publish/elke/EIC/Files-for-Wiki/lara.02-008.errors.pdf
+    for (int i=1; i<=hDiff->GetNbinsX(); ++i) {
+
+        double nA = hNum->GetBinContent(i);
+        double errA = hNum->GetBinError(i);
+
+        double nB = hDenom->GetBinContent(i);
+        double errB= hDenom->GetBinError(i);
+
+        double errA2 = errA*errA;
+        double errB2 = errB*errB;
+
+        // entries that left the bin
+        double nBminusA = 0;
+        // entries that entered the bin
+        double nAminusB = 0;
+
+        // Assumption : entries that left the bin = entries that entered the bin
+        nBminusA = TMath::Abs(nA - nB) / 2;
+        nAminusB = nBminusA;
+
+        double nAintersectB = 0.5 * (nA + nB - nBminusA - nAminusB);
+        /*
+         * 2 linear equation, 2 unknowns : errBminusA2, errAintersectB2
+         * nB / errB2 = nBminusA / errBminusA2 + nAintersectB / errAintersectB2
+         *  1 / errB2 =        1 / errBminusA2 +            1 / errAintersectB2
+         */
+        double invErrB2 = 1./errB2;
+        double invErrBminusA2 = invErrB2 * ((nB - nAintersectB) / (nBminusA - nAintersectB));
+        double invErrAintersectB2 = 0.5/nAintersectB *  (invErrB2*(nB + nAintersectB) - invErrBminusA2*(nBminusA + nAintersectB));
+
+        double binError = TMath::Sqrt(TMath::Abs(errA2 + errB2 - 2 * errA2 * errB2 * invErrAintersectB2));
+        if (binError < 0.0000001)
+            binError = 0.0000001;   // protect against absolute 0.
+
+        hDiff->SetBinError(i, binError);
+    }
 }
 
 void scaleBinErrors(TH1* h, double scale)
