@@ -42,6 +42,7 @@ int  findInVector(const std::vector<T>  & vec, const T  & element);
 std::vector<std::string> vectorUnique(std::vector<std::string> v);
 std::vector<int> positionsInVector(std::vector<std::string> vSearch, std::vector<std::string> v);
 std::string getEnvironmentVariable(std::string envName);
+std::string getExpandedEnvironmentVariable(std::string s);
 std::string getHostName();
 
 /*
@@ -480,6 +481,31 @@ std::string getEnvironmentVariable(std::string envName)
     const char* envValueChar = std::getenv(envName.c_str());
     std::string res = envValueChar ? envValueChar : "";
     return res;
+}
+
+/*
+ * expands the environment variables in a string
+ * Ex. if s = "${HOME}/some/${MYDIR}" returns "/home/myname/some/my/dir"
+ * Environment variables must be given in ${VARNAME} form
+ * https://stackoverflow.com/questions/1902681/expand-file-names-that-have-environment-variables-in-their-path/20715800#20715800
+ */
+std::string getExpandedEnvironmentVariable(std::string s)
+{
+    if (s.find( "${" ) == std::string::npos) return s;
+
+    std::string pre  = s.substr(0, s.find( "${" ));
+    std::string post = s.substr(s.find( "${" ) + 2);
+
+    if (post.find( "}" ) == std::string::npos) return s;
+
+    std::string varName = post.substr( 0, post.find( "}" ));
+    std::string value    = "";
+
+    post = post.substr(post.find("}") + 1);
+
+    value = getEnvironmentVariable(varName);
+
+    return getExpandedEnvironmentVariable(pre + value + post);
 }
 
 std::string getHostName()
