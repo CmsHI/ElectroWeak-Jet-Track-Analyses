@@ -78,7 +78,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> TH1error_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1error_path]));
     std::vector<std::string> TH1sysp_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysp_path]));
     std::vector<std::string> TH1sysm_paths = ConfigurationParser::ParseListOrString(ConfigurationParser::ParseLatex(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1sysm_path]));
-    std::vector<CONFIGPARSER::TH1Scaling> TH1Scalings = ConfigurationParser::ParseListTH1Scaling(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
+    std::vector<CONFIGPARSER::TH1Ops> vec_TH1Ops = ConfigurationParser::ParseListTH1Ops(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_scale]);
     std::vector<int> TH1_rebins = ConfigurationParser::ParseListInteger(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_rebin]);
     std::vector<float> TH1_norms = ConfigurationParser::ParseListFloat(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_TH1_norm]);
     std::vector<float> xMin = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_TH1_xMin]);
@@ -348,7 +348,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     int nHistosErr = TH1error_paths.size();
     int nHistosSysp = TH1sysp_paths.size();
     int nHistosSysm = TH1sysm_paths.size();
-    int nTH1Scalings = TH1Scalings.size();
+    int nTH1Ops = vec_TH1Ops.size();
     int nTH1_rebins = TH1_rebins.size();
     int nTH1_norms = TH1_norms.size();
     int nTF1_formulas = TF1_formulas.size();    // assume TF1_formulas.size() = TF1_ranges[0].size()
@@ -491,9 +491,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     for (int i = 0; i<nHistosSysm; ++i) {
             std::cout << Form("TH1sysm_paths[%d] = %s", i, TH1sysm_paths.at(i).c_str()) << std::endl;
     }
-    std::cout << "nTH1Scalings  = " << nTH1Scalings << std::endl;
-    for (int i = 0; i<nTH1Scalings; ++i) {
-        std::cout << Form("TH1Scalings[%d] = %s", i, TH1Scalings.at(i).verbose().c_str()) << std::endl;
+    std::cout << "nTH1Ops  = " << nTH1Ops << std::endl;
+    for (int i = 0; i<nTH1Ops; ++i) {
+        std::cout << Form("vec_TH1Ops[%d] = %s", i, vec_TH1Ops.at(i).verbose().c_str()) << std::endl;
     }
     std::cout << "nTH1_rebins  = " << nTH1_rebins << std::endl;
     for (int i = 0; i<nTH1_rebins; ++i) {
@@ -1022,50 +1022,50 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nDrawNormalized == nHistos) drawNormalizedTmp = drawNormalized.at(i);
         if (drawNormalizedTmp == INPUT_TH1::k_normInt)  h[i]->Scale(1./h[i]->Integral());
 
-        CONFIGPARSER::TH1Scaling th1Scaling;
-        if (nTH1Scalings == 1)  th1Scaling = TH1Scalings.at(0);
-        else if (nTH1Scalings == nHistos)  th1Scaling = TH1Scalings.at(i);
-        if (th1Scaling.scaleFactor != -998877) {
-            if (th1Scaling.operation == "scale") {
-                if (th1Scaling.histIndexValid()) {
-                    int iTmp = th1Scaling.histIndex;
+        CONFIGPARSER::TH1Ops th1Ops;
+        if (nTH1Ops == 1)  th1Ops = vec_TH1Ops.at(0);
+        else if (nTH1Ops == nHistos)  th1Ops = vec_TH1Ops.at(i);
+        if (th1Ops.operand != -998877) {
+            if (th1Ops.operation == "scale") {
+                if (th1Ops.histIndexValid()) {
+                    int iTmp = th1Ops.histIndex;
 
                     int binTmp = -1;
-                    if (th1Scaling.scaleUsingBin())
-                        binTmp = th1Scaling.bin;
+                    if (th1Ops.useBinNumber())
+                        binTmp = th1Ops.bin;
                     else
-                        binTmp = h[iTmp]->FindBin(th1Scaling.x);
+                        binTmp = h[iTmp]->FindBin(th1Ops.x);
 
                     double contentTmp = h[iTmp]->GetBinContent(binTmp);
-                    h[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
-                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
-                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor * contentTmp / h[i]->GetBinContent(binTmp));
+                    h[i]->Scale(th1Ops.operand * contentTmp / h[i]->GetBinContent(binTmp));
+                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Ops.operand * contentTmp / h[i]->GetBinContent(binTmp));
+                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Ops.operand * contentTmp / h[i]->GetBinContent(binTmp));
                 }
                 else {
-                    h[i]->Scale(th1Scaling.scaleFactor);
-                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Scaling.scaleFactor);
-                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Scaling.scaleFactor);
+                    h[i]->Scale(th1Ops.operand);
+                    if(hSysp[i] != 0)  hSysp[i]->Scale(th1Ops.operand);
+                    if(hSysm[i] != 0)  hSysm[i]->Scale(th1Ops.operand);
                 }
             }
-            else if (th1Scaling.operation == "add") {
+            else if (th1Ops.operation == "add") {
                 double contentDiff = 0;
-                if (th1Scaling.histIndexValid()) {
-                    int iTmp = th1Scaling.histIndex;
+                if (th1Ops.histIndexValid()) {
+                    int iTmp = th1Ops.histIndex;
 
                     int binTmp = -1;
-                    if (th1Scaling.scaleUsingBin())
-                        binTmp = th1Scaling.bin;
+                    if (th1Ops.useBinNumber())
+                        binTmp = th1Ops.bin;
                     else
-                        binTmp = h[iTmp]->FindBin(th1Scaling.x);
+                        binTmp = h[iTmp]->FindBin(th1Ops.x);
 
                     contentDiff = h[iTmp]->GetBinContent(binTmp) - h[i]->GetBinContent(binTmp);
                 }
 
                 for (int iBinTmp = 1; iBinTmp <= h[i]->GetNbinsX(); ++iBinTmp) {
 
-                    h[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + h[i]->GetBinContent(iBinTmp));
-                    if(hSysp[i] != 0)  hSysp[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + hSysp[i]->GetBinContent(iBinTmp));
-                    if(hSysm[i] != 0)  hSysm[i]->SetBinContent(iBinTmp, th1Scaling.scaleFactor + contentDiff + hSysm[i]->GetBinContent(iBinTmp));
+                    h[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + h[i]->GetBinContent(iBinTmp));
+                    if(hSysp[i] != 0)  hSysp[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + hSysp[i]->GetBinContent(iBinTmp));
+                    if(hSysm[i] != 0)  hSysm[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + hSysm[i]->GetBinContent(iBinTmp));
                 }
             }
         }

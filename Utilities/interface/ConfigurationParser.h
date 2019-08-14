@@ -90,14 +90,14 @@ struct TH2DAxis {
 };
 
 /*
- * object for reading TH1 scaling information from configuration file
+ * object for reading TH1 operation information from configuration file
  */
-struct TH1Scaling {
-    TH1Scaling() : histIndex(-1), bin(-1), x(-999), scaleFactor(-998877) {}
+struct TH1Ops {
+    TH1Ops() : histIndex(-1), bin(-1), x(-999), operand(-998877) {}
     bool histIndexValid() {
         return (histIndex != -1);
     }
-    bool scaleUsingBin() {
+    bool useBinNumber() {
         return (bin != -1);
     }
     std::string verbose() {
@@ -105,15 +105,15 @@ struct TH1Scaling {
         res.append(Form("{ histIndex = %d, ", histIndex));
         res.append(Form("bin = %d, ", bin));
         res.append(Form("x = %f, ", x));
-        res.append(Form("scaleFactor = %f, ", scaleFactor));
+        res.append(Form("operand = %f, ", operand));
         res.append(Form("operation = %s }", operation.c_str()));
         return res;
     }
 
-    int histIndex;      // index of reference TH1D for scaling
-    int bin;            // bin wrt which the scaling will be done
-    double x;           // Scaling will be done wrt. the bin corresponding to x value
-    double scaleFactor;
+    int histIndex;      // index of reference TH1D for operation
+    int bin;            // bin wrt which the operation will be done
+    double x;           // Operation will be done wrt. the bin corresponding to x value
+    double operand;
     std::string operation;  // "scale", "add"
 };
 
@@ -183,7 +183,7 @@ public:
     static std::vector<CONFIGPARSER::TH2DAxis> ParseListTH2D_Axis(std::string strList);
     static std::string verboseTH1D_Axis(CONFIGPARSER::TH1Axis th1Axis);
     static std::string verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxis);
-    static std::vector<CONFIGPARSER::TH1Scaling> ParseListTH1Scaling(std::string strList);
+    static std::vector<CONFIGPARSER::TH1Ops> ParseListTH1Ops(std::string strList);
     static std::string ParseLatex(std::string str);
     static std::vector<std::string> ParseListLatex(std::string strList, std::string separator = "");
     static std::vector<std::vector<std::string>> ParseListTF1(std::string strList);
@@ -1345,54 +1345,55 @@ std::string ConfigurationParser::verboseTH2D_Axis(CONFIGPARSER::TH2DAxis th2DAxi
     return res;
 }
 
-std::vector<CONFIGPARSER::TH1Scaling> ConfigurationParser::ParseListTH1Scaling(std::string strList)
+std::vector<CONFIGPARSER::TH1Ops> ConfigurationParser::ParseListTH1Ops(std::string strList)
 {
 
-    std::vector<CONFIGPARSER::TH1Scaling> list;
+    std::vector<CONFIGPARSER::TH1Ops> list;
 
-    // split TH1Scaling information by ";;"
-    std::vector<std::string> strListTH1Scaling = ParseList(strList, CONFIGPARSER::separator1.c_str());
+    // split TH1Ops information by ";;"
+    std::vector<std::string> strListTH1Ops = ParseList(strList, CONFIGPARSER::separator1.c_str());
 
-    for (std::vector<std::string>::iterator it = strListTH1Scaling.begin() ; it != strListTH1Scaling.end(); ++it) {
+    for (std::vector<std::string>::iterator it = strListTH1Ops.begin() ; it != strListTH1Ops.end(); ++it) {
 
-        std::string strTH1Scaling = (*it);
+        std::string strTH1Ops = (*it);
 
-        CONFIGPARSER::TH1Scaling th1Scaling;
+        CONFIGPARSER::TH1Ops th1Ops;
 
-        // a string is a list containing histPath, bin/xUser, scaleFactor if it starts with "[" and ends with "]"
-        if (isList(strTH1Scaling, "[", "]")) {
-            strTH1Scaling = replaceAll(strTH1Scaling, "[", "{");
-            strTH1Scaling = replaceAll(strTH1Scaling, "]", "}");
+        // a string is a list containing histPath, bin/xUser, operand, operation if it starts with "[" and ends with "]"
+        if (isList(strTH1Ops, "[", "]")) {
+            strTH1Ops = replaceAll(strTH1Ops, "[", "{");
+            strTH1Ops = replaceAll(strTH1Ops, "]", "}");
 
-            std::vector<std::string> listParams = ParseList(strTH1Scaling);
+            std::vector<std::string> listParams = ParseList(strTH1Ops);
             // 1st element is the index of the reference TH1
             // 2nd element is the bin or the x-axis value of the reference point
-            // 3rd element is the scale factor
-            th1Scaling.histIndex = std::atoi(listParams.at(0).c_str());
+            // 3rd element is the operand
+            // 4th element (if exists) is the operation
+            th1Ops.histIndex = std::atoi(listParams.at(0).c_str());
 
             std::string binOrxValStr = listParams.at(1);
             if (binOrxValStr.find("bin") != std::string::npos) {
-                th1Scaling.bin = std::atoi(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
+                th1Ops.bin = std::atoi(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
             }
             else if (binOrxValStr.find("x") != std::string::npos) {
-                th1Scaling.x = std::atof(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
+                th1Ops.x = std::atof(binOrxValStr.substr(binOrxValStr.find("=")+1).c_str());
             }
 
-            th1Scaling.scaleFactor = std::atof(listParams.at(2).c_str());
+            th1Ops.operand = std::atof(listParams.at(2).c_str());
 
             if ((int)(listParams.size()) == 4) {
-                th1Scaling.operation = listParams.at(3);
+                th1Ops.operation = listParams.at(3);
             }
             else {
-                th1Scaling.operation = "scale";
+                th1Ops.operation = "scale";
             }
         }
         else {
-            th1Scaling.scaleFactor = std::atof(strTH1Scaling.c_str());
-            th1Scaling.operation = "scale";
+            th1Ops.operand = std::atof(strTH1Ops.c_str());
+            th1Ops.operation = "scale";
         }
 
-        list.push_back(th1Scaling);
+        list.push_back(th1Ops);
     }
 
     return list;
