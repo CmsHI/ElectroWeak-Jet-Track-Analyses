@@ -888,6 +888,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout<<(*it).c_str()<< std::endl;
     }
     std::cout<<"##### END #####"<< std::endl;
+    std::cout<<"####### expanded file paths #######"<< std::endl;
+    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+        std::cout<<getExpandedEnvironmentVariable((*it)).c_str()<< std::endl;
+    }
+    std::cout<<"####### expanded file paths - END #######"<< std::endl;
 
     int nHistos = TH1_paths.size();
     std::cout << "nHistos = " << nHistos << std::endl;
