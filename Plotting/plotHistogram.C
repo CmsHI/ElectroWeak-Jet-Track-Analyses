@@ -152,6 +152,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<std::string> lineStyles_vertical = ConfigurationParser::ParseList(configInput.proc[INPUT::kPLOTTING].s[INPUT::k_LineStyle_vertical]);
 
     // input for lower pad
+    /*
+     * keys for drawRatio and drawDiff
+     * 1 : errors calculated assuming distributions are independent
+     * 3 : errors calculated assuming distributions are partially correlated
+     */
     std::vector<int> drawRatio = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_drawRatio]);
     std::vector<int> drawDiff  = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_drawDiff]);
     std::vector<float> windowHeightFractions = ConfigurationParser::ParseListOrFloat(configInput.proc[INPUT::kPLOTTING].str_f[INPUT::k_windowHeightFraction]);
@@ -1649,7 +1654,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             for (int i=0; i<nHistos_lowerPad; ++i) {
 
                 if (h[iStart+2*i]->InheritsFrom("TH2")) {
-                    h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
+                    h_lowerPad[i] = (TH2D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
                 }
                 else {
                     h_lowerPad[i] = (TH1D*)h[iStart+2*i]->Clone(Form("%s_lowerPad", h[iStart+2*i]->GetName()));
@@ -1671,8 +1676,18 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
                 hTest1->Chi2Test(hTest2, "WW P");
 
-                if (drawRatioTmp > 0)  h_lowerPad[i]->Divide(h[iStart+2*i+1]);
-                else if (drawDiffTmp > 0)  h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
+                if (drawRatioTmp > 0)  {
+                    h_lowerPad[i]->Divide(h[iStart+2*i+1]);
+                    if (drawRatioTmp == 2 && h_lowerPad[i]->InheritsFrom("TH1D")) {
+                        setBinErrorsPartialCorr4Ratio((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                    }
+                }
+                else if (drawDiffTmp > 0)  {
+                    h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
+                    if (drawDiffTmp == 2 && h_lowerPad[i]->InheritsFrom("TH1D")) {
+                        setBinErrorsPartialCorr4Diff((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                    }
+                }
 
                 float yMin_lowerPadTmp = yMin_lowerPad.at(0);
                 if (nyMin_lowerPad > 1 && nyMin_lowerPad == nPads) yMin_lowerPadTmp = yMin_lowerPad.at(iPad);
