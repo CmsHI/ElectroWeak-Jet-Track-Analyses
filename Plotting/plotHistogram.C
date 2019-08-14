@@ -155,6 +155,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     /*
      * keys for drawRatio and drawDiff
      * 1 : errors calculated assuming distributions are independent
+     * 2 : errors calculated assuming distributions are completely correlated
      * 3 : errors calculated assuming distributions are partially correlated
      */
     std::vector<int> drawRatio = ConfigurationParser::ParseListOrInteger(configInput.proc[INPUT::kPLOTTING].str_i[INPUT::k_drawRatio]);
@@ -1678,14 +1679,24 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
                 if (drawRatioTmp > 0)  {
                     h_lowerPad[i]->Divide(h[iStart+2*i+1]);
-                    if (drawRatioTmp == 2 && h_lowerPad[i]->InheritsFrom("TH1D")) {
-                        setBinErrorsPartialCorr4Ratio((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                    if (h_lowerPad[i]->InheritsFrom("TH1D")) {
+                        if (drawRatioTmp == 2) {
+                            setBinErrorsFullCorr4Ratio((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                        }
+                        else if (drawRatioTmp == 3) {
+                            setBinErrorsPartialCorr4Ratio((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                        }
                     }
                 }
                 else if (drawDiffTmp > 0)  {
                     h_lowerPad[i]->Add(h[iStart+2*i+1],-1);
-                    if (drawDiffTmp == 2 && h_lowerPad[i]->InheritsFrom("TH1D")) {
-                        setBinErrorsPartialCorr4Diff((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                    if (h_lowerPad[i]->InheritsFrom("TH1D")) {
+                        if (drawDiffTmp == 2) {
+                            setBinErrorsFullCorr4Diff((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                        }
+                        else if (drawDiffTmp == 3) {
+                            setBinErrorsPartialCorr4Diff((TH1D*)h_lowerPad[i], (TH1D*)h[iStart+2*i], (TH1D*)h[iStart+2*i+1]);
+                        }
                     }
                 }
 
