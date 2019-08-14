@@ -38,7 +38,7 @@ void setBinContents(TH1* h, std::vector<double> binContents);
 void setBinErrors(TH1* h, std::vector<double> binErrors);
 void setBinContentsErrors(TH1* h, std::vector<double> binContents, std::vector<double> binErrors);
 void setBinErrorsPartialCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom);
-void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* hNum, TH1D* hDenom);
+void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* h1, TH1D* h2);
 void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis = true);
@@ -386,16 +386,16 @@ void setBinErrorsPartialCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom)
     }
 }
 
-void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* hNum, TH1D* hDenom)
+void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* h1, TH1D* h2)
 {
     // reference : https://www.phenix.bnl.gov/WWW/publish/elke/EIC/Files-for-Wiki/lara.02-008.errors.pdf
     for (int i=1; i<=hDiff->GetNbinsX(); ++i) {
 
-        double nA = hNum->GetBinContent(i);
-        double errA = hNum->GetBinError(i);
+        double nA = h1->GetBinContent(i);
+        double errA = h1->GetBinError(i);
 
-        double nB = hDenom->GetBinContent(i);
-        double errB= hDenom->GetBinError(i);
+        double nB = h2->GetBinContent(i);
+        double errB= h2->GetBinError(i);
 
         double errA2 = errA*errA;
         double errB2 = errB*errB;
