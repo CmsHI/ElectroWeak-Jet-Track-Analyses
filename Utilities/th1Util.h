@@ -66,6 +66,7 @@ TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
 TH1* getResidualHistogram(TH1* h, TF1* fRef, double xMin, double xMax, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TF1* fRef);
 TH1* getPullHistogram(TH1* h, TF1* fRef, double xMin, double xMax);
+double getErrorOnIntegralFraction(TH1D* h, double fraction);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
@@ -874,6 +875,18 @@ TH1* getPullHistogram(TH1* h, TF1* fRef)
 TH1* getPullHistogram(TH1* h, TF1* fRef, double xMin, double xMax)
 {
     return getResidualHistogram(h, fRef, xMin, xMax, true);
+}
+
+/*
+ * EITHER FIX or REMOVE
+ */
+double getErrorOnIntegralFraction(TH1D* h, double fraction)
+{
+    if (fraction < 0 || fraction > 1) return -1;
+    if (h->GetEntries() == 0)  return 0;
+
+    // NEEDS FIX
+    return TMath::Sqrt(fraction*(1-fraction) / h->GetEntries());
 }
 
 void fillTH1fromTF1(TH1* h, TF1* f)
