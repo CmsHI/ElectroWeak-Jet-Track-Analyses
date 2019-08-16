@@ -902,6 +902,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
 
+                                 pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+
                                  if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
@@ -912,6 +914,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                                  r9 = (*ggHi.eleR9)[i];
                                  scEta = (*ggHi.eleSCEta)[i];
+
                                  if (runMode[MODES::kOfflineEnergy] == MODES_OFFLINEENERGY::k_off_SCE) {
                                      pt = (*ggHi.eleSCEn)[i]/TMath::CosH(scEta);
                                  }
@@ -1313,6 +1316,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                  }
                              }
                              else if (recoObj == RECOOBJS::kElectron) {
+
+                                 pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
 
                                  if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
