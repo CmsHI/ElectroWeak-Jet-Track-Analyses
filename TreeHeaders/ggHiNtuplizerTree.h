@@ -1664,6 +1664,58 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 }
             }
         }
+        else if (WPindex == 2) {
+            // preliminary electron ID (July 2019) : loose WP
+            if (hiBin >= 0 && hiBin < 60) {
+                // selection on RECO electron based on ECAL regions
+                if (std::fabs((*eleSCEta)[i]) < 1.4442)
+                {
+                    if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0135)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0038)) return false;
+                    if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0376)) return false;
+                    if (!((*eleHoverEBc)[i] < 0.1616)) return false;
+                    if (!(std::fabs((*eleEoverPInv)[i]) < 0.0177)) return false;
+                    //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                    //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                    if (!((*eleMissHits)[i] <= 1)) return false;
+                }
+                else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+                {
+                    if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0466)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0063)) return false;
+                    if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.1186)) return false;
+                    if (!((*eleHoverEBc)[i] < 0.1317)) return false;
+                    if (!(std::fabs((*eleEoverPInv)[i]) < 0.0201)) return false;
+                    //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                    //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                    if (!((*eleMissHits)[i] <= 1)) return false;
+                }
+            }
+            else if (hiBin >= 60 && hiBin < 200) {
+                if (std::fabs((*eleSCEta)[i]) < 1.4442)
+                {
+                    if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0107)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0035)) return false;
+                    if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0327)) return false;
+                    if (!((*eleHoverEBc)[i] < 0.1268)) return false;
+                    if (!(std::fabs((*eleEoverPInv)[i]) < 0.0774)) return false;
+                    //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
+                    //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                    if (!((*eleMissHits)[i] <= 1)) return false;
+                }
+                else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+                {
+                    if (!((*eleSigmaIEtaIEta_2012)[i] < 0.0339)) return false;
+                    if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.0067)) return false;
+                    if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.0838)) return false;
+                    if (!((*eleHoverEBc)[i] < 0.0977)) return false;
+                    if (!(std::fabs((*eleEoverPInv)[i]) < 0.0193)) return false;
+                    //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
+                    //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
+                    if (!((*eleMissHits)[i] <= 1)) return false;
+                }
+            }
+        }
         else if (WPindex == 4) {
             // preliminary electron ID (July 2019) : tight WP
             if (hiBin >= 0 && hiBin < 60) {
