@@ -107,13 +107,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     int collisionType = -1;
     if (isPbPb15) {
-        collisionType = COLL::TYPE::kHI;
+        collisionType = (isMC) ? COLL::TYPE::kHIMC : COLL::TYPE::kHI;
     }
     else if (isPbPb18) {
-        collisionType = COLL::TYPE::kHI2018;
+        collisionType = (isMC) ? COLL::TYPE::kHIMC2018 : COLL::TYPE::kHI2018;
     }
     else if (isPP) {
-        collisionType = COLL::TYPE::kPP;
+        collisionType = (isMC) ? COLL::TYPE::kPPMC : COLL::TYPE::kPP;
     }
 
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
@@ -252,7 +252,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TFile* fileResTrkW = 0;
     TH1D* h_resTrkW[4][3];
     if (doResidualTrkW) {
-        fileResTrkW = TFile::Open("/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_5_8_PFHFtotE_m682/trkgetEff/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root", "READ");
+        //std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_5_8_PFHFtotE_m682/trkgetEff/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root";
+        std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/trkgetEff/rotEP/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root";
+        fileResTrkW = TFile::Open(fileResTrkWPath.c_str(), "READ");
         std::vector<std::string> tmpLblsCent = {"cent0_10", "cent10_30", "cent30_50", "cent50_90"};
         std::vector<std::string> tmpLblsTrkPt = {"trkPt0p5_1", "trkPt1_2", "trkPt2_3"};
         for (int i = 0; i < 4; ++i) {
@@ -1352,7 +1354,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
                     else if (vIsZee && isRecoV) {
-                        if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin, 1)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                     }
                     else if (!isRecoV) {
@@ -1376,7 +1378,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
                         else if (vIsZee && isRecoV) {
-                            if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin, 1)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
                         else if (!isRecoV) {

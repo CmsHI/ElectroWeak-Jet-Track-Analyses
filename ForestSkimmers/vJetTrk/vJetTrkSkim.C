@@ -113,13 +113,13 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     int collisionType = -1;
     if (isPbPb15) {
-        collisionType = COLL::TYPE::kHI;
+        collisionType = (isMC) ? COLL::TYPE::kHIMC : COLL::TYPE::kHI;
     }
     else if (isPbPb18) {
-        collisionType = COLL::TYPE::kHI2018;
+        collisionType = (isMC) ? COLL::TYPE::kHIMC2018 : COLL::TYPE::kHI2018;
     }
     else if (isPP) {
-        collisionType = COLL::TYPE::kPP;
+        collisionType = (isMC) ? COLL::TYPE::kPPMC : COLL::TYPE::kPP;
     }
 
     std::cout << "isMC = " << isMC << std::endl;
@@ -754,7 +754,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
                     else if (vIsZee) {
-                        if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin, 1)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                     }
 
@@ -766,7 +766,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
                         else if (vIsZee) {
-                            if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin, 1)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
 
