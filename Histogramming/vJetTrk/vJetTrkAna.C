@@ -1500,9 +1500,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (vYMin <= genVYAbs && genVYAbs < vYMax) {
-                            h_reco_denom_vPhi[i][j]->Fill(vPhi, wV);
+                            h_reco_denom_vPhi[i][j]->Fill(genVPhi, wV);
                             if (matchedRG) {
-                                h_reco_num_vPhi[i][j]->Fill(vPhi, wV);
+                                h_reco_num_vPhi[i][j]->Fill(genVPhi, wV);
                             }
                         }
                     }
