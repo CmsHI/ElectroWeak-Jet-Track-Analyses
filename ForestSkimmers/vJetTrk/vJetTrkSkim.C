@@ -757,7 +757,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
                     else if (vIsZee) {
-                        if (!ggHi.passedEleSelection(i, collisionType, hiBin, 1)) continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                     }
 
@@ -769,7 +769,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
                         else if (vIsZee) {
-                            if (!ggHi.passedEleSelection(j, collisionType, hiBin, 1)) continue;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
 
