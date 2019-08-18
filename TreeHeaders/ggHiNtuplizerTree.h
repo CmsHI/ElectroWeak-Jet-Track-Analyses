@@ -1843,8 +1843,8 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
     }
     else if (collisionIsPP2017((COLL::TYPE)collType)) {
 
-        // default WP for 2017 pp is medium.
-        if (WPindex == 0) WPindex = 3;
+        // default WP for 2017 pp is veto.
+        if (WPindex == 0) WPindex = 1;
 
         if (WPindex == 1) {
             if (std::fabs((*eleSCEta)[i]) < 1.4442)
@@ -1866,6 +1866,32 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                 if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.08807)) return false;
                 if (!((*eleHoverE)[i] < 0.04518)) return false;
                 if (!(std::fabs((*eleEoverPInv)[i]) < 0.90658)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.0564)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.472)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleIP3D)[i] < 0.03)) return false;
+            }
+        }
+        else if (WPindex == 2) {
+            if (std::fabs((*eleSCEta)[i]) < 1.4442)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.01016)) return false;
+                if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.00316)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.03937)) return false;
+                if (!((*eleHoverE)[i] < 0.02711)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.05304)) return false;
+                //if (!(std::fabs((*eleD0)[i]) < 0.0564)) return false;
+                //if (!(std::fabs((*eleDz)[i]) < 0.472)) return false;
+                if (!((*eleMissHits)[i] <= 1)) return false;
+                if (!((*eleIP3D)[i] < 0.03)) return false;
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
+            {
+                if (!((*eleSigmaIEtaIEta_2012)[i] < 0.02946)) return false;
+                if (!(std::fabs((*eledEtaSeedAtVtx)[i]) < 0.00565)) return false;
+                if (!(std::fabs((*eledPhiAtVtx)[i]) < 0.03816)) return false;
+                if (!((*eleHoverE)[i] < 0.03750)) return false;
+                if (!(std::fabs((*eleEoverPInv)[i]) < 0.02356)) return false;
                 //if (!(std::fabs((*eleD0)[i]) < 0.0564)) return false;
                 //if (!(std::fabs((*eleDz)[i]) < 0.472)) return false;
                 if (!((*eleMissHits)[i] <= 1)) return false;
