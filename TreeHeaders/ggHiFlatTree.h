@@ -82,8 +82,10 @@ public :
   float eleEn;
   float eleD0;
   float eleDz;
+  float eleIP3D;
   float eleD0Err;
   float eleDzErr;
+  float eleIP3DErr;
   float eleTrkPt;
   float eleTrkEta;
   float eleTrkPhi;
@@ -402,8 +404,10 @@ public :
   TBranch        *b_eleEn;   //!
   TBranch        *b_eleD0;   //!
   TBranch        *b_eleDz;   //!
+  TBranch        *b_eleIP3D;   //!
   TBranch        *b_eleD0Err;   //!
   TBranch        *b_eleDzErr;   //!
+  TBranch        *b_eleIP3DErr;   //!
   TBranch        *b_eleTrkPt;   //!
   TBranch        *b_eleTrkEta;   //!
   TBranch        *b_eleTrkPhi;   //!
@@ -722,8 +726,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_eleEn = 0;
     b_eleD0 = 0;
     b_eleDz = 0;
+    b_eleIP3D = 0;
     b_eleD0Err = 0;
     b_eleDzErr = 0;
+    b_eleIP3DErr = 0;
     b_eleTrkPt = 0;
     b_eleTrkEta = 0;
     b_eleTrkPhi = 0;
@@ -1041,8 +1047,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleEn")) t->SetBranchAddress("eleEn", &eleEn, &b_eleEn);
     if (t->GetBranch("eleD0")) t->SetBranchAddress("eleD0", &eleD0, &b_eleD0);
     if (t->GetBranch("eleDz")) t->SetBranchAddress("eleDz", &eleDz, &b_eleDz);
+    if (t->GetBranch("eleIP3D")) t->SetBranchAddress("eleIP3D", &eleIP3D, &b_eleIP3D);
     if (t->GetBranch("eleD0Err")) t->SetBranchAddress("eleD0Err", &eleD0Err, &b_eleD0Err);
     if (t->GetBranch("eleDzErr")) t->SetBranchAddress("eleDzErr", &eleDzErr, &b_eleDzErr);
+    if (t->GetBranch("eleIP3DErr")) t->SetBranchAddress("eleIP3DErr", &eleIP3DErr, &b_eleIP3DErr);
     if (t->GetBranch("eleTrkPt")) t->SetBranchAddress("eleTrkPt", &eleTrkPt, &b_eleTrkPt);
     if (t->GetBranch("eleTrkEta")) t->SetBranchAddress("eleTrkEta", &eleTrkEta, &b_eleTrkEta);
     if (t->GetBranch("eleTrkPhi")) t->SetBranchAddress("eleTrkPhi", &eleTrkPhi, &b_eleTrkPhi);
@@ -1364,8 +1372,10 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("eleEn", &eleEn);
         t->Branch("eleD0", &eleD0);
         t->Branch("eleDz", &eleDz);
+        t->Branch("eleIP3D", &eleIP3D);
         t->Branch("eleD0Err", &eleD0Err);
         t->Branch("eleDzErr", &eleDzErr);
+        t->Branch("eleIP3DErr", &eleIP3DErr);
         t->Branch("eleTrkPt", &eleTrkPt);
         t->Branch("eleTrkEta", &eleTrkEta);
         t->Branch("eleTrkPhi", &eleTrkPhi);
@@ -1673,8 +1683,10 @@ void ggHiFlat::clearEntryEle()
         eleEn = -987987;
         eleD0 = -987987;
         eleDz = -987987;
+        eleIP3D = -987987;
         eleD0Err = -987987;
         eleDzErr = -987987;
+        eleIP3DErr = -987987;
         eleTrkPt = -987987;
         eleTrkEta = -987987;
         eleTrkPhi = -987987;
@@ -1997,6 +2009,10 @@ void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
     eleEn = (*tggHiNtuplizer.eleEn)[i];
     eleD0 = (*tggHiNtuplizer.eleD0)[i];
     eleDz = (*tggHiNtuplizer.eleDz)[i];
+    if (tggHiNtuplizer.b_eleIP3D != 0) {
+        eleIP3D = (*tggHiNtuplizer.eleIP3D)[i];
+        eleIP3DErr = (*tggHiNtuplizer.eleIP3DErr)[i];
+    }
     eleD0Err = (*tggHiNtuplizer.eleD0Err)[i];
     eleDzErr = (*tggHiNtuplizer.eleDzErr)[i];
     eleTrkPt = (*tggHiNtuplizer.eleTrkPt)[i];

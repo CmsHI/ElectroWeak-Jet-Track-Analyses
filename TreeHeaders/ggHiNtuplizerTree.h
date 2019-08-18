@@ -45,8 +45,10 @@ public :
     eleEn = 0;
     eleD0 = 0;
     eleDz = 0;
+    eleIP3D = 0;
     eleD0Err = 0;
     eleDzErr = 0;
+    eleIP3DErr = 0;
     eleTrkPt = 0;
     eleTrkEta = 0;
     eleTrkPhi = 0;
@@ -363,8 +365,10 @@ public :
   std::vector<float>   *eleEn;
   std::vector<float>   *eleD0;
   std::vector<float>   *eleDz;
+  std::vector<float>   *eleIP3D;
   std::vector<float>   *eleD0Err;
   std::vector<float>   *eleDzErr;
+  std::vector<float>   *eleIP3DErr;
   std::vector<float>   *eleTrkPt;
   std::vector<float>   *eleTrkEta;
   std::vector<float>   *eleTrkPhi;
@@ -674,8 +678,10 @@ public :
   TBranch        *b_eleEn;   //!
   TBranch        *b_eleD0;   //!
   TBranch        *b_eleDz;   //!
+  TBranch        *b_eleIP3D;   //!
   TBranch        *b_eleD0Err;   //!
   TBranch        *b_eleDzErr;   //!
+  TBranch        *b_eleIP3DErr;   //!
   TBranch        *b_eleTrkPt;   //!
   TBranch        *b_eleTrkEta;   //!
   TBranch        *b_eleTrkPhi;   //!
@@ -985,8 +991,10 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_eleEn = 0;
     b_eleD0 = 0;
     b_eleDz = 0;
+    b_eleIP3D = 0;
     b_eleD0Err = 0;
     b_eleDzErr = 0;
+    b_eleIP3DErr = 0;
     b_eleTrkPt = 0;
     b_eleTrkEta = 0;
     b_eleTrkPhi = 0;
@@ -1294,8 +1302,10 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleEn")) t->SetBranchAddress("eleEn", &eleEn, &b_eleEn);
     if (t->GetBranch("eleD0")) t->SetBranchAddress("eleD0", &eleD0, &b_eleD0);
     if (t->GetBranch("eleDz")) t->SetBranchAddress("eleDz", &eleDz, &b_eleDz);
+    if (t->GetBranch("eleIP3D")) t->SetBranchAddress("eleIP3D", &eleIP3D, &b_eleIP3D);
     if (t->GetBranch("eleD0Err")) t->SetBranchAddress("eleD0Err", &eleD0Err, &b_eleD0Err);
     if (t->GetBranch("eleDzErr")) t->SetBranchAddress("eleDzErr", &eleDzErr, &b_eleDzErr);
+    if (t->GetBranch("eleIP3DErr")) t->SetBranchAddress("eleIP3DErr", &eleIP3DErr, &b_eleIP3DErr);
     if (t->GetBranch("eleTrkPt")) t->SetBranchAddress("eleTrkPt", &eleTrkPt, &b_eleTrkPt);
     if (t->GetBranch("eleTrkEta")) t->SetBranchAddress("eleTrkEta", &eleTrkEta, &b_eleTrkEta);
     if (t->GetBranch("eleTrkPhi")) t->SetBranchAddress("eleTrkPhi", &eleTrkPhi, &b_eleTrkPhi);
