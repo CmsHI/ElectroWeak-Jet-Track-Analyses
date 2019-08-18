@@ -285,8 +285,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1::SetDefaultSumw2();
 
     std::vector<TH2D*> vec_h2D;
-    std::vector<TH1D*> vec_h_num;
-    std::vector<TH1D*> vec_h_denom;
+    std::vector<TH1*> vec_h_num;
+    std::vector<TH1*> vec_h_denom;
 
     TH1D* h_vPt[nCents];
     TH1D* h_vEta[nCents][nVPts];
@@ -302,10 +302,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     // reco eff
     TH1D* h_reco_num_vPt[nCents];
     TH1D* h_reco_denom_vPt[nCents];
+    TH1D* h_reco_num_vPhi[nCents][nVPts];
+    TH1D* h_reco_denom_vPhi[nCents][nVPts];
     TH1D* h_reco_num_vY[nCents][nVPts];
     TH1D* h_reco_denom_vY[nCents][nVPts];
     TH1D* h_reco_num_cent[nVPts];
     TH1D* h_reco_denom_cent[nVPts];
+    TH2D* h2_reco_num_vPt_vs_vY[nCents];
+    TH2D* h2_reco_denom_vPt_vs_vY[nCents];
 
     // reco/gen diff
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
@@ -416,6 +420,22 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h_reco_denom_vPt[i] = (TH1D*)h_reco_num_vPt[i]->Clone(name_h_reco_denom_vPt.c_str());
         vec_h_denom.push_back(h_reco_denom_vPt[i]);
 
+        std::string title_h2_reco_num_vPt_vs_vY = Form("%s;%s;%s;", text_range_cent.c_str(),
+                                                           text_vY.c_str(),
+                                                           text_vPt.c_str());
+        std::string name_h2_reco_num_vPt_vs_vY = Form("h2_reco_num_vPt_vs_vY_%s", label_cent.c_str());
+        h2_reco_num_vPt_vs_vY[i] = 0;
+        h2_reco_num_vPt_vs_vY[i] = new TH2D(name_h2_reco_num_vPt_vs_vY.c_str(), title_h2_reco_num_vPt_vs_vY.c_str(),
+                                            nBinsX_eta, -1*xMax_eta, xMax_eta, nBinsX_vPt, 0, xMax_vPt);
+        vec_h_num.push_back(h2_reco_num_vPt_vs_vY[i]);
+        vec_h2D.push_back(h2_reco_num_vPt_vs_vY[i]);
+
+        std::string name_h2_reco_denom_vPt_vs_vY = Form("h2_reco_denom_vPt_vs_vY_%s", label_cent.c_str());
+        h2_reco_denom_vPt_vs_vY[i] = 0;
+        h2_reco_denom_vPt_vs_vY[i] = (TH2D*)h2_reco_num_vPt_vs_vY[i]->Clone(name_h2_reco_denom_vPt_vs_vY.c_str());
+        vec_h_denom.push_back(h2_reco_denom_vPt_vs_vY[i]);
+        vec_h2D.push_back(h2_reco_denom_vPt_vs_vY[i]);
+
         std::string name_h2_rgVPt_ratio_vs_vPt = Form("h2_rgVPt_ratio_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_rgVPt_ratio_vs_vPt = Form("%s, %s;gen %s;p_{T}^{reco} / p_{T}^{gen}", text_range_vY.c_str(),
                                                      text_range_cent.c_str(),
@@ -500,17 +520,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_vEta[i][j] = 0;
             h_vEta[i][j] = new TH1D(name_h_vEta.c_str(), title_h_vEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
-            std::string name_h_reco_num_vY = Form("h_reco_num_vY_%s", name_h_suffix.c_str());
-            h_reco_num_vY[i][j] = 0;
-            h_reco_num_vY[i][j] = (TH1D*)h_vEta[i][j]->Clone(name_h_reco_num_vY.c_str());
-            h_reco_num_vY[i][j]->SetXTitle(Form("gen %s", h_vEta[i][j]->GetXaxis()->GetTitle()));
-            vec_h_num.push_back(h_reco_num_vY[i][j]);
-
-            std::string name_h_reco_denom_vY = Form("h_reco_denom_vY_%s", name_h_suffix.c_str());
-            h_reco_denom_vY[i][j] = 0;
-            h_reco_denom_vY[i][j] = (TH1D*)h_reco_num_vY[i][j]->Clone(name_h_reco_denom_vY.c_str());
-            vec_h_denom.push_back(h_reco_denom_vY[i][j]);
-
             title_h_suffix = Form("%s, %s, %s", text_range_vPt.c_str(), text_range_vY.c_str(), text_range_cent.c_str());
 
             std::string name_h_vPhi = Form("h_vPhi_%s", name_h_suffix.c_str());
@@ -522,6 +531,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vY = Form("%s;%s;", title_h_suffix.c_str(), text_vY.c_str());
             h_vY[i][j] = 0;
             h_vY[i][j] = new TH1D(name_h_vY.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+
+            std::string name_h_reco_num_vPhi = Form("h_reco_num_vPhi_%s", name_h_suffix.c_str());
+            h_reco_num_vPhi[i][j] = 0;
+            h_reco_num_vPhi[i][j] = (TH1D*)h_vPhi[i][j]->Clone(name_h_reco_num_vPhi.c_str());
+            h_reco_num_vPhi[i][j]->SetXTitle(Form("gen %s", h_vPhi[i][j]->GetXaxis()->GetTitle()));
+            vec_h_num.push_back(h_reco_num_vPhi[i][j]);
+
+            std::string name_h_reco_denom_vPhi = Form("h_reco_denom_vPhi_%s", name_h_suffix.c_str());
+            h_reco_denom_vPhi[i][j] = 0;
+            h_reco_denom_vPhi[i][j] = (TH1D*)h_reco_num_vPhi[i][j]->Clone(name_h_reco_denom_vPhi.c_str());
+            vec_h_denom.push_back(h_reco_denom_vPhi[i][j]);
+
+            std::string name_h_reco_num_vY = Form("h_reco_num_vY_%s", name_h_suffix.c_str());
+            h_reco_num_vY[i][j] = 0;
+            h_reco_num_vY[i][j] = (TH1D*)h_vY[i][j]->Clone(name_h_reco_num_vY.c_str());
+            h_reco_num_vY[i][j]->SetXTitle(Form("gen %s", h_vY[i][j]->GetXaxis()->GetTitle()));
+            vec_h_num.push_back(h_reco_num_vY[i][j]);
+
+            std::string name_h_reco_denom_vY = Form("h_reco_denom_vY_%s", name_h_suffix.c_str());
+            h_reco_denom_vY[i][j] = 0;
+            h_reco_denom_vY[i][j] = (TH1D*)h_reco_num_vY[i][j]->Clone(name_h_reco_denom_vY.c_str());
+            vec_h_denom.push_back(h_reco_denom_vY[i][j]);
 
             std::string name_h_vM_os = Form("h_vM_os_%s", name_h_suffix.c_str());
             std::string title_h_vM_os = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
@@ -1440,6 +1471,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
+                    h2_reco_denom_vPt_vs_vY[i]->Fill(genVY, genVPt, wV);
+                    if (matchedRG) {
+                        h2_reco_num_vPt_vs_vY[i]->Fill(genVY, genVPt, wV);
+                    }
+
                     if (vYMin <= genVYAbs && genVYAbs < vYMax) {
 
                         h_reco_denom_vPt[i]->Fill(genVPt, wV);
@@ -1458,6 +1494,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_reco_denom_vY[i][j]->Fill(genVY, wV);
                         if (matchedRG) {
                             h_reco_num_vY[i][j]->Fill(genVY, wV);
+                        }
+
+                        if (vYMin <= genVYAbs && genVYAbs < vYMax) {
+                            h_reco_denom_vPhi[i][j]->Fill(vPhi, wV);
+                            if (matchedRG) {
+                                h_reco_num_vPhi[i][j]->Fill(vPhi, wV);
+                            }
                         }
                     }
                 }
@@ -1770,7 +1813,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "### post loop processing - START ###" << std::endl;
 
     std::cout << "rebin" << std::endl;
-    TH1D* hTmp = 0;
+    TH1D* h1DTmp = 0;
     for (int i = 0; i < nCents; ++i) {
         for (int j = 0; j < nVPts; ++j) {
 
@@ -1788,8 +1831,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::copy(binsX.begin(), binsX.end(), arr_trkPt);
 
             tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin");
-            hTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
-            hTmp->Write("",TObject::kOverwrite);
+            h1DTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
+            h1DTmp->Write("",TObject::kOverwrite);
 
             for (int k = 0; k < nTrkPts; ++k) {
 
@@ -1802,8 +1845,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::copy(binsX.begin(), binsX.end(), arr_dphi);
 
                 tmpName = replaceAll(h_dphi[i][j][k]->GetName(), "h_dphi", "h_dphi_rebin");
-                hTmp = (TH1D*)h_dphi[i][j][k]->Rebin(nBinsX, tmpName.c_str(), arr_dphi);
-                hTmp->Write("",TObject::kOverwrite);
+                h1DTmp = (TH1D*)h_dphi[i][j][k]->Rebin(nBinsX, tmpName.c_str(), arr_dphi);
+                h1DTmp->Write("",TObject::kOverwrite);
             }
         }
     }
@@ -1840,7 +1883,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "efficiency" << std::endl;
     TGraphAsymmErrors* gTmp = 0;
-    hTmp = 0;
+    TH1* hTmp = 0;
     int nVec_h_num = vec_h_num.size();
     int nVec_h_denom = vec_h_denom.size();
     if (nVec_h_num != nVec_h_denom) {
@@ -1849,22 +1892,26 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nVec_h_num; ++i) {
         std::string tmpName = replaceFirst(vec_h_num[i]->GetName(), "_num_", "_eff_");
 
-        hTmp = (TH1D*)vec_h_num[i]->Clone(tmpName.c_str());
+        hTmp = (TH1*)vec_h_num[i]->Clone(tmpName.c_str());
         hTmp->Divide(vec_h_denom[i]);
-        hTmp->GetYaxis()->SetTitle("Efficiency");
+        if (hTmp->InheritsFrom("TH1D")) {
+            hTmp->GetYaxis()->SetTitle("Efficiency");
+        }
         hTmp->Write("",TObject::kOverwrite);
 
-        tmpName = replaceFirst(vec_h_num[i]->GetName(), "_num_", "_eff_");
-        tmpName = replaceFirst(tmpName, "h_", "g_");
+        if (hTmp->InheritsFrom("TH1D")) {
+            tmpName = replaceFirst(vec_h_num[i]->GetName(), "_num_", "_eff_");
+            tmpName = replaceFirst(tmpName, "h_", "g_");
 
-        gTmp = new TGraphAsymmErrors();
-        gTmp->SetName(tmpName.c_str());
-        gTmp->BayesDivide(vec_h_num[i], vec_h_denom[i]);
-        gTmp->SetTitle(vec_h_num[i]->GetTitle());
-        gTmp->GetXaxis()->SetTitle(vec_h_num[i]->GetXaxis()->GetTitle());
-        gTmp->GetYaxis()->SetTitle("Efficiency");
-        gTmp->SetMarkerStyle(kFullCircle);
-        gTmp->Write("",TObject::kOverwrite);
+            gTmp = new TGraphAsymmErrors();
+            gTmp->SetName(tmpName.c_str());
+            gTmp->BayesDivide(vec_h_num[i], vec_h_denom[i]);
+            gTmp->SetTitle(vec_h_num[i]->GetTitle());
+            gTmp->GetXaxis()->SetTitle(vec_h_num[i]->GetXaxis()->GetTitle());
+            gTmp->GetYaxis()->SetTitle("Efficiency");
+            gTmp->SetMarkerStyle(kFullCircle);
+            gTmp->Write("",TObject::kOverwrite);
+        }
     }
 
     std::cout << "### post loop processing - END ###" << std::endl;
