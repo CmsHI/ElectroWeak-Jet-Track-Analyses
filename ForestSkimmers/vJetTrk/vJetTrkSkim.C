@@ -118,8 +118,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     else if (isPbPb18) {
         collisionType = (isMC) ? COLL::TYPE::kHIMC2018 : COLL::TYPE::kHI2018;
     }
-    else if (isPP) {
+    else if (isPP15) {
         collisionType = (isMC) ? COLL::TYPE::kPPMC : COLL::TYPE::kPP;
+    }
+    else if (isPP17) {
+        collisionType = (isMC) ? COLL::TYPE::kPPMC2017 : COLL::TYPE::kPP2017;
     }
 
     std::cout << "isMC = " << isMC << std::endl;
