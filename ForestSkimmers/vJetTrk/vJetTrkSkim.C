@@ -751,7 +751,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                 for (int i = 0; i < nL; ++i) {
 
-                    if (!((*lPt)[i] > 20)) continue;
+                    float l1pt = (*lPt)[i];
+                    if (vIsZee) {
+                        l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+                    }
+                    if (!(l1pt > 20)) continue;
 
                     if (vIsZmm) {
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
@@ -763,7 +767,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                     for (int j = i+1; j < nL; ++j) {
 
-                        if (!((*lPt)[j] > 20)) continue;
+                        float l2pt = (*lPt)[j];
+                        if (vIsZee) {
+                            l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
+                        }
+                        if (!(l2pt > 20)) continue;
 
                         if (vIsZmm) {
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
@@ -773,8 +781,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
 
-                        vecl1.SetPtEtaPhiM((*lPt)[i], (*lEta)[i], (*lPhi)[i], lMass);
-                        vecl2.SetPtEtaPhiM((*lPt)[j], (*lEta)[j], (*lPhi)[j], lMass);
+                        vecl1.SetPtEtaPhiM(l1pt, (*lEta)[i], (*lPhi)[i], lMass);
+                        vecl2.SetPtEtaPhiM(l2pt, (*lEta)[j], (*lPhi)[j], lMass);
 
                         vecll = vecl1 + vecl2;
 
