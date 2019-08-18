@@ -86,6 +86,7 @@ void setBranchStatusTreeTrack(TTree* t, bool enableVtx = false);
 void setBranchStatusTreePFCand(TTree* t);
 void setBranchStatusTreeSkimAna(TTree* t);
 void setBranchStatusTreeHiGenParticle(TTree* t);
+int getIndex4CentBin(int hiBin);
 int getHiBin(int hiBin);
 int getVzBin(float vz);
 int getEventPlaneBin(double eventPlaneAngle);
@@ -115,6 +116,7 @@ int getNTrkPerp(Tracks& trks, double vPhi);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
+double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
@@ -232,6 +234,22 @@ void setBranchStatusTreeHiGenParticle(TTree* t)
     t->SetBranchStatus("pdg",1);
     t->SetBranchStatus("chg",1);
     t->SetBranchStatus("sube",1);
+}
+
+int getIndex4CentBin(int hiBin)
+{
+    if (hiBin < 20) {
+        return 0;
+    }
+    else if (hiBin < 60) {
+        return 1;
+    }
+    else if (hiBin < 100) {
+        return 2;
+    }
+    else {
+        return 3;
+    }
 }
 
 int getHiBin(int hiBin)
@@ -612,6 +630,39 @@ float getPFtotE(pfCand& pf, int pfId, float etaMin, float etaMax)
     }
 
     return res;
+}
+
+double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff)
+{
+    int nBinsX = h2_eff->GetXaxis()->GetNbins();
+    int nBinsY = h2_eff->GetYaxis()->GetNbins();
+
+    int binX = h2_eff->GetXaxis()->FindBin(vY);
+    int binY = h2_eff->GetYaxis()->FindBin(vPt);
+
+    if (binX == 0 || binX > nBinsX || binY == 0) {
+        return 0;
+    }
+
+    if (binY > nBinsY) {
+        binY = nBinsY;
+    }
+
+    double effTmp = h2_eff->GetBin(binX, binY);
+    if (effTmp < 0.001) {
+        binX = h2_eff->GetXaxis()->FindBin(-1*vY);
+        effTmp = h2_eff->GetBin(binX, binY);
+        if (effTmp < 0.001) {
+            std::cout << "WARNING : very low or no efficiency for vPt = " << vPt << " and vY = " << vY << std::endl;
+            std::cout << "Returning a correction of 0." << vY << std::endl;
+            return 0;
+        }
+    }
+    if (effTmp > 1.0) {
+        effTmp = 1.0;
+    }
+
+    return 1./(effTmp);
 }
 
 /*
