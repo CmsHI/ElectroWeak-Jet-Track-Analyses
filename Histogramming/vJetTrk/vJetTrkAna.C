@@ -62,6 +62,7 @@ std::vector<std::vector<float>> pthatWeights;
 // RECO object cuts
 bool excludeHI18HEMfailure;
 
+int applyWeightsV;
 int applyTrkWeights;
 bool rotateEvtPlane;
 
@@ -240,6 +241,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isMixTrk = isBkgTrk;
 
+    bool doWeightsV = (applyWeightsV > 0);
+
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = (applyTrkWeights == 2);
 
@@ -247,6 +250,41 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool doResidualTrkW = (outputFile.find("resTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualTrkW = " << doResidualTrkW << std::endl;
+
+    TFile* fileWeightsV = 0;
+    std::vector<TH2D*> vec_h2D_wV;
+    if (doWeightsV) {
+        std::string dirWV = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/vReco/";
+        std::string fileNameWV = "";
+        if (vIsZmm && isPP17)  {
+            fileNameWV = "vJetTrkAna_pp_2017_mc_zmm_vr_trk_r_raw.root";
+        }
+        else if (vIsZee && isPP17)  {
+            fileNameWV = "vJetTrkAna_pp_2017_mc_zee_vr_trk_r_raw.root";
+        }
+        else if (vIsZmm && isPbPb18)  {
+            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zmm_vr_trk_r_raw.root";
+        }
+        else if (vIsZee && isPbPb18)  {
+            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zee_vr_trk_r_raw.root";
+        }
+
+        if (fileNameWV != "") {
+            std::string filePathWV = Form("%s/%s", dirWV.c_str(), fileNameWV.c_str());
+            fileWeightsV = TFile::Open(filePathWV.c_str(), "READ");
+
+            std::vector<std::string> tmpCents = {"0_100"};
+            if (isPbPb) {
+                tmpCents = {"0_10", "10_30", "30_50", "50_90"};
+            }
+
+            for (std::vector<std::string>::iterator it = tmpCents.begin() ; it != tmpCents.end(); ++it) {
+
+                std::string tmpPath = Form("h2_reco_eff_vPt_vs_vY_cent%s", (*it).c_str());
+                vec_h2D_wV.push_back((TH2D*)fileWeightsV->Get(tmpPath.c_str()));
+            }
+        }
+    }
 
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
 
@@ -1462,6 +1500,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             double wV = w;
+            if (doWeightsV) {
+                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
+                wV *= getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
+            }
 
             // reco eff
             if (isMC && isRecoV && genVPt > 0) {
@@ -1997,6 +2039,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     // RECO cuts
     excludeHI18HEMfailure = (confParser.ReadConfigValueInteger("excludeHI18HEMfailure") > 0);
 
+    applyWeightsV = confParser.ReadConfigValueInteger("applyWeightsV");
+
     applyTrkWeights = confParser.ReadConfigValueInteger("applyTrkWeights");
 
     rotateEvtPlane = (confParser.ReadConfigValueInteger("rotateEvtPlane") > 0);
@@ -2035,6 +2079,8 @@ void printConfiguration()
     }
 
     std::cout << "excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
+
+    std::cout << "applyWeightsV = " << applyWeightsV << std::endl;
 
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
 
