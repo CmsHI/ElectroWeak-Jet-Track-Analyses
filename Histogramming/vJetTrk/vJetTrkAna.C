@@ -44,6 +44,7 @@
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
 #include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
+#include "../../Corrections/tracks/TrackingCorrection_2017pp/trackingEfficiency2017pp.h"
 #include "../../Corrections/tracks/2015/getTrkCorr.h"
 
 ///// global variables
@@ -289,6 +290,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
 
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
+
+    TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/TrackingCorrection_2017pp/");
 
     TrkCorr* trkCorr2015 = 0;
     if (redoTrkWeights) {
@@ -1735,11 +1738,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         trkWeightTmp = trkCorr2015->getTrkCorr(t_pt, t_eta, t_phi, hiBinTmp);
                     }
                     else if (isPP17) {
-                        trkWeightTmp = 1.10;
+                        trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
                     }
                     else if (isPbPb18) {
                         //trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
-                        float effTmp = (trkEff2018.getEfficiency(t_pt, t_eta, hiBinTmp, true));
+                        float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBinTmp, true);
                         trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
 
                         float tmpResCorr = 1;
