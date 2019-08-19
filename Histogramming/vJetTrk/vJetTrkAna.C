@@ -271,6 +271,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         if (fileNameWV != "") {
             std::string filePathWV = Form("%s/%s", dirWV.c_str(), fileNameWV.c_str());
+            std::cout << "reading V correction file : " << filePathWV.c_str() << std::endl;
+
             fileWeightsV = TFile::Open(filePathWV.c_str(), "READ");
 
             std::vector<std::string> tmpCents = {"0_100"};
