@@ -899,7 +899,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkWeightTmp = trkEff2017.getCorrection(trks.trkPt[i], trks.trkEta[i]);
                     }
                     else if (isPbPb18) {
-                        trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
+                        //trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
+                        float effTmp = trkEff2018.getEfficiency(trks.trkPt[i], trks.trkEta[i], hiBin, true);
+                        trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
                     }
                 }
                 trkskim.trkWeight.push_back(trkWeightTmp);
@@ -1241,7 +1243,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                                 trkWeightTmp = trkEff2017.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i]);
                             }
                             else if (isPbPb18) {
-                                trkWeightTmp = trkEff2018.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], hiEvtMix[iMF].hiBin);
+                                //trkWeightTmp = trkEff2018.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], hiEvtMix[iMF].hiBin);
+                                float effTmp = trkEff2018.getEfficiency(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], hiEvtMix[iMF].hiBin, true);
+                                trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
                             }
                         }
                         trkskim.trkWeight_mix.push_back(trkWeightTmp);
