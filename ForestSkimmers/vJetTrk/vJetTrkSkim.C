@@ -38,6 +38,7 @@
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
 #include "../../Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/trackingEfficiency2018PbPb.h"
+#include "../../Corrections/tracks/TrackingCorrection_2017pp/trackingEfficiency2017pp.h"
 #include "../../Corrections/tracks/2015/getTrkCorr.h"
 
 struct entryVec
@@ -194,6 +195,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool doTrkVtx = isPP;
 
     TrkEff2018PbPb trkEff2018 = TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/");
+
+    TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/TrackingCorrection_2017pp/");
 
     TrkCorr* trkCorr2015 = 0;
     if (doTrkWeights) {
@@ -893,7 +896,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkWeightTmp = trkCorr2015->getTrkCorr(trks.trkPt[i], trks.trkEta[i], trks.trkPhi[i], hiBinTmp);
                     }
                     else if (isPP17) {
-                        trkWeightTmp = 1.10;
+                        trkWeightTmp = trkEff2017.getCorrection(trks.trkPt[i], trks.trkEta[i]);
                     }
                     else if (isPbPb18) {
                         trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
@@ -1235,7 +1238,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                                 trkWeightTmp = trkCorr2015->getTrkCorr(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], trksMix[iMF].trkPhi[i], hiBinTmp);
                             }
                             else if (isPP17) {
-                                trkWeightTmp = 1.10;
+                                trkWeightTmp = trkEff2017.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i]);
                             }
                             else if (isPbPb18) {
                                 trkWeightTmp = trkEff2018.getCorrection(trksMix[iMF].trkPt[i], trksMix[iMF].trkEta[i], hiEvtMix[iMF].hiBin);
