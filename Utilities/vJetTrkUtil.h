@@ -648,13 +648,13 @@ double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff)
         binY = nBinsY;
     }
 
-    double effTmp = h2_eff->GetBin(binX, binY);
+    double effTmp = h2_eff->GetBinContent(binX, binY);
     if (effTmp < 0.001) {
         binX = h2_eff->GetXaxis()->FindBin(-1*vY);
-        effTmp = h2_eff->GetBin(binX, binY);
+        effTmp = h2_eff->GetBinContent(binX, binY);
         if (effTmp < 0.001) {
             std::cout << "WARNING : very low or no efficiency for vPt = " << vPt << " and vY = " << vY << std::endl;
-            std::cout << "Returning a correction of 0." << vY << std::endl;
+            std::cout << "Returning a correction of 0." << std::endl;
             return 0;
         }
     }
