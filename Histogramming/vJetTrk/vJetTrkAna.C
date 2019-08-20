@@ -1732,7 +1732,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 // lepton rej
                 if (isRecoTrk) {
                     // PF id
-                    if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3)  continue;
+                    if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3 || (*p_pid)[i] < 0)  continue;
                 }
                 else {
                     if (std::fabs((*p_pid)[i]) == 11 || std::fabs((*p_pid)[i]) == 13)  continue;
