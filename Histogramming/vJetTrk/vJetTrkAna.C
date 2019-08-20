@@ -391,6 +391,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
     TH2D* h2_dphi_vs_trkEta[nCents][nVPts][nTrkPts];
+    TH2D* h2_dphi_vs_trkPhi[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_xivh[nCents][nVPts][nTrkPts];
 
     int nBinsX_vPt = 30;
@@ -944,6 +945,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_eta, -1*xMax_eta,  xMax_eta,
                                                           nBinsX_dphi, 0, xMax_phi);
                 vec_h2D.push_back(h2_dphi_vs_trkEta[i][j][k]);
+
+                std::string name_h2_dphi_vs_trkPhi = Form("h2_dphi_vs_trkPhi_%s", name_h_suffix.c_str());
+                std::string title_h2_dphi_vs_trkPhi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            text_trkPhi.c_str(),
+                                                            text_dphi.c_str());
+
+                h2_dphi_vs_trkPhi[i][j][k] = 0;
+                h2_dphi_vs_trkPhi[i][j][k] = new TH2D(name_h2_dphi_vs_trkPhi.c_str(), title_h2_dphi_vs_trkPhi.c_str(),
+                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi,
+                                                          nBinsX_dphi, 0, xMax_phi);
+                vec_h2D.push_back(h2_dphi_vs_trkPhi[i][j][k]);
 
                 std::string name_h2_deta_vs_xivh = Form("h2_deta_vs_xivh_%s", name_h_suffix.c_str());
                 std::string title_h2_deta_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
@@ -1846,6 +1858,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h2_deta_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
                             h2_dphi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, dphi, wTrk);
+                            h2_dphi_vs_trkPhi[iCent][iVPt][iTrkPt]->Fill(t_phi, dphi, wTrk);
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
 
