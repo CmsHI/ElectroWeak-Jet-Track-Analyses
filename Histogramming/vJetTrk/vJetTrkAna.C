@@ -384,6 +384,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_zh_T[nCents][nVPts][nTrkPts];
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
 
+    TH1D* h_dphi_leptrk[nCents][nVPts][nTrkPts];
+    TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
+
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
@@ -889,6 +892,23 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 h_xivh[i][j][k] = 0;
                 h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBins_xivh, 0, 5);
+
+
+                std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
+                std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
+                std::string title_h_dphi_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
+                                                          text_dphi_leptrk.c_str());
+
+                h_dphi_leptrk[i][j][k] = 0;
+                h_dphi_leptrk[i][j][k] = new TH1D(name_h_dphi_leptrk.c_str(), title_h_dphi_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+                std::string text_dR_leptrk = Form("#DeltaR_{%s,lep}", text_trk.c_str());
+                std::string name_h_dR_leptrk = Form("h_dR_leptrk_%s", name_h_suffix.c_str());
+                std::string title_h_dR_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
+                                                          text_dR_leptrk.c_str());
+
+                h_dR_leptrk[i][j][k] = 0;
+                h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
 
                 std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
@@ -1817,6 +1837,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, wTrk);
                             h_dR[iCent][iVPt][iTrkPt]->Fill(dR, wTrk);
+
+                            h_dphi_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[0], t_phi)), wTrk);
+                            h_dphi_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[1], t_phi)), wTrk);
+
+                            h_dR_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDR(llEta[0], llPhi[0], t_eta, t_phi)), wTrk);
+                            h_dR_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDR(llEta[1], llPhi[1], t_eta, t_phi)), wTrk);
 
                             h2_deta_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
                             h2_dphi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, dphi, wTrk);
