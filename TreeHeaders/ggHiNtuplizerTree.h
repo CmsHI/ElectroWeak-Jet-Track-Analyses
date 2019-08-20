@@ -1636,6 +1636,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 3)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1647,6 +1648,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 3)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
             else if (hiBin >= 60 && hiBin < 200) {
@@ -1660,6 +1662,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 3)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1671,6 +1674,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 3)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
         }
@@ -1688,6 +1692,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1699,6 +1704,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
             else if (hiBin >= 60 && hiBin < 200) {
@@ -1712,6 +1718,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1723,6 +1730,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
         }
@@ -1740,6 +1748,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1751,6 +1760,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
             else if (hiBin >= 60 && hiBin < 200) {
@@ -1764,6 +1774,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1775,6 +1786,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
         }
@@ -1792,6 +1804,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1803,6 +1816,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
             else if (hiBin >= 60 && hiBin < 200) {
@@ -1816,6 +1830,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.01)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
                 else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5)
                 {
@@ -1827,6 +1842,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
                     //if (!(std::fabs((*eleD0)[i]) < 0.02)) return false;
                     //if (!(std::fabs((*eleDz)[i]) < 0.04)) return false;
                     if (!((*eleMissHits)[i] <= 1)) return false;
+                    if (!((*eleIP3D)[i] < 0.03)) return false;
                 }
             }
         }
