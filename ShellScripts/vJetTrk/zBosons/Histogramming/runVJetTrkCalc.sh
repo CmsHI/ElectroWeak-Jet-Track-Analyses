@@ -58,13 +58,20 @@ trkEta
 zh
 zh_T
 xivh
+dphi_leptrk
+dR_leptrk
 dphi_vs_trkPt
 dphi_vs_deta
 dphi_vs_trkEta
+dphi_vs_trkPhi
 trkPhi_vs_trkEta
+deta_vs_dphi
+deta_vs_trkPt
+deta_vs_xivh
 );
 
 labels_vPt=(
+10_0
 10_20
 20_40
 20_0
