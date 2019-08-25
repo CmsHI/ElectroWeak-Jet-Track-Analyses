@@ -159,6 +159,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
     if (doSUB) {
 
+        std::vector<std::string> hPaths_vPt;
+
         for (int i = 0; i < nInputObjs; i+=2) {
 
             int iRaw = i;
@@ -177,15 +179,20 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 continue;
             }
 
+
+            std::string tmpName_vPt = hIn[iRaw]->GetName();
+            std::string histPath_vPt = parsePathTH1vPt(tmpName_vPt);
+            hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
+            if (!containsElement(hPaths_vPt, histPath_vPt)) {
+
+                hPaths_vPt.push_back(histPath_vPt);
+                hTmp->Write("", TObject::kOverwrite);
+            }
+
             double nV = 1;
             if (doNORMV) {
-
-                std::string tmpName = hIn[iRaw]->GetName();
-                std::string histPath_vPt = parsePathTH1vPt(tmpName);
-                hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
-
-                int binMin = hTmp->GetXaxis()->FindBin(parseVPtMin(tmpName));
-                int binMax = hTmp->GetXaxis()->FindBin(parseVPtMax(tmpName)) - 1;
+                int binMin = hTmp->GetXaxis()->FindBin(parseVPtMin(tmpName_vPt));
+                int binMax = hTmp->GetXaxis()->FindBin(parseVPtMax(tmpName_vPt)) - 1;
                 if (binMax < binMin) {
                     binMax = hTmp->GetNbinsX() + 1;
                 }
