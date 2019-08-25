@@ -204,6 +204,9 @@ do
 
 #      outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_trk_"${trkRG}"_bkgsub.root"
       outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_v"${vRG}"_trk_"${trkRG}"_bkgsub.root"
+      if [ ${doNORMV} == 0 ]; then
+        outputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${outputSuffix}"_v"${vRG}"_trk_"${trkRG}"_bkgsub_noNormV.root"
+      fi
     elif [ ${doNORMV} == 1 ]; then
 
 #      inputFile=${outputDirBase}"/"${relDirHist}"/"${dirSpecial}"/"${inputSuffix}"_trk_"${trkRG}"_"${trkRBS}".root"
