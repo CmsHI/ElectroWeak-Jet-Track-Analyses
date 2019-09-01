@@ -210,6 +210,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     // input trees
     TTree* treeHLT = 0;
+    TTree* treeL1Obj = 0;
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
     std::vector<TTree*> treesJet(nJetCollections, 0);
@@ -220,6 +221,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* treeSkim = 0;
 
     std::string treePathHLT = "hltanalysis/HltTree";
+    std::string treePathL1Obj = "l1object/L1UpgradeFlatTree";
     std::string treePathHiEvt = "hiEvtAnalyzer/HiTree";
     std::string treePathTrack = "ppTrack/trackTree";
     if (isPbPb15) {
@@ -259,6 +261,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     // output trees
     TTree* outTreeHLT = 0;
+    TTree* outTreeL1Obj = 0;
     TTree* outTreeggHiNtuplizer = 0;
     TTree* outTreeHiEvt = 0;
     TTree* eventSkimTree = 0;
@@ -574,6 +577,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             treeHLT = (TTree*)fileTmp->Get("hltanalysisReco/HltTree");
         }
 
+        treeL1Obj = (TTree*)fileTmp->Get(treePathL1Obj.c_str());
+
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
         treeggHiNtuplizer->SetBranchStatus("nPho",1);
@@ -651,6 +656,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         //outTreeHLT->SetName("hltTree");
         //outTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
 
+        if (iFile == 0)  outTreeL1Obj = treeL1Obj->CloneTree(0);
+        else             treeL1Obj->CopyAddresses(outTreeL1Obj);
+
         if (iFile == 0)  outTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
         else             treeggHiNtuplizer->CopyAddresses(outTreeggHiNtuplizer);
 
@@ -659,6 +667,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
         if (iFile == 0) {
             outTreeHLT->SetMaxTreeSize(MAXTREESIZE);
+            outTreeL1Obj->SetMaxTreeSize(MAXTREESIZE);
             outTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
             outTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
         }
@@ -673,6 +682,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             treeHLT->GetEntry(j_entry);
+            treeL1Obj->GetEntry(j_entry);
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
@@ -1284,6 +1294,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
 
             outTreeHLT->Fill();
+            outTreeL1Obj->Fill();
             outTreeggHiNtuplizer->Fill();
             outTreeHiEvt->Fill();
             eventSkimTree->Fill();
@@ -1310,6 +1321,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout << "entriesSelected     = " << entriesSelected << std::endl;
 
     std::cout << "outTreeHLT->GetEntries()           = " << outTreeHLT->GetEntries() << std::endl;
+    std::cout << "outTreeL1Obj->GetEntries()         = " << outTreeL1Obj->GetEntries() << std::endl;
     std::cout << "outTreeggHiNtuplizer->GetEntries() = " << outTreeggHiNtuplizer->GetEntries() << std::endl;
     std::cout << "outTreeHiEvt->GetEntries()         = " << outTreeHiEvt->GetEntries() << std::endl;
     std::cout << "mixEventSkimTree->GetEntries()     = " << mixEventSkimTree->GetEntries() << std::endl;
