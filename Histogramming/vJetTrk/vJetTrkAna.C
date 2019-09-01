@@ -32,6 +32,7 @@
 #include "../../TreeHeaders/trackSkimTree.h"
 #include "../../TreeHeaders/eventSkimTree.h"
 #include "../../TreeHeaders/mixEventSkimTree.h"
+#include "../../TreeHeaders/hiFJRhoTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/ConfigurationParser.h"
 #include "../../Utilities/interface/GraphicsConfigurationParser.h"
@@ -1132,12 +1133,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TTree* treeTrackSkim = 0;
     TTree* treeEvtSkim = 0;
     TTree* treeHiEvtMix = 0;
+    TTree* treeHiFJRho = 0;
 
     std::string treePathHLT = "HltTree";
     std::string treePathHiEvt = "HiTree";
     std::string treePathTrack = "trackSkim";
     std::string treePathEvtSkim = "eventSkim";
     std::string treePathHiEvtMix = "mixEventSkim";
+    std::string treePathHiFJRho = "hiFJRhoFinerBins";
 
     /*
      * HLT_HIL2Mu20_v1, HLT_HIL2Mu15_v2, HLT_HIL1DoubleMu10_v1, HLT_HIL1DoubleMu0_v1, HLT_HIL3Mu15_v1, HLT_HIL3Mu20_v1
@@ -1187,6 +1190,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         treePathTrack = "ppTrack/trackTree";
         treePathEvtSkim = "NULL";
         treePathHiEvtMix = "NULL";
+        treePathHiFJRho = "hiFJRhoAnalyzerFinerBins/t";
     }
 
     if (nFiles == 1) {
@@ -1320,6 +1324,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
         }
 
+        if (isPbPb18) {
+            treeHiFJRho = (TTree*)fileTmp->Get(treePathHiFJRho.c_str());
+            treeHiFJRho->SetBranchStatus("*", 0);
+            treeHiFJRho->SetBranchStatus("etaM*",1);
+            treeHiFJRho->SetBranchStatus("rho*",1);
+        }
+
         if (isMC) {
             treeggHiNtuplizer->SetBranchStatus("nMC*",1);     // enable GEN particle branches
             treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
@@ -1351,6 +1362,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             evtskim.setupTreeForReading(treeEvtSkim);
             mixEvents.setupTreeForReading(treeHiEvtMix);
+        }
+
+        hiFJRho hifjrho;
+        if (isPbPb18) {
+            hifjrho.setupTreeForReading(treeHiFJRho);
         }
 
         if (isRecoTrk) {
@@ -1406,6 +1422,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHLT->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
+            if (isPbPb18) {
+                treeHiFJRho->GetEntry(j_entry);
+            }
             if (isvJetTrkSkim) {
                 if (anaJets) {
                     treeJetSkim->GetEntry(j_entry);
@@ -1592,7 +1611,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
                     else if (vIsZee && isRecoV) {
-                        if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
+                        double eleRho = (isPbPb18) ? ggHi.getHiFJRho4Ele(i, hifjrho) : -1;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin, eleRho)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                     }
                     else if (!isRecoV) {
@@ -1616,7 +1636,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
                         }
                         else if (vIsZee && isRecoV) {
-                            if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
+                            double eleRho = (isPbPb18) ? ggHi.getHiFJRho4Ele(j, hifjrho) : -1;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin, eleRho)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                         }
                         else if (!isRecoV) {
@@ -2004,7 +2025,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_dphi_vs_detall[iCent][iVPt][iTrkPt]->Fill(std::fabs((llEta[0] - llEta[1])), dphi, wTrk);
                             h2_dphi_vs_dphill[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[0], llPhi[1])), dphi, wTrk);
 
-                            if (iCent == 8 && iVPt == 3 && iTrkPt == 3) {
+                            if (iCent == 7 && iVPt == 4 && iTrkPt == 3) {
 
                                 if (dphi < 3*binWNTrkDphi) {
                                     nTrkDphi0 += wTrk;
