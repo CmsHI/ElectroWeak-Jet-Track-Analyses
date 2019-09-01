@@ -28,6 +28,7 @@ public :
     ~hiFJRho(){};
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
+    double getRho(double eta);
 
     // Declaration of leaf types
     std::vector<double>  *etaMin;
@@ -117,6 +118,19 @@ void hiFJRho::setupTreeForWriting(TTree *t)
     t->Branch("ptJets", &ptJets, "ptJets/F");
     t->Branch("etaJets", &etaJets, "etaJets/F");
     t->Branch("areaJets", &areaJets, "areaJets/F");
+}
+
+double hiFJRho::getRho(double eta)
+{
+    int nEtas = (*etaMin).size();
+    for (int i = 0; i < nEtas; ++i) {
+
+        if ((*etaMin)[i] <= eta && eta < (*etaMax)[i]) {
+            return (*rho)[i];
+        }
+    }
+
+    return -1;
 }
 
 #endif
