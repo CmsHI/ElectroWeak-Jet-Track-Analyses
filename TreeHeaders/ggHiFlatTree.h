@@ -152,6 +152,7 @@ public :
   int eleIDMedium;
   int eleIDTight;
   int elepassConversionVeto;
+  float elePFRelIsoWithEA;
   float eleEffAreaTimesRho;
   //int nPho;
   float phoE;
@@ -474,6 +475,7 @@ public :
   TBranch        *b_eleIDMedium;   //!
   TBranch        *b_eleIDTight;   //!
   TBranch        *b_elepassConversionVeto;   //!
+  TBranch        *b_elePFRelIsoWithEA;   //!
   TBranch        *b_eleEffAreaTimesRho;   //!
   TBranch        *b_nPho;   //!
   TBranch        *b_phoE;   //!
@@ -796,6 +798,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_eleIDMedium = 0;
     b_eleIDTight = 0;
     b_elepassConversionVeto = 0;
+    b_elePFRelIsoWithEA = 0;
     b_eleEffAreaTimesRho = 0;
     b_nPho = 0;
     b_phoE = 0;
@@ -1117,6 +1120,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleIDMedium")) t->SetBranchAddress("eleIDMedium", &eleIDMedium, &b_eleIDMedium);
     if (t->GetBranch("eleIDTight")) t->SetBranchAddress("eleIDTight", &eleIDTight, &b_eleIDTight);
     if (t->GetBranch("elepassConversionVeto")) t->SetBranchAddress("elepassConversionVeto", &elepassConversionVeto, &b_elepassConversionVeto);
+    if (t->GetBranch("elePFRelIsoWithEA")) t->SetBranchAddress("elePFRelIsoWithEA", &elePFRelIsoWithEA, &b_elePFRelIsoWithEA);
     if (t->GetBranch("eleEffAreaTimesRho")) t->SetBranchAddress("eleEffAreaTimesRho", &eleEffAreaTimesRho, &b_eleEffAreaTimesRho);
     //if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
@@ -1442,6 +1446,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("eleIDMedium", &eleIDMedium);
         t->Branch("eleIDTight", &eleIDTight);
         t->Branch("elepassConversionVeto", &elepassConversionVeto);
+        t->Branch("elePFRelIsoWithEA", &elePFRelIsoWithEA);
         t->Branch("eleEffAreaTimesRho", &eleEffAreaTimesRho);
     }
     if (doPho) {
@@ -1753,6 +1758,7 @@ void ggHiFlat::clearEntryEle()
         eleIDMedium = -987987;
         eleIDTight = -987987;
         elepassConversionVeto = -987987;
+        elePFRelIsoWithEA = -987987;
         eleEffAreaTimesRho = -987987;
     }
 }
@@ -2090,6 +2096,7 @@ void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
         eleIDMedium = (*tggHiNtuplizer.eleIDMedium)[i];
         eleIDTight = (*tggHiNtuplizer.eleIDTight)[i];
         elepassConversionVeto = (*tggHiNtuplizer.elepassConversionVeto)[i];
+        elePFRelIsoWithEA = (*tggHiNtuplizer.elePFRelIsoWithEA)[i];
         eleEffAreaTimesRho = (*tggHiNtuplizer.eleEffAreaTimesRho)[i];
     }
 }
