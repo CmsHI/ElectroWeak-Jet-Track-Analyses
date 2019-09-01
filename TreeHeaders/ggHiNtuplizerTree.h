@@ -115,6 +115,7 @@ public :
     eleIDMedium = 0;
     eleIDTight = 0;
     elepassConversionVeto = 0;
+    elePFRelIsoWithEA = 0;
     eleEffAreaTimesRho = 0;
     phoE = 0;
     phoEt = 0;
@@ -435,6 +436,7 @@ public :
   std::vector<int>     *eleIDMedium;
   std::vector<int>     *eleIDTight;
   std::vector<int>     *elepassConversionVeto;
+  std::vector<float>   *elePFRelIsoWithEA;
   std::vector<float>   *eleEffAreaTimesRho;
   Int_t           nPho;
   std::vector<float>   *phoE;
@@ -748,6 +750,7 @@ public :
   TBranch        *b_eleIDMedium;   //!
   TBranch        *b_eleIDTight;   //!
   TBranch        *b_elepassConversionVeto;   //!
+  TBranch        *b_elePFRelIsoWithEA;   //!
   TBranch        *b_eleEffAreaTimesRho;   //!
   TBranch        *b_nPho;   //!
   TBranch        *b_phoE;   //!
@@ -1061,6 +1064,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_eleIDMedium = 0;
     b_eleIDTight = 0;
     b_elepassConversionVeto = 0;
+    b_elePFRelIsoWithEA = 0;
     b_eleEffAreaTimesRho = 0;
     b_nPho = 0;
     b_phoE = 0;
@@ -1372,6 +1376,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleIDMedium")) t->SetBranchAddress("eleIDMedium", &eleIDMedium, &b_eleIDMedium);
     if (t->GetBranch("eleIDTight")) t->SetBranchAddress("eleIDTight", &eleIDTight, &b_eleIDTight);
     if (t->GetBranch("elepassConversionVeto")) t->SetBranchAddress("elepassConversionVeto", &elepassConversionVeto, &b_elepassConversionVeto);
+    if (t->GetBranch("elePFRelIsoWithEA")) t->SetBranchAddress("elePFRelIsoWithEA", &elePFRelIsoWithEA, &b_elePFRelIsoWithEA);
     if (t->GetBranch("eleEffAreaTimesRho")) t->SetBranchAddress("eleEffAreaTimesRho", &eleEffAreaTimesRho, &b_eleEffAreaTimesRho);
     if (t->GetBranch("nPho")) t->SetBranchAddress("nPho", &nPho, &b_nPho);
     if (t->GetBranch("phoE")) t->SetBranchAddress("phoE", &phoE, &b_phoE);
