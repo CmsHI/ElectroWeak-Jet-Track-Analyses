@@ -406,8 +406,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     //TH1D* h_trkNHit[nCents][nVPts][nTrkPts];
     //TH1D* h_trkChi2_Ndof_Nlayer[nCents][nVPts][nTrkPts];
 
-    TH1D* h_diff_nTrkDphi0[nCents][nVPts][nTrkPts];
-    TH1D* h_diff_nTrkDphiPi[nCents][nVPts][nTrkPts];
+    //TH1D* h_diff_nTrkDphi0[nCents][nVPts][nTrkPts];
+    //TH1D* h_diff_nTrkDphiPi[nCents][nVPts][nTrkPts];
 
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
@@ -989,9 +989,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 h_dR_leptrk[i][j][k] = 0;
                 h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
-
-                h_diff_nTrkDphi0[i][j][k] = new TH1D(Form("h_diff_nTrkDphi0_%s", name_h_suffix.c_str()), ";diff_nTrkDphi0;", 100, -50, 50);
-                h_diff_nTrkDphiPi[i][j][k] = new TH1D(Form("h_diff_nTrkDphiPi_%s", name_h_suffix.c_str()), ";diff_nTrkDphiPi;", 100, -50, 50);
 
                 std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
@@ -1866,24 +1863,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 wMixEvts *= (1.0 / (double(mixEvents.nmix)));
             }
 
-
-            double nTrkDphi0Arr[nCents][nVPts][nTrkPts];
-            double nTrkDphi0NextArr[nCents][nVPts][nTrkPts];
-            double nTrkDphiPiArr[nCents][nVPts][nTrkPts];
-            double nTrkDphiPiNextArr[nCents][nVPts][nTrkPts];
-
-            for (int iCent = 0; iCent < nCents; ++iCent) {
-                for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
-                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
-
-                        nTrkDphi0Arr[iCent][iVPt][iTrkPt] = 0;
-                        nTrkDphi0NextArr[iCent][iVPt][iTrkPt] = 0;
-                        nTrkDphiPiArr[iCent][iVPt][iTrkPt] = 0;
-                        nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] = 0;
-                    }
-                }
-            }
-
             double nTrkDphi0 = 0;
             double nTrkDphi0Next = 0;
             double nTrkDphiPi = 0;
@@ -2057,19 +2036,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 }
                             }
 
-                            if (dphi < 3*binWNTrkDphi) {
-                                nTrkDphi0Arr[iCent][iVPt][iTrkPt] += wTrk;
-                            }
-                            else if (3*binWNTrkDphi <= dphi && dphi < 6*binWNTrkDphi) {
-                                nTrkDphi0NextArr[iCent][iVPt][iTrkPt] += wTrk;
-                            }
-                            else if (dphi >= (xMax_phi - 2*binWNTrkDphi) && dphi < (xMax_phi - binWNTrkDphi)) {
-                                nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] += wTrk;
-                            }
-                            else if (dphi >= (xMax_phi - binWNTrkDphi)) {
-                                nTrkDphiPiArr[iCent][iVPt][iTrkPt] += wTrk;
-                            }
-
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
 
                             h_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, wTrk);
@@ -2097,19 +2063,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
                         }
 
-                    }
-                }
-            }
-
-            for (int iCent = 0; iCent < nCents; ++iCent) {
-                for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
-                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
-
-                        nTrkDphi0Arr[iCent][iVPt][iTrkPt] /= 3;
-                        nTrkDphi0NextArr[iCent][iVPt][iTrkPt] /= 3;
-
-                        h_diff_nTrkDphi0[iCent][iVPt][iTrkPt]->Fill(nTrkDphi0Arr[iCent][iVPt][iTrkPt] - nTrkDphi0NextArr[iCent][iVPt][iTrkPt], wV);
-                        h_diff_nTrkDphiPi[iCent][iVPt][iTrkPt]->Fill(nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] - nTrkDphiPiArr[iCent][iVPt][iTrkPt], wV);
                     }
                 }
             }
