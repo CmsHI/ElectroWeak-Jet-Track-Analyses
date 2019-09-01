@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../Utilities/eventUtil.h"
+#include "hiFJRhoTree.h"
 
 class ggHiNtuplizer {
 public :
@@ -317,9 +318,11 @@ public :
   bool passedHI18HEMfailurePho(int i);
   bool passedHI18HEMfailureEle(int i);
   bool passedHI18HEMfailureGen(int i);
-  bool passedEleSelection(int i, int collType, int hiBin, int WPindex = 0);
+  bool passedEleSelection(int i, int collType, int hiBin, double eleRho = -1, int WPindex = 0);
   bool passedMuSelection(int i, int collType);
   double getElePtCorrFactor(int i, int collType, int hiBin);
+  double getHiFJRho4Ele(int i, hiFJRho& hifjrho);
+  double getElePFIsoSubRho(int i, double eleRho);
   double getValueByName(int i, std::string varName);
   void copy2Vars(int i, float *vals, std::vector<std::string>& varNames, int nVars, int offset);
 
@@ -1610,7 +1613,7 @@ bool ggHiNtuplizer::passedHI18HEMfailureGen(int i)
     return !((*mcEta)[i] < -1.39 && (*mcPhi)[i] < -0.9 && (*mcPhi)[i] > -1.6);
 }
 
-bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPindex)
+bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, double eleRho, int WPindex)
 {
     /*
      * options for WPindex
@@ -1626,6 +1629,8 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, int WPind
     if (collisionIsHI2018((COLL::TYPE)collType)) {
         // default WP for 2018 pbpb is veto.
         if (WPindex == 0) WPindex = 1;
+
+        if (! (getElePFIsoSubRho(i, eleRho) < 0) )  return false;
 
         if (WPindex == 1) {
             // preliminary electron ID (July 2019) : veto WP
@@ -2180,6 +2185,33 @@ double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
     }
 
     return 1;
+}
+
+double ggHiNtuplizer::getHiFJRho4Ele(int i, hiFJRho& hifjrho)
+{
+    return hifjrho.getRho((*eleEta)[i]);
+}
+
+double ggHiNtuplizer::getElePFIsoSubRho(int i, double eleRho)
+{
+    if (eleRho < 0) {
+        return -999;
+    }
+
+    double a1 = 0.000906;
+    double b1 = 0.241511;
+    double c1 = 2.328351;
+    double d1 = 49.606071;
+    double e1 = -416.456563;
+    double rho0 = 120;
+
+    // 901.16345
+    double f1 = (a1*rho0*rho0 + b1*rho0 + c1) - (d1*(std::log(rho0)*std::log(rho0))+e1*std::log(rho0));
+
+    double sumPFIso = (*elePFChIso03)[i] + (*elePFPhoIso03)[i] + (*elePFNeuIso03)[i];
+    double rhoUE = (eleRho <= rho0) ? (a1*eleRho*eleRho + b1*eleRho + c1) : (d1*(std::log(eleRho)*std::log(eleRho))+e1*std::log(eleRho) + f1);
+
+    return (sumPFIso-rhoUE)/(*elePt)[i];
 }
 
 double ggHiNtuplizer::getValueByName(int i, std::string varName)
