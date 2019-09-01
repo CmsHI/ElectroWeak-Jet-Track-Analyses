@@ -66,6 +66,22 @@ public :
 
 void hiFJRho::setupTreeForReading(TTree *t)
 {
+    b_etaMin = 0;
+    b_etaMax = 0;
+    b_rho = 0;
+    b_rhom = 0;
+    b_rhoCorr = 0;
+    b_rhomCorr = 0;
+    b_rhoCorr1Bin = 0;
+    b_rhomCorr1Bin = 0;
+    b_rhoGrid = 0;
+    b_meanRhoGrid = 0;
+    b_etaMinRhoGrid = 0;
+    b_etaMaxRhoGrid = 0;
+    b_ptJets = 0;
+    b_etaJets = 0;
+    b_areaJets = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("etaMin"))  t->SetBranchAddress("etaMin", &etaMin, &b_etaMin);
     if (t->GetBranch("etaMax"))  t->SetBranchAddress("etaMax", &etaMax, &b_etaMax);
