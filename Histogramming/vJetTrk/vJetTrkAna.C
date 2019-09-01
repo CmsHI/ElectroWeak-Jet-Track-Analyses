@@ -340,6 +340,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_vY[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
     TH1D* h_vM_ss[nCents][nVPts];
+    TH1D* h_lPt[nCents][nVPts];
+    TH1D* h_lEta[nCents][nVPts];
+    TH1D* h_lPhi[nCents][nVPts];
+    TH1D* h_detall[nCents][nVPts];
+    TH1D* h_dphill[nCents][nVPts];
 
     // trig eff
     TH1D* h_trig_num_vPt[nCents];
@@ -364,7 +369,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     // event observables
     TH1D* h_cent[nVPts];
     TH1D* h_vtxz[nCents][nVPts];
-    TH1D* h_dphi_evtPlane_V[nCents][nVPts];
+    TH1D* h_dphi_EPn1_V[nCents][nVPts];
+    TH1D* h_dphi_EPn2_V[nCents][nVPts];
+    TH1D* h_dphi_EPn3_V[nCents][nVPts];
+    TH1D* h_dphi_EPn2_l1[nCents][nVPts];
+    TH1D* h_dphi_EPn2_l2[nCents][nVPts];
     TH2D* h2_hiHF_vs_vPt[nCents];
     TH2D* h2_rho_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_vPt[nCents];
@@ -374,7 +383,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_trkPt[nCents][nVPts];
     TH1D* h_trkEta[nCents][nVPts][nTrkPts];
     TH1D* h_trkPhi[nCents][nVPts][nTrkPts];
-    TH1D* h_dphi_evtPlane_trk[nCents][nVPts][nTrkPts];
+    TH1D* h_dphi_EPn1_trk[nCents][nVPts][nTrkPts];
+    TH1D* h_dphi_EPn2_trk[nCents][nVPts][nTrkPts];
+    TH1D* h_dphi_EPn3_trk[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_trkPt[nCents][nVPts];
 
     TH1D* h_dphi[nCents][nVPts][nTrkPts];
@@ -395,12 +406,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_trkNHit[nCents][nVPts][nTrkPts];
     TH1D* h_trkChi2_Ndof_Nlayer[nCents][nVPts][nTrkPts];
 
+    TH1D* h_diff_nTrkDphi0[nCents][nVPts][nTrkPts];
+    TH1D* h_diff_nTrkDphiPi[nCents][nVPts][nTrkPts];
+
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
+    TH2D* h2_dphi_vs_vPt[nCents][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
     TH2D* h2_dphi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_trkPhi[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_xivh[nCents][nVPts][nTrkPts];
+    TH2D* h2_dphi_vs_detall[nCents][nVPts][nTrkPts];
+    TH2D* h2_dphi_vs_dphill[nCents][nVPts][nTrkPts];
 
     int nBinsX_vPt = 30;
     int nBinsX_trkPt = 60;
@@ -590,6 +607,21 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_vY[i][j] = 0;
             h_vY[i][j] = new TH1D(name_h_vY.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
+            h_lPt[i][j] = 0;
+            h_lPt[i][j] = new TH1D(Form("h_lPt_%s", name_h_suffix.c_str()), ";p_T^{l};", nBinsX_vPt, 0, xMax_vPt);
+
+            h_lEta[i][j] = 0;
+            h_lEta[i][j] = new TH1D(Form("h_lEta_%s", name_h_suffix.c_str()), ";#eta^{l};", nBinsX_eta, -1*xMax_eta, xMax_eta);
+
+            h_lPhi[i][j] = 0;
+            h_lPhi[i][j] = new TH1D(Form("h_lPhi_%s", name_h_suffix.c_str()), ";#phi^{l};", nBinsX_dphi, -1*xMax_phi, xMax_phi);
+
+            h_detall[i][j] = 0;
+            h_detall[i][j] = new TH1D(Form("h_detall_%s", name_h_suffix.c_str()), ";deta_ll;", nBinsX_eta, 0, 5.2);
+
+            h_dphill[i][j] = 0;
+            h_dphill[i][j] = new TH1D(Form("h_dphill_%s", name_h_suffix.c_str()), ";dphi_ll;", nBinsX_dphi, 0, xMax_phi);
+
             std::string name_h_reco_num_vPhi = Form("h_reco_num_vPhi_%s", name_h_suffix.c_str());
             h_reco_num_vPhi[i][j] = 0;
             h_reco_num_vPhi[i][j] = (TH1D*)h_vPhi[i][j]->Clone(name_h_reco_num_vPhi.c_str());
@@ -645,12 +677,35 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h_vtxz[i][j] = 0;
             h_vtxz[i][j] = new TH1D(name_h_vtxz.c_str(), title_h_vtxz.c_str(), 30, -15, 15);
 
+            std::string name_h_dphi_EPn1_V = Form("h_dphi_EPn1_V_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn1_V = Form("%s;#Delta#phi_{EPn1,%s};", title_h_suffix.c_str(), text_V.c_str());
 
-            std::string name_h_dphi_evtPlane_V = Form("h_dphi_evtPlane_V_%s", name_h_suffix.c_str());
-            std::string title_h_dphi_evtPlane_V = Form("%s;#Delta#phi_{evtPlane,%s};", title_h_suffix.c_str(), text_V.c_str());
+            h_dphi_EPn1_V[i][j] = 0;
+            h_dphi_EPn1_V[i][j] = new TH1D(name_h_dphi_EPn1_V.c_str(), title_h_dphi_EPn1_V.c_str(), nBinsX_dphi, 0, xMax_phi);
 
-            h_dphi_evtPlane_V[i][j] = 0;
-            h_dphi_evtPlane_V[i][j] = new TH1D(name_h_dphi_evtPlane_V.c_str(), title_h_dphi_evtPlane_V.c_str(), nBinsX_dphi, 0, xMax_phi);
+            std::string name_h_dphi_EPn2_V = Form("h_dphi_EPn2_V_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn2_V = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(), text_V.c_str());
+
+            h_dphi_EPn2_V[i][j] = 0;
+            h_dphi_EPn2_V[i][j] = new TH1D(name_h_dphi_EPn2_V.c_str(), title_h_dphi_EPn2_V.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            std::string name_h_dphi_EPn3_V = Form("h_dphi_EPn3_V_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn3_V = Form("%s;#Delta#phi_{EPn3,%s};", title_h_suffix.c_str(), text_V.c_str());
+
+            h_dphi_EPn3_V[i][j] = 0;
+            h_dphi_EPn3_V[i][j] = new TH1D(name_h_dphi_EPn3_V.c_str(), title_h_dphi_EPn3_V.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            std::string name_h_dphi_EPn2_l1 = Form("h_dphi_EPn2_l1_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn2_l1 = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(), "l1");
+
+            h_dphi_EPn2_l1[i][j] = 0;
+            h_dphi_EPn2_l1[i][j] = new TH1D(name_h_dphi_EPn2_l1.c_str(), title_h_dphi_EPn2_l1.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            std::string name_h_dphi_EPn2_l2 = Form("h_dphi_EPn2_l2_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn2_l2 = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(), "l2");
+
+            h_dphi_EPn2_l2[i][j] = 0;
+            h_dphi_EPn2_l2[i][j] = new TH1D(name_h_dphi_EPn2_l2.c_str(), title_h_dphi_EPn2_l2.c_str(), nBinsX_dphi, 0, xMax_phi);
 
             std::string text_trk = "trk";
             std::string text_trkPt = Form("p^{%s}_{T}", text_trk.c_str());
@@ -778,13 +833,29 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_trkPhi[i][j][k] = 0;
                 h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), nBinsX_dphi, -1*xMax_phi, xMax_phi);
 
-                std::string name_h_dphi_evtPlane_trk = Form("h_dphi_evtPlane_trk_%s", name_h_suffix.c_str());
-                std::string title_h_dphi_evtPlane_trk = Form("%s;#Delta#phi_{evtPlane,%s};", title_h_suffix.c_str(),
+                std::string name_h_dphi_EPn1_trk = Form("h_dphi_EPn1_trk_%s", name_h_suffix.c_str());
+                std::string title_h_dphi_EPn1_trk = Form("%s;#Delta#phi_{EPn1,%s};", title_h_suffix.c_str(),
                                                                                              text_trk.c_str());
 
-                h_dphi_evtPlane_trk[i][j][k] = 0;
-                h_dphi_evtPlane_trk[i][j][k] = new TH1D(name_h_dphi_evtPlane_trk.c_str(), title_h_dphi_evtPlane_trk.c_str(),
-                                                                                            nBinsX_dphi, 0, xMax_phi);
+                h_dphi_EPn1_trk[i][j][k] = 0;
+                h_dphi_EPn1_trk[i][j][k] = new TH1D(name_h_dphi_EPn1_trk.c_str(), title_h_dphi_EPn1_trk.c_str(),
+                                                                                  nBinsX_dphi, 0, xMax_phi);
+
+                std::string name_h_dphi_EPn2_trk = Form("h_dphi_EPn2_trk_%s", name_h_suffix.c_str());
+                std::string title_h_dphi_EPn2_trk = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(),
+                                                                                             text_trk.c_str());
+
+                h_dphi_EPn2_trk[i][j][k] = 0;
+                h_dphi_EPn2_trk[i][j][k] = new TH1D(name_h_dphi_EPn2_trk.c_str(), title_h_dphi_EPn2_trk.c_str(),
+                                                                                  nBinsX_dphi, 0, xMax_phi);
+
+                std::string name_h_dphi_EPn3_trk = Form("h_dphi_EPn3_trk_%s", name_h_suffix.c_str());
+                std::string title_h_dphi_EPn3_trk = Form("%s;#Delta#phi_{EPn3,%s};", title_h_suffix.c_str(),
+                                                                                             text_trk.c_str());
+
+                h_dphi_EPn3_trk[i][j][k] = 0;
+                h_dphi_EPn3_trk[i][j][k] = new TH1D(name_h_dphi_EPn3_trk.c_str(), title_h_dphi_EPn3_trk.c_str(),
+                                                                                  nBinsX_dphi, 0, xMax_phi);
 
                 title_h_suffix_dphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                         text_range_trkPt.c_str(),
@@ -930,6 +1001,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_trkNHit[i][j][k] = new TH1D(Form("h_trkNHit_%s", name_h_suffix.c_str()), ";h_trkNHit;", 50, 0, 50);
                 h_trkChi2_Ndof_Nlayer[i][j][k] = new TH1D(Form("h_trkChi2_Ndof_Nlayer_%s", name_h_suffix.c_str()), ";trkChi2 / trkNdof / trkNlayer;", 40, 0, 0.2);
 
+                h_diff_nTrkDphi0[i][j][k] = new TH1D(Form("h_diff_nTrkDphi0_%s", name_h_suffix.c_str()), ";diff_nTrkDphi0;", 100, -50, 50);
+                h_diff_nTrkDphiPi[i][j][k] = new TH1D(Form("h_diff_nTrkDphiPi_%s", name_h_suffix.c_str()), ";diff_nTrkDphiPi;", 100, -50, 50);
+
                 std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
                                                             text_trkEta.c_str(),
@@ -953,6 +1027,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_eta, 0, 5.2);
                 vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
 
+                if (j == 0) {
+                    std::string name_h2_dphi_vs_vPt = Form("h2_dphi_vs_vPt_%s_%s", label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h2_dphi_vs_vPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                                text_vPt.c_str(),
+                                                                text_dphi.c_str());
+
+                    h2_dphi_vs_vPt[i][k] = 0;
+                    h2_dphi_vs_vPt[i][k] = new TH2D(name_h2_dphi_vs_vPt.c_str(), title_h2_dphi_vs_vPt.c_str(),
+                                                              nBinsX_vPt, 0,  xMax_vPt,
+                                                              nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_vPt[i][k]);
+                }
 
                 std::string name_h2_dphi_vs_trkEta = Form("h2_dphi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
@@ -975,6 +1061,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_dphi, -1*xMax_phi, xMax_phi,
                                                           nBinsX_dphi, 0, xMax_phi);
                 vec_h2D.push_back(h2_dphi_vs_trkPhi[i][j][k]);
+
+                std::string name_h2_dphi_vs_detall = Form("h2_dphi_vs_detall_%s", name_h_suffix.c_str());
+                std::string title_h2_dphi_vs_detall = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            "deta_ll",
+                                                            text_dphi.c_str());
+
+                h2_dphi_vs_detall[i][j][k] = 0;
+                h2_dphi_vs_detall[i][j][k] = new TH2D(name_h2_dphi_vs_detall.c_str(), title_h2_dphi_vs_detall.c_str(),
+                                                          nBinsX_eta, 0, 5.2,
+                                                          nBinsX_dphi, 0, xMax_phi);
+                vec_h2D.push_back(h2_dphi_vs_detall[i][j][k]);
+
+                std::string name_h2_dphi_vs_dphill = Form("h2_dphi_vs_dphill_%s", name_h_suffix.c_str());
+                std::string title_h2_dphi_vs_dphill = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            "dphi_ll",
+                                                            text_dphi.c_str());
+
+                h2_dphi_vs_dphill[i][j][k] = 0;
+                h2_dphi_vs_dphill[i][j][k] = new TH2D(name_h2_dphi_vs_dphill.c_str(), title_h2_dphi_vs_dphill.c_str(),
+                                                          nBinsX_dphi, 0, xMax_phi,
+                                                          nBinsX_dphi, 0, xMax_phi);
+                vec_h2D.push_back(h2_dphi_vs_dphill[i][j][k]);
 
                 std::string name_h2_deta_vs_xivh = Form("h2_deta_vs_xivh_%s", name_h_suffix.c_str());
                 std::string title_h2_deta_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
@@ -1180,7 +1288,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         if (isvJetTrkSkim && anaTrks) {
             treeTrackSkim = (TTree*)fileTmp->Get(treePathTrack.c_str());
-            treeTrackSkim->SetBranchStatus("*",1);     // disable all branches
+            treeTrackSkim->SetBranchStatus("*",0);     // disable all branches
+            if (isPbPb) {
+                treeTrackSkim->SetBranchStatus("*",1);     // disable all branches
+            }
 
             std::string mix_str = (isMixTrk) ? "_mix" : "";
             if (isRecoTrk) {
@@ -1306,7 +1417,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
-              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(4)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
@@ -1392,6 +1503,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double vY = -999999;
             double vM = 0;
             bool ll_os = false;     // dilepton opposite charge
+            std::vector<float> llPt = {-998877, -998877};
             std::vector<float> llEta = {-998877, -998877};
             std::vector<float> llPhi = {-998877, -998877};
             float minDR2_lep_trk = (has_pfType) ? 0.0 : 0.04;
@@ -1440,6 +1552,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lPhi = ggHi.muPhi;
                     lChg = ggHi.muCharge;
                     lEtaMax = 2.4;
+                    //lEtaMax = 1.3;
                 }
                 else if (vIsZee) {
 
@@ -1451,6 +1564,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lPhi = ggHi.elePhi;
                     lChg = ggHi.eleCharge;
                     lEtaMax = 2.1;
+                    //lEtaMax = 1.3;
                 }
 
                 if (!isRecoV) {
@@ -1538,6 +1652,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         vecll = vecl1 + vecl2;
 
                         if (!(vecll.M() >= 60 && vecll.M() <= 120)) continue;
+                        //if (!(vecll.M() >= 70 && vecll.M() <= 110)) continue;
+                        //if (!(vecll.M() >= 80 && vecll.M() <= 100)) continue;
 
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
@@ -1547,13 +1663,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vY = vecll.Rapidity();
                             vM = vecll.M();
                             ll_os = (((*lChg)[i] == -1*(*lChg)[j]));
+                            //ll_os = (((*lChg)[i] == (*lChg)[j]));
 
-                            llEta = {(*lEta)[i], (*lEta)[j]};
-                            llPhi = {(*lPhi)[i], (*lPhi)[j]};
+                            if (l1pt >= l2pt) {
+                                llPt = {l1pt, l2pt};
+                                llEta = {(*lEta)[i], (*lEta)[j]};
+                                llPhi = {(*lPhi)[i], (*lPhi)[j]};
+                            }
+                            else {
+                                llPt = {l2pt, l1pt};
+                                llEta = {(*lEta)[j], (*lEta)[i]};
+                                llPhi = {(*lPhi)[j], (*lPhi)[i]};
+                            }
                         }
                     }
                 }
             }
+
+            //if (std::fabs(getDPHI(llPhi[0], llPhi[1])) > 2.8) continue;
 
             double wV = w;
             if (doWeightsV) {
@@ -1622,6 +1749,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (vPt < 0) continue;
+            //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < TMath::Pi()*0.25) continue;
+            //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > TMath::Pi() - TMath::Pi()*0.25) continue;
+            //if (!(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < TMath::Pi()*0.25 || std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > TMath::Pi() - TMath::Pi()*0.25))  continue;
 
             double vYAbs = std::fabs(vY);
 
@@ -1674,7 +1804,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             // event observables
                             h_vtxz[i][j]->Fill(hiEvt.vz, wV);
-                            h_dphi_evtPlane_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV);
+                            h_dphi_EPn1_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[2])), wV);
+                            h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV);
+                            h_dphi_EPn3_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[15])), wV);
+
+                            h_dphi_EPn2_l1[i][j]->Fill(std::fabs(getDPHI(llPhi[0], hiEvt.hiEvtPlanes[8])), wV);
+                            h_dphi_EPn2_l2[i][j]->Fill(std::fabs(getDPHI(llPhi[1], hiEvt.hiEvtPlanes[8])), wV);
+
+                            h_lPt[i][j]->Fill(llPt[0], wV);
+                            h_lEta[i][j]->Fill(llEta[0], wV);
+                            h_lPhi[i][j]->Fill(llPhi[0], wV);
+
+                            h_detall[i][j]->Fill(std::fabs(llEta[0] - llEta[1]), wV);
+                            h_dphill[i][j]->Fill(std::fabs(getDPHI(llPhi[0], llPhi[1])), wV);
                         }
                     }
                 }
@@ -1734,6 +1876,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (isMixTrk) {
                 wMixEvts *= (1.0 / (double(mixEvents.nmix)));
             }
+
+
+            double nTrkDphi0Arr[nCents][nVPts][nTrkPts];
+            double nTrkDphi0NextArr[nCents][nVPts][nTrkPts];
+            double nTrkDphiPiArr[nCents][nVPts][nTrkPts];
+            double nTrkDphiPiNextArr[nCents][nVPts][nTrkPts];
+
+            for (int iCent = 0; iCent < nCents; ++iCent) {
+                for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
+                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
+
+                        nTrkDphi0Arr[iCent][iVPt][iTrkPt] = 0;
+                        nTrkDphi0NextArr[iCent][iVPt][iTrkPt] = 0;
+                        nTrkDphiPiArr[iCent][iVPt][iTrkPt] = 0;
+                        nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] = 0;
+                    }
+                }
+            }
+
+            double nTrkDphi0 = 0;
+            double nTrkDphi0Next = 0;
+            double nTrkDphiPi = 0;
+            double nTrkDphiPiNext = 0;
+            double binWNTrkDphi = xMax_phi / nBinsX_dphi;
+
             for (int i = 0; i < nParticles; ++i) {
 
                 //if (!passedTrkSelection(trks, i, collisionType))  continue;
@@ -1873,25 +2040,59 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_dR[iCent][iVPt][iTrkPt]->Fill(dR, wTrk);
 
                             h_dphi_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[0], t_phi)), wTrk);
-                            h_dphi_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[1], t_phi)), wTrk);
 
                             h_dR_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDR(llEta[0], llPhi[0], t_eta, t_phi)), wTrk);
-                            h_dR_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDR(llEta[1], llPhi[1], t_eta, t_phi)), wTrk);
 
                             h2_deta_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
+                            if (iVPt == 0) {
+                                h2_dphi_vs_vPt[iCent][iTrkPt]->Fill(vPt, dphi, wTrk);
+                            }
                             h2_dphi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, dphi, wTrk);
                             h2_dphi_vs_trkPhi[iCent][iVPt][iTrkPt]->Fill(t_phi, dphi, wTrk);
+                            h2_dphi_vs_detall[iCent][iVPt][iTrkPt]->Fill(std::fabs((llEta[0] - llEta[1])), dphi, wTrk);
+                            h2_dphi_vs_dphill[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[0], llPhi[1])), dphi, wTrk);
+
+                            if (iCent == 8 && iVPt == 3 && iTrkPt == 3) {
+
+                                if (dphi < 3*binWNTrkDphi) {
+                                    nTrkDphi0 += wTrk;
+                                }
+                                else if (3*binWNTrkDphi <= dphi && dphi < 6*binWNTrkDphi) {
+                                    nTrkDphi0Next += wTrk;
+                                }
+                                else if (dphi >= (xMax_phi - 2*binWNTrkDphi) && dphi < (xMax_phi - binWNTrkDphi)) {
+                                    nTrkDphiPiNext += wTrk;
+                                }
+                                else if (dphi >= (xMax_phi - binWNTrkDphi)) {
+                                    nTrkDphiPi += wTrk;
+                                }
+                            }
+
+                            if (dphi < 3*binWNTrkDphi) {
+                                nTrkDphi0Arr[iCent][iVPt][iTrkPt] += wTrk;
+                            }
+                            else if (3*binWNTrkDphi <= dphi && dphi < 6*binWNTrkDphi) {
+                                nTrkDphi0NextArr[iCent][iVPt][iTrkPt] += wTrk;
+                            }
+                            else if (dphi >= (xMax_phi - 2*binWNTrkDphi) && dphi < (xMax_phi - binWNTrkDphi)) {
+                                nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] += wTrk;
+                            }
+                            else if (dphi >= (xMax_phi - binWNTrkDphi)) {
+                                nTrkDphiPiArr[iCent][iVPt][iTrkPt] += wTrk;
+                            }
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
 
                             h_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, wTrk);
                             h_trkPhi[iCent][iVPt][iTrkPt]->Fill(t_phi, wTrk);
-                            h_dphi_evtPlane_trk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.hiEvtPlanes[8])), wTrk);
+                            h_dphi_EPn1_trk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.hiEvtPlanes[2])), wTrk);
+                            h_dphi_EPn2_trk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.hiEvtPlanes[8])), wTrk);
+                            h_dphi_EPn3_trk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.hiEvtPlanes[15])), wTrk);
 
                             h_deta[iCent][iVPt][iTrkPt]->Fill(deta, wTrk);
 
                             h2_trkPhi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-                            if (isRecoTrk && !isMixTrk) {
+                            if (isRecoTrk && !isMixTrk && isPbPb) {
 
                                 //if (t_phi > -1.25 && t_phi < 0.6 && t_eta > 0.6 && t_eta < 1.0) {
                                 if (getDR2(t_eta, t_phi, llEta[0], llPhi[0]) < 0.25 || getDR2(t_eta, t_phi, llEta[1], llPhi[1]) < 0.25) {
@@ -1922,6 +2123,43 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     }
                 }
+            }
+
+            for (int iCent = 0; iCent < nCents; ++iCent) {
+                for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
+                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
+
+                        nTrkDphi0Arr[iCent][iVPt][iTrkPt] /= 3;
+                        nTrkDphi0NextArr[iCent][iVPt][iTrkPt] /= 3;
+
+                        h_diff_nTrkDphi0[iCent][iVPt][iTrkPt]->Fill(nTrkDphi0Arr[iCent][iVPt][iTrkPt] - nTrkDphi0NextArr[iCent][iVPt][iTrkPt], wV);
+                        h_diff_nTrkDphiPi[iCent][iVPt][iTrkPt]->Fill(nTrkDphiPiNextArr[iCent][iVPt][iTrkPt] - nTrkDphiPiArr[iCent][iVPt][iTrkPt], wV);
+                    }
+                }
+            }
+
+            nTrkDphi0 /= 3;
+            nTrkDphi0Next /= 3;
+            if (((nTrkDphi0 >= nTrkDphi0Next + 10) || (nTrkDphiPi <= nTrkDphiPiNext - 10)) && false) {
+                std::cout << "###" << std::endl;
+                if (nTrkDphi0 >= nTrkDphi0Next + 15) {
+                    std::cout << "diff >= 15, nTrkDphi0 = " << nTrkDphi0 << " , nTrkDphi0Next = " << nTrkDphi0Next << std::endl;
+                }
+                else if (nTrkDphi0 >= nTrkDphi0Next + 10) {
+                    std::cout << "diff >= 10, nTrkDphi0 = " << nTrkDphi0 << " , nTrkDphi0Next = " << nTrkDphi0Next << std::endl;
+                }
+                if (nTrkDphiPi <= nTrkDphiPiNext - 10) {
+                    std::cout << "diff <= 10, nTrkDphiPi = " << nTrkDphiPi << " , nTrkDphiPiNext = " << nTrkDphiPiNext << std::endl;
+                }
+                else if (nTrkDphiPi <= nTrkDphiPiNext - 5) {
+                    std::cout << "diff <= 5, nTrkDphiPi = " << nTrkDphiPi << " , nTrkDphiPiNext = " << nTrkDphiPiNext << std::endl;
+                }
+
+                std::cout << "j_entry = " << j_entry << " , RLE = " << hiEvt.run << " , " << hiEvt.lumi << " , " << hiEvt.evt << std::endl;
+                std::cout << "hiBin = " << hiBin << " v Pt,Eta,Phi,Y,M = " << vPt << " , " << vEta << " , " << vPhi << " , " << vY << " , " << vM << std::endl;
+                std::cout << "Lep1 Pt,Eta,Phi = " << llPt[0] << " , " << llEta[0] << " , " << llPhi[0] << std::endl;
+                std::cout << "Lep2 Pt,Eta,Phi = " << llPt[1] << " , " << llEta[1] << " , " << llPhi[1] << std::endl;
+                std::cout << "deta_ll = " << std::fabs((llEta[0]-llEta[1])) << " dphi_ll = " << std::fabs(getDPHI(llPhi[0], llPhi[1])) << std::endl;
             }
         }
         fileTmp->Close();
