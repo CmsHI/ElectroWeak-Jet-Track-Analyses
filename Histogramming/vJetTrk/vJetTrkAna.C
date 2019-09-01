@@ -1275,9 +1275,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         if (isvJetTrkSkim && anaTrks) {
             treeTrackSkim = (TTree*)fileTmp->Get(treePathTrack.c_str());
             treeTrackSkim->SetBranchStatus("*",0);     // disable all branches
-            if (isPbPb) {
-                treeTrackSkim->SetBranchStatus("*",1);     // disable all branches
-            }
 
             std::string mix_str = (isMixTrk) ? "_mix" : "";
             if (isRecoTrk) {
@@ -1538,7 +1535,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lPhi = ggHi.muPhi;
                     lChg = ggHi.muCharge;
                     lEtaMax = 2.4;
-                    //lEtaMax = 1.3;
                 }
                 else if (vIsZee) {
 
@@ -1550,7 +1546,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lPhi = ggHi.elePhi;
                     lChg = ggHi.eleCharge;
                     lEtaMax = 2.1;
-                    //lEtaMax = 1.3;
                 }
 
                 if (!isRecoV) {
@@ -1638,8 +1633,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         vecll = vecl1 + vecl2;
 
                         if (!(vecll.M() >= 60 && vecll.M() <= 120)) continue;
-                        //if (!(vecll.M() >= 70 && vecll.M() <= 110)) continue;
-                        //if (!(vecll.M() >= 80 && vecll.M() <= 100)) continue;
 
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
@@ -1649,7 +1642,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vY = vecll.Rapidity();
                             vM = vecll.M();
                             ll_os = (((*lChg)[i] == -1*(*lChg)[j]));
-                            //ll_os = (((*lChg)[i] == (*lChg)[j]));
 
                             if (l1pt >= l2pt) {
                                 llPt = {l1pt, l2pt};
@@ -1665,8 +1657,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
             }
-
-            //if (std::fabs(getDPHI(llPhi[0], llPhi[1])) > 2.8) continue;
 
             double wV = w;
             if (doWeightsV) {
@@ -1735,9 +1725,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (vPt < 0) continue;
-            //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < TMath::Pi()*0.25) continue;
-            //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > TMath::Pi() - TMath::Pi()*0.25) continue;
-            //if (!(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < TMath::Pi()*0.25 || std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > TMath::Pi() - TMath::Pi()*0.25))  continue;
 
             double vYAbs = std::fabs(vY);
 
@@ -1889,9 +1876,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     t_phi += (hiEvt.hiEvtPlanes[8] - (*mixEvents.p_hiEvtPlanes_mix)[iEvt]);
                     t_phi = correctPhiRange(t_phi);
                 }
-
-                //if (t_phi > -1.25 && t_phi < 0.2 && t_eta > -1.2 && t_eta < 1.0) continue;
-                //if (t_phi > -1.25 && t_phi < 0.2) continue;
 
                 if (vIsZ) {
                     if (getDR2(t_eta, t_phi, llEta[0], llPhi[0]) < minDR2_lep_trk)  continue;
