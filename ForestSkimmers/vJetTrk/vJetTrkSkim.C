@@ -212,6 +212,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* treeHLT = 0;
     std::vector<TTree*> treesHLTObj;
     TTree* treeL1Obj = 0;
+    TTree* treeHiFJRho = 0;
+    TTree* treeHiFJRhoFinerBins = 0;
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHiEvt = 0;
     std::vector<TTree*> treesJet(nJetCollections, 0);
@@ -223,6 +225,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     std::string treePathHLT = "hltanalysis/HltTree";
     std::string treePathL1Obj = "l1object/L1UpgradeFlatTree";
+    std::string treePathHiFJRho = "hiFJRhoAnalyzer/t";
+    std::string treePathHiFJRhoFinerBins = "hiFJRhoAnalyzerFinerBins/t";
     std::string treePathHiEvt = "hiEvtAnalyzer/HiTree";
     std::string treePathTrack = "ppTrack/trackTree";
     if (isPbPb15) {
@@ -238,7 +242,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 "HLT_HIL2Mu12_v",
                 "HLT_HIL3Mu12_v",
                 "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
-                "HLT_HIEle15_WPLoose_Gsf_v"
+                "HLT_HIEle15_WPLoose_Gsf_v",
                 "HLT_HIEle20_WPLoose_Gsf_v",
                 "HLT_HIEle30_WPLoose_Gsf_v",
         };
@@ -285,6 +289,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     TTree* outTreeHLT = 0;
     std::vector<TTree*> outTreesHLTObj(nTreesHLTObj, 0);
     TTree* outTreeL1Obj = 0;
+    TTree* outTreeHiFJRho = 0;
+    TTree* outTreeHiFJRhoFinerBins = 0;
     TTree* outTreeggHiNtuplizer = 0;
     TTree* outTreeHiEvt = 0;
     TTree* eventSkimTree = 0;
@@ -613,6 +619,18 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
         treeL1Obj = (TTree*)fileTmp->Get(treePathL1Obj.c_str());
 
+        if (isPbPb18) {
+            treeHiFJRho = (TTree*)fileTmp->Get(treePathHiFJRho.c_str());
+            treeHiFJRho->SetBranchStatus("*",0);     // disable all branches
+            treeHiFJRho->SetBranchStatus("etaM*",1);
+            treeHiFJRho->SetBranchStatus("rho*",1);
+
+            treeHiFJRhoFinerBins = (TTree*)fileTmp->Get(treePathHiFJRhoFinerBins.c_str());
+            treeHiFJRhoFinerBins->SetBranchStatus("*",0);     // disable all branches
+            treeHiFJRhoFinerBins->SetBranchStatus("etaM*",1);
+            treeHiFJRhoFinerBins->SetBranchStatus("rho*",1);
+        }
+
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
         treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
         treeggHiNtuplizer->SetBranchStatus("nPho",1);
@@ -704,6 +722,22 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         if (iFile == 0)  outTreeL1Obj = treeL1Obj->CloneTree(0);
         else             treeL1Obj->CopyAddresses(outTreeL1Obj);
 
+        if (isPbPb18) {
+            if (iFile == 0)  {
+                outTreeHiFJRho = treeHiFJRho->CloneTree(0);
+                outTreeHiFJRho->SetName("hiFJRho");
+                outTreeHiFJRho->SetTitle("subbranches of hiFJRhoAnalyzer/t");
+
+                outTreeHiFJRhoFinerBins = treeHiFJRhoFinerBins->CloneTree(0);
+                outTreeHiFJRhoFinerBins->SetName("hiFJRhoFinerBins");
+                outTreeHiFJRhoFinerBins->SetTitle("subbranches of hiFJRhoAnalyzerFinerBins/t");
+            }
+            else {
+                treeHiFJRho->CopyAddresses(outTreeHiFJRho);
+                treeHiFJRhoFinerBins->CopyAddresses(outTreeHiFJRhoFinerBins);
+            }
+        }
+
         if (iFile == 0)  outTreeggHiNtuplizer = treeggHiNtuplizer->CloneTree(0);
         else             treeggHiNtuplizer->CopyAddresses(outTreeggHiNtuplizer);
 
@@ -716,6 +750,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 outTreesHLTObj[i]->SetMaxTreeSize(MAXTREESIZE);
             }
             outTreeL1Obj->SetMaxTreeSize(MAXTREESIZE);
+            if (isPbPb18) {
+                outTreeHiFJRho->SetMaxTreeSize(MAXTREESIZE);
+                outTreeHiFJRhoFinerBins->SetMaxTreeSize(MAXTREESIZE);
+            }
             outTreeggHiNtuplizer->SetMaxTreeSize(MAXTREESIZE);
             outTreeHiEvt->SetMaxTreeSize(MAXTREESIZE);
         }
@@ -734,6 +772,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 treesHLTObj[i]->GetEntry(j_entry);
             }
             treeL1Obj->GetEntry(j_entry);
+            if (isPbPb18) {
+                treeHiFJRho->GetEntry(j_entry);
+                treeHiFJRhoFinerBins->GetEntry(j_entry);
+            }
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             treeSkim->GetEntry(j_entry);
@@ -1349,6 +1391,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 outTreesHLTObj[i]->Fill();
             }
             outTreeL1Obj->Fill();
+            if (isPbPb18) {
+                outTreeHiFJRho->Fill();
+                outTreeHiFJRhoFinerBins->Fill();
+            }
             outTreeggHiNtuplizer->Fill();
             outTreeHiEvt->Fill();
             eventSkimTree->Fill();
@@ -1376,6 +1422,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     std::cout << "outTreeHLT->GetEntries()           = " << outTreeHLT->GetEntries() << std::endl;
     std::cout << "outTreeL1Obj->GetEntries()         = " << outTreeL1Obj->GetEntries() << std::endl;
+    if (isPbPb18) {
+        std::cout << "outTreeHiFJRho->GetEntries()       = " << outTreeHiFJRho->GetEntries() << std::endl;
+        std::cout << "outTreeHiFJRhoFinerBins->GetEntries() = " << outTreeHiFJRhoFinerBins->GetEntries() << std::endl;
+    }
     std::cout << "outTreeggHiNtuplizer->GetEntries() = " << outTreeggHiNtuplizer->GetEntries() << std::endl;
     std::cout << "outTreeHiEvt->GetEntries()         = " << outTreeHiEvt->GetEntries() << std::endl;
     std::cout << "mixEventSkimTree->GetEntries()     = " << mixEventSkimTree->GetEntries() << std::endl;
