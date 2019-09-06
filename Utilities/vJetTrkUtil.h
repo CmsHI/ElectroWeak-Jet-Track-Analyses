@@ -117,6 +117,7 @@ bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
 double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff);
+std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
@@ -677,6 +678,34 @@ double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff)
     }
 
     return 1./(effTmp);
+}
+
+/*
+ * find photons near an electron, but not the electron itself
+ */
+std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax)
+{
+    std::vector<int> res;
+    double dR2min = 0.005*0.005;
+    double dR2max = dRmax * dRmax;
+    for (int i = 0; i < ggHi.nPho; ++i) {
+
+        bool isEle = false;
+        for (int iEle2 = 0; iEle2 < ggHi.nEle; ++iEle2) {
+            if ( (getDR2((*ggHi.phoSCEta)[i], (*ggHi.phoSCPhi)[i], (*ggHi.eleSCEta)[iEle2], (*ggHi.eleSCEta)[iEle2]) < dR2min) ) isEle = true;
+        }
+        if (isEle) continue;
+
+        if ( (getDR2((*ggHi.phoSCEta)[i], (*ggHi.phoSCPhi)[i], (*ggHi.eleSCEta)[iEle], (*ggHi.eleSCEta)[iEle]) > dR2max) ) continue;
+
+        if ( !(((*ggHi.phoSCE)[i] / (TMath::CosH((*ggHi.phoSCEta)[i]))) > 10) ) continue;
+        if ( !((*ggHi.phoHoverE)[i] < 0.13) ) continue;
+        if ( !((*ggHi.phoSigmaIEtaIEta_2012)[i] < 0.012) ) continue;
+
+        res.push_back(i);
+    }
+
+    return res;
 }
 
 /*
