@@ -80,6 +80,7 @@ public :
     eleSigmaIEtaIEta = 0;
     eleSigmaIEtaIEta_2012 = 0;
     eleSigmaIPhiIPhi = 0;
+    eleConvVeto = 0;
     eleMissHits = 0;
     eleESEffSigmaRR = 0;
     elePFChIso = 0;
@@ -403,6 +404,7 @@ public :
   std::vector<float>   *eleSigmaIEtaIEta;
   std::vector<float>   *eleSigmaIEtaIEta_2012;
   std::vector<float>   *eleSigmaIPhiIPhi;
+  std::vector<int>     *eleConvVeto;
   std::vector<int>     *eleMissHits;
   std::vector<float>   *eleESEffSigmaRR;
   std::vector<float>   *elePFChIso;
@@ -717,6 +719,7 @@ public :
   TBranch        *b_eleSigmaIEtaIEta;   //!
   TBranch        *b_eleSigmaIEtaIEta_2012;   //!
   TBranch        *b_eleSigmaIPhiIPhi;   //!
+  TBranch        *b_eleConvVeto;   //!
   TBranch        *b_eleMissHits;   //!
   TBranch        *b_eleESEffSigmaRR;   //!
   TBranch        *b_elePFChIso;   //!
@@ -1031,6 +1034,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_eleSigmaIEtaIEta = 0;
     b_eleSigmaIEtaIEta_2012 = 0;
     b_eleSigmaIPhiIPhi = 0;
+    b_eleConvVeto = 0;
     b_eleMissHits = 0;
     b_eleESEffSigmaRR = 0;
     b_elePFChIso = 0;
@@ -1343,6 +1347,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("eleSigmaIEtaIEta")) t->SetBranchAddress("eleSigmaIEtaIEta", &eleSigmaIEtaIEta, &b_eleSigmaIEtaIEta);
     if (t->GetBranch("eleSigmaIEtaIEta_2012")) t->SetBranchAddress("eleSigmaIEtaIEta_2012", &eleSigmaIEtaIEta_2012, &b_eleSigmaIEtaIEta_2012);
     if (t->GetBranch("eleSigmaIPhiIPhi")) t->SetBranchAddress("eleSigmaIPhiIPhi", &eleSigmaIPhiIPhi, &b_eleSigmaIPhiIPhi);
+    if (t->GetBranch("eleConvVeto")) t->SetBranchAddress("eleConvVeto", &eleConvVeto, &b_eleConvVeto);
     if (t->GetBranch("eleMissHits")) t->SetBranchAddress("eleMissHits", &eleMissHits, &b_eleMissHits);
     if (t->GetBranch("eleESEffSigmaRR")) t->SetBranchAddress("eleESEffSigmaRR", &eleESEffSigmaRR, &b_eleESEffSigmaRR);
     if (t->GetBranch("elePFChIso")) t->SetBranchAddress("elePFChIso", &elePFChIso, &b_elePFChIso);
@@ -1629,8 +1634,6 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, double el
     if (collisionIsHI2018((COLL::TYPE)collType)) {
         // default WP for 2018 pbpb is veto.
         if (WPindex == 0) WPindex = 1;
-
-        if (! (getElePFIsoSubRho(i, eleRho) < 0) )  return false;
 
         if (WPindex == 1) {
             // preliminary electron ID (July 2019) : veto WP
