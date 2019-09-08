@@ -991,6 +991,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     trkskim.pfEcal.push_back(-776655);
                     trkskim.pfHcal.push_back(-776655);
                 }
+                if (doTrkVtx) {
+                    trkskim.trkNVtx.push_back(trks.trkNVtx[i]);
+                }
 
                 float trkWeightTmp = 1;
                 if (doTrkWeights) {
@@ -1009,9 +1012,6 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
                 trkskim.trkWeight.push_back(trkWeightTmp);
 
-                if (doTrkVtx) {
-                    trkskim.trkNVtx.push_back(trks.trkNVtx[i]);
-                }
                 trkskim.nTrk++;
             }
             if (doTrkVtx) {
@@ -1330,10 +1330,38 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         trkskim.trkPt_mix.push_back(trksMix[iMF].trkPt[i]);
                         trkskim.trkEta_mix.push_back(trksMix[iMF].trkEta[i]);
                         trkskim.trkPhi_mix.push_back(trksMix[iMF].trkPhi[i]);
-
+                        trkskim.trkCharge_mix.push_back(trksMix[iMF].trkCharge[i]);
+                        trkskim.trkPtError_mix.push_back(trksMix[iMF].trkPtError[i]);
+                        trkskim.trkNHit_mix.push_back(trksMix[iMF].trkNHit[i]);
+                        trkskim.trkNlayer_mix.push_back(trksMix[iMF].trkNlayer[i]);
+                        trkskim.highPurity_mix.push_back(trksMix[iMF].highPurity[i]);
+                        trkskim.trkChi2_mix.push_back(trksMix[iMF].trkChi2[i]);
+                        trkskim.trkNdof_mix.push_back(trksMix[iMF].trkNdof[i]);
+                        trkskim.trkDxy1_mix.push_back(trksMix[iMF].trkDxy1[i]);
+                        trkskim.trkDxyError1_mix.push_back(trksMix[iMF].trkDxyError1[i]);
+                        trkskim.trkDz1_mix.push_back(trksMix[iMF].trkDz1[i]);
+                        trkskim.trkDzError1_mix.push_back(trksMix[iMF].trkDzError1[i]);
+                        trkskim.trkAlgo_mix.push_back(trksMix[iMF].trkAlgo[i]);
+                        if (trksMix[iMF].b_trkMVA != 0) {
+                            trkskim.trkMVA_mix.push_back(trksMix[iMF].trkMVA[i]);
+                        }
+                        else {
+                            trkskim.trkMVA_mix.push_back(-987987);
+                        }
                         if (trksMix[iMF].b_pfType != 0) {
                             trkskim.pfType_mix.push_back(trksMix[iMF].pfType[i]);
                             trkskim.pfCandPt_mix.push_back(trksMix[iMF].pfCandPt[i]);
+                            trkskim.pfEcal_mix.push_back(trksMix[iMF].pfEcal[i]);
+                            trkskim.pfHcal_mix.push_back(trksMix[iMF].pfHcal[i]);
+                        }
+                        else {
+                            trkskim.pfType_mix.push_back(-776655);
+                            trkskim.pfCandPt_mix.push_back(-776655);
+                            trkskim.pfEcal_mix.push_back(-776655);
+                            trkskim.pfHcal_mix.push_back(-776655);
+                        }
+                        if (doTrkVtx) {
+                            trkskim.trkNVtx_mix.push_back(trksMix[iMF].trkNVtx[i]);
                         }
 
                         float trkWeightTmp = 1;
