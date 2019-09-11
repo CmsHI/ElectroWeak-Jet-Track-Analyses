@@ -117,6 +117,15 @@ bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
 double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff);
+// trk corrections
+std::vector<double> getVecPt4TrkW();
+std::vector<double> getVecEta4TrkW(int nBins = 12);
+std::vector<int> getVecCent4TrkW(int nBins = 20);
+int getBinPt4TrkW(double pt, std::vector<double>& trkPts, int nBins);
+int getBinEta4TrkW(double eta, std::vector<double>& trkEtas, int nBins);
+int getBinCent4TrkW(int hiBin, std::vector<int>& hiBins, int nBins);
+double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
+// leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // histogram util
 double parseVPtMin(std::string histPath);
@@ -678,6 +687,85 @@ double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff)
     }
 
     return 1./(effTmp);
+}
+
+std::vector<double> getVecPt4TrkW()
+{
+    std::vector<double> trkPts = { 0.20, 0.250, 0.30, 0.350, 0.40, 0.450, 0.50, 0.550, 0.60, 0.650, 0.70, 0.750, 0.80, 0.850, 0.90, 0.950, 1.0, 1.05, 1.10, 1.15, 1.20, 1.30, 1.40, 1.50, 1.60, 1.70, 1.80, 1.90, 2.0, 2.50, 3.0, 4.0, 5.0, 7.50, 10.0, 12.0, 15.0, 20.0, 25.0, 30.0, 45.0, 60.0, 90.0, 120.0, 180.0, 300.0 };
+    return trkPts;
+}
+
+std::vector<double> getVecEta4TrkW(int nBins)
+{
+    double widthEta = (2.4*2) / nBins;
+    std::vector<double> trkEtasMin;
+    for (int i = 1; i <= nBins; ++i) {
+
+        double tmp = -2.4 + widthEta*i;
+        trkEtasMin.push_back(tmp);
+    }
+
+    return trkEtasMin;
+}
+
+std::vector<int> getVecCent4TrkW(int nBins)
+{
+    int widthCent = 200 / nBins;
+    std::vector<int> hiBinsMin;
+    for (int i = 1; i <= nBins; ++i) {
+
+        int tmp = widthCent*i;
+        hiBinsMin.push_back(tmp);
+    }
+
+    return hiBinsMin;
+}
+
+int getBinPt4TrkW(double pt, std::vector<double>& trkPts, int nBins)
+{
+    for (int i = 0; i < nBins; ++i) {
+        if (trkPts[i] < pt && pt <= trkPts[i+1]) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int getBinEta4TrkW(double eta, std::vector<double>& trkEtas, int nBins)
+{
+    for (int i = 0; i < nBins; ++i) {
+        if (eta < trkEtas[i]) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int getBinCent4TrkW(int hiBin, std::vector<int>& hiBins, int nBins)
+{
+    for (int i = 0; i < nBins; ++i) {
+        if (hiBin < hiBins[i]) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr)
+{
+    int iBin = h_effcorr->FindBin(trkPhi);
+    if (iBin >= 1 && iBin <= h_effcorr->GetNbinsX()) {
+
+        double effcorr = h_effcorr->GetBinContent(iBin);
+        if (effcorr > 0.01) {
+            return effcorr;
+        }
+    }
+
+    return 1;
 }
 
 /*
