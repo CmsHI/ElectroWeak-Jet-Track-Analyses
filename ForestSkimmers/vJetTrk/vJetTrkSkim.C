@@ -632,15 +632,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         }
 
         treeggHiNtuplizer = (TTree*)fileTmp->Get(treePath.c_str());
-        treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-        treeggHiNtuplizer->SetBranchStatus("nPho",1);
-        treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-        treeggHiNtuplizer->SetBranchStatus("nMu",1);
-        treeggHiNtuplizer->SetBranchStatus("mu*",1);
-        treeggHiNtuplizer->SetBranchStatus("nEle",1);
-        treeggHiNtuplizer->SetBranchStatus("ele*",1);
-
-        treeggHiNtuplizer->SetBranchStatus("rho",1);
+        treeggHiNtuplizer->SetBranchStatus("*",1);     // enable all branches
 
         treeHiEvt = (TTree*)fileTmp->Get(treePathHiEvt.c_str());
         setBranchStatusTreeHiEvt(treeHiEvt, isMC);
