@@ -113,6 +113,8 @@ bool passedMuSelection(ggHiNtuplizer& ggHi, int i);
 bool passedTrkSelection(trackSkim& trks, int i, int collType);
 bool passedTrkSelection(Tracks& trks, int i, int collType);
 int getNTrkPerp(Tracks& trks, double vPhi);
+int getTrkMult(trackSkim& trks, double ptMin, double etaMax);
+int getTrkMult(Tracks& trks, double ptMin, double etaMax);
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi);
 int getTrkMultPerp(Tracks& trks, int collType, double vPhi);
 float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
@@ -613,11 +615,39 @@ int getNTrkPerp(Tracks& trks, double vPhi)
     return res;
 }
 
+int getTrkMult(trackSkim& trks, double ptMin, double etaMax)
+{
+    int res = 0;
+    for (int i = 0; i < trks.nTrk; ++i) {
+
+        if ( !((*trks.p_trkPt)[i] > ptMin) )  continue;
+        if ( !(std::fabs((*trks.p_trkEta)[i]) < etaMax) )  continue;
+
+        res++;
+    }
+
+    return res;
+}
+
+int getTrkMult(Tracks& trks, double ptMin, double etaMax)
+{
+    int res = 0;
+    for (int i = 0; i < trks.nTrk; ++i) {
+
+        if ( !(trks.trkPt[i] > ptMin) )  continue;
+        if ( !(std::fabs(trks.trkEta[i]) < etaMax) )  continue;
+
+        res++;
+    }
+
+    return res;
+}
+
 bool passedPerpTrkSelection(Tracks& trks, int i, int collType, double vPhi)
 {
     if (!passedTrkSelection(trks, i, collType))  return false;
     if (!(trks.trkPt[i] > 0.5))  return false;
-    if (!(std::fabs(trks.trkEta[i]) < 2.4))  return false;;
+    if (!(std::fabs(trks.trkEta[i]) < 2.4))  return false;
 
     double dphi_trkV_abs = std::fabs(getDPHI(vPhi, trks.trkPhi[i]));
 
