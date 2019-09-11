@@ -318,6 +318,7 @@ public :
   bool passedPhoSpikeRejection(int i);
   bool passedHI18HEMfailurePho(int i);
   bool passedHI18HEMfailureEle(int i);
+  bool passedHI18HEMfailureMu(int i);
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, double eleRho = -1, int WPindex = 0);
   bool passedMuSelection(int i, int collType);
@@ -1611,6 +1612,11 @@ bool ggHiNtuplizer::passedHI18HEMfailurePho(int i)
 bool ggHiNtuplizer::passedHI18HEMfailureEle(int i)
 {
     return !((*eleSCEta)[i] < -1.39 && (*eleSCPhi)[i] < -0.9 && (*eleSCPhi)[i] > -1.6);
+}
+
+bool ggHiNtuplizer::passedHI18HEMfailureMu(int i)
+{
+    return !((*muEta)[i] < -1.39 && (*muPhi)[i] < -0.9 && (*muPhi)[i] > -1.6);
 }
 
 bool ggHiNtuplizer::passedHI18HEMfailureGen(int i)
