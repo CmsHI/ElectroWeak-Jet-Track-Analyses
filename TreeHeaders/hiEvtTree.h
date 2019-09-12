@@ -133,6 +133,61 @@ public :
 
 void hiEvt::setupTreeForReading(TTree *t)
 {
+    b_run = 0;
+    b_evt = 0;
+    b_lumi = 0;
+    b_vx = 0;
+    b_vy = 0;
+    b_vz = 0;
+    b_Npart = 0;
+    b_Ncoll = 0;
+    b_Nhard = 0;
+    b_NPhi0 = 0;
+    b_b = 0;
+    b_Ncharged = 0;
+    b_NchargedMR = 0;
+    b_MeanPt = 0;
+    b_MeanPtMR = 0;
+    b_EtMR = 0;
+    b_NchargedPtCut = 0;
+    b_NchargedPtCutMR = 0;
+    b_ProcessID = 0;
+    b_pthat = 0;
+    b_weight = 0;
+    b_alphaQCD = 0;
+    b_alphaQED = 0;
+    b_qScale = 0;
+    b_nMEPartons = 0;
+    b_nMEPartonsFiltered = 0;
+    b_ttbar_w = 0;
+    b_npus = 0;
+    b_tnpus = 0;
+    b_hiBin = 0;
+    b_hiHF = 0;
+    b_hiHFplus = 0;
+    b_hiHFminus = 0;
+    b_hiHFplusEta4 = 0;
+    b_hiHFminusEta4 = 0;
+    b_hiZDC = 0;
+    b_hiZDCplus = 0;
+    b_hiZDCminus = 0;
+    b_hiHFhit = 0;
+    b_hiHFhitPlus = 0;
+    b_hiHFhitMinus = 0;
+    b_hiET = 0;
+    b_hiEE = 0;
+    b_hiEB = 0;
+    b_hiEEplus = 0;
+    b_hiEEminus = 0;
+    b_hiNpix = 0;
+    b_hiNpixelTracks = 0;
+    b_hiNtracks = 0;
+    b_hiNtracksPtCut = 0;
+    b_hiNtracksEtaCut = 0;
+    b_hiNtracksEtaPtCut = 0;
+    b_hiNevtPlane = 0;
+    b_hiEvtPlanes = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("run"))  t->SetBranchAddress("run", &run, &b_run);
     if (t->GetBranch("evt"))  t->SetBranchAddress("evt", &evt, &b_evt);
