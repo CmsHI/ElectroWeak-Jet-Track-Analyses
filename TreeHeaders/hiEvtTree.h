@@ -9,6 +9,7 @@
 class hiEvt {
 public :
     hiEvt(){
+        ttbar_w = 0;
         npus = 0;
         tnpus = 0;
     };
@@ -42,7 +43,8 @@ public :
     Float_t         alphaQED;
     Float_t         qScale;
     Int_t           nMEPartons;
-    Int_t           nMEPartonsFiltered;;
+    Int_t           nMEPartonsFiltered;
+    std::vector<float>   *ttbar_w;
     std::vector<int>     *npus;
     std::vector<float>   *tnpus;
     Int_t           hiBin;
@@ -98,6 +100,7 @@ public :
     TBranch        *b_qScale;   //!
     TBranch        *b_nMEPartons;   //!
     TBranch        *b_nMEPartonsFiltered;   //!
+    TBranch        *b_ttbar_w;   //!
     TBranch        *b_npus;   //!
     TBranch        *b_tnpus;   //!
     TBranch        *b_hiBin;   //!
@@ -157,6 +160,7 @@ void hiEvt::setupTreeForReading(TTree *t)
     if (t->GetBranch("qScale"))  t->SetBranchAddress("qScale", &qScale, &b_qScale);
     if (t->GetBranch("nMEPartons"))  t->SetBranchAddress("nMEPartons", &nMEPartons, &b_nMEPartons);
     if (t->GetBranch("nMEPartonsFiltered"))  t->SetBranchAddress("nMEPartonsFiltered", &nMEPartonsFiltered, &b_nMEPartonsFiltered);
+    if (t->GetBranch("ttbar_w"))  t->SetBranchAddress("ttbar_w", &ttbar_w, &b_ttbar_w);
     if (t->GetBranch("npus"))  t->SetBranchAddress("npus", &npus, &b_npus);
     if (t->GetBranch("tnpus"))  t->SetBranchAddress("tnpus", &tnpus, &b_tnpus);
     if (t->GetBranch("hiBin"))  t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
@@ -221,6 +225,7 @@ void hiEvt::setupTreeForWriting(TTree *t)
     t->Branch("qScale",&qScale,"qScale/F");
     t->Branch("nMEPartons",&nMEPartons,"nMEPartons/I");
     t->Branch("nMEPartonsFiltered",&nMEPartonsFiltered,"nMEPartonsFiltered/I");
+    t->Branch("ttbar_w",&ttbar_w);
     t->Branch("npus",&npus);
     t->Branch("tnpus",&tnpus);
 
