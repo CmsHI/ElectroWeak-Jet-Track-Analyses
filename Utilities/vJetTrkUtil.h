@@ -136,6 +136,8 @@ std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax)
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
+int parseCentMin(std::string histPath);
+int parseCentMax(std::string histPath);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -869,6 +871,38 @@ double parseVPtMax(std::string histPath)
     pos = strTmp.find("_");
     strTmp = strTmp.substr(0,pos);
     // strTmp = "40"
+
+    return std::atof(strTmp.c_str());
+}
+
+int parseCentMin(std::string histPath)
+{
+    // histPath = "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+    size_t pos = histPath.find("cent");
+    std::string strTmp = histPath.substr(pos + std::string("cent").size());
+    // strTmp = "0_30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    // strTmp = "0"
+
+    return std::atoi(strTmp.c_str());
+}
+
+int parseCentMax(std::string histPath)
+{
+    // histPath = "h_dphi_vPt20_40_trkPt1_2_cent0_30"
+    size_t pos = histPath.find("cent");
+    std::string strTmp = histPath.substr(pos + std::string("cent").size());
+    // strTmp = "0_30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(pos+1);
+    // strTmp = "30"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    // strTmp = "30"
 
     return std::atof(strTmp.c_str());
 }
