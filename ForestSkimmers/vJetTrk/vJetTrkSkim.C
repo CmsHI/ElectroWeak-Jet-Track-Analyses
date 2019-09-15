@@ -543,6 +543,18 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     }
                     iCent = getPFEnergyBin(tmpTotE, VJT::PF_HE_totE_max);
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
+
+                    int tmpNtrk = -1;
+                    treeMixTrack[i]->GetEntry(j_entry_mix);
+                    if (isForest[i]) {
+                        tmpNtrk = getTrkMult(trksMix[i], 0.5, 2.4);
+                    }
+                    else {
+                        tmpNtrk = trksMix[i].nTrk;
+                    }
+                    iCent = getNTrkBin(tmpNtrk, VJT::nTrk_max);
+                }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
                     treeMixTrack[i]->GetEntry(j_entry_mix);
@@ -1009,6 +1021,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             if (doTrkVtx) {
                 trkskim.nVtx = trks.nVtx;
             }
+            int nTrk4mix = -1;
+            if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
+                nTrk4mix = getTrkMult(trks, 0.5, 2.4);
+            }
 
             evtskim.clearEvent();
             evtskim.rho = ggHi.rho;
@@ -1120,6 +1136,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     iCent = getPFEnergyBin(tmpHEtotE - 45, VJT::PF_HE_totE_max);
                     //iCent = getPFHEtotEBin(tmpHEtotE - (45-25), VJT::PF_HE_totE_max);  // p, UE energy up
                     //iCent = getPFHEtotEBin(tmpHEtotE - (45+25), VJT::PF_HE_totE_max);  // m, UE energy down
+                }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
+
+                    iCent = getNTrkBin(nTrk4mix - 30.0, VJT::nTrk_max);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nVtx) {
 
