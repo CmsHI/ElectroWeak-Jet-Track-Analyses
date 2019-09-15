@@ -1074,9 +1074,31 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
                 for (int iBinTmp = 1; iBinTmp <= h[i]->GetNbinsX(); ++iBinTmp) {
 
-                    h[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + h[i]->GetBinContent(iBinTmp));
-                    if(hSysp[i] != 0)  hSysp[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + hSysp[i]->GetBinContent(iBinTmp));
-                    if(hSysm[i] != 0)  hSysm[i]->SetBinContent(iBinTmp, th1Ops.operand + contentDiff + hSysm[i]->GetBinContent(iBinTmp));
+                    double contentTmp = h[i]->GetBinContent(iBinTmp);
+                    double errTmp = h[i]->GetBinError(iBinTmp);
+
+                    double contentNew = th1Ops.operand + contentDiff + contentTmp;
+                    double errNew = TMath::Sqrt(TMath::Abs(contentNew / contentTmp)) * errTmp;
+
+                    h[i]->SetBinContent(iBinTmp, contentNew);
+                    h[i]->SetBinError(iBinTmp, errNew);
+
+                    if(hSysp[i] != 0)  {
+                        contentTmp = hSysp[i]->GetBinContent(iBinTmp);
+                        errTmp = hSysp[i]->GetBinError(iBinTmp);
+                        contentNew = th1Ops.operand + contentDiff + contentTmp;
+                        errNew = TMath::Sqrt(TMath::Abs(contentNew / contentTmp)) * errTmp;
+                        hSysp[i]->SetBinContent(iBinTmp, contentNew);
+                        hSysp[i]->SetBinError(iBinTmp, errNew);
+                    }
+                    if(hSysm[i] != 0)  {
+                        contentTmp = hSysm[i]->GetBinContent(iBinTmp);
+                        errTmp = hSysm[i]->GetBinError(iBinTmp);
+                        contentNew = th1Ops.operand + contentDiff + contentTmp;
+                        errNew = TMath::Sqrt(TMath::Abs(contentNew / contentTmp)) * errTmp;
+                        hSysm[i]->SetBinContent(iBinTmp, contentNew);
+                        hSysm[i]->SetBinError(iBinTmp, errNew);
+                    }
                 }
             }
         }
@@ -1681,6 +1703,10 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 double valKolmogorov = hTest1->KolmogorovTest(hTest2);
                 std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
                 hTest1->Chi2Test(hTest2, "WW P");
+
+                double chi2Gaus = getTH1Chi2(hTest1, hTest2);
+                double chi2GausProb = getTH1Chi2Prob(hTest1, hTest2);
+                std::cout << "chi2Gaus = " << chi2Gaus << " , chi2GausProb = " << chi2GausProb << std::endl;
 
                 if (drawRatioTmp > 0)  {
                     h_lowerPad[i]->Divide(h[iStart+2*i+1]);
