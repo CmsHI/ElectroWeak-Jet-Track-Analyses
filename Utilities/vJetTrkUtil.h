@@ -21,6 +21,7 @@
 #include "../TreeHeaders/trackTree.h"
 #include "../TreeHeaders/pfCandTree.h"
 #include "../TreeHeaders/trackSkimTree.h"
+#include "physicsUtil.h"
 #include "systemUtil.h"
 
 namespace VJT {
@@ -138,6 +139,7 @@ double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
 int parseCentMin(std::string histPath);
 int parseCentMax(std::string histPath);
+double parseVTrkDPhiMin(std::string text);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -903,6 +905,26 @@ int parseCentMax(std::string histPath)
     pos = strTmp.find("_");
     strTmp = strTmp.substr(0,pos);
     // strTmp = "30"
+
+    return std::atof(strTmp.c_str());
+}
+
+double parseVTrkDPhiMin(std::string text)
+{
+    // histPath = "h_xivh_vPt20_40_trkPt1_2_cent0_30_vTrkDphi0p875_xyz"
+    size_t pos = text.find("vTrkDphi");
+    if (pos == std::string::npos) {
+        return -1;
+    }
+    std::string strTmp = text.substr(pos + std::string("vTrkDphi").size());
+    // strTmp = "0p875_xyz"
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    // strTmp = "0p875"
+
+    strTmp = replaceAll(strTmp, "p", ".");
+    // strTmp = "0.875"
 
     return std::atof(strTmp.c_str());
 }
