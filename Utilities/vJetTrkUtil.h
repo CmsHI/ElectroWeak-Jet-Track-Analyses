@@ -140,6 +140,13 @@ double parseVPtMax(std::string histPath);
 int parseCentMin(std::string histPath);
 int parseCentMax(std::string histPath);
 double parseVTrkDPhiMin(std::string text);
+std::string parseVTrkObs(std::string label);
+bool isDphi(std::string label);
+bool isXivh(std::string label);
+bool isTrkPt(std::string label);
+bool isRatioDphi(std::string label);
+bool isRatioXivh(std::string label);
+bool isRatioTrkPt(std::string label);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -927,6 +934,60 @@ double parseVTrkDPhiMin(std::string text)
     // strTmp = "0.875"
 
     return std::atof(strTmp.c_str());
+}
+
+std::string parseVTrkObs(std::string label)
+{
+    if (label.find("dphi") == 0 || label.find("h_dphi") == 0) {
+        return "dphi";
+    }
+    else if (label.find("ratio_dphi") == 0 || label.find("h_ratio_dphi") == 0) {
+        return "ratio_dphi";
+    }
+    else if (label.find("xivh") == 0 || label.find("h_xivh") == 0) {
+        return "xivh";
+    }
+    else if (label.find("ratio_xivh") == 0 || label.find("h_ratio_xivh") == 0) {
+        return "ratio_xivh";
+    }
+    else if (label.find("trkPt") == 0 || label.find("h_trkPt") == 0) {
+        return "trkpt";
+    }
+    else if (label.find("ratio_trkPt") == 0 || label.find("h_ratio_trkPt") == 0) {
+        return "ratio_trkpt";
+    }
+
+    return "";
+}
+
+bool isDphi(std::string label)
+{
+    return (parseVTrkObs(label) == "dphi");
+}
+
+bool isXivh(std::string label)
+{
+    return (parseVTrkObs(label) == "xivh");
+}
+
+bool isTrkPt(std::string label)
+{
+    return (parseVTrkObs(label) == "trkpt");
+}
+
+bool isRatioDphi(std::string label)
+{
+    return (parseVTrkObs(label) == "ratio_dphi");
+}
+
+bool isRatioXivh(std::string label)
+{
+    return (parseVTrkObs(label) == "ratio_xivh");
+}
+
+bool isRatioTrkPt(std::string label)
+{
+    return (parseVTrkObs(label) == "ratio_trkpt");
 }
 
 #endif
