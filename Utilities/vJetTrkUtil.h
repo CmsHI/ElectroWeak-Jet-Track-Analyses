@@ -147,6 +147,7 @@ bool isTrkPt(std::string label);
 bool isRatioDphi(std::string label);
 bool isRatioXivh(std::string label);
 bool isRatioTrkPt(std::string label);
+bool isRatioVTrk(std::string label);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -988,6 +989,11 @@ bool isRatioXivh(std::string label)
 bool isRatioTrkPt(std::string label)
 {
     return (parseVTrkObs(label) == "ratio_trkpt");
+}
+
+bool isRatioVTrk(std::string label)
+{
+    return (isRatioDphi(label) || isRatioXivh(label) || isRatioTrkPt(label));
 }
 
 #endif
