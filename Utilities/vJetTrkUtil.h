@@ -323,6 +323,7 @@ int getNpartBin(float Npart)
 int getNTrkBin(int nTrk, int nTrkMax)
 {
     int deltaNtrk = (int)(nTrkMax / VJT::nCentBins);
+    if (nTrk < 0) nTrk = 0;
     int binTmp = (int)(nTrk / deltaNtrk);
     if (binTmp < VJT::nCentBins) {
         return binTmp;
