@@ -126,12 +126,16 @@ float getPFtotE(pfCand& pf, int pfId = 0, float etaMin = 3, float etaMax = 5);
 double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff);
 // trk corrections
 std::vector<double> getVecPt4TrkW();
+std::vector<double> getVecPt4TrkWCoarse();
 std::vector<double> getVecEta4TrkW(int nBins = 12);
 std::vector<int> getVecCent4TrkW(int nBins = 20);
+std::vector<int> getVecCent4TrkWCoarse();
 int getBinPt4TrkW(double pt, std::vector<double>& trkPts, int nBins);
 int getBinEta4TrkW(double eta, std::vector<double>& trkEtas, int nBins);
 int getBinCent4TrkW(int hiBin, std::vector<int>& hiBins, int nBins);
+int getBinCent4TrkWCoarse(int hiBin, std::vector<int>& hiBins, int nBins);
 double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
+double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // histogram util
@@ -745,6 +749,13 @@ std::vector<double> getVecPt4TrkW()
     return trkPts;
 }
 
+std::vector<double> getVecPt4TrkWCoarse()
+{
+    //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.50, 2.0, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    return trkPts;
+}
+
 std::vector<double> getVecEta4TrkW(int nBins)
 {
     double widthEta = (2.4*2) / nBins;
@@ -767,6 +778,14 @@ std::vector<int> getVecCent4TrkW(int nBins)
         int tmp = widthCent*i;
         hiBinsMin.push_back(tmp);
     }
+
+    return hiBinsMin;
+}
+
+std::vector<int> getVecCent4TrkWCoarse()
+{
+    //std::vector<int> hiBinsMin = {20, 60, 100, 180};
+    std::vector<int> hiBinsMin = {10, 20, 40, 60, 80, 100, 140, 180};
 
     return hiBinsMin;
 }
@@ -808,6 +827,20 @@ double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr)
 {
     int iBin = h_effcorr->FindBin(trkPhi);
     if (iBin >= 1 && iBin <= h_effcorr->GetNbinsX()) {
+
+        double effcorr = h_effcorr->GetBinContent(iBin);
+        if (effcorr > 0.01) {
+            return effcorr;
+        }
+    }
+
+    return 1;
+}
+
+double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr)
+{
+    int iBin = h_effcorr->FindBin(trkEta, trkPhi);
+    if (iBin >= 1 && iBin <= (h_effcorr->GetNbinsX()*h_effcorr->GetNbinsY())) {
 
         double effcorr = h_effcorr->GetBinContent(iBin);
         if (effcorr > 0.01) {
