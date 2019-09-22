@@ -1665,19 +1665,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 treeTrackSkim->SetBranchStatus(Form("trkEta%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("trkPhi%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("trkCharge%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkPtError%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkDz1%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkDzError1%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkDxy1%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkDxyError1%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkNHit%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkChi2%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkNdof%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkNlayer%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkAlgo%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkMVA%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("highPurity%s", mix_str.c_str()),1);
+                if (anaTrkID) {
+                    treeTrackSkim->SetBranchStatus(Form("trkPtError%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkDz1%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkDzError1%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkDxy1%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkDxyError1%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkNHit%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkChi2%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkNdof%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkNlayer%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkAlgo%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkMVA%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
+                }
                 treeTrackSkim->SetBranchStatus(Form("pfType%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
