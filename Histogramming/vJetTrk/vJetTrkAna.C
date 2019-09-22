@@ -415,9 +415,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h_resMBTrk_effcorr[nResMBTrkWPt][nResMBTrkWCent];
     if (doResidualMBTrkW) {
         std::string dirResMBTrkW = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/";
-        //std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v3.root";
         std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v4.root";
-        //if (outputFile.find("resMBTrkWZ") != std::string::npos || outputFile.find("resMBTrkWeffZ") != std::string::npos) {
         if (!isMixTrk) {
             fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zmm_v4_condor.root";
         }
@@ -529,7 +527,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
     // trk ID
-    //TH2D* h2_trkAlgo_vs_trkMVA[nCents][nVPts][nTrkPts];
 
     TH1D* h_trkPtError[nCents][nVPts][nTrkPts];
     TH1D* h_trkPtoErr[nCents][nVPts][nTrkPts];
@@ -544,9 +541,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_trkChi2_Ndof_Nlayer[nCents][nVPts][nTrkPts];
     TH1D* h_trkAlgo[nCents][nVPts][nTrkPts];
     TH1D* h_trkMVA[nCents][nVPts][nTrkPts];
-
-    //TH1D* h_diff_nTrkDphi0[nCents][nVPts][nTrkPts];
-    //TH1D* h_diff_nTrkDphiPi[nCents][nVPts][nTrkPts];
 
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_trkPhi_vs_trkEta_noDphi[nCents][nVPts][nTrkPts];
