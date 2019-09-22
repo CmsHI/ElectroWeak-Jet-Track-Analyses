@@ -251,6 +251,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isMixTrk = isBkgTrk;
 
+    bool anaTrkID = (anaTrks && isRecoTrk && toLowerCase(anaMode).find("trkid") != std::string::npos);
+
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
@@ -527,7 +529,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
     // trk ID
-
     TH1D* h_trkPtError[nCents][nVPts][nTrkPts];
     TH1D* h_trkPtoErr[nCents][nVPts][nTrkPts];
     TH1D* h_trkDz1[nCents][nVPts][nTrkPts];
@@ -1209,19 +1210,21 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_dR_leptrk[i][j][k] = 0;
                 h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
 
-                h_trkPtError[i][j][k] = new TH1D(Form("h_trkPtError_%s", name_h_suffix.c_str()), ";trkPtError;", 30, 0, 0.15);
-                h_trkPtoErr[i][j][k] = new TH1D(Form("h_trkPtoErr_%s", name_h_suffix.c_str()), ";trkPtError / trkPt;", 40, 0, 0.1);
-                h_trkDz1[i][j][k] = new TH1D(Form("h_trkDz1_%s", name_h_suffix.c_str()), ";trkDz1;", 40, 0, 0.2);
-                h_trkDz1oErr[i][j][k] = new TH1D(Form("h_trkDz1oErr_%s", name_h_suffix.c_str()), ";trkDz1 / trkDzError1;", 61, 0, 3.05);
-                h_trkDxy1[i][j][k] = new TH1D(Form("h_trkDxy1_%s", name_h_suffix.c_str()), ";trkDxy1;", 40, 0, 0.1);
-                h_trkDxy1oErr[i][j][k] = new TH1D(Form("h_trkDxy1oErr_%s", name_h_suffix.c_str()), ";trkDxy1 / trkDxyError1;", 61, 0, 3.05);
-                h_trkNHit[i][j][k] = new TH1D(Form("h_trkNHit_%s", name_h_suffix.c_str()), ";trkNHit;", 50, 0, 50);
-                h_trkNdof[i][j][k] = new TH1D(Form("h_trkNdof_%s", name_h_suffix.c_str()), ";trkNdof;", 70, 0, 70);
-                h_trkNlayer[i][j][k] = new TH1D(Form("h_trkNlayer_%s", name_h_suffix.c_str()), ";trkNlayer;", 22, 0, 22);
-                h_trkChi2[i][j][k] = new TH1D(Form("h_trkChi2_%s", name_h_suffix.c_str()), ";trkChi2;", 40, 0, 120);
-                h_trkChi2_Ndof_Nlayer[i][j][k] = new TH1D(Form("h_trkChi2_Ndof_Nlayer_%s", name_h_suffix.c_str()), ";trkChi2 / trkNdof / trkNlayer;", 40, 0, 0.2);
-                h_trkAlgo[i][j][k] = new TH1D(Form("h_trkAlgo_%s", name_h_suffix.c_str()), ";trkAlgo;", 50, 0, 50);
-                h_trkMVA[i][j][k] = new TH1D(Form("h_trkMVA_%s", name_h_suffix.c_str()), ";trkMVA;", 42, 0, 1.05);
+                if (anaTrkID) {
+                    h_trkPtError[i][j][k] = new TH1D(Form("h_trkPtError_%s", name_h_suffix.c_str()), ";trkPtError;", 30, 0, 0.15);
+                    h_trkPtoErr[i][j][k] = new TH1D(Form("h_trkPtoErr_%s", name_h_suffix.c_str()), ";trkPtError / trkPt;", 40, 0, 0.1);
+                    h_trkDz1[i][j][k] = new TH1D(Form("h_trkDz1_%s", name_h_suffix.c_str()), ";trkDz1;", 40, 0, 0.2);
+                    h_trkDz1oErr[i][j][k] = new TH1D(Form("h_trkDz1oErr_%s", name_h_suffix.c_str()), ";trkDz1 / trkDzError1;", 61, 0, 3.05);
+                    h_trkDxy1[i][j][k] = new TH1D(Form("h_trkDxy1_%s", name_h_suffix.c_str()), ";trkDxy1;", 40, 0, 0.1);
+                    h_trkDxy1oErr[i][j][k] = new TH1D(Form("h_trkDxy1oErr_%s", name_h_suffix.c_str()), ";trkDxy1 / trkDxyError1;", 61, 0, 3.05);
+                    h_trkNHit[i][j][k] = new TH1D(Form("h_trkNHit_%s", name_h_suffix.c_str()), ";trkNHit;", 50, 0, 50);
+                    h_trkNdof[i][j][k] = new TH1D(Form("h_trkNdof_%s", name_h_suffix.c_str()), ";trkNdof;", 70, 0, 70);
+                    h_trkNlayer[i][j][k] = new TH1D(Form("h_trkNlayer_%s", name_h_suffix.c_str()), ";trkNlayer;", 22, 0, 22);
+                    h_trkChi2[i][j][k] = new TH1D(Form("h_trkChi2_%s", name_h_suffix.c_str()), ";trkChi2;", 40, 0, 120);
+                    h_trkChi2_Ndof_Nlayer[i][j][k] = new TH1D(Form("h_trkChi2_Ndof_Nlayer_%s", name_h_suffix.c_str()), ";trkChi2 / trkNdof / trkNlayer;", 40, 0, 0.2);
+                    h_trkAlgo[i][j][k] = new TH1D(Form("h_trkAlgo_%s", name_h_suffix.c_str()), ";trkAlgo;", 50, 0, 50);
+                    h_trkMVA[i][j][k] = new TH1D(Form("h_trkMVA_%s", name_h_suffix.c_str()), ";trkMVA;", 42, 0, 1.05);
+                }
 
                 std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
                 std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
@@ -2599,8 +2602,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h2_trkPhi_vs_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
 
-                            if (false && isRecoTrk) {
-                            //if (isRecoTrk && !isMixTrk) {
+                            if (anaTrkID) {
                                 h_trkPtError[iCent][iVPt][iTrkPt]->Fill((*p_trkPtError)[i], wTrk);
                                 h_trkPtoErr[iCent][iVPt][iTrkPt]->Fill((*p_trkPtError)[i] / t_pt, wTrk);
                                 h_trkDz1[iCent][iVPt][iTrkPt]->Fill(std::fabs((*p_trkDz1)[i]), wTrk);
