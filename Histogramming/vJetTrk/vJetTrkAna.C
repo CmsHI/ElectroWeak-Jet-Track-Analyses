@@ -1964,13 +1964,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 double zmassPDG = 91.1876;
                 double deltaMass = 999999;
+                int pdgV = 23;
+                double massMin = 60;
+                double massMax = 120;
 
                 TLorentzVector vecl1;
                 TLorentzVector vecl2;
                 TLorentzVector vecll;
 
                 double lMass = -1;
-                int pdgCode = -1;
+                int pdgL = -1;
                 int nL = 0;
                 std::vector<float> *lPt;
                 std::vector<float> *lEta;
@@ -1978,28 +1981,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::vector<int>   *lChg;
 
                 double lEtaMax = -1;
+                double lPtMin = -1;
 
                 if (vIsZmm) {
 
                     lMass = 0.105658;
-                    pdgCode = 13;
+                    pdgL = 13;
                     nL = ggHi.nMu;
                     lPt = ggHi.muPt;
                     lEta = ggHi.muEta;
                     lPhi = ggHi.muPhi;
                     lChg = ggHi.muCharge;
                     lEtaMax = 2.4;
+                    lPtMin = 20;
                 }
                 else if (vIsZee) {
 
                     lMass = 0.000511;
-                    pdgCode = 11;
+                    pdgL = 11;
                     nL = ggHi.nEle;
                     lPt = ggHi.elePt;
                     lEta = ggHi.eleEta;
                     lPhi = ggHi.elePhi;
                     lChg = ggHi.eleCharge;
                     lEtaMax = 2.1;
+                    lPtMin = 20;
                 }
 
                 if (!isRecoV) {
@@ -2015,8 +2021,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         bool hasTauP = false;
                         bool hasTauM = false;
                         for (int i = 0; i < ggHi.nMC; ++i) {
-                            if (std::fabs((*ggHi.mcPID)[i]) == pdgCode && (*ggHi.mcMomPID)[i] == 15)  hasTauP = true;
-                            if (std::fabs((*ggHi.mcPID)[i]) == pdgCode && (*ggHi.mcMomPID)[i] == -15)  hasTauM = true;
+                            if (std::fabs((*ggHi.mcPID)[i]) == pdgL && (*ggHi.mcMomPID)[i] == 15)  hasTauP = true;
+                            if (std::fabs((*ggHi.mcPID)[i]) == pdgL && (*ggHi.mcMomPID)[i] == -15)  hasTauM = true;
                         }
                         if ( !(hasTauP && hasTauM) ) continue;
                     }
@@ -2027,14 +2033,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     bool hasLepM = false;
                     for (int i = 0; i < ggHi.nMC; ++i) {
 
-                        if ( !((*ggHi.mcMomPID)[i] == 23) ) continue;
-                        if ( !((*ggHi.mcPt)[i] > 20) ) continue;
+                        if ( !((*ggHi.mcMomPID)[i] == pdgV) ) continue;
+                        if ( !((*ggHi.mcPt)[i] > lPtMin) ) continue;
                         if ( !(std::fabs((*ggHi.mcEta)[i]) < vYMax) ) continue;
 
-                        if ((*ggHi.mcPID)[i] == pdgCode) {
+                        if ((*ggHi.mcPID)[i] == pdgL) {
                             hasLepP = true;
                         }
-                        else if ((*ggHi.mcPID)[i] == -1*pdgCode) {
+                        else if ((*ggHi.mcPID)[i] == -1*pdgL) {
                             hasLepM = true;
                         }
                     }
@@ -2042,9 +2048,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     if (hasLepM && hasLepP) {
                         for (int i = 0; i < ggHi.nMC; ++i) {
 
-                            if ((*ggHi.mcPID)[i] != 23)  continue;
+                            if ((*ggHi.mcPID)[i] != pdgV)  continue;
                             if ((*ggHi.mcStatus)[i] != 62)  continue;
-                            if ( !((*ggHi.mcMass)[i] >= 60 && (*ggHi.mcMass)[i] <= 120) ) continue;
+                            if ( !((*ggHi.mcMass)[i] >= massMin && (*ggHi.mcMass)[i] <= massMax) ) continue;
 
                             if ((*ggHi.mcPt)[i] > maxGenVPt) {
                                 genVPt = (*ggHi.mcPt)[i];
@@ -2068,7 +2074,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     if (vIsZee && isRecoV) {
                         l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
                     }
-                    if (!(l1pt > 20)) continue;
+                    if (!(l1pt > lPtMin)) continue;
                     if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
 
                     if (vIsZmm && isRecoV) {
@@ -2086,7 +2092,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         //if ( !((*ggHi.eleR9)[i] > 0.9) ) continue;
                     }
                     else if (!isRecoV) {
-                        if (std::fabs((*ggHi.mcPID)[i]) != pdgCode) continue;
+                        if (std::fabs((*ggHi.mcPID)[i]) != pdgL) continue;
                         else if (vIsZee) {
                             if (1.4442 < std::fabs((*lEta)[i]) && std::fabs((*lEta)[i]) < 1.566) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
@@ -2099,7 +2105,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (vIsZee && isRecoV) {
                             l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
                         }
-                        if (!(l2pt > 20)) continue;
+                        if (!(l2pt > lPtMin)) continue;
                         if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
 
                         if (vIsZmm && isRecoV) {
@@ -2117,7 +2123,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             //if ( !((*ggHi.eleR9)[j] > 0.9) ) continue;
                         }
                         else if (!isRecoV) {
-                            if (std::fabs((*ggHi.mcPID)[j]) != pdgCode) continue;
+                            if (std::fabs((*ggHi.mcPID)[j]) != pdgL) continue;
                             if (vIsZee) {
                                 if (1.4442 < std::fabs((*lEta)[j]) && std::fabs((*lEta)[j]) < 1.566) continue;
                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(j))  continue;
@@ -2129,7 +2135,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         vecll = vecl1 + vecl2;
 
-                        if (!(vecll.M() >= 60 && vecll.M() <= 120)) continue;
+                        if (!(vecll.M() >= massMin && vecll.M() <= massMax)) continue;
 
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
