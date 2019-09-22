@@ -598,9 +598,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_trkPhi_vs_trkEta_noDphi[nCents][nVPts][nTrkPts];
-    TH2D* h2_trkPhi_vs_trkEta_noDphi2[nCents][nVPts][nTrkPts];
-    TH2D* h2_trkPhi_vs_trkEta_noDphi3[nCents][nVPts][nTrkPts];
-    TH2D* h2_trkPhi_vs_trkEta_noDphi4[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_vPt[nCents][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
@@ -1309,33 +1306,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_dphi, -1*xMax_phi, xMax_phi);
                 vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi[i][j][k]);
 
-                std::string name_h2_trkPhi_vs_trkEta_noDphi2 = Form("h2_trkPhi_vs_trkEta_noDphi2_%s", name_h_suffix.c_str());
-                std::string title_h2_trkPhi_vs_trkEta_noDphi2 = title_h2_trkPhi_vs_trkEta_noDphi;
-
-                h2_trkPhi_vs_trkEta_noDphi2[i][j][k] = 0;
-                h2_trkPhi_vs_trkEta_noDphi2[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta_noDphi2.c_str(), title_h2_trkPhi_vs_trkEta_noDphi.c_str(),
-                                                          nBinsX_eta, -1*xMax_eta, xMax_eta,
-                                                          (nBinsX_dphi/2), -1*xMax_phi, xMax_phi);
-                vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi2[i][j][k]);
-
-                std::string name_h2_trkPhi_vs_trkEta_noDphi3 = Form("h2_trkPhi_vs_trkEta_noDphi3_%s", name_h_suffix.c_str());
-                std::string title_h2_trkPhi_vs_trkEta_noDphi3 = title_h2_trkPhi_vs_trkEta_noDphi;
-
-                h2_trkPhi_vs_trkEta_noDphi3[i][j][k] = 0;
-                h2_trkPhi_vs_trkEta_noDphi3[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta_noDphi3.c_str(), title_h2_trkPhi_vs_trkEta_noDphi.c_str(),
-                                                           12, -2.4, 2.4,
-                                                           nBinsX_dphi, -1*xMax_phi, xMax_phi);
-                vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi3[i][j][k]);
-
-                std::string name_h2_trkPhi_vs_trkEta_noDphi4 = Form("h2_trkPhi_vs_trkEta_noDphi4_%s", name_h_suffix.c_str());
-                std::string title_h2_trkPhi_vs_trkEta_noDphi4 = title_h2_trkPhi_vs_trkEta_noDphi;
-
-                h2_trkPhi_vs_trkEta_noDphi4[i][j][k] = 0;
-                h2_trkPhi_vs_trkEta_noDphi4[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta_noDphi4.c_str(), title_h2_trkPhi_vs_trkEta_noDphi.c_str(),
-                                                           12, -2.4, 2.4,
-                                                          (nBinsX_dphi/2), -1*xMax_phi, xMax_phi);
-                vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi4[i][j][k]);
-
                 std::string name_h2_deta_vs_dphi = Form("h2_deta_vs_dphi_%s", name_h_suffix.c_str());
                 std::string title_h2_deta_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
                                                             text_dphi.c_str(),
@@ -1668,12 +1638,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double wEvtsAll = 0;
     double wEvtsV = 0;
 
-    std::vector<Long64_t> entriesToSkip;
-    if (!isMC && isPbPb18 && vIsZee) {
-        //entriesToSkip = {407, 1364, 2839, 3649, 4403, 4813, 4818, 7963, 8484};
-    }
-    int nEntriesToSkip = entriesToSkip.size();
-
     int nFilesSkipped = 0;
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -1935,14 +1899,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (j_entry % 2000 == 0)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(4)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
-
-            bool skipEvt = false;
-            for (int iSkip = 0; iSkip < nEntriesToSkip; ++iSkip) {
-                if (j_entry == entriesToSkip[iSkip]) {
-                    skipEvt = true;
-                }
-            }
-            if (skipEvt)  continue;
 
             treeggHiNtuplizer->GetEntry(j_entry);
             treeHLT->GetEntry(j_entry);
@@ -2502,12 +2458,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 wMixEvts *= (1.0 / (double(mixEvents.nmix)));
             }
 
-            double nTrkDphi0 = 0;
-            double nTrkDphi0Next = 0;
-            double nTrkDphiPi = 0;
-            double nTrkDphiPiNext = 0;
-            double binWNTrkDphi = xMax_phi / nBinsX_dphi;
-
             int iTrkPhiWCent = -1;
             if (doTrkPhiWeights) {
                 iTrkPhiWCent = getBinCent4TrkW(hiBin, trkPhiWCents, nTrkPhiWCent);
@@ -2760,25 +2710,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_dphi_vs_l2Phi[iCent][iVPt][iTrkPt]->Fill(llPhi[1], dphi, wTrk);
 
                             h2_trkPhi_vs_trkEta_noDphi[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-                            h2_trkPhi_vs_trkEta_noDphi2[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-                            h2_trkPhi_vs_trkEta_noDphi3[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-                            h2_trkPhi_vs_trkEta_noDphi4[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
-
-                            if (false && iCent == 7 && iVPt == 4 && iTrkPt == 3) {
-
-                                if (dphi < 3*binWNTrkDphi) {
-                                    nTrkDphi0 += wTrk;
-                                }
-                                else if (3*binWNTrkDphi <= dphi && dphi < 6*binWNTrkDphi) {
-                                    nTrkDphi0Next += wTrk;
-                                }
-                                else if (dphi >= (xMax_phi - 2*binWNTrkDphi) && dphi < (xMax_phi - binWNTrkDphi)) {
-                                    nTrkDphiPiNext += wTrk;
-                                }
-                                else if (dphi >= (xMax_phi - binWNTrkDphi)) {
-                                    nTrkDphiPi += wTrk;
-                                }
-                            }
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
 
@@ -2826,30 +2757,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     }
                 }
-            }
-
-            nTrkDphi0 /= 3;
-            nTrkDphi0Next /= 3;
-            if (((nTrkDphi0 >= nTrkDphi0Next + 10) || (nTrkDphiPi <= nTrkDphiPiNext - 10)) && false) {
-                std::cout << "###" << std::endl;
-                if (nTrkDphi0 >= nTrkDphi0Next + 15) {
-                    std::cout << "diff >= 15, nTrkDphi0 = " << nTrkDphi0 << " , nTrkDphi0Next = " << nTrkDphi0Next << " , diff = " << (nTrkDphi0-nTrkDphi0Next) << std::endl;
-                }
-                else if (nTrkDphi0 >= nTrkDphi0Next + 10) {
-                    std::cout << "diff >= 10, nTrkDphi0 = " << nTrkDphi0 << " , nTrkDphi0Next = " << nTrkDphi0Next << " , diff = " << (nTrkDphi0-nTrkDphi0Next) << std::endl;
-                }
-                if (nTrkDphiPi <= nTrkDphiPiNext - 10) {
-                    std::cout << "diff <= 10, nTrkDphiPi = " << nTrkDphiPi << " , nTrkDphiPiNext = " << nTrkDphiPiNext << " , diff = " << (nTrkDphiPiNext-nTrkDphiPi) << std::endl;
-                }
-                else if (nTrkDphiPi <= nTrkDphiPiNext - 5) {
-                    std::cout << "diff <= 5, nTrkDphiPi = " << nTrkDphiPi << " , nTrkDphiPiNext = " << nTrkDphiPiNext << " , diff = " << (nTrkDphiPiNext-nTrkDphiPi) << std::endl;
-                }
-
-                std::cout << "j_entry = " << j_entry << " , RLE = " << hiEvt.run << " , " << hiEvt.lumi << " , " << hiEvt.evt << std::endl;
-                std::cout << "hiBin = " << hiBin << " v Pt,Eta,Phi,Y,M = " << vPt << " , " << vEta << " , " << vPhi << " , " << vY << " , " << vM << std::endl;
-                std::cout << "Lep1 Pt,Eta,Phi = " << llPt[0] << " , " << llEta[0] << " , " << llPhi[0] << std::endl;
-                std::cout << "Lep2 Pt,Eta,Phi = " << llPt[1] << " , " << llEta[1] << " , " << llPhi[1] << std::endl;
-                std::cout << "deta_ll = " << std::fabs((llEta[0]-llEta[1])) << " dphi_ll = " << std::fabs(getDPHI(llPhi[0], llPhi[1])) << std::endl;
             }
         }
         fileTmp->Close();
