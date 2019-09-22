@@ -252,6 +252,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isMixTrk = isBkgTrk;
 
     bool anaTrkID = (anaTrks && isRecoTrk && toLowerCase(anaMode).find("trkid") != std::string::npos);
+    bool anavTrk_dR = false;
+    bool anavTrk_zh = false;
 
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
@@ -520,9 +522,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     TH1D* h_dphi[nCents][nVPts][nTrkPts];
     TH1D* h_deta[nCents][nVPts][nTrkPts];
-    //TH1D* h_dR[nCents][nVPts][nTrkPts];
-    //TH1D* h_zh[nCents][nVPts][nTrkPts];
-    //TH1D* h_zh_T[nCents][nVPts][nTrkPts];
+    TH1D* h_dR[nCents][nVPts][nTrkPts];
+    TH1D* h_zh[nCents][nVPts][nTrkPts];
+    TH1D* h_zh_T[nCents][nVPts][nTrkPts];
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
 
     TH1D* h_dphi_leptrk[nCents][nVPts][nTrkPts];
@@ -1113,14 +1115,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                             text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
-                /*
-                std::string name_h_dR = Form("h_dR_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_dR = Form("%s;%s;", title_h_suffix.c_str(),
-                                                        text_dR.c_str());
-                h_dR[i][j][k] = 0;
-                h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
-                */
-
+                if (anavTrk_dR) {
+                    std::string name_h_dR = Form("h_dR_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_dR = Form("%s;%s;", title_h_suffix.c_str(),
+                                                            text_dR.c_str());
+                    h_dR[i][j][k] = 0;
+                    h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
+                }
 
                 title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                                                             text_range_trkPt.c_str(),
@@ -1141,40 +1142,37 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                             text_range_deta.c_str(),
                                                             text_range_cent.c_str());
 
-                /*
-                std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_zh = Form("%s;%s;", title_h_suffix.c_str(),
-                                                        text_defn_zh.c_str());
-
-                int nBins_zh = 10;
-                std::vector<double> binsVecTmp = calcBinsLogScale(0.01, 1, nBins_zh);
-                double binsArrTmp_zh[nBins_zh+1];
-                std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp_zh);
-
-                h_zh[i][j][k] = 0;
-                h_zh[i][j][k] = new TH1D(name_h_zh.c_str(), title_h_zh.c_str(), nBins_zh, binsArrTmp_zh);
-                */
-
                 std::string text_vPt_vec = Form("#bf{p}^{%s}_{T}", text_V.c_str());
                 std::string text_trkPt_vec = Form("#bf{p}^{%s}_{T}", text_trk.c_str());
 
-                /*
-                std::string text_zh_T = Form("z^{%s%s}_{T}", text_trk.c_str(),
-                                                             text_V.c_str());
-                std::string text_defn_zh_T = Form("%s = ( -(%s #dot %s) / |%s|^{2} )",
-                                                                text_zh_T.c_str(),
-                                                                text_vPt_vec.c_str(),
-                                                                text_trkPt_vec.c_str(),
-                                                                text_vPt_vec.c_str());
+                if (anavTrk_zh) {
+                    std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_zh = Form("%s;%s;", title_h_suffix.c_str(),
+                                                            text_defn_zh.c_str());
 
-                std::string name_h_zh_T = Form("h_zh_T_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_zh_T = Form("%s;%s;", title_h_suffix.c_str(),
-                                                          text_defn_zh_T.c_str());
+                    int nBins_zh = 10;
+                    std::vector<double> binsVecTmp = calcBinsLogScale(0.01, 1, nBins_zh);
+                    double binsArrTmp_zh[nBins_zh+1];
+                    std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp_zh);
 
-                h_zh_T[i][j][k] = 0;
-                h_zh_T[i][j][k] = new TH1D(name_h_zh_T.c_str(), title_h_zh_T.c_str(), nBins_zh, binsArrTmp_zh);
-                */
+                    h_zh[i][j][k] = 0;
+                    h_zh[i][j][k] = new TH1D(name_h_zh.c_str(), title_h_zh.c_str(), nBins_zh, binsArrTmp_zh);
 
+                    std::string text_zh_T = Form("z^{%s%s}_{T}", text_trk.c_str(),
+                                                                 text_V.c_str());
+                    std::string text_defn_zh_T = Form("%s = ( -(%s #dot %s) / |%s|^{2} )",
+                                                                    text_zh_T.c_str(),
+                                                                    text_vPt_vec.c_str(),
+                                                                    text_trkPt_vec.c_str(),
+                                                                    text_vPt_vec.c_str());
+
+                    std::string name_h_zh_T = Form("h_zh_T_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_zh_T = Form("%s;%s;", title_h_suffix.c_str(),
+                                                              text_defn_zh_T.c_str());
+
+                    h_zh_T[i][j][k] = 0;
+                    h_zh_T[i][j][k] = new TH1D(name_h_zh_T.c_str(), title_h_zh_T.c_str(), nBins_zh, binsArrTmp_zh);
+                }
 
                 std::string text_xivh = Form("#xi^{%s, %s}_{T}", text_trk.c_str(),
                                                      text_V.c_str());
@@ -2549,10 +2547,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (!(trkPtsMin[iTrkPt] <= t_pt && t_pt < trkPtsMax[iTrkPt]))  continue;
 
-                            //float dR = std::sqrt( dphi*dphi + deta*deta );
-
                             h_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, wTrk);
-                            //h_dR[iCent][iVPt][iTrkPt]->Fill(dR, wTrk);
+                            if (anavTrk_dR) {
+                                float dR = std::sqrt( dphi*dphi + deta*deta );
+                                h_dR[iCent][iVPt][iTrkPt]->Fill(dR, wTrk);
+                            }
 
                             h_dphi_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(llPhi[0], t_phi)), wTrk);
 
@@ -2607,16 +2606,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h_trkMVA[iCent][iVPt][iTrkPt]->Fill((*p_trkMVA)[i], wTrk);
                             }
 
-                            //float z_vt = t_pt / vPt;
-
                             TLorentzVector vTrk;
                             vTrk.SetPtEtaPhiM(t_pt, 0, t_phi, 0);
                             float angle = vV.Angle(vTrk.Vect());
                             float z_vt_T = vTrk.P() * fabs(cos(angle)) / vPt;
                             float xi_vt = log(1.0 / z_vt_T);
 
-                            //h_zh[iCent][iVPt][iTrkPt]->Fill(z_vt, wTrk);
-                            //h_zh_T[iCent][iVPt][iTrkPt]->Fill(z_vt_T, wTrk);
+                            if (anavTrk_zh) {
+                                float z_vt = t_pt / vPt;
+                                h_zh[iCent][iVPt][iTrkPt]->Fill(z_vt, wTrk);
+                                h_zh_T[iCent][iVPt][iTrkPt]->Fill(z_vt_T, wTrk);
+                            }
                             h_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, wTrk);
 
                             h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
