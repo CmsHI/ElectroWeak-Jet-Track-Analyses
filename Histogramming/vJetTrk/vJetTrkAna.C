@@ -261,15 +261,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     rotateEvtPlane = (rotateEvtPlane && isPbPb);
 
-    bool doResidualTrkW = (outputFile.find("resTrkW") != std::string::npos && redoTrkWeights);
-    std::cout << "doResidualTrkW = " << doResidualTrkW << std::endl;
-
     bool doResidualMBTrkW = (outputFile.find("resMBTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualMBTrkW = " << doResidualMBTrkW << std::endl;
-    if (doResidualTrkW && doResidualMBTrkW) {
-        std::cout << "cannot do both doResidualTrkW and doResidualMBTrkW. Exiting"<< std::endl;
-        return;
-    }
 
     TFile* fileWeightsV = 0;
     std::vector<TH2D*> vec_h2D_wV;
@@ -376,47 +369,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         else if (isPbPb15) {
             trkCorr2015 = new TrkCorr("Corrections/tracks/2015/TrkCorr_Jun7_Iterative_PbPb_etaLT2p4/");
         }
-    }
-
-    TFile* fileResTrkW = 0;
-    //TH1D* h_resTrkW[4][3];
-    TH2D* h_resTrkW[4][3];
-    //TH2D* h2_resTrkW[4];
-    if (doResidualTrkW) {
-        //std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_5_8_PFHFtotE_m682/trkgetEff/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root";
-        //std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/trkgetEff/rotEP/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.190915.root";
-        //std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/trkgetEff/rotEP/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root";
-        std::string fileResTrkWPath = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/trkgetEff/vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub_ratio_g_sig.root";
-        fileResTrkW = TFile::Open(fileResTrkWPath.c_str(), "READ");
-        std::vector<std::string> tmpLblsCent = {"cent0_10", "cent10_30", "cent30_50", "cent50_90"};
-        //std::vector<std::string> tmpLblsTrkPt = {"trkPt0p5_1", "trkPt1_2", "trkPt2_3"};
-        std::vector<std::string> tmpLblsTrkPt = {"trkPt1_2", "trkPt2_3", "trkPt3_4"};
-        for (int i = 0; i < 4; ++i) {
-            for (int j = 0; j < 3; ++j) {
-                h_resTrkW[i][j] = 0;
-                //std::string tmpName = Form("h_ratio_dphi_rebin_vPt30_0_%s_%s_sig", tmpLblsTrkPt[j].c_str(), tmpLblsCent[i].c_str());
-                //h_resTrkW[i][j] = (TH1D*)fileResTrkW->Get(tmpName.c_str());
-                std::string tmpName = Form("h2_ratio_trkPhi_vs_trkEta_noDphi4_vPt30_0_%s_%s_sig", tmpLblsTrkPt[j].c_str(), tmpLblsCent[i].c_str());
-                h_resTrkW[i][j] = (TH2D*)fileResTrkW->Get(tmpName.c_str());
-
-                if (h_resTrkW[i][j] == 0) {
-                    std::cout << "WARNING : object not found : " << tmpName.c_str() << std::endl;
-                }
-            }
-        }
-
-        /*
-        std::vector<std::string> tmpLblsCent = {"cent0_10", "cent10_30", "cent30_50", "cent50_90"};
-        for (int i = 0; i < 4; ++i) {
-            h2_resTrkW[i] = 0;
-            std::string tmpName = Form("h2_ratio_trkPt_vs_trkEta_vPt30_0_%s_sig", tmpLblsCent[i].c_str());
-            h2_resTrkW[i] = (TH2D*)fileResTrkW->Get(tmpName.c_str());
-
-            if (h2_resTrkW[i] == 0) {
-                std::cout << "WARNING : object not found : " << tmpName.c_str() << std::endl;
-            }
-        }
-        */
     }
 
     TFile* fileTrkPhiWeights = 0;
@@ -2564,51 +2516,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
 
                         float tmpResCorr = 1;
-                        if (doResidualTrkW) {
-                            int iResBinPt = -1;
-                            if (0.5 <= t_pt && t_pt < 1) {
-                                //iResBinPt = 0;
-                                iResBinPt = -1;
-                            }
-                            else if (1 <= t_pt && t_pt < 2) {
-                                //iResBinPt = 1;
-                                iResBinPt = 0;
-                            }
-                            else if (2 <= t_pt && t_pt < 3) {
-                                //iResBinPt = 2;
-                                iResBinPt = 1;
-                            }
-                            else if (3 <= t_pt && t_pt < 4) {
-                                //iResBinPt = 2;
-                                iResBinPt = 2;
-                            }
-                            if (iResBinPt >= 0) {
-
-                                int iResBinCent = -1;
-                                if (cent < 10) {
-                                    iResBinCent = 0;
-                                }
-                                else if (cent < 30) {
-                                    iResBinCent = 1;
-                                }
-                                else if (cent < 50) {
-                                    iResBinCent = 2;
-                                }
-                                else if (cent < 90) {
-                                    iResBinCent = 3;
-                                }
-
-                                if (iResBinCent >= 0) {
-//                                    float dphi = std::fabs(getDPHI(vPhi, t_phi));
-                                    //int iResBinHist = h_resTrkW[iResBinCent][iResBinPt]->FindBin(dphi);
-                                    int iResBinHist = h_resTrkW[iResBinCent][iResBinPt]->FindBin(t_eta, t_phi0);
-                                    tmpResCorr = h_resTrkW[iResBinCent][iResBinPt]->GetBinContent(iResBinHist);
-                                    if (tmpResCorr > 1.6) tmpResCorr = 1.6;
-                                    if (tmpResCorr < 0.4) tmpResCorr = 0.4;
-                                }
-                            }
-                        }
-                        else if (doResidualMBTrkW) {
+                        if (doResidualMBTrkW) {
 
                             int iResMBTrkWPt = -1;
                             if (t_pt < 4) {
@@ -2623,32 +2531,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 tmpResCorr = 1.0/(getTrkEtaPhiEffCorrection(t_eta, t_phi0, h_resMBTrk_effcorr[iResMBTrkWPt][iResMBTrkWCent]));
                             }
                         }
-
-                        /*
-                        if (doResidualTrkW && t_pt < 4) {
-
-                            int iResBinCent = -1;
-                            if (cent < 10) {
-                                iResBinCent = 0;
-                            }
-                            else if (cent < 30) {
-                                iResBinCent = 1;
-                            }
-                            else if (cent < 50) {
-                                iResBinCent = 2;
-                            }
-                            else if (cent < 90) {
-                                iResBinCent = 3;
-                            }
-
-                            if (iResBinCent >= 0) {
-                                int iResBinHist = h2_resTrkW[iResBinCent]->FindBin(t_eta, t_pt);
-                                tmpResCorr = h2_resTrkW[iResBinCent]->GetBinContent(iResBinHist);
-                                if (tmpResCorr > 1.6) tmpResCorr = 1.6;
-                                if (tmpResCorr < 0.4) tmpResCorr = 0.4;
-                            }
-                        }
-                        */
 
                         trkWeightTmp /= tmpResCorr;
                     }
