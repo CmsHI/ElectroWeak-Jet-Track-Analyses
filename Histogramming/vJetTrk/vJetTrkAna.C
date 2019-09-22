@@ -1675,8 +1675,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     treeTrackSkim->SetBranchStatus(Form("trkNlayer%s", mix_str.c_str()),1);
                     treeTrackSkim->SetBranchStatus(Form("trkAlgo%s", mix_str.c_str()),1);
                     treeTrackSkim->SetBranchStatus(Form("trkMVA%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
                 }
+                treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("pfType%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
                 treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
