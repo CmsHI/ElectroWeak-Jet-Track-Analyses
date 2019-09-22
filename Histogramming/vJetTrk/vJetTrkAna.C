@@ -2130,8 +2130,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         vecll = vecl1 + vecl2;
 
                         if (!(vecll.M() >= 60 && vecll.M() <= 120)) continue;
-                        //if (!((vecll.M() >= 60 && vecll.M() <= 80) || (vecll.M() >= 100 && vecll.M() <= 120))) continue;
-                        //if (!(vecll.M() >= 80 && vecll.M() <= 100)) continue;
 
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
@@ -2423,22 +2421,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 if (!isRecoTrk) {
                     if ((*p_chg)[i] == 0)  continue;
                     if (isSigTrk && (*p_sube)[i] != 0)  continue;
-                }
-
-                if (isRecoTrk && !isMixTrk) {
-//                    if ((*trks.p_trkAlgo)[i] == 2) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 7) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 8) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 9) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 10) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 11) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 13) continue;
-//                    if ((*trks.p_trkAlgo)[i] == 24) continue;
-
-                    //if ((*trks.p_trkAlgo)[i] != 4) continue;
-
-                    //if (!((*trks.p_trkAlgo)[i] == 4 || (*trks.p_trkAlgo)[i] == 22 || (*trks.p_trkAlgo)[i] == 23)) continue;
-                    //if (!((*trks.p_trkAlgo)[i] == 4 || (*trks.p_trkAlgo)[i] == 5 || (*trks.p_trkAlgo)[i] == 6 || (*trks.p_trkAlgo)[i] == 22 || (*trks.p_trkAlgo)[i] == 23)) continue;
                 }
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
