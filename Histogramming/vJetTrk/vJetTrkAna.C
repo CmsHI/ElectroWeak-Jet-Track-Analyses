@@ -130,6 +130,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::string anaMode = (ArgumentParser::optionExists("--anaMode", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--anaMode", argOptions).c_str() : "v_trk";
 
+    double evtFrac = (ArgumentParser::optionExists("--evtFrac", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--evtFrac", argOptions).c_str()) : 1;
+
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--vType", argOptions).c_str() : "pho";
     std::string vRG = (ArgumentParser::optionExists("--vRG", argOptions)) ?
@@ -190,6 +193,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
 
     std::cout << "anaMode = " << anaMode << std::endl;
+    std::cout << "evtFrac = " << evtFrac << std::endl;
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
     std::cout << "nVPts = " << nVPts << std::endl;
@@ -1844,6 +1848,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
+            if (evtFrac < 1 && j_entry > (entriesTmp*evtFrac)) {
+                break;
+            }
+
             if (j_entry % 2000 == 0)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(4)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
