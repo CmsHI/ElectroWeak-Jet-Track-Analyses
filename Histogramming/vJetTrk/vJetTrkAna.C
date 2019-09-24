@@ -242,6 +242,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool vIsZmm = (toLowerCase(vType).find("zmm") == 0);
     bool vIsZee = (toLowerCase(vType).find("zee") == 0);
     bool vIsZ = vIsZmm || vIsZee;
+    bool vIsSS = (vIsZ && toLowerCase(vType).find("_ss") != std::string::npos);
 
     bool vIsZtautau_mm = (vIsZmm && toLowerCase(vType).find("tt") != std::string::npos);    // tt = tau+tau
     bool vIsZtautau_ee = (vIsZee && toLowerCase(vType).find("tt") != std::string::npos);
@@ -1944,7 +1945,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double vPhi = -999999;
             double vY = -999999;
             double vM = 0;
-            bool ll_os = false;     // dilepton opposite charge
+            bool ll_passSign = false;     // dilepton opposite charge
             std::vector<int> llIndex = {-1, -1};
             std::vector<float> llPt = {-998877, -998877};
             std::vector<float> llEta = {-998877, -998877};
@@ -2151,7 +2152,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             vPhi = vecll.Phi();
                             vY = vecll.Rapidity();
                             vM = vecll.M();
-                            ll_os = (((*lChg)[i] == -1*(*lChg)[j]));
+                            ll_passSign =  (vIsSS) ? ((*lChg)[i] == (*lChg)[j]) : ((*lChg)[i] == -1*(*lChg)[j]);
 
                             if (l1pt >= l2pt) {
                                 llIndex = {i, j};
@@ -2218,7 +2219,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             // reco eff
             if (isMC && isRecoV && genVPt > 0) {
 
-                double matchedRG = ((vIsPho || ll_os) && passedTrig && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
+                double matchedRG = ((vIsPho || ll_passSign) && passedTrig && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
 
                 double genVYAbs = std::fabs(genVY);
 
@@ -2280,7 +2281,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double vYAbs = std::fabs(vY);
 
             // fill trigger eff histograms
-            if (vIsPho || ll_os) {
+            if (vIsPho || ll_passSign) {
                 for (int i = 0; i < nCents; ++i) {
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
@@ -2294,7 +2295,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             if (!passedTrig) continue;
 
-            if (vIsPho || ll_os) {
+            if (vIsPho || ll_passSign) {
                 // opposite charge pairs
                 for (int i = 0; i < nCents; ++i) {
 
@@ -2391,7 +2392,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (!(vYMin <= vYAbs && vYAbs < vYMax))  continue;
-            if (vIsZ && !ll_os) continue;
+            if (vIsZ && !ll_passSign) continue;
             wEvtsV += wV;
 
             if (!anaTrks) continue;
