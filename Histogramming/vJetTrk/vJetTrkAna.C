@@ -423,9 +423,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h_resMBTrk_effcorr[nResMBTrkWPt][nResMBTrkWCent];
     if (doResidualMBTrkW) {
         std::string dirResMBTrkW = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/";
-        std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v4.root";
+        std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v5.root";
         if (!isMixTrk) {
-            fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zmm_v4_condor.root";
+            fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zmm_v5.root";
         }
 
         if (fileNameResMBTrkW != "") {
