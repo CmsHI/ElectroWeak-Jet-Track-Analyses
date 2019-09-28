@@ -130,6 +130,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::string anaMode = (ArgumentParser::optionExists("--anaMode", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--anaMode", argOptions).c_str() : "v_trk";
 
+    std::string sysMode = (ArgumentParser::optionExists("--sysMode", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--sysMode", argOptions).c_str() : "";
+
     double evtFrac = (ArgumentParser::optionExists("--evtFrac", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--evtFrac", argOptions).c_str()) : 1;
 
@@ -193,6 +196,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
 
     std::cout << "anaMode = " << anaMode << std::endl;
+    std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
@@ -259,6 +263,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool anaTrkID = (anaTrks && isRecoTrk && toLowerCase(anaMode).find("trkid") != std::string::npos);
     bool anavTrk_dR = false;
     bool anavTrk_zh = false;
+
+    int lep_sys_index = parseLepSysIndex(sysMode);
 
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
@@ -2172,6 +2178,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             double wV = w;
+            if (vIsZ) {
+                wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent));
+            }
+
             if (doWeightsV) {
                 int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
                 wV *= getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
