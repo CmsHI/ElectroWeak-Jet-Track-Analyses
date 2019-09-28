@@ -21,6 +21,8 @@
 #include "../TreeHeaders/trackTree.h"
 #include "../TreeHeaders/pfCandTree.h"
 #include "../TreeHeaders/trackSkimTree.h"
+#include "leptons/muons/sysUtil.h"
+#include "leptons/electrons/sysUtil.h"
 #include "physicsUtil.h"
 #include "systemUtil.h"
 
@@ -138,6 +140,9 @@ double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
 double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
+// lepton systematics
+int parseLepSysIndex(std::string sys_label);
+double getLepSysVar(bool isMu, int sys_index, double pt, double eta, int cent);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
@@ -879,6 +884,75 @@ std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax)
     }
 
     return res;
+}
+
+int parseLepSysIndex(std::string sys_label)
+{
+    sys_label = toLowerCase(sys_label);
+
+    if (sys_label.find("zmm") != std::string::npos) {
+
+        if (sys_label.find("stat_lep_id_p") != std::string::npos) {
+            return MUONTNP::k_stat_id_p;
+        }
+        else if (sys_label.find("stat_lep_id_m") != std::string::npos) {
+            return MUONTNP::k_stat_id_m;
+        }
+        else if (sys_label.find("stat_lep_trig_p") != std::string::npos) {
+            return MUONTNP::k_stat_trig_p;
+        }
+        else if (sys_label.find("stat_lep_trig_m") != std::string::npos) {
+            return MUONTNP::k_stat_trig_m;
+        }
+        else if (sys_label.find("sys_lep_id_p") != std::string::npos) {
+            return MUONTNP::k_sys_id_p;
+        }
+        else if (sys_label.find("sys_lep_id_m") != std::string::npos) {
+            return MUONTNP::k_sys_id_m;
+        }
+        else if (sys_label.find("sys_lep_trig_p") != std::string::npos) {
+            return MUONTNP::k_sys_trig_p;
+        }
+        else if (sys_label.find("sys_lep_trig_m") != std::string::npos) {
+            return MUONTNP::k_sys_trig_m;
+        }
+    }
+    else if (sys_label.find("zee") != std::string::npos) {
+
+        if (sys_label.find("pp17_tot_id") != std::string::npos) {
+            return ELESYS::k_unc_pp17_tot_id;
+        }
+        else if (sys_label.find("pbpb18_tot_reco") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_tot_reco;
+        }
+        else if (sys_label.find("pbpb18_stat_reco") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_stat_reco;
+        }
+        else if (sys_label.find("pbpb18_sys_reco") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_sys_reco;
+        }
+        else if (sys_label.find("pbpb18_tot_id") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_tot_id;
+        }
+        else if (sys_label.find("pbpb18_stat_id") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_stat_id;
+        }
+        else if (sys_label.find("pbpb18_sys_id") != std::string::npos) {
+            return ELESYS::k_unc_pbpb18_sys_id;
+        }
+    }
+
+    return -1;
+}
+
+double getLepSysVar(bool isMu, int sys_index, double pt, double eta, int cent)
+{
+    if (isMu) {
+        return muonTnP::get_unc(sys_index, pt, eta, cent);
+    }
+    else {
+        return eleSys::get_unc(sys_index, pt, eta, cent);
+    }
 }
 
 /*
