@@ -433,6 +433,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v5.root";
         if (!isMixTrk) {
             fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zmm_v5.root";
+            if (vIsZee) {
+                //fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zee_v5.root";
+            }
         }
 
         if (fileNameResMBTrkW != "") {
