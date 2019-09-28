@@ -752,7 +752,8 @@ std::vector<double> getVecPt4TrkW()
 std::vector<double> getVecPt4TrkWCoarse()
 {
     //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.50, 2.0, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
-    std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
     return trkPts;
 }
 
@@ -785,7 +786,8 @@ std::vector<int> getVecCent4TrkW(int nBins)
 std::vector<int> getVecCent4TrkWCoarse()
 {
     //std::vector<int> hiBinsMin = {20, 60, 100, 180};
-    std::vector<int> hiBinsMin = {10, 20, 40, 60, 80, 100, 140, 180};
+    //std::vector<int> hiBinsMin = {10, 20, 40, 60, 80, 100, 140, 180};
+    std::vector<int> hiBinsMin = {10, 20, 30, 40, 50, 60, 70, 80, 100, 140, 180};
 
     return hiBinsMin;
 }
