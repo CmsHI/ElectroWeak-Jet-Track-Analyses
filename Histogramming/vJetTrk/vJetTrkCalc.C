@@ -51,6 +51,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doSCALEBINW = containsElement(operationList, "SCALEBINW");
     bool doBKGSUB = containsElement(operationList, "BKGSUB");
     bool doSBSUB = containsElement(operationList, "SBSUB");
+    bool doSAMESIGNSUB = containsElement(operationList, "SAMESIGNSUB");
     bool doNORMV = containsElement(operationList, "NORMV");
     bool doMERGE = containsElement(operationList, "MERGE");
     bool doRATIO = containsElement(operationList, "RATIO");
@@ -58,27 +59,28 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
     std::cout << "doSBSUB = " << doSBSUB << std::endl;
+    std::cout << "doSAMESIGNSUB = " << doSAMESIGNSUB << std::endl;
     std::cout << "doNORMV = " << doNORMV << std::endl;
     std::cout << "doMERGE = " << doMERGE << std::endl;
     std::cout << "doRATIO = " << doRATIO << std::endl;
 
-    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doNORMV || doRATIO)) {
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doNORMV || doMERGE)) {
+    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE)) {
         std::cout << "RATIO cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doBKGSUB && doSBSUB) {
-        std::cout << "BKGSUB and SBSUB cannot be combined" << std::endl;
+    else if ((doBKGSUB && doSBSUB) || (doBKGSUB && doSAMESIGNSUB) || (doSBSUB && doSAMESIGNSUB)) {
+        std::cout << "BKGSUB, SBSUB, and SAMESIGNSUB cannot be combined" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
 
-    bool doSUB = (doBKGSUB || doSBSUB);
+    bool doSUB = (doBKGSUB || doSBSUB || doSAMESIGNSUB);
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFileList.c_str());
     std::cout<<"ROOT files containing input TH1 : num = "<<inputFiles.size()<< std::endl;
@@ -179,14 +181,30 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 continue;
             }
 
-
             std::string tmpName_vPt = hIn[iRaw]->GetName();
             std::string histPath_vPt = parsePathTH1vPt(tmpName_vPt);
+            if (doSAMESIGNSUB) {
+                //std::cout << "here 0 : " << histPath_vPt << std::endl;
+                histPath_vPt = replaceAll(histPath_vPt, "_sig", "");
+            }
+
             hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
+            if (doSAMESIGNSUB) {
+                hTmpBkg = (TH1*)inputs[1]->Get(histPath_vPt.c_str());
+            }
+
             if (!containsElement(hPaths_vPt, histPath_vPt)) {
 
                 hPaths_vPt.push_back(histPath_vPt);
+                if (doSAMESIGNSUB) {
+                    hTmp->SetName(Form("%s_os", histPath_vPt.c_str()));
+                }
                 hTmp->Write("", TObject::kOverwrite);
+
+                if (doSAMESIGNSUB) {
+                    hTmpBkg->SetName(Form("%s_ss", histPath_vPt.c_str()));
+                    hTmpBkg->Write("", TObject::kOverwrite);
+                }
             }
 
             double nV = 1;
@@ -197,26 +215,36 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                     binMax = hTmp->GetNbinsX() + 1;
                 }
                 nV = hTmp->Integral(binMin, binMax);
+
+                if (doSAMESIGNSUB) {
+                    nV -= hTmpBkg->Integral(binMin, binMax);
+                }
             }
 
             setTH1(hIn[iRaw]);
             setTH1(hIn[iBkg]);
 
-            if (doBKGSUB) {
+            if (doBKGSUB || doSAMESIGNSUB) {
                 hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
 
-                hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", hIn[iRaw]->GetName()));
+                std::string tmpNameRaw = hIn[iRaw]->GetName();
+                std::string tmpNameBkg = hIn[iBkg]->GetName();
+                if (doSAMESIGNSUB) {
+                    tmpNameRaw = replaceAll(tmpNameRaw, "_sig", "");
+                    tmpNameBkg = replaceAll(tmpNameBkg, "_sig", "");
+                }
+                hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", tmpNameRaw.c_str()));
                 hOut->Add(hTmpBkg, -1);
 
                 // write objects
-                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", tmpNameRaw.c_str()));
                 hTmp->Scale(1.0 / nV);
                 if (doSCALEBINW) {
                     hTmp->Scale(1.0, "width");
                 }
                 hTmp->Write("", TObject::kOverwrite);
 
-                hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+                hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", tmpNameBkg.c_str()));
                 hTmpBkg->Delete();
                 hTmp->Scale(1.0 / nV);
                 if (doSCALEBINW) {
