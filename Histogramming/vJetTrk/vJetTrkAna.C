@@ -2542,6 +2542,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
                 double wTrk = trkWeightTmp * wMixEvts * wTrkPhi;
+                if (isPP17 && isMC && isRecoTrk) {
+                    wTrk *= 0.979;
+                }
 
                 for (int iCent = 0; iCent < nCents; ++iCent) {
 
