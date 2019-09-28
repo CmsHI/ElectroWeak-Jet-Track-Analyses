@@ -307,8 +307,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 double detaMinSR = 0;
                 double detaMaxSR = 1.0;
 
-                double detaMinLR = 1.6;
-                double detaMaxLR = 3.6;
+                double detaMinLR = 1.5;
+                double detaMaxLR = 3.5;
 
                 int binDetaMinSR = hTmp->GetYaxis()->FindBin(detaMinSR);
                 int binDetaMaxSR = hTmp->GetYaxis()->FindBin(detaMaxSR);
