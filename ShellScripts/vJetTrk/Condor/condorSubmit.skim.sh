@@ -145,9 +145,9 @@ rm -f $configsAll
 corrFileList="corrFiles.list"
 corrFilesAll="allCorrFiles.tar"
 rm -f $corrFileList
-echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_GeneralTracks_highPt.root" >> ${corrFileList}
-echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_GeneralTracks_MB.root" >> ${corrFileList}
-echo "Corrections/tracks/2018PbPb_TrackingEfficiencies_Prelim/2018PbPb_Efficiency_PixelTracks.root" >> ${corrFileList}
+echo "Corrections/tracks/2018PbPb/2018PbPb_Efficiency_GeneralTracks_highPt.root" >> ${corrFileList}
+echo "Corrections/tracks/2018PbPb/2018PbPb_Efficiency_GeneralTracks_MB.root" >> ${corrFileList}
+echo "Corrections/tracks/2018PbPb/2018PbPb_Efficiency_PixelTracks.root" >> ${corrFileList}
 echo "Corrections/tracks/TrackingCorrection_2017pp/2017pp_TrkCorr_Aug16_Prelim.root" >> ${corrFileList}
 echo "Corrections/tracks/TrackingCorrection_2017pp/trackingEfficiency2017pp.h" >> ${corrFileList}
 tar -cvf $corrFilesAll -T $corrFileList
