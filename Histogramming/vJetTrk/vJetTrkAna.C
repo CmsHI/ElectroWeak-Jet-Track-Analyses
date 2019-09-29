@@ -152,6 +152,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double vYMax = (ArgumentParser::optionExists("--vYMax", argOptions)) ?
                 std::atof(ArgumentParser::ParseOptionInputSingle("--vYMax", argOptions).c_str()) : 1.44;
 
+    double lEtaMax = (ArgumentParser::optionExists("--lEtaMax", argOptions)) ?
+                    std::atof(ArgumentParser::ParseOptionInputSingle("--lEtaMax", argOptions).c_str()) : -1;
+
     std::string jetRG = (ArgumentParser::optionExists("--jetRG", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--jetRG", argOptions).c_str() : "r";
 
@@ -206,6 +209,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
     std::cout << "vYMin = " << vYMin << std::endl;
     std::cout << "vYMax = " << vYMax << std::endl;
+
+    std::cout << "lEtaMax = " << lEtaMax << std::endl;
 
     std::cout << "jetRG = " << jetRG << std::endl;
 
@@ -275,6 +280,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doTrkPhiWeights = ((applyTrkWeights > 10) && isPbPb18 && !isMC && isRecoTrk);
 
     rotateEvtPlane = (rotateEvtPlane && isPbPb);
+
+    if (lEtaMax < 0) {
+        lEtaMax = (vIsZee) ? 2.1 : 2.4;
+        std::cout << "lEtaMax is set to " << lEtaMax << std::endl;
+    }
 
     bool doResidualMBTrkW = (outputFile.find("resMBTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualMBTrkW = " << doResidualMBTrkW << std::endl;
@@ -1997,7 +2007,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::vector<float> *lPhi;
                 std::vector<int>   *lChg;
 
-                double lEtaMax = -1;
                 double lPtMin = -1;
 
                 if (vIsZmm) {
@@ -2009,7 +2018,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lEta = ggHi.muEta;
                     lPhi = ggHi.muPhi;
                     lChg = ggHi.muCharge;
-                    lEtaMax = 2.4;
                     lPtMin = 20;
                 }
                 else if (vIsZee) {
@@ -2021,7 +2029,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lEta = ggHi.eleEta;
                     lPhi = ggHi.elePhi;
                     lChg = ggHi.eleCharge;
-                    lEtaMax = 2.1;
                     lPtMin = 20;
                 }
 
