@@ -68,7 +68,7 @@ float TrkEff2017pp::getEfficiency( float pt, float eta, bool passesCheck){
     if(  !checkBounds(pt, eta) ) return 0;
   }
 
-  return eff->GetBinContent( eff->FindBin(eta, pt) );
+  return eff->GetBinContent( eff->FindBin(eta, pt) ) * 0.979;//0.979 is scale factor from D mesons
 }
 
 float TrkEff2017pp::getFake( float pt, float eta,  bool passesCheck){
@@ -90,9 +90,9 @@ float TrkEff2017pp::getSecondary( float pt, float eta, bool passesCheck){
 
 TrkEff2017pp::TrkEff2017pp(bool isQuiet_, std::string filePath){
   isQuiet = isQuiet_;
-    if(!isQuiet) std::cout << "TrkEff2017pp class opening in general tracks mode!  WARNING, THESE ARE STILL PRELIMINARY!" << std::endl;
+    if(!isQuiet) std::cout << "TrkEff2017pp class opening in general tracks mode!" << std::endl;
     
-    trkEff = TFile::Open( (filePath + "2017pp_TrkCorr_Aug16_Prelim.root").c_str(),"open");
+    trkEff = TFile::Open( (filePath + "2017pp_TrkCorr_Sept25_Final.root").c_str(),"open");
     
     if( !(trkEff->IsOpen() ) ){
       std::cout << "WARNING, COULD NOT FIND TRACK EFFICIENCY FILE FOR GENERAL TRACKS!" << std::endl;
