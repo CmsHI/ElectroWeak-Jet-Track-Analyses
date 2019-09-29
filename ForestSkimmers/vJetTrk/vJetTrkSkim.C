@@ -37,8 +37,8 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
-#include "../../Corrections/tracks/TrackingCorrection_2017pp/trackingEfficiency2017pp.h"
 #include "../../Corrections/tracks/2015/getTrkCorr.h"
+#include "../../Corrections/tracks/2017pp/trackingEfficiency2017pp.h"
 #include "../../Corrections/tracks/2018PbPb/trackingEfficiency2018PbPb.h"
 
 struct entryVec
@@ -196,7 +196,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     TrkEff2018PbPb trkEff2018 = TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb/");
 
-    TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/TrackingCorrection_2017pp/");
+    TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/2017pp/");
 
     TrkCorr* trkCorr2015 = 0;
     if (doTrkWeights) {
