@@ -77,9 +77,11 @@ std::vector<std::string> argOptions;
 
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
+int parseRecoObj(std::string recoObjStr);
 std::vector<double> parseRanges(std::string rangesStr, int indexMinMax);
 std::vector<double> parseRangesMin(std::string rangesStr);
 std::vector<double> parseRangesMax(std::string rangesStr);
+std::string parseVersionResidualTrkW(std::string path);
 void vJetTrkAna(std::string configFile, std::string inputFile, std::string outputFile = "vJetTrkAna.root");
 void vJetTrkAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "vJetTrkAna.root");
 
@@ -440,11 +442,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h_resMBTrk_effcorr[nResMBTrkWPt][nResMBTrkWCent];
     if (doResidualMBTrkW) {
         std::string dirResMBTrkW = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/";
-        std::string fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_mix_v5.root";
+        std::string versionResTrkW = parseVersionResidualTrkW(outputFile);
+        if (versionResTrkW.size() > 0) {
+            versionResTrkW = "_"+versionResTrkW;
+        }
+
+        std::string fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mix%s.root", versionResTrkW.c_str());
         if (!isMixTrk) {
-            fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zmm_v5.root";
+            fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
             if (vIsZee) {
-                //fileNameResMBTrkW = "trkCalc_pbpb_2018_mc_zee_v5.root";
+                //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zee%s.root", versionResTrkW.c_str());
             }
         }
 
@@ -2967,4 +2974,24 @@ std::vector<double> parseRangesMin(std::string rangesStr)
 std::vector<double> parseRangesMax(std::string rangesStr)
 {
     return parseRanges(rangesStr, 1);
+}
+
+std::string parseVersionResidualTrkW(std::string path)
+{
+    std::string substr = "";
+    if (path.find("resMBTrkWeffv") != std::string::npos) {
+        substr = "resMBTrkWeffv";
+    }
+    else if (path.find("resMBTrkWv") != std::string::npos) {
+        substr = "resMBTrkWv";
+    }
+
+    int len = substr.size();
+    if (len == 0) {
+        return "";
+    }
+
+    std::string versionNum = path.substr(path.find(substr) + len, 1);
+
+    return "v"+versionNum;
 }
