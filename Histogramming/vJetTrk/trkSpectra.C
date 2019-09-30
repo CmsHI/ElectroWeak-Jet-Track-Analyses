@@ -62,8 +62,16 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int applyTrkWeights = (ArgumentParser::optionExists("--applyTrkWeights", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--applyTrkWeights", argOptions).c_str()) : 1;
 
+    int skipMu = (ArgumentParser::optionExists("--skipMu", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipMu", argOptions).c_str()) : 0;
+
+    int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
+
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
+    std::cout << "skipMu  = " << skipMu << std::endl;
+    std::cout << "skipEle = " << skipEle << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -340,6 +348,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 "trkNlayer",
                 "trkAlgo",
                 "trkMVA",
+                "pfType",
                 "pfHcal",
                 "pfEcal",
         };
@@ -362,6 +371,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     "eta",
                     "phi",
                     "chg",
+                    "pdg",
             };
 
             int nGenBranches = genBranches.size();
@@ -447,6 +457,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 if (!passedTrkSelection(trks, i, collisionType))  continue;
                 if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
+                if (skipMu > 0 && trks.pfType[i] == 3) continue;
+                if (skipEle > 0 && trks.pfType[i] == 2) continue;
 
                 double trkWeightTmp = 1;
                 double trkWeightEffTmp = 1;
@@ -483,6 +495,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                     if (!(std::fabs((*hiGen.eta)[i]) < 2.4))  continue;
                     if ( ((*hiGen.chg)[i] == 0) )  continue;
+                    if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
+                    if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
 
                     int iPtRG = getBinPt4TrkW((*hiGen.pt)[i], rgPts, nBinsPtRG);
                     if (iPtRG >= 0 && iCentRG >= 0) {
