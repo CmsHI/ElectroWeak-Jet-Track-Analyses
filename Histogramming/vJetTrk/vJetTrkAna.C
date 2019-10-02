@@ -187,6 +187,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double vTrkDetaMax = (ArgumentParser::optionExists("--vTrkDetaMax", argOptions)) ?
                     std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDetaMax", argOptions).c_str()) : -1;
 
+    // deta between trk and leading hadron
+    double hTrkDetaMin = (ArgumentParser::optionExists("--hTrkDetaMin", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--hTrkDetaMin", argOptions).c_str()) : 0;
+    double hTrkDetaMax = (ArgumentParser::optionExists("--hTrkDetaMax", argOptions)) ?
+                    std::atof(ArgumentParser::ParseOptionInputSingle("--hTrkDetaMax", argOptions).c_str()) : -1;
+
     std::string centRangesStr = (ArgumentParser::optionExists("--cents", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--cents", argOptions).c_str() : "0:30,30:100";
     std::vector<double> centsMinTmp = parseRangesMin(centRangesStr);
@@ -229,6 +235,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "vTrkDetaMin = " << vTrkDetaMin << std::endl;
     std::cout << "vTrkDetaMax = " << vTrkDetaMax << std::endl;
 
+    std::cout << "hTrkDetaMin = " << hTrkDetaMin << std::endl;
+    std::cout << "hTrkDetaMax = " << hTrkDetaMax << std::endl;
+
     std::cout << "nCents = " << nCents << std::endl;
     for (int i = 0; i < nCents; ++i) {
         std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
@@ -266,6 +275,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isSigTrk = isSigObj(trkRBS);
 
     bool isMixTrk = isBkgTrk;
+
+    bool findLeadingTrk = (hTrkDetaMin > 0 || hTrkDetaMax > 0);
+    bool needRawTrk = (findLeadingTrk);
+    if (isMixTrk && needRawTrk) {
+        std::cout << "need raw event particle information as well." << std::endl;
+    }
 
     bool anaTrkID = (anaTrks && isRecoTrk && toLowerCase(anaMode).find("trkid") != std::string::npos);
     bool anavTrk_dR = false;
@@ -1502,6 +1517,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         vTrkDetaMax = 999999;
     }
 
+    if (hTrkDetaMax < hTrkDetaMin) {
+        hTrkDetaMax = 999999;
+    }
+
     // pointers to particle info
     int nParticles;
     std::vector<float>* p_pt;
@@ -1523,6 +1542,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<unsigned char>* p_trkNlayer;
     std::vector<unsigned char>* p_trkAlgo;
     std::vector<float>* p_trkMVA;
+
+    int nPartRaw;
+    std::vector<float>* p_raw_pt;
+    std::vector<float>* p_raw_eta;
+    std::vector<float>* p_raw_phi;
+    std::vector<int>* p_raw_chg;
+    std::vector<int>* p_raw_pid;
+    std::vector<int>* p_raw_sube;
 
     std::vector<int> dummy_vec_I0(150000, 0);
     std::vector<int> dummy_vec_I1(150000, 1);
@@ -1726,6 +1753,25 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (maxNVtx > 0 || minNVtx > -1) {
                 treeTrackSkim->SetBranchStatus("nVtx",1);
             }
+
+            if (needRawTrk) {
+                if (isRecoTrk) {
+                    treeTrackSkim->SetBranchStatus("nTrk",1);
+                    treeTrackSkim->SetBranchStatus("trkPt",1);
+                    treeTrackSkim->SetBranchStatus("trkEta",1);
+                    treeTrackSkim->SetBranchStatus("trkPhi",1);
+                    treeTrackSkim->SetBranchStatus("pfType",1);
+                }
+                else {
+                    treeTrackSkim->SetBranchStatus("mult",1);
+                    treeTrackSkim->SetBranchStatus("pt",1);
+                    treeTrackSkim->SetBranchStatus("eta",1);
+                    treeTrackSkim->SetBranchStatus("phi",1);
+                    treeTrackSkim->SetBranchStatus("chg",1);
+                    treeTrackSkim->SetBranchStatus("pdg",1);
+                    treeTrackSkim->SetBranchStatus("sube",1);
+                }
+            }
         }
 
         if (isvJetTrkSkim) {
@@ -1835,6 +1881,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_trkAlgo = trks.p_trkAlgo_mix;
                 p_trkMVA = trks.p_trkMVA_mix;
             }
+
+            p_raw_pt = trks.p_trkPt;
+            p_raw_eta = trks.p_trkEta;
+            p_raw_phi = trks.p_trkPhi;
+            p_raw_chg = &dummy_vec_I0;
+            p_raw_pid = (has_pfType) ? trks.p_pfType : &dummy_vec_I0;
+            p_raw_sube = &dummy_vec_I1;
         }
         else {
             p_pt = trks.p_pt;
@@ -1868,6 +1921,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_weight = &dummy_vec_F1;
                 p_evtIndex = trks.p_evtgen_mix;
             }
+
+            p_raw_pt = trks.p_pt;
+            p_raw_eta = trks.p_eta;
+            p_raw_phi = trks.p_phi;
+            p_raw_chg = trks.p_chg;
+            p_raw_pid = trks.p_pdg;
+            p_raw_sube = trks.p_sube;
         }
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
@@ -2428,6 +2488,53 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             TLorentzVector vV;
             vV.SetPtEtaPhiM(vPt, 0, vPhi, vM);
 
+            double h1_pt = -1;
+            double h1_eta = -999999;
+            if (findLeadingTrk) {
+                nPartRaw = (isRecoTrk) ? trks.nTrk : trks.mult;
+
+                for (int i = 0; i < nPartRaw; ++i) {
+
+                    if (!isRecoTrk) {
+                        if ((*p_raw_chg)[i] == 0)  continue;
+                        if (isSigTrk && (*p_raw_sube)[i] != 0)  continue;
+                    }
+
+                    if (!(trkEtaMin <= std::fabs((*p_raw_eta)[i]) && std::fabs((*p_raw_eta)[i]) < trkEtaMax))  continue;
+                    if (!(vTrkDetaMin <= std::fabs((*p_raw_eta)[i] - vY) && std::fabs((*p_raw_eta)[i] - vY) < vTrkDetaMax))  continue;
+
+                    float t_raw_pt = (*p_raw_pt)[i];
+                    float t_raw_eta = (*p_raw_eta)[i];
+                    float t_raw_phi = (*p_raw_phi)[i];
+
+                    if (vIsZ) {
+                        if (getDR2(t_raw_eta, t_raw_phi, llEta[0], llPhi[0]) < minDR2_lep_trk)  continue;
+                        if (getDR2(t_raw_eta, t_raw_phi, llEta[1], llPhi[1]) < minDR2_lep_trk)  continue;
+                    }
+
+                    // lepton rej
+                    if (isRecoTrk) {
+                        // PF id
+                        if ((*p_raw_pid)[i] == 2 || (*p_raw_pid)[i] == 3 || (*p_raw_pid)[i] < 0)  continue;
+                    }
+                    else {
+                        if (std::fabs((*p_raw_pid)[i]) == 11 || std::fabs((*p_raw_pid)[i]) == 13)  continue;
+                    }
+
+                    float dphiTmp = std::fabs(getDPHI(vPhi, t_raw_phi));
+                    double dphiMinTmp = vTrkDphiMin * TMath::Pi();
+                    double dphiMaxTmp = vTrkDphiMax * TMath::Pi();
+
+                    if ( !(dphiMinTmp < dphiTmp && dphiTmp <= dphiMaxTmp) )  continue;
+
+                    if (t_raw_pt > h1_pt) {
+
+                        h1_pt = t_raw_pt;
+                        h1_eta = t_raw_eta;
+                    }
+                }
+            }
+
             if (isRecoTrk && !isMixTrk) {
                 nParticles = trks.nTrk;
             }
@@ -2466,6 +2573,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
                 if (!(vTrkDetaMin <= std::fabs((*p_eta)[i] - vY) && std::fabs((*p_eta)[i] - vY) < vTrkDetaMax))  continue;
+
+                if (findLeadingTrk) {
+                    if (!(hTrkDetaMin <= std::fabs((*p_eta)[i] - h1_eta) && std::fabs((*p_eta)[i] - h1_eta) < hTrkDetaMax))  continue;
+                }
 
                 float t_pt = (*p_pt)[i];
                 float t_eta = (*p_eta)[i];
