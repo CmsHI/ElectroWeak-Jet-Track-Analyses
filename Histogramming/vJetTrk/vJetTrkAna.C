@@ -595,6 +595,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_trkPhi_vs_trkEta[nCents][nVPts][nTrkPts];
     TH2D* h2_trkPhi_vs_trkEta_noDphi[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_dphi[nCents][nVPts][nTrkPts];
+    TH2D* h2_deta_vs_dphi_rebin1[nCents][nVPts][nTrkPts];
+    TH2D* h2_deta_vs_dphi_rebin2[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_h1_vs_dphi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_vPt[nCents][nTrkPts];
     TH2D* h2_dphi_vs_trkPt[nCents][nVPts];
@@ -1330,6 +1332,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBinsX_eta, 0, 5.2);
                 vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
 
+                std::string name_h2_deta_vs_dphi_rebin1 = Form("h2_deta_vs_dphi_rebin1_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_vs_dphi_rebin1 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            text_dphi.c_str(),
+                                                            text_deta.c_str());
+
+                h2_deta_vs_dphi_rebin1[i][j][k] = 0;
+                h2_deta_vs_dphi_rebin1[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin1.c_str(), title_h2_deta_vs_dphi_rebin1.c_str(),
+                                                          nBinsX_dphi/2, 0, xMax_phi,
+                                                          nBinsX_eta/2, 0, 5.2);
+                vec_h2D.push_back(h2_deta_vs_dphi_rebin1[i][j][k]);
+
+                std::string name_h2_deta_vs_dphi_rebin2 = Form("h2_deta_vs_dphi_rebin2_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_vs_dphi_rebin2 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                                            text_dphi.c_str(),
+                                                            text_deta.c_str());
+
+                h2_deta_vs_dphi_rebin2[i][j][k] = 0;
+                h2_deta_vs_dphi_rebin2[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin2.c_str(), title_h2_deta_vs_dphi_rebin2.c_str(),
+                                                          6, 0, xMax_phi,
+                                                          8, 0, 5.2);
+                vec_h2D.push_back(h2_deta_vs_dphi_rebin2[i][j][k]);
+
                 std::string name_h2_deta_h1_vs_dphi = Form("h2_deta_h1_vs_dphi_%s", name_h_suffix.c_str());
                 std::string title_h2_deta_h1_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
                                                             text_dphi.c_str(),
@@ -1591,7 +1615,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<float>* p_raw_phi;
     std::vector<int>* p_raw_chg;
     std::vector<int>* p_raw_pid;
-    std::vector<int>* p_raw_sube;
+    //std::vector<int>* p_raw_sube;
 
     std::vector<int> dummy_vec_I0(150000, 0);
     std::vector<int> dummy_vec_I1(150000, 1);
@@ -1929,7 +1953,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_raw_phi = trks.p_trkPhi;
             p_raw_chg = &dummy_vec_I0;
             p_raw_pid = (has_pfType) ? trks.p_pfType : &dummy_vec_I0;
-            p_raw_sube = &dummy_vec_I1;
+            //p_raw_sube = &dummy_vec_I1;
         }
         else {
             p_pt = trks.p_pt;
@@ -1969,7 +1993,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_raw_phi = trks.p_phi;
             p_raw_chg = trks.p_chg;
             p_raw_pid = trks.p_pdg;
-            p_raw_sube = trks.p_sube;
+            //p_raw_sube = trks.p_sube;
         }
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
@@ -2752,6 +2776,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_dR_leptrk[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDR(llEta[0], llPhi[0], t_eta, t_phi)), wTrk);
 
                             h2_deta_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
+                            h2_deta_vs_dphi_rebin1[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
+                            h2_deta_vs_dphi_rebin2[iCent][iVPt][iTrkPt]->Fill(dphi, deta, wTrk);
                             h2_deta_h1_vs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, deta_h1, wTrk);
                             if (iVPt == 0) {
                                 h2_dphi_vs_vPt[iCent][iTrkPt]->Fill(vPt, dphi, wTrk);
