@@ -266,7 +266,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                     continue;
                 }
 
-                std::string strSB = "h2_deta_vs_";
+                //std::string strSB = "h2_deta_vs_";
+                std::string strSB = "h2_deta_h1_vs_";
 
                 if (std::string(hIn[iRaw]->GetName()).find(strSB.c_str()) == std::string::npos) {
                     std::cout << "deta is not on y-axis : " << inputObjs[i].c_str() << std::endl;
@@ -308,8 +309,11 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 // sr = short-range
                 // lr = long-range
                 double detaMinSR = 0;
-                double detaMaxSR = 1.0;
+                //double detaMaxSR = 1.0;
+                double detaMaxSR = 0.5;
 
+                //double detaMinLR = 1.5;
+                //double detaMaxLR = 3.5;
                 double detaMinLR = 1.5;
                 double detaMaxLR = 3.5;
 
