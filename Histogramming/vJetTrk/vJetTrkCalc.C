@@ -265,7 +265,10 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 if (!(hIn[iRaw]->InheritsFrom("TH2D"))) {
                     continue;
                 }
-                if (std::string(hIn[iRaw]->GetName()).find("h2_deta_vs_") == std::string::npos) {
+
+                std::string strSB = "h2_deta_vs_";
+
+                if (std::string(hIn[iRaw]->GetName()).find(strSB.c_str()) == std::string::npos) {
                     std::cout << "deta is not on y-axis : " << inputObjs[i].c_str() << std::endl;
                     std::cout << "skipping calculation involving this object" << std::endl;
                     continue;
@@ -320,7 +323,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 double detaLR = hTmp->GetYaxis()->GetBinLowEdge(binDetaMaxLR+1) - hTmp->GetYaxis()->GetBinLowEdge(binDetaMinLR);
                 double normLRtoSR = detaSR / detaLR;
 
-                std::string name1D = replaceFirst(hIn[iRaw]->GetName(), "h2_deta_vs_", "h_");
+                std::string name1D = replaceFirst(hIn[iRaw]->GetName(), strSB.c_str(), "h_");
 
                 // lr
                 hTmpBkg = (TH1D*)(((TH2D*)hTmp)->ProjectionX(Form("%s_bkg", name1D.c_str()), binDetaMinLR, binDetaMaxLR));
