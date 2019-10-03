@@ -2539,7 +2539,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (!isRecoTrk) {
                         if ((*p_raw_chg)[i] == 0)  continue;
-                        if (isSigTrk && (*p_raw_sube)[i] != 0)  continue;
+                        //if (isSigTrk && (*p_raw_sube)[i] != 0)  continue;
                     }
 
                     if (!(trkEtaMin <= std::fabs((*p_raw_eta)[i]) && std::fabs((*p_raw_eta)[i]) < trkEtaMax))  continue;
