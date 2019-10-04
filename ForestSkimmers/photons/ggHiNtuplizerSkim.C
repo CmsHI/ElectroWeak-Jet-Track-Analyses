@@ -86,7 +86,7 @@ void ggHiNtuplizerSkim(const TString configFile, const TString inputHiForest, co
     phoSkim.phoSCEtaWidth = * pho.phoSCEtaWidth;
     phoSkim.phoSCPhiWidth = * pho.phoSCPhiWidth;
     phoSkim.phoSCBrem = * pho.phoSCBrem;
-    phoSkim.phohasPixelSeed = * pho.phohasPixelSeed;
+    phoSkim.phohasPixelSeed = * pho.phoHasPixelSeed;
     phoSkim.phoR9 = * pho.phoR9;
     phoSkim.phoHoverE = * pho.phoHoverE;
     phoSkim.phoSigmaIEtaIEta = * pho.phoSigmaIEtaIEta;

@@ -991,7 +991,7 @@ void diphoton::pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j,
         if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
         if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
         if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
-        if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
+        if(tggHiNtuplizer.phoHasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phoHasPixelSeed->at(i));
         if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
         if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
         if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
@@ -1048,7 +1048,7 @@ void diphoton::pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j,
         if(tggHiNtuplizer.phoSCEtaWidth->size() == (unsigned)nPho_out)  phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
         if(tggHiNtuplizer.phoSCPhiWidth->size() == (unsigned)nPho_out)  phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
         if(tggHiNtuplizer.phoSCBrem->size() == (unsigned)nPho_out)  phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
-        if(tggHiNtuplizer.phohasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
+        if(tggHiNtuplizer.phoHasPixelSeed->size() == (unsigned)nPho_out)  phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phoHasPixelSeed->at(j));
         if(tggHiNtuplizer.phoR9->size() == (unsigned)nPho_out)  phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
         if(tggHiNtuplizer.phoHoverE->size() == (unsigned)nPho_out)  phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
         if(tggHiNtuplizer.phoSigmaIEtaIEta->size() == (unsigned)nPho_out)  phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
@@ -1126,7 +1126,7 @@ void diphoton::pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j,
         phoSCEtaWidth_1_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(i));
         phoSCPhiWidth_1_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(i));
         phoSCBrem_1_out.push_back(tggHiNtuplizer.phoSCBrem->at(i));
-        phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(i));
+        phohasPixelSeed_1_out.push_back(tggHiNtuplizer.phoHasPixelSeed->at(i));
         phoR9_1_out.push_back(tggHiNtuplizer.phoR9->at(i));
         phoHoverE_1_out.push_back(tggHiNtuplizer.phoHoverE->at(i));
         phoSigmaIEtaIEta_1_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(i));
@@ -1183,7 +1183,7 @@ void diphoton::pushbackDiPhotonPair(ggHiNtuplizer &tggHiNtuplizer, int i, int j,
         phoSCEtaWidth_2_out.push_back(tggHiNtuplizer.phoSCEtaWidth->at(j));
         phoSCPhiWidth_2_out.push_back(tggHiNtuplizer.phoSCPhiWidth->at(j));
         phoSCBrem_2_out.push_back(tggHiNtuplizer.phoSCBrem->at(j));
-        phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phohasPixelSeed->at(j));
+        phohasPixelSeed_2_out.push_back(tggHiNtuplizer.phoHasPixelSeed->at(j));
         phoR9_2_out.push_back(tggHiNtuplizer.phoR9->at(j));
         phoHoverE_2_out.push_back(tggHiNtuplizer.phoHoverE->at(j));
         phoSigmaIEtaIEta_2_out.push_back(tggHiNtuplizer.phoSigmaIEtaIEta->at(j));
