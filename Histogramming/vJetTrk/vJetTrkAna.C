@@ -362,6 +362,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             fileWeightsEP = TFile::Open(filePathWEP.c_str(), "READ");
 
             std::vector<std::string> tmpCents = {"0_10", "10_30", "30_50", "50_90"};
+            //std::vector<std::string> tmpCents = {"0_30", "30_90"};
 
             for (std::vector<std::string>::iterator it = tmpCents.begin() ; it != tmpCents.end(); ++it) {
 
@@ -2354,8 +2355,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     binMaxTmp = 4;
                 }
 
+                //int binTmpVPt = ((TH1D*)(vec_h2D_wEP[iCent]->ProjectionX()))->FindBin(vPt);
+                //hTmp = (TH1D*)vec_h2D_wEP[iCent]->ProjectionY("hTmp_wEP", binTmpVPt, binTmpVPt);
+                //hTmp->Rebin(2);
                 hTmp = (TH1D*)vec_h2D_wEP[iCent]->ProjectionY("hTmp_wEP", binMinTmp, binMaxTmp);
-                hTmp->Rebin(4);
+                hTmp->Rebin(2);
                 hTmp->Scale(1./hTmp->Integral());
                 double tmpBinEP = hTmp->FindBin(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])));
                 double tmpWEP = hTmp->GetBinContent(tmpBinEP);
