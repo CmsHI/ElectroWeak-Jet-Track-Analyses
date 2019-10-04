@@ -316,7 +316,7 @@ void triggerPlotPublicGeneric(std::string inputFile, int figIndex)
     leg->Draw();
 
     textX = 0.93;
-    textYs = {legendY1+legendHeight+0.04};
+    textYs = {legendY1+legendHeight+0.04f};
     textAlign = 31;
     textFont = 43;
     textSize = 34;

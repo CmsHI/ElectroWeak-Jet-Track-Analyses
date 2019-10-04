@@ -1720,10 +1720,11 @@ void projectionPlot_xjv_multBins(std::string inputFile, double sysReduction, int
     }
 
     std::string collisionText = "";
-    if (iCollision == 0)
+    if (iCollision == 0) {
         collisionText = Form("pp %d pb^{-1}", (int)projectedLumiPPv1);
         if (doMultLumi)
             collisionText = "pp";
+    }
     else if (iCollision == 1)
         collisionText = Form("pPb %d pb^{-1}", (int)projectedLumiPPB);
 
