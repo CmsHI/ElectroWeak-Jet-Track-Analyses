@@ -10,6 +10,38 @@
 class jetSkim {
 public :
     jetSkim(){
+        p_jetptCorr = 0;
+        p_jetpt = 0;
+        p_jeteta = 0;
+        p_jetphi = 0;
+        p_rawpt = 0;
+        p_refpt = 0;
+        p_refeta = 0;
+        p_refphi = 0;
+        p_subid = 0;
+        p_refparton_flavor = 0;
+
+        p_genpt = 0;
+        p_geneta = 0;
+        p_genphi = 0;
+        p_gensubid = 0;
+
+        p_jetptCorr_mix = 0;
+        p_jetpt_mix = 0;
+        p_jeteta_mix = 0;
+        p_jetphi_mix = 0;
+        p_rawpt_mix = 0;
+        p_refpt_mix = 0;
+        p_refeta_mix = 0;
+        p_refphi_mix = 0;
+        p_subid_mix = 0;
+        p_evtjet_mix = 0;
+
+        p_genpt_mix = 0;
+        p_geneta_mix = 0;
+        p_genphi_mix = 0;
+        p_gensubid_mix = 0;
+        p_evtgen_mix = 0;
     }
     ~jetSkim(){};
     void setupTreeForReading(TTree *t);
@@ -56,6 +88,40 @@ public :
     std::vector<float>   genphi_mix;
     std::vector<int>     gensubid_mix;
     std::vector<int>     evtgen_mix;
+
+    // pointer for vectors (to be used when reading)
+    std::vector<float>   *p_jetptCorr;
+    std::vector<float>   *p_jetpt;
+    std::vector<float>   *p_jeteta;
+    std::vector<float>   *p_jetphi;
+    std::vector<float>   *p_rawpt;
+    std::vector<float>   *p_refpt;
+    std::vector<float>   *p_refeta;
+    std::vector<float>   *p_refphi;
+    std::vector<int>     *p_subid;
+    std::vector<int>     *p_refparton_flavor;
+
+    std::vector<float>   *p_genpt;
+    std::vector<float>   *p_geneta;
+    std::vector<float>   *p_genphi;
+    std::vector<int>     *p_gensubid;
+
+    std::vector<float>   *p_jetptCorr_mix;
+    std::vector<float>   *p_jetpt_mix;
+    std::vector<float>   *p_jeteta_mix;
+    std::vector<float>   *p_jetphi_mix;
+    std::vector<float>   *p_rawpt_mix;
+    std::vector<float>   *p_refpt_mix;
+    std::vector<float>   *p_refeta_mix;
+    std::vector<float>   *p_refphi_mix;
+    std::vector<int>     *p_subid_mix;
+    std::vector<int>     *p_evtjet_mix;
+
+    std::vector<float>   *p_genpt_mix;
+    std::vector<float>   *p_geneta_mix;
+    std::vector<float>   *p_genphi_mix;
+    std::vector<int>     *p_gensubid_mix;
+    std::vector<int>     *p_evtgen_mix;
 
      // List of branches
     TBranch *b_njet;
@@ -136,41 +202,41 @@ void jetSkim::setupTreeForReading(TTree *t)
     b_evtgen_mix = 0;
 
     if (t->GetBranch("njet"))  t->SetBranchAddress("njet", &njet, &b_njet);
-    if (t->GetBranch("jetptCorr"))  t->SetBranchAddress("jetptCorr", &jetptCorr, &b_jetptCorr);
-    if (t->GetBranch("jetpt"))  t->SetBranchAddress("jetpt", &jetpt, &b_jetpt);
-    if (t->GetBranch("jeteta"))  t->SetBranchAddress("jeteta", &jeteta, &b_jeteta);
-    if (t->GetBranch("jetphi"))  t->SetBranchAddress("jetphi", &jetphi, &b_jetphi);
-    if (t->GetBranch("rawpt"))  t->SetBranchAddress("rawpt", &rawpt, &b_rawpt);
-    if (t->GetBranch("refpt"))  t->SetBranchAddress("refpt", &refpt, &b_refpt);
-    if (t->GetBranch("refeta"))  t->SetBranchAddress("refeta", &refeta, &b_refeta);
-    if (t->GetBranch("refphi"))  t->SetBranchAddress("refphi", &refphi, &b_refphi);
-    if (t->GetBranch("subid"))  t->SetBranchAddress("subid", &subid, &b_subid);
-    if (t->GetBranch("refparton_flavor"))  t->SetBranchAddress("refparton_flavor", &refparton_flavor, &b_refparton_flavor);
+    if (t->GetBranch("jetptCorr"))  t->SetBranchAddress("jetptCorr", &p_jetptCorr, &b_jetptCorr);
+    if (t->GetBranch("jetpt"))  t->SetBranchAddress("jetpt", &p_jetpt, &b_jetpt);
+    if (t->GetBranch("jeteta"))  t->SetBranchAddress("jeteta", &p_jeteta, &b_jeteta);
+    if (t->GetBranch("jetphi"))  t->SetBranchAddress("jetphi", &p_jetphi, &b_jetphi);
+    if (t->GetBranch("rawpt"))  t->SetBranchAddress("rawpt", &p_rawpt, &b_rawpt);
+    if (t->GetBranch("refpt"))  t->SetBranchAddress("refpt", &p_refpt, &b_refpt);
+    if (t->GetBranch("refeta"))  t->SetBranchAddress("refeta", &p_refeta, &b_refeta);
+    if (t->GetBranch("refphi"))  t->SetBranchAddress("refphi", &p_refphi, &b_refphi);
+    if (t->GetBranch("subid"))  t->SetBranchAddress("subid", &p_subid, &b_subid);
+    if (t->GetBranch("refparton_flavor"))  t->SetBranchAddress("refparton_flavor", &p_refparton_flavor, &b_refparton_flavor);
 
     if (t->GetBranch("ngen"))  t->SetBranchAddress("ngen", &ngen, &b_ngen);
-    if (t->GetBranch("genpt"))  t->SetBranchAddress("genpt", &genpt, &b_genpt);
-    if (t->GetBranch("geneta"))  t->SetBranchAddress("geneta", &geneta, &b_geneta);
-    if (t->GetBranch("genphi"))  t->SetBranchAddress("genphi", &genphi, &b_genphi);
-    if (t->GetBranch("gensubid"))  t->SetBranchAddress("gensubid", &gensubid, &b_gensubid);
+    if (t->GetBranch("genpt"))  t->SetBranchAddress("genpt", &p_genpt, &b_genpt);
+    if (t->GetBranch("geneta"))  t->SetBranchAddress("geneta", &p_geneta, &b_geneta);
+    if (t->GetBranch("genphi"))  t->SetBranchAddress("genphi", &p_genphi, &b_genphi);
+    if (t->GetBranch("gensubid"))  t->SetBranchAddress("gensubid", &p_gensubid, &b_gensubid);
 
     if (t->GetBranch("njet_mix"))  t->SetBranchAddress("njet_mix", &njet_mix, &b_njet_mix);
-    if (t->GetBranch("jetptCorr_mix"))  t->SetBranchAddress("jetptCorr_mix", &jetptCorr_mix, &b_jetptCorr_mix);
-    if (t->GetBranch("jetpt_mix"))  t->SetBranchAddress("jetpt_mix", &jetpt_mix, &b_jetpt_mix);
-    if (t->GetBranch("jeteta_mix"))  t->SetBranchAddress("jeteta_mix", &jeteta_mix, &b_jeteta_mix);
-    if (t->GetBranch("jetphi_mix"))  t->SetBranchAddress("jetphi_mix", &jetphi_mix, &b_jetphi_mix);
-    if (t->GetBranch("rawpt_mix"))  t->SetBranchAddress("rawpt_mix", &rawpt_mix, &b_rawpt_mix);
-    if (t->GetBranch("refpt_mix"))  t->SetBranchAddress("refpt_mix", &refpt_mix, &b_refpt_mix);
-    if (t->GetBranch("refeta_mix"))  t->SetBranchAddress("refeta_mix", &refeta_mix, &b_refeta_mix);
-    if (t->GetBranch("refphi_mix"))  t->SetBranchAddress("refphi_mix", &refphi_mix, &b_refphi_mix);
-    if (t->GetBranch("subid_mix"))  t->SetBranchAddress("subid_mix", &subid_mix, &b_subid_mix);
-    if (t->GetBranch("evtjet_mix"))  t->SetBranchAddress("evtjet_mix", &evtjet_mix, &b_evtjet_mix);
+    if (t->GetBranch("jetptCorr_mix"))  t->SetBranchAddress("jetptCorr_mix", &p_jetptCorr_mix, &b_jetptCorr_mix);
+    if (t->GetBranch("jetpt_mix"))  t->SetBranchAddress("jetpt_mix", &p_jetpt_mix, &b_jetpt_mix);
+    if (t->GetBranch("jeteta_mix"))  t->SetBranchAddress("jeteta_mix", &p_jeteta_mix, &b_jeteta_mix);
+    if (t->GetBranch("jetphi_mix"))  t->SetBranchAddress("jetphi_mix", &p_jetphi_mix, &b_jetphi_mix);
+    if (t->GetBranch("rawpt_mix"))  t->SetBranchAddress("rawpt_mix", &p_rawpt_mix, &b_rawpt_mix);
+    if (t->GetBranch("refpt_mix"))  t->SetBranchAddress("refpt_mix", &p_refpt_mix, &b_refpt_mix);
+    if (t->GetBranch("refeta_mix"))  t->SetBranchAddress("refeta_mix", &p_refeta_mix, &b_refeta_mix);
+    if (t->GetBranch("refphi_mix"))  t->SetBranchAddress("refphi_mix", &p_refphi_mix, &b_refphi_mix);
+    if (t->GetBranch("subid_mix"))  t->SetBranchAddress("subid_mix", &p_subid_mix, &b_subid_mix);
+    if (t->GetBranch("evtjet_mix"))  t->SetBranchAddress("evtjet_mix", &p_evtjet_mix, &b_evtjet_mix);
 
     if (t->GetBranch("ngen_mix"))  t->SetBranchAddress("ngen_mix", &ngen_mix, &b_ngen_mix);
-    if (t->GetBranch("genpt_mix"))  t->SetBranchAddress("genpt_mix", &genpt_mix, &b_genpt_mix);
-    if (t->GetBranch("geneta_mix"))  t->SetBranchAddress("geneta_mix", &geneta_mix, &b_geneta_mix);
-    if (t->GetBranch("genphi_mix"))  t->SetBranchAddress("genphi_mix", &genphi_mix, &b_genphi_mix);
-    if (t->GetBranch("gensubid_mix"))  t->SetBranchAddress("gensubid_mix", &gensubid_mix, &b_gensubid_mix);
-    if (t->GetBranch("evtgen_mix"))  t->SetBranchAddress("evtgen_mix", &evtgen_mix, &b_evtgen_mix);
+    if (t->GetBranch("genpt_mix"))  t->SetBranchAddress("genpt_mix", &p_genpt_mix, &b_genpt_mix);
+    if (t->GetBranch("geneta_mix"))  t->SetBranchAddress("geneta_mix", &p_geneta_mix, &b_geneta_mix);
+    if (t->GetBranch("genphi_mix"))  t->SetBranchAddress("genphi_mix", &p_genphi_mix, &b_genphi_mix);
+    if (t->GetBranch("gensubid_mix"))  t->SetBranchAddress("gensubid_mix", &p_gensubid_mix, &b_gensubid_mix);
+    if (t->GetBranch("evtgen_mix"))  t->SetBranchAddress("evtgen_mix", &p_evtgen_mix, &b_evtgen_mix);
 }
 
 void jetSkim::setupTreeForWriting(TTree *t)
