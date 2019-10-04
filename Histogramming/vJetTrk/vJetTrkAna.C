@@ -619,6 +619,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_dphi_vs_l2Phi[nCents][nVPts][nTrkPts];
     TH2D* h2_trkPt_vs_trkEta[nCents][nVPts];
 
+    TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
+    TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
+
     int nBinsX_vPt = 30;
     int nBinsX_trkPt = 60;
     int nBinsX_dphi = 20;
@@ -1554,6 +1557,30 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           nBins_xivh, 0, 5,
                                                           nBinsX_eta, 0, 5.2);
                 vec_h2D.push_back(h2_deta_h1_vs_xivh[i][j][k]);
+
+                if (anaJets) {
+                    std::string name_h2_jetpt_vs_xivh = Form("h2_jetpt_vs_xivh_%s", name_h_suffix.c_str());
+                    std::string title_h2_jetpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                                                text_xivh.c_str(),
+                                                                "jet p_{T}");
+
+                    h2_jetpt_vs_xivh[i][j][k] = 0;
+                    h2_jetpt_vs_xivh[i][j][k] = new TH2D(name_h2_jetpt_vs_xivh.c_str(), title_h2_jetpt_vs_xivh.c_str(),
+                                                              nBins_xivh, 0, 5,
+                                                              30, 0, 150);
+                    vec_h2D.push_back(h2_jetpt_vs_xivh[i][j][k]);
+
+                    std::string name_h2_rawpt_vs_xivh = Form("h2_rawpt_vs_xivh_%s", name_h_suffix.c_str());
+                    std::string title_h2_rawpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                                                text_xivh.c_str(),
+                                                                "raw p_{T}");
+
+                    h2_rawpt_vs_xivh[i][j][k] = 0;
+                    h2_rawpt_vs_xivh[i][j][k] = new TH2D(name_h2_rawpt_vs_xivh.c_str(), title_h2_rawpt_vs_xivh.c_str(),
+                                                              nBins_xivh, 0, 5,
+                                                              30, 0, 150);
+                    vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
+                }
             }
         }
     }
@@ -1587,6 +1614,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     if (hTrkDetaMax < hTrkDetaMin) {
         hTrkDetaMax = 999999;
     }
+
+    // pointers to jet info
+    int nJets = 0;
+    std::vector<float>* p_jetpt = 0;
+    std::vector<float>* p_jeteta = 0;
+    std::vector<float>* p_jetphi = 0;
+    std::vector<float>* p_rawpt = 0;
+    std::vector<int>* p_evtjet_index = 0;
 
     // pointers to particle info
     int nParticles;
@@ -1765,9 +1800,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeJetSkim = (TTree*)fileTmp->Get(treePathJetSkim.c_str());
             treeJetSkim->SetBranchStatus("*",0);     // disable all branches
             if (isRecoJet) {
-                treeJetSkim->SetBranchStatus("njet",1);
+                treeJetSkim->SetBranchStatus("njet*",1);
                 treeJetSkim->SetBranchStatus("jetpt*",1);
-                treeJetSkim->SetBranchStatus("rawpt",1);
+                treeJetSkim->SetBranchStatus("jeteta*",1);
+                treeJetSkim->SetBranchStatus("jetphi*",1);
+                treeJetSkim->SetBranchStatus("rawpt*",1);
+                treeJetSkim->SetBranchStatus("evtjet_mix",1);
                 treeJetSkim->SetBranchStatus("ref*",1);
                 treeJetSkim->SetBranchStatus("subid",1);
             }
@@ -1995,6 +2033,22 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_raw_chg = trks.p_chg;
             p_raw_pid = trks.p_pdg;
             //p_raw_sube = trks.p_sube;
+        }
+
+        if (anaJets) {
+            p_jetpt = jets.p_jetpt;
+            p_jeteta = jets.p_jeteta;
+            p_jetphi = jets.p_jetphi;
+            p_rawpt = jets.p_rawpt;
+            p_evtjet_index = &dummy_vec_I0;
+
+            if (isMixTrk) {
+                p_jetpt = jets.p_jetpt_mix;
+                p_jeteta = jets.p_jeteta_mix;
+                p_jetphi = jets.p_jetphi_mix;
+                p_rawpt = jets.p_rawpt_mix;
+                p_evtjet_index = jets.p_evtjet_mix;
+            }
         }
 
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
@@ -2618,6 +2672,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 nParticles = trks.mult_mix;
             }
 
+            if (anaJets) {
+                nJets = (!isMixTrk) ? jets.njet : jets.njet_mix;
+            }
+
             double wMixEvts = wV;
             if (isMixTrk) {
                 wMixEvts *= (1.0 / (double(mixEvents.nmix)));
@@ -2846,6 +2904,32 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
                             h2_deta_h1_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta_h1, wTrk);
+
+                            if (anaJets) {
+                                double mindR2_jet_trk = 999999;
+                                int iJet_mindR = -1;
+
+                                int iEvt = (*p_evtIndex)[i];
+
+                                for (int iJet = 0; iJet < nJets; ++iJet) {
+
+                                    //if ( !((*p_rawpt)[iJet] > 5) )  continue;
+
+                                    if (isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+
+                                    double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
+
+                                    if (dR2_jet_trk < mindR2_jet_trk) {
+                                        mindR2_jet_trk = dR2_jet_trk;
+                                        iJet_mindR = iJet;
+                                    }
+                                }
+
+                                if (iJet_mindR >= 0) {
+                                    h2_jetpt_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, (*p_jetpt)[iJet_mindR], wTrk);
+                                    h2_rawpt_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, (*p_rawpt)[iJet_mindR], wTrk);
+                                }
+                            }
                         }
 
                     }
