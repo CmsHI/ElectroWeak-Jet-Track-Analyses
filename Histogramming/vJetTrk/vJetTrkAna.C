@@ -1017,593 +1017,596 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                     text_range_deta.c_str(),
                                                     text_range_cent.c_str());
 
-            std::string name_h_trkPt = Form("h_trkPt_%s", name_h_suffix.c_str());
-            std::string title_h_trkPt = Form("%s;%s;", title_h_suffix.c_str(),
-                                                       text_trkPt.c_str());
-            h_trkPt[i][j] = 0;
-            h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), nBinsX_trkPt, 0, xMax_trkPt);
-
-            std::string title_h_suffix_dphi = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
-                                                    text_range_trkEta.c_str(),
-                                                    text_range_deta.c_str(),
-                                                    text_range_cent.c_str());
-
-            std::string name_h2_dphi_vs_trkPt = Form("h2_dphi_vs_trkPt_%s", name_h_suffix.c_str());
-            std::string title_h2_dphi_vs_trkPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                        text_trkPt.c_str(),
-                                                        text_dphi.c_str());
-
-            h2_dphi_vs_trkPt[i][j] = 0;
-            h2_dphi_vs_trkPt[i][j] = new TH2D(name_h2_dphi_vs_trkPt.c_str(), title_h2_dphi_vs_trkPt.c_str(),
-                                                      nBinsX_trkPt, 0, xMax_trkPt,
-                                                      nBinsX_dphi, 0, xMax_phi);
-            vec_h2D.push_back(h2_dphi_vs_trkPt[i][j]);
-
-            std::string name_h2_deta_vs_trkPt = Form("h2_deta_vs_trkPt_%s", name_h_suffix.c_str());
-            std::string title_h2_deta_vs_trkPt = Form("%s;%s;%s;", title_h_suffix.c_str(),
-                                                                text_trkPt.c_str(),
-                                                                text_deta.c_str());
-
-            h2_deta_vs_trkPt[i][j] = 0;
-            h2_deta_vs_trkPt[i][j] = new TH2D(name_h2_deta_vs_trkPt.c_str(), title_h2_deta_vs_trkPt.c_str(),
-                                                      nBinsX_trkPt, 0, xMax_trkPt,
-                                                      nBinsX_eta, 0, 5.2);
-            vec_h2D.push_back(h2_deta_vs_trkPt[i][j]);
-
-            std::string name_h2_deta_h1_vs_trkPt = Form("h2_deta_h1_vs_trkPt_%s", name_h_suffix.c_str());
-            std::string title_h2_deta_h1_vs_trkPt = Form("%s;%s;%s;", title_h_suffix.c_str(),
-                                                                text_trkPt.c_str(),
-                                                                text_deta_h1.c_str());
-
-            h2_deta_h1_vs_trkPt[i][j] = 0;
-            h2_deta_h1_vs_trkPt[i][j] = new TH2D(name_h2_deta_h1_vs_trkPt.c_str(), title_h2_deta_h1_vs_trkPt.c_str(),
-                                                      nBinsX_trkPt, 0, xMax_trkPt,
-                                                      nBinsX_eta, 0, 5.2);
-            vec_h2D.push_back(h2_deta_h1_vs_trkPt[i][j]);
-
-            std::string name_h2_trkPt_vs_trkEta = Form("h2_trkPt_vs_trkEta_%s", name_h_suffix.c_str());
-            std::string title_h2_trkPt_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                        text_trkEta.c_str(),
-                                                        text_trkPt.c_str());
-
-            h2_trkPt_vs_trkEta[i][j] = 0;
-            h2_trkPt_vs_trkEta[i][j] = new TH2D(name_h2_trkPt_vs_trkEta.c_str(), title_h2_trkPt_vs_trkEta.c_str(),
-                                                       nBinsX_eta, -1*xMax_eta, xMax_eta,
-                                                       nBinsX_trkPt, 0, xMax_trkPt);
-            vec_h2D.push_back(h2_trkPt_vs_trkEta[i][j]);
-
-            for (int k = 0; k < nTrkPts; ++k) {
-
-                double tmpTrkPt = -1;
-                tmpTrkPt = trkPtsMin[k];
-                std::string label_trkPtMin = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
-                if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
-                    label_trkPtMin = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
-                }
-
-                tmpTrkPt = trkPtsMax[k];
-                std::string label_trkPtMax = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
-                if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
-                    label_trkPtMax = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
-                }
-                std::string label_trkPt = Form("trkPt%s_%s", label_trkPtMin.c_str(), label_trkPtMax.c_str());
-
-                std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
-                std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
-                std::string text_range_trkPt = Form("%s < %s < %s", text_trkPtMin.c_str(), text_trkPt.c_str(), text_trkPtMax.c_str());
-                if (trkPtsMax[k] < trkPtsMin[k]) {
-                    label_trkPt = Form("trkPt%s_0", label_trkPtMin.c_str());
-                    text_range_trkPt = Form("%s > %s", text_trkPt.c_str(), text_trkPtMin.c_str());
-                }
-
-                name_h_suffix = Form("%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                        text_range_trkPt.c_str(),
-                                                        text_range_dphi.c_str(),
-                                                        text_range_deta.c_str(),
-                                                        text_range_cent.c_str());
-
-                std::string name_h_trkEta = Form("h_trkEta_%s", name_h_suffix.c_str());
-                std::string title_h_trkEta = Form("%s;%s;", title_h_suffix.c_str(),
-                                                            text_trkEta.c_str());
-                h_trkEta[i][j][k] = 0;
-                h_trkEta[i][j][k] = new TH1D(name_h_trkEta.c_str(), title_h_trkEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
-
-                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_dphi.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                std::string name_h_trkPhi = Form("h_trkPhi_%s", name_h_suffix.c_str());
-                std::string title_h_trkPhi = Form("%s;%s;", title_h_suffix.c_str(),
-                                                            text_trkPhi.c_str());
-                h_trkPhi[i][j][k] = 0;
-                h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), nBinsX_dphi, -1*xMax_phi, xMax_phi);
-
-                std::string name_h_dphi_EPn1_trk = Form("h_dphi_EPn1_trk_%s", name_h_suffix.c_str());
-                std::string title_h_dphi_EPn1_trk = Form("%s;#Delta#phi_{EPn1,%s};", title_h_suffix.c_str(),
-                                                                                             text_trk.c_str());
-
-                h_dphi_EPn1_trk[i][j][k] = 0;
-                h_dphi_EPn1_trk[i][j][k] = new TH1D(name_h_dphi_EPn1_trk.c_str(), title_h_dphi_EPn1_trk.c_str(),
-                                                                                  nBinsX_dphi, 0, xMax_phi);
-
-                std::string name_h_dphi_EPn2_trk = Form("h_dphi_EPn2_trk_%s", name_h_suffix.c_str());
-                std::string title_h_dphi_EPn2_trk = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(),
-                                                                                             text_trk.c_str());
-
-                h_dphi_EPn2_trk[i][j][k] = 0;
-                h_dphi_EPn2_trk[i][j][k] = new TH1D(name_h_dphi_EPn2_trk.c_str(), title_h_dphi_EPn2_trk.c_str(),
-                                                                                  nBinsX_dphi, 0, xMax_phi);
-
-                std::string name_h_dphi_EPn3_trk = Form("h_dphi_EPn3_trk_%s", name_h_suffix.c_str());
-                std::string title_h_dphi_EPn3_trk = Form("%s;#Delta#phi_{EPn3,%s};", title_h_suffix.c_str(),
-                                                                                             text_trk.c_str());
-
-                h_dphi_EPn3_trk[i][j][k] = 0;
-                h_dphi_EPn3_trk[i][j][k] = new TH1D(name_h_dphi_EPn3_trk.c_str(), title_h_dphi_EPn3_trk.c_str(),
-                                                                                  nBinsX_dphi, 0, xMax_phi);
-
-                title_h_suffix_dphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                        text_range_trkPt.c_str(),
-                                                        text_range_trkEta.c_str(),
-                                                        text_range_deta.c_str(),
-                                                        text_range_cent.c_str());
-
-                std::string name_h_dphi = Form("h_dphi_%s", name_h_suffix.c_str());
-                std::string title_h_dphi = Form("%s;%s;", title_h_suffix_dphi.c_str(),
-                                                          text_defn_dphi.c_str());
-                h_dphi[i][j][k] = 0;
-                h_dphi[i][j][k] = new TH1D(name_h_dphi.c_str(), title_h_dphi.c_str(), nBinsX_dphi, 0, xMax_phi);
-
-                std::string text_deta = Form("#Delta#eta_{%s%s}", text_trk.c_str(),
-                                                                  text_V.c_str());
-                std::string text_defn_deta = Form("%s = |%s - %s|", text_deta.c_str(),
-                                                                    text_trkEta.c_str(),
-                                                                    text_vEta.c_str());
-
-                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_dphi.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                std::string name_h_deta = Form("h_deta_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_deta = Form("%s;%s;", title_h_suffix.c_str(),
-                                                          text_defn_deta.c_str());
-                h_deta[i][j][k] = 0;
-                h_deta[i][j][k] = new TH1D(name_h_deta.c_str(), title_h_deta.c_str(), 20, 0, 4);
-
-                std::string text_dR = Form("#DeltaR_{%s%s}", text_trk.c_str(),
-                                                             text_V.c_str());
-                std::string text_defn_dR = Form("%s = #sqrt{%s^2 + %s^2}", text_dR.c_str(),
-                                                                           text_dphi.c_str(),
-                                                                           text_deta.c_str());
-
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                if (anavTrk_dR) {
-                    std::string name_h_dR = Form("h_dR_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                    std::string title_h_dR = Form("%s;%s;", title_h_suffix.c_str(),
-                                                            text_dR.c_str());
-                    h_dR[i][j][k] = 0;
-                    h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
-                }
-
-                title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                std::string text_zh = Form("z_{%s%s}", text_trk.c_str(),
-                                                     text_V.c_str());
-                std::string text_defn_zh = Form("%s = %s / %s", text_zh.c_str(),
-                                                                text_trkPt.c_str(),
-                                                                text_vPt.c_str());
-
-                title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_dphi.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                std::string text_vPt_vec = Form("#bf{p}^{%s}_{T}", text_V.c_str());
-                std::string text_trkPt_vec = Form("#bf{p}^{%s}_{T}", text_trk.c_str());
-
-                if (anavTrk_zh) {
-                    std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                    std::string title_h_zh = Form("%s;%s;", title_h_suffix.c_str(),
-                                                            text_defn_zh.c_str());
-
-                    int nBins_zh = 10;
-                    std::vector<double> binsVecTmp = calcBinsLogScale(0.01, 1, nBins_zh);
-                    double binsArrTmp_zh[nBins_zh+1];
-                    std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp_zh);
-
-                    h_zh[i][j][k] = 0;
-                    h_zh[i][j][k] = new TH1D(name_h_zh.c_str(), title_h_zh.c_str(), nBins_zh, binsArrTmp_zh);
-
-                    std::string text_zh_T = Form("z^{%s%s}_{T}", text_trk.c_str(),
-                                                                 text_V.c_str());
-                    std::string text_defn_zh_T = Form("%s = ( -(%s #dot %s) / |%s|^{2} )",
-                                                                    text_zh_T.c_str(),
-                                                                    text_vPt_vec.c_str(),
-                                                                    text_trkPt_vec.c_str(),
-                                                                    text_vPt_vec.c_str());
-
-                    std::string name_h_zh_T = Form("h_zh_T_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                    std::string title_h_zh_T = Form("%s;%s;", title_h_suffix.c_str(),
-                                                              text_defn_zh_T.c_str());
-
-                    h_zh_T[i][j][k] = 0;
-                    h_zh_T[i][j][k] = new TH1D(name_h_zh_T.c_str(), title_h_zh_T.c_str(), nBins_zh, binsArrTmp_zh);
-                }
-
-                std::string text_xivh = Form("#xi^{%s, %s}_{T}", text_trk.c_str(),
-                                                     text_V.c_str());
-                std::string text_defn_xivh = Form("%s = ln ( -|%s|^{2} / (%s #dot %s) ) ",
-                                                                text_xivh.c_str(),
-                                                                text_vPt_vec.c_str(),
-                                                                text_vPt_vec.c_str(),
-                                                                text_trkPt_vec.c_str());
-
-                std::string name_h_xivh = Form("h_xivh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
-                std::string title_h_xivh = Form("%s;%s;", title_h_suffix.c_str(),
-                                                          text_defn_xivh.c_str());
-
-                int nBins_xivh = 10;
-
-                h_xivh[i][j][k] = 0;
-                h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBins_xivh, 0, 5);
-
-
-                std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
-                std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
-                std::string title_h_dphi_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
-                                                          text_dphi_leptrk.c_str());
-
-                h_dphi_leptrk[i][j][k] = 0;
-                h_dphi_leptrk[i][j][k] = new TH1D(name_h_dphi_leptrk.c_str(), title_h_dphi_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
-
-                std::string text_dR_leptrk = Form("#DeltaR_{%s,lep}", text_trk.c_str());
-                std::string name_h_dR_leptrk = Form("h_dR_leptrk_%s", name_h_suffix.c_str());
-                std::string title_h_dR_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
-                                                          text_dR_leptrk.c_str());
-
-                h_dR_leptrk[i][j][k] = 0;
-                h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
-
-                if (anaTrkID) {
-                    h_trkPtError[i][j][k] = new TH1D(Form("h_trkPtError_%s", name_h_suffix.c_str()), ";trkPtError;", 30, 0, 0.15);
-                    h_trkPtoErr[i][j][k] = new TH1D(Form("h_trkPtoErr_%s", name_h_suffix.c_str()), ";trkPtError / trkPt;", 40, 0, 0.1);
-                    h_trkDz1[i][j][k] = new TH1D(Form("h_trkDz1_%s", name_h_suffix.c_str()), ";trkDz1;", 40, 0, 0.2);
-                    h_trkDz1oErr[i][j][k] = new TH1D(Form("h_trkDz1oErr_%s", name_h_suffix.c_str()), ";trkDz1 / trkDzError1;", 61, 0, 3.05);
-                    h_trkDxy1[i][j][k] = new TH1D(Form("h_trkDxy1_%s", name_h_suffix.c_str()), ";trkDxy1;", 40, 0, 0.1);
-                    h_trkDxy1oErr[i][j][k] = new TH1D(Form("h_trkDxy1oErr_%s", name_h_suffix.c_str()), ";trkDxy1 / trkDxyError1;", 61, 0, 3.05);
-                    h_trkNHit[i][j][k] = new TH1D(Form("h_trkNHit_%s", name_h_suffix.c_str()), ";trkNHit;", 50, 0, 50);
-                    h_trkNdof[i][j][k] = new TH1D(Form("h_trkNdof_%s", name_h_suffix.c_str()), ";trkNdof;", 70, 0, 70);
-                    h_trkNlayer[i][j][k] = new TH1D(Form("h_trkNlayer_%s", name_h_suffix.c_str()), ";trkNlayer;", 22, 0, 22);
-                    h_trkChi2[i][j][k] = new TH1D(Form("h_trkChi2_%s", name_h_suffix.c_str()), ";trkChi2;", 40, 0, 120);
-                    h_trkChi2_Ndof_Nlayer[i][j][k] = new TH1D(Form("h_trkChi2_Ndof_Nlayer_%s", name_h_suffix.c_str()), ";trkChi2 / trkNdof / trkNlayer;", 40, 0, 0.2);
-                    h_trkAlgo[i][j][k] = new TH1D(Form("h_trkAlgo_%s", name_h_suffix.c_str()), ";trkAlgo;", 50, 0, 50);
-                    h_trkMVA[i][j][k] = new TH1D(Form("h_trkMVA_%s", name_h_suffix.c_str()), ";trkMVA;", 42, 0, 1.05);
-                }
-
-                std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
-                std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                            text_trkEta.c_str(),
-                                                            text_trkPhi.c_str());
-
-                h2_trkPhi_vs_trkEta[i][j][k] = 0;
-                h2_trkPhi_vs_trkEta[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta.c_str(), title_h2_trkPhi_vs_trkEta.c_str(),
-                                                          nBinsX_eta, -1*xMax_eta, xMax_eta,
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi);
-                vec_h2D.push_back(h2_trkPhi_vs_trkEta[i][j][k]);
-
-
-                std::string title_h_suffixNoDphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_deta.c_str(),
-                                                            text_range_cent.c_str());
-
-                std::string name_h2_trkPhi_vs_trkEta_noDphi = Form("h2_trkPhi_vs_trkEta_noDphi_%s", name_h_suffix.c_str());
-                std::string title_h2_trkPhi_vs_trkEta_noDphi = Form("%s;%s;%s", title_h_suffixNoDphi.c_str(),
-                                                            text_trkEta.c_str(),
-                                                            text_trkPhi.c_str());
-
-                h2_trkPhi_vs_trkEta_noDphi[i][j][k] = 0;
-                h2_trkPhi_vs_trkEta_noDphi[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta_noDphi.c_str(), title_h2_trkPhi_vs_trkEta_noDphi.c_str(),
-                                                          nBinsX_eta, -1*xMax_eta, xMax_eta,
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi);
-                vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi[i][j][k]);
-
-                std::string name_h2_deta_vs_dphi = Form("h2_deta_vs_dphi_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_dphi.c_str(),
-                                                            text_deta.c_str());
-
-                h2_deta_vs_dphi[i][j][k] = 0;
-                h2_deta_vs_dphi[i][j][k] = new TH2D(name_h2_deta_vs_dphi.c_str(), title_h2_deta_vs_dphi.c_str(),
-                                                          nBinsX_dphi, 0, xMax_phi,
-                                                          nBinsX_eta, 0, 5.2);
-                vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
-
-                std::string name_h2_deta_vs_dphi_rebin1 = Form("h2_deta_vs_dphi_rebin1_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_vs_dphi_rebin1 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_dphi.c_str(),
-                                                            text_deta.c_str());
-
-                h2_deta_vs_dphi_rebin1[i][j][k] = 0;
-                h2_deta_vs_dphi_rebin1[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin1.c_str(), title_h2_deta_vs_dphi_rebin1.c_str(),
-                                                          nBinsX_dphi/2, 0, xMax_phi,
-                                                          nBinsX_eta/2, 0, 5.2);
-                vec_h2D.push_back(h2_deta_vs_dphi_rebin1[i][j][k]);
-
-                std::string name_h2_deta_vs_dphi_rebin2 = Form("h2_deta_vs_dphi_rebin2_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_vs_dphi_rebin2 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_dphi.c_str(),
-                                                            text_deta.c_str());
-
-                h2_deta_vs_dphi_rebin2[i][j][k] = 0;
-                h2_deta_vs_dphi_rebin2[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin2.c_str(), title_h2_deta_vs_dphi_rebin2.c_str(),
-                                                          6, 0, xMax_phi,
-                                                          8, 0, 5.2);
-                vec_h2D.push_back(h2_deta_vs_dphi_rebin2[i][j][k]);
-
-                std::string name_h2_deta_h1_vs_dphi = Form("h2_deta_h1_vs_dphi_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_h1_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_dphi.c_str(),
-                                                            text_deta_h1.c_str());
-
-                h2_deta_h1_vs_dphi[i][j][k] = 0;
-                h2_deta_h1_vs_dphi[i][j][k] = new TH2D(name_h2_deta_h1_vs_dphi.c_str(), title_h2_deta_h1_vs_dphi.c_str(),
-                                                          nBinsX_dphi, 0, xMax_phi,
-                                                          nBinsX_eta, 0, 5.2);
-                vec_h2D.push_back(h2_deta_h1_vs_dphi[i][j][k]);
-
-                if (j == 0) {
-                    std::string name_h2_dphi_vs_vPt = Form("h2_dphi_vs_vPt_%s_%s", label_trkPt.c_str(), label_cent.c_str());
-                    std::string title_h2_dphi_vs_vPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                                text_vPt.c_str(),
-                                                                text_dphi.c_str());
-
-                    h2_dphi_vs_vPt[i][k] = 0;
-                    h2_dphi_vs_vPt[i][k] = new TH2D(name_h2_dphi_vs_vPt.c_str(), title_h2_dphi_vs_vPt.c_str(),
-                                                              nBinsX_vPt, 0,  xMax_vPt,
-                                                              nBinsX_dphi, 0, xMax_phi);
-                    vec_h2D.push_back(h2_dphi_vs_vPt[i][k]);
-                }
-
-                std::string name_h2_dphi_vs_trkEta = Form("h2_dphi_vs_trkEta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_trkEta.c_str(),
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_trkEta[i][j][k] = 0;
-                h2_dphi_vs_trkEta[i][j][k] = new TH2D(name_h2_dphi_vs_trkEta.c_str(), title_h2_dphi_vs_trkEta.c_str(),
-                                                          nBinsX_eta, -1*xMax_eta,  xMax_eta,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_trkEta[i][j][k]);
-
-                std::string name_h2_dphi_vs_trkPhi = Form("h2_dphi_vs_trkPhi_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_trkPhi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_trkPhi.c_str(),
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_trkPhi[i][j][k] = 0;
-                h2_dphi_vs_trkPhi[i][j][k] = new TH2D(name_h2_dphi_vs_trkPhi.c_str(), title_h2_dphi_vs_trkPhi.c_str(),
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_trkPhi[i][j][k]);
-
-                std::string name_h2_dphi_vs_detall = Form("h2_dphi_vs_detall_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_detall = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "deta_ll",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_detall[i][j][k] = 0;
-                h2_dphi_vs_detall[i][j][k] = new TH2D(name_h2_dphi_vs_detall.c_str(), title_h2_dphi_vs_detall.c_str(),
-                                                          nBinsX_eta, 0, 5.2,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_detall[i][j][k]);
-
-                std::string name_h2_dphi_vs_detal1 = Form("h2_dphi_vs_detal1_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_detal1 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "deta_l1",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_detal1[i][j][k] = 0;
-                h2_dphi_vs_detal1[i][j][k] = new TH2D(name_h2_dphi_vs_detal1.c_str(), title_h2_dphi_vs_detal1.c_str(),
-                                                          nBinsX_eta, 0, 5.2,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_detal1[i][j][k]);
-
-                std::string name_h2_dphi_vs_detal2 = Form("h2_dphi_vs_detal2_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_detal2 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "deta_l2",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_detal2[i][j][k] = 0;
-                h2_dphi_vs_detal2[i][j][k] = new TH2D(name_h2_dphi_vs_detal2.c_str(), title_h2_dphi_vs_detal2.c_str(),
-                                                          nBinsX_eta, 0, 5.2,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_detal2[i][j][k]);
-
-                std::string name_h2_dphi_vs_dphill = Form("h2_dphi_vs_dphill_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_dphill = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "dphi_ll",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_dphill[i][j][k] = 0;
-                h2_dphi_vs_dphill[i][j][k] = new TH2D(name_h2_dphi_vs_dphill.c_str(), title_h2_dphi_vs_dphill.c_str(),
-                                                          nBinsX_dphi, 0, xMax_phi,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_dphill[i][j][k]);
-
-                std::string name_h2_dphi_vs_vY = Form("h2_dphi_vs_vY_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_vY = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_vY.c_str(),
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_vY[i][j][k] = 0;
-                h2_dphi_vs_vY[i][j][k] = new TH2D(name_h2_dphi_vs_vY.c_str(), title_h2_dphi_vs_vY.c_str(),
-                                                          nBinsX_eta, -2.6, 2.6,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_vY[i][j][k]);
-
-                std::string name_h2_dphi_vs_vPhi = Form("h2_dphi_vs_vPhi_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_vPhi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_vPhi.c_str(),
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_vPhi[i][j][k] = 0;
-                h2_dphi_vs_vPhi[i][j][k] = new TH2D(name_h2_dphi_vs_vPhi.c_str(), title_h2_dphi_vs_vPhi.c_str(),
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_vPhi[i][j][k]);
-
-                std::string name_h2_dphi_vs_l1Pt = Form("h2_dphi_vs_l1Pt_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l1Pt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "p_T^{l1}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l1Pt[i][j][k] = 0;
-                h2_dphi_vs_l1Pt[i][j][k] = new TH2D(name_h2_dphi_vs_l1Pt.c_str(), title_h2_dphi_vs_l1Pt.c_str(),
-                                                          nBinsX_vPt, 0, xMax_vPt,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l1Pt[i][j][k]);
-
-                std::string name_h2_dphi_vs_l2Pt = Form("h2_dphi_vs_l2Pt_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l2Pt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "p_T^{l2}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l2Pt[i][j][k] = 0;
-                h2_dphi_vs_l2Pt[i][j][k] = new TH2D(name_h2_dphi_vs_l2Pt.c_str(), title_h2_dphi_vs_l2Pt.c_str(),
-                                                          nBinsX_vPt, 0, xMax_vPt,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l2Pt[i][j][k]);
-
-                std::string name_h2_dphi_vs_l1Eta = Form("h2_dphi_vs_l1Eta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l1Eta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "#eta^{l1}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l1Eta[i][j][k] = 0;
-                h2_dphi_vs_l1Eta[i][j][k] = new TH2D(name_h2_dphi_vs_l1Eta.c_str(), title_h2_dphi_vs_l1Eta.c_str(),
-                                                          nBinsX_eta, -2.6, 2.6,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l1Eta[i][j][k]);
-
-                std::string name_h2_dphi_vs_l2Eta = Form("h2_dphi_vs_l2Eta_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l2Eta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                           "#eta^{l2}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l2Eta[i][j][k] = 0;
-                h2_dphi_vs_l2Eta[i][j][k] = new TH2D(name_h2_dphi_vs_l2Eta.c_str(), title_h2_dphi_vs_l2Eta.c_str(),
-                                                          nBinsX_eta, -2.6, 2.6,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l2Eta[i][j][k]);
-
-                std::string name_h2_dphi_vs_l1Phi = Form("h2_dphi_vs_l1Phi_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l1Phi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "#phi^{l1}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l1Phi[i][j][k] = 0;
-                h2_dphi_vs_l1Phi[i][j][k] = new TH2D(name_h2_dphi_vs_l1Phi.c_str(), title_h2_dphi_vs_l1Phi.c_str(),
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l1Phi[i][j][k]);
-
-                std::string name_h2_dphi_vs_l2Phi = Form("h2_dphi_vs_l2Phi_%s", name_h_suffix.c_str());
-                std::string title_h2_dphi_vs_l2Phi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            "#phi^{l2}",
-                                                            text_dphi.c_str());
-
-                h2_dphi_vs_l2Phi[i][j][k] = 0;
-                h2_dphi_vs_l2Phi[i][j][k] = new TH2D(name_h2_dphi_vs_l2Phi.c_str(), title_h2_dphi_vs_l2Phi.c_str(),
-                                                          nBinsX_dphi, -1*xMax_phi, xMax_phi,
-                                                          nBinsX_dphi, 0, xMax_phi);
-                vec_h2D.push_back(h2_dphi_vs_l2Phi[i][j][k]);
-
-                std::string name_h2_deta_vs_xivh = Form("h2_deta_vs_xivh_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_xivh.c_str(),
-                                                            text_deta.c_str());
-
-                h2_deta_vs_xivh[i][j][k] = 0;
-                h2_deta_vs_xivh[i][j][k] = new TH2D(name_h2_deta_vs_xivh.c_str(), title_h2_deta_vs_xivh.c_str(),
-                                                          nBins_xivh, 0, 5,
-                                                          nBinsX_eta, 0, 5.2);
-                vec_h2D.push_back(h2_deta_vs_xivh[i][j][k]);
-
-                std::string name_h2_deta_h1_vs_xivh = Form("h2_deta_h1_vs_xivh_%s", name_h_suffix.c_str());
-                std::string title_h2_deta_h1_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
-                                                            text_xivh.c_str(),
-                                                            text_deta_h1.c_str());
-
-                h2_deta_h1_vs_xivh[i][j][k] = 0;
-                h2_deta_h1_vs_xivh[i][j][k] = new TH2D(name_h2_deta_h1_vs_xivh.c_str(), title_h2_deta_h1_vs_xivh.c_str(),
-                                                          nBins_xivh, 0, 5,
-                                                          nBinsX_eta, 0, 5.2);
-                vec_h2D.push_back(h2_deta_h1_vs_xivh[i][j][k]);
-
-                if (anaJets) {
-                    std::string name_h2_jetpt_vs_xivh = Form("h2_jetpt_vs_xivh_%s", name_h_suffix.c_str());
-                    std::string title_h2_jetpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                                text_xivh.c_str(),
-                                                                "jet p_{T}");
-
-                    h2_jetpt_vs_xivh[i][j][k] = 0;
-                    h2_jetpt_vs_xivh[i][j][k] = new TH2D(name_h2_jetpt_vs_xivh.c_str(), title_h2_jetpt_vs_xivh.c_str(),
-                                                              nBins_xivh, 0, 5,
-                                                              30, 0, 150);
-                    vec_h2D.push_back(h2_jetpt_vs_xivh[i][j][k]);
-
-                    std::string name_h2_rawpt_vs_xivh = Form("h2_rawpt_vs_xivh_%s", name_h_suffix.c_str());
-                    std::string title_h2_rawpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                                text_xivh.c_str(),
-                                                                "raw p_{T}");
-
-                    h2_rawpt_vs_xivh[i][j][k] = 0;
-                    h2_rawpt_vs_xivh[i][j][k] = new TH2D(name_h2_rawpt_vs_xivh.c_str(), title_h2_rawpt_vs_xivh.c_str(),
-                                                              nBins_xivh, 0, 5,
-                                                              30, 0, 150);
-                    vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
-
-                    std::string name_h2_jetpt_vs_xijet = Form("h2_jetpt_vs_xijet_%s", name_h_suffix.c_str());
-                    std::string title_h2_jetpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                                "#xi^{jet}",
-                                                                "jet p_{T}");
-
-                    h2_jetpt_vs_xijet[i][j][k] = 0;
-                    h2_jetpt_vs_xijet[i][j][k] = new TH2D(name_h2_jetpt_vs_xijet.c_str(), title_h2_jetpt_vs_xijet.c_str(),
-                                                              nBins_xivh, 0, 5,
-                                                              30, 0, 150);
-                    vec_h2D.push_back(h2_jetpt_vs_xijet[i][j][k]);
-
-                    std::string name_h2_rawpt_vs_xijet = Form("h2_rawpt_vs_xijet_%s", name_h_suffix.c_str());
-                    std::string title_h2_rawpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                                "#xi^{jet}",
-                                                                "raw p_{T}");
-
-                    h2_rawpt_vs_xijet[i][j][k] = 0;
-                    h2_rawpt_vs_xijet[i][j][k] = new TH2D(name_h2_rawpt_vs_xijet.c_str(), title_h2_rawpt_vs_xijet.c_str(),
-                                                              nBins_xivh, 0, 5,
-                                                              30, 0, 150);
-                    vec_h2D.push_back(h2_rawpt_vs_xijet[i][j][k]);
+            if (anaTrks) {
+
+                std::string name_h_trkPt = Form("h_trkPt_%s", name_h_suffix.c_str());
+                std::string title_h_trkPt = Form("%s;%s;", title_h_suffix.c_str(),
+                        text_trkPt.c_str());
+                h_trkPt[i][j] = 0;
+                h_trkPt[i][j] = new TH1D(name_h_trkPt.c_str(), title_h_trkPt.c_str(), nBinsX_trkPt, 0, xMax_trkPt);
+
+                std::string title_h_suffix_dphi = Form("%s, %s, %s, %s", text_range_vPt.c_str(),
+                        text_range_trkEta.c_str(),
+                        text_range_deta.c_str(),
+                        text_range_cent.c_str());
+
+                std::string name_h2_dphi_vs_trkPt = Form("h2_dphi_vs_trkPt_%s", name_h_suffix.c_str());
+                std::string title_h2_dphi_vs_trkPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                        text_trkPt.c_str(),
+                        text_dphi.c_str());
+
+                h2_dphi_vs_trkPt[i][j] = 0;
+                h2_dphi_vs_trkPt[i][j] = new TH2D(name_h2_dphi_vs_trkPt.c_str(), title_h2_dphi_vs_trkPt.c_str(),
+                        nBinsX_trkPt, 0, xMax_trkPt,
+                        nBinsX_dphi, 0, xMax_phi);
+                vec_h2D.push_back(h2_dphi_vs_trkPt[i][j]);
+
+                std::string name_h2_deta_vs_trkPt = Form("h2_deta_vs_trkPt_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_vs_trkPt = Form("%s;%s;%s;", title_h_suffix.c_str(),
+                        text_trkPt.c_str(),
+                        text_deta.c_str());
+
+                h2_deta_vs_trkPt[i][j] = 0;
+                h2_deta_vs_trkPt[i][j] = new TH2D(name_h2_deta_vs_trkPt.c_str(), title_h2_deta_vs_trkPt.c_str(),
+                        nBinsX_trkPt, 0, xMax_trkPt,
+                        nBinsX_eta, 0, 5.2);
+                vec_h2D.push_back(h2_deta_vs_trkPt[i][j]);
+
+                std::string name_h2_deta_h1_vs_trkPt = Form("h2_deta_h1_vs_trkPt_%s", name_h_suffix.c_str());
+                std::string title_h2_deta_h1_vs_trkPt = Form("%s;%s;%s;", title_h_suffix.c_str(),
+                        text_trkPt.c_str(),
+                        text_deta_h1.c_str());
+
+                h2_deta_h1_vs_trkPt[i][j] = 0;
+                h2_deta_h1_vs_trkPt[i][j] = new TH2D(name_h2_deta_h1_vs_trkPt.c_str(), title_h2_deta_h1_vs_trkPt.c_str(),
+                        nBinsX_trkPt, 0, xMax_trkPt,
+                        nBinsX_eta, 0, 5.2);
+                vec_h2D.push_back(h2_deta_h1_vs_trkPt[i][j]);
+
+                std::string name_h2_trkPt_vs_trkEta = Form("h2_trkPt_vs_trkEta_%s", name_h_suffix.c_str());
+                std::string title_h2_trkPt_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
+                        text_trkEta.c_str(),
+                        text_trkPt.c_str());
+
+                h2_trkPt_vs_trkEta[i][j] = 0;
+                h2_trkPt_vs_trkEta[i][j] = new TH2D(name_h2_trkPt_vs_trkEta.c_str(), title_h2_trkPt_vs_trkEta.c_str(),
+                        nBinsX_eta, -1*xMax_eta, xMax_eta,
+                        nBinsX_trkPt, 0, xMax_trkPt);
+                vec_h2D.push_back(h2_trkPt_vs_trkEta[i][j]);
+
+                for (int k = 0; k < nTrkPts; ++k) {
+
+                    double tmpTrkPt = -1;
+                    tmpTrkPt = trkPtsMin[k];
+                    std::string label_trkPtMin = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+                    if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                        label_trkPtMin = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+                    }
+
+                    tmpTrkPt = trkPtsMax[k];
+                    std::string label_trkPtMax = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+                    if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                        label_trkPtMax = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+                    }
+                    std::string label_trkPt = Form("trkPt%s_%s", label_trkPtMin.c_str(), label_trkPtMax.c_str());
+
+                    std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
+                    std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
+                    std::string text_range_trkPt = Form("%s < %s < %s", text_trkPtMin.c_str(), text_trkPt.c_str(), text_trkPtMax.c_str());
+                    if (trkPtsMax[k] < trkPtsMin[k]) {
+                        label_trkPt = Form("trkPt%s_0", label_trkPtMin.c_str());
+                        text_range_trkPt = Form("%s > %s", text_trkPt.c_str(), text_trkPtMin.c_str());
+                    }
+
+                    name_h_suffix = Form("%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_dphi.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h_trkEta = Form("h_trkEta_%s", name_h_suffix.c_str());
+                    std::string title_h_trkEta = Form("%s;%s;", title_h_suffix.c_str(),
+                            text_trkEta.c_str());
+                    h_trkEta[i][j][k] = 0;
+                    h_trkEta[i][j][k] = new TH1D(name_h_trkEta.c_str(), title_h_trkEta.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+
+                    title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_dphi.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h_trkPhi = Form("h_trkPhi_%s", name_h_suffix.c_str());
+                    std::string title_h_trkPhi = Form("%s;%s;", title_h_suffix.c_str(),
+                            text_trkPhi.c_str());
+                    h_trkPhi[i][j][k] = 0;
+                    h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), nBinsX_dphi, -1*xMax_phi, xMax_phi);
+
+                    std::string name_h_dphi_EPn1_trk = Form("h_dphi_EPn1_trk_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi_EPn1_trk = Form("%s;#Delta#phi_{EPn1,%s};", title_h_suffix.c_str(),
+                            text_trk.c_str());
+
+                    h_dphi_EPn1_trk[i][j][k] = 0;
+                    h_dphi_EPn1_trk[i][j][k] = new TH1D(name_h_dphi_EPn1_trk.c_str(), title_h_dphi_EPn1_trk.c_str(),
+                            nBinsX_dphi, 0, xMax_phi);
+
+                    std::string name_h_dphi_EPn2_trk = Form("h_dphi_EPn2_trk_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi_EPn2_trk = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(),
+                            text_trk.c_str());
+
+                    h_dphi_EPn2_trk[i][j][k] = 0;
+                    h_dphi_EPn2_trk[i][j][k] = new TH1D(name_h_dphi_EPn2_trk.c_str(), title_h_dphi_EPn2_trk.c_str(),
+                            nBinsX_dphi, 0, xMax_phi);
+
+                    std::string name_h_dphi_EPn3_trk = Form("h_dphi_EPn3_trk_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi_EPn3_trk = Form("%s;#Delta#phi_{EPn3,%s};", title_h_suffix.c_str(),
+                            text_trk.c_str());
+
+                    h_dphi_EPn3_trk[i][j][k] = 0;
+                    h_dphi_EPn3_trk[i][j][k] = new TH1D(name_h_dphi_EPn3_trk.c_str(), title_h_dphi_EPn3_trk.c_str(),
+                            nBinsX_dphi, 0, xMax_phi);
+
+                    title_h_suffix_dphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h_dphi = Form("h_dphi_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi = Form("%s;%s;", title_h_suffix_dphi.c_str(),
+                            text_defn_dphi.c_str());
+                    h_dphi[i][j][k] = 0;
+                    h_dphi[i][j][k] = new TH1D(name_h_dphi.c_str(), title_h_dphi.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+                    std::string text_deta = Form("#Delta#eta_{%s%s}", text_trk.c_str(),
+                            text_V.c_str());
+                    std::string text_defn_deta = Form("%s = |%s - %s|", text_deta.c_str(),
+                            text_trkEta.c_str(),
+                            text_vEta.c_str());
+
+                    title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_dphi.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h_deta = Form("h_deta_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_deta = Form("%s;%s;", title_h_suffix.c_str(),
+                            text_defn_deta.c_str());
+                    h_deta[i][j][k] = 0;
+                    h_deta[i][j][k] = new TH1D(name_h_deta.c_str(), title_h_deta.c_str(), 20, 0, 4);
+
+                    std::string text_dR = Form("#DeltaR_{%s%s}", text_trk.c_str(),
+                            text_V.c_str());
+                    std::string text_defn_dR = Form("%s = #sqrt{%s^2 + %s^2}", text_dR.c_str(),
+                            text_dphi.c_str(),
+                            text_deta.c_str());
+
+                    title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    if (anavTrk_dR) {
+                        std::string name_h_dR = Form("h_dR_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                        std::string title_h_dR = Form("%s;%s;", title_h_suffix.c_str(),
+                                text_dR.c_str());
+                        h_dR[i][j][k] = 0;
+                        h_dR[i][j][k] = new TH1D(name_h_dR.c_str(), title_h_dR.c_str(), 20, 0, xMax_phi);
+                    }
+
+                    title_h_suffix = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string text_zh = Form("z_{%s%s}", text_trk.c_str(),
+                            text_V.c_str());
+                    std::string text_defn_zh = Form("%s = %s / %s", text_zh.c_str(),
+                            text_trkPt.c_str(),
+                            text_vPt.c_str());
+
+                    title_h_suffix = Form("%s, %s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_dphi.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string text_vPt_vec = Form("#bf{p}^{%s}_{T}", text_V.c_str());
+                    std::string text_trkPt_vec = Form("#bf{p}^{%s}_{T}", text_trk.c_str());
+
+                    if (anavTrk_zh) {
+                        std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                        std::string title_h_zh = Form("%s;%s;", title_h_suffix.c_str(),
+                                text_defn_zh.c_str());
+
+                        int nBins_zh = 10;
+                        std::vector<double> binsVecTmp = calcBinsLogScale(0.01, 1, nBins_zh);
+                        double binsArrTmp_zh[nBins_zh+1];
+                        std::copy(binsVecTmp.begin(), binsVecTmp.end(), binsArrTmp_zh);
+
+                        h_zh[i][j][k] = 0;
+                        h_zh[i][j][k] = new TH1D(name_h_zh.c_str(), title_h_zh.c_str(), nBins_zh, binsArrTmp_zh);
+
+                        std::string text_zh_T = Form("z^{%s%s}_{T}", text_trk.c_str(),
+                                text_V.c_str());
+                        std::string text_defn_zh_T = Form("%s = ( -(%s #dot %s) / |%s|^{2} )",
+                                text_zh_T.c_str(),
+                                text_vPt_vec.c_str(),
+                                text_trkPt_vec.c_str(),
+                                text_vPt_vec.c_str());
+
+                        std::string name_h_zh_T = Form("h_zh_T_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                        std::string title_h_zh_T = Form("%s;%s;", title_h_suffix.c_str(),
+                                text_defn_zh_T.c_str());
+
+                        h_zh_T[i][j][k] = 0;
+                        h_zh_T[i][j][k] = new TH1D(name_h_zh_T.c_str(), title_h_zh_T.c_str(), nBins_zh, binsArrTmp_zh);
+                    }
+
+                    std::string text_xivh = Form("#xi^{%s, %s}_{T}", text_trk.c_str(),
+                            text_V.c_str());
+                    std::string text_defn_xivh = Form("%s = ln ( -|%s|^{2} / (%s #dot %s) ) ",
+                            text_xivh.c_str(),
+                            text_vPt_vec.c_str(),
+                            text_vPt_vec.c_str(),
+                            text_trkPt_vec.c_str());
+
+                    std::string name_h_xivh = Form("h_xivh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_xivh = Form("%s;%s;", title_h_suffix.c_str(),
+                            text_defn_xivh.c_str());
+
+                    int nBins_xivh = 10;
+
+                    h_xivh[i][j][k] = 0;
+                    h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBins_xivh, 0, 5);
+
+
+                    std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
+                    std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
+                            text_dphi_leptrk.c_str());
+
+                    h_dphi_leptrk[i][j][k] = 0;
+                    h_dphi_leptrk[i][j][k] = new TH1D(name_h_dphi_leptrk.c_str(), title_h_dphi_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+                    std::string text_dR_leptrk = Form("#DeltaR_{%s,lep}", text_trk.c_str());
+                    std::string name_h_dR_leptrk = Form("h_dR_leptrk_%s", name_h_suffix.c_str());
+                    std::string title_h_dR_leptrk = Form("%s;%s;", title_h_suffix_dphi.c_str(),
+                            text_dR_leptrk.c_str());
+
+                    h_dR_leptrk[i][j][k] = 0;
+                    h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+                    if (anaTrkID) {
+                        h_trkPtError[i][j][k] = new TH1D(Form("h_trkPtError_%s", name_h_suffix.c_str()), ";trkPtError;", 30, 0, 0.15);
+                        h_trkPtoErr[i][j][k] = new TH1D(Form("h_trkPtoErr_%s", name_h_suffix.c_str()), ";trkPtError / trkPt;", 40, 0, 0.1);
+                        h_trkDz1[i][j][k] = new TH1D(Form("h_trkDz1_%s", name_h_suffix.c_str()), ";trkDz1;", 40, 0, 0.2);
+                        h_trkDz1oErr[i][j][k] = new TH1D(Form("h_trkDz1oErr_%s", name_h_suffix.c_str()), ";trkDz1 / trkDzError1;", 61, 0, 3.05);
+                        h_trkDxy1[i][j][k] = new TH1D(Form("h_trkDxy1_%s", name_h_suffix.c_str()), ";trkDxy1;", 40, 0, 0.1);
+                        h_trkDxy1oErr[i][j][k] = new TH1D(Form("h_trkDxy1oErr_%s", name_h_suffix.c_str()), ";trkDxy1 / trkDxyError1;", 61, 0, 3.05);
+                        h_trkNHit[i][j][k] = new TH1D(Form("h_trkNHit_%s", name_h_suffix.c_str()), ";trkNHit;", 50, 0, 50);
+                        h_trkNdof[i][j][k] = new TH1D(Form("h_trkNdof_%s", name_h_suffix.c_str()), ";trkNdof;", 70, 0, 70);
+                        h_trkNlayer[i][j][k] = new TH1D(Form("h_trkNlayer_%s", name_h_suffix.c_str()), ";trkNlayer;", 22, 0, 22);
+                        h_trkChi2[i][j][k] = new TH1D(Form("h_trkChi2_%s", name_h_suffix.c_str()), ";trkChi2;", 40, 0, 120);
+                        h_trkChi2_Ndof_Nlayer[i][j][k] = new TH1D(Form("h_trkChi2_Ndof_Nlayer_%s", name_h_suffix.c_str()), ";trkChi2 / trkNdof / trkNlayer;", 40, 0, 0.2);
+                        h_trkAlgo[i][j][k] = new TH1D(Form("h_trkAlgo_%s", name_h_suffix.c_str()), ";trkAlgo;", 50, 0, 50);
+                        h_trkMVA[i][j][k] = new TH1D(Form("h_trkMVA_%s", name_h_suffix.c_str()), ";trkMVA;", 42, 0, 1.05);
+                    }
+
+                    std::string name_h2_trkPhi_vs_trkEta = Form("h2_trkPhi_vs_trkEta_%s", name_h_suffix.c_str());
+                    std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
+                            text_trkEta.c_str(),
+                            text_trkPhi.c_str());
+
+                    h2_trkPhi_vs_trkEta[i][j][k] = 0;
+                    h2_trkPhi_vs_trkEta[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta.c_str(), title_h2_trkPhi_vs_trkEta.c_str(),
+                            nBinsX_eta, -1*xMax_eta, xMax_eta,
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi);
+                    vec_h2D.push_back(h2_trkPhi_vs_trkEta[i][j][k]);
+
+
+                    std::string title_h_suffixNoDphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h2_trkPhi_vs_trkEta_noDphi = Form("h2_trkPhi_vs_trkEta_noDphi_%s", name_h_suffix.c_str());
+                    std::string title_h2_trkPhi_vs_trkEta_noDphi = Form("%s;%s;%s", title_h_suffixNoDphi.c_str(),
+                            text_trkEta.c_str(),
+                            text_trkPhi.c_str());
+
+                    h2_trkPhi_vs_trkEta_noDphi[i][j][k] = 0;
+                    h2_trkPhi_vs_trkEta_noDphi[i][j][k] = new TH2D(name_h2_trkPhi_vs_trkEta_noDphi.c_str(), title_h2_trkPhi_vs_trkEta_noDphi.c_str(),
+                            nBinsX_eta, -1*xMax_eta, xMax_eta,
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi);
+                    vec_h2D.push_back(h2_trkPhi_vs_trkEta_noDphi[i][j][k]);
+
+                    std::string name_h2_deta_vs_dphi = Form("h2_deta_vs_dphi_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_dphi.c_str(),
+                            text_deta.c_str());
+
+                    h2_deta_vs_dphi[i][j][k] = 0;
+                    h2_deta_vs_dphi[i][j][k] = new TH2D(name_h2_deta_vs_dphi.c_str(), title_h2_deta_vs_dphi.c_str(),
+                            nBinsX_dphi, 0, xMax_phi,
+                            nBinsX_eta, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_vs_dphi[i][j][k]);
+
+                    std::string name_h2_deta_vs_dphi_rebin1 = Form("h2_deta_vs_dphi_rebin1_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_vs_dphi_rebin1 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_dphi.c_str(),
+                            text_deta.c_str());
+
+                    h2_deta_vs_dphi_rebin1[i][j][k] = 0;
+                    h2_deta_vs_dphi_rebin1[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin1.c_str(), title_h2_deta_vs_dphi_rebin1.c_str(),
+                            nBinsX_dphi/2, 0, xMax_phi,
+                            nBinsX_eta/2, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_vs_dphi_rebin1[i][j][k]);
+
+                    std::string name_h2_deta_vs_dphi_rebin2 = Form("h2_deta_vs_dphi_rebin2_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_vs_dphi_rebin2 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_dphi.c_str(),
+                            text_deta.c_str());
+
+                    h2_deta_vs_dphi_rebin2[i][j][k] = 0;
+                    h2_deta_vs_dphi_rebin2[i][j][k] = new TH2D(name_h2_deta_vs_dphi_rebin2.c_str(), title_h2_deta_vs_dphi_rebin2.c_str(),
+                            6, 0, xMax_phi,
+                            8, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_vs_dphi_rebin2[i][j][k]);
+
+                    std::string name_h2_deta_h1_vs_dphi = Form("h2_deta_h1_vs_dphi_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_h1_vs_dphi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_dphi.c_str(),
+                            text_deta_h1.c_str());
+
+                    h2_deta_h1_vs_dphi[i][j][k] = 0;
+                    h2_deta_h1_vs_dphi[i][j][k] = new TH2D(name_h2_deta_h1_vs_dphi.c_str(), title_h2_deta_h1_vs_dphi.c_str(),
+                            nBinsX_dphi, 0, xMax_phi,
+                            nBinsX_eta, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_h1_vs_dphi[i][j][k]);
+
+                    if (j == 0) {
+                        std::string name_h2_dphi_vs_vPt = Form("h2_dphi_vs_vPt_%s_%s", label_trkPt.c_str(), label_cent.c_str());
+                        std::string title_h2_dphi_vs_vPt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                text_vPt.c_str(),
+                                text_dphi.c_str());
+
+                        h2_dphi_vs_vPt[i][k] = 0;
+                        h2_dphi_vs_vPt[i][k] = new TH2D(name_h2_dphi_vs_vPt.c_str(), title_h2_dphi_vs_vPt.c_str(),
+                                nBinsX_vPt, 0,  xMax_vPt,
+                                nBinsX_dphi, 0, xMax_phi);
+                        vec_h2D.push_back(h2_dphi_vs_vPt[i][k]);
+                    }
+
+                    std::string name_h2_dphi_vs_trkEta = Form("h2_dphi_vs_trkEta_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_trkEta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_trkEta.c_str(),
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_trkEta[i][j][k] = 0;
+                    h2_dphi_vs_trkEta[i][j][k] = new TH2D(name_h2_dphi_vs_trkEta.c_str(), title_h2_dphi_vs_trkEta.c_str(),
+                            nBinsX_eta, -1*xMax_eta,  xMax_eta,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_trkEta[i][j][k]);
+
+                    std::string name_h2_dphi_vs_trkPhi = Form("h2_dphi_vs_trkPhi_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_trkPhi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_trkPhi.c_str(),
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_trkPhi[i][j][k] = 0;
+                    h2_dphi_vs_trkPhi[i][j][k] = new TH2D(name_h2_dphi_vs_trkPhi.c_str(), title_h2_dphi_vs_trkPhi.c_str(),
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_trkPhi[i][j][k]);
+
+                    std::string name_h2_dphi_vs_detall = Form("h2_dphi_vs_detall_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_detall = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "deta_ll",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_detall[i][j][k] = 0;
+                    h2_dphi_vs_detall[i][j][k] = new TH2D(name_h2_dphi_vs_detall.c_str(), title_h2_dphi_vs_detall.c_str(),
+                            nBinsX_eta, 0, 5.2,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_detall[i][j][k]);
+
+                    std::string name_h2_dphi_vs_detal1 = Form("h2_dphi_vs_detal1_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_detal1 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "deta_l1",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_detal1[i][j][k] = 0;
+                    h2_dphi_vs_detal1[i][j][k] = new TH2D(name_h2_dphi_vs_detal1.c_str(), title_h2_dphi_vs_detal1.c_str(),
+                            nBinsX_eta, 0, 5.2,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_detal1[i][j][k]);
+
+                    std::string name_h2_dphi_vs_detal2 = Form("h2_dphi_vs_detal2_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_detal2 = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "deta_l2",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_detal2[i][j][k] = 0;
+                    h2_dphi_vs_detal2[i][j][k] = new TH2D(name_h2_dphi_vs_detal2.c_str(), title_h2_dphi_vs_detal2.c_str(),
+                            nBinsX_eta, 0, 5.2,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_detal2[i][j][k]);
+
+                    std::string name_h2_dphi_vs_dphill = Form("h2_dphi_vs_dphill_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_dphill = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "dphi_ll",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_dphill[i][j][k] = 0;
+                    h2_dphi_vs_dphill[i][j][k] = new TH2D(name_h2_dphi_vs_dphill.c_str(), title_h2_dphi_vs_dphill.c_str(),
+                            nBinsX_dphi, 0, xMax_phi,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_dphill[i][j][k]);
+
+                    std::string name_h2_dphi_vs_vY = Form("h2_dphi_vs_vY_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_vY = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_vY.c_str(),
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_vY[i][j][k] = 0;
+                    h2_dphi_vs_vY[i][j][k] = new TH2D(name_h2_dphi_vs_vY.c_str(), title_h2_dphi_vs_vY.c_str(),
+                            nBinsX_eta, -2.6, 2.6,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_vY[i][j][k]);
+
+                    std::string name_h2_dphi_vs_vPhi = Form("h2_dphi_vs_vPhi_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_vPhi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_vPhi.c_str(),
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_vPhi[i][j][k] = 0;
+                    h2_dphi_vs_vPhi[i][j][k] = new TH2D(name_h2_dphi_vs_vPhi.c_str(), title_h2_dphi_vs_vPhi.c_str(),
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_vPhi[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l1Pt = Form("h2_dphi_vs_l1Pt_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l1Pt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "p_T^{l1}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l1Pt[i][j][k] = 0;
+                    h2_dphi_vs_l1Pt[i][j][k] = new TH2D(name_h2_dphi_vs_l1Pt.c_str(), title_h2_dphi_vs_l1Pt.c_str(),
+                            nBinsX_vPt, 0, xMax_vPt,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l1Pt[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l2Pt = Form("h2_dphi_vs_l2Pt_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l2Pt = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "p_T^{l2}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l2Pt[i][j][k] = 0;
+                    h2_dphi_vs_l2Pt[i][j][k] = new TH2D(name_h2_dphi_vs_l2Pt.c_str(), title_h2_dphi_vs_l2Pt.c_str(),
+                            nBinsX_vPt, 0, xMax_vPt,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l2Pt[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l1Eta = Form("h2_dphi_vs_l1Eta_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l1Eta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "#eta^{l1}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l1Eta[i][j][k] = 0;
+                    h2_dphi_vs_l1Eta[i][j][k] = new TH2D(name_h2_dphi_vs_l1Eta.c_str(), title_h2_dphi_vs_l1Eta.c_str(),
+                            nBinsX_eta, -2.6, 2.6,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l1Eta[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l2Eta = Form("h2_dphi_vs_l2Eta_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l2Eta = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "#eta^{l2}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l2Eta[i][j][k] = 0;
+                    h2_dphi_vs_l2Eta[i][j][k] = new TH2D(name_h2_dphi_vs_l2Eta.c_str(), title_h2_dphi_vs_l2Eta.c_str(),
+                            nBinsX_eta, -2.6, 2.6,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l2Eta[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l1Phi = Form("h2_dphi_vs_l1Phi_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l1Phi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "#phi^{l1}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l1Phi[i][j][k] = 0;
+                    h2_dphi_vs_l1Phi[i][j][k] = new TH2D(name_h2_dphi_vs_l1Phi.c_str(), title_h2_dphi_vs_l1Phi.c_str(),
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l1Phi[i][j][k]);
+
+                    std::string name_h2_dphi_vs_l2Phi = Form("h2_dphi_vs_l2Phi_%s", name_h_suffix.c_str());
+                    std::string title_h2_dphi_vs_l2Phi = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            "#phi^{l2}",
+                            text_dphi.c_str());
+
+                    h2_dphi_vs_l2Phi[i][j][k] = 0;
+                    h2_dphi_vs_l2Phi[i][j][k] = new TH2D(name_h2_dphi_vs_l2Phi.c_str(), title_h2_dphi_vs_l2Phi.c_str(),
+                            nBinsX_dphi, -1*xMax_phi, xMax_phi,
+                            nBinsX_dphi, 0, xMax_phi);
+                    vec_h2D.push_back(h2_dphi_vs_l2Phi[i][j][k]);
+
+                    std::string name_h2_deta_vs_xivh = Form("h2_deta_vs_xivh_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_xivh.c_str(),
+                            text_deta.c_str());
+
+                    h2_deta_vs_xivh[i][j][k] = 0;
+                    h2_deta_vs_xivh[i][j][k] = new TH2D(name_h2_deta_vs_xivh.c_str(), title_h2_deta_vs_xivh.c_str(),
+                            nBins_xivh, 0, 5,
+                            nBinsX_eta, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_vs_xivh[i][j][k]);
+
+                    std::string name_h2_deta_h1_vs_xivh = Form("h2_deta_h1_vs_xivh_%s", name_h_suffix.c_str());
+                    std::string title_h2_deta_h1_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                            text_xivh.c_str(),
+                            text_deta_h1.c_str());
+
+                    h2_deta_h1_vs_xivh[i][j][k] = 0;
+                    h2_deta_h1_vs_xivh[i][j][k] = new TH2D(name_h2_deta_h1_vs_xivh.c_str(), title_h2_deta_h1_vs_xivh.c_str(),
+                            nBins_xivh, 0, 5,
+                            nBinsX_eta, 0, 5.2);
+                    vec_h2D.push_back(h2_deta_h1_vs_xivh[i][j][k]);
+
+                    if (anaJets) {
+                        std::string name_h2_jetpt_vs_xivh = Form("h2_jetpt_vs_xivh_%s", name_h_suffix.c_str());
+                        std::string title_h2_jetpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                text_xivh.c_str(),
+                                "jet p_{T}");
+
+                        h2_jetpt_vs_xivh[i][j][k] = 0;
+                        h2_jetpt_vs_xivh[i][j][k] = new TH2D(name_h2_jetpt_vs_xivh.c_str(), title_h2_jetpt_vs_xivh.c_str(),
+                                nBins_xivh, 0, 5,
+                                30, 0, 150);
+                        vec_h2D.push_back(h2_jetpt_vs_xivh[i][j][k]);
+
+                        std::string name_h2_rawpt_vs_xivh = Form("h2_rawpt_vs_xivh_%s", name_h_suffix.c_str());
+                        std::string title_h2_rawpt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                text_xivh.c_str(),
+                                "raw p_{T}");
+
+                        h2_rawpt_vs_xivh[i][j][k] = 0;
+                        h2_rawpt_vs_xivh[i][j][k] = new TH2D(name_h2_rawpt_vs_xivh.c_str(), title_h2_rawpt_vs_xivh.c_str(),
+                                nBins_xivh, 0, 5,
+                                30, 0, 150);
+                        vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
+
+                        std::string name_h2_jetpt_vs_xijet = Form("h2_jetpt_vs_xijet_%s", name_h_suffix.c_str());
+                        std::string title_h2_jetpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                "#xi^{jet}",
+                                "jet p_{T}");
+
+                        h2_jetpt_vs_xijet[i][j][k] = 0;
+                        h2_jetpt_vs_xijet[i][j][k] = new TH2D(name_h2_jetpt_vs_xijet.c_str(), title_h2_jetpt_vs_xijet.c_str(),
+                                nBins_xivh, 0, 5,
+                                30, 0, 150);
+                        vec_h2D.push_back(h2_jetpt_vs_xijet[i][j][k]);
+
+                        std::string name_h2_rawpt_vs_xijet = Form("h2_rawpt_vs_xijet_%s", name_h_suffix.c_str());
+                        std::string title_h2_rawpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                "#xi^{jet}",
+                                "raw p_{T}");
+
+                        h2_rawpt_vs_xijet[i][j][k] = 0;
+                        h2_rawpt_vs_xijet[i][j][k] = new TH2D(name_h2_rawpt_vs_xijet.c_str(), title_h2_rawpt_vs_xijet.c_str(),
+                                nBins_xivh, 0, 5,
+                                30, 0, 150);
+                        vec_h2D.push_back(h2_rawpt_vs_xijet[i][j][k]);
+                    }
                 }
             }
         }
@@ -3016,31 +3019,33 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::vector<double> binsX;
             int nBinsX = 0;
 
-            // rebin trkPt
-            //binW = h_trkPt[i][j]->GetBinWidth(1);
-            binsX = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
-            nBinsX = binsX.size()-1;
-
-            double arr_trkPt[nBinsX+1];
-            std::copy(binsX.begin(), binsX.end(), arr_trkPt);
-
-            tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin");
-            h1DTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
-            h1DTmp->Write("",TObject::kOverwrite);
-
-            for (int k = 0; k < nTrkPts; ++k) {
-
-                // rebin dphi
-                binW = h_dphi[i][j][k]->GetBinWidth(1);
-                binsX = {0, binW*3, binW*6, binW*9, binW*12, binW*14, binW*16, binW*18, binW*19, binW*20};
+            if (anaTrks) {
+                // rebin trkPt
+                //binW = h_trkPt[i][j]->GetBinWidth(1);
+                binsX = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
                 nBinsX = binsX.size()-1;
 
-                double arr_dphi[nBinsX+1];
-                std::copy(binsX.begin(), binsX.end(), arr_dphi);
+                double arr_trkPt[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arr_trkPt);
 
-                tmpName = replaceAll(h_dphi[i][j][k]->GetName(), "h_dphi", "h_dphi_rebin");
-                h1DTmp = (TH1D*)h_dphi[i][j][k]->Rebin(nBinsX, tmpName.c_str(), arr_dphi);
+                tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin");
+                h1DTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
                 h1DTmp->Write("",TObject::kOverwrite);
+
+                for (int k = 0; k < nTrkPts; ++k) {
+
+                    // rebin dphi
+                    binW = h_dphi[i][j][k]->GetBinWidth(1);
+                    binsX = {0, binW*3, binW*6, binW*9, binW*12, binW*14, binW*16, binW*18, binW*19, binW*20};
+                    nBinsX = binsX.size()-1;
+
+                    double arr_dphi[nBinsX+1];
+                    std::copy(binsX.begin(), binsX.end(), arr_dphi);
+
+                    tmpName = replaceAll(h_dphi[i][j][k]->GetName(), "h_dphi", "h_dphi_rebin");
+                    h1DTmp = (TH1D*)h_dphi[i][j][k]->Rebin(nBinsX, tmpName.c_str(), arr_dphi);
+                    h1DTmp->Write("",TObject::kOverwrite);
+                }
             }
         }
     }
