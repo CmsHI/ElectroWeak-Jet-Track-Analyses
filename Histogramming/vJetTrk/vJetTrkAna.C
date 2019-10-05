@@ -2066,7 +2066,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_rawpt = jets.p_rawpt;
             p_evtjet_index = &dummy_vec_I0;
 
-            if (isMixTrk) {
+            if (false && isMixTrk) {
                 p_jetpt = jets.p_jetpt_mix;
                 p_jeteta = jets.p_jeteta_mix;
                 p_jetphi = jets.p_jetphi_mix;
@@ -2698,6 +2698,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             if (anaJets) {
                 nJets = (!isMixTrk) ? jets.njet : jets.njet_mix;
+                nJets = jets.njet;
             }
 
             double wMixEvts = wV;
@@ -2939,7 +2940,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                                     //if ( !((*p_rawpt)[iJet] > 5) )  continue;
 
-                                    if (isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                                    if (false && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
 
                                     double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
 
