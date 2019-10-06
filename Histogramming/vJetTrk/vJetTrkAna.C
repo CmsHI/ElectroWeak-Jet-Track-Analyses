@@ -1648,6 +1648,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<float>* p_jeteta = 0;
     std::vector<float>* p_jetphi = 0;
     std::vector<float>* p_rawpt = 0;
+    std::vector<int>* p_subid = 0;
     std::vector<int>* p_evtjet_index = 0;
 
     // pointers to particle info
@@ -1832,9 +1833,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 treeJetSkim->SetBranchStatus("jeteta*",1);
                 treeJetSkim->SetBranchStatus("jetphi*",1);
                 treeJetSkim->SetBranchStatus("rawpt*",1);
-                treeJetSkim->SetBranchStatus("evtjet_mix",1);
                 treeJetSkim->SetBranchStatus("ref*",1);
-                treeJetSkim->SetBranchStatus("subid",1);
+                treeJetSkim->SetBranchStatus("subid*",1);
+                treeJetSkim->SetBranchStatus("evtjet_mix",1);
             }
             else {
                 treeJetSkim->SetBranchStatus("ngen",1);
@@ -2067,6 +2068,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_jeteta = jets.p_jeteta;
             p_jetphi = jets.p_jetphi;
             p_rawpt = jets.p_rawpt;
+            p_subid = jets.p_subid;
             p_evtjet_index = &dummy_vec_I0;
 
             if (false && isMixTrk) {
@@ -2074,6 +2076,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 p_jeteta = jets.p_jeteta_mix;
                 p_jetphi = jets.p_jetphi_mix;
                 p_rawpt = jets.p_rawpt_mix;
+                p_subid = jets.p_subid_mix;
                 p_evtjet_index = jets.p_evtjet_mix;
             }
         }
@@ -2944,6 +2947,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     //if ( !((*p_rawpt)[iJet] > 5) )  continue;
 
                                     if (false && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                                    if ( (*p_subid)[iJet] != 0 ) continue;
 
                                     double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
 
