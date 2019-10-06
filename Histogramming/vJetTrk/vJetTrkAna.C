@@ -306,6 +306,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doResidualMBTrkW = (outputFile.find("resMBTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualMBTrkW = " << doResidualMBTrkW << std::endl;
 
+    bool doEffDRW = (outputFile.find("effDRW") != std::string::npos && redoTrkWeights && anaJets);
+    std::cout << "doEffDRW = " << doEffDRW << std::endl;
+
     TFile* fileWeightsV = 0;
     std::vector<TH2D*> vec_h2D_wV;
     if (doWeightsV) {
@@ -487,6 +490,55 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     h_resMBTrk_effcorr[i][k] = 0;
                     h_resMBTrk_effcorr[i][k] = (TH2D*)fileResMBTrkWeights->Get(name_h.c_str());
+                }
+            }
+        }
+    }
+
+    std::vector<TFile*> fileEffDRW(2, 0);
+
+    std::vector<int> effDRWPts = {1, 2, 3, 4, 8, 12, 20};
+    std::vector<int> effDRWCents = {0, 10, 30, 50};
+    int nEffDRWPt = effDRWPts.size() - 1;
+    int nEffDRWCent = effDRWCents.size() - 1;
+
+    TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent];
+    if (doEffDRW) {
+        std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv5/";
+        std::string dirEffDRW_reco = dirEffDRW_gen+"trkgetEff/resMBTrkWeffv7/";
+
+        std::string fileNameEffDRW_gen = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_g_sig.root");
+        std::string fileNameEffDRW_reco = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub.root");
+
+        std::string filePathEffDRW_gen = Form("%s/%s", dirEffDRW_gen.c_str(), fileNameEffDRW_gen.c_str());
+        std::string filePathEffDRW_reco = Form("%s/%s", dirEffDRW_reco.c_str(), fileNameEffDRW_reco.c_str());
+
+        std::cout << "reading effDR correction files - gen  : " << filePathEffDRW_gen.c_str() << std::endl;
+        std::cout << "reading effDR correction files - reco : " << filePathEffDRW_reco.c_str() << std::endl;
+
+        fileEffDRW[0] = TFile::Open(filePathEffDRW_gen.c_str(), "READ");
+        fileEffDRW[1] = TFile::Open(filePathEffDRW_reco.c_str(), "READ");
+
+        for (int iF = 0; iF < 3; ++iF) {
+            for (int iPt = 0; iPt < nEffDRWPt; ++iPt) {
+                for (int iC = 0; iC < nEffDRWCent; ++iC) {
+
+                    h_effDR[iF][iPt][iC] = 0;
+
+                    std::string name_h_suffix_trkPt = Form("trkPt%d_%d", effDRWPts[iPt], effDRWPts[iPt+1]);
+                    std::string name_h_suffix_cent = Form("cent%d_%d", effDRWCents[iC], effDRWCents[iC+1]);
+
+                    std::string name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(),
+                                                                                          name_h_suffix_cent.c_str());
+
+                    if (iF < 2) {
+                        h_effDR[iF][iPt][iC] = (TH1D*)fileEffDRW[iF]->Get(name_h.c_str());
+                        h_effDR[iF][iPt][iC]->Rebin(2);
+                    }
+                    else {
+                        h_effDR[2][iPt][iC] = (TH1D*)h_effDR[0][iPt][iC]->Clone(Form("%s_corrDR", name_h.c_str()));
+                        h_effDR[2][iPt][iC]->Divide(h_effDR[1][iPt][iC]);
+                    }
                 }
             }
         }
@@ -2072,6 +2124,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             p_evtjet_index = &dummy_vec_I0;
 
             if (false && isMixTrk) {
+            //if (isMixTrk) {
                 p_jetpt = jets.p_jetpt_mix;
                 p_jeteta = jets.p_jeteta_mix;
                 p_jetphi = jets.p_jetphi_mix;
@@ -2703,8 +2756,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (anaJets) {
-                nJets = (!isMixTrk) ? jets.njet : jets.njet_mix;
                 nJets = jets.njet;
+                if (false && isMixTrk) {
+                //if (isMixTrk) {
+                    nJets = jets.njet_mix;
+                }
             }
 
             double wMixEvts = wV;
@@ -2720,6 +2776,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             int iResMBTrkWCent = -1;
             if (doResidualMBTrkW) {
                 iResMBTrkWCent = getBinCent4TrkW(hiBin, resMBTrkWCents, nResMBTrkWCent);
+            }
+
+            int effDR_iC = -1;
+            if (doEffDRW) {
+                for (int iC = 0; iC < nEffDRWCent; ++iC) {
+                    if (cent <= effDRWCents[iC+1]) {
+                        effDR_iC = iC;
+                        break;
+                    }
+                }
             }
 
             for (int i = 0; i < nParticles; ++i) {
@@ -2823,6 +2889,46 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         trkWeightTmp /= tmpResCorr;
+                    }
+                    if (doEffDRW) {
+
+                        int effDR_iP = -1;
+                        for (int iP = 0; iP < nEffDRWPt; ++iP) {
+                            if (effDRWPts[iP] < t_pt && t_pt <= effDRWPts[iP+1]) {
+                                effDR_iP = iP;
+                                break;
+                            }
+                        }
+
+                        double mindR2_jet_trk = 999999;
+                        int iJet_mindR = -1;
+
+                        int iEvt = (*p_evtIndex)[i];
+
+                        int nJetsTmp = (effDR_iP >= 0 && effDR_iC >= 0) ? nJets : 0;
+                        for (int iJet = 0; iJet < nJetsTmp; ++iJet) {
+
+                            if (false && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                            //if (isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                            if ( !((*p_rawpt)[iJet] > 10) ) continue;
+
+                            double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
+
+                            if (dR2_jet_trk < mindR2_jet_trk) {
+                                mindR2_jet_trk = dR2_jet_trk;
+                                iJet_mindR = iJet;
+                            }
+                        }
+
+                        double tmpCorrDR = 1;
+                        if (iJet_mindR >= 0) {
+                            int binTmpPt = h_effDR[2][effDR_iP][effDR_iC]->FindBin((*p_rawpt)[iJet_mindR]);
+                            tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC]->GetBinContent(binTmpPt);
+                            if (tmpCorrDR < 0.2) tmpCorrDR = 0.2;
+                            else if (tmpCorrDR > 1.8) tmpCorrDR = 1.8;
+                        }
+
+                        trkWeightTmp *= tmpCorrDR;
                     }
                 }
                 double wTrk = trkWeightTmp * wMixEvts * wTrkPhi;
@@ -2947,6 +3053,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     //if ( !((*p_rawpt)[iJet] > 5) )  continue;
 
                                     if (false && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                                    //if (isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
                                     if ( (*p_subid)[iJet] != 0 ) continue;
 
                                     double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
