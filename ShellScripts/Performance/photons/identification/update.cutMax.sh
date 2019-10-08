@@ -38,15 +38,18 @@ inputList=(
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_sumIso3_CutsGA.log"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_CutsGA.log"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_cIsopT2_CutsGA.log"
+$EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUEec_cIsopT2_CutsGA.log"
 ## phoSigmaIEtaIEta_2012
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_sumIso3_CutsGA.log"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_CutsGA.log"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_cIsopT2_CutsGA.log"
+$EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUEec_cIsopT2_CutsGA.log"
 ## sumIso
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_sumIso3_CutsGA.log"
 ## pfSumIso
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_CutsGA.log"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUE_cIsopT2_CutsGA.log"
+$EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaReadXML_tmvaTrainID"${substrInputWP}"_pfSumIso3_subUEec_cIsopT2_CutsGA.log"
 );
 
 variableList=(
@@ -54,7 +57,9 @@ variableList=(
 "phoHoverE"
 "phoHoverE"
 "phoHoverE"
+"phoHoverE"
 ##
+"phoSigmaIEtaIEta_2012"
 "phoSigmaIEtaIEta_2012"
 "phoSigmaIEtaIEta_2012"
 "phoSigmaIEtaIEta_2012"
@@ -64,6 +69,7 @@ variableList=(
 ##
 "pfcIso3subUE+pfpIso3subUE+pfnIso3subUE"
 "pfcIso3pTgt2p0subUE+pfpIso3subUE+pfnIso3subUE"
+"pfcIso3pTgt2p0subUEec+pfpIso3subUEec+pfnIso3subUEec"
 );
 
 configVarList=(
@@ -71,15 +77,18 @@ configVarList=(
 "HOE_MAX_"${substrConfigVar}"_SUMISO3"
 "HOE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUE"
 "HOE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUE_CPT2"
+"HOE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUEEC_CPT2"
 ##
 "SIEIE_MAX_"${substrConfigVar}"_SUMISO3"
 "SIEIE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUE"
 "SIEIE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUE_CPT2"
+"SIEIE_MAX_"${substrConfigVar}"_PFSUMISO3SUBUEEC_CPT2"
 ##
 "SUMISO3_MAX_"${substrConfigVar}""
 ##
 "PFSUMISO3SUBUE_MAX_"${substrConfigVar}""
 "PFSUMISO3SUBUE_CPT2_MAX_"${substrConfigVar}""
+"PFSUMISO3SUBUEEC_CPT2_MAX_"${substrConfigVar}""
 );
 
 configFile="Configurations/Performance/photons/identification/"${folderName}"/tmvaTrainID.frag.conf"

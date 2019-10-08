@@ -27,6 +27,7 @@ inputList=(
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaTrainID"${prefixWP}"_sumIso3_CutsGA.xml"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaTrainID"${prefixWP}"_pfSumIso3_subUE_CutsGA.xml"
 $EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaTrainID"${prefixWP}"_pfSumIso3_subUE_cIsopT2_CutsGA.xml"
+$EWJTAOUT"/Performance/photons/identification/"${folderName}"/"${EBEE}"/tmvaTrainID"${prefixWP}"_pfSumIso3_subUEec_cIsopT2_CutsGA.xml"
 );
 
 methodNameList1="CutsGA"
@@ -39,6 +40,7 @@ variableList=(
 "phoHoverE;phoSigmaIEtaIEta_2012;pho_ecalClusterIsoR3+pho_hcalRechitIsoR3+pho_trackIsoR3PtCut20"
 "phoHoverE;phoSigmaIEtaIEta_2012;pfcIso3subUE+pfpIso3subUE+pfnIso3subUE"
 "phoHoverE;phoSigmaIEtaIEta_2012;pfcIso3pTgt2p0subUE+pfpIso3subUE+pfnIso3subUE"
+"phoHoverE;phoSigmaIEtaIEta_2012;pfcIso3pTgt2p0subUEec+pfpIso3subUEec+pfnIso3subUEec"
 );
 
 #specList1="phoEt,phoEta,phoPhi,phoSCEta,phoSCPhi,phoHoverE,pho_ecalClusterIsoR4,pho_hcalRechitIsoR4,pho_trackIsoR4PtCut20,pho_genMatchedIndex"
