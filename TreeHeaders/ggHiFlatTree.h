@@ -316,6 +316,20 @@ public :
   float pfcIso3pTgt3p0subUE;
   float pfcIso4pTgt3p0subUE;
   float pfcIso5pTgt3p0subUE;
+
+  float pfcIso2subUEec;
+  float pfcIso3subUEec;
+  float pfcIso4subUEec;
+  float pfpIso2subUEec;
+  float pfpIso3subUEec;
+  float pfpIso4subUEec;
+  float pfnIso2subUEec;
+  float pfnIso3subUEec;
+  float pfnIso4subUEec;
+  float pfcIso2pTgt2p0subUEec;
+  float pfcIso3pTgt2p0subUEec;
+  float pfcIso4pTgt2p0subUEec;
+
   float phoEAc;
   float phoEAp;
   float phoEAn;
@@ -639,6 +653,18 @@ public :
   TBranch        *b_pfcIso3pTgt3p0subUE;   //!
   TBranch        *b_pfcIso4pTgt3p0subUE;   //!
   TBranch        *b_pfcIso5pTgt3p0subUE;   //!
+  TBranch        *b_pfcIso2subUEec;   //!
+  TBranch        *b_pfcIso3subUEec;   //!
+  TBranch        *b_pfcIso4subUEec;   //!
+  TBranch        *b_pfpIso2subUEec;   //!
+  TBranch        *b_pfpIso3subUEec;   //!
+  TBranch        *b_pfpIso4subUEec;   //!
+  TBranch        *b_pfnIso2subUEec;   //!
+  TBranch        *b_pfnIso3subUEec;   //!
+  TBranch        *b_pfnIso4subUEec;   //!
+  TBranch        *b_pfcIso2pTgt2p0subUEec;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEec;   //!
+  TBranch        *b_pfcIso4pTgt2p0subUEec;   //!
   TBranch        *b_phoEAc;   //!
   TBranch        *b_phoEAp;   //!
   TBranch        *b_phoEAn;   //!
@@ -963,6 +989,18 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfcIso3pTgt3p0subUE = 0;
     b_pfcIso4pTgt3p0subUE = 0;
     b_pfcIso5pTgt3p0subUE = 0;
+    b_pfcIso2subUEec = 0;
+    b_pfcIso3subUEec = 0;
+    b_pfcIso4subUEec = 0;
+    b_pfpIso2subUEec = 0;
+    b_pfpIso3subUEec = 0;
+    b_pfpIso4subUEec = 0;
+    b_pfnIso2subUEec = 0;
+    b_pfnIso3subUEec = 0;
+    b_pfnIso4subUEec = 0;
+    b_pfcIso2pTgt2p0subUEec = 0;
+    b_pfcIso3pTgt2p0subUEec = 0;
+    b_pfcIso4pTgt2p0subUEec = 0;
     b_phoEAc = 0;
     b_phoEAp = 0;
     b_phoEAn = 0;
@@ -1284,6 +1322,18 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfcIso3pTgt3p0subUE")) t->SetBranchAddress("pfcIso3pTgt3p0subUE", &pfcIso3pTgt3p0subUE, &b_pfcIso3pTgt3p0subUE);
     if (t->GetBranch("pfcIso4pTgt3p0subUE")) t->SetBranchAddress("pfcIso4pTgt3p0subUE", &pfcIso4pTgt3p0subUE, &b_pfcIso4pTgt3p0subUE);
     if (t->GetBranch("pfcIso5pTgt3p0subUE")) t->SetBranchAddress("pfcIso5pTgt3p0subUE", &pfcIso5pTgt3p0subUE, &b_pfcIso5pTgt3p0subUE);
+    if (t->GetBranch("pfcIso2subUEec")) t->SetBranchAddress("pfcIso2subUEec", &pfcIso2subUEec, &b_pfcIso2subUEec);
+    if (t->GetBranch("pfcIso3subUEec")) t->SetBranchAddress("pfcIso3subUEec", &pfcIso3subUEec, &b_pfcIso3subUEec);
+    if (t->GetBranch("pfcIso4subUEec")) t->SetBranchAddress("pfcIso4subUEec", &pfcIso4subUEec, &b_pfcIso4subUEec);
+    if (t->GetBranch("pfpIso2subUEec")) t->SetBranchAddress("pfpIso2subUEec", &pfpIso2subUEec, &b_pfpIso2subUEec);
+    if (t->GetBranch("pfpIso3subUEec")) t->SetBranchAddress("pfpIso3subUEec", &pfpIso3subUEec, &b_pfpIso3subUEec);
+    if (t->GetBranch("pfpIso4subUEec")) t->SetBranchAddress("pfpIso4subUEec", &pfpIso4subUEec, &b_pfpIso4subUEec);
+    if (t->GetBranch("pfnIso2subUEec")) t->SetBranchAddress("pfnIso2subUEec", &pfnIso2subUEec, &b_pfnIso2subUEec);
+    if (t->GetBranch("pfnIso3subUEec")) t->SetBranchAddress("pfnIso3subUEec", &pfnIso3subUEec, &b_pfnIso3subUEec);
+    if (t->GetBranch("pfnIso4subUEec")) t->SetBranchAddress("pfnIso4subUEec", &pfnIso4subUEec, &b_pfnIso4subUEec);
+    if (t->GetBranch("pfcIso2pTgt2p0subUEec")) t->SetBranchAddress("pfcIso2pTgt2p0subUEec", &pfcIso2pTgt2p0subUEec, &b_pfcIso2pTgt2p0subUEec);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEec")) t->SetBranchAddress("pfcIso3pTgt2p0subUEec", &pfcIso3pTgt2p0subUEec, &b_pfcIso3pTgt2p0subUEec);
+    if (t->GetBranch("pfcIso4pTgt2p0subUEec")) t->SetBranchAddress("pfcIso4pTgt2p0subUEec", &pfcIso4pTgt2p0subUEec, &b_pfcIso4pTgt2p0subUEec);
     if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
     if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
     if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
@@ -1612,6 +1662,20 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfcIso3pTgt3p0subUE", &pfcIso3pTgt3p0subUE);
         t->Branch("pfcIso4pTgt3p0subUE", &pfcIso4pTgt3p0subUE);
         t->Branch("pfcIso5pTgt3p0subUE", &pfcIso5pTgt3p0subUE);
+
+        t->Branch("pfcIso2subUEec", &pfcIso2subUEec);
+        t->Branch("pfcIso3subUEec", &pfcIso3subUEec);
+        t->Branch("pfcIso4subUEec", &pfcIso4subUEec);
+        t->Branch("pfpIso2subUEec", &pfpIso2subUEec);
+        t->Branch("pfpIso3subUEec", &pfpIso3subUEec);
+        t->Branch("pfpIso4subUEec", &pfpIso4subUEec);
+        t->Branch("pfnIso2subUEec", &pfnIso2subUEec);
+        t->Branch("pfnIso3subUEec", &pfnIso3subUEec);
+        t->Branch("pfnIso4subUEec", &pfnIso4subUEec);
+        t->Branch("pfcIso2pTgt2p0subUEec", &pfcIso2pTgt2p0subUEec);
+        t->Branch("pfcIso3pTgt2p0subUEec", &pfcIso3pTgt2p0subUEec);
+        t->Branch("pfcIso4pTgt2p0subUEec", &pfcIso4pTgt2p0subUEec);
+
         t->Branch("phoEAc", &phoEAc);
         t->Branch("phoEAp", &phoEAp);
         t->Branch("phoEAn", &phoEAn);
@@ -1928,6 +1992,18 @@ void ggHiFlat::clearEntryPho()
         pfcIso3pTgt3p0subUE = -987987;
         pfcIso4pTgt3p0subUE = -987987;
         pfcIso5pTgt3p0subUE = -987987;
+        pfcIso2subUEec = -987987;
+        pfcIso3subUEec = -987987;
+        pfcIso4subUEec = -987987;
+        pfpIso2subUEec = -987987;
+        pfpIso3subUEec = -987987;
+        pfpIso4subUEec = -987987;
+        pfnIso2subUEec = -987987;
+        pfnIso3subUEec = -987987;
+        pfnIso4subUEec = -987987;
+        pfcIso2pTgt2p0subUEec = -987987;
+        pfcIso3pTgt2p0subUEec = -987987;
+        pfcIso4pTgt2p0subUEec = -987987;
         phoEAc = 0;
         phoEAp = 0;
         phoEAn = 0;
@@ -2298,6 +2374,20 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         pfcIso3pTgt3p0subUE = (*tggHiNtuplizer.pfcIso3pTgt3p0subUE)[i];
         pfcIso4pTgt3p0subUE = (*tggHiNtuplizer.pfcIso4pTgt3p0subUE)[i];
         pfcIso5pTgt3p0subUE = (*tggHiNtuplizer.pfcIso5pTgt3p0subUE)[i];
+    }
+    if (tggHiNtuplizer.b_pfcIso2subUEec != 0) {
+        pfcIso2subUEec = (*tggHiNtuplizer.pfcIso2subUEec)[i];
+        pfcIso3subUEec = (*tggHiNtuplizer.pfcIso3subUEec)[i];
+        pfcIso4subUEec = (*tggHiNtuplizer.pfcIso4subUEec)[i];
+        pfpIso2subUEec = (*tggHiNtuplizer.pfpIso2subUEec)[i];
+        pfpIso3subUEec = (*tggHiNtuplizer.pfpIso3subUEec)[i];
+        pfpIso4subUEec = (*tggHiNtuplizer.pfpIso4subUEec)[i];
+        pfnIso2subUEec = (*tggHiNtuplizer.pfnIso2subUEec)[i];
+        pfnIso3subUEec = (*tggHiNtuplizer.pfnIso3subUEec)[i];
+        pfnIso4subUEec = (*tggHiNtuplizer.pfnIso4subUEec)[i];
+        pfcIso2pTgt2p0subUEec = (*tggHiNtuplizer.pfcIso2pTgt2p0subUEec)[i];
+        pfcIso3pTgt2p0subUEec = (*tggHiNtuplizer.pfcIso3pTgt2p0subUEec)[i];
+        pfcIso4pTgt2p0subUEec = (*tggHiNtuplizer.pfcIso4pTgt2p0subUEec)[i];
     }
 }
 
