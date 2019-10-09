@@ -1653,7 +1653,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h2_jetpt_vs_xivh[i][j][k] = 0;
                         h2_jetpt_vs_xivh[i][j][k] = new TH2D(name_h2_jetpt_vs_xivh.c_str(), title_h2_jetpt_vs_xivh.c_str(),
                                 nBins_xivh, 0, 5,
-                                30, 0, 150);
+                                60, 0, 300);
                         vec_h2D.push_back(h2_jetpt_vs_xivh[i][j][k]);
 
                         std::string name_h2_rawpt_vs_xivh = Form("h2_rawpt_vs_xivh_%s", name_h_suffix.c_str());
@@ -1664,7 +1664,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h2_rawpt_vs_xivh[i][j][k] = 0;
                         h2_rawpt_vs_xivh[i][j][k] = new TH2D(name_h2_rawpt_vs_xivh.c_str(), title_h2_rawpt_vs_xivh.c_str(),
                                 nBins_xivh, 0, 5,
-                                30, 0, 150);
+                                60, 0, 300);
                         vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
 
                         std::string name_h2_jetpt_vs_xijet = Form("h2_jetpt_vs_xijet_%s", name_h_suffix.c_str());
@@ -1675,7 +1675,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h2_jetpt_vs_xijet[i][j][k] = 0;
                         h2_jetpt_vs_xijet[i][j][k] = new TH2D(name_h2_jetpt_vs_xijet.c_str(), title_h2_jetpt_vs_xijet.c_str(),
                                 nBins_xivh, 0, 5,
-                                30, 0, 150);
+                                60, 0, 300);
                         vec_h2D.push_back(h2_jetpt_vs_xijet[i][j][k]);
 
                         std::string name_h2_rawpt_vs_xijet = Form("h2_rawpt_vs_xijet_%s", name_h_suffix.c_str());
@@ -1686,7 +1686,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h2_rawpt_vs_xijet[i][j][k] = 0;
                         h2_rawpt_vs_xijet[i][j][k] = new TH2D(name_h2_rawpt_vs_xijet.c_str(), title_h2_rawpt_vs_xijet.c_str(),
                                 nBins_xivh, 0, 5,
-                                30, 0, 150);
+                                60, 0, 300);
                         vec_h2D.push_back(h2_rawpt_vs_xijet[i][j][k]);
                     }
                 }
