@@ -17,6 +17,7 @@
 #include <TLatex.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
+#include <TRandom3.h>
 
 #include <string>
 #include <vector>
@@ -206,6 +207,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
 
+    int rndVPhi = (ArgumentParser::optionExists("--rndVPhi", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--rndVPhi", argOptions).c_str()) : 0;
+    bool doRndVPhi = (rndVPhi > 0);
+
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
@@ -245,6 +250,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
+    if (doRndVPhi) {
+        std::cout << "rndVPhi = " << rndVPhi << std::endl;
+    }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -1838,6 +1846,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp->Close();
     // done with initial reading
 
+    TRandom3 rand;
+    if (doRndVPhi) {
+        rand.SetSeed(rndVPhi);
+    }
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -2475,6 +2488,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 llPt = {l2pt, l1pt};
                                 llEta = {(*lEta)[j], (*lEta)[i]};
                                 llPhi = {(*lPhi)[j], (*lPhi)[i]};
+                            }
+
+                            if (doRndVPhi) {
+                                vPhi = rand.Uniform(-1*TMath::Pi(), TMath::Pi());
                             }
                         }
                     }
