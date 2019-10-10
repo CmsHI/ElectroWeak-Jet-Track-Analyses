@@ -503,15 +503,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
     }
 
-    std::vector<TFile*> fileEffDRW(2, 0);
+    TFile* fileEffDRW[2][2];
 
     //std::vector<int> effDRWPts = {1, 2, 3, 4, 8, 12, 20};
-    std::vector<double> effDRWPts = {0.5, 1, 1.5, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<double> effDRWPts = {0.5, 1, 1.5, 2, 3, 4, 8, 12, 20, 60};
+    std::vector<double> effDRWPts = {0.5, 1, 1.2, 2, 3, 4, 8, 12, 20, 60};
     std::vector<int> effDRWCents = {0, 10, 30, 50, 90};
     int nEffDRWPt = effDRWPts.size() - 1;
     int nEffDRWCent = effDRWCents.size() - 1;
 
-    TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent];
+    TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent][2];
     if (doEffDRW) {
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv4/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv5/";
@@ -519,55 +520,71 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv7/vTrkDphiMin0p875/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv20/vTrkDphiMin0p5/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv20/vTrkDphiMin0p875/";
-        std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p5/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p5/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p875/";
-        std::string dirEffDRW_reco = dirEffDRW_gen+"trkgetEff/resMBTrkWeffv7/";
+        std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv23/vTrkDphiMin0p5/";
+        std::string dirEffDRW_gen_etaBin1 = dirEffDRW_gen+"trkEtaMax1p0/";
+        std::string dirEffDRW_gen_etaBin2 = dirEffDRW_gen+"trkEtaMin1p0Max2p4/";
+
+        std::string dirEffDRW_reco_etaBin1 = dirEffDRW_gen_etaBin1+"trkgetEff/resMBTrkWeffv7/";
+        std::string dirEffDRW_reco_etaBin2 = dirEffDRW_gen_etaBin2+"trkgetEff/resMBTrkWeffv7/";
 
         std::string fileNameEffDRW_gen = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_g_sig.root");
         std::string fileNameEffDRW_reco = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub.root");
 
-        std::string filePathEffDRW_gen = Form("%s/%s", dirEffDRW_gen.c_str(), fileNameEffDRW_gen.c_str());
-        std::string filePathEffDRW_reco = Form("%s/%s", dirEffDRW_reco.c_str(), fileNameEffDRW_reco.c_str());
+        std::string filePathEffDRW_gen_etaBin1 = Form("%s/%s", dirEffDRW_gen_etaBin1.c_str(), fileNameEffDRW_gen.c_str());
+        std::string filePathEffDRW_reco_etaBin1 = Form("%s/%s", dirEffDRW_reco_etaBin1.c_str(), fileNameEffDRW_reco.c_str());
 
-        std::cout << "reading effDR correction files - gen  : " << filePathEffDRW_gen.c_str() << std::endl;
-        std::cout << "reading effDR correction files - reco : " << filePathEffDRW_reco.c_str() << std::endl;
+        std::string filePathEffDRW_gen_etaBin2 = Form("%s/%s", dirEffDRW_gen_etaBin2.c_str(), fileNameEffDRW_gen.c_str());
+        std::string filePathEffDRW_reco_etaBin2 = Form("%s/%s", dirEffDRW_reco_etaBin2.c_str(), fileNameEffDRW_reco.c_str());
 
-        fileEffDRW[0] = TFile::Open(filePathEffDRW_gen.c_str(), "READ");
-        fileEffDRW[1] = TFile::Open(filePathEffDRW_reco.c_str(), "READ");
+        std::cout << "reading effDR correction files - gen  etaBin1 : " << filePathEffDRW_gen_etaBin1.c_str() << std::endl;
+        std::cout << "reading effDR correction files - reco etaBin1 : " << filePathEffDRW_reco_etaBin1.c_str() << std::endl;
+
+        std::cout << "reading effDR correction files - gen  etaBin2 : " << filePathEffDRW_gen_etaBin2.c_str() << std::endl;
+        std::cout << "reading effDR correction files - reco etaBin2 : " << filePathEffDRW_reco_etaBin2.c_str() << std::endl;
+
+        fileEffDRW[0][0] = TFile::Open(filePathEffDRW_gen_etaBin1.c_str(), "READ");
+        fileEffDRW[1][0] = TFile::Open(filePathEffDRW_reco_etaBin1.c_str(), "READ");
+
+        fileEffDRW[0][1] = TFile::Open(filePathEffDRW_gen_etaBin2.c_str(), "READ");
+        fileEffDRW[1][1] = TFile::Open(filePathEffDRW_reco_etaBin2.c_str(), "READ");
 
         for (int iF = 0; iF < 3; ++iF) {
             for (int iPt = 0; iPt < nEffDRWPt; ++iPt) {
                 for (int iC = 0; iC < nEffDRWCent; ++iC) {
+                    for (int iEta = 0; iEta < 2; ++iEta) {
 
-                    h_effDR[iF][iPt][iC] = 0;
+                        h_effDR[iF][iPt][iC][iEta] = 0;
 
-                    double tmpPt1 = effDRWPts[iPt];
-                    double tmpPt2 = effDRWPts[iPt+1];
+                        double tmpPt1 = effDRWPts[iPt];
+                        double tmpPt2 = effDRWPts[iPt+1];
 
-                    std::string label_trkPt1 = Form("%d", (int)(tmpPt1));    // 5 --> "5"
-                    if (std::floor(tmpPt1) != tmpPt1) {   // 1.4 --> "1p4"
-                        label_trkPt1 = Form("%dp%d", (int)(tmpPt1), ((int)(tmpPt1*10) % 10));
-                    }
+                        std::string label_trkPt1 = Form("%d", (int)(tmpPt1));    // 5 --> "5"
+                        if (std::floor(tmpPt1) != tmpPt1) {   // 1.4 --> "1p4"
+                            label_trkPt1 = Form("%dp%d", (int)(tmpPt1), ((int)(tmpPt1*10) % 10));
+                        }
 
-                    std::string label_trkPt2 = Form("%d", (int)(tmpPt2));    // 5 --> "5"
-                    if (std::floor(tmpPt2) != tmpPt2) {   // 1.4 --> "1p4"
-                        label_trkPt2 = Form("%dp%d", (int)(tmpPt2), ((int)(tmpPt2*10) % 10));
-                    }
+                        std::string label_trkPt2 = Form("%d", (int)(tmpPt2));    // 5 --> "5"
+                        if (std::floor(tmpPt2) != tmpPt2) {   // 1.4 --> "1p4"
+                            label_trkPt2 = Form("%dp%d", (int)(tmpPt2), ((int)(tmpPt2*10) % 10));
+                        }
 
-                    std::string name_h_suffix_trkPt = Form("trkPt%s_%s", label_trkPt1.c_str(), label_trkPt2.c_str());
-                    std::string name_h_suffix_cent = Form("cent%d_%d", effDRWCents[iC], effDRWCents[iC+1]);
+                        std::string name_h_suffix_trkPt = Form("trkPt%s_%s", label_trkPt1.c_str(), label_trkPt2.c_str());
+                        std::string name_h_suffix_cent = Form("cent%d_%d", effDRWCents[iC], effDRWCents[iC+1]);
 
-                    std::string name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(),
-                                                                                          name_h_suffix_cent.c_str());
+                        std::string name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(),
+                                name_h_suffix_cent.c_str());
 
-                    if (iF < 2) {
-                        h_effDR[iF][iPt][iC] = (TH1D*)fileEffDRW[iF]->Get(name_h.c_str());
-                        h_effDR[iF][iPt][iC]->Rebin(2);
-                        //h_effDR[iF][iPt][iC]->Rebin(6);
-                    }
-                    else {
-                        h_effDR[2][iPt][iC] = (TH1D*)h_effDR[0][iPt][iC]->Clone(Form("%s_corrDR", name_h.c_str()));
-                        h_effDR[2][iPt][iC]->Divide(h_effDR[1][iPt][iC]);
+                        if (iF < 2) {
+                            h_effDR[iF][iPt][iC][iEta] = (TH1D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+                            //h_effDR[iF][iPt][iC][iEta]->Rebin(2);
+                            h_effDR[iF][iPt][iC][iEta]->Rebin(6);
+                        }
+                        else {
+                            h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
+                            h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
+                        }
                     }
                 }
             }
@@ -2226,7 +2243,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 treeEvtSkim->GetEntry(j_entry);
                 treeHiEvtMix->GetEntry(j_entry);
 
-                if (isPbPb && mixEvents.nmix == 0)  {
+                if (isPbPb && anaTrks && mixEvents.nmix == 0)  {
                     std::cout << "WARNING : no mixed event for j_entry = " << j_entry
                               << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
                     std::cout << "skipping event " << std::endl;
@@ -2965,17 +2982,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
+                        int effDR_iEta = (std::fabs(t_eta) < 1.0) ? 0 : 1;
+                        if (std::fabs(t_eta) >= 2.4) {
+                            effDR_iEta = -1;
+                        }
+
                         //double mindR2_jet_trk = 0.8*0.8;
                         double mindR2_jet_trk = 999999;
+                        double maxdR2_jet_l = 0.16;
                         int iJet_mindR = -1;
 
                         int iEvt = (*p_evtIndex)[i];
 
-                        int nJetsTmp = (effDR_iP >= 0 && effDR_iC >= 0) ? nJets : 0;
+                        int nJetsTmp = (effDR_iP >= 0 && effDR_iC >= 0 && effDR_iEta >= 0) ? nJets : 0;
                         for (int iJet = 0; iJet < nJetsTmp; ++iJet) {
 
                             if (canUseMixJets && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
-                            if ( !((*p_rawpt)[iJet] > 10) ) continue;
+                            //if ( !((*p_rawpt)[iJet] > 10) ) continue;
+                            if ( !((*p_jetpt)[iJet] > 20) ) continue;
 
                             double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
 
@@ -2985,10 +3009,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
+                        if (iJet_mindR >= 0) {
+                            if (getDR2(llEta[0], llPhi[0], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l ||
+                                getDR2(llEta[1], llPhi[1], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l) {
+                                iJet_mindR = -1;
+                            }
+                        }
+
                         double tmpCorrDR = 1;
                         if (iJet_mindR >= 0) {
-                            int binTmpPt = h_effDR[2][effDR_iP][effDR_iC]->FindBin((*p_rawpt)[iJet_mindR]);
-                            tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC]->GetBinContent(binTmpPt);
+                            int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
+                            tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
                             if (tmpCorrDR < 0.1) tmpCorrDR = 0.1;
                             else if (tmpCorrDR > 2.5) tmpCorrDR = 2.5;
                         }
@@ -3110,6 +3141,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (anaJets) {
                                 //double mindR2_jet_trk = 0.8*0.8;
                                 double mindR2_jet_trk = 999999;
+                                double maxdR2_jet_l = 0.16;
                                 int iJet_mindR = -1;
 
                                 int iEvt = (*p_evtIndex)[i];
@@ -3127,6 +3159,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     if (dR2_jet_trk < mindR2_jet_trk) {
                                         mindR2_jet_trk = dR2_jet_trk;
                                         iJet_mindR = iJet;
+                                    }
+                                }
+
+                                if (iJet_mindR >= 0) {
+                                    if (getDR2(llEta[0], llPhi[0], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l ||
+                                        getDR2(llEta[1], llPhi[1], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l) {
+                                        iJet_mindR = -1;
                                     }
                                 }
 
