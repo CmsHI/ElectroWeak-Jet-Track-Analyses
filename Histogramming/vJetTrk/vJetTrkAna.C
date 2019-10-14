@@ -522,7 +522,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     int nEffDRWPt = effDRWPts.size() - 1;
     int nEffDRWCent = effDRWCents.size() - 1;
 
-    TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent][2];
+    //TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent][2];
+    TH2D* h2_effDR[3][nEffDRWPt][nEffDRWCent][2];
     if (doEffDRW) {
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv4/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv5/";
@@ -568,7 +569,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int iC = 0; iC < nEffDRWCent; ++iC) {
                     for (int iEta = 0; iEta < 2; ++iEta) {
 
-                        h_effDR[iF][iPt][iC][iEta] = 0;
+                        //h_effDR[iF][iPt][iC][iEta] = 0;
+                        h2_effDR[iF][iPt][iC][iEta] = 0;
 
                         double tmpPt1 = effDRWPts[iPt];
                         double tmpPt2 = effDRWPts[iPt+1];
@@ -586,28 +588,38 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         std::string name_h_suffix_trkPt = Form("trkPt%s_%s", label_trkPt1.c_str(), label_trkPt2.c_str());
                         std::string name_h_suffix_cent = Form("cent%d_%d", effDRWCents[iC], effDRWCents[iC+1]);
 
-                        std::string name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(),
-                                name_h_suffix_cent.c_str());
+                        std::string name_h = "";
+                        //name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
+                        name_h = Form("h2_rawpt_vs_dR_vPt30_0_%s_%s_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
 
                         if (iF < 2) {
-                            hTmp = (TH1D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+                            //hTmp = (TH1D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
                             //h_effDR[iF][iPt][iC][iEta]->Rebin(2);
                             //h_effDR[iF][iPt][iC][iEta]->Rebin(6);
 
+                            hTmp = (TH2D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+
                             //std::vector<double> binsX = {0, 10, 30, 50, 100, 200, 300};
-                            std::vector<double> binsX = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
-                            int nBinsX = binsX.size()-1;
+                            std::vector<double> binsX_pt = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
+                            int nBinsX_pt = binsX_pt.size()-1;
 
-                            double arr_pt[nBinsX+1];
-                            std::copy(binsX.begin(), binsX.end(), arr_pt);
+                            double arr_pt[nBinsX_pt+1];
+                            std::copy(binsX_pt.begin(), binsX_pt.end(), arr_pt);
 
-                            name_h = replaceFirst(name_h, "h2_", "h2_rebin");
-                            h_effDR[iF][iPt][iC][iEta] = (TH1D*)hTmp->Rebin(nBinsX, name_h.c_str(), arr_pt);
+                            name_h = (iF == 0) ? replaceFirst(name_h, "h2_", "h2_num_rebin_") : replaceFirst(name_h, "h2_", "h2_denom_rebin_");
 
+                            //h_effDR[iF][iPt][iC][iEta] = (TH1D*)hTmp->Rebin(nBinsX_pt, name_h.c_str(), arr_pt);
+
+                            h2_effDR[iF][iPt][iC][iEta] = new TH2D(name_h.c_str(), Form("%s:%s:%s", hTmp->GetTitle(), hTmp->GetXaxis()->GetTitle(), hTmp->GetYaxis()->GetTitle()),
+                                                                   5, 0, 1, nBinsX_pt, arr_pt);  //hTmp->Rebin(nBinsX_pt, name_h.c_str(), arr_pt);
+                            addBinContents((TH2D*)hTmp, h2_effDR[iF][iPt][iC][iEta]);
                         }
                         else {
-                            h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
-                            h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
+                            //h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
+                            //h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
+
+                            h2_effDR[2][iPt][iC][iEta] = (TH2D*)h2_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
+                            h2_effDR[2][iPt][iC][iEta]->Divide(h2_effDR[1][iPt][iC][iEta]);
                         }
                     }
                 }
@@ -3047,16 +3059,23 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         if (iJet_mindR >= 0) {
-                            if ( !((*p_rawpt)[iJet_mindR] > 10) ) {
+                            if ( !((*p_rawpt)[iJet_mindR] > 100) ) {
                                 iJet_mindR = -1;
                             }
                         }
 
+                        double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
+
                         double tmpCorrDR = 1;
                         if (iJet_mindR >= 0) {
                             //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
-                            int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_rawpt)[iJet_mindR]);
-                            tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
+                            //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_rawpt)[iJet_mindR]);
+                            //tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
+
+                            int binTmpDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetXaxis()->FindBin(mindR_jet_trk);
+                            int binTmpPt = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetYaxis()->FindBin((*p_rawpt)[iJet_mindR]);
+                            tmpCorrDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpDR, binTmpPt);
+
                             if (tmpCorrDR < 0.1) tmpCorrDR = 0.1;
                             else if (tmpCorrDR > 2.5) tmpCorrDR = 2.5;
                         }
