@@ -96,6 +96,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "isPP15 = " << isPP15 << std::endl;
     std::cout << "isPP17 = " << isPP17 << std::endl;
 
+    bool shiftHibin = (isPbPb18 && isMC);
+    if (shiftHibin) {
+        std::cout << "shifting hiBin" << std::endl;
+    }
+
     int collisionType = -1;
     if (isPbPb15) {
         collisionType = (isMC) ? COLL::TYPE::kHIMC : COLL::TYPE::kHI;
@@ -431,6 +436,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
+            if (shiftHibin) {
+                if (hiBin < 3) {
+                    continue;
+                }
+                else {
+                    hiBin -= 3;
+                }
+            }
+
             if (isMC) {
                 w = hiEvt.weight;
                 double vertexWeight = 1;
