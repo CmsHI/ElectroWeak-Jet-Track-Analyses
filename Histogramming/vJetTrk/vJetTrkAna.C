@@ -751,8 +751,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
-    TH2D* h2_jetpt_vs_xijet[nCents][nVPts][nTrkPts];
-    TH2D* h2_rawpt_vs_xijet[nCents][nVPts][nTrkPts];
     TH2D* h2_jetpt_vs_dR[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_dR[nCents][nVPts][nTrkPts];
     TH2D* h2_jetpt_vs_dR_rebin[nCents][nVPts][nTrkPts];
@@ -1718,28 +1716,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 nBins_xivh, 0, 5,
                                 60, 0, 300);
                         vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
-
-                        std::string name_h2_jetpt_vs_xijet = Form("h2_jetpt_vs_xijet_%s", name_h_suffix.c_str());
-                        std::string title_h2_jetpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                "#xi^{jet}",
-                                "jet p_{T}");
-
-                        h2_jetpt_vs_xijet[i][j][k] = 0;
-                        h2_jetpt_vs_xijet[i][j][k] = new TH2D(name_h2_jetpt_vs_xijet.c_str(), title_h2_jetpt_vs_xijet.c_str(),
-                                nBins_xivh, 0, 5,
-                                60, 0, 300);
-                        vec_h2D.push_back(h2_jetpt_vs_xijet[i][j][k]);
-
-                        std::string name_h2_rawpt_vs_xijet = Form("h2_rawpt_vs_xijet_%s", name_h_suffix.c_str());
-                        std::string title_h2_rawpt_vs_xijet = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                "#xi^{jet}",
-                                "raw p_{T}");
-
-                        h2_rawpt_vs_xijet[i][j][k] = 0;
-                        h2_rawpt_vs_xijet[i][j][k] = new TH2D(name_h2_rawpt_vs_xijet.c_str(), title_h2_rawpt_vs_xijet.c_str(),
-                                nBins_xivh, 0, 5,
-                                60, 0, 300);
-                        vec_h2D.push_back(h2_rawpt_vs_xijet[i][j][k]);
 
                         std::string text_dR_jet_trk = Form("#DeltaR_{jet %s}", text_trk.c_str());
 
@@ -3259,10 +3235,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 if (iJet_mindR >= 0) {
                                     h2_jetpt_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, (*p_jetpt)[iJet_mindR], wTrk);
                                     h2_rawpt_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, (*p_rawpt)[iJet_mindR], wTrk);
-
-                                    float xijet = -1*log(t_pt / (*p_jetpt)[iJet_mindR]);
-                                    h2_jetpt_vs_xijet[iCent][iVPt][iTrkPt]->Fill(xijet, (*p_jetpt)[iJet_mindR], wTrk);
-                                    h2_rawpt_vs_xijet[iCent][iVPt][iTrkPt]->Fill(xijet, (*p_rawpt)[iJet_mindR], wTrk);
 
                                     double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
                                     h2_jetpt_vs_dR[iCent][iVPt][iTrkPt]->Fill(mindR_jet_trk, (*p_jetpt)[iJet_mindR], wTrk);
