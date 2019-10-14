@@ -47,6 +47,8 @@ void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis = true);
 void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis = true);
+void addBinContents(TH1D* hSrc, TH1D* hDest);
+void addBinContents(TH2D* hSrc, TH2D* hDest);
 std::vector<double> getBinContents(TH1* h);
 std::vector<double> getBinErrors(TH1* h);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
@@ -580,6 +582,56 @@ void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis)
     }
 
     setBinContentsErrors(h, binContents, binErrors);
+}
+
+void addBinContents(TH1D* hSrc, TH1D* hDest)
+{
+    int nBinsSrc = hSrc->GetNbinsX();
+    for (int i = 0; i <= nBinsSrc+1; ++i) {
+        double x = hSrc->GetBinCenter(i);
+
+        int binTmp = hDest->FindBin(x);
+        double yDest = hDest->GetBinContent(binTmp);
+        double eDest = hDest->GetBinError(binTmp);
+
+        double yTmp = hSrc->GetBinContent(i);
+        double eTmp = hSrc->GetBinError(i);
+
+        yDest += yTmp;
+        eDest = std::sqrt(eDest*eDest + eTmp*eTmp);
+
+        hDest->SetBinContent(binTmp, yDest);
+        hDest->SetBinError(binTmp, eDest);
+    }
+}
+
+void addBinContents(TH2D* hSrc, TH2D* hDest)
+{
+    int nBinsSrcX = hSrc->GetXaxis()->GetNbins();
+    int nBinsSrcY = hSrc->GetYaxis()->GetNbins();
+
+    for (int iX = 0; iX <= nBinsSrcX+1; ++iX) {
+        for (int iY = 0; iY <= nBinsSrcY+1; ++iY) {
+
+            double x = hSrc->GetXaxis()->GetBinCenter(iX);
+            double y = hSrc->GetYaxis()->GetBinCenter(iY);
+
+            int binTmpX = hDest->GetXaxis()->FindBin(x);
+            int binTmpY = hDest->GetYaxis()->FindBin(y);
+
+            double zDest = hDest->GetBinContent(binTmpX, binTmpY);
+            double eDest = hDest->GetBinError(binTmpX, binTmpY);
+
+            double zTmp = hSrc->GetBinContent(iX, iY);
+            double eTmp = hSrc->GetBinError(iX, iY);
+
+            zDest += zTmp;
+            eDest = std::sqrt(eDest*eDest + eTmp*eTmp);
+
+            hDest->SetBinContent(binTmpX, binTmpY, zDest);
+            hDest->SetBinError(binTmpX, binTmpY, eDest);
+        }
+    }
 }
 
 /*
