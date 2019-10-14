@@ -755,6 +755,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_rawpt_vs_xijet[nCents][nVPts][nTrkPts];
     TH2D* h2_jetpt_vs_dR[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_dR[nCents][nVPts][nTrkPts];
+    TH2D* h2_jetpt_vs_dR_rebin[nCents][nVPts][nTrkPts];
+    TH2D* h2_rawpt_vs_dR_rebin[nCents][nVPts][nTrkPts];
 
     int nBinsX_vPt = 30;
     int nBinsX_trkPt = 60;
@@ -1762,6 +1764,34 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 20, 0, 1,
                                 60, 0, 300);
                         vec_h2D.push_back(h2_rawpt_vs_dR[i][j][k]);
+
+                        std::vector<double> binsX_jetpt = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
+                        int nBinsX_jetpt = binsX_jetpt.size()-1;
+
+                        double arr_jetpt[nBinsX_jetpt+1];
+                        std::copy(binsX_jetpt.begin(), binsX_jetpt.end(), arr_jetpt);
+
+                        std::string name_h2_jetpt_vs_dR_rebin = Form("h2_jetpt_vs_dR_rebin_%s", name_h_suffix.c_str());
+                        std::string title_h2_jetpt_vs_dR_rebin = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                text_dR_jet_trk.c_str(),
+                                "jet p_{T}");
+
+                        h2_jetpt_vs_dR_rebin[i][j][k] = 0;
+                        h2_jetpt_vs_dR_rebin[i][j][k] = new TH2D(name_h2_jetpt_vs_dR_rebin.c_str(), title_h2_jetpt_vs_dR_rebin.c_str(),
+                                5, 0, 1,
+                                nBinsX_jetpt, arr_jetpt);
+                        vec_h2D.push_back(h2_jetpt_vs_dR_rebin[i][j][k]);
+
+                        std::string name_h2_rawpt_vs_dR_rebin = Form("h2_rawpt_vs_dR_rebin_%s", name_h_suffix.c_str());
+                        std::string title_h2_rawpt_vs_dR_rebin = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                text_dR_jet_trk.c_str(),
+                                "raw p_{T}");
+
+                        h2_rawpt_vs_dR_rebin[i][j][k] = 0;
+                        h2_rawpt_vs_dR_rebin[i][j][k] = new TH2D(name_h2_rawpt_vs_dR_rebin.c_str(), title_h2_rawpt_vs_dR_rebin.c_str(),
+                                5, 0, 1,
+                                nBinsX_jetpt, arr_jetpt);
+                        vec_h2D.push_back(h2_rawpt_vs_dR_rebin[i][j][k]);
                     }
                 }
             }
@@ -3237,6 +3267,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
                                     h2_jetpt_vs_dR[iCent][iVPt][iTrkPt]->Fill(mindR_jet_trk, (*p_jetpt)[iJet_mindR], wTrk);
                                     h2_rawpt_vs_dR[iCent][iVPt][iTrkPt]->Fill(mindR_jet_trk, (*p_rawpt)[iJet_mindR], wTrk);
+                                    h2_jetpt_vs_dR_rebin[iCent][iVPt][iTrkPt]->Fill(mindR_jet_trk, (*p_jetpt)[iJet_mindR], wTrk);
+                                    h2_rawpt_vs_dR_rebin[iCent][iVPt][iTrkPt]->Fill(mindR_jet_trk, (*p_rawpt)[iJet_mindR], wTrk);
                                 }
                             }
                         }
