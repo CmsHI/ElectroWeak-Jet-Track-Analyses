@@ -266,8 +266,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                     continue;
                 }
 
-                //std::string strSB = "h2_deta_vs_";
-                std::string strSB = "h2_deta_h1_vs_";
+                std::string strSB = "h2_deta_vs_";
+                //std::string strSB = "h2_deta_h1_vs_";
 
                 if (std::string(hIn[iRaw]->GetName()).find(strSB.c_str()) == std::string::npos) {
                     std::cout << "deta is not on y-axis : " << inputObjs[i].c_str() << std::endl;
@@ -295,27 +295,42 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 //hTmp->Divide(hTmpBkg);
                 for (int iBinX = 1; iBinX <= hTmp->GetNbinsX(); ++iBinX) {
                     for (int iBinY = 1; iBinY <= hTmp->GetNbinsY(); ++iBinY) {
-                        double binC = hTmp->GetBinContent(iBinX, iBinY) / hTmpBkg->GetBinContent(iBinX, iBinY);
-                        double binErr = hTmp->GetBinError(iBinX, iBinY) / hTmpBkg->GetBinContent(iBinX, iBinY);
+
+                        double binC = hTmp->GetBinContent(iBinX, iBinY);
+                        double binErr = hTmp->GetBinError(iBinX, iBinY);
+
+                        double bkgBinC = hTmpBkg->GetBinContent(iBinX, iBinY);
+                        double bkgBinRefC = hTmpBkg->GetBinContent(iBinX, 1);
+
+                        double accCorr = 1;
+                        if (bkgBinC > 0) {
+                            accCorr = bkgBinRefC / bkgBinC;
+                        }
+
+                        binC *= accCorr;
+                        binErr *= accCorr;
+
                         hTmp->SetBinContent(iBinX, iBinY, binC);
                         hTmp->SetBinError(iBinX, iBinY, binErr);
                     }
                 }
                 hTmpBkg->Delete();
-                hTmp->Scale(normBKG);
+                //hTmp->Scale(normBKG);
                 hTmp->Scale(1.0 / nV);
                 hTmp->Write("", TObject::kOverwrite);
 
                 // sr = short-range
                 // lr = long-range
                 double detaMinSR = 0;
-                //double detaMaxSR = 1.0;
-                double detaMaxSR = 0.5;
+                double detaMaxSR = 1.0;
+                //double detaMaxSR = 0.5;
 
                 //double detaMinLR = 1.5;
                 //double detaMaxLR = 3.5;
-                double detaMinLR = 1.5;
-                double detaMaxLR = 3.5;
+                //double detaMinLR = 1.5;
+                //double detaMaxLR = 3.5;
+                double detaMinLR = 2.0;
+                double detaMaxLR = 4.0;
 
                 int binDetaMinSR = hTmp->GetYaxis()->FindBin(detaMinSR);
                 int binDetaMaxSR = hTmp->GetYaxis()->FindBin(detaMaxSR);
