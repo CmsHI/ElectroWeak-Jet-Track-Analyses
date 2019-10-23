@@ -317,9 +317,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doEffDRW = (outputFile.find("effDRW") != std::string::npos && redoTrkWeights && anaJets);
     std::cout << "doEffDRW = " << doEffDRW << std::endl;
 
-    bool doResDRW = (outputFile.find("resDRW") != std::string::npos && redoTrkWeights && anaJets);
-    std::cout << "doResDRW = " << doResDRW << std::endl;
-
     bool shiftHibin = (isPbPb18 && isMC);
     if (shiftHibin) {
         std::cout << "shifting hiBin" << std::endl;
@@ -686,41 +683,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
         }
-    }
-
-    TFile* fileResDRW = 0;
-
-    std::vector<double> trkPtsJet = getVecPt4TrkWCoarse2();
-    int nBinsTrkPtsJet = trkPtsJet.size()-1;
-
-    std::vector<int> hiBinsMinJet = getVecCent4TrkWCoarse2();
-    int nBinsCentJet = hiBinsMinJet.size();
-
-    std::vector<double> absEtasJet = getVecAbsEta4TrkWCoarse();
-    int nBinsAbsEtasJet = absEtasJet.size();
-
-    TH2D* h2_resDRW_effcorr[nBinsTrkPtsJet][nBinsAbsEtasJet][nBinsCentJet];
-    if (doResDRW) {
-        std::string dirResDRW = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/";
-        std::string fileNameResDRW = "trkCalc_pbpb_2018_mc_zmm_v9.root";
-
-            std::string filePathResDRW = Form("%s/%s", dirResDRW.c_str(), fileNameResDRW.c_str());
-            std::cout << "reading ResDRW correction file : " << fileNameResDRW.c_str() << std::endl;
-
-            fileResDRW = TFile::Open(filePathResDRW.c_str(), "READ");
-
-            for (int i = 0; i < nBinsTrkPtsJet; ++i) {
-                for (int k = 0; k < nBinsCentJet; ++k) {
-                    for (int m = 0; m < nBinsAbsEtasJet; ++m) {
-
-                    std::string name_h_suffix = Form("iPt_%d_iEta_%d_iCent_%d", i, m, k);
-                    std::string name_h = Form("h2_jetpt_vs_dR_rebin_gen_trkEffCorr_ratio_%s", name_h_suffix.c_str());
-
-                    h2_resDRW_effcorr[i][m][k] = 0;
-                    h2_resDRW_effcorr[i][m][k] = (TH2D*)fileResDRW->Get(name_h.c_str());
-                    }
-                }
-            }
     }
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
@@ -3007,11 +2969,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 iResMBTrkWCent = getBinCent4TrkW(hiBin0, resMBTrkWCents, nResMBTrkWCent);
             }
 
-            int iResDRWCent = -1;
-            if (doResDRW) {
-                iResDRWCent = getBinCent4TrkW(hiBin, hiBinsMinJet, nBinsCentJet);
-            }
-
             int effDR_iC = -1;
             if (doEffDRW) {
                 for (int iC = 0; iC < nEffDRWCent; ++iC) {
@@ -3197,56 +3154,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                         trkWeightTmp *= tmpCorrDR;
-                    }
-                    if (doResDRW) {
-
-                        int iResDRWPt = getBinPt4TrkW(t_pt, trkPtsJet, nBinsTrkPtsJet);
-                        int iResDRWEta = getBinEta4TrkW(std::fabs(t_eta), absEtasJet, nBinsAbsEtasJet);
-
-                        double mindR2_jet_trk = mindR2_jet_trk_0;
-                        int iJet_mindR = -1;
-
-                        int iEvt = (*p_evtIndex)[i];
-
-                        int nJetsTmp = (iResDRWPt >= 0 && iResDRWCent >= 0 && iResDRWEta >= 0) ? nJets : 0;
-                        for (int iJet = 0; iJet < nJetsTmp; ++iJet) {
-
-                            if (canUseMixJets && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
-                            if ( !((*p_rawpt)[iJet] > effDR_min_jetpt) ) continue;
-
-                            double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
-
-                            if (dR2_jet_trk < mindR2_jet_trk) {
-                                mindR2_jet_trk = dR2_jet_trk;
-                                iJet_mindR = iJet;
-                            }
-                        }
-
-                        if (iJet_mindR >= 0) {
-                            if (getDR2(llEta[0], llPhi[0], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l ||
-                                getDR2(llEta[1], llPhi[1], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l) {
-                                iJet_mindR = -1;
-                            }
-                        }
-
-                        double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
-                        if ( !(mindR_jet_trk < 0.4) ) {
-                            iJet_mindR = -1;
-                        }
-
-                        double tmpCorrResDR = 1;
-                        if (iJet_mindR >= 0) {
-                            //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
-                            //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_rawpt)[iJet_mindR]);
-                            //tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
-
-                            int binTmpResDR = h2_resDRW_effcorr[iResDRWPt][iResDRWEta][iResDRWCent]->FindBin(mindR_jet_trk, (*p_jetpt)[iJet_mindR]);
-                            tmpCorrResDR = h2_resDRW_effcorr[iResDRWPt][iResDRWEta][iResDRWCent]->GetBinContent(binTmpResDR);
-
-                            //tmpCorrResDR *= tmpResCorr;
-                        }
-
-                        trkWeightTmp *= tmpCorrResDR;
                     }
                 }
                 double wTrk = trkWeightTmp * wMixEvts * wTrkPhi;
