@@ -299,6 +299,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
+    bool doFlattenEP = ((applyWeightsV % 10) == 3);
 
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = ((applyTrkWeights % 10) == 2);
@@ -316,6 +317,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool doEffDRW = (outputFile.find("effDRW") != std::string::npos && redoTrkWeights && anaJets);
     std::cout << "doEffDRW = " << doEffDRW << std::endl;
+
+    bool doResDRW = (outputFile.find("resDRW") != std::string::npos && redoTrkWeights && anaJets);
+    std::cout << "doResDRW = " << doResDRW << std::endl;
 
     bool shiftHibin = (isPbPb18 && isMC);
     if (shiftHibin) {
@@ -390,6 +394,30 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::string tmpPath = Form("h2_dphi_EPn2_V_vs_vPt_cent%s", (*it).c_str());
                 vec_h2D_wEP.push_back((TH2D*)fileWeightsEP->Get(tmpPath.c_str()));
             }
+        }
+    }
+
+    TFile* fileFlattenEP = 0;
+    std::vector<TH1D*> vec_h1D_flattenEP;
+    std::vector<int> flatEP_cents_min;
+    std::vector<int> flatEP_cents_max;
+    int nFlatEP_cents = 0;
+    if (doFlattenEP) {
+        std::string dirFlattenEP = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/spectra/";
+        std::string fileNameFlattenEP = "spectra_evtPlane_pbpb_2018_data_mix.root";
+        std::string filePathFlattenEP = dirFlattenEP + fileNameFlattenEP;
+
+        std::cout << "reading EP flatten file : " << filePathFlattenEP.c_str() << std::endl;
+
+        fileFlattenEP = TFile::Open(filePathFlattenEP.c_str(), "READ");
+        flatEP_cents_min = {0,  10, 20, 30, 40, 50, 60, 80, 90};
+        flatEP_cents_max = {10, 20, 30, 40, 50, 60, 80, 90, 100};
+        nFlatEP_cents = flatEP_cents_max.size();
+
+        for (int i = 0; i < nFlatEP_cents; ++i) {
+
+            std::string tmpPath = Form("h_%d", i);
+            vec_h1D_flattenEP.push_back((TH1D*)fileFlattenEP->Get(tmpPath.c_str()));
         }
     }
 
@@ -516,14 +544,27 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TFile* fileEffDRW[2][2];
 
     //std::vector<int> effDRWPts = {1, 2, 3, 4, 8, 12, 20};
-    std::vector<double> effDRWPts = {0.5, 1, 1.5, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<double> effDRWPts = {0.5, 1, 1.5, 2, 3, 4, 8, 12, 20, 60};
     //std::vector<double> effDRWPts = {0.5, 1, 1.2, 2, 3, 4, 8, 12, 20, 60};
-    std::vector<int> effDRWCents = {0, 10, 30, 50, 90};
+    //std::vector<double> effDRWPts = {0.5, 1, 1.3, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<double> effDRWPts = {0.5, 1, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<double> effDRWPts = {1, 1.3, 2, 3, 4, 8, 12, 20, 60};
+    std::vector<double> effDRWPts = {1, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<int> effDRWCents = {0, 10, 30, 50, 90};
+    std::vector<int> effDRWCents = {0, 10, 30};
     int nEffDRWPt = effDRWPts.size() - 1;
     int nEffDRWCent = effDRWCents.size() - 1;
 
-    //TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent][2];
+    double effDR_min_jetpt = 50;
+    //double effDR_min_jetpt = 70;
+    double mindR2_jet_trk_0 = 999999;
+    //double maxdR2_jet_l = 0.16;
+    double maxdR2_jet_l = -1;
+
+    TH1D* h_effDR[3][nEffDRWPt][nEffDRWCent][2];
     TH2D* h2_effDR[3][nEffDRWPt][nEffDRWCent][2];
+    bool effDR_integrateDR = false;
+    int nEffDRWeta = 1;
     if (doEffDRW) {
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv4/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv5/";
@@ -532,44 +573,70 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv20/vTrkDphiMin0p5/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv20/vTrkDphiMin0p875/";
         //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p5/";
-        std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv24/vTrkDphiMin0p5/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv24/vTrkDphiMin0p5/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv25/vTrkDphiMin0p5/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv27/vTrkDphiMin0p5/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv30/vTrkDphiMin0p0/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv31/vTrkDphiMin0p0/";
+        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv32/vTrkDphiMin0p0/";
+        std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv33/vTrkDphiMin0p0/";
         //std::string dirEffDRW_gen_etaBin1 = dirEffDRW_gen;
-
-        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p875/";
-        //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv23/vTrkDphiMin0p5/";
-        std::string dirEffDRW_gen_etaBin1 = dirEffDRW_gen+"trkEtaMax1p0/";
-        std::string dirEffDRW_gen_etaBin2 = dirEffDRW_gen+"trkEtaMin1p0Max2p4/";
-
-        std::string dirEffDRW_reco_etaBin1 = dirEffDRW_gen_etaBin1+"trkgetEff/resMBTrkWeffv7/";
-        std::string dirEffDRW_reco_etaBin2 = dirEffDRW_gen_etaBin2+"trkgetEff/resMBTrkWeffv7/";
 
         std::string fileNameEffDRW_gen = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_g_sig.root");
         std::string fileNameEffDRW_reco = Form("vJetTrkCalc_pbpb_2018_mc_zmm_vr_trk_r_bkgsub.root");
 
-        std::string filePathEffDRW_gen_etaBin1 = Form("%s/%s", dirEffDRW_gen_etaBin1.c_str(), fileNameEffDRW_gen.c_str());
-        std::string filePathEffDRW_reco_etaBin1 = Form("%s/%s", dirEffDRW_reco_etaBin1.c_str(), fileNameEffDRW_reco.c_str());
+        if (nEffDRWeta == 1) {
 
-        std::string filePathEffDRW_gen_etaBin2 = Form("%s/%s", dirEffDRW_gen_etaBin2.c_str(), fileNameEffDRW_gen.c_str());
-        std::string filePathEffDRW_reco_etaBin2 = Form("%s/%s", dirEffDRW_reco_etaBin2.c_str(), fileNameEffDRW_reco.c_str());
+            std::string filePathEffDRW_gen = Form("%s/%s", dirEffDRW_gen.c_str(), fileNameEffDRW_gen.c_str());
 
-        std::cout << "reading effDR correction files - gen  etaBin1 : " << filePathEffDRW_gen_etaBin1.c_str() << std::endl;
-        std::cout << "reading effDR correction files - reco etaBin1 : " << filePathEffDRW_reco_etaBin1.c_str() << std::endl;
+            std::string dirEffDRW_reco = dirEffDRW_gen+"trkgetEff/resMBTrkWeffv8/";
+            std::string filePathEffDRW_reco = Form("%s/%s", dirEffDRW_reco.c_str(), fileNameEffDRW_reco.c_str());
 
-        std::cout << "reading effDR correction files - gen  etaBin2 : " << filePathEffDRW_gen_etaBin2.c_str() << std::endl;
-        std::cout << "reading effDR correction files - reco etaBin2 : " << filePathEffDRW_reco_etaBin2.c_str() << std::endl;
+            std::cout << "reading effDR correction files - gen  : " << filePathEffDRW_gen.c_str() << std::endl;
+            std::cout << "reading effDR correction files - reco : " << filePathEffDRW_reco.c_str() << std::endl;
 
-        fileEffDRW[0][0] = TFile::Open(filePathEffDRW_gen_etaBin1.c_str(), "READ");
-        fileEffDRW[1][0] = TFile::Open(filePathEffDRW_reco_etaBin1.c_str(), "READ");
+            fileEffDRW[0][0] = TFile::Open(filePathEffDRW_gen.c_str(), "READ");
+            fileEffDRW[1][0] = TFile::Open(filePathEffDRW_reco.c_str(), "READ");
+        }
+        else if (nEffDRWeta == 2) {
+            //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv22/vTrkDphiMin0p875/";
+            //std::string dirEffDRW_gen = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682/effdRv23/vTrkDphiMin0p5/";
+            std::string dirEffDRW_gen_etaBin1 = dirEffDRW_gen+"trkEtaMax1p0/";
+            std::string dirEffDRW_gen_etaBin2 = dirEffDRW_gen+"trkEtaMin1p0Max2p4/";
 
-        fileEffDRW[0][1] = TFile::Open(filePathEffDRW_gen_etaBin2.c_str(), "READ");
-        fileEffDRW[1][1] = TFile::Open(filePathEffDRW_reco_etaBin2.c_str(), "READ");
+            //std::string dirEffDRW_reco_etaBin1 = dirEffDRW_gen_etaBin1+"trkgetEff/resMBTrkWeffv7/";
+            //std::string dirEffDRW_reco_etaBin2 = dirEffDRW_gen_etaBin2+"trkgetEff/resMBTrkWeffv7/";
+            std::string dirEffDRW_reco_etaBin1 = dirEffDRW_gen_etaBin1+"trkgetEff/resMBTrkWeffv8/";
+            std::string dirEffDRW_reco_etaBin2 = dirEffDRW_gen_etaBin2+"trkgetEff/resMBTrkWeffv8/";
+
+            std::string filePathEffDRW_gen_etaBin1 = Form("%s/%s", dirEffDRW_gen_etaBin1.c_str(), fileNameEffDRW_gen.c_str());
+            std::string filePathEffDRW_reco_etaBin1 = Form("%s/%s", dirEffDRW_reco_etaBin1.c_str(), fileNameEffDRW_reco.c_str());
+
+            std::string filePathEffDRW_gen_etaBin2 = Form("%s/%s", dirEffDRW_gen_etaBin2.c_str(), fileNameEffDRW_gen.c_str());
+            std::string filePathEffDRW_reco_etaBin2 = Form("%s/%s", dirEffDRW_reco_etaBin2.c_str(), fileNameEffDRW_reco.c_str());
+
+            std::cout << "reading effDR correction files - gen  etaBin1 : " << filePathEffDRW_gen_etaBin1.c_str() << std::endl;
+            std::cout << "reading effDR correction files - reco etaBin1 : " << filePathEffDRW_reco_etaBin1.c_str() << std::endl;
+
+            std::cout << "reading effDR correction files - gen  etaBin2 : " << filePathEffDRW_gen_etaBin2.c_str() << std::endl;
+            std::cout << "reading effDR correction files - reco etaBin2 : " << filePathEffDRW_reco_etaBin2.c_str() << std::endl;
+
+            fileEffDRW[0][0] = TFile::Open(filePathEffDRW_gen_etaBin1.c_str(), "READ");
+            fileEffDRW[1][0] = TFile::Open(filePathEffDRW_reco_etaBin1.c_str(), "READ");
+
+            fileEffDRW[0][1] = TFile::Open(filePathEffDRW_gen_etaBin2.c_str(), "READ");
+            fileEffDRW[1][1] = TFile::Open(filePathEffDRW_reco_etaBin2.c_str(), "READ");
+        }
+
+        std::cout << "effDR_min_jetpt = " << effDR_min_jetpt << std::endl;
+        std::cout << "mindR2_jet_trk_0 = " << mindR2_jet_trk_0 << std::endl;
 
         for (int iF = 0; iF < 3; ++iF) {
             for (int iPt = 0; iPt < nEffDRWPt; ++iPt) {
                 for (int iC = 0; iC < nEffDRWCent; ++iC) {
-                    for (int iEta = 0; iEta < 2; ++iEta) {
+                    for (int iEta = 0; iEta < nEffDRWeta; ++iEta) {
 
-                        //h_effDR[iF][iPt][iC][iEta] = 0;
+                        h_effDR[iF][iPt][iC][iEta] = 0;
                         h2_effDR[iF][iPt][iC][iEta] = 0;
 
                         double tmpPt1 = effDRWPts[iPt];
@@ -590,41 +657,95 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         std::string name_h = "";
                         //name_h = Form("h2_rawpt_vs_xivh_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
-                        name_h = Form("h2_rawpt_vs_dR_vPt30_0_%s_%s_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
+                        //name_h = Form("h2_rawpt_vs_dR_vPt30_0_%s_%s_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
+                        //name_h = Form("h2_rawpt_vs_dR_rebin_vPt30_0_%s_%s_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
+                        //name_h = Form("h2_jetpt_vs_dR_rebin_vPt30_0_%s_%s_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
+                        name_h = Form("h2_jetpt_vs_dR_rebin_vPt30_0_%s_%s_projY_sig", name_h_suffix_trkPt.c_str(), name_h_suffix_cent.c_str());
 
                         if (iF < 2) {
                             //hTmp = (TH1D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
                             //h_effDR[iF][iPt][iC][iEta]->Rebin(2);
                             //h_effDR[iF][iPt][iC][iEta]->Rebin(6);
 
-                            hTmp = (TH2D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+                            //hTmp = (TH2D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
 
                             //std::vector<double> binsX = {0, 10, 30, 50, 100, 200, 300};
-                            std::vector<double> binsX_pt = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
-                            int nBinsX_pt = binsX_pt.size()-1;
+                            //std::vector<double> binsX_pt = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
+                            //int nBinsX_pt = binsX_pt.size()-1;
 
-                            double arr_pt[nBinsX_pt+1];
-                            std::copy(binsX_pt.begin(), binsX_pt.end(), arr_pt);
+                            //double arr_pt[nBinsX_pt+1];
+                            //std::copy(binsX_pt.begin(), binsX_pt.end(), arr_pt);
 
-                            name_h = (iF == 0) ? replaceFirst(name_h, "h2_", "h2_num_rebin_") : replaceFirst(name_h, "h2_", "h2_denom_rebin_");
+                            //name_h = (iF == 0) ? replaceFirst(name_h, "h2_", "h2_num_rebin_") : replaceFirst(name_h, "h2_", "h2_denom_rebin_");
 
                             //h_effDR[iF][iPt][iC][iEta] = (TH1D*)hTmp->Rebin(nBinsX_pt, name_h.c_str(), arr_pt);
 
+                            /*
                             h2_effDR[iF][iPt][iC][iEta] = new TH2D(name_h.c_str(), Form("%s:%s:%s", hTmp->GetTitle(), hTmp->GetXaxis()->GetTitle(), hTmp->GetYaxis()->GetTitle()),
                                                                    5, 0, 1, nBinsX_pt, arr_pt);  //hTmp->Rebin(nBinsX_pt, name_h.c_str(), arr_pt);
                             addBinContents((TH2D*)hTmp, h2_effDR[iF][iPt][iC][iEta]);
+                            */
+
+                            //h2_effDR[iF][iPt][iC][iEta] = (TH2D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+                            h_effDR[iF][iPt][iC][iEta] = (TH1D*)fileEffDRW[iF][iEta]->Get(name_h.c_str());
+                            if (effDR_integrateDR) {
+                                //h_effDR[iF][iPt][iC][iEta] = (TH1D*)h2_effDR[iF][iPt][iC][iEta]->ProjectionY(Form("%s_intDR", name_h.c_str()), 1, 5); // dR1p0
+                                //h_effDR[iF][iPt][iC][iEta] = (TH1D*)h2_effDR[iF][iPt][iC][iEta]->ProjectionY(Form("%s_intDR", name_h.c_str()), 1, 2); // dR0p4
+                                h_effDR[iF][iPt][iC][iEta] = (TH1D*)h2_effDR[iF][iPt][iC][iEta]->ProjectionY(Form("%s_intDR", name_h.c_str()), 1, 3); // dR0p6
+                            }
                         }
                         else {
-                            //h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
-                            //h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
-
+                            h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
+                            h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
+                            /*
                             h2_effDR[2][iPt][iC][iEta] = (TH2D*)h2_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
                             h2_effDR[2][iPt][iC][iEta]->Divide(h2_effDR[1][iPt][iC][iEta]);
+                            */
+
+                            if (effDR_integrateDR) {
+                                h_effDR[2][iPt][iC][iEta] = (TH1D*)h_effDR[0][iPt][iC][iEta]->Clone(Form("%s_corrDR", name_h.c_str()));
+                                h_effDR[2][iPt][iC][iEta]->Divide(h_effDR[1][iPt][iC][iEta]);
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    TFile* fileResDRW = 0;
+
+    std::vector<double> trkPtsJet = getVecPt4TrkWCoarse2();
+    int nBinsTrkPtsJet = trkPtsJet.size()-1;
+
+    std::vector<int> hiBinsMinJet = getVecCent4TrkWCoarse2();
+    int nBinsCentJet = hiBinsMinJet.size();
+
+    std::vector<double> absEtasJet = getVecAbsEta4TrkWCoarse();
+    int nBinsAbsEtasJet = absEtasJet.size();
+
+    TH2D* h2_resDRW_effcorr[nBinsTrkPtsJet][nBinsAbsEtasJet][nBinsCentJet];
+    if (doResDRW) {
+        std::string dirResDRW = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/";
+        std::string fileNameResDRW = "trkCalc_pbpb_2018_mc_zmm_v9.root";
+
+            std::string filePathResDRW = Form("%s/%s", dirResDRW.c_str(), fileNameResDRW.c_str());
+            std::cout << "reading ResDRW correction file : " << fileNameResDRW.c_str() << std::endl;
+
+            fileResDRW = TFile::Open(filePathResDRW.c_str(), "READ");
+
+            for (int i = 0; i < nBinsTrkPtsJet; ++i) {
+                for (int k = 0; k < nBinsCentJet; ++k) {
+                    for (int m = 0; m < nBinsAbsEtasJet; ++m) {
+
+                    std::string name_h_suffix = Form("iPt_%d_iEta_%d_iCent_%d", i, m, k);
+                    std::string name_h = Form("h2_jetpt_vs_dR_rebin_gen_trkEffCorr_ratio_%s", name_h_suffix.c_str());
+
+                    h2_resDRW_effcorr[i][m][k] = 0;
+                    h2_resDRW_effcorr[i][m][k] = (TH2D*)fileResDRW->Get(name_h.c_str());
+                    }
+                }
+            }
     }
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
@@ -2312,6 +2433,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
+            int hiBin0 = hiBin;
             if (shiftHibin) {
                 if (hiBin < 3) {
                     continue;
@@ -2324,6 +2446,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             entriesAnalyzed++;
 
             int cent = hiBin/2;
+            int cent0 = cent;
             if (doEventWeight > 0) {
                 w = hiEvt.weight;
                 if (isMCMG) {
@@ -2492,7 +2615,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     float l1pt = (*lPt)[i];
                     if (vIsZee && isRecoV) {
-                        l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+                        l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
                     }
                     if (!(l1pt > lPtMin)) continue;
                     if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
@@ -2504,7 +2627,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     else if (vIsZee && isRecoV) {
                         double eleRho = (!isMC && isPbPb18 && false) ? ggHi.getHiFJRho4Ele(i, hifjrho) : -1;
                         eleRho = -1;
-                        if (!ggHi.passedEleSelection(i, collisionType, hiBin, eleRho)) continue;
+                        if (!ggHi.passedEleSelection(i, collisionType, hiBin0, eleRho)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
                         //std::vector<int> indicesPho = indicesNearPhotons(ggHi, i, 0.8);
                         //int nNearPho = indicesPho.size();
@@ -2523,7 +2646,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         float l2pt = (*lPt)[j];
                         if (vIsZee && isRecoV) {
-                            l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
+                            l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
                         }
                         if (!(l2pt > lPtMin)) continue;
                         if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
@@ -2535,7 +2658,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         else if (vIsZee && isRecoV) {
                             double eleRho = (!isMC && isPbPb18 && false) ? ggHi.getHiFJRho4Ele(j, hifjrho) : -1;
                             eleRho = -1;
-                            if (!ggHi.passedEleSelection(j, collisionType, hiBin, eleRho)) continue;
+                            if (!ggHi.passedEleSelection(j, collisionType, hiBin0, eleRho)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
                             //std::vector<int> indicesPho = indicesNearPhotons(ggHi, j, 0.8);
                             //int nNearPho = indicesPho.size();
@@ -2589,15 +2712,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             double wV = w;
             if (vIsZ) {
-                wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent));
+                wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent0) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent0));
             }
 
             if (doWeightsV) {
-                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
+                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
                 wV *= getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
             }
             if (doWeightsEP) {
-                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
+                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
                 int binMinTmp = 0;
                 int binMaxTmp = -1;
                 if (vPt >= 60) {
@@ -2635,7 +2758,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 hTmp->Delete();
             }
             if (doWeightsVcent) {
-                int binTmp = h1D_wVcent1->FindBin((hiBin/2));
+                int binTmp = h1D_wVcent1->FindBin((hiBin0/2));
                 wV *= (h1D_wVcent1->GetBinContent(binTmp));
             }
 
@@ -2699,6 +2822,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > 1.2 && std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < 2.2) continue;
+
             if (vPt < 0) continue;
 
             double vYAbs = std::fabs(vY);
@@ -2754,7 +2879,41 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             // event observables
                             h_vtxz[i][j]->Fill(hiEvt.vz, wV);
                             h_dphi_EPn1_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[2])), wV);
-                            h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV);
+
+                            double wV_flatEP = wV;
+                            if (doFlattenEP) {
+
+                                int iCent1 = -1;
+                                for (int iFlatEP_cent = 0; iFlatEP_cent < nFlatEP_cents; ++iFlatEP_cent) {
+                                    if (flatEP_cents_min[iFlatEP_cent] >= centsMin[i]) {
+                                        iCent1 = iFlatEP_cent;
+                                        break;
+                                    }
+                                }
+
+                                int iCent2 = -1;
+                                for (int iFlatEP_cent = 0; iFlatEP_cent < nFlatEP_cents; ++iFlatEP_cent) {
+                                    if (flatEP_cents_max[iFlatEP_cent] >= centsMax[i]) {
+                                        iCent2 = iFlatEP_cent;
+                                        break;
+                                    }
+                                }
+
+                                hTmp = (TH1D*)vec_h1D_flattenEP[iCent1]->Clone("hTmp_h1D_flattenEP");
+                                for (int iFlatEP = iCent1+1; iFlatEP <= iCent2; ++iFlatEP) {
+                                    hTmp->Add(vec_h1D_flattenEP[iFlatEP]);
+                                }
+
+                                hTmp->Rebin(4);
+                                hTmp->Scale(1./(hTmp->Integral()));
+
+                                int binEPTmp = hTmp->FindBin(hiEvt.hiEvtPlanes[8]);
+                                wV_flatEP /= hTmp->GetBinContent(binEPTmp);
+
+                                hTmp->Delete();
+                            }
+
+                            h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV_flatEP);
                             h_dphi_EPn3_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[15])), wV);
 
                             h_dphi_EPn2_l1[i][j]->Fill(std::fabs(getDPHI(llPhi[0], hiEvt.hiEvtPlanes[8])), wV);
@@ -2898,12 +3057,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             int iTrkPhiWCent = -1;
             if (doTrkPhiWeights) {
-                iTrkPhiWCent = getBinCent4TrkW(hiBin, trkPhiWCents, nTrkPhiWCent);
+                iTrkPhiWCent = getBinCent4TrkW(hiBin0, trkPhiWCents, nTrkPhiWCent);
             }
 
             int iResMBTrkWCent = -1;
             if (doResidualMBTrkW) {
-                iResMBTrkWCent = getBinCent4TrkW(hiBin, resMBTrkWCents, nResMBTrkWCent);
+                iResMBTrkWCent = getBinCent4TrkW(hiBin0, resMBTrkWCents, nResMBTrkWCent);
+            }
+
+            int iResDRWCent = -1;
+            if (doResDRW) {
+                iResDRWCent = getBinCent4TrkW(hiBin, hiBinsMinJet, nBinsCentJet);
             }
 
             int effDR_iC = -1;
@@ -2979,27 +3143,32 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 else if (isRecoTrk && redoTrkWeights) {
 
                     int hiBinTmp = hiBin;
+                    int hiBin0Tmp = hiBin0;
                     if (isMixTrk) {
                         int iEvt = (*p_evtIndex)[i];
                         hiBinTmp = (*mixEvents.p_hiBin_mix)[iEvt];
+                        hiBin0Tmp = hiBinTmp;
+                        if (shiftHibin) {
+                            hiBinTmp = (hiBinTmp < 3) ? 0 : hiBinTmp-3;
+                        }
                     }
 
                     if (isPP) {
                         hiBinTmp = 0;
                     }
 
+                    float tmpResCorr = 1;
                     if (isPP15 || isPbPb15) {
-                        trkWeightTmp = trkCorr2015->getTrkCorr(t_pt, t_eta, t_phi, hiBinTmp);
+                        trkWeightTmp = trkCorr2015->getTrkCorr(t_pt, t_eta, t_phi, hiBin0Tmp);
                     }
                     else if (isPP17) {
                         trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
                     }
                     else if (isPbPb18) {
                         //trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
-                        float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBinTmp, true);
+                        float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBin0Tmp, true);
                         trkWeightTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
 
-                        float tmpResCorr = 1;
                         if (doResidualMBTrkW) {
 
                             int iResMBTrkWPt = -1;
@@ -3008,7 +3177,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
 
                             if (isMixTrk) {
-                                iResMBTrkWCent = getBinCent4TrkW(hiBinTmp, resMBTrkWCents, nResMBTrkWCent);
+                                iResMBTrkWCent = getBinCent4TrkW(hiBin0Tmp, resMBTrkWCents, nResMBTrkWCent);
                             }
 
                             if (iResMBTrkWPt >= 0 && iResMBTrkWCent >= 0) {
@@ -3028,16 +3197,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
-                        int effDR_iEta = (std::fabs(t_eta) < 1.0) ? 0 : 1;
-                        if (std::fabs(t_eta) >= 2.4) {
-                            effDR_iEta = -1;
+                        int effDR_iEta = 0;
+                        if (nEffDRWeta == 2) {
+                            effDR_iEta = (std::fabs(t_eta) < 1.0) ? 0 : 1;
+                            if (std::fabs(t_eta) >= 2.4) {
+                                effDR_iEta = -1;
+                            }
                         }
-                        //effDR_iEta = 0;
 
-                        //double mindR2_jet_trk = 0.8*0.8;
-                        double mindR2_jet_trk = 999999;
-                        //double maxdR2_jet_l = 0.16;
-                        double maxdR2_jet_l = -1;
+                        double mindR2_jet_trk = mindR2_jet_trk_0;
                         int iJet_mindR = -1;
 
                         int iEvt = (*p_evtIndex)[i];
@@ -3046,8 +3214,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         for (int iJet = 0; iJet < nJetsTmp; ++iJet) {
 
                             if (canUseMixJets && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
-                            //if ( !((*p_rawpt)[iJet] > 10) ) continue;
-                            //if ( !((*p_jetpt)[iJet] > 20) ) continue;
+                            if ( !((*p_jetpt)[iJet] > effDR_min_jetpt) ) continue;
 
                             double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
 
@@ -3064,29 +3231,80 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
 
-                        if (iJet_mindR >= 0) {
-                            if ( !((*p_rawpt)[iJet_mindR] > 100) ) {
-                                iJet_mindR = -1;
-                            }
-                        }
-
-                        double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
-
                         double tmpCorrDR = 1;
                         if (iJet_mindR >= 0) {
                             //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
                             //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_rawpt)[iJet_mindR]);
                             //tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
 
-                            int binTmpDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetXaxis()->FindBin(mindR_jet_trk);
-                            int binTmpPt = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetYaxis()->FindBin((*p_rawpt)[iJet_mindR]);
-                            tmpCorrDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpDR, binTmpPt);
+                            //double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
+                            //int binTmpDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetXaxis()->FindBin(mindR_jet_trk);
+                            //int binTmpPt = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetYaxis()->FindBin((*p_jetpt)[iJet_mindR]);
+                            //tmpCorrDR = h2_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpDR, binTmpPt);
 
-                            if (tmpCorrDR < 0.1) tmpCorrDR = 0.1;
-                            else if (tmpCorrDR > 2.5) tmpCorrDR = 2.5;
+                            int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
+                            tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
+
+                            if (effDR_integrateDR) {
+                                binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
+                                tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
+                            }
+
+                            if (tmpCorrDR < 0.01) tmpCorrDR = 0.01;
+                            //else if (tmpCorrDR > 2.5) tmpCorrDR = 2.5;
                         }
 
                         trkWeightTmp *= tmpCorrDR;
+                    }
+                    if (doResDRW) {
+
+                        int iResDRWPt = getBinPt4TrkW(t_pt, trkPtsJet, nBinsTrkPtsJet);
+                        int iResDRWEta = getBinEta4TrkW(std::fabs(t_eta), absEtasJet, nBinsAbsEtasJet);
+
+                        double mindR2_jet_trk = mindR2_jet_trk_0;
+                        int iJet_mindR = -1;
+
+                        int iEvt = (*p_evtIndex)[i];
+
+                        int nJetsTmp = (iResDRWPt >= 0 && iResDRWCent >= 0 && iResDRWEta >= 0) ? nJets : 0;
+                        for (int iJet = 0; iJet < nJetsTmp; ++iJet) {
+
+                            if (canUseMixJets && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
+                            if ( !((*p_rawpt)[iJet] > effDR_min_jetpt) ) continue;
+
+                            double dR2_jet_trk = getDR2(t_eta, t_phi, (*p_jeteta)[iJet], (*p_jetphi)[iJet]);
+
+                            if (dR2_jet_trk < mindR2_jet_trk) {
+                                mindR2_jet_trk = dR2_jet_trk;
+                                iJet_mindR = iJet;
+                            }
+                        }
+
+                        if (iJet_mindR >= 0) {
+                            if (getDR2(llEta[0], llPhi[0], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l ||
+                                getDR2(llEta[1], llPhi[1], (*p_jeteta)[iJet_mindR], (*p_jetphi)[iJet_mindR]) < maxdR2_jet_l) {
+                                iJet_mindR = -1;
+                            }
+                        }
+
+                        double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
+                        if ( !(mindR_jet_trk < 0.4) ) {
+                            iJet_mindR = -1;
+                        }
+
+                        double tmpCorrResDR = 1;
+                        if (iJet_mindR >= 0) {
+                            //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_jetpt)[iJet_mindR]);
+                            //int binTmpPt = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->FindBin((*p_rawpt)[iJet_mindR]);
+                            //tmpCorrDR = h_effDR[2][effDR_iP][effDR_iC][effDR_iEta]->GetBinContent(binTmpPt);
+
+                            int binTmpResDR = h2_resDRW_effcorr[iResDRWPt][iResDRWEta][iResDRWCent]->FindBin(mindR_jet_trk, (*p_jetpt)[iJet_mindR]);
+                            tmpCorrResDR = h2_resDRW_effcorr[iResDRWPt][iResDRWEta][iResDRWCent]->GetBinContent(binTmpResDR);
+
+                            //tmpCorrResDR *= tmpResCorr;
+                        }
+
+                        trkWeightTmp *= tmpCorrResDR;
                     }
                 }
                 double wTrk = trkWeightTmp * wMixEvts * wTrkPhi;
@@ -3201,18 +3419,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_deta_h1_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta_h1, wTrk);
 
                             if (anaJets) {
-                                //double mindR2_jet_trk = 0.8*0.8;
-                                double mindR2_jet_trk = 999999;
-                                //double maxdR2_jet_l = 0.16;
-                                double maxdR2_jet_l = -1;
+                                double mindR2_jet_trk = mindR2_jet_trk_0;
                                 int iJet_mindR = -1;
 
                                 int iEvt = (*p_evtIndex)[i];
 
                                 for (int iJet = 0; iJet < nJets; ++iJet) {
 
-                                    //if ( !((*p_rawpt)[iJet] > 5) )  continue;
-                                    //if ( !((*p_jetpt)[iJet] > 60) )  continue;
+                                    if ( !((*p_jetpt)[iJet] > effDR_min_jetpt) )  continue;
 
                                     if (canUseMixJets && isMixTrk && iEvt != (*p_evtjet_index)[iJet]) continue;
                                     if (useSigJets && (*p_subid)[iJet] != 0 ) continue;
