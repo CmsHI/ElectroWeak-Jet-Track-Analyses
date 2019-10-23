@@ -55,6 +55,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doNORMV = containsElement(operationList, "NORMV");
     bool doMERGE = containsElement(operationList, "MERGE");
     bool doRATIO = containsElement(operationList, "RATIO");
+    bool doDIFF = containsElement(operationList, "DIFF");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
@@ -63,14 +64,20 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     std::cout << "doNORMV = " << doNORMV << std::endl;
     std::cout << "doMERGE = " << doMERGE << std::endl;
     std::cout << "doRATIO = " << doRATIO << std::endl;
+    std::cout << "doDIFF = " << doDIFF << std::endl;
 
-    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO)) {
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO || doDIFF)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE)) {
+    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doDIFF)) {
         std::cout << "RATIO cannot be combined with other operations" << std::endl;
+        std::cout << "Exiting" << std::endl;
+        return;
+    }
+    else if (doDIFF && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doRATIO)) {
+        std::cout << "DIFF cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
@@ -135,7 +142,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TH1* hTmpBkg = 0;
     TH1* hOut = 0;
 
-    if (doSUB || doRATIO) {
+    if (doSUB || doRATIO || doDIFF) {
         if (nInputFiles != 2) {
             std::cout << "There must be 2 input files for SUB (RATIO) operation : "
                     "       one RAW (NUMERATOR), one BKG (DENOMINATOR) file" << std::endl;
@@ -394,7 +401,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             }
         }
     }
-    else if (doRATIO) {
+    else if (doRATIO || doDIFF) {
         for (int i = 0; i < nInputObjs; i+=2) {
 
             int iNum = i;
@@ -420,11 +427,22 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
             std::string tmpName;
             std::string strOld = (hIn[iNum]->InheritsFrom("TH2D")) ? "h2_" : "h_";
-            tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"ratio_");
+            if (doRATIO) {
+                tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"ratio_");
+            }
+            else if (doDIFF) {
+                tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"diff_");
+            }
 
             hOut = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
-            hOut->Divide(hTmp);
-            hOut->SetYTitle("PbPb / pp");
+            if (doRATIO) {
+                hOut->Divide(hTmp);
+                hOut->SetYTitle("PbPb / pp");
+            }
+            else if (doDIFF) {
+                hOut->Add(hTmp, -1);
+                hOut->SetYTitle("PbPb - pp");
+            }
 
             hTmp->Delete();
 
