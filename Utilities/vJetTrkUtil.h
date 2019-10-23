@@ -129,9 +129,12 @@ double getVRecoEffCorrection(double vPt, double vY, TH2D* h2_eff);
 // trk corrections
 std::vector<double> getVecPt4TrkW();
 std::vector<double> getVecPt4TrkWCoarse();
+std::vector<double> getVecPt4TrkWCoarse2();
 std::vector<double> getVecEta4TrkW(int nBins = 12);
+std::vector<double> getVecAbsEta4TrkWCoarse();
 std::vector<int> getVecCent4TrkW(int nBins = 20);
 std::vector<int> getVecCent4TrkWCoarse();
+std::vector<int> getVecCent4TrkWCoarse2();
 int getBinPt4TrkW(double pt, std::vector<double>& trkPts, int nBins);
 int getBinEta4TrkW(double eta, std::vector<double>& trkEtas, int nBins);
 int getBinCent4TrkW(int hiBin, std::vector<int>& hiBins, int nBins);
@@ -156,6 +159,7 @@ bool isTrkPt(std::string label);
 bool isRatioDphi(std::string label);
 bool isRatioXivh(std::string label);
 bool isRatioTrkPt(std::string label);
+bool isDiffDphi(std::string label);
 bool isRatioVTrk(std::string label);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
@@ -780,6 +784,15 @@ std::vector<double> getVecPt4TrkWCoarse()
     return trkPts;
 }
 
+std::vector<double> getVecPt4TrkWCoarse2()
+{
+    //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.50, 2.0, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.20, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    //std::vector<double> trkPts = { 0.50, 0.60, 0.70, 0.80, 0.90, 1.0, 1.10, 1.20, 1.30, 1.40, 1.60, 1.80, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 10.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    std::vector<double> trkPts = { 0.50, 0.80, 1.0, 1.30, 2.0, 2.5, 3.0, 4.0, 5.0, 8.0, 12.0, 20.0, 60.0, 120.0, 300.0 };
+    return trkPts;
+}
+
 std::vector<double> getVecEta4TrkW(int nBins)
 {
     double widthEta = (2.4*2) / nBins;
@@ -791,6 +804,12 @@ std::vector<double> getVecEta4TrkW(int nBins)
     }
 
     return trkEtasMin;
+}
+
+std::vector<double> getVecAbsEta4TrkWCoarse()
+{
+    std::vector<double> trkAbsEtas = { 0.8, 1.6, 2.4 };
+    return trkAbsEtas;
 }
 
 std::vector<int> getVecCent4TrkW(int nBins)
@@ -811,6 +830,13 @@ std::vector<int> getVecCent4TrkWCoarse()
     //std::vector<int> hiBinsMin = {20, 60, 100, 180};
     //std::vector<int> hiBinsMin = {10, 20, 40, 60, 80, 100, 140, 180};
     std::vector<int> hiBinsMin = {10, 20, 30, 40, 50, 60, 70, 80, 100, 140, 180};
+
+    return hiBinsMin;
+}
+
+std::vector<int> getVecCent4TrkWCoarse2()
+{
+    std::vector<int> hiBinsMin = {20, 60, 100, 180};
 
     return hiBinsMin;
 }
@@ -1117,6 +1143,11 @@ bool isRatioXivh(std::string label)
 bool isRatioTrkPt(std::string label)
 {
     return (parseVTrkObs(label) == "ratio_trkpt");
+}
+
+bool isDiffDphi(std::string label)
+{
+    return (parseVTrkObs(label) == "diff_dphi");
 }
 
 bool isRatioVTrk(std::string label)
