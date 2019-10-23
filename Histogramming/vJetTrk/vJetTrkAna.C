@@ -520,10 +520,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     //std::vector<double> effDRWPts = {0.5, 1, 1.2, 2, 3, 4, 8, 12, 20, 60};
     //std::vector<double> effDRWPts = {0.5, 1, 1.3, 2, 3, 4, 8, 12, 20, 60};
     //std::vector<double> effDRWPts = {0.5, 1, 2, 3, 4, 8, 12, 20, 60};
-    //std::vector<double> effDRWPts = {1, 1.3, 2, 3, 4, 8, 12, 20, 60};
-    std::vector<double> effDRWPts = {1, 2, 3, 4, 8, 12, 20, 60};
-    //std::vector<int> effDRWCents = {0, 10, 30, 50, 90};
-    std::vector<int> effDRWCents = {0, 10, 30};
+    std::vector<double> effDRWPts = {1, 1.3, 2, 3, 4, 8, 12, 20, 60};
+    //std::vector<double> effDRWPts = {1, 2, 3, 4, 8, 12, 20, 60};
+    std::vector<int> effDRWCents = {0, 10, 30, 50, 90};
+    //std::vector<int> effDRWCents = {0, 10, 30};
     int nEffDRWPt = effDRWPts.size() - 1;
     int nEffDRWCent = effDRWCents.size() - 1;
 
