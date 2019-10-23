@@ -23,6 +23,7 @@
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/skimAnalysisTree.h"
 #include "../../TreeHeaders/trackTree.h"
+#include "../../TreeHeaders/JetTree.h"
 #include "../../TreeHeaders/hiGenParticleTree.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/ConfigurationParser.h"
@@ -68,10 +69,18 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
 
+    int anajets = (ArgumentParser::optionExists("--anajets", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--anajets", argOptions).c_str()) : 0;
+
+    double jetptMin = (ArgumentParser::optionExists("--jetptMin", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--jetptMin", argOptions).c_str()) : 50;
+
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
+    std::cout << "anajets  = " << anajets << std::endl;
+    std::cout << "jetptMin  = " << jetptMin << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -96,7 +105,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "isPP15 = " << isPP15 << std::endl;
     std::cout << "isPP17 = " << isPP17 << std::endl;
 
-    bool shiftHibin = (isPbPb18 && isMC);
+    bool shiftHibin = (isPbPb18 && isMC && false);
     if (shiftHibin) {
         std::cout << "shifting hiBin" << std::endl;
     }
@@ -151,7 +160,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string strRG[kN_RG] = {"gen", "trkEffCorr", "trkCorr", "trkUncorr"};
 
     std::vector<double> rgPts = getVecPt4TrkWCoarse();
-    int nBinsPtRG = rgPts.size();
+    int nBinsPtRG = rgPts.size()-1;
 
     std::vector<int> hiBinsMinRG = getVecCent4TrkWCoarse();
     int nBinsCentRG = hiBinsMinRG.size();
@@ -211,7 +220,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         }
     }
 
-    for (int i = 0; i < nBinsPtRG-1; ++i) {
+    for (int i = 0; i < nBinsPtRG; ++i) {
 
         double trkPtMin = rgPts[i];
         double trkPtMax = rgPts[i+1];
@@ -250,17 +259,98 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         }
     }
 
+    std::vector<double> trkPtsJet = getVecPt4TrkWCoarse2();
+    int nBinsTrkPtsJet = trkPtsJet.size()-1;
+
+    std::vector<int> hiBinsMinJet = getVecCent4TrkWCoarse2();
+    int nBinsCentJet = hiBinsMinJet.size();
+
+    std::vector<double> absEtasJet = getVecAbsEta4TrkWCoarse();
+    int nBinsAbsEtasJet = absEtasJet.size();
+
+    TH2D* h2_jetpt_vs_dR[nBinsTrkPtsJet][nBinsAbsEtasJet][nBinsCentJet][RG::kN_RG];
+    TH2D* h2_jetpt_vs_dR_rebin[nBinsTrkPtsJet][nBinsAbsEtasJet][nBinsCentJet][RG::kN_RG];
+    //TH2D* h2_rawpt_vs_dR[nBinsTrkPtsJet][nBinsAbsEtasJet][nBinsCentJet][RG::kN_RG];
+
+    if (anajets > 0) {
+
+        for (int i = 0; i < nBinsTrkPtsJet; ++i) {
+
+            double trkPtMin = trkPtsJet[i];
+            double trkPtMax = trkPtsJet[i+1];
+
+            std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
+
+            for (int k = 0; k < nBinsCentJet; ++k) {
+
+                int hiBinMin = (k == 0) ? 0 : (hiBinsMinJet[k-1]);
+                int hiBinMax = hiBinsMinJet[k];
+
+                std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
+
+                for (int m = 0; m < nBinsAbsEtasJet; ++m) {
+
+                    double absEtaMin = (m == 0) ? 0 : absEtasJet[m-1];
+                    double absEtaMax = absEtasJet[m];
+
+                    std::string text_range_trkAbsEta = Form("%.2f < | %s | < %.2f", absEtaMin, text_trkEta.c_str(), absEtaMax);
+
+                    std::string title_h_suffix = Form("%s, %s, %s", text_range_trkPt.c_str(),
+                                                                    text_range_trkAbsEta.c_str(),
+                                                                    text_range_hiBin.c_str());
+
+                    std::string title_h2_jetpt_vs_dR = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                                                "#DeltaR",
+                                                                "jet p_{T}");
+
+                    std::string name_h_suffix = Form("iPt_%d_iEta_%d_iCent_%d", i, m, k);
+
+                    for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+
+                        std::string name_h2_jetpt_vs_dR = Form("h2_jetpt_vs_dR_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+                        h2_jetpt_vs_dR[i][m][k][iRG] = 0;
+                        h2_jetpt_vs_dR[i][m][k][iRG] = new TH2D(name_h2_jetpt_vs_dR.c_str(), title_h2_jetpt_vs_dR.c_str(),
+                                                                                        5, 0, 1,
+                                                                                        60, 0, 300);
+
+                        h2_jetpt_vs_dR[i][m][k][iRG]->SetMarkerStyle(kFullCircle);
+                        vec_h.push_back(h2_jetpt_vs_dR[i][m][k][iRG]);
+
+                        std::string name_h2_jetpt_vs_dR_rebin = Form("h2_jetpt_vs_dR_rebin_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+                        std::vector<double> binsX_jetpt = {0, 10, 20, 30, 40, 50, 70, 100, 150, 200, 300};
+                        int nBinsX_jetpt = binsX_jetpt.size()-1;
+
+                        double arr_jetpt[nBinsX_jetpt+1];
+                        std::copy(binsX_jetpt.begin(), binsX_jetpt.end(), arr_jetpt);
+
+                        h2_jetpt_vs_dR_rebin[i][m][k][iRG] = 0;
+                        h2_jetpt_vs_dR_rebin[i][m][k][iRG] = new TH2D(name_h2_jetpt_vs_dR_rebin.c_str(), title_h2_jetpt_vs_dR.c_str(),
+                                                                                        2, 0, 0.8,
+                                                                                        nBinsX_jetpt, arr_jetpt);
+
+                        h2_jetpt_vs_dR_rebin[i][m][k][iRG]->SetMarkerStyle(kFullCircle);
+                        vec_h.push_back(h2_jetpt_vs_dR_rebin[i][m][k][iRG]);
+                    }
+                }
+            }
+        }
+    }
+
     TTree* treeHLT = 0;
     TTree* treeHiEvt = 0;
     TTree* treeSkim = 0;
     TTree* treeTrack = 0;
     TTree* treeHiGenParticle = 0;
+    TTree* treeJet = 0;
 
     std::string treePathHLT = "hltanalysis/HltTree";
     std::string treePathHiEvt = "hiEvtAnalyzer/HiTree";
     std::string treePathSkimAna = "skimanalysis/HltTree";
     std::string treePathTrack = "ppTrack/trackTree";
     std::string treePathGen = "HiGenParticleAna/hi";
+    std::string treePathJet = "akPu4CaloJetAnalyzer/t";
 
     std::vector<std::string> triggerBranches;
     //triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1"}; // "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
@@ -363,6 +453,24 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             treeTrack->SetBranchStatus(trkBranches[iTrkBr].c_str(), 1);
         }
 
+        if (anajets > 0) {
+            treeJet = (TTree*)fileTmp->Get(treePathJet.c_str());
+            treeJet->SetBranchStatus("*", 0);     // disable all branches
+
+            std::vector<std::string> jetBranches = {
+                "nref",
+                "jtpt",
+                "jteta",
+                "jtphi",
+                "rawpt",
+            };
+
+            int nJetBranches = jetBranches.size();
+            for (int iJetBr = 0; iJetBr < nJetBranches; ++iJetBr) {
+                treeJet->SetBranchStatus(jetBranches[iJetBr].c_str(), 1);
+            }
+        }
+
         if (isMC) {
             treeHiEvt->SetBranchStatus("weight", 1);
             treeHiEvt->SetBranchStatus("pthat",1);
@@ -398,6 +506,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         Tracks trks;
         trks.setupTreeForReading(treeTrack);
 
+        Jets jets;
+        if (anajets > 0) {
+            jets.setupTreeForReading(treeJet);
+        }
+
         hiGenParticle hiGen;
         if (isMC) {
             hiGen.setupTreeForReading(treeHiGenParticle);
@@ -423,6 +536,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             treeHLT->GetEntry(j_entry);
             treeTrack->GetEntry(j_entry);
+            if (anajets > 0) {
+                treeJet->GetEntry(j_entry);
+            }
             if (isMC) {
                 treeHiGenParticle->GetEntry(j_entry);
             }
@@ -515,6 +631,110 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     int iPtRG = getBinPt4TrkW((*hiGen.pt)[i], rgPts, nBinsPtRG);
                     if (iPtRG >= 0 && iCentRG >= 0) {
                         h2_phi_vs_eta[iPtRG][iCentRG][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
+                    }
+                }
+            }
+
+            if (anajets > 0) {
+
+                int iCentJet = getBinCent4TrkW(hiBin, hiBinsMinJet, nBinsCentJet);
+                if (iCentJet < 0)  continue;
+
+                for (int i = 0; i < trks.nTrk; ++i) {
+
+                     if (!passedTrkSelection(trks, i, collisionType))  continue;
+                     if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
+                     if (skipMu > 0 && trks.pfType[i] == 3) continue;
+                     if (skipEle > 0 && trks.pfType[i] == 2) continue;
+
+                     double trkWeightTmp = 1;
+                     double trkWeightEffTmp = 1;
+                     if (applyTrkWeights > 0) {
+                         if (isPP17) {
+                             trkWeightTmp = trkEff2017.getCorrection(trks.trkPt[i], trks.trkEta[i]);
+                         }
+                         else if (isPbPb18) {
+                             trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
+                             float effTmp = trkEff2018.getEfficiency(trks.trkPt[i], trks.trkEta[i], hiBin, true);
+                             trkWeightEffTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
+                         }
+                     }
+
+                     double wTrk = w * trkWeightTmp;
+                     double wTrkEff = w * trkWeightEffTmp;
+
+                     double mindR2_jet_trk = 999999;
+                     int iJet_mindR = -1;
+
+                     for (int iJ = 0; iJ < jets.nref; ++iJ) {
+
+                         if ( !(std::fabs(jets.jtpt[iJ]) > jetptMin) )  continue;
+
+                         double dR2_jet_trk = getDR2(trks.trkEta[i], trks.trkPhi[i], jets.jteta[iJ], jets.jtphi[iJ]);
+
+                         if (dR2_jet_trk < mindR2_jet_trk) {
+                             mindR2_jet_trk = dR2_jet_trk;
+                             iJet_mindR = iJ;
+                         }
+                     }
+
+                     if (iJet_mindR >= 0) {
+
+                         int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPtsJet, nBinsTrkPtsJet);
+                         int iTrkEta = getBinEta4TrkW(std::fabs(trks.trkEta[i]), absEtasJet, nBinsAbsEtasJet);
+
+                         if (iTrkPt >= 0 && iTrkEta >= 0) {
+
+                             double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
+                             h2_jetpt_vs_dR[iTrkPt][iTrkEta][iCentJet][RG::k_RecoEffCorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], wTrkEff);
+                             h2_jetpt_vs_dR[iTrkPt][iTrkEta][iCentJet][RG::k_RecoCorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], wTrk);
+                             h2_jetpt_vs_dR[iTrkPt][iTrkEta][iCentJet][RG::k_RecoUncorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], w);
+
+                             h2_jetpt_vs_dR_rebin[iTrkPt][iTrkEta][iCentJet][RG::k_RecoEffCorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], wTrkEff);
+                             h2_jetpt_vs_dR_rebin[iTrkPt][iTrkEta][iCentJet][RG::k_RecoCorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], wTrk);
+                             h2_jetpt_vs_dR_rebin[iTrkPt][iTrkEta][iCentJet][RG::k_RecoUncorr]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], w);
+                         }
+                     }
+                 }
+
+
+                if (isMC) {
+
+                    for (int i = 0; i < hiGen.mult; ++i) {
+
+                        if (!(std::fabs((*hiGen.eta)[i]) < 2.4))  continue;
+                        if ( ((*hiGen.chg)[i] == 0) )  continue;
+                        if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
+                        if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
+
+                        double mindR2_jet_trk = 999999;
+                        int iJet_mindR = -1;
+
+                        for (int iJ = 0; iJ < jets.nref; ++iJ) {
+
+                            if ( !(std::fabs(jets.jtpt[iJ]) > jetptMin) )  continue;
+
+                            double dR2_jet_trk = getDR2((*hiGen.eta)[i], (*hiGen.phi)[i], jets.jteta[iJ], jets.jtphi[iJ]);
+
+                            if (dR2_jet_trk < mindR2_jet_trk) {
+                                mindR2_jet_trk = dR2_jet_trk;
+                                iJet_mindR = iJ;
+                            }
+                        }
+
+                        if (iJet_mindR >= 0) {
+
+                            int iTrkPt = getBinPt4TrkW((*hiGen.pt)[i], trkPtsJet, nBinsTrkPtsJet);
+                            int iTrkEta = getBinEta4TrkW(std::fabs((*hiGen.eta)[i]), absEtasJet, nBinsAbsEtasJet);
+
+                            if (iTrkPt >= 0 && iTrkEta >= 0) {
+
+                                double mindR_jet_trk = std::sqrt(mindR2_jet_trk);
+                                h2_jetpt_vs_dR[iTrkPt][iTrkEta][iCentJet][RG::k_Gen]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], w);
+
+                                h2_jetpt_vs_dR_rebin[iTrkPt][iTrkEta][iCentJet][RG::k_Gen]->Fill(mindR_jet_trk, jets.jtpt[iJet_mindR], w);
+                            }
+                        }
                     }
                 }
             }
