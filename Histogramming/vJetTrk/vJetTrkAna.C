@@ -299,7 +299,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
-    bool doFlattenEP = ((applyWeightsV % 10) == 3);
 
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = ((applyTrkWeights % 10) == 2);
@@ -394,30 +393,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 std::string tmpPath = Form("h2_dphi_EPn2_V_vs_vPt_cent%s", (*it).c_str());
                 vec_h2D_wEP.push_back((TH2D*)fileWeightsEP->Get(tmpPath.c_str()));
             }
-        }
-    }
-
-    TFile* fileFlattenEP = 0;
-    std::vector<TH1D*> vec_h1D_flattenEP;
-    std::vector<int> flatEP_cents_min;
-    std::vector<int> flatEP_cents_max;
-    int nFlatEP_cents = 0;
-    if (doFlattenEP) {
-        std::string dirFlattenEP = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/spectra/";
-        std::string fileNameFlattenEP = "spectra_evtPlane_pbpb_2018_data_mix.root";
-        std::string filePathFlattenEP = dirFlattenEP + fileNameFlattenEP;
-
-        std::cout << "reading EP flatten file : " << filePathFlattenEP.c_str() << std::endl;
-
-        fileFlattenEP = TFile::Open(filePathFlattenEP.c_str(), "READ");
-        flatEP_cents_min = {0,  10, 20, 30, 40, 50, 60, 80, 90};
-        flatEP_cents_max = {10, 20, 30, 40, 50, 60, 80, 90, 100};
-        nFlatEP_cents = flatEP_cents_max.size();
-
-        for (int i = 0; i < nFlatEP_cents; ++i) {
-
-            std::string tmpPath = Form("h_%d", i);
-            vec_h1D_flattenEP.push_back((TH1D*)fileFlattenEP->Get(tmpPath.c_str()));
         }
     }
 
@@ -2880,40 +2855,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_vtxz[i][j]->Fill(hiEvt.vz, wV);
                             h_dphi_EPn1_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[2])), wV);
 
-                            double wV_flatEP = wV;
-                            if (doFlattenEP) {
-
-                                int iCent1 = -1;
-                                for (int iFlatEP_cent = 0; iFlatEP_cent < nFlatEP_cents; ++iFlatEP_cent) {
-                                    if (flatEP_cents_min[iFlatEP_cent] >= centsMin[i]) {
-                                        iCent1 = iFlatEP_cent;
-                                        break;
-                                    }
-                                }
-
-                                int iCent2 = -1;
-                                for (int iFlatEP_cent = 0; iFlatEP_cent < nFlatEP_cents; ++iFlatEP_cent) {
-                                    if (flatEP_cents_max[iFlatEP_cent] >= centsMax[i]) {
-                                        iCent2 = iFlatEP_cent;
-                                        break;
-                                    }
-                                }
-
-                                hTmp = (TH1D*)vec_h1D_flattenEP[iCent1]->Clone("hTmp_h1D_flattenEP");
-                                for (int iFlatEP = iCent1+1; iFlatEP <= iCent2; ++iFlatEP) {
-                                    hTmp->Add(vec_h1D_flattenEP[iFlatEP]);
-                                }
-
-                                hTmp->Rebin(4);
-                                hTmp->Scale(1./(hTmp->Integral()));
-
-                                int binEPTmp = hTmp->FindBin(hiEvt.hiEvtPlanes[8]);
-                                wV_flatEP /= hTmp->GetBinContent(binEPTmp);
-
-                                hTmp->Delete();
-                            }
-
-                            h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV_flatEP);
+                            h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV);
                             h_dphi_EPn3_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[15])), wV);
 
                             h_dphi_EPn2_l1[i][j]->Fill(std::fabs(getDPHI(llPhi[0], hiEvt.hiEvtPlanes[8])), wV);
