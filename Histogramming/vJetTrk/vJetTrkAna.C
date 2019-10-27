@@ -2792,6 +2792,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (passedTrig) {
                             h_trig_num_vPt[i]->Fill(vPt, wV);
                         }
+                        else {
+                            if (vPt > 10) {
+                                std::cout << "trigger inefficiency for entry : " << j_entry << std::endl;
+                                std::cout << "run , event , lumi : " << hiEvt.run << " , " << hiEvt.evt << " , " << hiEvt.lumi << std::endl;
+                                std::cout << "hiBin, vPt , vY, vPhi = " << hiBin0 << " , "
+                                                                        << vPt << " , "
+                                                                        << vY << " , "
+                                                                        << vPhi << std::endl;
+                            }
+                        }
                     }
 
                     for (int j = 0; j < nVPts; ++j) {
