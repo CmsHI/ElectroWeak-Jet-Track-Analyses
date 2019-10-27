@@ -1955,7 +1955,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
     else if (isPbPb18) {
         if (vIsZmm) {
-            triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1"}; // "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
+            triggerBranches = {"HLT_HIL3Mu12_v1"}; // "HLT_HIL2Mu12_v1", "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
         }
         else if (vIsZee) {
             triggerBranches = {"HLT_HIDoubleEle10Gsf_v1", "HLT_HIEle20Gsf_v1"};
