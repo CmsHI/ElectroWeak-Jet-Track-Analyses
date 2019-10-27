@@ -716,6 +716,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     // trig eff
     TH1D* h_trig_num_vPt[nCents];
     TH1D* h_trig_denom_vPt[nCents];
+    TH1D* h_trig_num_vY[nCents][nVPts];
+    TH1D* h_trig_denom_vY[nCents][nVPts];
 
     // reco eff
     TH1D* h_reco_num_vPt[nCents];
@@ -1073,6 +1075,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             h2_l2Phi_vs_l2Eta[i][j] = new TH2D(name_h2_l2Phi_vs_l2Eta.c_str(), title_h2_l2Phi_vs_l2Eta.c_str(),
                                              nBinsX_eta, -1*xMax_eta, xMax_eta, nBinsX_dphi, -1*xMax_phi, xMax_phi);
             vec_h2D.push_back(h2_l2Phi_vs_l2Eta[i][j]);
+
+            std::string name_h_trig_num_vY = Form("h_trig_num_vY_%s", name_h_suffix.c_str());
+            h_trig_num_vY[i][j] = 0;
+            h_trig_num_vY[i][j] = (TH1D*)h_vY[i][j]->Clone(name_h_trig_num_vY.c_str());
+            vec_h_num.push_back(h_trig_num_vY[i][j]);
+
+            std::string name_h_trig_denom_vY = Form("h_trig_denom_vY_%s", name_h_suffix.c_str());
+            h_trig_denom_vY[i][j] = 0;
+            h_trig_denom_vY[i][j] = (TH1D*)h_vY[i][j]->Clone(name_h_trig_denom_vY.c_str());
+            vec_h_denom.push_back(h_trig_denom_vY[i][j]);
 
             std::string name_h_reco_num_vPhi = Form("h_reco_num_vPhi_%s", name_h_suffix.c_str());
             h_reco_num_vPhi[i][j] = 0;
@@ -2775,9 +2787,21 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
-                    h_trig_denom_vPt[i]->Fill(vPt, wV);
-                    if (passedTrig) {
-                        h_trig_num_vPt[i]->Fill(vPt, wV);
+                    if (vYMin <= vYAbs && vYAbs < vYMax) {
+                        h_trig_denom_vPt[i]->Fill(vPt, wV);
+                        if (passedTrig) {
+                            h_trig_num_vPt[i]->Fill(vPt, wV);
+                        }
+                    }
+
+                    for (int j = 0; j < nVPts; ++j) {
+
+                        if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
+
+                        h_trig_denom_vY[i][j]->Fill(vY, wV);
+                        if (passedTrig) {
+                            h_trig_num_vY[i][j]->Fill(vY, wV);
+                        }
                     }
                 }
             }
