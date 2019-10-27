@@ -294,6 +294,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool anavTrk_dR = false;
     bool anavTrk_zh = false;
 
+    bool do_sf_weight_nom = (toLowerCase(sysMode).find("sf_weight_nom") != std::string::npos);
     int lep_sys_index = parseLepSysIndex(sysMode);
 
     bool doWeightsV = (applyWeightsV > 0);
@@ -2649,6 +2650,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             double wV = w;
             if (vIsZ) {
+                if (do_sf_weight_nom) {
+                    wV *= (getSFweight(vIsZmm, llPt[0], llEta[0], cent0) * getSFweight(vIsZmm, llPt[1], llEta[1], cent0));
+                }
                 wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent0) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent0));
             }
 
@@ -3374,6 +3378,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin");
                 h1DTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt);
+                h1DTmp->Write("",TObject::kOverwrite);
+
+                // 2nd rebin of trkPt
+                binsX = {0, 1, 3, 5, 10, 18, xMax_trkPt};
+                nBinsX = binsX.size()-1;
+
+                double arr_trkPt2[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arr_trkPt2);
+
+                tmpName = replaceAll(h_trkPt[i][j]->GetName(), "h_trkPt", "h_trkPt_rebin2");
+                h1DTmp = (TH1D*)h_trkPt[i][j]->Rebin(nBinsX, tmpName.c_str(), arr_trkPt2);
                 h1DTmp->Write("",TObject::kOverwrite);
 
                 for (int k = 0; k < nTrkPts; ++k) {
