@@ -144,11 +144,14 @@ double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // lepton systematics
+double getSFweight(bool isMu, double pt, double eta, int cent);
 int parseLepSysIndex(std::string sys_label);
 double getLepSysVar(bool isMu, int sys_index, double pt, double eta, int cent);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
+double parseTrkPtMin(std::string histPath);
+double parseTrkPtMax(std::string histPath);
 int parseCentMin(std::string histPath);
 int parseCentMax(std::string histPath);
 double parseVTrkDPhiMin(std::string text);
@@ -930,6 +933,16 @@ std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax)
     return res;
 }
 
+double getSFweight(bool isMu, double pt, double eta, int cent)
+{
+    if (isMu) {
+        return muonTnP::get_weight_nom(pt, eta, cent);
+    }
+    else {
+        return eleSys::get_unc(-1, pt, eta, cent);
+    }
+}
+
 int parseLepSysIndex(std::string sys_label)
 {
     sys_label = toLowerCase(sys_label);
@@ -942,6 +955,12 @@ int parseLepSysIndex(std::string sys_label)
         else if (sys_label.find("stat_lep_id_m") != std::string::npos) {
             return MUONTNP::k_stat_id_m;
         }
+        else if (sys_label.find("stat_lep_trk_p") != std::string::npos) {
+            return MUONTNP::k_stat_trk_p;
+        }
+        else if (sys_label.find("stat_lep_trk_m") != std::string::npos) {
+            return MUONTNP::k_stat_trk_m;
+        }
         else if (sys_label.find("stat_lep_trig_p") != std::string::npos) {
             return MUONTNP::k_stat_trig_p;
         }
@@ -953,6 +972,12 @@ int parseLepSysIndex(std::string sys_label)
         }
         else if (sys_label.find("sys_lep_id_m") != std::string::npos) {
             return MUONTNP::k_sys_id_m;
+        }
+        else if (sys_label.find("sys_lep_trk_p") != std::string::npos) {
+            return MUONTNP::k_sys_trk_p;
+        }
+        else if (sys_label.find("sys_lep_trk_m") != std::string::npos) {
+            return MUONTNP::k_sys_trk_m;
         }
         else if (sys_label.find("sys_lep_trig_p") != std::string::npos) {
             return MUONTNP::k_sys_trig_p;
@@ -1035,6 +1060,33 @@ double parseVPtMax(std::string histPath)
     pos = strTmp.find("_");
     strTmp = strTmp.substr(0,pos);
     // strTmp = "40"
+
+    return std::atof(strTmp.c_str());
+}
+
+double parseTrkPtMin(std::string histPath)
+{
+    size_t pos = histPath.find("trkPt");
+    std::string strTmp = histPath.substr(pos + std::string("trkPt").size());
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    strTmp = replaceFirst(strTmp, "p", ".");
+
+    return std::atof(strTmp.c_str());
+}
+
+double parseTrkPtMax(std::string histPath)
+{
+    size_t pos = histPath.find("trkPt");
+    std::string strTmp = histPath.substr(pos + std::string("trkPt").size());
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(pos+1);
+
+    pos = strTmp.find("_");
+    strTmp = strTmp.substr(0,pos);
+    strTmp = replaceFirst(strTmp, "p", ".");
 
     return std::atof(strTmp.c_str());
 }
