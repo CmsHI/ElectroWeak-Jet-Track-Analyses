@@ -2428,6 +2428,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 w *= pthatWeight;
             }
 
+            int nVCand = 0; // number of V candidates per event
             double vPt = -1;
             double vEta = -999999;
             double vPhi = -999999;
@@ -2630,6 +2631,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!(vecll.M() >= massMin && vecll.M() <= massMax)) continue;
 
+                        if (vecll.Pt() > 30 && vecll.Pt() < 80 &&
+                                std::fabs(vecll.Rapidity()) < 2.4 &&
+                                ((*lChg)[i] == -1*(*lChg)[j]) ) {
+                            nVCand++;
+                        }
+
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
                             vPt = vecll.Pt();
@@ -2778,6 +2785,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             //if (std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) > 1.2 && std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])) < 2.2) continue;
 
             if (vPt < 0) continue;
+
+            if (nVCand > 1 && false) {
+                std::cout << "There is nVCand = " << nVCand << std::endl;
+            }
 
             double vYAbs = std::fabs(vY);
 
