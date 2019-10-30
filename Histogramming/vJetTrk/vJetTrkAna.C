@@ -749,6 +749,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_PFHFtotE_eta4to5_vs_vPt[nCents];
     TH2D* h2_PFHEtotE_vs_vPt[nCents];
     TH2D* h2_dphi_EPn2_V_vs_vPt[nCents];
+    TH2D* h2_hiHF_vs_hiNpix[nVPts];
+    TH2D* h2_PFHFtotE_vs_hiNpix[nVPts];
 
     TH1D* h_trkPt[nCents][nVPts];
     TH1D* h_trkEta[nCents][nVPts][nTrkPts];
@@ -1170,6 +1172,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             h_dphi_EPn2_l2[i][j] = 0;
             h_dphi_EPn2_l2[i][j] = new TH1D(name_h_dphi_EPn2_l2.c_str(), title_h_dphi_EPn2_l2.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            if (i == 0) {
+                std::string name_h2_hiHF_vs_hiNpix = Form("h2_hiHF_vs_hiNpix_%s", label_vPt.c_str());
+                std::string title_h2_hiHF_vs_hiNpix = Form("%s;hiNpix;hiHF", title_h_suffix.c_str());
+
+                h2_hiHF_vs_hiNpix[j] = 0;
+                h2_hiHF_vs_hiNpix[j] = new TH2D(name_h2_hiHF_vs_hiNpix.c_str(), title_h2_hiHF_vs_hiNpix.c_str(),
+                                                       40, 0, 120000, 400, 0, 8000);
+                vec_h2D.push_back(h2_hiHF_vs_hiNpix[j]);
+
+                std::string name_h2_PFHFtotE_vs_hiNpix = Form("h2_PFHFtotE_vs_hiNpix_%s", label_vPt.c_str());
+                std::string title_h2_PFHFtotE_vs_hiNpix = Form("%s;hiNpix;total energy of PF HF towers", title_h_suffix.c_str());
+
+                h2_PFHFtotE_vs_hiNpix[j] = 0;
+                h2_PFHFtotE_vs_hiNpix[j] = new TH2D(name_h2_PFHFtotE_vs_hiNpix.c_str(), title_h2_PFHFtotE_vs_hiNpix.c_str(),
+                                                       40, 0, 120000, 2000, 0, 200000);
+                vec_h2D.push_back(h2_PFHFtotE_vs_hiNpix[j]);
+            }
 
             std::string text_trk = "trk";
             std::string text_trkPt = Form("p^{%s}_{T}", text_trk.c_str());
@@ -2905,6 +2925,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     if (vYMin <= vYAbs && vYAbs < vYMax) {
 
                         h_cent[j]->Fill(cent, wV);
+                        h2_hiHF_vs_hiNpix[j]->Fill(hiEvt.hiNpix, hiEvt.hiHF, wV);
+                        h2_PFHFtotE_vs_hiNpix[j]->Fill(hiEvt.hiNpix, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                     }
 
                 }
