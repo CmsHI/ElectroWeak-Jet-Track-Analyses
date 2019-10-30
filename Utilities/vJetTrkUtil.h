@@ -39,7 +39,7 @@ int ewObj;
 // variables for mix event files
 const int nCentBins = 800;  // event activity can be centrality, multiplicity, transverse energy, energy density, etc.
 const int nVzBins = 15;
-const int nEventPlaneBins = 8;
+const int nEventPlaneBins = 1;
 
 const double etaMin_pf_HF = 3;
 const double etaMax_pf_HF = 5;
