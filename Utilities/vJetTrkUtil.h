@@ -177,6 +177,7 @@ void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
     t->SetBranchStatus("hiEvtPlanes",1);
     t->SetBranchStatus("hiHF",1);
     t->SetBranchStatus("hiHFhit",1);
+    t->SetBranchStatus("hiNpix*",1);
     t->SetBranchStatus("npus",1);
     t->SetBranchStatus("tnpus",1);
     if (isMC) {
