@@ -51,7 +51,7 @@ const double PF_HF_E_eta4to5_max = 100000;
 const double etaMin_pf_HE = 2.5;
 const double etaMax_pf_HE = 2.9;
 
-const double PF_HE_totE_max = 14000;
+const double PF_HE_totE_max = 12000;
 
 const int nTrk_max = 8000;
 
