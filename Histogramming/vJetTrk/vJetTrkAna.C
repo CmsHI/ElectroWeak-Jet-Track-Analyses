@@ -318,7 +318,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doEffDRW = (outputFile.find("effDRW") != std::string::npos && redoTrkWeights && anaJets);
     std::cout << "doEffDRW = " << doEffDRW << std::endl;
 
-    bool shiftHibin = (isPbPb18 && isMC);
+    bool shiftHibin = (isPbPb18 && isMC && anaTrks);
     if (shiftHibin) {
         std::cout << "shifting hiBin" << std::endl;
     }
@@ -334,16 +334,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string dirWV = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/vReco/";
         std::string fileNameWV = "";
         if (vIsZmm && isPP17)  {
-            fileNameWV = "vJetTrkAna_pp_2017_mc_zmm_vr_trk_r_raw.root";
+            fileNameWV = "vJetTrkAna_pp_2017_mc_zmm_vr_trk_r_raw_const.root";
         }
         else if (vIsZee && isPP17)  {
-            fileNameWV = "vJetTrkAna_pp_2017_mc_zee_vr_trk_r_raw.root";
+            fileNameWV = "vJetTrkAna_pp_2017_mc_zee_vr_trk_r_raw_const.root";
         }
         else if (vIsZmm && isPbPb18)  {
-            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zmm_vr_trk_r_raw.root";
+            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zmm_vr_trk_r_raw_const.root";
         }
         else if (vIsZee && isPbPb18)  {
-            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zee_vr_trk_r_raw.root";
+            fileNameWV = "vJetTrkAna_pbpb_2018_mc_zee_vr_trk_r_raw_const.root";
         }
 
         if (fileNameWV != "") {
@@ -2173,7 +2173,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             treeHiEvt->SetBranchStatus("weight", 1);
             treeHiEvt->SetBranchStatus("pthat",1);
-            if (isMCMG) {
+            if (isMCMG && !isvJetTrkSkim) {
                 treeHiEvt->SetBranchStatus("ttbar_w", 1);
             }
         }
@@ -2399,7 +2399,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             int cent0 = cent;
             if (doEventWeight > 0) {
                 w = hiEvt.weight;
-                if (isMCMG) {
+                if (isMCMG && !isvJetTrkSkim) {
                     w = (*hiEvt.ttbar_w)[1080];
                 }
                 double vertexWeight = 1;
@@ -2443,7 +2443,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             double genVPt = -1;
             double genVY = -999999;
-            double genVEta = -999999;
             double genVPhi = -999999;
             double genVMass = -1;
             float maxDR2_reco_gen_V = 0.16;
@@ -2521,15 +2520,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if ( !(hasTauP && hasTauM) ) continue;
                     }
 
-                    float maxGenVPt = -1;
-
                     bool hasLepP = false;
                     bool hasLepM = false;
                     for (int i = 0; i < ggHi.nMC; ++i) {
 
                         if ( !((*ggHi.mcMomPID)[i] == pdgV) ) continue;
                         if ( !((*ggHi.mcPt)[i] > lPtMin) ) continue;
-                        if ( !(std::fabs((*ggHi.mcEta)[i]) < vYMax) ) continue;
+                        if ( !(std::fabs((*ggHi.mcEta)[i]) < lEtaMax) ) continue;
 
                         if ((*ggHi.mcPID)[i] == pdgL) {
                             hasLepP = true;
@@ -2544,24 +2541,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if ((*ggHi.mcPID)[i] != pdgV)  continue;
                             if ((*ggHi.mcStatus)[i] != 62)  continue;
-                            if ( !((*ggHi.mcMass)[i] >= massMin && (*ggHi.mcMass)[i] <= massMax) ) continue;
 
-                            if ((*ggHi.mcPt)[i] > maxGenVPt) {
+                            genVMass = (*ggHi.mcMass)[i];
+                            if ( !(genVMass >= massMin && genVMass <= massMax) ) continue;
+
+                            TLorentzVector vecTmp;
+                            vecTmp.SetPtEtaPhiM((*ggHi.mcPt)[i], (*ggHi.mcEta)[i], (*ggHi.mcPhi)[i], genVMass);
+
+                            if ( !(std::fabs(vecTmp.Rapidity()) < lEtaMax) ) continue;  // rap needs to be smaller than eta
+
+                            if (std::fabs(genVMass - zmassPDG) < deltaMass) {
+                                deltaMass = std::fabs(genVMass - zmassPDG);
+
                                 genVPt = (*ggHi.mcPt)[i];
-                                genVEta = (*ggHi.mcEta)[i];
                                 genVPhi = (*ggHi.mcPhi)[i];
-                                genVMass = (*ggHi.mcMass)[i];
 
-                                TLorentzVector vecTmp;
-                                vecTmp.SetPtEtaPhiM(genVPt, genVEta, genVPhi, genVMass);
                                 genVY = vecTmp.Rapidity();
-
-                                maxGenVPt = genVPt;
                             }
                         }
                     }
                 }
 
+                deltaMass = 999999;
                 for (int i = 0; i < nL; ++i) {
 
                     float l1pt = (*lPt)[i];
@@ -2588,7 +2589,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     else if (!isRecoV) {
                         if (std::fabs((*ggHi.mcPID)[i]) != pdgL) continue;
                         else if (vIsZee) {
-                            if (1.4442 < std::fabs((*lEta)[i]) && std::fabs((*lEta)[i]) < 1.566) continue;
+                            if (std::fabs((*lEta)[i]) > 1.4442 && std::fabs((*lEta)[i]) < 1.566) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
                         }
                     }
@@ -2619,7 +2620,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         else if (!isRecoV) {
                             if (std::fabs((*ggHi.mcPID)[j]) != pdgL) continue;
                             if (vIsZee) {
-                                if (1.4442 < std::fabs((*lEta)[j]) && std::fabs((*lEta)[j]) < 1.566) continue;
+                                if (std::fabs((*lEta)[j]) > 1.4442 && std::fabs((*lEta)[j]) < 1.566) continue;
                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(j))  continue;
                             }
                         }
