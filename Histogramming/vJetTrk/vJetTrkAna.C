@@ -967,7 +967,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         h2_PFHFtotE_eta3to4_vs_vPt[i] = 0;
         h2_PFHFtotE_eta3to4_vs_vPt[i] = new TH2D(name_h2_PFHFtotE_eta3to4_vs_vPt.c_str(), title_h2_PFHFtotE_eta3to4_vs_vPt.c_str(),
-                                         nBinsX_vPt, 0, xMax_vPt, 1200, 0, 120000);
+                                         nBinsX_vPt, 0, xMax_vPt, 1000, 0, 100000);
         vec_h2D.push_back(h2_PFHFtotE_eta3to4_vs_vPt[i]);
 
         std::string name_h2_PFHFtotE_eta4to5_vs_vPt = Form("h2_PFHFtotE_eta4to5_vs_vPt_%s", label_cent.c_str());
