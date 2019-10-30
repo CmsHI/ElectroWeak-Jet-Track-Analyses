@@ -647,7 +647,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         treeggHiNtuplizer->SetBranchStatus("*",1);     // enable all branches
 
         treeHiEvt = (TTree*)fileTmp->Get(treePathHiEvt.c_str());
-        setBranchStatusTreeHiEvt(treeHiEvt, isMC);
+        treeHiEvt->SetBranchStatus("*",1);     // enable all branches
 
         for (int i = 0; i < nJetCollections; ++i) {
 
@@ -1103,6 +1103,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 699.0, totEMax); // zee
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 700, totEMax);  // mc_mg5
                     // data
                     iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
@@ -1112,6 +1113,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+300), totEMax);  // m, UE energy down
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-150), totEMax);  // p, UE energy up
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+150), totEMax);  // m, UE energy down
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-300), totEMax);  // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-450), totEMax);  // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 869.4, totEMax); // diff_pbpb, nominal
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 768.5, totEMax); // diff_pbpb, p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 970.3, totEMax); // diff_pbpb, m, UE energy down
 
                     // pbpb 15
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
@@ -1133,10 +1139,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                                                          + evtskim.pf_gamma_HE_totE
                                                          + evtskim.pf_h0_HE_totE;
 
+                    //iCent = getPFEnergyBin(tmpHEtotE - 40, VJT::PF_HE_totE_max); // 39.41
+                    iCent = getPFEnergyBin(tmpHEtotE - 92, VJT::PF_HE_totE_max); // 39.41+408*0.13065 = 92.7152
                     // data
-                    iCent = getPFEnergyBin(tmpHEtotE - 45, VJT::PF_HE_totE_max);
+                    //iCent = getPFEnergyBin(tmpHEtotE - 45, VJT::PF_HE_totE_max);
                     //iCent = getPFHEtotEBin(tmpHEtotE - (45-25), VJT::PF_HE_totE_max);  // p, UE energy up
-                    //iCent = getPFHEtotEBin(tmpHEtotE - (45+25), VJT::PF_HE_totE_max);  // m, UE energy down
+                    //iCent = getPFEnergyBin(tmpHEtotE - (45+25), VJT::PF_HE_totE_max);  // m, UE energy down
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {
 
