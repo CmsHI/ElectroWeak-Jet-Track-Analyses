@@ -17,6 +17,7 @@ public :
         p_hiHFhit_mix = 0;
         p_rho_mix = 0;
         p_hiEvtPlanes_mix = 0;
+        p_hiNpix_mix = 0;
         p_run_mix = 0;
         p_evt_mix = 0;
         p_lumi_mix = 0;
@@ -46,6 +47,7 @@ public :
     std::vector<float>   hiHF_mix;
     std::vector<float>   hiHFhit_mix;
     std::vector<float>   hiEvtPlanes_mix;
+    std::vector<int>     hiNpix_mix;
     std::vector<float>   rho_mix;
     std::vector<UInt_t>     run_mix;
     std::vector<ULong64_t>  evt_mix;
@@ -69,6 +71,7 @@ public :
     std::vector<float>   *p_hiHF_mix;
     std::vector<float>   *p_hiHFhit_mix;
     std::vector<float>   *p_hiEvtPlanes_mix;
+    std::vector<int>     *p_hiNpix_mix;
     std::vector<float>   *p_rho_mix;
     std::vector<UInt_t>     *p_run_mix;
     std::vector<ULong64_t>  *p_evt_mix;
@@ -93,6 +96,7 @@ public :
     TBranch *b_hiHF_mix;
     TBranch *b_hiHFhit_mix;
     TBranch *b_hiEvtPlanes_mix;
+    TBranch *b_hiNpix_mix;
     TBranch *b_rho_mix;
     TBranch *b_run_mix;
     TBranch *b_evt_mix;
@@ -119,6 +123,7 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     b_hiHF_mix = 0;
     b_hiHFhit_mix = 0;
     b_hiEvtPlanes_mix = 0;
+    b_hiNpix_mix = 0;
     b_rho_mix = 0;
     b_run_mix = 0;
     b_evt_mix = 0;
@@ -142,6 +147,7 @@ void mixEventSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("hiHF_mix"))  t->SetBranchAddress("hiHF_mix", &p_hiHF_mix, &b_hiHF_mix);
     if (t->GetBranch("hiHFhit_mix"))  t->SetBranchAddress("hiHFhit_mix", &p_hiHFhit_mix, &b_hiHFhit_mix);
     if (t->GetBranch("hiEvtPlanes_mix"))  t->SetBranchAddress("hiEvtPlanes_mix", &p_hiEvtPlanes_mix, &b_hiEvtPlanes_mix);
+    if (t->GetBranch("hiNpix_mix"))  t->SetBranchAddress("hiNpix_mix", &p_hiNpix_mix, &b_hiNpix_mix);
     if (t->GetBranch("rho_mix"))  t->SetBranchAddress("rho_mix", &p_rho_mix, &b_rho_mix);
     if (t->GetBranch("run_mix"))  t->SetBranchAddress("run_mix", &p_run_mix, &b_run_mix);
     if (t->GetBranch("evt_mix"))  t->SetBranchAddress("evt_mix", &p_evt_mix, &b_evt_mix);
@@ -168,6 +174,7 @@ void mixEventSkim::setupTreeForWriting(TTree *t)
     t->Branch("hiHF_mix", &hiHF_mix);
     t->Branch("hiHFhit_mix", &hiHFhit_mix);
     t->Branch("hiEvtPlanes_mix", &hiEvtPlanes_mix);
+    t->Branch("hiNpix_mix", &hiNpix_mix);
     t->Branch("rho_mix", &rho_mix);
     t->Branch("run_mix", &run_mix);
     t->Branch("evt_mix", &evt_mix);
@@ -195,6 +202,7 @@ void mixEventSkim::clearEvent()
     hiHF_mix.clear();
     hiHFhit_mix.clear();
     hiEvtPlanes_mix.clear();
+    hiNpix_mix.clear();
     rho_mix.clear();
     run_mix.clear();
     evt_mix.clear();

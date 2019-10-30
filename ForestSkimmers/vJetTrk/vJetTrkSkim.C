@@ -522,6 +522,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     double totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
                     iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiNpix) {
+
+                    int tmpHiNpixMax = VJT::hiNpix_max;
+                    iCent = getHiNpixBin(hiEvtMix[i].hiNpix, tmpHiNpixMax);
+                }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
                     float tmpTotE = -1;
@@ -1132,6 +1137,11 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0-(172.0/2)), totEMax); // p, UE energy up
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0+(172.0/2)), totEMax); // m, UE energy down
                 }
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiNpix) {
+
+                    int tmpHiNpixMax = VJT::hiNpix_max;
+                    iCent = getHiNpixBin(hiEvt.hiNpix - 483, tmpHiNpixMax);
+                }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HE_totE) {
 
                     float tmpHEtotE = evtskim.pf_h_HE_totE + evtskim.pf_e_HE_totE
@@ -1265,6 +1275,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     mixevtskim.hiHF_mix.push_back(hiEvtMix[iMF].hiHF);
                     mixevtskim.hiHFhit_mix.push_back(hiEvtMix[iMF].hiHFhit);
                     mixevtskim.hiEvtPlanes_mix.push_back(hiEvtMix[iMF].hiEvtPlanes[8]);
+                    mixevtskim.hiNpix_mix.push_back(hiEvtMix[iMF].hiNpix);
                     mixevtskim.rho_mix.push_back(ggHiMix[iMF].rho);
                     mixevtskim.run_mix.push_back(hiEvtMix[iMF].run);
                     mixevtskim.evt_mix.push_back(hiEvtMix[iMF].evt);

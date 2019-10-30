@@ -48,6 +48,8 @@ const double PF_HF_totE_max = 150000;
 
 const double PF_HF_E_eta4to5_max = 100000;
 
+const int hiNpix_max = 100000;
+
 const double etaMin_pf_HE = 2.5;
 const double etaMax_pf_HE = 2.9;
 
@@ -62,13 +64,15 @@ enum MIXMETHODS {
     k_match_rho,
     k_match_PF_HF_totE,
     k_match_PF_HF_E_eta4to5,
+    k_match_hiNpix,
     k_match_PF_HE_totE,
     k_match_nTrk,
     k_match_nVtx,
     kN_MITMETHODS
 };
 const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_rho",
-                                                  "match_PF_HF_totE", "match_PF_HF_E_eta4to5", "match_PF_HE_totE", "match_nTrk",
+                                                  "match_PF_HF_totE", "match_PF_HF_E_eta4to5", "match_hiNpix",
+                                                  "match_PF_HE_totE", "match_nTrk",
                                                   "match_nVtx"};
 int mixMethod;
 
@@ -101,6 +105,7 @@ int getNpartBin(float Npart);
 int getNTrkBin(int nTrk, int nTrkMax = 14280);
 int getHiHFBin(float hiHF, float hiHFMax = 6000);
 int getHiHFhitBin(float hiHFhit, float hiHFhitMax = 180000);
+int getHiNpixBin(int hiNpix, int hiNpixMax = 100000);
 int getRhoBin(double rho, double rhoMax = 250);
 int getPFEnergyBin(double PF_E, double PF_E_max);
 int getEventEnergyBin(double evtEnergy, double evtEnergyMax);
@@ -360,6 +365,19 @@ int getHiHFhitBin(float hiHFhit, float hiHFhitMax)
     return getEventEnergyBin(hiHFhit, hiHFhitMax);
 }
 
+int getHiNpixBin(int hiNpix, int hiNpixMax)
+{
+    int deltaHiNpix = (int)(hiNpixMax / VJT::nCentBins);
+    if (hiNpix < 0) hiNpix = 0;
+    int binTmp = (int)(hiNpix / deltaHiNpix);
+    if (binTmp < VJT::nCentBins) {
+        return binTmp;
+    }
+    else {
+        return (VJT::nCentBins)-1;
+    }
+}
+
 int getRhoBin(double rho, double rhoMax)
 {
     return getEventEnergyBin(rho, rhoMax);
@@ -446,13 +464,16 @@ int parseMixMethod(std::string mixMethodStr)
     else if (mixMethodStr == "match_pf_hf_e_eta4to5" || mixMethodStr == "5") {
         return VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5;
     }
-    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "6") {
+    else if (mixMethodStr == "match_hinpix" || mixMethodStr == "6") {
+        return VJT::MIXMETHODS::k_match_hiNpix;
+    }
+    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "7") {
         return VJT::MIXMETHODS::k_match_PF_HE_totE;
     }
-    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "7") {
+    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "8") {
         return VJT::MIXMETHODS::k_match_nTrk;
     }
-    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "8") {
+    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "9") {
         return VJT::MIXMETHODS::k_match_nVtx;
     }
     else {
