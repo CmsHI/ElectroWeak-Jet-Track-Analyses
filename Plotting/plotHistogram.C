@@ -930,6 +930,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
     TH1* hTmp = 0;
 
+    std::vector<bool> isGrAErr(nHistos, false);
+    std::vector<TGraphAsymmErrors*> grAErr(nHistos, 0);
+
     TGraph* grErr = 0;
     grErr = new TGraph();
 
@@ -948,7 +951,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
         // if the input object is TGraph, then convert it to a TH1 and plot the TH1
         else if (objTmp->InheritsFrom("TGraphAsymmErrors"))  {
-            grTmp = (TGraphAsymmErrors*)f[i]->Get(TH1_path.c_str());
+            isGrAErr[i] = true;
+            grAErr[i] = (TGraphAsymmErrors*)f[i]->Get(TH1_path.c_str());
+            grTmp = grAErr[i];
             h[i] = Graph2Histogram(grTmp);
         }
         else if (objTmp->InheritsFrom("TGraph"))  {
@@ -960,6 +965,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
         else {
             h[i] = (TH1D*)f[i]->Get(TH1_path.c_str());
+        }
+
+        hStack[i] = new THStack(Form("hStack%d", i), "");
+
+        if (isGrAErr[i]) {
+            grAErr[i]->SetName(Form("grAErr_%d", i));
         }
 
         h[i]->SetName(Form("h_%d", i));
@@ -1014,8 +1025,6 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             hSysMax[i] = (TH1D*)hSysp[i]->Clone(Form("%s_sysMax", hSysp[i]->GetName()));
             calcTH1AbsMax4SysUnc(hSysMax[i], hSysp[i], hSysm[i]);
         }
-
-        hStack[i] = new THStack(Form("hStack%d", i), "");
 
         // print info about histograms
         std::cout << "#####" << std::endl;
@@ -1295,6 +1304,43 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 h[i]->Fit(f1.GetName(), fitOption.c_str());
             }
         }
+
+        if (isGrAErr[i]) {
+            grAErr[i]->SetTitle(h[i]->GetTitle());
+            grAErr[i]->GetXaxis()->SetTitle(h[i]->GetXaxis()->GetTitle());
+            grAErr[i]->GetYaxis()->SetTitle(h[i]->GetYaxis()->GetTitle());
+            grAErr[i]->SetMarkerStyle(h[i]->GetMarkerStyle());
+            grAErr[i]->SetLineStyle(h[i]->GetLineStyle());
+            grAErr[i]->SetFillStyle(h[i]->GetFillStyle());
+            grAErr[i]->SetMarkerColor(h[i]->GetMarkerColor());
+            grAErr[i]->SetLineColor(h[i]->GetLineColor());
+            grAErr[i]->SetFillColor(h[i]->GetFillColor());
+            if (fillAlpha != -1 && fillColor != -1) {
+                grAErr[i]->SetFillColorAlpha(fillColor, fillAlpha);
+            }
+            grAErr[i]->SetLineWidth(h[i]->GetLineWidth());
+            grAErr[i]->SetMarkerSize(h[i]->GetMarkerSize());
+            if (xMaxTmp > xMinTmp) {
+                grAErr[i]->GetXaxis()->SetRangeUser(xMinTmp, xMaxTmp);
+            }
+            if (yMaxTmp > yMinTmp)  {
+                grAErr[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
+            }
+            grAErr[i]->GetXaxis()->SetTitleSize(h[i]->GetXaxis()->GetTitleSize());
+            grAErr[i]->GetYaxis()->SetTitleSize(h[i]->GetYaxis()->GetTitleSize());
+
+            grAErr[i]->GetXaxis()->SetTitleOffset(h[i]->GetXaxis()->GetTitleOffset());
+            grAErr[i]->GetYaxis()->SetTitleOffset(h[i]->GetYaxis()->GetTitleOffset());
+
+            grAErr[i]->GetXaxis()->CenterTitle(h[i]->GetXaxis()->GetCenterTitle());
+            grAErr[i]->GetYaxis()->CenterTitle(h[i]->GetYaxis()->GetCenterTitle());
+
+            grAErr[i]->GetXaxis()->SetLabelSize(h[i]->GetXaxis()->GetLabelSize());
+            grAErr[i]->GetYaxis()->SetLabelSize(h[i]->GetYaxis()->GetLabelSize());
+
+            grAErr[i]->GetXaxis()->SetLabelOffset(h[i]->GetXaxis()->GetLabelOffset());
+            grAErr[i]->GetYaxis()->SetLabelOffset(h[i]->GetYaxis()->GetLabelOffset());
+        }
     }
 
     TCanvas* c = 0;
@@ -1421,7 +1467,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
         else if (nDrawOptions == nHistos) drawOption = drawOptions.at(iHist).c_str();
 
-        if (!hDrawn[iHist]) {
+        bool isTH1 = !isGrAErr[i];
+
+        if (isTH1 && !hDrawn[iHist]) {
              int indexPad = TH1_padIndices.at(iHist);
              c->cd(indexPad+1);
              if (containsClassInstance(pads[indexPad], "TH1"))
@@ -1440,6 +1488,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::string drawOption = "";
         if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
         else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
+
+        bool isTH1 = !isGrAErr[i];
 
         if (!containsClassInstance(pads[indexPad], "TH1")) {
             hTmp = (TH1D*)h[i]->Clone();
@@ -1464,7 +1514,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 drawSysUncBoxes(grErr, h[i], hSysm[i], hSysp[i], false);
             }
 
-            h[i]->Draw(Form("%s same", drawOption.c_str()));
+            if (isTH1) {
+                h[i]->Draw(Form("%s same", drawOption.c_str()));
+            }
+            else {
+                grAErr[i]->Draw(Form("%s same", drawOption.c_str()));
+            }
             hDrawn[i] = true;
         }
 
@@ -1476,7 +1531,14 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (drawOption.find("hist") != std::string::npos)  legendOption = "lf";
         int legIndex = -1;
         if (nHistos == nLegendEntryLabels) legIndex = legendEntryPadIndices.at(i);
-        if (legIndex > -1)  legs[legIndex]->AddEntry(h[i], label.c_str(), legendOption.c_str());
+        if (legIndex > -1) {
+            if (isTH1)  {
+                legs[legIndex]->AddEntry(h[i], label.c_str(), legendOption.c_str());
+            }
+            else {
+                legs[legIndex]->AddEntry(grAErr[i], label.c_str(), legendOption.c_str());
+            }
+        }
     }
 
     for (int iPad = 0; iPad < nPads; ++iPad) {
