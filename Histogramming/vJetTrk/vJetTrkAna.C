@@ -207,6 +207,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
 
+    int nmixMax = (ArgumentParser::optionExists("--nmixMax", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--nmixMax", argOptions).c_str()) : 999999;
+    int nmixMin = (ArgumentParser::optionExists("--nmixMin", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--nmixMin", argOptions).c_str()) : 1;
+
     int rndVPhi = (ArgumentParser::optionExists("--rndVPhi", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--rndVPhi", argOptions).c_str()) : 0;
     bool doRndVPhi = (rndVPhi > 0);
@@ -250,6 +255,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
+    if (nmixMax != 999999) {
+        std::cout << "nmixMax = " << nmixMax << std::endl;
+    }
+    if (nmixMin != 1) {
+        std::cout << "nmixMin = " << nmixMin << std::endl;
+    }
     if (doRndVPhi) {
         std::cout << "rndVPhi = " << rndVPhi << std::endl;
     }
@@ -2382,13 +2393,23 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 treeEvtSkim->GetEntry(j_entry);
                 treeHiEvtMix->GetEntry(j_entry);
 
-                if (isPbPb && anaTrks && mixEvents.nmix == 0)  {
-                    std::cout << "WARNING : no mixed event for j_entry = " << j_entry
-                              << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
-                    std::cout << "skipping event " << std::endl;
-                    entriesNoMixEvt++;
-                    continue;  // TODO : remove isPbPb or nmix requirement
+                if (isPbPb && anaTrks)  {
+                    if ( mixEvents.nmix > nmixMax ) {
+                        std::cout << "WARNING : mixEvents.nmix = " << mixEvents.nmix << " is above max. j_entry = " << j_entry
+                                  << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
+                        std::cout << "skipping event " << std::endl;
+                        entriesNoMixEvt++;
+                        continue;
+                    }
+                    if ( mixEvents.nmix < nmixMin ) {
+                        std::cout << "WARNING : mixEvents.nmix = " << mixEvents.nmix << " is below min. j_entry = " << j_entry
+                                << " , run = " << hiEvt.run << " , hiEvt.lumi = " << hiEvt.lumi << " , hiEvt.evt = " << hiEvt.evt << std::endl;
+                        std::cout << "skipping event " << std::endl;
+                        entriesNoMixEvt++;
+                        continue;
+                    }
                 }
+
                 if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
                     continue;
                 }
