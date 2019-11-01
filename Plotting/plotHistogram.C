@@ -1038,6 +1038,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     for (int i=0; i<nHistos; ++i) {
         int indexPad = TH1_padIndices.at(i);
 
+        float xMinTmp = xMin.at(0);
+        if (nxMin == nPads) xMinTmp = xMin.at(indexPad);
+        float xMaxTmp = xMax.at(0);
+        if (nxMax == nPads) xMaxTmp = xMax.at(indexPad);
+        if (xMaxTmp > xMinTmp)       h[i]->GetXaxis()->SetRangeUser(xMinTmp, xMaxTmp);
+
         int drawNormalizedTmp = drawNormalized.at(0);
         if (nDrawNormalized == nHistos) drawNormalizedTmp = drawNormalized.at(i);
         if (drawNormalizedTmp == INPUT_TH1::k_normInt)  h[i]->Scale(1./h[i]->Integral());
@@ -1209,18 +1215,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nMarkerSizes == nHistos) markerSize = markerSizes.at(i);
         h[i]->SetMarkerSize(markerSize);
 
-        float xMinTmp = xMin.at(0);
-        if (nxMin == nPads) xMinTmp = xMin.at(indexPad);
-        float xMaxTmp = xMax.at(0);
-        if (nxMax == nPads) xMaxTmp = xMax.at(indexPad);
-        if (xMaxTmp > xMinTmp)       h[i]->GetXaxis()->SetRangeUser(xMinTmp, xMaxTmp);
-
         float yMinTmp = yMin.at(0);
         if (nyMin == nPads) yMinTmp = yMin.at(indexPad);
         float yMaxTmp = yMax.at(0);
         if (nyMax == nPads) yMaxTmp = yMax.at(indexPad);
         if (yMaxTmp > yMinTmp)       h[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
-
 
         float titleSizeX = -1;
         if (nTitleSizesX == 1)  titleSizeX = titleSizesX.at(0);
