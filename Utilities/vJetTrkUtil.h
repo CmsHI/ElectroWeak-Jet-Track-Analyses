@@ -189,6 +189,7 @@ void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
         t->SetBranchStatus("Npart",1);
         t->SetBranchStatus("Ncoll",1);
         t->SetBranchStatus("Nhard",1);
+        t->SetBranchStatus("phi0",1);
     }
 }
 
