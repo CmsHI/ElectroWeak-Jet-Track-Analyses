@@ -771,6 +771,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dphi_EPn1_trk[nCents][nVPts][nTrkPts];
     TH1D* h_dphi_EPn2_trk[nCents][nVPts][nTrkPts];
     TH1D* h_dphi_EPn3_trk[nCents][nVPts][nTrkPts];
+    TH1D* h_dphi_EPn2_trk_noDphi[nCents][nVPts][nTrkPts];
     TH2D* h2_deta_vs_trkPt[nCents][nVPts];
     TH2D* h2_deta_h1_vs_trkPt[nCents][nVPts];
 
@@ -1400,6 +1401,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     h_dphi_EPn3_trk[i][j][k] = new TH1D(name_h_dphi_EPn3_trk.c_str(), title_h_dphi_EPn3_trk.c_str(),
                             nBinsX_dphi, 0, xMax_phi);
 
+                    std::string title_h_suffixNoDphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
+                            text_range_trkPt.c_str(),
+                            text_range_trkEta.c_str(),
+                            text_range_deta.c_str(),
+                            text_range_cent.c_str());
+
+                    std::string name_h_dphi_EPn2_trk_noDphi = Form("h_dphi_EPn2_trk_noDphi_%s", name_h_suffix.c_str());
+                    std::string title_h_dphi_EPn2_trk_noDphi = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffixNoDphi.c_str(),
+                            text_trk.c_str());
+
+                    h_dphi_EPn2_trk_noDphi[i][j][k] = 0;
+                    h_dphi_EPn2_trk_noDphi[i][j][k] = new TH1D(name_h_dphi_EPn2_trk_noDphi.c_str(), title_h_dphi_EPn2_trk_noDphi.c_str(),
+                            nBinsX_dphi, 0, xMax_phi);
+
                     title_h_suffix_dphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
                             text_range_trkPt.c_str(),
                             text_range_trkEta.c_str(),
@@ -1562,13 +1577,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             nBinsX_eta, -1*xMax_eta, xMax_eta,
                             nBinsX_dphi, -1*xMax_phi, xMax_phi);
                     vec_h2D.push_back(h2_trkPhi_vs_trkEta[i][j][k]);
-
-
-                    std::string title_h_suffixNoDphi = Form("%s, %s, %s, %s, %s", text_range_vPt.c_str(),
-                            text_range_trkPt.c_str(),
-                            text_range_trkEta.c_str(),
-                            text_range_deta.c_str(),
-                            text_range_cent.c_str());
 
                     std::string name_h2_trkPhi_vs_trkEta_noDphi = Form("h2_trkPhi_vs_trkEta_noDphi_%s", name_h_suffix.c_str());
                     std::string title_h2_trkPhi_vs_trkEta_noDphi = Form("%s;%s;%s", title_h_suffixNoDphi.c_str(),
@@ -3342,6 +3350,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_dphi_vs_l1Phi[iCent][iVPt][iTrkPt]->Fill(llPhi[0], dphi, wTrk);
                             h2_dphi_vs_l2Phi[iCent][iVPt][iTrkPt]->Fill(llPhi[1], dphi, wTrk);
 
+                            h_dphi_EPn2_trk_noDphi[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.hiEvtPlanes[8])), wTrk);
                             h2_trkPhi_vs_trkEta_noDphi[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
