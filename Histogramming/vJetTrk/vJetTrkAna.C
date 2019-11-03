@@ -2728,10 +2728,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent0) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent0));
             }
 
+            double wV_recoeff = 1;
             if (doWeightsV) {
-                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
-                wV *= getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
+                if (isRecoV) {
+                    int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
+                    wV_recoeff = getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
+                }
             }
+            wV *= wV_recoeff;
+
             if (doWeightsEP) {
                 int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
                 int binMinTmp = 0;
@@ -2782,18 +2787,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 double genVYAbs = std::fabs(genVY);
 
+                double wV_gen = wV / wV_recoeff;
+
                 for (int i = 0; i < nCents; ++i) {
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
-                    h2_reco_denom_vPt_vs_vY[i]->Fill(genVY, genVPt, wV);
+                    h2_reco_denom_vPt_vs_vY[i]->Fill(genVY, genVPt, wV_gen);
                     if (matchedRG) {
                         h2_reco_num_vPt_vs_vY[i]->Fill(genVY, genVPt, wV);
                     }
 
                     if (vYMin <= genVYAbs && genVYAbs < vYMax) {
 
-                        h_reco_denom_vPt[i]->Fill(genVPt, wV);
+                        h_reco_denom_vPt[i]->Fill(genVPt, wV_gen);
                         if (matchedRG) {
                             h_reco_num_vPt[i]->Fill(genVPt, wV);
 
@@ -2806,13 +2813,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!(vPtsMin[j] <= genVPt && genVPt < vPtsMax[j]))  continue;
 
-                        h_reco_denom_vY[i][j]->Fill(genVY, wV);
+                        h_reco_denom_vY[i][j]->Fill(genVY, wV_gen);
                         if (matchedRG) {
                             h_reco_num_vY[i][j]->Fill(genVY, wV);
                         }
 
                         if (vYMin <= genVYAbs && genVYAbs < vYMax) {
-                            h_reco_denom_vPhi[i][j]->Fill(genVPhi, wV);
+                            h_reco_denom_vPhi[i][j]->Fill(genVPhi, wV_gen);
                             if (matchedRG) {
                                 h_reco_num_vPhi[i][j]->Fill(genVPhi, wV);
                             }
@@ -2826,7 +2833,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (vYMin <= genVYAbs && genVYAbs < vYMax) {
 
-                        h_reco_denom_cent[j]->Fill(cent, wV);
+                        h_reco_denom_cent[j]->Fill(cent, wV_gen);
                         if (matchedRG) {
                             h_reco_num_cent[j]->Fill(cent, wV);
                         }
