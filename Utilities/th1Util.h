@@ -74,8 +74,12 @@ TH1* getResidualHistogram(TH1* h, TF1* fRef, bool normalize = false);
 TH1* getResidualHistogram(TH1* h, TF1* fRef, double xMin, double xMax, bool normalize = false);
 TH1* getPullHistogram(TH1* h, TF1* fRef);
 TH1* getPullHistogram(TH1* h, TF1* fRef, double xMin, double xMax);
-double getTH1Chi2(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
-double getTH1Chi2Prob(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
+double getTH1Chi2(TH1* h1, TH1* h2, double min = 0, double max = -1, bool minmaxValueisX = true);
+double getTH1Chi2MinMaxX(TH1* h1, TH1* h2, double xMin = 0, double xMax = -1);
+double getTH1Chi2MinMaxBin(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
+double getTH1Chi2Prob(TH1* h1, TH1* h2, double min = 0, double max = -1, bool minmaxValueisX = true);
+double getTH1Chi2ProbMinMaxX(TH1* h1, TH1* h2, double xMin = 0, double xMax = -1);
+double getTH1Chi2ProbMinMaxBin(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
 double getErrorOnIntegralFraction(TH1D* h, double fraction);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
@@ -1008,7 +1012,29 @@ TH1* getPullHistogram(TH1* h, TH1* hRef, double xMin, double xMax)
     return getResidualHistogram(h, hRef, xMin, xMax, true);
 }
 
-double getTH1Chi2(TH1* h1, TH1* h2, int binStart, int binEnd)
+double getTH1Chi2(TH1* h1, TH1* h2, double min, double max, bool minmaxValueisX)
+{
+    if (minmaxValueisX) {
+        return getTH1Chi2MinMaxX(h1, h2, min, max);
+    }
+    else {
+        return getTH1Chi2MinMaxBin(h1, h2, (int)min, (int)max);
+    }
+}
+
+double getTH1Chi2MinMaxX(TH1* h1, TH1* h2, double xMin, double xMax)
+{
+    int bin1 = 0;
+    int bin2 = -1;
+    if (xMax > xMin) {
+        bin1 = h1->GetXaxis()->FindBin(xMin);
+        bin2 = h1->GetXaxis()->FindBin(xMax);
+    }
+
+    return getTH1Chi2MinMaxBin(h1, h2, (int)bin1, (int)bin2);
+}
+
+double getTH1Chi2MinMaxBin(TH1* h1, TH1* h2, int binStart, int binEnd)
 {
     int nBins1 = h1->GetNbinsX();
     int nBins2 = h2->GetNbinsX();
@@ -1039,14 +1065,36 @@ double getTH1Chi2(TH1* h1, TH1* h2, int binStart, int binEnd)
     return res;
 }
 
-double getTH1Chi2Prob(TH1* h1, TH1* h2, int binStart, int binEnd)
+double getTH1Chi2Prob(TH1* h1, TH1* h2, double min, double max, bool minmaxValueisX)
+{
+    if (minmaxValueisX) {
+        return getTH1Chi2ProbMinMaxX(h1, h2, min, max);
+    }
+    else {
+        return getTH1Chi2ProbMinMaxBin(h1, h2, (int)min, (int)max);
+    }
+}
+
+double getTH1Chi2ProbMinMaxX(TH1* h1, TH1* h2, double xMin, double xMax)
+{
+    int bin1 = 0;
+    int bin2 = -1;
+    if (xMax > xMin) {
+        bin1 = h1->GetXaxis()->FindBin(xMin);
+        bin2 = h1->GetXaxis()->FindBin(xMax);
+    }
+
+    return getTH1Chi2ProbMinMaxBin(h1, h2, (int)bin1, (int)bin2);
+}
+
+double getTH1Chi2ProbMinMaxBin(TH1* h1, TH1* h2, int binStart, int binEnd)
 {
     if (binStart > binEnd) {
         binStart = 1;
         binEnd = h1->GetNbinsX();
     }
     int ndf = binEnd - binStart + 1;
-    double chi2Tmp = getTH1Chi2(h1, h2, binStart, binEnd);
+    double chi2Tmp = getTH1Chi2MinMaxBin(h1, h2, binStart, binEnd);
 
     return TMath::Prob(chi2Tmp, ndf);
 }
