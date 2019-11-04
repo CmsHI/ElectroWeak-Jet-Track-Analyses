@@ -844,6 +844,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double xMax_trkPt = 30;
     double xMax_phi = TMath::Pi()+1e-12;
     double xMax_eta = 2.6;
+
+    double binW_vPt = xMax_vPt / nBinsX_vPt;
+    std::vector<double> binsX_vPt_rebin;
+    for (double binLowEdge = 0; binLowEdge < 40; binLowEdge += binW_vPt) {
+        binsX_vPt_rebin.push_back(binLowEdge);
+    }
+    std::vector<double> binsX_vPt_high = {40, 50, 60, 80, 100, 150};
+    binsX_vPt_rebin.insert(binsX_vPt_rebin.end(), binsX_vPt_high.begin(), binsX_vPt_high.end());
+
     for (int i = 0; i < nCents; ++i) {
 
         std::string label_cent = Form("cent%d_%d", centsMin[i], centsMax[i]);
@@ -3506,12 +3515,27 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "rebin" << std::endl;
     for (int i = 0; i < nCents; ++i) {
-        for (int j = 0; j < nVPts; ++j) {
+        std::string tmpName;
+        double binW = 0;
+        std::vector<double> binsX;
+        int nBinsX = 0;
 
-            std::string tmpName;
-            double binW = 0;
-            std::vector<double> binsX;
-            int nBinsX = 0;
+        binsX = binsX_vPt_rebin;
+        nBinsX = binsX.size()-1;
+
+        double arr_vPt[nBinsX+1];
+        std::copy(binsX.begin(), binsX.end(), arr_vPt);
+
+        tmpName = replaceAll(h_vPt[i]->GetName(), "h_vPt", "h_vPt_rebin");
+        h1DTmp = (TH1D*)h_vPt[i]->Rebin(nBinsX, tmpName.c_str(), arr_vPt);
+        h1DTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceAll(tmpName.c_str(), "h_vPt_rebin", "h_vPt_rebin_normBinW");
+        h1DTmp->SetName(tmpName.c_str());
+        h1DTmp->Scale(1, "width");
+        h1DTmp->Write("",TObject::kOverwrite);
+
+        for (int j = 0; j < nVPts; ++j) {
 
             if (anaTrks) {
                 // rebin trkPt
