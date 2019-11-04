@@ -145,7 +145,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", true, "Corrections/tracks/2018PbPb/");
 
-    TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/2017pp/");
+    TrkEff2017pp trkEff2017 =  TrkEff2017pp(true, "Corrections/tracks/2017pp/");
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
