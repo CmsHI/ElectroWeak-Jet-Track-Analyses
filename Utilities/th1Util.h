@@ -365,8 +365,8 @@ void setBinErrorsPartialCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom)
 
 /*
  * correlation index
- * 1 : complete correlation
- * 2 : partial correlation
+ * 0 : complete correlation
+ * 1 : partial correlation
  */
 void setBinErrorsCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom, int correlationIndex)
 {
@@ -433,8 +433,8 @@ void setBinErrorsPartialCorr4Diff(TH1D* hDiff, TH1D* h1, TH1D* h2)
 
 /*
  * correlation index
- * 1 : complete correlation
- * 2 : partial correlation
+ * 0 : complete correlation
+ * 1 : partial correlation
  */
 void setBinErrorsCorr4Diff(TH1D* hDiff, TH1D* h1, TH1D* h2, int correlationIndex)
 {
