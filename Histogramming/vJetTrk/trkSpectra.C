@@ -30,6 +30,7 @@
 #include "../../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/systemUtil.h"
 #include "../../Utilities/eventUtil.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
@@ -75,12 +76,24 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     double jetptMin = (ArgumentParser::optionExists("--jetptMin", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--jetptMin", argOptions).c_str()) : 50;
 
+    std::string th1NamesStr = (ArgumentParser::optionExists("--th1Names", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--th1Names", argOptions).c_str() : "phi,phi_vs_eta";
+    // runs all histograms if "th1Names" is not specified
+
+    std::vector<std::string> th1Names = split(th1NamesStr, ",", false, false);
+    int nTh1Names = th1Names.size();
+
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
     std::cout << "anajets  = " << anajets << std::endl;
     std::cout << "jetptMin  = " << jetptMin << std::endl;
+
+    std::cout << "nTh1Names = " << nTh1Names << std::endl;
+    for (int i = 0; i < nTh1Names; ++i) {
+        std::cout << Form("th1Names[%d] = %s", i, th1Names[i].c_str()) << std::endl;
+    }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -99,11 +112,17 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     bool isPP15 = isPP && (sampleType.find("2015") != std::string::npos);
     bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
 
+    bool do_phi = containsElement(th1Names, "phi");
+    bool do_phi_vs_eta = containsElement(th1Names, "phi_vs_eta");
+
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb15 = " << isPbPb15 << std::endl;
     std::cout << "isPbPb18 = " << isPbPb18 << std::endl;
     std::cout << "isPP15 = " << isPP15 << std::endl;
     std::cout << "isPP17 = " << isPP17 << std::endl;
+
+    std::cout << "do_phi = " << do_phi << std::endl;
+    std::cout << "do_phi_vs_eta = " << do_phi_vs_eta << std::endl;
 
     bool shiftHibin = (isPbPb18 && isMC && false);
     if (shiftHibin) {
@@ -178,83 +197,87 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string text_trkEta = Form("#eta^{%s}", text_trk.c_str());
     std::string text_trkPhi = Form("#phi^{%s}", text_trk.c_str());
 
-    for (int i = 0; i < nBinsPt; ++i) {
+    if (do_phi) {
+        for (int i = 0; i < nBinsPt; ++i) {
 
-        double trkPtMin = trkPts[i];
-        double trkPtMax = trkPts[i+1];
+            double trkPtMin = trkPts[i];
+            double trkPtMax = trkPts[i+1];
 
-        std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
+            std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
 
-        for (int j = 0; j < nBinsEta; ++j) {
+            for (int j = 0; j < nBinsEta; ++j) {
 
-            double trkEtaMin = trkEtasMin[j]-widthEta;
-            double trkEtaMax = trkEtasMin[j];
+                double trkEtaMin = trkEtasMin[j]-widthEta;
+                double trkEtaMax = trkEtasMin[j];
 
-            std::string text_range_trkEta = Form("%.1f < %s < %.1f", trkEtaMin, text_trkEta.c_str(), trkEtaMax);
+                std::string text_range_trkEta = Form("%.1f < %s < %.1f", trkEtaMin, text_trkEta.c_str(), trkEtaMax);
 
-            for (int k = 0; k < nBinsCent; ++k) {
+                for (int k = 0; k < nBinsCent; ++k) {
 
-                int hiBinMin = hiBinsMin[k]-widthCent;
-                int hiBinMax = hiBinsMin[k];
+                    int hiBinMin = hiBinsMin[k]-widthCent;
+                    int hiBinMax = hiBinsMin[k];
 
-                std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
+                    std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
 
-                std::string title_h_suffix = Form("%s, %s, %s",
-                                                            text_range_trkPt.c_str(),
-                                                            text_range_trkEta.c_str(),
-                                                            text_range_hiBin.c_str());
+                    std::string title_h_suffix = Form("%s, %s, %s",
+                                                                text_range_trkPt.c_str(),
+                                                                text_range_trkEta.c_str(),
+                                                                text_range_hiBin.c_str());
 
-                std::string title_h_trkPhi = Form("%s;%s;", title_h_suffix.c_str(),
-                                                            text_trkPhi.c_str());
+                    std::string title_h_trkPhi = Form("%s;%s;", title_h_suffix.c_str(),
+                                                                text_trkPhi.c_str());
 
-                std::string name_h_suffix = Form("iPt_%d_iEta_%d_iCent_%d", i, j, k);
-                std::string name_h_trkPhi = Form("h_trkPhi_%s", name_h_suffix.c_str());
+                    std::string name_h_suffix = Form("iPt_%d_iEta_%d_iCent_%d", i, j, k);
+                    std::string name_h_trkPhi = Form("h_trkPhi_%s", name_h_suffix.c_str());
 
-                h_trkPhi[i][j][k] = 0;
-                h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), nBinsX_phi, -1*xMax_phi, xMax_phi);
+                    h_trkPhi[i][j][k] = 0;
+                    h_trkPhi[i][j][k] = new TH1D(name_h_trkPhi.c_str(), title_h_trkPhi.c_str(), nBinsX_phi, -1*xMax_phi, xMax_phi);
 
-                h_trkPhi[i][j][k]->SetMarkerStyle(kFullCircle);
+                    h_trkPhi[i][j][k]->SetMarkerStyle(kFullCircle);
 
-                vec_h.push_back(h_trkPhi[i][j][k]);
+                    vec_h.push_back(h_trkPhi[i][j][k]);
+                }
             }
         }
     }
 
-    for (int i = 0; i < nBinsPtRG; ++i) {
+    if (do_phi_vs_eta) {
+        for (int i = 0; i < nBinsPtRG; ++i) {
 
-        double trkPtMin = rgPts[i];
-        double trkPtMax = rgPts[i+1];
+            double trkPtMin = rgPts[i];
+            double trkPtMax = rgPts[i+1];
 
-        std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
+            std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
 
-        for (int k = 0; k < nBinsCentRG; ++k) {
+            for (int k = 0; k < nBinsCentRG; ++k) {
 
-            int hiBinMin = (k == 0) ? 0 : (hiBinsMinRG[k-1]);
-            int hiBinMax = hiBinsMinRG[k];
+                int hiBinMin = (k == 0) ? 0 : (hiBinsMinRG[k-1]);
+                int hiBinMax = hiBinsMinRG[k];
 
-            std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
+                std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
 
-            std::string title_h_suffix = Form("%s, %s", text_range_trkPt.c_str(),
-                                                        text_range_hiBin.c_str());
+                std::string title_h_suffix = Form("%s, %s", text_range_trkPt.c_str(),
+                                                            text_range_hiBin.c_str());
 
-            std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
-                                                        text_trkEta.c_str(),
-                                                        text_trkPhi.c_str());
+                std::string title_h2_trkPhi_vs_trkEta = Form("%s;%s;%s", title_h_suffix.c_str(),
+                                                            text_trkEta.c_str(),
+                                                            text_trkPhi.c_str());
 
-            std::string name_h_suffix = Form("iPt_%d_iCent_%d", i, k);
+                std::string name_h_suffix = Form("iPt_%d_iCent_%d", i, k);
 
-            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+                for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-                std::string name_h2_phi_vs_eta = Form("h2_phi_vs_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+                    std::string name_h2_phi_vs_eta = Form("h2_phi_vs_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
 
-                h2_phi_vs_eta[i][k][iRG] = 0;
-                h2_phi_vs_eta[i][k][iRG] = new TH2D(name_h2_phi_vs_eta.c_str(), title_h2_trkPhi_vs_trkEta.c_str(),
-                                                                                nBinsX_eta, -1*xMax_eta, xMax_eta,
-                                                                                nBinsX_phi, -1*xMax_phi, xMax_phi);
+                    h2_phi_vs_eta[i][k][iRG] = 0;
+                    h2_phi_vs_eta[i][k][iRG] = new TH2D(name_h2_phi_vs_eta.c_str(), title_h2_trkPhi_vs_trkEta.c_str(),
+                                                                                    nBinsX_eta, -1*xMax_eta, xMax_eta,
+                                                                                    nBinsX_phi, -1*xMax_phi, xMax_phi);
 
-                h2_phi_vs_eta[i][k][iRG]->SetMarkerStyle(kFullCircle);
-                vec_h.push_back(h2_phi_vs_eta[i][k][iRG]);
+                    h2_phi_vs_eta[i][k][iRG]->SetMarkerStyle(kFullCircle);
+                    vec_h.push_back(h2_phi_vs_eta[i][k][iRG]);
 
+                }
             }
         }
     }
@@ -606,17 +629,21 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 double wTrk = w * trkWeightTmp;
                 double wTrkEff = w * trkWeightEffTmp;
 
-                int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts, nBinsPt);
-                int iTrkEta = getBinEta4TrkW(trks.trkEta[i], trkEtasMin, nBinsEta);
-                if (iTrkPt >= 0 && iTrkEta >= 0 && iCent >= 0) {
-                    h_trkPhi[iTrkPt][iTrkEta][iCent]->Fill(trks.trkPhi[i], wTrk);
+                if (do_phi) {
+                    int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts, nBinsPt);
+                    int iTrkEta = getBinEta4TrkW(trks.trkEta[i], trkEtasMin, nBinsEta);
+                    if (iTrkPt >= 0 && iTrkEta >= 0 && iCent >= 0) {
+                        h_trkPhi[iTrkPt][iTrkEta][iCent]->Fill(trks.trkPhi[i], wTrk);
+                    }
                 }
 
-                int iPtRG = getBinPt4TrkW(trks.trkPt[i], rgPts, nBinsPtRG);
-                if (iPtRG >= 0 && iCentRG >= 0) {
-                    h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoEffCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrkEff);
-                    h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrk);
-                    h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoUncorr]->Fill(trks.trkEta[i], trks.trkPhi[i], w);
+                if (do_phi_vs_eta) {
+                    int iPtRG = getBinPt4TrkW(trks.trkPt[i], rgPts, nBinsPtRG);
+                    if (iPtRG >= 0 && iCentRG >= 0) {
+                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoEffCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrkEff);
+                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrk);
+                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoUncorr]->Fill(trks.trkEta[i], trks.trkPhi[i], w);
+                    }
                 }
             }
 
@@ -628,9 +655,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
                     if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
 
-                    int iPtRG = getBinPt4TrkW((*hiGen.pt)[i], rgPts, nBinsPtRG);
-                    if (iPtRG >= 0 && iCentRG >= 0) {
-                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
+                    if (do_phi_vs_eta) {
+                        int iPtRG = getBinPt4TrkW((*hiGen.pt)[i], rgPts, nBinsPtRG);
+                        if (iPtRG >= 0 && iCentRG >= 0) {
+                            h2_phi_vs_eta[iPtRG][iCentRG][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
+                        }
                     }
                 }
             }
