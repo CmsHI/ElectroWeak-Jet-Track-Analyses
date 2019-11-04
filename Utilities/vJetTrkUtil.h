@@ -152,6 +152,10 @@ std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax)
 double getSFweight(bool isMu, double pt, double eta, int cent);
 int parseLepSysIndex(std::string sys_label);
 double getLepSysVar(bool isMu, int sys_index, double pt, double eta, int cent);
+// user interaction
+std::vector<double> parseRanges(std::string rangesStr, int indexMinMax);
+std::vector<double> parseRangesMin(std::string rangesStr);
+std::vector<double> parseRangesMax(std::string rangesStr);
 // histogram util
 double parseVPtMin(std::string histPath);
 double parseVPtMax(std::string histPath);
@@ -1045,6 +1049,30 @@ double getLepSysVar(bool isMu, int sys_index, double pt, double eta, int cent)
     else {
         return eleSys::get_unc(sys_index, pt, eta, cent);
     }
+}
+
+std::vector<double> parseRanges(std::string rangesStr, int indexMinMax)
+{
+    std::vector<std::string> vecStr = split(rangesStr, ",", false, false);
+
+    std::vector<double> res;
+    for (std::vector<std::string>::const_iterator it = vecStr.begin(); it != vecStr.end(); ++it) {
+        std::vector<std::string> vecStrTmp = split((*it), ":");
+
+        res.push_back(std::atof(vecStrTmp[indexMinMax].c_str()));
+    }
+
+    return res;
+}
+
+std::vector<double> parseRangesMin(std::string rangesStr)
+{
+    return parseRanges(rangesStr, 0);
+}
+
+std::vector<double> parseRangesMax(std::string rangesStr)
+{
+    return parseRanges(rangesStr, 1);
 }
 
 /*

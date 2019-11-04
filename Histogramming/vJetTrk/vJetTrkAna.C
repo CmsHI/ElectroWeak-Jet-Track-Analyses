@@ -79,9 +79,6 @@ std::vector<std::string> argOptions;
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
 int parseRecoObj(std::string recoObjStr);
-std::vector<double> parseRanges(std::string rangesStr, int indexMinMax);
-std::vector<double> parseRangesMin(std::string rangesStr);
-std::vector<double> parseRangesMax(std::string rangesStr);
 std::string parseVersionResidualTrkW(std::string path);
 void vJetTrkAna(std::string configFile, std::string inputFile, std::string outputFile = "vJetTrkAna.root");
 void vJetTrkAnaNoLoop(std::string configFile, std::string inputFile, std::string outputFile = "vJetTrkAna.root");
@@ -3784,30 +3781,6 @@ int parseRecoObj(std::string recoObjStr)
     else {
         return -1;
     }
-}
-
-std::vector<double> parseRanges(std::string rangesStr, int indexMinMax)
-{
-    std::vector<std::string> vecStr = split(rangesStr, ",", false, false);
-
-    std::vector<double> res;
-    for (std::vector<std::string>::const_iterator it = vecStr.begin(); it != vecStr.end(); ++it) {
-        std::vector<std::string> vecStrTmp = split((*it), ":");
-
-        res.push_back(std::atof(vecStrTmp[indexMinMax].c_str()));
-    }
-
-    return res;
-}
-
-std::vector<double> parseRangesMin(std::string rangesStr)
-{
-    return parseRanges(rangesStr, 0);
-}
-
-std::vector<double> parseRangesMax(std::string rangesStr)
-{
-    return parseRanges(rangesStr, 1);
 }
 
 std::string parseVersionResidualTrkW(std::string path)
