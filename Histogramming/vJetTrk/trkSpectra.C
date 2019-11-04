@@ -79,9 +79,16 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string th1NamesStr = (ArgumentParser::optionExists("--th1Names", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--th1Names", argOptions).c_str() : "phi,phi_vs_eta";
     // runs all histograms if "th1Names" is not specified
-
     std::vector<std::string> th1Names = split(th1NamesStr, ",", false, false);
     int nTh1Names = th1Names.size();
+
+    std::string centRangesStr = (ArgumentParser::optionExists("--cents", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--cents", argOptions).c_str() : "";  // "0:30,30:100"
+    std::vector<double> centsMinTmp = parseRangesMin(centRangesStr);
+    std::vector<double> centsMaxTmp = parseRangesMax(centRangesStr);
+    std::vector<int> centsMin(centsMinTmp.begin(), centsMinTmp.end());
+    std::vector<int> centsMax(centsMaxTmp.begin(), centsMaxTmp.end());
+    int nCents = centsMin.size();
 
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
@@ -93,6 +100,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "nTh1Names = " << nTh1Names << std::endl;
     for (int i = 0; i < nTh1Names; ++i) {
         std::cout << Form("th1Names[%d] = %s", i, th1Names[i].c_str()) << std::endl;
+    }
+
+    std::cout << "nCents = " << nCents << std::endl;
+    for (int i = 0; i < nCents; ++i) {
+        std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
@@ -153,6 +165,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     // initialize objects
     TH1::SetDefaultSumw2();
 
+    TH1* hTmp = 0;
+
     std::vector<TH1*> vec_h;
 
     std::vector<double> trkPts_phi = getVecPt4TrkW();
@@ -168,6 +182,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     TH1D* h_trkPhi[nBinsPt_phi][nBinsEta_phi][nBinsCent_phi];
 
+    std::string text_trk = "trk";
+    std::string text_trkPt = Form("p^{%s}_{T}", text_trk.c_str());
+    std::string text_trkEta = Form("#eta^{%s}", text_trk.c_str());
+    std::string text_trkPhi = Form("#phi^{%s}", text_trk.c_str());
+
     enum RG {
         k_Gen,
         k_RecoEffCorr,
@@ -177,6 +196,40 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     };
 
     std::string strRG[kN_RG] = {"gen", "trkEffCorr", "trkCorr", "trkUncorr"};
+
+    std::vector<double> wEvtTot(nCents, 0);
+    TH1D* h_pt[nCents][RG::kN_RG];
+
+    for (int i = 0; i < nCents; ++i) {
+
+        std::string label_cent = Form("cent%d_%d", centsMin[i], centsMax[i]);
+        std::string text_range_cent = Form("Cent:%d-%d %%", centsMin[i], centsMax[i]);
+        if (!isPbPb) {
+            label_cent = "cent0_100";
+            text_range_cent = "pp";
+        }
+        else if (centsMax[i] < centsMin[i]) {
+            label_cent = Form("cent%d_100", centsMin[i]);
+            text_range_cent = Form("Cent:%d-100 %%", centsMin[i]);
+        }
+
+        std::string name_h_pt = Form("h_pt_%s", label_cent.c_str());
+        std::string title_h_pt = Form("%s;%s;", text_range_cent.c_str(),
+                                                text_trkPt.c_str());
+
+        std::string name_h_suffix = label_cent;
+
+        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+
+            std::string name_h_pt = Form("h_pt_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+            h_pt[i][iRG] = 0;
+            h_pt[i][iRG] = new TH1D(name_h_pt.c_str(), title_h_pt.c_str(), 120, 0, 60);
+
+            h_pt[i][iRG]->SetMarkerStyle(kFullCircle);
+            vec_h.push_back(h_pt[i][iRG]);
+        }
+    }
 
     std::vector<double> pts_phieta = getVecPt4TrkWCoarse();
     int nBinsPt_phieta = pts_phieta.size()-1;
@@ -191,11 +244,6 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     int nBinsX_eta = 24;
     double xMax_eta = 2.4;
-
-    std::string text_trk = "trk";
-    std::string text_trkPt = Form("p^{%s}_{T}", text_trk.c_str());
-    std::string text_trkEta = Form("#eta^{%s}", text_trk.c_str());
-    std::string text_trkPhi = Form("#phi^{%s}", text_trk.c_str());
 
     if (do_phi) {
         for (int i = 0; i < nBinsPt_phi; ++i) {
@@ -358,6 +406,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
             }
+        }
+    }
+
+    // modify min/max for analysis
+    for (int i = 0; i < nCents; ++i) {
+        if (centsMax[i] < centsMin[i]) {
+            centsMax[i] = 999999;
         }
     }
 
@@ -584,6 +639,10 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            entriesAnalyzed++;
+
+            int cent = hiBin/2;
+
             if (isMC) {
                 w = hiEvt.weight;
                 double vertexWeight = 1;
@@ -601,10 +660,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 w *= vertexWeight * centWeight;
             }
 
+            for (int iCent = 0; iCent < nCents; ++iCent) {
+
+                if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
+
+                wEvtTot[iCent] += w;
+            }
+
             int iCent_phi = getBinCent4TrkW(hiBin, hiBinsMin_phi, nBinsCent_phi);
             int iCent_phieta = getBinCent4TrkW(hiBin, hiBinsMin_phieta, nBinsCent_phieta);
-
-            entriesAnalyzed++;
 
             for (int i = 0; i < trks.nTrk; ++i) {
 
@@ -628,6 +692,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 double wTrk = w * trkWeightTmp;
                 double wTrkEff = w * trkWeightEffTmp;
+
+                for (int iCent = 0; iCent < nCents; ++iCent) {
+
+                    if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
+
+                    h_pt[iCent][RG::k_RecoEffCorr]->Fill(trks.trkPt[i], wTrkEff);
+                    h_pt[iCent][RG::k_RecoCorr]->Fill(trks.trkPt[i], wTrk);
+                    h_pt[iCent][RG::k_RecoUncorr]->Fill(trks.trkPt[i], w);
+                }
 
                 if (do_phi) {
                     int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts_phi, nBinsPt_phi);
@@ -654,6 +727,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     if ( ((*hiGen.chg)[i] == 0) )  continue;
                     if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
                     if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
+
+                    for (int iCent = 0; iCent < nCents; ++iCent) {
+
+                        if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
+
+                        h_pt[iCent][RG::k_Gen]->Fill((*hiGen.pt)[i], w);
+                    }
 
                     if (do_phi_vs_eta) {
                         int iPt_phieta = getBinPt4TrkW((*hiGen.pt)[i], pts_phieta, nBinsPt_phieta);
@@ -778,7 +858,16 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     output->cd();
     std::cout << "### post loop processing - START ###" << std::endl;
+    for (int i = 0; i < nCents; ++i) {
+        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
+            std::string name_tmp_normEvt = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            hTmp->Scale(1./wEvtTot[i]);
+
+            hTmp->Write("",TObject::kOverwrite);
+        }
+    }
     std::cout << "### post loop processing - END ###" << std::endl;
 
     std::cout<<"Writing the output file."<<std::endl;
