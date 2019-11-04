@@ -155,18 +155,18 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::vector<TH1*> vec_h;
 
-    std::vector<double> trkPts = getVecPt4TrkW();
-    int nBinsPt = trkPts.size() - 1;
+    std::vector<double> trkPts_phi = getVecPt4TrkW();
+    int nBinsPt_phi = trkPts_phi.size() - 1;
 
-    std::vector<double> trkEtasMin = getVecEta4TrkW();
-    int nBinsEta = trkEtasMin.size();
-    double widthEta = (2.4*2) / nBinsEta;
+    std::vector<double> trkEtasMin_phi = getVecEta4TrkW();
+    int nBinsEta_phi = trkEtasMin_phi.size();
+    double widthEta_phi = (2.4*2) / nBinsEta_phi;
 
-    std::vector<int> hiBinsMin = getVecCent4TrkW();
-    int nBinsCent = hiBinsMin.size();
-    int widthCent = 200 / nBinsCent;
+    std::vector<int> hiBinsMin_phi = getVecCent4TrkW();
+    int nBinsCent_phi = hiBinsMin_phi.size();
+    int widthCent_phi = 200 / nBinsCent_phi;
 
-    TH1D* h_trkPhi[nBinsPt][nBinsEta][nBinsCent];
+    TH1D* h_trkPhi[nBinsPt_phi][nBinsEta_phi][nBinsCent_phi];
 
     enum RG {
         k_Gen,
@@ -178,13 +178,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::string strRG[kN_RG] = {"gen", "trkEffCorr", "trkCorr", "trkUncorr"};
 
-    std::vector<double> rgPts = getVecPt4TrkWCoarse();
-    int nBinsPtRG = rgPts.size()-1;
+    std::vector<double> pts_phieta = getVecPt4TrkWCoarse();
+    int nBinsPt_phieta = pts_phieta.size()-1;
 
-    std::vector<int> hiBinsMinRG = getVecCent4TrkWCoarse();
-    int nBinsCentRG = hiBinsMinRG.size();
+    std::vector<int> hiBinsMin_phieta = getVecCent4TrkWCoarse();
+    int nBinsCent_phieta = hiBinsMin_phieta.size();
 
-    TH2D* h2_phi_vs_eta[nBinsPtRG][nBinsCentRG][RG::kN_RG];
+    TH2D* h2_phi_vs_eta[nBinsPt_phieta][nBinsCent_phieta][RG::kN_RG];
 
     int nBinsX_phi = 20;
     double xMax_phi = TMath::Pi()+1e-12;
@@ -198,24 +198,24 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string text_trkPhi = Form("#phi^{%s}", text_trk.c_str());
 
     if (do_phi) {
-        for (int i = 0; i < nBinsPt; ++i) {
+        for (int i = 0; i < nBinsPt_phi; ++i) {
 
-            double trkPtMin = trkPts[i];
-            double trkPtMax = trkPts[i+1];
+            double trkPtMin = trkPts_phi[i];
+            double trkPtMax = trkPts_phi[i+1];
 
             std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
 
-            for (int j = 0; j < nBinsEta; ++j) {
+            for (int j = 0; j < nBinsEta_phi; ++j) {
 
-                double trkEtaMin = trkEtasMin[j]-widthEta;
-                double trkEtaMax = trkEtasMin[j];
+                double trkEtaMin = trkEtasMin_phi[j]-widthEta_phi;
+                double trkEtaMax = trkEtasMin_phi[j];
 
                 std::string text_range_trkEta = Form("%.1f < %s < %.1f", trkEtaMin, text_trkEta.c_str(), trkEtaMax);
 
-                for (int k = 0; k < nBinsCent; ++k) {
+                for (int k = 0; k < nBinsCent_phi; ++k) {
 
-                    int hiBinMin = hiBinsMin[k]-widthCent;
-                    int hiBinMax = hiBinsMin[k];
+                    int hiBinMin = hiBinsMin_phi[k]-widthCent_phi;
+                    int hiBinMax = hiBinsMin_phi[k];
 
                     std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
 
@@ -242,17 +242,17 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     }
 
     if (do_phi_vs_eta) {
-        for (int i = 0; i < nBinsPtRG; ++i) {
+        for (int i = 0; i < nBinsPt_phieta; ++i) {
 
-            double trkPtMin = rgPts[i];
-            double trkPtMax = rgPts[i+1];
+            double trkPtMin = pts_phieta[i];
+            double trkPtMax = pts_phieta[i+1];
 
             std::string text_range_trkPt = Form("%.2f < %s < %.2f", trkPtMin, text_trkPt.c_str(), trkPtMax);
 
-            for (int k = 0; k < nBinsCentRG; ++k) {
+            for (int k = 0; k < nBinsCent_phieta; ++k) {
 
-                int hiBinMin = (k == 0) ? 0 : (hiBinsMinRG[k-1]);
-                int hiBinMax = hiBinsMinRG[k];
+                int hiBinMin = (k == 0) ? 0 : (hiBinsMin_phieta[k-1]);
+                int hiBinMax = hiBinsMin_phieta[k];
 
                 std::string text_range_hiBin = Form("hiBin:%d-%d", hiBinMin, hiBinMax);
 
@@ -601,8 +601,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 w *= vertexWeight * centWeight;
             }
 
-            int iCent = getBinCent4TrkW(hiBin, hiBinsMin, nBinsCent);
-            int iCentRG = getBinCent4TrkW(hiBin, hiBinsMinRG, nBinsCentRG);
+            int iCent_phi = getBinCent4TrkW(hiBin, hiBinsMin_phi, nBinsCent_phi);
+            int iCent_phieta = getBinCent4TrkW(hiBin, hiBinsMin_phieta, nBinsCent_phieta);
 
             entriesAnalyzed++;
 
@@ -630,19 +630,19 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 double wTrkEff = w * trkWeightEffTmp;
 
                 if (do_phi) {
-                    int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts, nBinsPt);
-                    int iTrkEta = getBinEta4TrkW(trks.trkEta[i], trkEtasMin, nBinsEta);
-                    if (iTrkPt >= 0 && iTrkEta >= 0 && iCent >= 0) {
-                        h_trkPhi[iTrkPt][iTrkEta][iCent]->Fill(trks.trkPhi[i], wTrk);
+                    int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts_phi, nBinsPt_phi);
+                    int iTrkEta = getBinEta4TrkW(trks.trkEta[i], trkEtasMin_phi, nBinsEta_phi);
+                    if (iTrkPt >= 0 && iTrkEta >= 0 && iCent_phi >= 0) {
+                        h_trkPhi[iTrkPt][iTrkEta][iCent_phi]->Fill(trks.trkPhi[i], wTrk);
                     }
                 }
 
                 if (do_phi_vs_eta) {
-                    int iPtRG = getBinPt4TrkW(trks.trkPt[i], rgPts, nBinsPtRG);
-                    if (iPtRG >= 0 && iCentRG >= 0) {
-                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoEffCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrkEff);
-                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrk);
-                        h2_phi_vs_eta[iPtRG][iCentRG][RG::k_RecoUncorr]->Fill(trks.trkEta[i], trks.trkPhi[i], w);
+                    int iPt_phieta = getBinPt4TrkW(trks.trkPt[i], pts_phieta, nBinsPt_phieta);
+                    if (iPt_phieta >= 0 && iCent_phieta >= 0) {
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoEffCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrkEff);
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrk);
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoUncorr]->Fill(trks.trkEta[i], trks.trkPhi[i], w);
                     }
                 }
             }
@@ -656,9 +656,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
 
                     if (do_phi_vs_eta) {
-                        int iPtRG = getBinPt4TrkW((*hiGen.pt)[i], rgPts, nBinsPtRG);
-                        if (iPtRG >= 0 && iCentRG >= 0) {
-                            h2_phi_vs_eta[iPtRG][iCentRG][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
+                        int iPt_phieta = getBinPt4TrkW((*hiGen.pt)[i], pts_phieta, nBinsPt_phieta);
+                        if (iPt_phieta >= 0 && iCent_phieta >= 0) {
+                            h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
                         }
                     }
                 }
