@@ -1765,8 +1765,8 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
                 std::cout << Form("KolmogorovTest(hist %d, hist %d) = %f", iStart+2*i, iStart+2*i+1, valKolmogorov) << std::endl;
                 hTest1->Chi2Test(hTest2, "WW P");
 
-                double chi2Gaus = getTH1Chi2(hTest1, hTest2);
-                double chi2GausProb = getTH1Chi2Prob(hTest1, hTest2);
+                double chi2Gaus = getTH1Chi2(hTest1, hTest2, hTest1->GetXaxis()->GetFirst(), hTest1->GetXaxis()->GetLast(), false);
+                double chi2GausProb = getTH1Chi2Prob(hTest1, hTest2, hTest1->GetXaxis()->GetFirst(), hTest1->GetXaxis()->GetLast(), false);
                 std::cout << "chi2Gaus = " << chi2Gaus << " , chi2GausProb = " << chi2GausProb << std::endl;
 
                 if (drawRatioTmp > 0)  {
