@@ -192,6 +192,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::vector<double> wEvtTot(nCents, 0);
     TH1D* h_pt[nCents][RG::kN_RG];
+    TH1D* h_pt_rebin[nCents][RG::kN_RG];
+    TH1D* h_pt_rebin_normBinW[nCents][RG::kN_RG];
+
+    double xMax_trkPt = 90;
+    std::vector<double> binsX_pt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 7.50, 10.0, 12.0, 15.0, 20.0, 25.0, 30.0, 45.0, 60.0, xMax_trkPt};
 
     for (int i = 0; i < nCents; ++i) {
 
@@ -217,7 +222,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             std::string name_h_pt = Form("h_pt_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
 
             h_pt[i][iRG] = 0;
-            h_pt[i][iRG] = new TH1D(name_h_pt.c_str(), title_h_pt.c_str(), 120, 0, 60);
+            h_pt[i][iRG] = new TH1D(name_h_pt.c_str(), title_h_pt.c_str(), 180, 0, xMax_trkPt);
 
             h_pt[i][iRG]->SetMarkerStyle(kFullCircle);
             vec_h.push_back(h_pt[i][iRG]);
@@ -858,13 +863,52 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     output->cd();
     std::cout << "### post loop processing - START ###" << std::endl;
+
+    std::cout << "rebin" << std::endl;
     for (int i = 0; i < nCents; ++i) {
         for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-            std::string name_tmp_normEvt = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
+            std::string tmpName;
+            double binW = h_pt[i][iRG]->GetBinWidth(1);
+            std::vector<double> binsX;
+            int nBinsX = 0;
+
+            binsX = binsX_pt_rebin;
+            nBinsX = binsX.size()-1;
+
+            double arr_pt[nBinsX+1];
+            std::copy(binsX.begin(), binsX.end(), arr_pt);
+
+            tmpName = replaceAll(h_pt[i][iRG]->GetName(), "h_pt", "h_pt_rebin");
+            h_pt_rebin[i][iRG] = (TH1D*)h_pt[i][iRG]->Rebin(nBinsX, tmpName.c_str(), arr_pt);
+            h_pt_rebin[i][iRG]->Write("",TObject::kOverwrite);
+
+            tmpName = replaceAll(tmpName.c_str(), "h_pt_rebin", "h_pt_rebin_normBinW");
+            h_pt_rebin_normBinW[i][iRG] = (TH1D*)h_pt_rebin[i][iRG]->Clone(tmpName.c_str());
+            h_pt_rebin_normBinW[i][iRG]->Scale(binW, "width");
+            h_pt_rebin_normBinW[i][iRG]->Write("",TObject::kOverwrite);
+        }
+    }
+
+    std::cout << "norm" << std::endl;
+    for (int i = 0; i < nCents; ++i) {
+        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+
+            std::string name_tmp_normEvt;
+
+            name_tmp_normEvt = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
             hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp_normEvt.c_str());
             hTmp->Scale(1./wEvtTot[i]);
+            hTmp->Write("",TObject::kOverwrite);
 
+            name_tmp_normEvt = replaceFirst(h_pt_rebin[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            hTmp->Scale(1./wEvtTot[i]);
+            hTmp->Write("",TObject::kOverwrite);
+
+            name_tmp_normEvt = replaceFirst(h_pt_rebin_normBinW[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt_rebin_normBinW[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            hTmp->Scale(1./wEvtTot[i]);
             hTmp->Write("",TObject::kOverwrite);
         }
     }
