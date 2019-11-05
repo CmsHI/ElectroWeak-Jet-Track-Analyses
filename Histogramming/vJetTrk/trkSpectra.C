@@ -894,24 +894,47 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nCents; ++i) {
         for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-            std::string name_tmp_normEvt;
+            std::string name_tmp;
 
-            name_tmp_normEvt = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            name_tmp = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp.c_str());
             hTmp->Scale(1./wEvtTot[i]);
             hTmp->Write("",TObject::kOverwrite);
 
-            name_tmp_normEvt = replaceFirst(h_pt_rebin[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            name_tmp = replaceFirst(h_pt_rebin[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp.c_str());
             hTmp->Scale(1./wEvtTot[i]);
             hTmp->Write("",TObject::kOverwrite);
 
-            name_tmp_normEvt = replaceFirst(h_pt_rebin_normBinW[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt_rebin_normBinW[i][iRG]->Clone(name_tmp_normEvt.c_str());
+            name_tmp = replaceFirst(h_pt_rebin_normBinW[i][iRG]->GetName(), "h_", "h_normEvts_");
+            hTmp = (TH1D*)h_pt_rebin_normBinW[i][iRG]->Clone(name_tmp.c_str());
             hTmp->Scale(1./wEvtTot[i]);
             hTmp->Write("",TObject::kOverwrite);
         }
     }
+
+    std::cout << "ratio" << std::endl;
+    for (int i = 0; i < nCents; ++i) {
+
+        int iGen = 0;
+        for (int iRG = 1; iRG < RG::kN_RG; ++iRG) {
+
+            std::string name_tmp;
+
+            std::string str_ratio = Form("_ratio_%s_gen_", strRG[iRG].c_str());
+
+            name_tmp = replaceFirst(h_pt[i][iGen]->GetName(), "_gen_", str_ratio.c_str());
+            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp.c_str());
+            hTmp->Divide(h_pt[i][iGen]);
+            hTmp->Write("",TObject::kOverwrite);
+
+            name_tmp = replaceFirst(h_pt_rebin[i][iGen]->GetName(), "_gen_", str_ratio.c_str());
+            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp.c_str());
+            hTmp->Divide(h_pt_rebin[i][iGen]);
+            hTmp->Write("",TObject::kOverwrite);
+        }
+    }
+
     std::cout << "### post loop processing - END ###" << std::endl;
 
     std::cout<<"Writing the output file."<<std::endl;
