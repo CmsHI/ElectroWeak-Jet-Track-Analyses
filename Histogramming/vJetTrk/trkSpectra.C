@@ -129,14 +129,6 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         std::cout << Form("trkEtas[%d] = [%f, %f)", i, trkEtasMin[i], trkEtasMax[i]) << std::endl;
     }
 
-    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
-    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
-    std::cout<<"#####"<< std::endl;
-    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
-        std::cout<<(*it).c_str()<< std::endl;
-    }
-    std::cout<<"##### END #####"<< std::endl;
-
     bool isMC = (toLowerCase(sampleType).find("_mc") != std::string::npos);
     bool isPbPb = (toLowerCase(sampleType).find("pbpb") != std::string::npos);
     bool isPP = (toLowerCase(sampleType).find("pp") != std::string::npos);
@@ -162,6 +154,14 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     if (shiftHibin) {
         std::cout << "shifting hiBin" << std::endl;
     }
+
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
+    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
+    std::cout<<"#####"<< std::endl;
+    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+        std::cout<<(*it).c_str()<< std::endl;
+    }
+    std::cout<<"##### END #####"<< std::endl;
 
     int collisionType = -1;
     if (isPbPb15) {
