@@ -109,6 +109,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
     bool isPP15 = isPP && (sampleType.find("2015") != std::string::npos);
     bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
+    bool isPP13tev = isPP && (toLowerCase(sampleType).find("13tev") != std::string::npos);
 
     bool mixEvents = (nMixEvents > 0);
 
@@ -246,6 +247,10 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 "HLT_HIEle20_WPLoose_Gsf_v",
                 "HLT_HIEle30_WPLoose_Gsf_v",
         };
+
+        if (isPP13tev) {
+            treeNamesHLTObj = {};
+        }
     }
     else if (isPbPb18) {
         treeNamesHLTObj = {
@@ -605,6 +610,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     Long64_t entriesAnalyzed = 0;
     Long64_t entriesSelected = 0;
 
+    bool hasTreeHLT = false;
+
     int nFilesSkipped = 0;
     std::cout<< "Loop : " << treePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -625,6 +632,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         if (treeHLT == 0) {
             treeHLT = (TTree*)fileTmp->Get("hltanalysisReco/HltTree");
         }
+        hasTreeHLT = (treeHLT != 0);
 
         treesHLTObj.clear();
         treesHLTObj.resize(nTreesHLTObj, 0);
@@ -712,10 +720,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
         output->cd();
 
-        if (iFile == 0)  outTreeHLT = treeHLT->CloneTree(0);
-        else             treeHLT->CopyAddresses(outTreeHLT);
-        //outTreeHLT->SetName("hltTree");
-        //outTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
+        if (hasTreeHLT) {
+            if (iFile == 0)  outTreeHLT = treeHLT->CloneTree(0);
+            else             treeHLT->CopyAddresses(outTreeHLT);
+            //outTreeHLT->SetName("hltTree");
+            //outTreeHLT->SetTitle("subbranches of hltanalysis/HltTree");
+        }
 
         for (int i = 0; i < nTreesHLTObj; ++i) {
             if (iFile == 0)  {
@@ -754,7 +764,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
         else             treeHiEvt->CopyAddresses(outTreeHiEvt);
 
         if (iFile == 0) {
-            outTreeHLT->SetMaxTreeSize(MAXTREESIZE);
+            if (hasTreeHLT) {
+                outTreeHLT->SetMaxTreeSize(MAXTREESIZE);
+            }
             for (int i = 0; i < nTreesHLTObj; ++i) {
                 outTreesHLTObj[i]->SetMaxTreeSize(MAXTREESIZE);
             }
@@ -776,7 +788,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
-            treeHLT->GetEntry(j_entry);
+            if (hasTreeHLT) {
+                treeHLT->GetEntry(j_entry);
+            }
             for (int i = 0; i < nTreesHLTObj; ++i) {
                 treesHLTObj[i]->GetEntry(j_entry);
             }
@@ -1104,13 +1118,13 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
                     double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
-                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
+                    iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 818.0, totEMax); // 682 + 20%
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 699.0, totEMax); // zee
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 700, totEMax);  // mc_mg5
                     // data
-                    iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 657.5, totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5+6.46), totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (657.5-6.46), totEMax);
@@ -1446,7 +1460,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
             }
 
-            outTreeHLT->Fill();
+            if (hasTreeHLT) {
+                outTreeHLT->Fill();
+            }
             for (int i = 0; i < nTreesHLTObj; ++i) {
                 outTreesHLTObj[i]->Fill();
             }
@@ -1480,7 +1496,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout << "entriesAnalyzed     = " << entriesAnalyzed << std::endl;
     std::cout << "entriesSelected     = " << entriesSelected << std::endl;
 
-    std::cout << "outTreeHLT->GetEntries()           = " << outTreeHLT->GetEntries() << std::endl;
+    if (hasTreeHLT) {
+        std::cout << "outTreeHLT->GetEntries()           = " << outTreeHLT->GetEntries() << std::endl;
+    }
     std::cout << "outTreeL1Obj->GetEntries()         = " << outTreeL1Obj->GetEntries() << std::endl;
     if (isPbPb18) {
         std::cout << "outTreeHiFJRho->GetEntries()       = " << outTreeHiFJRho->GetEntries() << std::endl;
