@@ -316,7 +316,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             }
 
             std::string title_h_eta = Form("%s, %s;%s;", text_range_trkPt.c_str(), text_range_cent.c_str(),
-                                                    text_trkPt.c_str());
+                                                    text_trkEta.c_str());
 
             std::string name_h_suffix = Form("%s_%s", label_trkPt.c_str(), label_cent.c_str());
 
