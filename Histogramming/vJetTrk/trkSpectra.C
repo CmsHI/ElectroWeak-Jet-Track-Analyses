@@ -70,6 +70,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
 
+    int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
+    int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--minNVtx", argOptions).c_str()) : -1;
+
     int anajets = (ArgumentParser::optionExists("--anajets", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--anajets", argOptions).c_str()) : 0;
 
@@ -106,6 +111,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
+    std::cout << "maxNVtx = " << maxNVtx << std::endl;
+    std::cout << "minNVtx = " << minNVtx << std::endl;
     std::cout << "anajets  = " << anajets << std::endl;
     std::cout << "jetptMin  = " << jetptMin << std::endl;
 
@@ -636,6 +643,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 "pfType",
                 "pfHcal",
                 "pfEcal",
+                "nVtx",
         };
 
         int nTrkBranches = trkBranches.size();
@@ -731,6 +739,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             }
             if (isMC) {
                 treeHiGenParticle->GetEntry(j_entry);
+            }
+
+            if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
+                continue;
+            }
+            if (minNVtx > -1 && trks.nVtx < minNVtx) {
+                continue;
             }
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
