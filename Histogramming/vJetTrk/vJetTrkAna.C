@@ -101,6 +101,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool isPbPb18 = isPbPb && (sampleType.find("2018") != std::string::npos);
     bool isPP15 = isPP && (sampleType.find("2015") != std::string::npos);
     bool isPP17 = isPP && (sampleType.find("2017") != std::string::npos);
+    bool isPP13tev = isPP && (toLowerCase(sampleType).find("13tev") != std::string::npos);
 
     bool isMCMG = (isMC && isPbPb18 && (outputFile.find("mg5") != std::string::npos ||
                                         outputFile.find("tt_jets") != std::string::npos ||
@@ -2033,6 +2034,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                "HLT_HIEle30_WPLoose_Gsf_v1",
                                };
         }
+
+        if (isPP13tev) {
+            triggerBranches = {};
+        }
     }
     else if (isPbPb18) {
         if (vIsZmm) {
@@ -2126,16 +2131,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
         treeggHiNtuplizer->SetBranchStatus("rho",1);
 
+        treeHLT = 0;
         treeHLT = (TTree*)fileTmp->Get(treePathHLT.c_str());
-        treeHLT->SetBranchStatus("*",0);     // disable all branches
         int triggerBits[nTriggerBranches];
-        for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
-            if (treeHLT->GetBranch(triggerBranches[iTrig].c_str())) {
-                treeHLT->SetBranchStatus(triggerBranches[iTrig].c_str(), 1);
-                treeHLT->SetBranchAddress(triggerBranches[iTrig].c_str(), &(triggerBits[iTrig]));
-            }
-            else {
-                triggerBits[iTrig] = 0;
+        if (treeHLT != 0) {
+            treeHLT->SetBranchStatus("*",0);     // disable all branches
+            for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+                if (treeHLT->GetBranch(triggerBranches[iTrig].c_str())) {
+                    treeHLT->SetBranchStatus(triggerBranches[iTrig].c_str(), 1);
+                    treeHLT->SetBranchAddress(triggerBranches[iTrig].c_str(), &(triggerBits[iTrig]));
+                }
+                else {
+                    triggerBits[iTrig] = 0;
+                }
             }
         }
 
@@ -2416,7 +2424,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
-            treeHLT->GetEntry(j_entry);
+            if (treeHLT != 0) treeHLT->GetEntry(j_entry);
             treeHiEvt->GetEntry(j_entry);
             if (!isMC && isPbPb18 && vIsZee && false) {
                 treeHiFJRho->GetEntry(j_entry);
@@ -2465,10 +2473,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             bool passedTrig = (nTriggerBranches == 0);
-            for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
-                if (triggerBits[iTrig] > 0) {
-                    passedTrig = true;
-                    break;
+            if (treeHLT != 0) {
+                for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
+                    if (triggerBits[iTrig] > 0) {
+                        passedTrig = true;
+                        break;
+                    }
                 }
             }
 
