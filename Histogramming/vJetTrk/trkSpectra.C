@@ -797,14 +797,16 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 double trkWeightTmp = 1;
                 double trkWeightEffTmp = 1;
                 if (applyTrkWeights > 0) {
+                    float effTmp = 1;
                     if (isPP17) {
                         trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
+                        effTmp = trkEff2017.getEfficiency(t_pt, t_eta, true);
                     }
                     else if (isPbPb18) {
                         trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBin);
-                        float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBin, true);
-                        trkWeightEffTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
+                        effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBin, true);
                     }
+                    trkWeightEffTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
                 }
 
                 double wTrk = w * trkWeightTmp;
