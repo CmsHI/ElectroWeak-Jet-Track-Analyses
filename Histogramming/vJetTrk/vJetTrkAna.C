@@ -2017,6 +2017,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::string treePathHiEvtMix = "mixEventSkim";
     std::string treePathHiFJRho = "hiFJRhoFinerBins";
 
+    bool hasTreeHLT = false;
+
     /*
      * HLT_HIL2Mu20_v1, HLT_HIL2Mu15_v2, HLT_HIL1DoubleMu10_v1, HLT_HIL1DoubleMu0_v1, HLT_HIL3Mu15_v1, HLT_HIL3Mu20_v1
      */
@@ -2133,8 +2135,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         treeHLT = 0;
         treeHLT = (TTree*)fileTmp->Get(treePathHLT.c_str());
+        hasTreeHLT = (treeHLT != 0);
+
         int triggerBits[nTriggerBranches];
-        if (treeHLT != 0) {
+        if (hasTreeHLT) {
             treeHLT->SetBranchStatus("*",0);     // disable all branches
             for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
                 if (treeHLT->GetBranch(triggerBranches[iTrig].c_str())) {
@@ -2424,7 +2428,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
-            if (treeHLT != 0) treeHLT->GetEntry(j_entry);
+            if (hasTreeHLT) {
+                treeHLT->GetEntry(j_entry);
+            }
             treeHiEvt->GetEntry(j_entry);
             if (!isMC && isPbPb18 && vIsZee && false) {
                 treeHiFJRho->GetEntry(j_entry);
@@ -2473,7 +2479,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             bool passedTrig = (nTriggerBranches == 0);
-            if (treeHLT != 0) {
+            if (hasTreeHLT) {
                 for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
                     if (triggerBits[iTrig] > 0) {
                         passedTrig = true;
