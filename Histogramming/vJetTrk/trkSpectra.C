@@ -90,6 +90,12 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::vector<int> centsMax(centsMaxTmp.begin(), centsMaxTmp.end());
     int nCents = centsMin.size();
 
+    std::string trkEtaRangesStr = (ArgumentParser::optionExists("--trkEtas", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--trkEtas", argOptions).c_str() : "0:2.4,0:1.0";
+    std::vector<double> trkEtasMin = parseRangesMin(trkEtaRangesStr);
+    std::vector<double> trkEtasMax = parseRangesMax(trkEtaRangesStr);
+    int nTrkEtas = trkEtasMin.size();
+
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
@@ -105,6 +111,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "nCents = " << nCents << std::endl;
     for (int i = 0; i < nCents; ++i) {
         std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
+    }
+
+    std::cout << "nTrkEtas = " << nTrkEtas << std::endl;
+    for (int i = 0; i < nTrkEtas; ++i) {
+        std::cout << Form("trkEtas[%d] = [%f, %f)", i, trkEtasMin[i], trkEtasMax[i]) << std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
@@ -174,6 +185,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string text_trkEta = Form("#eta^{%s}", text_trk.c_str());
     std::string text_trkPhi = Form("#phi^{%s}", text_trk.c_str());
 
+    std::string text_absTrkEta = Form("|%s|", text_trkEta.c_str());
+
     int nBinsX_phi = 20;
     double xMax_phi = TMath::Pi()+1e-12;
 
@@ -191,9 +204,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string strRG[kN_RG] = {"gen", "trkEffCorr", "trkCorr", "trkUncorr"};
 
     std::vector<double> wEvtTot(nCents, 0);
-    TH1D* h_pt[nCents][RG::kN_RG];
-    TH1D* h_pt_rebin[nCents][RG::kN_RG];
-    TH1D* h_pt_rebin_normBinW[nCents][RG::kN_RG];
+    TH1D* h_pt[nCents][nTrkEtas][RG::kN_RG];
+    TH1D* h_pt_rebin[nCents][nTrkEtas][RG::kN_RG];
+    TH1D* h_pt_rebin_normBinW[nCents][nTrkEtas][RG::kN_RG];
 
     double xMax_trkPt = 90;
     std::vector<double> binsX_pt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 7.50, 10.0, 12.0, 15.0, 20.0, 25.0, 30.0, 45.0, 60.0, xMax_trkPt};
@@ -211,21 +224,48 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             text_range_cent = Form("Cent:%d-100 %%", centsMin[i]);
         }
 
-        std::string name_h_pt = Form("h_pt_%s", label_cent.c_str());
-        std::string title_h_pt = Form("%s;%s;", text_range_cent.c_str(),
-                                                text_trkPt.c_str());
+        for (int j = 0; j < nTrkEtas; ++j) {
 
-        std::string name_h_suffix = label_cent;
+            double tmpTrkEta = -1;
+            tmpTrkEta = trkEtasMin[j];
+            std::string label_trkEtaMin = Form("%d", (int)(tmpTrkEta));    // 5 --> "5"
+            if (std::floor(tmpTrkEta) != tmpTrkEta) {   // 1.4 --> "1p4"
+                label_trkEtaMin = Form("%dp%d", (int)(tmpTrkEta), ((int)(tmpTrkEta*10) % 10));
+            }
 
-        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+            tmpTrkEta = trkEtasMax[j];
+            std::string label_trkPtMax = Form("%d", (int)(tmpTrkEta));    // 5 --> "5"
+            if (std::floor(tmpTrkEta) != tmpTrkEta) {   // 1.4 --> "1p4"
+                label_trkPtMax = Form("%dp%d", (int)(tmpTrkEta), ((int)(tmpTrkEta*10) % 10));
+            }
+            std::string label_trkEta = Form("eta%s_%s", label_trkEtaMin.c_str(), label_trkPtMax.c_str());
 
-            std::string name_h_pt = Form("h_pt_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+            std::string text_trkEtaMin = replaceAll(label_trkEtaMin, "p", ".");
+            std::string text_trkEtaMax = replaceAll(label_trkPtMax, "p", ".");
+            std::string text_range_trkEta = Form("%s < %s < %s", text_trkEtaMin.c_str(), text_absTrkEta.c_str(), text_trkEtaMax.c_str());
+            if (trkEtasMin[j] == 0) {
+                text_range_trkEta = Form("%s < %s", text_absTrkEta.c_str(), text_trkEtaMax.c_str());
+            }
+            else if (trkEtasMax[j] < trkEtasMin[j]) {
+                label_trkEta = Form("eta%s_0", label_trkEtaMin.c_str());
+                text_range_trkEta = Form("%s > %s", text_absTrkEta.c_str(), text_trkEtaMin.c_str());
+            }
 
-            h_pt[i][iRG] = 0;
-            h_pt[i][iRG] = new TH1D(name_h_pt.c_str(), title_h_pt.c_str(), 180, 0, xMax_trkPt);
+            std::string title_h_pt = Form("%s, %s;%s;", text_range_trkEta.c_str(), text_range_cent.c_str(),
+                                                    text_trkPt.c_str());
 
-            h_pt[i][iRG]->SetMarkerStyle(kFullCircle);
-            vec_h.push_back(h_pt[i][iRG]);
+            std::string name_h_suffix = Form("%s_%s", label_trkEta.c_str(), label_cent.c_str());
+
+            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+
+                std::string name_h_pt = Form("h_pt_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+                h_pt[i][j][iRG] = 0;
+                h_pt[i][j][iRG] = new TH1D(name_h_pt.c_str(), title_h_pt.c_str(), 180, 0, xMax_trkPt);
+
+                h_pt[i][j][iRG]->SetMarkerStyle(kFullCircle);
+                vec_h.push_back(h_pt[i][j][iRG]);
+            }
         }
     }
 
@@ -418,6 +458,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nCents; ++i) {
         if (centsMax[i] < centsMin[i]) {
             centsMax[i] = 999999;
+        }
+    }
+    for (int i = 0; i < nTrkEtas; ++i) {
+        if (trkEtasMax[i] < trkEtasMin[i]) {
+            trkEtasMax[i] = 999999;
         }
     }
 
@@ -682,15 +727,20 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 if (skipMu > 0 && trks.pfType[i] == 3) continue;
                 if (skipEle > 0 && trks.pfType[i] == 2) continue;
 
+                float t_pt = trks.trkPt[i];
+                float t_eta = trks.trkEta[i];
+                float t_phi = trks.trkPhi[i];
+                float t_absEta = std::fabs(t_eta);
+
                 double trkWeightTmp = 1;
                 double trkWeightEffTmp = 1;
                 if (applyTrkWeights > 0) {
                     if (isPP17) {
-                        trkWeightTmp = trkEff2017.getCorrection(trks.trkPt[i], trks.trkEta[i]);
+                        trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
                     }
                     else if (isPbPb18) {
-                        trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
-                        float effTmp = trkEff2018.getEfficiency(trks.trkPt[i], trks.trkEta[i], hiBin, true);
+                        trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBin);
+                        float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBin, true);
                         trkWeightEffTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
                     }
                 }
@@ -702,25 +752,30 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
 
-                    h_pt[iCent][RG::k_RecoEffCorr]->Fill(trks.trkPt[i], wTrkEff);
-                    h_pt[iCent][RG::k_RecoCorr]->Fill(trks.trkPt[i], wTrk);
-                    h_pt[iCent][RG::k_RecoUncorr]->Fill(trks.trkPt[i], w);
+                    for (int iTrkEta = 0; iTrkEta < nTrkEtas; ++iTrkEta) {
+
+                        if (!(trkEtasMin[iTrkEta] <= t_absEta && t_absEta < trkEtasMax[iTrkEta]))  continue;
+
+                        h_pt[iCent][iTrkEta][RG::k_RecoEffCorr]->Fill(t_pt, wTrkEff);
+                        h_pt[iCent][iTrkEta][RG::k_RecoCorr]->Fill(t_pt, wTrk);
+                        h_pt[iCent][iTrkEta][RG::k_RecoUncorr]->Fill(t_pt, w);
+                    }
                 }
 
                 if (do_phi) {
-                    int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPts_phi, nBinsPt_phi);
-                    int iTrkEta = getBinEta4TrkW(trks.trkEta[i], trkEtasMin_phi, nBinsEta_phi);
+                    int iTrkPt = getBinPt4TrkW(t_pt, trkPts_phi, nBinsPt_phi);
+                    int iTrkEta = getBinEta4TrkW(t_eta, trkEtasMin_phi, nBinsEta_phi);
                     if (iTrkPt >= 0 && iTrkEta >= 0 && iCent_phi >= 0) {
-                        h_trkPhi[iTrkPt][iTrkEta][iCent_phi]->Fill(trks.trkPhi[i], wTrk);
+                        h_trkPhi[iTrkPt][iTrkEta][iCent_phi]->Fill(t_phi, wTrk);
                     }
                 }
 
                 if (do_phi_vs_eta) {
-                    int iPt_phieta = getBinPt4TrkW(trks.trkPt[i], pts_phieta, nBinsPt_phieta);
+                    int iPt_phieta = getBinPt4TrkW(t_pt, pts_phieta, nBinsPt_phieta);
                     if (iPt_phieta >= 0 && iCent_phieta >= 0) {
-                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoEffCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrkEff);
-                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoCorr]->Fill(trks.trkEta[i], trks.trkPhi[i], wTrk);
-                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoUncorr]->Fill(trks.trkEta[i], trks.trkPhi[i], w);
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoEffCorr]->Fill(t_eta, t_phi, wTrkEff);
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoCorr]->Fill(t_eta, t_phi, wTrk);
+                        h2_phi_vs_eta[iPt_phieta][iCent_phieta][RG::k_RecoUncorr]->Fill(t_eta, t_phi, w);
                     }
                 }
             }
@@ -737,7 +792,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                         if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
 
-                        h_pt[iCent][RG::k_Gen]->Fill((*hiGen.pt)[i], w);
+                        for (int iTrkEta = 0; iTrkEta < nTrkEtas; ++iTrkEta) {
+
+                            if (!(trkEtasMin[iTrkEta] <= std::fabs((*hiGen.eta)[i]) &&
+                                                         std::fabs((*hiGen.eta)[i]) < trkEtasMax[iTrkEta]))  continue;
+
+                            h_pt[iCent][iTrkEta][RG::k_Gen]->Fill((*hiGen.pt)[i], w);
+                        }
                     }
 
                     if (do_phi_vs_eta) {
@@ -866,72 +927,78 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "rebin" << std::endl;
     for (int i = 0; i < nCents; ++i) {
-        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+        for (int j = 0; j < nTrkEtas; ++j) {
+            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-            std::string tmpName;
-            double binW = h_pt[i][iRG]->GetBinWidth(1);
-            std::vector<double> binsX;
-            int nBinsX = 0;
+                std::string tmpName;
+                double binW = h_pt[i][j][iRG]->GetBinWidth(1);
+                std::vector<double> binsX;
+                int nBinsX = 0;
 
-            binsX = binsX_pt_rebin;
-            nBinsX = binsX.size()-1;
+                binsX = binsX_pt_rebin;
+                nBinsX = binsX.size()-1;
 
-            double arr_pt[nBinsX+1];
-            std::copy(binsX.begin(), binsX.end(), arr_pt);
+                double arr_pt[nBinsX+1];
+                std::copy(binsX.begin(), binsX.end(), arr_pt);
 
-            tmpName = replaceAll(h_pt[i][iRG]->GetName(), "h_pt", "h_pt_rebin");
-            h_pt_rebin[i][iRG] = (TH1D*)h_pt[i][iRG]->Rebin(nBinsX, tmpName.c_str(), arr_pt);
-            h_pt_rebin[i][iRG]->Write("",TObject::kOverwrite);
+                tmpName = replaceAll(h_pt[i][j][iRG]->GetName(), "h_pt", "h_pt_rebin");
+                h_pt_rebin[i][j][iRG] = (TH1D*)h_pt[i][j][iRG]->Rebin(nBinsX, tmpName.c_str(), arr_pt);
+                h_pt_rebin[i][j][iRG]->Write("",TObject::kOverwrite);
 
-            tmpName = replaceAll(tmpName.c_str(), "h_pt_rebin", "h_pt_rebin_normBinW");
-            h_pt_rebin_normBinW[i][iRG] = (TH1D*)h_pt_rebin[i][iRG]->Clone(tmpName.c_str());
-            h_pt_rebin_normBinW[i][iRG]->Scale(binW, "width");
-            h_pt_rebin_normBinW[i][iRG]->Write("",TObject::kOverwrite);
+                tmpName = replaceAll(tmpName.c_str(), "h_pt_rebin", "h_pt_rebin_normBinW");
+                h_pt_rebin_normBinW[i][j][iRG] = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(tmpName.c_str());
+                h_pt_rebin_normBinW[i][j][iRG]->Scale(binW, "width");
+                h_pt_rebin_normBinW[i][j][iRG]->Write("",TObject::kOverwrite);
+            }
         }
     }
 
     std::cout << "norm" << std::endl;
     for (int i = 0; i < nCents; ++i) {
-        for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+        for (int j = 0; j < nTrkEtas; ++j) {
+            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-            std::string name_tmp;
+                std::string name_tmp;
 
-            name_tmp = replaceFirst(h_pt[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp.c_str());
-            hTmp->Scale(1./wEvtTot[i]);
-            hTmp->Write("",TObject::kOverwrite);
+                name_tmp = replaceFirst(h_pt[i][j][iRG]->GetName(), "h_", "h_normEvts_");
+                hTmp = (TH1D*)h_pt[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Scale(1./wEvtTot[i]);
+                hTmp->Write("",TObject::kOverwrite);
 
-            name_tmp = replaceFirst(h_pt_rebin[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp.c_str());
-            hTmp->Scale(1./wEvtTot[i]);
-            hTmp->Write("",TObject::kOverwrite);
+                name_tmp = replaceFirst(h_pt_rebin[i][j][iRG]->GetName(), "h_", "h_normEvts_");
+                hTmp = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Scale(1./wEvtTot[i]);
+                hTmp->Write("",TObject::kOverwrite);
 
-            name_tmp = replaceFirst(h_pt_rebin_normBinW[i][iRG]->GetName(), "h_", "h_normEvts_");
-            hTmp = (TH1D*)h_pt_rebin_normBinW[i][iRG]->Clone(name_tmp.c_str());
-            hTmp->Scale(1./wEvtTot[i]);
-            hTmp->Write("",TObject::kOverwrite);
+                name_tmp = replaceFirst(h_pt_rebin_normBinW[i][j][iRG]->GetName(), "h_", "h_normEvts_");
+                hTmp = (TH1D*)h_pt_rebin_normBinW[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Scale(1./wEvtTot[i]);
+                hTmp->Write("",TObject::kOverwrite);
+            }
         }
     }
 
     std::cout << "ratio" << std::endl;
     for (int i = 0; i < nCents; ++i) {
+        for (int j = 0; j < nTrkEtas; ++j) {
 
-        int iGen = 0;
-        for (int iRG = 1; iRG < RG::kN_RG; ++iRG) {
+            int iGen = 0;
+            for (int iRG = 1; iRG < RG::kN_RG; ++iRG) {
 
-            std::string name_tmp;
+                std::string name_tmp;
 
-            std::string str_ratio = Form("_ratio_%s_gen_", strRG[iRG].c_str());
+                std::string str_ratio = Form("_ratio_%s_gen_", strRG[iRG].c_str());
 
-            name_tmp = replaceFirst(h_pt[i][iGen]->GetName(), "_gen_", str_ratio.c_str());
-            hTmp = (TH1D*)h_pt[i][iRG]->Clone(name_tmp.c_str());
-            hTmp->Divide(h_pt[i][iGen]);
-            hTmp->Write("",TObject::kOverwrite);
+                name_tmp = replaceFirst(h_pt[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
+                hTmp = (TH1D*)h_pt[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Divide(h_pt[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
 
-            name_tmp = replaceFirst(h_pt_rebin[i][iGen]->GetName(), "_gen_", str_ratio.c_str());
-            hTmp = (TH1D*)h_pt_rebin[i][iRG]->Clone(name_tmp.c_str());
-            hTmp->Divide(h_pt_rebin[i][iGen]);
-            hTmp->Write("",TObject::kOverwrite);
+                name_tmp = replaceFirst(h_pt_rebin[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
+                hTmp = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Divide(h_pt_rebin[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+            }
         }
     }
 
