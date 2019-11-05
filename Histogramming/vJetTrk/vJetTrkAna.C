@@ -274,6 +274,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool anaV = (toLowerCase(anaMode).find("v") == 0);
     bool anaJets = (toLowerCase(anaMode).find("jet") != std::string::npos && treePathJetSkim.size() != 0);
     bool anaTrks = (toLowerCase(anaMode).find("trk") != std::string::npos);
+    bool anaNVtx = (maxNVtx > 0 || minNVtx > -1);
 
     bool vIsPho = (toLowerCase(vType).find("pho") == 0);
     bool vIsZmm = (toLowerCase(vType).find("zmm") == 0);
@@ -2174,67 +2175,71 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
         }
 
-        if (isvJetTrkSkim && anaTrks) {
+        bool anaTreeTrack = ((isvJetTrkSkim && anaTrks) || anaNVtx);
+        if (anaTreeTrack) {
             treeTrackSkim = (TTree*)fileTmp->Get(treePathTrack.c_str());
             treeTrackSkim->SetBranchStatus("*",0);     // disable all branches
 
-            std::string mix_str = (isMixTrk) ? "_mix" : "";
-            if (isRecoTrk) {
-                treeTrackSkim->SetBranchStatus(Form("nTrk%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkPt%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkEta%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkPhi%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("trkCharge%s", mix_str.c_str()),1);
-                if (anaTrkID) {
-                    treeTrackSkim->SetBranchStatus(Form("trkPtError%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkDz1%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkDzError1%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkDxy1%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkDxyError1%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkNHit%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkChi2%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkNdof%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkNlayer%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkAlgo%s", mix_str.c_str()),1);
-                    treeTrackSkim->SetBranchStatus(Form("trkMVA%s", mix_str.c_str()),1);
-                }
-                treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("pfType%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("evttrk%s", mix_str.c_str()),1);
-            }
-            else {
-                treeTrackSkim->SetBranchStatus(Form("mult%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("pt%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("eta%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("phi%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("chg%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("pdg%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("sube%s", mix_str.c_str()),1);
-                treeTrackSkim->SetBranchStatus(Form("evtgen%s", mix_str.c_str()),1);
-            }
-            if (maxNVtx > 0 || minNVtx > -1) {
-                treeTrackSkim->SetBranchStatus("nVtx",1);
-            }
-
-            if (needRawTrk) {
+            if (anaTrks) {
+                std::string mix_str = (isMixTrk) ? "_mix" : "";
                 if (isRecoTrk) {
-                    treeTrackSkim->SetBranchStatus("nTrk",1);
-                    treeTrackSkim->SetBranchStatus("trkPt",1);
-                    treeTrackSkim->SetBranchStatus("trkEta",1);
-                    treeTrackSkim->SetBranchStatus("trkPhi",1);
-                    treeTrackSkim->SetBranchStatus("pfType",1);
+                    treeTrackSkim->SetBranchStatus(Form("nTrk%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkPt%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkEta%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkPhi%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("trkCharge%s", mix_str.c_str()),1);
+                    if (anaTrkID) {
+                        treeTrackSkim->SetBranchStatus(Form("trkPtError%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkDz1%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkDzError1%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkDxy1%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkDxyError1%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkNHit%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkChi2%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkNdof%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkNlayer%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkAlgo%s", mix_str.c_str()),1);
+                        treeTrackSkim->SetBranchStatus(Form("trkMVA%s", mix_str.c_str()),1);
+                    }
+                    treeTrackSkim->SetBranchStatus(Form("trkWeight%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("pfType%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("pfHcal%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("pfEcal%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("evttrk%s", mix_str.c_str()),1);
                 }
                 else {
-                    treeTrackSkim->SetBranchStatus("mult",1);
-                    treeTrackSkim->SetBranchStatus("pt",1);
-                    treeTrackSkim->SetBranchStatus("eta",1);
-                    treeTrackSkim->SetBranchStatus("phi",1);
-                    treeTrackSkim->SetBranchStatus("chg",1);
-                    treeTrackSkim->SetBranchStatus("pdg",1);
-                    treeTrackSkim->SetBranchStatus("sube",1);
+                    treeTrackSkim->SetBranchStatus(Form("mult%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("pt%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("eta%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("phi%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("chg%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("pdg%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("sube%s", mix_str.c_str()),1);
+                    treeTrackSkim->SetBranchStatus(Form("evtgen%s", mix_str.c_str()),1);
                 }
+
+                if (needRawTrk) {
+                    if (isRecoTrk) {
+                        treeTrackSkim->SetBranchStatus("nTrk",1);
+                        treeTrackSkim->SetBranchStatus("trkPt",1);
+                        treeTrackSkim->SetBranchStatus("trkEta",1);
+                        treeTrackSkim->SetBranchStatus("trkPhi",1);
+                        treeTrackSkim->SetBranchStatus("pfType",1);
+                    }
+                    else {
+                        treeTrackSkim->SetBranchStatus("mult",1);
+                        treeTrackSkim->SetBranchStatus("pt",1);
+                        treeTrackSkim->SetBranchStatus("eta",1);
+                        treeTrackSkim->SetBranchStatus("phi",1);
+                        treeTrackSkim->SetBranchStatus("chg",1);
+                        treeTrackSkim->SetBranchStatus("pdg",1);
+                        treeTrackSkim->SetBranchStatus("sube",1);
+                    }
+                }
+            }
+
+            if (anaNVtx) {
+                treeTrackSkim->SetBranchStatus("nVtx",1);
             }
         }
 
@@ -2283,7 +2288,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
 
         trackSkim trks;
-        if (isvJetTrkSkim && anaTrks) {
+        if (anaTreeTrack) {
             trks.setupTreeForReading(treeTrackSkim);
         }
         bool has_pfType = (trks.b_pfType != 0 || trks.b_pfType_mix != 0);
@@ -2435,12 +2440,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (!isMC && isPbPb18 && vIsZee && false) {
                 treeHiFJRho->GetEntry(j_entry);
             }
+
+            if (anaTreeTrack) {
+                treeTrackSkim->GetEntry(j_entry);
+            }
+
             if (isvJetTrkSkim) {
                 if (anaJets) {
                     treeJetSkim->GetEntry(j_entry);
-                }
-                if (anaTrks) {
-                    treeTrackSkim->GetEntry(j_entry);
                 }
 
                 treeEvtSkim->GetEntry(j_entry);
@@ -2462,7 +2469,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         continue;
                     }
                 }
+            }
 
+            if (anaNVtx) {
                 if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
                     continue;
                 }
