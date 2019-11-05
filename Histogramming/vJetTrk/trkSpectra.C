@@ -90,6 +90,12 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::vector<int> centsMax(centsMaxTmp.begin(), centsMaxTmp.end());
     int nCents = centsMin.size();
 
+    std::string trkPtRangesStr = (ArgumentParser::optionExists("--trkPts", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--trkPts", argOptions).c_str() : "1:0";  // "1:0,1:2,2:4,4:8"
+    std::vector<double> trkPtsMin = parseRangesMin(trkPtRangesStr);
+    std::vector<double> trkPtsMax = parseRangesMax(trkPtRangesStr);
+    int nTrkPts = trkPtsMin.size();
+
     std::string trkEtaRangesStr = (ArgumentParser::optionExists("--trkEtas", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--trkEtas", argOptions).c_str() : "0:2.4,0:1.0";
     std::vector<double> trkEtasMin = parseRangesMin(trkEtaRangesStr);
@@ -111,6 +117,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "nCents = " << nCents << std::endl;
     for (int i = 0; i < nCents; ++i) {
         std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
+    }
+
+    std::cout << "nTrkPts = " << nTrkPts << std::endl;
+    for (int i = 0; i < nTrkPts; ++i) {
+        std::cout << Form("trkPts[%d] = [%f, %f)", i, trkPtsMin[i], trkPtsMax[i]) << std::endl;
     }
 
     std::cout << "nTrkEtas = " << nTrkEtas << std::endl;
@@ -208,6 +219,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_pt_rebin[nCents][nTrkEtas][RG::kN_RG];
     TH1D* h_pt_rebin_normBinW[nCents][nTrkEtas][RG::kN_RG];
 
+    TH1D* h_eta[nCents][nTrkPts][RG::kN_RG];
+
     double xMax_trkPt = 90;
     std::vector<double> binsX_pt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 7.50, 10.0, 12.0, 15.0, 20.0, 25.0, 30.0, 45.0, 60.0, xMax_trkPt};
 
@@ -265,6 +278,50 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 h_pt[i][j][iRG]->SetMarkerStyle(kFullCircle);
                 vec_h.push_back(h_pt[i][j][iRG]);
+            }
+        }
+
+        for (int j = 0; j < nTrkPts; ++j) {
+
+            double tmpTrkPt = -1;
+            tmpTrkPt = trkPtsMin[j];
+            std::string label_trkPtMin = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+            if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                label_trkPtMin = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+            }
+
+            tmpTrkPt = trkPtsMax[j];
+            std::string label_trkPtMax = Form("%d", (int)(tmpTrkPt));    // 5 --> "5"
+            if (std::floor(tmpTrkPt) != tmpTrkPt) {   // 1.4 --> "1p4"
+                label_trkPtMax = Form("%dp%d", (int)(tmpTrkPt), ((int)(tmpTrkPt*10) % 10));
+            }
+            std::string label_trkPt = Form("pt%s_%s", label_trkPtMin.c_str(), label_trkPtMax.c_str());
+
+            std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
+            std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
+            std::string text_range_trkPt = Form("%s < %s < %s", text_trkPtMin.c_str(), text_trkPt.c_str(), text_trkPtMax.c_str());
+            if (trkPtsMin[j] == 0) {
+                text_range_trkPt = Form("%s < %s", text_trkPt.c_str(), text_trkPtMax.c_str());
+            }
+            else if (trkPtsMax[j] < trkPtsMin[j]) {
+                label_trkPt = Form("pt%s_0", label_trkPtMin.c_str());
+                text_range_trkPt = Form("%s > %s", text_trkPt.c_str(), text_trkPtMin.c_str());
+            }
+
+            std::string title_h_eta = Form("%s, %s;%s;", text_range_trkPt.c_str(), text_range_cent.c_str(),
+                                                    text_trkPt.c_str());
+
+            std::string name_h_suffix = Form("%s_%s", label_trkPt.c_str(), label_cent.c_str());
+
+            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+
+                std::string name_h_pt = Form("h_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+                h_eta[i][j][iRG] = 0;
+                h_eta[i][j][iRG] = new TH1D(name_h_pt.c_str(), title_h_eta.c_str(), 12, -2.4, 2.4);
+
+                h_eta[i][j][iRG]->SetMarkerStyle(kFullCircle);
+                vec_h.push_back(h_eta[i][j][iRG]);
             }
         }
     }
@@ -458,6 +515,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nCents; ++i) {
         if (centsMax[i] < centsMin[i]) {
             centsMax[i] = 999999;
+        }
+    }
+    for (int i = 0; i < nTrkPts; ++i) {
+        if (trkPtsMax[i] < trkPtsMin[i]) {
+            trkPtsMax[i] = 999999;
         }
     }
     for (int i = 0; i < nTrkEtas; ++i) {
@@ -760,6 +822,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                         h_pt[iCent][iTrkEta][RG::k_RecoCorr]->Fill(t_pt, wTrk);
                         h_pt[iCent][iTrkEta][RG::k_RecoUncorr]->Fill(t_pt, w);
                     }
+
+                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
+
+                        if (!(trkPtsMin[iTrkPt] <= t_pt && t_pt < trkPtsMax[iTrkPt]))  continue;
+
+                        h_eta[iCent][iTrkPt][RG::k_RecoEffCorr]->Fill(t_eta, wTrkEff);
+                        h_eta[iCent][iTrkPt][RG::k_RecoCorr]->Fill(t_eta, wTrk);
+                        h_eta[iCent][iTrkPt][RG::k_RecoUncorr]->Fill(t_eta, w);
+                    }
                 }
 
                 if (do_phi) {
@@ -798,6 +869,14 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                                                          std::fabs((*hiGen.eta)[i]) < trkEtasMax[iTrkEta]))  continue;
 
                             h_pt[iCent][iTrkEta][RG::k_Gen]->Fill((*hiGen.pt)[i], w);
+                        }
+
+                        for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
+
+                            if (!(trkPtsMin[iTrkPt] <= (*hiGen.pt)[i] &&
+                                                       (*hiGen.pt)[i] < trkPtsMax[iTrkPt]))  continue;
+
+                            h_eta[iCent][iTrkPt][RG::k_Gen]->Fill((*hiGen.eta)[i], w);
                         }
                     }
 
@@ -954,11 +1033,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     }
 
     std::cout << "norm" << std::endl;
-    for (int i = 0; i < nCents; ++i) {
-        for (int j = 0; j < nTrkEtas; ++j) {
-            for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+    for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
+        for (int i = 0; i < nCents; ++i) {
 
-                std::string name_tmp;
+            std::string name_tmp;
+            for (int j = 0; j < nTrkEtas; ++j) {
 
                 name_tmp = replaceFirst(h_pt[i][j][iRG]->GetName(), "h_", "h_normEvts_");
                 hTmp = (TH1D*)h_pt[i][j][iRG]->Clone(name_tmp.c_str());
@@ -975,19 +1054,26 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 hTmp->Scale(1./wEvtTot[i]);
                 hTmp->Write("",TObject::kOverwrite);
             }
+
+            for (int j = 0; j < nTrkPts; ++j) {
+
+                name_tmp = replaceFirst(h_eta[i][j][iRG]->GetName(), "h_", "h_normEvts_");
+                hTmp = (TH1D*)h_eta[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Scale(1./wEvtTot[i]);
+                hTmp->Write("",TObject::kOverwrite);
+            }
         }
     }
 
     std::cout << "ratio" << std::endl;
-    for (int i = 0; i < nCents; ++i) {
-        for (int j = 0; j < nTrkEtas; ++j) {
+    for (int iRG = 1; iRG < RG::kN_RG; ++iRG) {
+        for (int i = 0; i < nCents; ++i) {
 
             int iGen = 0;
-            for (int iRG = 1; iRG < RG::kN_RG; ++iRG) {
+            std::string name_tmp;
+            std::string str_ratio = Form("_ratio_%s_gen_", strRG[iRG].c_str());
 
-                std::string name_tmp;
-
-                std::string str_ratio = Form("_ratio_%s_gen_", strRG[iRG].c_str());
+            for (int j = 0; j < nTrkEtas; ++j) {
 
                 name_tmp = replaceFirst(h_pt[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
                 hTmp = (TH1D*)h_pt[i][j][iRG]->Clone(name_tmp.c_str());
@@ -997,6 +1083,14 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 name_tmp = replaceFirst(h_pt_rebin[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
                 hTmp = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(name_tmp.c_str());
                 hTmp->Divide(h_pt_rebin[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+            }
+
+            for (int j = 0; j < nTrkPts; ++j) {
+
+                name_tmp = replaceFirst(h_eta[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
+                hTmp = (TH1D*)h_eta[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Divide(h_eta[i][j][iGen]);
                 hTmp->Write("",TObject::kOverwrite);
             }
         }
