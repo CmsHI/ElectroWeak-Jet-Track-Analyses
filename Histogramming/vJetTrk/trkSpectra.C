@@ -1031,7 +1031,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
                 std::string tmpName;
-                double binW = h_pt[i][j][iRG]->GetBinWidth(1);
+                //double binW = h_pt[i][j][iRG]->GetBinWidth(1);
                 std::vector<double> binsX;
                 int nBinsX = 0;
 
@@ -1047,7 +1047,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 tmpName = replaceAll(tmpName.c_str(), "h_pt_rebin", "h_pt_rebin_normBinW");
                 h_pt_rebin_normBinW[i][j][iRG] = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(tmpName.c_str());
-                h_pt_rebin_normBinW[i][j][iRG]->Scale(binW, "width");
+                h_pt_rebin_normBinW[i][j][iRG]->Scale(1, "width");
                 h_pt_rebin_normBinW[i][j][iRG]->Write("",TObject::kOverwrite);
             }
         }
