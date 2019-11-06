@@ -2214,25 +2214,31 @@ double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
             if (std::fabs((*eleSCEta)[i]) < 1.4442) {
 
                 if (hiBin < 20) {
-                    return 0.990;
+                    //return 0.990;
+                    return 0.989;
                 }
                 else if (hiBin < 60) {
+                    //return 1.006;
                     return 1.006;
                 }
                 else {
+                    //return 1.016;
                     return 1.016;
                 }
             }
             else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
 
                 if (hiBin < 20) {
-                    return 0.976;
+                    //return 0.976;
+                    return 0.967;
                 }
                 else if (hiBin < 60) {
-                    return 1.015;
+                    //return 1.015;
+                    return 1.018;
                 }
                 else {
-                    return 1.052;
+                    //return 1.052;
+                    return 1.054;
                 }
             }
 
@@ -2242,25 +2248,31 @@ double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
             if (std::fabs((*eleSCEta)[i]) < 1.4442) {
 
                 if (hiBin < 20) {
-                    return 0.974;
+                    //return 0.974;
+                    return 0.971;
                 }
                 else if (hiBin < 60) {
-                    return 0.992;
+                    //return 0.992;
+                    return 0.990;
                 }
                 else {
-                    return 1.005;
+                    //return 1.005;
+                    return 1.003;
                 }
             }
             else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
 
                 if (hiBin < 20) {
-                    return 0.913;
+                    //return 0.913;
+                    return 0.910;
                 }
                 else if (hiBin < 60) {
-                    return 0.952;
+                    //return 0.952;
+                    return 0.951;
                 }
                 else {
-                    return 0.992;
+                    //return 0.992;
+                    return 0.988;
                 }
             }
 
