@@ -816,6 +816,10 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     if (isPP17) {
                         trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
                         effTmp = trkEff2017.getEfficiency(t_pt, t_eta, true);
+                        if (isMC) {
+                            trkWeightTmp *= 0.979;
+                            effTmp /= 0.979;
+                        }
                     }
                     else if (isPbPb18) {
                         trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBin);
