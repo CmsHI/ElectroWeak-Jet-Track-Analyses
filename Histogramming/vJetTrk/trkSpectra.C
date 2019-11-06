@@ -64,6 +64,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int applyTrkWeights = (ArgumentParser::optionExists("--applyTrkWeights", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--applyTrkWeights", argOptions).c_str()) : 1;
 
+    int applyNcollWeights = (ArgumentParser::optionExists("--applyNcollWeights", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--applyNcollWeights", argOptions).c_str()) : 1;
+
     int skipMu = (ArgumentParser::optionExists("--skipMu", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--skipMu", argOptions).c_str()) : 0;
 
@@ -109,6 +112,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
+    std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
@@ -783,7 +787,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     vertexWeight = 1.0/(1.10749*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-(-0.504278))/13.5601, 2)));
                 }
                 double centWeight = 1;
-                if (isPbPb && isMC)  centWeight = findNcoll(hiBin);
+                if (applyNcollWeights > 0 && isPbPb && isMC)  {
+                    centWeight = findNcoll(hiBin);
+                }
                 w *= vertexWeight * centWeight;
             }
 
