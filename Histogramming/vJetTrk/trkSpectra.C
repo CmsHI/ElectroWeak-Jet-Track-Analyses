@@ -1101,9 +1101,19 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 hTmp->Divide(h_pt[i][j][iGen]);
                 hTmp->Write("",TObject::kOverwrite);
 
+                name_tmp = replaceFirst(name_tmp, "_ratio_", "_fullcorr_ratio_");
+                hTmp->SetName(name_tmp.c_str());
+                setBinErrorsFullCorr4Ratio((TH1D*)hTmp, h_pt[i][j][iRG], h_pt[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+
                 name_tmp = replaceFirst(h_pt_rebin[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
                 hTmp = (TH1D*)h_pt_rebin[i][j][iRG]->Clone(name_tmp.c_str());
                 hTmp->Divide(h_pt_rebin[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+
+                name_tmp = replaceFirst(name_tmp, "_ratio_", "_fullcorr_ratio_");
+                hTmp->SetName(name_tmp.c_str());
+                setBinErrorsFullCorr4Ratio((TH1D*)hTmp, h_pt_rebin[i][j][iRG], h_pt_rebin[i][j][iGen]);
                 hTmp->Write("",TObject::kOverwrite);
             }
 
@@ -1112,6 +1122,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 name_tmp = replaceFirst(h_eta[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
                 hTmp = (TH1D*)h_eta[i][j][iRG]->Clone(name_tmp.c_str());
                 hTmp->Divide(h_eta[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+
+                name_tmp = replaceFirst(name_tmp, "_ratio_", "_fullcorr_ratio_");
+                hTmp->SetName(name_tmp.c_str());
+                setBinErrorsFullCorr4Ratio((TH1D*)hTmp, h_eta[i][j][iRG], h_eta[i][j][iGen]);
                 hTmp->Write("",TObject::kOverwrite);
             }
         }
