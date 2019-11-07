@@ -2099,9 +2099,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp->Close();
     // done with initial reading
 
-    TRandom3 rand;
+    TRandom3 randvPhi;
     if (doRndVPhi) {
-        rand.SetSeed(rndVPhi);
+        randvPhi.SetSeed(rndVPhi);
     }
 
     EventMatcher* em = new EventMatcher();
@@ -2804,7 +2804,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
 
                             if (doRndVPhi) {
-                                vPhi = rand.Uniform(-1*TMath::Pi(), TMath::Pi());
+                                vPhi = randvPhi.Uniform(-1*TMath::Pi(), TMath::Pi());
                             }
                         }
                     }
