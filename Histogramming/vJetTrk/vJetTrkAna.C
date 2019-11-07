@@ -2099,6 +2099,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp->Close();
     // done with initial reading
 
+    TRandom3 randelePt(1234);
+
     TRandom3 randvPhi;
     if (doRndVPhi) {
         randvPhi.SetSeed(rndVPhi);
@@ -2699,7 +2701,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (isPP17) {
                             double lAbsEta = std::fabs((*lEta)[i]);
                             double eleSCEt = (*ggHi.eleSCEn)[i] / std::cosh(lAbsEta);
-                            l1pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[i]);
+                            if (isMC) {
+                                double smearRnd = randelePt.Gaus(0,1);
+                                double smearElePt = ec.smearingSigma(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[i], 12, 0., 0.);
+                                l1pt *= (1.0 + smearElePt * smearRnd);
+                            }
+                            else {
+                                l1pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[i]);
+                            }
                         }
                         else if (isPbPb18) {
                             l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
@@ -2737,7 +2746,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (isPP17) {
                                 double lAbsEta = std::fabs((*lEta)[j]);
                                 double eleSCEt = (*ggHi.eleSCEn)[j] / std::cosh(lAbsEta);
-                                l2pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[j]);
+                                if (isMC) {
+                                    double smearRnd = randelePt.Gaus(0,1);
+                                    double smearElePt = ec.smearingSigma(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[j], 12, 0., 0.);
+                                    l2pt *= (1.0 + smearElePt * smearRnd);
+                                }
+                                else {
+                                    l2pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[j]);
+                                }
                             }
                             else if (isPbPb18) {
                                 l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
