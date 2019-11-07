@@ -45,6 +45,7 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
+#include "../../Corrections/electrons/2017pp/EnergyScaleCorrection.cc"
 #include "../../Corrections/tracks/2015/getTrkCorr.h"
 #include "../../Corrections/tracks/2017pp/trackingEfficiency2017pp.h"
 #include "../../Corrections/tracks/2018PbPb/trackingEfficiency2018PbPb.h"
@@ -432,6 +433,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h1D_wVcent1->Divide(h1D_wVcent2);
     }
 
+    // lepton corrections
+    EnergyScaleCorrection ec("Corrections/electrons/2017pp/data/Run2017_LowPU_v2", EnergyScaleCorrection::ECALELF);
+
+    // tracking corrections
     TrkEff2018PbPb trkEff2018 =  TrkEff2018PbPb("general", false, "Corrections/tracks/2018PbPb/");
 
     TrkEff2017pp trkEff2017 =  TrkEff2017pp(false, "Corrections/tracks/2017pp/");
@@ -2691,7 +2696,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     float l1pt = (*lPt)[i];
                     if (vIsZee && isRecoV) {
-                        l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
+                        if (isPP17) {
+                            double lAbsEta = std::fabs((*lEta)[i]);
+                            double eleSCEt = (*ggHi.eleSCEn)[i] / std::cosh(lAbsEta);
+                            l1pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[i]);
+                        }
+                        else if (isPbPb18) {
+                            l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
+                        }
                     }
                     if (!(l1pt > lPtMin)) continue;
                     if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
@@ -2722,7 +2734,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         float l2pt = (*lPt)[j];
                         if (vIsZee && isRecoV) {
-                            l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
+                            if (isPP17) {
+                                double lAbsEta = std::fabs((*lEta)[j]);
+                                double eleSCEt = (*ggHi.eleSCEn)[j] / std::cosh(lAbsEta);
+                                l2pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[j]);
+                            }
+                            else if (isPbPb18) {
+                                l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
+                            }
                         }
                         if (!(l2pt > lPtMin)) continue;
                         if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
