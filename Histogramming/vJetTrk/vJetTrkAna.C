@@ -709,9 +709,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TH1*> vec_h_denom;
 
     TH1D* h_vPt[nCents];
+    TH1D* h_vPt_ss[nCents];
     TH1D* h_vEta[nCents][nVPts];
     TH1D* h_vPhi[nCents][nVPts];
     TH1D* h_vY[nCents][nVPts];
+    TH1D* h_vY_ss[nCents][nVPts];
     TH1D* h_vM_os[nCents][nVPts];
     TH1D* h_vM_ss[nCents][nVPts];
     TH1D* h_l1Pt[nCents][nVPts];
@@ -904,6 +906,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h_vPt[i] = 0;
         h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
 
+        std::string name_h_vPt_ss = Form("h_vPt_ss_%s", label_cent.c_str());
+        h_vPt_ss[i] = 0;
+        h_vPt_ss[i] = new TH1D(name_h_vPt_ss.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
+
         std::string name_h_trig_num_vPt = Form("h_trig_num_vPt_%s", label_cent.c_str());
         h_trig_num_vPt[i] = 0;
         h_trig_num_vPt[i] = (TH1D*)h_vPt[i]->Clone(name_h_trig_num_vPt.c_str());
@@ -1057,6 +1063,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vY = Form("%s;%s;", title_h_suffix.c_str(), text_vY.c_str());
             h_vY[i][j] = 0;
             h_vY[i][j] = new TH1D(name_h_vY.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+
+            std::string name_h_vY_ss = Form("h_vY_ss_%s", name_h_suffix.c_str());
+            h_vY_ss[i][j] = 0;
+            h_vY_ss[i][j] = new TH1D(name_h_vY_ss.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
 
             h_l1Pt[i][j] = 0;
             h_l1Pt[i][j] = new TH1D(Form("h_l1Pt_%s", name_h_suffix.c_str()), ";p_T^{l1};", nBinsX_vPt, 0, xMax_vPt);
@@ -3089,6 +3099,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
 
+                    if (vYMin <= vYAbs && vYAbs < vYMax) {
+                        h_vPt_ss[i]->Fill(vPt, wV);
+                    }
+
                     for (int j = 0; j < nVPts; ++j) {
 
                         if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
@@ -3096,6 +3110,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (vYMin <= vYAbs && vYAbs < vYMax) {
 
                             h_vM_ss[i][j]->Fill(vM, wV);
+                            h_vY_ss[i][j]->Fill(vY, wV);
                         }
                     }
                 }
@@ -3554,9 +3569,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "norm" << std::endl;
     TH1D* h1DTmp = 0;
     for (int i = 0; i < nCents; ++i) {
+        std::string hNameTmp;
 
-        std::string hNameTmp = replaceFirst((h_vPt[i]->GetName()), "h_", "h_normEvts_");
+        hNameTmp = replaceFirst((h_vPt[i]->GetName()), "h_", "h_normEvts_");
         h1DTmp = (TH1D*)h_vPt[i]->Clone(hNameTmp.c_str());
+        h1DTmp->Scale(1./wEvtsAll);
+        h1DTmp->Write("",TObject::kOverwrite);
+
+        hNameTmp = replaceFirst((h_vPt_ss[i]->GetName()), "h_", "h_normEvts_");
+        h1DTmp = (TH1D*)h_vPt_ss[i]->Clone(hNameTmp.c_str());
         h1DTmp->Scale(1./wEvtsAll);
         h1DTmp->Write("",TObject::kOverwrite);
 
@@ -3573,6 +3594,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             hNameTmp = replaceFirst((h_vY[i][j]->GetName()), "h_", "h_normEvts_");
             h1DTmp = (TH1D*)h_vY[i][j]->Clone(hNameTmp.c_str());
+            h1DTmp->Scale(1./wEvtsAll);
+            h1DTmp->Write("",TObject::kOverwrite);
+
+            hNameTmp = replaceFirst((h_vY_ss[i][j]->GetName()), "h_", "h_normEvts_");
+            h1DTmp = (TH1D*)h_vY_ss[i][j]->Clone(hNameTmp.c_str());
             h1DTmp->Scale(1./wEvtsAll);
             h1DTmp->Write("",TObject::kOverwrite);
         }
@@ -3596,6 +3622,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h1DTmp->Write("",TObject::kOverwrite);
 
         tmpName = replaceAll(tmpName.c_str(), "h_vPt_rebin", "h_vPt_rebin_normBinW");
+        h1DTmp->SetName(tmpName.c_str());
+        h1DTmp->Scale(1, "width");
+        h1DTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceAll(h_vPt_ss[i]->GetName(), "h_vPt_ss", "h_vPt_ss_rebin");
+        h1DTmp = (TH1D*)h_vPt_ss[i]->Rebin(nBinsX, tmpName.c_str(), arr_vPt);
+        h1DTmp->Write("",TObject::kOverwrite);
+
+        tmpName = replaceAll(tmpName.c_str(), "h_vPt_ss_rebin", "h_vPt_ss_rebin_normBinW");
         h1DTmp->SetName(tmpName.c_str());
         h1DTmp->Scale(1, "width");
         h1DTmp->Write("",TObject::kOverwrite);
