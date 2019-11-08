@@ -769,6 +769,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_rho_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_Npart[nCents][nVPts];
+    TH2D* h2_PFHFtotEmix_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotE_eta3to4_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_eta4to5_vs_vPt[nCents];
     TH2D* h2_PFHEtotE_vs_vPt[nCents];
@@ -1254,6 +1255,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h2_PFHFtotE_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotE_vs_Npart.c_str(), title_h2_PFHFtotE_vs_Npart.c_str(),
                                                           410, 0, 410, 200, 0, 200000);
                 vec_h2D.push_back(h2_PFHFtotE_vs_Npart[i][j]);
+
+                std::string name_h2_PFHFtotEmix_vs_Npart = Form("h2_PFHFtotEmix_vs_Npart_%s", name_h_suffix.c_str());
+                std::string title_h2_PFHFtotEmix_vs_Npart = Form("%s;Npart;mixed event total energy of PF HF towers", title_h_suffix.c_str());
+
+                h2_PFHFtotEmix_vs_Npart[i][j] = 0;
+                h2_PFHFtotEmix_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotEmix_vs_Npart.c_str(), title_h2_PFHFtotEmix_vs_Npart.c_str(),
+                                                          410, 0, 410, 200, 0, 200000);
+                vec_h2D.push_back(h2_PFHFtotEmix_vs_Npart[i][j]);
             }
 
             if (i == 0) {
@@ -2298,6 +2307,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeHiEvtMix->SetBranchStatus("*",0);     // disable all branches
             treeHiEvtMix->SetBranchStatus("nmix",1);
             treeHiEvtMix->SetBranchStatus("hiBin_mix",1);
+            treeHiEvtMix->SetBranchStatus("pf_*_HF_*",1);
             if (rotateEvtPlane) {
                 treeHiEvtMix->SetBranchStatus("hiEvtPlanes_mix",1);
             }
@@ -3067,6 +3077,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                             if (isvJetTrkSkim) {
                                 h2_PFHFtotE_vs_Npart[i][j]->Fill(hiEvt.Npart, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+
+                                if (mixEvents.nmix > 0) {
+                                    double tmpPFHFtotEmix = 0;
+                                    for (int iME = 0; iME < mixEvents.nmix; ++iME) {
+                                        tmpPFHFtotEmix += ( (*mixEvents.p_pf_h_HF_totE_mix)[iME] + (*mixEvents.p_pf_eg_HF_totE_mix)[iME] );
+                                    }
+                                    tmpPFHFtotEmix /= (double(mixEvents.nmix));
+                                    h2_PFHFtotEmix_vs_Npart[i][j]->Fill(hiEvt.Npart, tmpPFHFtotEmix, wV);
+                                }
                             }
 
                             h_dphi_phi0_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.phi0)), wV);
