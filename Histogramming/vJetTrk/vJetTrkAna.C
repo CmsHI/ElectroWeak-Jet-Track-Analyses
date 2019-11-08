@@ -1252,7 +1252,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 h2_PFHFtotE_vs_Npart[i][j] = 0;
                 h2_PFHFtotE_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotE_vs_Npart.c_str(), title_h2_PFHFtotE_vs_Npart.c_str(),
-                                                          410, 0, 410, 2000, 0, 200000);
+                                                          410, 0, 410, 200, 0, 200000);
                 vec_h2D.push_back(h2_PFHFtotE_vs_Npart[i][j]);
             }
 
