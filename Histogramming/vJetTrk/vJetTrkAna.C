@@ -708,6 +708,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TH1*> vec_h_num;
     std::vector<TH1*> vec_h_denom;
 
+    std::vector<TH1*> vec_h_ss;
+    std::vector<TH1*> vec_h_os;
+
     TH1D* h_vPt[nCents];
     TH1D* h_vPt_ss[nCents];
     TH1D* h_vEta[nCents][nVPts];
@@ -905,10 +908,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         h_vPt[i] = 0;
         h_vPt[i] = new TH1D(name_h_vPt.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
+        vec_h_os.push_back(h_vPt[i]);
 
         std::string name_h_vPt_ss = Form("h_vPt_ss_%s", label_cent.c_str());
         h_vPt_ss[i] = 0;
         h_vPt_ss[i] = new TH1D(name_h_vPt_ss.c_str(), title_h_vPt.c_str(), nBinsX_vPt, 0, xMax_vPt);
+        vec_h_ss.push_back(h_vPt_ss[i]);
 
         std::string name_h_trig_num_vPt = Form("h_trig_num_vPt_%s", label_cent.c_str());
         h_trig_num_vPt[i] = 0;
@@ -1063,10 +1068,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vY = Form("%s;%s;", title_h_suffix.c_str(), text_vY.c_str());
             h_vY[i][j] = 0;
             h_vY[i][j] = new TH1D(name_h_vY.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+            vec_h_os.push_back(h_vY[i][j]);
 
             std::string name_h_vY_ss = Form("h_vY_ss_%s", name_h_suffix.c_str());
             h_vY_ss[i][j] = 0;
             h_vY_ss[i][j] = new TH1D(name_h_vY_ss.c_str(), title_h_vY.c_str(), nBinsX_eta, -1*xMax_eta, xMax_eta);
+            vec_h_ss.push_back(h_vY_ss[i][j]);
 
             h_l1Pt[i][j] = 0;
             h_l1Pt[i][j] = new TH1D(Form("h_l1Pt_%s", name_h_suffix.c_str()), ";p_T^{l1};", nBinsX_vPt, 0, xMax_vPt);
@@ -1164,11 +1171,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h_vM_os = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
             h_vM_os[i][j] = 0;
             h_vM_os[i][j] = new TH1D(name_h_vM_os.c_str(), title_h_vM_os.c_str(), 30, 60, 120);
+            vec_h_os.push_back(h_vM_os[i][j]);
 
             std::string name_h_vM_ss = Form("h_vM_ss_%s", name_h_suffix.c_str());
             std::string title_h_vM_ss = Form("%s;%s;", title_h_suffix.c_str(), text_vM_ss.c_str());
             h_vM_ss[i][j] = 0;
             h_vM_ss[i][j] = new TH1D(name_h_vM_ss.c_str(), title_h_vM_ss.c_str(), 30, 60, 120);
+            vec_h_ss.push_back(h_vM_ss[i][j]);
 
             if (i == 0) {
                 std::string name_h_cent = Form("h_halfHiBin_%s", label_vPt.c_str());
@@ -3620,6 +3629,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         tmpName = replaceAll(h_vPt[i]->GetName(), "h_vPt", "h_vPt_rebin");
         h1DTmp = (TH1D*)h_vPt[i]->Rebin(nBinsX, tmpName.c_str(), arr_vPt);
         h1DTmp->Write("",TObject::kOverwrite);
+        vec_h_os.push_back(h1DTmp);
 
         tmpName = replaceAll(tmpName.c_str(), "h_vPt_rebin", "h_vPt_rebin_normBinW");
         h1DTmp->SetName(tmpName.c_str());
@@ -3629,6 +3639,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         tmpName = replaceAll(h_vPt_ss[i]->GetName(), "h_vPt_ss", "h_vPt_ss_rebin");
         h1DTmp = (TH1D*)h_vPt_ss[i]->Rebin(nBinsX, tmpName.c_str(), arr_vPt);
         h1DTmp->Write("",TObject::kOverwrite);
+        vec_h_ss.push_back(h1DTmp);
 
         tmpName = replaceAll(tmpName.c_str(), "h_vPt_ss_rebin", "h_vPt_ss_rebin_normBinW");
         h1DTmp->SetName(tmpName.c_str());
@@ -3740,6 +3751,27 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             gTmp->SetMarkerStyle(kFullCircle);
             gTmp->Write("",TObject::kOverwrite);
         }
+    }
+
+    std::cout << "SS / OS ratio" << std::endl;
+    hTmp = 0;
+    int nVec_h_ss = vec_h_ss.size();
+    int nVec_h_os = vec_h_os.size();
+    if (nVec_h_ss != nVec_h_os) {
+        std::cout << "ERROR : different number of numerator and denominators" << std::endl;
+    }
+    for (int i = 0; i < nVec_h_ss; ++i) {
+        std::string tmpName = vec_h_ss[i]->GetName();
+
+        tmpName = replaceAll(tmpName, "_ss_", "_");
+        tmpName = replaceFirst(tmpName, "h_", "h_ratio_ss_os_");
+
+        hTmp = (TH1*)vec_h_ss[i]->Clone(tmpName.c_str());
+        hTmp->Divide(vec_h_os[i]);
+        if (hTmp->InheritsFrom("TH1D")) {
+            hTmp->GetYaxis()->SetTitle("Same sign / Opposite sign");
+        }
+        hTmp->Write("",TObject::kOverwrite);
     }
 
     std::cout << "### post loop processing - END ###" << std::endl;
