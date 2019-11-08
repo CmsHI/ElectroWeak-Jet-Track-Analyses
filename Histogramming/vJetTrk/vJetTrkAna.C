@@ -768,6 +768,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_hiHF_vs_vPt[nCents];
     TH2D* h2_rho_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_vPt[nCents];
+    TH2D* h2_PFHFtotE_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotE_eta3to4_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_eta4to5_vs_vPt[nCents];
     TH2D* h2_PFHEtotE_vs_vPt[nCents];
@@ -1244,6 +1245,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             h_dphi_EPn2_l2[i][j] = 0;
             h_dphi_EPn2_l2[i][j] = new TH1D(name_h_dphi_EPn2_l2.c_str(), title_h_dphi_EPn2_l2.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            if (isMC && isPbPb) {
+                std::string name_h2_PFHFtotE_vs_Npart = Form("h2_PFHFtotE_vs_Npart_%s", name_h_suffix.c_str());
+                std::string title_h2_PFHFtotE_vs_Npart = Form("%s;Npart;total energy of PF HF towers", title_h_suffix.c_str());
+
+                h2_PFHFtotE_vs_Npart[i][j] = 0;
+                h2_PFHFtotE_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotE_vs_Npart.c_str(), title_h2_PFHFtotE_vs_Npart.c_str(),
+                                                          410, 0, 410, 2000, 0, 200000);
+                vec_h2D.push_back(h2_PFHFtotE_vs_Npart[i][j]);
+            }
 
             if (i == 0) {
                 std::string name_h2_hiHF_vs_hiNpix = Form("h2_hiHF_vs_hiNpix_%s", label_vPt.c_str());
@@ -3054,6 +3065,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (anaNVtx) {
                                 h_nVtx[i][j]->Fill(trks.nVtx, wV);
                             }
+                            if (isvJetTrkSkim) {
+                                h2_PFHFtotE_vs_Npart[i][j]->Fill(hiEvt.Npart, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                            }
+
                             h_dphi_phi0_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.phi0)), wV);
 
                             h_dphi_EPn1_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[2])), wV);
