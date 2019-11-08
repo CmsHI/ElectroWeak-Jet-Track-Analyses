@@ -3075,7 +3075,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             if (anaNVtx) {
                                 h_nVtx[i][j]->Fill(trks.nVtx, wV);
                             }
-                            if (isvJetTrkSkim) {
+                            if (isMC && isPbPb && isvJetTrkSkim) {
                                 h2_PFHFtotE_vs_Npart[i][j]->Fill(hiEvt.Npart, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
 
                                 if (mixEvents.nmix > 0) {
