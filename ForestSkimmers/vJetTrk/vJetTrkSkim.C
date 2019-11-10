@@ -138,6 +138,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--vType", argOptions).c_str() : "pho";
+    std::string vRG = (ArgumentParser::optionExists("--vRG", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--vRG", argOptions).c_str() : "r";
 
     double vPtMin = (ArgumentParser::optionExists("--vPtMin", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--vPtMin", argOptions).c_str()) : 10;
@@ -158,6 +160,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::cout << "rndSeed = " << rndSeed << std::endl;
 
     std::cout << "vType = " << vType << std::endl;
+    std::cout << "vRG = " << vRG << std::endl;
     std::cout << "vPtMin = " << vPtMin << std::endl;
     std::cout << "vYMax = " << vYMax << std::endl;
 
@@ -192,6 +195,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     bool vIsZmm = (toLowerCase(vType).find("zmm") == 0);
     bool vIsZee = (toLowerCase(vType).find("zee") == 0);
     bool vIsZ = vIsZmm || vIsZee;
+
+    bool isRecoV = isRecoObj(vRG);
 
     bool doTrkVtx = isPP;
 
@@ -850,64 +855,100 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                 double zmassPDG = 91.1876;
                 double deltaMass = 999999;
+                double massMin = 60;
+                double massMax = 120;
 
                 TLorentzVector vecl1;
                 TLorentzVector vecl2;
                 TLorentzVector vecll;
 
                 double lMass = -1;
+                int pdgL = -1;
                 int nL = 0;
                 std::vector<float> *lPt;
                 std::vector<float> *lEta;
                 std::vector<float> *lPhi;
 
+                double lPtMin = -1;
+
                 if (vIsZmm) {
 
                     lMass = 0.105658;
+                    pdgL = 13;
                     nL = ggHi.nMu;
                     lPt = ggHi.muPt;
                     lEta = ggHi.muEta;
                     lPhi = ggHi.muPhi;
+                    lPtMin = 20;
                 }
                 else if (vIsZee) {
 
                     lMass = 0.000511;
+                    pdgL = 11;
                     nL = ggHi.nEle;
                     lPt = ggHi.elePt;
                     lEta = ggHi.eleEta;
                     lPhi = ggHi.elePhi;
+                    lPtMin = 20;
                 }
 
+                if (!isRecoV) {
+                    nL = ggHi.nMC;
+                    lPt = ggHi.mcPt;
+                    lEta = ggHi.mcEta;
+                    lPhi = ggHi.mcPhi;
+                }
+
+                deltaMass = 999999;
                 for (int i = 0; i < nL; ++i) {
 
                     float l1pt = (*lPt)[i];
-                    if (vIsZee) {
-                        l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+                    if (vIsZee && isRecoV) {
+                        if (isPbPb18) {
+                            l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+                        }
                     }
-                    if (!(l1pt > 20)) continue;
+                    if (!(l1pt > lPtMin)) continue;
 
-                    if (vIsZmm) {
+                    if (vIsZmm && isRecoV) {
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
                     }
-                    else if (vIsZee) {
+                    else if (vIsZee && isRecoV) {
                         if (!ggHi.passedEleSelection(i, collisionType, hiBin)) continue;
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+                    }
+                    else if (!isRecoV) {
+                        if (std::fabs((*ggHi.mcPID)[i]) != pdgL) continue;
+                        else if (vIsZee) {
+                            //if (std::fabs((*lEta)[i]) > 1.4442 && std::fabs((*lEta)[i]) < 1.566) continue;
+                            //if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
+                        }
                     }
 
                     for (int j = i+1; j < nL; ++j) {
 
                         float l2pt = (*lPt)[j];
-                        if (vIsZee) {
-                            l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
+                        if (vIsZee && isRecoV) {
+                            if (isPbPb18) {
+                                l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin);
+                            }
                         }
-                        if (!(l2pt > 20)) continue;
+                        if (!(l2pt > lPtMin)) continue;
 
-                        if (vIsZmm) {
+                        if (vIsZmm && isRecoV) {
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
+                            //if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureMu(j))  continue;
                         }
-                        else if (vIsZee) {
+                        else if (vIsZee && isRecoV) {
                             if (!ggHi.passedEleSelection(j, collisionType, hiBin)) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
+                        }
+                        else if (!isRecoV) {
+                            if (std::fabs((*ggHi.mcPID)[j]) != pdgL) continue;
+                            if (vIsZee) {
+                                //if (std::fabs((*lEta)[j]) > 1.4442 && std::fabs((*lEta)[j]) < 1.566) continue;
+                                //if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(j))  continue;
+                            }
                         }
 
                         vecl1.SetPtEtaPhiM(l1pt, (*lEta)[i], (*lPhi)[i], lMass);
@@ -915,7 +956,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                         vecll = vecl1 + vecl2;
 
-                        if (!(vecll.M() >= 60 && vecll.M() <= 120)) continue;
+                        if (!(vecll.M() >= massMin && vecll.M() <= massMax)) continue;
 
                         if (std::fabs(vecll.M() - zmassPDG) < deltaMass) {
                             deltaMass = std::fabs(vecll.M() - zmassPDG);
@@ -1480,8 +1521,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 jetSkimTrees[i]->Fill();
             }
             trackSkimTree->Fill();
+
+            if (entriesSelected > 4) break;
         }
         fileTmp->Close();
+
+        if (iFile > 0) break;
     }
     for (int i = 0; i < nMixFiles; ++i) {
         if (isMixFileGood[i])  {
