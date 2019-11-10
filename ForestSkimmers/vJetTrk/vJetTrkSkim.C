@@ -1521,12 +1521,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 jetSkimTrees[i]->Fill();
             }
             trackSkimTree->Fill();
-
-            if (entriesSelected > 4) break;
         }
         fileTmp->Close();
-
-        if (iFile > 0) break;
     }
     for (int i = 0; i < nMixFiles; ++i) {
         if (isMixFileGood[i])  {
