@@ -770,6 +770,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_PFHFtotE_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotEmix_vs_Npart[nCents][nVPts];
+    TH2D* h2_PFHFtotE_diff_rawmix_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotE_eta3to4_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_eta4to5_vs_vPt[nCents];
     TH2D* h2_PFHEtotE_vs_vPt[nCents];
@@ -1263,6 +1264,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h2_PFHFtotEmix_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotEmix_vs_Npart.c_str(), title_h2_PFHFtotEmix_vs_Npart.c_str(),
                                                           410, 0, 410, 200, 0, 200000);
                 vec_h2D.push_back(h2_PFHFtotEmix_vs_Npart[i][j]);
+
+                std::string name_h2_PFHFtotE_diff_rawmix_vs_Npart = Form("h2_PFHFtotE_diff_rawmix_vs_Npart_%s", name_h_suffix.c_str());
+                std::string title_h2_PFHFtotE_diff_rawmix_vs_Npart = Form("%s;Npart;#Delta(total energy of PF HF towers)_{raw, mix}", title_h_suffix.c_str());
+
+                h2_PFHFtotE_diff_rawmix_vs_Npart[i][j] = 0;
+                h2_PFHFtotE_diff_rawmix_vs_Npart[i][j] = new TH2D(name_h2_PFHFtotE_diff_rawmix_vs_Npart.c_str(), title_h2_PFHFtotE_diff_rawmix_vs_Npart.c_str(),
+                                                          410, 0, 410, 150, 0, 15000);
+                vec_h2D.push_back(h2_PFHFtotE_diff_rawmix_vs_Npart[i][j]);
             }
 
             if (i == 0) {
@@ -3076,7 +3085,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h_nVtx[i][j]->Fill(trks.nVtx, wV);
                             }
                             if (isMC && isPbPb && isvJetTrkSkim) {
-                                h2_PFHFtotE_vs_Npart[i][j]->Fill(hiEvt.Npart, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                                double tmpPFHFtotE = (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE);
+                                h2_PFHFtotE_vs_Npart[i][j]->Fill(hiEvt.Npart, tmpPFHFtotE, wV);
 
                                 if (mixEvents.nmix > 0) {
                                     double tmpPFHFtotEmix = 0;
@@ -3085,6 +3095,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     }
                                     tmpPFHFtotEmix /= (double(mixEvents.nmix));
                                     h2_PFHFtotEmix_vs_Npart[i][j]->Fill(hiEvt.Npart, tmpPFHFtotEmix, wV);
+
+                                    h2_PFHFtotE_diff_rawmix_vs_Npart[i][j]->Fill(hiEvt.Npart, tmpPFHFtotE - tmpPFHFtotEmix, wV);
                                 }
                             }
 
