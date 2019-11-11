@@ -763,6 +763,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dphi_EPn1_V[nCents][nVPts];
     TH1D* h_dphi_EPn2_V[nCents][nVPts];
     TH1D* h_dphi_EPn3_V[nCents][nVPts];
+    TH1D* h_dphi_EPn2_phi0[nCents][nVPts];
     TH1D* h_dphi_EPn2_l1[nCents][nVPts];
     TH1D* h_dphi_EPn2_l2[nCents][nVPts];
     TH2D* h2_hiHF_vs_vPt[nCents];
@@ -1272,6 +1273,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             h_dphi_EPn3_V[i][j] = 0;
             h_dphi_EPn3_V[i][j] = new TH1D(name_h_dphi_EPn3_V.c_str(), title_h_dphi_EPn3_V.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            std::string name_h_dphi_EPn2_phi0 = Form("h_dphi_EPn2_phi0_%s", name_h_suffix.c_str());
+            std::string title_h_dphi_EPn2_phi0 = Form("%s;#Delta#phi_{EPn2,#phi_{0}};", title_h_suffix.c_str());
+
+            h_dphi_EPn2_phi0[i][j] = 0;
+            h_dphi_EPn2_phi0[i][j] = new TH1D(name_h_dphi_EPn2_phi0.c_str(), title_h_dphi_EPn2_phi0.c_str(), nBinsX_dphi, 0, xMax_phi);
 
             std::string name_h_dphi_EPn2_l1 = Form("h_dphi_EPn2_l1_%s", name_h_suffix.c_str());
             std::string title_h_dphi_EPn2_l1 = Form("%s;#Delta#phi_{EPn2,%s};", title_h_suffix.c_str(), "l1");
@@ -3146,6 +3153,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])), wV);
                             h_dphi_EPn3_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[15])), wV);
+
+                            h_dphi_EPn2_phi0[i][j]->Fill(std::fabs(getDPHI(hiEvt.phi0, hiEvt.hiEvtPlanes[8])), wV);
 
                             h_dphi_EPn2_l1[i][j]->Fill(std::fabs(getDPHI(llPhi[0], hiEvt.hiEvtPlanes[8])), wV);
                             h_dphi_EPn2_l2[i][j]->Fill(std::fabs(getDPHI(llPhi[1], hiEvt.hiEvtPlanes[8])), wV);
