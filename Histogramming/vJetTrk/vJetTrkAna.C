@@ -768,6 +768,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_hiHF_vs_vPt[nCents];
     TH2D* h2_rho_vs_vPt[nCents];
     TH2D* h2_PFHFtotE_vs_vPt[nCents];
+    TH2D* h2_PFHFtotE_vs_vPt_rebin[nCents];
     TH2D* h2_PFHFtotE_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotEmix_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotE_diff_rawmix_vs_Npart[nCents][nVPts];
@@ -1002,6 +1003,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h2_PFHFtotE_vs_vPt[i] = new TH2D(name_h2_PFHFtotE_vs_vPt.c_str(), title_h2_PFHFtotE_vs_vPt.c_str(),
                                          nBinsX_vPt, 0, xMax_vPt, 2000, 0, 200000);
         vec_h2D.push_back(h2_PFHFtotE_vs_vPt[i]);
+
+        std::string name_h2_PFHFtotE_vs_vPt_rebin = Form("h2_PFHFtotE_vs_vPt_rebin_%s", label_cent.c_str());
+        std::string title_h2_PFHFtotE_vs_vPt_rebin = Form("%s, %s;%s;total energy of PF HF towers", text_range_vY.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        int nBinsX_vPt_rebin = binsX_vPt_rebin.size()-1;
+        double arr_vPt[nBinsX_vPt_rebin+1];
+        std::copy(binsX_vPt_rebin.begin(), binsX_vPt_rebin.end(), arr_vPt);
+
+        h2_PFHFtotE_vs_vPt_rebin[i] = 0;
+        h2_PFHFtotE_vs_vPt_rebin[i] = new TH2D(name_h2_PFHFtotE_vs_vPt_rebin.c_str(), title_h2_PFHFtotE_vs_vPt_rebin.c_str(),
+                                                              nBinsX_vPt_rebin, arr_vPt, 2000, 0, 200000);
+        vec_h2D.push_back(h2_PFHFtotE_vs_vPt_rebin[i]);
 
         std::string name_h2_PFHFtotE_eta3to4_vs_vPt = Form("h2_PFHFtotE_eta3to4_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_PFHFtotE_eta3to4_vs_vPt = Form("%s, %s;%s;total energy of PF HF towers", text_range_vY.c_str(),
@@ -3057,6 +3072,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h2_rho_vs_vPt[i]->Fill(vPt, ggHi.rho, wV);
                         if (isvJetTrkSkim) {
                             h2_PFHFtotE_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                            h2_PFHFtotE_vs_vPt_rebin[i]->Fill(vPt, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                             h2_PFHFtotE_eta3to4_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_E_eta3to4 + evtskim.pf_eg_HF_E_eta3to4), wV);
                             h2_PFHFtotE_eta4to5_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5), wV);
                             h2_PFHEtotE_vs_vPt[i]->Fill(vPt, (evtskim.pf_h_HE_totE + evtskim.pf_e_HE_totE
