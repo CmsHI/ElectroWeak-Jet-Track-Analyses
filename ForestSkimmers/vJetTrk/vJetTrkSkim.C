@@ -889,6 +889,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 std::vector<float> *lPhi;
 
                 double lPtMin = -1;
+                double lEtaMax = -1;
 
                 if (vIsZmm) {
 
@@ -899,6 +900,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     lEta = ggHi.muEta;
                     lPhi = ggHi.muPhi;
                     lPtMin = 20;
+                    lEtaMax = 2.4;
                 }
                 else if (vIsZee) {
 
@@ -909,6 +911,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     lEta = ggHi.eleEta;
                     lPhi = ggHi.elePhi;
                     lPtMin = 20;
+                    lEtaMax = 2.4;  // keep wider than 2.1
                 }
 
                 if (!isRecoV) {
@@ -928,6 +931,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         }
                     }
                     if (!(l1pt > lPtMin)) continue;
+                    if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
 
                     if (vIsZmm && isRecoV) {
                         if (!ggHi.passedMuSelection(i, collisionType)) continue;
@@ -953,6 +957,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                             }
                         }
                         if (!(l2pt > lPtMin)) continue;
+                        if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
 
                         if (vIsZmm && isRecoV) {
                             if (!ggHi.passedMuSelection(j, collisionType)) continue;
