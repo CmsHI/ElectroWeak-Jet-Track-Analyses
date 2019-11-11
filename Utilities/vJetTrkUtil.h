@@ -46,7 +46,8 @@ const double etaMax_pf_HF = 5;
 
 const double PF_HF_totE_max = 150000;
 
-const double PF_HF_E_eta4to5_max = 100000;
+const double PF_HF_E_eta4to5_max = 85000;
+const double PF_HF_E_eta3to4_max = 60000;
 
 const int hiNpix_max = 100000;
 
@@ -64,6 +65,7 @@ enum MIXMETHODS {
     k_match_rho,
     k_match_PF_HF_totE,
     k_match_PF_HF_E_eta4to5,
+    k_match_PF_HF_E_eta3to4,
     k_match_hiNpix,
     k_match_PF_HE_totE,
     k_match_nTrk,
@@ -71,8 +73,8 @@ enum MIXMETHODS {
     kN_MITMETHODS
 };
 const std::string mixMerhodsStr[kN_MITMETHODS] = {"match_hiBin", "match_Npart", "match_hiHF", "match_rho",
-                                                  "match_PF_HF_totE", "match_PF_HF_E_eta4to5", "match_hiNpix",
-                                                  "match_PF_HE_totE", "match_nTrk",
+                                                  "match_PF_HF_totE", "match_PF_HF_E_eta4to5", "match_PF_HF_E_eta3to4",
+                                                  "match_hiNpix", "match_PF_HE_totE", "match_nTrk",
                                                   "match_nVtx"};
 int mixMethod;
 
@@ -469,16 +471,19 @@ int parseMixMethod(std::string mixMethodStr)
     else if (mixMethodStr == "match_pf_hf_e_eta4to5" || mixMethodStr == "5") {
         return VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5;
     }
-    else if (mixMethodStr == "match_hinpix" || mixMethodStr == "6") {
+    else if (mixMethodStr == "match_pf_hf_e_eta3to4" || mixMethodStr == "6") {
+        return VJT::MIXMETHODS::k_match_PF_HF_E_eta3to4;
+    }
+    else if (mixMethodStr == "match_hinpix" || mixMethodStr == "7") {
         return VJT::MIXMETHODS::k_match_hiNpix;
     }
-    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "7") {
+    else if (mixMethodStr == "match_pf_he_tote" || mixMethodStr == "8") {
         return VJT::MIXMETHODS::k_match_PF_HE_totE;
     }
-    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "8") {
+    else if (mixMethodStr == "match_ntrk" || mixMethodStr == "9") {
         return VJT::MIXMETHODS::k_match_nTrk;
     }
-    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "9") {
+    else if (mixMethodStr == "match_nvtx" || mixMethodStr == "10") {
         return VJT::MIXMETHODS::k_match_nVtx;
     }
     else {

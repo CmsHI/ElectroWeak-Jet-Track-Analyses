@@ -516,20 +516,39 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
                     iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
-                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5 ||
+                         VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta3to4) {
+
+                    double minEta = -1;
+                    double maxEta = -1;
+                    double totEMax = -1;
+                    if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+                        minEta = 4;
+                        maxEta = 5;
+                        totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
+                    }
+                    else {
+                        minEta = 3;
+                        maxEta = 4;
+                        totEMax = (isMC) ? VJT::PF_HF_E_eta3to4_max : 55000;
+                    }
 
                     float tmpTotE = -1;
                     if (isForest[i]) {
                         treeMixPFCand[i]->GetEntry(j_entry_mix);
-                        float tmpTotE_h = getPFtotE(pfMix[i], 6, 4, 5);
-                        float tmpTotE_eg = getPFtotE(pfMix[i], 7, 4, 5);
+                        float tmpTotE_h = getPFtotE(pfMix[i], 6, minEta, maxEta);
+                        float tmpTotE_eg = getPFtotE(pfMix[i], 7, minEta, maxEta);
                         tmpTotE = tmpTotE_h + tmpTotE_eg;
                     }
                     else {
                         treeMixEventSkim[i]->GetEntry(j_entry_mix);
-                        tmpTotE = eventSkimMix[i].pf_h_HF_E_eta4to5 + eventSkimMix[i].pf_eg_HF_E_eta4to5;
+                        if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+                            tmpTotE = eventSkimMix[i].pf_h_HF_E_eta4to5 + eventSkimMix[i].pf_eg_HF_E_eta4to5;
+                        }
+                        else {
+                            tmpTotE = eventSkimMix[i].pf_h_HF_E_eta3to4 + eventSkimMix[i].pf_eg_HF_E_eta3to4;
+                        }
                     }
-                    double totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
                     iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiNpix) {
@@ -1184,14 +1203,25 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 590, totEMax); // 589.7
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 677, totEMax);
                 }
-                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+                else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5 ||
+                         VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta3to4) {
 
-                    double totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
-                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 393.0, totEMax);
-                    // data
-                    iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 343.0, totEMax);
-                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0-(172.0/2)), totEMax); // p, UE energy up
-                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0+(172.0/2)), totEMax); // m, UE energy down
+                    double totEMax = -1;
+                    if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5) {
+                        totEMax = (isMC) ? VJT::PF_HF_E_eta4to5_max : 80000;
+
+                        iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 393.0, totEMax);
+                        // data
+                        //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - 343.0, totEMax);
+                        //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0-(172.0/2)), totEMax); // p, UE energy up
+                        //iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta4to5 + evtskim.pf_eg_HF_E_eta4to5) - (343.0+(172.0/2)), totEMax); // m, UE energy down
+                    }
+                    else {
+                        totEMax = (isMC) ? VJT::PF_HF_E_eta3to4_max : 55000;
+
+                        iCent = getPFEnergyBin((evtskim.pf_h_HF_E_eta3to4 + evtskim.pf_eg_HF_E_eta3to4) - 290.0, totEMax);
+                        // data
+                    }
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_hiNpix) {
 
