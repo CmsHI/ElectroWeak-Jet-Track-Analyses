@@ -138,6 +138,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double evtFrac = (ArgumentParser::optionExists("--evtFrac", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--evtFrac", argOptions).c_str()) : 1;
 
+    int rndEntry = (ArgumentParser::optionExists("--rndEntry", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntry", argOptions).c_str()) : 0;
+    bool doRndEntry = (rndEntry > 0);
+
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--vType", argOptions).c_str() : "pho";
     std::string vRG = (ArgumentParser::optionExists("--vRG", argOptions)) ?
@@ -218,6 +222,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
+    if (doRndEntry) {
+        std::cout << "rndEntry = " << rndEntry << std::endl;
+    }
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
     std::cout << "nVPts = " << nVPts << std::endl;
@@ -2191,6 +2198,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp->Close();
     // done with initial reading
 
+    TRandom3 randEntry;
+    if (doRndEntry) {
+        randEntry.SetSeed(rndEntry);
+    }
+
     TRandom3 randelePt(1234);
 
     TRandom3 randvPhi;
@@ -2530,14 +2542,23 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+
+        Long64_t entryStart = 0;
+        if (doRndEntry) {
+            entryStart = (Long64_t)(randEntry.Uniform(0, entriesTmp));
+        }
+        Long64_t entryCount = 0;
+        for (Long64_t j_entry = entryStart; entryCount < entriesTmp; ++j_entry)
         {
-            if (evtFrac < 1 && j_entry > (entriesTmp*evtFrac)) {
+            if (evtFrac < 1 && entryCount > (entriesTmp*evtFrac)) {
                 break;
             }
 
+            entryCount++;
+            j_entry = (j_entry % entriesTmp);
+
             if (j_entry % 2000 == 0)  {
-              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(4)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+              std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(4)<<(double)entryCount/entriesTmp*100<<" %"<<std::endl;
             }
 
             treeggHiNtuplizer->GetEntry(j_entry);
