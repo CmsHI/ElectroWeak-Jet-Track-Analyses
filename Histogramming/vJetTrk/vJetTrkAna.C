@@ -757,6 +757,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_reco_denom_cent[nVPts];
     TH1D* h_reco_num_dphi_phi0_V[nCents][nVPts];
     TH1D* h_reco_denom_dphi_phi0_V[nCents][nVPts];
+    TH1D* h_reco_num_dphi_EPn2_V[nCents][nVPts];
+    TH1D* h_reco_denom_dphi_EPn2_V[nCents][nVPts];
     TH2D* h2_reco_num_vPt_vs_vY[nCents];
     TH2D* h2_reco_denom_vPt_vs_vY[nCents];
 
@@ -1290,6 +1292,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             h_dphi_EPn2_V[i][j] = 0;
             h_dphi_EPn2_V[i][j] = new TH1D(name_h_dphi_EPn2_V.c_str(), title_h_dphi_EPn2_V.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+            if (isPbPb) {
+                std::string name_h_reco_num_dphi_EPn2_V = Form("h_reco_num_dphi_EPn2_V_%s", name_h_suffix.c_str());
+
+                h_reco_num_dphi_EPn2_V[i][j] = 0;
+                h_reco_num_dphi_EPn2_V[i][j] = (TH1D*)h_dphi_EPn2_V[i][j]->Clone(name_h_reco_num_dphi_EPn2_V.c_str());
+                h_reco_num_dphi_EPn2_V[i][j]->SetXTitle(Form("gen %s", h_dphi_EPn2_V[i][j]->GetXaxis()->GetTitle()));
+                vec_h_num.push_back(h_reco_num_dphi_EPn2_V[i][j]);
+
+                std::string name_h_reco_denom_dphi_EPn2_V = Form("h_reco_denom_dphi_EPn2_V_%s", name_h_suffix.c_str());
+                h_reco_denom_dphi_EPn2_V[i][j] = 0;
+                h_reco_denom_dphi_EPn2_V[i][j] = (TH1D*)h_reco_num_dphi_EPn2_V[i][j]->Clone(name_h_reco_denom_dphi_EPn2_V.c_str());
+                vec_h_denom.push_back(h_reco_denom_dphi_EPn2_V[i][j]);
+            }
 
             std::string name_h_dphi_EPn3_V = Form("h_dphi_EPn3_V_%s", name_h_suffix.c_str());
             std::string title_h_dphi_EPn3_V = Form("%s;#Delta#phi_{EPn3,%s};", title_h_suffix.c_str(), text_V.c_str());
@@ -3064,8 +3080,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (isPbPb) {
                                 h_reco_denom_dphi_phi0_V[i][j]->Fill(std::fabs(getDPHI(genVPhi, hiEvt.phi0)), wV_gen);
+                                h_reco_denom_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(genVPhi, hiEvt.hiEvtPlanes[8])), wV_gen);
                                 if (matchedRG) {
                                     h_reco_num_dphi_phi0_V[i][j]->Fill(std::fabs(getDPHI(genVPhi, hiEvt.phi0)), wV);
+                                    h_reco_num_dphi_EPn2_V[i][j]->Fill(std::fabs(getDPHI(genVPhi, hiEvt.hiEvtPlanes[8])), wV);
                                 }
                             }
                         }
