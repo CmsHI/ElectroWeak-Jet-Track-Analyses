@@ -2956,7 +2956,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     wV_recoeff = getVRecoEffCorrection(vPt, vY, vec_h2D_wV[iCent]);
                 }
             }
-            wV *= wV_recoeff;
 
             if (doWeightsEP) {
                 int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
@@ -3002,13 +3001,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             // reco eff
+            double wV_evt = wV;
+            wV *= wV_recoeff;
             if (isMC && isRecoV && genVPt > 0) {
 
                 double matchedRG = ((vIsPho || ll_passSign) && passedTrig && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
 
                 double genVYAbs = std::fabs(genVY);
 
-                double wV_gen = wV / wV_recoeff;
+                double wV_gen = wV_evt;
 
                 for (int i = 0; i < nCents; ++i) {
 
