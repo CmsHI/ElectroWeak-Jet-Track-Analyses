@@ -133,7 +133,9 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TKey* key = 0;
     TIter* iter = 0;
 
-    std::vector<TH1*> hIn(nInputObjs, 0);
+    std::vector<TH1*> hIn[nInputFiles];
+    hIn[0].clear();
+    hIn[0].resize(nInputObjs, 0);
 
     TFile* output = TFile::Open(outputFile.c_str(), writeMode.c_str());
     output->cd();
@@ -160,9 +162,9 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             // i % 2 == 0 --> raw or numerator
             // i % 2 == 1 --> bkg or denominator
 
-            hIn[i] = 0;
+            hIn[0][i] = 0;
             int iFile = (i % 2 == 0) ? 0 : 1;
-            hIn[i] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
+            hIn[0][i] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
         }
     }
 
@@ -175,20 +177,20 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             int iRaw = i;
             int iBkg = i+1;
 
-            if (hIn[iRaw] == 0) {
+            if (hIn[0][iRaw] == 0) {
                 std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
                 std::cout << "relevant file : " << inputFiles[0].c_str() << std::endl;
                 std::cout << "skipping calculation involving this object" << std::endl;
                 continue;
             }
-            if (hIn[iBkg] == 0) {
+            if (hIn[0][iBkg] == 0) {
                 std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
                 std::cout << "relevant file : " << inputFiles[1].c_str() << std::endl;
                 std::cout << "skipping calculation involving this object" << std::endl;
                 continue;
             }
 
-            std::string tmpName_vPt = hIn[iRaw]->GetName();
+            std::string tmpName_vPt = hIn[0][iRaw]->GetName();
             std::string histPath_vPt = parsePathTH1vPt(tmpName_vPt);
             if (doSAMESIGNSUB) {
                 //std::cout << "here 0 : " << histPath_vPt << std::endl;
@@ -228,23 +230,23 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 }
             }
 
-            setTH1(hIn[iRaw]);
-            setTH1(hIn[iBkg]);
+            setTH1(hIn[0][iRaw]);
+            setTH1(hIn[0][iBkg]);
 
             if (doBKGSUB || doSAMESIGNSUB) {
-                hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+                hTmpBkg = (TH1*)hIn[0][iBkg]->Clone(Form("%s_tmpBkg", hIn[0][iBkg]->GetName()));
 
-                std::string tmpNameRaw = hIn[iRaw]->GetName();
-                std::string tmpNameBkg = hIn[iBkg]->GetName();
+                std::string tmpNameRaw = hIn[0][iRaw]->GetName();
+                std::string tmpNameBkg = hIn[0][iBkg]->GetName();
                 if (doSAMESIGNSUB) {
                     tmpNameRaw = replaceAll(tmpNameRaw, "_sig", "");
                     tmpNameBkg = replaceAll(tmpNameBkg, "_sig", "");
                 }
-                hOut = (TH1*)hIn[iRaw]->Clone(Form("%s_sig", tmpNameRaw.c_str()));
+                hOut = (TH1*)hIn[0][iRaw]->Clone(Form("%s_sig", tmpNameRaw.c_str()));
                 hOut->Add(hTmpBkg, -1);
 
                 // write objects
-                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", tmpNameRaw.c_str()));
+                hTmp = (TH1*)hIn[0][iRaw]->Clone(Form("%s_raw", tmpNameRaw.c_str()));
                 hTmp->Scale(1.0 / nV);
                 if (doSCALEBINW) {
                     hTmp->Scale(1.0, "width");
@@ -269,28 +271,28 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 // assume x-axis contains dphi, trkPt, xivh
                 // assume y-axis contains deta
 
-                if (!(hIn[iRaw]->InheritsFrom("TH2D"))) {
+                if (!(hIn[0][iRaw]->InheritsFrom("TH2D"))) {
                     continue;
                 }
 
                 std::string strSB = "h2_deta_vs_";
                 //std::string strSB = "h2_deta_h1_vs_";
 
-                if (std::string(hIn[iRaw]->GetName()).find(strSB.c_str()) == std::string::npos) {
+                if (std::string(hIn[0][iRaw]->GetName()).find(strSB.c_str()) == std::string::npos) {
                     std::cout << "deta is not on y-axis : " << inputObjs[i].c_str() << std::endl;
                     std::cout << "skipping calculation involving this object" << std::endl;
                     continue;
                 }
 
-                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw", hIn[iRaw]->GetName()));
+                hTmp = (TH1*)hIn[0][iRaw]->Clone(Form("%s_raw", hIn[0][iRaw]->GetName()));
                 hTmp->Scale(1.0 / nV);
                 hTmp->Write("", TObject::kOverwrite);
 
-                hTmp = (TH1*)hIn[iBkg]->Clone(Form("%s_bkg", hIn[iBkg]->GetName()));
+                hTmp = (TH1*)hIn[0][iBkg]->Clone(Form("%s_bkg", hIn[0][iBkg]->GetName()));
                 hTmp->Scale(1.0 / nV);
                 hTmp->Write("", TObject::kOverwrite);
 
-                hTmpBkg = (TH1*)hIn[iBkg]->Clone(Form("%s_tmpBkg", hIn[iBkg]->GetName()));
+                hTmpBkg = (TH1*)hIn[0][iBkg]->Clone(Form("%s_tmpBkg", hIn[0][iBkg]->GetName()));
 
                 // bin with deta=0 contains the BKG normalization.
                 //double normBKG = hTmpBkg->GetBinContent(1, 1);
@@ -298,7 +300,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 normBKG /= ((TH2D*)hTmpBkg)->ProjectionX("", 1, 1)->GetNbinsX();
 
                 // raw corrected for acceptance
-                hTmp = (TH1*)hIn[iRaw]->Clone(Form("%s_raw_accCorr", hIn[iRaw]->GetName()));
+                hTmp = (TH1*)hIn[0][iRaw]->Clone(Form("%s_raw_accCorr", hIn[0][iRaw]->GetName()));
                 //hTmp->Divide(hTmpBkg);
                 for (int iBinX = 1; iBinX <= hTmp->GetNbinsX(); ++iBinX) {
                     for (int iBinY = 1; iBinY <= hTmp->GetNbinsY(); ++iBinY) {
@@ -349,7 +351,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 double detaLR = hTmp->GetYaxis()->GetBinLowEdge(binDetaMaxLR+1) - hTmp->GetYaxis()->GetBinLowEdge(binDetaMinLR);
                 double normLRtoSR = detaSR / detaLR;
 
-                std::string name1D = replaceFirst(hIn[iRaw]->GetName(), strSB.c_str(), "h_");
+                std::string name1D = replaceFirst(hIn[0][iRaw]->GetName(), strSB.c_str(), "h_");
 
                 // lr
                 hTmpBkg = (TH1D*)(((TH2D*)hTmp)->ProjectionX(Form("%s_bkg", name1D.c_str()), binDetaMinLR, binDetaMaxLR));
@@ -407,34 +409,34 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             int iNum = i;
             int iDnm = i+1;
 
-            if (hIn[iNum] == 0) {
+            if (hIn[0][iNum] == 0) {
                 std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
                 std::cout << "relevant file : " << inputFiles[0].c_str() << std::endl;
                 std::cout << "skipping calculation involving this object" << std::endl;
                 continue;
             }
-            if (hIn[iDnm] == 0) {
+            if (hIn[0][iDnm] == 0) {
                 std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
                 std::cout << "relevant file : " << inputFiles[1].c_str() << std::endl;
                 std::cout << "skipping calculation involving this object" << std::endl;
                 continue;
             }
 
-            setTH1(hIn[iNum]);
-            setTH1(hIn[iDnm]);
+            setTH1(hIn[0][iNum]);
+            setTH1(hIn[0][iDnm]);
 
-            hTmp = (TH1*)hIn[iDnm]->Clone(Form("%s_tmpDenom", hIn[iDnm]->GetName()));
+            hTmp = (TH1*)hIn[0][iDnm]->Clone(Form("%s_tmpDenom", hIn[0][iDnm]->GetName()));
 
             std::string tmpName;
-            std::string strOld = (hIn[iNum]->InheritsFrom("TH2D")) ? "h2_" : "h_";
+            std::string strOld = (hIn[0][iNum]->InheritsFrom("TH2D")) ? "h2_" : "h_";
             if (doRATIO) {
-                tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"ratio_");
+                tmpName = replaceFirst(hIn[0][iNum]->GetName(), strOld, strOld+"ratio_");
             }
             else if (doDIFF) {
-                tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"diff_");
+                tmpName = replaceFirst(hIn[0][iNum]->GetName(), strOld, strOld+"diff_");
             }
 
-            hOut = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
+            hOut = (TH1*)hIn[0][iNum]->Clone(tmpName.c_str());
             if (doRATIO) {
                 hOut->Divide(hTmp);
                 hOut->SetYTitle("PbPb / pp");
@@ -447,12 +449,12 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hTmp->Delete();
 
             // write objects
-            tmpName = replaceFirst(hIn[iNum]->GetName(), strOld, strOld+"num_");
-            hTmp = (TH1*)hIn[iNum]->Clone(tmpName.c_str());
+            tmpName = replaceFirst(hIn[0][iNum]->GetName(), strOld, strOld+"num_");
+            hTmp = (TH1*)hIn[0][iNum]->Clone(tmpName.c_str());
             hTmp->Write("", TObject::kOverwrite);
 
-            tmpName = replaceFirst(hIn[iDnm]->GetName(), strOld, strOld+"denom_");
-            hTmp = (TH1*)hIn[iDnm]->Clone(tmpName.c_str());
+            tmpName = replaceFirst(hIn[0][iDnm]->GetName(), strOld, strOld+"denom_");
+            hTmp = (TH1*)hIn[0][iDnm]->Clone(tmpName.c_str());
             hTmp->Write("", TObject::kOverwrite);
 
             hOut->Write("",TObject::kOverwrite);
@@ -467,21 +469,21 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
         for (int i = 0; i < nInputObjs; ++i) {
 
-            hIn[i] = 0;
-            hIn[i] = (TH1*)inputs[0]->Get(inputObjs[i].c_str());
+            hIn[0][i] = 0;
+            hIn[0][i] = (TH1*)inputs[0]->Get(inputObjs[i].c_str());
         }
 
         for (int i = 0; i < nInputObjs; ++i) {
 
-            if (hIn[i] == 0) {
+            if (hIn[0][i] == 0) {
                 std::cout << "Object not found : " << inputObjs[i].c_str() << std::endl;
                 std::cout << "relevant file : " << inputFiles[0].c_str() << std::endl;
                 std::cout << "skipping calculation involving this object" << std::endl;
                 continue;
             }
 
-            std::string tmpName = hIn[i]->GetName();
-            hOut = (TH1*)hIn[i]->Clone(tmpName.c_str());
+            std::string tmpName = hIn[0][i]->GetName();
+            hOut = (TH1*)hIn[0][i]->Clone(tmpName.c_str());
 
             std::string histPath_vPt = parsePathTH1vPt(tmpName);
             hTmp = (TH1*)inputs[0]->Get(histPath_vPt.c_str());
@@ -527,28 +529,28 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
         double w1 = 1;
         double w2 = 1;
 
-        hIn.clear();
-        hIn.assign(2, 0);
+        hIn[0].clear();
+        hIn[0].assign(2, 0);
 
         while ((key=(TKey*)iter->Next()))
         {
             if (!(key->ReadObj()->InheritsFrom("TH1D") || key->ReadObj()->InheritsFrom("TH2D")))  continue;
 
-            hIn[0] = 0;
-            hIn[0] = (TH1*)key->ReadObj();
+            hIn[0][0] = 0;
+            hIn[0][0] = (TH1*)key->ReadObj();
 
-            std::string objName = hIn[0]->GetName();
+            std::string objName = hIn[0][0]->GetName();
 
             if (!keyList[1]->Contains(objName.c_str()))  continue;
 
-            hIn[1] = (TH1*)inputs[1]->Get(objName.c_str());
+            hIn[0][1] = (TH1*)inputs[1]->Get(objName.c_str());
 
-            hIn[0]->Scale(w1);
-            hIn[1]->Scale(w2);
+            hIn[0][0]->Scale(w1);
+            hIn[0][1]->Scale(w2);
 
             hOut = 0;
-            hOut = (TH1*)hIn[0]->Clone();
-            hOut->Add(hIn[1]);
+            hOut = (TH1*)hIn[0][0]->Clone();
+            hOut->Add(hIn[0][1]);
 
             if (hOut->InheritsFrom("TH2D")) {
                 vec_h2D.push_back((TH2D*)hOut);
