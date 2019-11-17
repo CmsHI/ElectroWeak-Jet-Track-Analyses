@@ -317,6 +317,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
+    bool doWeightsPhi0 = ((applyWeightsV % 10) == 3);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
 
     bool noTrkWeights = (applyTrkWeights == 0);
@@ -408,6 +409,34 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 std::string tmpPath = Form("h2_dphi_EPn2_V_vs_vPt_cent%s", (*it).c_str());
                 vec_h2D_wEP.push_back((TH2D*)fileWeightsEP->Get(tmpPath.c_str()));
+            }
+        }
+    }
+
+    TFile* fileWeightsPhi0 = 0;
+    std::vector<TH1D*> vec_h1D_wPhi0;
+    if (doWeightsPhi0) {
+        std::string dirWPhi0 = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/test/weights/";
+        std::string fileNameWPhi0 = "";
+        if (isRecoV)  {
+            fileNameWPhi0 = "vJetTrkAna_pbpb_2018_mc_zmm_vr_trk_r_raw.root";
+        }
+        else {
+            fileNameWPhi0 = "vJetTrkAna_pbpb_2018_mc_zmm_vg_trk_r_raw.root";
+        }
+
+        if (fileNameWPhi0 != "") {
+            std::string filePathWPhi0 = Form("%s/%s", dirWPhi0.c_str(), fileNameWPhi0.c_str());
+            std::cout << "reading Phi0 correction file : " << filePathWPhi0.c_str() << std::endl;
+
+            fileWeightsPhi0 = TFile::Open(filePathWPhi0.c_str(), "READ");
+
+            std::vector<std::string> tmpCents = {"0_10", "10_30", "30_50", "50_90"};
+
+            for (std::vector<std::string>::iterator it = tmpCents.begin() ; it != tmpCents.end(); ++it) {
+
+                std::string tmpPath = Form("h_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
+                vec_h1D_wPhi0.push_back((TH1D*)fileWeightsPhi0->Get(tmpPath.c_str()));
             }
         }
     }
@@ -3027,6 +3056,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
                 hTmp->Delete();
             }
+
+            if (doWeightsPhi0) {
+                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
+
+                //int binTmpVPt = ((TH1D*)(vec_h2D_wPhi0[iCent]->ProjectionX()))->FindBin(vPt);
+                //hTmp = (TH1D*)vec_h2D_wPhi0[iCent]->ProjectionY("hTmp_wPhi0", binTmpVPt, binTmpVPt);
+                //hTmp->Rebin(2);
+                hTmp = (TH1D*)vec_h1D_wPhi0[iCent]->Clone("hTmp_wPhi0");
+                //hTmp->Rebin(2);
+                hTmp->Scale(1./hTmp->Integral());
+                int tmpBinPhi0 = hTmp->FindBin(std::fabs(getDPHI(vPhi, hiEvt.phi0)));
+                double tmpWPhi0 = hTmp->GetBinContent(tmpBinPhi0);
+                if (tmpWPhi0 > 0.001) {
+                    wV *= 1./(tmpWPhi0);
+                }
+                hTmp->Delete();
+            }
+
             if (doWeightsVcent) {
                 int binTmp = h1D_wVcent1->FindBin((hiBin0/2));
                 wV *= (h1D_wVcent1->GetBinContent(binTmp));
