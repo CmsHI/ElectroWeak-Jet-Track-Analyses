@@ -153,6 +153,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TH1* hTmpBkg = 0;
     TH1* hOut = 0;
 
+    TH2D* h2DTmp = 0;
+
     if (doSUB || doRATIO || doDIFF) {
         if (nInputFiles != 2) {
             std::cout << "There must be 2 input files for SUB (RATIO) operation : "
@@ -534,8 +536,6 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 setTH1(hIn[iObjExp][i]);
                 setTH1(hIn[iObjTrue][i]);
 
-                hTmp = (TH1*)hIn[iObjTrue][i]->Clone(Form("%s_tmpExp_%d", hIn[iObjTrue][i]->GetName(), iExp));
-
                 std::string tmpName;
                 std::string strOld = (hIn[iObjExp][i]->InheritsFrom("TH2D")) ? "h2_" : "h_";
                 tmpName = replaceFirst(hIn[iObjExp][i]->GetName(), strOld, strOld+Form("pull_%d_", iExp));
@@ -543,8 +543,6 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 hOut = (TH1*)getPullHistogram(hIn[iObjExp][i], hIn[iObjTrue][i]);
                 hOut->SetName(tmpName.c_str());
                 hOut->SetYTitle("pull");
-
-                hTmp->Delete();
 
                 // write objects
                 tmpName = replaceFirst(hIn[iObjExp][i]->GetName(), strOld, strOld+Form("exp_%d_", iExp));
@@ -556,6 +554,34 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 hTmp->Write("", TObject::kOverwrite);
 
                 hOut->Write("",TObject::kOverwrite);
+
+                if (iExp == 0) {
+                    std::vector<double> binsXTmp = getTH1xBins(hIn[iObjExp][i]);
+                    int nBinsX = binsXTmp.size()-1;
+
+                    double arr[nBinsX+1];
+                    std::copy(binsXTmp.begin(), binsXTmp.end(), arr);
+
+                    tmpName = replaceFirst(hIn[iObjExp][i]->GetName(), strOld, "h2_pull_vs_");
+                    h2DTmp = 0;
+                    h2DTmp = new TH2D(tmpName.c_str(), "", nBinsX, arr, 100, -4, 4);
+                    h2DTmp->SetTitle(hIn[iObjExp][i]->GetTitle());
+                    h2DTmp->SetXTitle(hIn[iObjExp][i]->GetXaxis()->GetTitle());
+                    h2DTmp->SetYTitle("pull");
+                }
+
+                int nBinsX = hOut->GetNbinsX();
+                for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+
+                    double binXCenter = hOut->GetBinCenter(iBinX);
+                    double binContent = hOut->GetBinContent(iBinX);
+
+                    h2DTmp->Fill(binXCenter, binContent);
+                }
+
+                if (iExp == nExperiments - 1) {
+                    h2DTmp->Write("",TObject::kOverwrite);
+                }
             }
         }
     }
