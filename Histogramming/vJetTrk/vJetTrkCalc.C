@@ -581,6 +581,13 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
 
                 if (iExp == nExperiments - 1) {
                     h2DTmp->Write("",TObject::kOverwrite);
+
+                    for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+
+                        tmpName = Form("%s_projY_bin_%d", h2DTmp->GetName(), iBinX);
+                        hTmp = (TH1D*)h2DTmp->ProjectionY(tmpName.c_str(), iBinX, iBinX);
+                        hTmp->Write("",TObject::kOverwrite);
+                    }
                 }
             }
         }
