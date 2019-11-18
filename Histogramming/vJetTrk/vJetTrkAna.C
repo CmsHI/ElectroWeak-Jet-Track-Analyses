@@ -338,6 +338,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "lEtaMax is set to " << lEtaMax << std::endl;
     }
 
+    bool doNVtxW = (outputFile.find("nVtxW") != std::string::npos && isPP13tev);
+
     bool doResidualMBTrkW = (outputFile.find("resMBTrkW") != std::string::npos && redoTrkWeights);
     std::cout << "doResidualMBTrkW = " << doResidualMBTrkW << std::endl;
 
@@ -474,6 +476,36 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h1D_wVcent2 = (TH1D*)fileWeightsVcent2->Get("h_halfHiBin_vPt30_0");
 
         h1D_wVcent1->Divide(h1D_wVcent2);
+    }
+
+    TFile* fileWeights_nVtx1 = 0;
+    TFile* fileWeights_nVtx2 = 0;
+    TH1D* h1D_wV_nVtx1 = 0;
+    TH1D* h1D_wV_nVtx2 = 0;
+    if (doNVtxW) {
+
+        std::string dirWVnVtx = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/pp13tev/vReco/";
+        std::string filePathWVnVtx1 = Form("%s/%s", dirWVnVtx.c_str(), "vJetTrkAna_pp_2017f_data_zmm_vr_trk_r_raw_const.root");
+        std::string filePathWVnVtx2 = Form("%s/%s", dirWVnVtx.c_str(), "vJetTrkAna_pp_2018_data_zmm_vr_trk_r_raw_const.root");
+
+        std::cout << "reading V nVtx correction files : " << std::endl;
+        std::cout << "                                : " << filePathWVnVtx1.c_str() << std::endl;
+        std::cout << "                                : " << filePathWVnVtx2.c_str() << std::endl;
+
+        fileWeights_nVtx1 = TFile::Open(filePathWVnVtx1.c_str(), "READ");
+        fileWeights_nVtx2 = TFile::Open(filePathWVnVtx2.c_str(), "READ");
+
+        std::string hName_nVtx = "h_nVtx_vPt10_0_cent0_100";
+
+        h1D_wV_nVtx1 = 0;
+        h1D_wV_nVtx1 = (TH1D*)fileWeights_nVtx1->Get(hName_nVtx.c_str());
+        h1D_wV_nVtx1->Scale(1./h1D_wV_nVtx1->Integral());
+
+        h1D_wV_nVtx2 = 0;
+        h1D_wV_nVtx2 = (TH1D*)fileWeights_nVtx2->Get(hName_nVtx.c_str());
+        h1D_wV_nVtx2->Scale(1./h1D_wV_nVtx2->Integral());
+
+        h1D_wV_nVtx1->Divide(h1D_wV_nVtx2);
     }
 
     // lepton corrections
@@ -3098,6 +3130,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (doWeightsVcent) {
                 int binTmp = h1D_wVcent1->FindBin((hiBin0/2));
                 wV *= (h1D_wVcent1->GetBinContent(binTmp));
+            }
+
+            if (doNVtxW) {
+                int binTmp = h1D_wV_nVtx1->FindBin(trks.nVtx);
+                wV *= (h1D_wV_nVtx1->GetBinContent(binTmp));
             }
 
             // reco eff
