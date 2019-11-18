@@ -138,9 +138,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double evtFrac = (ArgumentParser::optionExists("--evtFrac", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--evtFrac", argOptions).c_str()) : 1;
 
-    int rndEntry = (ArgumentParser::optionExists("--rndEntry", argOptions)) ?
-            std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntry", argOptions).c_str()) : 0;
-    bool doRndEntry = (rndEntry > 0);
+    int rndEntryStart = (ArgumentParser::optionExists("--rndEntryStart", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntryStart", argOptions).c_str()) : 0;
+    bool doRndEntryStart = (rndEntryStart > 0);
 
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--vType", argOptions).c_str() : "pho";
@@ -222,8 +222,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
-    if (doRndEntry) {
-        std::cout << "rndEntry = " << rndEntry << std::endl;
+    if (doRndEntryStart) {
+        std::cout << "rndEntryStart = " << rndEntryStart << std::endl;
     }
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
@@ -2259,9 +2259,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     fileTmp->Close();
     // done with initial reading
 
-    TRandom3 randEntry;
-    if (doRndEntry) {
-        randEntry.SetSeed(rndEntry);
+    TRandom3 randEntryStart;
+    if (doRndEntryStart) {
+        randEntryStart.SetSeed(rndEntryStart);
     }
 
     TRandom3 randelePt(1234);
@@ -2605,8 +2605,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "entries in File = " << entriesTmp << std::endl;
 
         Long64_t entryStart = 0;
-        if (doRndEntry) {
-            entryStart = (Long64_t)(randEntry.Uniform(0, entriesTmp));
+        if (doRndEntryStart) {
+            entryStart = (Long64_t)(randEntryStart.Uniform(0, entriesTmp));
         }
         Long64_t entryCount = 0;
         for (Long64_t j_entry = entryStart; entryCount < entriesTmp; ++j_entry)
