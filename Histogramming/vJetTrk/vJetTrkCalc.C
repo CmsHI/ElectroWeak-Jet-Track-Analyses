@@ -56,6 +56,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doMERGE = containsElement(operationList, "MERGE");
     bool doRATIO = containsElement(operationList, "RATIO");
     bool doDIFF = containsElement(operationList, "DIFF");
+    bool doPULL = containsElement(operationList, "PULL");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
@@ -65,19 +66,25 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     std::cout << "doMERGE = " << doMERGE << std::endl;
     std::cout << "doRATIO = " << doRATIO << std::endl;
     std::cout << "doDIFF = " << doDIFF << std::endl;
+    std::cout << "doPULL = " << doPULL << std::endl;
 
-    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO || doDIFF)) {
+    if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO || doDIFF || doPULL)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doDIFF)) {
+    else if (doRATIO && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doDIFF || doPULL)) {
         std::cout << "RATIO cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
-    else if (doDIFF && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doRATIO)) {
+    else if (doDIFF && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doRATIO || doPULL)) {
         std::cout << "DIFF cannot be combined with other operations" << std::endl;
+        std::cout << "Exiting" << std::endl;
+        return;
+    }
+    else if (doPULL && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doMERGE || doRATIO || doDIFF)) {
+        std::cout << "PULL cannot be combined with other operations" << std::endl;
         std::cout << "Exiting" << std::endl;
         return;
     }
@@ -109,8 +116,10 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     TH1::SetDefaultSumw2();
 
     int nInputFiles = inputFiles.size();
+    int nInputFilePairs = nInputFiles / 2;
 
     int nInputObjs = inputObjs.size();
+    int nInputObjPairs = nInputObjs / 2;
 
     std::cout << "nInputFiles = " << nInputFiles << std::endl;
     for (int i = 0; i < nInputFiles; ++i) {
@@ -165,6 +174,44 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hIn[0][i] = 0;
             int iFile = (i % 2 == 0) ? 0 : 1;
             hIn[0][i] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
+        }
+    }
+    else if (doPULL) {
+        if (nInputFiles % 2 != 0) {
+            std::cout << "Input files must come in pairs for PULL operation : "
+                    "       one EXPERIMENT, one TRUTH object" << std::endl;
+            std::cout << "Exiting." << std::endl;
+            return;
+        }
+        if (nInputObjs % 2 != 0) {
+            std::cout << "Input objects must come in pairs for PULL operation : "
+                    "       one EXPERIMENT, one TRUTH object" << std::endl;
+            std::cout << "Exiting." << std::endl;
+            return;
+        }
+
+        for (int iFile = 0; iFile < nInputFiles; ++iFile) {
+            hIn[iFile].clear();
+            hIn[iFile].resize(nInputObjPairs, 0);
+        }
+
+        for (int i = 0; i < nInputObjs; ++i) {
+            // i % 2 == 0 --> experiment
+            // i % 2 == 1 --> truth
+
+            int iPair = i / 2;
+
+            for (int iFile = 0; iFile < nInputFiles; ++iFile) {
+
+                if (i % 2 == 0 && iFile % 2 == 0) {
+                    hIn[iFile][iPair] = 0;
+                    hIn[iFile][iPair] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
+                }
+                else if (i % 2 == 1 && iFile % 2 == 1) {
+                    hIn[iFile][iPair] = 0;
+                    hIn[iFile][iPair] = (TH1*)inputs[iFile]->Get(inputObjs[i].c_str());
+                }
+            }
         }
     }
 
@@ -458,6 +505,58 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hTmp->Write("", TObject::kOverwrite);
 
             hOut->Write("",TObject::kOverwrite);
+        }
+    }
+    else if (doPULL) {
+
+        int nExperiments = nInputFilePairs;
+
+        for (int i = 0; i < nInputObjPairs; ++i) {
+
+            for (int iExp = 0; iExp < nExperiments; ++iExp) {
+
+                int iObjExp = iExp*2;
+                int iObjTrue = iExp*2 + 1;
+
+                if (hIn[iObjExp][i] == 0) {
+                    std::cout << "Object not found : " << inputObjs[i*2].c_str() << std::endl;
+                    std::cout << "relevant file : " << inputFiles[iObjExp].c_str() << std::endl;
+                    std::cout << "skipping calculation involving this object" << std::endl;
+                    continue;
+                }
+                if (hIn[iObjTrue][i] == 0) {
+                    std::cout << "Object not found : " << inputObjs[i*2+1].c_str() << std::endl;
+                    std::cout << "relevant file : " << inputFiles[iObjTrue].c_str() << std::endl;
+                    std::cout << "skipping calculation involving this object" << std::endl;
+                    continue;
+                }
+
+                setTH1(hIn[iObjExp][i]);
+                setTH1(hIn[iObjTrue][i]);
+
+                hTmp = (TH1*)hIn[iObjTrue][i]->Clone(Form("%s_tmpExp_%d", hIn[iObjTrue][i]->GetName(), iExp));
+
+                std::string tmpName;
+                std::string strOld = (hIn[iObjExp][i]->InheritsFrom("TH2D")) ? "h2_" : "h_";
+                tmpName = replaceFirst(hIn[iObjExp][i]->GetName(), strOld, strOld+Form("pull_%d_", iExp));
+
+                hOut = (TH1*)getPullHistogram(hIn[iObjExp][i], hIn[iObjTrue][i]);
+                hOut->SetName(tmpName.c_str());
+                hOut->SetYTitle("pull");
+
+                hTmp->Delete();
+
+                // write objects
+                tmpName = replaceFirst(hIn[iObjExp][i]->GetName(), strOld, strOld+Form("exp_%d_", iExp));
+                hTmp = (TH1*)hIn[iObjExp][i]->Clone(tmpName.c_str());
+                hTmp->Write("", TObject::kOverwrite);
+
+                tmpName = replaceFirst(hIn[iObjTrue][i]->GetName(), strOld, strOld+Form("true_%d_", iExp));
+                hTmp = (TH1*)hIn[iObjTrue][i]->Clone(tmpName.c_str());
+                hTmp->Write("", TObject::kOverwrite);
+
+                hOut->Write("",TObject::kOverwrite);
+            }
         }
     }
     else if (doNORMV) {
