@@ -142,6 +142,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntryStart", argOptions).c_str()) : 0;
     bool doRndEntryStart = (rndEntryStart > 0);
 
+    int rndEntry = (ArgumentParser::optionExists("--rndEntry", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntry", argOptions).c_str()) : 0;
+    bool doRndEntry = (rndEntry > 0);
+
     std::string vType = (ArgumentParser::optionExists("--vType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--vType", argOptions).c_str() : "pho";
     std::string vRG = (ArgumentParser::optionExists("--vRG", argOptions)) ?
@@ -224,6 +228,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "evtFrac = " << evtFrac << std::endl;
     if (doRndEntryStart) {
         std::cout << "rndEntryStart = " << rndEntryStart << std::endl;
+    }
+    if (doRndEntry) {
+        std::cout << "rndEntry = " << rndEntry << std::endl;
     }
     std::cout << "vType = " << vType << std::endl;
     std::cout << "vRG = " << vRG << std::endl;
@@ -2264,6 +2271,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         randEntryStart.SetSeed(rndEntryStart);
     }
 
+    TRandom3 randEntry;
+    if (doRndEntry) {
+        randEntry.SetSeed(rndEntry);
+    }
+
     TRandom3 randelePt(1234);
 
     TRandom3 randvPhi;
@@ -2608,11 +2620,20 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         if (doRndEntryStart) {
             entryStart = (Long64_t)(randEntryStart.Uniform(0, entriesTmp));
         }
+        std::vector<Long64_t> randEntries;
         Long64_t entryCount = 0;
         for (Long64_t j_entry = entryStart; entryCount < entriesTmp; ++j_entry)
         {
             if (evtFrac < 1 && entryCount > (entriesTmp*evtFrac)) {
                 break;
+            }
+
+            if (doRndEntry) {
+                j_entry = (Long64_t)(randEntry.Uniform(0, entriesTmp));
+                while (findInVector(randEntries, j_entry) >= 0) {
+                    j_entry = (Long64_t)(randEntry.Uniform(0, entriesTmp));
+                }
+                randEntries.push_back(j_entry);
             }
 
             entryCount++;
