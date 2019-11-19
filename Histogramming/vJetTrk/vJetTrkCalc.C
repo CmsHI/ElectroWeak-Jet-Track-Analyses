@@ -588,6 +588,31 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                         hTmp = (TH1D*)h2DTmp->ProjectionY(tmpName.c_str(), iBinX, iBinX);
                         hTmp->Write("",TObject::kOverwrite);
                     }
+
+                    std::vector<TH1D*> hProj(3, 0);
+                    for (int iProj = 0; iProj < 1; ++iProj) {
+                        if (iProj == 0) {
+                            hProj[0] = (TH1D*)((TH2D*)h2DTmp)->ProjectionX(Form("%s_projX", h2DTmp->GetName()));
+                        }
+                        else {
+                            hProj[0] = (TH1D*)((TH2D*)h2DTmp)->ProjectionY(Form("%s_projY", h2DTmp->GetName()));
+                        }
+
+                        hProj[0]->Write("",TObject::kOverwrite);
+
+                        hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
+                        hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
+
+                        std::string projYTitle = (iProj == 0) ? ((TH2D*)h2DTmp)->GetYaxis()->GetTitle() : ((TH2D*)h2DTmp)->GetXaxis()->GetTitle();
+                        hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
+                        hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
+
+                        setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2DTmp, (iProj == 0));
+                        setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2DTmp, (iProj == 0));
+
+                        hProj[1]->Write("",TObject::kOverwrite);
+                        hProj[2]->Write("",TObject::kOverwrite);
+                    }
                 }
             }
         }
