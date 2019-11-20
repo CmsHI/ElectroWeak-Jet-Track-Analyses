@@ -924,6 +924,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_dphi_vs_l1Phi[nCents][nVPts][nTrkPts];
     TH2D* h2_dphi_vs_l2Phi[nCents][nVPts][nTrkPts];
     TH2D* h2_trkPt_vs_trkEta[nCents][nVPts];
+    TH2D* h2_trkPt_vs_xivh[nCents][nVPts];
+    TH2D* h2_trkPt_rebin_vs_xivh[nCents][nVPts];
 
     TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
@@ -941,6 +943,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double xMax_trkPt = 30;
     double xMax_phi = TMath::Pi()+1e-12;
     double xMax_eta = 2.6;
+
+    std::vector<double> binsX_trkPt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
+    std::vector<double> binsX_trkPt_rebin2 = {0, 1, 3, 5, 10, 18, xMax_trkPt};
 
     double binW_vPt = xMax_vPt / nBinsX_vPt;
     std::vector<double> binsX_vPt_rebin;
@@ -1560,6 +1565,43 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         nBinsX_trkPt, 0, xMax_trkPt);
                 vec_h2D.push_back(h2_trkPt_vs_trkEta[i][j]);
 
+                std::string text_vPt_vec = Form("#bf{p}^{%s}_{T}", text_V.c_str());
+                std::string text_trkPt_vec = Form("#bf{p}^{%s}_{T}", text_trk.c_str());
+
+                std::string text_xivh = Form("#xi^{%s, %s}_{T}", text_trk.c_str(),
+                        text_V.c_str());
+                std::string text_defn_xivh = Form("%s = ln ( -|%s|^{2} / (%s #dot %s) ) ",
+                        text_xivh.c_str(),
+                        text_vPt_vec.c_str(),
+                        text_vPt_vec.c_str(),
+                        text_trkPt_vec.c_str());
+
+                std::string name_h2_trkPt_vs_xivh = Form("h2_trkPt_vs_xivh_%s", name_h_suffix.c_str());
+                std::string title_h2_trkPt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
+                        text_xivh.c_str(),
+                        text_trkPt.c_str());
+
+                int nBins_xivh = 10;
+
+                h2_trkPt_vs_xivh[i][j] = 0;
+                h2_trkPt_vs_xivh[i][j] = new TH2D(name_h2_trkPt_vs_xivh.c_str(), title_h2_trkPt_vs_xivh.c_str(),
+                        nBins_xivh, 0, 5,
+                        nBinsX_trkPt, 0, xMax_trkPt);
+                vec_h2D.push_back(h2_trkPt_vs_xivh[i][j]);
+
+                std::string name_h2_trkPt_rebin_vs_xivh = Form("h2_trkPt_rebin_vs_xivh_%s", name_h_suffix.c_str());
+
+                int nBinsX_trkPt_rebin = binsX_trkPt_rebin.size()-1;
+
+                double arrTmp_trkPt[nBinsX_trkPt_rebin+1];
+                std::copy(binsX_trkPt_rebin.begin(), binsX_trkPt_rebin.end(), arrTmp_trkPt);
+
+                h2_trkPt_rebin_vs_xivh[i][j] = 0;
+                h2_trkPt_rebin_vs_xivh[i][j] = new TH2D(name_h2_trkPt_rebin_vs_xivh.c_str(), title_h2_trkPt_vs_xivh.c_str(),
+                        nBins_xivh, 0, 5,
+                        nBinsX_trkPt_rebin, arrTmp_trkPt);
+                vec_h2D.push_back(h2_trkPt_rebin_vs_xivh[i][j]);
+
                 for (int k = 0; k < nTrkPts; ++k) {
 
                     double tmpTrkPt = -1;
@@ -1734,9 +1776,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             text_range_deta.c_str(),
                             text_range_cent.c_str());
 
-                    std::string text_vPt_vec = Form("#bf{p}^{%s}_{T}", text_V.c_str());
-                    std::string text_trkPt_vec = Form("#bf{p}^{%s}_{T}", text_trk.c_str());
-
                     if (anavTrk_zh) {
                         std::string name_h_zh = Form("h_zh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
                         std::string title_h_zh = Form("%s;%s;", title_h_suffix.c_str(),
@@ -1766,23 +1805,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_zh_T[i][j][k] = new TH1D(name_h_zh_T.c_str(), title_h_zh_T.c_str(), nBins_zh, binsArrTmp_zh);
                     }
 
-                    std::string text_xivh = Form("#xi^{%s, %s}_{T}", text_trk.c_str(),
-                            text_V.c_str());
-                    std::string text_defn_xivh = Form("%s = ln ( -|%s|^{2} / (%s #dot %s) ) ",
-                            text_xivh.c_str(),
-                            text_vPt_vec.c_str(),
-                            text_vPt_vec.c_str(),
-                            text_trkPt_vec.c_str());
-
                     std::string name_h_xivh = Form("h_xivh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
                     std::string title_h_xivh = Form("%s;%s;", title_h_suffix.c_str(),
                             text_defn_xivh.c_str());
 
-                    int nBins_xivh = 10;
-
                     h_xivh[i][j][k] = 0;
                     h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBins_xivh, 0, 5);
-
 
                     std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
                     std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
@@ -3704,9 +3732,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_deta_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta, wTrk);
                             h2_deta_h1_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta_h1, wTrk);
                         }
+                        h2_dphi_vs_trkPt[iCent][iVPt]->Fill(t_pt, dphi, wTrk);
+
                         h2_trkPt_vs_trkEta[iCent][iVPt]->Fill(t_eta, t_pt, wTrk);
 
-                        h2_dphi_vs_trkPt[iCent][iVPt]->Fill(t_pt, dphi, wTrk);
+                        TLorentzVector vTrk;
+                        vTrk.SetPtEtaPhiM(t_pt, 0, t_phi, 0);
+                        float angle = vV.Angle(vTrk.Vect());
+                        float z_vt_T = vTrk.P() * fabs(cos(angle)) / vPt;
+                        float xi_vt = log(1.0 / z_vt_T);
+
+                        h2_trkPt_vs_xivh[iCent][iVPt]->Fill(xi_vt, t_pt, wTrk);
+                        h2_trkPt_rebin_vs_xivh[iCent][iVPt]->Fill(xi_vt, t_pt, wTrk);
 
                         for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
 
@@ -3776,12 +3813,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h_trkAlgo[iCent][iVPt][iTrkPt]->Fill((int)((*p_trkAlgo)[i]), wTrk);
                                 h_trkMVA[iCent][iVPt][iTrkPt]->Fill((*p_trkMVA)[i], wTrk);
                             }
-
-                            TLorentzVector vTrk;
-                            vTrk.SetPtEtaPhiM(t_pt, 0, t_phi, 0);
-                            float angle = vV.Angle(vTrk.Vect());
-                            float z_vt_T = vTrk.P() * fabs(cos(angle)) / vPt;
-                            float xi_vt = log(1.0 / z_vt_T);
 
                             if (anavTrk_zh) {
                                 float z_vt = t_pt / vPt;
@@ -3929,7 +3960,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             if (anaTrks) {
                 // rebin trkPt
                 //binW = h_trkPt[i][j]->GetBinWidth(1);
-                binsX = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
+                binsX = binsX_trkPt_rebin;
                 nBinsX = binsX.size()-1;
 
                 double arr_trkPt[nBinsX+1];
@@ -3940,7 +3971,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h1DTmp->Write("",TObject::kOverwrite);
 
                 // 2nd rebin of trkPt
-                binsX = {0, 1, 3, 5, 10, 18, xMax_trkPt};
+                binsX = binsX_trkPt_rebin2;
                 nBinsX = binsX.size()-1;
 
                 double arr_trkPt2[nBinsX+1];
