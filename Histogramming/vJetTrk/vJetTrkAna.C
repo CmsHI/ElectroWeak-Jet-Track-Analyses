@@ -940,12 +940,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     int nBinsX_eta = 26;
 
     double xMax_vPt = 150;
-    double xMax_trkPt = 30;
+    double xMax_trkPt = 120;
     double xMax_phi = TMath::Pi()+1e-12;
     double xMax_eta = 2.6;
 
-    std::vector<double> binsX_trkPt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, xMax_trkPt};
-    std::vector<double> binsX_trkPt_rebin2 = {0, 1, 3, 5, 10, 18, xMax_trkPt};
+    std::vector<double> binsX_trkPt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, 30, 45, 60, 90, xMax_trkPt};
+    std::vector<double> binsX_trkPt_rebin2 = {0, 1, 3, 5, 10, 18, 30, 60, 90, xMax_trkPt};
 
     double binW_vPt = xMax_vPt / nBinsX_vPt;
     std::vector<double> binsX_vPt_rebin;
