@@ -1081,6 +1081,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
                 if (doTrkVtx) {
                     trkskim.trkNVtx.push_back(trks.trkNVtx[i]);
+
+                    for (int iVtx = 0; iVtx < trks.nVtx; ++iVtx) {
+                        trkskim.trkAssocVtx.push_back(trks.trkAssocVtx[i*trks.nVtx + iVtx]);
+
+                        trkskim.nTrkTimesnVtx++;
+                    }
                 }
 
                 float trkWeightTmp = 1;
@@ -1492,6 +1498,12 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         }
                         if (doTrkVtx) {
                             trkskim.trkNVtx_mix.push_back(trksMix[iMF].trkNVtx[i]);
+
+                            for (int iVtx = 0; iVtx < trksMix[iMF].nVtx; ++iVtx) {
+                                trkskim.trkAssocVtx_mix.push_back(trksMix[iMF].trkAssocVtx[i*trksMix[iMF].nVtx + iVtx]);
+
+                                trkskim.nTrkTimesnVtx_mix++;
+                            }
                         }
 
                         float trkWeightTmp = 1;
