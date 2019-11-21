@@ -84,6 +84,8 @@ public :
     // tracks
     int nTrk;
     int nVtx;
+    int maxPtVtx;
+    int maxMultVtx;
 
     std::vector<float>   trkPt;
     std::vector<float>   trkEta;
@@ -220,6 +222,8 @@ public :
      // List of branches
     TBranch *b_nTrk;
     TBranch *b_nVtx;
+    TBranch *b_maxPtVtx;
+    TBranch *b_maxMultVtx;
 
     TBranch *b_trkPt;
     TBranch *b_trkEta;
@@ -291,6 +295,8 @@ void trackSkim::setupTreeForReading(TTree *t)
 {
     b_nTrk = 0;
     b_nVtx = 0;
+    b_maxPtVtx = 0;
+    b_maxMultVtx = 0;
 
     b_trkPt = 0;
     b_trkEta = 0;
@@ -359,6 +365,8 @@ void trackSkim::setupTreeForReading(TTree *t)
 
     if (t->GetBranch("nTrk"))  t->SetBranchAddress("nTrk", &nTrk, &b_nTrk);
     if (t->GetBranch("nVtx"))  t->SetBranchAddress("nVtx", &nVtx, &b_nVtx);
+    if (t->GetBranch("maxPtVtx"))  t->SetBranchAddress("maxPtVtx", &maxPtVtx, &b_maxPtVtx);
+    if (t->GetBranch("maxMultVtx"))  t->SetBranchAddress("maxMultVtx", &maxMultVtx, &b_maxMultVtx);
 
     if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &p_trkPt, &b_trkPt);
     if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &p_trkEta, &b_trkEta);
@@ -430,6 +438,8 @@ void trackSkim::setupTreeForWriting(TTree *t)
 {
     t->Branch("nTrk", &nTrk);
     t->Branch("nVtx", &nVtx);
+    t->Branch("maxPtVtx", &maxPtVtx);
+    t->Branch("maxMultVtx", &maxMultVtx);
 
     t->Branch("trkPt", &trkPt);
     t->Branch("trkEta", &trkEta);
@@ -502,6 +512,8 @@ void trackSkim::clearEvent()
     nTrk = 0;
     mult = 0;
     nVtx = 0;
+    maxPtVtx = -1;
+    maxMultVtx = -1;
 
     trkPt.clear();
     trkEta.clear();
