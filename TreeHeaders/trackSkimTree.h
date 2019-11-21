@@ -33,6 +33,8 @@ public :
         p_trkNVtx = 0;
         p_trkWeight = 0;
 
+        p_trkAssocVtx = 0;
+
         p_pt = 0;
         p_eta = 0;
         p_phi = 0;
@@ -63,6 +65,8 @@ public :
         p_trkNVtx_mix = 0;
         p_trkWeight_mix = 0;
         p_evttrk_mix = 0;
+
+        p_trkAssocVtx_mix = 0;
 
         p_pt_mix = 0;
         p_eta_mix = 0;
@@ -110,6 +114,9 @@ public :
     std::vector<unsigned char> trkNVtx;
     std::vector<float>   trkWeight;
 
+    int nTrkTimesnVtx;
+    std::vector<bool>    trkAssocVtx;
+
     // gen particles
     Int_t mult;
     std::vector<float>   pt;
@@ -145,6 +152,9 @@ public :
     std::vector<float>   trkWeight_mix;
     std::vector<int>     evttrk_mix;
 
+    int nTrkTimesnVtx_mix;
+    std::vector<bool>    trkAssocVtx_mix;
+
     Int_t mult_mix;
     std::vector<float>   pt_mix;
     std::vector<float>   eta_mix;
@@ -178,6 +188,8 @@ public :
     std::vector<unsigned char> *p_trkNVtx;
     std::vector<float> *p_trkWeight;
 
+    std::vector<bool>  *p_trkAssocVtx;
+
     // gen particles
     std::vector<float> *p_pt;
     std::vector<float> *p_eta;
@@ -210,6 +222,8 @@ public :
     std::vector<unsigned char> *p_trkNVtx_mix;
     std::vector<float> *p_trkWeight_mix;
     std::vector<int> *p_evttrk_mix;
+
+    std::vector<bool>  *p_trkAssocVtx_mix;
 
     std::vector<float> *p_pt_mix;
     std::vector<float> *p_eta_mix;
@@ -248,6 +262,9 @@ public :
     TBranch *b_trkNVtx;
     TBranch *b_trkWeight;
 
+    TBranch *b_nTrkTimesnVtx;
+    TBranch *b_trkAssocVtx;
+
     TBranch *b_mult;
     TBranch *b_pt;
     TBranch *b_eta;
@@ -280,6 +297,9 @@ public :
     TBranch *b_trkNVtx_mix;
     TBranch *b_trkWeight_mix;
     TBranch *b_evttrk_mix;
+
+    TBranch *b_nTrkTimesnVtx_mix;
+    TBranch *b_trkAssocVtx_mix;
 
     TBranch *b_mult_mix;
     TBranch *b_pt_mix;
@@ -321,6 +341,9 @@ void trackSkim::setupTreeForReading(TTree *t)
     b_trkNVtx = 0;
     b_trkWeight = 0;
 
+    b_nTrkTimesnVtx = 0;
+    b_trkAssocVtx = 0;
+
     b_mult = 0;
     b_pt = 0;
     b_eta = 0;
@@ -353,6 +376,9 @@ void trackSkim::setupTreeForReading(TTree *t)
     b_trkNVtx_mix = 0;
     b_trkWeight_mix = 0;
     b_evttrk_mix = 0;
+
+    b_nTrkTimesnVtx_mix = 0;
+    b_trkAssocVtx_mix = 0;
 
     b_mult_mix = 0;
     b_pt_mix = 0;
@@ -391,6 +417,9 @@ void trackSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("trkNVtx"))  t->SetBranchAddress("trkNVtx", &p_trkNVtx, &b_trkNVtx);
     if (t->GetBranch("trkWeight"))  t->SetBranchAddress("trkWeight", &p_trkWeight, &b_trkWeight);
 
+    if (t->GetBranch("nTrkTimesnVtx"))  t->SetBranchAddress("nTrkTimesnVtx", &nTrkTimesnVtx, &b_nTrkTimesnVtx);
+    if (t->GetBranch("trkAssocVtx"))  t->SetBranchAddress("trkAssocVtx", &p_trkAssocVtx, &b_trkAssocVtx);
+
     if (t->GetBranch("mult"))  t->SetBranchAddress("mult", &mult, &b_mult);
     if (t->GetBranch("pt"))  t->SetBranchAddress("pt", &p_pt, &b_pt);
     if (t->GetBranch("eta"))  t->SetBranchAddress("eta", &p_eta, &b_eta);
@@ -423,6 +452,9 @@ void trackSkim::setupTreeForReading(TTree *t)
     if (t->GetBranch("trkNVtx_mix"))  t->SetBranchAddress("trkNVtx_mix", &p_trkNVtx_mix, &b_trkNVtx_mix);
     if (t->GetBranch("trkWeight_mix"))  t->SetBranchAddress("trkWeight_mix", &p_trkWeight_mix, &b_trkWeight_mix);
     if (t->GetBranch("evttrk_mix"))  t->SetBranchAddress("evttrk_mix", &p_evttrk_mix, &b_evttrk_mix);
+
+    if (t->GetBranch("nTrkTimesnVtx_mix"))  t->SetBranchAddress("nTrkTimesnVtx_mix", &nTrkTimesnVtx_mix, &b_nTrkTimesnVtx_mix);
+    if (t->GetBranch("trkAssocVtx_mix"))  t->SetBranchAddress("trkAssocVtx_mix", &p_trkAssocVtx_mix, &b_trkAssocVtx_mix);
 
     if (t->GetBranch("mult_mix"))  t->SetBranchAddress("mult_mix", &mult_mix, &b_mult_mix);
     if (t->GetBranch("pt_mix"))  t->SetBranchAddress("pt_mix", &p_pt_mix, &b_pt_mix);
@@ -464,6 +496,9 @@ void trackSkim::setupTreeForWriting(TTree *t)
     t->Branch("trkNVtx", &trkNVtx);
     t->Branch("trkWeight", &trkWeight);
 
+    t->Branch("nTrkTimesnVtx", &nTrkTimesnVtx);
+    t->Branch("trkAssocVtx", &trkAssocVtx);
+
     t->Branch("mult", &mult);
     t->Branch("pt", &pt);
     t->Branch("eta", &eta);
@@ -496,6 +531,9 @@ void trackSkim::setupTreeForWriting(TTree *t)
     t->Branch("trkNVtx_mix", &trkNVtx_mix);
     t->Branch("trkWeight_mix", &trkWeight_mix);
     t->Branch("evttrk_mix", &evttrk_mix);
+
+    t->Branch("nTrkTimesnVtx_mix", &nTrkTimesnVtx_mix);
+    t->Branch("trkAssocVtx_mix", &trkAssocVtx_mix);
 
     t->Branch("mult_mix", &mult_mix);
     t->Branch("pt_mix", &pt_mix);
@@ -538,6 +576,9 @@ void trackSkim::clearEvent()
     trkNVtx.clear();
     trkWeight.clear();
 
+    nTrkTimesnVtx = 0;
+    trkAssocVtx.clear();
+
     pt.clear();
     eta.clear();
     phi.clear();
@@ -576,6 +617,9 @@ void trackSkim::clearMixEvent()
     trkNVtx_mix.clear();
     trkWeight_mix.clear();
     evttrk_mix.clear();
+
+    nTrkTimesnVtx_mix = 0;
+    trkAssocVtx_mix.clear();
 
     pt_mix.clear();
     eta_mix.clear();
