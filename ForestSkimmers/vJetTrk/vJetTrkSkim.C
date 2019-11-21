@@ -1104,6 +1104,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
             }
             if (doTrkVtx) {
                 trkskim.nVtx = trks.nVtx;
+                trkskim.maxPtVtx = trks.maxPtVtx;
+                trkskim.maxMultVtx = trks.maxMultVtx;
             }
             int nTrk4mix = -1;
             if (VJT::mixMethod == VJT::MIXMETHODS::k_match_nTrk) {

@@ -259,6 +259,8 @@ void setBranchStatusTreeTrack(TTree* t, bool enableVtx)
     if (enableVtx) {
         // vertex related
         t->SetBranchStatus("nVtx",1);
+        t->SetBranchStatus("maxPtVtx",1);
+        t->SetBranchStatus("maxMultVtx",1);
         t->SetBranchStatus("trkNVtx",1);
         t->SetBranchStatus("nTrkTimesnVtx",1);
         t->SetBranchStatus("trkAssocVtx",1);
