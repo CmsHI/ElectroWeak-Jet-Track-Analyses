@@ -148,6 +148,8 @@ int getBinCent4TrkW(int hiBin, std::vector<int>& hiBins, int nBins);
 int getBinCent4TrkWCoarse(int hiBin, std::vector<int>& hiBins, int nBins);
 double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
 double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
+// trigger
+std::vector<std::string> getTreeNamesHLTObj(int collType);
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // lepton systematics
@@ -937,6 +939,32 @@ double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr)
     }
 
     return 1;
+}
+
+std::vector<std::string> getTreeNamesHLTObj(int collType)
+{
+    std::vector<std::string> res;
+
+    if (collisionIsHI2018((COLL::TYPE)collType)) {
+        res = {
+                //"HLT_HIL2Mu12_v",
+                "HLT_HIL3Mu12_v",
+                "HLT_HIDoubleEle10Gsf_v",
+                "HLT_HIEle20Gsf_v",
+        };
+    }
+    else if (collisionIsPP2017((COLL::TYPE)collType)) {
+        res = {
+                "HLT_HIL2Mu12_v",
+                "HLT_HIL3Mu12_v",
+                "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
+                "HLT_HIEle15_WPLoose_Gsf_v",
+                "HLT_HIEle20_WPLoose_Gsf_v",
+                "HLT_HIEle30_WPLoose_Gsf_v",
+        };
+    }
+
+    return res;
 }
 
 /*

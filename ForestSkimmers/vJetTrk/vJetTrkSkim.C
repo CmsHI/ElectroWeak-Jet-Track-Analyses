@@ -242,28 +242,9 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
     std::string treePathSkimAna = "skimanalysis/HltTree";
     std::string treePathGen = "HiGenParticleAna/hi";
 
-    std::vector<std::string> treeNamesHLTObj;
-    if (isPP17) {
-        treeNamesHLTObj = {
-                "HLT_HIL2Mu12_v",
-                "HLT_HIL3Mu12_v",
-                "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
-                "HLT_HIEle15_WPLoose_Gsf_v",
-                "HLT_HIEle20_WPLoose_Gsf_v",
-                "HLT_HIEle30_WPLoose_Gsf_v",
-        };
-
-        if (isPP13tev) {
-            treeNamesHLTObj = {};
-        }
-    }
-    else if (isPbPb18) {
-        treeNamesHLTObj = {
-                //"HLT_HIL2Mu12_v",
-                "HLT_HIL3Mu12_v",
-                "HLT_HIDoubleEle10Gsf_v",
-                "HLT_HIEle20Gsf_v",
-        };
+    std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType);
+    if (isPP13tev) {
+        treeNamesHLTObj = {};
     }
     int nTreesHLTObj = treeNamesHLTObj.size();
 
