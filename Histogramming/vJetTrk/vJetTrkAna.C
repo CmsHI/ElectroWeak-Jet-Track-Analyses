@@ -28,6 +28,7 @@
 #include "../../CorrelationTuple/EventMatcher.h"
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
+#include "../../TreeHeaders/hltObjectTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/jetSkimTree.h"
 #include "../../TreeHeaders/trackSkimTree.h"
@@ -2261,6 +2262,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TTree* treeEvtSkim = 0;
     TTree* treeHiEvtMix = 0;
     TTree* treeHiFJRho = 0;
+    std::vector<TTree*> treesHltObj;
 
     std::string treePathHLT = "HltTree";
     std::string treePathHiEvt = "HiTree";
@@ -2302,6 +2304,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         }
     }
     int nTriggerBranches = triggerBranches.size();
+
+    std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType);
+    if (isPP13tev) {
+        treeNamesHLTObj = {};
+    }
+    if (!isRecoV) {
+        treeNamesHLTObj = {};
+    }
+    treeNamesHLTObj = {};
+    int nTreesHLTObj = treeNamesHLTObj.size();
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -2413,6 +2425,17 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     triggerBits[iTrig] = 0;
                 }
             }
+        }
+
+        treesHltObj.clear();
+        treesHltObj.resize(nTreesHLTObj, 0);
+        for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
+
+            std::string treeNameTmp = Form("hltobject/%s", treeNamesHLTObj[iHltObj].c_str());
+            treesHltObj[iHltObj] = 0;
+            treesHltObj[iHltObj] = (TTree*)fileTmp->Get(treeNameTmp.c_str());
+
+            treesHltObj[iHltObj]->SetBranchStatus("*", 1);
         }
 
         // specify explicitly which branches to use, do not use wildcard
@@ -2542,6 +2565,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
+
+        std::vector<hltObject> hltObjs(nTreesHLTObj);
+        for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
+
+            hltObjs[iHltObj].reset();
+            hltObjs[iHltObj].setupTreeForReading(treesHltObj[iHltObj]);
+        }
 
         hiEvt hiEvt;
         hiEvt.setupTreeForReading(treeHiEvt);
@@ -2717,6 +2747,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treeggHiNtuplizer->GetEntry(j_entry);
             if (hasTreeHLT) {
                 treeHLT->GetEntry(j_entry);
+            }
+            for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
+                treesHltObj[iHltObj]->GetEntry(j_entry);
             }
             treeHiEvt->GetEntry(j_entry);
             if (!isMC && isPbPb18 && vIsZee && false) {
