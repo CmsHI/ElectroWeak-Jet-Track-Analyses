@@ -456,6 +456,8 @@ void mixFileSkim(std::string configFile, std::string inputFile, std::string outp
                 iOut++;
             }
             trksOut.nVtx = trks.nVtx;
+            trksOut.maxPtVtx = trks.maxPtVtx;
+            trksOut.maxMultVtx = trks.maxMultVtx;
             trksOut.nTrk = iOut;
 
             evtskim.clearEvent();
