@@ -2285,7 +2285,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         else if (vIsZee) {
             triggerBranches = {"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v8",
                                "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v9",
-                               "HLT_HIEle15_WPLoose_Gsf_v1"
+                               "HLT_HIEle15_WPLoose_Gsf_v1",
                                "HLT_HIEle20_WPLoose_Gsf_v1",
                                "HLT_HIEle30_WPLoose_Gsf_v1",
                                };
