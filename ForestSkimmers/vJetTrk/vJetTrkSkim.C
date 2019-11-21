@@ -244,7 +244,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
     std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType);
     if (isPP13tev) {
-        treeNamesHLTObj = {};
+        treeNamesHLTObj = getTreeNamesHLTObjpp13TeV();
     }
     int nTreesHLTObj = treeNamesHLTObj.size();
 
