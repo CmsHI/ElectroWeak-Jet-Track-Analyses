@@ -150,6 +150,7 @@ double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
 double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // trigger
 std::vector<std::string> getTreeNamesHLTObj(int collType);
+std::vector<std::string> getTreeNamesHLTObjpp13TeV();
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // lepton systematics
@@ -963,6 +964,41 @@ std::vector<std::string> getTreeNamesHLTObj(int collType)
                 "HLT_HIEle30_WPLoose_Gsf_v",
         };
     }
+
+    return res;
+}
+
+std::vector<std::string> getTreeNamesHLTObjpp13TeV()
+{
+    std::vector<std::string> res;
+
+    res = {
+            "HLT_IsoMu20_v",
+            "HLT_IsoMu24_v",
+            "HLT_IsoMu24_eta2p1_v",
+            "HLT_IsoMu27_v",
+            "HLT_IsoMu30_v",
+            "HLT_L1SingleMu18_v",
+            "HLT_L1SingleMu25_v",
+            "HLT_L2Mu10_v",
+            "HLT_L2Mu50_v",
+            "HLT_DoubleL2Mu50_v",
+            "HLT_Mu20_v",
+            "HLT_Mu27_v",
+            "HLT_Mu50_v",
+            "HLT_Mu55_v",
+            "HLT_DoubleMu20_7_Mass0to30_Photon23_v",
+            "HLT_Mu8_v",
+            "HLT_Mu17_v",
+            "HLT_Mu19_v",
+            "HLT_Mu17_Photon30_IsoCaloId_v",
+            "HLT_Mu18_Mu9_v",
+            "HLT_Mu18_Mu9_DZ_v",
+            "HLT_Mu20_Mu10_v",
+            "HLT_Mu20_Mu10_DZ_v",
+            "HLT_Mu23_Mu12_v",
+            "HLT_Mu23_Mu12_DZ_v",
+    };
 
     return res;
 }
