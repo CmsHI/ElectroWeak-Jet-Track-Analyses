@@ -2309,7 +2309,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType, vIsZmm);
     if (isPP13tev) {
-        treeNamesHLTObj = {};
+        treeNamesHLTObj = getTreeNamesHLTObjpp13TeV();
     }
     if (!isRecoV) {
         treeNamesHLTObj = {};
