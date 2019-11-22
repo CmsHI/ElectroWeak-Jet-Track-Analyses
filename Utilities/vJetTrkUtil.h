@@ -150,7 +150,9 @@ double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr);
 double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // trigger
 std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm);
+std::vector<std::string> getTreeNamesHLTObj4Skim(int collType);
 std::vector<std::string> getTreeNamesHLTObjpp13TeV();
+std::vector<std::string> getTreeNamesHLTObjpp13TeV4Skim();
 std::vector<double> getL1Thresholds(std::vector<std::string> pathsHLT, int collType);
 double getL1Threshold(std::string pathHLT, int collType);
 // leptons
@@ -945,7 +947,7 @@ double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr)
 }
 
 std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm)
-        {
+{
     std::vector<std::string> res;
 
     if (collisionIsHI2018((COLL::TYPE)collType)) {
@@ -984,7 +986,46 @@ std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm)
     return res;
 }
 
+std::vector<std::string> getTreeNamesHLTObj4Skim(int collType)
+        {
+    std::vector<std::string> res;
+
+    if (collisionIsHI2018((COLL::TYPE)collType)) {
+
+        res = {
+                //"HLT_HIL2Mu12_v",
+                "HLT_HIL3Mu12_v",
+                "HLT_HIDoubleEle10Gsf_v",
+                "HLT_HIEle20Gsf_v",
+        };
+    }
+    else if (collisionIsPP2017((COLL::TYPE)collType)) {
+
+        res = {
+                "HLT_HIL2Mu12_v",
+                "HLT_HIL3Mu12_v",
+                "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
+                "HLT_HIEle15_WPLoose_Gsf_v",
+                "HLT_HIEle20_WPLoose_Gsf_v",
+                "HLT_HIEle30_WPLoose_Gsf_v",
+        };
+    }
+
+    return res;
+}
+
 std::vector<std::string> getTreeNamesHLTObjpp13TeV()
+{
+    std::vector<std::string> res;
+
+    res = {
+            "HLT_IsoMu27_v",
+    };
+
+    return res;
+}
+
+std::vector<std::string> getTreeNamesHLTObjpp13TeV4Skim()
 {
     std::vector<std::string> res;
 
@@ -1060,6 +1101,9 @@ double getL1Threshold(std::string pathHLT, int collType)
     }
     else if (pathHLT.find("HLT_HIEle30_WPLoose_Gsf") == 0) {
         return 21;
+    }
+    else if (pathHLT.find("HLT_IsoMu27") == 0) {
+        return 22;
     }
 
     return 999999;
