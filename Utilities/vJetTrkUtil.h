@@ -151,6 +151,8 @@ double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr);
 // trigger
 std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm);
 std::vector<std::string> getTreeNamesHLTObjpp13TeV();
+std::vector<double> getL1Thresholds(std::vector<std::string> pathsHLT, int collType);
+double getL1Threshold(std::string pathHLT, int collType);
 // leptons
 std::vector<int> indicesNearPhotons(ggHiNtuplizer& ggHi, int iEle, double dRmax);
 // lepton systematics
@@ -1015,6 +1017,52 @@ std::vector<std::string> getTreeNamesHLTObjpp13TeV()
     };
 
     return res;
+}
+
+std::vector<double> getL1Thresholds(std::vector<std::string> pathsHLT, int collType)
+{
+    std::vector<double> res;
+
+    for (std::vector<std::string>::const_iterator it = pathsHLT.begin(); it != pathsHLT.end(); ++it) {
+
+        double resTmp = getL1Threshold((*it), collType);
+        res.push_back(resTmp);
+    }
+
+    return res;
+}
+
+double getL1Threshold(std::string pathHLT, int collType)
+{
+    if (pathHLT.find("HLT_HIL2Mu12") == 0) {
+        return 7;
+    }
+    else if (pathHLT.find("HLT_HIL3Mu12") == 0 && collisionIsHI2018((COLL::TYPE)collType)) {
+        return 3;
+    }
+    else if (pathHLT.find("HLT_HIL3Mu12") == 0 && collisionIsPP2017((COLL::TYPE)collType)) {
+        return 7;
+    }
+    else if (pathHLT.find("HLT_HIDoubleEle10Gsf") == 0) {
+        return 15;
+    }
+    else if (pathHLT.find("HLT_HIEle20Gsf") == 0) {
+        return 15;
+    }
+    else if (pathHLT.find("HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000") == 0) {
+        return 10;
+    }
+    else if (pathHLT.find("HLT_HIEle15_WPLoose_Gsf") == 0) {
+        return 15;
+    }
+    else if (pathHLT.find("HLT_HIEle20_WPLoose_Gsf") == 0) {
+        return 15;
+    }
+    else if (pathHLT.find("HLT_HIEle30_WPLoose_Gsf") == 0) {
+        return 21;
+    }
+
+    return 999999;
 }
 
 /*
