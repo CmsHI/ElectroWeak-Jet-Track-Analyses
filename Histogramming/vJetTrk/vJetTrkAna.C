@@ -29,6 +29,7 @@
 #include "../../TreeHeaders/CutConfigurationTree.h"
 #include "../../TreeHeaders/ggHiNtuplizerTree.h"
 #include "../../TreeHeaders/hltObjectTree.h"
+#include "../../TreeHeaders/l1ObjectTree.h"
 #include "../../TreeHeaders/hiEvtTree.h"
 #include "../../TreeHeaders/jetSkimTree.h"
 #include "../../TreeHeaders/trackSkimTree.h"
@@ -2256,6 +2257,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     TTree* treeggHiNtuplizer = 0;
     TTree* treeHLT = 0;
+    TTree* treeL1obj = 0;
     TTree* treeHiEvt = 0;
     TTree* treeJetSkim = 0;
     TTree* treeTrackSkim = 0;
@@ -2265,6 +2267,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<TTree*> treesHltObj;
 
     std::string treePathHLT = "HltTree";
+    std::string treePathL1obj = "L1UpgradeFlatTree";
     std::string treePathHiEvt = "HiTree";
     std::string treePathTrack = "trackSkim";
     std::string treePathEvtSkim = "eventSkim";
@@ -2333,6 +2336,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     if (!isvJetTrkSkim) {
         treePath = "ggHiNtuplizerGED/EventTree";
         treePathHLT = "hltanalysis/HltTree";
+        treePathL1obj = "l1object/L1UpgradeFlatTree";
         treePathHiEvt = "hiEvtAnalyzer/HiTree";
         treePathTrack = "ppTrack/trackTree";
         treePathEvtSkim = "NULL";
@@ -2439,6 +2443,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             treesHltObj[iHltObj] = (TTree*)fileTmp->Get(treeNameTmp.c_str());
 
             treesHltObj[iHltObj]->SetBranchStatus("*", 1);
+        }
+
+        treeL1obj = 0;
+        treeL1obj = (TTree*)fileTmp->Get(treePathL1obj.c_str());
+        treeL1obj->SetBranchStatus("*", 0);
+        if (vIsPho || vIsZee) {
+            treeL1obj->SetBranchStatus("nEGs", 1);
+            treeL1obj->SetBranchStatus("eg*", 1);
+        }
+        else if (vIsZmm) {
+            treeL1obj->SetBranchStatus("nMuons", 1);
+            treeL1obj->SetBranchStatus("muon*", 1);
         }
 
         // specify explicitly which branches to use, do not use wildcard
@@ -2575,6 +2591,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             hltObjs[iHltObj].reset();
             hltObjs[iHltObj].setupTreeForReading(treesHltObj[iHltObj]);
         }
+
+        l1Object l1Obj;
+        l1Obj.setupTreeForReading(treeL1obj);
 
         hiEvt hiEvt;
         hiEvt.setupTreeForReading(treeHiEvt);
@@ -2754,6 +2773,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
                 treesHltObj[iHltObj]->GetEntry(j_entry);
             }
+            treeL1obj->GetEntry(j_entry);
+
             treeHiEvt->GetEntry(j_entry);
             if (!isMC && isPbPb18 && vIsZee && false) {
                 treeHiFJRho->GetEntry(j_entry);
@@ -3132,11 +3153,47 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (vIsZ) {
+
+                int nL1obj = 0;
+                std::vector<float> *l1objEt;
+                std::vector<float> *l1objEta;
+                std::vector<float> *l1objPhi;
+                if (vIsZmm) {
+                    nL1obj = (int)l1Obj.nMuons;
+                    l1objEt = l1Obj.muonEt;
+                    l1objEta = l1Obj.muonEta;
+                    l1objPhi = l1Obj.muonPhi;
+                }
+                else if (vIsZee) {
+                    nL1obj = (int)l1Obj.nEGs;
+                    l1objEt = l1Obj.egEt;
+                    l1objEta = l1Obj.egEta;
+                    l1objPhi = l1Obj.egPhi;
+                }
+
+                double max_dR2_L1 = 0.09;
                 double max_dR2_HLT = 0.04;
+
                 for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
 
-                    int nHltObjs = hltObjs[iHltObj].pt->size();
+                    bool matchedL1Obj = false;
+                    for (int iL1Obj = 0; iL1Obj < nL1obj; ++iL1Obj) {
 
+                        if ( !((*l1objEt)[iL1Obj] > 0) ) continue;
+
+                        double etaL1 = (*l1objEta)[iL1Obj];
+                        double phiL1 = (*l1objPhi)[iL1Obj];
+
+                        if ( !(getDR2(etaL1, phiL1, llEta[0], llPhi[0]) < max_dR2_L1 ||
+                               getDR2(etaL1, phiL1, llEta[1], llPhi[1]) < max_dR2_L1) ) continue;
+
+                        matchedL1Obj = true;
+                        break;
+                    }
+
+                    if (!matchedL1Obj) continue;
+
+                    int nHltObjs = hltObjs[iHltObj].pt->size();
                     for (int iObj = 0; iObj < nHltObjs; ++iObj) {
 
                         if ( !((*hltObjs[iHltObj].pt)[iObj] > 0) ) continue;
