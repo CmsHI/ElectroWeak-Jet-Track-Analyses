@@ -2304,15 +2304,18 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
     int nTriggerBranches = triggerBranches.size();
 
-    std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType);
+    std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType, vIsZmm);
     if (isPP13tev) {
         treeNamesHLTObj = {};
     }
     if (!isRecoV) {
         treeNamesHLTObj = {};
     }
-    treeNamesHLTObj = {};
     int nTreesHLTObj = treeNamesHLTObj.size();
+    std::cout << "nTreesHLTObj = " << nTreesHLTObj << std::endl;
+    for (int i = 0; i < nTreesHLTObj; ++i) {
+        std::cout << Form("treeNamesHLTObj[%d] = %s", i, treeNamesHLTObj[i].c_str()) << std::endl;
+    }
 
     int nFiles = inputFiles.size();
     TFile* fileTmp = 0;
@@ -2431,6 +2434,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
 
             std::string treeNameTmp = Form("hltobject/%s", treeNamesHLTObj[iHltObj].c_str());
+
             treesHltObj[iHltObj] = 0;
             treesHltObj[iHltObj] = (TTree*)fileTmp->Get(treeNameTmp.c_str());
 
@@ -2810,6 +2814,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
             }
+            passedTrig = (nTreesHLTObj == 0);
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
@@ -3122,6 +3127,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 vPhi = randvPhi.Uniform(-1*TMath::Pi(), TMath::Pi());
                             }
                         }
+                    }
+                }
+            }
+
+            if (vIsZ) {
+                double max_dR2_HLT = 0.04;
+                for (int iHltObj = 0; iHltObj < nTreesHLTObj; ++iHltObj) {
+
+                    int nHltObjs = hltObjs[iHltObj].pt->size();
+
+                    for (int iObj = 0; iObj < nHltObjs; ++iObj) {
+
+                        if ( !((*hltObjs[iHltObj].pt)[iObj] > 0) ) continue;
+
+                        double etaHLT = (*hltObjs[iHltObj].eta)[iObj];
+                        double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
+
+                        if ( !(getDR2(etaHLT, phiHLT, llEta[0], llPhi[0]) < max_dR2_HLT ||
+                               getDR2(etaHLT, phiHLT, llEta[1], llPhi[1]) < max_dR2_HLT) ) continue;
+
+                        passedTrig = true;
+                        break;
                     }
                 }
             }
