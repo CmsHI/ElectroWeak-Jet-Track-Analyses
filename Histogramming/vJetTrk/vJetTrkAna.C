@@ -2315,9 +2315,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         treeNamesHLTObj = {};
     }
     int nTreesHLTObj = treeNamesHLTObj.size();
+    std::vector<double> l1Thresholds = getL1Thresholds(treeNamesHLTObj, (int)collisionType);
+
     std::cout << "nTreesHLTObj = " << nTreesHLTObj << std::endl;
     for (int i = 0; i < nTreesHLTObj; ++i) {
         std::cout << Form("treeNamesHLTObj[%d] = %s", i, treeNamesHLTObj[i].c_str()) << std::endl;
+        std::cout << Form("l1Thresholds[%d] = %f", i, l1Thresholds[i]) << std::endl;
     }
 
     int nFiles = inputFiles.size();
@@ -3179,7 +3182,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     bool matchedL1Obj = false;
                     for (int iL1Obj = 0; iL1Obj < nL1obj; ++iL1Obj) {
 
-                        if ( !((*l1objEt)[iL1Obj] > 0) ) continue;
+                        if ( !((*l1objEt)[iL1Obj] >= l1Thresholds[iHltObj]) ) continue;
 
                         double etaL1 = (*l1objEta)[iL1Obj];
                         double phiL1 = (*l1objPhi)[iL1Obj];
