@@ -11,6 +11,10 @@ progCode="${progPath/.exe/.C}"
 ### USER INPUT START
 dirSpecial=""  # name of the directory where special/non-nominal output (if any) would be written
 sampleFlags=(
+0 # pp_2017_mc_mix
+0 # pp_2017_mc_zmm
+0 # pp_2017_mc_zee
+##
 1 # pbpb_2018_mc_mix
 1 # pbpb_2018_mc_zmm
 1 # pbpb_2018_mc_zee
@@ -19,6 +23,10 @@ sampleFlags=(
 ### USER INPUT END
 
 inputList=(
+${forest_pp_2017_mc_mix}
+${forest_pp_2017_mc_zmm}
+${forest_pp_2017_mc_zee}
+##
 ${forest_pbpb_2018_mc_mix}
 ${forest_pbpb_2018_mc_zmm}
 ${forest_pbpb_2018_mc_zee}
@@ -26,9 +34,13 @@ ${forest_pbpb_2018_data_mix}
 );
 
 optionList=(
-"--sampleType=pbpb_2018_mc"
-"--sampleType=pbpb_2018_mc"
-"--sampleType=pbpb_2018_mc"
+"--sampleType=pp_2017_mc --skipMu=0 --skipEle=0 --th1Names=NULL --cents=0:100 --trkEtas=0:2.4,0:1.6,0:1.0 --trkPts=1:0,1:2,2:4,4:8,8:20,20:0" # --maxNVtx=1
+"--sampleType=pp_2017_mc --skipMu=1 --skipEle=1 --th1Names=NULL --cents=0:100 --trkEtas=0:2.4,0:1.6,0:1.0 --trkPts=1:0,1:2,2:4,4:8,8:20,20:0"
+"--sampleType=pp_2017_mc --skipMu=1 --skipEle=1 --th1Names=NULL --cents=0:100 --trkEtas=0:2.4,0:1.6,0:1.0 --trkPts=1:0,1:2,2:4,4:8,8:20,20:0"
+##
+"--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1 --anajets=1 --jetptMin=30"
+"--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1 --anajets=1 --jetptMin=30"
+"--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1"
 "--sampleType=pbpb_2018_data"
 );
 
@@ -38,6 +50,10 @@ if [ -z "$outDirBase" ]; then
 fi
 
 outList=(
+$outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pp_2017_mc_mix_trkPt_trkEta.root" # maxNVtx1
+$outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pp_2017_mc_zmm_trkPt_trkEta.root"
+$outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pp_2017_mc_zee_trkPt_trkEta.root"
+##
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_mix.root"
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_zmm.root"
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_zee.root"
