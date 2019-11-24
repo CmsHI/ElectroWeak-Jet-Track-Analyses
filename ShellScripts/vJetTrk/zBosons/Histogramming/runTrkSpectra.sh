@@ -18,6 +18,7 @@ sampleFlags=(
 1 # pbpb_2018_mc_mix
 1 # pbpb_2018_mc_zmm
 1 # pbpb_2018_mc_zee
+0 # pbpb_2018_data_mix_1
 0 # pbpb_2018_data_mix
 );
 ### USER INPUT END
@@ -30,6 +31,7 @@ ${forest_pp_2017_mc_zee}
 ${forest_pbpb_2018_mc_mix}
 ${forest_pbpb_2018_mc_zmm}
 ${forest_pbpb_2018_mc_zee}
+${forest_pbpb_2018_data_mix_1}
 ${forest_pbpb_2018_data_mix}
 );
 
@@ -41,6 +43,7 @@ optionList=(
 "--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1 --anajets=1 --jetptMin=30"
 "--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1 --anajets=1 --jetptMin=30"
 "--sampleType=pbpb_2018_mc --skipMu=1 --skipEle=1"
+"--sampleType=pbpb_2018_data"
 "--sampleType=pbpb_2018_data"
 );
 
@@ -57,6 +60,7 @@ $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pp_2017_mc_zee_trkPt_trk
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_mix.root"
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_zmm.root"
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_mc_zee.root"
+$outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_data_mix_1.root"
 $outDirBase"/"${relDirHist}"/"${dirSpecial}"/trkSpectra_pbpb_2018_data_mix.root"
 );
 
