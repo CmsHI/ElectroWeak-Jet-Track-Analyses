@@ -225,6 +225,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::atoi(ArgumentParser::ParseOptionInputSingle("--rndVPhi", argOptions).c_str()) : 0;
     bool doRndVPhi = (rndVPhi > 0);
 
+    int genVPt = (ArgumentParser::optionExists("--genVPt", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--genVPt", argOptions).c_str()) : 0;
+    bool useGenVPt = (genVPt > 0);
+
+    int genVPhi = (ArgumentParser::optionExists("--genVPhi", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--genVPhi", argOptions).c_str()) : 0;
+    bool useGenVPhi = (genVPhi > 0);
+
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
@@ -278,6 +286,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
     if (doRndVPhi) {
         std::cout << "rndVPhi = " << rndVPhi << std::endl;
+    }
+    if (useGenVPt) {
+        std::cout << "genVPt = " << genVPt << std::endl;
+    }
+    if (useGenVPhi) {
+        std::cout << "genVPhi = " << genVPhi << std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
@@ -3295,12 +3309,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 wV *= (h1D_wV_nVtx1->GetBinContent(binTmp));
             }
 
+            if ((useGenVPt || useGenVPhi) && !(genVPt > 0)) continue;
+
             // reco eff
             double wV_evt = wV;
             wV *= wV_recoeff;
             if (isMC && isRecoV && genVPt > 0) {
 
-                double matchedRG = ((vIsPho || ll_passSign) && passedTrig && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
+                bool matchedRG = ((vIsPho || ll_passSign) && passedTrig && vPt >= 0 && getDR2(genVY, genVPhi, vY, vPhi) < maxDR2_reco_gen_V);
+
+                if (useGenVPt || useGenVPhi) {
+                    if (matchedRG) {
+                        if (useGenVPt)  vPt = genVPt;
+                        if (useGenVPhi)  vPhi = genVPhi;
+                    }
+                    else {
+                        continue;
+                    }
+                }
 
                 double genVYAbs = std::fabs(genVY);
 
