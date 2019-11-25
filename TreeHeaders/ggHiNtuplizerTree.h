@@ -335,6 +335,7 @@ public :
   bool passedEleSelection(int i, int collType, int hiBin, double eleRho = -1, int WPindex = 0);
   bool passedMuSelection(int i, int collType);
   double getElePtCorrFactor(int i, int collType, int hiBin);
+  double getElePtSmearFactor(int i, int collType, int hiBin);
   double getHiFJRho4Ele(int i, hiFJRho& hifjrho);
   double getElePFIsoSubRho(int i, double eleRho);
   double getValueByName(int i, std::string varName);
@@ -2280,6 +2281,43 @@ double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
     }
 
     return 1;
+}
+
+double ggHiNtuplizer::getElePtSmearFactor(int i, int collType, int hiBin)
+{
+    if (collisionIsHI2018((COLL::TYPE)collType)) {
+
+        if (collisionIsMC((COLL::TYPE)collType)) {
+
+            if (std::fabs((*eleSCEta)[i]) < 1.4442) {
+
+                if (hiBin < 20) {
+                    return 1.19113 / 91.1876;
+                }
+                else if (hiBin < 60) {
+                    return 1.28262 / 91.1876;
+                }
+                else {
+                    return 2.20549 / 91.1876;
+                }
+            }
+            else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
+
+                if (hiBin < 20) {
+                    return 3.13988 / 91.1876;
+                }
+                else if (hiBin < 60) {
+                    return 3.15340 / 91.1876;
+                }
+                else {
+                    return 3.17194 / 91.1876;
+                }
+            }
+
+        }
+    }
+
+    return 0;
 }
 
 double ggHiNtuplizer::getHiFJRho4Ele(int i, hiFJRho& hifjrho)

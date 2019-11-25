@@ -3054,6 +3054,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
                         else if (isPbPb18) {
                             l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
+                            if (isMC) {
+                                double smearWidth = ggHi.getElePtSmearFactor(i, collisionType, hiBin0);
+                                l1pt *= randelePt.Gaus(1, smearWidth);
+                            }
                         }
                     }
                     if (!(l1pt > lPtMin)) continue;
@@ -3099,6 +3103,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                             else if (isPbPb18) {
                                 l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
+                                if (isMC) {
+                                    double smearWidth = ggHi.getElePtSmearFactor(j, collisionType, hiBin0);
+                                    l2pt *= randelePt.Gaus(1, smearWidth);
+                                }
                             }
                         }
                         if (!(l2pt > lPtMin)) continue;
