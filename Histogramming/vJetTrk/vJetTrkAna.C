@@ -951,7 +951,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_rawpt_vs_dR_rebin[nCents][nVPts][nTrkPts];
 
     int nBinsX_vPt = 30;
-    int nBinsX_trkPt = 60;
+    int nBinsX_trkPt = 240;
     int nBinsX_dphi = 20;
     int nBinsX_eta = 26;
 
