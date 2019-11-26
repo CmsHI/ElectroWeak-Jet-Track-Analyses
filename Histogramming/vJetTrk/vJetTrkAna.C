@@ -871,6 +871,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_PFHFtotE_vs_vPt_rebin[nCents];
     TH2D* h2_PFHFtotE_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotEmix_vs_Npart[nCents][nVPts];
+    TH2D* h2_PFHFtotE_vs_vY[nCents][nVPts];
     TH2D* h2_PFHFtotE_vs_nVtx[nCents][nVPts];
     TH2D* h2_PFHFtotE_diff_rawmix_vs_Npart[nCents][nVPts];
     TH2D* h2_PFHFtotE_eta3to4_vs_vPt[nCents];
@@ -1450,6 +1451,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                           410, 0, 410, 150, 0, 15000);
                 vec_h2D.push_back(h2_PFHFtotE_diff_rawmix_vs_Npart[i][j]);
             }
+
+            std::string name_h2_PFHFtotE_vs_vY = Form("h2_PFHFtotE_vs_vY_%s", name_h_suffix.c_str());
+            std::string title_h2_PFHFtotE_vs_vY = Form("%s;%s;total energy of PF HF towers", title_h_suffix.c_str(), text_vY.c_str());
+
+            h2_PFHFtotE_vs_vY[i][j] = 0;
+            h2_PFHFtotE_vs_vY[i][j] = new TH2D(name_h2_PFHFtotE_vs_vY.c_str(), title_h2_PFHFtotE_vs_vY.c_str(),
+                                               nBinsX_eta, -1*xMax_eta, xMax_eta, 200, 0, 200000);
+            vec_h2D.push_back(h2_PFHFtotE_vs_vY[i][j]);
 
             if (isPP) {
                 std::string name_h2_PFHFtotE_vs_nVtx = Form("h2_PFHFtotE_vs_nVtx_%s", name_h_suffix.c_str());
@@ -3513,6 +3522,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 }
                             }
 
+                            h2_PFHFtotE_vs_vY[i][j]->Fill(vY, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                             if (isPP) {
                                 h2_PFHFtotE_vs_nVtx[i][j]->Fill(trks.nVtx, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                             }
