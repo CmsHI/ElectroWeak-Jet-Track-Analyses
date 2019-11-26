@@ -853,6 +853,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     // reco/gen diff
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
     TH2D* h2_rgVPhi_diff_vs_vPt[nCents];
+    TH2D* h2_rgVPt_ratio_vs_cent[nVPts];
 
     // event observables
     TH1D* h_cent[nVPts];
@@ -1345,6 +1346,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h_reco_denom_cent[j] = 0;
                 h_reco_denom_cent[j] = (TH1D*)h_reco_num_cent[j]->Clone(name_h_reco_denom_cent.c_str());
                 vec_h_denom.push_back(h_reco_denom_cent[j]);
+
+                std::string name_h2_rgVPt_ratio_vs_cent = Form("h2_rgVPt_ratio_vs_halfHiBin_%s", label_vPt.c_str());
+                std::string title_h2_rgVPt_ratio_vs_cent = Form("%s;Centrality (%%);p_{T}^{reco} / p_{T}^{gen}", text_range_vPt.c_str());
+
+                h2_rgVPt_ratio_vs_cent[j] = 0;
+                h2_rgVPt_ratio_vs_cent[j] = new TH2D(name_h2_rgVPt_ratio_vs_cent.c_str(), title_h2_rgVPt_ratio_vs_cent.c_str(),
+                                                     40, 0, 100, 60, 0.4, 1.6);
+                vec_h2D.push_back(h2_rgVPt_ratio_vs_cent[j]);
             }
 
             std::string name_h_vtxz = Form("h_vtxz_%s", name_h_suffix.c_str());
@@ -3433,6 +3442,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_reco_denom_cent[j]->Fill(cent, wV_gen);
                         if (matchedRG) {
                             h_reco_num_cent[j]->Fill(cent, wV);
+
+                            h2_rgVPt_ratio_vs_cent[j]->Fill(cent, vPt / genVPt, wV);
                         }
                     }
 
