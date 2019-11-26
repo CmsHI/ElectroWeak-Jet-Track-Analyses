@@ -883,6 +883,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_hiHF_vs_hiNpix[nVPts];
     TH2D* h2_PFHFtotE_vs_hiNpix[nVPts];
 
+    TH2D* h2_nVtx_vs_run_13tev_pp17[nCents][nVPts];
+    TH2D* h2_nVtx_vs_run_13tev_pp18[nCents][nVPts];
+
     TH1D* h_trkPt[nCents][nVPts];
     TH1D* h_trkEta[nCents][nVPts][nTrkPts];
     TH1D* h_trkPhi[nCents][nVPts][nTrkPts];
@@ -1486,6 +1489,25 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 h2_PFHFtotE_vs_hiNpix[j] = new TH2D(name_h2_PFHFtotE_vs_hiNpix.c_str(), title_h2_PFHFtotE_vs_hiNpix.c_str(),
                                                        40, 0, 120000, 2000, 0, 200000);
                 vec_h2D.push_back(h2_PFHFtotE_vs_hiNpix[j]);
+            }
+
+            if (isPP13tev) {
+
+                std::string name_h2_nVtx_vs_run_13tev_pp17 = Form("h2_nVtx_vs_run_13tev_pp17_%s", name_h_suffix.c_str());
+                std::string title_h2_nVtx_vs_run_13tev_pp17 = Form("%s;run;nVtx", title_h_suffix.c_str());
+
+                h2_nVtx_vs_run_13tev_pp17[i][j] = 0;
+                h2_nVtx_vs_run_13tev_pp17[i][j] = new TH2D(name_h2_nVtx_vs_run_13tev_pp17.c_str(), title_h2_nVtx_vs_run_13tev_pp17.c_str(),
+                                                          2000, 305000, 307000, 100, 0, 100);
+                vec_h2D.push_back(h2_nVtx_vs_run_13tev_pp17[i][j]);
+
+                std::string name_h2_nVtx_vs_run_13tev_pp18 = Form("h2_nVtx_vs_run_13tev_pp18_%s", name_h_suffix.c_str());
+                std::string title_h2_nVtx_vs_run_13tev_pp18 = Form("%s;run;nVtx", title_h_suffix.c_str());
+
+                h2_nVtx_vs_run_13tev_pp18[i][j] = 0;
+                h2_nVtx_vs_run_13tev_pp18[i][j] = new TH2D(name_h2_nVtx_vs_run_13tev_pp18.c_str(), title_h2_nVtx_vs_run_13tev_pp18.c_str(),
+                                                          2000, 324000, 326000, 100, 0, 100);
+                vec_h2D.push_back(h2_nVtx_vs_run_13tev_pp18[i][j]);
             }
 
             std::string text_trk = "trk";
@@ -3525,6 +3547,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_PFHFtotE_vs_vY[i][j]->Fill(vY, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
                             if (isPP) {
                                 h2_PFHFtotE_vs_nVtx[i][j]->Fill(trks.nVtx, (evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE), wV);
+                            }
+
+                            if (isPP13tev) {
+                                h2_nVtx_vs_run_13tev_pp17[i][j]->Fill(hiEvt.run, trks.nVtx, wV);
+                                h2_nVtx_vs_run_13tev_pp18[i][j]->Fill(hiEvt.run, trks.nVtx, wV);
                             }
 
                             h_dphi_phi0_V[i][j]->Fill(std::fabs(getDPHI(vPhi, hiEvt.phi0)), wV);
