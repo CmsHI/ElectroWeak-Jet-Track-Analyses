@@ -167,6 +167,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double lEtaMax = (ArgumentParser::optionExists("--lEtaMax", argOptions)) ?
                     std::atof(ArgumentParser::ParseOptionInputSingle("--lEtaMax", argOptions).c_str()) : -1;
 
+    double lPtScale = (ArgumentParser::optionExists("--lPtScale", argOptions)) ?
+                    std::atof(ArgumentParser::ParseOptionInputSingle("--lPtScale", argOptions).c_str()) : 1.0;
+
     std::string jetRG = (ArgumentParser::optionExists("--jetRG", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--jetRG", argOptions).c_str() : "r";
 
@@ -252,6 +255,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "vYMax = " << vYMax << std::endl;
 
     std::cout << "lEtaMax = " << lEtaMax << std::endl;
+    std::cout << "lPtScale = " << lPtScale << std::endl;
 
     std::cout << "jetRG = " << jetRG << std::endl;
 
@@ -3060,6 +3064,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             }
                         }
                     }
+                    l1pt *= lPtScale;
                     if (!(l1pt > lPtMin)) continue;
                     if (!(std::fabs((*lEta)[i]) < lEtaMax)) continue;
 
@@ -3109,6 +3114,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 }
                             }
                         }
+                        l2pt *= lPtScale;
                         if (!(l2pt > lPtMin)) continue;
                         if (!(std::fabs((*lEta)[j]) < lEtaMax)) continue;
 
