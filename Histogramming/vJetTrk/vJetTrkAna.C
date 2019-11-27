@@ -854,6 +854,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
     TH2D* h2_rgVPhi_diff_vs_vPt[nCents];
     TH2D* h2_rgVPt_ratio_vs_cent[nVPts];
+    TH2D* h2_rgVPt_ratio_vs_vM[nCents][nVPts];
 
     // event observables
     TH1D* h_cent[nVPts];
@@ -1355,6 +1356,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                                      40, 0, 100, 60, 0.4, 1.6);
                 vec_h2D.push_back(h2_rgVPt_ratio_vs_cent[j]);
             }
+
+            std::string name_h2_rgVPt_ratio_vs_vM = Form("h2_rgVPt_ratio_vs_vM_%s", name_h_suffix.c_str());
+            std::string title_h2_rgVPt_ratio_vs_vM = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
+            h2_rgVPt_ratio_vs_vM[i][j] = 0;
+            h2_rgVPt_ratio_vs_vM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_vM.c_str(), name_h2_rgVPt_ratio_vs_vM.c_str(),
+                                                  30, 60, 120, 60, 0.4, 1.6);
+            vec_h2D.push_back(h2_rgVPt_ratio_vs_vM[i][j]);
 
             std::string name_h_vtxz = Form("h_vtxz_%s", name_h_suffix.c_str());
             std::string title_h_vtxz = Form("%s;v_{z};", title_h_suffix.c_str());
@@ -3419,6 +3427,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_reco_denom_vPhi[i][j]->Fill(genVPhi, wV_gen);
                             if (matchedRG) {
                                 h_reco_num_vPhi[i][j]->Fill(genVPhi, wV);
+
+                                h2_rgVPt_ratio_vs_vM[i][j]->Fill(vM, vPt / genVPt, wV);
                             }
 
                             if (isPbPb) {
