@@ -854,6 +854,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
     TH2D* h2_rgVPhi_diff_vs_vPt[nCents];
     TH2D* h2_rgVPt_ratio_vs_cent[nVPts];
+    TH2D* h2_rgVPt_ratio_vs_vY[nCents][nVPts];
     TH2D* h2_rgVPt_ratio_vs_vM[nCents][nVPts];
     TH2D* h2_rgVPt_ratio_vs_genvM[nCents][nVPts];
 
@@ -1358,17 +1359,24 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 vec_h2D.push_back(h2_rgVPt_ratio_vs_cent[j]);
             }
 
+            std::string name_h2_rgVPt_ratio_vs_vY = Form("h2_rgVPt_ratio_vs_vY_%s", name_h_suffix.c_str());
+            std::string title_h2_rgVPt_ratio_vs_vY = Form("%s;%s;p_{T}^{reco} / p_{T}^{gen}", title_h_suffix.c_str(), text_vY.c_str());
+            h2_rgVPt_ratio_vs_vY[i][j] = 0;
+            h2_rgVPt_ratio_vs_vY[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_vY.c_str(), title_h2_rgVPt_ratio_vs_vY.c_str(),
+                                                  nBinsX_eta, -1*xMax_eta, xMax_eta, 60, 0.4, 1.6);
+            vec_h2D.push_back(h2_rgVPt_ratio_vs_vY[i][j]);
+
             std::string name_h2_rgVPt_ratio_vs_vM = Form("h2_rgVPt_ratio_vs_vM_%s", name_h_suffix.c_str());
-            std::string title_h2_rgVPt_ratio_vs_vM = Form("%s;%s;", title_h_suffix.c_str(), text_vM_os.c_str());
+            std::string title_h2_rgVPt_ratio_vs_vM = Form("%s;%s;p_{T}^{reco} / p_{T}^{gen}", title_h_suffix.c_str(), text_vM_os.c_str());
             h2_rgVPt_ratio_vs_vM[i][j] = 0;
-            h2_rgVPt_ratio_vs_vM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_vM.c_str(), name_h2_rgVPt_ratio_vs_vM.c_str(),
+            h2_rgVPt_ratio_vs_vM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_vM.c_str(), title_h2_rgVPt_ratio_vs_vM.c_str(),
                                                   30, 60, 120, 60, 0.4, 1.6);
             vec_h2D.push_back(h2_rgVPt_ratio_vs_vM[i][j]);
 
             std::string name_h2_rgVPt_ratio_vs_genvM = Form("h2_rgVPt_ratio_vs_genvM_%s", name_h_suffix.c_str());
-            std::string title_h2_rgVPt_ratio_vs_genvM = Form("%s;gen %s;", title_h_suffix.c_str(), text_vM_os.c_str());
+            std::string title_h2_rgVPt_ratio_vs_genvM = Form("%s;gen %s;p_{T}^{reco} / p_{T}^{gen}", title_h_suffix.c_str(), text_vM_os.c_str());
             h2_rgVPt_ratio_vs_genvM[i][j] = 0;
-            h2_rgVPt_ratio_vs_genvM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_genvM.c_str(), name_h2_rgVPt_ratio_vs_genvM.c_str(),
+            h2_rgVPt_ratio_vs_genvM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_genvM.c_str(), title_h2_rgVPt_ratio_vs_genvM.c_str(),
                                                   30, 60, 120, 60, 0.4, 1.6);
             vec_h2D.push_back(h2_rgVPt_ratio_vs_genvM[i][j]);
 
@@ -3429,6 +3437,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         h_reco_denom_vY[i][j]->Fill(genVY, wV_gen);
                         if (matchedRG) {
                             h_reco_num_vY[i][j]->Fill(genVY, wV);
+
+                            h2_rgVPt_ratio_vs_vY[i][j]->Fill(vY, vPt / genVPt, wV);
                         }
 
                         if (vYMin <= genVYAbs && genVYAbs < vYMax) {
