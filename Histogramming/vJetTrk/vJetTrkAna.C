@@ -1005,7 +1005,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string text_vPhi = Form("#phi^{%s}", text_V.c_str());
         std::string text_l = "";
         if (vIsZ) {
-            text_l = vIsZmm ? "#mu" : "e^{+}";
+            text_l = vIsZmm ? "#mu" : "e";
         }
         else if (vIsPho) {
             text_vY = text_vEta;
@@ -1377,7 +1377,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::string title_h2_rgVPt_ratio_vs_genvM = Form("%s;gen %s;p_{T}^{reco} / p_{T}^{gen}", title_h_suffix.c_str(), text_vM_os.c_str());
             h2_rgVPt_ratio_vs_genvM[i][j] = 0;
             h2_rgVPt_ratio_vs_genvM[i][j] = new TH2D(name_h2_rgVPt_ratio_vs_genvM.c_str(), title_h2_rgVPt_ratio_vs_genvM.c_str(),
-                                                  30, 60, 120, 60, 0.4, 1.6);
+                                                     30, 60, 120, 60, 0.4, 1.6);
             vec_h2D.push_back(h2_rgVPt_ratio_vs_genvM[i][j]);
 
             std::string name_h_vtxz = Form("h_vtxz_%s", name_h_suffix.c_str());
