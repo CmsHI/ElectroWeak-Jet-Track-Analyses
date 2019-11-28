@@ -852,6 +852,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     // reco/gen diff
     TH2D* h2_rgVPt_ratio_vs_vPt[nCents];
+    TH2D* h2_rgVPt_ratio_vs_vPtreco[nCents];
     TH2D* h2_rgVPhi_diff_vs_vPt[nCents];
     TH2D* h2_rgVPt_ratio_vs_cent[nVPts];
     TH2D* h2_rgVPt_ratio_vs_vY[nCents][nVPts];
@@ -1081,6 +1082,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         h2_rgVPt_ratio_vs_vPt[i] = new TH2D(name_h2_rgVPt_ratio_vs_vPt.c_str(), title_h2_rgVPt_ratio_vs_vPt.c_str(),
                                                      nBinsX_vPt, 0, xMax_vPt, 60, 0.4, 1.6);
         vec_h2D.push_back(h2_rgVPt_ratio_vs_vPt[i]);
+
+        std::string name_h2_rgVPt_ratio_vs_vPtreco = Form("h2_rgVPt_ratio_vs_vPtreco_%s", label_cent.c_str());
+        std::string title_h2_rgVPt_ratio_vs_vPtreco = Form("%s, %s;%s;p_{T}^{reco} / p_{T}^{gen}", text_range_vY.c_str(),
+                                                     text_range_cent.c_str(),
+                                                     text_vPt.c_str());
+
+        h2_rgVPt_ratio_vs_vPtreco[i] = 0;
+        h2_rgVPt_ratio_vs_vPtreco[i] = new TH2D(name_h2_rgVPt_ratio_vs_vPtreco.c_str(), title_h2_rgVPt_ratio_vs_vPtreco.c_str(),
+                                                     nBinsX_vPt, 0, xMax_vPt, 60, 0.4, 1.6);
+        vec_h2D.push_back(h2_rgVPt_ratio_vs_vPtreco[i]);
 
         std::string name_h2_rgVPhi_diff_vs_vPt = Form("h2_rgVPhi_diff_vs_vPt_%s", label_cent.c_str());
         std::string title_h2_rgVPhi_diff_vs_vPt = Form("%s, %s;gen %s;#phi^{reco} - #phi^{gen}", text_range_vY.c_str(),
@@ -3426,6 +3437,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_reco_num_vPt[i]->Fill(genVPt, wV);
 
                             h2_rgVPt_ratio_vs_vPt[i]->Fill(genVPt, vPt / genVPt, wV);
+                            h2_rgVPt_ratio_vs_vPtreco[i]->Fill(vPt, vPt / genVPt, wV);
                             h2_rgVPhi_diff_vs_vPt[i]->Fill(genVPt, getDPHI(vPhi, genVPhi), wV);
                         }
                     }
