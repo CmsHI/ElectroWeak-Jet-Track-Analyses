@@ -3438,7 +3438,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (matchedRG) {
                             h_reco_num_vY[i][j]->Fill(genVY, wV);
 
-                            h2_rgVPt_ratio_vs_vY[i][j]->Fill(vY, vPt / genVPt, wV);
+                            h2_rgVPt_ratio_vs_vY[i][j]->Fill(genVY, vPt / genVPt, wV);
                         }
 
                         if (vYMin <= genVYAbs && genVYAbs < vYMax) {
