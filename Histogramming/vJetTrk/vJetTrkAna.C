@@ -955,6 +955,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_trkPt_vs_trkEta[nCents][nVPts];
     TH2D* h2_trkPt_vs_xivh[nCents][nVPts];
     TH2D* h2_trkPt_rebin_vs_xivh[nCents][nVPts];
+    TH2D* h2_vPt_vs_xivh[nCents][nTrkPts];
 
     TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
@@ -2193,6 +2194,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             nBins_xivh, 0, 5,
                             nBinsX_eta, 0, 5.2);
                     vec_h2D.push_back(h2_deta_h1_vs_xivh[i][j][k]);
+
+                    if (j == 0) {
+                        std::string name_h2_vPt_vs_xivh = Form("h2_vPt_vs_xivh_%s_%s", label_trkPt.c_str(), label_cent.c_str());
+                        std::string title_h2_vPt_vs_xivh = Form("%s;%s;%s", title_h_suffix_dphi.c_str(),
+                                text_xivh.c_str(),
+                                text_vPt.c_str());
+
+                        h2_vPt_vs_xivh[i][k] = 0;
+                        h2_vPt_vs_xivh[i][k] = new TH2D(name_h2_vPt_vs_xivh.c_str(), title_h2_vPt_vs_xivh.c_str(),
+                                nBins_xivh, 0, 5,
+                                nBinsX_vPt, 0,  xMax_vPt);
+                        vec_h2D.push_back(h2_vPt_vs_xivh[i][k]);
+                    }
 
                     if (anaJets) {
                         std::string name_h2_jetpt_vs_xivh = Form("h2_jetpt_vs_xivh_%s", name_h_suffix.c_str());
@@ -4071,6 +4085,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
                             h2_deta_h1_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta_h1, wTrk);
+
+                            if (iVPt == 0) {
+                                h2_vPt_vs_xivh[iCent][iTrkPt]->Fill(xi_vt, vPt, wTrk);
+                            }
 
                             if (anaJets) {
                                 double mindR2_jet_trk = mindR2_jet_trk_0;
