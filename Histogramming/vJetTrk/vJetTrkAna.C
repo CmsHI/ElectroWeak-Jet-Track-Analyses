@@ -228,13 +228,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::atoi(ArgumentParser::ParseOptionInputSingle("--rndVPhi", argOptions).c_str()) : 0;
     bool doRndVPhi = (rndVPhi > 0);
 
-    int genVPt = (ArgumentParser::optionExists("--genVPt", argOptions)) ?
+    int genVPtTmp = (ArgumentParser::optionExists("--genVPt", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--genVPt", argOptions).c_str()) : 0;
-    bool useGenVPt = (genVPt > 0);
+    bool useGenVPt = (genVPtTmp > 0);
 
-    int genVPhi = (ArgumentParser::optionExists("--genVPhi", argOptions)) ?
+    int genVPhiTmp = (ArgumentParser::optionExists("--genVPhi", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--genVPhi", argOptions).c_str()) : 0;
-    bool useGenVPhi = (genVPhi > 0);
+    bool useGenVPhi = (genVPhiTmp > 0);
 
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
@@ -292,10 +292,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "rndVPhi = " << rndVPhi << std::endl;
     }
     if (useGenVPt) {
-        std::cout << "genVPt = " << genVPt << std::endl;
+        std::cout << "genVPt = " << genVPtTmp << std::endl;
     }
     if (useGenVPhi) {
-        std::cout << "genVPhi = " << genVPhi << std::endl;
+        std::cout << "genVPhi = " << genVPhiTmp << std::endl;
     }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
