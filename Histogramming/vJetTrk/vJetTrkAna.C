@@ -909,6 +909,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_zh[nCents][nVPts][nTrkPts];
     TH1D* h_zh_T[nCents][nVPts][nTrkPts];
     TH1D* h_xivh[nCents][nVPts][nTrkPts];
+    TH1D* h_xitvh[nCents][nVPts][nTrkPts];
 
     TH1D* h_dphi_leptrk[nCents][nVPts][nTrkPts];
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
@@ -1672,6 +1673,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         text_vPt_vec.c_str(),
                         text_trkPt_vec.c_str());
 
+                std::string text_defn_xitvh = Form("#xi = ln ( %s / %s ) ",
+                        text_vPt.c_str(),
+                        text_trkPt.c_str());
+
                 std::string name_h2_trkPt_vs_xivh = Form("h2_trkPt_vs_xivh_%s", name_h_suffix.c_str());
                 std::string title_h2_trkPt_vs_xivh = Form("%s;%s;%s", title_h_suffix.c_str(),
                         text_xivh.c_str(),
@@ -1907,6 +1912,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     h_xivh[i][j][k] = 0;
                     h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBins_xivh, 0, 5);
+
+                    std::string name_h_xitvh = Form("h_xitvh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
+                    std::string title_h_xitvh = Form("%s;%s;", title_h_suffix.c_str(),
+                                                               text_defn_xitvh.c_str());
+
+                    h_xitvh[i][j][k] = 0;
+                    h_xitvh[i][j][k] = new TH1D(name_h_xitvh.c_str(), title_h_xitvh.c_str(), nBins_xivh, 0, 5);
 
                     std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
                     std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
@@ -4003,6 +4015,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         float angle = vV.Angle(vTrk.Vect());
                         float z_vt_T = vTrk.P() * fabs(cos(angle)) / vPt;
                         float xi_vt = log(1.0 / z_vt_T);
+                        float xit_vt = log(vPt / t_pt);
 
                         h2_trkPt_vs_xivh[iCent][iVPt]->Fill(xi_vt, t_pt, wTrk);
                         h2_trkPt_rebin_vs_xivh[iCent][iVPt]->Fill(xi_vt, t_pt, wTrk);
@@ -4082,6 +4095,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h_zh_T[iCent][iVPt][iTrkPt]->Fill(z_vt_T, wTrk);
                             }
                             h_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, wTrk);
+                            h_xitvh[iCent][iVPt][iTrkPt]->Fill(xit_vt, wTrk);
 
                             h2_deta_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta, wTrk);
                             h2_deta_h1_vs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, deta_h1, wTrk);
