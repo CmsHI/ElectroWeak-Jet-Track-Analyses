@@ -957,6 +957,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_trkPt_vs_xivh[nCents][nVPts];
     TH2D* h2_trkPt_rebin_vs_xivh[nCents][nVPts];
     TH2D* h2_vPt_vs_xivh[nCents][nTrkPts];
+    TH2D* h2_vReco_vs_vGen_xivh[nCents][nVPts][nTrkPts];
 
     TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
@@ -2219,6 +2220,21 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 nBinsX_vPt, 0,  xMax_vPt);
                         vec_h2D.push_back(h2_vPt_vs_xivh[i][k]);
                     }
+
+                    if (isMC) {
+
+                        std::string name_h2_vReco_vs_vGen_xivh = Form("h2_vReco_vs_vGen_xivh_%s", name_h_suffix.c_str());
+                        std::string title_h2_vReco_vs_vGen_xivh = Form("%s;%s %s^{gen};%s %s^{reco}", title_h_suffix_dphi.c_str(),
+                                text_xivh.c_str(), text_V.c_str(),
+                                text_xivh.c_str(), text_V.c_str());
+
+                        h2_vReco_vs_vGen_xivh[i][j][k] = 0;
+                        h2_vReco_vs_vGen_xivh[i][j][k] = new TH2D(name_h2_vReco_vs_vGen_xivh.c_str(), title_h2_vReco_vs_vGen_xivh.c_str(),
+                                nBins_xivh, 0, 5,
+                                nBins_xivh, 0, 5);
+                        vec_h2D.push_back(h2_vReco_vs_vGen_xivh[i][j][k]);
+                    }
+
 
                     if (anaJets) {
                         std::string name_h2_jetpt_vs_xivh = Form("h2_jetpt_vs_xivh_%s", name_h_suffix.c_str());
@@ -3715,6 +3731,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             TLorentzVector vV;
             vV.SetPtEtaPhiM(vPt, 0, vPhi, vM);
 
+            TLorentzVector vVgen;
+            vVgen.SetPtEtaPhiM(genVPt, 0, genVPhi, genVMass);
+
             double h1_pt = -1;
             double h1_eta = -555;
             if (findLeadingTrk) {
@@ -4102,6 +4121,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                             if (iVPt == 0) {
                                 h2_vPt_vs_xivh[iCent][iTrkPt]->Fill(xi_vt, vPt, wTrk);
+                            }
+
+                            if (isMC) {
+                                float angle_gen = vVgen.Angle(vTrk.Vect());
+                                float z_vt_T_gen = vTrk.P() * fabs(cos(angle_gen)) / genVPt;
+                                float xi_vt_gen = log(1.0 / z_vt_T_gen);
+
+                                h2_vReco_vs_vGen_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt_gen, xi_vt, wTrk);
                             }
 
                             if (anaJets) {
