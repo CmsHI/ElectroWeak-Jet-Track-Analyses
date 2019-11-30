@@ -3039,7 +3039,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             double genVY = -999999;
             double genVPhi = -999999;
             double genVMass = -1;
-            float maxDR2_reco_gen_V = 0.16;
+            float maxDR2_reco_gen_V = 9999; //0.16;
 
             if (!anaV) continue;
             wEvtsAll += w;
