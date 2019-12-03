@@ -445,14 +445,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TFile* fileWeightsPhi0 = 0;
     std::vector<TH1D*> vec_h1D_wPhi0;
     if (doWeightsPhi0) {
-        std::string dirWPhi0 = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/test/weights/";
+        std::string dirWPhi0 = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/test/weights/phi0/";
         std::string fileNameWPhi0 = "";
-        if (isRecoV)  {
-            fileNameWPhi0 = "vJetTrkAna_pbpb_2018_mc_zmm_vr_trk_r_raw.root";
-        }
-        else {
-            fileNameWPhi0 = "vJetTrkAna_pbpb_2018_mc_zmm_vg_trk_r_raw.root";
-        }
+        std::string tmpStr_mc = (isMCMG) ? "_mg5" : "";
+        std::string tmpStr_zll = (vIsZmm) ? "zmm" : "zee";
+        std::string tmpStr_vRG = (isRecoV) ? "vr" : "vg";
+        fileNameWPhi0 = Form("vJetTrkAna_pbpb_2018_mc%s_%s_%s_trk_g_raw.root", tmpStr_mc.c_str(), tmpStr_zll.c_str(), tmpStr_vRG.c_str());
 
         if (fileNameWPhi0 != "") {
             std::string filePathWPhi0 = Form("%s/%s", dirWPhi0.c_str(), fileNameWPhi0.c_str());
