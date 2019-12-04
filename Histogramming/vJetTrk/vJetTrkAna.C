@@ -3235,6 +3235,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     }
                     else if (!isRecoV) {
                         if (std::fabs((*ggHi.mcPID)[i]) != pdgL) continue;
+                        if ( !((*ggHi.mcMomPID)[i] == pdgV) ) continue;
                         else if (vIsZee) {
                             if (std::fabs((*lEta)[i]) > 1.4442 && std::fabs((*lEta)[i]) < 1.566) continue;
                             if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
@@ -3285,6 +3286,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
                         else if (!isRecoV) {
                             if (std::fabs((*ggHi.mcPID)[j]) != pdgL) continue;
+                            if ( !((*ggHi.mcMomPID)[j] == pdgV) ) continue;
                             if (vIsZee) {
                                 if (std::fabs((*lEta)[j]) > 1.4442 && std::fabs((*lEta)[j]) < 1.566) continue;
                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(j))  continue;
