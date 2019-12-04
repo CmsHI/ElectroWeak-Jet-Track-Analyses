@@ -47,6 +47,7 @@
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/physicsUtil.h"
 #include "../../Utilities/vJetTrkUtil.h"
+#include "../../Corrections/muons/Run2/RoccoR.cc"
 #include "../../Corrections/electrons/2017pp/EnergyScaleCorrection.cc"
 #include "../../Corrections/tracks/2015/getTrkCorr.h"
 #include "../../Corrections/tracks/2017pp/trackingEfficiency2017pp.h"
@@ -527,6 +528,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     }
 
     // lepton corrections
+    std::string muonCorrFile = (isPP) ? "RoccoR2017.txt" : "RoccoR2018.txt";
+    muonCorrFile = "Corrections/muons/Run2/"+muonCorrFile;
+    std::cout << "reading muon correction file : " << muonCorrFile << std::endl;
+    RoccoR rc(muonCorrFile);
+
     EnergyScaleCorrection ec("Corrections/electrons/2017pp/data/Run2017_LowPU_v2", EnergyScaleCorrection::ECALELF);
 
     // tracking corrections
@@ -3158,7 +3164,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int i = 0; i < nL; ++i) {
 
                     float l1pt = (*lPt)[i];
-                    if (vIsZee && isRecoV) {
+                    if (vIsZmm && isRecoV) {
+
+                        if (isMC) {
+                            l1pt *= rc.kSpreadMC((*lChg)[i], l1pt, (*lEta)[i], (*lPhi)[i], l1pt);
+                        }
+                        else {
+                            l1pt *= rc.kScaleDT((*lChg)[i], l1pt, (*lEta)[i], (*lPhi)[i]);
+                        }
+                    }
+                    else if (vIsZee && isRecoV) {
                         if (isPP17) {
                             double lAbsEta = std::fabs((*lEta)[i]);
                             double eleSCEt = (*ggHi.eleSCEn)[i] / std::cosh(lAbsEta);
@@ -3209,7 +3224,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int j = i+1; j < nL; ++j) {
 
                         float l2pt = (*lPt)[j];
-                        if (vIsZee && isRecoV) {
+                        if (vIsZmm && isRecoV) {
+
+                            if (isMC) {
+                                l2pt *= rc.kSpreadMC((*lChg)[j], l2pt, (*lEta)[j], (*lPhi)[j], l2pt);
+                            }
+                            else {
+                                l2pt *= rc.kScaleDT((*lChg)[j], l2pt, (*lEta)[j], (*lPhi)[j]);
+                            }
+                        }
+                        else if (vIsZee && isRecoV) {
                             if (isPP17) {
                                 double lAbsEta = std::fabs((*lEta)[j]);
                                 double eleSCEt = (*ggHi.eleSCEn)[j] / std::cosh(lAbsEta);
