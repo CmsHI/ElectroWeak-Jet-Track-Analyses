@@ -3099,6 +3099,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     lPtMin = 20;
                 }
 
+                int iMCLepP = -1;
+                int iMCLepM = -1;
+
                 if (!isRecoV) {
                     nL = ggHi.nMC;
                     lPt = ggHi.mcPt;
@@ -3123,18 +3126,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int i = 0; i < ggHi.nMC; ++i) {
 
                         if ( !((*ggHi.mcMomPID)[i] == pdgV) ) continue;
-                        if ( !((*ggHi.mcPt)[i] > lPtMin) ) continue;
                         if ( !(std::fabs((*ggHi.mcEta)[i]) < lEtaMax) ) continue;
 
                         if ((*ggHi.mcPID)[i] == pdgL) {
-                            hasLepP = true;
+                            iMCLepP = i;
+                            if ( ((*ggHi.mcPt)[i] > lPtMin) ) hasLepP = true;
                         }
                         else if ((*ggHi.mcPID)[i] == -1*pdgL) {
-                            hasLepM = true;
+                            iMCLepM = i;
+                            if ( ((*ggHi.mcPt)[i] > lPtMin) ) hasLepM = true;
                         }
                     }
 
-                    if (hasLepM && hasLepP) {
+                    if (hasLepP && hasLepM) {
                         for (int i = 0; i < ggHi.nMC; ++i) {
 
                             if ((*ggHi.mcPID)[i] != pdgV)  continue;
@@ -3167,7 +3171,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     if (vIsZmm && isRecoV) {
 
                         if (isMC) {
-                            l1pt *= rc.kSpreadMC((*lChg)[i], l1pt, (*lEta)[i], (*lPhi)[i], l1pt);
+                            double l1ptgen = l1pt;
+                            if (iMCLepP > 0 && iMCLepM > 0) {
+                                l1ptgen = ((*lChg)[i] < 0) ? (*ggHi.mcPt)[iMCLepP] : (*ggHi.mcPt)[iMCLepM];
+                            }
+                            l1pt *= rc.kSpreadMC((*lChg)[i], l1pt, (*lEta)[i], (*lPhi)[i], l1ptgen);
                         }
                         else {
                             l1pt *= rc.kScaleDT((*lChg)[i], l1pt, (*lEta)[i], (*lPhi)[i]);
@@ -3227,7 +3235,11 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (vIsZmm && isRecoV) {
 
                             if (isMC) {
-                                l2pt *= rc.kSpreadMC((*lChg)[j], l2pt, (*lEta)[j], (*lPhi)[j], l2pt);
+                                double l2ptgen = l2pt;
+                                if (iMCLepP > 0 && iMCLepM > 0) {
+                                    l2ptgen = ((*lChg)[j] < 0) ? (*ggHi.mcPt)[iMCLepP] : (*ggHi.mcPt)[iMCLepM];
+                                }
+                                l2pt *= rc.kSpreadMC((*lChg)[j], l2pt, (*lEta)[j], (*lPhi)[j], l2ptgen);
                             }
                             else {
                                 l2pt *= rc.kScaleDT((*lChg)[j], l2pt, (*lEta)[j], (*lPhi)[j]);
