@@ -345,7 +345,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
     bool doWeightsPhi0 = ((applyWeightsV % 10) == 3);
-    bool doWeightsDphiEP = ((applyWeightsV % 10) == 4);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
 
     bool noTrkWeights = (applyTrkWeights == 0);
@@ -465,41 +464,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 std::string tmpPath = Form("h_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
                 vec_h1D_wPhi0.push_back((TH1D*)fileWeightsPhi0->Get(tmpPath.c_str()));
-            }
-        }
-    }
-
-    TFile* fileWeightsDphiEP = 0;
-    std::vector<TH1D*> vec_h1D_wDphiEP;
-    if (doWeightsDphiEP) {
-        //std::string dirWDphiEP = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/test/weights/reco_eff_dphi_EP/";
-        std::string dirWDphiEP = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/test/weights/reco_eff_dphi_EP_cent0_10/";
-        std::string fileNameWDphiEP = "";
-        if (isRecoV)  {
-            std::string tmpTagV = (vIsZee) ? "zee" : "zmm";
-            fileNameWDphiEP = Form("vJetTrkAna_pbpb_2018_mc_%s_vr_trk_g_sig.root", tmpTagV.c_str());
-        }
-
-        if (fileNameWDphiEP != "") {
-            std::string filePathWDphiEP = Form("%s/%s", dirWDphiEP.c_str(), fileNameWDphiEP.c_str());
-            std::cout << "reading DphiEP correction file : " << filePathWDphiEP.c_str() << std::endl;
-
-            fileWeightsDphiEP = TFile::Open(filePathWDphiEP.c_str(), "READ");
-
-            std::vector<std::string> tmpCents = {"0_10", "10_30", "30_50", "50_90"};
-            //std::vector<std::string> tmpCents = {"0_5", "5_10"};
-
-            for (std::vector<std::string>::iterator it = tmpCents.begin() ; it != tmpCents.end(); ++it) {
-
-                //std::string tmpPath = Form("h_reco_eff_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
-                //std::string tmpPath = Form("h_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
-                //vec_h1D_wDphiEP.push_back((TH1D*)fileWeightsDphiEP->Get(tmpPath.c_str()));
-
-                std::string tmpPath = Form("h_dphi_phi0_V_vPt30_50_cent%s", (*it).c_str());
-                vec_h1D_wDphiEP.push_back((TH1D*)fileWeightsDphiEP->Get(tmpPath.c_str()));
-
-                tmpPath = Form("h_dphi_phi0_V_vPt50_80_cent%s", (*it).c_str());
-                vec_h1D_wDphiEP.push_back((TH1D*)fileWeightsDphiEP->Get(tmpPath.c_str()));
             }
         }
     }
@@ -3464,40 +3428,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     wV *= 1./(tmpWPhi0);
                 }
                 hTmp->Delete();
-            }
-
-            if (doWeightsDphiEP) {
-                //int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
-                //int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
-                int iwDphiEP = -1;
-                if (hiBin < 10) {
-                    if (vPt < 50) {
-                        iwDphiEP = 0;
-                    }
-                    else {
-                        iwDphiEP = 1;
-                    }
-                }
-                else if (hiBin < 20) {
-                    if (vPt < 50) {
-                        iwDphiEP = 2;
-                    }
-                    else {
-                        iwDphiEP = 3;
-                    }
-                }
-
-                if (iwDphiEP >= 0) {
-                    hTmp = (TH1D*)vec_h1D_wDphiEP[iwDphiEP]->Clone("hTmp_wDphiEP");
-                    //hTmp->Rebin(4);
-                    hTmp->Scale(1./hTmp->Integral());
-                    int tmpBinDphiEP = hTmp->FindBin(std::fabs(getDPHI(vPhi, hiEvt.phi0)));
-                    double tmpWDphiEP = hTmp->GetBinContent(tmpBinDphiEP);
-                    if (tmpWDphiEP > 0.00001) {
-                        wV *= 1./(tmpWDphiEP);
-                    }
-                    hTmp->Delete();
-                }
             }
 
             if (doWeightsVcent) {
