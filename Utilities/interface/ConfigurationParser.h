@@ -1586,6 +1586,7 @@ std::string ConfigurationParser::ReadConfigValue(std::ifstream& fin, std::string
         std::string value = ConfigurationParser::ReadValue(fin, line.substr(pos, (posLast-pos)));   // read value over multiple lines if necessary
         value = ConfigurationParser::substituteVarString(value, mapVarStr);
         value = ConfigurationParser::substituteEnv(value);
+        value = getExpandedEnvironmentVariable(value);
 
         line = line.substr(0, pos-1);        // "line" becomes the LHS of the "=" sign (excluing the "=" sign)
         bool isCommand = ConfigurationParser::isCommand(line);
