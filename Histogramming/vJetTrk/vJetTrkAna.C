@@ -3448,7 +3448,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (doWeightsPhi0) {
-                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
+                int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin);
 
                 //int binTmpVPt = ((TH1D*)(vec_h2D_wPhi0[iCent]->ProjectionX()))->FindBin(vPt);
                 //hTmp = (TH1D*)vec_h2D_wPhi0[iCent]->ProjectionY("hTmp_wPhi0", binTmpVPt, binTmpVPt);
@@ -3458,7 +3458,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 hTmp->Scale(1./hTmp->Integral());
                 int tmpBinPhi0 = hTmp->FindBin(std::fabs(getDPHI(vPhi, hiEvt.phi0)));
                 double tmpWPhi0 = hTmp->GetBinContent(tmpBinPhi0);
-                if (tmpWPhi0 > 0.001) {
+                if (tmpWPhi0 > 0.00001) {
                     wV *= 1./(tmpWPhi0);
                 }
                 hTmp->Delete();
