@@ -935,7 +935,7 @@ double getTrkPhiEffCorrection(double trkPhi, TH1D* h_effcorr)
 double getTrkEtaPhiEffCorrection(double trkEta, double trkPhi, TH2D* h_effcorr)
 {
     int iBin = h_effcorr->FindBin(trkEta, trkPhi);
-    if (iBin >= 1 && iBin <= (h_effcorr->GetNbinsX()*h_effcorr->GetNbinsY())) {
+    if (iBin >= 0) {
 
         double effcorr = h_effcorr->GetBinContent(iBin);
         if (effcorr > 0.01) {
