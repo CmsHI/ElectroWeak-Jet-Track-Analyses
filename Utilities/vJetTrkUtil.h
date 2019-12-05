@@ -960,7 +960,7 @@ std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm)
         }
         else {
             res = {
-                    "HLT_HIDoubleEle10Gsf_v",
+                    //"HLT_HIDoubleEle10Gsf_v",
                     "HLT_HIEle20Gsf_v",
             };
         }
@@ -969,13 +969,13 @@ std::vector<std::string> getTreeNamesHLTObj(int collType, bool vIsZmm)
 
         if (vIsZmm) {
             res = {
-                    "HLT_HIL2Mu12_v",
+                    //"HLT_HIL2Mu12_v",
                     "HLT_HIL3Mu12_v",
             };
         }
         else {
             res = {
-                    "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
+                    //"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v",
                     "HLT_HIEle15_WPLoose_Gsf_v",
                     "HLT_HIEle20_WPLoose_Gsf_v",
                     "HLT_HIEle30_WPLoose_Gsf_v",
