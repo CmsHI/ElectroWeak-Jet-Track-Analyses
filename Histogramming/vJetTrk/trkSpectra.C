@@ -232,6 +232,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     TH1D* h_eta[nCents][nTrkPts][RG::kN_RG];
 
+    // phi_vs_eta with user-defined bins
+    TH2D* h2_phi_vs_eta_var[nCents][nTrkPts][RG::kN_RG];
+
     double xMax_trkPt = 90;
     std::vector<double> binsX_pt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 7.50, 10.0, 12.0, 15.0, 20.0, 25.0, 30.0, 45.0, 60.0, xMax_trkPt};
 
@@ -321,18 +324,31 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             std::string title_h_eta = Form("%s, %s;%s;", text_range_trkPt.c_str(), text_range_cent.c_str(),
                                                     text_trkEta.c_str());
+            std::string title_h2_phi_vs_eta = Form("%s, %s;%s;%s", text_range_trkPt.c_str(), text_range_cent.c_str(),
+                                                    text_trkEta.c_str(), text_trkPhi.c_str());
 
             std::string name_h_suffix = Form("%s_%s", label_trkPt.c_str(), label_cent.c_str());
 
             for (int iRG = 0; iRG < RG::kN_RG; ++iRG) {
 
-                std::string name_h_pt = Form("h_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+                std::string name_h_eta = Form("h_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
 
                 h_eta[i][j][iRG] = 0;
-                h_eta[i][j][iRG] = new TH1D(name_h_pt.c_str(), title_h_eta.c_str(), 12, -2.4, 2.4);
+                h_eta[i][j][iRG] = new TH1D(name_h_eta.c_str(), title_h_eta.c_str(), 12, -2.4, 2.4);
 
                 h_eta[i][j][iRG]->SetMarkerStyle(kFullCircle);
                 vec_h.push_back(h_eta[i][j][iRG]);
+
+
+                std::string name_h2_phi_vs_eta = Form("h2_phi_vs_eta_%s_%s", strRG[iRG].c_str(), name_h_suffix.c_str());
+
+                h2_phi_vs_eta_var[i][j][iRG] = 0;
+                h2_phi_vs_eta_var[i][j][iRG] = new TH2D(name_h2_phi_vs_eta.c_str(), title_h2_phi_vs_eta.c_str(),
+                                                        12, -2.4, 2.4,
+                                                        nBinsX_phi, -1*xMax_phi, xMax_phi);
+
+                h2_phi_vs_eta_var[i][j][iRG]->SetMarkerStyle(kFullCircle);
+                vec_h.push_back(h2_phi_vs_eta_var[i][j][iRG]);
             }
         }
     }
@@ -857,6 +873,10 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                         h_eta[iCent][iTrkPt][RG::k_RecoEffCorr]->Fill(t_eta, wTrkEff);
                         h_eta[iCent][iTrkPt][RG::k_RecoCorr]->Fill(t_eta, wTrk);
                         h_eta[iCent][iTrkPt][RG::k_RecoUncorr]->Fill(t_eta, w);
+
+                        h2_phi_vs_eta_var[iCent][iTrkPt][RG::k_RecoEffCorr]->Fill(t_eta, t_phi, wTrkEff);
+                        h2_phi_vs_eta_var[iCent][iTrkPt][RG::k_RecoCorr]->Fill(t_eta, t_phi, wTrk);
+                        h2_phi_vs_eta_var[iCent][iTrkPt][RG::k_RecoUncorr]->Fill(t_eta, t_phi, w);
                     }
                 }
 
@@ -904,6 +924,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                                                        (*hiGen.pt)[i] < trkPtsMax[iTrkPt]))  continue;
 
                             h_eta[iCent][iTrkPt][RG::k_Gen]->Fill((*hiGen.eta)[i], w);
+
+                            h2_phi_vs_eta_var[iCent][iTrkPt][RG::k_Gen]->Fill((*hiGen.eta)[i], (*hiGen.phi)[i], w);
                         }
                     }
 
@@ -1088,6 +1110,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 hTmp = (TH1D*)h_eta[i][j][iRG]->Clone(name_tmp.c_str());
                 hTmp->Scale(1./wEvtTot[i]);
                 hTmp->Write("",TObject::kOverwrite);
+
+                name_tmp = replaceFirst(h2_phi_vs_eta_var[i][j][iRG]->GetName(), "h2_", "h2_normEvts_");
+                hTmp = (TH2D*)h2_phi_vs_eta_var[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Scale(1./wEvtTot[i]);
+                hTmp->Write("",TObject::kOverwrite);
             }
         }
     }
@@ -1133,6 +1160,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 name_tmp = replaceFirst(name_tmp, "_ratio_", "_fullcorr_ratio_");
                 hTmp->SetName(name_tmp.c_str());
                 setBinErrorsFullCorr4Ratio((TH1D*)hTmp, h_eta[i][j][iRG], h_eta[i][j][iGen]);
+                hTmp->Write("",TObject::kOverwrite);
+
+                name_tmp = replaceFirst(h2_phi_vs_eta_var[i][j][iGen]->GetName(), "_gen_", str_ratio.c_str());
+                hTmp = (TH2D*)h2_phi_vs_eta_var[i][j][iRG]->Clone(name_tmp.c_str());
+                hTmp->Divide(h2_phi_vs_eta_var[i][j][iGen]);
                 hTmp->Write("",TObject::kOverwrite);
             }
         }
