@@ -182,6 +182,7 @@ bool isRatioXivh(std::string label);
 bool isRatioTrkPt(std::string label);
 bool isDiffDphi(std::string label);
 bool isRatioVTrk(std::string label);
+bool isBootStrapHist(std::string label);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
 {
@@ -1433,6 +1434,11 @@ bool isDiffDphi(std::string label)
 bool isRatioVTrk(std::string label)
 {
     return (isRatioDphi(label) || isRatioXivh(label) || isRatioTrkPt(label));
+}
+
+bool isBootStrapHist(std::string label)
+{
+    return (label.find("h2_bs_") == 0);
 }
 
 #endif
