@@ -321,7 +321,7 @@ int getIndex4CentBin(int hiBin)
 
 int getHiBin(int hiBin)
 {
-    int deltaHiBin = 204 / VJT::nCentBins;
+    int deltaHiBin = 200 / VJT::nCentBins;
     return (int)(hiBin / deltaHiBin);
 }
 
