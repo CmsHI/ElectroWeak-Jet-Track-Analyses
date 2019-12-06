@@ -918,6 +918,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dphi_leptrk[nCents][nVPts][nTrkPts];
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
+    // observables for Bootstrapping
+    bool fillBootStrap = true;
+    TH2D* h2_bs_dphi[nCents][nVPts][nTrkPts];
+    TH2D* h2_bs_xivh[nCents][nVPts][nTrkPts];
+    TH2D* h2_bs_trkPt[nCents][nVPts];
+    int evtIndex_bs_dphi[nCents][nVPts][nTrkPts];
+    int evtIndex_bs_xivh[nCents][nVPts][nTrkPts];
+    int evtIndex_bs_trkPt[nCents][nVPts];
+    int nEvtsBS = 3000;
+
     // trk ID
     TH1D* h_trkPtError[nCents][nVPts][nTrkPts];
     TH1D* h_trkPtoErr[nCents][nVPts][nTrkPts];
@@ -1940,6 +1950,39 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     h_dR_leptrk[i][j][k] = 0;
                     h_dR_leptrk[i][j][k] = new TH1D(name_h_dR_leptrk.c_str(), title_h_dR_leptrk.c_str(), nBinsX_dphi, 0, xMax_phi);
+
+                    if (fillBootStrap) {
+
+                        std::string name_h2_bs_dphi = Form("h2_bs_dphi_%s", name_h_suffix.c_str());
+                        std::string title_h2_bs_dphi = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_dphi.c_str());
+
+                        h2_bs_dphi[i][j][k] = 0;
+                        h2_bs_dphi[i][j][k] = new TH2D(name_h2_bs_dphi.c_str(), title_h2_bs_dphi.c_str(),
+                                                       nBinsX_dphi, 0, xMax_phi, nEvtsBS, 0, nEvtsBS);
+                        vec_h2D.push_back(h2_bs_dphi[i][j][k]);
+                        evtIndex_bs_dphi[i][j][k] = -1;
+
+                        std::string name_h2_bs_xivh = Form("h2_bs_xivh_%s", name_h_suffix.c_str());
+                        std::string title_h2_bs_xivh = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_xivh.c_str());
+
+                        h2_bs_xivh[i][j][k] = 0;
+                        h2_bs_xivh[i][j][k] = new TH2D(name_h2_bs_xivh.c_str(), title_h2_bs_xivh.c_str(),
+                                                       nBins_xivh, 0, 5, nEvtsBS, 0, nEvtsBS);
+                        vec_h2D.push_back(h2_bs_xivh[i][j][k]);
+                        evtIndex_bs_xivh[i][j][k] = -1;
+
+                        if (k == 0) {
+
+                            std::string name_h2_bs_trkPt = Form("h2_bs_trkPt_%s", name_h_suffix.c_str());
+                            std::string title_h2_bs_trkPt = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_trkPt.c_str());
+
+                            h2_bs_trkPt[i][j] = 0;
+                            h2_bs_trkPt[i][j] = new TH2D(name_h2_bs_trkPt.c_str(), title_h2_bs_trkPt.c_str(),
+                                                         nBinsX_trkPt, 0, xMax_trkPt, nEvtsBS, 0, nEvtsBS);
+                            vec_h2D.push_back(h2_bs_trkPt[i][j]);
+                            evtIndex_bs_trkPt[i][j] = -1;
+                        }
+                    }
 
                     if (anaTrkID) {
                         h_trkPtError[i][j][k] = new TH1D(Form("h_trkPtError_%s", name_h_suffix.c_str()), ";trkPtError;", 30, 0, 0.15);
@@ -3862,6 +3905,31 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            if (fillBootStrap) {
+
+                for (int i = 0; i < nCents; ++i) {
+
+                    if (isPbPb && !(centsMin[i] <= cent && cent < centsMax[i]))  continue;
+
+                    for (int j = 0; j < nVPts; ++j) {
+
+                        if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
+
+                        for (int k = 0; k < nTrkPts; ++k) {
+
+                            evtIndex_bs_dphi[i][j][k] += 1;
+                            evtIndex_bs_dphi[i][j][k] = (evtIndex_bs_dphi[i][j][k] % nEvtsBS);
+
+                            evtIndex_bs_xivh[i][j][k] += 1;
+                            evtIndex_bs_xivh[i][j][k] = (evtIndex_bs_xivh[i][j][k] % nEvtsBS);
+                        }
+
+                        evtIndex_bs_trkPt[i][j] += 1;
+                        evtIndex_bs_trkPt[i][j] = (evtIndex_bs_trkPt[i][j] % nEvtsBS);
+                    }
+                }
+            }
+
             for (int i = 0; i < nParticles; ++i) {
 
                 //if (!passedTrkSelection(trks, i, collisionType))  continue;
@@ -4060,6 +4128,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_trkPt[iCent][iVPt]->Fill(t_pt, wTrk);
                             h2_deta_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta, wTrk);
                             h2_deta_h1_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta_h1, wTrk);
+
+                            if (fillBootStrap) {
+                                h2_bs_trkPt[iCent][iVPt]->Fill(t_pt, evtIndex_bs_trkPt[iCent][iVPt], wTrk);
+                            }
                         }
                         h2_dphi_vs_trkPt[iCent][iVPt]->Fill(t_pt, dphi, wTrk);
 
@@ -4115,6 +4187,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_dphi_phi0_trk_noDphi[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.phi0)), wTrk);
                             h2_trkPhi_vs_trkEta_noDphi[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
 
+                            if (fillBootStrap) {
+                                h2_bs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, evtIndex_bs_dphi[iCent][iVPt][iTrkPt], wTrk);
+                            }
+
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
 
                             h_trkEta[iCent][iVPt][iTrkPt]->Fill(t_eta, wTrk);
@@ -4165,6 +4241,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 float xi_vt_gen = log(1.0 / z_vt_T_gen);
 
                                 h2_vReco_vs_vGen_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt_gen, xi_vt, wTrk);
+                            }
+
+                            if (fillBootStrap) {
+                                h2_bs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, evtIndex_bs_xivh[iCent][iVPt][iTrkPt], wTrk);
                             }
 
                             if (anaJets) {
