@@ -12,6 +12,7 @@
 #include <TList.h>
 #include <TKey.h>
 #include <TMath.h>
+#include <TRandom3.h>
 
 #include <string>
 #include <vector>
@@ -35,6 +36,7 @@ std::vector<std::string> argOptions;
 
 void setTH1(TH1* h);
 std::string parsePathTH1vPt(std::string histPath);
+TH1* calcTH1BootStrap(TH2D* h2D_bs);
 void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::string outputFile = "vJetTrkCalc.root", std::string writeMode = "RECREATE", std::string operations = "add");
 
 void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::string outputFile, std::string writeMode, std::string operations)
@@ -57,6 +59,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     bool doRATIO = containsElement(operationList, "RATIO");
     bool doDIFF = containsElement(operationList, "DIFF");
     bool doPULL = containsElement(operationList, "PULL");
+    bool doBOOTSTRAP = containsElement(operationList, "BOOTSTRAP");
 
     std::cout << "doSCALEBINW = " << doSCALEBINW << std::endl;
     std::cout << "doBKGSUB = " << doBKGSUB << std::endl;
@@ -67,6 +70,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     std::cout << "doRATIO = " << doRATIO << std::endl;
     std::cout << "doDIFF = " << doDIFF << std::endl;
     std::cout << "doPULL = " << doPULL << std::endl;
+    std::cout << "doBOOTSTRAP = " << doBOOTSTRAP << std::endl;
 
     if (doMERGE && (doSCALEBINW || doBKGSUB || doSBSUB || doSAMESIGNSUB || doNORMV || doRATIO || doDIFF || doPULL)) {
         std::cout << "MERGE cannot be combined with other operations" << std::endl;
@@ -150,6 +154,7 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
     output->cd();
 
     TH1* hTmp = 0;
+    TH1* hTmp2 = 0;
     TH1* hTmpBkg = 0;
     TH1* hOut = 0;
 
@@ -302,19 +307,45 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                 }
                 hTmp->Write("", TObject::kOverwrite);
 
-                hTmp = (TH1*)hTmpBkg->Clone(Form("%s_bkg", tmpNameBkg.c_str()));
+                hTmp2 = (TH1*)hTmpBkg->Clone(Form("%s_bkg", tmpNameBkg.c_str()));
                 hTmpBkg->Delete();
-                hTmp->Scale(1.0 / nV);
+                hTmp2->Scale(1.0 / nV);
                 if (doSCALEBINW) {
-                    hTmp->Scale(1.0, "width");
+                    hTmp2->Scale(1.0, "width");
                 }
-                hTmp->Write("", TObject::kOverwrite);
+                hTmp2->Write("", TObject::kOverwrite);
 
                 hOut->Scale(1.0 / nV);
                 if (doSCALEBINW) {
                     hOut->Scale(1.0, "width");
                 }
                 hOut->Write("",TObject::kOverwrite);
+                //hOut->Delete();
+
+                if (doBOOTSTRAP && isBootStrapHist(tmpNameRaw)
+                                && hIn[0][iRaw]->InheritsFrom("TH2D")) {
+
+                    hTmp->Write("",TObject::kOverwrite);
+                    hTmp = (TH1*)calcTH1BootStrap((TH2D*)hTmp);      // raw
+                    hTmp->Write("",TObject::kOverwrite);
+
+                    hTmp2->Write("",TObject::kOverwrite);
+                    hTmp2 = (TH1*)calcTH1BootStrap((TH2D*)hTmp2);     // bkg
+                    hTmp2->Write("",TObject::kOverwrite);
+
+                    tmpNameRaw = hTmp->GetName();
+                    //hOut = (TH1*)hTmp->Clone(replaceAll(tmpNameRaw, "_raw", "_sig").c_str());
+                    hTmp->SetName(replaceAll(tmpNameRaw, "_raw", "_sig").c_str());
+                    hTmp->Add(hTmp2, -1);
+                    hTmp->Write("",TObject::kOverwrite);
+
+                    std::string tmpNameSig2 = replaceAll(hOut->GetName(), "_sig", "_sig2");
+                    hOut->SetName(tmpNameSig2.c_str());
+                    hOut = (TH1*)calcTH1BootStrap((TH2D*)hOut);     // sig2
+                    //tmpNameSig2 = replaceFirst(hOut->GetName(), "h_err_bs_diff_", "h_");
+                    //hOut->SetName(tmpNameSig2.c_str());
+                    hOut->Write("",TObject::kOverwrite);
+                }
             }
             else if (doSBSUB) {
                 // assume x-axis contains dphi, trkPt, xivh
@@ -661,6 +692,19 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             // if no bkg, then this is sig
             hOut->SetName(Form("%s_sig", hOut->GetName()));
             hOut->Write("",TObject::kOverwrite);
+
+            if (doBOOTSTRAP && isBootStrapHist(tmpName)) {
+
+                hTmp = (TH1*)inputs[0]->Get(tmpName.c_str());
+                if ( !(hTmp->InheritsFrom("TH2D")) ) continue;
+
+                hTmp->Scale(1.0 / nV);
+                if (doSCALEBINW) {
+                    hTmp->Scale(1.0, "width");
+                }
+
+                calcTH1BootStrap((TH2D*)hTmp);
+            }
         }
     }
     else if (doMERGE) {
@@ -803,4 +847,203 @@ std::string parsePathTH1vPt(std::string histPath)
     std::string res = Form("h_vPt%s", strCent.c_str());
 
     return res;
+}
+
+TH1* calcTH1BootStrap(TH2D* h2D_bs)
+{
+
+    std::string  tmpName = h2D_bs->GetName();
+    int nBinsY = h2D_bs->GetYaxis()->GetNbins();
+
+    TH1D* hTmp_bs = 0;
+    TH1* hTmp2_bs = 0;
+    TH1* hOut_bs_ratio = 0;
+    TH1* hOut_bs_diff = 0;
+
+    // find number of events, ie the last bin that is filled
+    hTmp_bs = (TH1D*)(h2D_bs->ProjectionY(Form("%s_projYtmp", tmpName.c_str())));
+    int nEvtsY = 0;
+    for (int iEvtY = nBinsY; iEvtY >= 1; --iEvtY) {
+
+        if (hTmp_bs->GetBinError(iEvtY) > 0)  {
+            nEvtsY = iEvtY;
+            break;
+        }
+    }
+    hTmp_bs->Delete();
+
+    hTmp_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projXtmp", tmpName.c_str())));
+    std::vector<double> binsX = getTH1xBins(hTmp_bs);
+
+    int nBinsX = binsX.size()-1;
+
+    double tmpArr[nBinsX+1];
+    std::copy(binsX.begin(), binsX.end(), tmpArr);
+
+    std::string tmpNameOut;
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", "h2_bs_samples_real_ratio_vs_");
+    hOut_bs_ratio = new TH2D(tmpNameOut.c_str(), Form("%s;%s;", h2D_bs->GetTitle(), h2D_bs->GetXaxis()->GetTitle()),
+            nBinsX, tmpArr, 1000, 0.5, 1.5);
+
+    double yMin_bs_diff = -1;
+    double yMax_bs_diff = -1;
+    std::string tmpLabel = replaceFirst(tmpName, "h2_bs_", "");
+    if (isDphi(tmpLabel)) {
+        yMin_bs_diff = -10;
+        yMax_bs_diff = 10;
+    }
+    else if (isXivh(tmpLabel)) {
+        yMin_bs_diff = -5;
+        yMax_bs_diff = 5;
+    }
+    else if (isTrkPt(tmpLabel)) {
+        yMin_bs_diff = -2.5;
+        yMax_bs_diff = 2.5;
+    }
+
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", "h2_bs_samples_real_diff_vs_");
+    hOut_bs_diff = new TH2D(tmpNameOut.c_str(), Form("%s;%s;", h2D_bs->GetTitle(), h2D_bs->GetXaxis()->GetTitle()),
+            nBinsX, tmpArr, 1000, yMin_bs_diff, yMax_bs_diff);
+
+    int nSamples = 400;
+    TRandom3 randEvt(12345);
+
+    std::cout << "tmpName = " << tmpName << std::endl;
+    std::cout << "nEvtsY = " << nEvtsY << std::endl;
+
+    // there are nEvtsY samples. Each sample has nEvtsY many events.
+    for (int iSample = 0; iSample < nSamples; ++iSample) {
+
+        hTmp2_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projX_iSample_%d", tmpName.c_str(), iSample)));
+        hTmp2_bs->Reset();
+        for (int iEvt = 1; iEvt <= nEvtsY; ++iEvt) {
+
+            int evtNum = randEvt.Uniform(1, nEvtsY+1);
+
+            hTmp2_bs->Add(h2D_bs->ProjectionX("", evtNum, evtNum));
+        }
+
+        for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+
+            double yReal = hTmp_bs->GetBinContent(iBinX);
+            double ySample = hTmp2_bs->GetBinContent(iBinX);
+
+            double binCenter = hTmp_bs->GetBinCenter(iBinX);
+
+            hOut_bs_ratio->Fill(binCenter, ySample / yReal);
+
+            hOut_bs_diff->Fill(binCenter, ySample - yReal);
+        }
+        hTmp2_bs->Delete();
+    }
+
+    hOut_bs_ratio->Write("",TObject::kOverwrite);
+    hOut_bs_diff->Write("",TObject::kOverwrite);
+
+    std::vector<TH2D*> vec_h2D_bs;
+    vec_h2D_bs = {(TH2D*)hOut_bs_ratio, (TH2D*)hOut_bs_diff};
+    int nVec_h2D_bs = vec_h2D_bs.size();
+
+    enum enum_bs {
+        k_bs_ratio,
+        k_bs_diff
+    };
+
+    std::vector<TH1D*> vec_bs_out;
+
+    for (int i_bs = 0; i_bs < nVec_h2D_bs; ++i_bs) {
+
+        h2D_bs = vec_h2D_bs[i_bs];
+
+        std::vector<TH1D*> hProj(3, 0);
+        hProj[0] = (TH1D*)((TH2D*)h2D_bs)->ProjectionX(Form("%s_projX", h2D_bs->GetName()));
+
+        hProj[0]->Write("",TObject::kOverwrite);
+
+        hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
+        hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
+
+        std::string projYTitle = ((TH2D*)h2D_bs)->GetYaxis()->GetTitle();
+        hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
+        hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
+
+        setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2D_bs, (true));
+        setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2D_bs, (true));
+
+        hProj[1]->Write("",TObject::kOverwrite);
+        hProj[2]->Write("",TObject::kOverwrite);
+
+        std::cout << "wrote 1D projections for : " << h2D_bs->GetName() << std::endl;
+
+        // multiply "sample/real" ratios by "real"
+        std::string tmpSubStr = (i_bs == k_bs_ratio) ? "ratio" : "diff";
+
+        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_tot_vs_", tmpSubStr.c_str()));
+        hProj[0]->SetName(tmpNameOut.c_str());
+        hProj[0]->Scale(((double)1.0/nSamples));
+
+        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_mean_vs_", tmpSubStr.c_str()));
+        hProj[1]->SetName(tmpNameOut.c_str());
+
+        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_err_vs_", tmpSubStr.c_str()));
+        hProj[2]->SetName(tmpNameOut.c_str());
+
+        tmpNameOut = replaceFirst(tmpName, "h2_bs_", Form("h_err_bs_%s_", tmpSubStr.c_str()));
+        hTmp_bs->SetName(tmpNameOut.c_str());
+
+        for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+
+            double yReal = hTmp_bs->GetBinContent(iBinX);
+            double tmpY = hProj[0]->GetBinContent(iBinX);
+            double tmpErr = hProj[0]->GetBinError(iBinX);
+
+            if (i_bs == k_bs_ratio) {
+
+                hProj[0]->SetBinContent(iBinX, yReal * tmpY);
+                hProj[0]->SetBinError(iBinX, yReal * tmpErr);
+
+                tmpY = hProj[1]->GetBinContent(iBinX);
+                tmpErr = hProj[1]->GetBinError(iBinX);
+                hProj[1]->SetBinContent(iBinX, yReal * tmpY);
+                hProj[1]->SetBinError(iBinX, yReal * tmpErr);
+
+                tmpY = hProj[2]->GetBinContent(iBinX);
+                tmpErr = hProj[2]->GetBinError(iBinX);
+                hProj[2]->SetBinContent(iBinX, yReal * tmpY);
+                hProj[2]->SetBinError(iBinX, yReal * tmpErr);
+
+                hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
+            }
+            else if (i_bs == k_bs_diff) {
+
+                hProj[0]->SetBinContent(iBinX, yReal + tmpY);
+                hProj[0]->SetBinError(iBinX, tmpErr);
+
+                tmpY = hProj[1]->GetBinContent(iBinX);
+                tmpErr = hProj[1]->GetBinError(iBinX);
+                hProj[1]->SetBinContent(iBinX, yReal + tmpY);
+                hProj[1]->SetBinError(iBinX, tmpErr);
+
+                /*
+                tmpY = hProj[2]->GetBinContent(iBinX);
+                tmpErr = hProj[2]->GetBinError(iBinX);
+                hProj[2]->SetBinContent(iBinX, tmpY);
+                hProj[2]->SetBinError(iBinX, tmpErr);
+                */
+
+                hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
+            }
+        }
+
+        hProj[0]->Write("",TObject::kOverwrite);
+        hProj[1]->Write("",TObject::kOverwrite);
+        hProj[2]->Write("",TObject::kOverwrite);
+
+        std::cout << "wrote bs samples tot,mean,err for : " << h2D_bs->GetName() << std::endl;
+
+        hTmp_bs->Write("",TObject::kOverwrite);
+        vec_bs_out.push_back(hTmp_bs);
+    }
+
+    return vec_bs_out[k_bs_diff];
 }
