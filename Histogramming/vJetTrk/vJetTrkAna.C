@@ -602,6 +602,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mix%s.root", versionResTrkW.c_str());
         if (!isMixTrk) {
             fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
+            //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
             if (vIsZee) {
                 //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zee%s.root", versionResTrkW.c_str());
             }
@@ -920,12 +921,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     // observables for Bootstrapping
     bool fillBootStrap = true;
-    TH2D* h2_bs_dphi[nCents][nVPts][nTrkPts];
+    TH2D* h2_bs_dphi_rebin[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_xivh[nCents][nVPts][nTrkPts];
-    TH2D* h2_bs_trkPt[nCents][nVPts];
-    int evtIndex_bs_dphi[nCents][nVPts][nTrkPts];
+    TH2D* h2_bs_trkPt_rebin[nCents][nVPts];
+    int evtIndex_bs_dphi_rebin[nCents][nVPts][nTrkPts];
     int evtIndex_bs_xivh[nCents][nVPts][nTrkPts];
-    int evtIndex_bs_trkPt[nCents][nVPts];
+    int evtIndex_bs_trkPt_rebin[nCents][nVPts];
     int nEvtsBS = 3000;
 
     // trk ID
@@ -992,6 +993,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     std::vector<double> binsX_trkPt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, 30, 45, 60, 90, xMax_trkPt};
     std::vector<double> binsX_trkPt_rebin2 = {0, 1, 3, 5, 10, 18, 30, 60, 90, xMax_trkPt};
+
+    // rebin dphi
+    double binW_dphi = xMax_phi / nBinsX_dphi;
+    std::vector<double> binsX_dphi_rebin = {0, binW_dphi*3, binW_dphi*6, binW_dphi*9, binW_dphi*12, binW_dphi*14, binW_dphi*16, binW_dphi*18, binW_dphi*19, xMax_phi};
 
     double binW_vPt = xMax_vPt / nBinsX_vPt;
     std::vector<double> binsX_vPt_rebin;
@@ -1953,14 +1958,19 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (fillBootStrap) {
 
-                        std::string name_h2_bs_dphi = Form("h2_bs_dphi_%s", name_h_suffix.c_str());
-                        std::string title_h2_bs_dphi = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_dphi.c_str());
+                        std::string name_h2_bs_dphi_rebin = Form("h2_bs_dphi_rebin_%s", name_h_suffix.c_str());
+                        std::string title_h2_bs_dphi_rebin = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_dphi.c_str());
 
-                        h2_bs_dphi[i][j][k] = 0;
-                        h2_bs_dphi[i][j][k] = new TH2D(name_h2_bs_dphi.c_str(), title_h2_bs_dphi.c_str(),
-                                                       nBinsX_dphi, 0, xMax_phi, nEvtsBS, 0, nEvtsBS);
-                        vec_h2D.push_back(h2_bs_dphi[i][j][k]);
-                        evtIndex_bs_dphi[i][j][k] = -1;
+                        int nBinsX_dphi_rebin = binsX_dphi_rebin.size()-1;
+
+                        double arrTmp_bs_dphi[nBinsX_dphi_rebin+1];
+                        std::copy(binsX_dphi_rebin.begin(), binsX_dphi_rebin.end(), arrTmp_bs_dphi);
+
+                        h2_bs_dphi_rebin[i][j][k] = 0;
+                        h2_bs_dphi_rebin[i][j][k] = new TH2D(name_h2_bs_dphi_rebin.c_str(), title_h2_bs_dphi_rebin.c_str(),
+                                                             nBinsX_dphi_rebin, arrTmp_bs_dphi, nEvtsBS, 0, nEvtsBS);
+                        vec_h2D.push_back(h2_bs_dphi_rebin[i][j][k]);
+                        evtIndex_bs_dphi_rebin[i][j][k] = -1;
 
                         std::string name_h2_bs_xivh = Form("h2_bs_xivh_%s", name_h_suffix.c_str());
                         std::string title_h2_bs_xivh = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_xivh.c_str());
@@ -1972,15 +1982,22 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         evtIndex_bs_xivh[i][j][k] = -1;
 
                         if (k == 0) {
+                            std::string name_h_suffix_trkPt = Form("%s_%s", label_vPt.c_str(), label_cent.c_str());
+                            std::string title_h_suffix_trkPt = Form("%s, %s", text_range_vPt.c_str(), text_range_cent.c_str());
 
-                            std::string name_h2_bs_trkPt = Form("h2_bs_trkPt_%s", name_h_suffix.c_str());
-                            std::string title_h2_bs_trkPt = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_trkPt.c_str());
+                            std::string name_h2_bs_trkPt_rebin = Form("h2_bs_trkPt_rebin_%s", name_h_suffix_trkPt.c_str());
+                            std::string title_h2_bs_trkPt_rebin = Form("%s;%s;event index", title_h_suffix_trkPt.c_str(), text_trkPt.c_str());
 
-                            h2_bs_trkPt[i][j] = 0;
-                            h2_bs_trkPt[i][j] = new TH2D(name_h2_bs_trkPt.c_str(), title_h2_bs_trkPt.c_str(),
-                                                         nBinsX_trkPt, 0, xMax_trkPt, nEvtsBS, 0, nEvtsBS);
-                            vec_h2D.push_back(h2_bs_trkPt[i][j]);
-                            evtIndex_bs_trkPt[i][j] = -1;
+                            int nBinsX_trkPt_rebin = binsX_trkPt_rebin.size()-1;
+
+                            double arrTmp_bs_trkPt[nBinsX_trkPt_rebin+1];
+                            std::copy(binsX_trkPt_rebin.begin(), binsX_trkPt_rebin.end(), arrTmp_bs_trkPt);
+
+                            h2_bs_trkPt_rebin[i][j] = 0;
+                            h2_bs_trkPt_rebin[i][j] = new TH2D(name_h2_bs_trkPt_rebin.c_str(), title_h2_bs_trkPt_rebin.c_str(),
+                                                               nBinsX_trkPt_rebin, arrTmp_bs_trkPt, nEvtsBS, 0, nEvtsBS);
+                            vec_h2D.push_back(h2_bs_trkPt_rebin[i][j]);
+                            evtIndex_bs_trkPt_rebin[i][j] = -1;
                         }
                     }
 
@@ -3917,15 +3934,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         for (int k = 0; k < nTrkPts; ++k) {
 
-                            evtIndex_bs_dphi[i][j][k] += 1;
-                            evtIndex_bs_dphi[i][j][k] = (evtIndex_bs_dphi[i][j][k] % nEvtsBS);
+                            evtIndex_bs_dphi_rebin[i][j][k] += 1;
+                            evtIndex_bs_dphi_rebin[i][j][k] = (evtIndex_bs_dphi_rebin[i][j][k] % nEvtsBS);
 
                             evtIndex_bs_xivh[i][j][k] += 1;
                             evtIndex_bs_xivh[i][j][k] = (evtIndex_bs_xivh[i][j][k] % nEvtsBS);
                         }
 
-                        evtIndex_bs_trkPt[i][j] += 1;
-                        evtIndex_bs_trkPt[i][j] = (evtIndex_bs_trkPt[i][j] % nEvtsBS);
+                        evtIndex_bs_trkPt_rebin[i][j] += 1;
+                        evtIndex_bs_trkPt_rebin[i][j] = (evtIndex_bs_trkPt_rebin[i][j] % nEvtsBS);
                     }
                 }
             }
@@ -4022,6 +4039,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (doResidualMBTrkW) {
 
                             int iResMBTrkWPt = -1;
+                            //if (t_pt < 60) {
                             if (t_pt < 4) {
                                 iResMBTrkWPt = getBinPt4TrkW(t_pt, resMBTrkWPts, nResMBTrkWPt);
                             }
@@ -4130,7 +4148,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_deta_h1_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta_h1, wTrk);
 
                             if (fillBootStrap) {
-                                h2_bs_trkPt[iCent][iVPt]->Fill(t_pt, evtIndex_bs_trkPt[iCent][iVPt], wTrk);
+                                h2_bs_trkPt_rebin[iCent][iVPt]->Fill(t_pt, evtIndex_bs_trkPt_rebin[iCent][iVPt], wTrk);
                             }
                         }
                         h2_dphi_vs_trkPt[iCent][iVPt]->Fill(t_pt, dphi, wTrk);
@@ -4188,7 +4206,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h2_trkPhi_vs_trkEta_noDphi[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
 
                             if (fillBootStrap) {
-                                h2_bs_dphi[iCent][iVPt][iTrkPt]->Fill(dphi, evtIndex_bs_dphi[iCent][iVPt][iTrkPt], wTrk);
+                                h2_bs_dphi_rebin[iCent][iVPt][iTrkPt]->Fill(dphi, evtIndex_bs_dphi_rebin[iCent][iVPt][iTrkPt], wTrk);
                             }
 
                             if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
@@ -4348,7 +4366,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "rebin" << std::endl;
     for (int i = 0; i < nCents; ++i) {
         std::string tmpName;
-        double binW = 0;
         std::vector<double> binsX;
         int nBinsX = 0;
 
@@ -4407,8 +4424,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int k = 0; k < nTrkPts; ++k) {
 
                     // rebin dphi
-                    binW = h_dphi[i][j][k]->GetBinWidth(1);
-                    binsX = {0, binW*3, binW*6, binW*9, binW*12, binW*14, binW*16, binW*18, binW*19, binW*20};
+                    binsX = binsX_dphi_rebin;
                     nBinsX = binsX.size()-1;
 
                     double arr_dphi[nBinsX+1];
