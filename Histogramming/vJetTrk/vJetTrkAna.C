@@ -920,7 +920,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
     // observables for Bootstrapping
-    bool fillBootStrap = true;
+    bool fillBootStrap = (!isMC && isPbPb);
     TH2D* h2_bs_dphi_rebin[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_trkPt_rebin[nCents][nVPts];
