@@ -2475,39 +2475,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool hasTreeHLT = false;
 
-    /*
-     * HLT_HIL2Mu20_v1, HLT_HIL2Mu15_v2, HLT_HIL1DoubleMu10_v1, HLT_HIL1DoubleMu0_v1, HLT_HIL3Mu15_v1, HLT_HIL3Mu20_v1
-     */
-
     std::vector<std::string> triggerBranches;
-    if (isPP17) {
-        if (vIsZmm) {
-            triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1"}; // "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
-        }
-        else if (vIsZee) {
-            triggerBranches = {//"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v8",
-                               //"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v9",
-                               "HLT_HIEle15_WPLoose_Gsf_v1",
-                               "HLT_HIEle20_WPLoose_Gsf_v1",
-                               "HLT_HIEle30_WPLoose_Gsf_v1",
-                               };
-        }
 
-        if (isPP13tev) {
-            triggerBranches = {};
-        }
-    }
-    else if (isPbPb18) {
-        if (vIsZmm) {
-            triggerBranches = {"HLT_HIL3Mu12_v1"}; // "HLT_HIL2Mu12_v1", "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
-        }
-        else if (vIsZee) {
-            triggerBranches = {
-                    //"HLT_HIDoubleEle10Gsf_v1",
-                    "HLT_HIEle20Gsf_v1"
-            };
-        }
-    }
+    triggerBranches = {};
     int nTriggerBranches = triggerBranches.size();
 
     std::vector<std::string> treeNamesHLTObj = getTreeNamesHLTObj(collisionType, vIsZmm);
@@ -3032,17 +3002,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 continue;
             }
 
-            bool passedTrig = (nTriggerBranches == 0);
-            if (hasTreeHLT) {
-                for (int iTrig = 0; iTrig < nTriggerBranches; ++iTrig) {
-                    if (triggerBits[iTrig] > 0) {
-                        passedTrig = true;
-                        break;
-                    }
-                }
-            }
-            passedTrig = (nTreesHLTObj == 0);
-
             double w = 1;
             int hiBin = hiEvt.hiBin;
             int hiBin0 = hiBin;
@@ -3400,6 +3359,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            bool passedTrig = (nTreesHLTObj == 0);
             if (vIsZ) {
 
                 int nL1obj = 0;
