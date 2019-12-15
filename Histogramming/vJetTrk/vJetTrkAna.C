@@ -2485,11 +2485,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             triggerBranches = {"HLT_HIL2Mu12_v1", "HLT_HIL3Mu12_v1"}; // "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
         }
         else if (vIsZee) {
-            triggerBranches = {"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v8",
-                               "HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v9",
+            triggerBranches = {//"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v8",
+                               //"HLT_HIDoublePhoton15_Eta3p1ForPPRef_Mass50to1000_v9",
                                "HLT_HIEle15_WPLoose_Gsf_v1",
+                               "HLT_HIEle20_WPLoose_Gsf_v1",
                                "HLT_HIEle30_WPLoose_Gsf_v1",
-                               }; // "HLT_HIEle20_WPLoose_Gsf_v1"
+                               };
         }
 
         if (isPP13tev) {
@@ -2501,7 +2502,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             triggerBranches = {"HLT_HIL3Mu12_v1"}; // "HLT_HIL2Mu12_v1", "HLT_HIL1DoubleMu0_v1", "HLT_HIL1DoubleMu10_v1"
         }
         else if (vIsZee) {
-            triggerBranches = {"HLT_HIDoubleEle10Gsf_v1", "HLT_HIEle20Gsf_v1"};
+            triggerBranches = {
+                    //"HLT_HIDoubleEle10Gsf_v1",
+                    "HLT_HIEle20Gsf_v1"
+            };
         }
     }
     int nTriggerBranches = triggerBranches.size();
