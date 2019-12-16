@@ -676,19 +676,14 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
             hOut->SetName(Form("%s_sig", hOut->GetName()));
             hOut->Write("",TObject::kOverwrite);
 
-            if (doBOOTSTRAP && isBootStrapHist(tmpName)) {
+            if (doBOOTSTRAP && isBootStrapHist(tmpName)
+                            && hIn[0][i]->InheritsFrom("TH2D")) {
 
-                hTmp = (TH1*)inputs[0]->Get(tmpName.c_str());
-                if ( !(hTmp->InheritsFrom("TH2D")) ) continue;
-
-                hTmp->Scale(1.0 / nV);
-                if (doSCALEBINW) {
-                    hTmp->Scale(1.0, "width");
-                }
-
-                hTmp = (TH1*)calcTH1BootStrap((TH2D*)hTmp);
-                hTmp->Write("",TObject::kOverwrite);
+                hOut = (TH1*)calcTH1BootStrap((TH2D*)hOut);
+                hOut->Write("",TObject::kOverwrite);
             }
+
+            hOut->Delete();
         }
     }
     else if (doMERGE) {
