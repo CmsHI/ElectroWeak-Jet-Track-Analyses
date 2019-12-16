@@ -686,7 +686,8 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                     hTmp->Scale(1.0, "width");
                 }
 
-                calcTH1BootStrap((TH2D*)hTmp);
+                hTmp = (TH1*)calcTH1BootStrap((TH2D*)hTmp);
+                hTmp->Write("",TObject::kOverwrite);
             }
         }
     }
