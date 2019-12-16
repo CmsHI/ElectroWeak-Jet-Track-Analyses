@@ -994,7 +994,9 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
         hTmp_mean_bs->SetBinContent(iBinX, tmpMean);
         hTmp_mean_bs->SetBinError(iBinX, tmpErr);
 
-        hTmp_ratio_err_bs_nom->SetBinContent(iBinX, tmpErr / hTmp_ratio_err_bs_nom->GetBinError(iBinX));
+        double err_nom = hTmp_ratio_err_bs_nom->GetBinError(iBinX);
+        double ratio_err_bs_nom = (tmpErr > 0 && err_nom > 0) ? (tmpErr / err_nom) : 1;
+        hTmp_ratio_err_bs_nom->SetBinContent(iBinX, ratio_err_bs_nom);
         hTmp_ratio_err_bs_nom->SetBinError(iBinX, 0.00001);
     }
 
