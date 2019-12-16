@@ -838,8 +838,9 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     std::string  tmpName = h2D_bs->GetName();
     int nBinsY = h2D_bs->GetYaxis()->GetNbins();
 
-    TH1D* hTmp_bs = 0;
-    TH1D* hTmp_mean_bs = 0;
+    TH1D* hTmp_bs = 0; // bin errors are those obtained from bootstrap samples
+    TH1D* hTmp_mean_bs = 0; // bin contents are average of bootstrap samples, errors are from bootstrap samples
+    TH1D* hTmp_ratio_err_bs_nom = 0;  // bin contents are ratio of bootstrap errors to nominal errors
     TH1* hTmp2_bs = 0;
     TH1* hOut_bs_diff = 0;
 
@@ -858,14 +859,16 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     hTmp_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projX", tmpName.c_str())));
     hTmp_bs->Write("",TObject::kOverwrite);
 
+    std::string tmpNameOut;
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", "h_ratio_err_bs_nom_");
+    hTmp_ratio_err_bs_nom = (TH1D*)hTmp_bs->Clone(tmpNameOut.c_str());
+
     std::vector<double> binsX = getTH1xBins(hTmp_bs);
 
     int nBinsX = binsX.size()-1;
 
     double tmpArr[nBinsX+1];
     std::copy(binsX.begin(), binsX.end(), tmpArr);
-
-    std::string tmpNameOut;
 
     double yMin_bs_diff = -1;
     double yMax_bs_diff = -1;
@@ -990,10 +993,14 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
         double tmpMean = TMath::Mean(nSamplesTmp, tmpArr);
         hTmp_mean_bs->SetBinContent(iBinX, tmpMean);
         hTmp_mean_bs->SetBinError(iBinX, tmpErr);
+
+        hTmp_ratio_err_bs_nom->SetBinContent(iBinX, tmpErr / hTmp_ratio_err_bs_nom->GetBinError(iBinX));
+        hTmp_ratio_err_bs_nom->SetBinError(iBinX, 0.00001);
     }
 
     hTmp_bs->Write("",TObject::kOverwrite);
     hTmp_mean_bs->Write("",TObject::kOverwrite);
+    hTmp_ratio_err_bs_nom->Write("",TObject::kOverwrite);
 
     return hTmp_bs;
 }
