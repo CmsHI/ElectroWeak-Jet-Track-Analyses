@@ -320,32 +320,15 @@ void vJetTrkCalc(std::string inputFileList, std::string inputObjList, std::strin
                     hOut->Scale(1.0, "width");
                 }
                 hOut->Write("",TObject::kOverwrite);
-                //hOut->Delete();
 
                 if (doBOOTSTRAP && isBootStrapHist(tmpNameRaw)
                                 && hIn[0][iRaw]->InheritsFrom("TH2D")) {
 
-                    hTmp->Write("",TObject::kOverwrite);
-                    hTmp = (TH1*)calcTH1BootStrap((TH2D*)hTmp);      // raw
-                    hTmp->Write("",TObject::kOverwrite);
-
-                    hTmp2->Write("",TObject::kOverwrite);
-                    hTmp2 = (TH1*)calcTH1BootStrap((TH2D*)hTmp2);     // bkg
-                    hTmp2->Write("",TObject::kOverwrite);
-
-                    tmpNameRaw = hTmp->GetName();
-                    //hOut = (TH1*)hTmp->Clone(replaceAll(tmpNameRaw, "_raw", "_sig").c_str());
-                    hTmp->SetName(replaceAll(tmpNameRaw, "_raw", "_sig").c_str());
-                    hTmp->Add(hTmp2, -1);
-                    hTmp->Write("",TObject::kOverwrite);
-
-                    std::string tmpNameSig2 = replaceAll(hOut->GetName(), "_sig", "_sig2");
-                    hOut->SetName(tmpNameSig2.c_str());
-                    hOut = (TH1*)calcTH1BootStrap((TH2D*)hOut);     // sig2
-                    //tmpNameSig2 = replaceFirst(hOut->GetName(), "h_err_bs_diff_", "h_");
-                    //hOut->SetName(tmpNameSig2.c_str());
+                    hOut = (TH1*)calcTH1BootStrap((TH2D*)hOut);
                     hOut->Write("",TObject::kOverwrite);
                 }
+
+                hOut->Delete();
             }
             else if (doSBSUB) {
                 // assume x-axis contains dphi, trkPt, xivh
