@@ -947,6 +947,8 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
     hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
 
+    hProj[0]->Delete();
+
     std::string projYTitle = ((TH2D*)h2D_bs)->GetYaxis()->GetTitle();
     hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
     hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
@@ -956,10 +958,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
     // multiply "sample/real" ratios by "real"
     std::string tmpSubStr = "diff";
-
-    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_tot_vs_", tmpSubStr.c_str()));
-    hProj[0]->SetName(tmpNameOut.c_str());
-    hProj[0]->Scale(((double)1.0/nSamples));
 
     tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_mean_vs_", tmpSubStr.c_str()));
     hProj[1]->SetName(tmpNameOut.c_str());
@@ -973,21 +971,15 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
 
         double yReal = hTmp_bs->GetBinContent(iBinX);
-        double tmpY = hProj[0]->GetBinContent(iBinX);
-        double tmpErr = hProj[0]->GetBinError(iBinX);
 
-        hProj[0]->SetBinContent(iBinX, yReal + tmpY);
-        hProj[0]->SetBinError(iBinX, tmpErr);
-
-        tmpY = hProj[1]->GetBinContent(iBinX);
-        tmpErr = hProj[1]->GetBinError(iBinX);
+        double tmpY = hProj[1]->GetBinContent(iBinX);
+        double tmpErr = hProj[1]->GetBinError(iBinX);
         hProj[1]->SetBinContent(iBinX, yReal + tmpY);
         hProj[1]->SetBinError(iBinX, tmpErr);
 
         hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
     }
 
-    hProj[0]->Write("",TObject::kOverwrite);
     hProj[1]->Write("",TObject::kOverwrite);
     hProj[2]->Write("",TObject::kOverwrite);
 
