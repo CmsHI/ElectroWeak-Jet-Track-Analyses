@@ -912,6 +912,8 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     std::cout << "nEvtsY = " << nEvtsY << std::endl;
 
     // there are nEvtsY samples. Each sample has nEvtsY many events.
+
+    std::vector<double> f_bs[nBinsX];
     for (int iSample = 0; iSample < nSamples; ++iSample) {
 
         hTmp2_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projX_iSample_%d", tmpName.c_str(), iSample)));
@@ -933,6 +935,8 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
             hOut_bs_ratio->Fill(binCenter, ySample / yReal);
 
             hOut_bs_diff->Fill(binCenter, ySample - yReal);
+
+            f_bs[iBinX-1].push_back(ySample);
         }
         hTmp2_bs->Delete();
     }
@@ -1045,5 +1049,22 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
         vec_bs_out.push_back(hTmp_bs);
     }
 
-    return vec_bs_out[k_bs_diff];
+    tmpNameOut = replaceFirst(tmpName, "h2_bs_", "h_err_bs_");
+    hTmp_bs->SetName(tmpNameOut.c_str());
+
+    for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+
+        int nSamplesTmp = f_bs[iBinX-1].size();
+
+        double tmpArr[nSamplesTmp];
+        std::copy(f_bs[iBinX-1].begin(), f_bs[iBinX-1].end(), tmpArr);
+
+        double tmpErr = TMath::StdDev(nSamplesTmp, tmpArr);
+        hTmp_bs->SetBinError(iBinX, tmpErr);
+    }
+
+    hTmp_bs->Write("",TObject::kOverwrite);
+
+    //return vec_bs_out[k_bs_diff];
+    return hTmp_bs;
 }
