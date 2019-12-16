@@ -857,7 +857,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
     TH1D* hTmp_bs = 0;
     TH1* hTmp2_bs = 0;
-    TH1* hOut_bs_ratio = 0;
     TH1* hOut_bs_diff = 0;
 
     // find number of events, ie the last bin that is filled
@@ -881,9 +880,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     std::copy(binsX.begin(), binsX.end(), tmpArr);
 
     std::string tmpNameOut;
-    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", "h2_bs_samples_real_ratio_vs_");
-    hOut_bs_ratio = new TH2D(tmpNameOut.c_str(), Form("%s;%s;", h2D_bs->GetTitle(), h2D_bs->GetXaxis()->GetTitle()),
-            nBinsX, tmpArr, 1000, 0.5, 1.5);
 
     double yMin_bs_diff = -1;
     double yMax_bs_diff = -1;
@@ -932,8 +928,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
             double binCenter = hTmp_bs->GetBinCenter(iBinX);
 
-            hOut_bs_ratio->Fill(binCenter, ySample / yReal);
-
             hOut_bs_diff->Fill(binCenter, ySample - yReal);
 
             f_bs[iBinX-1].push_back(ySample);
@@ -941,7 +935,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
         hTmp2_bs->Delete();
     }
 
-    hOut_bs_ratio->Write("",TObject::kOverwrite);
     hOut_bs_diff->Write("",TObject::kOverwrite);
 
     std::vector<TH1D*> vec_bs_out;
