@@ -855,7 +855,9 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     }
     hTmp_bs->Delete();
 
-    hTmp_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projXtmp", tmpName.c_str())));
+    hTmp_bs = (TH1D*)(h2D_bs->ProjectionX(Form("%s_projX", tmpName.c_str())));
+    hTmp_bs->Write("",TObject::kOverwrite);
+
     std::vector<double> binsX = getTH1xBins(hTmp_bs);
 
     int nBinsX = binsX.size()-1;
