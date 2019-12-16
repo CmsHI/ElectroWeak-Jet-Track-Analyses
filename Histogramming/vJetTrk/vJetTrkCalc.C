@@ -944,110 +944,71 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     hOut_bs_ratio->Write("",TObject::kOverwrite);
     hOut_bs_diff->Write("",TObject::kOverwrite);
 
-    std::vector<TH2D*> vec_h2D_bs;
-    vec_h2D_bs = {(TH2D*)hOut_bs_ratio, (TH2D*)hOut_bs_diff};
-    int nVec_h2D_bs = vec_h2D_bs.size();
-
-    enum enum_bs {
-        k_bs_ratio,
-        k_bs_diff
-    };
-
     std::vector<TH1D*> vec_bs_out;
 
-    for (int i_bs = 0; i_bs < nVec_h2D_bs; ++i_bs) {
+    h2D_bs = (TH2D*)hOut_bs_diff;
 
-        h2D_bs = vec_h2D_bs[i_bs];
+    std::vector<TH1D*> hProj(3, 0);
+    hProj[0] = (TH1D*)((TH2D*)h2D_bs)->ProjectionX(Form("%s_projX", h2D_bs->GetName()));
 
-        std::vector<TH1D*> hProj(3, 0);
-        hProj[0] = (TH1D*)((TH2D*)h2D_bs)->ProjectionX(Form("%s_projX", h2D_bs->GetName()));
+    hProj[0]->Write("",TObject::kOverwrite);
 
-        hProj[0]->Write("",TObject::kOverwrite);
+    hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
+    hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
 
-        hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
-        hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
+    std::string projYTitle = ((TH2D*)h2D_bs)->GetYaxis()->GetTitle();
+    hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
+    hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
 
-        std::string projYTitle = ((TH2D*)h2D_bs)->GetYaxis()->GetTitle();
-        hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
-        hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
+    setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2D_bs, (true));
+    setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2D_bs, (true));
 
-        setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2D_bs, (true));
-        setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2D_bs, (true));
+    hProj[1]->Write("",TObject::kOverwrite);
+    hProj[2]->Write("",TObject::kOverwrite);
 
-        hProj[1]->Write("",TObject::kOverwrite);
-        hProj[2]->Write("",TObject::kOverwrite);
+    std::cout << "wrote 1D projections for : " << h2D_bs->GetName() << std::endl;
 
-        std::cout << "wrote 1D projections for : " << h2D_bs->GetName() << std::endl;
+    // multiply "sample/real" ratios by "real"
+    std::string tmpSubStr = "diff";
 
-        // multiply "sample/real" ratios by "real"
-        std::string tmpSubStr = (i_bs == k_bs_ratio) ? "ratio" : "diff";
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_tot_vs_", tmpSubStr.c_str()));
+    hProj[0]->SetName(tmpNameOut.c_str());
+    hProj[0]->Scale(((double)1.0/nSamples));
 
-        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_tot_vs_", tmpSubStr.c_str()));
-        hProj[0]->SetName(tmpNameOut.c_str());
-        hProj[0]->Scale(((double)1.0/nSamples));
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_mean_vs_", tmpSubStr.c_str()));
+    hProj[1]->SetName(tmpNameOut.c_str());
 
-        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_mean_vs_", tmpSubStr.c_str()));
-        hProj[1]->SetName(tmpNameOut.c_str());
+    tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_err_vs_", tmpSubStr.c_str()));
+    hProj[2]->SetName(tmpNameOut.c_str());
 
-        tmpNameOut = replaceFirst(tmpName.c_str(), "h2_bs_", Form("h_bs_%s_samples_err_vs_", tmpSubStr.c_str()));
-        hProj[2]->SetName(tmpNameOut.c_str());
+    tmpNameOut = replaceFirst(tmpName, "h2_bs_", Form("h_err_bs_%s_", tmpSubStr.c_str()));
+    hTmp_bs->SetName(tmpNameOut.c_str());
 
-        tmpNameOut = replaceFirst(tmpName, "h2_bs_", Form("h_err_bs_%s_", tmpSubStr.c_str()));
-        hTmp_bs->SetName(tmpNameOut.c_str());
+    for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
 
-        for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
+        double yReal = hTmp_bs->GetBinContent(iBinX);
+        double tmpY = hProj[0]->GetBinContent(iBinX);
+        double tmpErr = hProj[0]->GetBinError(iBinX);
 
-            double yReal = hTmp_bs->GetBinContent(iBinX);
-            double tmpY = hProj[0]->GetBinContent(iBinX);
-            double tmpErr = hProj[0]->GetBinError(iBinX);
+        hProj[0]->SetBinContent(iBinX, yReal + tmpY);
+        hProj[0]->SetBinError(iBinX, tmpErr);
 
-            if (i_bs == k_bs_ratio) {
+        tmpY = hProj[1]->GetBinContent(iBinX);
+        tmpErr = hProj[1]->GetBinError(iBinX);
+        hProj[1]->SetBinContent(iBinX, yReal + tmpY);
+        hProj[1]->SetBinError(iBinX, tmpErr);
 
-                hProj[0]->SetBinContent(iBinX, yReal * tmpY);
-                hProj[0]->SetBinError(iBinX, yReal * tmpErr);
-
-                tmpY = hProj[1]->GetBinContent(iBinX);
-                tmpErr = hProj[1]->GetBinError(iBinX);
-                hProj[1]->SetBinContent(iBinX, yReal * tmpY);
-                hProj[1]->SetBinError(iBinX, yReal * tmpErr);
-
-                tmpY = hProj[2]->GetBinContent(iBinX);
-                tmpErr = hProj[2]->GetBinError(iBinX);
-                hProj[2]->SetBinContent(iBinX, yReal * tmpY);
-                hProj[2]->SetBinError(iBinX, yReal * tmpErr);
-
-                hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
-            }
-            else if (i_bs == k_bs_diff) {
-
-                hProj[0]->SetBinContent(iBinX, yReal + tmpY);
-                hProj[0]->SetBinError(iBinX, tmpErr);
-
-                tmpY = hProj[1]->GetBinContent(iBinX);
-                tmpErr = hProj[1]->GetBinError(iBinX);
-                hProj[1]->SetBinContent(iBinX, yReal + tmpY);
-                hProj[1]->SetBinError(iBinX, tmpErr);
-
-                /*
-                tmpY = hProj[2]->GetBinContent(iBinX);
-                tmpErr = hProj[2]->GetBinError(iBinX);
-                hProj[2]->SetBinContent(iBinX, tmpY);
-                hProj[2]->SetBinError(iBinX, tmpErr);
-                */
-
-                hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
-            }
-        }
-
-        hProj[0]->Write("",TObject::kOverwrite);
-        hProj[1]->Write("",TObject::kOverwrite);
-        hProj[2]->Write("",TObject::kOverwrite);
-
-        std::cout << "wrote bs samples tot,mean,err for : " << h2D_bs->GetName() << std::endl;
-
-        hTmp_bs->Write("",TObject::kOverwrite);
-        vec_bs_out.push_back(hTmp_bs);
+        hTmp_bs->SetBinError(iBinX, hProj[2]->GetBinContent(iBinX));
     }
+
+    hProj[0]->Write("",TObject::kOverwrite);
+    hProj[1]->Write("",TObject::kOverwrite);
+    hProj[2]->Write("",TObject::kOverwrite);
+
+    std::cout << "wrote bs samples tot,mean,err for : " << h2D_bs->GetName() << std::endl;
+
+    hTmp_bs->Write("",TObject::kOverwrite);
+    vec_bs_out.push_back(hTmp_bs);
 
     tmpNameOut = replaceFirst(tmpName, "h2_bs_", "h_err_bs_");
     hTmp_bs->SetName(tmpNameOut.c_str());
