@@ -855,6 +855,7 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     int nBinsY = h2D_bs->GetYaxis()->GetNbins();
 
     TH1D* hTmp_bs = 0;
+    TH1D* hTmp_mean_bs = 0;
     TH1* hTmp2_bs = 0;
     TH1* hOut_bs_diff = 0;
 
@@ -987,6 +988,9 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     tmpNameOut = replaceFirst(tmpName, "h2_bs_", "h_err_bs_");
     hTmp_bs->SetName(tmpNameOut.c_str());
 
+    tmpNameOut = replaceFirst(tmpName, "h2_bs_", "h_mean_bs_");
+    hTmp_mean_bs = (TH1D*)hTmp_bs->Clone(tmpNameOut.c_str());
+
     for (int iBinX = 1; iBinX <= nBinsX; ++iBinX) {
 
         int nSamplesTmp = f_bs[iBinX-1].size();
@@ -996,9 +1000,14 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
         double tmpErr = TMath::StdDev(nSamplesTmp, tmpArr);
         hTmp_bs->SetBinError(iBinX, tmpErr);
+
+        double tmpMean = TMath::Mean(nSamplesTmp, tmpArr);
+        hTmp_mean_bs->SetBinContent(iBinX, tmpMean);
+        hTmp_mean_bs->SetBinError(iBinX, tmpErr);
     }
 
     hTmp_bs->Write("",TObject::kOverwrite);
+    hTmp_mean_bs->Write("",TObject::kOverwrite);
 
     return hTmp_bs;
 }
