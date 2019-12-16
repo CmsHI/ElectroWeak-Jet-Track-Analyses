@@ -851,7 +851,6 @@ std::string parsePathTH1vPt(std::string histPath)
 
 TH1* calcTH1BootStrap(TH2D* h2D_bs)
 {
-
     std::string  tmpName = h2D_bs->GetName();
     int nBinsY = h2D_bs->GetYaxis()->GetNbins();
 
@@ -937,24 +936,22 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
     hOut_bs_diff->Write("",TObject::kOverwrite);
 
-    std::vector<TH1D*> vec_bs_out;
-
-    h2D_bs = (TH2D*)hOut_bs_diff;
+    hTmp2_bs = (TH2D*)hOut_bs_diff;
 
     std::vector<TH1D*> hProj(3, 0);
-    hProj[0] = (TH1D*)((TH2D*)h2D_bs)->ProjectionX(Form("%s_projX", h2D_bs->GetName()));
+    hProj[0] = (TH1D*)((TH2D*)hTmp2_bs)->ProjectionX(Form("%s_projX", hTmp2_bs->GetName()));
 
     hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
     hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
 
     hProj[0]->Delete();
 
-    std::string projYTitle = ((TH2D*)h2D_bs)->GetYaxis()->GetTitle();
+    std::string projYTitle = ((TH2D*)hTmp2_bs)->GetYaxis()->GetTitle();
     hProj[1]->SetYTitle(Form("< %s >", projYTitle.c_str()));
     hProj[2]->SetYTitle(Form("#sigma( %s )", projYTitle.c_str()));
 
-    setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2D_bs, (true));
-    setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2D_bs, (true));
+    setBinsFromTH2sliceMean(hProj[1], (TH2D*)hTmp2_bs, (true));
+    setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)hTmp2_bs, (true));
 
     // multiply "sample/real" ratios by "real"
     std::string tmpSubStr = "diff";
@@ -983,10 +980,9 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     hProj[1]->Write("",TObject::kOverwrite);
     hProj[2]->Write("",TObject::kOverwrite);
 
-    std::cout << "wrote bs samples tot,mean,err for : " << h2D_bs->GetName() << std::endl;
+    std::cout << "wrote bs samples tot,mean,err for : " << hTmp2_bs->GetName() << std::endl;
 
     hTmp_bs->Write("",TObject::kOverwrite);
-    vec_bs_out.push_back(hTmp_bs);
 
     tmpNameOut = replaceFirst(tmpName, "h2_bs_", "h_err_bs_");
     hTmp_bs->SetName(tmpNameOut.c_str());
@@ -1004,6 +1000,5 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
     hTmp_bs->Write("",TObject::kOverwrite);
 
-    //return vec_bs_out[k_bs_diff];
     return hTmp_bs;
 }
