@@ -944,8 +944,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
     std::vector<TH1D*> hProj(3, 0);
     hProj[0] = (TH1D*)((TH2D*)h2D_bs)->ProjectionX(Form("%s_projX", h2D_bs->GetName()));
 
-    hProj[0]->Write("",TObject::kOverwrite);
-
     hProj[1] = (TH1D*)hProj[0]->Clone(Form("%s_mean", hProj[0]->GetName()));
     hProj[2] = (TH1D*)hProj[0]->Clone(Form("%s_stddev", hProj[0]->GetName()));
 
@@ -955,11 +953,6 @@ TH1* calcTH1BootStrap(TH2D* h2D_bs)
 
     setBinsFromTH2sliceMean(hProj[1], (TH2D*)h2D_bs, (true));
     setBinsFromTH2sliceStdDev(hProj[2], (TH2D*)h2D_bs, (true));
-
-    hProj[1]->Write("",TObject::kOverwrite);
-    hProj[2]->Write("",TObject::kOverwrite);
-
-    std::cout << "wrote 1D projections for : " << h2D_bs->GetName() << std::endl;
 
     // multiply "sample/real" ratios by "real"
     std::string tmpSubStr = "diff";
