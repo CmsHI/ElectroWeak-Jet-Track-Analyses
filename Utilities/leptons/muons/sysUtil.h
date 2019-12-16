@@ -16,18 +16,18 @@ namespace MUONTNP {
 
 enum UNC_LABELS {
 
-   k_pbpb18_stat_id_p = 11,
-   k_pbpb18_stat_id_m = 12,
-   k_pbpb18_stat_trk_p = 21,
-   k_pbpb18_stat_trk_m = 22,
-   k_pbpb18_stat_trig_p = 31,
-   k_pbpb18_stat_trig_m = 32,
-   k_pbpb18_sys_id_p = 511,
-   k_pbpb18_sys_id_m = 512,
-   k_pbpb18_sys_trk_p = 521,
-   k_pbpb18_sys_trk_m = 522,
-   k_pbpb18_sys_trig_p = 531,
-   k_pbpb18_sys_trig_m = 532,
+   k_pbpb18_stat_id_p = 1811,
+   k_pbpb18_stat_id_m = 1812,
+   k_pbpb18_stat_trk_p = 1821,
+   k_pbpb18_stat_trk_m = 1822,
+   k_pbpb18_stat_trig_p = 1831,
+   k_pbpb18_stat_trig_m = 1832,
+   k_pbpb18_sys_id_p = 18511,
+   k_pbpb18_sys_id_m = 18512,
+   k_pbpb18_sys_trk_p = 18521,
+   k_pbpb18_sys_trk_m = 18522,
+   k_pbpb18_sys_trig_p = 18531,
+   k_pbpb18_sys_trig_m = 18532,
 };
 }
 
