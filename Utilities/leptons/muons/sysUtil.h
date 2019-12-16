@@ -10,11 +10,15 @@
 #include <vector>
 #include <iostream>
 
+#include "2017pp/weight.h"
 #include "2018PbPb/tnp_weight.h"
 
 namespace MUONTNP {
 
 enum UNC_LABELS {
+
+   k_pp17_stat_id_p = 1711,
+   k_pp17_stat_id_m = 1712,
 
    k_pbpb18_stat_id_p = 1811,
    k_pbpb18_stat_id_m = 1812,
@@ -41,6 +45,9 @@ public :
     static double get_unc(int unc_index, double pt, double eta, int cent);
     static double get_weight_nom_pbpb18(double pt, double eta, int cent);
 
+    static double get_unc_pp17_stat_id_p(double pt, double eta);
+    static double get_unc_pp17_stat_id_m(double pt, double eta);
+
     static double get_unc_pbpb18_stat_id_p(double pt, double eta, int cent);
     static double get_unc_pbpb18_stat_id_m(double pt, double eta, int cent);
     static double get_unc_pbpb18_stat_glbtrk_p(double pt, double eta, int cent);
@@ -59,7 +66,13 @@ public :
 double muonTnP::get_unc(int unc_index, double pt, double eta, int cent)
 {
     if (unc_index > 0) {
-        if (unc_index == MUONTNP::k_pbpb18_stat_id_p) {
+        if (unc_index == MUONTNP::k_pp17_stat_id_p) {
+            return get_unc_pp17_stat_id_p(pt, eta);
+        }
+        else if (unc_index == MUONTNP::k_pp17_stat_id_m) {
+            return get_unc_pp17_stat_id_m(pt, eta);
+        }
+        else if (unc_index == MUONTNP::k_pbpb18_stat_id_p) {
             return get_unc_pbpb18_stat_id_p(pt, eta, cent);
         }
         else if (unc_index == MUONTNP::k_pbpb18_stat_id_m) {
@@ -98,6 +111,16 @@ double muonTnP::get_unc(int unc_index, double pt, double eta, int cent)
     }
 
     return 1;
+}
+
+double muonTnP::get_unc_pp17_stat_id_p(double pt, double eta)
+{
+    return weight_sf_unc_id_pp2017(pt, eta);
+}
+
+double muonTnP::get_unc_pp17_stat_id_m(double pt, double eta)
+{
+    return 1./(weight_sf_unc_id_pp2017(pt, eta));
 }
 
 double muonTnP::get_weight_nom_pbpb18(double pt, double eta, int cent)
