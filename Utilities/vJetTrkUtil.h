@@ -1202,6 +1202,12 @@ int parseLepSysIndex(std::string sys_label)
         if (sys_label.find("pp17_tot_id") != std::string::npos) {
             return ELESYS::k_unc_pp17_tot_id;
         }
+        else if (sys_label.find("pp17_les_p") != std::string::npos) {
+            return ELESYS::k_unc_pp17_les_p;
+        }
+        else if (sys_label.find("pp17_les_m") != std::string::npos) {
+            return ELESYS::k_unc_pp17_les_m;
+        }
         else if (sys_label.find("pbpb18_tot_reco") != std::string::npos) {
             return ELESYS::k_unc_pbpb18_tot_reco;
         }
