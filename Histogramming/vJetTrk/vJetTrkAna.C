@@ -603,9 +603,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::string fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mix%s.root", versionResTrkW.c_str());
         if (!isMixTrk) {
             fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
-            //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
-            if (vIsZee) {
-                //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zee%s.root", versionResTrkW.c_str());
+            if (outputFile.find("res_zmm") != std::string::npos) {
+                fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
+            }
+            else if (outputFile.find("res_mg5") != std::string::npos) {
+                fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
+            }
+            else if (outputFile.find("res_zee") != std::string::npos) {
+                fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zee%s.root", versionResTrkW.c_str());
             }
         }
 
@@ -4012,8 +4017,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (doResidualMBTrkW) {
 
                             int iResMBTrkWPt = -1;
-                            //if (t_pt < 60) {
-                            if (t_pt < 4) {
+                            if ((t_pt < 4) || (hiBin0Tmp < 100 && t_pt < 60)) {
                                 iResMBTrkWPt = getBinPt4TrkW(t_pt, resMBTrkWPts, nResMBTrkWPt);
                             }
 
