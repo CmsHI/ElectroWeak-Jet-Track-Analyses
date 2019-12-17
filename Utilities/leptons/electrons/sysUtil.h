@@ -17,6 +17,9 @@ enum UNC_LABELS {
    k_unc_pp17_tot_id = 720,
    k_unc_pp17_les_p = 731,
    k_unc_pp17_les_m = 732,
+
+   k_unc_pbpb18_les_p = 831,
+   k_unc_pbpb18_les_m = 832,
    k_unc_pbpb18_tot_reco = 810,
    k_unc_pbpb18_stat_reco = 811,
    k_unc_pbpb18_sys_reco = 812,
@@ -38,6 +41,10 @@ public :
     static double get_unc_pp17_les_p(double pt, double eta);
     static double get_unc_pp17_les_m(double pt, double eta);
     static double get_unc_pp17_scale_pt(double pt, double eta);
+
+    static double get_unc_pbpb18_les_p(double pt, double eta, int cent);
+    static double get_unc_pbpb18_les_m(double pt, double eta, int cent);
+    static double get_unc_pbpb18_scale_pt(double pt, double eta, int cent);
 
     static double get_unc_pp17_tot_id(double pt, double eta);
     static double get_unc_pp17_stat_id(double pt, double eta);
@@ -71,6 +78,12 @@ double eleSys::get_unc(int unc_index, double pt, double eta, int cent)
         }
         else if (unc_index == ELESYS::k_unc_pp17_les_m) {
             return get_unc_pp17_les_m(pt, eta);
+        }
+        else if (unc_index == ELESYS::k_unc_pbpb18_les_p) {
+            return get_unc_pbpb18_les_p(pt, eta, cent);
+        }
+        else if (unc_index == ELESYS::k_unc_pbpb18_les_m) {
+            return get_unc_pbpb18_les_m(pt, eta, cent);
         }
         else if (unc_index == ELESYS::k_unc_pbpb18_tot_reco) {
             return get_unc_pbpb18_tot_reco(pt, eta, cent);
@@ -111,6 +124,36 @@ double eleSys::get_unc_pp17_scale_pt(double pt, double eta)
     else if (std::fabs(eta) < 1.4)  return 1.0032187978;
     else if (std::fabs(eta) < 2.0)  return 1.0040023043;
     else if (std::fabs(eta) < 2.5)  return 1.0042536181;
+
+    if (pt < 0) return 1;
+
+    return 1;
+}
+
+double eleSys::get_unc_pbpb18_les_p(double pt, double eta, int cent)
+{
+    return get_unc_pbpb18_scale_pt(pt, eta, cent);
+}
+
+double eleSys::get_unc_pbpb18_les_m(double pt, double eta, int cent)
+{
+    return 1.0/(get_unc_pbpb18_scale_pt(pt, eta, cent));
+}
+
+double eleSys::get_unc_pbpb18_scale_pt(double pt, double eta, int cent)
+{
+    if (std::fabs(eta) < 1.4442) {
+
+        if (cent < 10) return 1.002;
+        else if (cent < 30) return 1.003;
+        else if (cent < 100) return 1.004;
+    }
+    else if (std::fabs(eta) > 1.566) {
+
+        if (cent < 10) return 1.013;
+        else if (cent < 30) return 1.011;
+        else if (cent < 100) return 1.007;
+    }
 
     if (pt < 0) return 1;
 
