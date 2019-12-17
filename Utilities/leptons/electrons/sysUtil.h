@@ -114,10 +114,22 @@ double eleSys::get_unc_pp17_stat_id_loose(double pt, double eta)
     }
 
     if (std::fabs(eta) < 1.4442) {
-        x = 1.0;
+
+        if (pt > 60) {
+            x = 1.0;
+        }
+        else if (pt > 40) {
+            x = 0.5;
+        }
     }
     else if (std::fabs(eta) > 1.566) {
-        x = 3.0;
+
+        if (pt > 60) {
+            x = 3.0;
+        }
+        else if (pt > 20) {
+            x = 1.5;
+        }
     }
 
     return 1 + (x/100);
