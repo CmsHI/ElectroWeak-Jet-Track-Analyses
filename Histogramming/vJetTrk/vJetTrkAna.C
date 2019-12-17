@@ -341,7 +341,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool anavTrk_zh = false;
 
     bool do_sf_weight_nom = (toLowerCase(sysMode).find("sf_weight_nom") != std::string::npos);
-    bool do_pp17_les = (toLowerCase(sysMode).find("pp17_les") != std::string::npos);
+    bool do_sys_les = (toLowerCase(sysMode).find("_les") != std::string::npos);
     int lep_sys_index = parseLepSysIndex(sysMode);
 
     bool doWeightsV = (applyWeightsV > 0);
@@ -3192,7 +3192,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int i = 0; i < nL; ++i) {
 
                     float l1pt = (*lPt)[i];
-                    if (vIsZmm && isRecoV && !do_pp17_les) {
+                    if (vIsZmm && isRecoV && !do_sys_les) {
 
                         if (isMC) {
                             double l1ptgen = l1pt;
@@ -3217,9 +3217,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             else {
                                 l1pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[i]);
                             }
-                            if (do_pp17_les) {
-                                l1pt *= getLepSysVar(vIsZmm, lep_sys_index, l1pt, lAbsEta, cent0);
-                            }
                         }
                         else if (isPbPb18) {
                             l1pt *= ggHi.getElePtCorrFactor(i, collisionType, hiBin0);
@@ -3227,6 +3224,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 double smearWidth = ggHi.getElePtSmearFactor(i, collisionType, hiBin0);
                                 l1pt *= randelePt.Gaus(1, smearWidth);
                             }
+                        }
+
+                        if (do_sys_les) {
+                            l1pt *= getLepSysVar(vIsZmm, lep_sys_index, l1pt, (*lEta)[i], cent0);
                         }
                     }
                     l1pt *= lPtScale;
@@ -3259,7 +3260,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     for (int j = i+1; j < nL; ++j) {
 
                         float l2pt = (*lPt)[j];
-                        if (vIsZmm && isRecoV && !do_pp17_les) {
+                        if (vIsZmm && isRecoV && !do_sys_les) {
 
                             if (isMC) {
                                 double l2ptgen = l2pt;
@@ -3284,9 +3285,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 else {
                                     l2pt *= ec.scaleCorr(306936, eleSCEt, lAbsEta, (*ggHi.eleR9)[j]);
                                 }
-                                if (do_pp17_les) {
-                                    l2pt *= getLepSysVar(vIsZmm, lep_sys_index, l2pt, lAbsEta, cent0);
-                                }
                             }
                             else if (isPbPb18) {
                                 l2pt *= ggHi.getElePtCorrFactor(j, collisionType, hiBin0);
@@ -3294,6 +3292,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                     double smearWidth = ggHi.getElePtSmearFactor(j, collisionType, hiBin0);
                                     l2pt *= randelePt.Gaus(1, smearWidth);
                                 }
+                            }
+
+                            if (do_sys_les) {
+                                l2pt *= getLepSysVar(vIsZmm, lep_sys_index, l2pt, (*lEta)[j], cent0);
                             }
                         }
                         l2pt *= lPtScale;
