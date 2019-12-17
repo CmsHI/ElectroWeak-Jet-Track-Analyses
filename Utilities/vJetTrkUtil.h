@@ -1154,40 +1154,46 @@ int parseLepSysIndex(std::string sys_label)
 
     if (sys_label.find("zmm") != std::string::npos) {
 
-        if (sys_label.find("stat_lep_id_p") != std::string::npos) {
+        if (sys_label.find("pp17_stat_lep_id_p") != std::string::npos) {
+            return MUONTNP::k_pp17_stat_id_p;
+        }
+        else if (sys_label.find("pp17_stat_lep_id_m") != std::string::npos) {
+            return MUONTNP::k_pp17_stat_id_m;
+        }
+        else if (sys_label.find("pbpb18_stat_lep_id_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_id_p;
         }
-        else if (sys_label.find("stat_lep_id_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_stat_lep_id_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_id_m;
         }
-        else if (sys_label.find("stat_lep_trk_p") != std::string::npos) {
+        else if (sys_label.find("pbpb18_stat_lep_trk_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_trk_p;
         }
-        else if (sys_label.find("stat_lep_trk_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_stat_lep_trk_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_trk_m;
         }
-        else if (sys_label.find("stat_lep_trig_p") != std::string::npos) {
+        else if (sys_label.find("pbpb18_stat_lep_trig_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_trig_p;
         }
-        else if (sys_label.find("stat_lep_trig_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_stat_lep_trig_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_stat_trig_m;
         }
-        else if (sys_label.find("sys_lep_id_p") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_id_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_id_p;
         }
-        else if (sys_label.find("sys_lep_id_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_id_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_id_m;
         }
-        else if (sys_label.find("sys_lep_trk_p") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_trk_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_trk_p;
         }
-        else if (sys_label.find("sys_lep_trk_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_trk_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_trk_m;
         }
-        else if (sys_label.find("sys_lep_trig_p") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_trig_p") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_trig_p;
         }
-        else if (sys_label.find("sys_lep_trig_m") != std::string::npos) {
+        else if (sys_label.find("pbpb18_sys_lep_trig_m") != std::string::npos) {
             return MUONTNP::k_pbpb18_sys_trig_m;
         }
     }
