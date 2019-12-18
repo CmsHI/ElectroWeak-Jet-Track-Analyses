@@ -53,6 +53,8 @@ std::vector<double> getBinContents(TH1* h);
 std::vector<double> getBinErrors(TH1* h);
 std::vector<double> getTH1xBins(int nBins, double xLow, double xUp);
 std::vector<double> getTH1xBins(TH1* h);
+std::vector<double> getTH1xBinCenters(int nBins, double xLow, double xUp);
+std::vector<double> getTH1xBinCenters(TH1* h);
 int getMinimumBin(TH1D* h, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
 int getMaximumBin(TH1D* h, double maxval = +FLT_MAX, int binFirst = 1, int binLast = -1);
 double getMinimum(TH1D* h, double minval = -FLT_MAX, int binFirst = 1, int binLast = -1);
@@ -698,6 +700,36 @@ std::vector<double> getTH1xBins(TH1* h) {
     {
         bins.push_back(h->GetXaxis()->GetBinLowEdge(i));
         if (i == nBins) bins.push_back(h->GetXaxis()->GetBinUpEdge(i));
+    }
+
+    return bins;
+}
+
+/*
+ * returns the bin centers along x-axis of a "TH1" object as a std::vector.
+ * size of the vector is nBins+2.
+ * ith element is the center of bin i.
+ */
+std::vector<double> getTH1xBinCenters(int nBins, double xLow, double xUp)
+{
+    TH1D hTmp("hTmp_getTH1xBinCenters", "", nBins, xLow, xUp);
+
+    std::vector<double> res = getTH1xBinCenters(&hTmp);
+    return res;
+}
+
+/*
+ * returns the bin centers along x-axis of a "TH1" object as a std::vector.
+ * size of the vector is nBins+2.
+ * ith element is the center of bin i.
+ */
+std::vector<double> getTH1xBinCenters(TH1* h) {
+
+    std::vector<double> bins;
+    int nBins = h->GetNbinsX();
+    for ( int i = 0; i <= nBins+1; i++)
+    {
+        bins.push_back(h->GetXaxis()->GetBinCenter(i));
     }
 
     return bins;
