@@ -602,7 +602,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         std::string fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mix%s.root", versionResTrkW.c_str());
         if (!isMixTrk) {
-            fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
+            fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
             if (outputFile.find("res_zmm") != std::string::npos) {
                 fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
             }
