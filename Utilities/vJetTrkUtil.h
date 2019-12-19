@@ -182,6 +182,7 @@ bool isRatioXivh(std::string label);
 bool isRatioTrkPt(std::string label);
 bool isDiffDphi(std::string label);
 bool isRatioVTrk(std::string label);
+bool isCentRange(std::string label, std::string strCentRange);
 bool isBootStrapHist(std::string label);
 
 void setBranchStatusTreeHiEvt(TTree* t, bool isMC)
@@ -1452,6 +1453,12 @@ bool isDiffDphi(std::string label)
 bool isRatioVTrk(std::string label)
 {
     return (isRatioDphi(label) || isRatioXivh(label) || isRatioTrkPt(label));
+}
+
+bool isCentRange(std::string label, std::string strCentRange)
+{
+    return (label.find(strCentRange.c_str()) != std::string::npos ||
+            label.find(Form("cent%s", strCentRange.c_str())) != std::string::npos);
 }
 
 bool isBootStrapHist(std::string label)
