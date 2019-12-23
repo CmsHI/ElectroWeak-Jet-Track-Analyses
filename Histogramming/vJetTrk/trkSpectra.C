@@ -67,6 +67,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int applyNcollWeights = (ArgumentParser::optionExists("--applyNcollWeights", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--applyNcollWeights", argOptions).c_str()) : 1;
 
+    int hiBinShift = (ArgumentParser::optionExists("--hiBinShift", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--hiBinShift", argOptions).c_str()) : 0;
+
     double skipMuPt = (ArgumentParser::optionExists("--skipMuPt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipMuPt", argOptions).c_str()) : 9999;
 
@@ -139,6 +142,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
+    std::cout << "hiBinShift = " << hiBinShift << std::endl;
     std::cout << "skipMuPt  = " << skipMuPt << std::endl;
     std::cout << "skipElePt = " << skipElePt << std::endl;
     std::cout << "skipEvtElePt = " << skipEvtElePt << std::endl;
@@ -194,11 +198,6 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
     std::cout << "do_phi = " << do_phi << std::endl;
     std::cout << "do_phi_vs_eta = " << do_phi_vs_eta << std::endl;
-
-    bool shiftHibin = (isPbPb18 && isMC && false);
-    if (shiftHibin) {
-        std::cout << "shifting hiBin" << std::endl;
-    }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -812,12 +811,12 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             double w = 1;
             int hiBin = hiEvt.hiBin;
-            if (shiftHibin) {
-                if (hiBin < 3) {
+            if (isPbPb) {
+                if (hiBin < hiBinShift) {
                     continue;
                 }
                 else {
-                    hiBin -= 3;
+                    hiBin -= hiBinShift;
                 }
             }
 
