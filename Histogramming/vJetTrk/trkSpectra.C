@@ -76,6 +76,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     double skipEvtElePt = (ArgumentParser::optionExists("--skipEvtElePt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtElePt", argOptions).c_str()) : 5;
 
+    double skipEvtMuPt = (ArgumentParser::optionExists("--skipEvtMuPt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtMuPt", argOptions).c_str()) : 9999;
+
     double skipEvtTauPt = (ArgumentParser::optionExists("--skipEvtTauPt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtTauPt", argOptions).c_str()) : -1;
 
@@ -125,6 +128,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
     std::cout << "skipEvtElePt = " << skipEvtElePt << std::endl;
+    std::cout << "skipEvtMuPt  = " << skipEvtMuPt << std::endl;
     std::cout << "skipEvtTauPt = " << skipEvtTauPt << std::endl;
     std::cout << "skipEvtTauNuPt = " << skipEvtTauNuPt << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
@@ -800,12 +804,17 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             if (isMC) {
                 bool skipEvtEle = false;
+                bool skipEvtMu = false;
                 bool skipEvtTau = false;
                 bool skipEvtTauNu = false;
                 for (int i = 0; i < hiGen.mult; ++i) {
 
                     if (std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > skipEvtElePt) {
                         skipEvtEle = true;
+                        break;
+                    }
+                    if (std::fabs((*hiGen.pdg)[i]) == 13 && (*hiGen.pt)[i] > skipEvtMuPt) {
+                        skipEvtMu = true;
                         break;
                     }
                     if (std::fabs((*hiGen.pdg)[i]) == 15 && (*hiGen.pt)[i] > skipEvtTauPt) {
@@ -818,6 +827,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
                 if (skipEvtEle) continue;
+                if (skipEvtMu) continue;
                 if (skipEvtTau) continue;
                 if (skipEvtTauNu) continue;
             }
