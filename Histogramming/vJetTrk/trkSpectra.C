@@ -73,6 +73,10 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
 
+    int skipTauEvtTmp = (ArgumentParser::optionExists("--skipTauEvt", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipTauEvt", argOptions).c_str()) : 1;
+    bool skipTauEvt = (skipTauEvtTmp > 0);
+
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
@@ -115,6 +119,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
+    std::cout << "skipTauEvt = " << skipTauEvt << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
     std::cout << "anajets  = " << anajets << std::endl;
@@ -788,7 +793,6 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             if (isMC) {
                 bool skipHighPtEle = true;
-                bool skipTau = true;
                 bool skipTauNu = true;
 
                 bool hasHighPtEle = false;
@@ -800,7 +804,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                         hasHighPtEle = true;
                         break;
                     }
-                    if (skipTau && std::fabs((*hiGen.pdg)[i]) == 15) {
+                    if (skipTauEvt && std::fabs((*hiGen.pdg)[i]) == 15) {
                         hasTau = true;
                         break;
                     }
@@ -810,7 +814,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     }
                 }
                 if (skipHighPtEle && hasHighPtEle) continue;
-                if (skipTau && hasTau) continue;
+                if (skipTauEvt && hasTau) continue;
                 if (skipTauNu && hasTauNu) continue;
             }
 
