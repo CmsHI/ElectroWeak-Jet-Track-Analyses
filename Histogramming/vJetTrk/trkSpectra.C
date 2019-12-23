@@ -77,7 +77,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipElePt", argOptions).c_str()) : 9999;
 
     double skipEvtElePt = (ArgumentParser::optionExists("--skipEvtElePt", argOptions)) ?
-            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtElePt", argOptions).c_str()) : 5;
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtElePt", argOptions).c_str()) : 9999;
 
     double skipEvtMuPt = (ArgumentParser::optionExists("--skipEvtMuPt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtMuPt", argOptions).c_str()) : 9999;
