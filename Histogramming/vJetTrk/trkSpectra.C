@@ -67,11 +67,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int applyNcollWeights = (ArgumentParser::optionExists("--applyNcollWeights", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--applyNcollWeights", argOptions).c_str()) : 1;
 
-    int skipMu = (ArgumentParser::optionExists("--skipMu", argOptions)) ?
-            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipMu", argOptions).c_str()) : 0;
+    double skipMuPt = (ArgumentParser::optionExists("--skipMuPt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipMuPt", argOptions).c_str()) : 9999;
 
-    int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
-            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
+    double skipElePt = (ArgumentParser::optionExists("--skipElePt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipElePt", argOptions).c_str()) : 9999;
 
     double skipEvtElePt = (ArgumentParser::optionExists("--skipEvtElePt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtElePt", argOptions).c_str()) : 5;
@@ -139,8 +139,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "sampleType = " << sampleType << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
-    std::cout << "skipMu  = " << skipMu << std::endl;
-    std::cout << "skipEle = " << skipEle << std::endl;
+    std::cout << "skipMuPt  = " << skipMuPt << std::endl;
+    std::cout << "skipElePt = " << skipElePt << std::endl;
     std::cout << "skipEvtElePt = " << skipEvtElePt << std::endl;
     std::cout << "skipEvtMuPt  = " << skipEvtMuPt << std::endl;
     std::cout << "skipEvtTauPt = " << skipEvtTauPt << std::endl;
@@ -695,6 +695,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 "trkAlgo",
                 "trkMVA",
                 "pfType",
+                "pfCandPt",
                 "pfHcal",
                 "pfEcal",
                 "nVtx",
@@ -903,8 +904,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 if (!passedTrkSelection(trks, i, collisionType))  continue;
                 if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
-                if (skipMu > 0 && trks.pfType[i] == 3) continue;
-                if (skipEle > 0 && trks.pfType[i] == 2) continue;
+                if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
+                if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
 
                 float t_pt = trks.trkPt[i];
                 float t_eta = trks.trkEta[i];
@@ -1003,8 +1004,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                     if (!(std::fabs((*hiGen.eta)[i]) < 2.4))  continue;
                     if ( ((*hiGen.chg)[i] == 0) )  continue;
-                    if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
-                    if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
+                    if (std::fabs((*hiGen.pdg)[i]) == 13 && (*hiGen.pt)[i] > skipMuPt) continue;
+                    if (std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > skipElePt) continue;
 
                     bool inCone = false;
 
@@ -1067,8 +1068,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                      if (!passedTrkSelection(trks, i, collisionType))  continue;
                      if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
-                     if (skipMu > 0 && trks.pfType[i] == 3) continue;
-                     if (skipEle > 0 && trks.pfType[i] == 2) continue;
+                     if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
+                     if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
 
                      double trkWeightTmp = 1;
                      double trkWeightEffTmp = 1;
@@ -1127,8 +1128,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                         if (!(std::fabs((*hiGen.eta)[i]) < 2.4))  continue;
                         if ( ((*hiGen.chg)[i] == 0) )  continue;
-                        if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
-                        if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
+                        if (std::fabs((*hiGen.pdg)[i]) == 13 && (*hiGen.pt)[i] > skipMuPt) continue;
+                        if (std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > skipElePt) continue;
 
                         double mindR2_jet_trk = 999999;
                         int iJet_mindR = -1;
