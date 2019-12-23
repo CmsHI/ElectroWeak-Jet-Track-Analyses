@@ -92,6 +92,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             std::atof(ArgumentParser::ParseOptionInputSingle("--excludeConeEleR", argOptions).c_str()) : 0.2;
     double excludeConeEleR2 = excludeConeEleR*excludeConeEleR;
 
+    double excludeConeMuPt = (ArgumentParser::optionExists("--excludeConeMuPt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--excludeConeMuPt", argOptions).c_str()) : 15;
+
+    double excludeConeMuR = (ArgumentParser::optionExists("--excludeConeMuR", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--excludeConeMuR", argOptions).c_str()) : 0.2;
+    double excludeConeMuR2 = excludeConeMuR*excludeConeMuR;
+
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
@@ -140,6 +147,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "skipEvtTauNuPt = " << skipEvtTauNuPt << std::endl;
     std::cout << "excludeConeElePt = " << excludeConeElePt << std::endl;
     std::cout << "excludeConeEleR = " << excludeConeEleR << std::endl;
+    std::cout << "excludeConeMuPt = " << excludeConeMuPt << std::endl;
+    std::cout << "excludeConeMuR = " << excludeConeMuR << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
     std::cout << "anajets  = " << anajets << std::endl;
@@ -814,6 +823,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             std::vector<double> excludeEleEtas;
             std::vector<double> excludeElePhis;
+            std::vector<double> excludeMuEtas;
+            std::vector<double> excludeMuPhis;
             if (isMC) {
                 bool skipEvtEle = false;
                 bool skipEvtMu = false;
@@ -842,6 +853,10 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                         excludeEleEtas.push_back((*hiGen.eta)[i]);
                         excludeElePhis.push_back((*hiGen.phi)[i]);
                     }
+                    if (std::fabs((*hiGen.pdg)[i]) == 13 && (*hiGen.pt)[i] > excludeConeMuPt) {
+                        excludeMuEtas.push_back((*hiGen.eta)[i]);
+                        excludeMuPhis.push_back((*hiGen.phi)[i]);
+                    }
                 }
                 if (skipEvtEle) continue;
                 if (skipEvtMu) continue;
@@ -849,6 +864,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 if (skipEvtTauNu) continue;
             }
             int nExcludeEle = excludeEleEtas.size();
+            int nExcludeMu  = excludeMuEtas.size();
 
             entriesAnalyzed++;
 
@@ -900,6 +916,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 for (int iEle = 0; iEle < nExcludeEle; ++iEle) {
 
                     if (getDR2(excludeEleEtas[iEle], excludeElePhis[iEle], t_eta, t_phi) < excludeConeEleR2) {
+                        inCone = true;
+                        break;
+                    }
+                }
+                if (inCone) continue;
+
+                for (int iMu = 0; iMu < nExcludeMu; ++iMu) {
+
+                    if (getDR2(excludeMuEtas[iMu], excludeMuPhis[iMu], t_eta, t_phi) < excludeConeMuR2) {
                         inCone = true;
                         break;
                     }
@@ -986,6 +1011,15 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     for (int iEle = 0; iEle < nExcludeEle; ++iEle) {
 
                         if (getDR2(excludeEleEtas[iEle], excludeElePhis[iEle], (*hiGen.eta)[i], (*hiGen.phi)[i]) < excludeConeEleR2) {
+                            inCone = true;
+                            break;
+                        }
+                    }
+                    if (inCone) continue;
+
+                    for (int iMu = 0; iMu < nExcludeMu; ++iMu) {
+
+                        if (getDR2(excludeMuEtas[iMu], excludeMuPhis[iMu], (*hiGen.eta)[i], (*hiGen.phi)[i]) < excludeConeMuR2) {
                             inCone = true;
                             break;
                         }
