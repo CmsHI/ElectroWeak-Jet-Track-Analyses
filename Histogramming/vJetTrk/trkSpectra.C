@@ -786,6 +786,34 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            if (isMC) {
+                bool skipHighPtEle = true;
+                bool skipTau = true;
+                bool skipTauNu = true;
+
+                bool hasHighPtEle = false;
+                bool hasTau = false;
+                bool hasTauNu = false;
+                for (int i = 0; i < hiGen.mult; ++i) {
+
+                    if (skipHighPtEle && std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > 5) {
+                        hasHighPtEle = true;
+                        break;
+                    }
+                    if (skipTau && std::fabs((*hiGen.pdg)[i]) == 15) {
+                        hasTau = true;
+                        break;
+                    }
+                    if (skipTauNu && std::fabs((*hiGen.pdg)[i]) == 16) {
+                        hasTauNu = true;
+                        break;
+                    }
+                }
+                if (skipHighPtEle && hasHighPtEle) continue;
+                if (skipTau && hasTau) continue;
+                if (skipTauNu && hasTauNu) continue;
+            }
+
             entriesAnalyzed++;
 
             int cent = hiBin/2;
