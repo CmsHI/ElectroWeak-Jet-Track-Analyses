@@ -85,6 +85,13 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     double skipEvtTauNuPt = (ArgumentParser::optionExists("--skipEvtTauNuPt", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtTauNuPt", argOptions).c_str()) : -1;
 
+    double excludeConeElePt = (ArgumentParser::optionExists("--excludeConeElePt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--excludeConeElePt", argOptions).c_str()) : 15;
+
+    double excludeConeEleR = (ArgumentParser::optionExists("--excludeConeEleR", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--excludeConeEleR", argOptions).c_str()) : 0.2;
+    double excludeConeEleR2 = excludeConeEleR*excludeConeEleR;
+
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
@@ -131,6 +138,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "skipEvtMuPt  = " << skipEvtMuPt << std::endl;
     std::cout << "skipEvtTauPt = " << skipEvtTauPt << std::endl;
     std::cout << "skipEvtTauNuPt = " << skipEvtTauNuPt << std::endl;
+    std::cout << "excludeConeElePt = " << excludeConeElePt << std::endl;
+    std::cout << "excludeConeEleR = " << excludeConeEleR << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
     std::cout << "anajets  = " << anajets << std::endl;
@@ -802,6 +811,9 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+
+            std::vector<double> excludeEleEtas;
+            std::vector<double> excludeElePhis;
             if (isMC) {
                 bool skipEvtEle = false;
                 bool skipEvtMu = false;
@@ -825,12 +837,18 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                         skipEvtTauNu = true;
                         break;
                     }
+
+                    if (std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > excludeConeElePt) {
+                        excludeEleEtas.push_back((*hiGen.eta)[i]);
+                        excludeElePhis.push_back((*hiGen.phi)[i]);
+                    }
                 }
                 if (skipEvtEle) continue;
                 if (skipEvtMu) continue;
                 if (skipEvtTau) continue;
                 if (skipEvtTauNu) continue;
             }
+            int nExcludeEle = excludeEleEtas.size();
 
             entriesAnalyzed++;
 
@@ -876,6 +894,17 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 float t_eta = trks.trkEta[i];
                 float t_phi = trks.trkPhi[i];
                 float t_absEta = std::fabs(t_eta);
+
+                bool inCone = false;
+
+                for (int iEle = 0; iEle < nExcludeEle; ++iEle) {
+
+                    if (getDR2(excludeEleEtas[iEle], excludeElePhis[iEle], t_eta, t_phi) < excludeConeEleR2) {
+                        inCone = true;
+                        break;
+                    }
+                }
+                if (inCone) continue;
 
                 double trkWeightTmp = 1;
                 double trkWeightEffTmp = 1;
@@ -951,6 +980,17 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     if ( ((*hiGen.chg)[i] == 0) )  continue;
                     if (skipMu > 0 && std::fabs((*hiGen.pdg)[i]) == 13) continue;
                     if (skipEle > 0 && std::fabs((*hiGen.pdg)[i]) == 11) continue;
+
+                    bool inCone = false;
+
+                    for (int iEle = 0; iEle < nExcludeEle; ++iEle) {
+
+                        if (getDR2(excludeEleEtas[iEle], excludeElePhis[iEle], (*hiGen.eta)[i], (*hiGen.phi)[i]) < excludeConeEleR2) {
+                            inCone = true;
+                            break;
+                        }
+                    }
+                    if (inCone) continue;
 
                     for (int iCent = 0; iCent < nCents; ++iCent) {
 
