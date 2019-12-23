@@ -73,11 +73,14 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int skipEle = (ArgumentParser::optionExists("--skipEle", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEle", argOptions).c_str()) : 0;
 
+    double skipEvtElePt = (ArgumentParser::optionExists("--skipEvtElePt", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtElePt", argOptions).c_str()) : 5;
+
     double skipEvtTauPt = (ArgumentParser::optionExists("--skipEvtTauPt", argOptions)) ?
-            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEvtTauPt", argOptions).c_str()) : -1;
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtTauPt", argOptions).c_str()) : -1;
 
     double skipEvtTauNuPt = (ArgumentParser::optionExists("--skipEvtTauNuPt", argOptions)) ?
-            std::atoi(ArgumentParser::ParseOptionInputSingle("--skipEvtTauNuPt", argOptions).c_str()) : -1;
+            std::atof(ArgumentParser::ParseOptionInputSingle("--skipEvtTauNuPt", argOptions).c_str()) : -1;
 
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
@@ -121,6 +124,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
     std::cout << "skipMu  = " << skipMu << std::endl;
     std::cout << "skipEle = " << skipEle << std::endl;
+    std::cout << "skipEvtElePt = " << skipEvtElePt << std::endl;
     std::cout << "skipEvtTauPt = " << skipEvtTauPt << std::endl;
     std::cout << "skipEvtTauNuPt = " << skipEvtTauNuPt << std::endl;
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
@@ -795,29 +799,27 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
             }
 
             if (isMC) {
-                bool skipHighPtEle = true;
-
-                bool hasHighPtEle = false;
-                bool hasTau = false;
-                bool hasTauNu = false;
+                bool skipEvtEle = false;
+                bool skipEvtTau = false;
+                bool skipEvtTauNu = false;
                 for (int i = 0; i < hiGen.mult; ++i) {
 
-                    if (skipHighPtEle && std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > 5) {
-                        hasHighPtEle = true;
+                    if (std::fabs((*hiGen.pdg)[i]) == 11 && (*hiGen.pt)[i] > skipEvtElePt) {
+                        skipEvtEle = true;
                         break;
                     }
                     if (std::fabs((*hiGen.pdg)[i]) == 15 && (*hiGen.pt)[i] > skipEvtTauPt) {
-                        hasTau = true;
+                        skipEvtTau = true;
                         break;
                     }
                     if (std::fabs((*hiGen.pdg)[i]) == 16 && (*hiGen.pt)[i] > skipEvtTauNuPt) {
-                        hasTauNu = true;
+                        skipEvtTauNu = true;
                         break;
                     }
                 }
-                if (skipHighPtEle && hasHighPtEle) continue;
-                if (hasTau) continue;
-                if (hasTauNu) continue;
+                if (skipEvtEle) continue;
+                if (skipEvtTau) continue;
+                if (skipEvtTauNu) continue;
             }
 
             entriesAnalyzed++;
