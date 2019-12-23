@@ -17,9 +17,9 @@ ${forest_pbpb_2018_mc_zee}
 );
 
 optionList=(
-"--sampleType=pbpb_2018_mc"
-"--sampleType=pbpb_2018_mc"
-"--sampleType=pbpb_2018_mc"
+"--sampleType=pbpb_2018_mc --skipMuPt=-1 --skipElePt=-1 --anajets=0"
+"--sampleType=pbpb_2018_mc --skipMuPt=-1 --skipElePt=-1 --anajets=0"
+"--sampleType=pbpb_2018_mc --skipMuPt=-1 --skipElePt=-1 --anajets=0"
 #"--sampleType=pbpb_2018_data"
 );
 
