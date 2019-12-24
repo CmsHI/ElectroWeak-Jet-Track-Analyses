@@ -4682,7 +4682,10 @@ std::string parseVersionResidualTrkW(std::string path)
         return "";
     }
 
-    std::string versionNum = path.substr(path.find(substr) + len, 1);
+    std::string versionNum = path.substr(path.find(substr) + len, 2);
+    if (std::atoi(versionNum.c_str()) < 10) {
+        versionNum = path.substr(path.find(substr) + len, 1);
+    }
 
     return "v"+versionNum;
 }
