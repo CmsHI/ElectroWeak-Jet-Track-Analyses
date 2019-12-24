@@ -373,6 +373,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "shifting hiBin" << std::endl;
     }
 
+    double minDR_lep_trk_PFID = 0.0;   // minDR_lep_trk if PF ID is available
+    double minDR_lep_trk_noPFID = 0.2;
+    std::cout << "minDR_lep_trk_PFID = " << minDR_lep_trk_PFID << std::endl;
+    std::cout << "minDR_lep_trk_noPFID = " << minDR_lep_trk_noPFID << std::endl;
+
+    double minDR2_lep_trk_PFID = minDR_lep_trk_PFID*minDR_lep_trk_PFID;
+    double minDR2_lep_trk_noPFID = minDR_lep_trk_noPFID*minDR_lep_trk_noPFID;
+
     // initialize objects
     TH1::SetDefaultSumw2();
 
@@ -3086,7 +3094,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             std::vector<float> llPt = {-998877, -998877};
             std::vector<float> llEta = {-998877, -998877};
             std::vector<float> llPhi = {-998877, -998877};
-            float minDR2_lep_trk = (has_pfType) ? 0.0 : 0.04;
+            float minDR2_lep_trk = (has_pfType) ? minDR2_lep_trk_PFID : minDR2_lep_trk_noPFID;
 
             double genVPt = -1;
             double genVY = -999999;
