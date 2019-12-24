@@ -995,6 +995,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_vPt_vs_xivh[nCents][nTrkPts];
     TH2D* h2_vReco_vs_vGen_xivh[nCents][nVPts][nTrkPts];
 
+    // multiplicity
+    TH2D* h2_wTrkSum_vs_cent[nVPts][nTrkPts];
+    TH2D* h2_wTrkSum_vs_cent_noDphi[nVPts][nTrkPts];
+
     TH2D* h2_jetpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_rawpt_vs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_jetpt_vs_dR[nCents][nVPts][nTrkPts];
@@ -2341,6 +2345,28 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 nBins_xivh, 0, 5,
                                 nBins_xivh, 0, 5);
                         vec_h2D.push_back(h2_vReco_vs_vGen_xivh[i][j][k]);
+                    }
+
+                    if (i == 0) {
+                        std::string name_h_suffix_noCent = Form("%s_%s", label_vPt.c_str(), label_trkPt.c_str());
+
+                        std::string name_h2_wTrkSum_vs_cent = Form("h2_wTrkSum_vs_halfHiBin_%s", name_h_suffix_noCent.c_str());
+                        std::string title_h2_wTrkSum_vs_cent = Form("%s;Centrality (%%);N_{particles}", title_h_suffix.c_str());
+
+                        h2_wTrkSum_vs_cent[j][k] = 0;
+                        h2_wTrkSum_vs_cent[j][k] = new TH2D(name_h2_wTrkSum_vs_cent.c_str(), title_h2_wTrkSum_vs_cent.c_str(),
+                                40, 0, 100,
+                                250, 0, 500);
+                        vec_h2D.push_back(h2_wTrkSum_vs_cent[j][k]);
+
+                        std::string name_h2_wTrkSum_vs_cent_noDphi = Form("h2_wTrkSum_vs_halfHiBin_noDphi_%s", name_h_suffix_noCent.c_str());
+                        std::string title_h2_wTrkSum_vs_cent_noDphi = Form("%s;Centrality (%%);N_{particles}", title_h_suffixNoDphi.c_str());
+
+                        h2_wTrkSum_vs_cent_noDphi[j][k] = 0;
+                        h2_wTrkSum_vs_cent_noDphi[j][k] = new TH2D(name_h2_wTrkSum_vs_cent_noDphi.c_str(), title_h2_wTrkSum_vs_cent_noDphi.c_str(),
+                                40, 0, 100,
+                                500, 0, 2500);
+                        vec_h2D.push_back(h2_wTrkSum_vs_cent_noDphi[j][k]);
                     }
 
 
@@ -3966,6 +3992,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
+            double wTrkSums[nVPts][nTrkPts];
+            double wTrkSums_noDphi[nVPts][nTrkPts];
+            for (int j = 0; j < nVPts; ++j) {
+                for (int k = 0; k < nTrkPts; ++k) {
+                    wTrkSums[j][k] = 0;
+                    wTrkSums_noDphi[j][k] = 0;
+                }
+            }
+
             for (int i = 0; i < nParticles; ++i) {
 
                 //if (!passedTrkSelection(trks, i, collisionType))  continue;
@@ -4145,6 +4180,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
                 double wTrk = trkWeightTmp * wMixEvts * wTrkPhi;
 
+                double dphiMinTmp = vTrkDphiMin * TMath::Pi();
+                double dphiMaxTmp = vTrkDphiMax * TMath::Pi();
+
                 for (int iCent = 0; iCent < nCents; ++iCent) {
 
                     if (isPbPb && !(centsMin[iCent] <= cent && cent < centsMax[iCent]))  continue;
@@ -4154,8 +4192,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (!(vPtsMin[iVPt] <= vPt && vPt < vPtsMax[iVPt]))  continue;
 
                         float dphi = std::fabs(getDPHI(vPhi, t_phi));
-                        double dphiMinTmp = vTrkDphiMin * TMath::Pi();
-                        double dphiMaxTmp = vTrkDphiMax * TMath::Pi();
 
                         float deta = std::fabs(vY - t_eta);
                         float deta_h1 = std::fabs(h1_eta - t_eta);
@@ -4334,6 +4370,30 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         }
 
                     }
+                }
+
+                for (int iVPt = 0; iVPt < nVPts; ++iVPt) {
+
+                    if (!(vPtsMin[iVPt] <= vPt && vPt < vPtsMax[iVPt]))  continue;
+
+                    for (int iTrkPt = 0; iTrkPt < nTrkPts; ++iTrkPt) {
+
+                        if (!(trkPtsMin[iTrkPt] <= t_pt && t_pt < trkPtsMax[iTrkPt]))  continue;
+                        wTrkSums_noDphi[iVPt][iTrkPt] += wTrk;
+
+                        float dphi = std::fabs(getDPHI(vPhi, t_phi));
+                        if (!(dphiMinTmp < dphi && dphi <= dphiMaxTmp)) continue;
+                        wTrkSums[iVPt][iTrkPt] += wTrk;
+                    }
+                }
+            }
+            for (int j = 0; j < nVPts; ++j) {
+
+                if (!(vPtsMin[j] <= vPt && vPt < vPtsMax[j]))  continue;
+
+                for (int k = 0; k < nTrkPts; ++k) {
+                    h2_wTrkSum_vs_cent[j][k]->Fill(cent, (wTrkSums[j][k] / wV), wV);
+                    h2_wTrkSum_vs_cent_noDphi[j][k]->Fill(cent, (wTrkSums_noDphi[j][k] / wV), wV);
                 }
             }
         }
