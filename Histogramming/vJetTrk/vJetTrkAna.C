@@ -41,6 +41,7 @@
 #include "../../Utilities/interface/GraphicsConfigurationParser.h"
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/HiForestInfoController.h"
+#include "../../Utilities/systemUtil.h"
 #include "../../Utilities/eventUtil.h"
 #include "../../Utilities/styleUtil.h"
 #include "../../Utilities/th1Util.h"
@@ -4646,11 +4647,12 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
         std::vector<TH1D*> hProj(3, 0);
         for (int iProj = 0; iProj < 2; ++iProj) {
+            std::string tmpName_h2D = vec_h2D[i]->GetName();
             if (iProj == 0) {
-                hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionX(Form("%s_projX", vec_h2D[i]->GetName()));
+                hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionX(Form("%s_projX", tmpName_h2D.c_str()));
             }
             else {
-                hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionY(Form("%s_projY", vec_h2D[i]->GetName()));
+                hProj[0] = (TH1D*)((TH2D*)vec_h2D[i])->ProjectionY(Form("%s_projY", tmpName_h2D.c_str()));
             }
 
             hProj[0]->Write("",TObject::kOverwrite);
@@ -4667,6 +4669,22 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             hProj[1]->Write("",TObject::kOverwrite);
             hProj[2]->Write("",TObject::kOverwrite);
+
+            if (hasSubstr(tmpName_h2D, "h2_wTrkSum_vs_dphi") ||
+                hasSubstr(tmpName_h2D, "h2_wTrkSum_vs_xivh") ||
+                hasSubstr(tmpName_h2D, "h2_wTrkSum_vs_trkPt")) {
+
+                if (iProj == 0) {
+                    hProj[1]->SetName(Form("%s_scaleBinW", hProj[1]->GetName()));
+                    hProj[2]->SetName(Form("%s_scaleBinW", hProj[2]->GetName()));
+
+                    hProj[1]->Scale(1, "width");
+                    hProj[2]->Scale(1, "width");
+
+                    hProj[1]->Write("",TObject::kOverwrite);
+                    hProj[2]->Write("",TObject::kOverwrite);
+                }
+            }
         }
     }
 
