@@ -26,6 +26,7 @@ std::string toLowerCase(std::string str);
 std::string toUpperCase(std::string str);
 std::string wildCard2Regex(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr = true, bool emptyVecIfNoDelimiter = true);
+bool hasSubstr(const std::string & str, const std::string & substr);
 bool startsWith(std::string str, std::string substr);
 bool endsWith(std::string str, std::string substr);
 bool matchesRegex(std::string str, std::string regexStr);
@@ -278,6 +279,11 @@ std::vector<std::string> split(std::string str, std::string delimiter, bool incl
      }
 
      return v;
+}
+
+bool hasSubstr(const std::string & str, const std::string & substr)
+{
+  return (str.find(substr.c_str()) != std::string::npos);
 }
 
 /*
