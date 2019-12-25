@@ -559,7 +559,7 @@ bool isSigObj(std::string objRBS)
 }
 
 /*
- * RNS = raw that is not signal
+ * RNS = raw object that is not signal
  */
 bool isRawNonSigObj(std::string objRBS)
 {

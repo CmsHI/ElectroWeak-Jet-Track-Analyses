@@ -328,6 +328,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     bool isBkgTrk = isBkgObj(trkRBS);
     bool isSigTrk = isSigObj(trkRBS);
+    bool isRNSTrk = isRawNonSigObj(trkRBS);
 
     bool isMixTrk = isBkgTrk;
 
@@ -4075,6 +4076,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 if (!isRecoTrk) {
                     if ((*p_chg)[i] == 0)  continue;
                     if (isSigTrk && (*p_sube)[i] != 0)  continue;
+                    if (isRNSTrk && (*p_sube)[i] == 0)  continue;
                 }
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
