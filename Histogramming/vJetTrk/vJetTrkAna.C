@@ -1022,6 +1022,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double xMax_trkPt = 120;
     double xMax_phi = TMath::Pi()+1e-12;
     double xMax_eta = 2.6;
+    double xMax_xivh = 5;
 
     std::vector<double> binsX_trkPt_rebin = {0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 24, 30, 45, 60, 90, xMax_trkPt};
     int nBinsX_trkPt_rebin = binsX_trkPt_rebin.size()-1;
@@ -1744,7 +1745,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 h2_trkPt_vs_xivh[i][j] = 0;
                 h2_trkPt_vs_xivh[i][j] = new TH2D(name_h2_trkPt_vs_xivh.c_str(), title_h2_trkPt_vs_xivh.c_str(),
-                        nBinsX_xivh, 0, 5,
+                        nBinsX_xivh, 0, xMax_xivh,
                         nBinsX_trkPt, 0, xMax_trkPt);
                 vec_h2D.push_back(h2_trkPt_vs_xivh[i][j]);
 
@@ -1755,7 +1756,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                 h2_trkPt_rebin_vs_xivh[i][j] = 0;
                 h2_trkPt_rebin_vs_xivh[i][j] = new TH2D(name_h2_trkPt_rebin_vs_xivh.c_str(), title_h2_trkPt_vs_xivh.c_str(),
-                        nBinsX_xivh, 0, 5,
+                        nBinsX_xivh, 0, xMax_xivh,
                         nBinsX_trkPt_rebin, arrTmp_trkPt);
                 vec_h2D.push_back(h2_trkPt_rebin_vs_xivh[i][j]);
 
@@ -1967,14 +1968,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             text_defn_xivh.c_str());
 
                     h_xivh[i][j][k] = 0;
-                    h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBinsX_xivh, 0, 5);
+                    h_xivh[i][j][k] = new TH1D(name_h_xivh.c_str(), title_h_xivh.c_str(), nBinsX_xivh, 0, xMax_xivh);
 
                     std::string name_h_xitvh = Form("h_xitvh_%s_%s_%s", label_vPt.c_str(), label_trkPt.c_str(), label_cent.c_str());
                     std::string title_h_xitvh = Form("%s;%s;", title_h_suffix.c_str(),
                                                                text_defn_xitvh.c_str());
 
                     h_xitvh[i][j][k] = 0;
-                    h_xitvh[i][j][k] = new TH1D(name_h_xitvh.c_str(), title_h_xitvh.c_str(), nBinsX_xivh, 0, 5);
+                    h_xitvh[i][j][k] = new TH1D(name_h_xitvh.c_str(), title_h_xitvh.c_str(), nBinsX_xivh, 0, xMax_xivh);
 
                     std::string text_dphi_leptrk = Form("#Delta#phi_{%s,lep}", text_trk.c_str());
                     std::string name_h_dphi_leptrk = Form("h_dphi_leptrk_%s", name_h_suffix.c_str());
@@ -2013,7 +2014,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_bs_xivh[i][j][k] = 0;
                         h2_bs_xivh[i][j][k] = new TH2D(name_h2_bs_xivh.c_str(), title_h2_bs_xivh.c_str(),
-                                                       nBinsX_xivh, 0, 5, nEvtsBS, 0, nEvtsBS);
+                                                       nBinsX_xivh, 0, xMax_xivh, nEvtsBS, 0, nEvtsBS);
                         vec_h2D.push_back(h2_bs_xivh[i][j][k]);
                         evtIndex_bs_xivh[i][j][k] = -1;
 
@@ -2307,7 +2308,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     h2_deta_vs_xivh[i][j][k] = 0;
                     h2_deta_vs_xivh[i][j][k] = new TH2D(name_h2_deta_vs_xivh.c_str(), title_h2_deta_vs_xivh.c_str(),
-                            nBinsX_xivh, 0, 5,
+                            nBinsX_xivh, 0, xMax_xivh,
                             nBinsX_eta, 0, 5.2);
                     vec_h2D.push_back(h2_deta_vs_xivh[i][j][k]);
 
@@ -2319,7 +2320,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_deta_h1_vs_xivh[i][j][k] = 0;
                         h2_deta_h1_vs_xivh[i][j][k] = new TH2D(name_h2_deta_h1_vs_xivh.c_str(), title_h2_deta_h1_vs_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
+                                nBinsX_xivh, 0, xMax_xivh,
                                 nBinsX_eta, 0, 5.2);
                         vec_h2D.push_back(h2_deta_h1_vs_xivh[i][j][k]);
                     }
@@ -2332,7 +2333,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_vPt_vs_xivh[i][k] = 0;
                         h2_vPt_vs_xivh[i][k] = new TH2D(name_h2_vPt_vs_xivh.c_str(), title_h2_vPt_vs_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
+                                nBinsX_xivh, 0, xMax_xivh,
                                 nBinsX_vPt, 0,  xMax_vPt);
                         vec_h2D.push_back(h2_vPt_vs_xivh[i][k]);
                     }
@@ -2346,8 +2347,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_vReco_vs_vGen_xivh[i][j][k] = 0;
                         h2_vReco_vs_vGen_xivh[i][j][k] = new TH2D(name_h2_vReco_vs_vGen_xivh.c_str(), title_h2_vReco_vs_vGen_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
-                                nBinsX_xivh, 0, 5);
+                                nBinsX_xivh, 0, xMax_xivh,
+                                nBinsX_xivh, 0, xMax_xivh);
                         vec_h2D.push_back(h2_vReco_vs_vGen_xivh[i][j][k]);
                     }
 
@@ -2398,7 +2399,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_wTrkSum_vs_xivh[i][j][k] = 0;
                         h2_wTrkSum_vs_xivh[i][j][k] = new TH2D(name_h2_wTrkSum_vs_xivh.c_str(), title_h2_wTrkSum_vs_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
+                                nBinsX_xivh, 0, xMax_xivh,
                                 600, 0, 300);
                         vec_h2D.push_back(h2_wTrkSum_vs_xivh[i][j][k]);
 
@@ -2426,7 +2427,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_jetpt_vs_xivh[i][j][k] = 0;
                         h2_jetpt_vs_xivh[i][j][k] = new TH2D(name_h2_jetpt_vs_xivh.c_str(), title_h2_jetpt_vs_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
+                                nBinsX_xivh, 0, xMax_xivh,
                                 60, 0, 300);
                         vec_h2D.push_back(h2_jetpt_vs_xivh[i][j][k]);
 
@@ -2437,7 +2438,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                         h2_rawpt_vs_xivh[i][j][k] = 0;
                         h2_rawpt_vs_xivh[i][j][k] = new TH2D(name_h2_rawpt_vs_xivh.c_str(), title_h2_rawpt_vs_xivh.c_str(),
-                                nBinsX_xivh, 0, 5,
+                                nBinsX_xivh, 0, xMax_xivh,
                                 60, 0, 300);
                         vec_h2D.push_back(h2_rawpt_vs_xivh[i][j][k]);
 
