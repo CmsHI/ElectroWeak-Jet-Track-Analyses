@@ -123,6 +123,7 @@ bool isGenObj(std::string objRG);
 bool isRawObj(std::string objRBS);
 bool isBkgObj(std::string objRBS);
 bool isSigObj(std::string objRBS);
+bool isRawNonSigObj(std::string objRBS);
 bool passedMuSelection(ggHiNtuplizer& ggHi, int i);
 bool passedTrkSelection(trackSkim& trks, int i, int collType);
 bool passedTrkSelection(Tracks& trks, int i, int collType);
@@ -555,6 +556,14 @@ bool isBkgObj(std::string objRBS)
 bool isSigObj(std::string objRBS)
 {
     return (toLowerCase(objRBS) == "s" || toLowerCase(objRBS) == "sig");
+}
+
+/*
+ * RNS = raw that is not signal
+ */
+bool isRawNonSigObj(std::string objRBS)
+{
+    return (toLowerCase(objRBS) == "rns");
 }
 
 bool passedMuSelection(ggHiNtuplizer& ggHi, int i)
