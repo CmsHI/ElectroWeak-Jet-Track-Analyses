@@ -142,6 +142,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double evtFrac = (ArgumentParser::optionExists("--evtFrac", argOptions)) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--evtFrac", argOptions).c_str()) : 1;
 
+    double evtStartFrac = (ArgumentParser::optionExists("--evtStartFrac", argOptions)) ?
+            std::atof(ArgumentParser::ParseOptionInputSingle("--evtStartFrac", argOptions).c_str()) : 0;
+
     int rndEntryStart = (ArgumentParser::optionExists("--rndEntryStart", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--rndEntryStart", argOptions).c_str()) : 0;
     bool doRndEntryStart = (rndEntryStart > 0);
@@ -241,6 +244,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "anaMode = " << anaMode << std::endl;
     std::cout << "sysMode = " << sysMode << std::endl;
     std::cout << "evtFrac = " << evtFrac << std::endl;
+    std::cout << "evtStartFrac = " << evtStartFrac << std::endl;
     if (doRndEntryStart) {
         std::cout << "rndEntryStart = " << rndEntryStart << std::endl;
     }
@@ -3036,7 +3040,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
 
-        Long64_t entryStart = 0;
+        Long64_t entryStart = (evtStartFrac > 0 && evtStartFrac < 1) ? entriesTmp*evtStartFrac : 0;
         if (doRndEntryStart) {
             entryStart = (Long64_t)(randEntryStart.Uniform(0, entriesTmp));
         }
