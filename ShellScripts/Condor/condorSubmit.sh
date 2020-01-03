@@ -140,6 +140,8 @@ fi
 ## customizations for submit-hi2.mit.edu and submit.mit.edu machines - END ##
 
 ## create the "submit description file" for Lxplus and submit.mit.edu
+# Add the following line into script to run specific jobs
+# noop_job = !( stringListMember("$(Process)","0,4,9,14") || (($(Process) >= 24) && ($(Process) <= 32)) || (($(Process) == 77)) )
 cat > $submitDir/submit.condor.Lxplus <<EOF
 
 Universe     = vanilla
