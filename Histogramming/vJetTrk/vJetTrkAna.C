@@ -945,7 +945,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
     // observables for Bootstrapping
-    bool fillBootStrap = (!isMC && isPbPb && anaTrks);
+    bool fill_bootStrap = (!isMC && isPbPb && anaTrks);
     TH2D* h2_bs_dphi_rebin[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_trkPt_rebin[nCents][nVPts];
@@ -2001,7 +2001,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
                     std::string name_h_suffix_trkPt = Form("%s_%s", label_vPt.c_str(), label_cent.c_str());
                     std::string title_h_suffix_trkPt = Form("%s, %s", text_range_vPt.c_str(), text_range_cent.c_str());
-                    if (fillBootStrap) {
+                    if (fill_bootStrap) {
 
                         std::string name_h2_bs_dphi_rebin = Form("h2_bs_dphi_rebin_%s", name_h_suffix.c_str());
                         std::string title_h2_bs_dphi_rebin = Form("%s;%s;event index", title_h_suffix_dphi.c_str(), text_dphi.c_str());
@@ -4021,7 +4021,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
 
-            if (fillBootStrap) {
+            if (fill_bootStrap) {
 
                 for (int i = 0; i < nCents; ++i) {
 
@@ -4278,7 +4278,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h2_deta_h1_vs_trkPt[iCent][iVPt]->Fill(t_pt, deta_h1, wTrk);
                             }
 
-                            if (fillBootStrap) {
+                            if (fill_bootStrap) {
                                 h2_bs_trkPt_rebin[iCent][iVPt]->Fill(t_pt, evtIndex_bs_trkPt_rebin[iCent][iVPt], wTrk);
                                 h2_bs_trkPt_rebin2[iCent][iVPt]->Fill(t_pt, evtIndex_bs_trkPt_rebin2[iCent][iVPt], wTrk);
                             }
@@ -4351,7 +4351,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                             h_dphi_phi0_trk_noDphi[iCent][iVPt][iTrkPt]->Fill(std::fabs(getDPHI(t_phi, hiEvt.phi0)), wTrk);
                             h2_trkPhi_vs_trkEta_noDphi[iCent][iVPt][iTrkPt]->Fill(t_eta, t_phi, wTrk);
 
-                            if (fillBootStrap) {
+                            if (fill_bootStrap) {
                                 h2_bs_dphi_rebin[iCent][iVPt][iTrkPt]->Fill(dphi, evtIndex_bs_dphi_rebin[iCent][iVPt][iTrkPt], wTrk);
                             }
 
@@ -4414,7 +4414,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                                 h2_vReco_vs_vGen_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt_gen, xi_vt, wTrk);
                             }
 
-                            if (fillBootStrap) {
+                            if (fill_bootStrap) {
                                 h2_bs_xivh[iCent][iVPt][iTrkPt]->Fill(xi_vt, evtIndex_bs_xivh[iCent][iVPt][iTrkPt], wTrk);
                             }
 
