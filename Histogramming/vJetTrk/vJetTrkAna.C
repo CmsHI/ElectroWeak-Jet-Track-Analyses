@@ -945,7 +945,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH1D* h_dR_leptrk[nCents][nVPts][nTrkPts];
 
     // observables for Bootstrapping
-    bool fillBootStrap = (!isMC && isPbPb);
+    bool fillBootStrap = (!isMC && isPbPb && anaTrks);
     TH2D* h2_bs_dphi_rebin[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_xivh[nCents][nVPts][nTrkPts];
     TH2D* h2_bs_trkPt_rebin[nCents][nVPts];
@@ -1002,7 +1002,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     TH2D* h2_vReco_vs_vGen_xivh[nCents][nVPts][nTrkPts];
 
     // multiplicity
-    bool fill_wTrkSum = (isPbPb && !isMixTrk);
+    bool fill_wTrkSum = (isPbPb && !isMixTrk && anaTrks);
     TH2D* h2_wTrkSum_vs_cent[nVPts][nTrkPts];
     TH2D* h2_wTrkSum_vs_cent_noDphi[nVPts][nTrkPts];
     TH2D* h2_wTrkSum_vs_dphi_rebin[nCents][nVPts][nTrkPts];
