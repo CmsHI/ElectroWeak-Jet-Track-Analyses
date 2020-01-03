@@ -441,6 +441,13 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         else if (vIsZee && isPbPb18)  {
             fileNameWEP = "vJetTrkAna_pbpb_2018_data_zee_vr_trk_r_raw.root";
         }
+        if (isMC) {
+            dirWEP = "/export/d00/scratch/tatar/EWJTA-out/vJetTrk/zBoson/Histogramming/nMixBins_800_15_1_PFHFtotE_m682_vg/";
+
+            std::string tmpStrMG5 = (isMCMG) ? "mg5_" : "";
+            std::string tmpStrzll = (vIsZmm) ? "zmm" : "zee";
+            fileNameWEP = Form("vJetTrkAna_pbpb_2018_mc_%s%s_vg_trk_g_raw.root", tmpStrMG5.c_str(), tmpStrzll.c_str());
+        }
 
         if (fileNameWEP != "") {
             std::string filePathWEP = Form("%s/%s", dirWEP.c_str(), fileNameWEP.c_str());
@@ -479,7 +486,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
             for (std::vector<std::string>::iterator it = tmpCents.begin() ; it != tmpCents.end(); ++it) {
 
-                std::string tmpPath = Form("h_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
+                //std::string tmpPath = Form("h_dphi_phi0_V_vPt30_80_cent%s", (*it).c_str());
+                std::string tmpPath = Form("h_dphi_phi0_V_vPt30_0_cent%s", (*it).c_str());
                 vec_h1D_wPhi0.push_back((TH1D*)fileWeightsPhi0->Get(tmpPath.c_str()));
             }
         }
@@ -3594,11 +3602,16 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     binMaxTmp = 4;
                 }
 
+                if (isMC) {
+                    binMinTmp = vec_h2D_wEP[iCent]->GetXaxis()->FindBin(vPt);
+                    binMaxTmp = binMinTmp;
+                }
+
                 //int binTmpVPt = ((TH1D*)(vec_h2D_wEP[iCent]->ProjectionX()))->FindBin(vPt);
                 //hTmp = (TH1D*)vec_h2D_wEP[iCent]->ProjectionY("hTmp_wEP", binTmpVPt, binTmpVPt);
                 //hTmp->Rebin(2);
                 hTmp = (TH1D*)vec_h2D_wEP[iCent]->ProjectionY("hTmp_wEP", binMinTmp, binMaxTmp);
-                hTmp->Rebin(2);
+                if (!isMC) hTmp->Rebin(2);
                 hTmp->Scale(1./hTmp->Integral());
                 int tmpBinEP = hTmp->FindBin(std::fabs(getDPHI(vPhi, hiEvt.hiEvtPlanes[8])));
                 double tmpWEP = hTmp->GetBinContent(tmpBinEP);
