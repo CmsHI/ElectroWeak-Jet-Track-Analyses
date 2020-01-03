@@ -380,7 +380,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "shifting hiBin" << std::endl;
     }
 
-    double minDR_lep_trk_PFID = 0.0;   // minDR_lep_trk if PF ID is available
+    double minDR_lep_trk_PFID = 0.02;   // minDR_lep_trk if PF ID is available
     double minDR_lep_trk_noPFID = 0.2;
     std::cout << "minDR_lep_trk_PFID = " << minDR_lep_trk_PFID << std::endl;
     std::cout << "minDR_lep_trk_noPFID = " << minDR_lep_trk_noPFID << std::endl;
