@@ -219,6 +219,10 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::vector<int> centsMax(centsMaxTmp.begin(), centsMaxTmp.end());
     int nCents = centsMin.size();
 
+    int tmpApplyTrkID = (ArgumentParser::optionExists("--applyTrkID", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--applyTrkID", argOptions).c_str()) : 0;
+    bool applyTrkID = (tmpApplyTrkID > 0);
+
     int maxNVtx = (ArgumentParser::optionExists("--maxNVtx", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--maxNVtx", argOptions).c_str()) : 0;
     int minNVtx = (ArgumentParser::optionExists("--minNVtx", argOptions)) ?
@@ -285,6 +289,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     for (int i = 0; i < nCents; ++i) {
         std::cout << Form("cents[%d] = [%d, %d)", i, centsMin[i], centsMax[i]) << std::endl;
     }
+
+    std::cout << "applyTrkID = " << applyTrkID << std::endl;
 
     std::cout << "maxNVtx = " << maxNVtx << std::endl;
     std::cout << "minNVtx = " << minNVtx << std::endl;
@@ -387,9 +393,6 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
 
     double minDR2_lep_trk_PFID = minDR_lep_trk_PFID*minDR_lep_trk_PFID;
     double minDR2_lep_trk_noPFID = minDR_lep_trk_noPFID*minDR_lep_trk_noPFID;
-
-    bool do_trk_ID = false;
-    std::cout << "do_trk_ID = " << do_trk_ID << std::endl;
 
     // initialize objects
     TH1::SetDefaultSumw2();
@@ -4139,7 +4142,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 // lepton rej
-                if (do_trk_ID) {
+                if (applyTrkID) {
                     if (isRecoTrk) {
                         // PF id
                         if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3 || (*p_pid)[i] < 0)  continue;
