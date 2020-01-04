@@ -388,6 +388,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double minDR2_lep_trk_PFID = minDR_lep_trk_PFID*minDR_lep_trk_PFID;
     double minDR2_lep_trk_noPFID = minDR_lep_trk_noPFID*minDR_lep_trk_noPFID;
 
+    bool do_trk_ID = false;
+    std::cout << "do_trk_ID = " << do_trk_ID << std::endl;
+
     // initialize objects
     TH1::SetDefaultSumw2();
 
@@ -4136,12 +4139,14 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 // lepton rej
-                if (isRecoTrk) {
-                    // PF id
-                    if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3 || (*p_pid)[i] < 0)  continue;
-                }
-                else {
-                    if (std::fabs((*p_pid)[i]) == 11 || std::fabs((*p_pid)[i]) == 13)  continue;
+                if (do_trk_ID) {
+                    if (isRecoTrk) {
+                        // PF id
+                        if ((*p_pid)[i] == 2 || (*p_pid)[i] == 3 || (*p_pid)[i] < 0)  continue;
+                    }
+                    else {
+                        if (std::fabs((*p_pid)[i]) == 11 || std::fabs((*p_pid)[i]) == 13)  continue;
+                    }
                 }
 
                 double trkWeightTmp = (*p_weight)[i];
