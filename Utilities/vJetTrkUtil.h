@@ -182,6 +182,8 @@ bool isRatioDphi(std::string label);
 bool isRatioXivh(std::string label);
 bool isRatioTrkPt(std::string label);
 bool isDiffDphi(std::string label);
+bool isDiffXivh(std::string label);
+bool isDiffTrkPt(std::string label);
 bool isRatioVTrk(std::string label);
 bool isCentRange(std::string label, std::string strCentRange);
 bool isBootStrapHist(std::string label);
@@ -1457,6 +1459,16 @@ bool isRatioTrkPt(std::string label)
 bool isDiffDphi(std::string label)
 {
     return (parseVTrkObs(label) == "diff_dphi");
+}
+
+bool isDiffXivh(std::string label)
+{
+    return (parseVTrkObs(label) == "diff_xivh");
+}
+
+bool isDiffTrkPt(std::string label)
+{
+    return (parseVTrkObs(label) == "diff_trkpt");
 }
 
 bool isRatioVTrk(std::string label)
