@@ -1183,6 +1183,8 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
 
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660-132), totEMax);  // p, UE energy up
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660+132), totEMax);  // m, UE energy down
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660-99), totEMax);  // p, UE energy up
+                    //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660+99), totEMax);  // m, UE energy down
 
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660-66), totEMax);  // p, UE energy up
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - (660+66), totEMax);  // m, UE energy down
