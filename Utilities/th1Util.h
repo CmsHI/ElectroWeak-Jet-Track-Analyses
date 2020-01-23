@@ -47,6 +47,7 @@ void scaleBinErrors(TH1* h, double scale);
 void scaleBinContentErrors(TH1* h, double scaleContent, double scaleError);
 void setBinsFromTH2sliceMean(TH1* h, TH2* h2, bool alongYaxis = true);
 void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis = true);
+void addConstantBinContents(TH1* h, double constantContent);
 void addBinContents(TH1D* hSrc, TH1D* hDest);
 void addBinContents(TH2D* hSrc, TH2D* hDest);
 std::vector<double> getBinContents(TH1* h);
@@ -588,6 +589,14 @@ void setBinsFromTH2sliceStdDev(TH1* h, TH2* h2, bool alongYaxis)
     }
 
     setBinContentsErrors(h, binContents, binErrors);
+}
+
+void addConstantBinContents(TH1* h, double constantContent)
+{
+    int nBinsX = h->GetNbinsX();
+    for (int i = 1; i <= nBinsX; ++i) {
+        h->AddBinContent(i, constantContent);
+    }
 }
 
 void addBinContents(TH1D* hSrc, TH1D* hDest)
