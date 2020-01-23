@@ -1404,23 +1404,68 @@ double parseVTrkDPhiMin(std::string text)
 
 std::string parseVTrkObs(std::string label)
 {
-    if (label.find("dphi") == 0 || label.find("h_dphi") == 0) {
+    if (label.find("dphi") == 0 ||
+        label.find("h_dphi") == 0 ||
+        label.find("err_bs_dphi") == 0 ||
+        label.find("h_err_bs_dphi") == 0) {
+
         return "dphi";
     }
-    else if (label.find("ratio_dphi") == 0 || label.find("h_ratio_dphi") == 0) {
+    else if (label.find("ratio_dphi") == 0 ||
+             label.find("h_ratio_dphi") == 0 ||
+             label.find("err_bs_ratio_dphi") == 0 ||
+             label.find("h_err_bs_ratio_dphi") == 0) {
+
         return "ratio_dphi";
     }
-    else if (label.find("xivh") == 0 || label.find("h_xivh") == 0) {
+    else if (label.find("diff_dphi") == 0 ||
+             label.find("h_diff_dphi") == 0 ||
+             label.find("err_bs_diff_dphi") == 0 ||
+             label.find("h_err_bs_diff_dphi") == 0) {
+
+        return "diff_dphi";
+    }
+    else if (label.find("xivh") == 0 ||
+             label.find("h_xivh") == 0 ||
+             label.find("err_bs_xivh") == 0 ||
+             label.find("h_err_bs_xivh") == 0 ) {
+
         return "xivh";
     }
-    else if (label.find("ratio_xivh") == 0 || label.find("h_ratio_xivh") == 0) {
+    else if (label.find("ratio_xivh") == 0 ||
+             label.find("h_ratio_xivh") == 0 ||
+             label.find("err_bs_ratio_xivh") == 0 ||
+             label.find("h_err_bs_ratio_xivh") == 0) {
+
         return "ratio_xivh";
     }
-    else if (label.find("trkPt") == 0 || label.find("h_trkPt") == 0) {
+    else if (label.find("diff_xivh") == 0 ||
+             label.find("h_diff_xivh") == 0 ||
+             label.find("err_bs_diff_xivh") == 0 ||
+             label.find("h_err_bs_diff_xivh") == 0) {
+
+        return "diff_xivh";
+    }
+    else if (label.find("trkPt") == 0 ||
+             label.find("h_trkPt") == 0 ||
+             label.find("err_bs_trkPt") == 0 ||
+             label.find("h_err_bs_trkPt") == 0) {
+
         return "trkpt";
     }
-    else if (label.find("ratio_trkPt") == 0 || label.find("h_ratio_trkPt") == 0) {
+    else if (label.find("ratio_trkPt") == 0 ||
+             label.find("h_ratio_trkPt") == 0 ||
+             label.find("err_bs_ratio_trkPt") == 0 ||
+             label.find("h_err_bs_ratio_trkPt") == 0) {
+
         return "ratio_trkpt";
+    }
+    else if (label.find("diff_trkPt") == 0 ||
+             label.find("h_diff_trkPt") == 0 ||
+             label.find("err_bs_diff_trkPt") == 0 ||
+             label.find("h_err_bs_diff_trkPt") == 0) {
+
+        return "diff_trkpt";
     }
 
     return "";
