@@ -633,7 +633,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
         if (!isMixTrk) {
             fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_zmm%s.root", versionResTrkW.c_str());
             if (vIsZee) {
-                fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
+                //fileNameResMBTrkW = Form("trkCalc_pbpb_2018_mc_mg5%s.root", versionResTrkW.c_str());
             }
 
             if (outputFile.find("res_zmm") != std::string::npos) {
@@ -4188,7 +4188,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         if (doResidualMBTrkW) {
 
                             int iResMBTrkWPt = -1;
-                            if ((t_pt < 4) || (hiBin0Tmp < 100 && t_pt < 60)) {
+                            if (t_pt < 120) {
                                 iResMBTrkWPt = getBinPt4TrkW(t_pt, resMBTrkWPts, nResMBTrkWPt);
                             }
 
