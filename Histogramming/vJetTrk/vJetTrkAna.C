@@ -4178,7 +4178,8 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                         trkWeightTmp = trkCorr2015->getTrkCorr(t_pt, t_eta, t_phi, hiBin0Tmp);
                     }
                     else if (isPP17) {
-                        trkWeightTmp = 0.979*trkEff2017.getCorrection(t_pt, t_eta);
+                        double tmpSFpp = (isMC) ? 0.979 : 1;
+                        trkWeightTmp = tmpSFpp*(trkEff2017.getCorrection(t_pt, t_eta));
                     }
                     else if (isPbPb18) {
                         //trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBinTmp);
