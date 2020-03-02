@@ -604,16 +604,22 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     bool is_pbpb_vs_pp = !is_pp_vs_mc;
 
     int iObs = -1;
+    bool isErrBS = (figInfo.find("err_bs") != std::string::npos);
     bool isDiff = (figInfo.find("fig_diff") != std::string::npos);
     bool isStack = (figInfo.find("_stack") != std::string::npos);
 
-    if (figInfo.find("fig_dphi") != std::string::npos || figInfo.find("fig_diff_dphi") != std::string::npos) {
+    if (figInfo.find("fig_dphi") != std::string::npos ||
+        figInfo.find("fig_err_bs_dphi") != std::string::npos ||
+        figInfo.find("fig_diff_dphi") != std::string::npos ||
+        figInfo.find("fig_diff_err_bs_dphi") != std::string::npos) {
         iObs = k_dphi;
     }
-    else if (figInfo.find("fig_xivh") != std::string::npos) {
+    else if (figInfo.find("fig_xivh") != std::string::npos ||
+             figInfo.find("fig_err_bs_xivh") != std::string::npos) {
         iObs = k_xivh;
     }
-    else if (figInfo.find("fig_trkPt") != std::string::npos) {
+    else if (figInfo.find("fig_trkPt") != std::string::npos ||
+             figInfo.find("fig_err_bs_trkPt") != std::string::npos) {
         iObs = k_trkPt;
     }
     else {
@@ -705,7 +711,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xTitle = "#xi^{trk,Z}_{T}";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#xi^{trk,Z}_{T}}";
 
-        xMax = 4.499;
+        //xMax = 4.499;
+        xMax = 4.99;
 
         yMin = -0.2;
         yMax = 5.0;
@@ -830,22 +837,27 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 obslabelTmp = "trkPt_rebin2";
             }
 
+            std::string obslabelTmpPbPb = obslabelTmp;
+            if (isErrBS) {
+                obslabelTmpPbPb = Form("err_bs_%s", obslabelTmp.c_str());
+            }
+
             if (iObs != k_trkPt) {
 
                 for (int iP = 0; iP < nTrkPts; ++iP) {
 
                     tmpTrkPtLbl = trkPtLabels[iP];
 
-                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
                     histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
                 }
             }
             else {
 
-                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
                 histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
             }
         }
     }
@@ -877,6 +889,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
 
     std::string ratiodiffLblSys = (isDiff) ? "" : "_ratio";
+    //std::string ratiodiffLblSys = (isDiff) ? "_diff" : "_ratio";
     if (is_pbpb_vs_pp) {
         markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
         fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
@@ -889,6 +902,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         sysPaths.clear();
 
+        sysUseRelUnc.clear();
+
         if (iObs != k_trkPt) {
             tmpTrkPtLbl = "trkPt1_0_";
         }
@@ -896,7 +911,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
             std::string obslabelTmp = obslabel;
-            if (iObs == k_trkPt && (centMins[iC] >= 0)) {
+            //if (iObs == k_trkPt && (centMins[iC] >= 0) && !isErrBS) {
+            if (iObs == k_trkPt && (centMins[iC] >= 50)) {
                 obslabelTmp = "trkPt_rebin2";
             }
 
@@ -1632,9 +1648,13 @@ int parseFigureType(std::string figuretype)
         return FIGURE::k_M_Z;
     }
     else if (figuretype.find("fig_dphi") != std::string::npos ||
+             figuretype.find("fig_err_bs_dphi") != std::string::npos ||
              figuretype.find("fig_diff_dphi") != std::string::npos ||
+             figuretype.find("fig_diff_err_bs_dphi") != std::string::npos ||
              figuretype.find("fig_xivh") != std::string::npos ||
-             figuretype.find("fig_trkpt") != std::string::npos) {
+             figuretype.find("fig_err_bs_xivh") != std::string::npos ||
+             figuretype.find("fig_trkpt") != std::string::npos ||
+             figuretype.find("fig_err_bs_trkpt") != std::string::npos) {
         return FIGURE::k_zTrk;
     }
 
