@@ -1,0 +1,1054 @@
+/*
+ * macro to produce plots for v+jet+trk analysis
+ */
+#include <TFile.h>
+#include <TDirectoryFile.h>
+#include <TCanvas.h>
+#include <TPad.h>
+#include <TAxis.h>
+#include <TGaxis.h>
+#include <TH1D.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
+#include <TLine.h>
+#include <TLegend.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TStyle.h>
+#include <TColor.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
+#include <algorithm>
+
+#include "../../Utilities/interface/ArgumentParser.h"
+#include "../../Utilities/interface/ConfigurationParser.h"
+#include "../../Utilities/interface/InputConfigurationParser.h"
+#include "../../Utilities/eventUtil.h"
+//#include "../../Utilities/th1Util.h"
+#include "../../Utilities/styleUtil.h"
+#include "../../Utilities/fileUtil.h"
+#include "../../Utilities/systemUtil.h"
+#include "../../Utilities/physicsUtil.h"
+#include "../../Utilities/vJetTrkUtil.h"
+
+enum FIGURE{
+    k_M_Z,
+    k_zTrk,
+    kN_FIGURES
+};
+
+std::string figureNames[kN_FIGURES] = {"vJetTrk_M_Z", "vJetTrk_zTrk"};
+
+// Canvas
+int windowWidth;
+int windowHeight;
+int logX;
+int logY;
+float leftMargin;
+float rightMargin;
+float bottomMargin;
+float topMargin;
+// TH1D
+std::string xTitle;
+std::string yTitle;
+float xTitleSize;
+float yTitleSize;
+float xTitleOffset;
+float yTitleOffset;
+int xTitleFont;
+int yTitleFont;
+double yMin;
+double yMax;
+std::vector<std::string> histPaths;
+std::vector<int> markerColors;
+std::vector<int> markerStyles;
+std::vector<float> markerSizes;
+std::vector<int> lineColors;
+std::vector<float> lineTransparencies;
+std::vector<int> lineWidths;
+std::vector<int> fillColors;
+std::vector<float> fillTransparencies;
+std::vector<std::string> drawOptions;
+std::vector<std::string> sysPaths;
+std::vector<bool> sysUseRelUnc;
+std::vector<int> sysColors;
+std::vector<float> sysTransparencies;
+std::vector<int> sysFillStyles;
+// TGraph
+std::vector<std::string> graphPaths;
+std::vector<int> graphMarkerColors;
+std::vector<float> graphMarkerTransparencies;
+std::vector<int> graphMarkerStyles;
+std::vector<float> graphMarkerSizes;
+std::vector<int> graphLineColors;
+std::vector<float> graphLineTransparencies;
+std::vector<int> graphLineWidths;
+std::vector<int> graphLineStyles;
+std::vector<int> graphFillColors;
+std::vector<float> graphFillTransparencies;
+std::vector<std::string> graphDrawOptions;
+// TLegend
+float legendX1;
+float legendY1;
+float legendWidth;
+float legendHeight;
+float legendMargin;
+std::vector<std::string> legendEntryTexts;
+std::vector<std::string> legendEntryOptions;
+// TLatex
+float textX;
+std::vector<float> textYs;
+int textAlign;
+int textFont;
+float textSize;
+std::vector<std::string> textLines;
+// TLatex over pad
+std::vector<float> textXsOverPad;
+float textYOverPad;
+std::vector<int> textAlignsOverPad;
+int textFontOverPad;
+float textSizeOverPad;
+std::vector<std::string> textOverPadLines;
+// TLatex CMS
+float textXCMS;
+float textYCMS;
+int textAlignCMS;
+int textFontCMS;
+float textSizeCMS;
+// TLatex CMS Preliminary
+float textXCMSpreliminary;
+float textYCMSpreliminary;
+int textAlignCMSpreliminary;
+int textFontCMSpreliminary;
+float textSizeCMSpreliminary;
+
+void vJetTrkPlot(std::string inputFileList, std::string figInfo);
+void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo);
+void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo);
+int parseFigureType(std::string figuretype);
+void setTH1D(int iHist, TH1D* h);
+void setTGraph(int iGraph, TGraph* gr);
+void setTGraphSys(int iSys, TGraph* gr);
+void setCanvas(TCanvas* c);
+void setLegend(TLegend* leg);
+void setLatex(int iText, TLatex* latex);
+void setLatexOverPad(int iText, TLatex* latex);
+void setLatexCMS(TLatex* latex);
+void setLatexCMSextraLabel(TLatex* latex, std::string text);
+//void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+//void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+
+void vJetTrkPlot(std::string inputFileList, std::string figInfo)
+{
+    std::cout << "running vJetTrkCalc()" << std::endl;
+    std::cout << "inputFiles = " << inputFileList.c_str()  << std::endl;
+    std::cout << "figInfo = " << figInfo.c_str()  << std::endl;
+
+    int figType = parseFigureType(figInfo);
+    if (figType < 0) {
+        std::cout << "Invalid figure type" << std::endl;
+        std::cout << "Exiting." << std::endl;
+        return;
+    }
+
+    std::cout << "figType = " << figType << std::endl;
+    std::cout << "figureName = " << figureNames[figType].c_str() << std::endl;
+
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFileList.c_str());
+    std::cout<<"ROOT files containing input TH1 : num = "<<inputFiles.size()<< std::endl;
+    std::cout<<"#####"<< std::endl;
+    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+        std::cout<<(*it).c_str()<< std::endl;
+    }
+    std::cout<<"##### END #####"<< std::endl;
+
+    // TH1 objects
+    TH1::SetDefaultSumw2();
+
+    int nInputFiles = inputFiles.size();
+
+    std::cout << "nInputFiles = " << nInputFiles << std::endl;
+    for (int i = 0; i < nInputFiles; ++i) {
+        std::cout << Form("inputFiles[%d] = %s", i, inputFiles.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<TFile*> inputs(nInputFiles, 0);
+    for (int i = 0; i < nInputFiles; ++i) {
+        inputs[i] = 0;
+        inputs[i] = TFile::Open(inputFiles[i].c_str(), "READ");
+        if (inputs[i] == 0) {
+            std::cout << "Cannot read file i : " << i << " with name " << inputFiles[i].c_str() << std::endl;
+            std::cout << "Exiting." << std::endl;
+            return;
+        }
+    }
+
+    switch (figType) {
+        case FIGURE::k_M_Z:
+            vJetTrkPlot_M_Zll(inputs, figInfo);
+            break;
+        case FIGURE::k_zTrk:
+            vJetTrkPlot_zTrk(inputs, figInfo);
+            break;
+        default:
+            break;
+    }
+
+
+    std::cout << "Closing the input files." << std::endl;
+    for (int i = 0; i < nInputFiles; ++i) {
+        inputs[i]->Close();
+    }
+    std::cout<<"vJetTrkPlot() - END"<<std::endl;
+}
+
+void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
+{
+    std::cout<<"running vJetTrkPlot_M_Zll()"<<std::endl;
+
+    int nInputs = inputs.size();
+    if (nInputs != 3) {
+        std::cout << "There must be 3 input files for this figure." << std::endl;
+        std::cout << "Exiting." << std::endl;
+        return;
+    }
+
+    bool isMC = isMCsample(figInfo);
+    bool isPbPb = isPbPbsample(figInfo);
+    bool isPP = isPPsample(figInfo);
+
+    std::cout << "isMC = " << isMC << std::endl;
+    std::cout << "isPbPb = " << isPbPb << std::endl;
+    std::cout << "isPP = " << isPP << std::endl;
+
+    bool vIsZee = (toLowerCase(figInfo).find("zee") != std::string::npos);
+
+    windowWidth = 800;
+    windowHeight = 800;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.17;
+    rightMargin  = 0.05;
+    bottomMargin = 0.15;
+    topMargin    = 0.05;
+    std::string figNameFinal = Form("%s_%s", figureNames[FIGURE::k_M_Z].c_str(), figInfo.c_str());
+    TCanvas* c = new TCanvas(figNameFinal.c_str(), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    setCanvas(c);
+    c->cd();
+
+    xTitle = (vIsZee) ? "M^{ee} (GeV/c^{2})": "M^{#mu#mu} (GeV/c^{2})";
+    yTitle = "Entries / (2 GeV/c^{2})";
+    xTitleSize = 0.042;
+    yTitleSize = 0.042;
+    xTitleOffset = 1.25;
+    yTitleOffset = 1.7;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    yMin = 0;
+    yMax = 0;
+
+    enum HISTLABELS {
+        k_mc,
+        k_data,
+        k_data_sameCh,
+        kN_HISTLABELS
+    };
+
+    int vPtMin = parseVPtMin(figInfo);
+    int vPtMax = parseVPtMax(figInfo);
+    std::string strVPt = Form("vPt%d_%d", vPtMin, vPtMax);
+    std::string strCent = (isPP) ? "cent0_100" : "cent0_90";
+    histPaths = {
+            Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
+            Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
+            Form("h_vM_ss_%s_%s", strVPt.c_str(), strCent.c_str()),
+    };
+    markerColors = {kBlack, kBlack, kBlack};
+    markerStyles = {kFullCircle, kFullCircle, kOpenSquare};
+    markerSizes = {1.25, 1.25, 1.25};
+    lineColors = {kOrange+7, TColor::GetColor("#000099"), TColor::GetColor("#000099")};
+    lineTransparencies = {1.0, 1.0, 1.0};
+    lineWidths = {2, 1, 1};
+    fillColors = {kOrange-2, -1, -1};
+    fillTransparencies = {1.0, 1.0, 1.0};
+    drawOptions = {"hist", "e same", "e same"};
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)inputs[i]->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    int binMax = h1Ds[k_data]->GetMaximumBin();
+    yMax = h1Ds[k_data]->GetBinContent(binMax) * 1.4;
+
+    double intMC = h1Ds[k_mc]->Integral();
+    double intData = h1Ds[k_data]->Integral();
+    h1Ds[k_mc]->Scale(intData / intMC);
+
+    for (int i = 0; i < nHistPaths; ++i) {
+        h1Ds[i]->SetMinimum(yMin);
+        h1Ds[i]->SetMaximum(yMax);
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    std::vector<int> pairCounts(nHistPaths, 0);
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        double massMin_count = 60;
+        double massMax_count = 120;
+        int binLow_count = -1;
+        int binUp_count = -1;
+
+        binLow_count = h1Ds[i]->FindBin(massMin_count);
+        binUp_count = h1Ds[i]->FindBin(massMax_count) - 1;
+
+        pairCounts[i] = (int)h1Ds[i]->Integral(binLow_count, binUp_count);
+    }
+
+    std::cout << Form("Opposite sign (%d counts)", pairCounts[k_data]) << std::endl;
+    std::cout << Form("Same sign (%d counts)", pairCounts[k_data_sameCh]) << std::endl;
+
+    legendX1 = 0.21;
+    legendY1 = 0.76;
+    legendWidth = 0.45;
+    legendHeight = 0.15;
+    legendMargin = 0.15;
+    std::string textMC = (isPP) ? "Pythia" : "Pythia+Hydjet";
+    legendEntryTexts = {
+            textMC.c_str(),
+            //Form("Opposite sign (%d counts)", pairCounts[k_data]),
+            //Form("Same sign (%d counts)", pairCounts[k_data_sameCh])
+            "Opposite sign",
+            "Same sign"
+    };
+
+    legendEntryOptions = {
+            "lf",
+            "lpf",
+            "lpf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_data]->Clone(Form("%s_tmp", h1Ds[k_data]->GetName()));
+    leg->AddEntry(hTmp, legendEntryTexts[k_data].c_str(), legendEntryOptions[k_data].c_str());
+    hTmp = (TH1D*)h1Ds[k_data_sameCh]->Clone(Form("%s_tmp", h1Ds[k_data_sameCh]->GetName()));
+    leg->AddEntry(hTmp, legendEntryTexts[k_data_sameCh].c_str(), legendEntryOptions[k_data_sameCh].c_str());
+    hTmp = (TH1D*)h1Ds[k_mc]->Clone(Form("%s_tmp", h1Ds[k_mc]->GetName()));
+    leg->AddEntry(hTmp, legendEntryTexts[k_mc].c_str(), legendEntryOptions[k_mc].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+
+    textX = 0.21;
+    textYs = {0.69, 0.64};
+    textAlign = 11;
+    textFont = 43;
+    textSize = 30;
+    std::string textL = (vIsZee) ? "e" : "#mu";
+    //std::string textLeta = (vIsZee) ? "2.1" : "2.4";
+    textLines = {
+            Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
+            //Form("|#eta^{%s#pm}| < %s", textL.c_str(), textLeta.c_str())
+    };
+    int nTextLines = textLines.size();
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textX = 0.69;
+    textYs = {0.71, 0.66, 0.61};
+    textAlign = 11;
+    textFont = 43;
+    textSize = 30;
+    std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
+    if (vPtMax > 0) {
+        textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
+    }
+    if (isPP) {
+        textLines = {
+                Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
+                textVPt.c_str(),
+        };
+    }
+    else {
+        textLines = {
+                Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
+                "Cent: 0-90 %",
+                textVPt.c_str(),
+        };
+    }
+
+    nTextLines = textLines.size();
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    textXsOverPad = {0.17, 0.95};
+    textYOverPad = 0.97;
+    textAlignsOverPad = {11, 31};
+    textFontOverPad = 43;
+    textSizeOverPad = 29;
+    if (isPP) {
+        textOverPadLines = {
+                "pp #sqrt{s_{NN}} = 5.02 TeV",
+                "309 pb^{-1}"
+        };
+    }
+    else {
+        textOverPadLines = {
+                "PbPb #sqrt{s_{NN}} = 5.02 TeV",
+                "1618 #mub^{-1}"
+        };
+    }
+    int nTextOverPadLines = textOverPadLines.size();
+    for (int i = 0; i < nTextOverPadLines; ++i) {
+        latex = new TLatex();
+        setLatexOverPad(i, latex);
+        latex->Draw();
+    }
+
+    textXCMS = 0.69;
+    textYCMS = 0.87;
+    textAlignCMS = 11;
+    textFontCMS = 61;
+    textSizeCMS = 0.045;
+    latex = new TLatex();
+    setLatexCMS(latex);
+    latex->Draw();
+
+    bool isPreliminary = true;
+    if (isPreliminary) {
+        textXCMSpreliminary = textXCMS;
+        textYCMSpreliminary = textYCMS-0.05;
+        textAlignCMSpreliminary = 11;
+        textFontCMSpreliminary = 52;
+        textSizeCMSpreliminary = textSizeCMS*1.1;
+        latex = new TLatex();
+        setLatexCMSextraLabel(latex, "Preliminary");
+        latex->Draw();
+    }
+
+    c->Update();
+
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"running vJetTrkPlot_M_Zll() - END"<<std::endl;
+}
+
+void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
+{
+    std::cout<<"running vJetTrkPlot_zTrk()"<<std::endl;
+
+    int nInputs = inputs.size();
+    if (nInputs != 6) {
+        std::cout << "There must be 6 input files for this figure." << std::endl;
+        std::cout << "Exiting." << std::endl;
+        return;
+    }
+
+    enum OBS {
+        k_dphi,
+        k_xivh,
+        k_trkPt,
+        kN_OBS
+    };
+
+    int iObs = -1;
+    if (figInfo.find("fig_dphi") != std::string::npos) {
+        iObs = k_dphi;
+    }
+    else if (figInfo.find("fig_xivh") != std::string::npos) {
+        iObs = k_xivh;
+    }
+    else if (figInfo.find("fig_trkPt") != std::string::npos) {
+        iObs = k_trkPt;
+    }
+    else {
+        std::cout << "Invalid observable." << std::endl;
+        std::cout << "Exiting." << std::endl;
+        return;
+    }
+
+    enum COLL_CENT {
+        k_0_30,
+        k_30_90,
+        kN_COLL_CENT
+    };
+
+    int iCent = -1;
+    if (figInfo.find("cent0_30") != std::string::npos) {
+        iCent = k_0_30;
+    }
+    else if (figInfo.find("cent30_90") != std::string::npos) {
+        iCent = k_30_90;
+    }
+    else {
+        std::cout << "Invalid centrality." << std::endl;
+        std::cout << "Exiting." << std::endl;
+        return;
+    }
+
+    // no horizontal error bars
+    gStyle->SetErrorX(0);
+    gStyle->SetHatchesLineWidth(3);
+
+    windowWidth = 800;
+    windowHeight = 700;
+    logX = 0;
+    logY = 0;
+    leftMargin   = 0.22;
+    rightMargin  = 0.02;
+    bottomMargin = 0.18;
+    topMargin    = 0.08;
+
+    int rows = 2;
+    int columns = 1;
+    float yMargin = 0;
+    float xMargin = 0;
+    double frameH = 1-bottomMargin-topMargin-yMargin;
+    double frameW = 1-leftMargin-rightMargin-xMargin;
+    double normCanvasHeight = calcNormCanvasHeight(rows, frameH, bottomMargin, topMargin, yMargin);
+    double normCanvasWidth = calcNormCanvasWidth(columns, frameW, leftMargin, rightMargin, xMargin);
+
+    TCanvas* c = 0 ;
+
+    c = new TCanvas(Form("%s_%s", figureNames[FIGURE::k_zTrk].c_str(), figInfo.c_str()), "", windowWidth, windowHeight);
+    std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    c->SetCanvasSize(windowWidth*normCanvasWidth, windowHeight*normCanvasHeight);
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
+
+    TPad* pads[2];
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH);
+
+    for (int i = 0; i < 2; ++i) {
+        pads[i]->SetBorderMode(0);
+        pads[i]->SetBorderSize(0);
+        pads[i]->SetFrameBorderMode(0);
+        pads[i]->SetFrameLineColor(0);
+
+        // put ticks to upper and right part of the axis.
+        pads[i]->SetTickx(1);
+        pads[i]->SetTicky(1);
+    }
+
+    std::string obslabel = "";
+    std::string trkPtlabel = "";
+    xTitle = "";
+    yTitle = "";
+    float xMin = 0;
+    float xMax = -1;
+    yMin = 0;
+    yMax = -1;
+    if (iObs == OBS::k_dphi) {
+        obslabel = "dphi_rebin";
+        trkPtlabel = "trkPt1_0_";
+
+        xTitle = "#Delta#phi_{trk,Z}";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}}";
+        yMin = -1;
+        yMax = 25;
+    }
+    else if (iObs == OBS::k_xivh) {
+        obslabel = "xivh";
+        trkPtlabel = "trkPt1_0_";
+
+        xTitle = "#xi^{trk,Z}_{T}";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#xi^{trk,Z}_{T}}";
+
+        yMin = -0.1;
+        yMax = 4;
+    }
+    else if (iObs == OBS::k_trkPt) {
+        obslabel = "trkPt_rebin";
+        trkPtlabel = "";
+
+        xTitle = "p^{trk}_{T} (GeV/c)";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk}}{dp^{trk}_{T}}";
+
+        xMin = 1;
+        xMax = 30;
+        yMin = -0.1;
+        yMax = 4;
+    }
+    xTitleSize = 0.07;
+    yTitleSize = 0.07;
+    xTitleOffset = 1.1;
+    yTitleOffset = 1.25;
+    xTitleFont = 42;
+    yTitleFont = 42;
+
+    std::string centlabel = "";
+    std::string centText = "";
+    if (iCent == k_0_30) {
+        centlabel = "cent0_30";
+        centText = "Cent:0-30%";
+    }
+    else if (iCent == k_30_90) {
+        centlabel = "cent30_90";
+        centText = "Cent:30-90%";
+    }
+
+    enum HISTLABELS {
+        k_pbpb,
+        k_pp,
+        k_ratio,
+        kN_HISTLABELS
+    };
+
+    histPaths = {
+            Form("h_%s_vPt30_0_%s%s_sig", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+            Form("h_%s_vPt30_0_%scent0_100_sig", obslabel.c_str(), trkPtlabel.c_str()),
+            Form("h_ratio_%s_vPt30_0_%s%s_sig", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+    };
+    markerColors = {kBlack, kBlack, kBlack};
+    markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
+    markerSizes.assign(kN_HISTLABELS, 1.70);
+    lineColors.assign(kN_HISTLABELS, kBlack);
+    lineTransparencies.assign(kN_HISTLABELS, 1.0);
+    lineWidths.assign(kN_HISTLABELS, 3);
+    fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+    fillTransparencies.assign(kN_HISTLABELS, 0.7);
+    drawOptions = {"e same", "e same", "e same"};
+    sysPaths = {
+            Form("h_%s_vPt30_0_%s%s_sig_systematics", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+            Form("h_%s_vPt30_0_%scent0_100_sig_systematics", obslabel.c_str(), trkPtlabel.c_str()),
+            Form("h_ratio_%s_vPt30_0_%s%s_sig_systematics", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+    };
+    sysUseRelUnc.assign(kN_HISTLABELS, false);
+    sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+    sysTransparencies.assign(kN_HISTLABELS, 0.7);
+    sysFillStyles.assign(kN_HISTLABELS, 1001);
+
+    int nHistPaths = histPaths.size();
+    std::vector<TH1D*> h1Ds(nHistPaths, 0);
+    std::vector<TH1D*> h1DsSys(nHistPaths, 0);
+    TGraph* gr = 0;
+    TH1D* hTmp = 0;
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        h1Ds[i] = (TH1D*)inputs[i]->Get(histPaths[i].c_str());
+        setTH1D(i, h1Ds[i]);
+
+        // set x-axis range
+        if (xMax > xMin) {
+            h1Ds[i]->SetAxisRange(xMin + 0.00001, xMax - 0.00001, "X");
+        }
+
+        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.4);
+        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4);
+
+        h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
+        h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
+    }
+    h1Ds[k_ratio]->SetYTitle("PbPb / pp");
+    if (iObs == k_dphi) {
+        h1Ds[k_ratio]->SetMinimum(0.1);
+        h1Ds[k_ratio]->SetMaximum(3.6);
+    }
+    else if (iObs == k_xivh) {
+        h1Ds[k_ratio]->SetMinimum(0.2);
+        h1Ds[k_ratio]->SetMaximum(3.6);
+    }
+    else if (iObs == k_trkPt) {
+        h1Ds[k_ratio]->SetMinimum(0.2);
+        h1Ds[k_ratio]->SetMaximum(1.9);
+    }
+
+    // draw histograms
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        c->cd(1);
+        if (i == k_ratio) c->cd(2);
+
+        if (i == 0 || i == k_ratio) {
+            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+            hTmp->Draw("e");
+        }
+
+        h1DsSys[i] = (TH1D*)inputs[i+nHistPaths]->Get(sysPaths[i].c_str());
+        if (h1DsSys[i] != 0) {
+            gr = new TGraph();
+            setTGraphSys(i, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+        }
+
+        h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    c->cd(1);
+    legendX1 = 0.3;
+    legendY1 = 0.7;
+    if (iObs == k_dphi) {
+        legendX1 = 0.26;
+        legendY1 = 0.60;
+    }
+    else if (iObs == k_xivh) {
+        legendX1 = 0.26;
+        legendY1 = 0.60;
+    }
+    if (iObs == k_trkPt) {
+        legendX1 = 0.52;
+        legendY1 = 0.60;
+    }
+    legendWidth = 0.54;
+    legendHeight = 0.16;
+    legendMargin = 0.15;
+    legendEntryTexts = {
+            Form("PbPb %s", centText.c_str()),
+            "pp"
+    };
+    legendEntryOptions = {
+            "pf",
+            "pf"
+    };
+    TLegend* leg = new TLegend();
+
+    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
+    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pp]->GetName()));
+    hTmp->SetLineWidth(0);
+    leg->AddEntry(hTmp, legendEntryTexts[k_pp].c_str(), legendEntryOptions[k_pp].c_str());
+
+    setLegend(leg);
+    leg->Draw();
+
+    c->cd(1);
+    textAlign = 11;
+    textFont = 43;
+    textSize = 32;
+    textLines = {
+            "p_{T}^{Z} > 30 GeV/c",
+            "p_{T}^{trk} > 1 GeV/c",
+    };
+    if (iObs == k_xivh || iObs == k_trkPt) {
+        textLines.push_back("#Delta#phi_{trk,Z} > #frac{7#pi}{8}");
+    }
+    int nTextLines = textLines.size();
+    if (iObs == k_dphi) {
+        textX = legendX1;
+        textYs.resize(nTextLines, legendY1-0.08);
+    }
+    else if (iObs == k_xivh) {
+        textX = legendX1;
+        textYs.resize(nTextLines, legendY1-0.08);
+    }
+    else if (iObs == k_trkPt) {
+        textX = legendX1+0.1;
+        textYs.resize(nTextLines, legendY1-0.08);
+    }
+    TLatex* latex = 0;
+    for (int i = 0; i < nTextLines; ++i) {
+        latex = new TLatex();
+        textYs[i] = textYs[0] - i*0.08;
+        setLatex(i, latex);
+        latex->Draw();
+    }
+
+    c->Update();
+    c->cd(1);
+    textAlign = 11;
+    textFont = 43;
+    textSize = 30;
+
+    nTextLines = textLines.size();
+    textX = 0.30;
+    textYs.clear();
+    textYs.resize(nTextLines, 0.94);
+    latex = 0;
+
+    textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
+    latex = new TLatex();
+    setLatex(0, latex);
+    latex->Draw();
+
+    textXCMS = legendX1;
+    if (iObs == k_trkPt) {
+        textXCMS = legendX1+0.1;
+    }
+    textYCMS = 0.82;
+    textAlignCMS = 11;
+    textFontCMS = 61;
+    textSizeCMS = 0.06;
+    latex = new TLatex();
+    setLatexCMS(latex);
+    latex->Draw();
+
+    bool isPreliminary = true;
+    if (isPreliminary) {
+        textXCMSpreliminary = textXCMS;
+        textYCMSpreliminary = textYCMS-0.05;
+        textAlignCMSpreliminary = 11;
+        textFontCMSpreliminary = 52;
+        textSizeCMSpreliminary = textSizeCMS*1.1;
+        latex = new TLatex();
+        setLatexCMSextraLabel(latex, "Preliminary");
+        latex->Draw();
+    }
+
+    c->Update();
+
+    c->cd();
+    /*
+    TPad* emptyBox = 0;
+    emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
+                                    c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
+    emptyBox->Draw();
+
+    emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
+                                    c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
+    emptyBox->Draw();
+    */
+
+    TLine* line = 0;
+    c->cd(1);
+    line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->cd(2);
+    line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
+    line->SetLineStyle(kDashed);
+    line->Draw();
+
+    c->cd();
+    c->Update();
+    c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->SaveAs(Form("%s.png", c->GetName()));
+    c->Close();         // do not use Delete() for TCanvas.
+
+    std::cout<<"Closing the input file"<<std::endl;
+
+    std::cout<<"running vJetTrkPlot_zTrk() - END"<<std::endl;
+}
+
+int parseFigureType(std::string figuretype)
+{
+    figuretype = trim(figuretype);
+    figuretype = toLowerCase(figuretype);
+
+    if (figuretype.find("fig_m_z") != std::string::npos) {
+        return FIGURE::k_M_Z;
+    }
+    else if (figuretype.find("fig_dphi") != std::string::npos ||
+             figuretype.find("fig_xivh") != std::string::npos ||
+             figuretype.find("fig_trkpt") != std::string::npos) {
+        return FIGURE::k_zTrk;
+    }
+
+    return -1;
+}
+
+void setTH1D(int iHist, TH1D* h)
+{
+    h->SetTitle("");
+    h->SetStats(false);
+    h->SetXTitle(xTitle.c_str());
+    h->SetYTitle(yTitle.c_str());
+    h->SetTitleSize(xTitleSize, "X");
+    h->SetTitleSize(yTitleSize, "Y");
+    h->SetTitleOffset(xTitleOffset, "X");
+    h->SetTitleOffset(yTitleOffset, "Y");
+    h->SetTitleFont(xTitleFont, "X");
+    h->SetTitleFont(yTitleFont, "Y");
+    h->GetXaxis()->CenterTitle();
+    h->GetYaxis()->CenterTitle();
+    h->SetMinimum(yMin);
+    h->SetMaximum(yMax);
+    h->SetMarkerColor(markerColors[iHist]);
+    h->SetMarkerStyle(markerStyles[iHist]);
+    h->SetMarkerSize(markerSizes[iHist]);
+    h->SetLineColor(lineColors[iHist]);
+    h->SetLineColorAlpha(lineColors[iHist], lineTransparencies[iHist]);
+    h->SetLineStyle(kSolid);
+    h->SetLineWidth(lineWidths[iHist]);
+    h->SetFillColor(fillColors[iHist]);
+    h->SetFillColorAlpha(fillColors[iHist], fillTransparencies[iHist]);
+}
+
+void setTGraph(int iGraph, TGraph* gr)
+{
+    gr->SetMarkerColor(graphMarkerColors[iGraph]);
+    gr->SetMarkerColorAlpha(graphMarkerColors[iGraph], graphMarkerTransparencies[iGraph]);
+    gr->SetMarkerStyle(graphMarkerStyles[iGraph]);
+    gr->SetMarkerSize(graphMarkerSizes[iGraph]);
+    gr->SetLineColor(graphLineColors[iGraph]);
+    gr->SetLineColorAlpha(graphLineColors[iGraph], graphLineTransparencies[iGraph]);
+    gr->SetLineWidth(graphLineWidths[iGraph]);
+    gr->SetLineStyle(graphLineStyles[iGraph]);
+    gr->SetFillColor(graphFillColors[iGraph]);
+    gr->SetFillColorAlpha(graphFillColors[iGraph], graphFillTransparencies[iGraph]);
+}
+
+void setTGraphSys(int iSys, TGraph* gr)
+{
+    gr->SetFillColor(sysColors[iSys]);
+    gr->SetFillColorAlpha(sysColors[iSys], sysTransparencies[iSys]);
+    gr->SetFillStyle(sysFillStyles[iSys]);
+}
+
+void setCanvas(TCanvas* c)
+{
+    c->SetLogx(logX);
+    c->SetLogy(logY);
+
+    float defaultMargin = 0.1;
+    double normWidth  = (1 - defaultMargin*2 + leftMargin + rightMargin);
+    double normHeight = (1 - defaultMargin*2 + bottomMargin + topMargin);
+
+    // https://root.cern.ch/doc/master/TCanvas_8h_source.html#l00058
+    UInt_t width = c->GetWindowWidth();     // fWindowWidth  : Width of window (including borders, etc.)
+    UInt_t height = c->GetWindowHeight();   // fWindowHeight : Height of window (including menubar, borders, etc.)
+
+    // assume the function is called in batch mode, so use SetCanvasSize() instead of SetWindowSize()
+    c->SetCanvasSize(width*normWidth, height*normHeight);
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
+
+    c->SetBorderMode(0);
+    c->SetBorderSize(0);
+    c->SetFrameBorderMode(0);
+    c->SetFrameLineColor(0);
+
+    // put ticks to upper and right part of the axis.
+    c->SetTickx(1);
+    c->SetTicky(1);
+}
+
+void setLegend(TLegend* leg)
+{
+    // make legend transparent
+    leg->SetFillColor(-1);
+    leg->SetFillStyle(4000);
+    leg->SetBorderSize(0);
+
+    leg->SetX1(legendX1);
+    leg->SetX2(legendX1+legendWidth);
+    leg->SetY1(legendY1);
+    leg->SetY2(legendY1+legendHeight);
+    leg->SetMargin(legendMargin);
+}
+
+void setLatex(int iText, TLatex* latex)
+{
+    latex->SetTextAlign(textAlign);
+    latex->SetTextFont(textFont);
+    latex->SetTextSize(textSize);
+
+    latex->SetNDC();
+    latex->SetText(textX, textYs[iText], textLines[iText].c_str());
+}
+
+void setLatexOverPad(int iText, TLatex* latex)
+{
+    latex->SetTextAlign(textAlignsOverPad[iText]);
+    latex->SetTextFont(textFontOverPad);
+    latex->SetTextSize(textSizeOverPad);
+
+    latex->SetNDC();
+    latex->SetText(textXsOverPad[iText], textYOverPad, textOverPadLines[iText].c_str());
+}
+
+void setLatexCMS(TLatex* latex)
+{
+    latex->SetTextAlign(textAlignCMS);
+    latex->SetTextFont(textFontCMS);
+    latex->SetTextSize(textSizeCMS);
+
+    latex->SetNDC();
+    latex->SetText(textXCMS, textYCMS, "CMS");
+}
+
+void setLatexCMSextraLabel(TLatex* latex, std::string text)
+{
+    latex->SetTextAlign(textAlignCMSpreliminary);
+    latex->SetTextFont(textFontCMSpreliminary);
+    latex->SetTextSize(textSizeCMSpreliminary);
+
+    latex->SetNDC();
+    latex->SetText(textXCMSpreliminary, textYCMSpreliminary, text.c_str());
+}
+
+/*
+void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
+{
+   double val = h->GetBinContent(bin);
+   double x   = h->GetBinCenter(bin);
+   int binSys = hSys->FindBin(x);
+
+   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
+   if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
+
+   std::string hSysName = hSys->GetName();
+
+   if (binWidth < 0) {
+     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
+   }
+
+   double errorLow = val - error;
+   double errorUp = val + error;
+   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
+   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
+
+   gr->SetPoint(0, x - (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(1, x + (binWidth/2)*binWidthScale, errorLow);
+   gr->SetPoint(2, x + (binWidth/2)*binWidthScale, errorUp);
+   gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
+}
+*/
+
+/*
+ * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
+ * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
+ * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
+ */
+/*
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
+{
+    int nBins = h->GetNbinsX();
+    for (int i = 1; i <= nBins; ++i) {
+        if (h->GetBinError(i) == 0) continue;
+        if (h->GetBinContent(i) < h->GetMinimum()) continue;
+        if (h->GetBinContent(i) > h->GetMaximum()) continue;
+
+        setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
+        gr->DrawClone("f");
+    }
+}
+*/
+
+int main(int argc, char** argv)
+{
+    if (argc == 3) {
+        vJetTrkPlot(argv[1], argv[2]);
+        return 0;
+    }
+    else {
+        std::cout << "Usage : \n" <<
+                "./vJetTrkPlot.exe <inputFileList> <figInfo>"
+                << std::endl;
+        return 1;
+    }
+}
