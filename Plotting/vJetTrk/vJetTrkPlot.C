@@ -10,6 +10,7 @@
 #include <TH1D.h>
 #include <TGraph.h>
 #include <TGraphErrors.h>
+#include <THStack.h>
 #include <TLine.h>
 #include <TLegend.h>
 #include <TLatex.h>
@@ -468,6 +469,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     int iObs = -1;
     bool isDiff = (figInfo.find("fig_diff") != std::string::npos);
+    bool isStack = (figInfo.find("_stack") != std::string::npos);
+
     if (figInfo.find("fig_dphi") != std::string::npos || figInfo.find("fig_diff_dphi") != std::string::npos) {
         iObs = k_dphi;
     }
@@ -483,7 +486,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         return;
     }
 
-
     // no horizontal error bars
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
@@ -493,19 +495,20 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     int rows = 2;
     int columns = 1;
-    if (figInfo.find("cols3") != std::string::npos) {
-        columns = 3;
-        //windowWidth = 2400;
+    int nCents = countOccurances(figInfo, "_cent");
+    columns = nCents;
+
+    if (isStack) {
+        columns += 1;
     }
-    if (figInfo.find("cols4") != std::string::npos) {
-        columns = 4;
-        //windowWidth = 3200;
-    }
+
+    int nTrkPts = countOccurances(figInfo, "_trkPt");
+    int nStacksPerColl = (isStack) ? nTrkPts : 0;
 
     logX = 0;
     logY = 0;
     leftMargin   = 0.22;
-    rightMargin  = 0.02;
+    rightMargin  = 0.04;
     bottomMargin = 0.18;
     topMargin    = 0.08;
 
@@ -544,7 +547,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     double dphiMin = parseVTrkDPhiMin(figInfo);
 
     std::string obslabel = "";
-    std::string trkPtlabel = "";
     xTitle = "";
     yTitle = "";
     float xMin = 0;
@@ -553,7 +555,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     yMax = -1;
     if (iObs == OBS::k_dphi) {
         obslabel = "dphi_rebin";
-        trkPtlabel = "trkPt1_0_";
+
+        xMax = TMath::Pi();
 
         xTitle = "#Delta#phi_{trk,Z}";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}}";
@@ -562,7 +565,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
     else if (iObs == OBS::k_xivh) {
         obslabel = "xivh";
-        trkPtlabel = "trkPt1_0_";
 
         xTitle = "#xi^{trk,Z}_{T}";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#xi^{trk,Z}_{T}}";
@@ -582,7 +584,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
     else if (iObs == OBS::k_trkPt) {
         obslabel = "trkPt_rebin";
-        trkPtlabel = "";
 
         xTitle = "p^{trk}_{T} (GeV/c)";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk}}{dp^{trk}_{T}}";
@@ -618,70 +619,113 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     int vPtMax = parseVPtMax(figInfo);
     std::string strVPt = Form("vPt%d_%d", vPtMin, vPtMax);
 
-    int centMin = parseCentMin(figInfo);
-    int centMax = parseCentMax(figInfo);
-    std::string centlabel = Form("cent%d_%d", centMin, centMax);
+    std::vector<int> centMins;
+    std::vector<int> centMaxs;
+    std::string tmpFigInfo = figInfo;
+    for (int iCent = 0; iCent < nCents; ++iCent) {
 
-    std::vector<std::string> centTexts = {Form("Cent:%d-%d%%", centMin, centMax)};
+        int centMin = parseCentMin(tmpFigInfo);
+        int centMax = parseCentMax(tmpFigInfo);
+
+        centMins.push_back(centMin);
+        centMaxs.push_back(centMax);
+
+        tmpFigInfo = replaceFirst(tmpFigInfo, Form("_cent%d_%d", centMin, centMax), "");
+    }
+    std::vector<std::string> centTexts;
+
+    std::vector<double> trkPtMins;
+    std::vector<double> trkPtMaxs;
+    std::vector<std::string> trkPtLabels;
+    tmpFigInfo = figInfo;
+    if (iObs != k_trkPt) {
+
+        for (int iP = 0; iP < nTrkPts; ++iP) {
+
+            double trkPtMin = parseTrkPtMin(tmpFigInfo);
+            double trkPtMax = parseTrkPtMax(tmpFigInfo);
+
+            trkPtMins.push_back(trkPtMin);
+            trkPtMaxs.push_back(trkPtMax);
+
+            std::string label_trkPtMin = Form("%d", (int)(trkPtMin));    // 5 --> "5"
+            if (std::floor(trkPtMin) != trkPtMin) {   // 1.4 --> "1p4"
+                label_trkPtMin = Form("%dp%d", (int)(trkPtMin), ((int)(trkPtMin*10) % 10));
+            }
+
+            std::string label_trkPtMax = Form("%d", (int)(trkPtMax));    // 5 --> "5"
+            if (std::floor(trkPtMax) != trkPtMax) {   // 1.4 --> "1p4"
+                label_trkPtMax = Form("%dp%d", (int)(trkPtMax), ((int)(trkPtMax*10) % 10));
+            }
+
+            std::string label_trkPt = Form("trkPt%s_%s_", label_trkPtMin.c_str(), label_trkPtMax.c_str());
+            tmpFigInfo = replaceFirst(tmpFigInfo, label_trkPt.c_str(), "");
+
+            trkPtLabels.push_back(label_trkPt.c_str());
+        }
+    }
+
+   int nTrkPtLabels = trkPtLabels.size();
 
     std::string ratiodiffLbl = (isDiff) ? "_diff" : "_ratio";
+    std::string tmpTrkPtLbl = "";
     if (is_pbpb_vs_pp) {
-        histPaths = {
-                Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-        };
 
-        if (columns == 3) {
-            histPaths = {
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-            };
+        histPaths.clear();
+        centTexts.clear();
 
-            centTexts = {"Cent:50-90%", "Cent:30-50%", "Cent:0-30%"};
-        }
-        else if (columns == 4) {
-            histPaths = {
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-            };
+        for (int iC = 0; iC < nCents; ++iC) {
 
-            centTexts = {"Cent:70-90%", "Cent:50-90%", "Cent:30-50%", "Cent:0-30%"};
+            std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
+
+            if (iObs != k_trkPt) {
+
+                for (int iP = 0; iP < nTrkPts; ++iP) {
+
+                    tmpTrkPtLbl = trkPtLabels[iP];
+
+                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                    histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                }
+            }
+            else {
+
+                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+            }
+
+            centTexts.push_back(Form("Cent:%d-%d%%", centMins[iC], centMaxs[iC]));
         }
     }
     else if (is_pp_vs_mc) {
+
+        if (iObs != k_trkPt) {
+            tmpTrkPtLbl = trkPtLabels[0];
+        }
+
         histPaths = {
-                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                Form("h%s_%s_%s_%scent0_100_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()),
+                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()),
+                Form("h%s_%s_%s_%scent0_100_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()),
         };
     }
+    tmpTrkPtLbl = "";
 
     markerColors = {kBlack, kBlack, kBlack};
-    markerSizes.assign(kN_HISTLABELS, 1.70);
+    markerSizes.assign(kN_HISTLABELS, 1.80);
     lineTransparencies.assign(kN_HISTLABELS, 1.0);
     lineWidths.assign(kN_HISTLABELS, 3);
-    if (columns == 4) {
-        markerSizes.assign(kN_HISTLABELS, 1.90);
+    if (columns == 3) {
+        markerSizes.assign(kN_HISTLABELS, 2.00);
+        lineWidths.assign(kN_HISTLABELS, 2);
+    }
+    else if (columns == 4) {
+        markerSizes.assign(kN_HISTLABELS, 2.20);
         lineWidths.assign(kN_HISTLABELS, 1);
     }
+
     std::string ratiodiffLblSys = (isDiff) ? "" : "_ratio";
     if (is_pbpb_vs_pp) {
         markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
@@ -689,47 +733,25 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         fillTransparencies.assign(kN_HISTLABELS, 0.7);
         lineColors.assign(kN_HISTLABELS, kBlack);
         drawOptions = {"e same", "e same", "e same"};
-        sysPaths = {
-                Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-                Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-        };
+
+        sysPaths.clear();
+
+        if (iObs != k_trkPt) {
+            tmpTrkPtLbl = "trkPt1_0_";
+        }
+        for (int iC = 0; iC < nCents; ++iC) {
+
+            std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
+
+            sysPaths.push_back(Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+            sysPaths.push_back(Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+            sysPaths.push_back(Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+        }
+
         sysUseRelUnc.assign(kN_HISTLABELS, false);
         sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
         sysTransparencies.assign(kN_HISTLABELS, 0.7);
         sysFillStyles.assign(kN_HISTLABELS, 1001);
-
-        if (columns == 3) {
-
-            sysPaths = {
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-            };
-        }
-        else if (columns == 4) {
-
-            sysPaths = {
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
-                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
-            };
-        }
     }
     else if (is_pp_vs_mc) {
         markerStyles = {0, kFullCircle, kFullSquare};
@@ -737,10 +759,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         fillTransparencies = {0, 0.7, 0.7};
         lineColors = {kViolet, kBlack, kBlack};
         drawOptions = {"hist same", "e same", "e same"};
+        tmpTrkPtLbl = "";
+        if (iObs != k_trkPt) {
+            tmpTrkPtLbl = "trkPt1_0_";
+        }
         sysPaths = {
                 Form("NULL"),
-                Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
-                Form("h%s_%s_%s_%scent0_100_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()),
+                Form("h%s_%s_%s_%scent0_100_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()),
         };
         sysUseRelUnc.assign(kN_HISTLABELS, false);
         sysColors = fillColors;
@@ -753,6 +779,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     std::vector<TH1D*> h1DsSys(nHistPaths, 0);
     TGraph* gr = 0;
     TH1D* hTmp = 0;
+
+    TPad* emptyBox = 0;
+
     for (int i = 0; i < nHistPaths; ++i) {
 
         std::cout << "i = "<< i << std::endl;
@@ -763,8 +792,13 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         // set x-axis range
         if (xMax > xMin) {
-            h1Ds[i]->SetAxisRange(xMin + 0.00001, xMax - 0.00001, "X");
+            //h1Ds[i]->SetAxisRange(xMin + 0.00001, xMax - 0.00001, "X");
+            h1Ds[i]->GetXaxis()->SetRangeUser(xMin + 0.00001, xMax - 0.00001);  // (xMin + 0.00001, xMax - 0.00001, "X");
         }
+
+        //h1Ds[i]->SetNdivisions(510, "X");
+
+        //h1Ds[i]->GetXaxis()->SetTicks();
 
         h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.4);
         h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4);
@@ -798,9 +832,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             else if (iObs == k_dphi) {
                 h1Ds[i]->SetMinimum(0.1);
                 h1Ds[i]->SetMaximum(3.6);
+
                 if (isDiff) {
                     h1Ds[i]->SetMinimum(-5);
-                    h1Ds[i]->SetMaximum(10);
+                    h1Ds[i]->SetMaximum(9.999);
                 }
             }
             else if (iObs == k_xivh) {
@@ -814,31 +849,152 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
     }
 
+    int nStacks = (isStack) ? columns : 0;
+    std::vector<THStack*> hStack(nStacks, 0);
+    std::vector<int> colorsStack = {kGray, kRed, kGreen, kBlue, kGreen, kMagenta, kOrange, kCyan, kSpring};
+
     // draw histograms
-    for (int i = 0; i < nHistPaths; ++i) {
+    if (!isStack){
+        for (int i = 0; i < nHistPaths; ++i) {
 
-        int j = (i % kN_HISTLABELS);
-        int iCol = (i / kN_HISTLABELS);
+            int j = (i % kN_HISTLABELS);
+            int iCol = (i / kN_HISTLABELS);
 
-        std::cout << "i2 = " << i << std::endl;
+            std::cout << "i2 = " << i << std::endl;
 
-        c->cd(iCol+1);
-        if (j == k_ratio) c->cd(columns+iCol+1);
+            c->cd(iCol+1);
+            if (j == k_ratio) c->cd(columns+iCol+1);
 
-        if (j == 0 || (j == k_ratio)) {
-            hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
-            std::string tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
-            hTmp->Draw(tmpDrawOpt.c_str());
+            if (j == 0 || (j == k_ratio)) {
+                hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+                std::string tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
+                hTmp->Draw(tmpDrawOpt.c_str());
+            }
+
+            h1DsSys[i] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[i].c_str());
+            if (h1DsSys[i] != 0) {
+                gr = new TGraph();
+                setTGraphSys(j, gr);
+                drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[j]);
+            }
+
+            h1Ds[i]->Draw(drawOptions[j].c_str());
+
+            if (j == k_ratio && iCol > 0) {
+
+                double xWidth = 0.06;
+                double xStart = 0.0;
+
+                double yWidth = 0.07;
+                double yStart = 0.2-0.015;
+                emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart,          c->GetYlowNDC() + yStart - yWidth,
+                                                c->GetXlowNDC() + xStart + xWidth, c->GetYlowNDC() + yStart);
+                emptyBox->SetFillColor(kRed);
+                emptyBox->Draw();
+            }
+            if (j == k_ratio && iCol < columns - 1) {
+
+                if (iObs == k_xivh || iObs == k_trkPt) {
+
+                    double xWidth = 0.06;
+                    double xStart = 1.0;
+
+                    double yWidth = 0.07;
+                    double yStart = 0.2-0.015;
+                    emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart - xWidth,          c->GetYlowNDC() + yStart - yWidth,
+                                                    c->GetXlowNDC() + xStart, c->GetYlowNDC() + yStart);
+                    emptyBox->SetFillColor(kBlue);
+                    emptyBox->Draw();
+                }
+            }
+        }
+    }
+    else {
+
+        for (int iStk = 0; iStk < nStacks; ++iStk) {
+
+            hStack[iStk] = new THStack(Form("hStack%d", iStk), "");
+
+            //hStack[iTHStack]->Draw(Form("%s same", hStack[iTHStack]->GetDrawOption()));
         }
 
-        h1DsSys[i] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[i].c_str());
-        if (h1DsSys[i] != 0) {
-            gr = new TGraph();
-            setTGraphSys(j, gr);
-            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[j]);
+        // first stack is for pp
+        for (int i = 0; i < nHistPaths; ++i) {
+            int j = (i % kN_HISTLABELS);
+            int iTrkPt = (i % (kN_HISTLABELS * nTrkPts)) / kN_HISTLABELS;
+
+            if (j == k_hist2) {
+                h1Ds[i]->SetFillColor(colorsStack[iTrkPt]);
+                hStack[0]->Add(h1Ds[i], drawOptions[j].c_str());
+            }
         }
 
-        h1Ds[i]->Draw(drawOptions[j].c_str());
+        // remaining stacks for pbpb
+        for (int i = 0; i < nHistPaths; ++i) {
+            int j = (i % kN_HISTLABELS);
+            int iCol = ((i*nTrkPts) / kN_HISTLABELS);
+
+            int iCent = iCol+1;
+            int iTrkPt = (i % (kN_HISTLABELS * nTrkPts)) / kN_HISTLABELS;
+
+            if (j == k_hist1) {
+                h1Ds[i]->SetFillColor(colorsStack[iTrkPt]);
+                hStack[iCent]->Add(h1Ds[i], drawOptions[j].c_str());
+            }
+        }
+
+        for (int iStk = 0; iStk < nStacks; ++iStk) {
+
+            int iCol = iStk;
+            //int j = (i % kN_HISTLABELS);
+
+            c->cd(iCol+1);
+
+            hStack[iStk]->Draw();
+
+            /*
+            h1DsSys[iStk] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[iStk].c_str());
+            if (h1DsSys[iStk] != 0) {
+                gr = new TGraph();
+                setTGraphSys(j, gr);
+                drawSysUncBoxes(gr, h1Ds[iStk], h1DsSys[iStk], sysUseRelUnc[j]);
+            }
+
+            h1Ds[iStk]->Draw(drawOptions[j].c_str());
+                        */
+
+            /*
+            if (j == k_ratio && iCol > 0) {
+
+                double xWidth = 0.06;
+                double xStart = 0.0;
+
+                double yWidth = 0.07;
+                double yStart = 0.2-0.015;
+                emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart,          c->GetYlowNDC() + yStart - yWidth,
+                                                c->GetXlowNDC() + xStart + xWidth, c->GetYlowNDC() + yStart);
+                emptyBox->SetFillColor(kRed);
+                emptyBox->Draw();
+            }
+            if (j == k_ratio && iCol < columns - 1) {
+
+                if (iObs == k_xivh || iObs == k_trkPt) {
+
+                    double xWidth = 0.06;
+                    double xStart = 1.0;
+
+                    double yWidth = 0.07;
+                    double yStart = 0.2-0.015;
+                    emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart - xWidth,          c->GetYlowNDC() + yStart - yWidth,
+                                                    c->GetXlowNDC() + xStart, c->GetYlowNDC() + yStart);
+                    emptyBox->SetFillColor(kBlue);
+                    emptyBox->Draw();
+                }
+            }
+            */
+
+
+        }
     }
 
     c->cd(1);
