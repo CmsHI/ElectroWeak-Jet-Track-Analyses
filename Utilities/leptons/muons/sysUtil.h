@@ -125,67 +125,67 @@ double muonTnP::get_unc_pp17_stat_id_m(double pt, double eta)
 
 double muonTnP::get_weight_nom_pbpb18(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0));
 }
 
 double muonTnP::get_unc_pbpb18_stat_id_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 1) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 1) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_stat_id_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 2) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 2) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_stat_glbtrk_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 1) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 1) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_stat_glbtrk_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 2) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 2) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_stat_trig_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 1) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 1) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_stat_trig_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 2) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 2) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_id_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, -1) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, -1) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_id_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, -2) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, -2) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_glbtrk_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, -1) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, -1) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_glbtrk_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, -2) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, -2) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, 0) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_trig_p(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, -1) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, -1) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 double muonTnP::get_unc_pbpb18_sys_trig_m(double pt, double eta, int cent)
 {
-    return (tnp_weight_glbtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, -2) / get_weight_nom_pbpb18(pt, eta, cent));
+    return (tnp_weight_glbPFtrk_pbpb(eta, cent, 0) * tnp_weight_muid_pbpb(eta, 0) * tnp_weight_trig_pbpb(pt, eta, cent, -2) / get_weight_nom_pbpb18(pt, eta, cent));
 }
 
 #endif /* LEPTONS_MUONS_SYSUTIL_H_ */
