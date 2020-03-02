@@ -261,7 +261,8 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     int vPtMin = parseVPtMin(figInfo);
     int vPtMax = parseVPtMax(figInfo);
     std::string strVPt = Form("vPt%d_%d", vPtMin, vPtMax);
-    std::string strCent = (isPP) ? "cent0_100" : "cent0_90";
+    //std::string strCent = (isPP) ? "cent0_100" : "cent0_90";
+    std::string strCent = (isPP) ? "cent0_100" : "cent0_100";
     histPaths = {
             Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
             Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
@@ -455,13 +456,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 {
     std::cout<<"running vJetTrkPlot_zTrk()"<<std::endl;
 
-    int nInputs = inputs.size();
-    if (nInputs != 6) {
-        std::cout << "There must be 6 input files for this figure." << std::endl;
-        std::cout << "Exiting." << std::endl;
-        return;
-    }
-
     enum OBS {
         k_dphi,
         k_xivh,
@@ -469,8 +463,12 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         kN_OBS
     };
 
+    bool is_pp_vs_mc = (figInfo.find("pp_vs_mc") != std::string::npos);
+    bool is_pbpb_vs_pp = !is_pp_vs_mc;
+
     int iObs = -1;
-    if (figInfo.find("fig_dphi") != std::string::npos) {
+    bool isDiff = (figInfo.find("fig_diff") != std::string::npos);
+    if (figInfo.find("fig_dphi") != std::string::npos || figInfo.find("fig_diff_dphi") != std::string::npos) {
         iObs = k_dphi;
     }
     else if (figInfo.find("fig_xivh") != std::string::npos) {
@@ -481,25 +479,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
     else {
         std::cout << "Invalid observable." << std::endl;
-        std::cout << "Exiting." << std::endl;
-        return;
-    }
-
-    enum COLL_CENT {
-        k_0_30,
-        k_30_90,
-        kN_COLL_CENT
-    };
-
-    int iCent = -1;
-    if (figInfo.find("cent0_30") != std::string::npos) {
-        iCent = k_0_30;
-    }
-    else if (figInfo.find("cent30_90") != std::string::npos) {
-        iCent = k_30_90;
-    }
-    else {
-        std::cout << "Invalid centrality." << std::endl;
         std::cout << "Exiting." << std::endl;
         return;
     }
@@ -551,6 +530,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         pads[i]->SetTicky(1);
     }
 
+    double dphiMin = parseVTrkDPhiMin(figInfo);
+
     std::string obslabel = "";
     std::string trkPtlabel = "";
     xTitle = "";
@@ -575,8 +556,18 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xTitle = "#xi^{trk,Z}_{T}";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#xi^{trk,Z}_{T}}";
 
-        yMin = -0.1;
-        yMax = 4;
+        xMax = 4.499;
+
+        yMin = -0.2;
+        yMax = 5.0;
+        if (dphiMin == 0.5) {
+            yMin = -0.4;
+            yMax = 10;
+        }
+        else if (dphiMin == 0.666) {
+            yMin = -0.4;
+            yMax = 8;
+        }
     }
     else if (iObs == OBS::k_trkPt) {
         obslabel = "trkPt_rebin";
@@ -589,6 +580,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xMax = 30;
         yMin = -0.1;
         yMax = 4;
+        if (dphiMin == 0.5) {
+            yMin = -0.3;
+            yMax = 12;
+        }
+        else if (dphiMin == 0.666) {
+            yMin = -0.2;
+            yMax = 10;
+        }
     }
     xTitleSize = 0.07;
     yTitleSize = 0.07;
@@ -597,47 +596,75 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     xTitleFont = 42;
     yTitleFont = 42;
 
-    std::string centlabel = "";
-    std::string centText = "";
-    if (iCent == k_0_30) {
-        centlabel = "cent0_30";
-        centText = "Cent:0-30%";
-    }
-    else if (iCent == k_30_90) {
-        centlabel = "cent30_90";
-        centText = "Cent:30-90%";
-    }
-
     enum HISTLABELS {
-        k_pbpb,
-        k_pp,
+        k_hist1,
+        k_hist2,
         k_ratio,
         kN_HISTLABELS
     };
 
-    histPaths = {
-            Form("h_%s_vPt30_0_%s%s_sig", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-            Form("h_%s_vPt30_0_%scent0_100_sig", obslabel.c_str(), trkPtlabel.c_str()),
-            Form("h_ratio_%s_vPt30_0_%s%s_sig", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-    };
+    int vPtMin = parseVPtMin(figInfo);
+    int vPtMax = parseVPtMax(figInfo);
+    std::string strVPt = Form("vPt%d_%d", vPtMin, vPtMax);
+
+    int centMin = parseCentMin(figInfo);
+    int centMax = parseCentMax(figInfo);
+    std::string centlabel = Form("cent%d_%d", centMin, centMax);
+    std::string centText = Form("Cent:%d-%d%%", centMin, centMax);
+
+    std::string ratiodiffLbl = (isDiff) ? "_diff" : "_ratio";
+    if (is_pbpb_vs_pp) {
+        histPaths = {
+                Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+        };
+    }
+    else if (is_pp_vs_mc) {
+        histPaths = {
+                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h%s_%s_%s_%scent0_100_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+        };
+    }
+
     markerColors = {kBlack, kBlack, kBlack};
-    markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
     markerSizes.assign(kN_HISTLABELS, 1.70);
-    lineColors.assign(kN_HISTLABELS, kBlack);
     lineTransparencies.assign(kN_HISTLABELS, 1.0);
     lineWidths.assign(kN_HISTLABELS, 3);
-    fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
-    fillTransparencies.assign(kN_HISTLABELS, 0.7);
-    drawOptions = {"e same", "e same", "e same"};
-    sysPaths = {
-            Form("h_%s_vPt30_0_%s%s_sig_systematics", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-            Form("h_%s_vPt30_0_%scent0_100_sig_systematics", obslabel.c_str(), trkPtlabel.c_str()),
-            Form("h_ratio_%s_vPt30_0_%s%s_sig_systematics", obslabel.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
-    };
-    sysUseRelUnc.assign(kN_HISTLABELS, false);
-    sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
-    sysTransparencies.assign(kN_HISTLABELS, 0.7);
-    sysFillStyles.assign(kN_HISTLABELS, 1001);
+    std::string ratiodiffLblSys = (isDiff) ? "" : "_ratio";
+    if (is_pbpb_vs_pp) {
+        markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
+        fillColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+        fillTransparencies.assign(kN_HISTLABELS, 0.7);
+        lineColors.assign(kN_HISTLABELS, kBlack);
+        drawOptions = {"e same", "e same", "e same"};
+        sysPaths = {
+                Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+                Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
+        };
+        sysUseRelUnc.assign(kN_HISTLABELS, false);
+        sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
+        sysTransparencies.assign(kN_HISTLABELS, 0.7);
+        sysFillStyles.assign(kN_HISTLABELS, 1001);
+    }
+    else if (is_pp_vs_mc) {
+        markerStyles = {0, kFullCircle, kFullSquare};
+        fillColors = {0, TColor::GetColor("#6699cc"), TColor::GetColor("#299617")};
+        fillTransparencies = {0, 0.7, 0.7};
+        lineColors = {kViolet, kBlack, kBlack};
+        drawOptions = {"hist same", "e same", "e same"};
+        sysPaths = {
+                Form("NULL"),
+                Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                Form("h%s_%s_%s_%scent0_100_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+        };
+        sysUseRelUnc.assign(kN_HISTLABELS, false);
+        sysColors = fillColors;
+        sysTransparencies = fillTransparencies;
+        sysFillStyles = {0, 1001, 1001};
+    }
 
     int nHistPaths = histPaths.size();
     std::vector<TH1D*> h1Ds(nHistPaths, 0);
@@ -660,10 +687,31 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
         h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
     }
-    h1Ds[k_ratio]->SetYTitle("PbPb / pp");
-    if (iObs == k_dphi) {
+    std::string ratioTitleY = "";
+    if (is_pbpb_vs_pp) {
+        ratioTitleY = "PbPb / pp";
+        if (isDiff) {
+            ratioTitleY = "PbPb - pp";
+        }
+    }
+    else if (is_pp_vs_mc) {
+        ratioTitleY = "MC / Data";
+        if (isDiff) {
+            ratioTitleY = "MC - Data";
+        }
+    }
+    h1Ds[k_ratio]->SetYTitle(ratioTitleY.c_str());
+    if (is_pp_vs_mc) {
+        h1Ds[k_ratio]->SetMinimum(0.7);
+        h1Ds[k_ratio]->SetMaximum(1.3);
+    }
+    else if (iObs == k_dphi) {
         h1Ds[k_ratio]->SetMinimum(0.1);
         h1Ds[k_ratio]->SetMaximum(3.6);
+        if (isDiff) {
+            h1Ds[k_ratio]->SetMinimum(-5);
+            h1Ds[k_ratio]->SetMaximum(10);
+        }
     }
     else if (iObs == k_xivh) {
         h1Ds[k_ratio]->SetMinimum(0.2);
@@ -682,7 +730,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         if (i == 0 || i == k_ratio) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
-            hTmp->Draw("e");
+            std::string tmpDrawOpt = replaceAll(drawOptions[i], "same", "");
+            hTmp->Draw(tmpDrawOpt.c_str());
         }
 
         h1DsSys[i] = (TH1D*)inputs[i+nHistPaths]->Get(sysPaths[i].c_str());
@@ -713,22 +762,38 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     legendWidth = 0.54;
     legendHeight = 0.16;
     legendMargin = 0.15;
-    legendEntryTexts = {
-            Form("PbPb %s", centText.c_str()),
-            "pp"
-    };
-    legendEntryOptions = {
-            "pf",
-            "pf"
-    };
+    if (is_pbpb_vs_pp) {
+        legendEntryTexts = {
+                Form("PbPb %s", centText.c_str()),
+                "pp"
+        };
+        legendEntryOptions = {
+                "pf",
+                "pf"
+        };
+    }
+    else if (is_pp_vs_mc) {
+        legendEntryTexts = {
+                "Madgraph",
+                "pp"
+        };
+        legendEntryOptions = {
+                "l",
+                "pf"
+        };
+    }
     TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_pbpb]->Clone(Form("%s_tmp", h1Ds[k_pbpb]->GetName()));
-    hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pbpb].c_str(), legendEntryOptions[k_pbpb].c_str());
-    hTmp = (TH1D*)h1Ds[k_pp]->Clone(Form("%s_tmp", h1Ds[k_pp]->GetName()));
-    hTmp->SetLineWidth(0);
-    leg->AddEntry(hTmp, legendEntryTexts[k_pp].c_str(), legendEntryOptions[k_pp].c_str());
+    hTmp = (TH1D*)h1Ds[k_hist1]->Clone(Form("%s_tmp", h1Ds[k_hist1]->GetName()));
+    if (legendEntryOptions[k_hist1] == "pf") {
+        hTmp->SetLineWidth(0);
+    }
+    leg->AddEntry(hTmp, legendEntryTexts[k_hist1].c_str(), legendEntryOptions[k_hist1].c_str());
+    hTmp = (TH1D*)h1Ds[k_hist2]->Clone(Form("%s_tmp", h1Ds[k_hist2]->GetName()));
+    if (legendEntryOptions[k_hist2] == "pf") {
+        hTmp->SetLineWidth(0);
+    }
+    leg->AddEntry(hTmp, legendEntryTexts[k_hist2].c_str(), legendEntryOptions[k_hist2].c_str());
 
     setLegend(leg);
     leg->Draw();
@@ -737,12 +802,23 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     textAlign = 11;
     textFont = 43;
     textSize = 32;
+    std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
+    if (vPtMax > 0) {
+        textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
+    }
     textLines = {
-            "p_{T}^{Z} > 30 GeV/c",
+            textVPt,
             "p_{T}^{trk} > 1 GeV/c",
     };
+    std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
+    if (dphiMin == 0.5) {
+        textDphi = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
+    }
+    else if (dphiMin == 0.666) {
+        textDphi = "#Delta#phi_{trk,Z} > #frac{2#pi}{3}";
+    }
     if (iObs == k_xivh || iObs == k_trkPt) {
-        textLines.push_back("#Delta#phi_{trk,Z} > #frac{7#pi}{8}");
+        textLines.push_back(textDphi);
     }
     int nTextLines = textLines.size();
     if (iObs == k_dphi) {
@@ -777,7 +853,12 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     textYs.resize(nTextLines, 0.94);
     latex = 0;
 
-    textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
+    if (is_pbpb_vs_pp) {
+        textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
+    }
+    else if (is_pp_vs_mc) {
+        textLines = {"#sqrt{s_{NN}} = 5.02 TeV, pp 320 pb^{-1}"};
+    }
     latex = new TLatex();
     setLatex(0, latex);
     latex->Draw();
@@ -827,7 +908,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     line->Draw();
 
     c->cd(2);
-    line = new TLine(gPad->GetUxmin(), 1, gPad->GetUxmax(), 1);
+    double yLine = (!isDiff) ? 1 : 0;
+    line = new TLine(gPad->GetUxmin(), yLine, gPad->GetUxmax(), yLine);
     line->SetLineStyle(kDashed);
     line->Draw();
 
@@ -851,6 +933,7 @@ int parseFigureType(std::string figuretype)
         return FIGURE::k_M_Z;
     }
     else if (figuretype.find("fig_dphi") != std::string::npos ||
+             figuretype.find("fig_diff_dphi") != std::string::npos ||
              figuretype.find("fig_xivh") != std::string::npos ||
              figuretype.find("fig_trkpt") != std::string::npos) {
         return FIGURE::k_zTrk;
