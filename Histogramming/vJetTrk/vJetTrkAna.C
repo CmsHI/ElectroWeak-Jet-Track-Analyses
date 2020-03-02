@@ -353,14 +353,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     bool anavTrk_dR = false;
     bool anavTrk_zh = false;
 
-    bool do_sf_weight_nom = (toLowerCase(sysMode).find("sf_weight_nom") != std::string::npos);
-    bool do_sys_les = (toLowerCase(sysMode).find("_les") != std::string::npos);
-    int lep_sys_index = parseLepSysIndex(sysMode);
-
     bool doWeightsV = (applyWeightsV > 0);
     bool doWeightsEP = ((applyWeightsV % 10) == 2);
     bool doWeightsPhi0 = ((applyWeightsV % 10) == 3);
     bool doWeightsVcent = ((applyWeightsV > 10) && isPbPb18 && !isMC);
+
+    //bool do_sf_weight_nom = (toLowerCase(sysMode).find("sf_weight_nom") != std::string::npos && isRecoV);
+    bool do_sf_weight_nom = (isMC && isRecoV && !doWeightsV);
+    bool do_sys_les = (toLowerCase(sysMode).find("_les") != std::string::npos);
+    int lep_sys_index = parseLepSysIndex(sysMode);
 
     bool noTrkWeights = (applyTrkWeights == 0);
     bool redoTrkWeights = ((applyTrkWeights % 10) == 2);
@@ -3568,14 +3569,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
             }
 
             double wV = w;
+            double wV_SF = 1;
             if (vIsZ) {
                 if (do_sf_weight_nom) {
-                    wV *= (getSFweight(vIsZmm, llPt[0], llEta[0], cent0) * getSFweight(vIsZmm, llPt[1], llEta[1], cent0));
+                    wV_SF *= (getSFweight(vIsZmm, llPt[0], llEta[0], cent0) * getSFweight(vIsZmm, llPt[1], llEta[1], cent0));
                 }
-                wV *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent0) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent0));
+                wV_SF *= (getLepSysVar(vIsZmm, lep_sys_index, llPt[0], llEta[0], cent0) * getLepSysVar(vIsZmm, lep_sys_index, llPt[1], llEta[1], cent0));
             }
 
-            double wV_recoeff = 1;
+            double wV_recoeff = wV_SF;
             if (doWeightsV) {
                 if (isRecoV) {
                     int iCent = (isPP) ? 0 : getIndex4CentBin(hiBin0);
