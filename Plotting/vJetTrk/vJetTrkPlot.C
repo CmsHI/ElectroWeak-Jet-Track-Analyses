@@ -839,7 +839,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
             std::string obslabelTmp = obslabel;
-            if (iObs == k_trkPt && (centMins[iC] >= 50)) {
+            if (iObs == k_trkPt && (centMins[iC] >= 30)) {
                 obslabelTmp = "trkPt_rebin2";
             }
 
