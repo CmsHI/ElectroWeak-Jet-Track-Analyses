@@ -220,26 +220,107 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     bool isMC = isMCsample(figInfo);
     bool isPbPb = isPbPbsample(figInfo);
     bool isPP = isPPsample(figInfo);
+    bool isRatio = (toLowerCase(figInfo).find("_ratio") != std::string::npos);
+    bool isPull = (toLowerCase(figInfo).find("_pull") != std::string::npos);
+    bool isCompare = isRatio || isPull;
 
     std::cout << "isMC = " << isMC << std::endl;
     std::cout << "isPbPb = " << isPbPb << std::endl;
     std::cout << "isPP = " << isPP << std::endl;
+    std::cout << "isRatio = " << isRatio << std::endl;
+    std::cout << "isPull = " << isPull << std::endl;
 
     bool vIsZee = (toLowerCase(figInfo).find("zee") != std::string::npos);
 
+    ////////////////
     windowWidth = 800;
     windowHeight = 800;
+
+    int rows = (isCompare) ? 1 : 1;
+    int columns = 1;
+
     logX = 0;
     logY = 0;
     leftMargin   = 0.17;
     rightMargin  = 0.05;
     bottomMargin = 0.15;
     topMargin    = 0.05;
+
+    float yMargin = 0;
+    float xMargin = 0;
+    double frameH = 1-bottomMargin-topMargin-yMargin;
+    double frameW = 1-leftMargin-rightMargin-xMargin;
+    double normCanvasHeight = calcNormCanvasHeight(rows, frameH, bottomMargin, topMargin, yMargin);
+    double normCanvasWidth = calcNormCanvasWidth(columns, frameW, leftMargin, rightMargin, xMargin);
+
+    TCanvas* c = 0 ;
+
     std::string figNameFinal = Form("%s_%s", figureNames[FIGURE::k_M_Z].c_str(), figInfo.c_str());
-    TCanvas* c = new TCanvas(figNameFinal.c_str(), "", windowWidth, windowHeight);
+    c = new TCanvas(figNameFinal.c_str(), "", windowWidth, windowHeight);
     std::cout<<"preparing canvas : "<< c->GetName() <<std::endl;
+    c->SetCanvasSize(windowWidth*normCanvasWidth, windowHeight*normCanvasHeight);
+    c->SetLeftMargin(leftMargin);
+    c->SetRightMargin(rightMargin);
+    c->SetBottomMargin(bottomMargin);
+    c->SetTopMargin(topMargin);
+
+    TPad* pads[2*columns];
+    TPad* pads2[2*columns];
+    //divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH);
     setCanvas(c);
     c->cd();
+
+    float yMinOffset = 0;
+    double windowHeightScale = 1;
+
+    if (isCompare) {
+        float windowHeightFraction = 0.35;
+        windowHeightScale = 1 + windowHeightFraction;
+        c->SetCanvasSize(c->GetWw(), c->GetWh()*windowHeightScale);
+
+        yMinOffset = windowHeightFraction;
+        yMargin = 0.05;
+    }
+
+    divideCanvas(c, pads, 1, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH, yMinOffset);
+
+    for (int i = 0; i < rows; ++i) {
+        pads[i]->SetBorderMode(0);
+        pads[i]->SetBorderSize(0);
+        pads[i]->SetFrameBorderMode(0);
+        pads[i]->SetFrameLineColor(0);
+
+        // put ticks to upper and right part of the axis.
+        pads[i]->SetTickx(1);
+        pads[i]->SetTicky(1);
+
+
+        c->cd();
+
+        std::string padNameTmp = Form("%s_lower", pads[i]->GetName());
+        double x1_lowerPad = pads[i]->GetXlowNDC();
+        double y1_lowerPad = pads[i]->GetYlowNDC();
+        if (i + columns < rows*columns)  y1_lowerPad = pads[i+columns]->GetYlowNDC();
+        else                         y1_lowerPad = 0;
+        double x2_lowerPad = pads[i]->GetXlowNDC()+pads[i]->GetWNDC();
+        double y2_lowerPad = pads[i]->GetYlowNDC();
+
+        pads2[i] = new TPad(padNameTmp.c_str(), "", x1_lowerPad, y1_lowerPad, x2_lowerPad, y2_lowerPad);
+        pads2[i]->SetLeftMargin(pads[i]->GetLeftMargin());
+        pads2[i]->SetRightMargin(pads[i]->GetRightMargin());
+        pads2[i]->SetBottomMargin(yMargin * (pads[i]->GetAbsHNDC() / pads2[i]->GetAbsHNDC()));
+        pads2[i]->SetTopMargin(0);
+
+        setPadFinal(pads2[i], pads[i]->GetLogx(), 0);  // do not draw the y-axis in log scale for the ratio histogram.
+
+        pads2[i]->Draw();
+        pads2[i]->cd();
+        pads2[i]->SetNumber(rows*columns+i+1);
+    }
+
+    c->cd(1);
+    /////////////////
 
     xTitle = (vIsZee) ? "M^{ee} (GeV/c^{2})": "M^{#mu#mu} (GeV/c^{2})";
     yTitle = "Entries / (2 GeV/c^{2})";
@@ -302,6 +383,55 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
         h1Ds[i]->SetMinimum(yMin);
         h1Ds[i]->SetMaximum(yMax);
         h1Ds[i]->Draw(drawOptions[i].c_str());
+    }
+
+    c->Update();
+
+    TLine* line = 0;
+    if (isCompare) {
+
+        std::string compareName = (isPull) ? "pull" : "ratio";
+
+        std::string tmpName = Form("%s_%s_mc", h1Ds[k_data]->GetName(), compareName.c_str());
+        if (isRatio) {
+            hTmp = (TH1D*)h1Ds[k_data]->Clone(tmpName.c_str());
+            hTmp->Divide(h1Ds[k_mc]);
+        }
+        else if (isPull) {
+            hTmp = (TH1D*)getResidualHistogram(h1Ds[k_data], h1Ds[k_mc], false);
+            hTmp->Divide(h1Ds[k_data]);
+            hTmp->SetName(tmpName.c_str());
+        }
+
+        setTH1D(k_data, hTmp);
+
+        double lineHorizY = -1;
+        if (isRatio) {
+            hTmp->SetYTitle("Data / MC");
+            hTmp->SetMinimum(0.5);
+            hTmp->SetMaximum(1.4999);
+            lineHorizY = 1;
+        }
+        else if (isPull) {
+            hTmp->SetYTitle("#frac{Data - MC}{Data}");
+            hTmp->SetMinimum(-0.3);
+            hTmp->SetMaximum(0.3);
+            lineHorizY = 0;
+        }
+
+        double axisSizeRatio = (c->GetPad(1)->GetAbsHNDC()/c->GetPad(2)->GetAbsHNDC());
+        setTH1Ratio(hTmp, h1Ds[k_data], axisSizeRatio);
+
+        c->cd(2);
+        hTmp->Draw("e");
+
+        c->Update();
+        line = new TLine(gPad->GetUxmin(), lineHorizY, gPad->GetUxmax(), lineHorizY);
+        line->SetLineStyle(kDashed);
+        line->Draw();
+
+
+        c->cd(1);
     }
 
     std::vector<int> pairCounts(nHistPaths, 0);
