@@ -132,6 +132,7 @@ int parseFigureType(std::string figuretype);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
+void setTHStackfromTH1(THStack* hStk, TH1D* h);
 void setCanvas(TCanvas* c);
 void setLegend(TLegend* leg);
 void setLatex(int iText, TLatex* latex);
@@ -262,8 +263,8 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     int vPtMin = parseVPtMin(figInfo);
     int vPtMax = parseVPtMax(figInfo);
     std::string strVPt = Form("vPt%d_%d", vPtMin, vPtMax);
-    //std::string strCent = (isPP) ? "cent0_100" : "cent0_90";
-    std::string strCent = (isPP) ? "cent0_100" : "cent0_100";
+    std::string strCent = (isPP) ? "cent0_100" : "cent0_90";
+    //std::string strCent = (isPP) ? "cent0_100" : "cent0_100";
     histPaths = {
             Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
             Form("h_vM_os_%s_%s", strVPt.c_str(), strCent.c_str()),
@@ -359,7 +360,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     std::string textL = (vIsZee) ? "e" : "#mu";
     //std::string textLeta = (vIsZee) ? "2.1" : "2.4";
     textLines = {
-            Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
+            //Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
             //Form("|#eta^{%s#pm}| < %s", textL.c_str(), textLeta.c_str())
     };
     int nTextLines = textLines.size();
@@ -370,8 +371,10 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
         latex->Draw();
     }
 
-    textX = 0.69;
-    textYs = {0.71, 0.66, 0.61};
+    //textX = 0.69;
+    //textYs = {0.71, 0.66, 0.61};
+    textX = 0.21;
+    textYs = {0.69, 0.63, 0.57, 0.51};
     textAlign = 11;
     textFont = 43;
     textSize = 30;
@@ -382,6 +385,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     if (isPP) {
         textLines = {
                 Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
+                Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
                 textVPt.c_str(),
         };
     }
@@ -389,6 +393,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
         textLines = {
                 Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
                 "Cent: 0-90 %",
+                Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
                 textVPt.c_str(),
         };
     }
@@ -448,6 +453,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     c->Update();
 
     c->SaveAs(Form("%s.pdf", c->GetName()));
+    c->SaveAs(Form("%s.png", c->GetName()));
     c->Close();         // do not use Delete() for TCanvas.
 
     std::cout<<"running vJetTrkPlot_M_Zll() - END"<<std::endl;
@@ -503,7 +509,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
 
     int nTrkPts = countOccurances(figInfo, "_trkPt");
-    int nStacksPerColl = (isStack) ? nTrkPts : 0;
+    //int nStacksPerColl = (isStack) ? nTrkPts : 0;
 
     logX = 0;
     logY = 0;
@@ -530,7 +536,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     c->SetTopMargin(topMargin);
 
     TPad* pads[2*columns];
-    divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
+    //divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
     divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH);
 
     for (int i = 0; i < 2; ++i) {
@@ -621,6 +627,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     std::vector<int> centMins;
     std::vector<int> centMaxs;
+    std::vector<std::string> centTexts;
     std::string tmpFigInfo = figInfo;
     for (int iCent = 0; iCent < nCents; ++iCent) {
 
@@ -631,12 +638,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         centMaxs.push_back(centMax);
 
         tmpFigInfo = replaceFirst(tmpFigInfo, Form("_cent%d_%d", centMin, centMax), "");
+
+        centTexts.push_back(Form("Cent:%d-%d%%", centMin, centMax));
     }
-    std::vector<std::string> centTexts;
 
     std::vector<double> trkPtMins;
     std::vector<double> trkPtMaxs;
     std::vector<std::string> trkPtLabels;
+    std::vector<std::string> trkPtTexts;
     tmpFigInfo = figInfo;
     if (iObs != k_trkPt) {
 
@@ -662,21 +671,34 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             tmpFigInfo = replaceFirst(tmpFigInfo, label_trkPt.c_str(), "");
 
             trkPtLabels.push_back(label_trkPt.c_str());
+
+            std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
+            std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
+            std::string text_trkPt = "p^{trk}_{T}";
+            std::string text_range_trkPt = Form("%s < %s < %s GeV/c", text_trkPtMin.c_str(), text_trkPt.c_str(), text_trkPtMax.c_str());
+            if (trkPtMax < trkPtMin) {
+                text_range_trkPt = Form("%s > %s GeV/c", text_trkPt.c_str(), text_trkPtMin.c_str());
+            }
+
+            trkPtTexts.push_back(text_range_trkPt);
         }
     }
 
-   int nTrkPtLabels = trkPtLabels.size();
+    //int nTrkPtLabels = trkPtLabels.size();
 
     std::string ratiodiffLbl = (isDiff) ? "_diff" : "_ratio";
     std::string tmpTrkPtLbl = "";
     if (is_pbpb_vs_pp) {
 
         histPaths.clear();
-        centTexts.clear();
 
         for (int iC = 0; iC < nCents; ++iC) {
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
+            std::string obslabelTmp = obslabel;
+            if (iObs == k_trkPt && (centMins[iC] >= 50)) {
+                obslabelTmp = "trkPt_rebin2";
+            }
 
             if (iObs != k_trkPt) {
 
@@ -684,19 +706,17 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                     tmpTrkPtLbl = trkPtLabels[iP];
 
-                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
-                    histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                    histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
                 }
             }
             else {
 
-                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
-                histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
             }
-
-            centTexts.push_back(Form("Cent:%d-%d%%", centMins[iC], centMaxs[iC]));
         }
     }
     else if (is_pp_vs_mc) {
@@ -733,6 +753,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         fillTransparencies.assign(kN_HISTLABELS, 0.7);
         lineColors.assign(kN_HISTLABELS, kBlack);
         drawOptions = {"e same", "e same", "e same"};
+        if (isStack) {
+            drawOptions = {"hist same", "hist same", "e same"};
+        }
 
         sysPaths.clear();
 
@@ -742,10 +765,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         for (int iC = 0; iC < nCents; ++iC) {
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
+            std::string obslabelTmp = obslabel;
+            if (iObs == k_trkPt && (centMins[iC] >= 0)) {
+                obslabelTmp = "trkPt_rebin2";
+            }
 
-            sysPaths.push_back(Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
-            sysPaths.push_back(Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-            sysPaths.push_back(Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+            sysPaths.push_back(Form("h_%s_%s_%s%s_sig_systematics", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+            sysPaths.push_back(Form("h_%s_%s_%scent0_100_sig_systematics", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+            sysPaths.push_back(Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
         }
 
         sysUseRelUnc.assign(kN_HISTLABELS, false);
@@ -779,6 +806,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     std::vector<TH1D*> h1DsSys(nHistPaths, 0);
     TGraph* gr = 0;
     TH1D* hTmp = 0;
+    TH1* hFrame = 0;
 
     TPad* emptyBox = 0;
 
@@ -851,7 +879,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     int nStacks = (isStack) ? columns : 0;
     std::vector<THStack*> hStack(nStacks, 0);
-    std::vector<int> colorsStack = {kGray, kRed, kGreen, kBlue, kGreen, kMagenta, kOrange, kCyan, kSpring};
+    std::vector<int> colorsStack = {15, kRed, kGreen+2, kBlue, kMagenta, kOrange, kCyan, kSpring};
+    std::vector<int> markerStylesStack = {kFullSquare, kFullCircle, kFullSquare, kFullCross, kFullSquare, kFullCircle, kFullSquare, kFullCross};
 
     // draw histograms
     if (!isStack){
@@ -889,7 +918,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 double yStart = 0.2-0.015;
                 emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart,          c->GetYlowNDC() + yStart - yWidth,
                                                 c->GetXlowNDC() + xStart + xWidth, c->GetYlowNDC() + yStart);
-                emptyBox->SetFillColor(kRed);
+                //emptyBox->SetFillColor(kRed);
+                emptyBox->SetFillColor(kWhite);
                 emptyBox->Draw();
             }
             if (j == k_ratio && iCol < columns - 1) {
@@ -903,7 +933,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     double yStart = 0.2-0.015;
                     emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart - xWidth,          c->GetYlowNDC() + yStart - yWidth,
                                                     c->GetXlowNDC() + xStart, c->GetYlowNDC() + yStart);
-                    emptyBox->SetFillColor(kBlue);
+                    //emptyBox->SetFillColor(kBlue);
+                    emptyBox->SetFillColor(kWhite);
                     emptyBox->Draw();
                 }
             }
@@ -913,33 +944,54 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         for (int iStk = 0; iStk < nStacks; ++iStk) {
 
+            std::cout << "istk = " << iStk << std::endl;
+
             hStack[iStk] = new THStack(Form("hStack%d", iStk), "");
 
             //hStack[iTHStack]->Draw(Form("%s same", hStack[iTHStack]->GetDrawOption()));
         }
 
         // first stack is for pp
-        for (int i = 0; i < nHistPaths; ++i) {
+        int nTmp = (kN_HISTLABELS * nTrkPts);
+        for (int i = 0; i < nTmp; ++i) {
+
+            std::cout << "i = " << i << std::endl;
+
             int j = (i % kN_HISTLABELS);
-            int iTrkPt = (i % (kN_HISTLABELS * nTrkPts)) / kN_HISTLABELS;
+            int iTrkPt = i / kN_HISTLABELS;
+
+            std::cout << "j = " << j << std::endl;
+            std::cout << "iTrkPt = " << iTrkPt << std::endl;
 
             if (j == k_hist2) {
                 h1Ds[i]->SetFillColor(colorsStack[iTrkPt]);
                 hStack[0]->Add(h1Ds[i], drawOptions[j].c_str());
+//                if (hStack[0]->GetHists()->GetSize() == 1 || true) {
+//                    setTHStackfromTH1(hStack[0], h1Ds[i]);
+//                }
             }
         }
 
         // remaining stacks for pbpb
         for (int i = 0; i < nHistPaths; ++i) {
             int j = (i % kN_HISTLABELS);
-            int iCol = ((i*nTrkPts) / kN_HISTLABELS);
+            int iCol = (i / nTmp);
 
             int iCent = iCol+1;
-            int iTrkPt = (i % (kN_HISTLABELS * nTrkPts)) / kN_HISTLABELS;
+            int iTrkPt = (i % nTmp) / kN_HISTLABELS;
+
+            std::cout << "i = " << i << std::endl;
+            std::cout << "j = " << j << std::endl;
+            std::cout << "iCol = " << iCol << std::endl;
+            std::cout << "iCent = " << iCent << std::endl;
+            std::cout << "iTrkPt = " << iTrkPt << std::endl;
 
             if (j == k_hist1) {
                 h1Ds[i]->SetFillColor(colorsStack[iTrkPt]);
                 hStack[iCent]->Add(h1Ds[i], drawOptions[j].c_str());
+//                if (hStack[iCent]->GetHists()->GetSize() == 1 || true) {
+//                    setTHStackfromTH1(hStack[iCent], h1Ds[i]);
+//                }
             }
         }
 
@@ -948,9 +1000,30 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             int iCol = iStk;
             //int j = (i % kN_HISTLABELS);
 
+            std::cout << "iCol = " << iCol << std::endl;
+
             c->cd(iCol+1);
 
+            //hTmp = (TH1D*)((hStack[iStk]->GetHists())->At(0))->Clone(Form("hTmp_stk_%d", iStk));
+            hTmp = (TH1D*)(h1Ds[0])->Clone(Form("hTmp_stk_%d", iStk));
+//            hTmp->ResetStats();
+//
+//            hTmp->Draw();
+
+            if (true) {
+
+                hFrame = gPad->DrawFrame(hTmp->GetXaxis()->GetXmin(), hTmp->GetMinimum(),
+                                         hTmp->GetXaxis()->GetXmax(), hTmp->GetMaximum());
+   //             frame->GetXaxis()->SetTitle("X title");
+   //             frame->GetYaxis()->SetTitle("Y title");
+                hFrame->Draw();
+                //gPad->Update();
+            }
+
+            setTHStackfromTH1(hStack[iStk], (TH1D*)(hStack[iStk]->GetHists()->At(0)));
             hStack[iStk]->Draw();
+
+            //hStack[iStk]->Draw(Form("%s same", hStack[iStk]->GetDrawOption()));
 
             /*
             h1DsSys[iStk] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[iStk].c_str());
@@ -993,7 +1066,99 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
             */
 
+        }
 
+//        pads[columns]->SetRightMargin(0.0);
+//        pads[columns]->SetLeftMargin(0.999999);
+
+        //pads[columns+1]->SetCanvasSize(((double)(pads[columns+1]->GetWw())*1.2), pads[columns+1]->GetWh());
+
+
+        double padScaleW = 0.2;
+
+        double padTmpX1 = pads[columns]->GetXlowNDC();
+        double padTmpW = pads[columns]->GetWNDC();
+        double padTmpY1 = pads[columns]->GetYlowNDC();
+        double padTmpH = pads[columns]->GetHNDC();
+
+        pads[columns]->SetPad(padTmpX1, padTmpY1, padTmpX1 + padTmpW*(1-padScaleW), padTmpY1 + padTmpH);
+
+        padTmpX1 = pads[columns+1]->GetXlowNDC();
+        padTmpW = pads[columns+1]->GetWNDC();
+        padTmpY1 = pads[columns+1]->GetYlowNDC();
+        padTmpH = pads[columns+1]->GetHNDC();
+
+
+        pads[columns+1]->SetPad(padTmpX1 - padTmpW*padScaleW, padTmpY1, padTmpX1 + padTmpW, padTmpY1 + padTmpH);
+        pads[columns+1]->SetLeftMargin(padScaleW / (1+padScaleW));
+
+        c->Update();
+
+        for (int i = 0; i < nHistPaths; ++i) {
+
+            int j = (i % kN_HISTLABELS);
+            int iCol = (i / nTmp) + 1;
+
+            if (j != k_ratio) continue;
+
+            c->cd(columns+iCol+1);
+
+            int iTrkPt = (i % nTmp) / kN_HISTLABELS;
+
+            h1Ds[i]->SetFillColor(colorsStack[iTrkPt]);
+            h1Ds[i]->SetMarkerColor(colorsStack[iTrkPt]);
+            h1Ds[i]->SetLineColor(colorsStack[iTrkPt]);
+            h1Ds[i]->SetMarkerStyle(markerStylesStack[iTrkPt]);
+
+            if (j == 0 || (j == k_ratio)) {
+                hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
+                std::string tmpDrawOpt = drawOptions[j];
+                if (iTrkPt == 0) {
+                    tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
+                }
+                hTmp->Draw(tmpDrawOpt.c_str());
+            }
+
+            /*
+            h1DsSys[i] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[i].c_str());
+            if (h1DsSys[i] != 0) {
+                gr = new TGraph();
+                setTGraphSys(j, gr);
+                drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[j]);
+            }
+            */
+
+            h1Ds[i]->Draw(drawOptions[j].c_str());
+
+            if (j == k_ratio && iCol > 0) {
+
+                double xWidth = 0.06;
+                double xStart = 0.0;
+
+                double yWidth = 0.07;
+                double yStart = 0.2-0.015;
+                emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart,          c->GetYlowNDC() + yStart - yWidth,
+                                                c->GetXlowNDC() + xStart + xWidth, c->GetYlowNDC() + yStart);
+                //emptyBox->SetFillColor(kRed);
+                emptyBox->SetFillColor(kWhite);
+                emptyBox->Draw();
+            }
+            if (j == k_ratio && iCol < columns - 1) {
+
+                if (iObs == k_xivh || iObs == k_trkPt) {
+
+                    double xWidth = 0.06;
+                    double xStart = 1.0;
+
+                    double yWidth = 0.07;
+                    double yStart = 0.2-0.015;
+                    emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart - xWidth,          c->GetYlowNDC() + yStart - yWidth,
+                                                    c->GetXlowNDC() + xStart, c->GetYlowNDC() + yStart);
+                    //emptyBox->SetFillColor(kBlue);
+                    emptyBox->SetFillColor(kWhite);
+                    emptyBox->Draw();
+                }
+            }
         }
     }
 
@@ -1003,6 +1168,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     TLatex* latex = 0;
     TLatex* latex2 = 0;
+    TLine* line = 0;
     for (int iCol = 0; iCol < columns; ++iCol) {
 
         c->cd(iCol+1);
@@ -1043,56 +1209,95 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendMargin = 0.15;
         legendWidth = 0.7;
         //int legendTextSize = 5;
-        legendX1 = 0.3;
+        legendX1 = 0.34;
         legendY1 = 0.7;
         if (iObs == k_dphi) {
-            legendX1 = 0.26;
+            legendX1 = 0.30;
             legendY1 = 0.60;
         }
         else if (iObs == k_xivh) {
-            legendX1 = 0.26;
+            legendX1 = 0.24;
             legendY1 = 0.60;
         }
         if (iObs == k_trkPt) {
-            legendX1 = 0.52;
+            legendX1 = 0.46;
             legendY1 = 0.60;
             if (columns > 1) {
                 legendX1 -= 0.1;
             }
         }
 
+        if (isStack) {
+            legendHeight = (0.16 / 2) * nTrkPts;
+            legendY1 -= (0.16 / 2) * (nTrkPts-2);
+        }
+
         if (iCol > 0) {
             legendX1 -= 0.2;
         }
 
-        if (iCol == 0) {
-            leg = new TLegend();
-            hTmp = (TH1D*)h1Ds[iHist1]->Clone(Form("%s_tmp", h1Ds[iHist1]->GetName()));
-            if (legendEntryOptions[k_hist1] == "pf") {
-                hTmp->SetLineWidth(0);
-            }
-            leg->AddEntry(hTmp, legendEntryTexts[k_hist1].c_str(), legendEntryOptions[k_hist1].c_str());
-            hTmp = (TH1D*)h1Ds[iHist2]->Clone(Form("%s_tmp", h1Ds[iHist2]->GetName()));
-            if (legendEntryOptions[k_hist2] == "pf") {
-                hTmp->SetLineWidth(0);
-            }
-            leg->AddEntry(hTmp, legendEntryTexts[k_hist2].c_str(), legendEntryOptions[k_hist2].c_str());
+        if (!isStack) {
+            if (iCol == 0) {
+                leg = new TLegend();
+                hTmp = (TH1D*)h1Ds[iHist1]->Clone(Form("%s_tmp", h1Ds[iHist1]->GetName()));
+                if (legendEntryOptions[k_hist1] == "pf") {
+                    hTmp->SetLineWidth(0);
+                }
+                leg->AddEntry(hTmp, legendEntryTexts[k_hist1].c_str(), legendEntryOptions[k_hist1].c_str());
+                hTmp = (TH1D*)h1Ds[iHist2]->Clone(Form("%s_tmp", h1Ds[iHist2]->GetName()));
+                if (legendEntryOptions[k_hist2] == "pf") {
+                    hTmp->SetLineWidth(0);
+                }
+                leg->AddEntry(hTmp, legendEntryTexts[k_hist2].c_str(), legendEntryOptions[k_hist2].c_str());
 
-            setLegend(leg);
-            leg->Draw();
+                setLegend(leg);
+                leg->Draw();
+            }
         }
+        else {
+            if (iCol == 0) {
+                c->cd(columns+1);
+
+                leg = new TLegend();
+
+                int nTmp = (kN_HISTLABELS * nTrkPts);
+                for (int i = 0; i < nTmp; ++i) {
+
+                    std::cout << "i = " << i << std::endl;
+
+                    int j = (i % kN_HISTLABELS);
+                    int iTrkPt = i / kN_HISTLABELS;
+
+                    std::cout << "j = " << j << std::endl;
+                    std::cout << "iTrkPt = " << iTrkPt << std::endl;
+
+                    if (j == k_hist1) {
+
+                        hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmp", h1Ds[i]->GetName()));
+                        hTmp->SetFillColor(colorsStack[iTrkPt]);
+                        leg->AddEntry(hTmp, trkPtTexts[iTrkPt].c_str(), "f");
+                    }
+                }
+
+                setLegend(leg);
+                leg->Draw();
+            }
+        }
+        c->cd(iCol+1);
 
         textAlign = 11;
         textFont = 43;
-        textSize = 32;
+        textSize = 32 + (columns*2);
         std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
         if (vPtMax > 0) {
             textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
         }
         textLines = {
                 textVPt,
-                "p_{T}^{trk} > 1 GeV/c",
         };
+        if (iObs != k_trkPt && !isStack) {
+            textLines.push_back(trkPtTexts[0]);
+        }
         std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
         if (dphiMin == 0.5) {
             textDphi = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
@@ -1104,17 +1309,21 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             textLines.push_back(textDphi);
         }
         int nTextLines = textLines.size();
+        float tmpTextY1 = legendY1 - 0.08;
+        if (isStack)  {
+            tmpTextY1 = 0.6;
+        }
         if (iObs == k_dphi) {
             textX = legendX1;
-            textYs.resize(nTextLines, legendY1-0.08);
+            textYs.resize(nTextLines, tmpTextY1);
         }
         else if (iObs == k_xivh) {
             textX = legendX1;
-            textYs.resize(nTextLines, legendY1-0.08);
+            textYs.resize(nTextLines, tmpTextY1);
         }
         else if (iObs == k_trkPt) {
             textX = legendX1+0.1;
-            textYs.resize(nTextLines, legendY1-0.08);
+            textYs.resize(nTextLines, tmpTextY1);
         }
 
         if (iCol == 0) {
@@ -1129,25 +1338,43 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         c->Update();
 
-        if (columns > 1) {
-            textLines = {
-                centTexts[iCol].c_str(),
-            };
-            textX = 0.72;
+        if (columns > 1 || (isStack && iCol == 0)) {
+
+            if (isStack && iCol == 0) {
+                textLines = {
+                        "pp"
+                };
+            }
+            else {
+                int iCent = (isStack) ? iCol-1 : iCol;
+                if (isStack) {
+                    textLines = {
+                        "PbPb",
+                        centTexts[iCent].c_str(),
+                    };
+                }
+                else {
+                    textLines = {
+                        centTexts[iCent].c_str(),
+                    };
+                }
+            }
+
+            textX = 0.66;
             if (iCol > 0) {
-                textX = 0.7;
+                textX = 0.64;
             }
 
             if (iObs == k_xivh) {
-                textX = 0.5;
+                textX = 0.48;
                 if (iCol > 0) {
-                    textX = 0.05;
+                    textX = 0.04;
                 }
             }
             if (iObs == k_trkPt) {
-                textX = 0.72;
+                textX = 0.66;
                 if (iCol > 0) {
-                    textX = 0.7;
+                    textX = 0.62;
                 }
             }
 
@@ -1241,17 +1468,18 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         emptyBox->Draw();
         */
 
-        TLine* line = 0;
         c->cd(iCol+1);
         line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
         line->SetLineStyle(kDashed);
         line->Draw();
 
         c->cd(columns+iCol+1);
-        double yLine = (!isDiff) ? 1 : 0;
-        line = new TLine(gPad->GetUxmin(), yLine, gPad->GetUxmax(), yLine);
-        line->SetLineStyle(kDashed);
-        line->Draw();
+        if ( !(isStack && iCol == 0) ) {
+            double yLine = (!isDiff) ? 1 : 0;
+            line = new TLine(gPad->GetUxmin(), yLine, gPad->GetUxmax(), yLine);
+            line->SetLineStyle(kDashed);
+            line->Draw();
+        }
     }
 
     c->cd();
@@ -1329,6 +1557,36 @@ void setTGraphSys(int iSys, TGraph* gr)
     gr->SetFillColor(sysColors[iSys]);
     gr->SetFillColorAlpha(sysColors[iSys], sysTransparencies[iSys]);
     gr->SetFillStyle(sysFillStyles[iSys]);
+}
+
+void setTHStackfromTH1(THStack* hStk, TH1D* h)
+{
+    //hStk->Draw();
+
+    hStk->SetHistogram(h);
+
+    hStk->SetMinimum(h->GetMinimum());
+    hStk->SetMaximum(h->GetMaximum());
+
+    hStk->SetTitle(h->GetTitle());
+    hStk->GetXaxis()->SetTitle(h->GetXaxis()->GetTitle());
+    hStk->GetYaxis()->SetTitle(h->GetYaxis()->GetTitle());
+
+    hStk->GetXaxis()->CenterTitle((h->GetXaxis()->GetCenterTitle()));
+    hStk->GetYaxis()->CenterTitle((h->GetYaxis()->GetCenterTitle()));
+
+    hStk->GetXaxis()->SetTitleSize(h->GetXaxis()->GetTitleSize());
+    hStk->GetYaxis()->SetTitleSize(h->GetYaxis()->GetTitleSize());
+
+    hStk->GetXaxis()->SetTitleOffset(h->GetXaxis()->GetTitleOffset());
+    hStk->GetYaxis()->SetTitleOffset(h->GetYaxis()->GetTitleOffset());
+
+    hStk->GetXaxis()->SetTitleFont(h->GetXaxis()->GetTitleFont());
+    hStk->GetYaxis()->SetTitleFont(h->GetYaxis()->GetTitleFont());
+
+    hStk->GetXaxis()->SetRangeUser(h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
+    //hStk->GetYaxis()->SetRangeUser(h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax());
+//
 }
 
 void setCanvas(TCanvas* c)
