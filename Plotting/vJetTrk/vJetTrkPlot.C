@@ -483,12 +483,25 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         return;
     }
 
+
     // no horizontal error bars
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
 
     windowWidth = 800;
     windowHeight = 700;
+
+    int rows = 2;
+    int columns = 1;
+    if (figInfo.find("cols3") != std::string::npos) {
+        columns = 3;
+        //windowWidth = 2400;
+    }
+    if (figInfo.find("cols4") != std::string::npos) {
+        columns = 4;
+        //windowWidth = 3200;
+    }
+
     logX = 0;
     logY = 0;
     leftMargin   = 0.22;
@@ -496,8 +509,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     bottomMargin = 0.18;
     topMargin    = 0.08;
 
-    int rows = 2;
-    int columns = 1;
     float yMargin = 0;
     float xMargin = 0;
     double frameH = 1-bottomMargin-topMargin-yMargin;
@@ -515,7 +526,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     c->SetBottomMargin(bottomMargin);
     c->SetTopMargin(topMargin);
 
-    TPad* pads[2];
+    TPad* pads[2*columns];
     divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
     divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH);
 
@@ -610,7 +621,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     int centMin = parseCentMin(figInfo);
     int centMax = parseCentMax(figInfo);
     std::string centlabel = Form("cent%d_%d", centMin, centMax);
-    std::string centText = Form("Cent:%d-%d%%", centMin, centMax);
+
+    std::vector<std::string> centTexts = {Form("Cent:%d-%d%%", centMin, centMax)};
 
     std::string ratiodiffLbl = (isDiff) ? "_diff" : "_ratio";
     if (is_pbpb_vs_pp) {
@@ -619,6 +631,40 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
                 Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), centlabel.c_str()),
         };
+
+        if (columns == 3) {
+            histPaths = {
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+            };
+
+            centTexts = {"Cent:50-90%", "Cent:30-50%", "Cent:0-30%"};
+        }
+        else if (columns == 4) {
+            histPaths = {
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%s%s_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+                    Form("h_%s_%s_%scent0_100_sig", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+            };
+
+            centTexts = {"Cent:70-90%", "Cent:50-90%", "Cent:30-50%", "Cent:0-30%"};
+        }
     }
     else if (is_pp_vs_mc) {
         histPaths = {
@@ -632,6 +678,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     markerSizes.assign(kN_HISTLABELS, 1.70);
     lineTransparencies.assign(kN_HISTLABELS, 1.0);
     lineWidths.assign(kN_HISTLABELS, 3);
+    if (columns == 4) {
+        markerSizes.assign(kN_HISTLABELS, 1.90);
+        lineWidths.assign(kN_HISTLABELS, 1);
+    }
     std::string ratiodiffLblSys = (isDiff) ? "" : "_ratio";
     if (is_pbpb_vs_pp) {
         markerStyles = {kFullCircle, kOpenCircle, kFullSquare};
@@ -648,6 +698,38 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         sysColors = {TColor::GetColor("#ef5253"), TColor::GetColor("#6699cc"), TColor::GetColor("#a09f93")};
         sysTransparencies.assign(kN_HISTLABELS, 0.7);
         sysFillStyles.assign(kN_HISTLABELS, 1001);
+
+        if (columns == 3) {
+
+            sysPaths = {
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+            };
+        }
+        else if (columns == 4) {
+
+            sysPaths = {
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent70_90"),
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent50_90"),
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent30_50"),
+                    Form("h_%s_%s_%s%s_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+                    Form("h_%s_%s_%scent0_100_sig_systematics", obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str()),
+                    Form("h%s_%s_%s_%s%s_sig_systematics", ratiodiffLblSys.c_str(), obslabel.c_str(), strVPt.c_str(), trkPtlabel.c_str(), "cent0_30"),
+            };
+        }
     }
     else if (is_pp_vs_mc) {
         markerStyles = {0, kFullCircle, kFullSquare};
@@ -673,8 +755,11 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     TH1D* hTmp = 0;
     for (int i = 0; i < nHistPaths; ++i) {
 
-        h1Ds[i] = (TH1D*)inputs[i]->Get(histPaths[i].c_str());
-        setTH1D(i, h1Ds[i]);
+        std::cout << "i = "<< i << std::endl;
+        int j = (i % kN_HISTLABELS);
+
+        h1Ds[i] = (TH1D*)inputs[j]->Get(histPaths[i].c_str());
+        setTH1D(j, h1Ds[i]);
 
         // set x-axis range
         if (xMax > xMin) {
@@ -700,218 +785,318 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             ratioTitleY = "MC - Data";
         }
     }
-    h1Ds[k_ratio]->SetYTitle(ratioTitleY.c_str());
-    if (is_pp_vs_mc) {
-        h1Ds[k_ratio]->SetMinimum(0.7);
-        h1Ds[k_ratio]->SetMaximum(1.3);
-    }
-    else if (iObs == k_dphi) {
-        h1Ds[k_ratio]->SetMinimum(0.1);
-        h1Ds[k_ratio]->SetMaximum(3.6);
-        if (isDiff) {
-            h1Ds[k_ratio]->SetMinimum(-5);
-            h1Ds[k_ratio]->SetMaximum(10);
+
+    for (int i = 0; i < nHistPaths; ++i) {
+
+        if (i % 3 == k_ratio) {
+
+            h1Ds[i]->SetYTitle(ratioTitleY.c_str());
+            if (is_pp_vs_mc) {
+                h1Ds[i]->SetMinimum(0.7);
+                h1Ds[i]->SetMaximum(1.3);
+            }
+            else if (iObs == k_dphi) {
+                h1Ds[i]->SetMinimum(0.1);
+                h1Ds[i]->SetMaximum(3.6);
+                if (isDiff) {
+                    h1Ds[i]->SetMinimum(-5);
+                    h1Ds[i]->SetMaximum(10);
+                }
+            }
+            else if (iObs == k_xivh) {
+                h1Ds[i]->SetMinimum(0.2);
+                h1Ds[i]->SetMaximum(3.6);
+            }
+            else if (iObs == k_trkPt) {
+                h1Ds[i]->SetMinimum(0.2);
+                h1Ds[i]->SetMaximum(1.9);
+            }
         }
-    }
-    else if (iObs == k_xivh) {
-        h1Ds[k_ratio]->SetMinimum(0.2);
-        h1Ds[k_ratio]->SetMaximum(3.6);
-    }
-    else if (iObs == k_trkPt) {
-        h1Ds[k_ratio]->SetMinimum(0.2);
-        h1Ds[k_ratio]->SetMaximum(1.9);
     }
 
     // draw histograms
     for (int i = 0; i < nHistPaths; ++i) {
 
-        c->cd(1);
-        if (i == k_ratio) c->cd(2);
+        int j = (i % kN_HISTLABELS);
+        int iCol = (i / kN_HISTLABELS);
 
-        if (i == 0 || i == k_ratio) {
+        std::cout << "i2 = " << i << std::endl;
+
+        c->cd(iCol+1);
+        if (j == k_ratio) c->cd(columns+iCol+1);
+
+        if (j == 0 || (j == k_ratio)) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
-            std::string tmpDrawOpt = replaceAll(drawOptions[i], "same", "");
+            std::string tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
             hTmp->Draw(tmpDrawOpt.c_str());
         }
 
-        h1DsSys[i] = (TH1D*)inputs[i+nHistPaths]->Get(sysPaths[i].c_str());
+        h1DsSys[i] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[i].c_str());
         if (h1DsSys[i] != 0) {
             gr = new TGraph();
-            setTGraphSys(i, gr);
-            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[i]);
+            setTGraphSys(j, gr);
+            drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[j]);
         }
 
-        h1Ds[i]->Draw(drawOptions[i].c_str());
+        h1Ds[i]->Draw(drawOptions[j].c_str());
     }
 
     c->cd(1);
-    legendX1 = 0.3;
-    legendY1 = 0.7;
-    if (iObs == k_dphi) {
-        legendX1 = 0.26;
-        legendY1 = 0.60;
-    }
-    else if (iObs == k_xivh) {
-        legendX1 = 0.26;
-        legendY1 = 0.60;
-    }
-    if (iObs == k_trkPt) {
-        legendX1 = 0.52;
-        legendY1 = 0.60;
-    }
-    legendWidth = 0.54;
-    legendHeight = 0.16;
-    legendMargin = 0.15;
-    if (is_pbpb_vs_pp) {
-        legendEntryTexts = {
-                Form("PbPb %s", centText.c_str()),
-                "pp"
-        };
-        legendEntryOptions = {
-                "pf",
-                "pf"
-        };
-    }
-    else if (is_pp_vs_mc) {
-        legendEntryTexts = {
-                "Madgraph",
-                "pp"
-        };
-        legendEntryOptions = {
-                "l",
-                "pf"
-        };
-    }
-    TLegend* leg = new TLegend();
 
-    hTmp = (TH1D*)h1Ds[k_hist1]->Clone(Form("%s_tmp", h1Ds[k_hist1]->GetName()));
-    if (legendEntryOptions[k_hist1] == "pf") {
-        hTmp->SetLineWidth(0);
-    }
-    leg->AddEntry(hTmp, legendEntryTexts[k_hist1].c_str(), legendEntryOptions[k_hist1].c_str());
-    hTmp = (TH1D*)h1Ds[k_hist2]->Clone(Form("%s_tmp", h1Ds[k_hist2]->GetName()));
-    if (legendEntryOptions[k_hist2] == "pf") {
-        hTmp->SetLineWidth(0);
-    }
-    leg->AddEntry(hTmp, legendEntryTexts[k_hist2].c_str(), legendEntryOptions[k_hist2].c_str());
+    TLegend* leg = 0;
 
-    setLegend(leg);
-    leg->Draw();
-
-    c->cd(1);
-    textAlign = 11;
-    textFont = 43;
-    textSize = 32;
-    std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
-    if (vPtMax > 0) {
-        textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
-    }
-    textLines = {
-            textVPt,
-            "p_{T}^{trk} > 1 GeV/c",
-    };
-    std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
-    if (dphiMin == 0.5) {
-        textDphi = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
-    }
-    else if (dphiMin == 0.666) {
-        textDphi = "#Delta#phi_{trk,Z} > #frac{2#pi}{3}";
-    }
-    if (iObs == k_xivh || iObs == k_trkPt) {
-        textLines.push_back(textDphi);
-    }
-    int nTextLines = textLines.size();
-    if (iObs == k_dphi) {
-        textX = legendX1;
-        textYs.resize(nTextLines, legendY1-0.08);
-    }
-    else if (iObs == k_xivh) {
-        textX = legendX1;
-        textYs.resize(nTextLines, legendY1-0.08);
-    }
-    else if (iObs == k_trkPt) {
-        textX = legendX1+0.1;
-        textYs.resize(nTextLines, legendY1-0.08);
-    }
     TLatex* latex = 0;
-    for (int i = 0; i < nTextLines; ++i) {
-        latex = new TLatex();
-        textYs[i] = textYs[0] - i*0.08;
-        setLatex(i, latex);
-        latex->Draw();
+    TLatex* latex2 = 0;
+    for (int iCol = 0; iCol < columns; ++iCol) {
+
+        c->cd(iCol+1);
+
+        int iHist1 = (iCol*kN_HISTLABELS)+k_hist1;
+        int iHist2 = (iCol*kN_HISTLABELS)+k_hist2;
+
+        if (is_pbpb_vs_pp) {
+            if (columns == 1) {
+                legendEntryTexts = {
+                        Form("PbPb %s", centTexts[iCol].c_str()),
+                        "pp"
+                };
+            }
+            else {
+                legendEntryTexts = {
+                        "PbPb",
+                        "pp"
+                };
+            }
+            legendEntryOptions = {
+                    "pf",
+                    "pf"
+            };
+        }
+        else if (is_pp_vs_mc) {
+            legendEntryTexts = {
+                    "Madgraph",
+                    "pp"
+            };
+            legendEntryOptions = {
+                    "l",
+                    "pf"
+            };
+        }
+
+        legendHeight = 0.16;
+        legendMargin = 0.15;
+        legendWidth = 0.7;
+        //int legendTextSize = 5;
+        legendX1 = 0.3;
+        legendY1 = 0.7;
+        if (iObs == k_dphi) {
+            legendX1 = 0.26;
+            legendY1 = 0.60;
+        }
+        else if (iObs == k_xivh) {
+            legendX1 = 0.26;
+            legendY1 = 0.60;
+        }
+        if (iObs == k_trkPt) {
+            legendX1 = 0.52;
+            legendY1 = 0.60;
+            if (columns > 1) {
+                legendX1 -= 0.1;
+            }
+        }
+
+        if (iCol > 0) {
+            legendX1 -= 0.2;
+        }
+
+        if (iCol == 0) {
+            leg = new TLegend();
+            hTmp = (TH1D*)h1Ds[iHist1]->Clone(Form("%s_tmp", h1Ds[iHist1]->GetName()));
+            if (legendEntryOptions[k_hist1] == "pf") {
+                hTmp->SetLineWidth(0);
+            }
+            leg->AddEntry(hTmp, legendEntryTexts[k_hist1].c_str(), legendEntryOptions[k_hist1].c_str());
+            hTmp = (TH1D*)h1Ds[iHist2]->Clone(Form("%s_tmp", h1Ds[iHist2]->GetName()));
+            if (legendEntryOptions[k_hist2] == "pf") {
+                hTmp->SetLineWidth(0);
+            }
+            leg->AddEntry(hTmp, legendEntryTexts[k_hist2].c_str(), legendEntryOptions[k_hist2].c_str());
+
+            setLegend(leg);
+            leg->Draw();
+        }
+
+        textAlign = 11;
+        textFont = 43;
+        textSize = 32;
+        std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
+        if (vPtMax > 0) {
+            textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
+        }
+        textLines = {
+                textVPt,
+                "p_{T}^{trk} > 1 GeV/c",
+        };
+        std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
+        if (dphiMin == 0.5) {
+            textDphi = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
+        }
+        else if (dphiMin == 0.666) {
+            textDphi = "#Delta#phi_{trk,Z} > #frac{2#pi}{3}";
+        }
+        if (iObs == k_xivh || iObs == k_trkPt) {
+            textLines.push_back(textDphi);
+        }
+        int nTextLines = textLines.size();
+        if (iObs == k_dphi) {
+            textX = legendX1;
+            textYs.resize(nTextLines, legendY1-0.08);
+        }
+        else if (iObs == k_xivh) {
+            textX = legendX1;
+            textYs.resize(nTextLines, legendY1-0.08);
+        }
+        else if (iObs == k_trkPt) {
+            textX = legendX1+0.1;
+            textYs.resize(nTextLines, legendY1-0.08);
+        }
+
+        if (iCol == 0) {
+            latex = 0;
+            for (int i = 0; i < nTextLines; ++i) {
+                latex = new TLatex();
+                textYs[i] = textYs[0] - i*0.08;
+                setLatex(i, latex);
+                latex->Draw();
+            }
+        }
+
+        c->Update();
+
+        if (columns > 1) {
+            textLines = {
+                centTexts[iCol].c_str(),
+            };
+            textX = 0.72;
+            if (iCol > 0) {
+                textX = 0.7;
+            }
+
+            if (iObs == k_xivh) {
+                textX = 0.5;
+                if (iCol > 0) {
+                    textX = 0.05;
+                }
+            }
+            if (iObs == k_trkPt) {
+                textX = 0.72;
+                if (iCol > 0) {
+                    textX = 0.7;
+                }
+            }
+
+            nTextLines = textLines.size();
+            textYs.clear();
+            textYs.resize(nTextLines, 0.8);
+
+            latex2 = 0;
+            for (int i = 0; i < nTextLines; ++i) {
+                latex2 = new TLatex();
+                textYs[i] = textYs[0] - i*0.08;
+                setLatex(i, latex2);
+                latex2->Draw();
+            }
+        }
+
+        c->Update();
+        c->cd(iCol+1);
+        textAlign = 11;
+        textFont = 43;
+        textSize = 30;
+
+        nTextLines = textLines.size();
+        textX = 0.30;
+        textYs.clear();
+        textYs.resize(nTextLines, 0.94);
+        latex = 0;
+        if (columns == 3) {
+            textX = 0.05;
+        }
+        if (columns == 4) {
+            textX = 0.02;
+        }
+
+        if (iCol == columns -1 ) {
+
+            if (is_pbpb_vs_pp) {
+                textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
+            }
+            else if (is_pp_vs_mc) {
+                textLines = {"#sqrt{s_{NN}} = 5.02 TeV, pp 320 pb^{-1}"};
+            }
+
+            latex = new TLatex();
+            setLatex(0, latex);
+            latex->Draw();
+        }
+
+        latex = 0;
+        if (iCol == 0) {
+
+            textXCMS = legendX1;
+            if (iObs == k_trkPt) {
+                textXCMS = legendX1+0.1;
+                if (columns > 1) {
+                    textXCMS = legendX1;
+                }
+            }
+            textYCMS = 0.82;
+            textAlignCMS = 11;
+            textFontCMS = 61;
+            textSizeCMS = 0.06;
+            latex = new TLatex();
+            setLatexCMS(latex);
+            latex->Draw();
+
+            bool isPreliminary = true;
+            if (isPreliminary) {
+                textXCMSpreliminary = textXCMS;
+                textYCMSpreliminary = textYCMS-0.05;
+                textAlignCMSpreliminary = 11;
+                textFontCMSpreliminary = 52;
+                textSizeCMSpreliminary = textSizeCMS*1.1;
+                latex = new TLatex();
+                setLatexCMSextraLabel(latex, "Preliminary");
+                latex->Draw();
+            }
+        }
+
+        c->Update();
+
+        c->cd();
+        /*
+        TPad* emptyBox = 0;
+        emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
+                                        c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
+        emptyBox->Draw();
+
+        emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
+                                        c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
+        emptyBox->Draw();
+        */
+
+        TLine* line = 0;
+        c->cd(iCol+1);
+        line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
+        line->SetLineStyle(kDashed);
+        line->Draw();
+
+        c->cd(columns+iCol+1);
+        double yLine = (!isDiff) ? 1 : 0;
+        line = new TLine(gPad->GetUxmin(), yLine, gPad->GetUxmax(), yLine);
+        line->SetLineStyle(kDashed);
+        line->Draw();
     }
-
-    c->Update();
-    c->cd(1);
-    textAlign = 11;
-    textFont = 43;
-    textSize = 30;
-
-    nTextLines = textLines.size();
-    textX = 0.30;
-    textYs.clear();
-    textYs.resize(nTextLines, 0.94);
-    latex = 0;
-
-    if (is_pbpb_vs_pp) {
-        textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
-    }
-    else if (is_pp_vs_mc) {
-        textLines = {"#sqrt{s_{NN}} = 5.02 TeV, pp 320 pb^{-1}"};
-    }
-    latex = new TLatex();
-    setLatex(0, latex);
-    latex->Draw();
-
-    textXCMS = legendX1;
-    if (iObs == k_trkPt) {
-        textXCMS = legendX1+0.1;
-    }
-    textYCMS = 0.82;
-    textAlignCMS = 11;
-    textFontCMS = 61;
-    textSizeCMS = 0.06;
-    latex = new TLatex();
-    setLatexCMS(latex);
-    latex->Draw();
-
-    bool isPreliminary = true;
-    if (isPreliminary) {
-        textXCMSpreliminary = textXCMS;
-        textYCMSpreliminary = textYCMS-0.05;
-        textAlignCMSpreliminary = 11;
-        textFontCMSpreliminary = 52;
-        textSizeCMSpreliminary = textSizeCMS*1.1;
-        latex = new TLatex();
-        setLatexCMSextraLabel(latex, "Preliminary");
-        latex->Draw();
-    }
-
-    c->Update();
-
-    c->cd();
-    /*
-    TPad* emptyBox = 0;
-    emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
-                                    c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
-    emptyBox->Draw();
-
-    emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
-                                    c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
-    emptyBox->Draw();
-    */
-
-    TLine* line = 0;
-    c->cd(1);
-    line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
-    line->SetLineStyle(kDashed);
-    line->Draw();
-
-    c->cd(2);
-    double yLine = (!isDiff) ? 1 : 0;
-    line = new TLine(gPad->GetUxmin(), yLine, gPad->GetUxmax(), yLine);
-    line->SetLineStyle(kDashed);
-    line->Draw();
 
     c->cd();
     c->Update();
