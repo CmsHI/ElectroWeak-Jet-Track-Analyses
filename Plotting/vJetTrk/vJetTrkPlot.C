@@ -628,6 +628,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         return;
     }
 
+    bool plotTrkPtLogY = true;
+
     // no horizontal error bars
     gStyle->SetErrorX(0);
     gStyle->SetHatchesLineWidth(3);
@@ -675,7 +677,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     //divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, 0);
     divideCanvas(c, pads, rows, columns, leftMargin, rightMargin, bottomMargin, topMargin, xMargin, yMargin, frameW, frameH);
 
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2*columns; ++i) {
         pads[i]->SetBorderMode(0);
         pads[i]->SetBorderSize(0);
         pads[i]->SetFrameBorderMode(0);
@@ -715,7 +717,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xMax = 4.99;
 
         yMin = -0.2;
-        yMax = 5.0;
+        yMax = 6.0;
         if (dphiMin == 0.5) {
             yMin = -0.4;
             yMax = 10;
@@ -735,6 +737,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xMax = 30;
         yMin = -0.1;
         yMax = 4;
+        if (plotTrkPtLogY) {
+            yMin = 0.00105;
+            yMax = 8;
+        }
         if (dphiMin == 0.5) {
             yMin = -0.3;
             yMax = 12;
@@ -1014,7 +1020,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
             else if (iObs == k_xivh) {
                 h1Ds[i]->SetMinimum(0.2);
-                h1Ds[i]->SetMaximum(3.6);
+                h1Ds[i]->SetMaximum(3.3);
             }
             else if (iObs == k_trkPt) {
                 h1Ds[i]->SetMinimum(0.2);
@@ -1038,6 +1044,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             std::cout << "i2 = " << i << std::endl;
 
             c->cd(iCol+1);
+            if (plotTrkPtLogY && iObs == k_trkPt && j != k_ratio) {
+                pads[iCol]->SetLogy(1);
+            }
+
             if (j == k_ratio) c->cd(columns+iCol+1);
 
             if (j == 0 || (j == k_ratio)) {
@@ -1073,6 +1083,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 if (iObs == k_xivh || iObs == k_trkPt) {
 
                     double xWidth = 0.06;
+                    if (iObs == k_xivh && iCol == 0) {
+                        xWidth = 0.04;
+                    }
                     double xStart = 1.0;
 
                     double yWidth = 0.07;
@@ -1362,7 +1375,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             legendY1 = 0.60;
         }
         else if (iObs == k_xivh) {
-            legendX1 = 0.24;
+            legendX1 = 0.28;
             legendY1 = 0.60;
         }
         if (iObs == k_trkPt) {
@@ -1455,24 +1468,37 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             textLines.push_back(textDphi);
         }
         int nTextLines = textLines.size();
+
+        textX = legendX1;
         float tmpTextY1 = legendY1 - 0.08;
         if (isStack)  {
             tmpTextY1 = 0.6;
         }
+        else if (columns > 1 && iCol == 1) {
+            textX = 0.04;
+            tmpTextY1 = 0.7;
+        }
+
+        if (iObs == k_trkPt) {
+            textX = 0.56;
+        }
+
         if (iObs == k_dphi) {
-            textX = legendX1;
+            textYs.clear();
             textYs.resize(nTextLines, tmpTextY1);
         }
         else if (iObs == k_xivh) {
-            textX = legendX1;
+            textYs.clear();
             textYs.resize(nTextLines, tmpTextY1);
         }
         else if (iObs == k_trkPt) {
-            textX = legendX1+0.1;
+            textYs.clear();
             textYs.resize(nTextLines, tmpTextY1);
         }
 
-        if (iCol == 0) {
+        if ((columns == 1 && iCol == 0) ||
+            (columns > 1 && iCol == 1)) {
+
             latex = 0;
             for (int i = 0; i < nTextLines; ++i) {
                 latex = new TLatex();
@@ -1508,19 +1534,19 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             textX = 0.66;
             if (iCol > 0) {
-                textX = 0.64;
+                textX = 0.58;
             }
 
             if (iObs == k_xivh) {
-                textX = 0.48;
+                textX = 0.52;
                 if (iCol > 0) {
                     textX = 0.04;
                 }
             }
             if (iObs == k_trkPt) {
-                textX = 0.66;
+                textX = 0.68;
                 if (iCol > 0) {
-                    textX = 0.62;
+                    textX = 0.60;
                 }
             }
 
