@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <algorithm>    // std::transform
 #include <regex>
+#include <unistd.h>     // gethostname
 
 bool        fileExists(std::string filename);
 std::vector<std::string> getLines(std::string file);
