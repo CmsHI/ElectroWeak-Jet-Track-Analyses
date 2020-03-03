@@ -580,6 +580,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
 
     c->SaveAs(Form("%s.pdf", c->GetName()));
     c->SaveAs(Form("%s.png", c->GetName()));
+    c->SaveAs(Form("%s.C", c->GetName()));
     c->Close();         // do not use Delete() for TCanvas.
 
     std::cout<<"running vJetTrkPlot_M_Zll() - END"<<std::endl;
@@ -1654,6 +1655,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     c->Update();
     c->SaveAs(Form("%s.pdf", c->GetName()));
     c->SaveAs(Form("%s.png", c->GetName()));
+    c->SaveAs(Form("%s.C", c->GetName()));
     c->Close();         // do not use Delete() for TCanvas.
 
     std::cout<<"Closing the input file"<<std::endl;
