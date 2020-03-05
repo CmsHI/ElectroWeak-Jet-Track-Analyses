@@ -135,8 +135,6 @@ void setLatex(int iText, TLatex* latex);
 void setLatexOverPad(int iText, TLatex* latex);
 void setLatexCMS(TLatex* latex);
 void setLatexCMSextraLabel(TLatex* latex, std::string text);
-//void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
-//void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 
 void vJetTrkPlot(std::string inputFileList, std::string figInfo)
 {
@@ -1760,7 +1758,6 @@ void setTHStackfromTH1(THStack* hStk, TH1D* h)
 
     hStk->GetXaxis()->SetRangeUser(h->GetXaxis()->GetXmin(), h->GetXaxis()->GetXmax());
     //hStk->GetYaxis()->SetRangeUser(h->GetYaxis()->GetXmin(), h->GetYaxis()->GetXmax());
-//
 }
 
 void setCanvas(TCanvas* c)
@@ -1846,54 +1843,6 @@ void setLatexCMSextraLabel(TLatex* latex, std::string text)
     latex->SetNDC();
     latex->SetText(textXCMSpreliminary, textYCMSpreliminary, text.c_str());
 }
-
-/*
-void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double binWidth, double binWidthScale)
-{
-   double val = h->GetBinContent(bin);
-   double x   = h->GetBinCenter(bin);
-   int binSys = hSys->FindBin(x);
-
-   double error = TMath::Abs(hSys->GetBinContent(binSys));             // if the uncertainty is calculated using differences
-   if (doRelUnc) error = TMath::Abs(val * hSys->GetBinContent(binSys));    // if the uncertainty is calculated using ratios
-
-   std::string hSysName = hSys->GetName();
-
-   if (binWidth < 0) {
-     binWidth = h->GetBinLowEdge(bin+1) - h->GetBinLowEdge(bin);
-   }
-
-   double errorLow = val - error;
-   double errorUp = val + error;
-   if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
-   if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
-
-   gr->SetPoint(0, x - (binWidth/2)*binWidthScale, errorLow);
-   gr->SetPoint(1, x + (binWidth/2)*binWidthScale, errorLow);
-   gr->SetPoint(2, x + (binWidth/2)*binWidthScale, errorUp);
-   gr->SetPoint(3, x - (binWidth/2)*binWidthScale, errorUp);
-}
-*/
-
-/*
- * draws SysUnc boxes using TGraph objects instead of TBox. TBox objects with transparent fill do not
- * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
- * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
- */
-/*
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
-{
-    int nBins = h->GetNbinsX();
-    for (int i = 1; i <= nBins; ++i) {
-        if (h->GetBinError(i) == 0) continue;
-        if (h->GetBinContent(i) < h->GetMinimum()) continue;
-        if (h->GetBinContent(i) > h->GetMaximum()) continue;
-
-        setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
-        gr->DrawClone("f");
-    }
-}
-*/
 
 int main(int argc, char** argv)
 {
