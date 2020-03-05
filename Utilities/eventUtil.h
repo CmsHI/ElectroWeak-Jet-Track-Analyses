@@ -79,12 +79,12 @@ std::string getCollisionTypeName (COLL::TYPE collision) {
 
 bool collisionIsMC(COLL::TYPE collision) {
 
-    return (collision == COLL::kHIMC || collision == COLL::kPPMC || collision == COLL::kPAMC || collision == COLL::kHIMC2018);
+    return (collision == COLL::kHIMC || collision == COLL::kPPMC || collision == COLL::kPAMC || collision == COLL::kHIMC2018 || collision == COLL::kPPMC2017);
 }
 
 bool collisionIsDATA(COLL::TYPE collision) {
 
-    return (collision == COLL::kHI || collision == COLL::kPP || collision == COLL::kPA || collision == COLL::kHI2018);
+    return (collision == COLL::kHI || collision == COLL::kPP || collision == COLL::kPA || collision == COLL::kHI2018 || collision == COLL::kPP2017);
 }
 
 bool collisionIsHI(COLL::TYPE collision) {
