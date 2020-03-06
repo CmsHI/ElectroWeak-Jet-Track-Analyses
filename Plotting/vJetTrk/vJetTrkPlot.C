@@ -125,6 +125,7 @@ void vJetTrkPlot(std::string inputFileList, std::string figInfo);
 void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo);
 void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo);
 int parseFigureType(std::string figuretype);
+std::string getObsLabelTrk(std::string obsLbl, int centMin);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -813,8 +814,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
             std::string obslabelTmp = obslabel;
-            if (iObs == k_trkPt && (centMins[iC] >= 30)) {
-                obslabelTmp = "trkPt_rebin2";
+            if (iObs == k_trkPt) {
+                obslabelTmp = getObsLabelTrk(obslabel, centMins[iC]);
             }
 
             std::string obslabelTmpPbPb = obslabelTmp;
@@ -866,8 +867,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             std::string centlabel = Form("cent%d_%d", centMins[iC], centMaxs[iC]);
             std::string obslabelTmp = obslabel;
-            if (iObs == k_trkPt && (centMins[iC] >= 30)) {
-                obslabelTmp = "trkPt_rebin2";
+            if (iObs == k_trkPt) {
+                obslabelTmp = getObsLabelTrk(obslabel, centMins[iC]);
             }
 
             sysPaths.push_back(Form("h_%s_%s_%s%s_sig_systematics", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
@@ -1331,6 +1332,16 @@ int parseFigureType(std::string figuretype)
     }
 
     return -1;
+}
+
+std::string getObsLabelTrk(std::string obsLbl, int centMin)
+{
+    if (obsLbl.find("trkPt") != std::string::npos && centMin >= 30) {
+        return "trkPt_rebin2";
+    }
+    else {
+        return obsLbl;
+    }
 }
 
 void setTH1D(int iHist, TH1D* h)
