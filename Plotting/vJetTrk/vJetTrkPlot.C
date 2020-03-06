@@ -153,7 +153,8 @@ void vJetTrkPlot(std::string inputFileList, std::string figInfo)
     std::cout << "figureName = " << figureNames[figType].c_str() << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFileList.c_str());
-    std::cout<<"ROOT files containing input TH1 : num = "<<inputFiles.size()<< std::endl;
+    int nInputFiles = inputFiles.size();
+    std::cout<<"ROOT files containing input TH1 : nFiles = " << nInputFiles << std::endl;
     std::cout<<"#####"<< std::endl;
     for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
         std::cout<<(*it).c_str()<< std::endl;
@@ -162,13 +163,6 @@ void vJetTrkPlot(std::string inputFileList, std::string figInfo)
 
     // TH1 objects
     TH1::SetDefaultSumw2();
-
-    int nInputFiles = inputFiles.size();
-
-    std::cout << "nInputFiles = " << nInputFiles << std::endl;
-    for (int i = 0; i < nInputFiles; ++i) {
-        std::cout << Form("inputFiles[%d] = %s", i, inputFiles.at(i).c_str()) << std::endl;
-    }
 
     std::vector<TFile*> inputs(nInputFiles, 0);
     for (int i = 0; i < nInputFiles; ++i) {
@@ -939,7 +933,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     for (int i = 0; i < nHistPaths; ++i) {
 
-        std::cout << "i = "<< i << std::endl;
         int j = (i % kN_HISTLABELS);
 
         h1Ds[i] = (TH1D*)inputs[j]->Get(histPaths[i].c_str());
@@ -1008,8 +1001,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         int j = (i % kN_HISTLABELS);
         int iCol = (i / kN_HISTLABELS);
-
-        std::cout << "i2 = " << i << std::endl;
 
         c->cd(iCol+1);
         if (plotTrkPtLogY && iObs == k_trkPt && j != k_ratio) {
