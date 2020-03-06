@@ -556,7 +556,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     setLatexCMS(latex);
     latex->Draw();
 
-    bool isPreliminary = true;
+    bool isPreliminary = false;
     if (isPreliminary) {
         textXCMSpreliminary = textXCMS;
         textYCMSpreliminary = textYCMS-0.05;
@@ -1100,7 +1100,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             legendX1 -= 0.2;
         }
 
-
         if (iCol == 0) {
             leg = new TLegend();
             hTmp = (TH1D*)h1Ds[iHist1]->Clone(Form("%s_tmp", h1Ds[iHist1]->GetName()));
@@ -1271,7 +1270,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             setLatexCMS(latex);
             latex->Draw();
 
-            bool isPreliminary = true;
+            bool isPreliminary = false;
             if (isPreliminary) {
                 textXCMSpreliminary = textXCMS;
                 textYCMSpreliminary = textYCMS-0.05;
