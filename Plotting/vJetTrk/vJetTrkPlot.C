@@ -636,8 +636,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     int nCents = countOccurances(figInfo, "_cent");
     columns = nCents;
 
-    int nTrkPts = countOccurances(figInfo, "_trkPt");
-
     logX = 0;
     logY = 0;
     leftMargin   = 0.22;
@@ -776,12 +774,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     std::vector<double> trkPtMins;
     std::vector<double> trkPtMaxs;
-    std::vector<std::string> trkPtLabels;
-    std::vector<std::string> trkPtTexts;
+    std::string trkPtLabel;
+    std::string trkPtText;
     tmpFigInfo = figInfo;
     if (iObs != k_trkPt) {
-
-        for (int iP = 0; iP < nTrkPts; ++iP) {
 
             double trkPtMin = parseTrkPtMin(tmpFigInfo);
             double trkPtMax = parseTrkPtMax(tmpFigInfo);
@@ -800,9 +796,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
 
             std::string label_trkPt = Form("trkPt%s_%s_", label_trkPtMin.c_str(), label_trkPtMax.c_str());
-            tmpFigInfo = replaceFirst(tmpFigInfo, label_trkPt.c_str(), "");
 
-            trkPtLabels.push_back(label_trkPt.c_str());
+            trkPtLabel = label_trkPt;
 
             std::string text_trkPtMin = replaceAll(label_trkPtMin, "p", ".");
             std::string text_trkPtMax = replaceAll(label_trkPtMax, "p", ".");
@@ -812,8 +807,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 text_range_trkPt = Form("%s > %s GeV/c", text_trkPt.c_str(), text_trkPtMin.c_str());
             }
 
-            trkPtTexts.push_back(text_range_trkPt);
-        }
+            trkPtText = text_range_trkPt;
     }
 
     //int nTrkPtLabels = trkPtLabels.size();
@@ -839,14 +833,11 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             if (iObs != k_trkPt) {
 
-                for (int iP = 0; iP < nTrkPts; ++iP) {
+                tmpTrkPtLbl = trkPtLabel;
 
-                    tmpTrkPtLbl = trkPtLabels[iP];
-
-                    histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
-                    histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
-                    histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
-                }
+                histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+                histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
+                histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
             }
             else {
 
@@ -859,7 +850,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     else if (is_pp_vs_mc) {
 
         if (iObs != k_trkPt) {
-            tmpTrkPtLbl = trkPtLabels[0];
+            tmpTrkPtLbl = trkPtLabel;
         }
 
         histPaths = {
@@ -1179,7 +1170,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 textVPt,
         };
         if (iObs != k_trkPt) {
-            textLines.push_back(trkPtTexts[0]);
+            textLines.push_back(trkPtText);
         }
         std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
         if (dphiMin == 0.5) {
