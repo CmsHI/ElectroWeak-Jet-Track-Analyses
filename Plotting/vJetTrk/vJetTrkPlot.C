@@ -125,6 +125,8 @@ void vJetTrkPlot(std::string inputFileList, std::string figInfo);
 void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo);
 void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo);
 int parseFigureType(std::string figuretype);
+std::string getTextVPt(int vPtMin, int vPtMax);
+std::string getTextDphi(double dphiMin);
 std::string getObsLabelTrk(std::string obsLbl, int centMin);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
@@ -497,10 +499,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     textAlign = 11;
     textFont = 43;
     textSize = 30;
-    std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
-    if (vPtMax > 0) {
-        textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
-    }
+    std::string textVPt = getTextVPt(vPtMin, vPtMax);
     if (isPP) {
         textLines = {
                 Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
@@ -1123,23 +1122,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         textAlign = 11;
         textFont = 43;
         textSize = 32 + (columns*2);
-        std::string textVPt = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
-        if (vPtMax > 0) {
-            textVPt = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
-        }
+        std::string textVPt = getTextVPt(vPtMin, vPtMax);
         textLines = {
                 textVPt,
         };
         if (iObs != k_trkPt) {
             textLines.push_back(trkPtText);
         }
-        std::string textDphi = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
-        if (dphiMin == 0.5) {
-            textDphi = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
-        }
-        else if (dphiMin == 0.666) {
-            textDphi = "#Delta#phi_{trk,Z} > #frac{2#pi}{3}";
-        }
+        std::string textDphi = getTextDphi(dphiMin);
         if (iObs == k_xivh || iObs == k_trkPt) {
             textLines.push_back(textDphi);
         }
@@ -1288,6 +1278,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         c->cd();
 
+        // horizontal dashed lines
         c->cd(iCol+1);
         line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
         line->SetLineStyle(kDashed);
@@ -1332,6 +1323,29 @@ int parseFigureType(std::string figuretype)
     }
 
     return -1;
+}
+
+std::string getTextVPt(int vPtMin, int vPtMax)
+{
+    std::string res = Form("p_{T}^{Z} > %d GeV/c", vPtMin);
+    if (vPtMax > 0) {
+        res = Form("%d < p_{T}^{Z} < %d GeV/c", vPtMin, vPtMax);
+    }
+
+    return res;
+}
+
+std::string getTextDphi(double dphiMin)
+{
+    std::string res = "#Delta#phi_{trk,Z} > #frac{7#pi}{8}";
+    if (dphiMin == 0.5) {
+        res = "#Delta#phi_{trk,Z} > #frac{#pi}{2}";
+    }
+    else if (dphiMin == 0.666) {
+        res = "#Delta#phi_{trk,Z} > #frac{2#pi}{3}";
+    }
+
+    return res;
 }
 
 std::string getObsLabelTrk(std::string obsLbl, int centMin)
