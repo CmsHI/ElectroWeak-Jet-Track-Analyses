@@ -700,7 +700,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xTitle = "#xi^{trk,Z}_{T}";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#xi^{trk,Z}_{T}}";
 
-        //xMax = 4.499;
         xMax = 4.99;
 
         yMin = -0.2;
@@ -953,7 +952,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
 
         //h1Ds[i]->SetNdivisions(510, "X");
-
         //h1Ds[i]->GetXaxis()->SetTicks();
 
         h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.4);
@@ -1116,7 +1114,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendHeight = 0.16;
         legendMargin = 0.15;
         legendWidth = 0.7;
-        //int legendTextSize = 5;
         legendX1 = 0.34;
         legendY1 = 0.7;
         if (iObs == k_dphi) {
@@ -1326,16 +1323,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         c->Update();
 
         c->cd();
-        /*
-        TPad* emptyBox = 0;
-        emptyBox = new TPad("box1", "", c->GetX1()+leftMargin-0.10, pads[0]->GetYlowNDC()-0.025,
-                                        c->GetX1()+leftMargin-0.001, pads[0]->GetYlowNDC()+0.025);
-        emptyBox->Draw();
-
-        emptyBox = new TPad("box2", "", c->GetX1()+leftMargin-0.10, pads[1]->GetYlowNDC()+0.081,
-                                        c->GetX1()+leftMargin-0.001, pads[1]->GetYlowNDC()+0.12);
-        emptyBox->Draw();
-        */
 
         c->cd(iCol+1);
         line = new TLine(gPad->GetUxmin(), 0, gPad->GetUxmax(), 0);
