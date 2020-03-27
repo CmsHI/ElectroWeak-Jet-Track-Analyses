@@ -29,6 +29,7 @@
 #include "../../Utilities/interface/HiForestInfoController.h"
 #include "../../Utilities/eventUtil.h"
 #include "../../Utilities/fileUtil.h"
+#include "../../Utilities/egammaUtil.h"
 #include "../../Utilities/physicsUtil.h"
 
 ///// global variables
@@ -145,6 +146,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     TTree* treeHiForestInfo = 0;
     TTree* treeSkim = 0;
     TTree* treeHiFJRho = 0;
+    TTree* treeTrack = 0;
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
@@ -254,6 +256,36 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
         }
 
+        treeTrack = 0;
+        treeTrack = (TTree*)fileTmp->Get("ppTrack/trackTree");
+        if (treeTrack != 0) {
+            treeTrack->SetBranchStatus("*", 0);     // disable all branches
+
+            treeTrack->SetBranchStatus("nTrk",1);
+            treeTrack->SetBranchStatus("trkPt",1);
+            treeTrack->SetBranchStatus("trkEta",1);
+            treeTrack->SetBranchStatus("trkPhi",1);
+            treeTrack->SetBranchStatus("trkCharge",1);
+            treeTrack->SetBranchStatus("highPurity",1);
+            bool anaTrkID = true;
+            if (anaTrkID) {
+                treeTrack->SetBranchStatus("trkPtError",1);
+                treeTrack->SetBranchStatus("trkDz1",1);
+                treeTrack->SetBranchStatus("trkDzError1",1);
+                treeTrack->SetBranchStatus("trkDxy1",1);
+                treeTrack->SetBranchStatus("trkDxyError1",1);
+                treeTrack->SetBranchStatus("trkNHit",1);
+                treeTrack->SetBranchStatus("trkChi2",1);
+                treeTrack->SetBranchStatus("trkNdof",1);
+                treeTrack->SetBranchStatus("trkNlayer",1);
+                treeTrack->SetBranchStatus("trkAlgo",1);
+                treeTrack->SetBranchStatus("trkMVA",1);
+            }
+            treeTrack->SetBranchStatus("pfType",1);
+            treeTrack->SetBranchStatus("pfHcal",1);
+            treeTrack->SetBranchStatus("pfEcal",1);
+        }
+
         ggHiNtuplizer ggHi;
         ggHi.setupTreeForReading(treeggHiNtuplizer);
 
@@ -272,6 +304,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             hiFJRho.setupTreeForReading(treeHiFJRho);
         }
 
+        Tracks trks;
+        trks.setupTreeForReading(treeTrack);
+
         Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
@@ -287,6 +322,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             if (treeHiFJRho != 0) {
                 treeHiFJRho->GetEntry(j_entry);
             }
+            treeTrack->GetEntry(j_entry);
 
             bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
             if(!eventAdded) // this event is duplicate, skip this one.
@@ -382,6 +418,13 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     if (genMatchedIndex >= 0) {
                         ggHiOut.copyGen(ggHi, genMatchedIndex);
                     }
+
+                    ggHiOut.trkIso3 = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType);
+                    ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, false);
+                    ggHiOut.trkIso3subUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, true);
+                    ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
+                    ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, false);
+                    ggHiOut.trkIso3IDsubUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, true);
 
                     ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
                     ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
