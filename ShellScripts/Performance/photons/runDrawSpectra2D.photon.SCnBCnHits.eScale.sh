@@ -3,9 +3,11 @@
 #g++ -Wall -Werror -Wextra -O2 -Wno-narrowing `root-config --cflags --libs` -lTMVA -lRooFitCore -lRooFit -MMD -MF ./build/Performance/drawSpectra.d Performance/drawSpectra.C -o Performance/drawSpectra.exe
 
 runCmd="./ShellScripts/myRun.sh"
-progPath="./Performance/drawSpectra.exe"
+#progPath="./Performance/drawSpectra.exe"
+progPath="./Performance/drawTree.exe"
 #inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
-inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
+#inputFile="/mnt/hadoop/cms/store/user/tatar/official/Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB/HINPbPbWinter16DR-75X_mcRun2_HeavyIon_v14-v1-FOREST/0.root"
+inputFile="Configurations/filelists/photons/Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_FOREST_extendEC.list"
 #inputFile="/mnt/hadoop/cms/store/user/tatar/EGamma/SingleGammaFlatPt10To100_pythia8_Hydjet/0.root"
 
 configFiles=(
@@ -18,7 +20,8 @@ if [ -z "$outDirBase" ]; then
   outDirBase="/export/d00/scratch/"$USER"/EWJTA-out"
 fi
 #outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB"
-outputSuffix="Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB"
+#outputSuffix="Pythia8_AllQCDPhoton30Flt30_Hydjet_Cymbal_MB"
+outputSuffix="Pythia8_AllQCDPhoton30_Hydjet_Cymbal_MB_extendEC"
 #outputSuffix="SingleGammaFlatPt10To100_pythia8_Hydjet"
 outList=(
 $outDirBase"/Configurations/photons/spectra2D_photon_SCnBCnHits_eScale_"$outputSuffix".root"
