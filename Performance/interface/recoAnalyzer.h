@@ -2199,6 +2199,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
         c->SetName(canvasName.c_str());
         c->Write("",TObject::kOverwrite);
+
+        for (int i = 0; i < nH1DsliceY; ++i) {
+            h1DsliceY[i]->Write("",TObject::kOverwrite);
+        }
         // plot 1D reco pt / gen pt distribution for each bin along x-axis - END
 
         // plot pull distributions for energy scale fits
@@ -2376,6 +2380,10 @@ void recoAnalyzer::writeObjects(TCanvas* c)
         canvasName = replaceAll(c->GetName(), "cnv_", "cnvLogy_");
         c->SetName(canvasName.c_str());
         c->Write("",TObject::kOverwrite);
+
+        for (int i = 0; i < nH1DsliceYnormE; ++i) {
+            h1DsliceYnormE[i]->Write("",TObject::kOverwrite);
+        }
         // plot normalized 1D reco pt / gen pt distribution for each bin along x-axis - END
 
         for (int i = 0; i < nPads; ++i) {
