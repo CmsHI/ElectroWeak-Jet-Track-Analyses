@@ -957,7 +957,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
     }
 
-    // draw histograms
+    // draw central values, stat unc, and sys unc
     for (int i = 0; i < nHistPaths; ++i) {
 
         int j = (i % kN_HISTLABELS);
@@ -970,12 +970,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         if (j == k_ratio) c->cd(columns+iCol+1);
 
+        // central values and stat unc
         if (j == 0 || (j == k_ratio)) {
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             std::string tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
             hTmp->Draw(tmpDrawOpt.c_str());
         }
 
+        // sys unc
         h1DsSys[i] = (TH1D*)inputs[j+kN_HISTLABELS]->Get(sysPaths[i].c_str());
         if (h1DsSys[i] != 0) {
             gr = new TGraph();
@@ -985,6 +987,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         h1Ds[i]->Draw(drawOptions[j].c_str());
 
+        // cosmetics on x-axis labels that are cut-off at panel edges
         if (j == k_ratio && iCol > 0) {
 
             double xWidth = 0.06;
