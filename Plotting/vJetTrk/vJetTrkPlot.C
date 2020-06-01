@@ -136,6 +136,8 @@ int parseFigureObs(std::string figuretype);
 std::string getTextVPt(int vPtMin, int vPtMax);
 std::string getTextDphi(double dphiMin);
 std::string getObsLabelTrk(std::string obsLbl, int centMin);
+int getTheoryColor(std::string pathTh);
+std::string getTheoryLegendLabel(std::string pathTh);
 void setTH1D(int iHist, TH1D* h);
 void setTGraph(int iGraph, TGraph* gr);
 void setTGraphSys(int iSys, TGraph* gr);
@@ -538,14 +540,14 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     textSizeOverPad = 29;
     if (isPP) {
         textOverPadLines = {
-                "pp #sqrt{s_{NN}} = 5.02 TeV",
-                "309 pb^{-1}"
+                "pp #sqrt{s} = 5.02 TeV",
+                "304 pb^{-1}"
         };
     }
     else {
         textOverPadLines = {
                 "PbPb #sqrt{s_{NN}} = 5.02 TeV",
-                "1618 #mub^{-1}"
+                "1.7 nb^{-1}"
         };
     }
     int nTextOverPadLines = textOverPadLines.size();
@@ -555,7 +557,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
         latex->Draw();
     }
 
-    textXCMS = 0.69;
+    textXCMS = 0.64;
     textYCMS = 0.87;
     textAlignCMS = 11;
     textFontCMS = 61;
@@ -565,14 +567,21 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     latex->Draw();
 
     bool isPreliminary = false;
-    if (isPreliminary) {
+    bool isSupplementary = true;
+    if (isPreliminary || isSupplementary) {
         textXCMSpreliminary = textXCMS;
         textYCMSpreliminary = textYCMS-0.05;
         textAlignCMSpreliminary = 11;
         textFontCMSpreliminary = 52;
         textSizeCMSpreliminary = textSizeCMS*1.1;
         latex = new TLatex();
-        setLatexCMSextraLabel(latex, "Preliminary");
+        if (isPreliminary) {
+            setLatexCMSextraLabel(latex, "Preliminary");
+        }
+        else if (isSupplementary) {
+            textSizeCMSpreliminary = textSizeCMS*0.95;
+            setLatexCMSextraLabel(latex, "Supplementary");
+        }
         latex->Draw();
     }
 
@@ -592,6 +601,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     bool is_pp_vs_mc = (figInfo.find("pp_vs_mc") != std::string::npos);
     bool is_pbpb_vs_pp = !is_pp_vs_mc;
+
+    bool is_th_scetg = (figInfo.find("th_scetg") != std::string::npos);
+    bool is_theory = is_th_scetg;
 
     int iObs = parseFigureObs(figInfo);
     if (iObs < 0) {
@@ -658,6 +670,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     double dphiMin = parseVTrkDPhiMin(figInfo);
 
+    std::string obsName = "";
     std::string obslabel = "";
     xTitle = "";
     yTitle = "";
@@ -666,6 +679,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     yMin = 0;
     yMax = -1;
     if (iObs == OBS::vjt_dphi) {
+        obsName = "dphi";
         obslabel = "dphi_rebin";
 
         xMax = TMath::Pi();
@@ -676,6 +690,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         yMax = 25;
     }
     else if (iObs == OBS::vjt_xivh) {
+        obsName = "xivh";
         obslabel = "xivh";
 
         xTitle = "#xi^{trk,Z}_{T}";
@@ -695,6 +710,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
     }
     else if (iObs == OBS::vjt_trkPt) {
+        obsName = "trkPt";
         obslabel = "trkPt_rebin";
 
         xTitle = "p^{trk}_{T} (GeV/c)";
@@ -790,6 +806,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             trkPtText = text_range_trkPt;
     }
 
+    std::vector<std::string> graphPathsTh;
+
     std::string ratiodiffLbl = (isDiff) ? "_diff" : "_ratio";
     std::string tmpTrkPtLbl = (iObs == vjt_trkPt) ? "" : trkPtLabel;
     if (is_pbpb_vs_pp) {
@@ -812,6 +830,15 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             histPaths.push_back(Form("h_%s_%s_%s%s_sig", obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
             histPaths.push_back(Form("h_%s_%s_%scent0_100_sig", obslabelTmp.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str()));
             histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
+
+            if (is_theory) {
+                if (is_th_scetg) {
+
+                    graphPathsTh.push_back(Form("gr_scetg_g1p8_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                    graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                    graphPathsTh.push_back(Form("gr_scetg_g2p2_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                }
+            }
         }
     }
     else if (is_pp_vs_mc) {
@@ -914,6 +941,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
         h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
     }
+
+    int nGraphPathsTh = graphPathsTh.size();
+    std::vector<TGraph*> graphTh(nGraphPathsTh, 0);
+
+    for (int i = 0; i < nGraphPathsTh; ++i) {
+        graphTh[i] = (TGraph*)inputs[0]->Get(graphPathsTh[i].c_str());      // assume theory data is in the first file
+    }
+
     std::string ratioTitleY = "";
     if (is_pbpb_vs_pp) {
         ratioTitleY = "PbPb / pp";
@@ -987,6 +1022,37 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         h1Ds[i]->Draw(drawOptions[j].c_str());
 
+        if (is_theory) {
+
+            // retrieve the centrality for the current panel
+            int panelCentMin = parseCentMin(h1Ds[i]->GetName());
+            int panelCentMax = parseCentMax(h1Ds[i]->GetName());
+
+            for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
+
+                int thCentMin = parseCentMin(graphTh[iTh]->GetName());
+                int thCentMax = parseCentMax(graphTh[iTh]->GetName());
+
+                if ( !((panelCentMin == thCentMin) && (panelCentMax == thCentMax)) ) continue;
+
+                if (is_th_scetg) {
+
+                    if (j == k_ratio) {
+
+                        //gr->SetLineWidth(0);
+                        graphTh[iTh]->SetLineWidth(4);
+
+                        int colorTh = getTheoryColor(graphTh[iTh]->GetName());
+
+                        graphTh[iTh]->SetLineColor(colorTh);
+                        graphTh[iTh]->SetFillColor(colorTh);
+
+                        graphTh[iTh]->Draw("same l");
+                    }
+                }
+            }
+        }
+
         // cosmetics on x-axis labels that are cut-off at panel edges
         if (j == k_ratio && iCol > 0) {
 
@@ -1025,6 +1091,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     c->cd(1);
 
     TLegend* leg = 0;
+
+    TLegend* legTh = 0;
+    bool is_legTh_scetg_drawn = false;
 
     TLatex* latex = 0;
     TLatex* latex2 = 0;
@@ -1161,6 +1230,48 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
         }
 
+        if (is_theory) {
+
+            // retrieve the centrality for the current panel
+            int panelCentMin = parseCentMin(h1Ds[iHist1]->GetName());
+            int panelCentMax = parseCentMax(h1Ds[iHist1]->GetName());
+
+            if (is_th_scetg) {
+
+                if (!is_legTh_scetg_drawn) {
+
+                    c->cd(columns+iCol+1);
+                    legTh = new TLegend();
+                    legTh->SetHeader("SCET_{G}");
+
+                    for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
+
+                        int thCentMin = parseCentMin(graphTh[iTh]->GetName());
+                        int thCentMax = parseCentMax(graphTh[iTh]->GetName());
+
+                        if ( !((panelCentMin == thCentMin) && (panelCentMax == thCentMax)) ) continue;
+
+                        int colorTh = getTheoryColor(graphTh[iTh]->GetName());
+                        graphTh[iTh]->SetLineColor(colorTh);
+
+                        std::string lblTh = getTheoryLegendLabel(graphTh[iTh]->GetName());
+
+                        gr = (TGraph*)graphTh[iTh]->Clone(Form("%s_tmp", graphTh[iTh]->GetName()));
+                        legTh->AddEntry(gr, lblTh.c_str(), "l");
+                    }
+
+                    legendHeight = 0.24;
+                    setLegend(legTh);
+                    legTh->Draw();
+
+                    is_legTh_scetg_drawn = true;
+                }
+            }
+
+
+        }
+
+        c->cd(iCol+1);
         c->Update();
 
         if (columns > 1) {
@@ -1176,7 +1287,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
 
             if (iObs == vjt_xivh) {
-                textX = 0.52;
+                textX = 0.64;
                 if (iCol > 0) {
                     textX = 0.04;
                 }
@@ -1212,6 +1323,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         textYs.clear();
         textYs.resize(nTextLines, 0.94);
         latex = 0;
+        if (columns == 2) {
+            textX = 0.08;
+        }
         if (columns == 3) {
             textX = 0.05;
         }
@@ -1222,10 +1336,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         if (iCol == columns -1 ) {
 
             if (is_pbpb_vs_pp) {
-                textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 320 pb^{-1}"};
+                textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 304 pb^{-1}"};
             }
             else if (is_pp_vs_mc) {
-                textLines = {"#sqrt{s_{NN}} = 5.02 TeV, pp 320 pb^{-1}"};
+                textLines = {"#sqrt{s} = 5.02 TeV, pp 304 pb^{-1}"};
             }
 
             latex = new TLatex();
@@ -1251,15 +1365,22 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             setLatexCMS(latex);
             latex->Draw();
 
-            bool isPreliminary = false;
-            if (isPreliminary) {
+            bool isPreliminary = (columns == 4 && ((iObs != vjt_dphi || isDiff)));
+            bool isSupplementary = (columns != 4 || ((iObs == vjt_dphi && !isDiff)));
+            if (isPreliminary || isSupplementary) {
                 textXCMSpreliminary = textXCMS;
                 textYCMSpreliminary = textYCMS-0.05;
                 textAlignCMSpreliminary = 11;
                 textFontCMSpreliminary = 52;
                 textSizeCMSpreliminary = textSizeCMS*1.1;
                 latex = new TLatex();
-                setLatexCMSextraLabel(latex, "Preliminary");
+                if (isPreliminary) {
+                    setLatexCMSextraLabel(latex, "Preliminary");
+                }
+                else if (isSupplementary) {
+                    textSizeCMSpreliminary = textSizeCMS*0.95;
+                    setLatexCMSextraLabel(latex, "Supplementary");
+                }
                 latex->Draw();
             }
         }
@@ -1367,6 +1488,42 @@ std::string getObsLabelTrk(std::string obsLbl, int centMin)
     else {
         return obsLbl;
     }
+}
+
+int getTheoryColor(std::string pathTh)
+{
+    if (pathTh.find("scetg") != std::string::npos) {
+
+        if (pathTh.find("g1p8") != std::string::npos) {
+            return TColor::GetColor("#0ECAE3");
+        }
+        else if (pathTh.find("g2p0") != std::string::npos) {
+            return TColor::GetColor("#138808");
+        }
+        else if (pathTh.find("g2p2") != std::string::npos) {
+            return TColor::GetColor("#E3790E");
+        }
+    }
+
+    return -1;
+}
+
+std::string getTheoryLegendLabel(std::string pathTh)
+{
+    if (pathTh.find("scetg") != std::string::npos) {
+
+        if (pathTh.find("g1p8") != std::string::npos) {
+            return"g = 1.8";
+        }
+        else if (pathTh.find("g2p0") != std::string::npos) {
+            return"g = 2.0";
+        }
+        else if (pathTh.find("g2p2") != std::string::npos) {
+            return"g = 2.2";
+        }
+    }
+
+    return "";
 }
 
 void setTH1D(int iHist, TH1D* h)
