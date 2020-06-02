@@ -38,7 +38,7 @@ void vTrk_saveModelDataPoints(const TString outputFile)
 
    TGraph* gr = new TGraph();
 
-   std::cout << "SCET_G predictions" << std::endl;
+   std::cout << "SCET_G calculations" << std::endl;
 
    int nObs_SCET_G = SCET_G::kN_MODEL;
    for (int i = 0; i < nObs_SCET_G; ++i) {
@@ -58,7 +58,7 @@ void vTrk_saveModelDataPoints(const TString outputFile)
        gr->SetLineColor(SCET_G::fillColors[i]);
        gr->SetFillColor(SCET_G::fillColors[i]);
        gr->SetName(Form("gr_%s", objectName.c_str()));
-       gr->SetTitle(Form("%s - PbPb", SCET_G::legendEntries[i].c_str()));
+       gr->SetTitle(Form("%s", SCET_G::legendEntries[i].c_str()));
        gr->Write("",TObject::kOverwrite);
    }
 
