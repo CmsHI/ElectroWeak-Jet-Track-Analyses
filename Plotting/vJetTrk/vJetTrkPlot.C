@@ -1035,8 +1035,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             drawSysUncBoxes(gr, h1Ds[i], h1DsSys[i], sysUseRelUnc[j]);
         }
 
-        h1Ds[i]->Draw(drawOptions[j].c_str());
-
         if (is_theory) {
 
             // retrieve the centrality for the current panel
@@ -1076,6 +1074,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 }
             }
         }
+
+        h1Ds[i]->Draw(drawOptions[j].c_str());
 
         // cosmetics on x-axis labels that are cut-off at panel edges
         if (j == k_ratio && iCol > 0) {
