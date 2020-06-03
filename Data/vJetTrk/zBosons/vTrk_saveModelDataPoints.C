@@ -38,6 +38,27 @@ void vTrk_saveModelDataPoints(const TString outputFile)
 
    TGraph* gr = new TGraph();
 
+   std::cout << "Hybrid calculations" << std::endl;
+
+   int nObs_Hybrid = HYBRID::kN_MODEL;
+   for (int i = 0; i < nObs_Hybrid; ++i) {
+
+       std::string objectName = HYBRID::modelTAG[i];
+
+       std::vector<double> x = HYBRID::x_arr[i];
+       std::vector<double> y_min = HYBRID::y_min_arr[i];
+       std::vector<double> y_max = HYBRID::y_max_arr[i];
+
+       gr = new TGraph();
+       setTGraphBand(gr, x, y_min, y_max);
+       gr->SetLineWidth(3);
+       gr->SetLineColor(HYBRID::colors[i]);
+       gr->SetFillColor(HYBRID::colors[i]);
+       gr->SetName(Form("gr_%s", objectName.c_str()));
+       gr->SetTitle(Form("%s", HYBRID::legendEntries[i].c_str()));
+       gr->Write("",TObject::kOverwrite);
+   }
+
    std::cout << "SCET_G calculations" << std::endl;
 
    int nObs_SCET_G = SCET_G::kN_MODEL;
