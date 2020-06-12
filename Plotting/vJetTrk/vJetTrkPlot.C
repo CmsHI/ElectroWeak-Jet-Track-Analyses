@@ -741,8 +741,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
     xTitleSize = 0.07;
     yTitleSize = 0.07;
-    xTitleOffset = 1.1;
-    yTitleOffset = 1.25;
+    xTitleOffset = 1.20;
+    yTitleOffset = 1.35;
     xTitleFont = 42;
     yTitleFont = 42;
 
@@ -950,8 +950,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         //h1Ds[i]->SetNdivisions(510, "X");
         //h1Ds[i]->GetXaxis()->SetTicks();
 
-        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.4);
-        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.4);
+        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.7);
+        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.7);
 
         h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
         h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
@@ -1080,7 +1080,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         // cosmetics on x-axis labels that are cut-off at panel edges
         if (j == k_ratio && iCol > 0) {
 
-            double xWidth = 0.06;
+            double xWidth = 0.050;
             double xStart = 0.0;
 
             double yWidth = 0.07;
@@ -1286,6 +1286,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                     legendHeight = 0.24;
                     setLegend(legTh);
+                    legTh->SetTextSize(0.048);
                     legTh->Draw();
 
                     col_legTh_scetg_drawn = iCol;
@@ -1322,6 +1323,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                         legendY1 += 0.12;
                     }
                     setLegend(legTh);
+                    legTh->SetTextSize(0.052);
                     legTh->Draw();
 
                     col_legTh_hybrid_drawn = iCol;
@@ -1376,7 +1378,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         c->cd(iCol+1);
         textAlign = 11;
         textFont = 43;
-        textSize = 30;
+        textSize = 32;
 
         nTextLines = textLines.size();
         textX = 0.30;
@@ -1384,10 +1386,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         textYs.resize(nTextLines, 0.94);
         latex = 0;
         if (columns == 2) {
-            textX = 0.08;
+            textX = 0.02;
         }
         if (columns == 3) {
-            textX = 0.05;
+            textX = 0.03;
         }
         if (columns == 4) {
             textX = 0.02;
@@ -1558,7 +1560,8 @@ int getTheoryColor(std::string pathTh)
             return TColor::GetColor("#0ECAE3");
         }
         else if (pathTh.find("g2p0") != std::string::npos) {
-            return TColor::GetColor("#138808");
+            //return TColor::GetColor("#138808");
+            return TColor::GetColor("#FF00FF");
         }
         else if (pathTh.find("g2p2") != std::string::npos) {
             return TColor::GetColor("#E3790E");
@@ -1570,7 +1573,9 @@ int getTheoryColor(std::string pathTh)
             return TColor::GetColor("#0000FF");
         }
         else if (pathTh.find("wake_pos") != std::string::npos) {
-            return TColor::GetColor("#00FF00");
+            //return TColor::GetColor("#00FF00");
+            //return TColor::GetColor("#00b300");
+            return TColor::GetColor("#32CD32");
         }
         else if (pathTh.find("wake_full") != std::string::npos) {
             return TColor::GetColor("#FF0000");
