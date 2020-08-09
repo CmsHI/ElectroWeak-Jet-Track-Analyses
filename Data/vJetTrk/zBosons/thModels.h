@@ -481,6 +481,140 @@ const std::string legendEntries[kN_MODEL] = {
         "g = 2.2"
 };
 
+}
+
+namespace COLBT {
+
+/*
+ * CoLBT Z+hadron predictions data points
+ * naming convention :
+ *      n_<observable>    : number of points in the observable
+ *      x_<observable>    : x axis values of the observable, bin centers
+ *      y_<observable>    : y axis values of the observable
+ */
+
+// xi points
+const int n_xi = 10;
+const std::vector<double> x_xi = {0.25, 0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25, 4.75};
+
+//// cent030
+const std::vector<double> y_err_xi_aa_pp_ratio_cent030 = {0.03974, 0.02166, 0.01723, 0.01299, 0.01184, 0.01279, 0.0146, 0.0184, 0.02991, 0.06293};
+const std::vector<double> y_val_xi_aa_pp_ratio_cent030 = {0.23656, 0.30378, 0.40377, 0.44497, 0.60098, 0.94912, 1.526, 1.8128, 1.9953, 2.36041};
+
+//// cent3050
+const std::vector<double> y_err_xi_aa_pp_ratio_cent3050 = {0.0574, 0.03093, 0.02173, 0.01767, 0.01493, 0.01466, 0.01423, 0.01687, 0.02598, 0.05238};
+const std::vector<double> y_val_xi_aa_pp_ratio_cent3050 = {0.40914, 0.50751, 0.55086, 0.67495, 0.81023, 1.11899, 1.45776, 1.60765, 1.65743, 1.87136};
+
+// trk pT points
+//// cent030
+const int n_trkPt_cent030 = 14;
+const std::vector<double> x_trkPt_cent030 = {1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 11, 13, 16, 21, 27};
+const std::vector<double> y_err_trkPt_aa_pp_ratio_cent030 = {0.01282, 0.01444, 0.01523, 0.01638, 0.0199, 0.0222, 0.02386, 0.02661, 0.03068, 0.02532, 0.02693, 0.02605, 0.0268, 0.03514};
+const std::vector<double> y_val_trkPt_aa_pp_ratio_cent030 = {1.89108, 1.15987, 0.80927, 0.64329, 0.61581, 0.55971, 0.50338, 0.48262, 0.47942, 0.48297, 0.42308, 0.45991, 0.4014, 0.35918};
+
+//// cent3050
+const int n_trkPt_cent3050 = 5;
+const std::vector<double> x_trkPt_cent3050 = {2, 4, 7.5, 14, 24};
+const std::vector<double> y_err_trkPt_aa_pp_ratio_cent3050 = {0.00904, 0.01344, 0.01395, 0.01965, 0.02835};
+const std::vector<double> y_val_trkPt_aa_pp_ratio_cent3050 = {1.47323, 0.927, 0.77349, 0.64683, 0.56889};
+
+// dphi points
+const int n_dphi = 9;
+const std::vector<double> x_dphi = {0.236, 0.733, 1.207, 1.654, 2.042, 2.353, 2.67, 2.906, 3.062};
+
+//// cent030
+const std::vector<double> y_err_dphi_aa_pp_diff_cent030 = {0.03627, 0.03518, 0.04095, 0.04292, 0.05897, 0.06603, 0.07703, 0.13109, 0.14365};
+const std::vector<double> y_val_dphi_aa_pp_diff_cent030 = {2.40023, 2.49246, 2.77301, 3.23623, 3.7684, 4.23753, 4.20293, 3.33117, 1.5165};
+
+//// cent3050
+const std::vector<double> y_err_dphi_aa_pp_diff_cent3050 = {0.03665, 0.03567, 0.04115, 0.04269, 0.05855, 0.06552, 0.07715, 0.13246, 0.14603};
+const std::vector<double> y_val_dphi_aa_pp_diff_cent3050 = {2.21333, 2.30893, 2.45932, 2.6996, 3.1279, 3.45441, 3.65583, 3.26771, 2.06768};
+
+enum MODEL{
+    k_xi_aa_pp_ratio_cent030,
+    k_xi_aa_pp_ratio_cent3050,
+    //
+    k_trkPt_aa_pp_ratio_cent030,
+    k_trkPt_aa_pp_ratio_cent3050,
+    //
+    k_dphi_aa_pp_diff_cent030,
+    k_dphi_aa_pp_diff_cent3050,
+    kN_MODEL
 };
+
+const std::string modelTAG[kN_MODEL] = {
+        "colbt_ratio_xivh_cent0_30",
+        "colbt_ratio_xivh_cent30_50",
+        //
+        "colbt_ratio_trkPt_cent0_30",
+        "colbt_ratio_trkPt_cent30_50",
+        //
+        "colbt_diff_dphi_cent0_30",
+        "colbt_diff_dphi_cent30_50",
+};
+
+const std::vector<double> x_arr[kN_MODEL] = {
+        x_xi,
+        x_xi,
+        //
+        x_trkPt_cent030,
+        x_trkPt_cent3050,
+        //
+        x_dphi,
+        x_dphi,
+};
+
+const std::vector<double> y_err_arr[kN_MODEL] = {
+        y_err_xi_aa_pp_ratio_cent030,
+        y_err_xi_aa_pp_ratio_cent3050,
+        //
+        y_err_trkPt_aa_pp_ratio_cent030,
+        y_err_trkPt_aa_pp_ratio_cent3050,
+        //
+        y_err_dphi_aa_pp_diff_cent030,
+        y_err_dphi_aa_pp_diff_cent3050,
+};
+
+const std::vector<double> y_val_arr[kN_MODEL] = {
+        y_val_xi_aa_pp_ratio_cent030,
+        y_val_xi_aa_pp_ratio_cent3050,
+        //
+        y_val_trkPt_aa_pp_ratio_cent030,
+        y_val_trkPt_aa_pp_ratio_cent3050,
+        //
+        y_val_dphi_aa_pp_diff_cent030,
+        y_val_dphi_aa_pp_diff_cent3050,
+};
+
+const int colors[kN_MODEL] = {
+        kBlue,
+        kBlue,
+        //
+        kBlue,
+        kBlue,
+        //
+        kBlue,
+        kBlue,
+};
+
+const double falpha = 0.7;
+
+// legend entries to be used in a plot
+const std::string legendHeader = "CoLBT";
+
+const std::string legendEntry = "CoLBT";
+
+const std::string legendEntries[kN_MODEL] = {
+        legendEntry,
+        legendEntry,
+        //
+        legendEntry,
+        legendEntry,
+        //
+        legendEntry,
+        legendEntry,
+};
+
+}
 
 #endif /* DATA_VJETTRK_ZBOSONS_THMODELS_H_ */

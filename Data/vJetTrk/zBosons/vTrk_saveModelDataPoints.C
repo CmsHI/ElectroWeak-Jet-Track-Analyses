@@ -83,6 +83,46 @@ void vTrk_saveModelDataPoints(const TString outputFile)
        gr->Write("",TObject::kOverwrite);
    }
 
+   std::cout << "CoLBT calculations" << std::endl;
+
+   int nObs_CoLBT = COLBT::kN_MODEL;
+   for (int i = 0; i < nObs_CoLBT; ++i) {
+
+       std::string objectName = COLBT::modelTAG[i];
+
+       std::vector<double> x = COLBT::x_arr[i];
+       std::vector<double> y_err = COLBT::y_err_arr[i];
+       std::vector<double> y_val = COLBT::y_val_arr[i];
+
+       /*
+       gr = new TGraphErrors();
+       setTGraphErrors((TGraphErrors*)gr, x, y_val, y_err);
+       gr->SetLineWidth(3);
+       gr->SetLineColor(COLBT::colors[i]);
+       gr->SetFillColor(COLBT::colors[i]);
+       gr->SetName(Form("gr_%s", objectName.c_str()));
+       gr->SetTitle(Form("%s", COLBT::legendEntries[i].c_str()));
+       gr->Write("",TObject::kOverwrite);
+       */
+
+       std::vector<double> y_min = y_val;
+       std::vector<double> y_max = y_val;
+       int n_x = x.size();
+       for (int j = 0; j < n_x; ++j) {
+           y_min[j] -= y_err[j]/2;
+           y_max[j] += y_err[j]/2;
+       }
+
+       gr = new TGraph();
+       setTGraphBand(gr, x, y_min, y_max);
+       gr->SetLineWidth(3);
+       gr->SetLineColor(COLBT::colors[i]);
+       gr->SetFillColor(COLBT::colors[i]);
+       gr->SetName(Form("gr_%s", objectName.c_str()));
+       gr->SetTitle(Form("%s", COLBT::legendEntries[i].c_str()));
+       gr->Write("",TObject::kOverwrite);
+   }
+
    std::cout<<"Closing the output file"<<std::endl;
    output->Close();
 
