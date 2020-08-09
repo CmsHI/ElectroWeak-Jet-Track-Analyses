@@ -608,7 +608,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     bool is_th_scetg = (figInfo.find("th_scetg") != std::string::npos);
     bool is_th_hybrid = (figInfo.find("th_hybrid") != std::string::npos);
-    bool is_theory = (is_th_scetg || is_th_hybrid);
+    bool is_th_colbt = (figInfo.find("th_colbt") != std::string::npos);
+    bool is_theory = (is_th_scetg || is_th_hybrid || is_th_colbt);
 
     int iObs = parseFigureObs(figInfo);
     if (iObs < 0) {
@@ -838,6 +839,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             histPaths.push_back(Form("h%s_%s_%s_%s%s_sig", ratiodiffLbl.c_str(), obslabelTmpPbPb.c_str(), strVPt.c_str(), tmpTrkPtLbl.c_str(), centlabel.c_str()));
 
             if (is_theory) {
+
+                std::string str_diff_ratio = isDiff ? "diff" : "ratio";
+
                 if (is_th_scetg) {
 
                     graphPathsTh.push_back(Form("gr_scetg_g1p8_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
@@ -847,11 +851,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                 if (is_th_hybrid) {
 
-                    std::string str_diff_ratio = isDiff ? "diff" : "ratio";
-
                     graphPathsTh.push_back(Form("gr_hybrid_wake_no_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                     graphPathsTh.push_back(Form("gr_hybrid_wake_pos_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                     graphPathsTh.push_back(Form("gr_hybrid_wake_full_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
+                }
+
+                if (is_th_colbt) {
+
+                    graphPathsTh.push_back(Form("gr_colbt_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                 }
             }
         }
@@ -1050,6 +1057,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                 bool is_gr_th_scetg = hasSubstr(graphTh[iTh]->GetName(), "scetg");
                 bool is_gr_th_hybrid = hasSubstr(graphTh[iTh]->GetName(), "hybrid");
+                bool is_gr_th_colbt = hasSubstr(graphTh[iTh]->GetName(), "colbt");
 
                 int colorTh = getTheoryColor(graphTh[iTh]->GetName());
                 double clrThAlpha = getTheoryColorAlpha(graphTh[iTh]->GetName());
@@ -1066,7 +1074,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 if (j == k_ratio) {
 
                     if ((is_th_scetg && is_gr_th_scetg) ||
-                        (is_th_hybrid && is_gr_th_hybrid)    ) {
+                        (is_th_hybrid && is_gr_th_hybrid) ||
+                        (is_th_colbt && is_gr_th_colbt)
+                        ) {
 
                         graphTh[iTh]->Draw(Form("same %s", thDrawOpt.c_str()));
                     }
@@ -1119,6 +1129,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     TLegend* legTh = 0;
     int col_legTh_scetg_drawn = -1;
     int col_legTh_hybrid_drawn = -1;
+    int col_legTh_colbt_drawn = -1;
 
     TLatex* latex = 0;
     TLatex* latex2 = 0;
@@ -1318,6 +1329,37 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     }
 
                     legendHeight = 0.24;
+                    setLegend(legTh);
+                    legTh->SetTextSize(0.048);
+                    legTh->Draw();
+
+                    col_legTh_hybrid_drawn = iCol;
+                }
+            }
+            if (is_th_colbt) {
+
+                if (col_legTh_colbt_drawn < 0)
+                {
+
+                    c->cd(columns+iCol+1);
+                    legTh = new TLegend();
+
+                    for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
+
+                        if (! hasSubstr(graphTh[iTh]->GetName(), "colbt")) continue;
+
+                        int thCentMin = parseCentMin(graphTh[iTh]->GetName());
+                        int thCentMax = parseCentMax(graphTh[iTh]->GetName());
+
+                        if ( !((panelCentMin == thCentMin) && (panelCentMax == thCentMax)) ) continue;
+
+                        std::string lblTh = getTheoryLegendLabel(graphTh[iTh]->GetName());
+
+                        gr = (TGraph*)graphTh[iTh]->Clone(Form("%s_tmp", graphTh[iTh]->GetName()));
+                        legTh->AddEntry(gr, lblTh.c_str(), "f");
+                    }
+
+                    legendHeight = 0.24;
                     legendWidth += 0.06;
                     if (isDphi(obslabel)) {
                         legendY1 += 0.12;
@@ -1326,7 +1368,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     legTh->SetTextSize(0.052);
                     legTh->Draw();
 
-                    col_legTh_hybrid_drawn = iCol;
+                    col_legTh_colbt_drawn = iCol;
                 }
             }
 
@@ -1581,6 +1623,10 @@ int getTheoryColor(std::string pathTh)
             return TColor::GetColor("#FF0000");
         }
     }
+    else if (pathTh.find("colbt") != std::string::npos) {
+
+        return kBlue;
+    }
 
     return -1;
 }
@@ -1594,6 +1640,10 @@ double getTheoryColorAlpha(std::string pathTh)
 
         return 1.0;
     }
+    else if (pathTh.find("colbt") != std::string::npos) {
+
+        return 0.7;
+    }
 
     return 0.0;
 }
@@ -1604,6 +1654,10 @@ int getTheoryLineWidth(std::string pathTh)
         return 3;
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
+
+        return 1;
+    }
+    else if (pathTh.find("colbt") != std::string::npos) {
 
         return 1;
     }
@@ -1628,6 +1682,9 @@ int getTheoryFillStyle(std::string pathTh)
             return 3545;
         }
     }
+    else if (pathTh.find("colbt") != std::string::npos) {
+        return 1001;
+    }
 
     return 1001;
 }
@@ -1641,6 +1698,10 @@ std::string getTheoryDrawOpt(std::string pathTh)
     else if (pathTh.find("hybrid") != std::string::npos) {
 
         return "l f";
+    }
+    else if (pathTh.find("colbt") != std::string::npos) {
+
+        return "f";
     }
 
     return "";
@@ -1660,7 +1721,7 @@ std::string getTheoryLegendLabel(std::string pathTh)
             return "g = 2.2";
         }
     }
-    else if (pathTh.find("scetg") != std::string::npos) {
+    else if (pathTh.find("hybrid") != std::string::npos) {
 
         if (pathTh.find("wake_no") != std::string::npos) {
             return "w/o wake";
@@ -1671,6 +1732,10 @@ std::string getTheoryLegendLabel(std::string pathTh)
         else if (pathTh.find("wake_full") != std::string::npos) {
             return "w/ wake";
         }
+    }
+    else if (pathTh.find("colbt") != std::string::npos) {
+
+        return "CoLBT";
     }
 
     return "";
