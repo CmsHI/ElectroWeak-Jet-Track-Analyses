@@ -690,8 +690,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         xMax = TMath::Pi();
 
-        xTitle = "#Delta#phi_{trk,Z}";
-        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}}";
+        xTitle = "#Delta#phi_{trk,Z} (rad)";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}} (1/rad)";
         yMin = -1;
         yMax = 25;
     }
@@ -720,7 +720,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         obslabel = "trkPt_rebin";
 
         xTitle = "p^{trk}_{T} (GeV/c)";
-        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk}}{dp^{trk}_{T}}";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk}}{dp^{trk}_{T}} (1 / GeV/c)";
 
         xMin = 1;
         xMax = 30;
