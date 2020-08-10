@@ -1394,9 +1394,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
 
             if (iObs == vjt_xivh) {
-                textX = 0.62;
+                textX = 0.64;
                 if (iCol > 0) {
-                    textX = 0.02;
+                    textX = 0.04;
                 }
             }
             if (iObs == vjt_trkPt) {
