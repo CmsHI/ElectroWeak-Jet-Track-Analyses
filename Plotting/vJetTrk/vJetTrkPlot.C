@@ -653,8 +653,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     logX = 0;
     logY = 0;
-    leftMargin   = 0.22;
-    rightMargin  = 0.04;
+    leftMargin   = 0.28;
+    rightMargin  = 0.03;
     bottomMargin = 0.18;
     topMargin    = 0.08;
 
@@ -760,7 +760,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     xTitleSize = 45;
     yTitleSize = 50;
     xTitleOffset = 2.2;
-    yTitleOffset = 2.5;
+    yTitleOffset = 2.9;
 
     xLabelFont = 43;
     yLabelFont = 43;
@@ -1106,7 +1106,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         // cosmetics on x-axis labels that are cut-off at panel edges
         if (j == k_ratio && iCol > 0) {
 
-            double xWidth = 0.050;
+            double xWidth = 0.04;
             double xStart = 0.0;
 
             double yWidth = 0.07;
@@ -1121,9 +1121,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             if (iObs == vjt_xivh || iObs == vjt_trkPt) {
 
-                double xWidth = 0.06;
+                double xWidth = 0.04;
                 if (iObs == vjt_xivh && iCol == 0) {
-                    xWidth = 0.04;
+                    xWidth = 0.03;
                 }
                 double xStart = 1.0;
 
@@ -1193,24 +1193,21 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendY1 = 0.7;
         legendTextSize = 0.08;
         if (iObs == vjt_dphi) {
-            legendX1 = 0.28;
+            legendX1 = 0.04;
             legendY1 = 0.60;
         }
         else if (iObs == vjt_xivh) {
-            legendX1 = 0.28;
+            legendX1 = 0.04;
             legendY1 = 0.60;
         }
         if (iObs == vjt_trkPt) {
-            legendX1 = 0.46;
+            legendX1 = 0.22;
             legendY1 = 0.60;
             if (columns > 1) {
                 legendX1 -= 0.1;
             }
         }
-
-        if (iCol > 0) {
-            legendX1 -= 0.2;
-        }
+        legendX1 += (iCol == 0) ? leftMargin : xMargin ;
 
         if (iCol == 0) {
             leg = new TLegend();
