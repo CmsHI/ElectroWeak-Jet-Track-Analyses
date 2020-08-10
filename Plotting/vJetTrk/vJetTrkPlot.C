@@ -570,7 +570,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     setLatexCMS(latex);
     latex->Draw();
 
-    bool isPreliminary = true; // false;
+    bool isPreliminary = false; // false;
     bool isSupplementary = false;  // true;
     if (isPreliminary || isSupplementary) {
         textXCMSpreliminary = textXCMS;
@@ -1469,7 +1469,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             setLatexCMS(latex);
             latex->Draw();
 
-            bool isPreliminary = true; // (columns == 4 && ((iObs != vjt_dphi || isDiff)));
+            bool isPreliminary = false; // (columns == 4 && ((iObs != vjt_dphi || isDiff)));
             bool isSupplementary = false; // (columns != 4 || ((iObs == vjt_dphi && !isDiff)));
             if (isPreliminary || isSupplementary) {
                 textXCMSpreliminary = textXCMS;
