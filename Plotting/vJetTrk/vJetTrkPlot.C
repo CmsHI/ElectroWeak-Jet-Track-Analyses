@@ -57,12 +57,18 @@ float topMargin;
 // TH1D
 std::string xTitle;
 std::string yTitle;
+int xTitleFont;
+int yTitleFont;
 float xTitleSize;
 float yTitleSize;
 float xTitleOffset;
 float yTitleOffset;
-int xTitleFont;
-int yTitleFont;
+int xLabelFont;
+int yLabelFont;
+float xLabelSize;
+float yLabelSize;
+float xLabelOffset;
+float yLabelOffset;
 double yMin;
 double yMax;
 std::vector<std::string> histPaths;
@@ -330,12 +336,19 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
 
     xTitle = (vIsZee) ? "M^{ee} (GeV/c^{2})": "M^{#mu#mu} (GeV/c^{2})";
     yTitle = "Entries / (2 GeV/c^{2})";
+    xTitleFont = 42;
+    yTitleFont = 42;
     xTitleSize = 0.042;
     yTitleSize = 0.042;
     xTitleOffset = 1.25;
     yTitleOffset = 1.7;
-    xTitleFont = 42;
-    yTitleFont = 42;
+
+    xLabelFont = 42;
+    yLabelFont = 42;
+    xLabelSize = 0.035;
+    yLabelSize = 0.035;
+    xLabelOffset = 0.005;
+    yLabelOffset = 0.005;
 
     yMin = 0;
     yMax = 0;
@@ -749,6 +762,13 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     xTitleOffset = 2.2;
     yTitleOffset = 2.5;
 
+    xLabelFont = 43;
+    yLabelFont = 43;
+    xLabelSize = 45;
+    yLabelSize = 45;
+    xLabelOffset = 0.006;
+    yLabelOffset = 0.008;
+
     enum HISTLABELS {
         k_hist1,
         k_hist2,
@@ -958,17 +978,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         //h1Ds[i]->SetNdivisions(510, "X");
         //h1Ds[i]->GetXaxis()->SetTicks();
-
-        /*
-         * Default Font is 42. "3" allows setting sizes as pixels instead of percentage
-         * https://root-forum.cern.ch/t/histogram-label-sizes-for-several-pads-in-a-canvas/5234/2
-         */
-        h1Ds[i]->GetXaxis()->SetLabelFont(43);
-        h1Ds[i]->GetYaxis()->SetLabelFont(43);
-        h1Ds[i]->GetXaxis()->SetLabelSize(45);
-        h1Ds[i]->GetYaxis()->SetLabelSize(45);
-        h1Ds[i]->GetXaxis()->SetLabelOffset(0.006);
-        h1Ds[i]->GetYaxis()->SetLabelOffset(0.008);
     }
 
     int nGraphPathsTh = graphPathsTh.size();
@@ -1756,6 +1765,10 @@ void setTH1D(int iHist, TH1D* h)
     h->SetStats(false);
     h->SetXTitle(xTitle.c_str());
     h->SetYTitle(yTitle.c_str());
+    /*
+     * Default Font is 42 and sizes are set as percentages. Use 43 to set sizes as pixels
+     * https://root-forum.cern.ch/t/histogram-label-sizes-for-several-pads-in-a-canvas/5234/2
+     */
     h->SetTitleFont(xTitleFont, "X");
     h->SetTitleFont(yTitleFont, "Y");
     h->SetTitleSize(xTitleSize, "X");
@@ -1764,6 +1777,12 @@ void setTH1D(int iHist, TH1D* h)
     h->SetTitleOffset(yTitleOffset, "Y");
     h->GetXaxis()->CenterTitle();
     h->GetYaxis()->CenterTitle();
+    h->SetLabelFont(xLabelFont, "X");
+    h->SetLabelFont(yLabelFont, "Y");
+    h->SetLabelSize(xLabelSize, "X");
+    h->SetLabelSize(yLabelSize, "Y");
+    h->SetLabelOffset(xLabelOffset, "X");
+    h->SetLabelOffset(yLabelOffset, "Y");
     h->SetMinimum(yMin);
     h->SetMaximum(yMax);
     h->SetMarkerColor(markerColors[iHist]);
