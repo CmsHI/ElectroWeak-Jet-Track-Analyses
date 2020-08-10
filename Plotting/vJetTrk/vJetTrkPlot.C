@@ -1263,7 +1263,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             latex = 0;
             for (int i = 0; i < nTextLines; ++i) {
                 latex = new TLatex();
-                textYs[i] = textYs[0] - i*0.08;
+                textYs[i] = textYs[0] - i*0.10;
                 setLatex(i, latex);
                 latex->Draw();
             }
