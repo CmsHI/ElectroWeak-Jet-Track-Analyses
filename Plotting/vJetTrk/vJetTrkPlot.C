@@ -655,7 +655,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     logY = 0;
     leftMargin   = 0.28;
     rightMargin  = 0.03;
-    bottomMargin = 0.18;
+    bottomMargin = 0.20;
     topMargin    = 0.08;
 
     float yMargin = 0;
@@ -757,7 +757,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
     }
     xTitleFont = 43;
     yTitleFont = 43;
-    xTitleSize = 45;
+    xTitleSize = 50;
     yTitleSize = 50;
     xTitleOffset = 2.2;
     yTitleOffset = 2.9;
@@ -1110,7 +1110,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             double xStart = 0.0;
 
             double yWidth = 0.07;
-            double yStart = 0.2-0.015;
+            double yStart = bottomMargin + 0.005;
             emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart,          c->GetYlowNDC() + yStart - yWidth,
                                             c->GetXlowNDC() + xStart + xWidth, c->GetYlowNDC() + yStart);
             //emptyBox->SetFillColor(kRed);
@@ -1128,7 +1128,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 double xStart = 1.0;
 
                 double yWidth = 0.07;
-                double yStart = 0.2-0.015;
+                double yStart = bottomMargin + 0.005;
                 emptyBox = new TPad("box1", "", c->GetXlowNDC() + xStart - xWidth,          c->GetYlowNDC() + yStart - yWidth,
                                                 c->GetXlowNDC() + xStart, c->GetYlowNDC() + yStart);
                 //emptyBox->SetFillColor(kBlue);
