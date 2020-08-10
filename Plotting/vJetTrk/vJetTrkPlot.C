@@ -99,6 +99,7 @@ float legendY1;
 float legendWidth;
 float legendHeight;
 float legendMargin;
+float legendTextSize;
 std::vector<std::string> legendEntryTexts;
 std::vector<std::string> legendEntryOptions;
 // TLatex
@@ -461,6 +462,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     legendWidth = 0.45;
     legendHeight = 0.15;
     legendMargin = 0.15;
+    legendTextSize = -1;
     std::string textMC = (isPP) ? "Pythia" : "Pythia+Hydjet";
     legendEntryTexts = {
             textMC.c_str(),
@@ -1170,13 +1172,14 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             };
         }
 
-        legendHeight = 0.16;
+        legendHeight = 0.18;
         legendMargin = 0.15;
         legendWidth = 0.7;
         legendX1 = 0.34;
         legendY1 = 0.7;
+        legendTextSize = 0.08;
         if (iObs == vjt_dphi) {
-            legendX1 = 0.30;
+            legendX1 = 0.28;
             legendY1 = 0.60;
         }
         else if (iObs == vjt_xivh) {
@@ -1860,6 +1863,10 @@ void setLegend(TLegend* leg)
     leg->SetY1(legendY1);
     leg->SetY2(legendY1+legendHeight);
     leg->SetMargin(legendMargin);
+
+    if (legendTextSize > 0) {
+        leg->SetTextSize(legendTextSize);
+    }
 }
 
 void setLatex(int iText, TLatex* latex)
