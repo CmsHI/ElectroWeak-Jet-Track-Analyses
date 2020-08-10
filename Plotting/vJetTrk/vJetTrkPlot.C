@@ -1461,10 +1461,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     textXCMS = legendX1;
                 }
             }
-            textYCMS = 0.82;
+            textYCMS = 0.80;
             textAlignCMS = 11;
             textFontCMS = 61;
-            textSizeCMS = 0.06;
+            textSizeCMS = 0.09;
             latex = new TLatex();
             setLatexCMS(latex);
             latex->Draw();
