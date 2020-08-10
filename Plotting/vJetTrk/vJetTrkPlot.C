@@ -691,8 +691,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         xMax = TMath::Pi();
 
-        xTitle = "#Delta#phi_{trk,Z} (rad)";
-        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}} (1/rad)";
+        xTitle = "#Delta#phi_{trk,Z} (radians)";
+        yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}} (1/radians)";
         yMin = -1;
         yMax = 25;
     }
