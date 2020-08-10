@@ -774,7 +774,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         tmpFigInfo = replaceFirst(tmpFigInfo, Form("_cent%d_%d", centMin, centMax), "");
 
-        centTexts.push_back(Form("Cent:%d-%d%%", centMin, centMax));
+        centTexts.push_back(Form("Cent: %d-%d%%", centMin, centMax));
     }
 
     std::vector<double> trkPtMins;
@@ -1390,19 +1390,19 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             textX = 0.66;
             if (iCol > 0) {
-                textX = 0.58;
+                textX = 0.56;
             }
 
             if (iObs == vjt_xivh) {
-                textX = 0.64;
+                textX = 0.62;
                 if (iCol > 0) {
-                    textX = 0.04;
+                    textX = 0.02;
                 }
             }
             if (iObs == vjt_trkPt) {
-                textX = 0.68;
+                textX = 0.66;
                 if (iCol > 0) {
-                    textX = 0.60;
+                    textX = 0.58;
                 }
             }
 
