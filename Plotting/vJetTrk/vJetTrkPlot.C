@@ -742,12 +742,12 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             yMax = 10;
         }
     }
-    xTitleSize = 0.07;
-    yTitleSize = 0.07;
-    xTitleOffset = 1.20;
-    yTitleOffset = 1.35;
-    xTitleFont = 42;
-    yTitleFont = 42;
+    xTitleFont = 43;
+    yTitleFont = 43;
+    xTitleSize = 45;
+    yTitleSize = 50;
+    xTitleOffset = 2.2;
+    yTitleOffset = 2.5;
 
     enum HISTLABELS {
         k_hist1,
@@ -959,11 +959,16 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         //h1Ds[i]->SetNdivisions(510, "X");
         //h1Ds[i]->GetXaxis()->SetTicks();
 
-        h1Ds[i]->GetXaxis()->SetLabelSize(h1Ds[i]->GetXaxis()->GetLabelSize()*1.7);
-        h1Ds[i]->GetYaxis()->SetLabelSize(h1Ds[i]->GetYaxis()->GetLabelSize()*1.7);
-
-        h1Ds[i]->GetXaxis()->SetLabelOffset(h1Ds[i]->GetXaxis()->GetLabelOffset()*2.5);
-        h1Ds[i]->GetYaxis()->SetLabelOffset(h1Ds[i]->GetYaxis()->GetLabelOffset()*2);
+        /*
+         * Default Font is 42. "3" allows setting sizes as pixels instead of percentage
+         * https://root-forum.cern.ch/t/histogram-label-sizes-for-several-pads-in-a-canvas/5234/2
+         */
+        h1Ds[i]->GetXaxis()->SetLabelFont(43);
+        h1Ds[i]->GetYaxis()->SetLabelFont(43);
+        h1Ds[i]->GetXaxis()->SetLabelSize(45);
+        h1Ds[i]->GetYaxis()->SetLabelSize(45);
+        h1Ds[i]->GetXaxis()->SetLabelOffset(0.006);
+        h1Ds[i]->GetYaxis()->SetLabelOffset(0.008);
     }
 
     int nGraphPathsTh = graphPathsTh.size();
@@ -1751,12 +1756,12 @@ void setTH1D(int iHist, TH1D* h)
     h->SetStats(false);
     h->SetXTitle(xTitle.c_str());
     h->SetYTitle(yTitle.c_str());
+    h->SetTitleFont(xTitleFont, "X");
+    h->SetTitleFont(yTitleFont, "Y");
     h->SetTitleSize(xTitleSize, "X");
     h->SetTitleSize(yTitleSize, "Y");
     h->SetTitleOffset(xTitleOffset, "X");
     h->SetTitleOffset(yTitleOffset, "Y");
-    h->SetTitleFont(xTitleFont, "X");
-    h->SetTitleFont(yTitleFont, "Y");
     h->GetXaxis()->CenterTitle();
     h->GetYaxis()->CenterTitle();
     h->SetMinimum(yMin);
