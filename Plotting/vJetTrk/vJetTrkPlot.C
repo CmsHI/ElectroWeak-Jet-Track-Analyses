@@ -1401,9 +1401,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             textX = 0.66;
             if (iCol > 0) {
-                textX = 0.56;
+                textX = 0.54;
             }
 
+            /*
             if (iObs == vjt_xivh) {
                 textX = 0.64;
                 if (iCol > 0) {
@@ -1416,6 +1417,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     textX = 0.58;
                 }
             }
+            */
 
             nTextLines = textLines.size();
             textYs.clear();
