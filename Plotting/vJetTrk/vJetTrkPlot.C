@@ -1437,10 +1437,10 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             textX = 0.03;
         }
         if (columns == 4) {
-            textX = 0.02;
+            textX = 0.0;
         }
 
-        if (iCol == columns -1 ) {
+        if (iCol == columns - 1 ) {
 
             if (is_pbpb_vs_pp) {
                 textLines = {"#sqrt{s_{NN}} = 5.02 TeV, PbPb 1.7 nb^{-1}, pp 304 pb^{-1}"};
@@ -1449,6 +1449,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 textLines = {"#sqrt{s} = 5.02 TeV, pp 304 pb^{-1}"};
             }
 
+            textSize = 33;
             latex = new TLatex();
             setLatex(0, latex);
             latex->Draw();
