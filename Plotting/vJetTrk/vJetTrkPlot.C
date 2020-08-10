@@ -1230,7 +1230,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         textAlign = 11;
         textFont = 43;
-        textSize = 32 + (columns*2);
+        textSize = 34 + (columns*2);
         std::string textVPt = getTextVPt(vPtMin, vPtMax);
         textLines = {
                 textVPt,
@@ -1252,7 +1252,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
 
         if (iObs == vjt_trkPt) {
-            textX = 0.56;
+            textX = 0.52;
         }
 
         if (iObs == vjt_dphi) {
@@ -1401,7 +1401,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
             textX = 0.66;
             if (iCol > 0) {
-                textX = 0.54;
+                textX = 0.52;
             }
 
             /*
