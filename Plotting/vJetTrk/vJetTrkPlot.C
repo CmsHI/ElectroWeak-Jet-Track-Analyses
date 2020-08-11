@@ -872,12 +872,16 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     if (is_th_1curve) {
 
                         //if (centMaxs[iC] > 30)  continue;
-                        graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                        //graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                        graphPathsTh.push_back(Form("gr_scetg_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                     }
                     else {
+                        /*
                         graphPathsTh.push_back(Form("gr_scetg_g1p8_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                         graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                         graphPathsTh.push_back(Form("gr_scetg_g2p2_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
+                        */
+                        graphPathsTh.push_back(Form("gr_scetg_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                     }
                 }
 
@@ -1317,7 +1321,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                         legTh->SetHeader(legHeaderOrEntry.c_str());
                     }
                     else {
-                        legHeaderOrEntry = "SCET_{G}, g = 2.0";
+                        legHeaderOrEntry = "SCET_{G}";
                     }
 
                     for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
@@ -1332,7 +1336,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                         std::string lblTh = (!is_th_1curve) ? getTheoryLegendLabel(graphTh[iTh]->GetName()) : legHeaderOrEntry;
 
                         gr = (TGraph*)graphTh[iTh]->Clone(Form("%s_tmp", graphTh[iTh]->GetName()));
-                        legTh->AddEntry(gr, lblTh.c_str(), graphTh[iTh]->GetDrawOption());
+                        legTh->AddEntry(gr, lblTh.c_str(), "f");
                     }
 
                     if (!is_th_1curve) {
@@ -1667,6 +1671,9 @@ int getTheoryColor(std::string pathTh)
         else if (pathTh.find("g2p2") != std::string::npos) {
             return TColor::GetColor("#E3790E");
         }
+        else {
+            return TColor::GetColor("#139808");
+        }
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
@@ -1714,7 +1721,7 @@ double getTheoryColorAlpha(std::string pathTh)
 int getTheoryLineWidth(std::string pathTh)
 {
     if (pathTh.find("scetg") != std::string::npos) {
-        return 3;
+        return 1;
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
@@ -1731,7 +1738,7 @@ int getTheoryLineWidth(std::string pathTh)
 int getTheoryFillStyle(std::string pathTh)
 {
     if (pathTh.find("scetg") != std::string::npos) {
-        return 1001;
+        return 3659;
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
@@ -1756,7 +1763,7 @@ std::string getTheoryDrawOpt(std::string pathTh)
 {
     if (pathTh.find("scetg") != std::string::npos) {
 
-        return "l";
+        return "l f";
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
