@@ -83,6 +83,24 @@ void vTrk_saveModelDataPoints(const TString outputFile)
        gr->Write("",TObject::kOverwrite);
    }
 
+   int nObs_SCET_G_minmax = SCET_G::kN_MODEL_MINMAX;
+   for (int i = 0; i < nObs_SCET_G_minmax; ++i) {
+
+       std::string objectName = SCET_G::modelTAG_MINMAX[i];
+
+       std::vector<double> x = SCET_G::x_arr_minmax[i];
+       std::vector<double> y_min = SCET_G::y_min_arr[i];
+       std::vector<double> y_max = SCET_G::y_max_arr[i];
+
+       gr = new TGraph();
+       setTGraphBand(gr, x, y_min, y_max);
+       gr->SetLineWidth(3);
+       gr->SetLineColor(SCET_G::fillColors[0]);
+       gr->SetFillColor(SCET_G::fillColors[0]);
+       gr->SetName(Form("gr_%s", objectName.c_str()));
+       gr->Write("",TObject::kOverwrite);
+   }
+
    std::cout << "CoLBT calculations" << std::endl;
 
    int nObs_CoLBT = COLBT::kN_MODEL;
