@@ -1349,48 +1349,6 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     }
                 }
             }
-            if (is_th_hybrid) {
-
-                if ((col_legTh_hybrid_drawn < 0 && iCol > col_legTh_scetg_drawn) &&
-                    ((!isDphi(obslabel) && iCol >= 0) || (isDphi(obslabel) && iCol >= 1) ))
-                {
-
-                    c->cd(columns+iCol+1);
-
-                    std::string legHeaderOrEntry = "Hybrid";
-                    if (!is_th_1curve) {
-                        legTh = new TLegend();
-                        legTh->SetHeader(legHeaderOrEntry.c_str());
-                    }
-                    else {
-                        legHeaderOrEntry = "Hybrid, w/ wake";
-                    }
-
-                    for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
-
-                        if (! hasSubstr(graphTh[iTh]->GetName(), "hybrid")) continue;
-
-                        int thCentMin = parseCentMin(graphTh[iTh]->GetName());
-                        int thCentMax = parseCentMax(graphTh[iTh]->GetName());
-
-                        if ( !((panelCentMin == thCentMin) && (panelCentMax == thCentMax)) ) continue;
-
-                        std::string lblTh = (!is_th_1curve) ? getTheoryLegendLabel(graphTh[iTh]->GetName()) : legHeaderOrEntry;
-
-                        gr = (TGraph*)graphTh[iTh]->Clone(Form("%s_tmp", graphTh[iTh]->GetName()));
-                        legTh->AddEntry(gr, lblTh.c_str(), "f");
-                    }
-
-                    if (!is_th_1curve) {
-                        legendHeight = 0.24;
-                        setLegend(legTh);
-                        legTh->SetTextSize(0.048);
-                        legTh->Draw();
-
-                        col_legTh_hybrid_drawn = iCol;
-                    }
-                }
-            }
             if (is_th_colbt) {
 
                 if (col_legTh_colbt_drawn < 0)
@@ -1430,6 +1388,48 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                         legTh->Draw();
 
                         col_legTh_colbt_drawn = iCol;
+                    }
+                }
+            }
+            if (is_th_hybrid) {
+
+                if ((col_legTh_hybrid_drawn < 0 && iCol > col_legTh_scetg_drawn) &&
+                    ((!isDphi(obslabel) && iCol >= 0) || (isDphi(obslabel) && iCol >= 1) ))
+                {
+
+                    c->cd(columns+iCol+1);
+
+                    std::string legHeaderOrEntry = "Hybrid";
+                    if (!is_th_1curve) {
+                        legTh = new TLegend();
+                        legTh->SetHeader(legHeaderOrEntry.c_str());
+                    }
+                    else {
+                        legHeaderOrEntry = "Hybrid, w/ wake";
+                    }
+
+                    for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
+
+                        if (! hasSubstr(graphTh[iTh]->GetName(), "hybrid")) continue;
+
+                        int thCentMin = parseCentMin(graphTh[iTh]->GetName());
+                        int thCentMax = parseCentMax(graphTh[iTh]->GetName());
+
+                        if ( !((panelCentMin == thCentMin) && (panelCentMax == thCentMax)) ) continue;
+
+                        std::string lblTh = (!is_th_1curve) ? getTheoryLegendLabel(graphTh[iTh]->GetName()) : legHeaderOrEntry;
+
+                        gr = (TGraph*)graphTh[iTh]->Clone(Form("%s_tmp", graphTh[iTh]->GetName()));
+                        legTh->AddEntry(gr, lblTh.c_str(), "f");
+                    }
+
+                    if (!is_th_1curve) {
+                        legendHeight = 0.24;
+                        setLegend(legTh);
+                        legTh->SetTextSize(0.048);
+                        legTh->Draw();
+
+                        col_legTh_hybrid_drawn = iCol;
                     }
                 }
             }
