@@ -1527,8 +1527,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         if (iCol == 0) {
 
             textXCMS = pads[iCol]->GetLeftMargin();
-            textYCMS = 1.0;
-            textAlignCMS = 13;
+            textYCMS = 1.0 - pads[iCol]->GetTopMargin() / 2;
+            textAlignCMS = 12;
             textFontCMS = 63;   // 61
             textSizeCMS = 60;   // 0.10
             latex = new TLatex();
