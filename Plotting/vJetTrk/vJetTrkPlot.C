@@ -1315,6 +1315,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                         legTh = new TLegend();
                         legTh->SetHeader(legHeaderOrEntry.c_str());
                     }
+                    else {
+                        legHeaderOrEntry = "SCET_{G}, g = 2.0";
+                    }
 
                     for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
 
@@ -1353,6 +1356,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     if (!is_th_1curve) {
                         legTh = new TLegend();
                         legTh->SetHeader(legHeaderOrEntry.c_str());
+                    }
+                    else {
+                        legHeaderOrEntry = "Hybrid, w/ wake";
                     }
 
                     for (int iTh = 0; iTh < nGraphPathsTh; ++iTh) {
@@ -1428,19 +1434,19 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 legTh->GetNRows() > 0) {
 
                 if (iObs == vjt_dphi) {
-                    legendX1 = 0.04;
+                    legendX1 = gPad->GetLeftMargin() + 0.04;
                 }
                 else if (iObs == vjt_xivh) {
-                    legendX1 = 0.04;
+                    legendX1 = gPad->GetLeftMargin() + 0.04;
                 }
                 else if (iObs == vjt_trkPt) {
-                    legendX1 = 0.22;
+                    legendX1 = gPad->GetLeftMargin() + 0.22;
                     if (columns > 1) {
                         legendX1 -= 0.1;
                     }
                 }
                 legendHeight = 0.08 * legTh->GetNRows();
-                legendY1 = 0.96 - legendHeight;
+                legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
 
                 setLegend(legTh);
                 legTh->SetTextSize(legendTextSize * 0.8);
