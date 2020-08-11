@@ -795,7 +795,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         tmpFigInfo = replaceFirst(tmpFigInfo, Form("_cent%d_%d", centMin, centMax), "");
 
-        centTexts.push_back(Form("Cent: %d-%d%%", centMin, centMax));
+        centTexts.push_back(Form("Cent. %d-%d%%", centMin, centMax));
     }
 
     std::vector<double> trkPtMins;
@@ -871,7 +871,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                     if (is_th_1curve) {
 
-                        if (centMaxs[iC] > 30)  continue;
+                        //if (centMaxs[iC] > 30)  continue;
                         graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                     }
                     else {
@@ -885,7 +885,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                     if (is_th_1curve) {
 
-                        if (centMaxs[iC] > 30)  continue;
+                        //if (centMaxs[iC] > 30)  continue;
                         graphPathsTh.push_back(Form("gr_hybrid_wake_full_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                     }
                     else {
@@ -898,7 +898,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 if (is_th_colbt) {
 
                     if (is_th_1curve) {
-                        if (centMaxs[iC] > 30)  continue;
+                        //if (centMaxs[iC] > 30)  continue;
                     }
                     graphPathsTh.push_back(Form("gr_colbt_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                 }
@@ -1219,7 +1219,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             legendX1 = 0.04;
         }
         else if (iObs == vjt_trkPt) {
-            legendX1 = 0.22;
+            legendX1 = 0.20;
             if (columns > 1) {
                 legendX1 -= 0.1;
             }
@@ -1293,14 +1293,15 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
         }
 
-        if (is_theory) {
+        bool canAddToLegTh = (!is_th_1curve || iCol == 3);
+        if (is_theory && canAddToLegTh) {
 
             // retrieve the centrality for the current panel
             int panelCentMin = parseCentMin(h1Ds[iHist1]->GetName());
             int panelCentMax = parseCentMax(h1Ds[iHist1]->GetName());
 
             if (is_th_1curve &&
-                (col_legTh_scetg_drawn < 0 && col_legTh_hybrid_drawn < 0  && col_legTh_colbt_drawn < 0)) {
+                (col_legTh_scetg_drawn < 0 && col_legTh_hybrid_drawn < 0 && col_legTh_colbt_drawn < 0)) {
                 legTh = new TLegend();
             }
 
@@ -1469,6 +1470,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 centTexts[iCent].c_str(),
             };
 
+            textFont = 63;
             textAlign = 33;
             textX = 1 - gPad->GetRightMargin() - 0.04;
 
@@ -1490,6 +1492,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
         if (iCol == columns - 1 ) {
 
+            textFont = 43;
             textAlign = 33;
 
             nTextLines = textLines.size();
