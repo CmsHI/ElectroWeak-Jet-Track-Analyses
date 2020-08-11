@@ -1203,7 +1203,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendMargin = 0.15;
         legendWidth = 0.7;
         legendX1 = 0.04;
-        legendY1 = 1.0 - c->GetTopMargin() - legendHeight - 0.04;
+        legendY1 = 1.0 - gPad->GetTopMargin() - legendHeight - 0.02;
         legendTextSize = 0.08;
         if (iObs == vjt_dphi) {
             legendX1 = 0.04;
@@ -1456,29 +1456,12 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 centTexts[iCent].c_str(),
             };
 
-            textX = 0.66;
-            if (iCol > 0) {
-                textX = 0.52;
-            }
-
-            /*
-            if (iObs == vjt_xivh) {
-                textX = 0.64;
-                if (iCol > 0) {
-                    textX = 0.04;
-                }
-            }
-            if (iObs == vjt_trkPt) {
-                textX = 0.66;
-                if (iCol > 0) {
-                    textX = 0.58;
-                }
-            }
-            */
+            textAlign = 33;
+            textX = 1 - gPad->GetRightMargin() - 0.04;
 
             nTextLines = textLines.size();
             textYs.clear();
-            textYs.resize(nTextLines, 0.8);
+            textYs.resize(nTextLines, 1 - gPad->GetTopMargin() - 0.04);
 
             latex2 = 0;
             for (int i = 0; i < nTextLines; ++i) {
