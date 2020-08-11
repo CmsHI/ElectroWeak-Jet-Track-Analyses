@@ -1203,19 +1203,16 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendMargin = 0.15;
         legendWidth = 0.7;
         legendX1 = 0.34;
-        legendY1 = 0.7;
+        legendY1 = 1.0 - c->GetTopMargin() - legendHeight - 0.04;
         legendTextSize = 0.08;
         if (iObs == vjt_dphi) {
             legendX1 = 0.04;
-            legendY1 = 0.60;
         }
         else if (iObs == vjt_xivh) {
             legendX1 = 0.04;
-            legendY1 = 0.60;
         }
         else if (iObs == vjt_trkPt) {
             legendX1 = 0.22;
-            legendY1 = 0.60;
             if (columns > 1) {
                 legendX1 -= 0.1;
             }
