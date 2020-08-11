@@ -710,7 +710,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         xTitle = "#Delta#phi_{trk,Z} (rad)";
         yTitle = "#frac{1}{N_{Z}} #frac{dN_{trk,Z}}{d#Delta#phi_{trk,Z}} (1/rad)";
         yMin = -1;
-        yMax = 25;
+        yMax = 24;
     }
     else if (iObs == OBS::vjt_xivh) {
         obsName = "xivh";
@@ -745,7 +745,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         yMax = 4;
         if (plotTrkPtLogY) {
             yMin = 0.00105;
-            yMax = 8;
+            yMax = 6;
         }
         if (dphiMin == 0.5) {
             yMin = -0.3;
@@ -1028,13 +1028,13 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 h1Ds[i]->SetMaximum(3.6);
 
                 if (isDiff) {
-                    h1Ds[i]->SetMinimum(-5);
-                    h1Ds[i]->SetMaximum(9.999);
+                    h1Ds[i]->SetMinimum(-4.4);
+                    h1Ds[i]->SetMaximum(7.999);
                 }
             }
             else if (iObs == vjt_xivh) {
-                h1Ds[i]->SetMinimum(0.2);
-                h1Ds[i]->SetMaximum(3.3);
+                h1Ds[i]->SetMinimum(0.1);
+                h1Ds[i]->SetMaximum(3.2);
             }
             else if (iObs == vjt_trkPt) {
                 h1Ds[i]->SetMinimum(0.2);
