@@ -1682,7 +1682,10 @@ int getTheoryColor(std::string pathTh)
     }
     else if (pathTh.find("colbt") != std::string::npos) {
 
-        return kBlue;
+        //return kBlue;
+        return TColor::GetColor("#FF00FF");
+        //return TColor::GetColor("#00BFFF");
+        //return TColor::GetColor("#CC00FF");
     }
 
     return -1;
