@@ -1202,7 +1202,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         legendHeight = 0.18;
         legendMargin = 0.15;
         legendWidth = 0.7;
-        legendX1 = 0.34;
+        legendX1 = 0.04;
         legendY1 = 1.0 - c->GetTopMargin() - legendHeight - 0.04;
         legendTextSize = 0.08;
         if (iObs == vjt_dphi) {
@@ -1217,7 +1217,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 legendX1 -= 0.1;
             }
         }
-        legendX1 += (iCol == 0) ? leftMargin : xMargin ;
+        legendX1 += (iCol == 0) ? c->GetLeftMargin() : xMargin;
 
         if (iCol == 0) {
             leg = new TLegend();
@@ -1254,15 +1254,13 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
         int nTextLines = textLines.size();
 
-        textX = legendX1;
+        textX = legendX1 + 0.02;
         float tmpTextY1 = legendY1 - 0.08;
-        if (columns > 1 && iCol == 1) {
-            textX = 0.04;
-            tmpTextY1 = 0.7;
-        }
 
         if (iObs == vjt_trkPt) {
-            textX = 0.52;
+            textX = 0.04 + 0.02;
+            textX += (iCol == 0) ? c->GetLeftMargin() : xMargin ;
+            tmpTextY1 = 0.2;
         }
 
         if (iObs == vjt_dphi) {
@@ -1278,9 +1276,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             textYs.resize(nTextLines, tmpTextY1);
         }
 
-        if ((columns == 1 && iCol == 0) ||
-            (columns > 1 && iCol == 1)) {
-
+        if (iCol == 0) {
             latex = 0;
             for (int i = 0; i < nTextLines; ++i) {
                 latex = new TLatex();
