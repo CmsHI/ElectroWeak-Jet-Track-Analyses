@@ -641,7 +641,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
     // no horizontal error bars
     gStyle->SetErrorX(0);
-    gStyle->SetHatchesLineWidth(2);
+    gStyle->SetHatchesLineWidth(1);
     //gStyle->SetHatchesSpacing(0.2);
 
     windowWidth = 800;
@@ -1709,7 +1709,9 @@ int getTheoryColor(std::string pathTh)
             return TColor::GetColor("#E3790E");
         }
         else {
-            return TColor::GetColor("#139808");
+            //return TColor::GetColor("#139808");
+            //return TColor::GetColor("#0e7306");
+            return TColor::GetColor("#18bd0a");
         }
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
@@ -1743,11 +1745,11 @@ int getTheoryColor(std::string pathTh)
 double getTheoryColorAlpha(std::string pathTh)
 {
     if (pathTh.find("scetg") != std::string::npos) {
-        return 1.0;
+        return 0.5;
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
-        return 1.0;
+        return 0.8;
     }
     else if (pathTh.find("colbt") != std::string::npos) {
 
@@ -1777,20 +1779,20 @@ int getTheoryLineWidth(std::string pathTh)
 int getTheoryFillStyle(std::string pathTh)
 {
     if (pathTh.find("scetg") != std::string::npos) {
-        return 3659;
+        return 3459;
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
         if (pathTh.find("wake_no") != std::string::npos) {
             //return 3459;
-            return 3554;
+            return 3454;
         }
         else if (pathTh.find("wake_pos") != std::string::npos) {
             //return 3454;
-            return 3559;
+            return 3459;
         }
         else if (pathTh.find("wake_full") != std::string::npos) {
-            return 3545;
+            return 3445;
         }
     }
     else if (pathTh.find("colbt") != std::string::npos) {
