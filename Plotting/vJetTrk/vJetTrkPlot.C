@@ -870,6 +870,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 if (is_th_scetg) {
 
                     if (is_th_1curve) {
+
+                        if (centMaxs[iC] > 30)  continue;
                         graphPathsTh.push_back(Form("gr_scetg_g2p0_ratio_%s_%s", obsName.c_str(), centlabel.c_str()));
                     }
                     else {
@@ -882,6 +884,8 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 if (is_th_hybrid) {
 
                     if (is_th_1curve) {
+
+                        if (centMaxs[iC] > 30)  continue;
                         graphPathsTh.push_back(Form("gr_hybrid_wake_full_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                     }
                     else {
@@ -893,6 +897,9 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                 if (is_th_colbt) {
 
+                    if (is_th_1curve) {
+                        if (centMaxs[iC] > 30)  continue;
+                    }
                     graphPathsTh.push_back(Form("gr_colbt_%s_%s_%s", str_diff_ratio.c_str(), obsName.c_str(), centlabel.c_str()));
                 }
             }
