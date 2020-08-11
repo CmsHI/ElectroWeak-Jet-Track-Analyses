@@ -1526,12 +1526,11 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         latex = 0;
         if (iCol == 0) {
 
-            textXCMS = legendX1;
             textXCMS = pads[iCol]->GetLeftMargin();
             textYCMS = 1.0;
             textAlignCMS = 13;
-            textFontCMS = 61;
-            textSizeCMS = 0.10;
+            textFontCMS = 63;   // 61
+            textSizeCMS = 60;   // 0.10
             latex = new TLatex();
             setLatexCMS(latex);
             latex->Draw();
