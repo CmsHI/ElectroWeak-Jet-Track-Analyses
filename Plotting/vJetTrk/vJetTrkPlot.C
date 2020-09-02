@@ -1299,7 +1299,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
         }
 
-        bool canAddToLegTh = (!is_th_1curve || iCol == 3);
+        bool canAddToLegTh = (!is_th_1curve || iCol == columns - 1);
         if (is_theory && canAddToLegTh) {
 
             // retrieve the centrality for the current panel
