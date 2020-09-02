@@ -577,11 +577,11 @@ const std::vector<double> x_dphi = {0.236, 0.733, 1.207, 1.654, 2.042, 2.353, 2.
 
 //// cent030
 const std::vector<double> y_err_dphi_aa_pp_diff_cent030 = {0.03627, 0.03518, 0.04095, 0.04292, 0.05897, 0.06603, 0.07703, 0.13109, 0.14365};
-const std::vector<double> y_val_dphi_aa_pp_diff_cent030 = {2.40023, 2.49246, 2.77301, 3.23623, 3.7684, 4.23753, 4.20293, 3.33117, 1.5165};
+const std::vector<double> y_val_dphi_aa_pp_diff_cent030 = {2.37848, 2.54187, 3.02097, 3.83767, 4.7811, 5.60867, 5.8932, 5.17445, 3.40617};
 
 //// cent3050
 const std::vector<double> y_err_dphi_aa_pp_diff_cent3050 = {0.03665, 0.03567, 0.04115, 0.04269, 0.05855, 0.06552, 0.07715, 0.13246, 0.14603};
-const std::vector<double> y_val_dphi_aa_pp_diff_cent3050 = {2.21333, 2.30893, 2.45932, 2.6996, 3.1279, 3.45441, 3.65583, 3.26771, 2.06768};
+const std::vector<double> y_val_dphi_aa_pp_diff_cent3050 = {2.33373, 2.47363, 2.67885, 3.08949, 3.73096, 4.25123, 4.64269, 4.35584, 3.19033};
 
 enum MODEL{
     k_xi_aa_pp_ratio_cent030,
