@@ -1055,6 +1055,12 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
         }
     }
 
+    std::vector<int> labelIndicesToErase = {};
+    if (isXivh(obslabel)) {
+        // erase "0.5", "1.5", "2.5", "3.5", "4.5"
+        labelIndicesToErase = {2, 4, 6, 8, 10};
+    }
+
     // draw central values, stat unc, and sys unc
     for (int i = 0; i < nHistPaths; ++i) {
 
@@ -1073,6 +1079,11 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             hTmp = (TH1D*)h1Ds[i]->Clone(Form("%s_tmpDraw", h1Ds[i]->GetName()));
             std::string tmpDrawOpt = replaceAll(drawOptions[j], "same", "");
             hTmp->Draw(tmpDrawOpt.c_str());
+
+            for (std::vector<int>::iterator it = labelIndicesToErase.begin() ; it != labelIndicesToErase.end(); ++it) {
+                // https://root.cern.ch/doc/master/classTGaxis.html
+                hTmp->GetXaxis()->ChangeLabel((*it), -1, 0.0);
+            }
         }
 
         // sys unc
