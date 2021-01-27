@@ -109,8 +109,8 @@ void vTrk_saveModelDataPoints(const TString outputFile)
        std::string objectName = COLBT::modelTAG[i];
 
        std::vector<double> x = COLBT::x_arr[i];
-       std::vector<double> y_err = COLBT::y_err_arr[i];
-       std::vector<double> y_val = COLBT::y_val_arr[i];
+       std::vector<double> y_min = COLBT::y_min_arr[i];
+       std::vector<double> y_max = COLBT::y_max_arr[i];
 
        /*
        gr = new TGraphErrors();
@@ -122,14 +122,6 @@ void vTrk_saveModelDataPoints(const TString outputFile)
        gr->SetTitle(Form("%s", COLBT::legendEntries[i].c_str()));
        gr->Write("",TObject::kOverwrite);
        */
-
-       std::vector<double> y_min = y_val;
-       std::vector<double> y_max = y_val;
-       int n_x = x.size();
-       for (int j = 0; j < n_x; ++j) {
-           y_min[j] -= y_err[j]/2;
-           y_max[j] += y_err[j]/2;
-       }
 
        gr = new TGraph();
        setTGraphBand(gr, x, y_min, y_max);

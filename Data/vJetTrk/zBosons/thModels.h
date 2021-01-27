@@ -551,37 +551,37 @@ const int n_xi = 10;
 const std::vector<double> x_xi = {0.25, 0.75, 1.25, 1.75, 2.25, 2.75, 3.25, 3.75, 4.25, 4.75};
 
 //// cent030
-const std::vector<double> y_err_xi_aa_pp_ratio_cent030 = {0.03974, 0.02166, 0.01723, 0.01299, 0.01184, 0.01279, 0.0146, 0.0184, 0.02991, 0.06293};
-const std::vector<double> y_val_xi_aa_pp_ratio_cent030 = {0.23656, 0.30378, 0.40377, 0.44497, 0.60098, 0.94912, 1.526, 1.8128, 1.9953, 2.36041};
+const std::vector<double> y_min_xi_aa_pp_ratio_cent030 = {0.333333, 0.420804, 0.502092, 0.590491, 0.656051, 0.944119, 1.360055, 1.562637, 1.687466, 1.973286};
+const std::vector<double> y_max_xi_aa_pp_ratio_cent030 = {0.236559, 0.303783, 0.403766, 0.44497, 0.600976, 0.949124, 1.526, 1.8128, 1.995298, 2.360415};
 
 //// cent3050
-const std::vector<double> y_err_xi_aa_pp_ratio_cent3050 = {0.0574, 0.03093, 0.02173, 0.01767, 0.01493, 0.01466, 0.01423, 0.01687, 0.02598, 0.05238};
-const std::vector<double> y_val_xi_aa_pp_ratio_cent3050 = {0.40914, 0.50751, 0.55086, 0.67495, 0.81023, 1.11899, 1.45776, 1.60765, 1.65743, 1.87136};
+const std::vector<double> y_min_xi_aa_pp_ratio_cent3050 = {0.467742, 0.648936, 0.708159, 0.744156, 0.851883, 1.047339, 1.286199, 1.397975, 1.431534, 1.580609};
+const std::vector<double> y_max_xi_aa_pp_ratio_cent3050 = {0.40914, 0.507506, 0.550863, 0.674954, 0.810234, 1.118987, 1.457759, 1.607654, 1.657434, 1.871357};
 
 // trk pT points
 //// cent030
 const int n_trkPt_cent030 = 14;
 const std::vector<double> x_trkPt_cent030 = {1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 11, 13, 16, 21, 27};
-const std::vector<double> y_err_trkPt_aa_pp_ratio_cent030 = {0.01282, 0.01444, 0.01523, 0.01638, 0.0199, 0.0222, 0.02386, 0.02661, 0.03068, 0.02532, 0.02693, 0.02605, 0.0268, 0.03514};
-const std::vector<double> y_val_trkPt_aa_pp_ratio_cent030 = {1.89108, 1.15987, 0.80927, 0.64329, 0.61581, 0.55971, 0.50338, 0.48262, 0.47942, 0.48297, 0.42308, 0.45991, 0.4014, 0.35918};
+const std::vector<double> y_min_trkPt_aa_pp_ratio_cent030 = {1.613155, 1.088934, 0.853161, 0.70503, 0.676202, 0.637238, 0.635612, 0.607746, 0.613546, 0.647849, 0.548077, 0.52381, 0.488698, 0.490506};
+const std::vector<double> y_max_trkPt_aa_pp_ratio_cent030 = {1.891079, 1.159868, 0.809273, 0.643293, 0.615812, 0.559706, 0.503381, 0.482622, 0.479416, 0.482975, 0.423077, 0.45991, 0.401403, 0.359177};
 
 //// cent3050
 const int n_trkPt_cent3050 = 5;
 const std::vector<double> x_trkPt_cent3050 = {2, 4, 7.5, 14, 24};
-const std::vector<double> y_err_trkPt_aa_pp_ratio_cent3050 = {0.00904, 0.01344, 0.01395, 0.01965, 0.02835};
-const std::vector<double> y_val_trkPt_aa_pp_ratio_cent3050 = {1.47323, 0.927, 0.77349, 0.64683, 0.56889};
+const std::vector<double> y_min_trkPt_aa_pp_ratio_cent3050 = {1.292058, 0.944072, 0.821424, 0.716703, 0.686848};
+const std::vector<double> y_max_trkPt_aa_pp_ratio_cent3050 = {1.473234, 0.927, 0.773492, 0.646834, 0.568894};
 
 // dphi points
 const int n_dphi = 9;
 const std::vector<double> x_dphi = {0.236, 0.733, 1.207, 1.654, 2.042, 2.353, 2.67, 2.906, 3.062};
 
 //// cent030
-const std::vector<double> y_err_dphi_aa_pp_diff_cent030 = {0.03627, 0.03518, 0.04095, 0.04292, 0.05897, 0.06603, 0.07703, 0.13109, 0.14365};
-const std::vector<double> y_val_dphi_aa_pp_diff_cent030 = {2.37848, 2.54187, 3.02097, 3.83767, 4.7811, 5.60867, 5.8932, 5.17445, 3.40617};
+const std::vector<double> y_min_dphi_aa_pp_diff_cent030 = {1.255487, 1.436853, 1.88654, 2.55012, 3.250613, 3.814173, 4.02384, 3.526893, 2.008807};
+const std::vector<double> y_max_dphi_aa_pp_diff_cent030 = {2.37848, 2.541867, 3.020973, 3.837667, 4.7811, 5.608673, 5.8932, 5.174447, 3.406167};
 
 //// cent3050
-const std::vector<double> y_err_dphi_aa_pp_diff_cent3050 = {0.03665, 0.03567, 0.04115, 0.04269, 0.05855, 0.06552, 0.07715, 0.13246, 0.14603};
-const std::vector<double> y_val_dphi_aa_pp_diff_cent3050 = {2.33373, 2.47363, 2.67885, 3.08949, 3.73096, 4.25123, 4.64269, 4.35584, 3.19033};
+const std::vector<double> y_min_dphi_aa_pp_diff_cent3050 = {1.345713, 1.4039, 1.62498, 1.93976, 2.336547, 2.770993, 2.9145, 2.720313, 1.87358};
+const std::vector<double> y_max_dphi_aa_pp_diff_cent3050 = {2.333733, 2.473627, 2.678853, 3.089493, 3.73096, 4.251227, 4.642687, 4.35584, 3.190333};
 
 enum MODEL{
     k_xi_aa_pp_ratio_cent030,
@@ -617,26 +617,26 @@ const std::vector<double> x_arr[kN_MODEL] = {
         x_dphi,
 };
 
-const std::vector<double> y_err_arr[kN_MODEL] = {
-        y_err_xi_aa_pp_ratio_cent030,
-        y_err_xi_aa_pp_ratio_cent3050,
+const std::vector<double> y_min_arr[kN_MODEL] = {
+        y_min_xi_aa_pp_ratio_cent030,
+        y_min_xi_aa_pp_ratio_cent3050,
         //
-        y_err_trkPt_aa_pp_ratio_cent030,
-        y_err_trkPt_aa_pp_ratio_cent3050,
+        y_min_trkPt_aa_pp_ratio_cent030,
+        y_min_trkPt_aa_pp_ratio_cent3050,
         //
-        y_err_dphi_aa_pp_diff_cent030,
-        y_err_dphi_aa_pp_diff_cent3050,
+        y_min_dphi_aa_pp_diff_cent030,
+        y_min_dphi_aa_pp_diff_cent3050,
 };
 
-const std::vector<double> y_val_arr[kN_MODEL] = {
-        y_val_xi_aa_pp_ratio_cent030,
-        y_val_xi_aa_pp_ratio_cent3050,
+const std::vector<double> y_max_arr[kN_MODEL] = {
+        y_max_xi_aa_pp_ratio_cent030,
+        y_max_xi_aa_pp_ratio_cent3050,
         //
-        y_val_trkPt_aa_pp_ratio_cent030,
-        y_val_trkPt_aa_pp_ratio_cent3050,
+        y_max_trkPt_aa_pp_ratio_cent030,
+        y_max_trkPt_aa_pp_ratio_cent3050,
         //
-        y_val_dphi_aa_pp_diff_cent030,
-        y_val_dphi_aa_pp_diff_cent3050,
+        y_max_dphi_aa_pp_diff_cent030,
+        y_max_dphi_aa_pp_diff_cent3050,
 };
 
 const int colors[kN_MODEL] = {
