@@ -1236,10 +1236,7 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             legendX1 = 0.04;
         }
         else if (iObs == vjt_trkPt) {
-            legendX1 = 0.20;
-            if (columns > 1) {
-                legendX1 -= 0.1;
-            }
+            legendX1 = 0.10;
         }
         legendX1 += (iCol == 0) ? c->GetLeftMargin() : xMargin;
 
@@ -1471,17 +1468,25 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
 
                     legendX1 = gPad->GetLeftMargin() + 0.04 + 0.40;
                     legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
+
+                    if (columns == 1) {
+                        legendX1 -= 0.10;
+                    }
                 }
                 else if (iObs == vjt_trkPt) {
                     legendX1 = gPad->GetLeftMargin() + 0.12 + 0.40;
                     legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
+
+                    if (columns == 1) {
+                        legendX1 -= 0.14;
+                    }
                 }
 
                 setLegend(legTh);
                 legTh->SetTextSize(legendTextSize * 0.8);
                 legTh->Draw();
 
-                col_legTh_scetg_drawn = iCol;
+                if (is_th_scetg) col_legTh_scetg_drawn = iCol;
                 col_legTh_colbt_drawn = iCol;
 
                 if (legTh2->GetNRows() > 0) {
@@ -1494,12 +1499,20 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                     if (iObs == vjt_trkPt) {
                         legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
                         legendX1 = gPad->GetLeftMargin() + 0.12;
+
+                        if (columns == 1) {
+                            legendX1 -= 0.06;
+                        }
                     }
                     else if (iObs == vjt_xivh) {
                         legendX1 = gPad->GetLeftMargin() + 0.04;
 
                         //legendY1 -= (0.0 + legendHeight);
                         legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
+
+                        if (columns == 1) {
+                            legendX1 -= 0.02;
+                        }
                     }
 
                     setLegend(legTh2);
