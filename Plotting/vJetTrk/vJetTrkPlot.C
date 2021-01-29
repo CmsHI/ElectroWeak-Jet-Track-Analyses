@@ -1736,13 +1736,19 @@ int getTheoryColor(std::string pathTh)
             //return TColor::GetColor("#139808");
             //return TColor::GetColor("#0e7306");
             return TColor::GetColor("#18bd0a");
+            //return TColor::GetColor("#3fee30");
         }
     }
     else if (pathTh.find("hybrid") != std::string::npos) {
 
         if (pathTh.find("wake_no") != std::string::npos) {
             //return TColor::GetColor("#0000FF");
-            return TColor::GetColor("#a77314");
+            //return TColor::GetColor("#a77314");
+            //return TColor::GetColor("#f02d0a");
+            //return TColor::GetColor("#980002");
+            //return TColor::GetColor("#EC2D01");
+            //return TColor::GetColor("#ff8c00");
+            return TColor::GetColor("#800000");
         }
         else if (pathTh.find("wake_pos") != std::string::npos) {
             //return TColor::GetColor("#00FF00");
@@ -1752,7 +1758,15 @@ int getTheoryColor(std::string pathTh)
         else if (pathTh.find("wake_full") != std::string::npos) {
             //return TColor::GetColor("#FF0000");
             //return TColor::GetColor("#D19019");
-            return TColor::GetColor("#e8ab3d");
+            //return TColor::GetColor("#e8ab3d");
+            //return TColor::GetColor("#00FFFF");
+            //return TColor::GetColor("#7FFFD4");
+            //return TColor::GetColor("#11c9c9");
+            //return TColor::GetColor("#009896");
+            //return TColor::GetColor("#01c0ec");
+            //return TColor::GetColor("#0073ff");
+            //return TColor::GetColor("#f58231");
+            return TColor::GetColor("#ffa500");
         }
     }
     else if (pathTh.find("colbt") != std::string::npos) {
