@@ -418,13 +418,10 @@ void setBinErrorsCorr4Ratio(TH1D* hRatio, TH1D* hNum, TH1D* hDenom, int correlat
             binError = nA / nB * TMath::Sqrt(TMath::Abs(errA2/(nA*nA) + errB2/(nB*nB) - 2/(nA*nB) * errA2 * errB2 * invErrAintersectB2));
         }
 
-        if (binError > 0) {
+        if (binError < 0.0000000001)
+            binError = 0.0000000001;   // protect against absolute 0.
 
-            if (binError < 0.0000001)
-                binError = 0.0000001;   // protect against absolute 0.
-
-            hRatio->SetBinError(i, binError);
-        }
+        hRatio->SetBinError(i, binError);
     }
 }
 
