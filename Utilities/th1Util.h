@@ -1131,7 +1131,7 @@ double getTH1Chi2ProbMinMaxBin(TH1* h1, TH1* h2, int binStart, int binEnd)
         binStart = 1;
         binEnd = h1->GetNbinsX();
     }
-    int ndf = binEnd - binStart + 1;
+    int ndf = binEnd - binStart;
     double chi2Tmp = getTH1Chi2MinMaxBin(h1, h2, binStart, binEnd);
 
     return TMath::Prob(chi2Tmp, ndf);
