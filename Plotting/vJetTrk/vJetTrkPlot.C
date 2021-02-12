@@ -539,7 +539,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     else {
         textLines = {
                 Form("Z #rightarrow %s%s", textL.c_str(), textL.c_str()),
-                "Cent: 0-90 %",
+                "Cent. 0-90 %",
                 Form("p^{%s#pm}_{T} > 20 GeV/c", textL.c_str()),
                 textVPt.c_str(),
         };
@@ -586,7 +586,7 @@ void vJetTrkPlot_M_Zll(std::vector<TFile*> & inputs, std::string figInfo)
     latex->Draw();
 
     bool isPreliminary = false; // false;
-    bool isSupplementary = false;  // true;
+    bool isSupplementary = true;  // true;
     if (isPreliminary || isSupplementary) {
         textXCMSpreliminary = textXCMS;
         textYCMSpreliminary = textYCMS-0.05;
@@ -1601,19 +1601,19 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             latex->Draw();
 
             bool isPreliminary = false; // (columns == 4 && ((iObs != vjt_dphi || isDiff)));
-            bool isSupplementary = false; // (columns != 4 || ((iObs == vjt_dphi && !isDiff)));
+            bool isSupplementary = (columns != 4 || ((iObs == vjt_dphi && !isDiff)));
             if (isPreliminary || isSupplementary) {
-                textXCMSpreliminary = textXCMS;
-                textYCMSpreliminary = textYCMS-0.05;
-                textAlignCMSpreliminary = 11;
+                textXCMSpreliminary = textXCMS + 0.165;
+                textYCMSpreliminary = textYCMS - 0.005;
+                textAlignCMSpreliminary = textAlignCMS;
                 textFontCMSpreliminary = 52;
-                textSizeCMSpreliminary = textSizeCMS*1.1;
+                textSizeCMSpreliminary = 0.1;
                 latex = new TLatex();
                 if (isPreliminary) {
                     setLatexCMSextraLabel(latex, "Preliminary");
                 }
                 else if (isSupplementary) {
-                    textSizeCMSpreliminary = textSizeCMS*0.95;
+                    textSizeCMSpreliminary = 0.08;
                     setLatexCMSextraLabel(latex, "Supplementary");
                 }
                 latex->Draw();
