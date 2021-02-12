@@ -1037,11 +1037,17 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
             }
             else if (iObs == vjt_dphi) {
                 h1Ds[i]->SetMinimum(0.1);
-                h1Ds[i]->SetMaximum(3.6);
+                h1Ds[i]->SetMaximum(2.9);
 
                 if (isDiff) {
                     h1Ds[i]->SetMinimum(-4.4);
                     h1Ds[i]->SetMaximum(7.999);
+                }
+                else if (is_th_hybrid && columns == 2) {
+                    h1Ds[i]->SetMaximum(3.3);
+                }
+                else if (!is_theory && columns == 2 && centMaxs[0] > 50) {
+                    h1Ds[i]->SetMaximum(2.3);
                 }
             }
             else if (iObs == vjt_xivh) {
@@ -1450,9 +1456,11 @@ void vJetTrkPlot_zTrk(std::vector<TFile*> & inputs, std::string figInfo)
                 }
             }
 
-            if (is_th_1curve &&
-                (col_legTh_scetg_drawn < 0 && col_legTh_hybrid_drawn < 0 && col_legTh_colbt_drawn < 0) &&
-                legTh->GetNRows() > 0) {
+            if (is_th_1curve && (
+                    ((col_legTh_scetg_drawn < 0 && col_legTh_hybrid_drawn < 0 && col_legTh_colbt_drawn < 0) && legTh->GetNRows() > 0)
+                    ||
+                    (is_th_hybrid && !is_th_scetg && !is_th_colbt && legTh2->GetNRows() > 0)) )
+            {
 
                 legendHeight = 0.08 * legTh->GetNRows();
                 legendY1 = 1 - gPad->GetTopMargin() - 0.04 - legendHeight;
