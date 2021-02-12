@@ -86,17 +86,23 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
    //- header: {name: Y-axis}
    outFileStream << "  values:" << std::endl;
    for (int iBin = binFirst; iBin <= binLast; ++iBin) {
-       double y = h->GetBinContent(iBin);
-       y = roundToSignificantFigures(y, 3, false);
-       double statErr = h->GetBinError(iBin);
-       statErr = roundToSignificantFigures(statErr, 3, false);
-       double sysErr = hSys->GetBinContent(iBin);
-       sysErr = roundToSignificantFigures(sysErr, 3, false);
+       int nSF = 3;
+       double y = roundToSignificantFigures(h->GetBinContent(iBin), nSF, false);
+       double statErr = roundToSignificantFigures(h->GetBinError(iBin), nSF, false);
+       double sysErr = roundToSignificantFigures(hSys->GetBinContent(iBin), nSF, false);
+       double cutoff = 5*TMath::Power(10, -1*(nSF+1));
+       while (statErr < cutoff || sysErr  < cutoff) {
+           nSF++;
+           y = roundToSignificantFigures(h->GetBinContent(iBin), nSF, false);
+           statErr = roundToSignificantFigures(h->GetBinError(iBin), nSF, false);
+           sysErr = roundToSignificantFigures(hSys->GetBinContent(iBin), nSF, false);
+           cutoff = 5*TMath::Power(10, -1*(nSF+1));
+       }
        //x = roundToPrecision(x, 2);
-       outFileStream << "  - value: " << Form("%.3f", y) << std::endl;
+       outFileStream << "  - value: " << Form("%.*f", nSF, y) << std::endl;
        outFileStream << "    errors:" << std::endl;
-       outFileStream << "    - {symerror: " << Form("%.3f", statErr) << ", label: stat}" << std::endl;
-       outFileStream << "    - {symerror: " << Form("%.3f", sysErr) << ", label: 'sys'}" << std::endl;
+       outFileStream << "    - {symerror: " << Form("%.*f", nSF, statErr) << ", label: stat}" << std::endl;
+       outFileStream << "    - {symerror: " << Form("%.*f", nSF, sysErr) << ", label: 'sys'}" << std::endl;
    }
    outFileStream.close();
 
