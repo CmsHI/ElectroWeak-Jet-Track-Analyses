@@ -86,7 +86,7 @@ void printHEPData(std::string inputFile, std::string outputFile, std::string hPa
    //- header: {name: Y-axis}
    outFileStream << "  values:" << std::endl;
    for (int iBin = binFirst; iBin <= binLast; ++iBin) {
-       int nSF = 3;
+       int nSF = 4;
        double y = roundToSignificantFigures(h->GetBinContent(iBin), nSF, false);
        double statErr = roundToSignificantFigures(h->GetBinError(iBin), nSF, false);
        double sysErr = roundToSignificantFigures(hSys->GetBinContent(iBin), nSF, false);
