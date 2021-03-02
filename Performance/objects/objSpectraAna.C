@@ -1693,10 +1693,10 @@ int  preLoop(TFile* input, bool makeNew)
             strDep = "depMass";
             xTitle = "M";
             if (recoObj == RECOOBJS::kPhoton) {
-                xTitle = "M^{#gamma#gamma} (GeV/c^2)";
+                xTitle = "M^{#gamma#gamma} (GeV/c^{2})";
             }
             else if (recoObj == RECOOBJS::kElectron) {
-                xTitle = "M^{e^{+}e^{-}} (GeV/c^2)";
+                xTitle = "M^{e^{+}e^{-}} (GeV/c^{2})";
             }
             makeObject = !sAna[iDep][iAna].isValid();
         }
