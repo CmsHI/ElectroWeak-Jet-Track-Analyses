@@ -217,9 +217,10 @@ enum MODES {
     kMatchEff,
     kFakeRate,
     kFakeComposition,
+    kRecoEnergy,
     kN_MODES
 };
-const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff", "FakeRate", "FakeComposition"};
+const std::string modesStr[kN_MODES] = {"EnergyScale", "Correction", "MatchEff", "FakeRate", "FakeComposition", "RecoEnergy"};
 std::vector<int> runMode;
 
 enum MODES_ESCALE {
@@ -244,6 +245,13 @@ enum MODES_MATCHEFF {
     kN_MODES_MATCHEFF
 };
 const std::string modesMatchEffStr[kN_MODES_MATCHEFF] = {"NULL_MATCHEFF", "MatchDefault", "MatchMeson0", "MatchEle"};
+
+enum MODES_RECOENERGY {
+    k_reco_RecoPt,
+    k_reco_SCE,       // super cluster energy
+    k_reco_SCRawE,       // super cluster raw energy
+    kN_MODES_OFFLINEENERGY
+};
 
 enum ANABINS {
     kEta,
@@ -536,28 +544,36 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int i = 0; i < ggHi.nPho; ++i) {
 
                     double pt = (*ggHi.phoEt)[i];
-                    if (doTMVA) {
+                    double scEta = (*ggHi.phoSCEta)[i];
+                    if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_RecoPt) {
 
-                        double scEta = (*ggHi.phoSCEta)[i];
-                        int offset = 0;
-                        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
-                            bool insideEtaRange = (
-                                    (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
-                                    (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
-                            bool insidePtRange = (
-                                    (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
-                                    (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
+                        if (doTMVA) {
+                            int offset = 0;
+                            for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+                                bool insideEtaRange = (
+                                        (tmva_bins_eta[0][iXML] < tmva_bins_eta[1][iXML] && tmva_bins_eta[0][iXML] <= std::fabs(scEta) && std::fabs(scEta) < tmva_bins_eta[1][iXML]) ||
+                                        (tmva_bins_eta[1][iXML] < 0 && tmva_bins_eta[0][iXML] <= std::fabs(scEta)));
+                                bool insidePtRange = (
+                                        (tmva_bins_pt[0][iXML] < tmva_bins_pt[1][iXML] && tmva_bins_pt[0][iXML] <= pt && pt < tmva_bins_pt[1][iXML]) ||
+                                        (tmva_bins_pt[1][iXML] < 0 && tmva_bins_pt[0][iXML] <= pt));
 
-                            if (insideEtaRange && insidePtRange) {
-                                ggHi.copy2Vars(i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
-                                std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
-                                double energy = targets_regr[0];
-                                pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
-                                break;
+                                if (insideEtaRange && insidePtRange) {
+                                    ggHi.copy2Vars(i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
+                                    std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
+                                    double energy = targets_regr[0];
+                                    pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
+                                    break;
+                                }
+
+                                offset += nReaderVarsInFile[iXML];
                             }
-
-                            offset += nReaderVarsInFile[iXML];
                         }
+                    }
+                    else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCE) {
+                        pt = (*ggHi.phoSCE)[i]/TMath::CosH(scEta);
+                    }
+                    else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCRawE) {
+                        pt = (*ggHi.phoSCRawE)[i]/TMath::CosH(scEta);
                     }
 
                     ptFinal.push_back(pt);
@@ -916,6 +932,14 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double eta = (*ggHi.eleEta)[i];
                         double phi = (*ggHi.elePhi)[i];
 
+                        double scEta  = (*ggHi.eleSCEta)[i];
+                        if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCE) {
+                            pt = (*ggHi.eleSCEn)[i]/TMath::CosH(scEta);
+                        }
+                        else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCRawE) {
+                            pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(scEta);
+                        }
+
                         double deltaR2 = 0.15*0.15;
                         int genMatchedPID = 11;
 
@@ -1041,6 +1065,14 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 double r9 = (*ggHi.eleR9)[iReco];
                                 std::vector<double> varsNum = {genEta, genPt, pt, (double)cent, sumIso, sieie, r9};
 
+                                double scEta  = (*ggHi.eleSCEta)[iReco];
+                                if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCE) {
+                                    pt = (*ggHi.eleSCEn)[iReco]/TMath::CosH(scEta);
+                                }
+                                else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCRawE) {
+                                    pt = (*ggHi.eleSCRawEn)[iReco]/TMath::CosH(scEta);
+                                }
+
                                 rAna[RECOANA::kETA][iAna].FillHNum(genEta, w, varsNum);
                                 rAna[RECOANA::kGENPT][iAna].FillHNum(genPt, w, varsNum);
                                 //rAna[RECOANA::kRECOPT][iAna].FillHNum(pt, w, varsNum);
@@ -1067,6 +1099,14 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double sumIso = -999;
                         double sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
                         double r9 = (*ggHi.eleR9)[i];
+
+                        double scEta  = (*ggHi.eleSCEta)[i];
+                        if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCE) {
+                            pt = (*ggHi.eleSCEn)[i]/TMath::CosH(scEta);
+                        }
+                        else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCRawE) {
+                            pt = (*ggHi.eleSCRawEn)[i]/TMath::CosH(scEta);
+                        }
 
                         // selections on GEN particle
                         double deltaR2 = 0.15*0.15;
@@ -1864,6 +1904,12 @@ int  preLoop(TFile* input, bool makeNew)
         else if (iRecoPt == 0 && iDep == RECOANA::kRECOPT) {
             strDep = "depRecoPt";
             xTitle = "Reco p_{T} (GeV/c)";
+            if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCE) {
+                xTitle = "SC E_{T} (GeV)";
+            }
+            else if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_SCRawE) {
+                xTitle = "SC raw E_{T} (GeV)";
+            }
             makeObject = !rAna[iDep][iAna].isValid();
         }
         else if (iCent == 0 && iDep == RECOANA::kCENT) {
