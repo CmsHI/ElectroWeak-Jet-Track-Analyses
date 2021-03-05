@@ -240,8 +240,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         }
 
         if (inFileType == INFILE_TYPES::kFlatTree) {
-            treeIn->SetBranchStatus("weight*",1);
-            treeIn->SetBranchStatus("hiBin",1);
+            treeIn->SetBranchStatus("*",1);
         }
 
         // input type is forest
