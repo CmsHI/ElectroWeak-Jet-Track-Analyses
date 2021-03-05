@@ -373,32 +373,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             ggHiOut.clearEntry();
 
-            double w = 1;
-            double wCent = 1;
-            double rho = -1;
             if (inFileType == INFILE_TYPES::kHiForest) {
-                w = hiEvt.weight;
-                wCent = 1;
-                if (doWeightCent) {
-                    if (isHI && isMC)  wCent = findNcoll(hiEvt.hiBin);
-                    w *= wCent;
-                }
+                ggHiOut.weight = hiEvt.weight;
+                ggHiOut.hiBin = hiEvt.hiBin;
+                ggHiOut.pthat = hiEvt.pthat;
 
-                /*
-                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
-                */
-
-                if (nPthatWeights > 0) {
-                    double pthatWeight = 0;
-                    for (int i = 0; i < nPthatWeights; ++i) {
-                        if (hiEvt.pthat >= pthatWeights[0][i] && hiEvt.pthat < pthatWeights[1][i]) {
-                            pthatWeight = pthatWeights[2][i];
-                            break;
-                        }
-                    }
-                    w *= pthatWeight;
-                }
-
+                double rho = -1;
                 // calc eta-ave rho
                 if (calcRhoEtaAve && treeHiFJRho != 0) {
                     rho = 0;
@@ -414,19 +394,32 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 else if (ggHi.b_rho != 0) {
                     rho = ggHi.rho;
                 }
-
-                if (isMC) {
-                    ggHiOut.weight = w;
-                    ggHiOut.weightCent = wCent;
-                    ggHiOut.weightKin = 1;
-                    ggHiOut.pthat = hiEvt.pthat;
-                }
-                ggHiOut.hiBin = hiEvt.hiBin;
-                ggHiOut.hiHF = hiEvt.hiHF;
                 ggHiOut.rho = rho;
+
                 ggHiOut.run = ggHi.run;
                 ggHiOut.event = ggHi.event;
                 ggHiOut.lumis = ggHi.lumis;
+
+                ggHiOut.weightPthat = 1;
+            }
+            else if (inFileType == INFILE_TYPES::kFlatTree) {
+                ggHiOut.clone(ggFlat);
+            }
+
+            ggHiOut.weightCent = (doWeightCent && isHI && isMC) ? findNcoll(ggHiOut.hiBin) : 1;
+            ggHiOut.weightKin = 1;
+
+            /*
+                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
+             */
+
+            if (nPthatWeights > 0) {
+                for (int i = 0; i < nPthatWeights; ++i) {
+                    if (ggHiOut.pthat >= pthatWeights[0][i] && ggHiOut.pthat < pthatWeights[1][i]) {
+                        ggHiOut.weightPthat = pthatWeights[2][i];
+                        break;
+                    }
+                }
             }
 
             if (recoObj == RECOOBJS::kPhoton) {
@@ -478,16 +471,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 }
                 else if (inFileType == INFILE_TYPES::kFlatTree) {
 
-                    if (!(ggFlat.phoEt >= ptMin))  continue;
-                    if (ptMax > 0 && !(ggFlat.phoEt < ptMax))  continue;
+                    if (!(ggHiOut.phoEt >= ptMin))  continue;
+                    if (ptMax > 0 && !(ggHiOut.phoEt < ptMax))  continue;
 
-                    if (!(TMath::Abs(ggFlat.phoEta) >= etaMin))  continue;
-                    if (etaMax > 0 && !(TMath::Abs(ggFlat.phoEta) < etaMax))  continue;
-
-                    ggHiOut.clone(ggFlat);
+                    if (!(TMath::Abs(ggHiOut.phoEta) >= etaMin))  continue;
+                    if (etaMax > 0 && !(TMath::Abs(ggHiOut.phoEta) < etaMax))  continue;
 
                     if (h2D_weightKin != 0) {
-                        int binTmp = h2D_weightKin->FindBin(ggFlat.phoEt, ggFlat.phoEta);
+                        int binTmp = h2D_weightKin->FindBin(ggHiOut.phoEt, ggHiOut.phoEta);
                         ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
                     }
 

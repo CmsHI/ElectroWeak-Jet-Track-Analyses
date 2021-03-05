@@ -40,6 +40,7 @@ public :
   float weight;
   float weightCent;
   float weightKin;      // weight for kinematics : pt, eta
+  float weightPthat;
   float pthat;
   int hiBin;
   int hiHF;
@@ -384,6 +385,7 @@ public :
   TBranch        *b_weight;   //!
   TBranch        *b_weightCent;   //!
   TBranch        *b_weightKin;   //!
+  TBranch        *b_weightPthat;   //!
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
@@ -1065,6 +1067,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
     if (t->GetBranch("weightKin")) t->SetBranchAddress("weightKin", &weightKin, &b_weightKin);
+    if (t->GetBranch("weightPthat")) t->SetBranchAddress("weightPthat", &weightPthat, &b_weightPthat);
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
@@ -1406,6 +1409,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("weight", &weight);
     t->Branch("weightCent", &weightCent);
     t->Branch("weightKin", &weightKin);
+    t->Branch("weightPthat", &weightPthat);
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
@@ -1755,6 +1759,7 @@ void ggHiFlat::clearEntry()
     weight = -1;
     weightCent = -1;
     weightKin = -1;
+    weightPthat = -1;
     pthat = -1;
     hiBin = -1;
     hiHF = -1;
@@ -2505,6 +2510,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     weight = gg.weight;
     weightCent = gg.weightCent;
     weightKin = gg.weightKin;
+    weightPthat = gg.weightPthat;
     pthat = gg.pthat;
     hiBin = gg.hiBin;
     hiHF = gg.hiHF;
