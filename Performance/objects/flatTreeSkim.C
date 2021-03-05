@@ -74,6 +74,14 @@ int nEffAreaHoE;
 int nEffAreaSieie;
 
 /// configuration variables - END
+enum INFILE_TYPES {
+    kHiForest,
+    kFlatTree,
+    kN_INFILE_TYPES
+};
+const std::string inFileTypesStr[kN_INFILE_TYPES] = {"HiForest", "flattree"};
+int inFileType;
+
 enum RECOOBJS {
     kPhoton,
     kElectron,
@@ -86,6 +94,7 @@ int recoObj;
 
 int readConfiguration(std::string configFile, std::string inputFile);
 void printConfiguration();
+int parseInFileType(std::string inFileTypeStr);
 int parseRecoObj(std::string recoObjStr);
 double getEffArea(double eta, std::vector<float> &minEtas, std::vector<float> &maxEtas, std::vector<float> &effAreas, int nEffAreas);
 void flatTreeSkim(std::string configFile, std::string inputFile, std::string outputFile = "flatTreeSkim.root");
@@ -141,7 +150,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     fileTmp = TFile::Open(inputPath.c_str(), "READ");
     fileTmp->cd();
 
-    TTree* treeggHiNtuplizer = 0;
+    TTree* treeIn = 0;
     TTree* treeHiEvt = 0;
     TTree* treeHiForestInfo = 0;
     TTree* treeSkim = 0;
@@ -150,17 +159,19 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
-        treeggHiNtuplizer = (TTree*)fileTmp->Get(inputTreePath.c_str());
-        Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
+        treeIn = (TTree*)fileTmp->Get(inputTreePath.c_str());
+        Long64_t entriesTmp = treeIn->GetEntries();
         std::cout << "entries = " << entriesTmp << std::endl;
-        treeggHiNtuplizer->Delete();
+        treeIn->Delete();
     }
 
-    treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
-    HiForestInfoController hfic(treeHiForestInfo);
-    std::cout<<"### HiForestInfo Tree ###"<< std::endl;
-    hfic.printHiForestInfo();
-    std::cout<<"###"<< std::endl;
+    if (inFileType == INFILE_TYPES::kHiForest) {
+        treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+        HiForestInfoController hfic(treeHiForestInfo);
+        std::cout<<"### HiForestInfo Tree ###"<< std::endl;
+        hfic.printHiForestInfo();
+        std::cout<<"###"<< std::endl;
+    }
 
     fileTmp->Close();
     // done with initial reading
@@ -196,119 +207,137 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             continue;
         }
 
-        treeggHiNtuplizer = (TTree*)fileTmp->Get(inputTreePath.c_str());
-        treeggHiNtuplizer->SetBranchStatus("*",0);     // disable all branches
-        treeggHiNtuplizer->SetBranchStatus("run",1);   // enable event information
-        treeggHiNtuplizer->SetBranchStatus("event",1);
-        treeggHiNtuplizer->SetBranchStatus("lumis",1);
+        treeIn = (TTree*)fileTmp->Get(inputTreePath.c_str());
+        treeIn->SetBranchStatus("*",0);     // disable all branches
+        treeIn->SetBranchStatus("run",1);   // enable event information
+        treeIn->SetBranchStatus("event",1);
+        treeIn->SetBranchStatus("lumis",1);
         if (recoObj == RECOOBJS::kPhoton) {
-            treeggHiNtuplizer->SetBranchStatus("nPho",1);     // enable photon branches
-            treeggHiNtuplizer->SetBranchStatus("pho*",1);     // enable photon branches
-            treeggHiNtuplizer->SetBranchStatus("pf*",1);     // enable photon branches
-            treeggHiNtuplizer->SetBranchStatus("rho",1);
+            treeIn->SetBranchStatus("nPho",1);     // enable photon branches
+            treeIn->SetBranchStatus("pho*",1);     // enable photon branches
+            treeIn->SetBranchStatus("pf*",1);     // enable photon branches
+            treeIn->SetBranchStatus("rho",1);
         }
         else if (recoObj == RECOOBJS::kElectron) {
-            treeggHiNtuplizer->SetBranchStatus("nEle",1);
-            treeggHiNtuplizer->SetBranchStatus("ele*",1);
-            treeggHiNtuplizer->SetBranchStatus("NClusters",1);
-            treeggHiNtuplizer->SetBranchStatus("NEcalClusters",1);
-            treeggHiNtuplizer->SetBranchStatus("rho",1);
+            treeIn->SetBranchStatus("nEle",1);
+            treeIn->SetBranchStatus("ele*",1);
+            treeIn->SetBranchStatus("NClusters",1);
+            treeIn->SetBranchStatus("NEcalClusters",1);
+            treeIn->SetBranchStatus("rho",1);
         }
         else if (recoObj == RECOOBJS::kMuon) {
-            treeggHiNtuplizer->SetBranchStatus("nMu",1);
-            treeggHiNtuplizer->SetBranchStatus("mu*",1);
+            treeIn->SetBranchStatus("nMu",1);
+            treeIn->SetBranchStatus("mu*",1);
         }
 
         if (isMC) {
-            treeggHiNtuplizer->SetBranchStatus("nMC",1);     // enable GEN particle branches
-            treeggHiNtuplizer->SetBranchStatus("mc*",1);      // enable GEN particle branches
+            treeIn->SetBranchStatus("nMC",1);     // enable GEN particle branches
+            treeIn->SetBranchStatus("mc*",1);      // enable GEN particle branches
         }
         // check existence of genMatching branch
-        if (!treeggHiNtuplizer->GetBranch("pho_genMatchedIndex")) {
+        if (!treeIn->GetBranch("pho_genMatchedIndex")) {
             std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
         }
 
-        // specify explicitly which branches to use, do not use wildcard
-        treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
-        treeHiEvt->SetBranchStatus("*",0);     // disable all branches
-        treeHiEvt->SetBranchStatus("run",1);   // enable event information
-        treeHiEvt->SetBranchStatus("evt",1);
-        treeHiEvt->SetBranchStatus("lumi",1);
-        treeHiEvt->SetBranchStatus("vz",1);
-        treeHiEvt->SetBranchStatus("hiBin",1);
-        treeHiEvt->SetBranchStatus("hiHF",1);
-        if (isMC) {
-            treeHiEvt->SetBranchStatus("weight", 1);
-            treeHiEvt->SetBranchStatus("pthat",1);
+        if (inFileType == INFILE_TYPES::kFlatTree) {
+            treeIn->SetBranchStatus("weight*",1);
+            treeIn->SetBranchStatus("hiBin",1);
         }
 
-        treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
-        treeSkim->SetBranchStatus("*",0);     // disable all branches
-
-        treeHiFJRho = 0;
-        if (calcRhoEtaAve) {
-            treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
-            if (treeHiFJRho != 0) {
-                treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
-                treeHiFJRho->SetBranchStatus("etaMin", 1);
-                treeHiFJRho->SetBranchStatus("etaMax", 1);
-                treeHiFJRho->SetBranchStatus("rho", 1);
-            }
-        }
-
-        treeTrack = 0;
-        treeTrack = (TTree*)fileTmp->Get("ppTrack/trackTree");
-        if (treeTrack != 0) {
-            treeTrack->SetBranchStatus("*", 0);     // disable all branches
-
-            treeTrack->SetBranchStatus("nTrk",1);
-            treeTrack->SetBranchStatus("trkPt",1);
-            treeTrack->SetBranchStatus("trkEta",1);
-            treeTrack->SetBranchStatus("trkPhi",1);
-            treeTrack->SetBranchStatus("trkCharge",1);
-            treeTrack->SetBranchStatus("highPurity",1);
-            bool anaTrkID = true;
-            if (anaTrkID) {
-                treeTrack->SetBranchStatus("trkPtError",1);
-                treeTrack->SetBranchStatus("trkDz1",1);
-                treeTrack->SetBranchStatus("trkDzError1",1);
-                treeTrack->SetBranchStatus("trkDxy1",1);
-                treeTrack->SetBranchStatus("trkDxyError1",1);
-                treeTrack->SetBranchStatus("trkNHit",1);
-                treeTrack->SetBranchStatus("trkChi2",1);
-                treeTrack->SetBranchStatus("trkNdof",1);
-                treeTrack->SetBranchStatus("trkNlayer",1);
-                treeTrack->SetBranchStatus("trkAlgo",1);
-                treeTrack->SetBranchStatus("trkMVA",1);
-            }
-            treeTrack->SetBranchStatus("pfType",1);
-            treeTrack->SetBranchStatus("pfHcal",1);
-            treeTrack->SetBranchStatus("pfEcal",1);
-        }
-
+        // input type is forest
         ggHiNtuplizer ggHi;
-        ggHi.setupTreeForReading(treeggHiNtuplizer);
-
         hiEvt hiEvt;
-        hiEvt.setupTreeForReading(treeHiEvt);
-
         skimAnalysis skimAna;
-        if (isHI15) skimAna.enableBranchesHI(treeSkim);
-        else if (isHI18) skimAna.enableBranchesHI2018(treeSkim);
-        else if (isPP) skimAna.enableBranchesPP(treeSkim);
-        skimAna.setupTreeForReading(treeSkim);
-        skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
-
         hiFJRho hiFJRho;
-        if (treeHiFJRho != 0) {
-            hiFJRho.setupTreeForReading(treeHiFJRho);
+        Tracks trks;
+
+        // input type is flatTree
+        ggHiFlat ggFlat;
+
+        if (inFileType == INFILE_TYPES::kHiForest) {
+
+            // specify explicitly which branches to use, do not use wildcard
+            treeHiEvt = (TTree*)fileTmp->Get("hiEvtAnalyzer/HiTree");
+            treeHiEvt->SetBranchStatus("*",0);     // disable all branches
+            treeHiEvt->SetBranchStatus("run",1);   // enable event information
+            treeHiEvt->SetBranchStatus("evt",1);
+            treeHiEvt->SetBranchStatus("lumi",1);
+            treeHiEvt->SetBranchStatus("vz",1);
+            treeHiEvt->SetBranchStatus("hiBin",1);
+            treeHiEvt->SetBranchStatus("hiHF",1);
+            if (isMC) {
+                treeHiEvt->SetBranchStatus("weight", 1);
+                treeHiEvt->SetBranchStatus("pthat",1);
+            }
+
+            treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
+            treeSkim->SetBranchStatus("*",0);     // disable all branches
+
+            treeHiFJRho = 0;
+            if (calcRhoEtaAve) {
+                treeHiFJRho = (TTree*)fileTmp->Get("hiFJRhoAnalyzer/t");
+                if (treeHiFJRho != 0) {
+                    treeHiFJRho->SetBranchStatus("*", 0);     // disable all branches
+                    treeHiFJRho->SetBranchStatus("etaMin", 1);
+                    treeHiFJRho->SetBranchStatus("etaMax", 1);
+                    treeHiFJRho->SetBranchStatus("rho", 1);
+                }
+            }
+
+            treeTrack = 0;
+            treeTrack = (TTree*)fileTmp->Get("ppTrack/trackTree");
+            if (treeTrack != 0) {
+                treeTrack->SetBranchStatus("*", 0);     // disable all branches
+
+                treeTrack->SetBranchStatus("nTrk",1);
+                treeTrack->SetBranchStatus("trkPt",1);
+                treeTrack->SetBranchStatus("trkEta",1);
+                treeTrack->SetBranchStatus("trkPhi",1);
+                treeTrack->SetBranchStatus("trkCharge",1);
+                treeTrack->SetBranchStatus("highPurity",1);
+                bool anaTrkID = true;
+                if (anaTrkID) {
+                    treeTrack->SetBranchStatus("trkPtError",1);
+                    treeTrack->SetBranchStatus("trkDz1",1);
+                    treeTrack->SetBranchStatus("trkDzError1",1);
+                    treeTrack->SetBranchStatus("trkDxy1",1);
+                    treeTrack->SetBranchStatus("trkDxyError1",1);
+                    treeTrack->SetBranchStatus("trkNHit",1);
+                    treeTrack->SetBranchStatus("trkChi2",1);
+                    treeTrack->SetBranchStatus("trkNdof",1);
+                    treeTrack->SetBranchStatus("trkNlayer",1);
+                    treeTrack->SetBranchStatus("trkAlgo",1);
+                    treeTrack->SetBranchStatus("trkMVA",1);
+                }
+                treeTrack->SetBranchStatus("pfType",1);
+                treeTrack->SetBranchStatus("pfHcal",1);
+                treeTrack->SetBranchStatus("pfEcal",1);
+            }
+
+            ggHi.setupTreeForReading(treeIn);
+
+            hiEvt.setupTreeForReading(treeHiEvt);
+
+            if (isHI15) skimAna.enableBranchesHI(treeSkim);
+            else if (isHI18) skimAna.enableBranchesHI2018(treeSkim);
+            else if (isPP) skimAna.enableBranchesPP(treeSkim);
+            skimAna.setupTreeForReading(treeSkim);
+            skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
+
+            if (treeHiFJRho != 0) {
+                hiFJRho.setupTreeForReading(treeHiFJRho);
+            }
+
+            trks.setupTreeForReading(treeTrack);
+        }
+        else if (inFileType == INFILE_TYPES::kFlatTree) {
+
+            ggFlat.setupTreeForReading(treeIn);
         }
 
-        Tracks trks;
-        trks.setupTreeForReading(treeTrack);
-
-        Long64_t entriesTmp = treeggHiNtuplizer->GetEntries();
+        Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
+        entriesTmp = 1000;
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
@@ -316,124 +345,150 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
-            treeggHiNtuplizer->GetEntry(j_entry);
-            treeHiEvt->GetEntry(j_entry);
-            treeSkim->GetEntry(j_entry);
-            if (treeHiFJRho != 0) {
-                treeHiFJRho->GetEntry(j_entry);
+            treeIn->GetEntry(j_entry);
+
+            if (inFileType == INFILE_TYPES::kHiForest) {
+                treeHiEvt->GetEntry(j_entry);
+                treeSkim->GetEntry(j_entry);
+                if (treeHiFJRho != 0) {
+                    treeHiFJRho->GetEntry(j_entry);
+                }
+                treeTrack->GetEntry(j_entry);
+
+                bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
+                if(!eventAdded) // this event is duplicate, skip this one.
+                {
+                    duplicateEntries++;
+                    continue;
+                }
+
+                // event selection
+                if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
+
+                if (isHI15 && !skimAna.passedEventSelectionHI())  continue;
+                else if (isHI18 && !skimAna.passedEventSelectionHI2018())  continue;
+                else if (isPP && !skimAna.passedEventSelectionPP())  continue;
             }
-            treeTrack->GetEntry(j_entry);
-
-            bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
-            if(!eventAdded) // this event is duplicate, skip this one.
-            {
-                duplicateEntries++;
-                continue;
-            }
-
-            // event selection
-            if (!(TMath::Abs(hiEvt.vz) < 15))  continue;
-
-            if (isHI15 && !skimAna.passedEventSelectionHI())  continue;
-            else if (isHI18 && !skimAna.passedEventSelectionHI2018())  continue;
-            else if (isPP && !skimAna.passedEventSelectionPP())  continue;
 
             entriesAnalyzed++;
 
-            double w = hiEvt.weight;
-            double wCent = 1;
-            //double wVertex = 1;
-
-            /*
-            if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
-            */
-
-            if (doWeightCent) {
-                if (isHI && isMC)  wCent = findNcoll(hiEvt.hiBin);
-                w *= wCent;
-            }
-
-            if (nPthatWeights > 0) {
-                double pthatWeight = 0;
-                for (int i = 0; i < nPthatWeights; ++i) {
-                    if (hiEvt.pthat >= pthatWeights[0][i] && hiEvt.pthat < pthatWeights[1][i]) {
-                        pthatWeight = pthatWeights[2][i];
-                        break;
-                    }
-                }
-                w *= pthatWeight;
-            }
-
-            // calc eta-ave rho
-            double rho = -1;
-            if (calcRhoEtaAve && treeHiFJRho != 0) {
-                rho = 0;
-                double totEta = 0;
-                int nEtaBins = hiFJRho.rho->size();
-                for (int i = 0; i < nEtaBins; ++i) {
-                    double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
-                    totEta += dEtaTmp;
-                    rho += (*hiFJRho.rho)[i] * dEtaTmp;
-                }
-                rho = rho / totEta;
-            }
-            else if (ggHi.b_rho != 0) {
-                rho = ggHi.rho;
-            }
-
             ggHiOut.clearEntry();
 
-            if (isMC) {
-                ggHiOut.weight = w;
-                ggHiOut.weightCent = wCent;
-                ggHiOut.weightKin = 1;
-                ggHiOut.pthat = hiEvt.pthat;
+            double w = 1;
+            double wCent = 1;
+            double rho = -1;
+            if (inFileType == INFILE_TYPES::kHiForest) {
+                w = hiEvt.weight;
+                wCent = 1;
+                if (doWeightCent) {
+                    if (isHI && isMC)  wCent = findNcoll(hiEvt.hiBin);
+                    w *= wCent;
+                }
+
+                /*
+                if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
+                */
+
+                if (nPthatWeights > 0) {
+                    double pthatWeight = 0;
+                    for (int i = 0; i < nPthatWeights; ++i) {
+                        if (hiEvt.pthat >= pthatWeights[0][i] && hiEvt.pthat < pthatWeights[1][i]) {
+                            pthatWeight = pthatWeights[2][i];
+                            break;
+                        }
+                    }
+                    w *= pthatWeight;
+                }
+
+                // calc eta-ave rho
+                if (calcRhoEtaAve && treeHiFJRho != 0) {
+                    rho = 0;
+                    double totEta = 0;
+                    int nEtaBins = hiFJRho.rho->size();
+                    for (int i = 0; i < nEtaBins; ++i) {
+                        double dEtaTmp = TMath::Abs((*hiFJRho.etaMax)[i] - (*hiFJRho.etaMin)[i]);
+                        totEta += dEtaTmp;
+                        rho += (*hiFJRho.rho)[i] * dEtaTmp;
+                    }
+                    rho = rho / totEta;
+                }
+                else if (ggHi.b_rho != 0) {
+                    rho = ggHi.rho;
+                }
+
+                if (isMC) {
+                    ggHiOut.weight = w;
+                    ggHiOut.weightCent = wCent;
+                    ggHiOut.weightKin = 1;
+                    ggHiOut.pthat = hiEvt.pthat;
+                }
+                ggHiOut.hiBin = hiEvt.hiBin;
+                ggHiOut.hiHF = hiEvt.hiHF;
+                ggHiOut.rho = rho;
+                ggHiOut.run = ggHi.run;
+                ggHiOut.event = ggHi.event;
+                ggHiOut.lumis = ggHi.lumis;
             }
-            ggHiOut.hiBin = hiEvt.hiBin;
-            ggHiOut.hiHF = hiEvt.hiHF;
-            ggHiOut.rho = rho;
-            ggHiOut.run = ggHi.run;
-            ggHiOut.event = ggHi.event;
-            ggHiOut.lumis = ggHi.lumis;
 
             if (recoObj == RECOOBJS::kPhoton) {
-                for (int i=0; i<ggHi.nPho; ++i) {
 
-                    ggHiOut.clearEntryPho();
-                    if (ggHiOut.doMC) {
-                        ggHiOut.clearEntryGen();
+                if (inFileType == INFILE_TYPES::kHiForest) {
+                    for (int i=0; i<ggHi.nPho; ++i) {
+
+                        ggHiOut.clearEntryPho();
+                        if (ggHiOut.doMC) {
+                            ggHiOut.clearEntryGen();
+                        }
+
+                        if (!ggHi.passedPhoSpikeRejection(i)) continue;
+
+                        if (!((*ggHi.phoEt)[i] >= ptMin))  continue;
+                        if (ptMax > 0 && !((*ggHi.phoEt)[i] < ptMax))  continue;
+
+                        if (!(TMath::Abs((*ggHi.phoEta)[i]) >= etaMin))  continue;
+                        if (etaMax > 0 && !(TMath::Abs((*ggHi.phoEta)[i]) < etaMax))  continue;
+
+                        ggHiOut.copyPho(ggHi, i);
+
+                        int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                        if (genMatchedIndex >= 0) {
+                            ggHiOut.copyGen(ggHi, genMatchedIndex);
+                        }
+
+                        ggHiOut.trkIso3 = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType);
+                        ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, false);
+                        ggHiOut.trkIso3subUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, true);
+                        ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
+                        ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, false);
+                        ggHiOut.trkIso3IDsubUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, true);
+
+                        ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
+                        ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
+                        ggHiOut.phoEAn = getEffArea((*ggHi.phoSCEta)[i], effAreaN[0], effAreaN[1], effAreaN[2], nEffAreaN);
+                        ggHiOut.phoEAhoe = getEffArea((*ggHi.phoSCEta)[i], effAreaHoE[0], effAreaHoE[1], effAreaHoE[2], nEffAreaHoE);
+                        ggHiOut.phoEAsieie = getEffArea((*ggHi.phoSCEta)[i], effAreaSieie[0], effAreaSieie[1], effAreaSieie[2], nEffAreaSieie);
+
+                        if (h2D_weightKin != 0) {
+                            int binTmp = h2D_weightKin->FindBin((*ggHi.phoEt)[i], (*ggHi.phoEta)[i]);
+                            ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
+                        }
+
+                        outputTree->Fill();
+                        objectsSkimmed++;
                     }
+                }
+                else if (inFileType == INFILE_TYPES::kFlatTree) {
 
-                    if (!ggHi.passedPhoSpikeRejection(i)) continue;
+                    if (!(ggFlat.phoEt >= ptMin))  continue;
+                    if (ptMax > 0 && !(ggFlat.phoEt < ptMax))  continue;
 
-                    if (!((*ggHi.phoEt)[i] >= ptMin))  continue;
-                    if (ptMax > 0 && !((*ggHi.phoEt)[i] < ptMax))  continue;
+                    if (!(TMath::Abs(ggFlat.phoEta) >= etaMin))  continue;
+                    if (etaMax > 0 && !(TMath::Abs(ggFlat.phoEta) < etaMax))  continue;
 
-                    if (!(TMath::Abs((*ggHi.phoEta)[i]) >= etaMin))  continue;
-                    if (etaMax > 0 && !(TMath::Abs((*ggHi.phoEta)[i]) < etaMax))  continue;
-
-                    ggHiOut.copyPho(ggHi, i);
-
-                    int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
-                    if (genMatchedIndex >= 0) {
-                        ggHiOut.copyGen(ggHi, genMatchedIndex);
-                    }
-
-                    ggHiOut.trkIso3 = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType);
-                    ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, false);
-                    ggHiOut.trkIso3subUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, true);
-                    ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
-                    ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, false);
-                    ggHiOut.trkIso3IDsubUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, true);
-
-                    ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
-                    ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
-                    ggHiOut.phoEAn = getEffArea((*ggHi.phoSCEta)[i], effAreaN[0], effAreaN[1], effAreaN[2], nEffAreaN);
-                    ggHiOut.phoEAhoe = getEffArea((*ggHi.phoSCEta)[i], effAreaHoE[0], effAreaHoE[1], effAreaHoE[2], nEffAreaHoE);
-                    ggHiOut.phoEAsieie = getEffArea((*ggHi.phoSCEta)[i], effAreaSieie[0], effAreaSieie[1], effAreaSieie[2], nEffAreaSieie);
+                    ggHiOut.clone(ggFlat);
 
                     if (h2D_weightKin != 0) {
-                        int binTmp = h2D_weightKin->FindBin((*ggHi.phoEt)[i], (*ggHi.phoEta)[i]);
+                        int binTmp = h2D_weightKin->FindBin(ggFlat.phoEt, ggFlat.phoEta);
                         ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
                     }
 
@@ -532,6 +587,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     confParser.parsedKeyWords = InputConfigurationParser::parseKeyWords(inputFile);
 
+    inFileType = parseInFileType(confParser.ReadConfigValue("inFileType"));
+
     recoObj = parseRecoObj(confParser.ReadConfigValue("recoObj"));
 
     // TTree
@@ -588,6 +645,11 @@ int readConfiguration(std::string configFile, std::string inputFile)
 void printConfiguration()
 {
     std::cout<<"Configuration :"<<std::endl;
+    std::cout << "input file type = " << inFileTypesStr[inFileType].c_str() << std::endl;
+    if (inFileType < 0 || inFileType >= INFILE_TYPES::kN_INFILE_TYPES) {
+        std::cout << "ERROR : no valid input file type given" << std::endl;
+        std::cout << "inFileType (index for input file type) = " << inFileType << std::endl;
+    }
     std::cout << "reco object = " << recoObjsStr[recoObj].c_str() << std::endl;
     if (recoObj < 0 || recoObj >= RECOOBJS::kN_RECOOBJS) {
         std::cout << "ERROR : no valid reco object given" << std::endl;
@@ -658,6 +720,22 @@ void printConfiguration()
     std::cout << "ptMax = " << ptMax << std::endl;
     std::cout << "etaMin = " << etaMin << std::endl;
     std::cout << "etaMax = " << etaMax << std::endl;
+}
+
+int parseInFileType(std::string inFileTypeStr)
+{
+    inFileTypeStr = trim(inFileTypeStr);
+    inFileTypeStr = toLowerCase(inFileTypeStr);
+
+    if (inFileTypeStr.find("forest") != std::string::npos || inFileTypeStr == "0") {
+        return INFILE_TYPES::kHiForest;
+    }
+    else if (inFileTypeStr.find("flat") != std::string::npos || inFileTypeStr == "1") {
+        return INFILE_TYPES::kFlatTree;
+    }
+    else {
+        return -1;
+    }
 }
 
 int parseRecoObj(std::string recoObjStr)
