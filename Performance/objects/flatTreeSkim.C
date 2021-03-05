@@ -336,7 +336,6 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
-        entriesTmp = 1000;
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
