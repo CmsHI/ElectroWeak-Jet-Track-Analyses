@@ -65,6 +65,10 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         strParams = split(operation, ":", false, false);
         operation = "STDDEVPROJ";
     }
+    else if (operation.find("INTFRAC") == 0) {
+        strParams = split(operation, ":", false, false);
+        operation = "INTFRAC";
+    }
 
     if (nInputFiles != 1 && nInputHist != 1 && nInputFiles != nInputHist) {
         std::cout << "Mismatch in number of input files and number of input histograms." << std::endl;
@@ -74,7 +78,9 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         return;
     }
     if (nInputHist > 1) {
-        if (operation == "SCALE" || operation == "UNITNORM" || operation.find("PROJ") != std::string::npos) {
+        if (operation == "SCALE" || operation == "UNITNORM" ||
+                operation.find("PROJ") != std::string::npos ||
+                operation == "INTFRAC") {
             std::cout << "There should be only one input histogram if operation is " << operation.c_str() << "." << std::endl;
             std::cout << "nInputHist = " << nInputHist << std::endl;
             std::cout << "Exiting." << std::endl;
@@ -111,6 +117,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     output->cd();
 
     TH2D* h2Dtmp = 0;
+    TH1D* htmp = 0;
     TH1D* hOut = 0;
     if (operation == "ADD") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
@@ -179,6 +186,98 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         else if (operation == "STDDEVPROJ") {
             hOut->SetYTitle(Form("#sigma( %s )", titleY.c_str()));
             setBinsFromTH2sliceStdDev(hOut, h2Dtmp, (axisStr == "X"));
+        }
+    }
+    else if (operation == "INTFRAC") {
+        h2Dtmp = (TH2D*)hInVec[0]->Clone(Form("%s_tmp", hOutPath.c_str()));
+
+        std::string axisStr = strParams[1];
+        std::string directionStr = strParams[2];
+        int binStart = std::atoi(strParams[3].c_str());
+        double frac = std::atof(strParams[4].c_str());
+
+        TH1D* h_intFrac = 0;
+        TH1D* h_sample = 0;
+        int nSamples = 100;
+
+        if (axisStr == "X") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionX(hOutPath.c_str()));
+            int nBins = hOut->GetNbinsX();
+            for (int i = 1; i <= nBins; ++i) {
+                htmp = h2Dtmp->ProjectionY(Form("%s_projX_%d", hOut->GetName(), i), i, i);
+                //htmp->Scale(1./htmp->Integral());
+                int iBinFrac = -1;
+                double errOnFrac;
+                if (directionStr == "L") {
+                    iBinFrac = getLeftBin4IntegralFraction(htmp, binStart, frac);
+                    htmp->IntegralAndError(iBinFrac, binStart, errOnFrac);
+                }
+                else if (directionStr == "R") {
+                    iBinFrac = getRightBin4IntegralFraction(htmp, binStart, frac);
+                    htmp->IntegralAndError(binStart, iBinFrac, errOnFrac);
+                }
+
+                h_intFrac = 0;
+                h_intFrac = (TH1D*)htmp->Clone(Form("%s_intFrac", htmp->GetName()));
+                h_intFrac->Reset();
+
+                h_sample = 0;
+                h_sample = (TH1D*)htmp->Clone(Form("%s_sample", htmp->GetName()));
+                for (int iSample = 0; iSample < nSamples; ++iSample) {
+
+                    h_sample->Reset();
+
+                    int nEntriesPerSample = htmp->GetEntries();
+                    for (int iEntry = 0; iEntry < nEntriesPerSample; ++iEntry) {
+                        h_sample->Fill(htmp->GetRandom());
+                    }
+
+                    int iBinFracSample = -1;
+                    if (directionStr == "L") {
+                        iBinFracSample = getLeftBin4IntegralFraction(h_sample, binStart, frac);
+                    }
+                    else if (directionStr == "R") {
+                        iBinFracSample = getRightBin4IntegralFraction(h_sample, binStart, frac);
+                    }
+
+                    h_intFrac->Fill(h_sample->GetBinCenter(iBinFracSample));
+                }
+                errOnFrac = h_intFrac->GetStdDev();
+                std::cout << "i = " << i << std::endl;
+                std::cout << "errOnFrac = " << errOnFrac << std::endl;
+                hOut->SetBinContent(i, htmp->GetBinCenter(iBinFrac));
+                hOut->SetBinError(i, errOnFrac);
+                /*
+                double errOnIntFrac = getErrorOnIntegralFraction(htmp, frac);
+                int iBinErrUp = -1;
+                int iBinErrDown = -1;
+                if (directionStr == "L") {
+                    iBinErrUp = getLeftBin4IntegralFraction(htmp, binStart, frac-errOnIntFrac);
+                    iBinErrDown = getLeftBin4IntegralFraction(htmp, binStart, frac+errOnIntFrac);
+                    binErr = (htmp->GetBinCenter(iBinErrUp) - htmp->GetBinCenter(iBinErrDown)) / 2;
+                }
+                else if (directionStr == "R") {
+                    iBinErrUp = getLeftBin4IntegralFraction(htmp, binStart, frac+errOnIntFrac);
+                    iBinErrDown = getLeftBin4IntegralFraction(htmp, binStart, frac-errOnIntFrac);
+                    binErr = (htmp->GetBinCenter(iBinErrUp) - htmp->GetBinCenter(iBinErrDown)) / 2;
+                }
+                */
+            }
+        }
+        else if (axisStr == "Y") {
+            hOut = (TH1D*)(h2Dtmp->ProjectionY(hOutPath.c_str()));
+            int nBins = hOut->GetNbinsX();
+            for (int i = 1; i <= nBins; ++i) {
+                int iBinFrac = -1;
+                if (directionStr == "L") {
+                    iBinFrac = getLeftBin4IntegralFraction(h2Dtmp->ProjectionX("", i, i), binStart, frac);
+                }
+                else if (directionStr == "R") {
+                    iBinFrac = getRightBin4IntegralFraction(h2Dtmp->ProjectionX("", i, i), binStart, frac);
+                }
+                hOut->SetBinContent(i, (h2Dtmp->ProjectionX("", i, i))->GetBinCenter(iBinFrac));
+                hOut->SetBinError(i, getErrorOnIntegralFraction((h2Dtmp->ProjectionX("", i, i)), frac));
+            }
         }
     }
     else {
