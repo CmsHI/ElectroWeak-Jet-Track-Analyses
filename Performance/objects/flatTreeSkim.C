@@ -50,6 +50,9 @@ std::vector<std::vector<float>> pthatWeights;
 std::string fileKinWeight;
 std::string histKinWeight;
 
+std::string fileGenKinWeight;
+std::string histGenKinWeight;
+
 bool calcRhoEtaAve;
 
 // effective areas
@@ -182,6 +185,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     if (fileKinWeight.size() > 0 && histKinWeight.size() > 0) {
         fileTmp = TFile::Open(fileKinWeight.c_str(), "READ");
         h2D_weightKin = (TH2D*)fileTmp->Get(histKinWeight.c_str());
+    }
+
+    TH2D* h2D_weightGenKin = 0;
+    if (fileGenKinWeight.size() > 0 && histGenKinWeight.size() > 0) {
+        fileTmp = TFile::Open(fileGenKinWeight.c_str(), "READ");
+        h2D_weightGenKin = (TH2D*)fileTmp->Get(histGenKinWeight.c_str());
     }
 
     EventMatcher* em = new EventMatcher();
@@ -464,6 +473,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
                         }
 
+                        if (h2D_weightGenKin != 0 && ggHiOut.mcPID == 22) {
+                            int binTmp = h2D_weightGenKin->FindBin(ggHiOut.mcPt, ggHiOut.mcEta);
+                            ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
+                        }
+
                         outputTree->Fill();
                         objectsSkimmed++;
                     }
@@ -479,6 +493,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     if (h2D_weightKin != 0) {
                         int binTmp = h2D_weightKin->FindBin(ggHiOut.phoEt, ggHiOut.phoEta);
                         ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
+                    }
+
+                    if (h2D_weightGenKin != 0 && ggHiOut.mcPID == 22) {
+                        int binTmp = h2D_weightGenKin->FindBin(ggHiOut.mcPt, ggHiOut.mcEta);
+                        ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
                     }
 
                     outputTree->Fill();
@@ -593,6 +612,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     fileKinWeight = confParser.ReadConfigValue("fileKinWeight");
     histKinWeight = confParser.ReadConfigValue("histKinWeight");
 
+    fileGenKinWeight = confParser.ReadConfigValue("fileGenKinWeight");
+    histGenKinWeight = confParser.ReadConfigValue("histGenKinWeight");
+
     calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
 
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
@@ -662,6 +684,9 @@ void printConfiguration()
 
     std::cout << "fileKinWeight = " << fileKinWeight.c_str() << std::endl;
     std::cout << "histKinWeight = " << histKinWeight.c_str() << std::endl;
+
+    std::cout << "fileGenKinWeight = " << fileGenKinWeight.c_str() << std::endl;
+    std::cout << "histGenKinWeight = " << histGenKinWeight.c_str() << std::endl;
 
     std::cout << "calcRhoEtaAve = " << calcRhoEtaAve << std::endl;
 

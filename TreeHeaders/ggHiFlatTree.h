@@ -40,6 +40,7 @@ public :
   float weight;
   float weightCent;
   float weightKin;      // weight for kinematics : pt, eta
+  float weightGenKin;   // weight for kinematics of matched gen-particle
   float weightPthat;
   float pthat;
   int hiBin;
@@ -385,6 +386,7 @@ public :
   TBranch        *b_weight;   //!
   TBranch        *b_weightCent;   //!
   TBranch        *b_weightKin;   //!
+  TBranch        *b_weightGenKin;   //!
   TBranch        *b_weightPthat;   //!
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
@@ -727,6 +729,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_weight = 0;
     b_weightCent = 0;
     b_weightKin = 0;
+    b_weightGenKin = 0;
+    b_weightPthat = 0;
     b_pthat = 0;
     b_hiBin = 0;
     b_hiHF = 0;
@@ -1067,6 +1071,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
     if (t->GetBranch("weightKin")) t->SetBranchAddress("weightKin", &weightKin, &b_weightKin);
+    if (t->GetBranch("weightGenKin")) t->SetBranchAddress("weightGenKin", &weightGenKin, &b_weightGenKin);
     if (t->GetBranch("weightPthat")) t->SetBranchAddress("weightPthat", &weightPthat, &b_weightPthat);
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
@@ -1409,6 +1414,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("weight", &weight);
     t->Branch("weightCent", &weightCent);
     t->Branch("weightKin", &weightKin);
+    t->Branch("weightGenKin", &weightGenKin);
     t->Branch("weightPthat", &weightPthat);
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
@@ -1759,6 +1765,7 @@ void ggHiFlat::clearEntry()
     weight = -1;
     weightCent = -1;
     weightKin = -1;
+    weightGenKin = -1;
     weightPthat = -1;
     pthat = -1;
     hiBin = -1;
@@ -2510,6 +2517,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     weight = gg.weight;
     weightCent = gg.weightCent;
     weightKin = gg.weightKin;
+    weightGenKin = gg.weightGenKin;
     weightPthat = gg.weightPthat;
     pthat = gg.pthat;
     hiBin = gg.hiBin;
