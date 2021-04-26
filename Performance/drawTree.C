@@ -492,7 +492,16 @@ void drawTreeNoLoop(std::string configFile, std::string inputFile, std::string o
     if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
-    TFile* input = new TFile(inputFile.c_str(), "READ");
+    std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
+    std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
+    std::cout<<"#####"<< std::endl;
+    for (std::vector<std::string>::iterator it = inputFiles.begin() ; it != inputFiles.end(); ++it) {
+        std::cout<<(*it).c_str()<< std::endl;
+    }
+    std::cout<<"##### END #####"<< std::endl;
+    std::cout<<"Only the first file in the list will be used : "<<inputFiles[0].c_str()<< std::endl;
+
+    TFile* input = TFile::Open(inputFiles[0].c_str(), "READ");
     if (preLoop(input, false) != 0) return;
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
