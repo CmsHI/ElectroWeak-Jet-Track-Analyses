@@ -273,6 +273,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeHiEvt->SetBranchStatus("vz",1);
             treeHiEvt->SetBranchStatus("hiBin",1);
             treeHiEvt->SetBranchStatus("hiHF",1);
+            treeHiEvt->SetBranchStatus("hiEvtPlanes",1);
             if (isMC) {
                 treeHiEvt->SetBranchStatus("weight", 1);
                 treeHiEvt->SetBranchStatus("pthat",1);
@@ -346,7 +347,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < 1000; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
@@ -384,6 +385,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             if (inFileType == INFILE_TYPES::kHiForest) {
                 ggHiOut.weight = hiEvt.weight;
                 ggHiOut.hiBin = hiEvt.hiBin;
+                ggHiOut.hiHF = hiEvt.hiHF;
+                ggHiOut.hiEvtPlanesHF3 = hiEvt.hiEvtPlanes[8];
                 ggHiOut.pthat = hiEvt.pthat;
 
                 double rho = -1;

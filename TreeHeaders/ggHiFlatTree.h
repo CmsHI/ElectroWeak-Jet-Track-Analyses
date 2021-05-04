@@ -31,6 +31,11 @@ public :
 
   void clone(ggHiFlat &gg);
 
+  bool passedHI18HEMfailurePho();
+
+  double getValueByName(std::string varName);
+  void copy2Vars(float *vals, std::vector<std::string>& varNames, int nVars, int offset);
+
   bool doEle;
   bool doPho;
   bool doMu;
@@ -44,7 +49,8 @@ public :
   float weightPthat;
   float pthat;
   int hiBin;
-  int hiHF;
+  float hiHF;
+  float hiEvtPlanesHF3;   // the event plane with index 8 https://github.com/cms-sw/cmssw/blob/master/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h
   float rho;
   UInt_t          run;
   ULong64_t       event;
@@ -391,6 +397,7 @@ public :
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
+  TBranch        *b_hiEvtPlanesHF3;   //!
   TBranch        *b_rho;   //!
   TBranch        *b_run;   //!
   TBranch        *b_event;   //!
@@ -734,6 +741,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pthat = 0;
     b_hiBin = 0;
     b_hiHF = 0;
+    b_hiEvtPlanesHF3 = 0;
     b_rho = 0;
     b_run = 0;
     b_event = 0;
@@ -1076,6 +1084,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
+    if (t->GetBranch("hiEvtPlanesHF3")) t->SetBranchAddress("hiEvtPlanesHF3", &hiEvtPlanesHF3, &b_hiEvtPlanesHF3);
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("run")) t->SetBranchAddress("run", &run, &b_run);
     if (t->GetBranch("event")) t->SetBranchAddress("event", &event, &b_event);
@@ -1419,6 +1428,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
+    t->Branch("hiEvtPlanesHF3", &hiEvtPlanesHF3);
     t->Branch("rho", &rho);
     t->Branch("run", &run);
     t->Branch("event", &event);
@@ -1770,6 +1780,7 @@ void ggHiFlat::clearEntry()
     pthat = -1;
     hiBin = -1;
     hiHF = -1;
+    hiEvtPlanesHF3 = -987987;
     rho = -1;
     run = 987987;
     event = 987987;
@@ -2522,6 +2533,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pthat = gg.pthat;
     hiBin = gg.hiBin;
     hiHF = gg.hiHF;
+    hiEvtPlanesHF3 = gg.hiEvtPlanesHF3;
     rho = gg.rho;
     run = gg.run;
     event = gg.event;
@@ -2858,6 +2870,98 @@ void ggHiFlat::clone(ggHiFlat &gg)
     muPFPUIso = gg.muPFPUIso;
     isGenMatched = gg.isGenMatched;
     genMatchedIdx = gg.genMatchedIdx;
+}
+
+bool ggHiFlat::passedHI18HEMfailurePho()
+{
+    return !(phoSCEta < -1.39 && phoSCPhi < -0.9 && phoSCPhi > -1.6);
+}
+
+
+double ggHiFlat::getValueByName(std::string varName)
+{
+    if (varName == "phoE") {
+        return (double)(phoE);
+    }
+    else if (varName == "phoEt") {
+        return (double)(phoEt);
+    }
+    else if (varName == "phoEta") {
+        return (double)(phoEta);
+    }
+    else if (varName == "phoPhi") {
+        return (double)(phoPhi);
+    }
+    else if (varName == "phoSCE") {
+        return (double)(phoSCE);
+    }
+    else if (varName == "phoSCRawE") {
+        return (double)(phoSCRawE);
+    }
+    else if (varName == "phoSCEta") {
+        return (double)(phoSCEta);
+    }
+    else if (varName == "phoSCPhi") {
+        return (double)(phoSCPhi);
+    }
+    else if (varName == "phoSCEtaWidth") {
+        return (double)(phoSCEtaWidth);
+    }
+    else if (varName == "phoSCPhiWidth") {
+        return (double)(phoSCPhiWidth);
+    }
+    else if (varName == "phoE3x3_2012") {
+        return (double)(phoE3x3_2012);
+    }
+    else if (varName == "phoMaxEnergyXtal_2012") {
+        return (double)(phoMaxEnergyXtal_2012);
+    }
+    else if (varName == "phoE2nd_2012") {
+        return (double)(phoE2nd_2012);
+    }
+    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+
+        if (phoELeft_2012 != 0 || phoERight_2012 != 0) {
+            return (double)((phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+
+        if (phoETop_2012 != 0 || phoEBottom_2012 != 0) {
+            return (double)((phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "phoSigmaIEtaIEta_2012") {
+        return (double)(phoSigmaIEtaIEta_2012);
+    }
+    else if (varName == "phoSigmaIEtaIPhi_2012") {
+        return (double)(phoSigmaIEtaIPhi_2012);
+    }
+    else if (varName == "phoSigmaIPhiIPhi_2012") {
+        return (double)(phoSigmaIPhiIPhi_2012);
+    }
+    else if (varName == "rho") {
+        return (double)((rho));
+    }
+    else if (varName == "phoESEn") {
+        return (double)(phoESEn);
+    }
+    else {
+        return -998877;
+    }
+}
+
+void ggHiFlat::copy2Vars(float *vals, std::vector<std::string>& varNames, int nVars, int offset)
+{
+    for (int j = 0; j < nVars; ++j) {
+        vals[j+offset] = getValueByName(varNames[j]);
+    }
 }
 
 #endif /* TREEHEADERS_GGHIFLATTREE_H_ */
