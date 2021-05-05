@@ -369,7 +369,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < 100; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
@@ -484,16 +484,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         }
 
                         ggHiOut.trkIso3 = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType);
-                        ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, false);
-                        ggHiOut.trkIso3subUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType, true);
+                        ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, false, collisionType);
                         ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
-                        ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, false);
-                        ggHiOut.trkIso3IDsubUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, true);
+                        ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
 
                         if (calcPFIso) {
-                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false);
-                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false);
-                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false);
+                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0);
+                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0);
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
