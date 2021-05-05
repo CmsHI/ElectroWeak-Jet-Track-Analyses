@@ -55,6 +55,8 @@ std::string histGenKinWeight;
 
 bool calcRhoEtaAve;
 
+bool calcPFIso; // WARNING : footprints cannot be removed in these functions as they are is kept in AOD only, but not in forest
+
 // effective areas
 std::vector<std::vector<float>> effAreaC;   // PF charged iso
 std::vector<std::vector<float>> effAreaP;   // PF photon iso
@@ -159,6 +161,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     TTree* treeSkim = 0;
     TTree* treeHiFJRho = 0;
     TTree* treeTrack = 0;
+    TTree* treePFCand = 0;
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
@@ -258,6 +261,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         skimAnalysis skimAna;
         hiFJRho hiFJRho;
         Tracks trks;
+        pfCand pfs;
 
         // input type is flatTree
         ggHiFlat ggFlat;
@@ -323,6 +327,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 treeTrack->SetBranchStatus("pfEcal",1);
             }
 
+            if (calcPFIso) {
+                treePFCand = 0;
+                treePFCand = (TTree*)fileTmp->Get("pfcandAnalyzer/pfTree");
+                if (treePFCand != 0) {
+                    treePFCand->SetBranchStatus("*", 0);     // disable all branches
+
+                    treePFCand->SetBranchStatus("nPFpart",1);
+                    treePFCand->SetBranchStatus("pfId",1);
+                    treePFCand->SetBranchStatus("pfPt",1);
+                    treePFCand->SetBranchStatus("pfEta",1);
+                    treePFCand->SetBranchStatus("pfPhi",1);
+                }
+            }
+
             ggHi.setupTreeForReading(treeIn);
 
             hiEvt.setupTreeForReading(treeHiEvt);
@@ -338,6 +356,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
 
             trks.setupTreeForReading(treeTrack);
+
+            if (calcPFIso) {
+                pfs.setupTreeForReading(treePFCand);
+            }
         }
         else if (inFileType == INFILE_TYPES::kFlatTree) {
 
@@ -347,7 +369,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < 1000; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
@@ -362,6 +384,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treeHiFJRho->GetEntry(j_entry);
                 }
                 treeTrack->GetEntry(j_entry);
+                if (calcPFIso) {
+                    treePFCand->GetEntry(j_entry);
+                }
 
                 bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
                 if(!eventAdded) // this event is duplicate, skip this one.
@@ -464,6 +489,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType);
                         ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, false);
                         ggHiOut.trkIso3IDsubUEec = getTrkIsoSubUE(trks, ggHi, i, 0.3, 0.0, 2.0, 0.0, true, collisionType, true);
+
+                        if (calcPFIso) {
+                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false);
+                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false);
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false);
+                        }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
                         ggHiOut.phoEAp = getEffArea((*ggHi.phoSCEta)[i], effAreaP[0], effAreaP[1], effAreaP[2], nEffAreaP);
@@ -618,6 +649,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
     fileGenKinWeight = confParser.ReadConfigValue("fileGenKinWeight");
     histGenKinWeight = confParser.ReadConfigValue("histGenKinWeight");
 
+    calcPFIso = (confParser.ReadConfigValueInteger("calcPFIso") > 0);
+
     calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
 
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
@@ -690,6 +723,8 @@ void printConfiguration()
 
     std::cout << "fileGenKinWeight = " << fileGenKinWeight.c_str() << std::endl;
     std::cout << "histGenKinWeight = " << histGenKinWeight.c_str() << std::endl;
+
+    std::cout << "calcPFIso = " << calcPFIso << std::endl;
 
     std::cout << "calcRhoEtaAve = " << calcRhoEtaAve << std::endl;
 
