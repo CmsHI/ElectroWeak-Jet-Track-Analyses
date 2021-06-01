@@ -83,7 +83,7 @@ public :
     TBranch        *b_Npart;   //!
     TBranch        *b_Ncoll;   //!
     TBranch        *b_Nhard;   //!
-    TBranch        *b_NPhi0;   //!
+    TBranch        *b_phi0;   //!
     TBranch        *b_b;   //!
     TBranch        *b_Ncharged;   //!
     TBranch        *b_NchargedMR;   //!
@@ -142,7 +142,7 @@ void hiEvt::setupTreeForReading(TTree *t)
     b_Npart = 0;
     b_Ncoll = 0;
     b_Nhard = 0;
-    b_NPhi0 = 0;
+    b_phi0 = 0;
     b_b = 0;
     b_Ncharged = 0;
     b_NchargedMR = 0;
@@ -198,7 +198,7 @@ void hiEvt::setupTreeForReading(TTree *t)
     if (t->GetBranch("Npart"))  t->SetBranchAddress("Npart", &Npart, &b_Npart);
     if (t->GetBranch("Ncoll"))  t->SetBranchAddress("Ncoll", &Ncoll, &b_Ncoll);
     if (t->GetBranch("Nhard"))  t->SetBranchAddress("Nhard", &Nhard, &b_Nhard);
-    if (t->GetBranch("phi0"))  t->SetBranchAddress("phi0", &phi0, &b_NPhi0);
+    if (t->GetBranch("phi0"))  t->SetBranchAddress("phi0", &phi0, &b_phi0);
     if (t->GetBranch("b"))  t->SetBranchAddress("b", &b, &b_b);
     if (t->GetBranch("Ncharged"))  t->SetBranchAddress("Ncharged", &Ncharged, &b_Ncharged);
     if (t->GetBranch("NchargedMR"))  t->SetBranchAddress("NchargedMR", &NchargedMR, &b_NchargedMR);
