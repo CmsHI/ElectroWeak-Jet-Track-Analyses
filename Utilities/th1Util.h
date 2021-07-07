@@ -84,6 +84,7 @@ double getTH1Chi2Prob(TH1* h1, TH1* h2, double min = 0, double max = -1, bool mi
 double getTH1Chi2ProbMinMaxX(TH1* h1, TH1* h2, double xMin = 0, double xMax = -1);
 double getTH1Chi2ProbMinMaxBin(TH1* h1, TH1* h2, int binStart = 0, int binEnd = -1);
 double getErrorOnIntegralFraction(TH1D* h, double fraction);
+void calcTH1Power(TH1* h, double pow);
 // systematic uncertainty
 void fillTH1fromTF1(TH1* h, TF1* f);
 void calcTH1Ratio4SysUnc(TH1* h, TH1* hNominal, float scaleFactor = 1);
@@ -1212,6 +1213,32 @@ double getErrorOnIntegralFraction(TH1D* h, double fraction)
 
     // NEEDS FIX
     return TMath::Sqrt(fraction*(1-fraction) / h->GetEntries());
+}
+
+void calcTH1Power(TH1* h, double pow)
+{
+    if (pow == 1) return;
+
+    int nBins = h->GetNbinsX();
+    if (h->InheritsFrom("TH2")) {
+        nBins *= h->GetNbinsY();
+    }
+    else if (h->InheritsFrom("TH3")) {
+        nBins *= (h->GetNbinsY() * h->GetNbinsZ());
+    }
+
+    for ( int i = 0; i < nBins; i++)
+    {
+        double x = h->GetBinContent(i);
+        if (x != 0) {
+            double y = TMath::Power(x, pow);
+            h->SetBinContent(i, y);
+
+            double err = h->GetBinError(i);
+            err *= (pow * TMath::Power(x, pow-1));
+            h->SetBinError(i, err);
+        }
+    }
 }
 
 void fillTH1fromTF1(TH1* h, TF1* f)
