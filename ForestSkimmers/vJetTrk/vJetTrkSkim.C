@@ -495,7 +495,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                         treeMixEventSkim[i]->GetEntry(j_entry_mix);
                         tmpTotE = eventSkimMix[i].pf_h_HF_totE + eventSkimMix[i].pf_eg_HF_totE;
                     }
-                    double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
+                    double totEMax = (isMC) ? VJT::PF_HF_totE_max_mc : VJT::PF_HF_totE_max_data;
                     iCent = getPFEnergyBin(tmpTotE, totEMax);
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_E_eta4to5 ||
@@ -1172,7 +1172,7 @@ void vJetTrkSkim(std::string configFile, std::string inputFile, std::string outp
                 }
                 else if (VJT::mixMethod == VJT::MIXMETHODS::k_match_PF_HF_totE) {
 
-                    double totEMax = (isMC) ? VJT::PF_HF_totE_max : 120000;
+                    double totEMax = (isMC) ? VJT::PF_HF_totE_max_mc : VJT::PF_HF_totE_max_data;
                     // MC
                     iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 682.0, totEMax);
                     //iCent = getPFEnergyBin((evtskim.pf_h_HF_totE + evtskim.pf_eg_HF_totE) - 546.0, totEMax); // 682 - 20%

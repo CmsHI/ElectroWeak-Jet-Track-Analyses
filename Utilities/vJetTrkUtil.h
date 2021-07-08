@@ -45,7 +45,8 @@ const int nEventPlaneBins = 1;
 const double etaMin_pf_HF = 3;
 const double etaMax_pf_HF = 5;
 
-const double PF_HF_totE_max = 150000;
+const double PF_HF_totE_max_mc = 150000;
+const double PF_HF_totE_max_data = 120000;
 
 const double PF_HF_E_eta4to5_max = 85000;
 const double PF_HF_E_eta3to4_max = 60000;
