@@ -951,15 +951,15 @@ int preLoop(TFile* input, bool makeNew)
     else if (nFormulas == 1 && nSelections == 1 && nTrees > nFormulas) nHistos = nTrees * nSplits;
     else if (nFormulas > 1 && nSelections > 1 && nFormulas != nSelections) {
         std::cout << "mismatch of number of formulas and number of selections"<< std::endl;
-        std::cout << "nHistos     = "<< nHistos << std::endl;
+        std::cout << "nFormulas   = "<< nFormulas << std::endl;
         std::cout << "nSelections = "<< nSelections << std::endl;
         std::cout << "exiting " << std::endl;
         return -1;
     }
     else if (nFormulas > 1 && nTrees > 1 && nFormulas != nTrees) {
         std::cout << "mismatch of number of formulas and number of trees"<< std::endl;
-        std::cout << "nHistos = "<< nHistos << std::endl;
-        std::cout << "nTrees  = "<< nTrees << std::endl;
+        std::cout << "nFormulas = "<< nFormulas << std::endl;
+        std::cout << "nTrees    = "<< nTrees << std::endl;
         std::cout << "exiting " << std::endl;
         return -1;
     }
