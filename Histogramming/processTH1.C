@@ -46,7 +46,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         strParams = split(operation, ":", false, false);
         operation = "SCALE";
     }
-    if (operation.find("POWER") != std::string::npos) {
+    else if (operation.find("POWER") != std::string::npos) {
         strParams = split(operation, ":", false, false);
         operation = "POWER";
     }
