@@ -46,6 +46,10 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         strParams = split(operation, ":", false, false);
         operation = "SCALE";
     }
+    if (operation.find("POWER") != std::string::npos) {
+        strParams = split(operation, ":", false, false);
+        operation = "POWER";
+    }
     else if (operation.find("PROJ") == 0) {
         strParams = split(operation, ":", false, false);
         operation = "PROJ";
@@ -78,7 +82,8 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         return;
     }
     if (nInputHist > 1) {
-        if (operation == "SCALE" || operation == "UNITNORM" ||
+        if (operation == "SCALE" || operation == "POWER" ||
+                operation == "UNITNORM" ||
                 operation.find("PROJ") != std::string::npos ||
                 operation == "INTFRAC") {
             std::cout << "There should be only one input histogram if operation is " << operation.c_str() << "." << std::endl;
@@ -147,6 +152,11 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         double paramTmp = std::atof(strParams[1].c_str());
         hOut->Scale(paramTmp);
+    }
+    else if (operation == "POWER") {
+        hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
+        double paramTmp = std::atof(strParams[1].c_str());
+        calcTH1Power(hOut, paramTmp);
     }
     else if (operation == "UNITNORM") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
