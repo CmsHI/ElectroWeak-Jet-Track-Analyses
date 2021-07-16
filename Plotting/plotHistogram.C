@@ -738,13 +738,13 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         }
     }
 
-    std::cout << "nDrawRatio" << nDrawRatio << std::endl;
+    std::cout << "nDrawRatio = " << nDrawRatio << std::endl;
     bool doDrawRatio = false;
     for (int i = 0; i < nDrawRatio; ++i) {
         std::cout << Form("drawRatio[%d] = %d", i, drawRatio.at(i)) << std::endl;
         if (drawRatio.at(i) > 0) doDrawRatio = true;
     }
-    std::cout << "nDrawDiff" << nDrawDiff << std::endl;
+    std::cout << "nDrawDiff = " << nDrawDiff << std::endl;
     bool doDrawDiff = false;
     for (int i = 0; i < nDrawDiff; ++i) {
         std::cout << Form("drawDiff[%d] = %d", i, drawDiff.at(i)) << std::endl;
