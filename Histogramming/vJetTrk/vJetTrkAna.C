@@ -206,6 +206,9 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     double vTrkDetaMax = (ArgumentParser::optionExists("--vTrkDetaMax", argOptions)) ?
                     std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDetaMax", argOptions).c_str()) : -1;
 
+    int vTrkDetaNegPos = (ArgumentParser::optionExists("--vTrkDetaNegPos", argOptions)) ?
+                        std::atof(ArgumentParser::ParseOptionInputSingle("--vTrkDetaNegPos", argOptions).c_str()) : 0;
+
     // deta between trk and leading hadron
     double hTrkDetaMin = (ArgumentParser::optionExists("--hTrkDetaMin", argOptions)) ?
                 std::atof(ArgumentParser::ParseOptionInputSingle("--hTrkDetaMin", argOptions).c_str()) : 0;
@@ -282,6 +285,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     std::cout << "vTrkDphiMax (as fraction of PI) = " << vTrkDphiMax << std::endl;
     std::cout << "vTrkDetaMin = " << vTrkDetaMin << std::endl;
     std::cout << "vTrkDetaMax = " << vTrkDetaMax << std::endl;
+    std::cout << "vTrkDetaNegPos = " << vTrkDetaNegPos << std::endl;
 
     std::cout << "hTrkDetaMin = " << hTrkDetaMin << std::endl;
     std::cout << "hTrkDetaMax = " << hTrkDetaMax << std::endl;
@@ -3976,7 +3980,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                     }
 
                     if (!(trkEtaMin <= std::fabs((*p_raw_eta)[i]) && std::fabs((*p_raw_eta)[i]) < trkEtaMax))  continue;
-                    if (!(vTrkDetaMin <= std::fabs((*p_raw_eta)[i] - vY) && std::fabs((*p_raw_eta)[i] - vY) < vTrkDetaMax))  continue;
+
+                    double deta_tmp = (*p_raw_eta)[i] - vY;
+                    if (!(vTrkDetaMin <= std::fabs(deta_tmp) && std::fabs(deta_tmp) < vTrkDetaMax))  continue;
+                    if (vTrkDetaNegPos > 0) {
+                        if (!(deta_tmp >= 0))  continue;
+                    }
+                    else if (vTrkDetaNegPos < 0) {
+                        if (!(deta_tmp < 0))  continue;
+                    }
 
                     float t_raw_pt = (*p_raw_pt)[i];
                     float t_raw_eta = (*p_raw_eta)[i];
@@ -4118,7 +4130,15 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
                 }
 
                 if (!(trkEtaMin <= std::fabs((*p_eta)[i]) && std::fabs((*p_eta)[i]) < trkEtaMax))  continue;
-                if (!(vTrkDetaMin <= std::fabs((*p_eta)[i] - vY) && std::fabs((*p_eta)[i] - vY) < vTrkDetaMax))  continue;
+
+                double deta_tmp = (*p_eta)[i] - vY;
+                if (!(vTrkDetaMin <= std::fabs(deta_tmp) && std::fabs(deta_tmp) < vTrkDetaMax))  continue;
+                if (vTrkDetaNegPos > 0) {
+                    if (!(deta_tmp >= 0))  continue;
+                }
+                else if (vTrkDetaNegPos < 0) {
+                    if (!(deta_tmp < 0))  continue;
+                }
 
                 if (findLeadingTrk) {
                     if (!(hTrkDetaMin <= std::fabs((*p_eta)[i] - h1_eta) && std::fabs((*p_eta)[i] - h1_eta) < hTrkDetaMax))  continue;
