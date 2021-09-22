@@ -59,6 +59,8 @@
 /// configuration variables
 
 // input for TTree
+bool ismAOD; // is the Ntuple made from miniAOD
+
 std::string treePath;
 std::string sampleType;
 
@@ -2666,7 +2668,7 @@ void vJetTrkAna(std::string configFile, std::string inputFile, std::string outpu
     treeggHiNtuplizer = (TTree*)fileTmp->Get("EventTree");
     isvJetTrkSkim = (treeggHiNtuplizer != 0);
     if (!isvJetTrkSkim) {
-        treePath = "ggHiNtuplizerGED/EventTree";
+        treePath = (ismAOD) ? "ggHiNtuplizer/EventTree" : "ggHiNtuplizerGED/EventTree";
         treePathHLT = "hltanalysis/HltTree";
         treePathL1obj = "l1object/L1UpgradeFlatTree";
         treePathHiEvt = "hiEvtAnalyzer/HiTree";
@@ -4874,6 +4876,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     VJT::ewObj = parseEWObj(confParser.ReadConfigValue("ewObj"));
 
+    ismAOD = (confParser.ReadConfigValueInteger("ismAOD") > 0);
+
     treePath = confParser.ReadConfigValue("treePath");
     sampleType = confParser.ReadConfigValue("sampleType");
 
@@ -4908,6 +4912,8 @@ void printConfiguration()
         std::cout << "ERROR : no valid EW object given" << std::endl;
         std::cout << "ewObj (index for EW object) = " << VJT::ewObj << std::endl;
     }
+
+    std::cout << "ismAOD = " << ismAOD << std::endl;
 
     std::cout << "treePath = " << treePath.c_str() << std::endl;
     std::cout << "sampleType = " << sampleType.c_str() << std::endl;
