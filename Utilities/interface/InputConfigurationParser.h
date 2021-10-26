@@ -498,7 +498,9 @@ std::vector<std::string> InputConfigurationParser::replaceMntWithXrootd(std::vec
     std::vector<std::string> res;
 
     for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
-        res.push_back(replaceAll((*it), "/mnt/hadoop/cms/store", "root://xrootd.cmsaf.mit.edu//store"));
+        std::string resTmp = replaceAll((*it), "/mnt/hadoop/cms/store", "root://xrootd.cmsaf.mit.edu//store");
+        resTmp = replaceAll(resTmp, "/mnt/T2_US_MIT/hadoop/cms/store", "root://xrootd.cmsaf.mit.edu//store");
+        res.push_back(resTmp);
     }
 
     return res;
