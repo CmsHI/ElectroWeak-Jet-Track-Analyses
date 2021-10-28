@@ -13,6 +13,13 @@ void readEdmEventTree()
 
     std::cout << "Tree* t = Events" << std::endl;
 
+    // event info
+    t->SetAlias("run","EventAuxiliary.id_.run_");
+    t->SetAlias("lumis","EventAuxiliary.id_.luminosityBlock_");
+    t->SetAlias("event","EventAuxiliary.id_.event_");
+    //t->Scan("run:lumis:event")
+    std::cout << "t->Scan(\"run:lumis:event\")" << std::endl;
+
     bool readGenParticles = true;
     std::string pathGenParticles = "recoGenParticles_genParticles__SIM";
 
