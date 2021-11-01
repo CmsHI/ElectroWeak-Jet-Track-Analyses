@@ -46,6 +46,10 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         strParams = split(operation, ":", false, false);
         operation = "SCALE";
     }
+    else if (operation.find("REBIN") != std::string::npos) {
+        strParams = split(operation, ":", false, false);
+        operation = "REBIN";
+    }
     else if (operation.find("POWER") != std::string::npos) {
         strParams = split(operation, ":", false, false);
         operation = "POWER";
@@ -82,7 +86,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         return;
     }
     if (nInputHist > 1) {
-        if (operation == "SCALE" || operation == "POWER" ||
+        if (operation == "SCALE" || operation == "REBIN" || operation == "POWER" ||
                 operation == "UNITNORM" ||
                 operation.find("PROJ") != std::string::npos ||
                 operation == "INTFRAC") {
@@ -152,6 +156,11 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         double paramTmp = std::atof(strParams[1].c_str());
         hOut->Scale(paramTmp);
+    }
+    else if (operation == "REBIN") {
+        hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
+        int paramTmp = std::atoi(strParams[1].c_str());
+        hOut->Rebin(paramTmp);
     }
     else if (operation == "POWER") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
