@@ -33,6 +33,7 @@ bool endsWith(std::string str, std::string substr);
 bool matchesRegex(std::string str, std::string regexStr);
 bool matchesWildCard(std::string str, std::string wcStr);
 bool isInteger(std::string s);
+int orderOfMag(double x);
 double roundToPrecision(double x, int precision);
 double roundToSignificantFigures(double x, int nFigures);
 double roundToSignificantFigures(double x, int nFigures, bool ignoreBeforeDecimalPoint);
@@ -334,6 +335,14 @@ bool isInteger(std::string s)
 }
 
 /*
+ * order of magnitude
+ */
+int orderOfMag(double x)
+{
+    return (int)(std::floor(std::log10(x)));
+}
+
+/*
  * round double variable to given precision after the decimal point
  */
 double roundToPrecision(double x, int precision)
@@ -353,11 +362,11 @@ double roundToSignificantFigures(double x, int nFigures)
     x = std::fabs(x);
 
     // helps to find the first non-zero leading digit
-    int orderOfMag = (int)(std::floor(std::log10(x)));
+    int orderM = orderOfMag(x);
     double res = 0;
 
     while (nFigures > 0) {
-        double tmpDouble = (x / std::pow(10, orderOfMag));
+        double tmpDouble = (x / std::pow(10, orderM));
         /*
          * 3.0 is stored as 2.9999... Casting it to integer will give 2.
          * Add small number to close the gap and so that casting gives the correct result.
@@ -369,14 +378,14 @@ double roundToSignificantFigures(double x, int nFigures)
 
         if (nFigures == 1) {
             // check the digit to the right of last significant figure
-            double tmpDouble2 = (x / std::pow(10, orderOfMag-1));
+            double tmpDouble2 = (x / std::pow(10, orderM-1));
             if (tmpDouble2 > 0) tmpDouble2 += 0.000000001;
 
             if (((int)(tmpDouble2) % 10) >= 5)  tmpDigit++;
         }
-        res += (double)(tmpDigit) * std::pow(10, orderOfMag);
+        res += (double)(tmpDigit) * std::pow(10, orderM);
 
-        orderOfMag--;
+        orderM--;
         nFigures--;
     }
 
