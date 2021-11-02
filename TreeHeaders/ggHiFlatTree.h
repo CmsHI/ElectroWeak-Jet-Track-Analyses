@@ -352,6 +352,11 @@ public :
   float pfcIso4pTgt3p0subUE;
   float pfcIso5pTgt3p0subUE;
 
+  float pho_trkIso3pTgt2p0;
+  float pho_trkIso3pTgt2p0subUE;
+  float pho_trkIso3IDpTgt2p0;
+  float pho_trkIso3IDpTgt2p0subUE;
+
   float pfpIso3subUEcalc;
   float pfnIso3subUEcalc;
   float pfcIso3pTgt2p0subUEcalc;
@@ -728,6 +733,11 @@ public :
   TBranch        *b_pfcIso4pTgt3p0subUE;   //!
   TBranch        *b_pfcIso5pTgt3p0subUE;   //!
 
+  TBranch        *b_pho_trkIso3pTgt2p0;   //!
+  TBranch        *b_pho_trkIso3pTgt2p0subUE;   //!
+  TBranch        *b_pho_trkIso3IDpTgt2p0;   //!
+  TBranch        *b_pho_trkIso3IDpTgt2p0subUE;   //!
+
   TBranch        *b_pfpIso3subUEcalc;   //!
   TBranch        *b_pfnIso3subUEcalc;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEcalc;   //!
@@ -1103,6 +1113,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfcIso4pTgt3p0subUE = 0;
     b_pfcIso5pTgt3p0subUE = 0;
 
+    b_pho_trkIso3pTgt2p0 = 0;
+    b_pho_trkIso3pTgt2p0subUE = 0;
+    b_pho_trkIso3IDpTgt2p0 = 0;
+    b_pho_trkIso3IDpTgt2p0subUE = 0;
+
     b_pfpIso3subUEcalc = 0;
     b_pfnIso3subUEcalc = 0;
     b_pfcIso3pTgt2p0subUEcalc = 0;
@@ -1474,6 +1489,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfcIso3pTgt3p0subUE")) t->SetBranchAddress("pfcIso3pTgt3p0subUE", &pfcIso3pTgt3p0subUE, &b_pfcIso3pTgt3p0subUE);
     if (t->GetBranch("pfcIso4pTgt3p0subUE")) t->SetBranchAddress("pfcIso4pTgt3p0subUE", &pfcIso4pTgt3p0subUE, &b_pfcIso4pTgt3p0subUE);
     if (t->GetBranch("pfcIso5pTgt3p0subUE")) t->SetBranchAddress("pfcIso5pTgt3p0subUE", &pfcIso5pTgt3p0subUE, &b_pfcIso5pTgt3p0subUE);
+
+    if (t->GetBranch("pho_trkIso3pTgt2p0")) t->SetBranchAddress("pho_trkIso3pTgt2p0", &pho_trkIso3pTgt2p0, &b_pho_trkIso3pTgt2p0);
+    if (t->GetBranch("pho_trkIso3pTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3pTgt2p0subUE", &pho_trkIso3pTgt2p0subUE, &b_pho_trkIso3pTgt2p0subUE);
+    if (t->GetBranch("pho_trkIso3IDpTgt2p0")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0", &pho_trkIso3IDpTgt2p0, &b_pho_trkIso3IDpTgt2p0);
+    if (t->GetBranch("pho_trkIso3IDpTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE, &b_pho_trkIso3IDpTgt2p0subUE);
 
     if (t->GetBranch("pfpIso3subUEcalc")) t->SetBranchAddress("pfpIso3subUEcalc", &pfpIso3subUEcalc, &b_pfpIso3subUEcalc);
     if (t->GetBranch("pfnIso3subUEcalc")) t->SetBranchAddress("pfnIso3subUEcalc", &pfnIso3subUEcalc, &b_pfnIso3subUEcalc);
@@ -1854,6 +1874,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfcIso4pTgt3p0subUE", &pfcIso4pTgt3p0subUE);
         t->Branch("pfcIso5pTgt3p0subUE", &pfcIso5pTgt3p0subUE);
 
+        t->Branch("pho_trkIso3pTgt2p0", &pho_trkIso3pTgt2p0);
+        t->Branch("pho_trkIso3pTgt2p0subUE", &pho_trkIso3pTgt2p0subUE);
+        t->Branch("pho_trkIso3IDpTgt2p0", &pho_trkIso3IDpTgt2p0);
+        t->Branch("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE);
+
         t->Branch("pfpIso3subUEcalc", &pfpIso3subUEcalc);
         t->Branch("pfnIso3subUEcalc", &pfnIso3subUEcalc);
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
@@ -2220,6 +2245,11 @@ void ggHiFlat::clearEntryPho()
         pfcIso3pTgt3p0subUE = -987987;
         pfcIso4pTgt3p0subUE = -987987;
         pfcIso5pTgt3p0subUE = -987987;
+
+        pho_trkIso3pTgt2p0 = -987987;
+        pho_trkIso3pTgt2p0subUE = -987987;
+        pho_trkIso3IDpTgt2p0 = -987987;
+        pho_trkIso3IDpTgt2p0subUE = -987987;
 
         pfpIso3subUEcalc = -987987;
         pfnIso3subUEcalc = -987987;
@@ -2618,6 +2648,12 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
         pfcIso4pTgt3p0subUE = (*tggHiNtuplizer.pfcIso4pTgt3p0subUE)[i];
         pfcIso5pTgt3p0subUE = (*tggHiNtuplizer.pfcIso5pTgt3p0subUE)[i];
     }
+    if (tggHiNtuplizer.b_pho_trkIso3pTgt2p0 != 0) {
+        pho_trkIso3pTgt2p0 = (*tggHiNtuplizer.pho_trkIso3pTgt2p0)[i];
+        pho_trkIso3pTgt2p0subUE = (*tggHiNtuplizer.pho_trkIso3pTgt2p0subUE)[i];
+        pho_trkIso3IDpTgt2p0 = (*tggHiNtuplizer.pho_trkIso3IDpTgt2p0)[i];
+        pho_trkIso3IDpTgt2p0subUE = (*tggHiNtuplizer.pho_trkIso3IDpTgt2p0subUE)[i];
+    }
 }
 
 void ggHiFlat::copyMu(ggHiNtuplizer &tggHiNtuplizer, int i)
@@ -3001,6 +3037,11 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfcIso3pTgt3p0subUE = gg.pfcIso3pTgt3p0subUE;
     pfcIso4pTgt3p0subUE = gg.pfcIso4pTgt3p0subUE;
     pfcIso5pTgt3p0subUE = gg.pfcIso5pTgt3p0subUE;
+
+    pho_trkIso3pTgt2p0 = gg.pho_trkIso3pTgt2p0;
+    pho_trkIso3pTgt2p0subUE = gg.pho_trkIso3pTgt2p0subUE;
+    pho_trkIso3IDpTgt2p0 = gg.pho_trkIso3IDpTgt2p0;
+    pho_trkIso3IDpTgt2p0subUE = gg.pho_trkIso3IDpTgt2p0subUE;
 
     pfpIso3subUEcalc = gg.pfpIso3subUEcalc;
     pfnIso3subUEcalc = gg.pfnIso3subUEcalc;
