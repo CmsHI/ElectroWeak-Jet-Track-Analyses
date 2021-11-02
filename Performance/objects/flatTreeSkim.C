@@ -450,6 +450,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 }
                 ggHiOut.rho = rho;
 
+                ggHiOut.angEvtPlane = ggHi.angEvtPlane;
+                ggHiOut.indexEvtPlane = ggHi.indexEvtPlane;
+                ggHiOut.phi_nTot = ggHi.phi_nTot;
+                ggHiOut.phi_minBinN = ggHi.phi_minBinN;
+                ggHiOut.phi_fit_chi2 = ggHi.phi_fit_chi2;
+                ggHiOut.phi_fit_chi2prob = ggHi.phi_fit_chi2prob;
+                ggHiOut.phi_fit_v2 = ggHi.phi_fit_v2;
+
                 ggHiOut.run = ggHi.run;
                 ggHiOut.event = ggHi.event;
                 ggHiOut.lumis = ggHi.lumis;

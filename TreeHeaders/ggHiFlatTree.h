@@ -70,6 +70,13 @@ public :
   float fit_EPphi0_chi2prob;
 
   float rho;
+  Float_t         angEvtPlane;
+  Int_t           indexEvtPlane;
+  Int_t           phi_nTot;
+  Int_t           phi_minBinN;
+  Float_t         phi_fit_chi2;
+  Float_t         phi_fit_chi2prob;
+  Float_t         phi_fit_v2;
   UInt_t          run;
   ULong64_t       event;
   UInt_t          lumis;
@@ -439,6 +446,13 @@ public :
   TBranch        *b_fit_EPphi0_chi2prob;   //!
 
   TBranch        *b_rho;   //!
+  TBranch        *b_angEvtPlane;   //!
+  TBranch        *b_indexEvtPlane;   //!
+  TBranch        *b_phi_nTot;   //!
+  TBranch        *b_phi_minBinN;   //!
+  TBranch        *b_phi_fit_chi2;   //!
+  TBranch        *b_phi_fit_chi2prob;   //!
+  TBranch        *b_phi_fit_v2;   //!
   TBranch        *b_run;   //!
   TBranch        *b_event;   //!
   TBranch        *b_lumis;   //!
@@ -806,6 +820,13 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_fit_EPphi0_chi2prob = 0;
 
     b_rho = 0;
+    b_angEvtPlane = 0;
+    b_indexEvtPlane = 0;
+    b_phi_nTot = 0;
+    b_phi_minBinN = 0;
+    b_phi_fit_chi2 = 0;
+    b_phi_fit_chi2prob = 0;
+    b_phi_fit_v2 = 0;
     b_run = 0;
     b_event = 0;
     b_lumis = 0;
@@ -1172,6 +1193,13 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("fit_EPphi0_chi2prob")) t->SetBranchAddress("fit_EPphi0_chi2prob", &fit_EPphi0_chi2prob, &b_fit_EPphi0_chi2prob);
 
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
+    if (t->GetBranch("angEvtPlane")) t->SetBranchAddress("angEvtPlane", &angEvtPlane, &b_angEvtPlane);
+    if (t->GetBranch("indexEvtPlane")) t->SetBranchAddress("indexEvtPlane", &indexEvtPlane, &b_indexEvtPlane);
+    if (t->GetBranch("phi_nTot")) t->SetBranchAddress("phi_nTot", &phi_nTot, &b_phi_nTot);
+    if (t->GetBranch("phi_minBinN")) t->SetBranchAddress("phi_minBinN", &phi_minBinN, &b_phi_minBinN);
+    if (t->GetBranch("phi_fit_chi2")) t->SetBranchAddress("phi_fit_chi2", &phi_fit_chi2, &b_phi_fit_chi2);
+    if (t->GetBranch("phi_fit_chi2prob")) t->SetBranchAddress("phi_fit_chi2prob", &phi_fit_chi2prob, &b_phi_fit_chi2prob);
+    if (t->GetBranch("phi_fit_v2")) t->SetBranchAddress("phi_fit_v2", &phi_fit_v2, &b_phi_fit_v2);
     if (t->GetBranch("run")) t->SetBranchAddress("run", &run, &b_run);
     if (t->GetBranch("event")) t->SetBranchAddress("event", &event, &b_event);
     if (t->GetBranch("lumis")) t->SetBranchAddress("lumis", &lumis, &b_lumis);
@@ -1539,6 +1567,13 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("fit_EPphi0_chi2prob", &fit_EPphi0_chi2prob);
 
     t->Branch("rho", &rho);
+    t->Branch("angEvtPlane", &angEvtPlane);
+    t->Branch("indexEvtPlane", &indexEvtPlane);
+    t->Branch("phi_nTot", &phi_nTot);
+    t->Branch("phi_minBinN", &phi_minBinN);
+    t->Branch("phi_fit_chi2", &phi_fit_chi2);
+    t->Branch("phi_fit_chi2prob", &phi_fit_chi2prob);
+    t->Branch("phi_fit_v2", &phi_fit_v2);
     t->Branch("run", &run);
     t->Branch("event", &event);
     t->Branch("lumis", &lumis);
@@ -1913,6 +1948,13 @@ void ggHiFlat::clearEntry()
     fit_EPphi0_chi2prob = -987987;
 
     rho = -1;
+    angEvtPlane = -999888;
+    indexEvtPlane = -1;
+    phi_nTot = 0;
+    phi_minBinN = 999999;
+    phi_fit_chi2 = -1;
+    phi_fit_chi2prob = -1;
+    phi_fit_v2 = -999777;
     run = 987987;
     event = 987987;
     lumis = 987987;
@@ -2678,6 +2720,13 @@ void ggHiFlat::clone(ggHiFlat &gg)
     fit_EPphi0_chi2prob = gg.fit_EPphi0_chi2prob;
 
     rho = gg.rho;
+    angEvtPlane = gg.angEvtPlane;
+    indexEvtPlane = gg.indexEvtPlane;
+    phi_nTot = gg.phi_nTot;
+    phi_minBinN = gg.phi_minBinN;
+    phi_fit_chi2 = gg.phi_fit_chi2;
+    phi_fit_chi2prob = gg.phi_fit_chi2prob;
+    phi_fit_v2 = gg.phi_fit_v2;
     run = gg.run;
     event = gg.event;
     lumis = gg.lumis;

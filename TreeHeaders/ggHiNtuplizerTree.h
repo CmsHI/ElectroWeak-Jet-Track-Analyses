@@ -335,6 +335,13 @@ public :
   UInt_t          lumis;
   Bool_t          isData;
   Float_t         rho;
+  Float_t         angEvtPlane;
+  Int_t           indexEvtPlane;
+  Int_t           phi_nTot;
+  Int_t           phi_minBinN;
+  Float_t         phi_fit_chi2;
+  Float_t         phi_fit_chi2prob;
+  Float_t         phi_fit_v2;
   Int_t           nPUInfo;
   std::vector<int>     *nPU;
   std::vector<int>     *puBX;
@@ -650,6 +657,13 @@ public :
   TBranch        *b_lumis;   //!
   TBranch        *b_isData;   //!
   TBranch        *b_rho;   //!
+  TBranch        *b_angEvtPlane;   //!
+  TBranch        *b_indexEvtPlane;   //!
+  TBranch        *b_phi_nTot;   //!
+  TBranch        *b_phi_minBinN;   //!
+  TBranch        *b_phi_fit_chi2;   //!
+  TBranch        *b_phi_fit_chi2prob;   //!
+  TBranch        *b_phi_fit_v2;   //!
   TBranch        *b_nPUInfo;   //!
   TBranch        *b_nPU;   //!
   TBranch        *b_puBX;   //!
@@ -965,6 +979,13 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_lumis = 0;
     b_isData = 0;
     b_rho = 0;
+    b_angEvtPlane = 0;
+    b_indexEvtPlane = 0;
+    b_phi_nTot = 0;
+    b_phi_minBinN = 0;
+    b_phi_fit_chi2 = 0;
+    b_phi_fit_chi2prob = 0;
+    b_phi_fit_v2 = 0;
     b_nPUInfo = 0;
     b_nPU = 0;
     b_puBX = 0;
@@ -1278,6 +1299,13 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("lumis")) t->SetBranchAddress("lumis", &lumis, &b_lumis);
     if (t->GetBranch("isData")) t->SetBranchAddress("isData", &isData, &b_isData);
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
+    if (t->GetBranch("angEvtPlane")) t->SetBranchAddress("angEvtPlane", &angEvtPlane, &b_angEvtPlane);
+    if (t->GetBranch("indexEvtPlane")) t->SetBranchAddress("indexEvtPlane", &indexEvtPlane, &b_indexEvtPlane);
+    if (t->GetBranch("phi_nTot")) t->SetBranchAddress("phi_nTot", &phi_nTot, &b_phi_nTot);
+    if (t->GetBranch("phi_minBinN")) t->SetBranchAddress("phi_minBinN", &phi_minBinN, &b_phi_minBinN);
+    if (t->GetBranch("phi_fit_chi2")) t->SetBranchAddress("phi_fit_chi2", &phi_fit_chi2, &b_phi_fit_chi2);
+    if (t->GetBranch("phi_fit_chi2prob")) t->SetBranchAddress("phi_fit_chi2prob", &phi_fit_chi2prob, &b_phi_fit_chi2prob);
+    if (t->GetBranch("phi_fit_v2")) t->SetBranchAddress("phi_fit_v2", &phi_fit_v2, &b_phi_fit_v2);
     if (t->GetBranch("nPUInfo")) t->SetBranchAddress("nPUInfo", &nPUInfo, &b_nPUInfo);
     if (t->GetBranch("nPU")) t->SetBranchAddress("nPU", &nPU, &b_nPU);
     if (t->GetBranch("puBX")) t->SetBranchAddress("puBX", &puBX, &b_puBX);
