@@ -480,12 +480,15 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.fit_v2 = 0;
                 ggHiOut.fit_EPphi0_v2 = 0;
                 h1D_phi->Reset();
+                const double calcIso_pfPtMin = 0.3;
+                const double calcIso_pfPtMax = 3.0;
+                const double calcIso_pfEtaMax = 1.0;
                 for (int i=0; i<pfs.nPFpart; ++i) {
 
                     if (! ((*pfs.pfId)[i] == 1) ) continue;
-                    if (! ((*pfs.pfPt)[i] > 0.3) ) continue;
-                    if (! ((*pfs.pfPt)[i] < 3.0) ) continue;
-                    if (! (TMath::Abs((*pfs.pfEta)[i]) < 1.0) )  continue;
+                    if (! ((*pfs.pfPt)[i] > calcIso_pfPtMin) ) continue;
+                    if (! ((*pfs.pfPt)[i] < calcIso_pfPtMax) ) continue;
+                    if (! (TMath::Abs((*pfs.pfEta)[i]) < calcIso_pfEtaMax) )  continue;
                     // checked in forest via Scan("Sum$(pfId == 1 && pfPt > 0.3 && pfPt < 3 && abs(pfEta) < 1):hiBin")
 
                     h1D_phi->Fill((*pfs.pfPhi)[i]);
