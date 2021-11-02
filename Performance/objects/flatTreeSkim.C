@@ -30,6 +30,7 @@
 #include "../../Utilities/eventUtil.h"
 #include "../../Utilities/fileUtil.h"
 #include "../../Utilities/egammaUtil.h"
+#include "../../Utilities/mathUtil.h"
 #include "../../Utilities/physicsUtil.h"
 
 ///// global variables
@@ -53,9 +54,11 @@ std::string histKinWeight;
 std::string fileGenKinWeight;
 std::string histGenKinWeight;
 
-bool calcRhoEtaAve;
-
 bool calcPFIso; // WARNING : footprints cannot be removed in these functions as they are is kept in AOD only, but not in forest
+
+bool calcIsoFlow;
+
+bool calcRhoEtaAve;
 
 // effective areas
 std::vector<std::vector<float>> effAreaC;   // PF charged iso
@@ -196,6 +199,16 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         h2D_weightGenKin = (TH2D*)fileTmp->Get(histGenKinWeight.c_str());
     }
 
+    TH1D* h1D_phi = 0;
+    TF1* f1_phi = 0;
+    //double xRange_phi = -1;
+    if (calcIsoFlow) {
+        h1D_phi = new TH1D("h1D_phi", "Particle #phi distribution;#phi;Counts", 20, -1*TMath::Pi(), TMath::Pi());
+        //xRange_phi = h1D_phi->GetXaxis()->GetXmax() - h1D_phi->GetXaxis()->GetXmin();
+
+        f1_phi = new TF1("f1_phi", fnc_fourier_v2, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_v2));
+    }
+
     EventMatcher* em = new EventMatcher();
     Long64_t duplicateEntries = 0;
 
@@ -263,6 +276,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         Tracks trks;
         pfCand pfs;
 
+        bool doPFCand = (calcPFIso || calcIsoFlow);
+
         // input type is flatTree
         ggHiFlat ggFlat;
 
@@ -280,6 +295,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeHiEvt->SetBranchStatus("hiEvtPlanes",1);
             if (isMC) {
                 treeHiEvt->SetBranchStatus("weight", 1);
+                treeHiEvt->SetBranchStatus("phi0",1);
                 treeHiEvt->SetBranchStatus("pthat",1);
             }
 
@@ -327,7 +343,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 treeTrack->SetBranchStatus("pfEcal",1);
             }
 
-            if (calcPFIso) {
+            if (doPFCand) {
                 treePFCand = 0;
                 treePFCand = (TTree*)fileTmp->Get("pfcandAnalyzer/pfTree");
                 if (treePFCand != 0) {
@@ -357,7 +373,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             trks.setupTreeForReading(treeTrack);
 
-            if (calcPFIso) {
+            if (doPFCand) {
                 pfs.setupTreeForReading(treePFCand);
             }
         }
@@ -369,10 +385,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
-        for (Long64_t j_entry = 0; j_entry < 100; ++j_entry)
+        for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (j_entry % 2000 == 0)  {
-                std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+                std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(5)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
 
             treeIn->GetEntry(j_entry);
@@ -384,7 +400,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treeHiFJRho->GetEntry(j_entry);
                 }
                 treeTrack->GetEntry(j_entry);
-                if (calcPFIso) {
+                if (doPFCand) {
                     treePFCand->GetEntry(j_entry);
                 }
 
@@ -411,7 +427,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.weight = hiEvt.weight;
                 ggHiOut.hiBin = hiEvt.hiBin;
                 ggHiOut.hiHF = hiEvt.hiHF;
-                ggHiOut.hiEvtPlanesHF3 = hiEvt.hiEvtPlanes[8];
+                ggHiOut.hiEvtPlaneHF2 = hiEvt.hiEvtPlanes[2];
+                ggHiOut.hiEvtPlaneHF3 = hiEvt.hiEvtPlanes[8];
+                ggHiOut.phi0 = hiEvt.phi0;
                 ggHiOut.pthat = hiEvt.pthat;
 
                 double rho = -1;
@@ -458,6 +476,75 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 }
             }
 
+            if (calcIsoFlow) {
+                ggHiOut.fit_v2 = 0;
+                ggHiOut.fit_EPphi0_v2 = 0;
+                h1D_phi->Reset();
+                for (int i=0; i<pfs.nPFpart; ++i) {
+
+                    if (! ((*pfs.pfId)[i] == 1) ) continue;
+                    if (! ((*pfs.pfPt)[i] > 0.3) ) continue;
+                    if (! ((*pfs.pfPt)[i] < 3.0) ) continue;
+                    if (! (TMath::Abs((*pfs.pfEta)[i]) < 1.0) )  continue;
+                    // checked in forest via Scan("Sum$(pfId == 1 && pfPt > 0.3 && pfPt < 3 && abs(pfEta) < 1):hiBin")
+
+                    h1D_phi->Fill((*pfs.pfPhi)[i]);
+                }
+
+                //std::cout << "h1D_phi entries = " << h1D_phi->GetEntries() << std::endl;
+
+                bool acceptFit = true;
+                int nBinsX = h1D_phi->GetNbinsX();
+                ggHiOut.partphi_nBins = nBinsX;
+                ggHiOut.partphi_minContent = 99999999;
+                for (int iBin = 1; iBin <= nBinsX; ++iBin) {
+
+                    double binContent = h1D_phi->GetBinContent(iBin);
+                    ggHiOut.partphi_binContents_out.push_back(binContent);
+                    if (binContent < ggHiOut.partphi_minContent) {
+                        ggHiOut.partphi_minContent = binContent;
+                        //break;
+                    }
+                }
+
+                if (acceptFit) {
+                    // set initial parameters assuming there is no flow, i.e. v2 = 0
+                    double initN0 = h1D_phi->Integral() / nBinsX;
+                    f1_phi->SetParameter(0, initN0); // N0
+                    f1_phi->SetParameter(1, 0); // v2
+                    f1_phi->FixParameter(2, ggHiOut.hiEvtPlaneHF2); // set to 2nd event plane angle
+                    h1D_phi->Fit(f1_phi, "Q M R N");
+
+                    double fit_chi2 = f1_phi->GetChisquare();
+
+                    ggHiOut.fit_chi2 = fit_chi2;
+                    ggHiOut.fit_chi2prob = f1_phi->GetProb();
+
+                    ggHiOut.fit_v2 = f1_phi->GetParameter(1);
+                    if (ggHiOut.fit_v2 < 0 || ggHiOut.fit_v2 > 0.5) {
+                        // https://arxiv.org/abs/1702.00630
+                        //std::cout << "WARNING : Unexpected value extracted : fit_v2 = " << ggHiOut.fit_v2 << std::endl;
+                    }
+
+                    // fit using phi0 as EP angle
+                    f1_phi->SetParameter(0, initN0); // N0
+                    f1_phi->SetParameter(1, 0); // v2
+                    f1_phi->FixParameter(2, ggHiOut.phi0); // set to 2nd event plane angle
+                    h1D_phi->Fit(f1_phi, "Q M R N");
+
+                    fit_chi2 = f1_phi->GetChisquare();
+
+                    ggHiOut.fit_EPphi0_chi2 = fit_chi2;
+                    ggHiOut.fit_EPphi0_chi2prob = f1_phi->GetProb();
+
+                    ggHiOut.fit_EPphi0_v2 = f1_phi->GetParameter(1);
+                    if (ggHiOut.fit_EPphi0_v2 < 0 || ggHiOut.fit_EPphi0_v2 > 0.5) {
+                        // https://arxiv.org/abs/1702.00630
+                        //std::cout << "WARNING : Unexpected value extracted : fit_EPphi0_v2 = " << ggHiOut.fit_EPphi0_v2 << std::endl;
+                    }
+                }
+            }
+
             if (recoObj == RECOOBJS::kPhoton) {
 
                 if (inFileType == INFILE_TYPES::kHiForest) {
@@ -492,6 +579,26 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0);
                             ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0);
                             ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0);
+                        }
+                        if (calcIsoFlow) {
+                            double angEP = ggHiOut.hiEvtPlaneHF2;
+                            ggHiOut.pfpIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfnIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false, ggHiOut.fit_v2, angEP);
+
+                            ggHiOut.pfpIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfnIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfpIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, 0, angEP);
+                            ggHiOut.pfnIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, 0, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, 0, angEP);
+
+                            ggHiOut.pfpIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfnIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfpIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfnIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
@@ -649,6 +756,8 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     calcPFIso = (confParser.ReadConfigValueInteger("calcPFIso") > 0);
 
+    calcIsoFlow = (confParser.ReadConfigValueInteger("calcIsoFlow") > 0);
+
     calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
 
     effAreaC = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("effAreaC"));
@@ -723,6 +832,8 @@ void printConfiguration()
     std::cout << "histGenKinWeight = " << histGenKinWeight.c_str() << std::endl;
 
     std::cout << "calcPFIso = " << calcPFIso << std::endl;
+
+    std::cout << "calcIsoFlow = " << calcIsoFlow << std::endl;
 
     std::cout << "calcRhoEtaAve = " << calcRhoEtaAve << std::endl;
 
