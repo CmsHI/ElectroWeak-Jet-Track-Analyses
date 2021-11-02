@@ -2212,34 +2212,30 @@ double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
 
         if (collisionIsDATA((COLL::TYPE)collType)) {
 
+            if ((*elePt)[i] < 20) return 1;
+
             if (std::fabs((*eleSCEta)[i]) < 1.4442) {
 
                 if (hiBin < 20) {
-                    //return 0.990;
-                    return 0.989;
+                    return 0.98904;//return 0.989;
                 }
                 else if (hiBin < 60) {
-                    //return 1.006;
-                    return 1.006;
+                    return 1.00560;//return 1.006;
                 }
                 else {
-                    //return 1.016;
-                    return 1.016;
+                    return 1.01586;//return 1.016;
                 }
             }
             else if (std::fabs((*eleSCEta)[i]) > 1.566 && std::fabs((*eleSCEta)[i]) < 2.5) {
 
                 if (hiBin < 20) {
-                    //return 0.976;
-                    return 0.967;
+                    return 0.96650;//return 0.967;
                 }
                 else if (hiBin < 60) {
-                    //return 1.015;
-                    return 1.018;
+                    return 1.01827;//return 1.018;
                 }
                 else {
-                    //return 1.052;
-                    return 1.054;
+                    return 1.05412;//return 1.054;
                 }
             }
 
