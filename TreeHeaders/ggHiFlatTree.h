@@ -62,6 +62,7 @@ public :
   std::vector<float> *partphi_binContents;
   std::vector<float> partphi_binContents_out;
   float fit_v2;
+  float fit_v3;
   float fit_chi2;
   float fit_chi2prob;
 
@@ -391,6 +392,11 @@ public :
   float phoEAhoe;
   float phoEAsieie;
 
+  int nPhoPF;
+  float ppfPtSum;
+  float ppfEtaAve;
+  float ppfPhiAve;
+
   //int nMu;
   float muPt;
   float muEta;
@@ -443,6 +449,7 @@ public :
   TBranch        *b_partphi_minContent;   //!
   TBranch        *b_partphi_binContents;   //!
   TBranch        *b_fit_v2;   //!
+  TBranch        *b_fit_v3;   //!
   TBranch        *b_fit_chi2;   //!
   TBranch        *b_fit_chi2prob;   //!
 
@@ -770,6 +777,11 @@ public :
   TBranch        *b_phoEAhoe;   //!
   TBranch        *b_phoEAsieie;   //!
 
+  TBranch        *b_nPhoPF;   //!
+  TBranch        *b_ppfPtSum;   //!
+  TBranch        *b_ppfEtaAve;   //!
+  TBranch        *b_ppfPhiAve;   //!
+
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -822,6 +834,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_partphi_minContent = 0;
     b_partphi_binContents = 0;
     b_fit_v2 = 0;
+    b_fit_v3 = 0;
     b_fit_chi2 = 0;
     b_fit_chi2prob = 0;
 
@@ -1150,6 +1163,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoEAhoe = 0;
     b_phoEAsieie = 0;
 
+    b_nPhoPF = 0;
+    b_ppfPtSum = 0;
+    b_ppfEtaAve = 0;
+    b_ppfPhiAve = 0;
+
     b_nMu = 0;
     b_muPt = 0;
     b_muEta = 0;
@@ -1200,6 +1218,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("partphi_minContent")) t->SetBranchAddress("partphi_minContent", &partphi_minContent, &b_partphi_minContent);
     if (t->GetBranch("partphi_binContents")) t->SetBranchAddress("partphi_binContents", &partphi_binContents, &b_partphi_binContents);
     if (t->GetBranch("fit_v2")) t->SetBranchAddress("fit_v2", &fit_v2, &b_fit_v2);
+    if (t->GetBranch("fit_v3")) t->SetBranchAddress("fit_v3", &fit_v3, &b_fit_v3);
     if (t->GetBranch("fit_chi2")) t->SetBranchAddress("fit_chi2", &fit_chi2, &b_fit_chi2);
     if (t->GetBranch("fit_chi2prob")) t->SetBranchAddress("fit_chi2prob", &fit_chi2prob, &b_fit_chi2prob);
 
@@ -1527,6 +1546,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoEAhoe")) t->SetBranchAddress("phoEAhoe", &phoEAhoe, &b_phoEAhoe);
     if (t->GetBranch("phoEAsieie")) t->SetBranchAddress("phoEAsieie", &phoEAsieie, &b_phoEAsieie);
 
+    if (t->GetBranch("nPhoPF")) t->SetBranchAddress("nPhoPF", &nPhoPF, &b_nPhoPF);
+    if (t->GetBranch("ppfPtSum")) t->SetBranchAddress("ppfPtSum", &ppfPtSum, &b_ppfPtSum);
+    if (t->GetBranch("ppfEtaAve")) t->SetBranchAddress("ppfEtaAve", &ppfEtaAve, &b_ppfEtaAve);
+    if (t->GetBranch("ppfPhiAve")) t->SetBranchAddress("ppfPhiAve", &ppfPhiAve, &b_ppfPhiAve);
+
     //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
@@ -1579,6 +1603,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("partphi_minContent", &partphi_minContent);
     t->Branch("partphi_binContents", &partphi_binContents_out);
     t->Branch("fit_v2", &fit_v2);
+    t->Branch("fit_v3", &fit_v3);
     t->Branch("fit_chi2", &fit_chi2);
     t->Branch("fit_chi2prob", &fit_chi2prob);
 
@@ -1910,6 +1935,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoEAn", &phoEAn);
         t->Branch("phoEAhoe", &phoEAhoe);
         t->Branch("phoEAsieie", &phoEAsieie);
+
+        t->Branch("nPhoPF", &nPhoPF);
+        t->Branch("ppfPtSum", &ppfPtSum);
+        t->Branch("ppfEtaAve", &ppfEtaAve);
+        t->Branch("ppfPhiAve", &ppfPhiAve);
     }
     if (doMu) {
         //t->Branch("nMu", &nMu);
@@ -1965,6 +1995,7 @@ void ggHiFlat::clearEntry()
     partphi_minContent = 0;
     partphi_binContents_out.clear();
     fit_v2 = 0;
+    fit_v3 = 0;
     fit_chi2 = -987987;
     fit_chi2prob = -987987;
 
@@ -2282,6 +2313,11 @@ void ggHiFlat::clearEntryPho()
         phoEAn = 0;
         phoEAhoe = 0;
         phoEAsieie = 0;
+
+        nPhoPF = 0;
+        ppfPtSum = -1;
+        ppfEtaAve = -987987;
+        ppfPhiAve = -987987;
     }
 }
 
@@ -2748,6 +2784,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
         partphi_binContents_out.push_back( (*gg.partphi_binContents)[i] );
     }
     fit_v2 = gg.fit_v2;
+    fit_v3 = gg.fit_v3;
     fit_chi2 = gg.fit_chi2;
     fit_chi2prob = gg.fit_chi2prob;
 
@@ -3075,6 +3112,11 @@ void ggHiFlat::clone(ggHiFlat &gg)
     phoEAn = gg.phoEAn;
     phoEAhoe = gg.phoEAhoe;
     phoEAsieie = gg.phoEAsieie;
+
+    nPhoPF = gg.nPhoPF;
+    ppfPtSum = gg.ppfPtSum;
+    ppfEtaAve = gg.ppfEtaAve;
+    ppfPhiAve = gg.ppfPhiAve;
 
     //nMu = gg.nMu;
     muPt = gg.muPt;
