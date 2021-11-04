@@ -119,8 +119,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
 
-    std::string skimMode = (ArgumentParser::optionExists("--skimMode", argOptions)) ?
-            ArgumentParser::ParseOptionInputSingle("--skimMode", argOptions).c_str() : "";
+    std::string skimMode = (ArgumentParser::optionExists("--mode", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--mode", argOptions).c_str() : "";
     bool isPhoZee = (toLowerCase(skimMode) == "phozee");
 
     std::cout << "skimMode = " << skimMode << std::endl;
