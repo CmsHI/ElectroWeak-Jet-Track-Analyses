@@ -98,6 +98,8 @@ enum RECOOBJS {
 };
 const std::string recoObjsStr[kN_RECOOBJS] = {"photon", "electron", "muon"};
 int recoObj;
+
+std::vector<std::string> argOptions;
 ///// global variables - END
 
 int readConfiguration(std::string configFile, std::string inputFile);
@@ -116,6 +118,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
     if (readConfiguration(configFile, inputFile) != 0)  return;
     printConfiguration();
+
+    std::string skimMode = (ArgumentParser::optionExists("--skimMode", argOptions)) ?
+            ArgumentParser::ParseOptionInputSingle("--skimMode", argOptions).c_str() : "";
+    bool isPhoZee = (toLowerCase(skimMode) == "phozee");
+
+    std::cout << "skimMode = " << skimMode << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -623,7 +631,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
                         }
 
-                        if (h2D_weightGenKin != 0 && ggHiOut.mcPID == 22) {
+                        if (h2D_weightGenKin != 0 && (ggHiOut.mcPID == 22 || (isPhoZee && TMath::Abs(ggHiOut.mcPID) == 11))) {
                             int binTmp = h2D_weightGenKin->FindBin(ggHiOut.mcPt, ggHiOut.mcEta);
                             ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
                         }
@@ -645,7 +653,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.weightKin = h2D_weightKin->GetBinContent(binTmp);
                     }
 
-                    if (h2D_weightGenKin != 0 && ggHiOut.mcPID == 22) {
+                    if (h2D_weightGenKin != 0 && (ggHiOut.mcPID == 22 || (isPhoZee && TMath::Abs(ggHiOut.mcPID) == 11))) {
                         int binTmp = h2D_weightGenKin->FindBin(ggHiOut.mcPt, ggHiOut.mcEta);
                         ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
                     }
@@ -720,7 +728,7 @@ int main(int argc, char** argv)
     std::vector<std::string> argStr = ArgumentParser::ParseParameters(argc, argv);
     int nArgStr = argStr.size();
 
-    std::vector<std::string> argOptions = ArgumentParser::ParseOptions(argc, argv);
+    argOptions = ArgumentParser::ParseOptions(argc, argv);
 
     if (nArgStr == 4) {
         flatTreeSkim(argStr.at(1), argStr.at(2), argStr.at(3));
