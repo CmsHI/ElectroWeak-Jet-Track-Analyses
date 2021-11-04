@@ -283,6 +283,11 @@ public :
     pho_trkIso3pTgt2p0subUE = 0;
     pho_trkIso3IDpTgt2p0 = 0;
     pho_trkIso3IDpTgt2p0subUE = 0;
+    ppfPhoIdx = 0;
+    ppfId = 0;
+    ppfPt = 0;
+    ppfEta = 0;
+    ppfPhi = 0;
     muPt = 0;
     muEta = 0;
     muPhi = 0;
@@ -624,6 +629,12 @@ public :
   std::vector<float>   *pho_trkIso3pTgt2p0subUE;
   std::vector<float>   *pho_trkIso3IDpTgt2p0;
   std::vector<float>   *pho_trkIso3IDpTgt2p0subUE;
+  Int_t           nPhoPF;
+  std::vector<int>     *ppfPhoIdx;
+  std::vector<int>     *ppfId;
+  std::vector<float>   *ppfPt;
+  std::vector<float>   *ppfEta;
+  std::vector<float>   *ppfPhi;
   Int_t           nMu;
   std::vector<float>   *muPt;
   std::vector<float>   *muEta;
@@ -950,6 +961,12 @@ public :
   TBranch        *b_pho_trkIso3pTgt2p0subUE;   //!
   TBranch        *b_pho_trkIso3IDpTgt2p0;   //!
   TBranch        *b_pho_trkIso3IDpTgt2p0subUE;   //!
+  TBranch        *b_nPhoPF;   //!
+  TBranch        *b_ppfPhoIdx;   //!
+  TBranch        *b_ppfId;   //!
+  TBranch        *b_ppfPt;   //!
+  TBranch        *b_ppfEta;   //!
+  TBranch        *b_ppfPhi;   //!
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
   TBranch        *b_muEta;   //!
@@ -1276,6 +1293,12 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_pho_trkIso3pTgt2p0subUE = 0;
     b_pho_trkIso3IDpTgt2p0 = 0;
     b_pho_trkIso3IDpTgt2p0subUE = 0;
+    b_nPhoPF = 0;
+    b_ppfPhoIdx = 0;
+    b_ppfId = 0;
+    b_ppfPt = 0;
+    b_ppfEta = 0;
+    b_ppfPhi = 0;
     b_nMu = 0;
     b_muPt = 0;
     b_muEta = 0;
@@ -1600,6 +1623,12 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trkIso3pTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3pTgt2p0subUE", &pho_trkIso3pTgt2p0subUE, &b_pho_trkIso3pTgt2p0subUE);
     if (t->GetBranch("pho_trkIso3IDpTgt2p0")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0", &pho_trkIso3IDpTgt2p0, &b_pho_trkIso3IDpTgt2p0);
     if (t->GetBranch("pho_trkIso3IDpTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE, &b_pho_trkIso3IDpTgt2p0subUE);
+    if (t->GetBranch("nPhoPF")) t->SetBranchAddress("nPhoPF", &nPhoPF, &b_nPhoPF);
+    if (t->GetBranch("ppfPhoIdx")) t->SetBranchAddress("ppfPhoIdx", &ppfPhoIdx, &b_ppfPhoIdx);
+    if (t->GetBranch("ppfId")) t->SetBranchAddress("ppfId", &ppfId, &b_ppfId);
+    if (t->GetBranch("ppfPt")) t->SetBranchAddress("ppfPt", &ppfPt, &b_ppfPt);
+    if (t->GetBranch("ppfEta")) t->SetBranchAddress("ppfEta", &ppfEta, &b_ppfEta);
+    if (t->GetBranch("ppfPhi")) t->SetBranchAddress("ppfPhi", &ppfPhi, &b_ppfPhi);
     if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
     if (t->GetBranch("muEta")) t->SetBranchAddress("muEta", &muEta, &b_muEta);
