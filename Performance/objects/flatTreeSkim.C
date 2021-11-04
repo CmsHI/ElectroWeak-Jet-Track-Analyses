@@ -593,23 +593,23 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         }
                         if (calcIsoFlow) {
                             double angEP = ggHiOut.hiEvtPlaneHF2;
-                            ggHiOut.pfpIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_v2, angEP);
-                            ggHiOut.pfnIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_v2, angEP);
-                            ggHiOut.pfcIso3pTgt2p0subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfpIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, false, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfnIso3subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, false, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, false, ggHiOut.fit_v2, angEP);
 
-                            ggHiOut.pfpIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_v2, angEP);
-                            ggHiOut.pfnIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_v2, angEP);
-                            ggHiOut.pfcIso3pTgt2p0subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, ggHiOut.fit_v2, angEP);
-                            ggHiOut.pfpIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, 0, angEP);
-                            ggHiOut.pfnIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, 0, angEP);
-                            ggHiOut.pfcIso3pTgt2p0subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, 0, angEP);
+                            ggHiOut.pfpIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfnIso3subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, true, ggHiOut.fit_v2, angEP);
+                            ggHiOut.pfpIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, true, 0, angEP);
+                            ggHiOut.pfnIso3subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, true, 0, angEP);
+                            ggHiOut.pfcIso3pTgt2p0subUEflow0 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, true, 0, angEP);
 
-                            ggHiOut.pfpIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
-                            ggHiOut.pfnIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
-                            ggHiOut.pfpIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
-                            ggHiOut.pfnIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfpIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfnIso3subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow1 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, false, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfpIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, 0.0, 0.0, 0.0, true, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfnIso3subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, 0.0, 0.0, 0.0, true, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3pTgt2p0subUEphi0flow2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, 0.0, 2.0, 0.0, true, true, ggHiOut.fit_EPphi0_chi2, ggHiOut.phi0);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
