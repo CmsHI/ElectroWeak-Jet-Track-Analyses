@@ -362,24 +362,19 @@ public :
   float pfnIso3subUEcalc;
   float pfcIso3pTgt2p0subUEcalc;
 
-  float pfpIso3subUEflow1;
-  float pfnIso3subUEflow1;
-  float pfcIso3pTgt2p0subUEflow1;
+  // modulated via vn2 fit
+  float pfpIso3subUEvn2;
+  float pfnIso3subUEvn2;
+  float pfcIso3pTgt2p0subUEvn2;
+  // modulated via vn3 fit
+  float pfpIso3subUEvn3;
+  float pfnIso3subUEvn3;
+  float pfcIso3pTgt2p0subUEvn3;
 
-  // sub UE per particle
-  float pfpIso3subUEflow2;
-  float pfnIso3subUEflow2;
-  float pfcIso3pTgt2p0subUEflow2;
-  float pfpIso3subUEflow0;
-  float pfnIso3subUEflow0;
-  float pfcIso3pTgt2p0subUEflow0;
-
-  float pfpIso3subUEphi0flow1;
-  float pfnIso3subUEphi0flow1;
-  float pfcIso3pTgt2p0subUEphi0flow1;
-  float pfpIso3subUEphi0flow2;
-  float pfnIso3subUEphi0flow2;
-  float pfcIso3pTgt2p0subUEphi0flow2;
+  // fit after reading event plane from "phi0"
+  float pfpIso3subUEphi0vn2;
+  float pfnIso3subUEphi0vn2;
+  float pfcIso3pTgt2p0subUEphi0vn2;
 
   float trkIso3;
   float trkIso3subUE;
@@ -749,23 +744,16 @@ public :
   TBranch        *b_pfnIso3subUEcalc;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEcalc;   //!
 
-  TBranch        *b_pfpIso3subUEflow1;   //!
-  TBranch        *b_pfnIso3subUEflow1;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEflow1;   //!
+  TBranch        *b_pfpIso3subUEvn2;   //!
+  TBranch        *b_pfnIso3subUEvn2;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEvn2;   //!
+  TBranch        *b_pfpIso3subUEvn3;   //!
+  TBranch        *b_pfnIso3subUEvn3;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEvn3;   //!
 
-  TBranch        *b_pfpIso3subUEflow2;   //!
-  TBranch        *b_pfnIso3subUEflow2;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEflow2;   //!
-  TBranch        *b_pfpIso3subUEflow0;   //!
-  TBranch        *b_pfnIso3subUEflow0;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEflow0;   //!
-
-  TBranch        *b_pfpIso3subUEphi0flow1;   //!
-  TBranch        *b_pfnIso3subUEphi0flow1;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEphi0flow1;   //!
-  TBranch        *b_pfpIso3subUEphi0flow2;   //!
-  TBranch        *b_pfnIso3subUEphi0flow2;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEphi0flow2;   //!
+  TBranch        *b_pfpIso3subUEphi0vn2;   //!
+  TBranch        *b_pfnIso3subUEphi0vn2;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEphi0vn2;   //!
 
   TBranch        *b_trkIso3;   //!
   TBranch        *b_trkIso3subUE;   //!
@@ -1135,23 +1123,16 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfnIso3subUEcalc = 0;
     b_pfcIso3pTgt2p0subUEcalc = 0;
 
-    b_pfpIso3subUEflow1 = 0;
-    b_pfnIso3subUEflow1 = 0;
-    b_pfcIso3pTgt2p0subUEflow1 = 0;
+    b_pfpIso3subUEvn2 = 0;
+    b_pfnIso3subUEvn2 = 0;
+    b_pfcIso3pTgt2p0subUEvn2 = 0;
+    b_pfpIso3subUEvn3 = 0;
+    b_pfnIso3subUEvn3 = 0;
+    b_pfcIso3pTgt2p0subUEvn3 = 0;
 
-    b_pfpIso3subUEflow2 = 0;
-    b_pfnIso3subUEflow2 = 0;
-    b_pfcIso3pTgt2p0subUEflow2 = 0;
-    b_pfpIso3subUEflow0 = 0;
-    b_pfnIso3subUEflow0 = 0;
-    b_pfcIso3pTgt2p0subUEflow0 = 0;
-
-    b_pfpIso3subUEphi0flow1 = 0;
-    b_pfnIso3subUEphi0flow1 = 0;
-    b_pfcIso3pTgt2p0subUEphi0flow1 = 0;
-    b_pfpIso3subUEphi0flow2 = 0;
-    b_pfnIso3subUEphi0flow2 = 0;
-    b_pfcIso3pTgt2p0subUEphi0flow2 = 0;
+    b_pfpIso3subUEphi0vn2 = 0;
+    b_pfnIso3subUEphi0vn2 = 0;
+    b_pfcIso3pTgt2p0subUEphi0vn2 = 0;
 
     b_trkIso3 = 0;
     b_trkIso3subUE = 0;
@@ -1518,23 +1499,16 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3subUEcalc")) t->SetBranchAddress("pfnIso3subUEcalc", &pfnIso3subUEcalc, &b_pfnIso3subUEcalc);
     if (t->GetBranch("pfcIso3pTgt2p0subUEcalc")) t->SetBranchAddress("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc, &b_pfcIso3pTgt2p0subUEcalc);
 
-    if (t->GetBranch("pfpIso3subUEflow1")) t->SetBranchAddress("pfpIso3subUEflow1", &pfpIso3subUEflow1, &b_pfpIso3subUEflow1);
-    if (t->GetBranch("pfnIso3subUEflow1")) t->SetBranchAddress("pfnIso3subUEflow1", &pfnIso3subUEflow1, &b_pfnIso3subUEflow1);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEflow1")) t->SetBranchAddress("pfcIso3pTgt2p0subUEflow1", &pfcIso3pTgt2p0subUEflow1, &b_pfcIso3pTgt2p0subUEflow1);
+    if (t->GetBranch("pfpIso3subUEvn2")) t->SetBranchAddress("pfpIso3subUEvn2", &pfpIso3subUEvn2, &b_pfpIso3subUEvn2);
+    if (t->GetBranch("pfnIso3subUEvn2")) t->SetBranchAddress("pfnIso3subUEvn2", &pfnIso3subUEvn2, &b_pfnIso3subUEvn2);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEvn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2, &b_pfcIso3pTgt2p0subUEvn2);
+    if (t->GetBranch("pfpIso3subUEvn3")) t->SetBranchAddress("pfpIso3subUEvn3", &pfpIso3subUEvn3, &b_pfpIso3subUEvn3);
+    if (t->GetBranch("pfnIso3subUEvn3")) t->SetBranchAddress("pfnIso3subUEvn3", &pfnIso3subUEvn3, &b_pfnIso3subUEvn3);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEvn3")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3, &b_pfcIso3pTgt2p0subUEvn3);
 
-    if (t->GetBranch("pfpIso3subUEflow2")) t->SetBranchAddress("pfpIso3subUEflow2", &pfpIso3subUEflow2, &b_pfpIso3subUEflow2);
-    if (t->GetBranch("pfnIso3subUEflow2")) t->SetBranchAddress("pfnIso3subUEflow2", &pfnIso3subUEflow2, &b_pfnIso3subUEflow2);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEflow2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEflow2", &pfcIso3pTgt2p0subUEflow2, &b_pfcIso3pTgt2p0subUEflow2);
-    if (t->GetBranch("pfpIso3subUEflow0")) t->SetBranchAddress("pfpIso3subUEflow0", &pfpIso3subUEflow0, &b_pfpIso3subUEflow0);
-    if (t->GetBranch("pfnIso3subUEflow0")) t->SetBranchAddress("pfnIso3subUEflow0", &pfnIso3subUEflow0, &b_pfnIso3subUEflow0);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEflow0")) t->SetBranchAddress("pfcIso3pTgt2p0subUEflow0", &pfcIso3pTgt2p0subUEflow0, &b_pfcIso3pTgt2p0subUEflow0);
-
-    if (t->GetBranch("pfpIso3subUEphi0flow1")) t->SetBranchAddress("pfpIso3subUEphi0flow1", &pfpIso3subUEphi0flow1, &b_pfpIso3subUEphi0flow1);
-    if (t->GetBranch("pfnIso3subUEphi0flow1")) t->SetBranchAddress("pfnIso3subUEphi0flow1", &pfnIso3subUEphi0flow1, &b_pfnIso3subUEphi0flow1);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEphi0flow1")) t->SetBranchAddress("pfcIso3pTgt2p0subUEphi0flow1", &pfcIso3pTgt2p0subUEphi0flow1, &b_pfcIso3pTgt2p0subUEphi0flow1);
-    if (t->GetBranch("pfpIso3subUEphi0flow2")) t->SetBranchAddress("pfpIso3subUEphi0flow2", &pfpIso3subUEphi0flow2, &b_pfpIso3subUEphi0flow2);
-    if (t->GetBranch("pfnIso3subUEphi0flow2")) t->SetBranchAddress("pfnIso3subUEphi0flow2", &pfnIso3subUEphi0flow2, &b_pfnIso3subUEphi0flow2);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEphi0flow2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEphi0flow2", &pfcIso3pTgt2p0subUEphi0flow2, &b_pfcIso3pTgt2p0subUEphi0flow2);
+    if (t->GetBranch("pfpIso3subUEphi0vn2")) t->SetBranchAddress("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2, &b_pfpIso3subUEphi0vn2);
+    if (t->GetBranch("pfnIso3subUEphi0vn2")) t->SetBranchAddress("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2, &b_pfnIso3subUEphi0vn2);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEphi0vn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2, &b_pfcIso3pTgt2p0subUEphi0vn2);
 
     if (t->GetBranch("trkIso3")) t->SetBranchAddress("trkIso3", &trkIso3, &b_trkIso3);
     if (t->GetBranch("trkIso3subUE")) t->SetBranchAddress("trkIso3subUE", &trkIso3subUE, &b_trkIso3subUE);
@@ -1908,23 +1882,16 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso3subUEcalc", &pfnIso3subUEcalc);
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
 
-        t->Branch("pfpIso3subUEflow1", &pfpIso3subUEflow1);
-        t->Branch("pfnIso3subUEflow1", &pfnIso3subUEflow1);
-        t->Branch("pfcIso3pTgt2p0subUEflow1", &pfcIso3pTgt2p0subUEflow1);
+        t->Branch("pfpIso3subUEflowvn2", &pfpIso3subUEvn2);
+        t->Branch("pfnIso3subUEvn2", &pfnIso3subUEvn2);
+        t->Branch("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2);
+        t->Branch("pfpIso3subUEflowvn3", &pfpIso3subUEvn3);
+        t->Branch("pfnIso3subUEvn3", &pfnIso3subUEvn3);
+        t->Branch("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3);
 
-        t->Branch("pfpIso3subUEflow2", &pfpIso3subUEflow2);
-        t->Branch("pfnIso3subUEflow2", &pfnIso3subUEflow2);
-        t->Branch("pfcIso3pTgt2p0subUEflow2", &pfcIso3pTgt2p0subUEflow2);
-        t->Branch("pfpIso3subUEflow0", &pfpIso3subUEflow0);
-        t->Branch("pfnIso3subUEflow0", &pfnIso3subUEflow0);
-        t->Branch("pfcIso3pTgt2p0subUEflow0", &pfcIso3pTgt2p0subUEflow0);
-
-        t->Branch("pfpIso3subUEphi0flow1", &pfpIso3subUEphi0flow1);
-        t->Branch("pfnIso3subUEphi0flow1", &pfnIso3subUEphi0flow1);
-        t->Branch("pfcIso3pTgt2p0subUEphi0flow1", &pfcIso3pTgt2p0subUEphi0flow1);
-        t->Branch("pfpIso3subUEphi0flow2", &pfpIso3subUEphi0flow2);
-        t->Branch("pfnIso3subUEphi0flow2", &pfnIso3subUEphi0flow2);
-        t->Branch("pfcIso3pTgt2p0subUEphi0flow2", &pfcIso3pTgt2p0subUEphi0flow2);
+        t->Branch("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2);
+        t->Branch("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2);
+        t->Branch("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2);
 
         t->Branch("trkIso3", &trkIso3);
         t->Branch("trkIso3subUE", &trkIso3subUE);
@@ -2286,23 +2253,16 @@ void ggHiFlat::clearEntryPho()
         pfnIso3subUEcalc = -987987;
         pfcIso3pTgt2p0subUEcalc = -987987;
 
-        pfpIso3subUEflow1 = -987987;
-        pfnIso3subUEflow1 = -987987;
-        pfcIso3pTgt2p0subUEflow1 = -987987;
+        pfpIso3subUEvn2 = -987987;
+        pfnIso3subUEvn2 = -987987;
+        pfcIso3pTgt2p0subUEvn2 = -987987;
+        pfpIso3subUEvn3 = -987987;
+        pfnIso3subUEvn3 = -987987;
+        pfcIso3pTgt2p0subUEvn3 = -987987;
 
-        pfpIso3subUEflow2 = -987987;
-        pfnIso3subUEflow2 = -987987;
-        pfcIso3pTgt2p0subUEflow2 = -987987;
-        pfpIso3subUEflow0 = -987987;
-        pfnIso3subUEflow0 = -987987;
-        pfcIso3pTgt2p0subUEflow0 = -987987;
-
-        pfpIso3subUEphi0flow1 = -987987;
-        pfnIso3subUEphi0flow1 = -987987;
-        pfcIso3pTgt2p0subUEphi0flow1 = -987987;
-        pfpIso3subUEphi0flow2 = -987987;
-        pfnIso3subUEphi0flow2 = -987987;
-        pfcIso3pTgt2p0subUEphi0flow2 = -987987;
+        pfpIso3subUEphi0vn2 = -987987;
+        pfnIso3subUEphi0vn2 = -987987;
+        pfcIso3pTgt2p0subUEphi0vn2 = -987987;
 
         trkIso3 = -987987;
         trkIso3subUE = -987987;
@@ -3084,23 +3044,16 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfnIso3subUEcalc = gg.pfnIso3subUEcalc;
     pfcIso3pTgt2p0subUEcalc = gg.pfcIso3pTgt2p0subUEcalc;
 
-    pfpIso3subUEflow1 = gg.pfpIso3subUEflow1;
-    pfnIso3subUEflow1 = gg.pfnIso3subUEflow1;
-    pfcIso3pTgt2p0subUEflow1 = gg.pfcIso3pTgt2p0subUEflow1;
+    pfpIso3subUEvn2 = gg.pfpIso3subUEvn2;
+    pfnIso3subUEvn2 = gg.pfnIso3subUEvn2;
+    pfcIso3pTgt2p0subUEvn2 = gg.pfcIso3pTgt2p0subUEvn2;
+    pfpIso3subUEvn3 = gg.pfpIso3subUEvn3;
+    pfnIso3subUEvn3 = gg.pfnIso3subUEvn3;
+    pfcIso3pTgt2p0subUEvn3 = gg.pfcIso3pTgt2p0subUEvn3;
 
-    pfpIso3subUEflow2 = gg.pfpIso3subUEflow2;
-    pfnIso3subUEflow2 = gg.pfnIso3subUEflow2;
-    pfcIso3pTgt2p0subUEflow2 = gg.pfcIso3pTgt2p0subUEflow2;
-    pfpIso3subUEflow0 = gg.pfpIso3subUEflow0;
-    pfnIso3subUEflow0 = gg.pfnIso3subUEflow0;
-    pfcIso3pTgt2p0subUEflow0 = gg.pfcIso3pTgt2p0subUEflow0;
-
-    pfpIso3subUEphi0flow1 = gg.pfpIso3subUEphi0flow1;
-    pfnIso3subUEphi0flow1 = gg.pfnIso3subUEphi0flow1;
-    pfcIso3pTgt2p0subUEphi0flow1 = gg.pfcIso3pTgt2p0subUEphi0flow1;
-    pfpIso3subUEphi0flow2 = gg.pfpIso3subUEphi0flow2;
-    pfnIso3subUEphi0flow2 = gg.pfnIso3subUEphi0flow2;
-    pfcIso3pTgt2p0subUEphi0flow2 = gg.pfcIso3pTgt2p0subUEphi0flow2;
+    pfpIso3subUEphi0vn2 = gg.pfpIso3subUEphi0vn2;
+    pfnIso3subUEphi0vn2 = gg.pfnIso3subUEphi0vn2;
+    pfcIso3pTgt2p0subUEphi0vn2 = gg.pfcIso3pTgt2p0subUEphi0vn2;
 
     trkIso3 = gg.trkIso3;
     trkIso3subUE = gg.trkIso3subUE;

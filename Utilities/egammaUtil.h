@@ -42,14 +42,16 @@ double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1=0.4, double
 double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
 
 // WARNING : footprints cannot be removed in these functions as they are is kept in AOD only, but not in forest
-double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool removeFootPrint = true,
-                bool subUEperparticle = false, double ueAve = 0, double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
-double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool removeFootPrint = true,
-                     bool subUEperparticle = false, double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
-double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, const std::vector<basicPFCand> &linkPFs = {},
-                bool subUEperparticle = false, double ueAve = 0, double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
-double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, const std::vector<basicPFCand> &linkPFs = {},
-                     bool subUEperparticle = false, double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
+double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
+                bool removeFootPrint = true);
+double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
+                     bool removeFootPrint = true,
+                     double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
+double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
+                const std::vector<basicPFCand> &linkPFs = {});
+double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
+                     const std::vector<basicPFCand> &linkPFs = {},
+                     double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
 bool isLinkedPFcand(const std::vector<basicPFCand> &linkPFs, const int id, const float pt, const float eta, const float phi);
@@ -159,24 +161,22 @@ double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, doubl
     return coneEt - ueEt * (areaCone / ueArea);
 }
 
-double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint,
-        bool subUEperparticle, double vn_2, double angEPv2, double vn_3, double angEPv3)
+double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint)
 {
     std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, subUEperparticle, vn_2, angEPv2, vn_3, angEPv3);
+    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs);
 }
 
 double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint,
-        bool subUEperparticle, double vn_2, double angEPv2, double vn_3, double angEPv3)
+                     double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, subUEperparticle, vn_2, angEPv2, vn_3, angEPv3);
+    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vn_2, angEPv2, vn_3, angEPv3);
 }
 
-double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, const std::vector<basicPFCand> &linkPFs,
-        bool subUEperparticle, double ueAve, double vn_2, double angEPv2, double vn_3, double angEPv3)
+double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, const std::vector<basicPFCand> &linkPFs)
 {
     double totalEt = 0;
 
@@ -201,19 +201,15 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
         if (isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi)) continue;
 
         totalEt += pfpt;
-        if (subUEperparticle) {
-            totalEt -= ueAve * (1 + 2 * vn_2 * std::cos( 2 * getDPHI(pfphi, angEPv2) ) + 2 * vn_3 * std::cos( 2 * getDPHI(pfphi, angEPv3) ));
-        }
     }
 
     return totalEt;
 }
 
 double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, const std::vector<basicPFCand> &linkPFs,
-                     bool subUEperparticle, double vn_2, double angEPv2, double vn_3, double angEPv3)
+                     double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     double totalEt = 0;
-    int nParts = 0;
 
     for (int i = 0; i < pfs.nPFpart; ++i) {
 
@@ -238,7 +234,6 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi)) continue;
 
         totalEt += pfpt;
-        nParts++;
     }
 
     double areaStrip = 4*M_PI*(r1-jWidth);   // strip area over which UE is estimated
@@ -267,17 +262,13 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
     areaCone -= areaInnerCone;
 
     double ueEt = totalEt;
-    double ueAve = ueEt / nParts;
-    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs, subUEperparticle, ueAve, vn_2, angEPv2);
+    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs);
 
     double termSub = 0;
-    if (!subUEperparticle) {
+    double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 2 * getDPHI(egPhi, angEPv3) );
+    double ueArea = areaStrip - areaCone;
 
-        double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 2 * getDPHI(egPhi, angEPv3) );
-        double ueArea = areaStrip - areaCone;
-
-        termSub = ueEt * (areaCone / ueArea) * flowSF;
-    }
+    termSub = ueEt * (areaCone / ueArea) * flowSF;
 
     return coneEt - termSub;
 }
