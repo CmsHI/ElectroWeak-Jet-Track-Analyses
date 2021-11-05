@@ -36,10 +36,10 @@ struct basicPFCand {
     float phi;
 };
 
-double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
-double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
+double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
+double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, bool excludeCone = true, int colType = -1);
 double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
-double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
+double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, bool excludeCone = true, int colType = -1);
 
 // WARNING : footprints cannot be removed in these functions as they are is kept in AOD only, but not in forest
 double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
@@ -62,9 +62,9 @@ double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1, double r
     return getTrkIso(trks, (*ggHi.phoSCEta)[iEG], (*ggHi.phoSCPhi)[iEG], r1, r2, threshold, jWidth, applyTrkID, colType);
 }
 
-double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1, double r2, double threshold, double jWidth, bool applyTrkID, int colType)
+double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1, double r2, double threshold, double jWidth, bool applyTrkID, bool excludeCone, int colType)
 {
-    return getTrkIsoSubUE(trks, (*ggHi.phoSCEta)[iEG], (*ggHi.phoSCPhi)[iEG], r1, r2, threshold, jWidth, applyTrkID, colType);
+    return getTrkIsoSubUE(trks, (*ggHi.phoSCEta)[iEG], (*ggHi.phoSCPhi)[iEG], r1, r2, threshold, jWidth, applyTrkID, excludeCone, colType);
 }
 
 double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1, double r2, double threshold, double jWidth, bool applyTrkID, int colType)
@@ -98,7 +98,7 @@ double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1, double r2,
     return totalEt;
 }
 
-double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, double r2, double threshold, double jWidth, bool applyTrkID, int colType)
+double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, double r2, double threshold, double jWidth, bool applyTrkID, bool excludeCone, int colType)
 {
     double totalEt = 0;
 
@@ -154,9 +154,12 @@ double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, doubl
     double coneEt = getTrkIso(trks, egEta, egPhi, r1, r2, threshold, jWidth, applyTrkID, colType);
     double ueEt = totalEt;
     double ueArea = areaStrip;
-    // exclude the isolation cone from strip area
-    ueEt = totalEt - coneEt;
-    ueArea = areaStrip - areaCone;
+    if (excludeCone) { // exclude the isolation cone from strip area
+        // Note the result for excludeCone=True is a scaled version ofthe result for excludeCone=False
+        // In particular : f[excludeCone=True] = f[excludeCone=False] * 4 / (4 - R)
+        ueEt = totalEt - coneEt;
+        ueArea = areaStrip - areaCone;
+    }
 
     return coneEt - ueEt * (areaCone / ueArea);
 }

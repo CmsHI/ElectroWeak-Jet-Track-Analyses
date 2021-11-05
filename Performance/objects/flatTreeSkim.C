@@ -594,12 +594,13 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                         const double tR2 = 0.0;
                         const double tJW = 0.0;
+                        const bool tEC = true;
                         const bool tDoTrkID = true;
 
                         ggHiOut.trkIso3 = getTrkIso(trks, ggHi, i, 0.3, tR2, 2.0, tJW, !(tDoTrkID), collisionType);
-                        ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, !(tDoTrkID), collisionType);
+                        ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, !(tDoTrkID), tEC, collisionType);
                         ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, collisionType);
-                        ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, collisionType);
+                        ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, tEC, collisionType);
 
                         const bool removeFP = true;
                         if (calcPFIso) {
