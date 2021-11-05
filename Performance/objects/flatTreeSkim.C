@@ -123,7 +123,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             ArgumentParser::ParseOptionInputSingle("--mode", argOptions).c_str() : "";
     bool isPhoZee = (toLowerCase(skimMode) == "phozee");
 
+    int nEvts = (ArgumentParser::optionExists("--nEvts", argOptions)) ?
+                std::atoi(ArgumentParser::ParseOptionInputSingle("--nEvts", argOptions).c_str()) : -1;
+
     std::cout << "skimMode = " << skimMode << std::endl;
+    std::cout << "nEvts = " << nEvts << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -396,11 +400,15 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             ggFlat.setupTreeForReading(treeIn);
         }
 
+        Long64_t entriesProcessed = entries;
         Long64_t entriesTmp = treeIn->GetEntries();
         entries += entriesTmp;
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
+            if (nEvts >= 0 && nEvts < j_entry + entriesProcessed - 1) {
+                break;
+            }
             if (j_entry % 2000 == 0)  {
                 std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(5)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
