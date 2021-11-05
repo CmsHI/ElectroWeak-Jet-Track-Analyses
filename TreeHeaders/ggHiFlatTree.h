@@ -1882,10 +1882,10 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso3subUEcalc", &pfnIso3subUEcalc);
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
 
-        t->Branch("pfpIso3subUEflowvn2", &pfpIso3subUEvn2);
+        t->Branch("pfpIso3subUEvn2", &pfpIso3subUEvn2);
         t->Branch("pfnIso3subUEvn2", &pfnIso3subUEvn2);
         t->Branch("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2);
-        t->Branch("pfpIso3subUEflowvn3", &pfpIso3subUEvn3);
+        t->Branch("pfpIso3subUEvn3", &pfpIso3subUEvn3);
         t->Branch("pfnIso3subUEvn3", &pfnIso3subUEvn3);
         t->Branch("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3);
 
