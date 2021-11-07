@@ -371,25 +371,30 @@ public :
   float pfpIso3subUEcalc;
   float pfnIso3subUEcalc;
   float pfcIso3pTgt2p0subUEcalc;
+  float pfcIso3subUEcalc;
 
   // modulated via vn2 fit
   float pfpIso3subUEvn2;
   float pfnIso3subUEvn2;
   float pfcIso3pTgt2p0subUEvn2;
+  float pfcIso3subUEvn2;
   // modulated via vn3 fit
   float pfpIso3subUEvn3;
   float pfnIso3subUEvn3;
   float pfcIso3pTgt2p0subUEvn3;
+  float pfcIso3subUEvn3;
 
   // fit after reading event plane from "phi0"
   float pfpIso3subUEphi0vn2;
   float pfnIso3subUEphi0vn2;
   float pfcIso3pTgt2p0subUEphi0vn2;
+  float pfcIso3subUEphi0vn2;
 
   // modulated via vn3 fit to trk phi
   float pfpIso3subUEtrkvn3;
   float pfnIso3subUEtrkvn3;
   float pfcIso3pTgt2p0subUEtrkvn3;
+  float pfcIso3subUEtrkvn3;
 
   float trkIso3;
   float trkIso3subUE;
@@ -766,21 +771,26 @@ public :
   TBranch        *b_pfpIso3subUEcalc;   //!
   TBranch        *b_pfnIso3subUEcalc;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEcalc;   //!
+  TBranch        *b_pfcIso3subUEcalc;   //!
 
   TBranch        *b_pfpIso3subUEvn2;   //!
   TBranch        *b_pfnIso3subUEvn2;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEvn2;   //!
+  TBranch        *b_pfcIso3subUEvn2;   //!
   TBranch        *b_pfpIso3subUEvn3;   //!
   TBranch        *b_pfnIso3subUEvn3;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEvn3;   //!
+  TBranch        *b_pfcIso3subUEvn3;   //!
 
   TBranch        *b_pfpIso3subUEphi0vn2;   //!
   TBranch        *b_pfnIso3subUEphi0vn2;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEphi0vn2;   //!
+  TBranch        *b_pfcIso3subUEphi0vn2;   //!
 
   TBranch        *b_pfpIso3subUEtrkvn3;   //!
   TBranch        *b_pfnIso3subUEtrkvn3;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEtrkvn3;   //!
+  TBranch        *b_pfcIso3subUEtrkvn3;   //!
 
   TBranch        *b_trkIso3;   //!
   TBranch        *b_trkIso3subUE;   //!
@@ -1157,21 +1167,26 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfpIso3subUEcalc = 0;
     b_pfnIso3subUEcalc = 0;
     b_pfcIso3pTgt2p0subUEcalc = 0;
+    b_pfcIso3subUEcalc = 0;
 
     b_pfpIso3subUEvn2 = 0;
     b_pfnIso3subUEvn2 = 0;
     b_pfcIso3pTgt2p0subUEvn2 = 0;
+    b_pfcIso3subUEvn2 = 0;
     b_pfpIso3subUEvn3 = 0;
     b_pfnIso3subUEvn3 = 0;
     b_pfcIso3pTgt2p0subUEvn3 = 0;
+    b_pfcIso3subUEvn3 = 0;
 
     b_pfpIso3subUEphi0vn2 = 0;
     b_pfnIso3subUEphi0vn2 = 0;
     b_pfcIso3pTgt2p0subUEphi0vn2 = 0;
+    b_pfcIso3subUEphi0vn2 = 0;
 
     b_pfpIso3subUEtrkvn3 = 0;
     b_pfnIso3subUEtrkvn3 = 0;
     b_pfcIso3pTgt2p0subUEtrkvn3 = 0;
+    b_pfcIso3subUEtrkvn3 = 0;
 
     b_trkIso3 = 0;
     b_trkIso3subUE = 0;
@@ -1545,21 +1560,26 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfpIso3subUEcalc")) t->SetBranchAddress("pfpIso3subUEcalc", &pfpIso3subUEcalc, &b_pfpIso3subUEcalc);
     if (t->GetBranch("pfnIso3subUEcalc")) t->SetBranchAddress("pfnIso3subUEcalc", &pfnIso3subUEcalc, &b_pfnIso3subUEcalc);
     if (t->GetBranch("pfcIso3pTgt2p0subUEcalc")) t->SetBranchAddress("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc, &b_pfcIso3pTgt2p0subUEcalc);
+    if (t->GetBranch("pfcIso3subUEcalc")) t->SetBranchAddress("pfcIso3subUEcalc", &pfcIso3subUEcalc, &b_pfcIso3subUEcalc);
 
     if (t->GetBranch("pfpIso3subUEvn2")) t->SetBranchAddress("pfpIso3subUEvn2", &pfpIso3subUEvn2, &b_pfpIso3subUEvn2);
     if (t->GetBranch("pfnIso3subUEvn2")) t->SetBranchAddress("pfnIso3subUEvn2", &pfnIso3subUEvn2, &b_pfnIso3subUEvn2);
     if (t->GetBranch("pfcIso3pTgt2p0subUEvn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2, &b_pfcIso3pTgt2p0subUEvn2);
+    if (t->GetBranch("pfcIso3subUEvn2")) t->SetBranchAddress("pfcIso3subUEvn2", &pfcIso3subUEvn2, &b_pfcIso3subUEvn2);
     if (t->GetBranch("pfpIso3subUEvn3")) t->SetBranchAddress("pfpIso3subUEvn3", &pfpIso3subUEvn3, &b_pfpIso3subUEvn3);
     if (t->GetBranch("pfnIso3subUEvn3")) t->SetBranchAddress("pfnIso3subUEvn3", &pfnIso3subUEvn3, &b_pfnIso3subUEvn3);
     if (t->GetBranch("pfcIso3pTgt2p0subUEvn3")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3, &b_pfcIso3pTgt2p0subUEvn3);
+    if (t->GetBranch("pfcIso3subUEvn3")) t->SetBranchAddress("pfcIso3subUEvn3", &pfcIso3subUEvn3, &b_pfcIso3subUEvn3);
 
     if (t->GetBranch("pfpIso3subUEphi0vn2")) t->SetBranchAddress("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2, &b_pfpIso3subUEphi0vn2);
     if (t->GetBranch("pfnIso3subUEphi0vn2")) t->SetBranchAddress("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2, &b_pfnIso3subUEphi0vn2);
     if (t->GetBranch("pfcIso3pTgt2p0subUEphi0vn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2, &b_pfcIso3pTgt2p0subUEphi0vn2);
+    if (t->GetBranch("pfcIso3subUEphi0vn2")) t->SetBranchAddress("pfcIso3subUEphi0vn2", &pfcIso3subUEphi0vn2, &b_pfcIso3subUEphi0vn2);
 
     if (t->GetBranch("pfpIso3subUEtrkvn3")) t->SetBranchAddress("pfpIso3subUEtrkvn3", &pfpIso3subUEtrkvn3, &b_pfpIso3subUEtrkvn3);
     if (t->GetBranch("pfnIso3subUEtrkvn3")) t->SetBranchAddress("pfnIso3subUEtrkvn3", &pfnIso3subUEtrkvn3, &b_pfnIso3subUEtrkvn3);
     if (t->GetBranch("pfcIso3pTgt2p0subUEtrkvn3")) t->SetBranchAddress("pfcIso3pTgt2p0subUEtrkvn3", &pfcIso3pTgt2p0subUEtrkvn3, &b_pfcIso3pTgt2p0subUEtrkvn3);
+    if (t->GetBranch("pfcIso3subUEtrkvn3")) t->SetBranchAddress("pfcIso3subUEtrkvn3", &pfcIso3subUEtrkvn3, &b_pfcIso3subUEtrkvn3);
 
     if (t->GetBranch("trkIso3")) t->SetBranchAddress("trkIso3", &trkIso3, &b_trkIso3);
     if (t->GetBranch("trkIso3subUE")) t->SetBranchAddress("trkIso3subUE", &trkIso3subUE, &b_trkIso3subUE);
@@ -1940,21 +1960,26 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfpIso3subUEcalc", &pfpIso3subUEcalc);
         t->Branch("pfnIso3subUEcalc", &pfnIso3subUEcalc);
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
+        t->Branch("pfcIso3subUEcalc", &pfcIso3subUEcalc);
 
         t->Branch("pfpIso3subUEvn2", &pfpIso3subUEvn2);
         t->Branch("pfnIso3subUEvn2", &pfnIso3subUEvn2);
         t->Branch("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2);
+        t->Branch("pfcIso3subUEvn2", &pfcIso3subUEvn2);
         t->Branch("pfpIso3subUEvn3", &pfpIso3subUEvn3);
         t->Branch("pfnIso3subUEvn3", &pfnIso3subUEvn3);
         t->Branch("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3);
+        t->Branch("pfcIso3subUEvn3", &pfcIso3subUEvn3);
 
         t->Branch("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2);
         t->Branch("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2);
         t->Branch("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2);
+        t->Branch("pfcIso3subUEphi0vn2", &pfcIso3subUEphi0vn2);
 
         t->Branch("pfpIso3subUEtrkvn3", &pfpIso3subUEtrkvn3);
         t->Branch("pfnIso3subUEtrkvn3", &pfnIso3subUEtrkvn3);
         t->Branch("pfcIso3pTgt2p0subUEtrkvn3", &pfcIso3pTgt2p0subUEtrkvn3);
+        t->Branch("pfcIso3subUEtrkvn3", &pfcIso3subUEtrkvn3);
 
         t->Branch("trkIso3", &trkIso3);
         t->Branch("trkIso3subUE", &trkIso3subUE);
@@ -2323,21 +2348,26 @@ void ggHiFlat::clearEntryPho()
         pfpIso3subUEcalc = -987987;
         pfnIso3subUEcalc = -987987;
         pfcIso3pTgt2p0subUEcalc = -987987;
+        pfcIso3subUEcalc = -987987;
 
         pfpIso3subUEvn2 = -987987;
         pfnIso3subUEvn2 = -987987;
         pfcIso3pTgt2p0subUEvn2 = -987987;
+        pfcIso3subUEvn2 = -987987;
         pfpIso3subUEvn3 = -987987;
         pfnIso3subUEvn3 = -987987;
         pfcIso3pTgt2p0subUEvn3 = -987987;
+        pfcIso3subUEvn3 = -987987;
 
         pfpIso3subUEphi0vn2 = -987987;
         pfnIso3subUEphi0vn2 = -987987;
         pfcIso3pTgt2p0subUEphi0vn2 = -987987;
+        pfcIso3subUEphi0vn2 = -987987;
 
         pfpIso3subUEtrkvn3 = -987987;
         pfnIso3subUEtrkvn3 = -987987;
         pfcIso3pTgt2p0subUEtrkvn3 = -987987;
+        pfcIso3subUEtrkvn3 = -987987;
 
         trkIso3 = -987987;
         trkIso3subUE = -987987;
@@ -3129,21 +3159,26 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfpIso3subUEcalc = gg.pfpIso3subUEcalc;
     pfnIso3subUEcalc = gg.pfnIso3subUEcalc;
     pfcIso3pTgt2p0subUEcalc = gg.pfcIso3pTgt2p0subUEcalc;
+    pfcIso3subUEcalc = gg.pfcIso3subUEcalc;
 
     pfpIso3subUEvn2 = gg.pfpIso3subUEvn2;
     pfnIso3subUEvn2 = gg.pfnIso3subUEvn2;
     pfcIso3pTgt2p0subUEvn2 = gg.pfcIso3pTgt2p0subUEvn2;
+    pfcIso3subUEvn2 = gg.pfcIso3subUEvn2;
     pfpIso3subUEvn3 = gg.pfpIso3subUEvn3;
     pfnIso3subUEvn3 = gg.pfnIso3subUEvn3;
     pfcIso3pTgt2p0subUEvn3 = gg.pfcIso3pTgt2p0subUEvn3;
+    pfcIso3subUEvn3 = gg.pfcIso3subUEvn3;
 
     pfpIso3subUEphi0vn2 = gg.pfpIso3subUEphi0vn2;
     pfnIso3subUEphi0vn2 = gg.pfnIso3subUEphi0vn2;
     pfcIso3pTgt2p0subUEphi0vn2 = gg.pfcIso3pTgt2p0subUEphi0vn2;
+    pfcIso3subUEphi0vn2 = gg.pfcIso3subUEphi0vn2;
 
     pfpIso3subUEtrkvn3 = gg.pfpIso3subUEtrkvn3;
     pfnIso3subUEtrkvn3 = gg.pfnIso3subUEtrkvn3;
     pfcIso3pTgt2p0subUEtrkvn3 = gg.pfcIso3pTgt2p0subUEtrkvn3;
+    pfcIso3subUEtrkvn3 = gg.pfcIso3subUEtrkvn3;
 
     trkIso3 = gg.trkIso3;
     trkIso3subUE = gg.trkIso3subUE;
