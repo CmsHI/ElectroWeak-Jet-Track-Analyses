@@ -48,13 +48,13 @@ double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double
                      bool removeFootPrint = true,
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                const std::vector<basicPFCand> &linkPFs = {});
+                std::vector<basicPFCand> linkPFs = {});
 double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                     const std::vector<basicPFCand> &linkPFs = {},
+                     std::vector<basicPFCand> linkPFs = {},
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
-bool isLinkedPFcand(const std::vector<basicPFCand> &linkPFs, const int id, const float pt, const float eta, const float phi);
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi);
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2);
 
 double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1, double r2, double threshold, double jWidth, bool applyTrkID, int colType)
@@ -179,7 +179,7 @@ double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double
     return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vn_2, angEPv2, vn_3, angEPv3);
 }
 
-double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, const std::vector<basicPFCand> &linkPFs)
+double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs)
 {
     double totalEt = 0;
 
@@ -201,15 +201,30 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if ((*pfs.pfId)[i] != pfId) continue;
 
-        if (isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi)) continue;
+        int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        if (iLinkPF >= 0) {
+            linkPFs.erase(linkPFs.begin() + iLinkPF);
+            continue;
+        }
 
         totalEt += pfpt;
+    }
+    bool debug = false;
+    if (debug) {
+        int nLinkPFsRemain = linkPFs.size();
+        if (nLinkPFsRemain > 0) {
+            std::cout << "There may be not matched PF cands for egEta, egPhi = " << egEta << " , " << egPhi << std::endl;
+            for (int iLPF = 0; iLPF < nLinkPFsRemain; ++iLPF) {
+                if (linkPFs[iLPF].id != pfId) continue;
+                std::cout << "PF id, pt, eta, phi = " << linkPFs[iLPF].id << " , "<< linkPFs[iLPF].pt << " , "<< linkPFs[iLPF].eta << " , "<< linkPFs[iLPF].phi << std::endl;
+            }
+        }
     }
 
     return totalEt;
 }
 
-double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, const std::vector<basicPFCand> &linkPFs,
+double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs,
                      double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     double totalEt = 0;
@@ -234,9 +249,24 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (dR2 < r2 * r2) continue;
         if (pfpt < threshold) continue;
 
-        if (isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi)) continue;
+        int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        if (iLinkPF >= 0) {
+            linkPFs.erase(linkPFs.begin() + iLinkPF);
+            continue;
+        }
 
         totalEt += pfpt;
+    }
+    bool debug = false;
+    if (debug) {
+        int nLinkPFsRemain = linkPFs.size();
+        if (nLinkPFsRemain > 0) {
+            std::cout << "There may be not matched PF cands for egEta, egPhi = " << egEta << " , " << egPhi << std::endl;
+            for (int iLPF = 0; iLPF < nLinkPFsRemain; ++iLPF) {
+                if (linkPFs[iLPF].id != pfId) continue;
+                std::cout << "PF id, pt, eta, phi = " << linkPFs[iLPF].id << " , "<< linkPFs[iLPF].pt << " , "<< linkPFs[iLPF].eta << " , "<< linkPFs[iLPF].phi << std::endl;
+            }
+        }
     }
 
     double areaStrip = 4*M_PI*(r1-jWidth);   // strip area over which UE is estimated
@@ -301,20 +331,20 @@ std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG)
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2)
 {
     if (id1 != id2) return false;
-    if ( TMath::Abs(pt1-pt2) / pt1 > 0.0001 ) return false;
-    if ( TMath::Abs((eta1-eta2)/eta1) > 0.0001 ) return false;
-    if ( TMath::Abs(getDPHI(phi1, phi2)/phi1) > 0.0001 ) return false;
+    if ( TMath::Abs(pt1-pt2) / pt1 > 0.00001 ) return false;
+    if ( TMath::Abs((eta1-eta2)/eta1) > 0.000001 ) return false;
+    if ( TMath::Abs(getDPHI(phi1, phi2)/phi1) > 0.00001 ) return false;
 
     return true;
 }
 
-bool isLinkedPFcand(const std::vector<basicPFCand> &linkPFs, const int id, const float pt, const float eta, const float phi)
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi)
 {
     for (std::vector<basicPFCand>::const_iterator itPF = linkPFs.begin(); itPF != linkPFs.end(); ++itPF) {
-        if ( isSamePFcand((*itPF).id, (*itPF).pt, (*itPF).eta, (*itPF).phi, id, pt, eta, phi) ) return true;
+        if ( isSamePFcand((*itPF).id, (*itPF).pt, (*itPF).eta, (*itPF).phi, id, pt, eta, phi) ) return (int)(itPF-linkPFs.begin());
     }
 
-    return false;
+    return -1;
 }
 
 #endif
