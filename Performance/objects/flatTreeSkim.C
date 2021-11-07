@@ -507,6 +507,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
 
             if (calcIsoFlow) {
+                // fit PF candidate phi
                 ggHiOut.fit_v2 = 0;
                 ggHiOut.fit_v3 = 0;
                 ggHiOut.fit_EPphi0_v2 = 0;
@@ -537,7 +538,6 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     ggHiOut.partphi_binContents_out.push_back(binContent);
                     if (binContent < ggHiOut.partphi_minContent) {
                         ggHiOut.partphi_minContent = binContent;
-                        //break;
                     }
                 }
 
@@ -572,6 +572,51 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     ggHiOut.fit_EPphi0_chi2prob = f1_phi_vn2->GetProb();
 
                     ggHiOut.fit_EPphi0_v2 = f1_phi_vn2->GetParameter(1);
+                }
+
+                // fit track phi
+                ggHiOut.fit_trkphi_v2 = 0;
+                ggHiOut.fit_trkphi_v3 = 0;
+                h1D_phi->Reset();
+                for (int i=0; i<trks.nTrk; ++i) {
+
+                    if (! (trks.trkPt[i] > calcIso_pfPtMin) ) continue;
+                    if (! (trks.trkPt[i] < calcIso_pfPtMax) ) continue;
+                    if (! (TMath::Abs(trks.trkEta[i]) < calcIso_pfEtaMax) )  continue;
+                    if (!passedTrkSelection(trks, i, collisionType))  continue;
+
+                    h1D_phi->Fill(trks.trkPhi[i]);
+                }
+
+                //std::cout << "h1D_phi entries = " << h1D_phi->GetEntries() << std::endl;
+                nBinsX = h1D_phi->GetNbinsX();
+                ggHiOut.trkphi_nBins = nBinsX;
+                ggHiOut.trkphi_minContent = 99999999;
+                for (int iBin = 1; iBin <= nBinsX; ++iBin) {
+
+                    double binContent = h1D_phi->GetBinContent(iBin);
+                    ggHiOut.trkphi_binContents_out.push_back(binContent);
+                    if (binContent < ggHiOut.trkphi_minContent) {
+                        ggHiOut.trkphi_minContent = binContent;
+                    }
+                }
+
+                if (acceptFit) {
+                    //// vn_3
+                    // set initial parameters assuming there is no flow, i.e. v2 = v3 = 0
+                    double initN0 = h1D_phi->Integral() / nBinsX;
+                    f1_phi_vn3->SetParameter(0, initN0); // N0
+                    f1_phi_vn3->SetParameter(1, 0); // v2
+                    f1_phi_vn3->FixParameter(2, ggHiOut.hiEvtPlaneHF2); // set to 2nd event plane angle
+                    f1_phi_vn3->SetParameter(3, 0); // v3
+                    f1_phi_vn3->FixParameter(4, ggHiOut.hiEvtPlaneHF3); // set to 3rd event plane angle
+                    h1D_phi->Fit(f1_phi_vn3, "Q M R N");
+
+                    ggHiOut.fit_trkphi_chi2 = f1_phi_vn3->GetChisquare();
+                    ggHiOut.fit_trkphi_chi2prob = f1_phi_vn3->GetProb();
+
+                    ggHiOut.fit_trkphi_v2 = f1_phi_vn3->GetParameter(1);
+                    ggHiOut.fit_trkphi_v3 = f1_phi_vn3->GetParameter(3);
                 }
             }
 
@@ -636,6 +681,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
                             ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
                             ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+
+                            vn_2 = ggHiOut.fit_trkphi_v2;
+                            vn_3 = ggHiOut.fit_trkphi_v3;
+                            ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);

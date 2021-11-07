@@ -13,6 +13,7 @@ public :
   ggHiFlat() {
 
       partphi_binContents = 0;
+      trkphi_binContents = 0;
 
       doEle = false;
       doPho = false;
@@ -69,6 +70,15 @@ public :
   float fit_EPphi0_v2;
   float fit_EPphi0_chi2;
   float fit_EPphi0_chi2prob;
+
+  int trkphi_nBins;
+  float trkphi_minContent;
+  std::vector<float> *trkphi_binContents;
+  std::vector<float> trkphi_binContents_out;
+  float fit_trkphi_v2;
+  float fit_trkphi_v3;
+  float fit_trkphi_chi2;
+  float fit_trkphi_chi2prob;
 
   float rho;
   Float_t         angEvtPlane;
@@ -376,6 +386,11 @@ public :
   float pfnIso3subUEphi0vn2;
   float pfcIso3pTgt2p0subUEphi0vn2;
 
+  // modulated via vn3 fit to trk phi
+  float pfpIso3subUEtrkvn3;
+  float pfnIso3subUEtrkvn3;
+  float pfcIso3pTgt2p0subUEtrkvn3;
+
   float trkIso3;
   float trkIso3subUE;
   float trkIso3ID;
@@ -451,6 +466,14 @@ public :
   TBranch        *b_fit_EPphi0_v2;   //!
   TBranch        *b_fit_EPphi0_chi2;   //!
   TBranch        *b_fit_EPphi0_chi2prob;   //!
+
+  TBranch        *b_trkphi_nBins;   //!
+  TBranch        *b_trkphi_minContent;   //!
+  TBranch        *b_trkphi_binContents;   //!
+  TBranch        *b_fit_trkphi_v2;   //!
+  TBranch        *b_fit_trkphi_v3;   //!
+  TBranch        *b_fit_trkphi_chi2;   //!
+  TBranch        *b_fit_trkphi_chi2prob;   //!
 
   TBranch        *b_rho;   //!
   TBranch        *b_angEvtPlane;   //!
@@ -755,6 +778,10 @@ public :
   TBranch        *b_pfnIso3subUEphi0vn2;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEphi0vn2;   //!
 
+  TBranch        *b_pfpIso3subUEtrkvn3;   //!
+  TBranch        *b_pfnIso3subUEtrkvn3;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEtrkvn3;   //!
+
   TBranch        *b_trkIso3;   //!
   TBranch        *b_trkIso3subUE;   //!
   TBranch        *b_trkIso3ID;   //!
@@ -829,6 +856,14 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_fit_EPphi0_v2 = 0;
     b_fit_EPphi0_chi2 = 0;
     b_fit_EPphi0_chi2prob = 0;
+
+    b_trkphi_nBins = 0;
+    b_trkphi_minContent = 0;
+    b_trkphi_binContents = 0;
+    b_fit_trkphi_v2 = 0;
+    b_fit_trkphi_v3 = 0;
+    b_fit_trkphi_chi2 = 0;
+    b_fit_trkphi_chi2prob = 0;
 
     b_rho = 0;
     b_angEvtPlane = 0;
@@ -1134,6 +1169,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfnIso3subUEphi0vn2 = 0;
     b_pfcIso3pTgt2p0subUEphi0vn2 = 0;
 
+    b_pfpIso3subUEtrkvn3 = 0;
+    b_pfnIso3subUEtrkvn3 = 0;
+    b_pfcIso3pTgt2p0subUEtrkvn3 = 0;
+
     b_trkIso3 = 0;
     b_trkIso3subUE = 0;
     b_trkIso3ID = 0;
@@ -1206,6 +1245,14 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("fit_EPphi0_v2")) t->SetBranchAddress("fit_EPphi0_v2", &fit_EPphi0_v2, &b_fit_EPphi0_v2);
     if (t->GetBranch("fit_EPphi0_chi2")) t->SetBranchAddress("fit_EPphi0_chi2", &fit_EPphi0_chi2, &b_fit_EPphi0_chi2);
     if (t->GetBranch("fit_EPphi0_chi2prob")) t->SetBranchAddress("fit_EPphi0_chi2prob", &fit_EPphi0_chi2prob, &b_fit_EPphi0_chi2prob);
+
+    if (t->GetBranch("trkphi_nBins")) t->SetBranchAddress("trkphi_nBins", &trkphi_nBins, &b_trkphi_nBins);
+    if (t->GetBranch("trkphi_minContent")) t->SetBranchAddress("trkphi_minContent", &trkphi_minContent, &b_trkphi_minContent);
+    if (t->GetBranch("trkphi_binContents")) t->SetBranchAddress("trkphi_binContents", &trkphi_binContents, &b_trkphi_binContents);
+    if (t->GetBranch("fit_trkphi_v2")) t->SetBranchAddress("fit_trkphi_v2", &fit_trkphi_v2, &b_fit_trkphi_v2);
+    if (t->GetBranch("fit_trkphi_v3")) t->SetBranchAddress("fit_trkphi_v3", &fit_trkphi_v3, &b_fit_trkphi_v3);
+    if (t->GetBranch("fit_trkphi_chi2")) t->SetBranchAddress("fit_trkphi_chi2", &fit_trkphi_chi2, &b_fit_trkphi_chi2);
+    if (t->GetBranch("fit_trkphi_chi2prob")) t->SetBranchAddress("fit_trkphi_chi2prob", &fit_trkphi_chi2prob, &b_fit_trkphi_chi2prob);
 
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("angEvtPlane")) t->SetBranchAddress("angEvtPlane", &angEvtPlane, &b_angEvtPlane);
@@ -1510,6 +1557,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3subUEphi0vn2")) t->SetBranchAddress("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2, &b_pfnIso3subUEphi0vn2);
     if (t->GetBranch("pfcIso3pTgt2p0subUEphi0vn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2, &b_pfcIso3pTgt2p0subUEphi0vn2);
 
+    if (t->GetBranch("pfpIso3subUEtrkvn3")) t->SetBranchAddress("pfpIso3subUEtrkvn3", &pfpIso3subUEtrkvn3, &b_pfpIso3subUEtrkvn3);
+    if (t->GetBranch("pfnIso3subUEtrkvn3")) t->SetBranchAddress("pfnIso3subUEtrkvn3", &pfnIso3subUEtrkvn3, &b_pfnIso3subUEtrkvn3);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEtrkvn3")) t->SetBranchAddress("pfcIso3pTgt2p0subUEtrkvn3", &pfcIso3pTgt2p0subUEtrkvn3, &b_pfcIso3pTgt2p0subUEtrkvn3);
+
     if (t->GetBranch("trkIso3")) t->SetBranchAddress("trkIso3", &trkIso3, &b_trkIso3);
     if (t->GetBranch("trkIso3subUE")) t->SetBranchAddress("trkIso3subUE", &trkIso3subUE, &b_trkIso3subUE);
     if (t->GetBranch("trkIso3ID")) t->SetBranchAddress("trkIso3ID", &trkIso3ID, &b_trkIso3ID);
@@ -1584,6 +1635,14 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("fit_EPphi0_v2", &fit_EPphi0_v2);
     t->Branch("fit_EPphi0_chi2", &fit_EPphi0_chi2);
     t->Branch("fit_EPphi0_chi2prob", &fit_EPphi0_chi2prob);
+
+    t->Branch("trkphi_nBins", &trkphi_nBins);
+    t->Branch("trkphi_minContent", &trkphi_minContent);
+    t->Branch("trkphi_binContents", &trkphi_binContents_out);
+    t->Branch("fit_trkphi_v2", &fit_trkphi_v2);
+    t->Branch("fit_trkphi_v3", &fit_trkphi_v3);
+    t->Branch("fit_trkphi_chi2", &fit_trkphi_chi2);
+    t->Branch("fit_trkphi_chi2prob", &fit_trkphi_chi2prob);
 
     t->Branch("rho", &rho);
     t->Branch("angEvtPlane", &angEvtPlane);
@@ -1893,6 +1952,10 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2);
         t->Branch("pfcIso3pTgt2p0subUEphi0vn2", &pfcIso3pTgt2p0subUEphi0vn2);
 
+        t->Branch("pfpIso3subUEtrkvn3", &pfpIso3subUEtrkvn3);
+        t->Branch("pfnIso3subUEtrkvn3", &pfnIso3subUEtrkvn3);
+        t->Branch("pfcIso3pTgt2p0subUEtrkvn3", &pfcIso3pTgt2p0subUEtrkvn3);
+
         t->Branch("trkIso3", &trkIso3);
         t->Branch("trkIso3subUE", &trkIso3subUE);
         t->Branch("trkIso3ID", &trkIso3ID);
@@ -1969,6 +2032,14 @@ void ggHiFlat::clearEntry()
     fit_EPphi0_v2 = 0;
     fit_EPphi0_chi2 = -987987;
     fit_EPphi0_chi2prob = -987987;
+
+    trkphi_nBins = 0;
+    trkphi_minContent = 0;
+    trkphi_binContents_out.clear();
+    fit_trkphi_v2 = 0;
+    fit_trkphi_v3 = 0;
+    fit_trkphi_chi2 = -987987;
+    fit_trkphi_chi2prob = -987987;
 
     rho = -1;
     angEvtPlane = -999888;
@@ -2263,6 +2334,10 @@ void ggHiFlat::clearEntryPho()
         pfpIso3subUEphi0vn2 = -987987;
         pfnIso3subUEphi0vn2 = -987987;
         pfcIso3pTgt2p0subUEphi0vn2 = -987987;
+
+        pfpIso3subUEtrkvn3 = -987987;
+        pfnIso3subUEtrkvn3 = -987987;
+        pfcIso3pTgt2p0subUEtrkvn3 = -987987;
 
         trkIso3 = -987987;
         trkIso3subUE = -987987;
@@ -2752,6 +2827,17 @@ void ggHiFlat::clone(ggHiFlat &gg)
     fit_EPphi0_chi2 = gg.fit_EPphi0_chi2;
     fit_EPphi0_chi2prob = gg.fit_EPphi0_chi2prob;
 
+    trkphi_nBins = gg.trkphi_nBins;
+    trkphi_minContent = gg.trkphi_minContent;
+    trkphi_binContents_out.clear();
+    for (int i = 0; i < trkphi_nBins; ++i) {
+        trkphi_binContents_out.push_back( (*gg.trkphi_binContents)[i] );
+    }
+    fit_trkphi_v2 = gg.fit_trkphi_v2;
+    fit_trkphi_v3 = gg.fit_trkphi_v3;
+    fit_trkphi_chi2 = gg.fit_trkphi_chi2;
+    fit_trkphi_chi2prob = gg.fit_trkphi_chi2prob;
+
     rho = gg.rho;
     angEvtPlane = gg.angEvtPlane;
     indexEvtPlane = gg.indexEvtPlane;
@@ -3054,6 +3140,10 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfpIso3subUEphi0vn2 = gg.pfpIso3subUEphi0vn2;
     pfnIso3subUEphi0vn2 = gg.pfnIso3subUEphi0vn2;
     pfcIso3pTgt2p0subUEphi0vn2 = gg.pfcIso3pTgt2p0subUEphi0vn2;
+
+    pfpIso3subUEtrkvn3 = gg.pfpIso3subUEtrkvn3;
+    pfnIso3subUEtrkvn3 = gg.pfnIso3subUEtrkvn3;
+    pfcIso3pTgt2p0subUEtrkvn3 = gg.pfcIso3pTgt2p0subUEtrkvn3;
 
     trkIso3 = gg.trkIso3;
     trkIso3subUE = gg.trkIso3subUE;
