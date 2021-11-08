@@ -221,6 +221,7 @@ enum MODES_SPECTRA {
     kMatchProbeEle,
     kDiElectron,
     kDiPhoton,
+    kDiEleMatched2Pho,
     kN_MODES_SPECTRA
 };
 
@@ -422,8 +423,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                 std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
             }
         }
+        bool readEle = false;
         if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchEle || runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle
-                                                                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton) {
+                                                                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton
+                                                                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
+            readEle = true;
             treeggHiNtuplizer->SetBranchStatus("nEle",1);     // enable electron branches
             treeggHiNtuplizer->SetBranchStatus("ele*",1);     // enable electron branches
         }
@@ -565,6 +569,17 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                     ptFinal.push_back(pt);
                 }
 
+                std::vector<float> ptFinalEle;
+                if (readEle) {
+                    for (int i = 0; i < ggHi.nEle; ++i) {
+
+                        float ptTmp = (*ggHi.elePt)[i];
+                        ptTmp *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+
+                        ptFinalEle.push_back(ptTmp);
+                    }
+                }
+
                 if (runMode[MODES::kSpectra]) {
                     for (int iAna = 0;  iAna < nSpectraAna; ++iAna) {
 
@@ -619,6 +634,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             }
                         }
 
+                        std::vector<int> candsEle4Dipho;
                         if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
                             candidates.clear();
 
@@ -645,7 +661,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
-                                if (!((*ggHi.elePt)[i] > elePt_min)) continue;
+                                if (!(ptFinalEle[i] > elePt_min)) continue;
 
                                 if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
@@ -653,14 +669,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                     if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
-                                    if (!((*ggHi.elePt)[j] > elePt_min)) continue;
+                                    if (!(ptFinalEle[j] > elePt_min)) continue;
 
                                     if (!ggHi.passedEleSelection(j, collisionType, hiBin))  continue;
 
                                     // dielectron
                                     TLorentzVector v1, v2, vSum;
-                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
-                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
+                                    v1.SetPtEtaPhiM( ptFinalEle[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                    v2.SetPtEtaPhiM( ptFinalEle[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                     vSum = v1+v2;
 
                                     if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
@@ -731,7 +747,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                 if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
-                                if (!((*ggHi.elePt)[i] > elePt_min)) continue;
+                                if (!(ptFinalEle[i] > elePt_min)) continue;
 
                                 if (!ggHi.passedEleSelection(i, collisionType, hiBin, 3))  continue;
 
@@ -739,14 +755,14 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                     if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
-                                    if (!((*ggHi.elePt)[j] > elePt_min)) continue;
+                                    if (!(ptFinalEle[j] > elePt_min)) continue;
 
                                     if (!ggHi.passedEleSelection(j, collisionType, hiBin, 1))  continue;
 
                                     // dielectron
                                     TLorentzVector v1, v2, vSum;
-                                    v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
-                                    v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
+                                    v1.SetPtEtaPhiM( ptFinalEle[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                    v2.SetPtEtaPhiM( ptFinalEle[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                     vSum = v1+v2;
 
                                     if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
@@ -798,7 +814,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 candidates.push_back(iMax);
                             }
                         }
-                        else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton) {
+                        else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton ||
+                                 runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
 
                              int candEle1 = -1;
                              int candEle2 = -1;
@@ -814,7 +831,9 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                  if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
 
-                                 if (!((*ggHi.elePt)[i] > elePt_min)) continue;
+                                 float ele1Pt = ptFinalEle[i];
+
+                                 if (!(ele1Pt > elePt_min)) continue;
 
                                  if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
 
@@ -822,14 +841,16 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                                      if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
 
-                                     if (!((*ggHi.elePt)[j] > elePt_min)) continue;
+                                     float ele2Pt = ptFinalEle[j];
+
+                                     if (!(ele2Pt > elePt_min)) continue;
 
                                      if (!ggHi.passedEleSelection(j, collisionType, hiBin))  continue;
 
                                      // dielectron
                                      TLorentzVector v1, v2, vSum;
-                                     v1.SetPtEtaPhiM( (*ggHi.elePt)[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
-                                     v2.SetPtEtaPhiM( (*ggHi.elePt)[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
+                                     v1.SetPtEtaPhiM( ele1Pt, (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                     v2.SetPtEtaPhiM( ele2Pt, (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
                                      vSum = v1+v2;
 
                                      if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
@@ -844,12 +865,11 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
                              if(candEle1 == -1 || candEle2 == -1) continue;
 
-                             std::vector<int> candidatesEle;
-                             candidatesEle.push_back(candEle1);
-                             candidatesEle.push_back(candEle2);
+                             candsEle4Dipho.push_back(candEle1);
+                             candsEle4Dipho.push_back(candEle2);
 
                              candidates.clear();
-                             int nCandidatesEle = candidatesEle.size();
+                             int nCandidatesEle = candsEle4Dipho.size();
                              for (int iEle = 0; iEle < nCandidatesEle; ++iEle) {
 
                                  iMax = -1;
@@ -910,7 +930,9 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             sAna[SPECTRAANA::kR9][iAna].FillH(r9, w, vars);
                         }
 
-                        if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton && nCandidates == 2) {
+                        if (nCandidates == 2 && (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton ||
+                                                 runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho)
+                                ) {
 
                             bool rangesPassed = true;
                             for (int i = 0; i < nCandidates; ++i) {
@@ -937,8 +959,16 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                                 int i2 = candidates[1];
 
                                 TLorentzVector v1, v2, vSum;
-                                v1.SetPtEtaPhiM( ptFinal[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass_ele);
-                                v2.SetPtEtaPhiM( ptFinal[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass_ele);
+                                if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton) {
+                                    v1.SetPtEtaPhiM( ptFinal[i1], (*ggHi.phoEta)[i1], (*ggHi.phoPhi)[i1], mass_ele);
+                                    v2.SetPtEtaPhiM( ptFinal[i2], (*ggHi.phoEta)[i2], (*ggHi.phoPhi)[i2], mass_ele);
+                                }
+                                else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
+                                    int iEle1 = candsEle4Dipho[0];
+                                    int iEle2 = candsEle4Dipho[1];
+                                    v1.SetPtEtaPhiM( ptFinalEle[iEle1], (*ggHi.eleEta)[iEle1], (*ggHi.elePhi)[iEle1], mass_ele);
+                                    v2.SetPtEtaPhiM( ptFinalEle[iEle2], (*ggHi.eleEta)[iEle2], (*ggHi.elePhi)[iEle2], mass_ele);
+                                }
                                 vSum = v1+v2;
 
                                 std::vector<double> varsTmp = {-999, -1, -1, -999, -1, -1};
@@ -1689,13 +1719,14 @@ int  preLoop(TFile* input, bool makeNew)
         }
         else if (iDep == SPECTRAANA::kMASS
                 && (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiElectron
-                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton)) {
+                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton
+                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho)) {
             strDep = "depMass";
             xTitle = "M";
-            if (recoObj == RECOOBJS::kPhoton) {
+            if (recoObj == RECOOBJS::kPhoton && runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton) {
                 xTitle = "M^{#gamma#gamma} (GeV/c^{2})";
             }
-            else if (recoObj == RECOOBJS::kElectron) {
+            else if (recoObj == RECOOBJS::kElectron || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
                 xTitle = "M^{e^{+}e^{-}} (GeV/c^{2})";
             }
             makeObject = !sAna[iDep][iAna].isValid();
