@@ -368,6 +368,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treePFCand->SetBranchStatus("*", 0);     // disable all branches
 
                     treePFCand->SetBranchStatus("nPFpart",1);
+                    treePFCand->SetBranchStatus("pfKey",1);
                     treePFCand->SetBranchStatus("pfId",1);
                     treePFCand->SetBranchStatus("pfPt",1);
                     treePFCand->SetBranchStatus("pfEta",1);

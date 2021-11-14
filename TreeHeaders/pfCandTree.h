@@ -10,6 +10,7 @@ class pfCand {
 public :
     pfCand(){
 
+        pfKey = 0;
         pfId = 0;
         pfPt = 0;
         pfEnergy = 0;
@@ -32,6 +33,7 @@ public :
     // Declaration of leaf types
     // Declaration of leaf types
     int           nPFpart;
+    std::vector<unsigned long> *pfKey;
     std::vector<int>     *pfId;
     std::vector<float>   *pfPt;
     std::vector<float>   *pfEnergy;
@@ -50,6 +52,7 @@ public :
 
     // List of branches
     TBranch        *b_nPFpart;   //!
+    TBranch        *b_pfKey;   //!
     TBranch        *b_pfId;   //!
     TBranch        *b_pfPt;   //!
     TBranch        *b_pfEnergy;   //!
@@ -70,6 +73,7 @@ public :
 void pfCand::setupTreeForReading(TTree *t)
 {
     b_nPFpart = 0;
+    b_pfKey = 0;
     b_pfId = 0;
     b_pfPt = 0;
     b_pfEnergy = 0;
@@ -88,6 +92,7 @@ void pfCand::setupTreeForReading(TTree *t)
 
     // Set branch addresses and branch pointers
     if (t->GetBranch("nPFpart"))  t->SetBranchAddress("nPFpart", &nPFpart, &b_nPFpart);
+    if (t->GetBranch("pfKey"))  t->SetBranchAddress("pfKey", &pfKey, &b_pfKey);
     if (t->GetBranch("pfId"))  t->SetBranchAddress("pfId", &pfId, &b_pfId);
     if (t->GetBranch("pfPt"))  t->SetBranchAddress("pfPt", &pfPt, &b_pfPt);
     if (t->GetBranch("pfEnergy"))  t->SetBranchAddress("pfEnergy", &pfEnergy, &b_pfEnergy);

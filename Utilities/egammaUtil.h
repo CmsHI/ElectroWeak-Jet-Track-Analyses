@@ -28,8 +28,9 @@
  * simple object to contain info about a PF cand
  */
 struct basicPFCand {
-    basicPFCand() : id(-1), pt(-1), eta(-999999), phi(-999999) {}
+    basicPFCand() : key(0), id(-1), pt(-1), eta(-999999), phi(-999999) {}
 
+    unsigned long key; // key for this PF cand, ref https://github.com/cms-sw/cmssw/blob/master/DataFormats/Common/interface/Ptr.h#L163
     int id; // ParticleType of PFCandidate
     float pt;
     float eta;
@@ -55,7 +56,10 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
 int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi);
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key);
+
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2);
+bool isSamePFcand(const unsigned long key1, const unsigned long key2);
 
 double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1, double r2, double threshold, double jWidth, bool applyTrkID, int colType)
 {
@@ -201,7 +205,7 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if ((*pfs.pfId)[i] != pfId) continue;
 
-        int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
             continue;
@@ -249,7 +253,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (dR2 < r2 * r2) continue;
         if (pfpt < threshold) continue;
 
-        int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
             continue;
@@ -316,6 +320,7 @@ std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG)
             if ((*ggHi.ppfPhoIdx)[i] != iEG) continue;
 
             basicPFCand candTmp;
+            candTmp.key = (*ggHi.ppfKey)[i];
             candTmp.id = (*ggHi.ppfId)[i];
             candTmp.pt = (*ggHi.ppfPt)[i];
             candTmp.eta = (*ggHi.ppfEta)[i];
@@ -328,16 +333,6 @@ std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG)
     return res;
 }
 
-bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2)
-{
-    if (id1 != id2) return false;
-    if ( TMath::Abs(pt1-pt2) / pt1 > 0.00001 ) return false;
-    if ( TMath::Abs((eta1-eta2)/eta1) > 0.000001 ) return false;
-    if ( TMath::Abs(getDPHI(phi1, phi2)/phi1) > 0.00001 ) return false;
-
-    return true;
-}
-
 int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi)
 {
     for (std::vector<basicPFCand>::const_iterator itPF = linkPFs.begin(); itPF != linkPFs.end(); ++itPF) {
@@ -345,6 +340,30 @@ int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float p
     }
 
     return -1;
+}
+
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key)
+{
+    for (std::vector<basicPFCand>::const_iterator itPF = linkPFs.begin(); itPF != linkPFs.end(); ++itPF) {
+        if ( isSamePFcand((*itPF).key, key) ) return (int)(itPF-linkPFs.begin());
+    }
+
+    return -1;
+}
+
+bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2)
+{
+    if (id1 != id2) return false;
+    if ( TMath::Abs(pt1-pt2) / pt1 > 0.0001 ) return false;
+    if ( TMath::Abs((eta1-eta2)/eta1) > 0.0001 ) return false;
+    if ( TMath::Abs(getDPHI(phi1, phi2)/phi1) > 0.0001 ) return false;
+
+    return true;
+}
+
+bool isSamePFcand(const unsigned long key1, const unsigned long key2)
+{
+    return (key1 == key2);
 }
 
 #endif

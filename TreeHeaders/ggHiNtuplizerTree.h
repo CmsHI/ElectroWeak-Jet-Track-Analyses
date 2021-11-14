@@ -284,6 +284,7 @@ public :
     pho_trkIso3IDpTgt2p0 = 0;
     pho_trkIso3IDpTgt2p0subUE = 0;
     ppfPhoIdx = 0;
+    ppfKey = 0;
     ppfId = 0;
     ppfPt = 0;
     ppfEta = 0;
@@ -631,6 +632,7 @@ public :
   std::vector<float>   *pho_trkIso3IDpTgt2p0subUE;
   Int_t           nPhoPF;
   std::vector<int>     *ppfPhoIdx;
+  std::vector<unsigned long> *ppfKey;
   std::vector<int>     *ppfId;
   std::vector<float>   *ppfPt;
   std::vector<float>   *ppfEta;
@@ -963,6 +965,7 @@ public :
   TBranch        *b_pho_trkIso3IDpTgt2p0subUE;   //!
   TBranch        *b_nPhoPF;   //!
   TBranch        *b_ppfPhoIdx;   //!
+  TBranch        *b_ppfKey;   //!
   TBranch        *b_ppfId;   //!
   TBranch        *b_ppfPt;   //!
   TBranch        *b_ppfEta;   //!
@@ -1295,6 +1298,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_pho_trkIso3IDpTgt2p0subUE = 0;
     b_nPhoPF = 0;
     b_ppfPhoIdx = 0;
+    b_ppfKey = 0;
     b_ppfId = 0;
     b_ppfPt = 0;
     b_ppfEta = 0;
@@ -1625,6 +1629,7 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trkIso3IDpTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE, &b_pho_trkIso3IDpTgt2p0subUE);
     if (t->GetBranch("nPhoPF")) t->SetBranchAddress("nPhoPF", &nPhoPF, &b_nPhoPF);
     if (t->GetBranch("ppfPhoIdx")) t->SetBranchAddress("ppfPhoIdx", &ppfPhoIdx, &b_ppfPhoIdx);
+    if (t->GetBranch("ppfKey")) t->SetBranchAddress("ppfKey", &ppfKey, &b_ppfKey);
     if (t->GetBranch("ppfId")) t->SetBranchAddress("ppfId", &ppfId, &b_ppfId);
     if (t->GetBranch("ppfPt")) t->SetBranchAddress("ppfPt", &ppfPt, &b_ppfPt);
     if (t->GetBranch("ppfEta")) t->SetBranchAddress("ppfEta", &ppfEta, &b_ppfEta);
