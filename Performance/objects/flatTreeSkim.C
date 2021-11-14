@@ -867,6 +867,10 @@ int readConfiguration(std::string configFile, std::string inputFile)
     calcPFIso = (confParser.ReadConfigValueInteger("calcPFIso") > 0);
 
     calcIsoFlow = (confParser.ReadConfigValueInteger("calcIsoFlow") > 0);
+    if (calcIsoFlow && inFileType != INFILE_TYPES::kHiForest) {
+        std::cout << "WARNING : calcIsoFlow is set to 1. But, isolation can be calculated only if input is HiForest. Disabling calcIsoFlow" << std::endl;
+        calcIsoFlow = false;
+    }
 
     calcRhoEtaAve = (confParser.ReadConfigValueInteger("calcRhoEtaAve") > 0);
 
