@@ -10,6 +10,7 @@
 #include <TObjArray.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
+#include <TVector3.h>
 
 #include <string>
 #include <vector>
@@ -359,6 +360,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 treeTrack->SetBranchStatus("pfType",1);
                 treeTrack->SetBranchStatus("pfHcal",1);
                 treeTrack->SetBranchStatus("pfEcal",1);
+
+                if (doPFCand) {
+                    treeTrack->SetBranchStatus("xVtx",1);
+                    treeTrack->SetBranchStatus("yVtx",1);
+                    treeTrack->SetBranchStatus("zVtx",1);
+                }
             }
 
             if (doPFCand) {
@@ -373,6 +380,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treePFCand->SetBranchStatus("pfPt",1);
                     treePFCand->SetBranchStatus("pfEta",1);
                     treePFCand->SetBranchStatus("pfPhi",1);
+                    treePFCand->SetBranchStatus("pfv*",1);
                 }
             }
 
@@ -656,12 +664,19 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, collisionType);
                         ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, tEC, collisionType);
 
+                        TVector3 pVtx;
+                        pVtx.SetZ(-999);
+                        if (doPFCand) {
+                            pVtx.SetX(trks.xVtx[0]);
+                            pVtx.SetY(trks.yVtx[0]);
+                            pVtx.SetZ(trks.zVtx[0]);
+                        }
                         const bool removeFP = true;
                         if (calcPFIso) {
-                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP);
-                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP);
-                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP);
-                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP);
+                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx);
+                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx);
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx);
+                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx);
                         }
                         if (calcIsoFlow) {
                             double vn_2 = ggHiOut.fit_v2;
@@ -669,30 +684,30 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                             double only_vn_2 = ggHiOut.phi_fit_v2;
 
-                            ggHiOut.pfpIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, only_vn_2, angEPv2);
-                            ggHiOut.pfnIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, only_vn_2, angEPv2);
+                            ggHiOut.pfpIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfnIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, only_vn_2, angEPv2);
 
                             double vn_3 = ggHiOut.fit_v3;
                             double angEPv3 = ggHiOut.hiEvtPlaneHF3;
 
-                            ggHiOut.pfpIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfnIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3pTgt2p0subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfpIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfnIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3pTgt2p0subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
 
-                            ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
 
                             vn_2 = ggHiOut.fit_trkphi_v2;
                             vn_3 = ggHiOut.fit_trkphi_v3;
-                            ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);

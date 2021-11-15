@@ -9,6 +9,7 @@
 #include <TObjArray.h>
 #include <TMath.h>
 #include <TLorentzVector.h>
+#include <TVector3.h>
 #include <TRandom3.h>
 
 #include <string>
@@ -44,14 +45,14 @@ double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1=0.4, d
 
 // WARNING : footprints cannot be removed in these functions as they are is kept in AOD only, but not in forest
 double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                bool removeFootPrint = true);
+                bool removeFootPrint = true, const TVector3& vtxPos = TVector3(0,0,-999));
 double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                     bool removeFootPrint = true,
+                     bool removeFootPrint = true, const TVector3& vtxPos = TVector3(0,0,-999),
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                std::vector<basicPFCand> linkPFs = {});
+                std::vector<basicPFCand> linkPFs = {}, const TVector3& vtxPos = TVector3(0,0,-999));
 double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                     std::vector<basicPFCand> linkPFs = {},
+                     std::vector<basicPFCand> linkPFs = {}, const TVector3& vtxPos = TVector3(0,0,-999),
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
@@ -168,22 +169,22 @@ double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, doubl
     return coneEt - ueEt * (areaCone / ueArea);
 }
 
-double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint)
+double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint, const TVector3& vtxPos)
 {
     std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs);
+    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos);
 }
 
-double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint,
+double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint, const TVector3& vtxPos,
                      double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vn_2, angEPv2, vn_3, angEPv3);
+    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos, vn_2, angEPv2, vn_3, angEPv3);
 }
 
-double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs)
+double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, const TVector3& vtxPos)
 {
     double totalEt = 0;
 
@@ -205,6 +206,18 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if ((*pfs.pfId)[i] != pfId) continue;
 
+        if((*pfs.pfId)[i] == 1 && vtxPos.Z() > -987){
+            float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());
+            if (dz > 0.2) continue;
+
+            TVector3 pVec;
+            pVec.SetPtEtaPhi(pfpt, pfeta, pfphi);
+
+            double dxy = ( (vtxPos.X() - (*pfs.pfvx)[i])*pVec.Py() + ((*pfs.pfvy)[i] - vtxPos.Y())*pVec.Px() ) / pfpt;
+            if (std::abs(dxy) > 0.1) continue;
+        }
+
+        //int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
         int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
@@ -228,7 +241,7 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
     return totalEt;
 }
 
-double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs,
+double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, const TVector3& vtxPos,
                      double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     double totalEt = 0;
@@ -253,6 +266,18 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (dR2 < r2 * r2) continue;
         if (pfpt < threshold) continue;
 
+        if((*pfs.pfId)[i] == 1 && vtxPos.Z() > -987){
+            float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());
+            if (dz > 0.2) continue;
+
+            TVector3 pVec;
+            pVec.SetPtEtaPhi(pfpt, pfeta, pfphi);
+
+            double dxy = ( (vtxPos.X() - (*pfs.pfvx)[i])*pVec.Py() + ((*pfs.pfvy)[i] - vtxPos.Y())*pVec.Px() ) / pfpt;
+            if (std::abs(dxy) > 0.1) continue;
+        }
+
+        //int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
         int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
@@ -299,7 +324,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
     areaCone -= areaInnerCone;
 
     double ueEt = totalEt;
-    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs);
+    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos);
 
     double termSub = 0;
     double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 2 * getDPHI(egPhi, angEPv3) );
