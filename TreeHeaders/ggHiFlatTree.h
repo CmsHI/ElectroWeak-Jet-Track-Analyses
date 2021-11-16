@@ -2583,6 +2583,7 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     if (tggHiNtuplizer.b_phoHoverEValid != 0) {
         phoHoverEValid = (*tggHiNtuplizer.phoHoverEValid)[i];
     }
+
     phoSigmaIEtaIEta = (*tggHiNtuplizer.phoSigmaIEtaIEta)[i];
     phoR9 = (*tggHiNtuplizer.phoR9)[i];
     phoE1x5 = (*tggHiNtuplizer.phoE1x5)[i];
@@ -2682,7 +2683,10 @@ void ggHiFlat::copyPho(ggHiNtuplizer &tggHiNtuplizer, int i)
     pho_trackIsoR5PtCut20 = (*tggHiNtuplizer.pho_trackIsoR5PtCut20)[i];
     pho_swissCrx = (*tggHiNtuplizer.pho_swissCrx)[i];
     pho_seedTime = (*tggHiNtuplizer.pho_seedTime)[i];
-    pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
+
+    if (tggHiNtuplizer.b_pho_genMatchedIndex != 0) {
+        pho_genMatchedIndex = (*tggHiNtuplizer.pho_genMatchedIndex)[i];
+    }
 
     if (tggHiNtuplizer.b_pfcIso1 != 0) {
         pfcIso1 = (*tggHiNtuplizer.pfcIso1)[i];

@@ -144,13 +144,6 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     bool isHI = (isHI15 || isHI18);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
-    if (!isMC) {
-        std::cout << "This macro runs on simulation samples only." << std::endl;
-        std::cout << "Change the collisionType to a simulated collisions." << std::endl;
-        std::cout << "exiting" << std::endl;
-        return;
-    }
-
     TFile* output = TFile::Open(outputFile.c_str(), "UPDATE");
     output->cd();
 
@@ -231,6 +224,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     Long64_t entriesAnalyzed = 0;
     Long64_t objectsSkimmed = 0;
 
+    bool didNEvts = false;
     int nFilesSkipped = 0;
     std::cout<< "Loop : " << inputTreePath.c_str() <<std::endl;
     for (int iFile = 0; iFile < nFiles; ++iFile)  {
@@ -277,10 +271,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         if (isMC) {
             treeIn->SetBranchStatus("nMC",1);     // enable GEN particle branches
             treeIn->SetBranchStatus("mc*",1);      // enable GEN particle branches
-        }
-        // check existence of genMatching branch
-        if (!treeIn->GetBranch("pho_genMatchedIndex")) {
-            std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+            // check existence of genMatching branch
+            if (!treeIn->GetBranch("pho_genMatchedIndex")) {
+                std::cout << "WARNING : Branch pho_genMatchedIndex does not exist." <<std::endl;
+            }
         }
 
         if (inFileType == INFILE_TYPES::kFlatTree) {
@@ -416,6 +410,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
             if (nEvts >= 0 && nEvts < j_entry + entriesProcessed - 1) {
+                didNEvts = true;
                 break;
             }
             if (j_entry % 2000 == 0)  {
@@ -460,8 +455,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.hiHF = hiEvt.hiHF;
                 ggHiOut.hiEvtPlaneHF2 = hiEvt.hiEvtPlanes[2];
                 ggHiOut.hiEvtPlaneHF3 = hiEvt.hiEvtPlanes[8];
-                ggHiOut.phi0 = hiEvt.phi0;
-                ggHiOut.pthat = hiEvt.pthat;
+                if (isMC) {
+                    ggHiOut.phi0 = hiEvt.phi0;
+                    ggHiOut.pthat = hiEvt.pthat;
+                }
 
                 double rho = -1;
                 // calc eta-ave rho
@@ -572,15 +569,17 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     }
 
                     // fit using phi0 as EP angle
-                    f1_phi_vn2->SetParameter(0, initN0); // N0
-                    f1_phi_vn2->SetParameter(1, 0); // v2
-                    f1_phi_vn2->FixParameter(2, ggHiOut.phi0); // set to 2nd event plane angle
-                    h1D_phi->Fit(f1_phi_vn2, "Q M R N");
+                    if (isMC) {
+                        f1_phi_vn2->SetParameter(0, initN0); // N0
+                        f1_phi_vn2->SetParameter(1, 0); // v2
+                        f1_phi_vn2->FixParameter(2, ggHiOut.phi0); // set to 2nd event plane angle
+                        h1D_phi->Fit(f1_phi_vn2, "Q M R N");
 
-                    ggHiOut.fit_EPphi0_chi2 = f1_phi_vn2->GetChisquare();
-                    ggHiOut.fit_EPphi0_chi2prob = f1_phi_vn2->GetProb();
+                        ggHiOut.fit_EPphi0_chi2 = f1_phi_vn2->GetChisquare();
+                        ggHiOut.fit_EPphi0_chi2prob = f1_phi_vn2->GetProb();
 
-                    ggHiOut.fit_EPphi0_v2 = f1_phi_vn2->GetParameter(1);
+                        ggHiOut.fit_EPphi0_v2 = f1_phi_vn2->GetParameter(1);
+                    }
                 }
 
                 // fit track phi
@@ -649,9 +648,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                         ggHiOut.copyPho(ggHi, i);
 
-                        int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
-                        if (genMatchedIndex >= 0) {
-                            ggHiOut.copyGen(ggHi, genMatchedIndex);
+                        if (isMC) {
+                            int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
+                            if (genMatchedIndex >= 0) {
+                                ggHiOut.copyGen(ggHi, genMatchedIndex);
+                            }
                         }
 
                         const double tR2 = 0.0;
@@ -697,10 +698,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3pTgt2p0subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             ggHiOut.pfcIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
 
-                            ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                            ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            if (isMC) {
+                                ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                            }
 
                             vn_2 = ggHiOut.fit_trkphi_v2;
                             vn_3 = ggHiOut.fit_trkphi_v3;
@@ -811,6 +814,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             }
         }
         fileTmp->Close();
+        if (didNEvts) {
+            break;
+        }
     }
     std::cout<<  "Loop ENDED : " << inputTreePath.c_str() <<std::endl;
     std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
