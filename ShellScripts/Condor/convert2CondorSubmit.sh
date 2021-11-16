@@ -27,7 +27,7 @@ fi
 
 cp $inputScript $outputScript
 
-EWJTAOUT="/mnt/submit-hi2/d00/scratch/tatar/EWJTA-out"
+EWJTAOUTH2="/mnt/submit03/d00/scratch/"${USER}"/EWJTA-out"
 lineToReplace="outDirBase=\$EWJTAOUT"
 newLine="outDirBase=\$EWJTAOUTGRID"
 sed -i "s/$lineToReplace/$newLine/g" $outputScript
