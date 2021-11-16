@@ -326,7 +326,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
     double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos);
 
     double termSub = 0;
-    double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 2 * getDPHI(egPhi, angEPv3) );
+    double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 3 * getDPHI(egPhi, angEPv3) );
     double ueArea = areaStrip - areaCone;
 
     termSub = ueEt * (areaCone / ueArea) * flowSF;
