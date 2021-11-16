@@ -127,8 +127,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     int nEvts = (ArgumentParser::optionExists("--nEvts", argOptions)) ?
                 std::atoi(ArgumentParser::ParseOptionInputSingle("--nEvts", argOptions).c_str()) : -1;
 
+    float phiFitEtaMin = (ArgumentParser::optionExists("--phiFitEtaMin", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--phiFitEtaMin", argOptions).c_str()) : 0;
+    float phiFitEtaMax = (ArgumentParser::optionExists("--phiFitEtaMax", argOptions)) ?
+                std::atof(ArgumentParser::ParseOptionInputSingle("--phiFitEtaMax", argOptions).c_str()) : -999999;
+
     std::cout << "skimMode = " << skimMode << std::endl;
     std::cout << "nEvts = " << nEvts << std::endl;
+    std::cout << "phiFitEtaMin = " << phiFitEtaMin << std::endl;
+    std::cout << "phiFitEtaMax = " << phiFitEtaMax << std::endl;
+    if (phiFitEtaMax < phiFitEtaMin) {
+        std::cout << "Overwriting phiFitEta Min/Max to default values " << std::endl;
+        phiFitEtaMin = -1.0;
+        phiFitEtaMax = 1.0;
+    }
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -520,13 +532,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 h1D_phi->Reset();
                 const double calcIso_pfPtMin = 0.3;
                 const double calcIso_pfPtMax = 3.0;
-                const double calcIso_pfEtaMax = 1.0;
+                const double calcIso_pfEtaMin = phiFitEtaMin;
+                const double calcIso_pfEtaMax = phiFitEtaMax;
                 for (int i=0; i<pfs.nPFpart; ++i) {
 
                     if (! ((*pfs.pfId)[i] == 1) ) continue;
                     if (! ((*pfs.pfPt)[i] > calcIso_pfPtMin) ) continue;
                     if (! ((*pfs.pfPt)[i] < calcIso_pfPtMax) ) continue;
-                    if (! (TMath::Abs((*pfs.pfEta)[i]) < calcIso_pfEtaMax) )  continue;
+                    if (! (calcIso_pfEtaMin < (*pfs.pfEta)[i] && (*pfs.pfEta)[i] < calcIso_pfEtaMax) ) continue;
                     // checked in forest via Scan("Sum$(pfId == 1 && pfPt > 0.3 && pfPt < 3 && abs(pfEta) < 1):hiBin")
 
                     h1D_phi->Fill((*pfs.pfPhi)[i]);
@@ -590,7 +603,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                     if (! (trks.trkPt[i] > calcIso_pfPtMin) ) continue;
                     if (! (trks.trkPt[i] < calcIso_pfPtMax) ) continue;
-                    if (! (TMath::Abs(trks.trkEta[i]) < calcIso_pfEtaMax) )  continue;
+                    if (! (calcIso_pfEtaMin < trks.trkEta[i] && trks.trkEta[i] < calcIso_pfEtaMax) ) continue;
                     if (!passedTrkSelection(trks, i, collisionType))  continue;
 
                     h1D_phi->Fill(trks.trkPhi[i]);
