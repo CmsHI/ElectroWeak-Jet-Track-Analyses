@@ -181,7 +181,8 @@ Error        = $condorLogsDir/\$(Process).err
 Log          = $condorLogsDir/\$(Process).log
 Rank         = Mips
 +AccountingGroup = "group_cmshi.$USER"
-requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
+#requirements = GLIDEIN_Site == "MIT_CampusFactory" && BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
+requirements = BOSCOGroup == "bosco_cmshi" && HAS_CVMFS_cms_cern_ch && BOSCOCluster == "ce03.cmsaf.mit.edu"
 job_lease_duration = 240
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
@@ -264,6 +265,9 @@ lineEnd=\$((\$lineStart + \$nFilesTmp - 1))
 #echo "lineStart : \$lineStart"
 #echo "lineEnd   : \$lineEnd"
 sed "\$lineStart,\$lineEnd!d" \$5 > \$inputListTmp
+
+source /cvmfs/grid.cern.ch/umd-c7ui-latest/etc/profile.d/setup-c7-ui-example.sh
+export PYTHONHOME=/cvmfs/cms.cern.ch/slc7_amd64_gcc820/external/python/2.7.15/
 
 echo "##"
 echo "host : \$(hostname)"
