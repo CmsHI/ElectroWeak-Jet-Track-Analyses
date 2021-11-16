@@ -27,6 +27,7 @@ fi
 
 cp $inputScript $outputScript
 
+EWJTAOUT="/mnt/submit-hi2/d00/scratch/tatar/EWJTA-out"
 lineToReplace="outDirBase=\$EWJTAOUT"
 newLine="outDirBase=\$EWJTAOUTGRID"
 sed -i "s/$lineToReplace/$newLine/g" $outputScript
@@ -40,7 +41,8 @@ newLine4="  fi"
 newLine=$lineToReplace"\n"$newLine1"\n"$newLine2"\n"$newLine3"\n"$newLine4
 sed -i "s/$lineToReplace/$newLine/g" $outputScript
 
-lineToReplace="outDirBase=\"\/export\/d00\/scratch\/\"\$USER\"\/EWJTA-out\""
+#lineToReplace="outDirBase=\"\/export\/d00\/scratch\/\"\$USER\"\/EWJTA-out\""
+lineToReplace="outDirBase=\"\/mnt\/submit-hi2\/d00\/scratch\/\"\$USER\"\/EWJTA-out\""
 newLine="outDirBase=\"\/mnt\/hadoop\/cms\/store\/user\/\"\$USERGRID\"\/EWJTA-out\""
 sed -i "s/$lineToReplace/$newLine/g" $outputScript
 
