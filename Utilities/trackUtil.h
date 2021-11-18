@@ -24,7 +24,7 @@
 int getTrkMult(trackSkim& trks, double ptMin, double etaMax);
 int getTrkMult(Tracks& trks, double ptMin, double etaMax);
 bool passedTrkSelection(trackSkim& trks, int i, int collType);
-bool passedTrkSelection(Tracks& trks, int i, int collType);
+bool passedTrkSelection(Tracks& trks, int i, int collType, bool ismAOD = false);
 
 int getTrkMult(trackSkim& trks, double ptMin, double etaMax)
 {
@@ -114,22 +114,37 @@ bool passedTrkSelection(trackSkim& trks, int i, int collType)
     return true;
 }
 
-bool passedTrkSelection(Tracks& trks, int i, int collType)
+bool passedTrkSelection(Tracks& trks, int i, int collType, bool ismAOD)
 {
     if (collisionIsHI2018((COLL::TYPE)collType)) {
         // cuts for 2018
-        if ((trks.trkAlgo[i] == 6 && trks.trkMVA[i] < 0.98)) return false;
+        if (ismAOD) {
+            if (!((*trks.highPurity_v)[i] == 1)) return false;
+            if (!((*trks.trkPtError_v)[i] / (*trks.trkPt_v)[i] < 0.1 &&
+                  std::fabs((*trks.trkDzFirstVtx)[i] / (*trks.trkDzErrFirstVtx)[i]) < 3 &&
+                  std::fabs((*trks.trkDxyFirstVtx)[i] / (*trks.trkDxyErrFirstVtx)[i]) < 3))  return false;
+            if (!((*trks.trkNHits)[i] >= 11))  return false;
+            if (!((*trks.trkNormChi2)[i] / (float)((*trks.trkNLayers)[i]) < 0.18))  return false;
 
-        if (!(trks.highPurity[i] == 1)) return false;
-        if (!(trks.trkPtError[i] / trks.trkPt[i] < 0.1 &&
-              std::fabs(trks.trkDz1[i] / trks.trkDzError1[i]) < 3 &&
-              std::fabs(trks.trkDxy1[i] / trks.trkDxyError1[i]) < 3))  return false;
-        if (!(trks.trkNHit[i] >= 11))  return false;
-        if (!(trks.trkChi2[i] / (float)trks.trkNdof[i] / (float)trks.trkNlayer[i] < 0.18))  return false;
+            if ((*trks.trkPt_v)[i] > 20) {
+                float Et = ((*trks.pfHcal_v)[i] + (*trks.pfEcal_v)[i]) / TMath::CosH((*trks.trkEta_v)[i]);
+                if ( !(Et > 0.5 * (*trks.trkPt_v)[i]) )  return false;
+            }
+        }
+        else {
+            if ((trks.trkAlgo[i] == 6 && trks.trkMVA[i] < 0.98)) return false;
 
-        if (trks.trkPt[i] > 20) {
-            float Et = (trks.pfHcal[i] + trks.pfEcal[i]) / TMath::CosH(trks.trkEta[i]);
-            if ( !(Et > 0.5 * trks.trkPt[i]) )  return false;
+            if (!(trks.highPurity[i] == 1)) return false;
+            if (!(trks.trkPtError[i] / trks.trkPt[i] < 0.1 &&
+                  std::fabs(trks.trkDz1[i] / trks.trkDzError1[i]) < 3 &&
+                  std::fabs(trks.trkDxy1[i] / trks.trkDxyError1[i]) < 3))  return false;
+            if (!(trks.trkNHit[i] >= 11))  return false;
+            if (!(trks.trkChi2[i] / (float)trks.trkNdof[i] / (float)trks.trkNlayer[i] < 0.18))  return false;
+
+            if (trks.trkPt[i] > 20) {
+                float Et = (trks.pfHcal[i] + trks.pfEcal[i]) / TMath::CosH(trks.trkEta[i]);
+                if ( !(Et > 0.5 * trks.trkPt[i]) )  return false;
+            }
         }
     }
     else if (collisionIsHI((COLL::TYPE)collType)) {
