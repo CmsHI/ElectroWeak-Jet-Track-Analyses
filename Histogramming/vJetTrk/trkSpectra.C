@@ -62,6 +62,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string sampleType = (ArgumentParser::optionExists("--sampleType", argOptions)) ?
             ArgumentParser::ParseOptionInputSingle("--sampleType", argOptions).c_str() : "pbpb_2018_data";
 
+    int tmpIsmAOD = (ArgumentParser::optionExists("--ismAOD", argOptions)) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--ismAOD", argOptions).c_str()) : 0;
+    // is the Ntuple made from miniAOD
+    bool ismAOD = (tmpIsmAOD > 0);
+
     int applyTrkWeights = (ArgumentParser::optionExists("--applyTrkWeights", argOptions)) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--applyTrkWeights", argOptions).c_str()) : 1;
 
@@ -141,6 +146,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     int nTrkEtas = trkEtasMin.size();
 
     std::cout << "sampleType = " << sampleType << std::endl;
+    std::cout << "ismAOD = " << ismAOD << std::endl;
     std::cout << "applyTrkWeights = " << applyTrkWeights << std::endl;
     std::cout << "applyNcollWeights = " << applyNcollWeights << std::endl;
     std::cout << "hiBinShift = " << hiBinShift << std::endl;
@@ -607,7 +613,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
     std::string treePathHLT = "hltanalysis/HltTree";
     std::string treePathHiEvt = "hiEvtAnalyzer/HiTree";
     std::string treePathSkimAna = "skimanalysis/HltTree";
-    std::string treePathTrack = "ppTrack/trackTree";
+    std::string treePathTrack = (ismAOD) ? "PbPbTracks/trackTree" : "ppTrack/trackTree";
     std::string treePathGen = "HiGenParticleAna/hi";
     std::string treePathJet = "akPu4CaloJetAnalyzer/t";
 
@@ -685,29 +691,54 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         treeTrack = (TTree*)fileTmp->Get(treePathTrack.c_str());
         treeTrack->SetBranchStatus("*", 0);     // disable all branches
 
-        std::vector<std::string> trkBranches = {
-                "nTrk",
-                "trkPt",
-                "trkEta",
-                "trkPhi",
-                "highPurity",
-                "trkPtError",
-                "trkDz1",
-                "trkDzError1",
-                "trkDxy1",
-                "trkDxyError1",
-                "trkNHit",
-                "trkChi2",
-                "trkNdof",
-                "trkNlayer",
-                "trkAlgo",
-                "trkMVA",
-                "pfType",
-                "pfCandPt",
-                "pfHcal",
-                "pfEcal",
-                "nVtx",
-        };
+        std::vector<std::string> trkBranches;
+        if (ismAOD) {
+            trkBranches = {
+                    "nTrk",
+                    "trkPt",
+                    "trkEta",
+                    "trkPhi",
+                    "highPurity",
+                    "trkPtError",
+                    "trkDzFirstVtx",
+                    "trkDzErrFirstVtx",
+                    "trkDxyFirstVtx",
+                    "trkDxyErrFirstVtx",
+                    "trkNHits",
+                    "trkNormChi2",
+                    "trkNLayers",
+                    "trkPDGId",
+                    "pfHcal",
+                    "pfEcal",
+                    "xVtx",
+                    //"nVtx",
+            };
+        }
+        else {
+            trkBranches = {
+                    "nTrk",
+                    "trkPt",
+                    "trkEta",
+                    "trkPhi",
+                    "highPurity",
+                    "trkPtError",
+                    "trkDz1",
+                    "trkDzError1",
+                    "trkDxy1",
+                    "trkDxyError1",
+                    "trkNHit",
+                    "trkChi2",
+                    "trkNdof",
+                    "trkNlayer",
+                    "trkAlgo",
+                    "trkMVA",
+                    "pfType",
+                    "pfCandPt",
+                    "pfHcal",
+                    "pfEcal",
+                    "nVtx",
+            };
+        }
 
         int nTrkBranches = trkBranches.size();
         for (int iTrkBr = 0; iTrkBr < nTrkBranches; ++iTrkBr) {
@@ -764,7 +795,7 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
 
-        Tracks trks;
+        Tracks trks(ismAOD);
         trks.setupTreeForReading(treeTrack);
 
         Jets jets;
@@ -804,10 +835,11 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                 treeHiGenParticle->GetEntry(j_entry);
             }
 
-            if (maxNVtx > 0 && trks.nVtx > maxNVtx) {
+            int tmpNVtx = (ismAOD) ? (*trks.xVtx_v).size() : trks.nVtx;
+            if (maxNVtx > 0 && tmpNVtx > maxNVtx) {
                 continue;
             }
-            if (minNVtx > -1 && trks.nVtx < minNVtx) {
+            if (minNVtx > -1 && tmpNVtx < minNVtx) {
                 continue;
             }
 
@@ -828,7 +860,6 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
                     hiBin -= hiBinShift;
                 }
             }
-
 
             std::vector<double> excludeEleEtas;
             std::vector<double> excludeElePhis;
@@ -910,14 +941,22 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
             for (int i = 0; i < trks.nTrk; ++i) {
 
-                if (!passedTrkSelection(trks, i, collisionType))  continue;
-                if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
-                if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
-                if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
+                if (!passedTrkSelection(trks, i, collisionType, ismAOD))  continue;
+                float t_pt = ismAOD ? (*trks.trkPt_v)[i] : trks.trkPt[i];
+                float t_eta = ismAOD ? (*trks.trkEta_v)[i] : trks.trkEta[i];
 
-                float t_pt = trks.trkPt[i];
-                float t_eta = trks.trkEta[i];
-                float t_phi = trks.trkPhi[i];
+                if (!(std::fabs(t_eta) < 2.4))  continue;
+
+                if (ismAOD) {
+                    if (std::abs((*trks.trkPDGId)[i]) == 13 && t_pt > skipMuPt) continue;
+                    if (std::abs((*trks.trkPDGId)[i]) == 11 && t_pt > skipElePt) continue;
+                }
+                else {
+                    if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
+                    if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
+                }
+
+                float t_phi = ismAOD ? (*trks.trkPhi_v)[i] : trks.trkPhi[i];
                 float t_absEta = std::fabs(t_eta);
 
                 bool inCone = false;
@@ -1074,20 +1113,30 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                 for (int i = 0; i < trks.nTrk; ++i) {
 
-                     if (!passedTrkSelection(trks, i, collisionType))  continue;
-                     if (!(std::fabs(trks.trkEta[i]) < 2.4))  continue;
-                     if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
-                     if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
+                     if (!passedTrkSelection(trks, i, collisionType, ismAOD))  continue;
+                     float t_pt = ismAOD ? (*trks.trkPt_v)[i] : trks.trkPt[i];
+                     float t_eta = ismAOD ? (*trks.trkEta_v)[i] : trks.trkEta[i];
+
+                     if (!(std::fabs(t_eta) < 2.4))  continue;
+
+                     if (ismAOD) {
+                         if (std::abs((*trks.trkPDGId)[i]) == 13 && t_pt > skipMuPt) continue;
+                         if (std::abs((*trks.trkPDGId)[i]) == 11 && t_pt > skipElePt) continue;
+                     }
+                     else {
+                         if (trks.pfType[i] == 3 && trks.pfCandPt[i] > skipMuPt) continue;
+                         if (trks.pfType[i] == 2 && trks.pfCandPt[i] > skipElePt) continue;
+                     }
 
                      double trkWeightTmp = 1;
                      double trkWeightEffTmp = 1;
                      if (applyTrkWeights > 0) {
                          if (isPP17) {
-                             trkWeightTmp = trkEff2017.getCorrection(trks.trkPt[i], trks.trkEta[i]);
+                             trkWeightTmp = trkEff2017.getCorrection(t_pt, t_eta);
                          }
                          else if (isPbPb18) {
-                             trkWeightTmp = trkEff2018.getCorrection(trks.trkPt[i], trks.trkEta[i], hiBin);
-                             float effTmp = trkEff2018.getEfficiency(trks.trkPt[i], trks.trkEta[i], hiBin, true);
+                             trkWeightTmp = trkEff2018.getCorrection(t_pt, t_eta, hiBin);
+                             float effTmp = trkEff2018.getEfficiency(t_pt, t_eta, hiBin, true);
                              trkWeightEffTmp = (effTmp > 0.001) ? (1.0)/effTmp : 0;
                          }
                      }
@@ -1102,7 +1151,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                          if ( !(std::fabs(jets.jtpt[iJ]) > jetptMin) )  continue;
 
-                         double dR2_jet_trk = getDR2(trks.trkEta[i], trks.trkPhi[i], jets.jteta[iJ], jets.jtphi[iJ]);
+                         float t_phi = ismAOD ? (*trks.trkPhi_v)[i] : trks.trkPhi[i];
+                         double dR2_jet_trk = getDR2(t_eta, t_phi, jets.jteta[iJ], jets.jtphi[iJ]);
 
                          if (dR2_jet_trk < mindR2_jet_trk) {
                              mindR2_jet_trk = dR2_jet_trk;
@@ -1112,8 +1162,8 @@ void trkSpectra(std::string configFile, std::string inputFile, std::string outpu
 
                      if (iJet_mindR >= 0) {
 
-                         int iTrkPt = getBinPt4TrkW(trks.trkPt[i], trkPtsJet, nBinsTrkPtsJet);
-                         int iTrkEta = getBinEta4TrkW(std::fabs(trks.trkEta[i]), absEtasJet, nBinsAbsEtasJet);
+                         int iTrkPt = getBinPt4TrkW(t_pt, trkPtsJet, nBinsTrkPtsJet);
+                         int iTrkEta = getBinEta4TrkW(std::fabs(t_eta), absEtasJet, nBinsAbsEtasJet);
 
                          if (iTrkPt >= 0 && iTrkEta >= 0) {
 

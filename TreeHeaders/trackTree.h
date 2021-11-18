@@ -13,10 +13,53 @@ const unsigned int maxNTrkTimesnVtx = 50000;
 
 class Tracks {
 public :
-    Tracks(){};
+    Tracks(bool isMiniAOD = false)
+    {
+        ismAOD = isMiniAOD;
+
+        xVtx_v = 0;
+        yVtx_v = 0;
+        zVtx_v = 0;
+        xErrVtx = 0;
+        yErrVtx = 0;
+        zErrVtx = 0;
+        chi2Vtx = 0;
+        ndofVtx = 0;
+        isFakeVtx = 0;
+        nTracksVtx = 0;
+        ptSumVtx = 0;
+
+        trkPt_v = 0;
+        trkPtError_v = 0;
+        trkEta_v = 0;
+        trkPhi_v = 0;
+        trkCharge_v = 0;
+        trkPDGId = 0;
+        trkNHits = 0;
+        trkNPixHits = 0;
+        trkNLayers = 0;
+        trkNormChi2 = 0;
+        highPurity_v = 0;
+        pfEnergy = 0;
+        pfEcal_v = 0;
+        pfHcal_v = 0;
+        trkAssociatedVtxIndx = 0;
+        trkAssociatedVtxQuality = 0;
+        trkDzAssociatedVtx = 0;
+        trkDzErrAssociatedVtx = 0;
+        trkDxyAssociatedVtx = 0;
+        trkDxyErrAssociatedVtx = 0;
+        trkFirstVtxQuality = 0;
+        trkDzFirstVtx = 0;
+        trkDzErrFirstVtx = 0;
+        trkDxyFirstVtx = 0;
+        trkDxyErrFirstVtx = 0;
+    };
     ~Tracks(){};
     void setupTreeForReading(TTree *t);
     void setupTreeForWriting(TTree *t);
+
+   bool ismAOD;
 
    // Declaration of leaf types
    Int_t           nEv;
@@ -83,6 +126,44 @@ public :
    Float_t         pfEcal[maxNTrk];   //[nTrk]
    Float_t         pfHcal[maxNTrk];   //[nTrk]
 
+   std::vector<float>   *xVtx_v;
+   std::vector<float>   *yVtx_v;
+   std::vector<float>   *zVtx_v;
+   std::vector<float>   *xErrVtx;
+   std::vector<float>   *yErrVtx;
+   std::vector<float>   *zErrVtx;
+   std::vector<float>   *chi2Vtx;
+   std::vector<float>   *ndofVtx;
+   std::vector<bool>    *isFakeVtx;
+   std::vector<int>     *nTracksVtx;
+   std::vector<float>   *ptSumVtx;
+
+   std::vector<float>   *trkPt_v;
+   std::vector<float>   *trkPtError_v;
+   std::vector<float>   *trkEta_v;
+   std::vector<float>   *trkPhi_v;
+   std::vector<char>    *trkCharge_v;
+   std::vector<int>     *trkPDGId;
+   std::vector<char>    *trkNHits;
+   std::vector<char>    *trkNPixHits;
+   std::vector<char>    *trkNLayers;
+   std::vector<float>   *trkNormChi2;
+   std::vector<bool>    *highPurity_v;
+   std::vector<float>   *pfEnergy;
+   std::vector<float>   *pfEcal_v;
+   std::vector<float>   *pfHcal_v;
+   std::vector<int>     *trkAssociatedVtxIndx;
+   std::vector<int>     *trkAssociatedVtxQuality;
+   std::vector<float>   *trkDzAssociatedVtx;
+   std::vector<float>   *trkDzErrAssociatedVtx;
+   std::vector<float>   *trkDxyAssociatedVtx;
+   std::vector<float>   *trkDxyErrAssociatedVtx;
+   std::vector<int>     *trkFirstVtxQuality;
+   std::vector<float>   *trkDzFirstVtx;
+   std::vector<float>   *trkDzErrFirstVtx;
+   std::vector<float>   *trkDxyFirstVtx;
+   std::vector<float>   *trkDxyErrFirstVtx;
+
    // List of branches
    TBranch        *b_nEv;   //!
    TBranch        *b_nLumi;   //!
@@ -113,6 +194,12 @@ public :
    TBranch        *b_xVtxSim;   //!
    TBranch        *b_yVtxSim;   //!
    TBranch        *b_zVtxSim;   //!
+
+   TBranch        *b_chi2Vtx;   //!
+   TBranch        *b_ndofVtx;   //!
+   TBranch        *b_isFakeVtx;   //!
+   TBranch        *b_nTracksVtx;   //!
+   TBranch        *b_ptSumVtx;   //!
 
    TBranch        *b_trkPt;   //!
    TBranch        *b_trkPtError;   //!
@@ -145,9 +232,26 @@ public :
    TBranch        *b_dedx;
    TBranch        *b_pfType;   //!
    TBranch        *b_pfCandPt;   //!
+   TBranch        *b_pfEnergy;   //!
    TBranch        *b_pfEcal;   //!
    TBranch        *b_pfHcal;   //!
 
+   TBranch        *b_trkPDGId;   //!
+   TBranch        *b_trkNHits;   //!
+   TBranch        *b_trkNPixHits;   //!
+   TBranch        *b_trkNLayers;   //!
+   TBranch        *b_trkNormChi2;   //!
+   TBranch        *b_trkAssociatedVtxIndx;   //!
+   TBranch        *b_trkAssociatedVtxQuality;   //!
+   TBranch        *b_trkDzAssociatedVtx;   //!
+   TBranch        *b_trkDzErrAssociatedVtx;   //!
+   TBranch        *b_trkDxyAssociatedVtx;   //!
+   TBranch        *b_trkDxyErrAssociatedVtx;   //!
+   TBranch        *b_trkFirstVtxQuality;   //!
+   TBranch        *b_trkDzFirstVtx;   //!
+   TBranch        *b_trkDzErrFirstVtx;   //!
+   TBranch        *b_trkDxyFirstVtx;   //!
+   TBranch        *b_trkDxyErrFirstVtx;   //!
 };
 
 void Tracks::setupTreeForReading(TTree *t)
@@ -182,6 +286,12 @@ void Tracks::setupTreeForReading(TTree *t)
     b_yVtxSim = 0;
     b_zVtxSim = 0;
 
+    b_chi2Vtx = 0;
+    b_ndofVtx = 0;
+    b_isFakeVtx = 0;
+    b_nTracksVtx = 0;
+    b_ptSumVtx = 0;
+
     b_trkPt = 0;
     b_trkPtError = 0;
     b_trkNHit = 0;
@@ -213,8 +323,26 @@ void Tracks::setupTreeForReading(TTree *t)
     b_dedx = 0;
     b_pfType = 0;
     b_pfCandPt = 0;
+    b_pfEnergy = 0;
     b_pfEcal = 0;
     b_pfHcal = 0;
+
+    b_trkPDGId = 0;
+    b_trkNHits = 0;
+    b_trkNPixHits = 0;
+    b_trkNLayers = 0;
+    b_trkNormChi2 = 0;
+    b_trkAssociatedVtxIndx = 0;
+    b_trkAssociatedVtxQuality = 0;
+    b_trkDzAssociatedVtx = 0;
+    b_trkDzErrAssociatedVtx = 0;
+    b_trkDxyAssociatedVtx = 0;
+    b_trkDxyErrAssociatedVtx = 0;
+    b_trkFirstVtxQuality = 0;
+    b_trkDzFirstVtx = 0;
+    b_trkDzErrFirstVtx = 0;
+    b_trkDxyFirstVtx = 0;
+    b_trkDxyErrFirstVtx = 0;
 
     // Set branch addresses and branch pointers
     if (t->GetBranch("nEv"))  t->SetBranchAddress("nEv", &nEv, &b_nEv);
@@ -226,15 +354,7 @@ void Tracks::setupTreeForReading(TTree *t)
     if (t->GetBranch("nTrk"))  t->SetBranchAddress("nTrk", &nTrk, &b_nTrk);
     if (t->GetBranch("maxPtVtx"))  t->SetBranchAddress("maxPtVtx", &maxPtVtx, &b_maxPtVtx);
     if (t->GetBranch("maxMultVtx"))  t->SetBranchAddress("maxMultVtx", &maxMultVtx, &b_maxMultVtx);
-    if (t->GetBranch("nTrkVtx"))  t->SetBranchAddress("nTrkVtx", &nTrkVtx, &b_nTrkVtx);
-    if (t->GetBranch("normChi2Vtx"))  t->SetBranchAddress("normChi2Vtx", &normChi2Vtx, &b_normChi2Vtx);
-    if (t->GetBranch("sumPtVtx"))  t->SetBranchAddress("sumPtVtx", &sumPtVtx, &b_sumPtVtx);
-    if (t->GetBranch("xVtx"))  t->SetBranchAddress("xVtx", &xVtx, &b_xVtx);
-    if (t->GetBranch("yVtx"))  t->SetBranchAddress("yVtx", &yVtx, &b_yVtx);
-    if (t->GetBranch("zVtx"))  t->SetBranchAddress("zVtx", &zVtx, &b_zVtx);
-    if (t->GetBranch("xVtxErr"))  t->SetBranchAddress("xVtxErr", &xVtxErr, &b_xVtxErr);
-    if (t->GetBranch("yVtxErr"))  t->SetBranchAddress("yVtxErr", &yVtxErr, &b_yVtxErr);
-    if (t->GetBranch("zVtxErr"))  t->SetBranchAddress("zVtxErr", &zVtxErr, &b_zVtxErr);
+
     if (t->GetBranch("vtxDist2D"))  t->SetBranchAddress("vtxDist2D", &vtxDist2D, &b_vtxDist2D);
     if (t->GetBranch("vtxDist2DErr"))  t->SetBranchAddress("vtxDist2DErr", &vtxDist2DErr, &b_vtxDist2DErr);
     if (t->GetBranch("vtxDist2DSig"))  t->SetBranchAddress("vtxDist2DSig", &vtxDist2DSig, &b_vtxDist2DSig);
@@ -247,39 +367,90 @@ void Tracks::setupTreeForReading(TTree *t)
     if (t->GetBranch("yVtxSim"))  t->SetBranchAddress("yVtxSim", &yVtxSim, &b_yVtxSim);
     if (t->GetBranch("zVtxSim"))  t->SetBranchAddress("zVtxSim", &zVtxSim, &b_zVtxSim);
 
-    if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &trkPt, &b_trkPt);
-    if (t->GetBranch("trkPtError"))  t->SetBranchAddress("trkPtError", &trkPtError, &b_trkPtError);
-    if (t->GetBranch("trkNHit"))  t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
-    if (t->GetBranch("trkNlayer"))  t->SetBranchAddress("trkNlayer", &trkNlayer, &b_trkNlayer);
-    if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &trkEta, &b_trkEta);
-    if (t->GetBranch("trkPhi"))  t->SetBranchAddress("trkPhi", &trkPhi, &b_trkPhi);
-    if (t->GetBranch("trkCharge"))  t->SetBranchAddress("trkCharge", &trkCharge, &b_trkCharge);
-    if (t->GetBranch("trkNVtx"))  t->SetBranchAddress("trkNVtx", &trkNVtx, &b_trkNVtx);
-    if (t->GetBranch("trkVtxIndex"))  t->SetBranchAddress("trkVtxIndex", &trkVtxIndex, &b_trkVtxIndex);
-    if (t->GetBranch("nTrkTimesnVtx"))  t->SetBranchAddress("nTrkTimesnVtx", &nTrkTimesnVtx, &b_nTrkTimesnVtx);
-    if (t->GetBranch("trkAssocVtx"))  t->SetBranchAddress("trkAssocVtx", &trkAssocVtx, &b_trkAssocVtx);
-    if (t->GetBranch("trkDxyOverDxyError"))  t->SetBranchAddress("trkDxyOverDxyError", &trkDxyOverDxyError, &b_trkDxyOverDxyError);
-    if (t->GetBranch("trkDzOverDzError"))  t->SetBranchAddress("trkDzOverDzError", &trkDzOverDzError, &b_trkDzOverDzError);
-    if (t->GetBranch("highPurity"))  t->SetBranchAddress("highPurity", &highPurity, &b_highPurity);
-    if (t->GetBranch("tight"))  t->SetBranchAddress("tight", &tight, &b_tight);
-    if (t->GetBranch("loose"))  t->SetBranchAddress("loose", &loose, &b_loose);
-    if (t->GetBranch("trkChi2"))  t->SetBranchAddress("trkChi2", &trkChi2, &b_trkChi2);
-    if (t->GetBranch("trkNdof"))  t->SetBranchAddress("trkNdof", &trkNdof, &b_trkNdof);
-    if (t->GetBranch("trkDxy1"))  t->SetBranchAddress("trkDxy1", &trkDxy1, &b_trkDxy1);
-    if (t->GetBranch("trkDxyError1"))  t->SetBranchAddress("trkDxyError1", &trkDxyError1, &b_trkDxyError1);
-    if (t->GetBranch("trkDz1"))  t->SetBranchAddress("trkDz1", &trkDz1, &b_trkDz1);
-    if (t->GetBranch("trkDzError1"))  t->SetBranchAddress("trkDzError1", &trkDzError1, &b_trkDzError1);
-    if (t->GetBranch("trkFake"))  t->SetBranchAddress("trkFake", &trkFake, &b_trkFake);
-    if (t->GetBranch("trkAlgo"))  t->SetBranchAddress("trkAlgo", &trkAlgo, &b_trkAlgo);
-    if (t->GetBranch("trkOriginalAlgo"))  t->SetBranchAddress("trkOriginalAlgo", &trkOriginalAlgo, &b_trkOriginalAlgo);
-    if (t->GetBranch("trkMVA"))  t->SetBranchAddress("trkMVA", &trkMVA, &b_trkMVA);
-    if (t->GetBranch("trkMVALoose"))  t->SetBranchAddress("trkMVALoose", &trkMVALoose, &b_trkMVALoose);
-    if (t->GetBranch("trkMVATight"))  t->SetBranchAddress("trkMVATight", &trkMVATight, &b_trkMVATight);
-    if (t->GetBranch("dedx"))  t->SetBranchAddress("dedx", &dedx, &b_dedx);
-    if (t->GetBranch("pfType"))  t->SetBranchAddress("pfType", &pfType, &b_pfType);
-    if (t->GetBranch("pfCandPt"))  t->SetBranchAddress("pfCandPt", &pfCandPt, &b_pfCandPt);
-    if (t->GetBranch("pfEcal"))  t->SetBranchAddress("pfEcal", &pfEcal, &b_pfEcal);
-    if (t->GetBranch("pfHcal"))  t->SetBranchAddress("pfHcal", &pfHcal, &b_pfHcal);
+    if (ismAOD) {
+        if (t->GetBranch("xVtx"))  t->SetBranchAddress("xVtx", &xVtx_v, &b_xVtx);
+        if (t->GetBranch("yVtx"))  t->SetBranchAddress("yVtx", &yVtx_v, &b_yVtx);
+        if (t->GetBranch("zVtx"))  t->SetBranchAddress("zVtx", &zVtx_v, &b_zVtx);
+        if (t->GetBranch("xErrVtx"))  t->SetBranchAddress("xErrVtx", &xErrVtx, &b_xVtxErr);
+        if (t->GetBranch("yErrVtx"))  t->SetBranchAddress("yErrVtx", &yErrVtx, &b_yVtxErr);
+        if (t->GetBranch("zErrVtx"))  t->SetBranchAddress("zErrVtx", &zErrVtx, &b_zVtxErr);
+        if (t->GetBranch("chi2Vtx"))  t->SetBranchAddress("chi2Vtx", &chi2Vtx, &b_chi2Vtx);
+        if (t->GetBranch("ndofVtx"))  t->SetBranchAddress("ndofVtx", &ndofVtx, &b_ndofVtx);
+        if (t->GetBranch("isFakeVtx"))  t->SetBranchAddress("isFakeVtx", &isFakeVtx, &b_isFakeVtx);
+        if (t->GetBranch("nTracksVtx"))  t->SetBranchAddress("nTracksVtx", &nTracksVtx, &b_nTracksVtx);
+        if (t->GetBranch("ptSumVtx"))  t->SetBranchAddress("ptSumVtx", &ptSumVtx, &b_ptSumVtx);
+
+        if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &trkPt_v, &b_trkPt);
+        if (t->GetBranch("trkPtError"))  t->SetBranchAddress("trkPtError", &trkPtError_v, &b_trkPtError);
+        if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &trkEta_v, &b_trkEta);
+        if (t->GetBranch("trkPhi"))  t->SetBranchAddress("trkPhi", &trkPhi_v, &b_trkPhi);
+        if (t->GetBranch("trkCharge"))  t->SetBranchAddress("trkCharge", &trkCharge_v, &b_trkCharge);
+        if (t->GetBranch("trkPDGId"))  t->SetBranchAddress("trkPDGId", &trkPDGId, &b_trkPDGId);
+        if (t->GetBranch("trkNHits"))  t->SetBranchAddress("trkNHits", &trkNHits, &b_trkNHits);
+        if (t->GetBranch("trkNPixHits"))  t->SetBranchAddress("trkNPixHits", &trkNPixHits, &b_trkNPixHits);
+        if (t->GetBranch("trkNLayers"))  t->SetBranchAddress("trkNLayers", &trkNLayers, &b_trkNLayers);
+        if (t->GetBranch("trkNormChi2"))  t->SetBranchAddress("trkNormChi2", &trkNormChi2, &b_trkNormChi2);
+        if (t->GetBranch("highPurity"))  t->SetBranchAddress("highPurity", &highPurity_v, &b_highPurity);
+        if (t->GetBranch("pfEnergy"))  t->SetBranchAddress("pfEnergy", &pfEnergy, &b_pfEnergy);
+        if (t->GetBranch("pfEcal"))  t->SetBranchAddress("pfEcal", &pfEcal_v, &b_pfEcal);
+        if (t->GetBranch("pfHcal"))  t->SetBranchAddress("pfHcal", &pfHcal_v, &b_pfHcal);
+        if (t->GetBranch("trkAssociatedVtxIndx"))  t->SetBranchAddress("trkAssociatedVtxIndx", &trkAssociatedVtxIndx, &b_trkAssociatedVtxIndx);
+        if (t->GetBranch("trkAssociatedVtxQuality"))  t->SetBranchAddress("trkAssociatedVtxQuality", &trkAssociatedVtxQuality, &b_trkAssociatedVtxQuality);
+        if (t->GetBranch("trkDzAssociatedVtx"))  t->SetBranchAddress("trkDzAssociatedVtx", &trkDzAssociatedVtx, &b_trkDzAssociatedVtx);
+        if (t->GetBranch("trkDzErrAssociatedVtx"))  t->SetBranchAddress("trkDzErrAssociatedVtx", &trkDzErrAssociatedVtx, &b_trkDzErrAssociatedVtx);
+        if (t->GetBranch("trkDxyAssociatedVtx"))  t->SetBranchAddress("trkDxyAssociatedVtx", &trkDxyAssociatedVtx, &b_trkDxyAssociatedVtx);
+        if (t->GetBranch("trkDxyErrAssociatedVtx"))  t->SetBranchAddress("trkDxyErrAssociatedVtx", &trkDxyErrAssociatedVtx, &b_trkDxyErrAssociatedVtx);
+        if (t->GetBranch("trkFirstVtxQuality"))  t->SetBranchAddress("trkFirstVtxQuality", &trkFirstVtxQuality, &b_trkFirstVtxQuality);
+        if (t->GetBranch("trkDzFirstVtx"))  t->SetBranchAddress("trkDzFirstVtx", &trkDzFirstVtx, &b_trkDzFirstVtx);
+        if (t->GetBranch("trkDzErrFirstVtx"))  t->SetBranchAddress("trkDzErrFirstVtx", &trkDzErrFirstVtx, &b_trkDzErrFirstVtx);
+        if (t->GetBranch("trkDxyFirstVtx"))  t->SetBranchAddress("trkDxyFirstVtx", &trkDxyFirstVtx, &b_trkDxyFirstVtx);
+        if (t->GetBranch("trkDxyErrFirstVtx"))  t->SetBranchAddress("trkDxyErrFirstVtx", &trkDxyErrFirstVtx, &b_trkDxyErrFirstVtx);
+    }
+    else {
+        if (t->GetBranch("nTrkVtx"))  t->SetBranchAddress("nTrkVtx", &nTrkVtx, &b_nTrkVtx);
+        if (t->GetBranch("normChi2Vtx"))  t->SetBranchAddress("normChi2Vtx", &normChi2Vtx, &b_normChi2Vtx);
+        if (t->GetBranch("sumPtVtx"))  t->SetBranchAddress("sumPtVtx", &sumPtVtx, &b_sumPtVtx);
+        if (t->GetBranch("xVtx"))  t->SetBranchAddress("xVtx", &xVtx, &b_xVtx);
+        if (t->GetBranch("yVtx"))  t->SetBranchAddress("yVtx", &yVtx, &b_yVtx);
+        if (t->GetBranch("zVtx"))  t->SetBranchAddress("zVtx", &zVtx, &b_zVtx);
+        if (t->GetBranch("xVtxErr"))  t->SetBranchAddress("xVtxErr", &xVtxErr, &b_xVtxErr);
+        if (t->GetBranch("yVtxErr"))  t->SetBranchAddress("yVtxErr", &yVtxErr, &b_yVtxErr);
+        if (t->GetBranch("zVtxErr"))  t->SetBranchAddress("zVtxErr", &zVtxErr, &b_zVtxErr);
+
+        if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &trkPt, &b_trkPt);
+        if (t->GetBranch("trkPtError"))  t->SetBranchAddress("trkPtError", &trkPtError, &b_trkPtError);
+        if (t->GetBranch("trkNHit"))  t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
+        if (t->GetBranch("trkNlayer"))  t->SetBranchAddress("trkNlayer", &trkNlayer, &b_trkNlayer);
+        if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &trkEta, &b_trkEta);
+        if (t->GetBranch("trkPhi"))  t->SetBranchAddress("trkPhi", &trkPhi, &b_trkPhi);
+        if (t->GetBranch("trkCharge"))  t->SetBranchAddress("trkCharge", &trkCharge, &b_trkCharge);
+        if (t->GetBranch("trkNVtx"))  t->SetBranchAddress("trkNVtx", &trkNVtx, &b_trkNVtx);
+        if (t->GetBranch("trkVtxIndex"))  t->SetBranchAddress("trkVtxIndex", &trkVtxIndex, &b_trkVtxIndex);
+        if (t->GetBranch("nTrkTimesnVtx"))  t->SetBranchAddress("nTrkTimesnVtx", &nTrkTimesnVtx, &b_nTrkTimesnVtx);
+        if (t->GetBranch("trkAssocVtx"))  t->SetBranchAddress("trkAssocVtx", &trkAssocVtx, &b_trkAssocVtx);
+        if (t->GetBranch("trkDxyOverDxyError"))  t->SetBranchAddress("trkDxyOverDxyError", &trkDxyOverDxyError, &b_trkDxyOverDxyError);
+        if (t->GetBranch("trkDzOverDzError"))  t->SetBranchAddress("trkDzOverDzError", &trkDzOverDzError, &b_trkDzOverDzError);
+        if (t->GetBranch("highPurity"))  t->SetBranchAddress("highPurity", &highPurity, &b_highPurity);
+        if (t->GetBranch("tight"))  t->SetBranchAddress("tight", &tight, &b_tight);
+        if (t->GetBranch("loose"))  t->SetBranchAddress("loose", &loose, &b_loose);
+        if (t->GetBranch("trkChi2"))  t->SetBranchAddress("trkChi2", &trkChi2, &b_trkChi2);
+        if (t->GetBranch("trkNdof"))  t->SetBranchAddress("trkNdof", &trkNdof, &b_trkNdof);
+        if (t->GetBranch("trkDxy1"))  t->SetBranchAddress("trkDxy1", &trkDxy1, &b_trkDxy1);
+        if (t->GetBranch("trkDxyError1"))  t->SetBranchAddress("trkDxyError1", &trkDxyError1, &b_trkDxyError1);
+        if (t->GetBranch("trkDz1"))  t->SetBranchAddress("trkDz1", &trkDz1, &b_trkDz1);
+        if (t->GetBranch("trkDzError1"))  t->SetBranchAddress("trkDzError1", &trkDzError1, &b_trkDzError1);
+        if (t->GetBranch("trkFake"))  t->SetBranchAddress("trkFake", &trkFake, &b_trkFake);
+        if (t->GetBranch("trkAlgo"))  t->SetBranchAddress("trkAlgo", &trkAlgo, &b_trkAlgo);
+        if (t->GetBranch("trkOriginalAlgo"))  t->SetBranchAddress("trkOriginalAlgo", &trkOriginalAlgo, &b_trkOriginalAlgo);
+        if (t->GetBranch("trkMVA"))  t->SetBranchAddress("trkMVA", &trkMVA, &b_trkMVA);
+        if (t->GetBranch("trkMVALoose"))  t->SetBranchAddress("trkMVALoose", &trkMVALoose, &b_trkMVALoose);
+        if (t->GetBranch("trkMVATight"))  t->SetBranchAddress("trkMVATight", &trkMVATight, &b_trkMVATight);
+        if (t->GetBranch("dedx"))  t->SetBranchAddress("dedx", &dedx, &b_dedx);
+        if (t->GetBranch("pfType"))  t->SetBranchAddress("pfType", &pfType, &b_pfType);
+        if (t->GetBranch("pfCandPt"))  t->SetBranchAddress("pfCandPt", &pfCandPt, &b_pfCandPt);
+        if (t->GetBranch("pfEcal"))  t->SetBranchAddress("pfEcal", &pfEcal, &b_pfEcal);
+        if (t->GetBranch("pfHcal"))  t->SetBranchAddress("pfHcal", &pfHcal, &b_pfHcal);
+    }
 }
 
 void Tracks::setupTreeForWriting(TTree *t)
