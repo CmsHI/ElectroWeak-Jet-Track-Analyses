@@ -98,13 +98,13 @@ void addBinErrors(TH1* h, TH1* hError);
 void sysDiff2sysRel(TH1D* hNom, TH1D* hSys);
 void sysRel2sysDiff(TH1D* hNom, TH1D* hSys);
 void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth = -1, double binWidthScale = 1);
-void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth = -1, double binWidthScale = 1, double xMin = 0, double xMax = -1);
 void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, bool isSysMinus, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBoxDown(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
 void setSysUncBoxUp(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1, double xMin = 0, double xMax = -1);
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc = false, double binWidth = -1, double binWidthScale = 1, double xMin = 0, double xMax = -1);
 // plotting
 void drawSameTH1D(TCanvas* c, std::vector<TH1D*> vecTH1D);
 void drawSameTH1D(TPad* pad, std::vector<TH1D*> vecTH1D);
@@ -1460,13 +1460,17 @@ void setSysUncBox(TBox* box, TH1* h, TH1* hSys, int bin, double binWidth, double
    box->SetY2(errorUp);
 }
 
-void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWidthScale)
+void drawSysUncBoxes(TBox* box, TH1* h, TH1* hSys, double binWidth, double binWidthScale, double xMin, double xMax)
 {
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i) {
         if (h->GetBinError(i) == 0) continue;
         if (h->GetBinContent(i) < h->GetMinimum()) continue;
         if (h->GetBinContent(i) > h->GetMaximum()) continue;
+        if (xMin < xMax) {
+            if (h->GetXaxis()->GetBinLowEdge(i+1) <= xMin) continue;
+            if (h->GetXaxis()->GetBinLowEdge(i) >= xMax) continue;
+        }
 
         setSysUncBox(box, h, hSys, i, binWidth, binWidthScale);
         box->DrawClone();
@@ -1490,6 +1494,10 @@ void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double 
 
    double errorLow = val - error;
    double errorUp = val + error;
+   if (val < 0) {
+       errorLow = val + error;
+       errorUp = val - error;
+   }
    if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
    if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
 
@@ -1545,26 +1553,34 @@ void setSysUncBoxDown(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, dou
  * show up in ".png" files. Hence, use this version of the function to produce transparent boxes in ".png" files
  * if doRelUnc == true, then draw SysUnc. boxes using relative values, otherwise draw it using absolute values
  */
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale)
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSys, bool doRelUnc, double binWidth, double binWidthScale, double xMin, double xMax)
 {
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i) {
         if (h->GetBinError(i) == 0) continue;
         if (h->GetBinContent(i) < h->GetMinimum()) continue;
         if (h->GetBinContent(i) > h->GetMaximum()) continue;
+        if (xMin < xMax) {
+            if (h->GetXaxis()->GetBinLowEdge(i+1) <= xMin) continue;
+            if (h->GetXaxis()->GetBinLowEdge(i) >= xMax) continue;
+        }
 
         setSysUncBox(gr, h, hSys, i, doRelUnc, binWidth, binWidthScale);
         gr->DrawClone("f");
     }
 }
 
-void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc, double binWidth, double binWidthScale)
+void drawSysUncBoxes(TGraph* gr, TH1* h, TH1* hSysDown, TH1* hSysUp, bool doRelUnc, double binWidth, double binWidthScale, double xMin, double xMax)
 {
     int nBins = h->GetNbinsX();
     for (int i = 1; i <= nBins; ++i) {
         if (h->GetBinError(i) == 0) continue;
         if (h->GetBinContent(i) < h->GetMinimum()) continue;
         if (h->GetBinContent(i) > h->GetMaximum()) continue;
+        if (xMin < xMax) {
+            if (h->GetXaxis()->GetBinLowEdge(i+1) <= xMin) continue;
+            if (h->GetXaxis()->GetBinLowEdge(i) >= xMax) continue;
+        }
 
         setSysUncBox(gr, h, hSysDown, true, i, doRelUnc, binWidth, binWidthScale);
         setSysUncBox(gr, h, hSysUp, false, i, doRelUnc, binWidth, binWidthScale);
