@@ -734,7 +734,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             pVtx.SetY(trks.yVtx[0]);
                             pVtx.SetZ(trks.zVtx[0]);
                         }
-                        const int modeFP = egUtil::footprintMode::matchKin;
+                        const int modeFP = egUtil::footprintMode::matchKey;
                         if (calcPFIso) {
                             ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx);
                             ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx);
