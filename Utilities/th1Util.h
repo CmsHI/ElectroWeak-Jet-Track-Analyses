@@ -1494,10 +1494,6 @@ void setSysUncBox(TGraph* gr, TH1* h, TH1* hSys, int bin, bool doRelUnc, double 
 
    double errorLow = val - error;
    double errorUp = val + error;
-   if (val < 0) {
-       errorLow = val + error;
-       errorUp = val - error;
-   }
    if (errorLow < h->GetMinimum())  errorLow = h->GetMinimum();
    if (errorUp  > h->GetMaximum())  errorUp = h->GetMaximum();
 
