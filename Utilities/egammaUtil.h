@@ -38,20 +38,31 @@ struct basicPFCand {
     float phi;
 };
 
+namespace egUtil {
+
+  enum footprintMode {
+      noRemoval=0,  // do not remove PF footprint
+      matchKey=1,     // remove PF footprint by matching keys of candidates
+      matchKin=2,     // remove PF footprint by matching kinematics of candidates
+  };
+
+  const float limit_match_kin = 0.00001;
+}
+
 double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
 double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, bool excludeCone = true, int colType = -1);
 double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
 double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, bool excludeCone = true, int colType = -1);
 
 double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                bool removeFootPrint = true, const TVector3& vtxPos = TVector3(0,0,-999));
+                int footprintOpt = egUtil::matchKey, const TVector3& vtxPos = TVector3(0,0,-999));
 double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                     bool removeFootPrint = true, const TVector3& vtxPos = TVector3(0,0,-999),
+                     int footprintOpt = egUtil::matchKey, const TVector3& vtxPos = TVector3(0,0,-999),
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                std::vector<basicPFCand> linkPFs = {}, const TVector3& vtxPos = TVector3(0,0,-999));
+                std::vector<basicPFCand> linkPFs = {}, int footprintOpt = egUtil::matchKey, const TVector3& vtxPos = TVector3(0,0,-999));
 double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0,
-                     std::vector<basicPFCand> linkPFs = {}, const TVector3& vtxPos = TVector3(0,0,-999),
+                     std::vector<basicPFCand> linkPFs = {}, int footprintOpt = egUtil::matchKey, const TVector3& vtxPos = TVector3(0,0,-999),
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
@@ -168,22 +179,22 @@ double getTrkIsoSubUE(Tracks& trks, double egEta, double egPhi, double r1, doubl
     return coneEt - ueEt * (areaCone / ueArea);
 }
 
-double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint, const TVector3& vtxPos)
+double getPFIso(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, int footprintOpt, const TVector3& vtxPos)
 {
-    std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
+    std::vector<basicPFCand> linkPFs = (footprintOpt != egUtil::noRemoval) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos);
+    return getPFIso(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, footprintOpt, vtxPos);
 }
 
-double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, bool removeFootPrint, const TVector3& vtxPos,
+double getPFIsoSubUE(pfCand& pfs, ggHiNtuplizer& ggHi, int iEG, int pfId, double r1, double r2, double threshold, double jWidth, int footprintOpt, const TVector3& vtxPos,
                      double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
-    std::vector<basicPFCand> linkPFs = (removeFootPrint) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
+    std::vector<basicPFCand> linkPFs = (footprintOpt != egUtil::noRemoval) ? getLinkedPFCands(ggHi, iEG) : std::vector<basicPFCand>();
 
-    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos, vn_2, angEPv2, vn_3, angEPv3);
+    return getPFIsoSubUE(pfs, (*ggHi.phoEta)[iEG], (*ggHi.phoPhi)[iEG], pfId, r1, r2, threshold, jWidth, linkPFs, footprintOpt, vtxPos, vn_2, angEPv2, vn_3, angEPv3);
 }
 
-double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, const TVector3& vtxPos)
+double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, int footprintOpt, const TVector3& vtxPos)
 {
     double totalEt = 0;
 
@@ -216,8 +227,14 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
             if (std::abs(dxy) > 0.1) continue;
         }
 
-        //int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
-        int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
+        int iLinkPF = -1;
+        if (footprintOpt == egUtil::matchKey) {
+            iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
+        }
+        else if (footprintOpt == egUtil::matchKin) {
+            iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        }
+
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
             continue;
@@ -240,7 +257,7 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
     return totalEt;
 }
 
-double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, const TVector3& vtxPos,
+double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, double r2, double threshold, double jWidth, std::vector<basicPFCand> linkPFs, int footprintOpt, const TVector3& vtxPos,
                      double vn_2, double angEPv2, double vn_3, double angEPv3)
 {
     double totalEt = 0;
@@ -276,8 +293,13 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
             if (std::abs(dxy) > 0.1) continue;
         }
 
-        //int iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
-        int iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
+        int iLinkPF = -1;
+        if (footprintOpt == egUtil::matchKey) {
+            iLinkPF = isLinkedPFcand(linkPFs, (*pfs.pfKey)[i]);
+        }
+        else if (footprintOpt == egUtil::matchKin) {
+            iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        }
         if (iLinkPF >= 0) {
             linkPFs.erase(linkPFs.begin() + iLinkPF);
             continue;
@@ -323,7 +345,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
     areaCone -= areaInnerCone;
 
     double ueEt = totalEt;
-    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs, vtxPos);
+    double coneEt = getPFIso(pfs, egEta, egPhi, pfId, r1, r2, threshold, jWidth, linkPFs, footprintOpt, vtxPos);
 
     double termSub = 0;
     double flowSF = 1 + 2 * vn_2 * std::cos( 2 * getDPHI(egPhi, angEPv2) ) + 2 * vn_3 * std::cos( 3 * getDPHI(egPhi, angEPv3) );
@@ -378,9 +400,9 @@ int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key)
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2)
 {
     if (id1 != id2) return false;
-    if ( TMath::Abs(pt1-pt2) / pt1 > 0.0001 ) return false;
-    if ( TMath::Abs((eta1-eta2)/eta1) > 0.0001 ) return false;
-    if ( TMath::Abs(getDPHI(phi1, phi2)/phi1) > 0.0001 ) return false;
+    if ( std::abs(pt1-pt2) / pt1 > egUtil::limit_match_kin ) return false;
+    if ( std::abs((eta1-eta2)/eta1) > egUtil::limit_match_kin ) return false;
+    if ( std::abs(getDPHI(phi1, phi2)/phi1) > egUtil::limit_match_kin ) return false;
 
     return true;
 }
