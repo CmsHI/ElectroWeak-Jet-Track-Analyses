@@ -475,8 +475,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.weight = hiEvt.weight;
                 ggHiOut.hiBin = hiEvt.hiBin;
                 ggHiOut.hiHF = hiEvt.hiHF;
-                ggHiOut.hiEvtPlaneHF2 = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
-                ggHiOut.hiEvtPlaneHF3 = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
+                ggHiOut.hiEPHF1 = hiEvt.hiEvtPlanes[(int)(HiEP::HF1)];
+                ggHiOut.hiEPHF2 = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
+                ggHiOut.hiEPHF3 = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
+                ggHiOut.hiEPHF4 = hiEvt.hiEvtPlanes[(int)(HiEP::HF4)];
                 if (isMC) {
                     ggHiOut.phi0 = hiEvt.phi0;
                     ggHiOut.pthat = hiEvt.pthat;
@@ -597,9 +599,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     double initN0 = h1D_phi->Integral() / nBinsX;
                     f1_phi_vn3->SetParameter(0, initN0); // N0
                     f1_phi_vn3->SetParameter(1, 0); // v2
-                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEvtPlaneHF2)); // set to 2nd event plane angle
+                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEPHF2)); // set to 2nd event plane angle
                     f1_phi_vn3->SetParameter(3, 0); // v3
-                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEvtPlaneHF3)); // set to 3rd event plane angle
+                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEPHF3)); // set to 3rd event plane angle
                     h1D_phi->Fit(f1_phi_vn3, "Q M R N");
 
                     ggHiOut.fit_chi2 = f1_phi_vn3->GetChisquare();
@@ -675,9 +677,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     double initN0 = h1D_phi->Integral() / nBinsX;
                     f1_phi_vn3->SetParameter(0, initN0); // N0
                     f1_phi_vn3->SetParameter(1, 0); // v2
-                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEvtPlaneHF2)); // set to 2nd event plane angle
+                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEPHF2)); // set to 2nd event plane angle
                     f1_phi_vn3->SetParameter(3, 0); // v3
-                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEvtPlaneHF3)); // set to 3rd event plane angle
+                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEPHF3)); // set to 3rd event plane angle
                     h1D_phi->Fit(f1_phi_vn3, "Q M R N");
 
                     ggHiOut.fit_trkphi_chi2 = f1_phi_vn3->GetChisquare();
@@ -741,7 +743,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         }
                         if (calcIsoFlow) {
                             double vn_2 = ggHiOut.fit_v2;
-                            double angEPv2 = (fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEvtPlaneHF2;
+                            double angEPv2 = (fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEPHF2;
 
                             double only_vn_2 = ggHiOut.phi_fit_v2;
 
@@ -751,7 +753,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, removeFP, pVtx, only_vn_2, angEPv2);
 
                             double vn_3 = ggHiOut.fit_v3;
-                            double angEPv3 = (fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEvtPlaneHF3;
+                            double angEPv3 = (fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEPHF3;
 
                             ggHiOut.pfpIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             ggHiOut.pfnIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
@@ -767,8 +769,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                             vn_2 = ggHiOut.fit_trkphi_v2;
                             vn_3 = ggHiOut.fit_trkphi_v3;
-                            angEPv2 = (fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEvtPlaneHF2;
-                            angEPv3 = (fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEvtPlaneHF3;
+                            angEPv2 = (fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEPHF2;
+                            angEPv3 = (fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEPHF3;
                             ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, removeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);

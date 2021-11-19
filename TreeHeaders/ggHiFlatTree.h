@@ -55,8 +55,10 @@ public :
   float pthat;
   int hiBin;
   float hiHF;
-  float hiEvtPlaneHF2;   // the event plane with index 2 https://github.com/cms-sw/cmssw/blob/master/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h
-  float hiEvtPlaneHF3;   // the event plane with index 8
+  float hiEPHF1;
+  float hiEPHF2;   // 2nd order HF event plane https://github.com/CmsHI/cmssw/blob/48abfe59b0007693a8fa385abe45064a34abdcca/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h#L13
+  float hiEPHF3;   // 3rd order HF event plane
+  float hiEPHF4;
 
   // event plane angle calculated using charged PF cands
   float angEP2pf;
@@ -465,8 +467,10 @@ public :
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
-  TBranch        *b_hiEvtPlaneHF2;   //!
-  TBranch        *b_hiEvtPlaneHF3;   //!
+  TBranch        *b_hiEPHF1;   //!
+  TBranch        *b_hiEPHF2;   //!
+  TBranch        *b_hiEPHF3;   //!
+  TBranch        *b_hiEPHF4;   //!
 
   TBranch        *b_angEP2pf;   //!
   TBranch        *b_angEP3pf;   //!
@@ -865,8 +869,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pthat = 0;
     b_hiBin = 0;
     b_hiHF = 0;
-    b_hiEvtPlaneHF2 = 0;
-    b_hiEvtPlaneHF3 = 0;
+    b_hiEPHF1 = 0;
+    b_hiEPHF2 = 0;
+    b_hiEPHF3 = 0;
+    b_hiEPHF4 = 0;
 
     b_angEP2pf = 0;
     b_angEP3pf = 0;
@@ -1264,8 +1270,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
-    if (t->GetBranch("hiEvtPlaneHF2")) t->SetBranchAddress("hiEvtPlaneHF2", &hiEvtPlaneHF2, &b_hiEvtPlaneHF2);
-    if (t->GetBranch("hiEvtPlaneHF3")) t->SetBranchAddress("hiEvtPlaneHF3", &hiEvtPlaneHF3, &b_hiEvtPlaneHF3);
+    if (t->GetBranch("hiEPHF1")) t->SetBranchAddress("hiEPHF1", &hiEPHF1, &b_hiEPHF1);
+    if (t->GetBranch("hiEPHF2")) t->SetBranchAddress("hiEPHF2", &hiEPHF2, &b_hiEPHF2);
+    if (t->GetBranch("hiEPHF3")) t->SetBranchAddress("hiEPHF3", &hiEPHF3, &b_hiEPHF3);
+    if (t->GetBranch("hiEPHF4")) t->SetBranchAddress("hiEPHF4", &hiEPHF4, &b_hiEPHF4);
 
     if (t->GetBranch("angEP2pf")) t->SetBranchAddress("angEP2pf", &angEP2pf, &b_angEP2pf);
     if (t->GetBranch("angEP3pf")) t->SetBranchAddress("angEP3pf", &angEP3pf, &b_angEP3pf);
@@ -1664,8 +1672,10 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
-    t->Branch("hiEvtPlaneHF2", &hiEvtPlaneHF2);
-    t->Branch("hiEvtPlaneHF3", &hiEvtPlaneHF3);
+    t->Branch("hiEPHF1", &hiEPHF1);
+    t->Branch("hiEPHF2", &hiEPHF2);
+    t->Branch("hiEPHF3", &hiEPHF3);
+    t->Branch("hiEPHF4", &hiEPHF4);
 
     t->Branch("angEP2pf", &angEP2pf);
     t->Branch("angEP3pf", &angEP3pf);
@@ -2071,8 +2081,10 @@ void ggHiFlat::clearEntry()
     pthat = -1;
     hiBin = -1;
     hiHF = -1;
-    hiEvtPlaneHF2 = -987987;
-    hiEvtPlaneHF3 = -987987;
+    hiEPHF1 = -987987;
+    hiEPHF2 = -987987;
+    hiEPHF3 = -987987;
+    hiEPHF4 = -987987;
 
     angEP2pf = -987987;
     angEP3pf = -987987;
@@ -2876,8 +2888,10 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pthat = gg.pthat;
     hiBin = gg.hiBin;
     hiHF = gg.hiHF;
-    hiEvtPlaneHF2 = gg.hiEvtPlaneHF2;
-    hiEvtPlaneHF3 = gg.hiEvtPlaneHF3;
+    hiEPHF1 = gg.hiEPHF1;
+    hiEPHF2 = gg.hiEPHF2;
+    hiEPHF3 = gg.hiEPHF3;
+    hiEPHF4 = gg.hiEPHF4;
 
     angEP2pf = gg.angEP2pf;
     angEP3pf = gg.angEP3pf;
