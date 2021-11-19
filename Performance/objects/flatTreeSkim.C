@@ -475,8 +475,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.weight = hiEvt.weight;
                 ggHiOut.hiBin = hiEvt.hiBin;
                 ggHiOut.hiHF = hiEvt.hiHF;
-                ggHiOut.hiEvtPlaneHF2 = hiEvt.hiEvtPlanes[2];
-                ggHiOut.hiEvtPlaneHF3 = hiEvt.hiEvtPlanes[8];
+                ggHiOut.hiEvtPlaneHF2 = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
+                ggHiOut.hiEvtPlaneHF3 = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
                 if (isMC) {
                     ggHiOut.phi0 = hiEvt.phi0;
                     ggHiOut.pthat = hiEvt.pthat;
