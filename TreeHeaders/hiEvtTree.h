@@ -6,6 +6,23 @@
 
 #include <vector>
 
+namespace HiEP{
+
+enum evtPlaneInd {
+    /*
+     * Indices for event planes reconstructed in forest
+     * https://github.com/CmsHI/cmssw/blob/48abfe59b0007693a8fa385abe45064a34abdcca/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h#L5-L34
+     *
+     * NOTE !! These (forest) indices are different than defined in master cmssw : https://github.com/cms-sw/cmssw/blob/4102974e760db0f758efcb696b2d3e5c10d52058/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h#L5-L16
+     *
+     */
+    HF1 = 2,
+    HF2 = 8,
+    HF3 = 15,
+    HF4 = 21
+};
+}
+
 class hiEvt {
 public :
     hiEvt(){
