@@ -29,11 +29,17 @@ public :
         trkNHit = 0;
         trkChi2 = 0;
         trkNdof = 0;
+        trkNlayer = 0;
+        highPurity = 0;
+        trkMVA = 0;
+        trkDz1 = 0;
+        trkDzError1 = 0;
+        trkDxy1 = 0;
+        trkDxyError1 = 0;
     };
     ~pfCand(){};
     void setupTreeForReading(TTree *t);
 
-    // Declaration of leaf types
     // Declaration of leaf types
     int           nPFpart;
     std::vector<unsigned long> *pfKey;
@@ -50,11 +56,18 @@ public :
     std::vector<float>   *pfEcalEraw;
     std::vector<float>   *pfHcalE;
     std::vector<float>   *pfHcalEraw;
-    std::vector<int>     *trkAlgo;
+    std::vector<unsigned char> *trkAlgo;
     std::vector<float>   *trkPtError;
-    std::vector<float>   *trkNHit;
+    std::vector<unsigned char> *trkNHit;
     std::vector<float>   *trkChi2;
-    std::vector<float>   *trkNdof;
+    std::vector<unsigned char> *trkNdof;
+    std::vector<unsigned char> *trkNlayer;
+    std::vector<bool> *highPurity;
+    std::vector<float> *trkMVA;
+    std::vector<float> *trkDz1;
+    std::vector<float> *trkDzError1;
+    std::vector<float> *trkDxy1;
+    std::vector<float> *trkDxyError1;
 
     // List of branches
     TBranch        *b_nPFpart;   //!
@@ -77,6 +90,13 @@ public :
     TBranch        *b_trkNHit;   //!
     TBranch        *b_trkChi2;   //!
     TBranch        *b_trkNdof;   //!
+    TBranch        *b_trkNlayer;   //!
+    TBranch        *b_highPurity;   //!
+    TBranch        *b_trkMVA;   //!
+    TBranch        *b_trkDz1;   //!
+    TBranch        *b_trkDzError1;   //!
+    TBranch        *b_trkDxy1;   //!
+    TBranch        *b_trkDxyError1;   //!
 };
 
 void pfCand::setupTreeForReading(TTree *t)
@@ -101,6 +121,13 @@ void pfCand::setupTreeForReading(TTree *t)
     b_trkNHit = 0;
     b_trkChi2 = 0;
     b_trkNdof = 0;
+    b_trkNlayer = 0;
+    b_highPurity = 0;
+    b_trkMVA = 0;
+    b_trkDz1 = 0;
+    b_trkDzError1 = 0;
+    b_trkDxy1 = 0;
+    b_trkDxyError1 = 0;
 
     // Set branch addresses and branch pointers
     if (t->GetBranch("nPFpart"))  t->SetBranchAddress("nPFpart", &nPFpart, &b_nPFpart);
@@ -123,6 +150,15 @@ void pfCand::setupTreeForReading(TTree *t)
     if (t->GetBranch("trkNHit"))  t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
     if (t->GetBranch("trkChi2"))  t->SetBranchAddress("trkChi2", &trkChi2, &b_trkChi2);
     if (t->GetBranch("trkNdof"))  t->SetBranchAddress("trkNdof", &trkNdof, &b_trkNdof);
+    if (t->GetBranch("trkNlayer"))  t->SetBranchAddress("trkNlayer", &trkNlayer, &b_trkNlayer);
+    if (t->GetBranch("highPurity"))  t->SetBranchAddress("highPurity", &highPurity, &b_highPurity);
+
+    if (t->GetBranch("trkMVA"))  t->SetBranchAddress("trkMVA", &trkMVA, &b_trkMVA);
+
+    if (t->GetBranch("trkDz1"))  t->SetBranchAddress("trkDz1", &trkDz1, &b_trkDz1);
+    if (t->GetBranch("trkDzError1"))  t->SetBranchAddress("trkDzError1", &trkDzError1, &b_trkDzError1);
+    if (t->GetBranch("trkDxy1"))  t->SetBranchAddress("trkDxy1", &trkDxy1, &b_trkDxy1);
+    if (t->GetBranch("trkDxyError1"))  t->SetBranchAddress("trkDxyError1", &trkDxyError1, &b_trkDxyError1);
 }
 
 #endif
