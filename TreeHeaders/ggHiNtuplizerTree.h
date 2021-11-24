@@ -12,6 +12,8 @@
 class ggHiNtuplizer {
 public :
   ggHiNtuplizer() {
+    angEP2pf = 0;
+    angEP3pf = 0;
     nPU = 0;
     puBX = 0;
     puTrue = 0;
@@ -352,6 +354,8 @@ public :
   Float_t         phi_fit_chi2;
   Float_t         phi_fit_chi2prob;
   Float_t         phi_fit_v2;
+  std::vector<float>   *angEP2pf;
+  std::vector<float>   *angEP3pf;
   Int_t           nPUInfo;
   std::vector<int>     *nPU;
   std::vector<int>     *puBX;
@@ -685,6 +689,8 @@ public :
   TBranch        *b_phi_fit_chi2;   //!
   TBranch        *b_phi_fit_chi2prob;   //!
   TBranch        *b_phi_fit_v2;   //!
+  TBranch        *b_angEP2pf;   //!
+  TBranch        *b_angEP3pf;   //!
   TBranch        *b_nPUInfo;   //!
   TBranch        *b_nPU;   //!
   TBranch        *b_puBX;   //!
@@ -1018,6 +1024,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     b_phi_fit_chi2 = 0;
     b_phi_fit_chi2prob = 0;
     b_phi_fit_v2 = 0;
+    b_angEP2pf = 0;
+    b_angEP3pf = 0;
     b_nPUInfo = 0;
     b_nPU = 0;
     b_puBX = 0;
@@ -1349,6 +1357,8 @@ void ggHiNtuplizer::setupTreeForReading(TTree *t)
     if (t->GetBranch("phi_fit_chi2")) t->SetBranchAddress("phi_fit_chi2", &phi_fit_chi2, &b_phi_fit_chi2);
     if (t->GetBranch("phi_fit_chi2prob")) t->SetBranchAddress("phi_fit_chi2prob", &phi_fit_chi2prob, &b_phi_fit_chi2prob);
     if (t->GetBranch("phi_fit_v2")) t->SetBranchAddress("phi_fit_v2", &phi_fit_v2, &b_phi_fit_v2);
+    if (t->GetBranch("angEP2pf")) t->SetBranchAddress("angEP2pf", &angEP2pf, &b_angEP2pf);
+    if (t->GetBranch("angEP3pf")) t->SetBranchAddress("angEP3pf", &angEP3pf, &b_angEP3pf);
     if (t->GetBranch("nPUInfo")) t->SetBranchAddress("nPUInfo", &nPUInfo, &b_nPUInfo);
     if (t->GetBranch("nPU")) t->SetBranchAddress("nPU", &nPU, &b_nPU);
     if (t->GetBranch("puBX")) t->SetBranchAddress("puBX", &puBX, &b_puBX);
