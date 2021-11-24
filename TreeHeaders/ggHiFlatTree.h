@@ -12,8 +12,24 @@ class ggHiFlat {
 public :
   ggHiFlat() {
 
+      angEP2pf = 0;
+      angEP3pf = 0;
+
       partphi_binContents = 0;
       trkphi_binContents = 0;
+
+      fMods_th1_yMin = 0;
+      fMods_angEP2 = 0;
+      fMods_angEP3 = 0;
+      fMods_v2 = 0;
+      fMods_v3 = 0;
+      fMods_chi2 = 0;
+      fMods_chi2prob = 0;
+
+      pfpIso3subUEfMods = 0;
+      pfnIso3subUEfMods = 0;
+      pfcIso3subUEfMods = 0;
+      pfcIso3pTgt2p0subUEfMods = 0;
 
       doEle = false;
       doPho = false;
@@ -55,14 +71,16 @@ public :
   float pthat;
   int hiBin;
   float hiHF;
-  float hiEPHF1;
-  float hiEPHF2;   // 2nd order HF event plane https://github.com/CmsHI/cmssw/blob/48abfe59b0007693a8fa385abe45064a34abdcca/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h#L13
-  float hiEPHF3;   // 3rd order HF event plane
-  float hiEPHF4;
+  float hiEP1HF;
+  float hiEP2HF;   // 2nd order HF event plane https://github.com/CmsHI/cmssw/blob/48abfe59b0007693a8fa385abe45064a34abdcca/RecoHI/HiEvtPlaneAlgos/interface/HiEvtPlaneList.h#L13
+  float hiEP3HF;   // 3rd order HF event plane
+  float hiEP4HF;
 
   // event plane angle calculated using charged PF cands
-  float angEP2pf;
-  float angEP3pf;
+  std::vector<float> *angEP2pf;
+  std::vector<float> angEP2pf_out;
+  std::vector<float> *angEP3pf;
+  std::vector<float> angEP3pf_out;
 
   // event plane angle calculated using tracks
   float angEP2trk;
@@ -378,6 +396,33 @@ public :
   float pho_trkIso3IDpTgt2p0;
   float pho_trkIso3IDpTgt2p0subUE;
 
+  // different definitions for flow modulation, each definition is one element in vector
+  std::vector<float> *fMods_th1_yMin;
+  std::vector<float> *fMods_angEP2;
+  std::vector<float> *fMods_angEP3;
+  std::vector<float> *fMods_v2;
+  std::vector<float> *fMods_v3;
+  std::vector<float> *fMods_chi2;
+  std::vector<float> *fMods_chi2prob;
+
+  std::vector<float> fMods_th1_yMin_out;
+  std::vector<float> fMods_angEP2_out;
+  std::vector<float> fMods_angEP3_out;
+  std::vector<float> fMods_v2_out;
+  std::vector<float> fMods_v3_out;
+  std::vector<float> fMods_chi2_out;
+  std::vector<float> fMods_chi2prob_out;
+
+  std::vector<float> *pfpIso3subUEfMods;
+  std::vector<float> *pfnIso3subUEfMods;
+  std::vector<float> *pfcIso3subUEfMods;
+  std::vector<float> *pfcIso3pTgt2p0subUEfMods;
+
+  std::vector<float> pfpIso3subUEfMods_out;
+  std::vector<float> pfnIso3subUEfMods_out;
+  std::vector<float> pfcIso3subUEfMods_out;
+  std::vector<float> pfcIso3pTgt2p0subUEfMods_out;
+
   float pfpIso3subUEcalc;
   float pfnIso3subUEcalc;
   float pfcIso3pTgt2p0subUEcalc;
@@ -388,11 +433,6 @@ public :
   float pfnIso3subUEvn2;
   float pfcIso3pTgt2p0subUEvn2;
   float pfcIso3subUEvn2;
-  // modulated via vn3 fit
-  float pfpIso3subUEvn3;
-  float pfnIso3subUEvn3;
-  float pfcIso3pTgt2p0subUEvn3;
-  float pfcIso3subUEvn3;
 
   // fit after reading event plane from "phi0"
   float pfpIso3subUEphi0vn2;
@@ -467,10 +507,10 @@ public :
   TBranch        *b_pthat;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
-  TBranch        *b_hiEPHF1;   //!
-  TBranch        *b_hiEPHF2;   //!
-  TBranch        *b_hiEPHF3;   //!
-  TBranch        *b_hiEPHF4;   //!
+  TBranch        *b_hiEP1HF;   //!
+  TBranch        *b_hiEP2HF;   //!
+  TBranch        *b_hiEP3HF;   //!
+  TBranch        *b_hiEP4HF;   //!
 
   TBranch        *b_angEP2pf;   //!
   TBranch        *b_angEP3pf;   //!
@@ -785,6 +825,19 @@ public :
   TBranch        *b_pho_trkIso3IDpTgt2p0;   //!
   TBranch        *b_pho_trkIso3IDpTgt2p0subUE;   //!
 
+  TBranch        *b_fMods_th1_yMin;   //!
+  TBranch        *b_fMods_angEP2;   //!
+  TBranch        *b_fMods_angEP3;   //!
+  TBranch        *b_fMods_v2;   //!
+  TBranch        *b_fMods_v3;   //!
+  TBranch        *b_fMods_chi2;   //!
+  TBranch        *b_fMods_chi2prob;   //!
+
+  TBranch        *b_pfpIso3subUEfMods;   //!
+  TBranch        *b_pfnIso3subUEfMods;   //!
+  TBranch        *b_pfcIso3subUEfMods;   //!
+  TBranch        *b_pfcIso3pTgt2p0subUEfMods;   //!
+
   TBranch        *b_pfpIso3subUEcalc;   //!
   TBranch        *b_pfnIso3subUEcalc;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEcalc;   //!
@@ -794,10 +847,6 @@ public :
   TBranch        *b_pfnIso3subUEvn2;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEvn2;   //!
   TBranch        *b_pfcIso3subUEvn2;   //!
-  TBranch        *b_pfpIso3subUEvn3;   //!
-  TBranch        *b_pfnIso3subUEvn3;   //!
-  TBranch        *b_pfcIso3pTgt2p0subUEvn3;   //!
-  TBranch        *b_pfcIso3subUEvn3;   //!
 
   TBranch        *b_pfpIso3subUEphi0vn2;   //!
   TBranch        *b_pfnIso3subUEphi0vn2;   //!
@@ -869,10 +918,10 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pthat = 0;
     b_hiBin = 0;
     b_hiHF = 0;
-    b_hiEPHF1 = 0;
-    b_hiEPHF2 = 0;
-    b_hiEPHF3 = 0;
-    b_hiEPHF4 = 0;
+    b_hiEP1HF = 0;
+    b_hiEP2HF = 0;
+    b_hiEP3HF = 0;
+    b_hiEP4HF = 0;
 
     b_angEP2pf = 0;
     b_angEP3pf = 0;
@@ -1188,6 +1237,19 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pho_trkIso3IDpTgt2p0 = 0;
     b_pho_trkIso3IDpTgt2p0subUE = 0;
 
+    b_fMods_th1_yMin = 0;
+    b_fMods_angEP2 = 0;
+    b_fMods_angEP3 = 0;
+    b_fMods_v2 = 0;
+    b_fMods_v3 = 0;
+    b_fMods_chi2 = 0;
+    b_fMods_chi2prob = 0;
+
+    b_pfpIso3subUEfMods = 0;
+    b_pfnIso3subUEfMods = 0;
+    b_pfcIso3subUEfMods = 0;
+    b_pfcIso3pTgt2p0subUEfMods = 0;
+
     b_pfpIso3subUEcalc = 0;
     b_pfnIso3subUEcalc = 0;
     b_pfcIso3pTgt2p0subUEcalc = 0;
@@ -1197,10 +1259,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfnIso3subUEvn2 = 0;
     b_pfcIso3pTgt2p0subUEvn2 = 0;
     b_pfcIso3subUEvn2 = 0;
-    b_pfpIso3subUEvn3 = 0;
-    b_pfnIso3subUEvn3 = 0;
-    b_pfcIso3pTgt2p0subUEvn3 = 0;
-    b_pfcIso3subUEvn3 = 0;
 
     b_pfpIso3subUEphi0vn2 = 0;
     b_pfnIso3subUEphi0vn2 = 0;
@@ -1270,23 +1328,25 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
-    if (t->GetBranch("hiEPHF1")) t->SetBranchAddress("hiEPHF1", &hiEPHF1, &b_hiEPHF1);
-    if (t->GetBranch("hiEPHF2")) t->SetBranchAddress("hiEPHF2", &hiEPHF2, &b_hiEPHF2);
-    if (t->GetBranch("hiEPHF3")) t->SetBranchAddress("hiEPHF3", &hiEPHF3, &b_hiEPHF3);
-    if (t->GetBranch("hiEPHF4")) t->SetBranchAddress("hiEPHF4", &hiEPHF4, &b_hiEPHF4);
+    if (t->GetBranch("hiEP1HF")) t->SetBranchAddress("hiEP1HF", &hiEP1HF, &b_hiEP1HF);
+    if (t->GetBranch("hiEP2HF")) t->SetBranchAddress("hiEP2HF", &hiEP2HF, &b_hiEP2HF);
+    if (t->GetBranch("hiEP3HF")) t->SetBranchAddress("hiEP3HF", &hiEP3HF, &b_hiEP3HF);
+    if (t->GetBranch("hiEP4HF")) t->SetBranchAddress("hiEP4HF", &hiEP4HF, &b_hiEP4HF);
 
     if (t->GetBranch("angEP2pf")) t->SetBranchAddress("angEP2pf", &angEP2pf, &b_angEP2pf);
     if (t->GetBranch("angEP3pf")) t->SetBranchAddress("angEP3pf", &angEP3pf, &b_angEP3pf);
     if (t->GetBranch("angEP2trk")) t->SetBranchAddress("angEP2trk", &angEP2trk, &b_angEP2trk);
     if (t->GetBranch("angEP3trk")) t->SetBranchAddress("angEP3trk", &angEP3trk, &b_angEP3trk);
 
-    if (t->GetBranch("partphi_nBins")) t->SetBranchAddress("partphi_nBins", &partphi_nBins, &b_partphi_nBins);
-    if (t->GetBranch("partphi_minContent")) t->SetBranchAddress("partphi_minContent", &partphi_minContent, &b_partphi_minContent);
-    if (t->GetBranch("partphi_binContents")) t->SetBranchAddress("partphi_binContents", &partphi_binContents, &b_partphi_binContents);
-    if (t->GetBranch("fit_v2")) t->SetBranchAddress("fit_v2", &fit_v2, &b_fit_v2);
-    if (t->GetBranch("fit_v3")) t->SetBranchAddress("fit_v3", &fit_v3, &b_fit_v3);
-    if (t->GetBranch("fit_chi2")) t->SetBranchAddress("fit_chi2", &fit_chi2, &b_fit_chi2);
-    if (t->GetBranch("fit_chi2prob")) t->SetBranchAddress("fit_chi2prob", &fit_chi2prob, &b_fit_chi2prob);
+    if (false) {
+        if (t->GetBranch("partphi_nBins")) t->SetBranchAddress("partphi_nBins", &partphi_nBins, &b_partphi_nBins);
+        if (t->GetBranch("partphi_minContent")) t->SetBranchAddress("partphi_minContent", &partphi_minContent, &b_partphi_minContent);
+        if (t->GetBranch("partphi_binContents")) t->SetBranchAddress("partphi_binContents", &partphi_binContents, &b_partphi_binContents);
+        if (t->GetBranch("fit_v2")) t->SetBranchAddress("fit_v2", &fit_v2, &b_fit_v2);
+        if (t->GetBranch("fit_v3")) t->SetBranchAddress("fit_v3", &fit_v3, &b_fit_v3);
+        if (t->GetBranch("fit_chi2")) t->SetBranchAddress("fit_chi2", &fit_chi2, &b_fit_chi2);
+        if (t->GetBranch("fit_chi2prob")) t->SetBranchAddress("fit_chi2prob", &fit_chi2prob, &b_fit_chi2prob);
+    }
 
     if (t->GetBranch("fit_EPphi0_v2")) t->SetBranchAddress("fit_EPphi0_v2", &fit_EPphi0_v2, &b_fit_EPphi0_v2);
     if (t->GetBranch("fit_EPphi0_chi2")) t->SetBranchAddress("fit_EPphi0_chi2", &fit_EPphi0_chi2, &b_fit_EPphi0_chi2);
@@ -1299,6 +1359,14 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("fit_trkphi_v3")) t->SetBranchAddress("fit_trkphi_v3", &fit_trkphi_v3, &b_fit_trkphi_v3);
     if (t->GetBranch("fit_trkphi_chi2")) t->SetBranchAddress("fit_trkphi_chi2", &fit_trkphi_chi2, &b_fit_trkphi_chi2);
     if (t->GetBranch("fit_trkphi_chi2prob")) t->SetBranchAddress("fit_trkphi_chi2prob", &fit_trkphi_chi2prob, &b_fit_trkphi_chi2prob);
+
+    if (t->GetBranch("fMods_th1_yMin")) t->SetBranchAddress("fMods_th1_yMin", &fMods_th1_yMin, &b_fMods_th1_yMin);
+    if (t->GetBranch("fMods_angEP2")) t->SetBranchAddress("fMods_angEP2", &fMods_angEP2, &b_fMods_angEP2);
+    if (t->GetBranch("fMods_angEP3")) t->SetBranchAddress("fMods_angEP3", &fMods_angEP3, &b_fMods_angEP3);
+    if (t->GetBranch("fMods_v2")) t->SetBranchAddress("fMods_v2", &fMods_v2, &b_fMods_v2);
+    if (t->GetBranch("fMods_v3")) t->SetBranchAddress("fMods_v3", &fMods_v3, &b_fMods_v3);
+    if (t->GetBranch("fMods_chi2")) t->SetBranchAddress("fMods_chi2", &fMods_chi2, &b_fMods_chi2);
+    if (t->GetBranch("fMods_chi2prob")) t->SetBranchAddress("fMods_chi2prob", &fMods_chi2prob, &b_fMods_chi2prob);
 
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("angEvtPlane")) t->SetBranchAddress("angEvtPlane", &angEvtPlane, &b_angEvtPlane);
@@ -1588,6 +1656,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pho_trkIso3IDpTgt2p0")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0", &pho_trkIso3IDpTgt2p0, &b_pho_trkIso3IDpTgt2p0);
     if (t->GetBranch("pho_trkIso3IDpTgt2p0subUE")) t->SetBranchAddress("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE, &b_pho_trkIso3IDpTgt2p0subUE);
 
+    if (t->GetBranch("pfpIso3subUEfMods")) t->SetBranchAddress("pfpIso3subUEfMods", &pfpIso3subUEfMods, &b_pfpIso3subUEfMods);
+    if (t->GetBranch("pfnIso3subUEfMods")) t->SetBranchAddress("pfnIso3subUEfMods", &pfnIso3subUEfMods, &b_pfnIso3subUEfMods);
+    if (t->GetBranch("pfcIso3subUEfMods")) t->SetBranchAddress("pfcIso3subUEfMods", &pfcIso3subUEfMods, &b_pfcIso3subUEfMods);
+    if (t->GetBranch("pfcIso3pTgt2p0subUEfMods")) t->SetBranchAddress("pfcIso3pTgt2p0subUEfMods", &pfcIso3pTgt2p0subUEfMods, &b_pfcIso3pTgt2p0subUEfMods);
+
     if (t->GetBranch("pfpIso3subUEcalc")) t->SetBranchAddress("pfpIso3subUEcalc", &pfpIso3subUEcalc, &b_pfpIso3subUEcalc);
     if (t->GetBranch("pfnIso3subUEcalc")) t->SetBranchAddress("pfnIso3subUEcalc", &pfnIso3subUEcalc, &b_pfnIso3subUEcalc);
     if (t->GetBranch("pfcIso3pTgt2p0subUEcalc")) t->SetBranchAddress("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc, &b_pfcIso3pTgt2p0subUEcalc);
@@ -1597,10 +1670,6 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3subUEvn2")) t->SetBranchAddress("pfnIso3subUEvn2", &pfnIso3subUEvn2, &b_pfnIso3subUEvn2);
     if (t->GetBranch("pfcIso3pTgt2p0subUEvn2")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2, &b_pfcIso3pTgt2p0subUEvn2);
     if (t->GetBranch("pfcIso3subUEvn2")) t->SetBranchAddress("pfcIso3subUEvn2", &pfcIso3subUEvn2, &b_pfcIso3subUEvn2);
-    if (t->GetBranch("pfpIso3subUEvn3")) t->SetBranchAddress("pfpIso3subUEvn3", &pfpIso3subUEvn3, &b_pfpIso3subUEvn3);
-    if (t->GetBranch("pfnIso3subUEvn3")) t->SetBranchAddress("pfnIso3subUEvn3", &pfnIso3subUEvn3, &b_pfnIso3subUEvn3);
-    if (t->GetBranch("pfcIso3pTgt2p0subUEvn3")) t->SetBranchAddress("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3, &b_pfcIso3pTgt2p0subUEvn3);
-    if (t->GetBranch("pfcIso3subUEvn3")) t->SetBranchAddress("pfcIso3subUEvn3", &pfcIso3subUEvn3, &b_pfcIso3subUEvn3);
 
     if (t->GetBranch("pfpIso3subUEphi0vn2")) t->SetBranchAddress("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2, &b_pfpIso3subUEphi0vn2);
     if (t->GetBranch("pfnIso3subUEphi0vn2")) t->SetBranchAddress("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2, &b_pfnIso3subUEphi0vn2);
@@ -1672,23 +1741,25 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("pthat", &pthat);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
-    t->Branch("hiEPHF1", &hiEPHF1);
-    t->Branch("hiEPHF2", &hiEPHF2);
-    t->Branch("hiEPHF3", &hiEPHF3);
-    t->Branch("hiEPHF4", &hiEPHF4);
+    t->Branch("hiEP1HF", &hiEP1HF);
+    t->Branch("hiEP2HF", &hiEP2HF);
+    t->Branch("hiEP3HF", &hiEP3HF);
+    t->Branch("hiEP4HF", &hiEP4HF);
 
-    t->Branch("angEP2pf", &angEP2pf);
-    t->Branch("angEP3pf", &angEP3pf);
+    t->Branch("angEP2pf", &angEP2pf_out);
+    t->Branch("angEP3pf", &angEP3pf_out);
     t->Branch("angEP2trk", &angEP2trk);
     t->Branch("angEP3trk", &angEP3trk);
 
-    t->Branch("partphi_nBins", &partphi_nBins);
-    t->Branch("partphi_minContent", &partphi_minContent);
-    t->Branch("partphi_binContents", &partphi_binContents_out);
-    t->Branch("fit_v2", &fit_v2);
-    t->Branch("fit_v3", &fit_v3);
-    t->Branch("fit_chi2", &fit_chi2);
-    t->Branch("fit_chi2prob", &fit_chi2prob);
+    if (false) {
+        t->Branch("partphi_nBins", &partphi_nBins);
+        t->Branch("partphi_minContent", &partphi_minContent);
+        t->Branch("partphi_binContents", &partphi_binContents_out);
+        t->Branch("fit_v2", &fit_v2);
+        t->Branch("fit_v3", &fit_v3);
+        t->Branch("fit_chi2", &fit_chi2);
+        t->Branch("fit_chi2prob", &fit_chi2prob);
+    }
 
     t->Branch("fit_EPphi0_v2", &fit_EPphi0_v2);
     t->Branch("fit_EPphi0_chi2", &fit_EPphi0_chi2);
@@ -1701,6 +1772,14 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("fit_trkphi_v3", &fit_trkphi_v3);
     t->Branch("fit_trkphi_chi2", &fit_trkphi_chi2);
     t->Branch("fit_trkphi_chi2prob", &fit_trkphi_chi2prob);
+
+    t->Branch("fMods_th1_yMin", &fMods_th1_yMin_out);
+    t->Branch("fMods_angEP2", &fMods_angEP2_out);
+    t->Branch("fMods_angEP3", &fMods_angEP3_out);
+    t->Branch("fMods_v2", &fMods_v2_out);
+    t->Branch("fMods_v3", &fMods_v3_out);
+    t->Branch("fMods_chi2", &fMods_chi2_out);
+    t->Branch("fMods_chi2prob", &fMods_chi2prob_out);
 
     t->Branch("rho", &rho);
     t->Branch("angEvtPlane", &angEvtPlane);
@@ -1995,6 +2074,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pho_trkIso3IDpTgt2p0", &pho_trkIso3IDpTgt2p0);
         t->Branch("pho_trkIso3IDpTgt2p0subUE", &pho_trkIso3IDpTgt2p0subUE);
 
+        t->Branch("pfpIso3subUEfMods", &pfpIso3subUEfMods_out);
+        t->Branch("pfnIso3subUEfMods", &pfnIso3subUEfMods_out);
+        t->Branch("pfcIso3subUEfMods", &pfcIso3subUEfMods_out);
+        t->Branch("pfcIso3pTgt2p0subUEfMods", &pfcIso3pTgt2p0subUEfMods_out);
+
         t->Branch("pfpIso3subUEcalc", &pfpIso3subUEcalc);
         t->Branch("pfnIso3subUEcalc", &pfnIso3subUEcalc);
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
@@ -2004,10 +2088,6 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfnIso3subUEvn2", &pfnIso3subUEvn2);
         t->Branch("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2);
         t->Branch("pfcIso3subUEvn2", &pfcIso3subUEvn2);
-        t->Branch("pfpIso3subUEvn3", &pfpIso3subUEvn3);
-        t->Branch("pfnIso3subUEvn3", &pfnIso3subUEvn3);
-        t->Branch("pfcIso3pTgt2p0subUEvn3", &pfcIso3pTgt2p0subUEvn3);
-        t->Branch("pfcIso3subUEvn3", &pfcIso3subUEvn3);
 
         t->Branch("pfpIso3subUEphi0vn2", &pfpIso3subUEphi0vn2);
         t->Branch("pfnIso3subUEphi0vn2", &pfnIso3subUEphi0vn2);
@@ -2081,23 +2161,25 @@ void ggHiFlat::clearEntry()
     pthat = -1;
     hiBin = -1;
     hiHF = -1;
-    hiEPHF1 = -987987;
-    hiEPHF2 = -987987;
-    hiEPHF3 = -987987;
-    hiEPHF4 = -987987;
+    hiEP1HF = -987987;
+    hiEP2HF = -987987;
+    hiEP3HF = -987987;
+    hiEP4HF = -987987;
 
-    angEP2pf = -987987;
-    angEP3pf = -987987;
+    angEP2pf_out.clear();
+    angEP3pf_out.clear();
     angEP2trk = -987987;
     angEP3trk = -987987;
 
-    partphi_nBins = 0;
-    partphi_minContent = 0;
-    partphi_binContents_out.clear();
-    fit_v2 = 0;
-    fit_v3 = 0;
-    fit_chi2 = -987987;
-    fit_chi2prob = -987987;
+    if (false) {
+        partphi_nBins = 0;
+        partphi_minContent = 0;
+        partphi_binContents_out.clear();
+        fit_v2 = 0;
+        fit_v3 = 0;
+        fit_chi2 = -987987;
+        fit_chi2prob = -987987;
+    }
 
     fit_EPphi0_v2 = 0;
     fit_EPphi0_chi2 = -987987;
@@ -2110,6 +2192,14 @@ void ggHiFlat::clearEntry()
     fit_trkphi_v3 = 0;
     fit_trkphi_chi2 = -987987;
     fit_trkphi_chi2prob = -987987;
+
+    fMods_th1_yMin_out.clear();
+    fMods_angEP2_out.clear();
+    fMods_angEP3_out.clear();
+    fMods_v2_out.clear();
+    fMods_v3_out.clear();
+    fMods_chi2_out.clear();
+    fMods_chi2prob_out.clear();
 
     rho = -1;
     angEvtPlane = -999888;
@@ -2127,6 +2217,7 @@ void ggHiFlat::clearEntry()
     nPU = -987987;
     puBX = -987987;
     puTrue = -987987;
+
     clearEntryEle();
     clearEntryPho();
     clearEntryMu();
@@ -2390,6 +2481,11 @@ void ggHiFlat::clearEntryPho()
         pho_trkIso3IDpTgt2p0 = -987987;
         pho_trkIso3IDpTgt2p0subUE = -987987;
 
+        pfpIso3subUEfMods_out.clear();
+        pfnIso3subUEfMods_out.clear();
+        pfcIso3subUEfMods_out.clear();
+        pfcIso3pTgt2p0subUEfMods_out.clear();
+
         pfpIso3subUEcalc = -987987;
         pfnIso3subUEcalc = -987987;
         pfcIso3pTgt2p0subUEcalc = -987987;
@@ -2399,10 +2495,6 @@ void ggHiFlat::clearEntryPho()
         pfnIso3subUEvn2 = -987987;
         pfcIso3pTgt2p0subUEvn2 = -987987;
         pfcIso3subUEvn2 = -987987;
-        pfpIso3subUEvn3 = -987987;
-        pfnIso3subUEvn3 = -987987;
-        pfcIso3pTgt2p0subUEvn3 = -987987;
-        pfcIso3subUEvn3 = -987987;
 
         pfpIso3subUEphi0vn2 = -987987;
         pfnIso3subUEphi0vn2 = -987987;
@@ -2888,26 +2980,35 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pthat = gg.pthat;
     hiBin = gg.hiBin;
     hiHF = gg.hiHF;
-    hiEPHF1 = gg.hiEPHF1;
-    hiEPHF2 = gg.hiEPHF2;
-    hiEPHF3 = gg.hiEPHF3;
-    hiEPHF4 = gg.hiEPHF4;
+    hiEP1HF = gg.hiEP1HF;
+    hiEP2HF = gg.hiEP2HF;
+    hiEP3HF = gg.hiEP3HF;
+    hiEP4HF = gg.hiEP4HF;
 
-    angEP2pf = gg.angEP2pf;
-    angEP3pf = gg.angEP3pf;
+    angEP2pf_out.clear();
+    for (int i = 0; i < (int)(*gg.angEP2pf).size(); ++i) {
+        angEP2pf_out.push_back( (*gg.angEP2pf)[i] );
+    }
+    angEP3pf_out.clear();
+    for (int i = 0; i < (int)(*gg.angEP3pf).size(); ++i) {
+        angEP3pf_out.push_back( (*gg.angEP3pf)[i] );
+    }
+
     angEP2trk = gg.angEP2trk;
     angEP3trk = gg.angEP3trk;
 
-    partphi_nBins = gg.partphi_nBins;
-    partphi_minContent = gg.partphi_minContent;
-    partphi_binContents_out.clear();
-    for (int i = 0; i < partphi_nBins; ++i) {
-        partphi_binContents_out.push_back( (*gg.partphi_binContents)[i] );
+    if (false) {
+        partphi_nBins = gg.partphi_nBins;
+        partphi_minContent = gg.partphi_minContent;
+        partphi_binContents_out.clear();
+        for (int i = 0; i < partphi_nBins; ++i) {
+            partphi_binContents_out.push_back( (*gg.partphi_binContents)[i] );
+        }
+        fit_v2 = gg.fit_v2;
+        fit_v3 = gg.fit_v3;
+        fit_chi2 = gg.fit_chi2;
+        fit_chi2prob = gg.fit_chi2prob;
     }
-    fit_v2 = gg.fit_v2;
-    fit_v3 = gg.fit_v3;
-    fit_chi2 = gg.fit_chi2;
-    fit_chi2prob = gg.fit_chi2prob;
 
     fit_EPphi0_v2 = gg.fit_EPphi0_v2;
     fit_EPphi0_chi2 = gg.fit_EPphi0_chi2;
@@ -2923,6 +3024,35 @@ void ggHiFlat::clone(ggHiFlat &gg)
     fit_trkphi_v3 = gg.fit_trkphi_v3;
     fit_trkphi_chi2 = gg.fit_trkphi_chi2;
     fit_trkphi_chi2prob = gg.fit_trkphi_chi2prob;
+
+    fMods_th1_yMin_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_th1_yMin).size()); ++i) {
+        fMods_th1_yMin_out.push_back( (*gg.fMods_th1_yMin)[i] );
+    }
+    fMods_angEP2_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_angEP2).size()); ++i) {
+        fMods_angEP2_out.push_back( (*gg.fMods_angEP2)[i] );
+    }
+    fMods_angEP3_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_angEP3).size()); ++i) {
+        fMods_angEP3_out.push_back( (*gg.fMods_angEP3)[i] );
+    }
+    fMods_v2_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_v2).size()); ++i) {
+        fMods_v2_out.push_back( (*gg.fMods_v2)[i] );
+    }
+    fMods_v3_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_v3).size()); ++i) {
+        fMods_v3_out.push_back( (*gg.fMods_v3)[i] );
+    }
+    fMods_chi2_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_chi2).size()); ++i) {
+        fMods_chi2_out.push_back( (*gg.fMods_chi2)[i] );
+    }
+    fMods_chi2prob_out.clear();
+    for (int i = 0; i < (int)((*gg.fMods_chi2prob).size()); ++i) {
+        fMods_chi2prob_out.push_back( (*gg.fMods_chi2prob)[i] );
+    }
 
     rho = gg.rho;
     angEvtPlane = gg.angEvtPlane;
@@ -3212,6 +3342,23 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pho_trkIso3IDpTgt2p0 = gg.pho_trkIso3IDpTgt2p0;
     pho_trkIso3IDpTgt2p0subUE = gg.pho_trkIso3IDpTgt2p0subUE;
 
+    pfpIso3subUEfMods_out.clear();
+    for (int i = 0; i < (int)((*gg.pfpIso3subUEfMods).size()); ++i) {
+        pfpIso3subUEfMods_out.push_back( (*gg.pfpIso3subUEfMods)[i] );
+    }
+    pfnIso3subUEfMods_out.clear();
+    for (int i = 0; i < (int)((*gg.pfnIso3subUEfMods).size()); ++i) {
+        pfnIso3subUEfMods_out.push_back( (*gg.pfnIso3subUEfMods)[i] );
+    }
+    pfcIso3subUEfMods_out.clear();
+    for (int i = 0; i < (int)((*gg.pfcIso3subUEfMods).size()); ++i) {
+        pfcIso3subUEfMods_out.push_back( (*gg.pfcIso3subUEfMods)[i] );
+    }
+    pfcIso3pTgt2p0subUEfMods_out.clear();
+    for (int i = 0; i < (int)((*gg.pfcIso3pTgt2p0subUEfMods).size()); ++i) {
+        pfcIso3pTgt2p0subUEfMods_out.push_back( (*gg.pfcIso3pTgt2p0subUEfMods)[i] );
+    }
+
     pfpIso3subUEcalc = gg.pfpIso3subUEcalc;
     pfnIso3subUEcalc = gg.pfnIso3subUEcalc;
     pfcIso3pTgt2p0subUEcalc = gg.pfcIso3pTgt2p0subUEcalc;
@@ -3221,10 +3368,6 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfnIso3subUEvn2 = gg.pfnIso3subUEvn2;
     pfcIso3pTgt2p0subUEvn2 = gg.pfcIso3pTgt2p0subUEvn2;
     pfcIso3subUEvn2 = gg.pfcIso3subUEvn2;
-    pfpIso3subUEvn3 = gg.pfpIso3subUEvn3;
-    pfnIso3subUEvn3 = gg.pfnIso3subUEvn3;
-    pfcIso3pTgt2p0subUEvn3 = gg.pfcIso3pTgt2p0subUEvn3;
-    pfcIso3subUEvn3 = gg.pfcIso3subUEvn3;
 
     pfpIso3subUEphi0vn2 = gg.pfpIso3subUEphi0vn2;
     pfnIso3subUEphi0vn2 = gg.pfnIso3subUEphi0vn2;

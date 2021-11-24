@@ -132,20 +132,18 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     float phiFitEtaMax = (ArgumentParser::optionExists("--phiFitEtaMax", argOptions)) ?
                 std::atof(ArgumentParser::ParseOptionInputSingle("--phiFitEtaMax", argOptions).c_str()) : -999999;
 
-    int fitPartEP2tmp = (ArgumentParser::optionExists("--fitPartEP2", argOptions)) ?
-                    std::atoi(ArgumentParser::ParseOptionInputSingle("--fitPartEP2", argOptions).c_str()) : 0;
-    bool fitPartEP2 = (fitPartEP2tmp > 0);
-
-    int fitPartEP3tmp = (ArgumentParser::optionExists("--fitPartEP3", argOptions)) ?
-                    std::atoi(ArgumentParser::ParseOptionInputSingle("--fitPartEP3", argOptions).c_str()) : 0;
-    bool fitPartEP3 = (fitPartEP3tmp > 0);
+    int iEvtPlanePF = (ArgumentParser::optionExists("--iEvtPlanePF", argOptions)) ?
+                    std::atoi(ArgumentParser::ParseOptionInputSingle("--iEvtPlanePF", argOptions).c_str()) : -1;
+    /*
+     * If >=0, then use event planes calculated by one of the following methods
+     * https://github.com/CmsHI/cmssw/blob/358561bafa7aee76567aba78f80112562d840228/HeavyIonsAnalysis/PhotonAnalysis/interface/ggHiNtuplizer.h#L143-L149
+     */
 
     std::cout << "skimMode = " << skimMode << std::endl;
     std::cout << "nEvts = " << nEvts << std::endl;
     std::cout << "phiFitEtaMin = " << phiFitEtaMin << std::endl;
     std::cout << "phiFitEtaMax = " << phiFitEtaMax << std::endl;
-    std::cout << "fitPartEP2 = " << fitPartEP2 << std::endl;
-    std::cout << "fitPartEP3 = " << fitPartEP3 << std::endl;
+    std::cout << "iEvtPlanePF = " << iEvtPlanePF << std::endl;
     if (phiFitEtaMax < phiFitEtaMin) {
         std::cout << "Overwriting phiFitEta Min/Max to default values " << std::endl;
         phiFitEtaMin = -1.0;
@@ -227,16 +225,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         h2D_weightGenKin = (TH2D*)fileTmp->Get(histGenKinWeight.c_str());
     }
 
-    TH1D* h1D_phi = 0;
-    TF1* f1_phi_vn3 = 0;
-    TF1* f1_phi_vn2 = 0;
-    //double xRange_phi = -1;
-    if (calcIsoFlow) {
-        h1D_phi = new TH1D("h1D_phi", "Particle #phi distribution;#phi;Counts", 20, -1*TMath::Pi(), TMath::Pi());
-        //xRange_phi = h1D_phi->GetXaxis()->GetXmax() - h1D_phi->GetXaxis()->GetXmin();
 
-        f1_phi_vn3 = new TF1("f1_phi_vn3", fnc_fourier_vn_3, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_3));
-        f1_phi_vn2 = new TF1("f1_phi_vn2", fnc_fourier_vn_2, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_2));
+    //double xRange_phi = -1;
+    const int nDefnFlowMod = egUtil::defn_phi_flow_mod::N_defn_phi_flow_mod;
+    std::vector<TH1D*> h1D_phi(nDefnFlowMod, 0);
+    std::vector<TF1*> f1_phi_vn3(nDefnFlowMod, 0);
+    std::vector<TF1*> f1_phi_vn2(nDefnFlowMod, 0);
+    if (calcIsoFlow) {
+        for (int j = 0; j < nDefnFlowMod; ++j) {
+            h1D_phi[j] = new TH1D(Form("h1D_phi_%d", j), "Particle #phi distribution;#phi;Counts", 20, -1*TMath::Pi(), TMath::Pi());
+            //xRange_phi = h1D_phi->GetXaxis()->GetXmax() - h1D_phi->GetXaxis()->GetXmin();
+
+            f1_phi_vn3[j] = new TF1(Form("f1_phi_vn3_%d", j), fnc_fourier_vn_3, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_3));
+            f1_phi_vn2[j] = new TF1(Form("f1_phi_vn2_%d", j), fnc_fourier_vn_2, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_2));
+        }
     }
 
     EventMatcher* em = new EventMatcher();
@@ -268,6 +270,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeIn->SetBranchStatus("run",1);   // enable event information
         treeIn->SetBranchStatus("event",1);
         treeIn->SetBranchStatus("lumis",1);
+        treeIn->SetBranchStatus("angEP*pf",1);
         if (recoObj == RECOOBJS::kPhoton) {
             treeIn->SetBranchStatus("nPho",1);     // enable photon branches
             treeIn->SetBranchStatus("pho*",1);     // enable photon branches
@@ -397,6 +400,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treePFCand->SetBranchStatus("pfEta",1);
                     treePFCand->SetBranchStatus("pfPhi",1);
                     treePFCand->SetBranchStatus("pfv*",1);
+                    treePFCand->SetBranchStatus("trk*",1);
+                    treePFCand->SetBranchStatus("highPurity",1);
                 }
             }
 
@@ -475,13 +480,22 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 ggHiOut.weight = hiEvt.weight;
                 ggHiOut.hiBin = hiEvt.hiBin;
                 ggHiOut.hiHF = hiEvt.hiHF;
-                ggHiOut.hiEPHF1 = hiEvt.hiEvtPlanes[(int)(HiEP::HF1)];
-                ggHiOut.hiEPHF2 = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
-                ggHiOut.hiEPHF3 = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
-                ggHiOut.hiEPHF4 = hiEvt.hiEvtPlanes[(int)(HiEP::HF4)];
+                ggHiOut.hiEP1HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF1)];
+                ggHiOut.hiEP2HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
+                ggHiOut.hiEP3HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
+                ggHiOut.hiEP4HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF4)];
                 if (isMC) {
                     ggHiOut.phi0 = hiEvt.phi0;
                     ggHiOut.pthat = hiEvt.pthat;
+                }
+
+                ggHiOut.angEP2pf_out.clear();
+                for (int i = 0; i < (int)(*ggHi.angEP2pf).size(); ++i) {
+                    ggHiOut.angEP2pf_out.push_back( (*ggHi.angEP2pf)[i] );
+                }
+                ggHiOut.angEP3pf_out.clear();
+                for (int i = 0; i < (int)(*ggHi.angEP3pf).size(); ++i) {
+                    ggHiOut.angEP3pf_out.push_back( (*ggHi.angEP3pf)[i] );
                 }
 
                 double rho = -1;
@@ -536,107 +550,133 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 }
             }
 
+            const double angEP2 = ((iEvtPlanePF >= 0) ? ggHiOut.angEP2pf_out[iEvtPlanePF] : ggHiOut.hiEP2HF);
+            const double angEP3 = ((iEvtPlanePF >= 0) ? ggHiOut.angEP3pf_out[iEvtPlanePF] : ggHiOut.hiEP3HF);
             if (calcIsoFlow) {
-                // fit PF candidate phi
-                ggHiOut.fit_v2 = 0;
-                ggHiOut.fit_v3 = 0;
-                ggHiOut.fit_EPphi0_v2 = 0;
-                h1D_phi->Reset();
-                const double calcIso_pfPtMin = 0.3;
-                const double calcIso_pfPtMax = 3.0;
-                const double calcIso_pfEtaMin = phiFitEtaMin;
-                const double calcIso_pfEtaMax = phiFitEtaMax;
+                for (int j = 0; j < nDefnFlowMod; ++j) {
+                    h1D_phi[j]->Reset();
+                }
+                const float calcIso_pfPtMin = 0.3;
+                const float calcIso_pfPtMax = 3.0;
+                const float calcIso_pfEtaMin = phiFitEtaMin;
+                const float calcIso_pfEtaMax = phiFitEtaMax;
 
                 //
                 /* Ref
                  * https://github.com/cms-sw/cmssw/blob/357be33285cdf679b02ac087b4644f0ce8a269fb/RecoHI/HiJetAlgos/plugins/HiFJRhoFlowModulationProducer.cc#L152-L153
                  */
-                double ep2Cos = 0;
-                double ep2Sin = 0;
-                double ep3Cos = 0;
-                double ep3Sin = 0;
+                std::vector<double> ep2Cos = std::vector<double>(nDefnFlowMod, 0);
+                std::vector<double> ep2Sin = std::vector<double>(nDefnFlowMod, 0);
+                std::vector<double> ep3Cos = std::vector<double>(nDefnFlowMod, 0);
+                std::vector<double> ep3Sin = std::vector<double>(nDefnFlowMod, 0);
 
+                const int iLast4angEPcalc = egUtil::defn_phi_flow_mod::k_PF_all_trkID_wE; // last flow modulation definition for which event plane is calculated using PF cands
+                // event plane angle calculation
                 for (int i=0; i<pfs.nPFpart; ++i) {
 
-                    if (! ((*pfs.pfId)[i] == 1) ) continue;
-                    if (! ((*pfs.pfPt)[i] > calcIso_pfPtMin) ) continue;
-                    if (! ((*pfs.pfPt)[i] < calcIso_pfPtMax) ) continue;
-                    if (! (calcIso_pfEtaMin < (*pfs.pfEta)[i] && (*pfs.pfEta)[i] < calcIso_pfEtaMax) ) continue;
+                    float tId = (*pfs.pfId)[i];
+                    if ((!((*pfs.pfPt)[i] > calcIso_pfPtMin)) && tId == 1) continue;    // apply pT threshold for ch PF cands only
+                    if (!((*pfs.pfPt)[i] < calcIso_pfPtMax)) continue;
+                    if (!(calcIso_pfEtaMin < (*pfs.pfEta)[i] && (*pfs.pfEta)[i] < calcIso_pfEtaMax) ) continue;
                     // checked in forest via Scan("Sum$(pfId == 1 && pfPt > 0.3 && pfPt < 3 && abs(pfEta) < 1):hiBin")
 
-                    double tphi = (*pfs.pfPhi)[i];
+                    for (int j = egUtil::k_noMod+1; j <= iLast4angEPcalc; ++j) {
 
-                    h1D_phi->Fill(tphi);
+                        if (egUtil::phi_flow_mod_ch_flag[j] && (*pfs.pfId)[i] != 1 ) {
+                            continue;
+                        }
+                        if (egUtil::phi_flow_mod_trkID_flag[j] && (*pfs.pfId)[i] == 1 &&
+                            !passedTrkSelection(pfs, i, collisionType)) {
+                            continue;
+                        }
 
-                    ep2Cos += std::cos(2 * tphi);
-                    ep2Sin += std::sin(2 * tphi);
+                        float tWeight = (egUtil::phi_flow_mod_wE[j]) ? (*pfs.pfPt)[i] : 1;
+                        float tphi = (*pfs.pfPhi)[i];
 
-                    ep3Cos += std::cos(3 * tphi);
-                    ep3Sin += std::sin(3 * tphi);
-                }
+                        h1D_phi[j]->Fill(tphi, tWeight);
 
-                ggHiOut.angEP2pf = std::atan2(ep2Sin, ep2Cos) / 2.;
-                ggHiOut.angEP3pf = std::atan2(ep3Sin, ep3Cos) / 3.;
+                        ep2Cos[j] += (std::cos(2 * tphi)*tWeight);
+                        ep2Sin[j] += (std::sin(2 * tphi)*tWeight);
 
-                //std::cout << "h1D_phi entries = " << h1D_phi->GetEntries() << std::endl;
-
-                bool acceptFit = true;
-                int nBinsX = h1D_phi->GetNbinsX();
-                ggHiOut.partphi_nBins = nBinsX;
-                ggHiOut.partphi_minContent = 99999999;
-                for (int iBin = 1; iBin <= nBinsX; ++iBin) {
-
-                    double binContent = h1D_phi->GetBinContent(iBin);
-                    ggHiOut.partphi_binContents_out.push_back(binContent);
-                    if (binContent < ggHiOut.partphi_minContent) {
-                        ggHiOut.partphi_minContent = binContent;
+                        ep3Cos[j] += (std::cos(3 * tphi)*tWeight);
+                        ep3Sin[j] += (std::sin(3 * tphi)*tWeight);
                     }
                 }
 
-                if (acceptFit) {
+                ggHiOut.fMods_th1_yMin_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_angEP2_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_angEP3_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_v2_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_v3_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_chi2_out = std::vector<float>(nDefnFlowMod, 0);
+                ggHiOut.fMods_chi2prob_out = std::vector<float>(nDefnFlowMod, 0);
+
+                h1D_phi[egUtil::k_EPHF_PF_ch] = h1D_phi[egUtil::k_PF_ch];
+                // fit PF candidate phi
+                int nBinsX = -1;
+                double initN0 = -1;
+                for (int j = egUtil::k_noMod+1; j < nDefnFlowMod; ++j) { // angles for k_noMod are always zero.
+
+                    ggHiOut.fMods_angEP2_out[j] = (j != egUtil::k_EPHF_PF_ch) ? (std::atan2(ep2Sin[j], ep2Cos[j]) / 2.) : ggHiOut.hiEP2HF;
+                    ggHiOut.fMods_angEP3_out[j] = (j != egUtil::k_EPHF_PF_ch) ? (std::atan2(ep3Sin[j], ep3Cos[j]) / 3.) : ggHiOut.hiEP3HF;
+
+                    nBinsX = h1D_phi[j]->GetNbinsX();
+                    ggHiOut.fMods_th1_yMin_out[j] = 99999999999;
+                    for (int iBin = 1; iBin <= nBinsX; ++iBin) {
+
+                        double binContent = h1D_phi[j]->GetBinContent(iBin);
+                        if (binContent < ggHiOut.fMods_th1_yMin_out[j]) {
+                            ggHiOut.fMods_th1_yMin_out[j] = binContent;
+                        }
+                    }
+
                     //// vn_3
                     // set initial parameters assuming there is no flow, i.e. v2 = v3 = 0
-                    double initN0 = h1D_phi->Integral() / nBinsX;
-                    f1_phi_vn3->SetParameter(0, initN0); // N0
-                    f1_phi_vn3->SetParameter(1, 0); // v2
-                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEPHF2)); // set to 2nd event plane angle
-                    f1_phi_vn3->SetParameter(3, 0); // v3
-                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEPHF3)); // set to 3rd event plane angle
-                    h1D_phi->Fit(f1_phi_vn3, "Q M R N");
+                    initN0 = h1D_phi[j]->Integral() / nBinsX;
+                    f1_phi_vn3[j]->SetParameter(0, initN0); // N0
+                    f1_phi_vn3[j]->SetParameter(1, 0); // v2
+                    f1_phi_vn3[j]->FixParameter(2, ggHiOut.fMods_angEP2_out[j]); // set to 2nd event plane angle
+                    f1_phi_vn3[j]->SetParameter(3, 0); // v3
+                    f1_phi_vn3[j]->FixParameter(4, ggHiOut.fMods_angEP3_out[j]); // set to 3rd event plane angle
+                    h1D_phi[j]->Fit(f1_phi_vn3[j], "Q M R N");
 
-                    ggHiOut.fit_chi2 = f1_phi_vn3->GetChisquare();
-                    ggHiOut.fit_chi2prob = f1_phi_vn3->GetProb();
+                    ggHiOut.fMods_chi2_out[j] = f1_phi_vn3[j]->GetChisquare();
+                    ggHiOut.fMods_chi2prob_out[j] = f1_phi_vn3[j]->GetProb();
 
-                    ggHiOut.fit_v2 = f1_phi_vn3->GetParameter(1);
-                    ggHiOut.fit_v3 = f1_phi_vn3->GetParameter(3);
-                    if (ggHiOut.fit_v2 < 0 || ggHiOut.fit_v2 > 0.5) {
+                    ggHiOut.fMods_v2_out[j] = f1_phi_vn3[j]->GetParameter(1);
+                    ggHiOut.fMods_v3_out[j] = f1_phi_vn3[j]->GetParameter(3);
+                    if (ggHiOut.fMods_v2_out[j] < 0 || ggHiOut.fMods_v2_out[j] > 0.5) {
                         // https://arxiv.org/abs/1702.00630
                         //std::cout << "WARNING : Unexpected value extracted : fit_v2 = " << ggHiOut.fit_v2 << std::endl;
                     }
+                }
 
-                    // fit using phi0 as EP angle
-                    if (isMC) {
-                        f1_phi_vn2->SetParameter(0, initN0); // N0
-                        f1_phi_vn2->SetParameter(1, 0); // v2
-                        f1_phi_vn2->FixParameter(2, ggHiOut.phi0); // set to 2nd event plane angle
-                        h1D_phi->Fit(f1_phi_vn2, "Q M R N");
+                // fit using phi0 as EP angle
+                if (isMC) {
+                    int iEPgen = egUtil::defn_phi_flow_mod::k_PF_ch; // an arbitrary index that is free to use
+                    nBinsX = h1D_phi[iEPgen]->GetNbinsX();
+                    initN0 = h1D_phi[iEPgen]->Integral() / nBinsX;
+                    f1_phi_vn2[iEPgen]->SetParameter(0, initN0); // N0
+                    f1_phi_vn2[iEPgen]->SetParameter(1, 0); // v2
+                    f1_phi_vn2[iEPgen]->FixParameter(2, ggHiOut.phi0); // set to 2nd event plane angle
+                    h1D_phi[iEPgen]->Fit(f1_phi_vn2[iEPgen], "Q M R N");
 
-                        ggHiOut.fit_EPphi0_chi2 = f1_phi_vn2->GetChisquare();
-                        ggHiOut.fit_EPphi0_chi2prob = f1_phi_vn2->GetProb();
+                    ggHiOut.fit_EPphi0_chi2 = f1_phi_vn2[iEPgen]->GetChisquare();
+                    ggHiOut.fit_EPphi0_chi2prob = f1_phi_vn2[iEPgen]->GetProb();
 
-                        ggHiOut.fit_EPphi0_v2 = f1_phi_vn2->GetParameter(1);
-                    }
+                    ggHiOut.fit_EPphi0_v2 = f1_phi_vn2[iEPgen]->GetParameter(1);
                 }
 
                 // fit track phi
-                ep2Cos = 0;
-                ep2Sin = 0;
-                ep3Cos = 0;
-                ep3Sin = 0;
+                float ep2TrkCos = 0;
+                float ep2TrkSin = 0;
+                float ep3TrkCos = 0;
+                float ep3TrkSin = 0;
 
                 ggHiOut.fit_trkphi_v2 = 0;
                 ggHiOut.fit_trkphi_v3 = 0;
-                h1D_phi->Reset();
+                int iPhiTrk = 0; // an arbitrary index that is free to use
+                h1D_phi[iPhiTrk]->Reset();
                 for (int i=0; i<trks.nTrk; ++i) {
 
                     if (! (trks.trkPt[i] > calcIso_pfPtMin) ) continue;
@@ -646,48 +686,46 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                     double tphi = trks.trkPhi[i];
 
-                    h1D_phi->Fill(tphi);
+                    h1D_phi[iPhiTrk]->Fill(tphi);
 
-                    ep2Cos += std::cos(2 * tphi);
-                    ep2Sin += std::sin(2 * tphi);
+                    ep2TrkCos += std::cos(2 * tphi);
+                    ep2TrkSin += std::sin(2 * tphi);
 
-                    ep3Cos += std::cos(3 * tphi);
-                    ep3Sin += std::sin(3 * tphi);
+                    ep3TrkCos += std::cos(3 * tphi);
+                    ep3TrkSin += std::sin(3 * tphi);
                 }
 
-                ggHiOut.angEP2trk = std::atan2(ep2Sin, ep2Cos) / 2.;
-                ggHiOut.angEP3trk = std::atan2(ep3Sin, ep3Cos) / 3.;
+                ggHiOut.angEP2trk = std::atan2(ep2TrkSin, ep2TrkCos) / 2.;
+                ggHiOut.angEP3trk = std::atan2(ep3TrkSin, ep3TrkCos) / 3.;
 
                 //std::cout << "h1D_phi entries = " << h1D_phi->GetEntries() << std::endl;
-                nBinsX = h1D_phi->GetNbinsX();
+                nBinsX = h1D_phi[iPhiTrk]->GetNbinsX();
                 ggHiOut.trkphi_nBins = nBinsX;
-                ggHiOut.trkphi_minContent = 99999999;
+                ggHiOut.trkphi_minContent = 99999999999;
                 for (int iBin = 1; iBin <= nBinsX; ++iBin) {
 
-                    double binContent = h1D_phi->GetBinContent(iBin);
+                    double binContent = h1D_phi[iPhiTrk]->GetBinContent(iBin);
                     ggHiOut.trkphi_binContents_out.push_back(binContent);
                     if (binContent < ggHiOut.trkphi_minContent) {
                         ggHiOut.trkphi_minContent = binContent;
                     }
                 }
 
-                if (acceptFit) {
-                    //// vn_3
-                    // set initial parameters assuming there is no flow, i.e. v2 = v3 = 0
-                    double initN0 = h1D_phi->Integral() / nBinsX;
-                    f1_phi_vn3->SetParameter(0, initN0); // N0
-                    f1_phi_vn3->SetParameter(1, 0); // v2
-                    f1_phi_vn3->FixParameter(2, ((fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEPHF2)); // set to 2nd event plane angle
-                    f1_phi_vn3->SetParameter(3, 0); // v3
-                    f1_phi_vn3->FixParameter(4, ((fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEPHF3)); // set to 3rd event plane angle
-                    h1D_phi->Fit(f1_phi_vn3, "Q M R N");
+                //// vn_3
+                // set initial parameters assuming there is no flow, i.e. v2 = v3 = 0
+                initN0 = h1D_phi[iPhiTrk]->Integral() / nBinsX;
+                f1_phi_vn3[iPhiTrk]->SetParameter(0, initN0); // N0
+                f1_phi_vn3[iPhiTrk]->SetParameter(1, 0); // v2
+                f1_phi_vn3[iPhiTrk]->FixParameter(2, angEP2); // set to 2nd event plane angle
+                f1_phi_vn3[iPhiTrk]->SetParameter(3, 0); // v3
+                f1_phi_vn3[iPhiTrk]->FixParameter(4, angEP3); // set to 3rd event plane angle
+                h1D_phi[iPhiTrk]->Fit(f1_phi_vn3[iPhiTrk], "Q M R N");
 
-                    ggHiOut.fit_trkphi_chi2 = f1_phi_vn3->GetChisquare();
-                    ggHiOut.fit_trkphi_chi2prob = f1_phi_vn3->GetProb();
+                ggHiOut.fit_trkphi_chi2 = f1_phi_vn3[iPhiTrk]->GetChisquare();
+                ggHiOut.fit_trkphi_chi2prob = f1_phi_vn3[iPhiTrk]->GetProb();
 
-                    ggHiOut.fit_trkphi_v2 = f1_phi_vn3->GetParameter(1);
-                    ggHiOut.fit_trkphi_v3 = f1_phi_vn3->GetParameter(3);
-                }
+                ggHiOut.fit_trkphi_v2 = f1_phi_vn3[iPhiTrk]->GetParameter(1);
+                ggHiOut.fit_trkphi_v3 = f1_phi_vn3[iPhiTrk]->GetParameter(3);
             }
 
             if (recoObj == RECOOBJS::kPhoton) {
@@ -734,47 +772,64 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             pVtx.SetY(trks.yVtx[0]);
                             pVtx.SetZ(trks.zVtx[0]);
                         }
-                        const int modeFP = egUtil::footprintMode::matchKey;
+                        //const int modeFP = egUtil::footprintMode::matchKey;
+                        const int modeFP = egUtil::footprintMode::matchKin;
+                        int trkIDOpt = -1;
                         if (calcPFIso) {
-                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx);
-                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx);
-                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, modeFP, pVtx);
-                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, modeFP, pVtx);
+                            ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
+                            ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx);
+                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx);
                         }
                         if (calcIsoFlow) {
-                            double vn_2 = ggHiOut.fit_v2;
-                            double angEPv2 = (fitPartEP2) ? ggHiOut.angEP2pf : ggHiOut.hiEPHF2;
-
+                            float angEPv2 = ggHiOut.angEvtPlane;
                             double only_vn_2 = ggHiOut.phi_fit_v2;
 
-                            ggHiOut.pfpIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx, only_vn_2, angEPv2);
-                            ggHiOut.pfnIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, modeFP, pVtx, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfpIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfnIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, only_vn_2, angEPv2);
 
-                            double vn_3 = ggHiOut.fit_v3;
-                            double angEPv3 = (fitPartEP3) ? ggHiOut.angEP3pf : ggHiOut.hiEPHF3;
+                            float vn_2 = ggHiOut.fit_v2;
+                            float vn_3 = 0; // ggHiOut.fit_v3;
+                            float angEPv3 = angEP3;
 
-                            ggHiOut.pfpIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfnIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3pTgt2p0subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3subUEvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfpIso3subUEfMods_out = std::vector<float>(nDefnFlowMod, 0);
+                            ggHiOut.pfnIso3subUEfMods_out = std::vector<float>(nDefnFlowMod, 0);
+                            ggHiOut.pfcIso3subUEfMods_out = std::vector<float>(nDefnFlowMod, 0);
+                            ggHiOut.pfcIso3pTgt2p0subUEfMods_out = std::vector<float>(nDefnFlowMod, 0);
 
+                            for (int jFMod = 0; jFMod < nDefnFlowMod; ++jFMod) {
+
+                                vn_2 = ggHiOut.fMods_v2_out[jFMod];
+                                angEPv2 = ggHiOut.fMods_angEP2_out[jFMod];
+                                vn_3 = ggHiOut.fMods_v3_out[jFMod];
+                                angEPv3 = ggHiOut.fMods_angEP3_out[jFMod];
+
+                                trkIDOpt = (egUtil::phi_flow_mod_trkID_flag[jFMod]) ? collisionType : -1;
+
+                                ggHiOut.pfpIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                                ggHiOut.pfnIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                                ggHiOut.pfcIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                                ggHiOut.pfcIso3pTgt2p0subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            }
+
+                            trkIDOpt = -1;
                             if (isMC) {
-                                ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                                ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                                ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                                ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
                             }
 
                             vn_2 = ggHiOut.fit_trkphi_v2;
                             vn_3 = ggHiOut.fit_trkphi_v3;
-                            angEPv2 = (fitPartEP2) ? ggHiOut.angEP2trk : ggHiOut.hiEPHF2;
-                            angEPv3 = (fitPartEP3) ? ggHiOut.angEP3trk : ggHiOut.hiEPHF3;
-                            ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            angEPv2 = (iEvtPlanePF >= 0) ? ggHiOut.angEP2trk : ggHiOut.hiEP2HF;
+                            angEPv3 = (iEvtPlanePF >= 0) ? ggHiOut.angEP3trk : ggHiOut.hiEP3HF;
+                            ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
