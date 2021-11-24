@@ -84,9 +84,11 @@ namespace egUtil {
       noRemoval=0,  // do not remove PF footprint
       matchKey=1,     // remove PF footprint by matching keys of candidates
       matchKin=2,     // remove PF footprint by matching kinematics of candidates
+      matchEtaPhi=3,     // remove PF footprint by matching direction of candidates
   };
 
   const float limit_match_kin = 0.00001;
+  const float limit_match_eta_phi = 0.001;
 }
 
 double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
@@ -106,9 +108,11 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
                      double vn_2 = 0, double angEPv2 = -999, double vn_3 = 0, double angEPv3 = -999);
 
 std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG);
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float eta, const float phi);
 int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi);
 int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key);
 
+bool isSamePFcand(const int id1, const float eta1, const float phi1, const int id2, const float eta2, const float phi2);
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2);
 bool isSamePFcand(const unsigned long key1, const unsigned long key2);
 
@@ -258,7 +262,7 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if ((*pfs.pfId)[i] != pfId) continue;
 
-        if ((*pfs.pfId)[i] == 1) {
+        if (pfId == 1) {
             if (trkIDOpt >= 0) {
                 if( !passedTrkSelection(pfs, i, trkIDOpt) ) continue;
             }
@@ -280,6 +284,9 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
         }
         else if (footprintOpt == egUtil::matchKin) {
             iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        }
+        else if (footprintOpt == egUtil::matchEtaPhi) {
+            iLinkPF = isLinkedPFcand(linkPFs, pfId, pfeta, pfphi);
         }
 
         if (iLinkPF >= 0) {
@@ -330,7 +337,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (dR2 < r2 * r2) continue;
         if (pfpt < threshold) continue;
 
-        if ((*pfs.pfId)[i] == 1) {
+        if (pfId == 1) {
             if (trkIDOpt >= 0) {
                 if( !passedTrkSelection(pfs, i, trkIDOpt) ) continue;
             }
@@ -352,6 +359,9 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         }
         else if (footprintOpt == egUtil::matchKin) {
             iLinkPF = isLinkedPFcand(linkPFs, pfId, pfpt, pfeta, pfphi);
+        }
+        else if (footprintOpt == egUtil::matchEtaPhi) {
+            iLinkPF = isLinkedPFcand(linkPFs, pfId, pfeta, pfphi);
         }
 
         if (iLinkPF >= 0) {
@@ -433,6 +443,15 @@ std::vector<basicPFCand> getLinkedPFCands(ggHiNtuplizer& ggHi, int iEG)
     return res;
 }
 
+int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float eta, const float phi)
+{
+    for (std::vector<basicPFCand>::const_iterator itPF = linkPFs.begin(); itPF != linkPFs.end(); ++itPF) {
+        if ( isSamePFcand((*itPF).id, (*itPF).eta, (*itPF).phi, id, eta, phi) ) return (int)(itPF-linkPFs.begin());
+    }
+
+    return -1;
+}
+
 int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const int id, const float pt, const float eta, const float phi)
 {
     for (std::vector<basicPFCand>::const_iterator itPF = linkPFs.begin(); itPF != linkPFs.end(); ++itPF) {
@@ -449,6 +468,15 @@ int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key)
     }
 
     return -1;
+}
+
+bool isSamePFcand(const int id1, const float eta1, const float phi1, const int id2, const float eta2, const float phi2)
+{
+    if (id1 != id2) return false;
+    if ( std::abs((eta1-eta2)/eta1) > egUtil::limit_match_eta_phi ) return false;
+    if ( std::abs(getDPHI(phi1, phi2)/phi1) > egUtil::limit_match_eta_phi ) return false;
+
+    return true;
 }
 
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2)

@@ -139,16 +139,21 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
      * https://github.com/CmsHI/cmssw/blob/358561bafa7aee76567aba78f80112562d840228/HeavyIonsAnalysis/PhotonAnalysis/interface/ggHiNtuplizer.h#L143-L149
      */
 
+    int calcCSPFisoTmp = (ArgumentParser::optionExists("--calcCSPFiso", argOptions)) ?
+                    std::atoi(ArgumentParser::ParseOptionInputSingle("--calcCSPFiso", argOptions).c_str()) : 0;
+    bool calcCSPFiso = (calcCSPFisoTmp > 0);
+
     std::cout << "skimMode = " << skimMode << std::endl;
     std::cout << "nEvts = " << nEvts << std::endl;
     std::cout << "phiFitEtaMin = " << phiFitEtaMin << std::endl;
     std::cout << "phiFitEtaMax = " << phiFitEtaMax << std::endl;
-    std::cout << "iEvtPlanePF = " << iEvtPlanePF << std::endl;
     if (phiFitEtaMax < phiFitEtaMin) {
         std::cout << "Overwriting phiFitEta Min/Max to default values " << std::endl;
         phiFitEtaMin = -1.0;
         phiFitEtaMax = 1.0;
     }
+    std::cout << "iEvtPlanePF = " << iEvtPlanePF << std::endl;
+    std::cout << "calcCSPFiso = " << calcCSPFiso << std::endl;
 
     std::vector<std::string> inputFiles = InputConfigurationParser::ParseFiles(inputFile.c_str());
     std::cout<<"input ROOT files : num = "<<inputFiles.size()<< std::endl;
@@ -191,6 +196,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     TTree* treeHiFJRho = 0;
     TTree* treeTrack = 0;
     TTree* treePFCand = 0;
+    TTree* treeCSPFCand = 0;
 
     if (nFiles == 1) {
         // read one tree only to get the number of entries
@@ -313,8 +319,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         hiFJRho hiFJRho;
         Tracks trks;
         pfCand pfs;
+        pfCand cspfs;
 
         bool doPFCand = (calcPFIso || calcIsoFlow);
+        bool doCSPFCand = calcCSPFiso;
 
         // input type is flatTree
         ggHiFlat ggFlat;
@@ -405,6 +413,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 }
             }
 
+            if (doCSPFCand) {
+                treeCSPFCand = 0;
+                treeCSPFCand = (TTree*)fileTmp->Get("pfcandAnalyzerCS/pfTree");
+                if (treeCSPFCand != 0) {
+                    treeCSPFCand->SetBranchStatus("*", 0);     // disable all branches
+
+                    treeCSPFCand->SetBranchStatus("nPFpart",1);
+                    treeCSPFCand->SetBranchStatus("pfId",1);
+                    treeCSPFCand->SetBranchStatus("pfPt",1);
+                    treeCSPFCand->SetBranchStatus("pfEta",1);
+                    treeCSPFCand->SetBranchStatus("pfPhi",1);
+                }
+            }
+
             ggHi.setupTreeForReading(treeIn);
 
             hiEvt.setupTreeForReading(treeHiEvt);
@@ -423,6 +445,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             if (doPFCand) {
                 pfs.setupTreeForReading(treePFCand);
+            }
+            if (doCSPFCand) {
+                cspfs.setupTreeForReading(treeCSPFCand);
             }
         }
         else if (inFileType == INFILE_TYPES::kFlatTree) {
@@ -455,6 +480,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 treeTrack->GetEntry(j_entry);
                 if (doPFCand) {
                     treePFCand->GetEntry(j_entry);
+                }
+                if (doCSPFCand) {
+                    treeCSPFCand->GetEntry(j_entry);
                 }
 
                 bool eventAdded = em->addEvent(hiEvt.run, hiEvt.lumi, hiEvt.evt, j_entry);
@@ -780,6 +808,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
                             ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx);
                             ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx);
+                        }
+                        if (calcCSPFiso) {
+                            TVector3 pVtxCS(0, 0, -999);
+                            const int modeCSFP = egUtil::footprintMode::matchEtaPhi;
+                            ggHiOut.pfCSpIso3subUEcalc = getPFIsoSubUE(cspfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeCSFP, pVtxCS);
+                            ggHiOut.pfCSnIso3subUEcalc = getPFIsoSubUE(cspfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeCSFP, pVtxCS);
+                            ggHiOut.pfCScIso3pTgt2p0subUEcalc = getPFIsoSubUE(cspfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeCSFP, pVtxCS);
+                            ggHiOut.pfCScIso3subUEcalc = getPFIsoSubUE(cspfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, -1, modeCSFP, pVtxCS);
                         }
                         if (calcIsoFlow) {
                             float angEPv2 = ggHiOut.angEvtPlane;

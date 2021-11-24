@@ -428,6 +428,12 @@ public :
   float pfcIso3pTgt2p0subUEcalc;
   float pfcIso3subUEcalc;
 
+  // using CS PF cands
+  float pfCSpIso3subUEcalc;
+  float pfCSnIso3subUEcalc;
+  float pfCScIso3pTgt2p0subUEcalc;
+  float pfCScIso3subUEcalc;
+
   // modulated via vn2 fit
   float pfpIso3subUEvn2;
   float pfnIso3subUEvn2;
@@ -843,6 +849,11 @@ public :
   TBranch        *b_pfcIso3pTgt2p0subUEcalc;   //!
   TBranch        *b_pfcIso3subUEcalc;   //!
 
+  TBranch        *b_pfCSpIso3subUEcalc;   //!
+  TBranch        *b_pfCSnIso3subUEcalc;   //!
+  TBranch        *b_pfCScIso3pTgt2p0subUEcalc;   //!
+  TBranch        *b_pfCScIso3subUEcalc;   //!
+
   TBranch        *b_pfpIso3subUEvn2;   //!
   TBranch        *b_pfnIso3subUEvn2;   //!
   TBranch        *b_pfcIso3pTgt2p0subUEvn2;   //!
@@ -1255,6 +1266,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfcIso3pTgt2p0subUEcalc = 0;
     b_pfcIso3subUEcalc = 0;
 
+    b_pfCSpIso3subUEcalc = 0;
+    b_pfCSnIso3subUEcalc = 0;
+    b_pfCScIso3pTgt2p0subUEcalc = 0;
+    b_pfCScIso3subUEcalc = 0;
+
     b_pfpIso3subUEvn2 = 0;
     b_pfnIso3subUEvn2 = 0;
     b_pfcIso3pTgt2p0subUEvn2 = 0;
@@ -1665,6 +1681,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfnIso3subUEcalc")) t->SetBranchAddress("pfnIso3subUEcalc", &pfnIso3subUEcalc, &b_pfnIso3subUEcalc);
     if (t->GetBranch("pfcIso3pTgt2p0subUEcalc")) t->SetBranchAddress("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc, &b_pfcIso3pTgt2p0subUEcalc);
     if (t->GetBranch("pfcIso3subUEcalc")) t->SetBranchAddress("pfcIso3subUEcalc", &pfcIso3subUEcalc, &b_pfcIso3subUEcalc);
+
+    if (t->GetBranch("pfCSpIso3subUEcalc")) t->SetBranchAddress("pfCSpIso3subUEcalc", &pfCSpIso3subUEcalc, &b_pfCSpIso3subUEcalc);
+    if (t->GetBranch("pfCSnIso3subUEcalc")) t->SetBranchAddress("pfCSnIso3subUEcalc", &pfCSnIso3subUEcalc, &b_pfCSnIso3subUEcalc);
+    if (t->GetBranch("pfCScIso3pTgt2p0subUEcalc")) t->SetBranchAddress("pfCScIso3pTgt2p0subUEcalc", &pfCScIso3pTgt2p0subUEcalc, &b_pfCScIso3pTgt2p0subUEcalc);
+    if (t->GetBranch("pfCScIso3subUEcalc")) t->SetBranchAddress("pfCScIso3subUEcalc", &pfCScIso3subUEcalc, &b_pfCScIso3subUEcalc);
 
     if (t->GetBranch("pfpIso3subUEvn2")) t->SetBranchAddress("pfpIso3subUEvn2", &pfpIso3subUEvn2, &b_pfpIso3subUEvn2);
     if (t->GetBranch("pfnIso3subUEvn2")) t->SetBranchAddress("pfnIso3subUEvn2", &pfnIso3subUEvn2, &b_pfnIso3subUEvn2);
@@ -2084,6 +2105,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfcIso3pTgt2p0subUEcalc", &pfcIso3pTgt2p0subUEcalc);
         t->Branch("pfcIso3subUEcalc", &pfcIso3subUEcalc);
 
+        t->Branch("pfCSpIso3subUEcalc", &pfCSpIso3subUEcalc);
+        t->Branch("pfCSnIso3subUEcalc", &pfCSnIso3subUEcalc);
+        t->Branch("pfCScIso3pTgt2p0subUEcalc", &pfCScIso3pTgt2p0subUEcalc);
+        t->Branch("pfCScIso3subUEcalc", &pfCScIso3subUEcalc);
+
         t->Branch("pfpIso3subUEvn2", &pfpIso3subUEvn2);
         t->Branch("pfnIso3subUEvn2", &pfnIso3subUEvn2);
         t->Branch("pfcIso3pTgt2p0subUEvn2", &pfcIso3pTgt2p0subUEvn2);
@@ -2490,6 +2516,11 @@ void ggHiFlat::clearEntryPho()
         pfnIso3subUEcalc = -987987;
         pfcIso3pTgt2p0subUEcalc = -987987;
         pfcIso3subUEcalc = -987987;
+
+        pfCSpIso3subUEcalc = -987987;
+        pfCSnIso3subUEcalc = -987987;
+        pfCScIso3pTgt2p0subUEcalc = -987987;
+        pfCScIso3subUEcalc = -987987;
 
         pfpIso3subUEvn2 = -987987;
         pfnIso3subUEvn2 = -987987;
@@ -3363,6 +3394,11 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfnIso3subUEcalc = gg.pfnIso3subUEcalc;
     pfcIso3pTgt2p0subUEcalc = gg.pfcIso3pTgt2p0subUEcalc;
     pfcIso3subUEcalc = gg.pfcIso3subUEcalc;
+
+    pfCSpIso3subUEcalc = gg.pfCSpIso3subUEcalc;
+    pfCSnIso3subUEcalc = gg.pfCSnIso3subUEcalc;
+    pfCScIso3pTgt2p0subUEcalc = gg.pfCScIso3pTgt2p0subUEcalc;
+    pfCScIso3subUEcalc = gg.pfCScIso3subUEcalc;
 
     pfpIso3subUEvn2 = gg.pfpIso3subUEvn2;
     pfnIso3subUEvn2 = gg.pfnIso3subUEvn2;
