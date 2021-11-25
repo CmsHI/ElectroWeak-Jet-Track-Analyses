@@ -410,6 +410,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     treePFCand->SetBranchStatus("pfv*",1);
                     treePFCand->SetBranchStatus("trk*",1);
                     treePFCand->SetBranchStatus("highPurity",1);
+                    treePFCand->SetBranchStatus("pf*calE",1);
                 }
             }
 
