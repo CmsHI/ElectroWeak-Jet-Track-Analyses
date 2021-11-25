@@ -13,9 +13,9 @@ for inputFile in "${inputFiles[@]}"
 do
   if [[ $inputFile = *.root ]];  # if input is a ROOT file, then just print the new file path
   then
-    echo $inputFile | sed "s,root://xrootd.cmsaf.mit.edu//store,/mnt/hadoop/cms/store,g"
+    echo $inputFile | sed "s,root://xrootd.cmsaf.mit.edu//store,/mnt/T2_US_MIT/hadoop/cms/store,g"
   else
-    sed -i "s,root://xrootd.cmsaf.mit.edu//store,/mnt/hadoop/cms/store,g" $inputFile
+    sed -i "s,root://xrootd.cmsaf.mit.edu//store,/mnt/T2_US_MIT/hadoop/cms/store,g" $inputFile
   fi
 done
 
