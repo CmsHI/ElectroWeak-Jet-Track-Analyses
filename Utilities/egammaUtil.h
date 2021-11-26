@@ -41,9 +41,9 @@ struct basicPFCand {
 namespace egUtil {
 
   enum defn_phi_flow_mod {
-      k_noMod,        // no modulation
       k_PF_ch,        // multiplicity of PF charged hadrons
       k_PF_ch_trkID,  // multiplicity of PF charged hadrons passing trkID
+      k_PF_ch_trkID_wE,  // energy weighted multiplicity of PF charged hadrons passing trkID
       k_PF_all_wE,    // energy weighted multiplicity of all PF cands
       k_PF_all_trkID_wE,  // energy weighted multiplicity of all PF cands
       k_EPHF_PF_ch,   // multiplicity of PF charged hadrons, fit using event plane angles from HF
@@ -52,7 +52,7 @@ namespace egUtil {
 
   // if true, then particles are required to be charged
   const bool phi_flow_mod_ch_flag[N_defn_phi_flow_mod] = {
-      false,
+      true,
       true,
       true,
       false,
@@ -63,7 +63,7 @@ namespace egUtil {
   // if true, then charged particles are required to pass trkID
   const bool phi_flow_mod_trkID_flag[N_defn_phi_flow_mod] = {
       false,
-      false,
+      true,
       true,
       false,
       true,
@@ -74,7 +74,7 @@ namespace egUtil {
   const bool phi_flow_mod_wE[N_defn_phi_flow_mod] = {
       false,
       false,
-      false,
+      true,
       true,
       true,
       false,

@@ -609,7 +609,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     if (!(calcIso_pfEtaMin < (*pfs.pfEta)[i] && (*pfs.pfEta)[i] < calcIso_pfEtaMax) ) continue;
                     // checked in forest via Scan("Sum$(pfId == 1 && pfPt > 0.3 && pfPt < 3 && abs(pfEta) < 1):hiBin")
 
-                    for (int j = egUtil::k_noMod+1; j <= iLast4angEPcalc; ++j) {
+                    for (int j = 0; j <= iLast4angEPcalc; ++j) {
 
                         if (egUtil::phi_flow_mod_ch_flag[j] && (*pfs.pfId)[i] != 1 ) {
                             continue;
@@ -644,7 +644,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 // fit PF candidate phi
                 int nBinsX = -1;
                 double initN0 = -1;
-                for (int j = egUtil::k_noMod+1; j < nDefnFlowMod; ++j) { // angles for k_noMod are always zero.
+                for (int j = 0; j < nDefnFlowMod; ++j) {
 
                     ggHiOut.fMods_angEP2_out[j] = (j != egUtil::k_EPHF_PF_ch) ? (std::atan2(ep2Sin[j], ep2Cos[j]) / 2.) : ggHiOut.hiEP2HF;
                     ggHiOut.fMods_angEP3_out[j] = (j != egUtil::k_EPHF_PF_ch) ? (std::atan2(ep3Sin[j], ep3Cos[j]) / 3.) : ggHiOut.hiEP3HF;
@@ -704,7 +704,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                 ggHiOut.fit_trkphi_v2 = 0;
                 ggHiOut.fit_trkphi_v3 = 0;
-                int iPhiTrk = 0; // an arbitrary index that is free to use
+                int iPhiTrk = 0; // an arbitrary index to use, since fitting PF cands is completed at this point
                 h1D_phi[iPhiTrk]->Reset();
                 for (int i=0; i<trks.nTrk; ++i) {
 
@@ -807,8 +807,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         if (calcPFIso) {
                             ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
                             ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
-                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx);
-                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx);
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeFP, pVtx);
+                            ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
+                            ggHiOut.pfcIso3IDpTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeFP, pVtx);
+                            ggHiOut.pfcIso3IDsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeFP, pVtx);
                         }
                         if (calcCSPFiso) {
                             TVector3 pVtxCS(0, 0, -999);
