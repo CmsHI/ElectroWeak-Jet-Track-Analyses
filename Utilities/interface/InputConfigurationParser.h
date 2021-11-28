@@ -457,6 +457,7 @@ class InputConfigurationParser : public ConfigurationParser {
     static bool isConfigurationFile(std::string fileName);
     static std::vector<std::string> replaceMntWithXrootd(std::vector<std::string> & fileNames);
     static std::vector<std::string> replaceXrootdWithMnt(std::vector<std::string> & fileNames);
+    static std::vector<std::string> replaceMntT2USMIT(std::vector<std::string> & fileNames);
     static std::vector<std::string> ParseFiles(std::string fileName);
     static std::vector<std::string> ParseEvents(std::string fileName);
     static std::vector<std::string> ParseFileArgument(std::string fileArgument);
@@ -512,6 +513,20 @@ std::vector<std::string> InputConfigurationParser::replaceXrootdWithMnt(std::vec
 
     for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
         res.push_back(replaceAll((*it), "root://xrootd.cmsaf.mit.edu//store", "/mnt/hadoop/cms/store"));
+    }
+
+    return res;
+}
+
+/*
+ * replace the "/mnt/T2_US_MIT/hadoop" path with "/mnt/hadoop"
+ */
+std::vector<std::string> InputConfigurationParser::replaceMntT2USMIT(std::vector<std::string> & fileNames)
+{
+    std::vector<std::string> res;
+
+    for (std::vector<std::string>::const_iterator it = fileNames.begin(); it != fileNames.end(); ++it) {
+        res.push_back(replaceAll((*it), "/mnt/T2_US_MIT/hadoop/cms/store", "/mnt/hadoop/cms/store"));
     }
 
     return res;
@@ -575,6 +590,7 @@ std::vector<std::string> InputConfigurationParser::ParseFiles(std::string fileNa
     else if (matchesWildCard(hostName, "*cmsaf.mit.edu")) {
 
         fileNames = InputConfigurationParser::replaceXrootdWithMnt(fileNames);
+        fileNames = InputConfigurationParser::replaceMntT2USMIT(fileNames);
     }
 
     return fileNames;
