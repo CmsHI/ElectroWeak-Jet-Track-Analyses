@@ -220,17 +220,18 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     // kinematics weights
     fileTmp = 0;
     TH2D* h2D_weightKin = 0;
-    if (fileKinWeight.size() > 0 && histKinWeight.size() > 0) {
-        fileTmp = TFile::Open(fileKinWeight.c_str(), "READ");
+    std::string fileKinWeightPrsd = (fileKinWeight.size() > 0) ? (InputConfigurationParser::ParseFiles(fileKinWeight.c_str()))[0] : "";
+    if (fileKinWeightPrsd.size() > 0 && histKinWeight.size() > 0) {
+        fileTmp = TFile::Open(fileKinWeightPrsd.c_str(), "READ");
         h2D_weightKin = (TH2D*)fileTmp->Get(histKinWeight.c_str());
     }
 
     TH2D* h2D_weightGenKin = 0;
-    if (fileGenKinWeight.size() > 0 && histGenKinWeight.size() > 0) {
-        fileTmp = TFile::Open(fileGenKinWeight.c_str(), "READ");
+    std::string fileGenKinWeightPrsd = (fileGenKinWeight.size() > 0) ? (InputConfigurationParser::ParseFiles(fileGenKinWeight.c_str()))[0] : "";
+    if (fileGenKinWeightPrsd.size() > 0 && histGenKinWeight.size() > 0) {
+        fileTmp = TFile::Open(fileGenKinWeightPrsd.c_str(), "READ");
         h2D_weightGenKin = (TH2D*)fileTmp->Get(histGenKinWeight.c_str());
     }
-
 
     //double xRange_phi = -1;
     const int nDefnFlowMod = egUtil::defn_phi_flow_mod::N_defn_phi_flow_mod;
