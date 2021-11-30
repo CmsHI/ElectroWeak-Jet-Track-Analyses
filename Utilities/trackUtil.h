@@ -260,7 +260,7 @@ bool passedTrkSelPbPb18(unsigned char trkAlgo, float trkMVA, bool highPurity, fl
                         unsigned char trkNHit, float trkChi2, unsigned char trkNdof, unsigned char trkNlayer,
                         float pfHcal, float pfEcal, float trkEta)
 {
-    if ((trkAlgo == 6 && trkMVA)) return false;
+    if ((trkAlgo == 6 && trkMVA < 0.98)) return false;
 
     if (!(highPurity == true)) return false;
     if (!(trkPtError / trkPt < 0.1 &&
