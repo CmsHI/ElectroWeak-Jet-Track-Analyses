@@ -812,6 +812,11 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
                             ggHiOut.pfcIso3IDpTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeFP, pVtx);
                             ggHiOut.pfcIso3IDsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeFP, pVtx);
+
+                            const int modeNoFP = egUtil::footprintMode::noRemoval;
+                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3IDpTgt2p0subUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3IDsubUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
                         }
                         if (calcCSPFiso) {
                             TVector3 pVtxCS(0, 0, -999);
