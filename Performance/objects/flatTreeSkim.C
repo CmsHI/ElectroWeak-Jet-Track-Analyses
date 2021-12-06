@@ -884,20 +884,47 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.phoEAsieie = getEffArea((*ggHi.phoSCEta)[i], effAreaSieie[0], effAreaSieie[1], effAreaSieie[2], nEffAreaSieie);
 
                         const std::vector<basicPFCand> phoLinkedPFs = getLinkedPFCands(ggHi, i);
-                        ggHiOut.nPhoPF = phoLinkedPFs.size();
-                        if (ggHiOut.nPhoPF > 0) {
-                            ggHiOut.ppfPtSum = 0;
-                            ggHiOut.ppfEtaAve = 0;
-                            ggHiOut.ppfPhiAve = 0;
+                        if (phoLinkedPFs.size() > 0) {
+                            ggHiOut.resetPhoPF();
 
                             for (std::vector<basicPFCand>::const_iterator itPF = phoLinkedPFs.begin(); itPF != phoLinkedPFs.end(); ++itPF) {
-                                ggHiOut.ppfPtSum += (*itPF).pt;
-                                ggHiOut.ppfEtaAve += (*itPF).eta;
-                                ggHiOut.ppfPhiAve += (*itPF).phi;
+                                if ((*itPF).id == 4) {
+                                    ggHiOut.ppfpPtSum += (*itPF).pt;
+                                    ggHiOut.ppfpEtaAve += (*itPF).eta;
+                                    ggHiOut.ppfpPhiAve += (*itPF).phi;
+                                    ggHiOut.nPhoPFp++;
+                                }
+                                else if ((*itPF).id == 5) {
+                                    ggHiOut.ppfnPtSum += (*itPF).pt;
+                                    ggHiOut.ppfnEtaAve += (*itPF).eta;
+                                    ggHiOut.ppfnPhiAve += (*itPF).phi;
+                                    ggHiOut.nPhoPFn++;
+                                }
+                                else if ((*itPF).id == 1) {
+                                    ggHiOut.ppfcPtSum += (*itPF).pt;
+                                    ggHiOut.ppfcEtaAve += (*itPF).eta;
+                                    ggHiOut.ppfcPhiAve += (*itPF).phi;
+                                    ggHiOut.nPhoPFc++;
+                                }
+                                else {
+                                    ggHiOut.ppfxPtSum += (*itPF).pt;
+                                    ggHiOut.ppfxEtaAve += (*itPF).eta;
+                                    ggHiOut.ppfxPhiAve += (*itPF).phi;
+                                    ggHiOut.nPhoPFx++;
+                                }
                             }
 
-                            ggHiOut.ppfEtaAve /= ggHiOut.nPhoPF;
-                            ggHiOut.ppfPhiAve /= ggHiOut.nPhoPF;
+                            ggHiOut.ppfpEtaAve /= ggHiOut.nPhoPFp;
+                            ggHiOut.ppfpPhiAve /= ggHiOut.nPhoPFp;
+
+                            ggHiOut.ppfnEtaAve /= ggHiOut.nPhoPFn;
+                            ggHiOut.ppfnPhiAve /= ggHiOut.nPhoPFn;
+
+                            ggHiOut.ppfcEtaAve /= ggHiOut.nPhoPFc;
+                            ggHiOut.ppfcPhiAve /= ggHiOut.nPhoPFc;
+
+                            ggHiOut.ppfxEtaAve /= ggHiOut.nPhoPFx;
+                            ggHiOut.ppfxPhiAve /= ggHiOut.nPhoPFx;
                         }
 
                         if (h2D_weightKin != 0) {

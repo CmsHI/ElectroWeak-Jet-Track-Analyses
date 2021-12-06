@@ -44,6 +44,7 @@ public :
   void clearEntryPho();
   void clearEntryMu();
   void clearEntryGen();
+  void resetPhoPF();
   void copyEle(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyPho(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyMu(ggHiNtuplizer &tggHiNtuplizer, int i);
@@ -469,10 +470,22 @@ public :
   float phoEAhoe;
   float phoEAsieie;
 
-  int nPhoPF;
-  float ppfPtSum;
-  float ppfEtaAve;
-  float ppfPhiAve;
+  int nPhoPFp;
+  int nPhoPFn;
+  int nPhoPFc;
+  int nPhoPFx;
+  float ppfpPtSum;
+  float ppfpEtaAve;
+  float ppfpPhiAve;
+  float ppfnPtSum;
+  float ppfnEtaAve;
+  float ppfnPhiAve;
+  float ppfcPtSum;
+  float ppfcEtaAve;
+  float ppfcPhiAve;
+  float ppfxPtSum;
+  float ppfxEtaAve;
+  float ppfxPhiAve;
 
   //int nMu;
   float muPt;
@@ -891,10 +904,22 @@ public :
   TBranch        *b_phoEAhoe;   //!
   TBranch        *b_phoEAsieie;   //!
 
-  TBranch        *b_nPhoPF;   //!
-  TBranch        *b_ppfPtSum;   //!
-  TBranch        *b_ppfEtaAve;   //!
-  TBranch        *b_ppfPhiAve;   //!
+  TBranch        *b_nPhoPFp;   //!
+  TBranch        *b_ppfpPtSum;   //!
+  TBranch        *b_ppfpEtaAve;   //!
+  TBranch        *b_ppfpPhiAve;   //!
+  TBranch        *b_nPhoPFn;   //!
+  TBranch        *b_ppfnPtSum;   //!
+  TBranch        *b_ppfnEtaAve;   //!
+  TBranch        *b_ppfnPhiAve;   //!
+  TBranch        *b_nPhoPFc;   //!
+  TBranch        *b_ppfcPtSum;   //!
+  TBranch        *b_ppfcEtaAve;   //!
+  TBranch        *b_ppfcPhiAve;   //!
+  TBranch        *b_nPhoPFx;   //!
+  TBranch        *b_ppfxPtSum;   //!
+  TBranch        *b_ppfxEtaAve;   //!
+  TBranch        *b_ppfxPhiAve;   //!
 
   TBranch        *b_nMu;   //!
   TBranch        *b_muPt;   //!
@@ -1314,10 +1339,22 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_phoEAhoe = 0;
     b_phoEAsieie = 0;
 
-    b_nPhoPF = 0;
-    b_ppfPtSum = 0;
-    b_ppfEtaAve = 0;
-    b_ppfPhiAve = 0;
+    b_nPhoPFp = 0;
+    b_ppfpPtSum = 0;
+    b_ppfpEtaAve = 0;
+    b_ppfpPhiAve = 0;
+    b_nPhoPFn = 0;
+    b_ppfnPtSum = 0;
+    b_ppfnEtaAve = 0;
+    b_ppfnPhiAve = 0;
+    b_nPhoPFc = 0;
+    b_ppfcPtSum = 0;
+    b_ppfcEtaAve = 0;
+    b_ppfcPhiAve = 0;
+    b_nPhoPFx = 0;
+    b_ppfxPtSum = 0;
+    b_ppfxEtaAve = 0;
+    b_ppfxPhiAve = 0;
 
     b_nMu = 0;
     b_muPt = 0;
@@ -1736,10 +1773,22 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("phoEAhoe")) t->SetBranchAddress("phoEAhoe", &phoEAhoe, &b_phoEAhoe);
     if (t->GetBranch("phoEAsieie")) t->SetBranchAddress("phoEAsieie", &phoEAsieie, &b_phoEAsieie);
 
-    if (t->GetBranch("nPhoPF")) t->SetBranchAddress("nPhoPF", &nPhoPF, &b_nPhoPF);
-    if (t->GetBranch("ppfPtSum")) t->SetBranchAddress("ppfPtSum", &ppfPtSum, &b_ppfPtSum);
-    if (t->GetBranch("ppfEtaAve")) t->SetBranchAddress("ppfEtaAve", &ppfEtaAve, &b_ppfEtaAve);
-    if (t->GetBranch("ppfPhiAve")) t->SetBranchAddress("ppfPhiAve", &ppfPhiAve, &b_ppfPhiAve);
+    if (t->GetBranch("nPhoPFp")) t->SetBranchAddress("nPhoPFp", &nPhoPFp, &b_nPhoPFp);
+    if (t->GetBranch("ppfpPtSum")) t->SetBranchAddress("ppfpPtSum", &ppfpPtSum, &b_ppfpPtSum);
+    if (t->GetBranch("ppfpEtaAve")) t->SetBranchAddress("ppfpEtaAve", &ppfpEtaAve, &b_ppfpEtaAve);
+    if (t->GetBranch("ppfpPhiAve")) t->SetBranchAddress("ppfpPhiAve", &ppfpPhiAve, &b_ppfpPhiAve);
+    if (t->GetBranch("nPhoPFn")) t->SetBranchAddress("nPhoPFn", &nPhoPFn, &b_nPhoPFn);
+    if (t->GetBranch("ppfnPtSum")) t->SetBranchAddress("ppfnPtSum", &ppfnPtSum, &b_ppfnPtSum);
+    if (t->GetBranch("ppfnEtaAve")) t->SetBranchAddress("ppfnEtaAve", &ppfnEtaAve, &b_ppfnEtaAve);
+    if (t->GetBranch("ppfnPhiAve")) t->SetBranchAddress("ppfnPhiAve", &ppfnPhiAve, &b_ppfnPhiAve);
+    if (t->GetBranch("nPhoPFc")) t->SetBranchAddress("nPhoPFc", &nPhoPFc, &b_nPhoPFc);
+    if (t->GetBranch("ppfcPtSum")) t->SetBranchAddress("ppfcPtSum", &ppfcPtSum, &b_ppfcPtSum);
+    if (t->GetBranch("ppfcEtaAve")) t->SetBranchAddress("ppfcEtaAve", &ppfcEtaAve, &b_ppfcEtaAve);
+    if (t->GetBranch("ppfcPhiAve")) t->SetBranchAddress("ppfcPhiAve", &ppfcPhiAve, &b_ppfcPhiAve);
+    if (t->GetBranch("nPhoPFx")) t->SetBranchAddress("nPhoPFx", &nPhoPFx, &b_nPhoPFx);
+    if (t->GetBranch("ppfxPtSum")) t->SetBranchAddress("ppfxPtSum", &ppfxPtSum, &b_ppfxPtSum);
+    if (t->GetBranch("ppfxEtaAve")) t->SetBranchAddress("ppfxEtaAve", &ppfxEtaAve, &b_ppfxEtaAve);
+    if (t->GetBranch("ppfxPhiAve")) t->SetBranchAddress("ppfxPhiAve", &ppfxPhiAve, &b_ppfxPhiAve);
 
     //if (t->GetBranch("nMu")) t->SetBranchAddress("nMu", &nMu, &b_nMu);
     if (t->GetBranch("muPt")) t->SetBranchAddress("muPt", &muPt, &b_muPt);
@@ -2165,10 +2214,22 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("phoEAhoe", &phoEAhoe);
         t->Branch("phoEAsieie", &phoEAsieie);
 
-        t->Branch("nPhoPF", &nPhoPF);
-        t->Branch("ppfPtSum", &ppfPtSum);
-        t->Branch("ppfEtaAve", &ppfEtaAve);
-        t->Branch("ppfPhiAve", &ppfPhiAve);
+        t->Branch("nPhoPFp", &nPhoPFp);
+        t->Branch("ppfpPtSum", &ppfpPtSum);
+        t->Branch("ppfpEtaAve", &ppfpEtaAve);
+        t->Branch("ppfpPhiAve", &ppfpPhiAve);
+        t->Branch("nPhoPFn", &nPhoPFn);
+        t->Branch("ppfnPtSum", &ppfnPtSum);
+        t->Branch("ppfnEtaAve", &ppfnEtaAve);
+        t->Branch("ppfnPhiAve", &ppfnPhiAve);
+        t->Branch("nPhoPFc", &nPhoPFc);
+        t->Branch("ppfcPtSum", &ppfcPtSum);
+        t->Branch("ppfcEtaAve", &ppfcEtaAve);
+        t->Branch("ppfcPhiAve", &ppfcPhiAve);
+        t->Branch("nPhoPFx", &nPhoPFx);
+        t->Branch("ppfxPtSum", &ppfxPtSum);
+        t->Branch("ppfxEtaAve", &ppfxEtaAve);
+        t->Branch("ppfxPhiAve", &ppfxPhiAve);
     }
     if (doMu) {
         //t->Branch("nMu", &nMu);
@@ -2583,10 +2644,22 @@ void ggHiFlat::clearEntryPho()
         phoEAhoe = 0;
         phoEAsieie = 0;
 
-        nPhoPF = 0;
-        ppfPtSum = -1;
-        ppfEtaAve = -987987;
-        ppfPhiAve = -987987;
+        nPhoPFp = 0;
+        ppfpPtSum = -1;
+        ppfpEtaAve = -987987;
+        ppfpPhiAve = -987987;
+        nPhoPFn = 0;
+        ppfnPtSum = -1;
+        ppfnEtaAve = -987987;
+        ppfnPhiAve = -987987;
+        nPhoPFc = 0;
+        ppfcPtSum = -1;
+        ppfcEtaAve = -987987;
+        ppfcPhiAve = -987987;
+        nPhoPFx = 0;
+        ppfxPtSum = -1;
+        ppfxEtaAve = -987987;
+        ppfxPhiAve = -987987;
     }
 }
 
@@ -2656,6 +2729,26 @@ void ggHiFlat::clearEntryGen()
         mcTrkIsoDR03 = -987987;
         mcTrkIsoDR04 = -987987;
     }
+}
+
+void ggHiFlat::resetPhoPF()
+{
+    nPhoPFp = 0;
+    ppfpPtSum = 0;
+    ppfpEtaAve = 0;
+    ppfpPhiAve = 0;
+    nPhoPFn = 0;
+    ppfnPtSum = 0;
+    ppfnEtaAve = 0;
+    ppfnPhiAve = 0;
+    nPhoPFc = 0;
+    ppfcPtSum = 0;
+    ppfcEtaAve = 0;
+    ppfcPhiAve = 0;
+    nPhoPFx = 0;
+    ppfxPtSum = 0;
+    ppfxEtaAve = 0;
+    ppfxPhiAve = 0;
 }
 
 void ggHiFlat::copyEle(ggHiNtuplizer &tggHiNtuplizer, int i)
@@ -3468,10 +3561,22 @@ void ggHiFlat::clone(ggHiFlat &gg)
     phoEAhoe = gg.phoEAhoe;
     phoEAsieie = gg.phoEAsieie;
 
-    nPhoPF = gg.nPhoPF;
-    ppfPtSum = gg.ppfPtSum;
-    ppfEtaAve = gg.ppfEtaAve;
-    ppfPhiAve = gg.ppfPhiAve;
+    nPhoPFp = gg.nPhoPFp;
+    ppfpPtSum = gg.ppfpPtSum;
+    ppfpEtaAve = gg.ppfpEtaAve;
+    ppfpPhiAve = gg.ppfpPhiAve;
+    nPhoPFn = gg.nPhoPFn;
+    ppfnPtSum = gg.ppfnPtSum;
+    ppfnEtaAve = gg.ppfnEtaAve;
+    ppfnPhiAve = gg.ppfnPhiAve;
+    nPhoPFc = gg.nPhoPFc;
+    ppfcPtSum = gg.ppfcPtSum;
+    ppfcEtaAve = gg.ppfcEtaAve;
+    ppfcPhiAve = gg.ppfcPhiAve;
+    nPhoPFx = gg.nPhoPFx;
+    ppfxPtSum = gg.ppfxPtSum;
+    ppfxEtaAve = gg.ppfxEtaAve;
+    ppfxPhiAve = gg.ppfxPhiAve;
 
     //nMu = gg.nMu;
     muPt = gg.muPt;
