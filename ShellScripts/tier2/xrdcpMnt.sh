@@ -11,9 +11,11 @@ fi
 inputFile=${1}
 outputFile=${2}
 
-str1="\/mnt\/hadoop\/cms\/store"
+str1="\/mnt\/T2_US_MIT\/hadoop\/cms\/store"
 str2="root://xrootd.cmsaf.mit.edu//store"
+inputFileXrootd="${inputFile/${str1}/${str2}}"
 
+str1="\/mnt\/hadoop\/cms\/store"
 inputFileXrootd="${inputFile/${str1}/${str2}}"
 
 #echo "input : "${inputFile}
