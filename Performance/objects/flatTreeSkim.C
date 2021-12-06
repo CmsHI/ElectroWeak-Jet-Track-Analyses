@@ -344,6 +344,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 treeHiEvt->SetBranchStatus("weight", 1);
                 treeHiEvt->SetBranchStatus("phi0",1);
                 treeHiEvt->SetBranchStatus("pthat",1);
+                treeHiEvt->SetBranchStatus("ProcessID",1);
             }
 
             treeSkim = (TTree*)fileTmp->Get("skimanalysis/HltTree");
@@ -517,6 +518,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 if (isMC) {
                     ggHiOut.phi0 = hiEvt.phi0;
                     ggHiOut.pthat = hiEvt.pthat;
+                    ggHiOut.processID = hiEvt.ProcessID;
                 }
 
                 ggHiOut.angEP2pf_out.clear();

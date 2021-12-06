@@ -70,6 +70,7 @@ public :
   float weightPthat;
   float phi0;
   float pthat;
+  int processID;
   int hiBin;
   float hiHF;
   float hiEP1HF;
@@ -530,6 +531,7 @@ public :
   TBranch        *b_weightPthat;   //!
   TBranch        *b_phi0;   //!
   TBranch        *b_pthat;   //!
+  TBranch        *b_processID;   //!
   TBranch        *b_hiBin;   //!
   TBranch        *b_hiHF;   //!
   TBranch        *b_hiEP1HF;   //!
@@ -964,6 +966,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_weightPthat = 0;
     b_phi0 = 0;
     b_pthat = 0;
+    b_processID = 0;
     b_hiBin = 0;
     b_hiHF = 0;
     b_hiEP1HF = 0;
@@ -1397,6 +1400,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("weightPthat")) t->SetBranchAddress("weightPthat", &weightPthat, &b_weightPthat);
     if (t->GetBranch("phi0")) t->SetBranchAddress("phi0", &phi0, &b_phi0);
     if (t->GetBranch("pthat")) t->SetBranchAddress("pthat", &pthat, &b_pthat);
+    if (t->GetBranch("processID")) t->SetBranchAddress("processID", &processID, &b_processID);
     if (t->GetBranch("hiBin")) t->SetBranchAddress("hiBin", &hiBin, &b_hiBin);
     if (t->GetBranch("hiHF")) t->SetBranchAddress("hiHF", &hiHF, &b_hiHF);
     if (t->GetBranch("hiEP1HF")) t->SetBranchAddress("hiEP1HF", &hiEP1HF, &b_hiEP1HF);
@@ -1833,6 +1837,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("weightPthat", &weightPthat);
     t->Branch("phi0", &phi0);
     t->Branch("pthat", &pthat);
+    t->Branch("processID", &processID);
     t->Branch("hiBin", &hiBin);
     t->Branch("hiHF", &hiHF);
     t->Branch("hiEP1HF", &hiEP1HF);
@@ -2276,6 +2281,7 @@ void ggHiFlat::clearEntry()
     weightPthat = -1;
     phi0 = -987987;
     pthat = -1;
+    processID = -999999;
     hiBin = -1;
     hiHF = -1;
     hiEP1HF = -987987;
@@ -3138,6 +3144,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     weightPthat = gg.weightPthat;
     phi0 = gg.phi0;
     pthat = gg.pthat;
+    processID = gg.processID;
     hiBin = gg.hiBin;
     hiHF = gg.hiHF;
     hiEP1HF = gg.hiEP1HF;
