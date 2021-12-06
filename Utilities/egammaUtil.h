@@ -41,12 +41,12 @@ struct basicPFCand {
 namespace egUtil {
 
   enum defn_phi_flow_mod {
-      k_PF_ch,        // multiplicity of PF charged hadrons
-      k_PF_ch_trkID,  // multiplicity of PF charged hadrons passing trkID
-      k_PF_ch_trkID_wE,  // energy weighted multiplicity of PF charged hadrons passing trkID
-      k_PF_all_wE,    // energy weighted multiplicity of all PF cands
-      k_PF_all_trkID_wE,  // energy weighted multiplicity of all PF cands
-      k_EPHF_PF_ch,   // multiplicity of PF charged hadrons, fit using event plane angles from HF
+      k_PF_ch=0,        // multiplicity of PF charged hadrons
+      k_PF_ch_trkID=1,  // multiplicity of PF charged hadrons passing trkID
+      k_PF_ch_trkID_wE=2,  // energy weighted multiplicity of PF charged hadrons passing trkID
+      k_PF_all_wE=3,    // energy weighted multiplicity of all PF cands
+      k_PF_all_trkID_wE=4,  // energy weighted multiplicity of all PF cands with ch PF passing trkID
+      k_EPHF_PF_ch=5,   // multiplicity of PF charged hadrons, fit using event plane angles from HF
       N_defn_phi_flow_mod,
   };
 
