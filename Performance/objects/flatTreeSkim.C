@@ -896,6 +896,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             float wpfp = 0;
                             float wpfn = 0;
                             float wpfc = 0;
+                            float wpfe = 0;
+                            float wpfm = 0;
                             float wpfx = 0;
                             for (std::vector<basicPFCand>::const_iterator itPF = phoLinkedPFs.begin(); itPF != phoLinkedPFs.end(); ++itPF) {
                                 float wTmp = (*itPF).pt;
@@ -920,6 +922,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                     wpfc += wTmp;
                                     ggHiOut.nPhoPFc++;
                                 }
+                                else if ((*itPF).id == 2) {
+                                    ggHiOut.ppfePtSum += (*itPF).pt;
+                                    ggHiOut.ppfeEtaAve += ((*itPF).eta * wTmp);
+                                    ggHiOut.ppfePhiAve += ((*itPF).phi * wTmp);
+                                    wpfe += wTmp;
+                                    ggHiOut.nPhoPFe++;
+                                }
+                                else if ((*itPF).id == 3) {
+                                    ggHiOut.ppfmPtSum += (*itPF).pt;
+                                    ggHiOut.ppfmEtaAve += ((*itPF).eta * wTmp);
+                                    ggHiOut.ppfmPhiAve += ((*itPF).phi * wTmp);
+                                    wpfm += wTmp;
+                                    ggHiOut.nPhoPFm++;
+                                }
                                 else {
                                     ggHiOut.ppfxPtSum += (*itPF).pt;
                                     ggHiOut.ppfxEtaAve += ((*itPF).eta * wTmp);
@@ -937,6 +953,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                             ggHiOut.ppfcEtaAve /= wpfc;
                             ggHiOut.ppfcPhiAve /= wpfc;
+
+                            ggHiOut.ppfeEtaAve /= wpfe;
+                            ggHiOut.ppfePhiAve /= wpfe;
+
+                            ggHiOut.ppfmEtaAve /= wpfm;
+                            ggHiOut.ppfmPhiAve /= wpfm;
 
                             ggHiOut.ppfxEtaAve /= wpfx;
                             ggHiOut.ppfxPhiAve /= wpfx;
