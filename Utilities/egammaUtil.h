@@ -262,7 +262,7 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if ((*pfs.pfId)[i] != pfId) continue;
 
-        if (pfId == 1) {
+        if (1 <= pfId && pfId <=3) {
             if (trkIDOpt >= 0) {
                 if( !passedTrkSelection(pfs, i, trkIDOpt) ) continue;
             }
@@ -337,7 +337,7 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (dR2 < r2 * r2) continue;
         if (pfpt < threshold) continue;
 
-        if (pfId == 1) {
+        if (1 <= pfId && pfId <=3) {
             if (trkIDOpt >= 0) {
                 if( !passedTrkSelection(pfs, i, trkIDOpt) ) continue;
             }
