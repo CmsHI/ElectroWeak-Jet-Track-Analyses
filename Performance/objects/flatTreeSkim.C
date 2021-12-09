@@ -796,6 +796,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.trkIso3subUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, !(tDoTrkID), tEC, collisionType);
                         ggHiOut.trkIso3ID = getTrkIso(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, collisionType);
                         ggHiOut.trkIso3IDsubUE = getTrkIsoSubUE(trks, ggHi, i, 0.3, tR2, 2.0, tJW, tDoTrkID, tEC, collisionType);
+                        ggHiOut.trkIso3IDmatchPF = getTrkIsoSubUE(trks, (*ggHi.phoEta)[i], (*ggHi.phoPhi)[i], 0.3, tR2, 2.0, tJW, tDoTrkID, tEC, collisionType);
 
                         TVector3 pVtx;
                         pVtx.SetZ(-999);
@@ -819,6 +820,9 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeNoFP, pVtx);
                             ggHiOut.pfcIso3IDpTgt2p0subUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
                             ggHiOut.pfcIso3IDsubUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3IDmatchTrk = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx) +
+                                                        getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx) +
+                                                        getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
                         }
                         if (calcCSPFiso) {
                             TVector3 pVtxCS(0, 0, -999);

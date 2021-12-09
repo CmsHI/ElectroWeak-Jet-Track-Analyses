@@ -435,6 +435,7 @@ public :
   float pfcIso3pTgt2p0subUEcalcNoFP;
   float pfcIso3IDpTgt2p0subUEcalcNoFP;
   float pfcIso3IDsubUEcalcNoFP;
+  float pfcIso3IDmatchTrk;
 
   // using CS PF cands
   float pfCSpIso3subUEcalc;
@@ -464,6 +465,7 @@ public :
   float trkIso3subUE;
   float trkIso3ID;
   float trkIso3IDsubUE;
+  float trkIso3IDmatchPF;
 
   float phoEAc;
   float phoEAp;
@@ -875,6 +877,7 @@ public :
   TBranch        *b_pfcIso3pTgt2p0subUEcalcNoFP;   //!
   TBranch        *b_pfcIso3IDpTgt2p0subUEcalcNoFP;   //!
   TBranch        *b_pfcIso3IDsubUEcalcNoFP;   //!
+  TBranch        *b_pfcIso3IDmatchTrk;   //!
 
   TBranch        *b_pfCSpIso3subUEcalc;   //!
   TBranch        *b_pfCSnIso3subUEcalc;   //!
@@ -900,6 +903,7 @@ public :
   TBranch        *b_trkIso3subUE;   //!
   TBranch        *b_trkIso3ID;   //!
   TBranch        *b_trkIso3IDsubUE;   //!
+  TBranch        *b_trkIso3IDmatchPF;   //!
   TBranch        *b_phoEAc;   //!
   TBranch        *b_phoEAp;   //!
   TBranch        *b_phoEAn;   //!
@@ -1311,6 +1315,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_pfcIso3pTgt2p0subUEcalcNoFP = 0;
     b_pfcIso3IDpTgt2p0subUEcalcNoFP = 0;
     b_pfcIso3IDsubUEcalcNoFP = 0;
+    b_pfcIso3IDmatchTrk = 0;
 
     b_pfCSpIso3subUEcalc = 0;
     b_pfCSnIso3subUEcalc = 0;
@@ -1336,6 +1341,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_trkIso3subUE = 0;
     b_trkIso3ID = 0;
     b_trkIso3IDsubUE = 0;
+    b_trkIso3IDmatchPF = 0;
     b_phoEAc = 0;
     b_phoEAp = 0;
     b_phoEAn = 0;
@@ -1746,6 +1752,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfcIso3pTgt2p0subUEcalcNoFP")) t->SetBranchAddress("pfcIso3pTgt2p0subUEcalcNoFP", &pfcIso3pTgt2p0subUEcalcNoFP, &b_pfcIso3pTgt2p0subUEcalcNoFP);
     if (t->GetBranch("pfcIso3IDpTgt2p0subUEcalcNoFP")) t->SetBranchAddress("pfcIso3IDpTgt2p0subUEcalcNoFP", &pfcIso3IDpTgt2p0subUEcalcNoFP, &b_pfcIso3IDpTgt2p0subUEcalcNoFP);
     if (t->GetBranch("pfcIso3IDsubUEcalcNoFP")) t->SetBranchAddress("pfcIso3IDsubUEcalcNoFP", &pfcIso3IDsubUEcalcNoFP, &b_pfcIso3IDsubUEcalcNoFP);
+    if (t->GetBranch("pfcIso3IDmatchTrk")) t->SetBranchAddress("pfcIso3IDmatchTrk", &pfcIso3IDmatchTrk, &b_pfcIso3IDmatchTrk);
 
     if (t->GetBranch("pfCSpIso3subUEcalc")) t->SetBranchAddress("pfCSpIso3subUEcalc", &pfCSpIso3subUEcalc, &b_pfCSpIso3subUEcalc);
     if (t->GetBranch("pfCSnIso3subUEcalc")) t->SetBranchAddress("pfCSnIso3subUEcalc", &pfCSnIso3subUEcalc, &b_pfCSnIso3subUEcalc);
@@ -1771,6 +1778,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("trkIso3subUE")) t->SetBranchAddress("trkIso3subUE", &trkIso3subUE, &b_trkIso3subUE);
     if (t->GetBranch("trkIso3ID")) t->SetBranchAddress("trkIso3ID", &trkIso3ID, &b_trkIso3ID);
     if (t->GetBranch("trkIso3IDsubUE")) t->SetBranchAddress("trkIso3IDsubUE", &trkIso3IDsubUE, &b_trkIso3IDsubUE);
+    if (t->GetBranch("trkIso3IDmatchPF")) t->SetBranchAddress("trkIso3IDmatchPF", &trkIso3IDmatchPF, &b_trkIso3IDmatchPF);
     if (t->GetBranch("phoEAc")) t->SetBranchAddress("phoEAc", &phoEAc, &b_phoEAc);
     if (t->GetBranch("phoEAp")) t->SetBranchAddress("phoEAp", &phoEAp, &b_phoEAp);
     if (t->GetBranch("phoEAn")) t->SetBranchAddress("phoEAn", &phoEAn, &b_phoEAn);
@@ -2188,6 +2196,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("pfcIso3pTgt2p0subUEcalcNoFP", &pfcIso3pTgt2p0subUEcalcNoFP);
         t->Branch("pfcIso3IDpTgt2p0subUEcalcNoFP", &pfcIso3IDpTgt2p0subUEcalcNoFP);
         t->Branch("pfcIso3IDsubUEcalcNoFP", &pfcIso3IDsubUEcalcNoFP);
+        t->Branch("pfcIso3IDmatchTrk", &pfcIso3IDmatchTrk);
 
         t->Branch("pfCSpIso3subUEcalc", &pfCSpIso3subUEcalc);
         t->Branch("pfCSnIso3subUEcalc", &pfCSnIso3subUEcalc);
@@ -2213,6 +2222,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("trkIso3subUE", &trkIso3subUE);
         t->Branch("trkIso3ID", &trkIso3ID);
         t->Branch("trkIso3IDsubUE", &trkIso3IDsubUE);
+        t->Branch("trkIso3IDmatchPF", &trkIso3IDmatchPF);
         t->Branch("phoEAc", &phoEAc);
         t->Branch("phoEAp", &phoEAp);
         t->Branch("phoEAn", &phoEAn);
@@ -2619,6 +2629,7 @@ void ggHiFlat::clearEntryPho()
         pfcIso3pTgt2p0subUEcalcNoFP = -987987;
         pfcIso3IDpTgt2p0subUEcalcNoFP = -987987;
         pfcIso3IDsubUEcalcNoFP = -987987;
+        pfcIso3IDmatchTrk = -987987;
 
         pfCSpIso3subUEcalc = -987987;
         pfCSnIso3subUEcalc = -987987;
@@ -2644,6 +2655,7 @@ void ggHiFlat::clearEntryPho()
         trkIso3subUE = -987987;
         trkIso3ID = -987987;
         trkIso3IDsubUE = -987987;
+        trkIso3IDmatchPF = -987987;
         phoEAc = 0;
         phoEAp = 0;
         phoEAn = 0;
@@ -3536,6 +3548,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     pfcIso3pTgt2p0subUEcalcNoFP = gg.pfcIso3pTgt2p0subUEcalcNoFP;
     pfcIso3IDpTgt2p0subUEcalcNoFP = gg.pfcIso3IDpTgt2p0subUEcalcNoFP;
     pfcIso3IDsubUEcalcNoFP = gg.pfcIso3IDsubUEcalcNoFP;
+    pfcIso3IDmatchTrk = gg.pfcIso3IDmatchTrk;
 
     pfCSpIso3subUEcalc = gg.pfCSpIso3subUEcalc;
     pfCSnIso3subUEcalc = gg.pfCSnIso3subUEcalc;
@@ -3561,6 +3574,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     trkIso3subUE = gg.trkIso3subUE;
     trkIso3ID = gg.trkIso3ID;
     trkIso3IDsubUE = gg.trkIso3IDsubUE;
+    trkIso3IDmatchPF = gg.trkIso3IDmatchPF;
 
     phoEAc = gg.phoEAc;
     phoEAp = gg.phoEAp;
