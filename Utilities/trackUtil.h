@@ -255,6 +255,12 @@ bool passedTrkSelection(pfCand& pfs, int i, int collType)
     return true;
 }
 
+/*
+ * passedTrkSelPbPb18(trkAlgo, trkMVA, highPurity, trkPtError, trkPt,
+ *                    trkDz1, trkDzError1, trkDxy1, trkDxyError1,
+ *                    trkNHit, trkChi2, trkNdof, trkNlayer,
+ *                    pfHcal, pfEcal, trkEta)
+ */
 bool passedTrkSelPbPb18(unsigned char trkAlgo, float trkMVA, bool highPurity, float trkPtError, float trkPt,
                         float trkDz1, float trkDzError1, float trkDxy1, float trkDxyError1,
                         unsigned char trkNHit, float trkChi2, unsigned char trkNdof, unsigned char trkNlayer,
