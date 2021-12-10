@@ -817,12 +817,12 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3IDsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeFP, pVtx);
 
                             const int modeNoFP = egUtil::footprintMode::noRemoval;
-                            ggHiOut.pfcIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeNoFP, pVtx);
-                            ggHiOut.pfcIso3IDpTgt2p0subUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
-                            ggHiOut.pfcIso3IDsubUEcalcNoFP = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
-                            ggHiOut.pfcIso3IDmatchTrk = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx) +
-                                                        getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx) +
-                                                        getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfpIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
+                            ggHiOut.pfnIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3pTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, -1, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3IDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3IDnoFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
                         }
                         if (calcCSPFiso) {
                             TVector3 pVtxCS(0, 0, -999);
