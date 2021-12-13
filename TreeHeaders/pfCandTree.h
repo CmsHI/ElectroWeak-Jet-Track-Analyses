@@ -24,6 +24,10 @@ public :
         pfEcalEraw = 0;
         pfHcalE = 0;
         pfHcalEraw = 0;
+        trkKey = 0;
+        trkPt = 0;
+        trkEta = 0;
+        trkPhi = 0;
         trkAlgo = 0;
         trkPtError = 0;
         trkNHit = 0;
@@ -56,6 +60,10 @@ public :
     std::vector<float>   *pfEcalEraw;
     std::vector<float>   *pfHcalE;
     std::vector<float>   *pfHcalEraw;
+    std::vector<unsigned long> *trkKey;
+    std::vector<float>   *trkPt;
+    std::vector<float>   *trkEta;
+    std::vector<float>   *trkPhi;
     std::vector<unsigned char> *trkAlgo;
     std::vector<float>   *trkPtError;
     std::vector<unsigned char> *trkNHit;
@@ -85,6 +93,10 @@ public :
     TBranch        *b_pfEcalEraw;   //!
     TBranch        *b_pfHcalE;   //!
     TBranch        *b_pfHcalEraw;   //!
+    TBranch        *b_trkKey;   //!
+    TBranch        *b_trkPt;   //!
+    TBranch        *b_trkEta;   //!
+    TBranch        *b_trkPhi;   //!
     TBranch        *b_trkAlgo;   //!
     TBranch        *b_trkPtError;   //!
     TBranch        *b_trkNHit;   //!
@@ -116,6 +128,10 @@ void pfCand::setupTreeForReading(TTree *t)
     b_pfEcalEraw = 0;
     b_pfHcalE = 0;
     b_pfHcalEraw = 0;
+    b_trkKey = 0;
+    b_trkPt = 0;
+    b_trkEta = 0;
+    b_trkPhi = 0;
     b_trkAlgo = 0;
     b_trkPtError = 0;
     b_trkNHit = 0;
@@ -145,6 +161,10 @@ void pfCand::setupTreeForReading(TTree *t)
     if (t->GetBranch("pfEcalEraw"))  t->SetBranchAddress("pfEcalEraw", &pfEcalEraw, &b_pfEcalEraw);
     if (t->GetBranch("pfHcalE"))  t->SetBranchAddress("pfHcalE", &pfHcalE, &b_pfHcalE);
     if (t->GetBranch("pfHcalEraw"))  t->SetBranchAddress("pfHcalEraw", &pfHcalEraw, &b_pfHcalEraw);
+    if (t->GetBranch("trkKey"))  t->SetBranchAddress("trkKey", &trkKey, &b_trkKey);
+    if (t->GetBranch("trkPt"))  t->SetBranchAddress("trkPt", &trkPt, &b_trkPt);
+    if (t->GetBranch("trkEta"))  t->SetBranchAddress("trkEta", &trkEta, &b_trkEta);
+    if (t->GetBranch("trkPhi"))  t->SetBranchAddress("trkPhi", &trkPhi, &b_trkPhi);
     if (t->GetBranch("trkAlgo"))  t->SetBranchAddress("trkAlgo", &trkAlgo, &b_trkAlgo);
     if (t->GetBranch("trkPtError"))  t->SetBranchAddress("trkPtError", &trkPtError, &b_trkPtError);
     if (t->GetBranch("trkNHit"))  t->SetBranchAddress("trkNHit", &trkNHit, &b_trkNHit);
