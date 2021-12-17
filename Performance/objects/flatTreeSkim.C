@@ -822,6 +822,13 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             const float mpf_mindR = 0;
                             const float mpf_maxdR = 1.5;
                             const float mpf_maxdR_maxPt = 0.15;
+                            ggHiOut.matchPFidx = getIndexPFMatched2Pho(pfs, ggHi, i, 0, mpf_mindR, mpf_maxdR, mpf_maxdR_maxPt);
+                            if (ggHiOut.matchPFidx >= 0) {
+                                ggHiOut.matchPFid = (*pfs.pfId)[ggHiOut.matchPFidx];
+                                ggHiOut.matchPFpt = (*pfs.pfPt)[ggHiOut.matchPFidx];
+                                ggHiOut.matchPFeta = (*pfs.pfEta)[ggHiOut.matchPFidx];
+                                ggHiOut.matchPFphi = (*pfs.pfPhi)[ggHiOut.matchPFidx];
+                            }
                             ggHiOut.matchPFphoIdx = getIndexPFMatched2Pho(pfs, ggHi, i, 4, mpf_mindR, mpf_maxdR, mpf_maxdR_maxPt);
                             if (ggHiOut.matchPFphoIdx >= 0) {
                                 ggHiOut.matchPFphoPt = (*pfs.pfPt)[ggHiOut.matchPFphoIdx];

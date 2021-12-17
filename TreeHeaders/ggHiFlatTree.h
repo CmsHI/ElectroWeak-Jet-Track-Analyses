@@ -580,6 +580,11 @@ public :
   int mgMuoIdx;
 
   // info about matched PF cands
+  int matchPFid;
+  float matchPFpt;
+  float matchPFeta;
+  float matchPFphi;
+  int matchPFidx;
   float matchPFphoPt;
   float matchPFphoEta;
   float matchPFphoPhi;
@@ -1074,6 +1079,11 @@ public :
   TBranch        *b_mgMuoPhi;   //!
   TBranch        *b_mgMuoIdx;   //!
 
+  TBranch        *b_matchPFid;   //!
+  TBranch        *b_matchPFpt;   //!
+  TBranch        *b_matchPFeta;   //!
+  TBranch        *b_matchPFphi;   //!
+  TBranch        *b_matchPFidx;   //!
   TBranch        *b_matchPFphoPt;   //!
   TBranch        *b_matchPFphoEta;   //!
   TBranch        *b_matchPFphoPhi;   //!
@@ -1571,6 +1581,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_mgMuoPhi = 0;
     b_mgMuoIdx = 0;
 
+    b_matchPFid = 0;
+    b_matchPFpt = 0;
+    b_matchPFeta = 0;
+    b_matchPFphi = 0;
+    b_matchPFidx = 0;
     b_matchPFphoPt = 0;
     b_matchPFphoEta = 0;
     b_matchPFphoPhi = 0;
@@ -2068,6 +2083,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("mgMuoPhi")) t->SetBranchAddress("mgMuoPhi", &mgMuoPhi, &b_mgMuoPhi);
     if (t->GetBranch("mgMuoIdx")) t->SetBranchAddress("mgMuoIdx", &mgMuoIdx, &b_mgMuoIdx);
 
+    if (t->GetBranch("matchPFid")) t->SetBranchAddress("matchPFid", &matchPFid, &b_matchPFid);
+    if (t->GetBranch("matchPFpt")) t->SetBranchAddress("matchPFpt", &matchPFpt, &b_matchPFpt);
+    if (t->GetBranch("matchPFeta")) t->SetBranchAddress("matchPFeta", &matchPFeta, &b_matchPFeta);
+    if (t->GetBranch("matchPFphi")) t->SetBranchAddress("matchPFphi", &matchPFphi, &b_matchPFphi);
+    if (t->GetBranch("matchPFidx")) t->SetBranchAddress("matchPFidx", &matchPFidx, &b_matchPFidx);
     if (t->GetBranch("matchPFphoPt")) t->SetBranchAddress("matchPFphoPt", &matchPFphoPt, &b_matchPFphoPt);
     if (t->GetBranch("matchPFphoEta")) t->SetBranchAddress("matchPFphoEta", &matchPFphoEta, &b_matchPFphoEta);
     if (t->GetBranch("matchPFphoPhi")) t->SetBranchAddress("matchPFphoPhi", &matchPFphoPhi, &b_matchPFphoPhi);
@@ -2574,6 +2594,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("mgMuoIdx", &mgMuoIdx);
     }
     if (doMatchPF) {
+        t->Branch("matchPFid", &matchPFid);
+        t->Branch("matchPFpt", &matchPFpt);
+        t->Branch("matchPFeta", &matchPFeta);
+        t->Branch("matchPFphi", &matchPFphi);
+        t->Branch("matchPFidx", &matchPFidx);
         t->Branch("matchPFphoPt", &matchPFphoPt);
         t->Branch("matchPFphoEta", &matchPFphoEta);
         t->Branch("matchPFphoPhi", &matchPFphoPhi);
@@ -3110,6 +3135,11 @@ void ggHiFlat::clearEntryMatchedGen()
 void ggHiFlat::clearEntryMatchedPF()
 {
     if (doMatchPF) {
+        matchPFid = 0;
+        matchPFpt = -1;
+        matchPFeta = -987987;
+        matchPFphi = -987987;
+        matchPFidx = -1;
         matchPFphoPt = -1;
         matchPFphoEta = -987987;
         matchPFphoPhi = -987987;
@@ -4066,6 +4096,11 @@ void ggHiFlat::clone(ggHiFlat &gg)
     mgMuoPhi = gg.mgMuoPhi;
     mgMuoIdx = gg.mgMuoIdx;
 
+    matchPFid = gg.matchPFid;
+    matchPFpt = gg.matchPFpt;
+    matchPFeta = gg.matchPFeta;
+    matchPFphi = gg.matchPFphi;
+    matchPFidx = gg.matchPFidx;
     matchPFphoPt = gg.matchPFphoPt;
     matchPFphoEta = gg.matchPFphoEta;
     matchPFphoPhi = gg.matchPFphoPhi;
