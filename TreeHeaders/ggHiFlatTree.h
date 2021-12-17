@@ -564,29 +564,29 @@ public :
   float mgPhoPt;
   float mgPhoEta;
   float mgPhoPhi;
-  float mgPhoIdx;
+  int mgPhoIdx;
   float mgElePt;
   float mgEleEta;
   float mgElePhi;
-  float mgEleIdx;
+  int mgEleIdx;
   float mgMuoPt;
   float mgMuoEta;
   float mgMuoPhi;
-  float mgMuoIdx;
+  int mgMuoIdx;
 
   // info about matched PF cands
   float matchPFphoPt;
   float matchPFphoEta;
   float matchPFphoPhi;
-  float matchPFphoIdx;
+  int matchPFphoIdx;
   float matchPFelePt;
   float matchPFeleEta;
   float matchPFelePhi;
-  float matchPFeleIdx;
+  int matchPFeleIdx;
   float matchPFmuoPt;
   float matchPFmuoEta;
   float matchPFmuoPhi;
-  float matchPFmuoIdx;
+  int matchPFmuoIdx;
 
   // List of branches
   TBranch        *b_weight;   //!
