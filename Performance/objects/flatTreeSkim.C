@@ -180,6 +180,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     ggHiOut.doMu = (recoObj == RECOOBJS::kMuon);
     ggHiOut.doMC = (recoObj == RECOOBJS::kPhoton && isMC);
     ggHiOut.doGenMatch = (recoObj == RECOOBJS::kPhoton && isMC);
+    ggHiOut.doPFMatch = (recoObj == RECOOBJS::kPhoton);
     ggHiOut.setupTreeForWriting(outputTree);
 
     int nFiles = inputFiles.size();
@@ -769,6 +770,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.clearEntryPho();
                         ggHiOut.clearEntryGen();
                         ggHiOut.clearEntryMatchedGen();
+                        ggHiOut.clearEntryMatchedPF();
 
                         if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
@@ -807,6 +809,29 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                 ggHiOut.mgMuoPt = (*ggHi.mcPt)[ggHiOut.mgMuoIdx];
                                 ggHiOut.mgMuoEta = (*ggHi.mcEta)[ggHiOut.mgMuoIdx];
                                 ggHiOut.mgMuoPhi = (*ggHi.mcPhi)[ggHiOut.mgMuoIdx];
+                            }
+                        }
+                        if (ggHiOut.doPFMatch) {
+                            const float mpf_mindR = 0;
+                            const float mpf_maxdR = 1.5;
+                            const float mpf_maxdR_maxPt = 0.15;
+                            ggHiOut.matchPFphoIdx = getIndexPFMatched2Pho(pfs, ggHi, i, 4, mpf_mindR, mpf_maxdR, mpf_maxdR_maxPt);
+                            if (ggHiOut.matchPFphoIdx >= 0) {
+                                ggHiOut.matchPFphoPt = (*pfs.pfPt)[ggHiOut.matchPFphoIdx];
+                                ggHiOut.matchPFphoEta = (*pfs.pfEta)[ggHiOut.matchPFphoIdx];
+                                ggHiOut.matchPFphoPhi = (*pfs.pfPhi)[ggHiOut.matchPFphoIdx];
+                            }
+                            ggHiOut.matchPFeleIdx = getIndexPFMatched2Pho(pfs, ggHi, i, 2, mpf_mindR, mpf_maxdR, mpf_maxdR_maxPt);
+                            if (ggHiOut.matchPFeleIdx >= 0) {
+                                ggHiOut.matchPFelePt = (*pfs.pfPt)[ggHiOut.matchPFeleIdx];
+                                ggHiOut.matchPFeleEta = (*pfs.pfEta)[ggHiOut.matchPFeleIdx];
+                                ggHiOut.matchPFelePhi = (*pfs.pfPhi)[ggHiOut.matchPFeleIdx];
+                            }
+                            ggHiOut.matchPFmuoIdx = getIndexPFMatched2Pho(pfs, ggHi, i, 3, mpf_mindR, mpf_maxdR, mpf_maxdR_maxPt);
+                            if (ggHiOut.matchPFmuoIdx >= 0) {
+                                ggHiOut.matchPFmuoPt = (*pfs.pfPt)[ggHiOut.matchPFmuoIdx];
+                                ggHiOut.matchPFmuoEta = (*pfs.pfEta)[ggHiOut.matchPFmuoIdx];
+                                ggHiOut.matchPFmuoPhi = (*pfs.pfPhi)[ggHiOut.matchPFmuoIdx];
                             }
                         }
 

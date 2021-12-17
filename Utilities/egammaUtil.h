@@ -94,6 +94,9 @@ namespace egUtil {
 int getIndexGenMatched2Pho(ggHiNtuplizer& ggHi, int iPho, int pdg = 0, float mindR = 0, float maxdR = 999999, float minpt = -1, float maxpt = 999999, float maxdR_maxPt = 0.15);
 int getIndexGenMatched(ggHiNtuplizer& ggHi, double reta, double rphi, int pdg = 0, float mindR = 0, float maxdR = 999999, float minpt = -1, float maxpt = 999999, float maxdR_maxPt = 0.15);
 
+int getIndexPFMatched2Pho(pfCand& pfs, ggHiNtuplizer& ggHi, int iPho, int pfId = 0, float mindR = 0, float maxdR = 999999, float minpt = -1, float maxpt = 999999, float maxdR_maxPt = 0.15);
+int getIndexPFMatched(pfCand& pfs, double reta, double rphi, int pfId = 0, float mindR = 0, float maxdR = 999999, float minpt = -1, float maxpt = 999999, float maxdR_maxPt = 0.15);
+
 double getTrkIso(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
 double getTrkIsoSubUE(Tracks& trks, ggHiNtuplizer& ggHi, int iEG, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, bool excludeCone = true, int colType = -1);
 double getTrkIso(Tracks& trks, double egEta, double egPhi, double r1=0.4, double r2=0.00, double threshold=0, double jWidth=0.0, bool applyTrkID = false, int colType = -1);
@@ -149,6 +152,45 @@ int getIndexGenMatched(ggHiNtuplizer& ggHi, double reta, double rphi, int pdg, f
             res = i;
             dR2ref = dR2;
             ptref = (*ggHi.mcPt)[i];
+        }
+        else if (dR2 >= maxdR2_maxPt && dR2 < dR2ref) {
+            res = i;
+            dR2ref = dR2;
+        }
+    }
+
+    return res;
+}
+
+int getIndexPFMatched2Pho(pfCand& pfs, ggHiNtuplizer& ggHi, int iPho, int pfId, float mindR, float maxdR, float minpt, float maxpt, float maxdR_maxPt)
+{
+    return getIndexPFMatched(pfs, (*ggHi.phoEta)[iPho], (*ggHi.phoPhi)[iPho], pfId, mindR, maxdR, minpt, maxpt, maxdR_maxPt);
+}
+
+int getIndexPFMatched(pfCand& pfs, double reta, double rphi, int pfId, float mindR, float maxdR, float minpt, float maxpt, float maxdR_maxPt)
+{
+    const float mindR2 = (mindR < 0) ? 0 : mindR*mindR;
+    const float maxdR2 = maxdR*maxdR;
+    const float maxdR2_maxPt = maxdR_maxPt*maxdR_maxPt;
+    float dR2ref = 999999;
+    float ptref = -1;
+    int res = -1;
+
+    for (int i = 0; i < pfs.nPFpart; ++i) {
+
+        if ( pfId != 0 && (*pfs.pfId)[i] != pfId ) continue;
+        if ( (*pfs.pfPt)[i] < minpt ) continue;
+        if ( (*pfs.pfPt)[i] > maxpt ) continue;
+
+        double dR2 = getDR2(reta, rphi, (*pfs.pfEta)[i], (*pfs.pfPhi)[i]);
+
+        if (dR2 < mindR2) continue;
+        if (dR2 > maxdR2) continue;
+
+        if (dR2 < maxdR2_maxPt && (*pfs.pfPt)[i] > ptref) {
+            res = i;
+            dR2ref = dR2;
+            ptref = (*pfs.pfPt)[i];
         }
         else if (dR2 >= maxdR2_maxPt && dR2 < dR2ref) {
             res = i;
