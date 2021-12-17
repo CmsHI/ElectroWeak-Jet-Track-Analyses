@@ -35,8 +35,8 @@ public :
       doPho = false;
       doMu = false;
       doMC = false;
-      doGenMatch = false;
-      doPFMatch = false;
+      doMatchGen = false;
+      doMatchPF = false;
   };
   ~ggHiFlat(){};
   void setupTreeForReading(TTree *t);
@@ -65,8 +65,8 @@ public :
   bool doPho;
   bool doMu;
   bool doMC;
-  bool doGenMatch;
-  bool doPFMatch;
+  bool doMatchGen;
+  bool doMatchPF;
 
   // Declaration of leaf types
   float weight;
@@ -2534,7 +2534,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("muPFNeuIso", &muPFNeuIso);
         t->Branch("muPFPUIso", &muPFPUIso);
     }
-    if (doGenMatch) {
+    if (doMatchGen) {
         t->Branch("mgPhoPt", &mgPhoPt);
         t->Branch("mgPhoEta", &mgPhoEta);
         t->Branch("mgPhoPhi", &mgPhoPhi);
@@ -2548,7 +2548,7 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("mgMuoPhi", &mgMuoPhi);
         t->Branch("mgMuoIdx", &mgMuoIdx);
     }
-    if (doPFMatch) {
+    if (doMatchPF) {
         t->Branch("matchPFphoPt", &matchPFphoPt);
         t->Branch("matchPFphoEta", &matchPFphoEta);
         t->Branch("matchPFphoPhi", &matchPFphoPhi);
@@ -3061,7 +3061,7 @@ void ggHiFlat::clearEntryGen()
 
 void ggHiFlat::clearEntryMatchedGen()
 {
-    if (doGenMatch) {
+    if (doMatchGen) {
         mgPhoPt = -1;
         mgPhoEta = -987987;
         mgPhoPhi = -987987;
@@ -3079,7 +3079,7 @@ void ggHiFlat::clearEntryMatchedGen()
 
 void ggHiFlat::clearEntryMatchedPF()
 {
-    if (doPFMatch) {
+    if (doMatchPF) {
         matchPFphoPt = -1;
         matchPFphoEta = -987987;
         matchPFphoPhi = -987987;
@@ -3502,8 +3502,8 @@ void ggHiFlat::clone(ggHiFlat &gg)
     doPho = gg.doPho;
     doMu = gg.doMu;
     doMC = gg.doMC;
-    doGenMatch = gg.doGenMatch;
-    doPFMatch = gg.doPFMatch;
+    doMatchGen = gg.doMatchGen;
+    doMatchPF = gg.doMatchPF;
 
     weight = gg.weight;
     weightCent = gg.weightCent;
@@ -4018,7 +4018,6 @@ void ggHiFlat::clone(ggHiFlat &gg)
     isGenMatched = gg.isGenMatched;
     genMatchedIdx = gg.genMatchedIdx;
 
-    //
     mgPhoPt = gg.mgPhoPt;
     mgPhoEta = gg.mgPhoEta;
     mgPhoPhi = gg.mgPhoPhi;

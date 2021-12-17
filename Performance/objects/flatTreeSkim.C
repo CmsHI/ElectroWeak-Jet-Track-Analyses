@@ -179,8 +179,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     ggHiOut.doPho = (recoObj == RECOOBJS::kPhoton);
     ggHiOut.doMu = (recoObj == RECOOBJS::kMuon);
     ggHiOut.doMC = (recoObj == RECOOBJS::kPhoton && isMC);
-    ggHiOut.doGenMatch = (recoObj == RECOOBJS::kPhoton && isMC);
-    ggHiOut.doPFMatch = (recoObj == RECOOBJS::kPhoton);
+    ggHiOut.doMatchGen = (recoObj == RECOOBJS::kPhoton && isMC);
+    ggHiOut.doMatchPF = (recoObj == RECOOBJS::kPhoton);
     ggHiOut.setupTreeForWriting(outputTree);
 
     int nFiles = inputFiles.size();
@@ -788,7 +788,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                 ggHiOut.copyGen(ggHi, genMatchedIndex);
                             }
                         }
-                        if (ggHiOut.doGenMatch) {
+                        if (ggHiOut.doMatchGen) {
                             const float mg_mindR = 0;
                             const float mg_maxdR = 1.5;
                             const float mg_maxdR_maxPt = 0.15;
@@ -811,7 +811,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                 ggHiOut.mgMuoPhi = (*ggHi.mcPhi)[ggHiOut.mgMuoIdx];
                             }
                         }
-                        if (ggHiOut.doPFMatch) {
+                        if (ggHiOut.doMatchPF) {
                             const float mpf_mindR = 0;
                             const float mpf_maxdR = 1.5;
                             const float mpf_maxdR_maxPt = 0.15;
