@@ -982,6 +982,15 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             float wpfx = 0;
                             for (std::vector<basicPFCand>::const_iterator itPF = phoLinkedPFs.begin(); itPF != phoLinkedPFs.end(); ++itPF) {
                                 float wTmp = (*itPF).pt;
+
+                                float wTrkID = 0;
+                                if (1 <= (*itPF).id && (*itPF).id <= 3) {
+                                    int iPFsame = getIndexSamePFcand(pfs, (*itPF).id, (*itPF).pt, (*itPF).eta, (*itPF).phi);
+                                    if (iPFsame >= 0 && passedTrkSelection(pfs, iPFsame, collisionType)) {
+                                        wTrkID += wTmp;
+                                    }
+                                }
+
                                 if ((*itPF).id == 4) {
                                     ggHiOut.ppfpPtSum += (*itPF).pt;
                                     ggHiOut.ppfpEtaAve += ((*itPF).eta * wTmp);
@@ -1000,6 +1009,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                     ggHiOut.ppfcPtSum += (*itPF).pt;
                                     ggHiOut.ppfcEtaAve += ((*itPF).eta * wTmp);
                                     ggHiOut.ppfcPhiAve += ((*itPF).phi * wTmp);
+                                    ggHiOut.ppfcTrkID += wTrkID;
                                     wpfc += wTmp;
                                     ggHiOut.nPhoPFc++;
                                 }
@@ -1007,6 +1017,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                     ggHiOut.ppfePtSum += (*itPF).pt;
                                     ggHiOut.ppfeEtaAve += ((*itPF).eta * wTmp);
                                     ggHiOut.ppfePhiAve += ((*itPF).phi * wTmp);
+                                    ggHiOut.ppfeTrkID += wTrkID;
                                     wpfe += wTmp;
                                     ggHiOut.nPhoPFe++;
                                 }
@@ -1014,6 +1025,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                     ggHiOut.ppfmPtSum += (*itPF).pt;
                                     ggHiOut.ppfmEtaAve += ((*itPF).eta * wTmp);
                                     ggHiOut.ppfmPhiAve += ((*itPF).phi * wTmp);
+                                    ggHiOut.ppfmTrkID += wTrkID;
                                     wpfm += wTmp;
                                     ggHiOut.nPhoPFm++;
                                 }
@@ -1026,23 +1038,38 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                 }
                             }
 
-                            ggHiOut.ppfpEtaAve /= wpfp;
-                            ggHiOut.ppfpPhiAve /= wpfp;
+                            if (ggHiOut.nPhoPFp > 0) {
+                                ggHiOut.ppfpEtaAve /= wpfp;
+                                ggHiOut.ppfpPhiAve /= wpfp;
+                            }
 
-                            ggHiOut.ppfnEtaAve /= wpfn;
-                            ggHiOut.ppfnPhiAve /= wpfn;
+                            if (ggHiOut.nPhoPFn > 0) {
+                                ggHiOut.ppfnEtaAve /= wpfn;
+                                ggHiOut.ppfnPhiAve /= wpfn;
+                            }
 
-                            ggHiOut.ppfcEtaAve /= wpfc;
-                            ggHiOut.ppfcPhiAve /= wpfc;
+                            if (ggHiOut.nPhoPFc > 0) {
+                                ggHiOut.ppfcEtaAve /= wpfc;
+                                ggHiOut.ppfcPhiAve /= wpfc;
+                                ggHiOut.ppfcTrkID /= wpfc;
+                            }
 
-                            ggHiOut.ppfeEtaAve /= wpfe;
-                            ggHiOut.ppfePhiAve /= wpfe;
+                            if (ggHiOut.nPhoPFe > 0) {
+                                ggHiOut.ppfeEtaAve /= wpfe;
+                                ggHiOut.ppfePhiAve /= wpfe;
+                                ggHiOut.ppfeTrkID /= wpfe;
+                            }
 
-                            ggHiOut.ppfmEtaAve /= wpfm;
-                            ggHiOut.ppfmPhiAve /= wpfm;
+                            if (ggHiOut.nPhoPFm > 0) {
+                                ggHiOut.ppfmEtaAve /= wpfm;
+                                ggHiOut.ppfmPhiAve /= wpfm;
+                                ggHiOut.ppfmTrkID /= wpfm;
+                            }
 
-                            ggHiOut.ppfxEtaAve /= wpfx;
-                            ggHiOut.ppfxPhiAve /= wpfx;
+                            if (ggHiOut.nPhoPFx > 0) {
+                                ggHiOut.ppfxEtaAve /= wpfx;
+                                ggHiOut.ppfxPhiAve /= wpfx;
+                            }
                         }
 
                         if (h2D_weightKin != 0) {

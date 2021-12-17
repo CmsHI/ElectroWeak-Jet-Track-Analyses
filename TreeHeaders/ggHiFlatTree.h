@@ -515,12 +515,15 @@ public :
   float ppfcPtSum;
   float ppfcEtaAve;
   float ppfcPhiAve;
+  float ppfcTrkID;
   float ppfePtSum;
   float ppfeEtaAve;
   float ppfePhiAve;
+  float ppfeTrkID;
   float ppfmPtSum;
   float ppfmEtaAve;
   float ppfmPhiAve;
+  float ppfmTrkID;
   float ppfxPtSum;
   float ppfxEtaAve;
   float ppfxPhiAve;
@@ -1015,14 +1018,17 @@ public :
   TBranch        *b_ppfcPtSum;   //!
   TBranch        *b_ppfcEtaAve;   //!
   TBranch        *b_ppfcPhiAve;   //!
+  TBranch        *b_ppfcTrkID;   //!
   TBranch        *b_nPhoPFe;   //!
   TBranch        *b_ppfePtSum;   //!
   TBranch        *b_ppfeEtaAve;   //!
   TBranch        *b_ppfePhiAve;   //!
+  TBranch        *b_ppfeTrkID;   //!
   TBranch        *b_nPhoPFm;   //!
   TBranch        *b_ppfmPtSum;   //!
   TBranch        *b_ppfmEtaAve;   //!
   TBranch        *b_ppfmPhiAve;   //!
+  TBranch        *b_ppfmTrkID;   //!
   TBranch        *b_nPhoPFx;   //!
   TBranch        *b_ppfxPtSum;   //!
   TBranch        *b_ppfxEtaAve;   //!
@@ -1517,14 +1523,17 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_ppfcPtSum = 0;
     b_ppfcEtaAve = 0;
     b_ppfcPhiAve = 0;
+    b_ppfcTrkID = 0;
     b_nPhoPFe = 0;
     b_ppfePtSum = 0;
     b_ppfeEtaAve = 0;
     b_ppfePhiAve = 0;
+    b_ppfeTrkID = 0;
     b_nPhoPFm = 0;
     b_ppfmPtSum = 0;
     b_ppfmEtaAve = 0;
     b_ppfmPhiAve = 0;
+    b_ppfmTrkID = 0;
     b_nPhoPFx = 0;
     b_ppfxPtSum = 0;
     b_ppfxEtaAve = 0;
@@ -2019,14 +2028,17 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("ppfcPtSum")) t->SetBranchAddress("ppfcPtSum", &ppfcPtSum, &b_ppfcPtSum);
     if (t->GetBranch("ppfcEtaAve")) t->SetBranchAddress("ppfcEtaAve", &ppfcEtaAve, &b_ppfcEtaAve);
     if (t->GetBranch("ppfcPhiAve")) t->SetBranchAddress("ppfcPhiAve", &ppfcPhiAve, &b_ppfcPhiAve);
+    if (t->GetBranch("ppfcTrkID")) t->SetBranchAddress("ppfcTrkID", &ppfcTrkID, &b_ppfcTrkID);
     if (t->GetBranch("nPhoPFe")) t->SetBranchAddress("nPhoPFe", &nPhoPFe, &b_nPhoPFe);
     if (t->GetBranch("ppfePtSum")) t->SetBranchAddress("ppfePtSum", &ppfePtSum, &b_ppfePtSum);
     if (t->GetBranch("ppfeEtaAve")) t->SetBranchAddress("ppfeEtaAve", &ppfeEtaAve, &b_ppfeEtaAve);
     if (t->GetBranch("ppfePhiAve")) t->SetBranchAddress("ppfePhiAve", &ppfePhiAve, &b_ppfePhiAve);
+    if (t->GetBranch("ppfeTrkID")) t->SetBranchAddress("ppfeTrkID", &ppfeTrkID, &b_ppfeTrkID);
     if (t->GetBranch("nPhoPFm")) t->SetBranchAddress("nPhoPFm", &nPhoPFm, &b_nPhoPFm);
     if (t->GetBranch("ppfmPtSum")) t->SetBranchAddress("ppfmPtSum", &ppfmPtSum, &b_ppfmPtSum);
     if (t->GetBranch("ppfmEtaAve")) t->SetBranchAddress("ppfmEtaAve", &ppfmEtaAve, &b_ppfmEtaAve);
     if (t->GetBranch("ppfmPhiAve")) t->SetBranchAddress("ppfmPhiAve", &ppfmPhiAve, &b_ppfmPhiAve);
+    if (t->GetBranch("ppfmTrkID")) t->SetBranchAddress("ppfmTrkID", &ppfmTrkID, &b_ppfmTrkID);
     if (t->GetBranch("nPhoPFx")) t->SetBranchAddress("nPhoPFx", &nPhoPFx, &b_nPhoPFx);
     if (t->GetBranch("ppfxPtSum")) t->SetBranchAddress("ppfxPtSum", &ppfxPtSum, &b_ppfxPtSum);
     if (t->GetBranch("ppfxEtaAve")) t->SetBranchAddress("ppfxEtaAve", &ppfxEtaAve, &b_ppfxEtaAve);
@@ -2527,14 +2539,17 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("ppfcPtSum", &ppfcPtSum);
         t->Branch("ppfcEtaAve", &ppfcEtaAve);
         t->Branch("ppfcPhiAve", &ppfcPhiAve);
+        t->Branch("ppfcTrkID", &ppfcTrkID);
         t->Branch("nPhoPFe", &nPhoPFe);
         t->Branch("ppfePtSum", &ppfePtSum);
         t->Branch("ppfeEtaAve", &ppfeEtaAve);
         t->Branch("ppfePhiAve", &ppfePhiAve);
+        t->Branch("ppfeTrkID", &ppfeTrkID);
         t->Branch("nPhoPFm", &nPhoPFm);
         t->Branch("ppfmPtSum", &ppfmPtSum);
         t->Branch("ppfmEtaAve", &ppfmEtaAve);
         t->Branch("ppfmPhiAve", &ppfmPhiAve);
+        t->Branch("ppfmTrkID", &ppfmTrkID);
         t->Branch("nPhoPFx", &nPhoPFx);
         t->Branch("ppfxPtSum", &ppfxPtSum);
         t->Branch("ppfxEtaAve", &ppfxEtaAve);
@@ -3026,14 +3041,17 @@ void ggHiFlat::clearEntryPho()
         ppfcPtSum = -1;
         ppfcEtaAve = -987987;
         ppfcPhiAve = -987987;
+        ppfcTrkID = -1;
         nPhoPFe = 0;
         ppfePtSum = -1;
         ppfeEtaAve = -987987;
         ppfePhiAve = -987987;
+        ppfeTrkID = -1;
         nPhoPFm = 0;
         ppfmPtSum = -1;
         ppfmEtaAve = -987987;
         ppfmPhiAve = -987987;
+        ppfmTrkID = -1;
         nPhoPFx = 0;
         ppfxPtSum = -1;
         ppfxEtaAve = -987987;
@@ -3169,14 +3187,17 @@ void ggHiFlat::resetPhoPF()
     ppfcPtSum = 0;
     ppfcEtaAve = 0;
     ppfcPhiAve = 0;
+    ppfcTrkID = 0;
     nPhoPFe = 0;
     ppfePtSum = 0;
     ppfeEtaAve = 0;
     ppfePhiAve = 0;
+    ppfeTrkID = 0;
     nPhoPFm = 0;
     ppfmPtSum = 0;
     ppfmEtaAve = 0;
     ppfmPhiAve = 0;
+    ppfmTrkID = 0;
     nPhoPFx = 0;
     ppfxPtSum = 0;
     ppfxEtaAve = 0;
@@ -4030,14 +4051,17 @@ void ggHiFlat::clone(ggHiFlat &gg)
     ppfcPtSum = gg.ppfcPtSum;
     ppfcEtaAve = gg.ppfcEtaAve;
     ppfcPhiAve = gg.ppfcPhiAve;
+    ppfcTrkID = gg.ppfcTrkID;
     nPhoPFe = gg.nPhoPFe;
     ppfePtSum = gg.ppfePtSum;
     ppfeEtaAve = gg.ppfeEtaAve;
     ppfePhiAve = gg.ppfePhiAve;
+    ppfeTrkID = gg.ppfeTrkID;
     nPhoPFm = gg.nPhoPFm;
     ppfmPtSum = gg.ppfmPtSum;
     ppfmEtaAve = gg.ppfmEtaAve;
     ppfmPhiAve = gg.ppfmPhiAve;
+    ppfmTrkID = gg.ppfmTrkID;
     nPhoPFx = gg.nPhoPFx;
     ppfxPtSum = gg.ppfxPtSum;
     ppfxEtaAve = gg.ppfxEtaAve;

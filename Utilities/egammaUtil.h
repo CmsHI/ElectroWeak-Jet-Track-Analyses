@@ -121,6 +121,7 @@ int isLinkedPFcand(std::vector<basicPFCand> linkPFs, const unsigned long key);
 bool isSamePFcand(const int id1, const float eta1, const float phi1, const int id2, const float eta2, const float phi2);
 bool isSamePFcand(const int id1, const float pt1, const float eta1, const float phi1, const int id2, const float pt2, const float eta2, const float phi2);
 bool isSamePFcand(const unsigned long key1, const unsigned long key2);
+int getIndexSamePFcand(pfCand& pfs, const int id, const float pt, const float eta, const float phi);
 
 int getIndexGenMatched2Pho(ggHiNtuplizer& ggHi, int iPho, int pdg, float mindR, float maxdR, float minpt, float maxpt, float maxdR_maxPt)
 {
@@ -577,6 +578,17 @@ bool isSamePFcand(const int id1, const float pt1, const float eta1, const float 
 bool isSamePFcand(const unsigned long key1, const unsigned long key2)
 {
     return (key1 == key2);
+}
+
+int getIndexSamePFcand(pfCand& pfs, const int id, const float pt, const float eta, const float phi)
+{
+    for (int i = 0; i < pfs.nPFpart; ++i) {
+        if ( isSamePFcand(id, pt, eta, phi, (*pfs.pfId)[i], (*pfs.pfPt)[i], (*pfs.pfEta)[i], (*pfs.pfPhi)[i]) ) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 #endif
