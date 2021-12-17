@@ -792,6 +792,13 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             const float mg_mindR = 0;
                             const float mg_maxdR = 1.5;
                             const float mg_maxdR_maxPt = 0.15;
+                            ggHiOut.mgIdx = getIndexGenMatched2Pho(ggHi, i, 0, mg_mindR, mg_maxdR, mg_maxdR_maxPt);
+                            if (ggHiOut.mgIdx >= 0) {
+                                ggHiOut.mgPDG = (*ggHi.mcPID)[ggHiOut.mgIdx];
+                                ggHiOut.mgPt = (*ggHi.mcPt)[ggHiOut.mgIdx];
+                                ggHiOut.mgEta = (*ggHi.mcEta)[ggHiOut.mgIdx];
+                                ggHiOut.mgPhi = (*ggHi.mcPhi)[ggHiOut.mgIdx];
+                            }
                             ggHiOut.mgPhoIdx = getIndexGenMatched2Pho(ggHi, i, 22, mg_mindR, mg_maxdR, mg_maxdR_maxPt);
                             if (ggHiOut.mgPhoIdx >= 0) {
                                 ggHiOut.mgPhoPt = (*ggHi.mcPt)[ggHiOut.mgPhoIdx];

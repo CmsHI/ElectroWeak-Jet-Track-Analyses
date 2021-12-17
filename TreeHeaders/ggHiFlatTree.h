@@ -561,6 +561,11 @@ public :
   int genMatchedIdx; // added by hand
 
   // info about matched gen particles
+  int mgPDG;
+  float mgPt;
+  float mgEta;
+  float mgPhi;
+  int mgIdx;
   float mgPhoPt;
   float mgPhoEta;
   float mgPhoPhi;
@@ -1051,6 +1056,11 @@ public :
   TBranch        *b_muPFNeuIso;   //!
   TBranch        *b_muPFPUIso;   //!
 
+  TBranch        *b_mgPDG;   //!
+  TBranch        *b_mgPt;   //!
+  TBranch        *b_mgEta;   //!
+  TBranch        *b_mgPhi;   //!
+  TBranch        *b_mgIdx;   //!
   TBranch        *b_mgPhoPt;   //!
   TBranch        *b_mgPhoEta;   //!
   TBranch        *b_mgPhoPhi;   //!
@@ -1543,6 +1553,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_muPFNeuIso = 0;
     b_muPFPUIso = 0;
 
+    b_mgPDG = 0;
+    b_mgPt = 0;
+    b_mgEta = 0;
+    b_mgPhi = 0;
+    b_mgIdx = 0;
     b_mgPhoPt = 0;
     b_mgPhoEta = 0;
     b_mgPhoPhi = 0;
@@ -2035,6 +2050,11 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("muPFNeuIso")) t->SetBranchAddress("muPFNeuIso", &muPFNeuIso, &b_muPFNeuIso);
     if (t->GetBranch("muPFPUIso")) t->SetBranchAddress("muPFPUIso", &muPFPUIso, &b_muPFPUIso);
 
+    if (t->GetBranch("mgPDG")) t->SetBranchAddress("mgPDG", &mgPDG, &b_mgPDG);
+    if (t->GetBranch("mgPt")) t->SetBranchAddress("mgPt", &mgPt, &b_mgPt);
+    if (t->GetBranch("mgEta")) t->SetBranchAddress("mgEta", &mgEta, &b_mgEta);
+    if (t->GetBranch("mgPhi")) t->SetBranchAddress("mgPhi", &mgPhi, &b_mgPhi);
+    if (t->GetBranch("mgIdx")) t->SetBranchAddress("mgIdx", &mgIdx, &b_mgIdx);
     if (t->GetBranch("mgPhoPt")) t->SetBranchAddress("mgPhoPt", &mgPhoPt, &b_mgPhoPt);
     if (t->GetBranch("mgPhoEta")) t->SetBranchAddress("mgPhoEta", &mgPhoEta, &b_mgPhoEta);
     if (t->GetBranch("mgPhoPhi")) t->SetBranchAddress("mgPhoPhi", &mgPhoPhi, &b_mgPhoPhi);
@@ -2535,6 +2555,11 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("muPFPUIso", &muPFPUIso);
     }
     if (doMatchGen) {
+        t->Branch("mgPDG", &mgPDG);
+        t->Branch("mgPt", &mgPt);
+        t->Branch("mgEta", &mgEta);
+        t->Branch("mgPhi", &mgPhi);
+        t->Branch("mgIdx", &mgIdx);
         t->Branch("mgPhoPt", &mgPhoPt);
         t->Branch("mgPhoEta", &mgPhoEta);
         t->Branch("mgPhoPhi", &mgPhoPhi);
@@ -3062,6 +3087,11 @@ void ggHiFlat::clearEntryGen()
 void ggHiFlat::clearEntryMatchedGen()
 {
     if (doMatchGen) {
+        mgPDG = 0;
+        mgPt = -1;
+        mgEta = -987987;
+        mgPhi = -987987;
+        mgIdx = -1;
         mgPhoPt = -1;
         mgPhoEta = -987987;
         mgPhoPhi = -987987;
@@ -4018,6 +4048,11 @@ void ggHiFlat::clone(ggHiFlat &gg)
     isGenMatched = gg.isGenMatched;
     genMatchedIdx = gg.genMatchedIdx;
 
+    mgPDG = gg.mgPDG;
+    mgPt = gg.mgPt;
+    mgEta = gg.mgEta;
+    mgPhi = gg.mgPhi;
+    mgIdx = gg.mgIdx;
     mgPhoPt = gg.mgPhoPt;
     mgPhoEta = gg.mgPhoEta;
     mgPhoPhi = gg.mgPhoPhi;
