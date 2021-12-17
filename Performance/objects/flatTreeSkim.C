@@ -179,6 +179,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
     ggHiOut.doPho = (recoObj == RECOOBJS::kPhoton);
     ggHiOut.doMu = (recoObj == RECOOBJS::kMuon);
     ggHiOut.doMC = (recoObj == RECOOBJS::kPhoton && isMC);
+    ggHiOut.doGenMatch = (recoObj == RECOOBJS::kPhoton && isMC);
     ggHiOut.setupTreeForWriting(outputTree);
 
     int nFiles = inputFiles.size();
@@ -766,9 +767,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     for (int i=0; i<ggHi.nPho; ++i) {
 
                         ggHiOut.clearEntryPho();
-                        if (ggHiOut.doMC) {
-                            ggHiOut.clearEntryGen();
-                        }
+                        ggHiOut.clearEntryGen();
+                        ggHiOut.clearEntryMatchedGen();
 
                         if (!ggHi.passedPhoSpikeRejection(i)) continue;
 
@@ -780,10 +780,33 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                         ggHiOut.copyPho(ggHi, i);
 
-                        if (isMC) {
+                        if (ggHiOut.doMC) {
                             int genMatchedIndex = (*ggHi.pho_genMatchedIndex)[i];
                             if (genMatchedIndex >= 0) {
                                 ggHiOut.copyGen(ggHi, genMatchedIndex);
+                            }
+                        }
+                        if (ggHiOut.doGenMatch) {
+                            const float mg_mindR = 0;
+                            const float mg_maxdR = 1.5;
+                            const float mg_maxdR_maxPt = 0.15;
+                            ggHiOut.mgPhoIdx = getIndexGenMatched2Pho(ggHi, i, 22, mg_mindR, mg_maxdR, mg_maxdR_maxPt);
+                            if (ggHiOut.mgPhoIdx >= 0) {
+                                ggHiOut.mgPhoPt = (*ggHi.mcPt)[ggHiOut.mgPhoIdx];
+                                ggHiOut.mgPhoEta = (*ggHi.mcEta)[ggHiOut.mgPhoIdx];
+                                ggHiOut.mgPhoPhi = (*ggHi.mcPhi)[ggHiOut.mgPhoIdx];
+                            }
+                            ggHiOut.mgEleIdx = getIndexGenMatched2Pho(ggHi, i, 11, mg_mindR, mg_maxdR, mg_maxdR_maxPt);
+                            if (ggHiOut.mgEleIdx >= 0) {
+                                ggHiOut.mgElePt = (*ggHi.mcPt)[ggHiOut.mgEleIdx];
+                                ggHiOut.mgEleEta = (*ggHi.mcEta)[ggHiOut.mgEleIdx];
+                                ggHiOut.mgElePhi = (*ggHi.mcPhi)[ggHiOut.mgEleIdx];
+                            }
+                            ggHiOut.mgMuoIdx = getIndexGenMatched2Pho(ggHi, i, 13, mg_mindR, mg_maxdR, mg_maxdR_maxPt);
+                            if (ggHiOut.mgMuoIdx >= 0) {
+                                ggHiOut.mgMuoPt = (*ggHi.mcPt)[ggHiOut.mgMuoIdx];
+                                ggHiOut.mgMuoEta = (*ggHi.mcEta)[ggHiOut.mgMuoIdx];
+                                ggHiOut.mgMuoPhi = (*ggHi.mcPhi)[ggHiOut.mgMuoIdx];
                             }
                         }
 
@@ -1023,9 +1046,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 for (int i=0; i<ggHi.nEle; ++i) {
 
                     ggHiOut.clearEntryEle();
-                    if (ggHiOut.doMC) {
-                        ggHiOut.clearEntryGen();
-                    }
+                    ggHiOut.clearEntryGen();
+                    ggHiOut.clearEntryMatchedGen();
 
                     if (!((*ggHi.elePt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.elePt)[i] < ptMax))  continue;
@@ -1043,9 +1065,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                 for (int i=0; i<ggHi.nMu; ++i) {
 
                     ggHiOut.clearEntryMu();
-                    if (ggHiOut.doMC) {
-                        ggHiOut.clearEntryGen();
-                    }
+                    ggHiOut.clearEntryGen();
+                    ggHiOut.clearEntryMatchedGen();
 
                     if (!((*ggHi.muPt)[i] >= ptMin))  continue;
                     if (ptMax > 0 && !((*ggHi.muPt)[i] < ptMax))  continue;

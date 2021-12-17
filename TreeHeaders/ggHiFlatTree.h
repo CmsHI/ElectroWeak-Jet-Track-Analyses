@@ -35,6 +35,7 @@ public :
       doPho = false;
       doMu = false;
       doMC = false;
+      doGenMatch = false;
   };
   ~ggHiFlat(){};
   void setupTreeForReading(TTree *t);
@@ -44,6 +45,7 @@ public :
   void clearEntryPho();
   void clearEntryMu();
   void clearEntryGen();
+  void clearEntryMatchedGen();
   void resetPhoPF();
   void copyEle(ggHiNtuplizer &tggHiNtuplizer, int i);
   void copyPho(ggHiNtuplizer &tggHiNtuplizer, int i);
@@ -61,6 +63,7 @@ public :
   bool doPho;
   bool doMu;
   bool doMC;
+  bool doGenMatch;
 
   // Declaration of leaf types
   float weight;
@@ -554,6 +557,20 @@ public :
   bool isGenMatched; // added by hand
   int genMatchedIdx; // added by hand
 
+  // info about matched gen particles
+  float mgPhoPt;
+  float mgPhoEta;
+  float mgPhoPhi;
+  float mgPhoIdx;
+  float mgElePt;
+  float mgEleEta;
+  float mgElePhi;
+  float mgEleIdx;
+  float mgMuoPt;
+  float mgMuoEta;
+  float mgMuoPhi;
+  float mgMuoIdx;
+
   // List of branches
   TBranch        *b_weight;   //!
   TBranch        *b_weightCent;   //!
@@ -1016,6 +1033,19 @@ public :
   TBranch        *b_muPFPhoIso;   //!
   TBranch        *b_muPFNeuIso;   //!
   TBranch        *b_muPFPUIso;   //!
+
+  TBranch        *b_mgPhoPt;   //!
+  TBranch        *b_mgPhoEta;   //!
+  TBranch        *b_mgPhoPhi;   //!
+  TBranch        *b_mgPhoIdx;   //!
+  TBranch        *b_mgElePt;   //!
+  TBranch        *b_mgEleEta;   //!
+  TBranch        *b_mgElePhi;   //!
+  TBranch        *b_mgEleIdx;   //!
+  TBranch        *b_mgMuoPt;   //!
+  TBranch        *b_mgMuoEta;   //!
+  TBranch        *b_mgMuoPhi;   //!
+  TBranch        *b_mgMuoIdx;   //!
 };
 
 void ggHiFlat::setupTreeForReading(TTree *t)
@@ -1483,6 +1513,19 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_muPFNeuIso = 0;
     b_muPFPUIso = 0;
 
+    b_mgPhoPt = 0;
+    b_mgPhoEta = 0;
+    b_mgPhoPhi = 0;
+    b_mgPhoIdx = 0;
+    b_mgElePt = 0;
+    b_mgEleEta = 0;
+    b_mgElePhi = 0;
+    b_mgEleIdx = 0;
+    b_mgMuoPt = 0;
+    b_mgMuoEta = 0;
+    b_mgMuoPhi = 0;
+    b_mgMuoIdx = 0;
+
     // Set branch addresses and branch pointers
     if (t->GetBranch("weight")) t->SetBranchAddress("weight", &weight, &b_weight);
     if (t->GetBranch("weightCent")) t->SetBranchAddress("weightCent", &weightCent, &b_weightCent);
@@ -1574,6 +1617,7 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("mcCalIsoDR04")) t->SetBranchAddress("mcCalIsoDR04", &mcCalIsoDR04, &b_mcCalIsoDR04);
     if (t->GetBranch("mcTrkIsoDR03")) t->SetBranchAddress("mcTrkIsoDR03", &mcTrkIsoDR03, &b_mcTrkIsoDR03);
     if (t->GetBranch("mcTrkIsoDR04")) t->SetBranchAddress("mcTrkIsoDR04", &mcTrkIsoDR04, &b_mcTrkIsoDR04);
+
     //if (t->GetBranch("nEle")) t->SetBranchAddress("nEle", &nEle, &b_nEle);
     if (t->GetBranch("eleCharge")) t->SetBranchAddress("eleCharge", &eleCharge, &b_eleCharge);
     if (t->GetBranch("eleChargeConsistent")) t->SetBranchAddress("eleChargeConsistent", &eleChargeConsistent, &b_eleChargeConsistent);
@@ -1947,6 +1991,19 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("muPFPhoIso")) t->SetBranchAddress("muPFPhoIso", &muPFPhoIso, &b_muPFPhoIso);
     if (t->GetBranch("muPFNeuIso")) t->SetBranchAddress("muPFNeuIso", &muPFNeuIso, &b_muPFNeuIso);
     if (t->GetBranch("muPFPUIso")) t->SetBranchAddress("muPFPUIso", &muPFPUIso, &b_muPFPUIso);
+
+    if (t->GetBranch("mgPhoPt")) t->SetBranchAddress("mgPhoPt", &mgPhoPt, &b_mgPhoPt);
+    if (t->GetBranch("mgPhoEta")) t->SetBranchAddress("mgPhoEta", &mgPhoEta, &b_mgPhoEta);
+    if (t->GetBranch("mgPhoPhi")) t->SetBranchAddress("mgPhoPhi", &mgPhoPhi, &b_mgPhoPhi);
+    if (t->GetBranch("mgPhoIdx")) t->SetBranchAddress("mgPhoIdx", &mgPhoIdx, &b_mgPhoIdx);
+    if (t->GetBranch("mgElePt")) t->SetBranchAddress("mgElePt", &mgElePt, &b_mgElePt);
+    if (t->GetBranch("mgEleEta")) t->SetBranchAddress("mgEleEta", &mgEleEta, &b_mgEleEta);
+    if (t->GetBranch("mgElePhi")) t->SetBranchAddress("mgElePhi", &mgElePhi, &b_mgElePhi);
+    if (t->GetBranch("mgEleIdx")) t->SetBranchAddress("mgEleIdx", &mgEleIdx, &b_mgEleIdx);
+    if (t->GetBranch("mgMuoPt")) t->SetBranchAddress("mgMuoPt", &mgMuoPt, &b_mgMuoPt);
+    if (t->GetBranch("mgMuoEta")) t->SetBranchAddress("mgMuoEta", &mgMuoEta, &b_mgMuoEta);
+    if (t->GetBranch("mgMuoPhi")) t->SetBranchAddress("mgMuoPhi", &mgMuoPhi, &b_mgMuoPhi);
+    if (t->GetBranch("mgMuoIdx")) t->SetBranchAddress("mgMuoIdx", &mgMuoIdx, &b_mgMuoIdx);
 }
 
 void ggHiFlat::setupTreeForWriting(TTree* t)
@@ -2420,6 +2477,20 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
         t->Branch("muPFPhoIso", &muPFPhoIso);
         t->Branch("muPFNeuIso", &muPFNeuIso);
         t->Branch("muPFPUIso", &muPFPUIso);
+    }
+    if (doGenMatch) {
+        t->Branch("mgPhoPt", &mgPhoPt);
+        t->Branch("mgPhoEta", &mgPhoEta);
+        t->Branch("mgPhoPhi", &mgPhoPhi);
+        t->Branch("mgPhoIdx", &mgPhoIdx);
+        t->Branch("mgElePt", &mgElePt);
+        t->Branch("mgEleEta", &mgEleEta);
+        t->Branch("mgElePhi", &mgElePhi);
+        t->Branch("mgEleIdx", &mgEleIdx);
+        t->Branch("mgMuoPt", &mgMuoPt);
+        t->Branch("mgMuoEta", &mgMuoEta);
+        t->Branch("mgMuoPhi", &mgMuoPhi);
+        t->Branch("mgMuoIdx", &mgMuoIdx);
     }
 }
 
@@ -2918,6 +2989,24 @@ void ggHiFlat::clearEntryGen()
     }
 }
 
+void ggHiFlat::clearEntryMatchedGen()
+{
+    if (doGenMatch) {
+        mgPhoPt = -1;
+        mgPhoEta = -987987;
+        mgPhoPhi = -987987;
+        mgPhoIdx = -1;
+        mgElePt = -1;
+        mgEleEta = -987987;
+        mgElePhi = -987987;
+        mgEleIdx = -1;
+        mgMuoPt = -1;
+        mgMuoEta = -987987;
+        mgMuoPhi = -987987;
+        mgMuoIdx = -1;
+    }
+}
+
 void ggHiFlat::resetPhoPF()
 {
     nPhoPFp = 0;
@@ -3325,6 +3414,7 @@ void ggHiFlat::clone(ggHiFlat &gg)
     doPho = gg.doPho;
     doMu = gg.doMu;
     doMC = gg.doMC;
+    doGenMatch = gg.doGenMatch;
 
     weight = gg.weight;
     weightCent = gg.weightCent;
@@ -3838,6 +3928,20 @@ void ggHiFlat::clone(ggHiFlat &gg)
     muPFPUIso = gg.muPFPUIso;
     isGenMatched = gg.isGenMatched;
     genMatchedIdx = gg.genMatchedIdx;
+
+    //
+    mgPhoPt = gg.mgPhoPt;
+    mgPhoEta = gg.mgPhoEta;
+    mgPhoPhi = gg.mgPhoPhi;
+    mgPhoIdx = gg.mgPhoIdx;
+    mgElePt = gg.mgElePt;
+    mgEleEta = gg.mgEleEta;
+    mgElePhi = gg.mgElePhi;
+    mgEleIdx = gg.mgEleIdx;
+    mgMuoPt = gg.mgMuoPt;
+    mgMuoEta = gg.mgMuoEta;
+    mgMuoPhi = gg.mgMuoPhi;
+    mgMuoIdx = gg.mgMuoIdx;
 }
 
 bool ggHiFlat::passedHI18HEMfailurePho()
