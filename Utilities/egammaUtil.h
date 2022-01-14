@@ -339,6 +339,9 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
         double dPhi = getDPHI(pfphi, egPhi);
         double dR2 = dEta*dEta + dPhi*dPhi;
         double pfpt = (*pfs.pfPt)[i];
+        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1) {
+            pfpt = (*pfs.trkPt)[i];
+        }
 
         // Jurassic Cone /////
         if (dR2 > r1 * r1) continue;
@@ -349,8 +352,10 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
         if ((*pfs.pfId)[i] != pfId) continue;
 
         if (1 <= pfId && pfId <=3) {
-            if (trkOpt >= 0) {
-                if( !passedTrkSelection(pfs, i, trkOpt) ) continue;
+            int trkIDOpt = trkOpt % 10;
+            if (trkIDOpt >= 0) {
+                bool useTrkPt4ID = ((trkOpt / 10) % 10) == 1;
+                if( !passedTrkSelection(pfs, i, trkIDOpt, useTrkPt4ID) ) continue;
             }
             else if (vtxPos.Z() > -987) {
                 float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());
@@ -417,6 +422,9 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         double dPhi = getDPHI(pfphi, egPhi);
         double dR2 = dEta*dEta + dPhi*dPhi;
         double pfpt = (*pfs.pfPt)[i];
+        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1) {
+            pfpt = (*pfs.trkPt)[i];
+        }
 
         // Jurassic Cone /////
         if (dR2 <= r1 * r1) continue;  // exclude the isolation cone from strip area
@@ -424,8 +432,10 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         if (pfpt < threshold) continue;
 
         if (1 <= pfId && pfId <=3) {
-            if (trkOpt >= 0) {
-                if( !passedTrkSelection(pfs, i, trkOpt) ) continue;
+            int trkIDOpt = trkOpt % 10;
+            if (trkIDOpt >= 0) {
+                bool useTrkPt4ID = ((trkOpt / 10) % 10) == 1;
+                if( !passedTrkSelection(pfs, i, trkIDOpt, useTrkPt4ID) ) continue;
             }
             else if (vtxPos.Z() > -987) {
                 float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());

@@ -885,6 +885,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfcIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
                             ggHiOut.pfcIso3IDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
                             ggHiOut.pfcIso3IDnoFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3trkIDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, 10+collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfcIso3trkIDpTgt2p0noFPsumTrksubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, 100+10+collisionType, modeNoFP, pVtx);
 
                             // iso using PF electron and muon
                             ggHiOut.pfeIso3pTgt2p0subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, -1, modeFP, pVtx);
@@ -900,10 +902,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.pfeIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
                             ggHiOut.pfeIso3IDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
                             ggHiOut.pfeIso3IDnoFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfeIso3trkIDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, 10+collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfeIso3trkIDpTgt2p0noFPsumTrksubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 2, 0.3, tR2, 2.0, tJW, 100+10+collisionType, modeNoFP, pVtx);
                             ggHiOut.pfmIso3pTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, -1, modeNoFP, pVtx);
                             ggHiOut.pfmIso3noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 0.0, tJW, -1, modeNoFP, pVtx);
                             ggHiOut.pfmIso3IDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, collisionType, modeNoFP, pVtx);
                             ggHiOut.pfmIso3IDnoFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 0.0, tJW, collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfmIso3trkIDpTgt2p0noFPsubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, 10+collisionType, modeNoFP, pVtx);
+                            ggHiOut.pfmIso3trkIDpTgt2p0noFPsumTrksubUEcalc = getPFIsoSubUE(pfs, ggHi, i, 3, 0.3, tR2, 2.0, tJW, 100+10+collisionType, modeNoFP, pVtx);
                         }
                         if (calcCSPFiso) {
                             TVector3 pVtxCS(0, 0, -999);
