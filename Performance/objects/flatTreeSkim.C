@@ -869,7 +869,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         }
                         //const int modeFP = egUtil::footprintMode::matchKey;
                         const int modeFP = egUtil::footprintMode::matchKin;
-                        int trkIDOpt = -1;
+                        int trkOpt = -1;
                         if (calcPFIso) {
                             ggHiOut.pfpIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
                             ggHiOut.pfnIso3subUEcalc = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx);
@@ -919,8 +919,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                             ggHiOut.pfpIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, only_vn_2, angEPv2);
                             ggHiOut.pfnIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, only_vn_2, angEPv2);
-                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3pTgt2p0subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkOpt, modeFP, pVtx, only_vn_2, angEPv2);
+                            ggHiOut.pfcIso3subUEvn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkOpt, modeFP, pVtx, only_vn_2, angEPv2);
 
                             float vn_2 = ggHiOut.fit_v2;
                             float vn_3 = 0; // ggHiOut.fit_v3;
@@ -938,20 +938,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                                 vn_3 = ggHiOut.fMods_v3_out[jFMod];
                                 angEPv3 = ggHiOut.fMods_angEP3_out[jFMod];
 
-                                trkIDOpt = (egUtil::phi_flow_mod_trkID_flag[jFMod]) ? collisionType : -1;
+                                trkOpt = (egUtil::phi_flow_mod_trkID_flag[jFMod]) ? collisionType : -1;
 
                                 ggHiOut.pfpIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                                 ggHiOut.pfnIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                                ggHiOut.pfcIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                                ggHiOut.pfcIso3pTgt2p0subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                                ggHiOut.pfcIso3subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                                ggHiOut.pfcIso3pTgt2p0subUEfMods_out[jFMod] = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             }
 
-                            trkIDOpt = -1;
+                            trkOpt = -1;
                             if (isMC) {
                                 ggHiOut.pfpIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
                                 ggHiOut.pfnIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                                ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
-                                ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3pTgt2p0subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
+                                ggHiOut.pfcIso3subUEphi0vn2 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkOpt, modeFP, pVtx, ggHiOut.fit_EPphi0_v2, ggHiOut.phi0);
                             }
 
                             vn_2 = ggHiOut.fit_trkphi_v2;
@@ -960,8 +960,8 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             angEPv3 = (iEvtPlanePF >= 0) ? ggHiOut.angEP3trk : ggHiOut.hiEP3HF;
                             ggHiOut.pfpIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 4, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                             ggHiOut.pfnIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 5, 0.3, tR2, 0.0, tJW, -1, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
-                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkIDOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3pTgt2p0subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 2.0, tJW, trkOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
+                            ggHiOut.pfcIso3subUEtrkvn3 = getPFIsoSubUE(pfs, ggHi, i, 1, 0.3, tR2, 0.0, tJW, trkOpt, modeFP, pVtx, vn_2, angEPv2, vn_3, angEPv3);
                         }
 
                         ggHiOut.phoEAc = getEffArea((*ggHi.phoSCEta)[i], effAreaC[0], effAreaC[1], effAreaC[2], nEffAreaC);
