@@ -26,7 +26,7 @@ int getTrkMult(trackSkim& trks, double ptMin, double etaMax);
 int getTrkMult(Tracks& trks, double ptMin, double etaMax);
 bool passedTrkSelection(trackSkim& trks, int i, int collType);
 bool passedTrkSelection(Tracks& trks, int i, int collType, bool ismAOD = false);
-bool passedTrkSelection(pfCand& pfs, int i, int collType);
+bool passedTrkSelection(pfCand& pfs, int i, int collType, bool useTrkPt = false);
 bool passedTrkSelPbPb18(unsigned char trkAlgo, float trkMVA, bool highPurity, float trkPtError, float trkPt,
                         float trkDz1, float trkDzError1, float trkDxy1, float trkDxyError1,
                         unsigned char trkNHit, float trkChi2, unsigned char trkNdof, unsigned char trkNlayer,
@@ -195,57 +195,59 @@ bool passedTrkSelection(Tracks& trks, int i, int collType, bool ismAOD)
     return true;
 }
 
-bool passedTrkSelection(pfCand& pfs, int i, int collType)
+bool passedTrkSelection(pfCand& pfs, int i, int collType, bool useTrkPt)
 {
+    float tmpPt = useTrkPt ? (*pfs.trkPt)[i] : (*pfs.pfPt)[i];
+
     if (collisionIsHI2018((COLL::TYPE)collType)) {
         // cuts for 2018
         if (((*pfs.trkAlgo)[i] == 6 && (*pfs.trkMVA)[i] < 0.98)) return false;
 
         if (!((*pfs.highPurity)[i] == 1)) return false;
-        if (!((*pfs.trkPtError)[i] / (*pfs.pfPt)[i] < 0.1 &&
+        if (!((*pfs.trkPtError)[i] / tmpPt < 0.1 &&
               std::fabs((*pfs.trkDz1)[i] / (*pfs.trkDzError1)[i]) < 3 &&
               std::fabs((*pfs.trkDxy1)[i] / (*pfs.trkDxyError1)[i]) < 3))  return false;
         if (!((*pfs.trkNHit)[i] >= 11))  return false;
         if (!((*pfs.trkChi2)[i] / (float)(*pfs.trkNdof)[i] / (float)(*pfs.trkNlayer)[i] < 0.18))  return false;
 
-        if ((*pfs.pfPt)[i] > 20) {
+        if (tmpPt > 20) {
             float Et = ((*pfs.pfHcalE)[i] + (*pfs.pfEcalE)[i]) / TMath::CosH((*pfs.pfEta)[i]);
-            if ( !(Et > 0.5 * (*pfs.pfPt)[i]) )  return false;
+            if ( !(Et > 0.5 * tmpPt) )  return false;
         }
     }
     else if (collisionIsHI((COLL::TYPE)collType)) {
         // cuts for 2015
-        if (!((*pfs.pfPt)[i] <= 300 && std::fabs((*pfs.pfEta)[i]) < 2.4)) return false;
+        if (!(tmpPt <= 300 && std::fabs((*pfs.pfEta)[i]) < 2.4)) return false;
         if (!((*pfs.highPurity)[i] == 1)) return false;
-        if (!((*pfs.trkPtError)[i] / (*pfs.pfPt)[i] < 0.1 &&
+        if (!((*pfs.trkPtError)[i] / tmpPt < 0.1 &&
               std::fabs((*pfs.trkDz1)[i] / (*pfs.trkDzError1)[i]) < 3 &&
               std::fabs((*pfs.trkDxy1)[i] / (*pfs.trkDxyError1)[i]) < 3))  return false;
         if (!((*pfs.trkChi2)[i] / (float)(*pfs.trkNdof)[i] / (float)(*pfs.trkNlayer)[i] < 0.15))  return false;
         if (!((*pfs.trkNHit)[i] >= 11))  return false;
 
-        if ((*pfs.pfPt)[i] > 20) {
+        if (tmpPt > 20) {
             float Et = ((*pfs.pfHcalE)[i] + (*pfs.pfEcalE)[i]) / TMath::CosH((*pfs.pfEta)[i]);
-            if ( !(Et > 0.5 * (*pfs.pfPt)[i]) )  return false;
+            if ( !(Et > 0.5 * tmpPt) )  return false;
         }
     }
     else if (collisionIsPP2017((COLL::TYPE)collType)) {
         // cuts for pp 2017
         if (!((*pfs.highPurity)[i] == 1)) return false;
-        if (!((*pfs.trkPtError)[i] / (*pfs.pfPt)[i] < 0.1 &&
+        if (!((*pfs.trkPtError)[i] / tmpPt < 0.1 &&
               std::fabs((*pfs.trkDz1)[i] / (*pfs.trkDzError1)[i]) < 3 &&
               std::fabs((*pfs.trkDxy1)[i] / (*pfs.trkDxyError1)[i]) < 3))  return false;
     }
     else if (collisionIsPP((COLL::TYPE)collType)) {
         // cuts for pp 2015
-        if (!((*pfs.pfPt)[i] <= 300 && std::fabs((*pfs.pfEta)[i]) < 2.4)) return false;
+        if (!(tmpPt <= 300 && std::fabs((*pfs.pfEta)[i]) < 2.4)) return false;
         if (!((*pfs.highPurity)[i] == 1)) return false;
-        if (!((*pfs.trkPtError)[i] / (*pfs.pfPt)[i] < 0.1 &&
+        if (!((*pfs.trkPtError)[i] / tmpPt < 0.1 &&
               std::fabs((*pfs.trkDz1)[i] / (*pfs.trkDzError1)[i]) < 3 &&
               std::fabs((*pfs.trkDxy1)[i] / (*pfs.trkDxyError1)[i]) < 3))  return false;
 
-        if ((*pfs.pfPt)[i] > 20) {
+        if (tmpPt > 20) {
             float Et = ((*pfs.pfHcalE)[i] + (*pfs.pfEcalE)[i]) / TMath::CosH((*pfs.pfEta)[i]);
-            if ( !(Et > 0.5 * (*pfs.pfPt)[i]) )  return false;
+            if ( !(Et > 0.5 * tmpPt) )  return false;
         }
     }
     else {
