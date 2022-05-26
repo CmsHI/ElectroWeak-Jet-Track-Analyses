@@ -323,6 +323,7 @@ void drawTree(std::string configFile, std::string inputFile, std::string outputF
         gROOT->LoadMacro(macrosToLoad[iMacro].c_str());
     }
 
+    int nFilesSkipped = 0;
     std::cout << "TTree::Draw()" <<std::endl;
     for (int iSample = 0; iSample < nInputSamples; ++iSample) {
 
@@ -341,6 +342,7 @@ void drawTree(std::string configFile, std::string inputFile, std::string outputF
             // check if the file is usable, if not skip the file.
             if (isGoodFile(fileTmp) != 0) {
                 std::cout << "File is not good. skipping file." << std::endl;
+                nFilesSkipped++;
                 continue;
             }
 
@@ -441,6 +443,7 @@ void drawTree(std::string configFile, std::string inputFile, std::string outputF
         }
     }
     std::cout << "TTree::Draw() ENDED" <<std::endl;
+    std::cout << "nFilesSkipped = " << nFilesSkipped << std::endl;
     for (int i = 0; i < nInputSamples; ++i) {
 
         if (nInputSamples == 1)  {
