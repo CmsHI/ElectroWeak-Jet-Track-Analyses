@@ -44,6 +44,7 @@
 int mode;
 
 // input for TTree;
+std::vector<std::string> macrosToLoad; // paths of macros to be loaded in memory, useful to call user-defined functions in TTree::Draw()
 std::vector<std::string> treePaths;
 std::vector<std::string> treeFriendsPath;
 std::vector<std::string> treeFriendsPathIndividual;
@@ -125,6 +126,7 @@ int setLogx;
 int setLogy;
 int setLogz;
 
+int nMacrosLoad;
 int nTrees;
 int nFriends;
 int nFriendsIndividual;
@@ -315,6 +317,10 @@ void drawTree(std::string configFile, std::string inputFile, std::string outputF
         }
 
         fileTmp->Close();
+    }
+
+    for (int iMacro = 0; iMacro < nMacrosLoad; ++iMacro) {
+        gROOT->LoadMacro(macrosToLoad[iMacro].c_str());
     }
 
     std::cout << "TTree::Draw()" <<std::endl;
@@ -558,6 +564,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     mode = confParser.ReadConfigValueInteger("mode");
 
     // input for TTree
+    macrosToLoad = ConfigurationParser::ParseList(confParser.ReadConfigValue("macrosToLoad"));
     treePaths = ConfigurationParser::ParseList(confParser.ReadConfigValue("treePath"));
     treeFriendsPath = ConfigurationParser::ParseList(confParser.ReadConfigValue("treeFriendPath"));
     treeFriendsPathIndividual = ConfigurationParser::ParseList(confParser.ReadConfigValue("treeFriendPathIndividual"));
@@ -715,6 +722,10 @@ void printConfiguration()
         // the idea is to feed the input samples as a single argument and split them in the macro.
         std::cout << "There are multiple input samples. Entering comparison mode." << std::endl;
         std::cout << "comparison mode : Spectra from multiple input samples are going to be compared." << std::endl;
+    }
+    std::cout << "nMacrosLoad = " << nMacrosLoad << std::endl;
+    for (int i=0; i<nMacrosLoad; ++i) {
+        std::cout << Form("macrosToLoad[%d] = %s", i, macrosToLoad.at(i).c_str()) << std::endl;
     }
     std::cout << "nTrees = " << nTrees << std::endl;
     for (int i=0; i<nTrees; ++i) {
