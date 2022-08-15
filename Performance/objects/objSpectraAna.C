@@ -535,6 +535,17 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                 }
             }
 
+            std::vector<float> ptFinalEle;
+            if (readEle) {
+                for (int i = 0; i < ggHi.nEle; ++i) {
+
+                    float ptTmp = (*ggHi.elePt)[i];
+                    ptTmp *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
+
+                    ptFinalEle.push_back(ptTmp);
+                }
+            }
+
             if (recoObj == RECOOBJS::kPhoton) {
 
                 // correct pT if corrections exist
@@ -567,17 +578,6 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                     }
 
                     ptFinal.push_back(pt);
-                }
-
-                std::vector<float> ptFinalEle;
-                if (readEle) {
-                    for (int i = 0; i < ggHi.nEle; ++i) {
-
-                        float ptTmp = (*ggHi.elePt)[i];
-                        ptTmp *= ggHi.getElePtCorrFactor(i, collisionType, hiBin);
-
-                        ptFinalEle.push_back(ptTmp);
-                    }
                 }
 
                 if (runMode[MODES::kSpectra]) {
