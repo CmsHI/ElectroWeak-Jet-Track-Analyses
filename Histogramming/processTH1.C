@@ -42,6 +42,7 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     int nInputHist = hInputPaths.size();
 
     std::vector<std::string> strParams;
+    // operation is the first element of "strParams"
     if (operation.find("SCALE") != std::string::npos) {
         strParams = split(operation, ":", false, false);
         operation = "SCALE";
@@ -159,8 +160,26 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     }
     else if (operation == "REBIN") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
-        int paramTmp = std::atoi(strParams[1].c_str());
-        hOut->Rebin(paramTmp);
+        bool singleParam = (strParams[1].find(",") == std::string::npos);
+        if (singleParam) {
+            int paramTmp = std::atoi(strParams[1].c_str());
+            hOut->Rebin(paramTmp);
+        }
+        else {
+            std::vector<std::string> rebinParamsStr = split(strParams[1], ",", false, false);
+            std::vector<double> rebinParams;
+            for (std::string paramStr : rebinParamsStr) {
+                rebinParams.push_back(std::atof(paramStr.c_str()));
+            }
+
+            int nPar = rebinParams.size();
+
+            double arr[nPar];
+            std::copy(rebinParams.begin(), rebinParams.end(), arr);
+
+            int nBins = nPar-1;
+            hOut = (TH1D*)hOut->Rebin(nBins, hOutPath.c_str(), arr);
+        }
     }
     else if (operation == "POWER") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
