@@ -129,6 +129,8 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
     TH2D* h2Dtmp = 0;
     TH1D* htmp = 0;
     TH1D* hOut = 0;
+    TGraphAsymmErrors *gOut = 0;
+
     if (operation == "ADD") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
         for (int i = 1; i < nInputHist; ++i) {
@@ -152,6 +154,13 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         for (int i = 1; i < nInputHist; ++i) {
             hOut->Divide(hInVec[i]);
         }
+    }
+    else if (operation == "BAYESDIV") {
+        gOut = new TGraphAsymmErrors();
+        gOut->SetName(hOutPath.c_str());
+        gOut->BayesDivide(hInVec[0], hInVec[1]);
+        gOut->SetMarkerStyle(kFullCircle);
+        gOut->Write("",TObject::kOverwrite);
     }
     else if (operation == "SCALE") {
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
@@ -322,8 +331,10 @@ void processTH1(std::string inputFiles, std::string outputFile, std::string writ
         hOut = (TH1D*)hInVec[0]->Clone(hOutPath.c_str());
     }
 
-    setTH1D(hOut);
-    hOut->Write("",TObject::kOverwrite);
+    if (hOut != 0) {
+        setTH1D(hOut);
+        hOut->Write("",TObject::kOverwrite);
+    }
 
     std::cout << "Closing the output file." << std::endl;
     output->Close();
