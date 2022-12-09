@@ -63,6 +63,10 @@ std::vector<CONFIGPARSER::TH1Axis> formula_TH1D_Bins;
 std::vector<std::string> sigSels;
 std::vector<std::string> bkgSels;
 
+// selections if they are not read from XML file
+std::vector<std::string> userSels;
+std::vector<std::string> userWeights;
+
 std::vector<std::string> references;
 std::vector<std::string> targets;
 
@@ -83,6 +87,9 @@ int nFormula_TH1D_Bins;
 
 int nSigSels;
 int nBkgSels;
+
+int nUserSels;
+int nUserWeights;
 
 int nReferences;
 int nTargets;
@@ -145,6 +152,9 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
     }
     std::cout << "##### END #####" << std::endl;
 
+    bool existsXML = fileExists(fileXML);
+    std::cout << "existsXML = " << existsXML << std::endl;
+
     TMVA::Reader *reader = new TMVA::Reader("!Color");
 
     float varsR[nVariablesR];
@@ -157,55 +167,74 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
         reader->AddSpectator(spectatorsR[i].c_str(), &(specsR[i]));
     }
 
-    reader->BookMVA(methodName.c_str(), fileXML.c_str());
-    TMVA::MethodCuts* mCuts = dynamic_cast<TMVA::MethodCuts*>(reader->FindCutsMVA(methodName.c_str()));
-
-    void* doc = TMVA::gTools().xmlengine().ParseFile(fileXML.c_str(), TMVA::gTools().xmlenginebuffersize());
-    void* rootnode = TMVA::gTools().xmlengine().DocGetRootElement(doc);
-    void* varsNode = TMVA::gTools().GetChild(rootnode, "Variables");
+    TMVA::MethodCuts* mCuts = 0;
+    void* doc = 0;
+    void* rootnode = 0;
+    void* varsNode = 0;
     void* varNode = 0;
 
-    std::vector<std::string> cutsStr(nSigEffs);
-    for (int i = 0; i < nSigEffs; ++i) {
-        std::vector<double> cutMins;
-        std::vector<double> cutMaxs;
-        mCuts->GetCuts(sigEffs.at(i), cutMins, cutMaxs);
+    std::vector<std::string> cutsStr;
 
-        int nCutMins = cutMins.size();
-        int nCutMaxs = cutMaxs.size();
+    bool parseSigEff = existsXML;
+    if (parseSigEff) {
+        reader->BookMVA(methodName.c_str(), fileXML.c_str());
+        mCuts = dynamic_cast<TMVA::MethodCuts*>(reader->FindCutsMVA(methodName.c_str()));
 
-        if (nCutMins != nCutMaxs) {
-            std::cout << "ERROR : mismatch between number of minimum and maximum cuts" << std::endl;
-            std::cout << "nCutMins = " << nCutMins << std::endl;
-            std::cout << "nCutMaxs = " << nCutMaxs << std::endl;
-            std::cout << "exiting" << std::endl;
-            return;
-        }
-        if (nCutMins != nVariablesR) {
-            std::cout << "ERROR : mismatch between number of cuts and variables" << std::endl;
-            std::cout << "exiting" << std::endl;
-            return;
-        }
+        doc = TMVA::gTools().xmlengine().ParseFile(fileXML.c_str(), TMVA::gTools().xmlenginebuffersize());
+        rootnode = TMVA::gTools().xmlengine().DocGetRootElement(doc);
+        varsNode = TMVA::gTools().GetChild(rootnode, "Variables");
 
-        std::string cutTmp = "";
-        varNode = TMVA::gTools().GetChild(varsNode, "Variable");
-        for (int i = 0; i < nVariablesR; ++i) {
+        cutsStr.resize(nSigEffs);
+        for (int i = 0; i < nSigEffs; ++i) {
+            std::vector<double> cutMins;
+            std::vector<double> cutMaxs;
+            mCuts->GetCuts(sigEffs.at(i), cutMins, cutMaxs);
 
-            TString varLabel;
-            TMVA::gTools().ReadAttr(varNode, "Label", varLabel);
-            varNode = TMVA::gTools().GetNextChild(varNode);
-            std::string cutVarTmp = Form("%f < %s && %s <= %f", cutMins[i], varLabel.Data(), varLabel.Data(), cutMaxs[i]);
+            int nCutMins = cutMins.size();
+            int nCutMaxs = cutMaxs.size();
 
-            if (cutTmp.size() == 0) {
-                cutTmp = cutVarTmp;
+            if (nCutMins != nCutMaxs) {
+                std::cout << "ERROR : mismatch between number of minimum and maximum cuts" << std::endl;
+                std::cout << "nCutMins = " << nCutMins << std::endl;
+                std::cout << "nCutMaxs = " << nCutMaxs << std::endl;
+                std::cout << "exiting" << std::endl;
+                return;
             }
-            else {
-                cutTmp += Form(" && %s", cutVarTmp.c_str());
+            if (nCutMins != nVariablesR) {
+                std::cout << "ERROR : mismatch between number of cuts and variables" << std::endl;
+                std::cout << "exiting" << std::endl;
+                return;
             }
-        }
 
-        cutsStr[i] = cutTmp;
+            std::string cutTmp = "";
+            varNode = TMVA::gTools().GetChild(varsNode, "Variable");
+            for (int i = 0; i < nVariablesR; ++i) {
+
+                TString varLabel;
+                TMVA::gTools().ReadAttr(varNode, "Label", varLabel);
+                varNode = TMVA::gTools().GetNextChild(varNode);
+                std::string cutVarTmp = Form("%f < %s && %s <= %f", cutMins[i], varLabel.Data(), varLabel.Data(), cutMaxs[i]);
+
+                if (cutTmp.size() == 0) {
+                    cutTmp = cutVarTmp;
+                }
+                else {
+                    cutTmp += Form(" && %s", cutVarTmp.c_str());
+                }
+            }
+
+            cutsStr[i] = cutTmp;
+        }
     }
+    else {
+
+        cutsStr.resize(nUserSels);
+        for (int i = 0; i < nUserSels; ++i) {
+            cutsStr[i] = userSels[i];
+        }
+    }
+
+    int nSelections = cutsStr.size();
 
     std::vector<std::vector<std::string>> weight_AND_Sel_num_sig(nFormulas);
     std::vector<std::string> weight_AND_Sel_denom_sig(nFormulas);
@@ -252,7 +281,7 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
             selBkgTmp = selTmp;
         }
 
-        for (int j = 0; j < nSigEffs; ++j) {
+        for (int j = 0; j < nSelections; ++j) {
 
             std::string sel_AND_cut_sig = "";
             if (cutsStr[j].size() == 0 && selSigTmp.size() == 0) {
@@ -316,22 +345,73 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
         std::cout << "Signal events : " << std::endl;
         std::cout << "  Denom : " << weight_AND_Sel_denom_sig[i] << std::endl;
 
-        for (int j = 0; j < nSigEffs; ++j) {
-            std::cout << "  Efficiency " << j << " : " << weight_AND_Sel_num_sig[i][j] << std::endl;
+        for (int j = 0; j < nSelections; ++j) {
+            std::cout << "  Selection " << j << " : " << weight_AND_Sel_num_sig[i][j] << std::endl;
         }
 
         std::cout << "Background events : " << std::endl;
         std::cout << "  Denom : " << weight_AND_Sel_denom_bkg[i] << std::endl;
 
-        for (int j = 0; j < nSigEffs; ++j) {
-            std::cout << "  Efficiency " << j << " : " << weight_AND_Sel_num_bkg[i][j] << std::endl;
+        for (int j = 0; j < nSelections; ++j) {
+            std::cout << "  Selection " << j << " : " << weight_AND_Sel_num_bkg[i][j] << std::endl;
         }
+    }
+
+    std::vector<std::string> user_weight_AND_Sel_num_sig;
+    std::vector<std::string> user_weight_AND_Sel_num_bkg;
+
+    std::vector<std::string> user_weight_AND_Sel_denom_sig;
+    std::vector<std::string> user_weight_AND_Sel_denom_bkg;
+    for (int i = 0; i < nUserSels; ++i) {
+
+         std::string userSelNumSigTmp = userSels[i];
+         std::string selDenomSigTmp = "";
+         if (nSigSels == 1 && sigSels[0].size() > 0) {
+             userSelNumSigTmp = Form("%s && %s", userSels[i].c_str(), sigSels[0].c_str());
+             selDenomSigTmp = sigSels[0];
+         }
+
+         std::string userSelNumBkgTmp = userSels[i];
+         std::string selDenomBkgTmp = "";
+         if (nBkgSels == 1 && bkgSels[0].size() > 0) {
+             userSelNumBkgTmp = Form("%s && %s", userSels[i].c_str(), bkgSels[0].c_str());
+             selDenomBkgTmp = bkgSels[0];
+         }
+
+         std::string user_weight_tmp = "1";
+         if (nUserWeights == 1) {
+             user_weight_tmp = userWeights[0];
+         }
+         else if (nUserWeights == nUserSels)
+         {
+             user_weight_tmp = userWeights[i];
+         }
+
+         std::string user_weight_AND_Sel_sig_num_tmp = Form("(%s)*(%s)", user_weight_tmp.c_str(), userSelNumSigTmp.c_str());
+         std::string user_weight_AND_Sel_bkg_num_tmp = Form("(%s)*(%s)", user_weight_tmp.c_str(), userSelNumBkgTmp.c_str());
+
+         std::string weight_AND_Sel_sig_denom_tmp = user_weight_tmp;
+         if (selDenomSigTmp.size() > 0) {
+             weight_AND_Sel_sig_denom_tmp = Form("(%s)*(%s)", user_weight_tmp.c_str(), selDenomSigTmp.c_str());
+         }
+         std::string weight_AND_Sel_bkg_denom_tmp = user_weight_tmp;
+         if (selDenomBkgTmp.size() > 0) {
+             weight_AND_Sel_bkg_denom_tmp = Form("(%s)*(%s)", user_weight_tmp.c_str(), selDenomBkgTmp.c_str());
+         }
+
+         user_weight_AND_Sel_num_sig.push_back(user_weight_AND_Sel_sig_num_tmp);
+         user_weight_AND_Sel_num_bkg.push_back(user_weight_AND_Sel_bkg_num_tmp);
+
+         user_weight_AND_Sel_denom_sig.push_back(weight_AND_Sel_sig_denom_tmp);
+         user_weight_AND_Sel_denom_bkg.push_back(weight_AND_Sel_bkg_denom_tmp);
     }
 
     TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
     output->cd();
 
     TH1::SetDefaultSumw2();
+
+    TH1* hTmp = 0;
 
     // TH1 for signal efficiency
     std::vector<std::vector<TH1D*>> h_expr_num_seff(nFormulas);
@@ -353,21 +433,31 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
             h_expr_denom_seff[i] = new TH1D(Form("h_sig_denom_expr_%d", i), Form(";%s;Entries", formulas[i].c_str()), nBins, arr);
             h_expr_denom_seff[i]->SetTitle("Denominator");
 
-            for (int j = 0; j < nSigEffs; ++j) {
+            for (int j = 0; j < nSelections; ++j) {
 
                 h_expr_num_seff[i].push_back(
                         new TH1D(Form("h_sig_num_expr_%d_effwp_%d", i, j), Form(";%s;Entries", formulas[i].c_str()), nBins, arr));
-                h_expr_num_seff[i][j]->SetTitle(Form("Selected via %.1f %% efficient WP", (double)(sigEffs[j]*100)));
+                if (parseSigEff) {
+                    h_expr_num_seff[i][j]->SetTitle(Form("Selected via %.1f %% efficient WP", (double)(sigEffs[j]*100)));
+                }
+                else {
+                    h_expr_num_seff[i][j]->SetTitle(Form("Selected via userSel %d", j));
+                }
             }
 
             h_expr_denom_brej[i] = new TH1D(Form("h_bkg_denom_expr_%d", i), Form(";%s;Entries", formulas[i].c_str()), nBins, arr);
             h_expr_denom_brej[i]->SetTitle("Denominator");
 
-            for (int j = 0; j < nSigEffs; ++j) {
+            for (int j = 0; j < nSelections; ++j) {
 
                 h_expr_num_brej[i].push_back(
                         new TH1D(Form("h_bkg_num_expr_%d_effwp_%d", i, j), Form(";%s;Entries", formulas[i].c_str()), nBins, arr));
-                h_expr_num_brej[i][j]->SetTitle(Form("Rejected via %.1f %% efficient WP", (double)(sigEffs[j]*100)));
+                if (parseSigEff) {
+                    h_expr_num_brej[i][j]->SetTitle(Form("Rejected via %.1f %% efficient WP", (double)(sigEffs[j]*100)));
+                }
+                else {
+                    h_expr_num_brej[i][j]->SetTitle(Form("Rejected via userSel %d", j));
+                }
             }
         }
     }
@@ -419,7 +509,13 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
 
     double weightsAll = 0;
     double weightsPreSel = 0;
-    std::vector<double> weightsPassed(nSigEffs, 0);
+    std::vector<double> weightsPassed(nSelections, 0);
+
+    std::vector<double> userSelsSigNumTotW(nUserSels, 0);
+    std::vector<double> userSelsBkgNumTotW(nUserSels, 0);
+
+    std::vector<double> userSelsSigDenomTotW(nUserSels, 0);
+    std::vector<double> userSelsBkgDenomTotW(nUserSels, 0);
 
     int nFilesSkipped = 0;
     std::cout<< "Running over TTree : " << treePath.c_str() <<std::endl;
@@ -437,7 +533,7 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
             continue;
         }
 
-        bool loopEvents = (runMode[MODES::kSigEff] == MODES_EFFICIENCY::kPrintEff ||
+        bool loopEvents = ((runMode[MODES::kSigEff] == MODES_EFFICIENCY::kPrintEff && parseSigEff)||
                 runMode[MODES::kRegression] != MODES_REGRESSION::kNULL_REGRESSION);
 
         tree = (TTree*)fileTmp->Get(treePath.c_str());
@@ -510,10 +606,12 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
 
                 if (runMode[MODES::kSigEff] == MODES_EFFICIENCY::kPrintEff) {
 
-                    for (int i=0; i<nSigEffs; ++i) {
-                        bool passedTmp = reader->EvaluateMVA(methodName, sigEffs[i]);
-                        if (passedTmp) {
-                            weightsPassed[i] += w;
+                    if (parseSigEff) {
+                        for (int i=0; i<nSigEffs; ++i) {
+                            bool passedTmp = reader->EvaluateMVA(methodName, sigEffs[i]);
+                            if (passedTmp) {
+                                weightsPassed[i] += w;
+                            }
                         }
                     }
                 }
@@ -543,6 +641,36 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
                 entriesAnalyzed++;
             }
         }
+        else {
+            for (int i = 0; i < nUserSels; ++i) {
+
+                std::string hTmpNameDraw = "";
+
+                hTmpNameDraw = Form("hTmp_wSigNum_iFile_%d_iSel_%d", iFile, i);
+                hTmp = new TH1D(hTmpNameDraw.c_str(), "", 1, 1, 2);
+                tree->Draw(Form("1 >>+ %s", hTmpNameDraw.c_str()), user_weight_AND_Sel_num_sig[i].c_str(), "goff");
+                userSelsSigNumTotW[i] += hTmp->Integral();
+                hTmp->Delete();
+
+                hTmpNameDraw = Form("hTmp_wSigDenom_iFile_%d_iSel_%d", iFile, i);
+                hTmp = new TH1D(hTmpNameDraw.c_str(), "", 1, 1, 2);
+                tree->Draw(Form("1 >>+ %s", hTmpNameDraw.c_str()), user_weight_AND_Sel_denom_sig[i].c_str(), "goff");
+                userSelsSigDenomTotW[i] += hTmp->Integral();
+                hTmp->Delete();
+
+                hTmpNameDraw = Form("hTmp_wBkgNum_iFile_%d_iSel_%d", iFile, i);
+                hTmp = new TH1D(hTmpNameDraw.c_str(), "", 1, 1, 2);
+                tree->Draw(Form("1 >>+ %s", hTmpNameDraw.c_str()), user_weight_AND_Sel_num_bkg[i].c_str(), "goff");
+                userSelsBkgNumTotW[i] += hTmp->Integral();
+                hTmp->Delete();
+
+                hTmpNameDraw = Form("hTmp_wBkgDenom_iFile_%d_iSel_%d", iFile, i);
+                hTmp = new TH1D(hTmpNameDraw.c_str(), "", 1, 1, 2);
+                tree->Draw(Form("1 >>+ %s", hTmpNameDraw.c_str()), user_weight_AND_Sel_denom_bkg[i].c_str(), "goff");
+                userSelsBkgDenomTotW[i] += hTmp->Integral();
+                hTmp->Delete();
+            }
+        }
 
         output->cd();
         for (int i = 0; i < nFormulas; ++i) {
@@ -550,7 +678,7 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
             tree->Draw(Form("%s >>+ %s", formulas[i].c_str(), h_expr_denom_seff[i]->GetName()), weight_AND_Sel_denom_sig[i].c_str(), "goff");
             tree->Draw(Form("%s >>+ %s", formulas[i].c_str(), h_expr_denom_brej[i]->GetName()), weight_AND_Sel_denom_bkg[i].c_str(), "goff");
 
-            for (int j = 0; j < nSigEffs; ++j) {
+            for (int j = 0; j < nSelections; ++j) {
 
                 tree->Draw(Form("%s >>+ %s", formulas[i].c_str(), h_expr_num_seff[i][j]->GetName()), weight_AND_Sel_num_sig[i][j].c_str(), "goff");
                 tree->Draw(Form("%s >>+ %s", formulas[i].c_str(), h_expr_num_brej[i][j]->GetName()), weight_AND_Sel_num_bkg[i][j].c_str(), "goff");
@@ -565,23 +693,50 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
     std::cout << "entriesAnalyzed    = " << entriesAnalyzed << std::endl;
     std::cout << "weightsAll    = " << weightsAll << std::endl;
     std::cout << "weightsPreSel = " << weightsPreSel << std::endl;
-    std::cout << "weights passed for signal efficiencies :" << std::endl;
-    for (int i=0; i<nSigEffs; ++i) {
-        std::cout << Form("sigEffs[%d] = %f", i, sigEffs[i]) << std::endl;
-        std::cout << Form("weightsPassed[%d] = %f", i, weightsPassed[i]) << std::endl;
-        std::cout << Form("weightsPassed[%d]/weightsPreSel = %f", i, (double)(weightsPassed[i] / weightsPreSel)) << std::endl;
+
+    if (parseSigEff) {
+        std::cout << "weights passed for signal efficiencies :" << std::endl;
+        for (int i=0; i<nSelections; ++i) {
+
+            std::cout << Form("sigEffs[%d] = %f", i, sigEffs[i]) << std::endl;
+            std::cout << Form("weightsPassed[%d] = %f", i, weightsPassed[i]) << std::endl;
+            std::cout << Form("weightsPassed[%d]/weightsPreSel = %f", i, (double)(weightsPassed[i] / weightsPreSel)) << std::endl;
+        }
+    }
+    else {
+        std::cout << "weights passed for selections :" << std::endl;
+        for (int i=0; i<nUserSels; ++i) {
+
+            double wSigNum = userSelsSigNumTotW[i];
+            double wSigDenom = userSelsSigDenomTotW[i];
+            double effSig = wSigNum / wSigDenom;
+
+            double wBkgNum = userSelsBkgNumTotW[i];
+            double wBkgDenom = userSelsBkgDenomTotW[i];
+            double effBkg = wBkgNum / wBkgDenom;
+            double rejBkg = 1-effBkg;
+
+            std::cout << Form("##### userSel %d #####", i) << std::endl;
+            std::cout << "wSigNum = " << wSigNum << std::endl;
+            std::cout << "wSigDenom = " << wSigDenom << std::endl;
+            std::cout << "effSig = " << effSig << std::endl;
+
+            std::cout << "wBkgNum = " << wBkgNum << std::endl;
+            std::cout << "wBkgDenom = " << wBkgDenom << std::endl;
+            std::cout << "effBkg = " << effBkg << std::endl;
+            std::cout << "rejBkg = " << rejBkg << std::endl;
+        }
     }
 
     output->cd();
 
-    TH1D* hTmp = 0;
     for (int i = 0; i < nFormulas; ++i) {
 
         if (h_expr_denom_seff[i] == 0)  continue;
 
         h_expr_denom_seff[i]->Write("",TObject::kOverwrite);
 
-        for (int j = 0; j < nSigEffs; ++j) {
+        for (int j = 0; j < nSelections; ++j) {
 
             if (h_expr_num_seff[i][j] == 0)  continue;
 
@@ -602,7 +757,7 @@ void tmvaEval(std::string configFile, std::string inputFile, std::string fileXML
 
         h_expr_denom_brej[i]->Write("",TObject::kOverwrite);
 
-        for (int j = 0; j < nSigEffs; ++j) {
+        for (int j = 0; j < nSelections; ++j) {
 
             if (h_expr_num_brej[i][j] == 0)  continue;
 
@@ -701,6 +856,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     sigSels = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("sigSelections"));
     bkgSels = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("bkgSelections"));
 
+    userSels = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("userSelections"));
+    userWeights = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("userWeights"));
+
     references = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("referenceVariables"));
     targets = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("targetVariables"));
 
@@ -739,6 +897,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
 
     nSigSels = sigSels.size();
     nBkgSels = bkgSels.size();
+
+    nUserSels = userSels.size();
+    nUserWeights = userWeights.size();
 
     nReferences = references.size();
     nTargets = targets.size();
@@ -819,6 +980,16 @@ void printConfiguration()
     std::cout << "nBkgSels = " << nBkgSels << std::endl;
     for (int i = 0; i < nBkgSels; ++i) {
         std::cout << Form("bkgSels[%d] = %s", i, bkgSels.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nUserSels = " << nUserSels << std::endl;
+    for (int i = 0; i < nUserSels; ++i) {
+        std::cout << Form("userSels[%d] = %s", i, userSels.at(i).c_str()) << std::endl;
+    }
+
+    std::cout << "nUserWeights = " << nUserWeights << std::endl;
+    for (int i = 0; i < nUserWeights; ++i) {
+        std::cout << Form("userWeights[%d] = %s", i, userWeights.at(i).c_str()) << std::endl;
     }
 
     std::cout << "nReferences = " << nReferences << std::endl;
