@@ -479,6 +479,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
             treeHiEvt->SetBranchStatus("lumi",1);
             treeHiEvt->SetBranchStatus("vz",1);
             treeHiEvt->SetBranchStatus("hiBin",1);
+            treeHiEvt->SetBranchStatus("Ncoll",1);
             if (doEventWeight > 0) {
                 treeHiEvt->SetBranchStatus("weight", 1);
             }
@@ -572,6 +573,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                     if (isHI && isMC)  vertexWeight = 1.37487*TMath::Exp(-0.5*TMath::Power((hiEvt.vz-0.30709)/7.41379, 2));  // 02.04.2016
                     if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                    //if (isHI && isMC)  centWeight = hiEvt.Ncoll;
                     w *= vertexWeight * centWeight;
                 }
 
@@ -591,6 +593,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 w = ggFlat.weightGenKin;
 
                 if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                //if (isHI && isMC)  centWeight = hiEvt.Ncoll;
                 w *= centWeight;
 
                 //std::cout << "hiBin = " << hiBin << std::endl;
