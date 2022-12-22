@@ -236,13 +236,14 @@ enum MODES_ESCALE {
     kNULL_ESCALE,
     kRecoPtGenPt,
     kSCRawEGenE,
+    kGenESCRawE,
     kRecoPtGenPtmeson0,
     kSCRawEGenEmeson0,
     kRecoPtGenPtele,
     kSCRawEGenEele,
     kN_MODES_ESCALE
 };
-const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL_ESCALE", "RecoPtGenPt", "SCRawEGenE",
+const std::string modesEScaleStr[kN_MODES_ESCALE] = {"NULL_ESCALE", "RecoPtGenPt", "SCRawEGenE", "GenESCRawE",
                                                                     "RecoPtGenPtmeson0", "SCRawEGenEmeson0",
                                                                     "RecoPtGenPtele", "SCRawEGenEele"};
 
@@ -590,9 +591,11 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
             }
             else if (inFileType == INFILE_TYPES::kFlatTreeTMVA) {
                 hiBin = (int)hiBin_F;
-                w = ggFlat.weightGenKin;
+                w = ggFlat.weight;
+                w *= (ggFlat.weightPthat > 0) ? ggFlat.weightPthat : 1;
+                w *= (ggFlat.weightGenKin > 0) ? ggFlat.weightGenKin : 1;
 
-                if (isHI && isMC)  centWeight = findNcoll(hiBin);
+                if (isHI && isMC)  centWeight = (hiBin >= 0) ? findNcoll(hiBin) : 1;
                 //if (isHI && isMC)  centWeight = hiEvt.Ncoll;
                 w *= centWeight;
 
@@ -734,6 +737,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                     runMode[MODES::kEnergyScale] == kSCRawEGenEele) {
                                 energyScale = (*ggHi.phoSCRawE)[i]/genE;
                             }
+                            else if (runMode[MODES::kEnergyScale] == kGenESCRawE) {
+                                energyScale = genE/(*ggHi.phoSCRawE)[i];
+                            }
 
                             std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
                             for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
@@ -815,6 +821,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0 ||
                                 runMode[MODES::kEnergyScale] == kSCRawEGenEele) {
                             energyScale = (ggFlat.phoSCRawE)/genE;
+                        }
+                        else if (runMode[MODES::kEnergyScale] == kGenESCRawE) {
+                            energyScale = genE/(ggFlat.phoSCRawE);
                         }
 
                         std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
@@ -1114,6 +1123,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         }
                         else if (runMode[MODES::kEnergyScale] == kSCRawEGenE) {
                             energyScale = (*ggHi.eleSCRawEn)[i]/genE;
+                        }
+                        else if (runMode[MODES::kEnergyScale] == kGenESCRawE) {
+                            energyScale = genE/(*ggHi.eleSCRawEn)[i];
                         }
 
                         double sumIso = -999;
@@ -2215,6 +2227,7 @@ int  preLoop(TFile* input, bool makeNew)
                 std::string yTitleEScale = "";
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
+                else if (runMode[MODES::kEnergyScale] == kGenESCRawE)  yTitleEScale = "Gen E / SC Raw E";
                 else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0)  yTitleEScale = Form("Reco %s p_{T} / Gen #h^{0} p_{T}", recoObjStr.c_str());
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0)  yTitleEScale = Form("%s SC Raw E / Gen #h^{0} E", recoObjStr.c_str());
                 else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtele)  yTitleEScale = Form("Reco %s p_{T} / Gen e^{#pm} p_{T}", recoObjStr.c_str());
