@@ -23,6 +23,10 @@ namespace COLL {
         kHIMC2018,
         kPP2017,
         kPPMC2017,
+        kAA22,
+        kAAMC22,
+        kPP22,
+        kPPMC22,
         kN_COLL
     };
 
@@ -36,7 +40,11 @@ namespace COLL {
             "HI2018",
             "HIMC2018",
             "PP2017",
-            "PPMC2017"
+            "PPMC2017",
+            "AA22",
+            "AAMC22",
+            "PP22",
+            "PPMC22"
     };
 
     std::string EVENTSEL[kN_COLL] = {
@@ -49,6 +57,10 @@ namespace COLL {
             "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0",
             "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0",
             "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
+            "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0",
+            "pprimaryVertexFilter > 0 && pclusterCompatibilityFilter > 0 && phfCoincFilter2Th4 > 0",
+            "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0",
             "pPAprimaryVertexFilter > 0 && pBeamScrapingFilter > 0"
     };
 };
@@ -58,6 +70,8 @@ bool collisionIsMC(COLL::TYPE collision);
 bool collisionIsDATA(COLL::TYPE collision);
 bool collisionIsHI(COLL::TYPE collision);
 bool collisionIsHI2018(COLL::TYPE collision);
+bool collisionIsHI2022(COLL::TYPE collision);
+bool collisionIsAA22(COLL::TYPE collision);
 bool collisionIsPP(COLL::TYPE collision);
 bool collisionIsPP2017(COLL::TYPE collision);
 bool collisionIsPA(COLL::TYPE collision);
@@ -79,12 +93,14 @@ std::string getCollisionTypeName (COLL::TYPE collision) {
 
 bool collisionIsMC(COLL::TYPE collision) {
 
-    return (collision == COLL::kHIMC || collision == COLL::kPPMC || collision == COLL::kPAMC || collision == COLL::kHIMC2018 || collision == COLL::kPPMC2017);
+    return (collision == COLL::kHIMC || collision == COLL::kPPMC || collision == COLL::kPAMC || collision == COLL::kHIMC2018 || collision == COLL::kPPMC2017
+         || collision == COLL::kAAMC22 || collision == COLL::kPPMC22);
 }
 
 bool collisionIsDATA(COLL::TYPE collision) {
 
-    return (collision == COLL::kHI || collision == COLL::kPP || collision == COLL::kPA || collision == COLL::kHI2018 || collision == COLL::kPP2017);
+    return (collision == COLL::kHI || collision == COLL::kPP || collision == COLL::kPA || collision == COLL::kHI2018 || collision == COLL::kPP2017
+         || collision == COLL::kAA22 || collision == COLL::kPP22);
 }
 
 bool collisionIsHI(COLL::TYPE collision) {
@@ -97,6 +113,16 @@ bool collisionIsHI2018(COLL::TYPE collision) {
     return (collision == COLL::kHI2018 || collision == COLL::kHIMC2018);
 }
 
+bool collisionIsHI2022(COLL::TYPE collision) {
+
+    return collisionIsAA22(collision);
+}
+
+bool collisionIsAA22(COLL::TYPE collision) {
+
+    return (collision == COLL::kAA22 || collision == COLL::kAAMC22);
+}
+
 bool collisionIsPP(COLL::TYPE collision) {
 
     return (collision == COLL::kPP || collision == COLL::kPPMC);
@@ -105,6 +131,11 @@ bool collisionIsPP(COLL::TYPE collision) {
 bool collisionIsPP2017(COLL::TYPE collision) {
 
     return (collision == COLL::kPP2017 || collision == COLL::kPPMC2017);
+}
+
+bool collisionIsPP22(COLL::TYPE collision) {
+
+    return (collision == COLL::kPP22 || collision == COLL::kPPMC22);
 }
 
 bool collisionIsPA(COLL::TYPE collision) {

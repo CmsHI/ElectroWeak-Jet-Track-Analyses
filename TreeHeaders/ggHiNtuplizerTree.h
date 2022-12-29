@@ -1730,7 +1730,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, double el
      * 5 : very tight
      */
 
-    if (collisionIsHI2018((COLL::TYPE)collType)) {
+    if (collisionIsHI2018((COLL::TYPE)collType) || collisionIsAA22((COLL::TYPE)collType)) {
         // default WP for 2018 pbpb is veto.
         if (WPindex == 0) WPindex = 1;
 
@@ -2027,7 +2027,7 @@ bool ggHiNtuplizer::passedEleSelection(int i, int collType, int hiBin, double el
             return false;
         }
     }
-    else if (collisionIsPP2017((COLL::TYPE)collType)) {
+    else if (collisionIsPP2017((COLL::TYPE)collType) || collisionIsPP22((COLL::TYPE)collType)) {
 
         // default WP for 2017 pp is veto.
         if (WPindex == 0) WPindex = 1;
