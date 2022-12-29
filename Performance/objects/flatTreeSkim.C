@@ -279,16 +279,20 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
         treeIn->SetBranchStatus("run",1);   // enable event information
         treeIn->SetBranchStatus("event",1);
         treeIn->SetBranchStatus("lumis",1);
-        treeIn->SetBranchStatus("angEP*pf",1);
+        if (isHI) {
+            treeIn->SetBranchStatus("angEP*pf",1);
+        }
         if (recoObj == RECOOBJS::kPhoton) {
             treeIn->SetBranchStatus("nPho",1);     // enable photon branches
             treeIn->SetBranchStatus("pho*",1);     // enable photon branches
             treeIn->SetBranchStatus("pf*",1);     // enable photon branches
             treeIn->SetBranchStatus("rho",1);
-            treeIn->SetBranchStatus("*EvtPlane",1);
-            treeIn->SetBranchStatus("phi_*",1);
-            treeIn->SetBranchStatus("nPhoPF",1);    // associated PF cands
-            treeIn->SetBranchStatus("ppf*",1);
+            if (isHI) {
+                treeIn->SetBranchStatus("*EvtPlane",1);
+                treeIn->SetBranchStatus("phi_*",1);
+                treeIn->SetBranchStatus("nPhoPF",1);    // associated PF cands
+                treeIn->SetBranchStatus("ppf*",1);
+            }
         }
         else if (recoObj == RECOOBJS::kElectron) {
             treeIn->SetBranchStatus("nEle",1);
@@ -341,10 +345,14 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             treeHiEvt->SetBranchStatus("vz",1);
             treeHiEvt->SetBranchStatus("hiBin",1);
             treeHiEvt->SetBranchStatus("hiHF",1);
-            treeHiEvt->SetBranchStatus("hiEvtPlanes",1);
+            if (isHI) {
+                treeHiEvt->SetBranchStatus("hiEvtPlanes",1);
+            }
             if (isMC) {
                 treeHiEvt->SetBranchStatus("weight", 1);
-                treeHiEvt->SetBranchStatus("phi0",1);
+                if (isHI) {
+                    treeHiEvt->SetBranchStatus("phi0",1);
+                }
                 treeHiEvt->SetBranchStatus("pthat",1);
                 treeHiEvt->SetBranchStatus("ProcessID",1);
             }
@@ -511,25 +519,29 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             if (inFileType == INFILE_TYPES::kHiForest) {
                 ggHiOut.weight = hiEvt.weight;
-                ggHiOut.hiBin = hiEvt.hiBin;
-                ggHiOut.hiHF = hiEvt.hiHF;
-                ggHiOut.hiEP1HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF1)];
-                ggHiOut.hiEP2HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
-                ggHiOut.hiEP3HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
-                ggHiOut.hiEP4HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF4)];
+                if (isHI) {
+                    ggHiOut.hiBin = hiEvt.hiBin;
+                    ggHiOut.hiHF = hiEvt.hiHF;
+                    ggHiOut.hiEP1HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF1)];
+                    ggHiOut.hiEP2HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF2)];
+                    ggHiOut.hiEP3HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF3)];
+                    ggHiOut.hiEP4HF = hiEvt.hiEvtPlanes[(int)(HiEP::HF4)];
+
+                    ggHiOut.angEP2pf_out.clear();
+                    for (int i = 0; i < (int)(*ggHi.angEP2pf).size(); ++i) {
+                        ggHiOut.angEP2pf_out.push_back( (*ggHi.angEP2pf)[i] );
+                    }
+                    ggHiOut.angEP3pf_out.clear();
+                    for (int i = 0; i < (int)(*ggHi.angEP3pf).size(); ++i) {
+                        ggHiOut.angEP3pf_out.push_back( (*ggHi.angEP3pf)[i] );
+                    }
+                }
                 if (isMC) {
-                    ggHiOut.phi0 = hiEvt.phi0;
+                    if (isHI) {
+                        ggHiOut.phi0 = hiEvt.phi0;
+                    }
                     ggHiOut.pthat = hiEvt.pthat;
                     ggHiOut.processID = hiEvt.ProcessID;
-                }
-
-                ggHiOut.angEP2pf_out.clear();
-                for (int i = 0; i < (int)(*ggHi.angEP2pf).size(); ++i) {
-                    ggHiOut.angEP2pf_out.push_back( (*ggHi.angEP2pf)[i] );
-                }
-                ggHiOut.angEP3pf_out.clear();
-                for (int i = 0; i < (int)(*ggHi.angEP3pf).size(); ++i) {
-                    ggHiOut.angEP3pf_out.push_back( (*ggHi.angEP3pf)[i] );
                 }
 
                 double rho = -1;
@@ -587,6 +599,7 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
             const double angEP2 = ((iEvtPlanePF >= 0) ? ggHiOut.angEP2pf_out[iEvtPlanePF] : ggHiOut.hiEP2HF);
             const double angEP3 = ((iEvtPlanePF >= 0) ? ggHiOut.angEP3pf_out[iEvtPlanePF] : ggHiOut.hiEP3HF);
             if (calcIsoFlow) {
+                //std::cout << "calcIsoFlow here" << std::endl;
                 for (int j = 0; j < nDefnFlowMod; ++j) {
                     h1D_phi[j]->Reset();
                 }
@@ -976,7 +989,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.phoEAhoe = getEffArea((*ggHi.phoSCEta)[i], effAreaHoE[0], effAreaHoE[1], effAreaHoE[2], nEffAreaHoE);
                         ggHiOut.phoEAsieie = getEffArea((*ggHi.phoSCEta)[i], effAreaSieie[0], effAreaSieie[1], effAreaSieie[2], nEffAreaSieie);
 
-                        const std::vector<basicPFCand> phoLinkedPFs = getLinkedPFCands(ggHi, i);
+                        std::vector<basicPFCand> phoLinkedPFs;
+                        if (isHI) {
+                            phoLinkedPFs = getLinkedPFCands(ggHi, i);
+                        }
                         if (phoLinkedPFs.size() > 0) {
                             ggHiOut.resetPhoPF();
 

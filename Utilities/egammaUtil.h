@@ -339,7 +339,8 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
         double dPhi = getDPHI(pfphi, egPhi);
         double dR2 = dEta*dEta + dPhi*dPhi;
         double pfpt = (*pfs.pfPt)[i];
-        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1) {
+        bool pfHasTrkInfo = (pfs.b_trkPt != 0);
+        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1 && pfHasTrkInfo) {
             pfpt = (*pfs.trkPt)[i];
         }
 
@@ -353,11 +354,11 @@ double getPFIso(pfCand& pfs, double egEta, double egPhi, int pfId, double r1, do
 
         if (1 <= pfId && pfId <=3) {
             int trkIDOpt = trkOpt % 10;
-            if (trkIDOpt >= 0) {
+            if (trkIDOpt >= 0 && pfHasTrkInfo) {
                 bool useTrkPt4ID = ((trkOpt / 10) % 10) == 1;
                 if( !passedTrkSelection(pfs, i, trkIDOpt, useTrkPt4ID) ) continue;
             }
-            else if (vtxPos.Z() > -987) {
+            else if (vtxPos.Z() > -987 && pfs.b_pfvz != 0) {
                 float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());
                 if (dz > 0.2) continue;
 
@@ -422,7 +423,8 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
         double dPhi = getDPHI(pfphi, egPhi);
         double dR2 = dEta*dEta + dPhi*dPhi;
         double pfpt = (*pfs.pfPt)[i];
-        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1) {
+        bool pfHasTrkInfo = (pfs.b_trkPt != 0);
+        if (1 <= pfId && pfId <=3 && ((trkOpt / 100) % 10) == 1 && pfHasTrkInfo) {
             pfpt = (*pfs.trkPt)[i];
         }
 
@@ -433,11 +435,11 @@ double getPFIsoSubUE(pfCand& pfs, double egEta, double egPhi, int pfId, double r
 
         if (1 <= pfId && pfId <=3) {
             int trkIDOpt = trkOpt % 10;
-            if (trkIDOpt >= 0) {
+            if (trkIDOpt >= 0 && pfHasTrkInfo) {
                 bool useTrkPt4ID = ((trkOpt / 10) % 10) == 1;
                 if( !passedTrkSelection(pfs, i, trkIDOpt, useTrkPt4ID) ) continue;
             }
-            else if (vtxPos.Z() > -987) {
+            else if (vtxPos.Z() > -987 && pfs.b_pfvz != 0) {
                 float dz = std::abs((*pfs.pfvz)[i] - vtxPos.Z());
                 if (dz > 0.2) continue;
 
