@@ -317,7 +317,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
     bool isMC = collisionIsMC((COLL::TYPE)collisionType);
     bool isHI15 = collisionIsHI((COLL::TYPE)collisionType);
     bool isHI18 = collisionIsHI2018((COLL::TYPE)collisionType);
-    bool isHI = (isHI15 || isHI18);
+    bool isAA22 = collisionIsAA22((COLL::TYPE)collisionType);
+    bool isHI = (isHI15 || isHI18 || isAA22);
     bool isPP = collisionIsPP((COLL::TYPE)collisionType);
 
     bool doTMVA = (nTmvaXMLFiles != 0 && nTmvaMethods);
@@ -424,9 +425,10 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
             }
         }
         bool readEle = false;
-        if (runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchEle || runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle
-                                                                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton
-                                                                 || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
+        if (recoObj == RECOOBJS::kElectron || runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchEle
+                                           || runMode[MODES::kSpectra] == MODES_SPECTRA::kMatchProbeEle
+                                           || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiPhoton
+                                           || runMode[MODES::kSpectra] == MODES_SPECTRA::kDiEleMatched2Pho) {
             readEle = true;
             treeggHiNtuplizer->SetBranchStatus("nEle",1);     // enable electron branches
             treeggHiNtuplizer->SetBranchStatus("ele*",1);     // enable electron branches
@@ -459,6 +461,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
         skimAnalysis skimAna;
         if (isHI15) skimAna.enableBranchesHI(treeSkim);
         else if (isHI18) skimAna.enableBranchesHI2018(treeSkim);
+        else if (isAA22) skimAna.enableBranchesAA22(treeSkim);
         else if (isPP) skimAna.enableBranchesPP(treeSkim);
         skimAna.setupTreeForReading(treeSkim);
         skimAna.checkBranches(treeSkim);    // do the event selection if the branches exist.
@@ -500,6 +503,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
 
             if (isHI15 && !skimAna.passedEventSelectionHI())  continue;
             else if (isHI18 && !skimAna.passedEventSelectionHI2018())  continue;
+            else if (isAA22 && !skimAna.passedEventSelectionAA22())  continue;
             else if (isPP && !skimAna.passedEventSelectionPP())  continue;
 
             entriesAnalyzed++;
@@ -977,6 +981,142 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                         }
                     }
                 }
+            }
+            else if (recoObj == RECOOBJS::kElectron) {
+
+                // correct pT if corrections exist
+                if (runMode[MODES::kSpectra]) {
+                    for (int iAna = 0;  iAna < nSpectraAna; ++iAna) {
+
+                        int iMax = -1;
+                        double maxPt = 0;
+                        std::vector<int> candidates;
+
+                        // variables for dielectron spectrum
+                        int iEle1 = -1;
+                        int iEle2 = -1;
+
+                        double elePt_min = 20;
+
+                        double diEleMassMin = 60;
+                        double diEleMassMax = 120;
+
+                        double minMassDiff = 999;
+
+                        for (int i = 0; i < ggHi.nEle; ++i) {
+
+                            if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(i))  continue;
+
+                            if (!ggHi.passedEleSelection(i, collisionType, hiBin))  continue;
+
+                            if (runMode[MODES::kSpectra] == MODES_SPECTRA::kAll) {
+                                candidates.push_back(i);
+                            }
+                            else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
+
+                                double eta = (*ggHi.eleEta)[i];
+                                double pt  = ptFinalEle[i];
+
+                                std::vector<double> vars = {eta, pt, (double)cent, -999, -1, -1};
+
+                                if (!sAna[SPECTRAANA::kRECOPT][iAna].insideRange(vars)) continue;
+
+                                if (pt > maxPt) {
+                                    iMax = i;
+                                    maxPt = pt;
+                                }
+                            }
+                            else if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiElectron) {
+
+                                if (!(ptFinalEle[i] > elePt_min)) continue;
+
+                                for (int j = i+1; j < ggHi.nEle; ++j) {
+
+                                    if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureEle(j))  continue;
+
+                                    if (!(ptFinalEle[j] > elePt_min)) continue;
+
+                                    if (!ggHi.passedEleSelection(j, collisionType, hiBin))  continue;
+
+                                    // dielectron
+                                    TLorentzVector v1, v2, vSum;
+                                    v1.SetPtEtaPhiM( ptFinalEle[i], (*ggHi.eleEta)[i], (*ggHi.elePhi)[i], mass_ele);
+                                    v2.SetPtEtaPhiM( ptFinalEle[j], (*ggHi.eleEta)[j], (*ggHi.elePhi)[j], mass_ele);
+                                    vSum = v1+v2;
+
+                                    if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
+
+                                    if (TMath::Abs(vSum.M() - mass_Z) < minMassDiff) {
+                                        minMassDiff = TMath::Abs(vSum.M() - mass_Z);
+                                        iEle1 = i;
+                                        iEle2 = j;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (runMode[MODES::kSpectra] == MODES_SPECTRA::kDiElectron) {
+                            if(iEle1 == -1 || iEle2 == -1) continue;
+
+                            bool rangesPassed = true;
+                            std::vector<double> vars = {(*ggHi.eleEta)[iEle1], ptFinalEle[iEle1], (double)cent, -999, -1, -1};
+                            if (! sAna[SPECTRAANA::kMASS][iAna].insideRange(vars)) {
+                                rangesPassed = false;
+                            }
+
+                            vars = {(*ggHi.eleEta)[iEle2], ptFinalEle[iEle2], (double)cent, -999, -1, -1};
+                            if (! sAna[SPECTRAANA::kMASS][iAna].insideRange(vars)) {
+                                rangesPassed = false;
+                            }
+
+                            if (rangesPassed) {
+                                TLorentzVector v1, v2, vSum;
+                                v1.SetPtEtaPhiM( ptFinalEle[iEle1], (*ggHi.eleEta)[iEle1], (*ggHi.elePhi)[iEle1], mass_ele);
+                                v2.SetPtEtaPhiM( ptFinalEle[iEle2], (*ggHi.eleEta)[iEle2], (*ggHi.elePhi)[iEle2], mass_ele);
+                                vSum = v1+v2;
+
+                                std::vector<double> varsTmp = {-999, -1, -1, -999, -1, -1};
+                                sAna[SPECTRAANA::kMASS][iAna].FillH(vSum.M(), w, varsTmp);
+
+                                if (!(vSum.M() > diEleMassMin && vSum.M() < diEleMassMax))  continue;
+
+                                sAna[SPECTRAANA::kETA][iAna].FillH(vSum.Eta(), w, vars);
+                                sAna[SPECTRAANA::kRECOPT][iAna].FillH(vSum.Pt(), w, vars);
+                                sAna[SPECTRAANA::kCENT][iAna].FillH(cent, w, vars);
+                            }
+                        }
+                        else {
+                            if (runMode[MODES::kSpectra] == MODES_SPECTRA::kLeading) {
+                                candidates.clear();
+
+                                // leading object goes into histograms
+                                if(iMax == -1) continue;
+                                // the only candidate is the leading particle
+                                candidates.push_back(iMax);
+                            }
+
+                            int nCandidates = candidates.size();
+                            for (int i = 0; i < nCandidates; ++i) {
+                                int iEle = candidates[i];
+
+                                double eta = (*ggHi.eleEta)[iEle];
+                                double pt  = ptFinalEle[iEle];
+                                double hOverE = (*ggHi.eleHoverE)[iEle];
+                                double sieie = (*ggHi.eleSigmaIEtaIEta_2012)[iEle];
+                                double r9 = (*ggHi.eleR9)[iEle];
+                                std::vector<double> vars = {eta, pt, (double)cent, -999, sieie, r9};
+
+                                sAna[SPECTRAANA::kETA][iAna].FillH(eta, w, vars);
+                                sAna[SPECTRAANA::kRECOPT][iAna].FillH(pt, w, vars);
+                                sAna[SPECTRAANA::kCENT][iAna].FillH(cent, w, vars);
+                                sAna[SPECTRAANA::kHOVERE][iAna].FillH(hOverE, w, vars);
+                                sAna[SPECTRAANA::kSIEIE][iAna].FillH(sieie, w, vars);
+                                sAna[SPECTRAANA::kR9][iAna].FillH(r9, w, vars);
+                            }
+                        }
+                    }
+                }
+
             }
         }
         fileTmp->Close();
