@@ -277,6 +277,28 @@ bool spectraAnalyzer::insideRange(std::vector<double> vars)
         }}}}}}
         return false;
     }
+    else if (recoObj == SPECTRAANA::OBJS::kELECTRON) {
+
+        double sieie = vars[SPECTRAANA::rSIEIE];
+        double r9 = vars[SPECTRAANA::rR9];
+
+        if (sieie == -1)  sieie = ranges[SPECTRAANA::rSIEIE][0];
+        if (r9 == -1)  r9 = ranges[SPECTRAANA::rR9][0];
+
+        if(ranges[SPECTRAANA::rETA][0] <= TMath::Abs(eta) &&
+           (ranges[SPECTRAANA::rETA][1] <= -1 || TMath::Abs(eta) < ranges[SPECTRAANA::rETA][1])) {
+        if(ranges[SPECTRAANA::rRECOPT][0] <= recoPt &&
+           (ranges[SPECTRAANA::rRECOPT][1] <= -1 || recoPt < ranges[SPECTRAANA::rRECOPT][1])) {
+        if(ranges[SPECTRAANA::rCENT][0] <= cent &&
+           (ranges[SPECTRAANA::rCENT][1] <= -1 || cent < ranges[SPECTRAANA::rCENT][1])) {
+        if(ranges[SPECTRAANA::rSIEIE][0] <= sieie &&
+           (ranges[SPECTRAANA::rSIEIE][1] <= -1 || sieie < ranges[SPECTRAANA::rSIEIE][1])) {
+        if(ranges[SPECTRAANA::rR9][0] <= r9 &&
+           (ranges[SPECTRAANA::rR9][1] <= -1 || r9 < ranges[SPECTRAANA::rR9][1])) {
+                return true;
+        }}}}}
+        return false;
+    }
     else
         return false;
 }
