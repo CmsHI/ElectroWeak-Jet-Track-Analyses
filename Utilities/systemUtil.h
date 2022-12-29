@@ -27,6 +27,7 @@ std::string toLowerCase(std::string str);
 std::string toUpperCase(std::string str);
 std::string wildCard2Regex(std::string str);
 std::vector<std::string> split(std::string str, std::string delimiter, bool includeEmptySubStr = true, bool emptyVecIfNoDelimiter = true);
+std::vector<double> parseListNum(std::string strList, std::string delimiter = ",");
 bool hasSubstr(const std::string & str, const std::string & substr);
 bool startsWith(std::string str, std::string substr);
 bool endsWith(std::string str, std::string substr);
@@ -282,6 +283,20 @@ std::vector<std::string> split(std::string str, std::string delimiter, bool incl
 
      return v;
 }
+
+std::vector<double> parseListNum(std::string strList, std::string delimiter)
+{
+    std::vector<std::string> vecStr = split(strList, delimiter, false, false);
+
+    std::vector<double> v;
+    for (std::vector<std::string>::const_iterator it = vecStr.begin(); it != vecStr.end(); ++it) {
+
+        v.push_back(std::atof((*it).c_str()));
+    }
+
+    return v;
+}
+
 
 bool hasSubstr(const std::string & str, const std::string & substr)
 {
