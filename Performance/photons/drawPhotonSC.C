@@ -41,7 +41,12 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
 
     TH1::SetDefaultSumw2();
 
-    TH2D* h2D = new TH2D(Form("h2D_photonSC_entry%lld_phoIdx%d", entry, phoIdx), ";ieta;iphi", nBinsX, 0, nBinsX, nBinsY, 0, nBinsY);
+    int binMinX = -1*(nBinsX/2);
+    int binMaxX = (nBinsX % 2 == 0) ? (nBinsX/2) : nBinsX/2 + 1;
+    int binMinY = -1*(nBinsY/2);
+    int binMaxY = (nBinsY % 2 == 0) ? (nBinsY/2) : nBinsY/2 + 1;
+    TH2D* h2D = new TH2D(Form("h2D_photonSC_entry%lld_phoIdx%d", entry, phoIdx), ";N^{#eta};N^{#phi}", nBinsX, binMinX, binMaxX, nBinsY, binMinY, binMaxY);
+    TH2D* h2D_rot90 = new TH2D(Form("h2D_rot90_photonSC_entry%lld_phoIdx%d", entry, phoIdx), ";N^{#phi};N^{#eta}", nBinsY, binMinY, binMaxY, nBinsX, binMinX, binMaxX);
 
     int **bcIndices;
     bcIndices = new int *[nBinsX];
@@ -49,6 +54,15 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
         bcIndices[ix] = new int[nBinsY];
         for (int iy = 0; iy < nBinsY; ++iy) {
             bcIndices[ix][iy] = -1;
+        }
+    }
+
+    int **bcIndices_rot90;
+    bcIndices_rot90 = new int *[nBinsY];
+    for(int iy = 0; iy < nBinsY; iy++) {
+        bcIndices_rot90[iy] = new int[nBinsX];
+        for (int ix = 0; ix < nBinsX; ++ix) {
+            bcIndices_rot90[iy][ix] = -1;
         }
     }
 
@@ -69,7 +83,28 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
     hfic.printHiForestInfo();
     std::cout<<"###"<< std::endl;
 
-    TTree* treeggHiNtuplizer = (TTree*)input->Get(treePath.c_str());
+    TTree* treeggHiNtuplizer = 0;
+    TTree* tRechitsEB = 0;
+    TTree* tRechitsEE = 0;
+    std::string treePathRecHitsEB = "rechitanalyzer/eb";
+    std::string treePathRecHitsEE = "rechitanalyzer/ee";
+
+    treeggHiNtuplizer = (TTree*)input->Get(treePath.c_str());
+
+    bool doRecHitTree = true;
+
+    if (doRecHitTree) {
+        tRechitsEB = (TTree*)input->Get(treePathRecHitsEB.c_str());
+        tRechitsEE = (TTree*)input->Get(treePathRecHitsEE.c_str());
+
+        if (tRechitsEB == 0) {
+            std::cout << "TTree is not found, skipping " << treePathRecHitsEB.c_str() << std::endl;
+        }
+        if (tRechitsEE == 0) {
+            std::cout << "TTree is not found, skipping " << treePathRecHitsEE.c_str() << std::endl;
+        }
+    }
+
     Long64_t entries = treeggHiNtuplizer->GetEntries();
     std::cout << "entries = " << entries << std::endl;
 
@@ -117,11 +152,29 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
     treeggHiNtuplizer->SetBranchAddress("rhPhoIdx", &rhPhoIdx);
     treeggHiNtuplizer->SetBranchAddress("rhBCIdx", &rhBCIdx);
 
+    // rechit tree
+    int nHits;
+    float hitE[500000];
+    float hitEt[500000];
+    int hitIeta[500000];
+    int hitIphi[500000];
+    if (doRecHitTree && tRechitsEB != 0) {
+        if (tRechitsEB->GetBranch("n")) tRechitsEB->SetBranchAddress("n", &nHits);
+        if (tRechitsEB->GetBranch("e")) tRechitsEB->SetBranchAddress("e", hitE);
+        if (tRechitsEB->GetBranch("et")) tRechitsEB->SetBranchAddress("et", hitEt);
+        if (tRechitsEB->GetBranch("ieta")) tRechitsEB->SetBranchAddress("ieta", hitIeta);
+        if (tRechitsEB->GetBranch("iphi")) tRechitsEB->SetBranchAddress("iphi", hitIphi);
+    }
+
     std::cout<<  "drawing : " << treePath.c_str() <<std::endl;
     std::cout << "entry  = " << entry << std::endl;
     std::cout << "phoIdx = " << phoIdx << std::endl;
 
     treeggHiNtuplizer->GetEntry(entry);
+    if (doRecHitTree && tRechitsEB != 0) {
+        tRechitsEB->GetEntry(entry);
+    }
+
     int seedHit = -1;
     double maxHitEnergy = -1;
     std::cout<<  "nRH = " << nRH <<std::endl;
@@ -136,15 +189,14 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
         }
     }
 
+    int centerBinX = (nBinsX % 2 == 0) ? nBinsX/2 : nBinsX/2 + 1;
+    int centerBinY = (nBinsY % 2 == 0) ? nBinsY/2 : nBinsY/2 + 1;
     double sumRhE = 0;
     for (int iHit = 0; iHit < nRH; ++iHit) {
 
         if ((*rhPhoIdx)[iHit] != phoIdx) continue;
 
         sumRhE += (*rhE)[iHit];
-
-        int centerBinX = (nBinsX % 2 == 0) ? nBinsX/2 : nBinsX/2 + 1;
-        int centerBinY = (nBinsY % 2 == 0) ? nBinsY/2 : nBinsY/2 + 1;
 
         // put the first hit at the center of the histogram
         int iBinX = centerBinX + (*rhieta)[iHit] - (*rhieta)[seedHit];
@@ -158,10 +210,36 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
             continue;
         }
 
-        h2D->SetBinContent(iBinX, iBinY, (*rhE)[iHit]);
-        h2D->SetBinError(iBinX, iBinY, 1);
+        if ((*rhE)[iHit] > 0.02) {
+            h2D->SetBinContent(iBinX, iBinY, (*rhE)[iHit]);
+            h2D->SetBinError(iBinX, iBinY, 1);
+            h2D_rot90->SetBinContent(iBinY, iBinX, (*rhE)[iHit]);
+            h2D_rot90->SetBinError(iBinY, iBinX, 1);
 
-        bcIndices[iBinX-1][iBinY-1] = (*rhBCIdx)[iHit];
+            bcIndices[iBinX-1][iBinY-1] = (*rhBCIdx)[iHit];
+            bcIndices_rot90[iBinY-1][iBinX-1] = (*rhBCIdx)[iHit];
+        }
+    }
+    if (doRecHitTree && tRechitsEB != 0) {
+        // fill the remaining rechits
+        for (int iHit = 0; iHit < nHits; ++iHit) {
+
+            int iBinX = centerBinX + hitIeta[iHit] - (*rhieta)[seedHit];
+            int iBinY = centerBinY + hitIphi[iHit] - (*rhiphi)[seedHit];
+
+            if (iBinX < 1 || iBinX > nBinsX || iBinY < 1 || iBinY > nBinsY) {
+                continue;
+            }
+
+            // do not set the bin if it was set already by the rechits in photon SC
+            double binContent = h2D->GetBinContent(iBinX, iBinY);
+            if (binContent < 0.0001 || true) {
+                h2D->SetBinContent(iBinX, iBinY, hitE[iHit]);
+                h2D->SetBinError(iBinX, iBinY, 1);
+                h2D_rot90->SetBinContent(iBinY, iBinX, hitE[iHit]);
+                h2D_rot90->SetBinError(iBinY, iBinX, 1);
+            }
+        }
     }
     // check rechit energies vs. SC raw energy
     std::cout << "SC raw energy - sum(rechit E) = " << (*ggHi.phoSCRawE)[phoIdx] - sumRhE << std::endl;
@@ -174,9 +252,14 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
 
     setTH2D(h2D);
     h2D->Write("",TObject::kOverwrite);
+    setTH2D(h2D_rot90);
+    h2D_rot90->SetTitleOffset(1.01, "Y");
+    h2D_rot90->Write("",TObject::kOverwrite);
 
     TH2D* h2Dtext = (TH2D*)h2D->Clone(Form("%s_text", h2D->GetName()));
     setBinsToPrecision(h2Dtext, 2);
+    TH2D* h2Dtext_rot90 = (TH2D*)h2D_rot90->Clone(Form("%s_text", h2D_rot90->GetName()));
+    setBinsToPrecision(h2Dtext_rot90, 2);
 
     std::cout<<"writing canvases."<<std::endl;
     TCanvas* c = 0;
@@ -186,46 +269,137 @@ void drawPhotonSC(std::string inputFile, Long64_t entry, int phoIdx, std::string
     float topMargin = 0.1;
     TLatex* latex = 0;
 
-    std::vector<std::string> textLines = {
-            Form("p^{#gamma}_{T} = %.1f", (*ggHi.phoEt)[phoIdx]),
-            Form("SC E = %.1f", (*ggHi.phoE)[phoIdx]),
-            Form("SC Raw E = %.2f", (*ggHi.phoSCRawE)[phoIdx]),
+    std::vector<std::string> textLines1 = {
+            //Form("p^{#gamma}_{T} = %.1f", (*ggHi.phoEt)[phoIdx]),
+            //Form("E^{SC} = %.1f", (*ggHi.phoE)[phoIdx]),
+            Form("E^{SC}_{raw} = %.2f", (*ggHi.phoSCRawE)[phoIdx]),
             Form("#eta^{SC} = %.2f", (*ggHi.phoSCEta)[phoIdx]),
             Form("#phi^{SC} = %.2f", (*ggHi.phoSCPhi)[phoIdx])
     };
+    std::string textLineAll = Form("E^{SC}_{raw} = %.2f GeV, #eta^{SC} = %.2f, #phi^{SC} = %.2f", (*ggHi.phoSCRawE)[phoIdx],
+                                                                                              (*ggHi.phoSCEta)[phoIdx],
+                                                                                              (*ggHi.phoSCPhi)[phoIdx]);
 
-    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d", entry, phoIdx), "", 800, 800);
+    int textLineColorLatex = 2;
+    if (textLineColorLatex > -1) {
+        for (int i = 0; i < (int)(textLines1.size()); ++i) {
+            textLines1[i] = "#color["+std::to_string(textLineColorLatex)+"]{"+textLines1[i]+"}";
+        }
+        textLineAll = "#color["+std::to_string(textLineColorLatex)+"]{"+textLineAll+"}";
+    }
+
+    std::string nameTmp;
+
+    double heightFactor = 1; // nBinsY / nBinsX;
+    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d", entry, phoIdx), "", 800, 800*heightFactor);
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     h2D->Draw("colz");
     drawBasicClusterBorders(h2D, bcIndices, nBinsX, nBinsY);
     latex = new TLatex();
     setLatex(latex, "NE");
-    drawTextLines(latex, c, textLines, "NE", 0.04, 0.08);
+    drawTextLines(latex, c, textLines1, "NE", 0.04, 0.08);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
     c->Close();
 
-    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d_textE", entry, phoIdx), "", 800, 800);
+    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d_textE", entry, phoIdx), "", 800, 800*heightFactor);
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
     h2D->Draw("colz");
     h2Dtext->SetMarkerSize(1.25);
     h2Dtext->Draw("text same");
     drawBasicClusterBorders(h2D, bcIndices, nBinsX, nBinsY);
-    latex = new TLatex();
-    setLatex(latex, "NE");
-    drawTextLines(latex, c, textLines, "NE", 0.04, 0.08);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
+
+    nameTmp = c->GetName();
+    c->SetName(replaceAll(nameTmp.c_str(), "photonSC_", "photonSC_textLine1_").c_str());
+    latex = new TLatex();
+    //setLatex(latex, "NE");
+    //drawTextLines(latex, c, textLines1, "NE", 0.02, 0.04);
+    setLatex(latex, "NW");
+    drawTextLines(latex, c, std::vector<std::string> {textLineAll}, "NW", 0.0, -0.02);
+    c->Write("",TObject::kOverwrite);
+    latex->Delete();
+
     c->Close();
 
-    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d_lego2z", entry, phoIdx), "", 800, 800);
+    c = new TCanvas(Form("cnv_eta_vs_phi_photonSC_entry%lld_phoIdx%d_textE", entry, phoIdx), "", 800*heightFactor, 800);
     setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
-    h2D->Draw("lego2z");
-    latex = new TLatex();
-    setLatex(latex, "NW");
-    drawTextLines(latex, c, textLines, "NW", 0.04, 0.04);
+    h2D_rot90->Draw("colz");
+    h2Dtext_rot90->SetMarkerSize(1.25);
+    h2Dtext_rot90->Draw("text same");
+    drawBasicClusterBorders(h2D_rot90, bcIndices_rot90, nBinsY, nBinsX);
     setCanvasFinal(c);
     c->Write("",TObject::kOverwrite);
+
+    nameTmp = c->GetName();
+    c->SetName(replaceAll(nameTmp.c_str(), "photonSC_", "photonSC_textLine1_").c_str());
+    latex = new TLatex();
+    setLatex(latex, "NW");
+    drawTextLines(latex, c, std::vector<std::string> {textLineAll}, "NW", 0.0, -0.02);
+    c->Write("",TObject::kOverwrite);
+    latex->Delete();
+
+    c->Close();
+
+    //double heightFactorRot90 = nBinsY / nBinsX; // ;
+    double leftMarginRot90 = 0.10;
+    double rightMarginRot90 = 0.25;
+    double heightFactorRot90 = nBinsY / nBinsX * (1 - bottomMargin - topMargin) + (leftMarginRot90 + rightMarginRot90); // ;
+    //h2D_rot90->SetTitleOffset(1 + 0.25 / heightFactorRot90, "X");
+    h2D_rot90->SetTitleOffset(1.01, "Y");
+    h2Dtext_rot90->SetTitleOffset(1.01, "Y");
+    c = new TCanvas(Form("cnv_rot90_photonSC_entry%lld_phoIdx%d_textE", entry, phoIdx), "", 800*heightFactorRot90, 800);
+    setCanvasMargin(c, leftMarginRot90 / heightFactorRot90, rightMarginRot90 / heightFactorRot90, bottomMargin, topMargin);
+    h2D_rot90->Draw("colz");
+    h2Dtext_rot90->SetMarkerSize(1.25);
+    h2Dtext_rot90->Draw("text same");
+    drawBasicClusterBorders(h2D_rot90, bcIndices_rot90, nBinsY, nBinsX);
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+
+    nameTmp = c->GetName();
+    c->SetName(replaceAll(nameTmp.c_str(), "photonSC_", "photonSC_textLine1_").c_str());
+    latex = new TLatex();
+//    setLatex(latex, "NE");
+//    drawTextLines(latex, c, textLines1, "NE", 0.04, 0.08);
+    setLatex(latex, "NW");
+    drawTextLines(latex, c, std::vector<std::string> {textLineAll}, "NW", 0.0, -0.02);
+    c->Write("",TObject::kOverwrite);
+    latex->Delete();
+
+    c->Close();
+
+    c = new TCanvas(Form("cnv_photonSC_entry%lld_phoIdx%d_lego2z", entry, phoIdx), "", 800, 800*heightFactor);
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h2D->Draw("lego2z");
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    nameTmp = c->GetName();
+
+    c->SetName(replaceAll(nameTmp.c_str(), "photonSC_", "photonSC_textLine1_").c_str());
+    latex = new TLatex();
+    setLatex(latex, "NW");
+    drawTextLines(latex, c, textLines1, "NW", 0.04, 0.04);
+    c->Write("",TObject::kOverwrite);
+    latex->Delete();
+
+    c->Close();
+
+    c = new TCanvas(Form("cnv_eta_vs_phi_photonSC_entry%lld_phoIdx%d_lego2z", entry, phoIdx), "", 800, 800*heightFactor);
+    setCanvasMargin(c, leftMargin, rightMargin, bottomMargin, topMargin);
+    h2D_rot90->Draw("lego2z");
+    setCanvasFinal(c);
+    c->Write("",TObject::kOverwrite);
+    nameTmp = c->GetName();
+
+    c->SetName(replaceAll(nameTmp.c_str(), "photonSC_", "photonSC_textLine1_").c_str());
+    latex = new TLatex();
+    setLatex(latex, "NW");
+    drawTextLines(latex, c, textLines1, "NW", 0.04, 0.04);
+    c->Write("",TObject::kOverwrite);
+    latex->Delete();
+
     c->Close();
 
     std::cout<<"Closing the output file."<<std::endl;
@@ -296,8 +470,14 @@ void setBinsToPrecision(TH2D* h2D, int precision)
 
 void setTH2D(TH2D* h)
 {
-    h->SetTitleOffset(1.25, "X");
-    h->SetTitleOffset(1.25,  "Y");
+    h->SetTitleOffset(1.10, "X");
+    h->SetTitleOffset(1.10,  "Y");
+
+    h->SetTitleSize(0.044, "X");
+    h->SetTitleSize(0.044, "Y");
+
+    h->SetLabelSize(0.040, "X");
+    h->SetLabelSize(0.040, "Y");
 
     h->SetTitle("");
     h->SetStats(false);
@@ -310,7 +490,7 @@ void setLatex(TLatex* latex, std::string position)
 {
     setTextAlignment(latex, position.c_str());
     latex->SetTextFont(43);
-    latex->SetTextSize(32);
+    latex->SetTextSize(36);
 }
 
 int main(int argc, char** argv)
