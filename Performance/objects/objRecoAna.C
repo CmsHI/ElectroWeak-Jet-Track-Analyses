@@ -179,11 +179,19 @@ std::vector<int>   bins_cent[2];       // array of vectors for centrality bins, 
 // list of other cuts
 std::vector<float>   bins_sumIso[2];
 std::vector<float>   bins_sieie[2];
+std::vector<float>   bins_scRawE[2];
+std::vector<float>   bins_scEta[2];
 std::vector<float>   bins_r9[2];
+std::vector<float>   bins_scEtaW[2];
+std::vector<float>   bins_scPhiW[2];
 
 // event cuts/weights
 int doEventWeight;
 std::vector<std::vector<float>> pthatWeights;
+
+int eventPartition;
+// eventPartition =  3 --> then process every 3rd event, skip the rest --> process 1/3 of the sample
+// eventPartition = -3 --> then skip every 3rd event --> process 2/3 of the sample
 
 // RECO object cuts
 float cut_hovere;
@@ -193,6 +201,7 @@ bool excludeHI18HEMfailure;
 float cut_mcCalIsoDR04;
 float cut_mcTrkIsoDR04;
 float cut_mcSumIso;
+bool selMcMomPID;
 
 int nPthatWeights;
 
@@ -202,7 +211,11 @@ int nBins_recoPt;
 int nBins_cent;
 int nBins_sumIso;
 int nBins_sieie;
+int nBins_scRawE;
+int nBins_scEta;
 int nBins_r9;
+int nBins_scEtaW;
+int nBins_scPhiW;
 /// configuration variables - END
 enum INFILE_TYPES {
     kHiForest,
@@ -270,7 +283,11 @@ enum ANABINS {
     kCent,
     kSumIso,
     kSieie,
+    kSCRawE,
+    kSCEta,
     kR9,
+    kSCEtaW,
+    kSCPhiW,
     kN_ANABINS
 };
 int nRecoAna;
@@ -466,10 +483,6 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
         // input type is flatTree
         ggHiFlat ggFlat;
-        float hiBin_F;
-        float mcPID_F;
-        float pho_genMatchedIndex_F;
-
         if (inFileType == INFILE_TYPES::kHiForest) {
 
             // specify explicitly which branches to use, do not use wildcard
@@ -521,10 +534,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
              * fix the reading of variables that are stored as float instead of int
              * Error in <TTree::SetBranchAddress>: The pointer type given "Int_t" (3) does not correspond to the type needed "Float_t" (5) by the branch: hiBin
              */
-            std::cout << "Now reading hiBin, mcPID, pho_genMatchedIndex to separate variables of float type" << std::endl;
-            if (treeIn->GetBranch("hiBin")) treeIn->SetBranchAddress("hiBin", &hiBin_F);
-            if (treeIn->GetBranch("mcPID")) treeIn->SetBranchAddress("mcPID", &mcPID_F);
-            if (treeIn->GetBranch("pho_genMatchedIndex")) treeIn->SetBranchAddress("pho_genMatchedIndex", &pho_genMatchedIndex_F);
+            //std::cout << "Now reading hiBin, mcPID, pho_genMatchedIndex to separate variables of float type" << std::endl;
         }
 
         Long64_t entriesTmp = treeIn->GetEntries();
@@ -532,8 +542,17 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
-            if (j_entry % 2000 == 0)  {
+            bool verbose = (j_entry % 2000 == 0);
+            if (verbose)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
+            }
+
+            int absEvtPart = std::abs(eventPartition);
+            if (absEvtPart > 0 && (j_entry % absEvtPart != 0)) {
+                continue;
+            }
+            else if (absEvtPart < 0 && (j_entry % absEvtPart == 0)) {
+                continue;
             }
 
             treeIn->GetEntry(j_entry);
@@ -590,17 +609,23 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 }
             }
             else if (inFileType == INFILE_TYPES::kFlatTreeTMVA) {
-                hiBin = (int)hiBin_F;
+                hiBin = ggFlat.hiBin;
                 w = ggFlat.weight;
                 w *= (ggFlat.weightPthat > 0) ? ggFlat.weightPthat : 1;
                 w *= (ggFlat.weightGenKin > 0) ? ggFlat.weightGenKin : 1;
 
-                if (isHI && isMC)  centWeight = (hiBin >= 0) ? findNcoll(hiBin) : 1;
+                centWeight = (isHI && isMC && hiBin >= 0) ? findNcoll(hiBin) : 1;
                 //if (isHI && isMC)  centWeight = hiEvt.Ncoll;
                 w *= centWeight;
 
-                //std::cout << "hiBin = " << hiBin << std::endl;
-                //std::cout << "w = " << w << std::endl;
+                if (verbose && false)  {
+                    std::cout << "hiBin = " << hiBin << std::endl;
+                    std::cout << "ggFlat.weight = " << ggFlat.weight << std::endl;
+                    std::cout << "ggFlat.weightPthat = " << ggFlat.weightPthat << std::endl;
+                    std::cout << "ggFlat.weightGenKin = " << ggFlat.weightGenKin << std::endl;
+                    std::cout << "centWeight = " << centWeight << std::endl;
+                    std::cout << "w = " << w << std::endl;
+                }
             }
             int cent = hiBin/2;
 
@@ -708,6 +733,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                             (*ggHi.mcTrkIsoDR04)[genMatchedIndex]) < cut_mcSumIso))   continue;
                                 }
                             }
+                            if (selMcMomPID && !( TMath::Abs((*ggHi.mcMomPID)[genMatchedIndex]) <= 22 || (*ggHi.mcMomPID)[genMatchedIndex] == -999 )) {
+                                continue;
+                            }
 
                             // selections on RECO particle
                             if (!ggHi.passedPhoSpikeRejection(i)) continue;
@@ -724,7 +752,11 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                     (*ggHi.pho_hcalRechitIsoR4)[i]  +
                                     (*ggHi.pho_trackIsoR4PtCut20)[i]);
                             double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                            double r9 = (*ggHi.phoR9)[i];
+                            double scRawE = (*ggHi.phoSCRawE)[i];
+                            double scEta = (*ggHi.phoSCEta)[i];
+                            double r9 = (*ggHi.phoR9_2012)[i];
+                            double scEtaW = (*ggHi.phoSCEtaWidth)[i];
+                            double scPhiW = (*ggHi.phoSCPhiWidth)[i];
                             double energyScale = -1;
 
                             if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
@@ -741,7 +773,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 energyScale = genE/(*ggHi.phoSCRawE)[i];
                             }
 
-                            std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
+                            std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie,
+                                                        scRawE, scEta, r9, scEtaW, scPhiW};
                             for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                                 rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
@@ -759,9 +792,17 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         // selections on GEN particle
                         // assuming if the reco photon in the flat tree is matched to a gen-level particles, then the particle is photon, so no check on mcPID
-                        int genMatchedIndex = (int)pho_genMatchedIndex_F;
-                        //std::cout << "genMatchedIndex = " << genMatchedIndex << std::endl;
+                        int genMatchedIndex = (int)ggFlat.pho_genMatchedIndex;
+                        if (verbose && false) {
+                            std::cout << "genMatchedIndex = " << genMatchedIndex << std::endl;
+                        }
                         if (genMatchedIndex < 0)   continue;    // is matched
+
+                        int genMatchedPID = 22;
+                        if (runMode[MODES::kEnergyScale] == kRecoPtGenPtele || runMode[MODES::kEnergyScale] == kSCRawEGenEele) {
+                            genMatchedPID = 11;
+                        }
+                        if (TMath::Abs(ggFlat.mcPID) != genMatchedPID)  continue;
 
                         double genPt = ggFlat.mcPt;
                         double genE = ggFlat.mcE;
@@ -793,6 +834,9 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                         (ggFlat.mcTrkIsoDR04)) < cut_mcSumIso))   continue;
                             }
                         }
+                        if (selMcMomPID && !( TMath::Abs(ggFlat.mcMomPID) <= 22 || ggFlat.mcMomPID == -999 )) {
+                            continue;
+                        }
 
                         // selections on RECO particle
                         // assuming that events in the flat tree are already spike rejection applied
@@ -809,7 +853,11 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 ggFlat.pho_hcalRechitIsoR4  +
                                 ggFlat.pho_trackIsoR4PtCut20);
                         double sieie = ggFlat.phoSigmaIEtaIEta_2012;
-                        double r9 = ggFlat.phoR9;
+                        double scRawE = ggFlat.phoSCRawE;
+                        double scEta = ggFlat.phoSCEta;
+                        double r9 = ggFlat.phoR9_2012;
+                        double scEtaW = ggFlat.phoSCEtaWidth;
+                        double scPhiW = ggFlat.phoSCPhiWidth;
                         double energyScale = -1;
 
                         if (runMode[MODES::kEnergyScale] == kRecoPtGenPt ||
@@ -826,7 +874,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                             energyScale = genE/(ggFlat.phoSCRawE);
                         }
 
-                        std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
+                        std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie,
+                                                    scRawE, scEta, r9, scEtaW, scPhiW};
                         for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                             rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
@@ -860,15 +909,19 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 (*ggHi.pho_hcalRechitIsoR4)[i]  +
                                 (*ggHi.pho_trackIsoR4PtCut20)[i]);
                         double sieie = (*ggHi.phoSigmaIEtaIEta_2012)[i];
-                        double r9 = (*ggHi.phoR9)[i];
+                        double scRawE = (*ggHi.phoSCRawE)[i];
+                        double scEta = (*ggHi.phoSCEta)[i];
+                        double r9 = (*ggHi.phoR9_2012)[i];
+                        double scEtaW = (*ggHi.phoSCEtaWidth)[i];
+                        double scPhiW = (*ggHi.phoSCPhiWidth)[i];
                         double phoE = (*ggHi.phoE)[i];
                         double phoSCE = (*ggHi.phoSCE)[i];
-                        double phoSCRawE = (*ggHi.phoSCRawE)[i];
 
                         double corrE = phoE / phoSCE;
-                        double corrSCE = phoSCE / phoSCRawE;
+                        double corrSCE = phoSCE / scRawE;
 
-                        std::vector<double> vars = {eta, -1, pt, (double)cent, sumIso, sieie, r9};
+                        std::vector<double> vars = {eta, -1, pt, (double)cent, sumIso, sieie,
+                                                    scRawE, scEta, r9, scEtaW, scPhiW};
                         for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                             rAna[RECOANA::kETA][iAna].FillH2DCorr(corrE, eta, RECOANA::k_corrE, w, vars);
@@ -935,6 +988,10 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                 if (!(((*ggHi.mcCalIsoDR04)[i] +
                                         (*ggHi.mcTrkIsoDR04)[i]) < cut_mcSumIso))   continue;
                             }
+                        }
+                        if (selMcMomPID) {
+                            if (genMatchedPID == 22 && !( TMath::Abs((*ggHi.mcMomPID)[i]) <= 22 || (*ggHi.mcMomPID)[i] == -999 )) continue;
+                            else if (!( TMath::Abs((*ggHi.mcMomPID)[i]) == genMatchedPID || (*ggHi.mcMomPID)[i] == -999 )) continue;
                         }
 
                         if (excludeHI18HEMfailure && !ggHi.passedHI18HEMfailureGen(i))  continue;
@@ -1130,9 +1187,13 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         double sumIso = -999;
                         double sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
+                        double scRawE = (*ggHi.eleSCRawEn)[i];
                         double r9 = (*ggHi.eleR9)[i];
+                        double scEtaW = (*ggHi.eleSCEtaWidth)[i];
+                        double scPhiW = (*ggHi.eleSCPhiWidth)[i];
 
-                        std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie, r9};
+                        std::vector<double> vars = {eta, genPt, pt, (double)cent, sumIso, sieie,
+                                                    scRawE, scEta, r9, scEtaW, scPhiW};
                         for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                             rAna[RECOANA::kETA][iAna].FillH2D(energyScale, eta, w, vars);
@@ -1158,15 +1219,20 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                         double eta = (*ggHi.eleEta)[i];
                         double sumIso = -999;
                         double sieie = (*ggHi.eleSigmaIEtaIEta_2012)[i];
+                        double scRawE = (*ggHi.eleSCRawEn)[i];
+                        double scEta = (*ggHi.eleSCEta)[i];
                         double r9 = (*ggHi.eleR9)[i];
+                        double scEtaW = (*ggHi.eleSCEtaWidth)[i];
+                        double scPhiW = (*ggHi.eleSCPhiWidth)[i];
                         double eleE = (*ggHi.eleEn)[i];
                         double eleSCE = (*ggHi.eleSCEn)[i];
-                        double eleSCRawE = (*ggHi.eleSCRawEn)[i];
 
                         double corrE = eleE / eleSCE;
-                        double corrSCE = eleSCE / eleSCRawE;
+                        double corrSCE = eleSCE / scRawE;
 
-                        std::vector<double> vars = {eta, -1, pt, (double)cent, sumIso, sieie, r9};
+                        std::vector<double> vars = {eta, -1, pt, (double)cent, sumIso, sieie,
+                                                    scRawE, scEta, r9, scEtaW, scPhiW};
+
                         for (int iAna = 0;  iAna < nRecoAna; ++iAna) {
 
                             rAna[RECOANA::kETA][iAna].FillH2DCorr(corrE, eta, RECOANA::k_corrE, w, vars);
@@ -1614,14 +1680,28 @@ int readConfiguration(std::string configFile, std::string inputFile)
     bins_sieie[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sieie_gt"));
     bins_sieie[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_sieie_lt"));
 
+    bins_scRawE[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scRawE_gt"));
+    bins_scRawE[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scRawE_lt"));
+
+    bins_scEta[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scEta_gt"));
+    bins_scEta[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scEta_lt"));
+
     bins_r9[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_r9_gt"));
     bins_r9[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_r9_lt"));
+
+    bins_scEtaW[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scEtaW_gt"));
+    bins_scEtaW[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scEtaW_lt"));
+
+    bins_scPhiW[0] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scPhiW_gt"));
+    bins_scPhiW[1] = ConfigurationParser::ParseListFloat(confParser.ReadConfigValue("bins_scPhiW_lt"));
 
     // event cuts/weights
     doEventWeight = confParser.ReadConfigValueInteger("doEventWeight");
     pthatWeights = ConfigurationParser::ParseListTriplet(confParser.ReadConfigValue("pthatWeights"));
 
     nPthatWeights = pthatWeights[0].size();
+
+    eventPartition = confParser.ReadConfigValueInteger("eventPartition");
 
     // RECO photon cuts
     cut_hovere = confParser.ReadConfigValueFloat("hovere");
@@ -1631,6 +1711,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     cut_mcCalIsoDR04 = confParser.ReadConfigValueFloat("mcCalIsoDR04");
     cut_mcTrkIsoDR04 = confParser.ReadConfigValueFloat("mcTrkIsoDR04");
     cut_mcSumIso = confParser.ReadConfigValueFloat("mcSumIso");
+    selMcMomPID = (confParser.ReadConfigValueInteger("selMcMomPID") > 0);;
 
     // set default values
     if (bins_eta[0].size() == 0) {
@@ -1657,9 +1738,25 @@ int readConfiguration(std::string configFile, std::string inputFile)
         bins_sieie[0].push_back(0);
         bins_sieie[1].push_back(-1);
     }
+    if (bins_scRawE[0].size() == 0) {
+        bins_scRawE[0].push_back(0);
+        bins_scRawE[1].push_back(-1);
+    }
+    if (bins_scEta[0].size() == 0) {
+        bins_scEta[0].push_back(0);
+        bins_scEta[1].push_back(-1);
+    }
     if (bins_r9[0].size() == 0) {
         bins_r9[0].push_back(0);
         bins_r9[1].push_back(-1);
+    }
+    if (bins_scEtaW[0].size() == 0) {
+        bins_scEtaW[0].push_back(0);
+        bins_scEtaW[1].push_back(-1);
+    }
+    if (bins_scPhiW[0].size() == 0) {
+        bins_scPhiW[0].push_back(0);
+        bins_scPhiW[1].push_back(-1);
     }
 
     if (bins_genPt[1].size() < bins_genPt[0].size()) {
@@ -1679,9 +1776,14 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nBins_cent = bins_cent[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_sumIso = bins_sumIso[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_sieie = bins_sieie[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_scRawE = bins_scRawE[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_scEta = bins_scEta[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
     nBins_r9 = bins_r9[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_scEtaW = bins_scEtaW[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
+    nBins_scPhiW = bins_scPhiW[0].size();     // assume <myvector>[0] and <myvector>[1] have the same size.
 
-    nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie * nBins_r9;
+    nRecoAna = nBins_eta * nBins_genPt * nBins_recoPt * nBins_cent * nBins_sumIso * nBins_sieie *
+               nBins_scRawE * nBins_scEta * nBins_r9 * nBins_scEtaW * nBins_scPhiW;
     return 0;
 }
 
@@ -1780,9 +1882,25 @@ void printConfiguration()
     for (int i=0; i<nBins_sieie; ++i) {
         std::cout << Form("bins_sieie[%d] = [%f, %f)", i, bins_sieie[0].at(i), bins_sieie[1].at(i)) << std::endl;
     }
+    std::cout << "nBins_scRawE = " << nBins_scRawE << std::endl;
+    for (int i=0; i<nBins_scRawE; ++i) {
+        std::cout << Form("bins_scRawE[%d] = [%f, %f)", i, bins_scRawE[0].at(i), bins_scRawE[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_scEta = " << nBins_scEta << std::endl;
+    for (int i=0; i<nBins_scEta; ++i) {
+        std::cout << Form("bins_scEta[%d] = [%f, %f)", i, bins_scEta[0].at(i), bins_scEta[1].at(i)) << std::endl;
+    }
     std::cout << "nBins_r9 = " << nBins_r9 << std::endl;
     for (int i=0; i<nBins_r9; ++i) {
         std::cout << Form("bins_r9[%d] = [%f, %f)", i, bins_r9[0].at(i), bins_r9[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_scEtaW = " << nBins_scEtaW << std::endl;
+    for (int i=0; i<nBins_scEtaW; ++i) {
+        std::cout << Form("bins_scEtaW[%d] = [%f, %f)", i, bins_scEtaW[0].at(i), bins_scEtaW[1].at(i)) << std::endl;
+    }
+    std::cout << "nBins_scPhiW = " << nBins_scPhiW << std::endl;
+    for (int i=0; i<nBins_scPhiW; ++i) {
+        std::cout << Form("bins_scPhiW[%d] = [%f, %f)", i, bins_scPhiW[0].at(i), bins_scPhiW[1].at(i)) << std::endl;
     }
 
     std::cout<<"doEventWeight = "<< doEventWeight <<std::endl;
@@ -1794,12 +1912,15 @@ void printConfiguration()
         std::cout << Form("%f }", pthatWeights[2].at(i)) << std::endl;;
     }
 
+    std::cout << "eventPartition = " << eventPartition << std::endl;
+
     std::cout<<"cut_hovere = "<< cut_hovere <<std::endl;
     std::cout<<"excludeHI18HEMfailure = " << excludeHI18HEMfailure << std::endl;
 
     std::cout<<"cut_mcCalIsoDR04 = "<< cut_mcCalIsoDR04 <<std::endl;
     std::cout<<"cut_mcTrkIsoDR04 = "<< cut_mcTrkIsoDR04 <<std::endl;
     std::cout<<"cut_mcSumIso     = "<< cut_mcSumIso <<std::endl;
+    std::cout<<"selMcMomPID = "<< selMcMomPID <<std::endl;
 
     std::cout<<"Input Configuration (Cont'd) :"<<std::endl;
 
@@ -1989,8 +2110,20 @@ int getVecIndex(std::vector<int> binIndices)
     nTmp /= nBins_sieie;
     i += binIndices[ANABINS::kSieie] * nTmp;
 
+    nTmp /= nBins_scRawE;
+    i += binIndices[ANABINS::kSCRawE] * nTmp;
+
+    nTmp /= nBins_scEta;
+    i += binIndices[ANABINS::kSCEta] * nTmp;
+
     nTmp /= nBins_r9;
     i += binIndices[ANABINS::kR9] * nTmp;
+
+    nTmp /= nBins_scEtaW;
+    i += binIndices[ANABINS::kSCEtaW] * nTmp;
+
+    nTmp /= nBins_scPhiW;
+    i += binIndices[ANABINS::kSCPhiW] * nTmp;
 
     return i;
 }
@@ -2033,8 +2166,24 @@ std::vector<int> getBinIndices(int i)
     binIndices[ANABINS::kSieie] = iTmp / nTmp;
 
     iTmp = i % nTmp;
+    nTmp /= nBins_scRawE;
+    binIndices[ANABINS::kSCRawE] = iTmp / nTmp;
+
+    iTmp = i % nTmp;
+    nTmp /= nBins_scEta;
+    binIndices[ANABINS::kSCEta] = iTmp / nTmp;
+
+    iTmp = i % nTmp;
     nTmp /= nBins_r9;
     binIndices[ANABINS::kR9] = iTmp / nTmp;
+
+    iTmp = i % nTmp;
+    nTmp /= nBins_scEtaW;
+    binIndices[ANABINS::kSCEtaW] = iTmp / nTmp;
+
+    iTmp = i % nTmp;
+    nTmp /= nBins_scPhiW;
+    binIndices[ANABINS::kSCPhiW] = iTmp / nTmp;
 
     return binIndices;
 }
@@ -2069,7 +2218,11 @@ int  preLoop(TFile* input, bool makeNew)
         int iCent = binIndices[ANABINS::kCent];
         int iSumIso = binIndices[ANABINS::kSumIso];
         int iSieie = binIndices[ANABINS::kSieie];
+        int iSCRawE = binIndices[ANABINS::kSCRawE];
+        int iSCEta = binIndices[ANABINS::kSCEta];
         int iR9 = binIndices[ANABINS::kR9];
+        int iSCEtaW = binIndices[ANABINS::kSCEtaW];
+        int iSCPhiW = binIndices[ANABINS::kSCPhiW];
 
         if (iEta > 0 && iGenPt > 0 && iRecoPt > 0 && iCent > 0 && iSumIso > 0 && iSieie > 0)  continue;
 
@@ -2147,8 +2300,16 @@ int  preLoop(TFile* input, bool makeNew)
         rAnaTmp.ranges[RECOANA::rSUMISO][1] = bins_sumIso[1].at(iSumIso);
         rAnaTmp.ranges[RECOANA::rSIEIE][0] = bins_sieie[0].at(iSieie);
         rAnaTmp.ranges[RECOANA::rSIEIE][1] = bins_sieie[1].at(iSieie);
+        rAnaTmp.ranges[RECOANA::rSCRAWE][0] = bins_scRawE[0].at(iSCRawE);
+        rAnaTmp.ranges[RECOANA::rSCRAWE][1] = bins_scRawE[1].at(iSCRawE);
+        rAnaTmp.ranges[RECOANA::rSCETA][0] = bins_scEta[0].at(iSCEta);
+        rAnaTmp.ranges[RECOANA::rSCETA][1] = bins_scEta[1].at(iSCEta);
         rAnaTmp.ranges[RECOANA::rR9][0] = bins_r9[0].at(iR9);
         rAnaTmp.ranges[RECOANA::rR9][1] = bins_r9[1].at(iR9);
+        rAnaTmp.ranges[RECOANA::rSCWETA][0] = bins_scEtaW[0].at(iSCEtaW);
+        rAnaTmp.ranges[RECOANA::rSCWETA][1] = bins_scEtaW[1].at(iSCEtaW);
+        rAnaTmp.ranges[RECOANA::rSCWPHI][0] = bins_scPhiW[0].at(iSCPhiW);
+        rAnaTmp.ranges[RECOANA::rSCWPHI][1] = bins_scPhiW[1].at(iSCPhiW);
 
         std::string tmpName = Form("%s_etaBin%d_genPtBin%d_recoPtBin%d_centBin%d", strDep.c_str(), iEta, iGenPt, iRecoPt, iCent);
         if (nBins_sumIso > 1) {
@@ -2157,8 +2318,20 @@ int  preLoop(TFile* input, bool makeNew)
         if (nBins_sieie > 1) {
             tmpName.append(Form("_sieieBin%d", iSieie));
         }
+        if (nBins_scRawE > 1) {
+            tmpName.append(Form("_scRawEBin%d", iSCRawE));
+        }
+        if (nBins_scEta > 1) {
+            tmpName.append(Form("_scEtaBin%d", iSCEta));
+        }
         if (nBins_r9 > 1) {
             tmpName.append(Form("_r9Bin%d", iR9));
+        }
+        if (nBins_scEtaW > 1) {
+            tmpName.append(Form("_scEtaWBin%d", iSCEtaW));
+        }
+        if (nBins_scPhiW > 1) {
+            tmpName.append(Form("_scPhiWBin%d", iSCPhiW));
         }
         rAnaTmp.name = tmpName.c_str();
         rAnaTmp.title = title.c_str();
@@ -2476,11 +2649,15 @@ int postLoop()
                 int iCent = binIndices[ANABINS::kCent];
                 int iSumIso = binIndices[ANABINS::kSumIso];
                 int iSieie = binIndices[ANABINS::kSieie];
+                int iSCRawE = binIndices[ANABINS::kSCRawE];
+                int iSCEta = binIndices[ANABINS::kSCEta];
                 int iR9 = binIndices[ANABINS::kR9];
+                int iSCEtaW = binIndices[ANABINS::kSCEtaW];
+                int iSCPhiW = binIndices[ANABINS::kSCPhiW];
 
                 // plot from different eta bins
                 if (iEta == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {-1, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {-1, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
                 }
 
                 // plot from different genPt bins
@@ -2488,33 +2665,53 @@ int postLoop()
 
                     // there is no genPt bin for fake rate
                     if (iObs != RECOANA::kFAKE) {
-                        drawSame(c, iObs, iDep, {iEta, -1, iRecoPt, iCent, iSumIso, iSieie, iR9});
+                        drawSame(c, iObs, iDep, {iEta, -1, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
                     }
                 }
 
                 // plot from different recoPt bins
                 if (iRecoPt == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, -1, iCent, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, -1, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
                 }
 
                 // plot from different centrality bins
                 if (iCent == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, -1, iSumIso, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, -1, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
                 }
 
                 // plot from different sumIso bins
                 if (iSumIso == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, -1, iSieie, iR9});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, -1, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
                 }
 
                 // plot from different shower shape bins
                 if (iSieie == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, -1, iR9});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, -1, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+                }
+
+                // plot from different SC rawE bins
+                if (iSCRawE == 0 && rAna[iDep][iAna].name.size() > 0) {
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, -1, iSCEta, iR9, iSCEtaW, iSCPhiW});
+                }
+
+                // plot from different SC eta bins
+                if (iSCEta == 0 && rAna[iDep][iAna].name.size() > 0) {
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, -1, iR9, iSCEtaW, iSCPhiW});
                 }
 
                 // plot from different R9 bins
                 if (iR9 == 0 && rAna[iDep][iAna].name.size() > 0) {
-                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, -1});
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, -1, iSCEtaW, iSCPhiW});
+                }
+
+                // plot from different SC eta width bins
+                if (iSCEtaW == 0 && rAna[iDep][iAna].name.size() > 0) {
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, -1, iSCPhiW});
+                }
+
+                // plot from different SC phi width bins
+                if (iSCPhiW == 0 && rAna[iDep][iAna].name.size() > 0) {
+                    drawSame(c, iObs, iDep, {iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, -1});
                 }
             }
         }
@@ -2538,7 +2735,11 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     int iCent = binIndices[ANABINS::kCent];
     int iSumIso = binIndices[ANABINS::kSumIso];
     int iSieie = binIndices[ANABINS::kSieie];
+    int iSCRawE = binIndices[ANABINS::kSCRawE];
+    int iSCEta = binIndices[ANABINS::kSCEta];
     int iR9 = binIndices[ANABINS::kR9];
+    int iSCEtaW = binIndices[ANABINS::kSCEtaW];
+    int iSCPhiW = binIndices[ANABINS::kSCPhiW];
 
     // if the dependency is GenPt (the x-axis is GenPt), then it must be iGenPt = 0
     if (iDep == RECOANA::kETA && iEta != 0) return;
@@ -2557,53 +2758,81 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     std::string strBin2 = "";
     int nBins = 0;
     if (iEta == -1) {
-        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({0, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "etaBin";
         strBin2 = "etaBinAll";
         nBins = nBins_eta;
     }
     else if (iGenPt == -1) {
-        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iEta, 0, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "genPtBin";
         strBin2 = "genPtBinAll";
         nBins = nBins_genPt;
     }
     else if (iRecoPt == -1) {
-        int iAna = getVecIndex({iEta, iGenPt, 0, iCent, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iEta, iGenPt, 0, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "recoPtBin";
         strBin2 = "recoPtBinAll";
         nBins = nBins_recoPt;
     }
     else if (iCent == -1 && nBins_cent > 1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0, iSumIso, iSieie, iR9});
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, 0, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "centBin";
         strBin2 = "centBinAll";
         nBins = nBins_cent;
     }
     else if (iSumIso == -1 && nBins_sumIso > 1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, 0, iSieie, iR9});
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, 0, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "sumIsoBin";
         strBin2 = "sumIsoBinAll";
         nBins = nBins_sumIso;
     }
     else if (iSieie == -1 && nBins_sieie > 1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, 0, iR9});
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, 0, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "sieieBin";
         strBin2 = "sieieBinAll";
         nBins = nBins_sieie;
     }
+    else if (iSCRawE == -1 && nBins_scRawE > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, 0, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "scRawEBin";
+        strBin2 = "scRawEBin";
+        nBins = nBins_scRawE;
+    }
+    else if (iSCEta == -1 && nBins_scEta > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, 0, iR9, iSCEtaW, iSCPhiW});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "scEtaBin";
+        strBin2 = "scEtaBinAll";
+        nBins = nBins_scEta;
+    }
     else if (iR9 == -1 && nBins_r9 > 1) {
-        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, 0});
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, 0, iSCEtaW, iSCPhiW});
         tmpName = rAna[iDep][iAna].name.c_str();
         strBin = "r9Bin";
         strBin2 = "r9BinAll";
-        nBins = nBins_sieie;
+        nBins = nBins_r9;
+    }
+    else if (iSCEtaW == -1 && nBins_scEtaW > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, 0, iSCPhiW});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "scEtaWBin";
+        strBin2 = "scEtaWBinAll";
+        nBins = nBins_scEtaW;
+    }
+    else if (iSCPhiW == -1 && nBins_scPhiW > 1) {
+        int iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, 0});
+        tmpName = rAna[iDep][iAna].name.c_str();
+        strBin = "scPhiWBin";
+        strBin2 = "scPhiWBinAll";
+        nBins = nBins_scPhiW;
     }
     else return;
 
@@ -2622,13 +2851,17 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
     for (int iBin = 0; iBin < nBins; ++iBin) {
 
         int iAna = -1;
-        if (iEta == -1) iAna = getVecIndex({iBin, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iR9});
-        else if (iGenPt == -1) iAna = getVecIndex({iEta, iBin, iRecoPt, iCent, iSumIso, iSieie, iR9});
-        else if (iRecoPt == -1) iAna = getVecIndex({iEta, iGenPt, iBin, iCent, iSumIso, iSieie, iR9});
-        else if (iCent == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iBin, iSumIso, iSieie, iR9});
-        else if (iSumIso == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iBin, iSieie, iR9});
-        else if (iSieie == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iBin, iR9});
-        else if (iR9 == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iBin});
+        if (iEta == -1) iAna = getVecIndex({iBin, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iGenPt == -1) iAna = getVecIndex({iEta, iBin, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iRecoPt == -1) iAna = getVecIndex({iEta, iGenPt, iBin, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iCent == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iBin, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iSumIso == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iBin, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iSieie == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iBin, iSCRawE, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iSCRawE == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iBin, iSCEta, iR9, iSCEtaW, iSCPhiW});
+        else if (iSCEta == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iBin, iR9, iSCEtaW, iSCPhiW});
+        else if (iR9 == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iBin, iSCEtaW, iSCPhiW});
+        else if (iSCEtaW == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iBin, iSCPhiW});
+        else if (iSCPhiW == -1) iAna = getVecIndex({iEta, iGenPt, iRecoPt, iCent, iSumIso, iSieie, iSCRawE, iSCEta, iR9, iSCEtaW, iBin});
 
         indicesAna[iBin] = iAna;
     }
@@ -2645,7 +2878,13 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iCent == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + iBin;
         else if (iSumIso == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + iBin;
         else if (iSieie == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + iBin;
-        else if (iR9 == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + iBin;
+        else if (iSCRawE == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + iBin;
+        else if (iSCEta == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_scRawE + iBin;
+        else if (iR9 == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_scRawE + nBins_scEta + iBin;
+        else if (iSCEtaW == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie +
+                                        nBins_scRawE + nBins_scEta + nBins_r9 + iBin;
+        else if (iSCPhiW == -1) iHist = nBins_eta +  nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie +
+                                        nBins_scRawE + nBins_scEta + nBins_r9 + nBins_scEtaW + iBin;
 
         int iAnaTmp = indicesAna[iBin];
 
@@ -2718,7 +2957,11 @@ void drawSame(TCanvas* c, int iObs, int iDep, std::vector<int> binIndices)
         else if (iCent == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rCENT);
         else if (iSumIso == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSUMISO);
         else if (iSieie == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSIEIE);
+        else if (iSCRawE == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSCRAWE);
+        else if (iSCEta == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSCETA);
         else if (iR9 == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rR9);
+        else if (iSCEtaW == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSCWETA);
+        else if (iSCPhiW == -1) legendText = rAna[iDep][iAnaTmp].getRangeText(RECOANA::rSCWPHI);
 
         leg->AddEntry(vecObj[iBin], legendText.c_str(), legendOption.c_str());
     }
@@ -2811,7 +3054,8 @@ void setTH1(TH1D* h, int iHist)
     h->SetTitleOffset(titleOffsetX, "X");
     h->SetTitleOffset(titleOffsetY, "Y");
 
-    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie + nBins_r9;
+    int nBinsTot = nBins_eta + nBins_genPt + nBins_recoPt + nBins_cent + nBins_sumIso + nBins_sieie +
+                   nBins_scRawE + nBins_scEta + nBins_r9 + nBins_scEtaW + nBins_scPhiW;
 
     int markerStyle = GRAPHICS::markerStyle;
     if (nMarkerStyles == nBinsTot) markerStyle = GraphicsConfigurationParser::ParseMarkerStyle(markerStyles.at(iHist));
