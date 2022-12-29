@@ -673,6 +673,7 @@ int readConfiguration(std::string configFile, std::string inputFile)
     if (bottomMargin == 0) bottomMargin = INPUT_DEFAULT::bottomMargin;
     if (topMargin == 0) topMargin = INPUT_DEFAULT::topMargin;
 
+    nMacrosLoad = macrosToLoad.size();
     nTrees = treePaths.size();
     nFriends = treeFriendsPath.size();
     nFriendsIndividual = treeFriendsPathIndividual.size();
