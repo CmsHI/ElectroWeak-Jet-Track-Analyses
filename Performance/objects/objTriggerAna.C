@@ -193,6 +193,7 @@ int nBins_r9;
 enum RECOOBJS {
     kPhoton,
     kElectron,
+    kMuon,
     kN_RECOOBJS
 };
 const std::string recoObjsStr[kN_RECOOBJS] = {"photon", "electron"};
@@ -356,6 +357,9 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     }
 
     treeHiForestInfo = (TTree*)fileTmp->Get("HiForest/HiForestInfo");
+    if (treeHiForestInfo == 0) {
+        treeHiForestInfo = (TTree*)fileTmp->Get("HiForestInfo/HiForest");
+    }
     HiForestInfoController hfic(treeHiForestInfo);
     std::cout << "### HiForestInfo Tree ###" << std::endl;
     hfic.printHiForestInfo();
@@ -440,7 +444,9 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
     std::cout << "hasPseudoTriggerBranches = " << hasPseudoTriggerBranches << std::endl;
 
     Int_t triggerBits[nTriggerBranches];
+    //Bool_t triggerBits[nTriggerBranches];
     Int_t triggerPrescales[nPrescaleBranches];
+    //Boo_t triggerPrescales[nPrescaleBranches];
 
     std::vector<hltObject> hltObjs(nTreeTrigObjPaths);
     if (runMode[MODES::kAnaType] == MODES_ANATYPE::kEmulation) {
@@ -449,7 +455,8 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
         fileTrig = TFile::Open(triggerFile.c_str(), "READ");
         fileTrig->cd();
 
-        treeTrigPath = "hltbitanalysis/HltTree";
+        //treeTrigPath = "hltbitanalysis/HltTree";
+        treeTrigPath = "hltanalysis/HltTree";
         treeTrig = (TTree*)fileTrig->Get(treeTrigPath.c_str());
         treeTrig->SetBranchStatus("*",0);     // disable all branches
 
@@ -792,11 +799,12 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
             }
             if ((runMode[MODES::kAnaType] == MODES_ANATYPE::kData &&
                 (runMode[MODES::kEff] == MODES_EFF::kMatchL1Obj || runMode[MODES::kEff] == MODES_EFF::kMatchHltandL1Obj))
-                    || hasPseudoTriggerBranches) {
+                    ) {
                 treeL1obj->GetEntry(entryTrig);
             }
 
             if (!passedDenomGlobal(triggerBits)) continue;
+            //if (!passedDenomGlobal(triggerBits)) continue;
             entriesPassedDenomGlobal++;
 
             // event selection
@@ -941,7 +949,9 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                          if(iMax == -1) continue;
 
                          if (isPrescaledDenom(indicesTriggerDenom[iAna], triggerPrescales))  continue;
+                         //if (isPrescaledDenom(indicesTriggerDenom[iAna], triggerPrescales) && false)  continue;
                          if (isPrescaledNum(indicesTriggerNum[iAna], triggerPrescales))  continue;
+                         //if (isPrescaledNum(indicesTriggerNum[iAna], triggerPrescales) && false)  continue;
 
                          if (passedDenom(indicesTriggerDenom[iAna], triggerBits)) {
 
@@ -1029,6 +1039,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                      bool matchedHltObj = false;
 
                                      int iHltObj = getIndexTrigObj4TriggerBranch(indicesTriggerNum[iAna]);
+                                     //int iHltObj = 0;
 
                                      int nHltObjs = hltObjs[iHltObj].pt->size();
 
@@ -1041,6 +1052,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
                                          double phiHLT = (*hltObjs[iHltObj].phi)[iObj];
 
                                          if (ptHLT > 0 && getDR2(etaHLT, phiHLT, eta, phi) < maxDR2_HLT) {
+                                         //if (ptHLT > tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold && getDR2(etaHLT, phiHLT, eta, phi) < maxDR2_HLT) {
 
                                              matchedHltObj = true;
 
@@ -1116,7 +1128,7 @@ void objTriggerAna(std::string configFile, std::string triggerFile, std::string 
 
                                      if (debug) {
                                          if (!debug_isFoundHltObj && !debug_isPrinted && pt > 45 && TMath::Abs(eta) < 1.44 && sumIso < 5 && sieie < 0.01 && tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold == debug_ptThreshold) {
-                                             std::cout << "No trigger match for object" << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
+                                             std::cout << "No trigger match for object " << tAna[TRIGGERANA::kRECOPT][iAna].ptTreshold << " with :" << std::endl;
                                              std::cout << "j_entry = " << j_entry << std::endl;
                                              std::cout << "run = " << hiEvt.run << " lumis = " << hiEvt.lumi << " event = " << hiEvt.evt << std::endl;
                                              std::cout << "pt = " << pt << " eta = " << eta << " phi = " << phi << std::endl;
