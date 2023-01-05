@@ -26,6 +26,8 @@ public :
       fMods_chi2 = 0;
       fMods_chi2prob = 0;
 
+      tmva_regr = 0;
+
       pfpIso3subUEfMods = 0;
       pfnIso3subUEfMods = 0;
       pfcIso3subUEfMods = 0;
@@ -115,6 +117,9 @@ public :
   float fit_trkphi_v3;
   float fit_trkphi_chi2;
   float fit_trkphi_chi2prob;
+
+  std::vector<float> *tmva_regr;
+  std::vector<float> tmva_regr_out;
 
   float rho;
   Float_t         angEvtPlane;
@@ -648,6 +653,8 @@ public :
   TBranch        *b_fit_trkphi_chi2;   //!
   TBranch        *b_fit_trkphi_chi2prob;   //!
 
+  TBranch        *b_tmva_regr;   //!
+
   TBranch        *b_rho;   //!
   TBranch        *b_angEvtPlane;   //!
   TBranch        *b_indexEvtPlane;   //!
@@ -1157,6 +1164,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     b_fit_trkphi_v3 = 0;
     b_fit_trkphi_chi2 = 0;
     b_fit_trkphi_chi2prob = 0;
+
+    b_tmva_regr = 0;
 
     b_rho = 0;
     b_angEvtPlane = 0;
@@ -1677,6 +1686,8 @@ void ggHiFlat::setupTreeForReading(TTree *t)
     if (t->GetBranch("fMods_chi2")) t->SetBranchAddress("fMods_chi2", &fMods_chi2, &b_fMods_chi2);
     if (t->GetBranch("fMods_chi2prob")) t->SetBranchAddress("fMods_chi2prob", &fMods_chi2prob, &b_fMods_chi2prob);
 
+    if (t->GetBranch("tmva_regr")) t->SetBranchAddress("tmva_regr", &tmva_regr, &b_tmva_regr);
+
     if (t->GetBranch("rho")) t->SetBranchAddress("rho", &rho, &b_rho);
     if (t->GetBranch("angEvtPlane")) t->SetBranchAddress("angEvtPlane", &angEvtPlane, &b_angEvtPlane);
     if (t->GetBranch("indexEvtPlane")) t->SetBranchAddress("indexEvtPlane", &indexEvtPlane, &b_indexEvtPlane);
@@ -2189,6 +2200,8 @@ void ggHiFlat::setupTreeForWriting(TTree* t)
     t->Branch("fMods_v3", &fMods_v3_out);
     t->Branch("fMods_chi2", &fMods_chi2_out);
     t->Branch("fMods_chi2prob", &fMods_chi2prob_out);
+
+    t->Branch("tmva_regr", &tmva_regr_out);
 
     t->Branch("rho", &rho);
     t->Branch("angEvtPlane", &angEvtPlane);
@@ -2710,6 +2723,8 @@ void ggHiFlat::clearEntry()
     fMods_v3_out.clear();
     fMods_chi2_out.clear();
     fMods_chi2prob_out.clear();
+
+    tmva_regr_out.clear();
 
     rho = -1;
     angEvtPlane = -999888;
@@ -3706,6 +3721,14 @@ void ggHiFlat::clone(ggHiFlat &gg)
         fMods_chi2prob_out.push_back( (*gg.fMods_chi2prob)[i] );
     }
 
+    tmva_regr_out.clear();
+    /*
+     * temporary
+    for (int i = 0; i < (int)((*gg.tmva_regr).size()); ++i) {
+        tmva_regr_out.push_back( (*gg.tmva_regr)[i] );
+    }
+    */
+
     rho = gg.rho;
     angEvtPlane = gg.angEvtPlane;
     indexEvtPlane = gg.indexEvtPlane;
@@ -4222,13 +4245,32 @@ double ggHiFlat::getValueByName(std::string varName)
     else if (varName == "phoE3x3_2012") {
         return (double)(phoE3x3_2012);
     }
+    else if (varName == "phoR9_2012") {
+        return (double)(phoR9_2012);
+    }
     else if (varName == "phoMaxEnergyXtal_2012") {
         return (double)(phoMaxEnergyXtal_2012);
+    }
+    else if (varName == "phoEmaxSCRawE" || varName == "phoMaxEnergyXtal_2012/phoSCRawE") {
+        return (double)(phoMaxEnergyXtal_2012/phoSCRawE);
     }
     else if (varName == "phoE2nd_2012") {
         return (double)(phoE2nd_2012);
     }
-    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+    else if (varName == "phoE2ndSCRawE" || varName == "phoE2nd_2012/phoSCRawE") {
+        return (double)(phoE2nd_2012/phoSCRawE);
+    }
+    else if (varName == "phoE_LR" || varName == "abs(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+
+        if (phoELeft_2012 != 0 || phoERight_2012 != 0) {
+            //return (double)((phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012));
+            return (double)(TMath::Abs(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
 
         if (phoELeft_2012 != 0 || phoERight_2012 != 0) {
             return (double)((phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012));
@@ -4237,7 +4279,17 @@ double ggHiFlat::getValueByName(std::string varName)
             return 0;
         }
     }
-    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+    else if (varName == "phoE_TB" || varName == "abs(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+
+        if (phoETop_2012 != 0 || phoEBottom_2012 != 0) {
+            //return (double)((phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012));
+            return (double)(TMath::Abs(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
 
         if (phoETop_2012 != 0 || phoEBottom_2012 != 0) {
             return (double)((phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012));

@@ -12,6 +12,12 @@
 #include <TLorentzVector.h>
 #include <TVector3.h>
 
+#include "TMVA/IMethod.h"
+#include "TMVA/MethodBase.h"
+#include "TMVA/MethodCuts.h"
+#include "TMVA/Tools.h"
+#include "TMVA/Reader.h"
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -82,6 +88,15 @@ int nEffAreaN;
 int nEffAreaHoE;
 int nEffAreaSieie;
 
+// input for TMVA regression
+std::vector<std::string> tmvaXMLFiles;
+std::vector<std::string> tmvaMethodNames;
+std::vector<std::pair<std::string, int>> tmvaReaderVars;
+std::vector<std::pair<std::string, int>> tmvaReaderSpectators;
+
+int nTmvaXMLFiles;
+int nTmvaMethods;
+
 /// configuration variables - END
 enum INFILE_TYPES {
     kHiForest,
@@ -108,6 +123,9 @@ void printConfiguration();
 int parseInFileType(std::string inFileTypeStr);
 int parseRecoObj(std::string recoObjStr);
 double getEffArea(double eta, std::vector<float> &minEtas, std::vector<float> &maxEtas, std::vector<float> &effAreas, int nEffAreas);
+void fillTMVAregr(ggHiFlat & ggFlat, int nTMVA, float * varsR, std::vector<TMVA::Reader*> & tmvaReaders, std::vector<std::string> tmvaReaderVarsStr[], std::vector<int> & nReaderVarsInFile);
+double getTMVAregr(ggHiFlat & ggFlat, float * varsR, TMVA::Reader* r, std::string & methodStr, std::vector<std::string> & readerVarsStr, int nReaderVars, int offs);
+
 void flatTreeSkim(std::string configFile, std::string inputFile, std::string outputFile = "flatTreeSkim.root");
 
 void flatTreeSkim(std::string configFile, std::string inputFile, std::string outputFile)
@@ -247,6 +265,50 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
             f1_phi_vn3[j] = new TF1(Form("f1_phi_vn3_%d", j), fnc_fourier_vn_3, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_3));
             f1_phi_vn2[j] = new TF1(Form("f1_phi_vn2_%d", j), fnc_fourier_vn_2, -1*TMath::Pi(), TMath::Pi(), getFncNpar(fnc_fourier_vn_2));
+        }
+    }
+
+    bool doTMVA = (nTmvaXMLFiles != 0 && nTmvaMethods != 0);
+
+    std::vector<TMVA::Reader*> tmvaReaders(nTmvaXMLFiles, 0);
+    int nTmvaReaderVars = tmvaReaderVars.size();
+    int nTmvaReaderSpectators = tmvaReaderSpectators.size();
+    float varsR[nTmvaReaderVars];
+    float specsR[nTmvaReaderSpectators];
+    std::vector<std::string> tmvaReaderVarsStr[nTmvaXMLFiles];
+    std::vector<int> nReaderVarsInFile(nTmvaXMLFiles, 0);
+    std::vector<std::string> tmvaReaderSpecsStr[nTmvaXMLFiles];
+    if (doTMVA) {
+
+        std::vector<std::string> tmvaReaderVarsStrAll = ConfigurationParser::getVecString(tmvaReaderVars);
+        std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+        std::vector<std::string> tmvaReaderSpecsStrAll = ConfigurationParser::getVecString(tmvaReaderSpectators);
+        std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+
+        for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+
+            tmvaReaders[iXML] = new TMVA::Reader("!Color");
+
+            int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+            nReaderVarsInFile[iXML] = nVarsTmp;
+
+            int iStart = findInVector(tmvaReaderVarIndices, iXML);
+            for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+                tmvaReaders[iXML]->AddVariable(tmvaReaderVarsStrAll[i].c_str(), &(varsR[i]));
+            }
+            tmvaReaderVarsStr[iXML].assign(tmvaReaderVarsStrAll.begin()+iStart, tmvaReaderVarsStrAll.begin()+iStart+nVarsTmp);
+
+            int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+
+            iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+            for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+                tmvaReaders[iXML]->AddSpectator(tmvaReaderSpecsStrAll[i].c_str(), &(specsR[i]));
+            }
+            tmvaReaderSpecsStr[iXML].assign(tmvaReaderSpecsStrAll.begin()+iStart, tmvaReaderSpecsStrAll.begin()+iStart+nSpecsTmp);
+
+            tmvaReaders[iXML]->BookMVA(tmvaMethodNames[iXML].c_str(), tmvaXMLFiles[iXML].c_str());
         }
     }
 
@@ -1104,6 +1166,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                             ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
                         }
 
+                        if (doTMVA) {
+                            fillTMVAregr(ggHiOut, nTmvaXMLFiles, varsR, tmvaReaders, tmvaReaderVarsStr, nReaderVarsInFile);
+                        }
+
                         outputTree->Fill();
                         objectsSkimmed++;
                     }
@@ -1126,6 +1192,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                         ggHiOut.weightGenKin = h2D_weightGenKin->GetBinContent(binTmp);
                     }
 
+                    if (doTMVA) {
+                        fillTMVAregr(ggHiOut, nTmvaXMLFiles, varsR, tmvaReaders, tmvaReaderVarsStr, nReaderVarsInFile);
+                    }
+
                     outputTree->Fill();
                     objectsSkimmed++;
                 }
@@ -1145,6 +1215,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
 
                     ggHiOut.copyEle(ggHi, i);
 
+                    if (doTMVA) {
+                        fillTMVAregr(ggHiOut, nTmvaXMLFiles, varsR, tmvaReaders, tmvaReaderVarsStr, nReaderVarsInFile);
+                    }
+
                     outputTree->Fill();
                     objectsSkimmed++;
                 }
@@ -1163,6 +1237,10 @@ void flatTreeSkim(std::string configFile, std::string inputFile, std::string out
                     if (etaMax > 0 && !(TMath::Abs((*ggHi.muEta)[i]) < etaMax))  continue;
 
                     ggHiOut.copyMu(ggHi, i);
+
+                    if (doTMVA) {
+                        fillTMVAregr(ggHiOut, nTmvaXMLFiles, varsR, tmvaReaders, tmvaReaderVarsStr, nReaderVarsInFile);
+                    }
 
                     outputTree->Fill();
                     objectsSkimmed++;
@@ -1264,6 +1342,12 @@ int readConfiguration(std::string configFile, std::string inputFile)
     etaMin = confParser.ReadConfigValueFloat("etaMin");
     etaMax = confParser.ReadConfigValueFloat("etaMax");
 
+    // input for TMVA
+    tmvaXMLFiles = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaXMLFiles"));
+    tmvaMethodNames = ConfigurationParser::ParseListOrString(confParser.ReadConfigValue("tmvaMethodNames"));
+    tmvaReaderVars = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderVariables"));
+    tmvaReaderSpectators = ConfigurationParser::ParseListOfList(confParser.ReadConfigValue("tmvaReaderSpectators"));
+
     nPthatWeights = pthatWeights[0].size();
 
     nEffAreaC = effAreaC[0].size();
@@ -1271,6 +1355,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     nEffAreaN = effAreaN[0].size();
     nEffAreaHoE = effAreaHoE[0].size();
     nEffAreaSieie = effAreaSieie[0].size();
+
+    nTmvaXMLFiles = tmvaXMLFiles.size();
+    nTmvaMethods = tmvaMethodNames.size();
 
     // set default values
     if (inputTreePath.size() == 0) inputTreePath = "ggHiNtuplizer/EventTree";
@@ -1373,6 +1460,42 @@ void printConfiguration()
     std::cout << "ptMax = " << ptMax << std::endl;
     std::cout << "etaMin = " << etaMin << std::endl;
     std::cout << "etaMax = " << etaMax << std::endl;
+
+    std::cout << "nTmvaXMLFiles = " << nTmvaXMLFiles << std::endl;
+    for (int i = 0; i < nTmvaXMLFiles; ++i) {
+        std::cout << Form("tmvaXMLFiles[%d] = %s", i, tmvaXMLFiles.at(i).c_str()) << std::endl;
+    }
+    std::cout << "nTmvaMethod = " << nTmvaMethods << std::endl;
+    for (int i = 0; i < nTmvaMethods; ++i) {
+        std::cout << Form("tmvaMethodNames[%d] = %s", i, tmvaMethodNames.at(i).c_str()) << std::endl;
+    }
+
+    std::vector<std::string> tmvaReaderVarsStr = ConfigurationParser::getVecString(tmvaReaderVars);
+    std::vector<int> tmvaReaderVarIndices = ConfigurationParser::getVecIndex(tmvaReaderVars);
+
+    std::vector<std::string> tmvaReaderSpecsStr = ConfigurationParser::getVecString(tmvaReaderSpectators);
+    std::vector<int> tmvaReaderSpecsIndices = ConfigurationParser::getVecIndex(tmvaReaderSpectators);
+    for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
+        int nVarsTmp = std::count(tmvaReaderVarIndices.begin(), tmvaReaderVarIndices.end(), iXML);
+        std::cout << "Number of reader variables for XML file " << iXML << " = " << nVarsTmp << std::endl;
+        std::cout << "Reader variables for XML file " << iXML << " are :" << std::endl;
+
+        int iStart = findInVector(tmvaReaderVarIndices, iXML);
+        for (int i = iStart; i < iStart+nVarsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderVars[%d] = %s", i-iStart, tmvaReaderVarsStr.at(i).c_str()) << std::endl;
+        }
+
+        int nSpecsTmp = std::count(tmvaReaderSpecsIndices.begin(), tmvaReaderSpecsIndices.end(), iXML);
+        std::cout << "Number of spectators for XML file " << iXML << " = " << nSpecsTmp << std::endl;
+        std::cout << "Spectators for XML file " << iXML << " are :" << std::endl;
+
+        iStart = findInVector(tmvaReaderSpecsIndices, iXML);
+        for (int i = iStart; i < iStart+nSpecsTmp; ++i) {
+
+            std::cout << Form("tmvaReaderSpectators[%d] = %s", i-iStart, tmvaReaderSpecsStr.at(i).c_str()) << std::endl;
+        }
+    }
 }
 
 int parseInFileType(std::string inFileTypeStr)
@@ -1419,5 +1542,34 @@ double getEffArea(double eta, std::vector<float> &minEtas, std::vector<float> &m
     }
 
     return 0;
+}
+
+void fillTMVAregr(ggHiFlat & ggFlat, int nTMVA, float * varsR, std::vector<TMVA::Reader*> & tmvaReaders, std::vector<std::string> tmvaReaderVarsStr[], std::vector<int> & nReaderVarsInFile)
+{
+    ggFlat.tmva_regr_out.clear();
+    ggFlat.tmva_regr_out.resize(nTMVA, -1);
+
+    int offset = 0;
+
+    for (int i = 0; i < nTMVA; ++i) {
+        ggFlat.tmva_regr_out[i] = getTMVAregr(ggFlat, varsR, tmvaReaders[i], tmvaMethodNames[i], tmvaReaderVarsStr[i], nReaderVarsInFile[i], offset);
+        //std::cout << "ggFlat.tmva_regr_out[" << i << "] = " << ggFlat.tmva_regr_out[i] << std::endl;
+
+        offset += nReaderVarsInFile[i];
+    }
+}
+
+double getTMVAregr(ggHiFlat & ggFlat, float * varsR, TMVA::Reader* r, std::string & methodStr, std::vector<std::string> & readerVarsStr, int nReaderVars, int offs)
+{
+    ggFlat.copy2Vars(varsR, readerVarsStr, nReaderVars, offs);
+
+    /*
+    for (int i = 0; i < nReaderVars; ++i) {
+        std::cout << "varsR[" << i+offs << "] = " << varsR[i+offs] << " , name = " << readerVarsStr[i].c_str() << std::endl;
+    }
+    */
+
+    std::vector<float> regr = r->EvaluateRegression(methodStr.c_str());
+    return regr[0];
 }
 
