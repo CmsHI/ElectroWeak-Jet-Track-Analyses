@@ -637,6 +637,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                 for (int i = 0; i < nPhoTmp; ++i) {
 
                     double pt = (inFileType == INFILE_TYPES::kHiForest) ? (*ggHi.phoEt)[i] : ggFlat.phoEt;
+                    double scRawE = (inFileType == INFILE_TYPES::kHiForest) ? (*ggHi.phoSCRawE)[i] : ggFlat.phoSCRawE;
                     double scEta = (inFileType == INFILE_TYPES::kHiForest) ? (*ggHi.phoSCEta)[i] : ggFlat.phoSCEta;
                     double eta = (inFileType == INFILE_TYPES::kHiForest) ? (*ggHi.phoEta)[i] : ggFlat.phoEta;
                     if (runMode[MODES::kRecoEnergy] == MODES_RECOENERGY::k_reco_RecoPt) {
@@ -660,7 +661,8 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
                                     }
 
                                     std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
-                                    double energy = targets_regr[0];
+                                    //double energy = targets_regr[0];
+                                    double energy = targets_regr[0] * scRawE;
                                     pt = energy / TMath::CosH(eta);
                                     break;
                                 }
@@ -806,7 +808,14 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
 
                         double genPt = ggFlat.mcPt;
                         double genE = ggFlat.mcE;
+                        if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0 || runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0) {
+                            if (!isNeutralMeson(ggFlat.mcMomPID))  continue;
 
+                            genPt = ggFlat.mcMomPt;
+                            TLorentzVector vec;
+                            vec.SetPtEtaPhiM(genPt, ggFlat.mcMomEta, ggFlat.mcMomPhi, ggFlat.mcMomMass);
+                            genE = vec.E();
+                        }
                         if (genPt <= 0)   continue;
                         //std::cout << "genPt = " << genPt << std::endl;
 
@@ -2401,8 +2410,8 @@ int  preLoop(TFile* input, bool makeNew)
                 if (runMode[MODES::kEnergyScale] == kRecoPtGenPt)  yTitleEScale = "Reco p_{T} / Gen p_{T}";
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenE)  yTitleEScale = "SC Raw E / Gen E";
                 else if (runMode[MODES::kEnergyScale] == kGenESCRawE)  yTitleEScale = "Gen E / SC Raw E";
-                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0)  yTitleEScale = Form("Reco %s p_{T} / Gen #h^{0} p_{T}", recoObjStr.c_str());
-                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0)  yTitleEScale = Form("%s SC Raw E / Gen #h^{0} E", recoObjStr.c_str());
+                else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtmeson0)  yTitleEScale = Form("Reco %s p_{T} / Gen h^{0} p_{T}", recoObjStr.c_str());
+                else if (runMode[MODES::kEnergyScale] == kSCRawEGenEmeson0)  yTitleEScale = Form("%s SC Raw E / Gen h^{0} E", recoObjStr.c_str());
                 else if (runMode[MODES::kEnergyScale] == kRecoPtGenPtele)  yTitleEScale = Form("Reco %s p_{T} / Gen e^{#pm} p_{T}", recoObjStr.c_str());
                 else if (runMode[MODES::kEnergyScale] == kSCRawEGenEele)  yTitleEScale = Form("%s SC Raw E / Gen e^{#pm} E", recoObjStr.c_str());
 
