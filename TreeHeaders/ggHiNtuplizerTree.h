@@ -334,6 +334,9 @@ public :
   bool passedHI18HEMfailureGen(int i);
   bool passedEleSelection(int i, int collType, int hiBin, double eleRho = -1, int WPindex = 0);
   bool passedMuSelection(int i, int collType);
+  static double getCorrectedPhoPtPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth);
+  static double getCorrectedPhoEnergyPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth);
+  static double getPhoEnergyCorrFactorPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth);
   double getElePtCorrFactor(int i, int collType, int hiBin);
   double getElePtSmearFactor(int i, int collType, int hiBin);
   double getHiFJRho4Ele(int i, hiFJRho& hifjrho);
@@ -2236,6 +2239,225 @@ bool ggHiNtuplizer::passedMuSelection(int i, int collType)
     }
 
     return true;
+}
+
+double ggHiNtuplizer::getCorrectedPhoPtPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth)
+{
+    double corrE = getCorrectedPhoEnergyPP17(scRawE, scEta, R9_5x5, scEtaWidth, scPhiWidth);
+    return (corrE > 0) ? corrE/TMath::CosH(scEta) : -1;
+}
+
+double ggHiNtuplizer::getCorrectedPhoEnergyPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth)
+{
+    double corr = getPhoEnergyCorrFactorPP17(scRawE, scEta, R9_5x5, scEtaWidth, scPhiWidth);
+    return (corr > 0) ? scRawE*corr : -1;
+}
+
+double ggHiNtuplizer::getPhoEnergyCorrFactorPP17(double scRawE, double scEta, double R9_5x5, double scEtaWidth, double scPhiWidth)
+{
+    double scEtaAbs = TMath::Abs(scEta);
+    if (scEtaAbs <= 0.96) {
+        if (5 < scRawE && scRawE <= 20) {
+            return 1.075;
+        }
+        else if (20 < scRawE && scRawE <= 40) {
+            if (R9_5x5 <= 0.9) {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.066;
+                    }
+                    else {
+                        return 1.094;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.067;
+                    }
+                    else {
+                        return 1.091;
+                    }
+                }
+            }
+            else {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.050;
+                    }
+                    else {
+                        return 1.055;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.053;
+                    }
+                    else {
+                        return 1.054;
+                    }
+                }
+            }
+        }
+        else if (40 < scRawE && scRawE <= 100) {
+            if (R9_5x5 <= 0.9) {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.033;
+                    }
+                    else {
+                        return 1.056;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.034;
+                    }
+                    else {
+                        return 1.055;
+                    }
+                }
+            }
+            else {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.014;
+                    }
+                    else {
+                        return 1.031;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.026;
+                    }
+                    else {
+                        return 1.028;
+                    }
+                }
+            }
+        }
+        else if (100 < scRawE && scRawE <= 200) {
+            if (R9_5x5 <= 0.9) {
+                return 1.021;
+            }
+            else {
+                return 1.020;
+            }
+        }
+        else if (200 < scRawE) {
+            if (R9_5x5 <= 0.9) {
+                return 1.010;
+            }
+            else {
+                return 1.004;
+            }
+        }
+    }
+    else if (0.96 < scEtaAbs && scEtaAbs <= 1.48) {
+        if (5 < scRawE && scRawE <= 20) {
+            return 1.291;
+        }
+        else if (20 < scRawE && scRawE <= 40) {
+            if (R9_5x5 <= 0.9) {
+                if (scPhiWidth <= 0.03) {
+                    return 1.085;
+                }
+                else {
+                    return 1.160;
+                }
+            }
+            else {
+                if (scPhiWidth <= 0.03) {
+                    return 1.056;
+                }
+                else {
+                    return 1.039;
+                }
+            }
+        }
+        else if (40 < scRawE && scRawE <= 100) {
+            if (R9_5x5 <= 0.9) {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.054;
+                    }
+                    else {
+                        return 1.090;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.058;
+                    }
+                    else {
+                        return 1.112;
+                    }
+                }
+            }
+            else {
+                if (scEtaWidth <= 0.008) {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.011;
+                    }
+                    else {
+                        return 1.036;
+                    }
+                }
+                else {
+                    if (scPhiWidth <= 0.03) {
+                        return 1.033;
+                    }
+                    else {
+                        return 1.017;
+                    }
+                }
+            }
+        }
+        else if (100 < scRawE && scRawE <= 200) {
+            if (R9_5x5 <= 0.9) {
+                return 1.054;
+            }
+            else {
+                return 1.020;
+            }
+        }
+        else if (200 < scRawE) {
+            if (R9_5x5 <= 0.9) {
+                return 1.039;
+            }
+            else {
+                return 1.013;
+            }
+        }
+    }
+    else if (1.57 < scEtaAbs && scEtaAbs <= 2.1) {
+        if (40 < scRawE && scRawE <= 100) {
+            if (R9_5x5 <= 0.9) {
+                return 1.273;
+            }
+            else {
+                return 1.079;
+            }
+        }
+        else if (100 < scRawE && scRawE <= 200) {
+            if (R9_5x5 <= 0.9) {
+                return 1.171;
+            }
+            else {
+                return 1.068;
+            }
+        }
+        else if (200 < scRawE) {
+            if (R9_5x5 <= 0.9) {
+                return 1.117;
+            }
+            else {
+                return 1.043;
+            }
+        }
+    }
+
+    return -1;
 }
 
 double ggHiNtuplizer::getElePtCorrFactor(int i, int collType, int hiBin)
