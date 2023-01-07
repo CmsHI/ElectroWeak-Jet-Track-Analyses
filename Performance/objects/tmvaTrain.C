@@ -29,6 +29,7 @@
 #include "../../Utilities/interface/InputConfigurationParser.h"
 #include "../../Utilities/interface/ArgumentParser.h"
 #include "../../Utilities/interface/ConfigurationParser.h"
+#include "../../Utilities/fileUtil.h"
 #include "../interface/tmvaAnalyzer.h"
 
 ///// global variables
@@ -55,7 +56,9 @@ std::vector<std::string> tmvaMethodBaseOptions;
 int nTmvaMethods;
 
 bool runTmvaFactoryTrain;
+bool saveTrainTree;
 bool runTmvaFactoryTest;
+bool saveTestTree;
 bool runTmvaFactoryEval;
 
 std::string preselectionS;
@@ -335,6 +338,41 @@ int tmvaTrain(std::string configFile, std::string signalFile, std::string backgr
 
     output->Close();
 
+    /*
+     * TMVA does not allow not to save the train and test samples --> https://root.cern.ch/doc/v610/tmva_2tmva_2src_2Factory_8cxx_source.html#l02037
+     * */
+    std::vector<std::string> objPathsToRemove;
+    if (!saveTrainTree) {
+        objPathsToRemove.push_back("dataset/TrainTree");
+    }
+    if (!saveTestTree) {
+        objPathsToRemove.push_back("dataset/TestTree");
+    }
+
+    bool modifyOutput = (!objPathsToRemove.empty());
+    if (modifyOutput) {
+        /*
+         * https://root-forum.cern.ch/t/delete-object-from-tfile/17658
+         * */
+        std::cout << "Output file is to be modified."<< std::endl;
+
+        std::string tmpFilePath = Form("%sTMP", outputFile.c_str());
+        gSystem->Exec(Form("mv -v %s %s", outputFile.c_str(), tmpFilePath.c_str()));
+
+        output = TFile::Open(outputFile.c_str(), "RECREATE");
+        TFile* tmpSrc = TFile::Open(tmpFilePath.c_str(), "READ");
+        copyDir(tmpSrc, output, true, objPathsToRemove);
+        tmpSrc->Close();
+
+        output->Close();
+
+        gSystem->Exec(Form("rm -v %s", tmpFilePath.c_str()));
+        std::cout << "Output modification is complete. Following objects are removed from the output :" << std::endl;
+        for (std::string s : objPathsToRemove) {
+            std::cout << s << std::endl;
+        }
+    }
+
     std::cout << "==> Wrote root file: " << output->GetName() << std::endl;
     std::cout << "==> TMVAClassification is done!" << std::endl;
 
@@ -393,7 +431,9 @@ int readConfiguration(std::string configFile, std::string inputFile)
     tmvaMethodBaseOptions = ConfigurationParser::getVecString(tmvaMethodsList, 3, 2);
 
     runTmvaFactoryTrain = (confParser.ReadConfigValueInteger("runTmvaFactoryTrain") > 0);
+    saveTrainTree = (confParser.ReadConfigValueInteger("saveTrainTree") > 0);
     runTmvaFactoryTest = (confParser.ReadConfigValueInteger("runTmvaFactoryTest") > 0);
+    saveTestTree = (confParser.ReadConfigValueInteger("saveTestTree") > 0);
     runTmvaFactoryEval = (confParser.ReadConfigValueInteger("runTmvaFactoryEval") > 0);
 
     preselectionS = confParser.ReadConfigValue("preselectionSig");
@@ -553,7 +593,9 @@ void printConfiguration()
     }
 
     std::cout << "runTmvaFactoryTrain = " << runTmvaFactoryTrain << std::endl;
+    std::cout << "saveTrainTree = " << saveTrainTree << std::endl;
     std::cout << "runTmvaFactoryTest = " << runTmvaFactoryTest << std::endl;
+    std::cout << "saveTestTree = " << saveTestTree << std::endl;
     std::cout << "runTmvaFactoryEval = " << runTmvaFactoryEval << std::endl;
 
     std::cout << "preselectionS = " << preselectionS.c_str() << std::endl;
