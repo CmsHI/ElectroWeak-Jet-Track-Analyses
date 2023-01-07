@@ -7,6 +7,7 @@ date1=$(date +"%s")         # %s     seconds since 1970-01-01 00:00:00 UTC
 #date1Human=$(date -d @$date1)
 date1Human=$(date -d @$date1 '+%d/%m/%Y %H:%M:%S')
 echo "started on     =" $date1Human
+echo "host = "$(hostname)
 echo "############################################################"
 
 # run the whole argument as if it is a bash command or bash script
