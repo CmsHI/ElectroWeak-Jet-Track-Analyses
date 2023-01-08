@@ -559,6 +559,7 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                     double pt = (*ggHi.phoEt)[i];
                     if (doTMVA) {
 
+                        double scRawE = (*ggHi.phoSCRawE)[i];
                         double scEta = (*ggHi.phoSCEta)[i];
                         int offset = 0;
                         for (int iXML = 0; iXML < nTmvaXMLFiles; ++iXML) {
@@ -572,7 +573,8 @@ void objSpectraAna(std::string configFile, std::string inputFile, std::string ou
                             if (insideEtaRange && insidePtRange) {
                                 ggHi.copy2Vars(i, varsR, tmvaReaderVarsStr[iXML], nReaderVarsInFile[iXML], offset);
                                 std::vector<float> targets_regr = tmvaReaders[iXML]->EvaluateRegression(tmvaMethodNames[iXML].c_str());
-                                double energy = targets_regr[0];
+                                //double energy = targets_regr[0];
+                                double energy = targets_regr[0] * scRawE;
                                 pt = energy / TMath::CosH((*ggHi.phoEta)[i]);
                                 break;
                             }

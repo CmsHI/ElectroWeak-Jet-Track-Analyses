@@ -2632,13 +2632,32 @@ double ggHiNtuplizer::getValueByName(int i, std::string varName)
     else if (varName == "phoE3x3_2012") {
         return (double)((*phoE3x3_2012)[i]);
     }
+    else if (varName == "phoR9_2012") {
+        return (double)((*phoR9_2012)[i]);
+    }
     else if (varName == "phoMaxEnergyXtal_2012") {
         return (double)((*phoMaxEnergyXtal_2012)[i]);
+    }
+    else if (varName == "phoEmaxSCRawE" || varName == "phoMaxEnergyXtal_2012/phoSCRawE") {
+        return (double)((*phoMaxEnergyXtal_2012)[i])/((*phoSCRawE)[i]);
     }
     else if (varName == "phoE2nd_2012") {
         return (double)((*phoE2nd_2012)[i]);
     }
-    else if (varName == "phoE_LR" || varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+    else if (varName == "phoE2ndSCRawE" || varName == "phoE2nd_2012/phoSCRawE") {
+        return (double)((*phoE2nd_2012)[i])/((*phoSCRawE)[i]);
+    }
+    else if (varName == "phoE_LR" || varName == "abs(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
+
+        if ((*phoELeft_2012)[i] != 0 || (*phoERight_2012)[i] != 0) {
+            //return (double)(((*phoELeft_2012)[i]-(*phoERight_2012)[i])/((*phoELeft_2012)[i]+(*phoERight_2012)[i]));
+            return (double)(TMath::Abs( (*phoELeft_2012)[i]-(*phoERight_2012)[i] )/((*phoELeft_2012)[i]+(*phoERight_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "(phoELeft_2012-phoERight_2012)/(phoELeft_2012+phoERight_2012)") {
 
         if ((*phoELeft_2012)[i] != 0 || (*phoERight_2012)[i] != 0) {
             return (double)(((*phoELeft_2012)[i]-(*phoERight_2012)[i])/((*phoELeft_2012)[i]+(*phoERight_2012)[i]));
@@ -2647,7 +2666,17 @@ double ggHiNtuplizer::getValueByName(int i, std::string varName)
             return 0;
         }
     }
-    else if (varName == "phoE_TB" || varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+    else if (varName == "phoE_TB" || varName == "abs(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
+
+        if ((*phoETop_2012)[i] != 0 || (*phoEBottom_2012)[i] != 0) {
+            //return (double)(((*phoETop_2012)[i]-(*phoEBottom_2012)[i])/((*phoETop_2012)[i]+(*phoEBottom_2012)[i]));
+            return (double)(TMath::Abs( (*phoETop_2012)[i]-(*phoEBottom_2012)[i] )/((*phoETop_2012)[i]+(*phoEBottom_2012)[i]));
+        }
+        else {
+            return 0;
+        }
+    }
+    else if (varName == "(phoETop_2012-phoEBottom_2012)/(phoETop_2012+phoEBottom_2012)") {
 
         if ((*phoETop_2012)[i] != 0 || (*phoEBottom_2012)[i] != 0) {
             return (double)(((*phoETop_2012)[i]-(*phoEBottom_2012)[i])/((*phoETop_2012)[i]+(*phoEBottom_2012)[i]));
@@ -2672,6 +2701,7 @@ double ggHiNtuplizer::getValueByName(int i, std::string varName)
         return (double)((*phoESEn)[i]);
     }
     else {
+        std::cout << "variable not found : " << varName.c_str() << std::endl;
         return -998877;
     }
 }

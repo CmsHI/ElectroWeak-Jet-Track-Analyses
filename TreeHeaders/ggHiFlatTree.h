@@ -4314,6 +4314,7 @@ double ggHiFlat::getValueByName(std::string varName)
         return (double)(phoESEn);
     }
     else {
+        std::cout << "variable not found : " << varName.c_str() << std::endl;
         return -998877;
     }
 }
