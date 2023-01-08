@@ -542,7 +542,7 @@ void objRecoAna(std::string configFile, std::string inputFile, std::string outpu
         std::cout << "entries in File = " << entriesTmp << std::endl;
         for (Long64_t j_entry = 0; j_entry < entriesTmp; ++j_entry)
         {
-            bool verbose = (j_entry % 2000 == 0);
+            bool verbose = (j_entry % 20000 == 0);
             if (verbose)  {
               std::cout << "current entry = " <<j_entry<<" out of "<<entriesTmp<<" : "<<std::setprecision(2)<<(double)j_entry/entriesTmp*100<<" %"<<std::endl;
             }
