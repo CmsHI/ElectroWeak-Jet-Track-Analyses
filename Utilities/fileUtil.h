@@ -38,6 +38,8 @@ TList* getListOfALLCanvases(TDirectoryFile* dir);
 
 std::string getKeyPath(TKey* key);
 
+void copyDir(TDirectory* source, TDirectory* dest, bool copyRecursive = true, std::vector<std::string> pathsSkip = {});
+
 void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex = "", std::string fileType = "png", std::string directoryToBeSavedIn = "", TH1* th1 = 0, TCanvas* c = 0);
 void saveAllGraphsToPicture(TDirectoryFile* dir, std::string fileType = "png", std::string directoryToBeSavedIn = "", TCanvas* c = 0);
@@ -369,6 +371,53 @@ std::string getKeyPath(TKey* key)
 }
 
 /*
+ *
+ * https://root.cern/doc/v608/copyFiles_8C_source.html
+ * */
+void copyDir(TDirectory* source, TDirectory* dest, bool copyRecursive, std::vector<std::string> pathsSkip) {
+    //copy all objects and subdirs of directory source as a subdir of the current directory
+    //source->ls();
+    dest->cd();
+    //dest->ls();
+    //loop on all entries of this directory
+    TKey *key;
+    TIter nextkey(source->GetListOfKeys());
+    while ((key = (TKey*)nextkey())) {
+
+        std::string kPath = getKeyPath(key);
+        if (std::find(pathsSkip.begin(), pathsSkip.end(), kPath) != pathsSkip.end()) {
+            continue;
+        }
+
+        TClass *cl = gROOT->GetClass(key->GetClassName());
+        if (!cl) continue;
+        if (cl->InheritsFrom(TDirectory::Class())) {
+            if (copyRecursive) {
+                TDirectory *adir = dest->mkdir(key->GetName(), key->GetTitle());
+                source->cd(key->GetName());
+                TDirectory *sourceSub = gDirectory;
+                adir->cd();
+                copyDir(sourceSub, adir, copyRecursive, pathsSkip);
+                adir->SaveSelf(kTRUE);
+                dest->cd();
+            }
+        } else if (cl->InheritsFrom(TTree::Class())) {
+            TTree *T = (TTree*)source->Get(key->GetName());
+            dest->cd();
+            TTree *newT = T->CloneTree(-1,"fast");
+            newT->Write();
+        } else {
+            source->cd();
+            TObject *obj = key->ReadObj();
+            dest->cd();
+            obj->Write();
+            obj->Delete();
+        }
+    }
+    dest->cd();
+}
+
+/*
  * save recursively all the TH1 histograms inside a TDirectoryFile "dir" to images
  */
 void saveAllHistogramsToPicture(TDirectoryFile* dir, std::string fileType, std::string directoryToBeSavedIn, TH1* th1, TCanvas* c)
@@ -399,6 +448,7 @@ void saveHistogramsToPicture(TDirectoryFile* dir, std::string regex, std::string
         if (th1) {
             if (th1->GetMinimum() != -999999) h->SetMinimum(th1->GetMinimum());
             if (th1->GetMaximum() != -999999) h->SetMaximum(th1->GetMaximum());
+            if (th1->GetMarkerStyle() > 0) h->SetMarkerStyle(th1->GetMarkerStyle());
         }
 
         h->Draw();
