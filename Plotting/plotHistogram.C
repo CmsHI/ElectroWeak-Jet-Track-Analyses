@@ -933,6 +933,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
     std::vector<bool> isGrAErr(nHistos, false);
     std::vector<TGraphAsymmErrors*> grAErr(nHistos, 0);
 
+    std::vector<bool> isTF1(nHistos, false);
+    std::vector<TF1*> fncf1(nHistos, 0);
+
     TGraph* grErr = 0;
     grErr = new TGraph();
 
@@ -960,6 +963,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             grTmp = (TGraph*)f[i]->Get(TH1_path.c_str());
             h[i] = Graph2Histogram(grTmp);
         }
+        else if (objTmp->InheritsFrom("TF1"))  {
+            isTF1[i] = true;
+            fncf1[i] = (TF1*)f[i]->Get(TH1_path.c_str());
+            //implement TF1 2 TH1 function
+            h[i] = fncf1[i]->GetHistogram();
+        }
         else if (objTmp->InheritsFrom("TH2"))  {
             h[i] = (TH2D*)f[i]->Get(TH1_path.c_str());
         }
@@ -971,6 +980,9 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
 
         if (isGrAErr[i]) {
             grAErr[i]->SetName(Form("grAErr_%d", i));
+        }
+        else if (isTF1[i]) {
+            fncf1[i]->SetName(Form("fncf1_%d", i));
         }
 
         h[i]->SetName(Form("h_%d", i));
@@ -1031,8 +1043,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         std::cout << Form("h[%d]", i) << std::endl;
         std::cout << Form("TH1_paths[%d] = %s", i, TH1_path.c_str()) << std::endl;
         std::cout << Form("inputFiles[%d] = %s", i, inputFile.c_str()) << std::endl;
-        std::string summary = summaryTH1(h[i]);
+        std::string summary;
+        summary = summaryTH1(h[i]);
         std::cout << summary.c_str() << std::endl;
+        if (isTF1[i]) {
+            std::cout << summaryTF1(fncf1[i]) << std::endl;
+        }
     }
 
     for (int i=0; i<nHistos; ++i) {
@@ -1207,7 +1223,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         int lineWidth = lineWidths.at(0);
         if (nLineWidths == nHistos)  lineWidth = lineWidths.at(i);
         if (lineWidth != INPUT_DEFAULT::lineWidth) {
-            if (drawOption.find("hist") != std::string::npos)
+            if (drawOption.find("hist") != std::string::npos || isTF1[i])
                 h[i]->SetLineWidth(lineWidth);
         }
 
@@ -1340,6 +1356,42 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             grAErr[i]->GetXaxis()->SetLabelOffset(h[i]->GetXaxis()->GetLabelOffset());
             grAErr[i]->GetYaxis()->SetLabelOffset(h[i]->GetYaxis()->GetLabelOffset());
         }
+        else if (isTF1[i]) {
+            fncf1[i]->SetTitle(h[i]->GetTitle());
+            fncf1[i]->GetXaxis()->SetTitle(h[i]->GetXaxis()->GetTitle());
+            fncf1[i]->GetYaxis()->SetTitle(h[i]->GetYaxis()->GetTitle());
+            fncf1[i]->SetMarkerStyle(h[i]->GetMarkerStyle());
+            fncf1[i]->SetLineStyle(h[i]->GetLineStyle());
+            fncf1[i]->SetFillStyle(h[i]->GetFillStyle());
+            fncf1[i]->SetMarkerColor(h[i]->GetMarkerColor());
+            fncf1[i]->SetLineColor(h[i]->GetLineColor());
+            fncf1[i]->SetFillColor(h[i]->GetFillColor());
+            if (fillAlpha != -1 && fillColor != -1) {
+                fncf1[i]->SetFillColorAlpha(fillColor, fillAlpha);
+            }
+            fncf1[i]->SetLineWidth(h[i]->GetLineWidth());
+            fncf1[i]->SetMarkerSize(h[i]->GetMarkerSize());
+            if (xMaxTmp > xMinTmp) {
+                fncf1[i]->GetXaxis()->SetRangeUser(xMinTmp, xMaxTmp);
+            }
+            if (yMaxTmp > yMinTmp)  {
+                fncf1[i]->GetYaxis()->SetRangeUser(yMinTmp, yMaxTmp);
+            }
+            fncf1[i]->GetXaxis()->SetTitleSize(h[i]->GetXaxis()->GetTitleSize());
+            fncf1[i]->GetYaxis()->SetTitleSize(h[i]->GetYaxis()->GetTitleSize());
+
+            fncf1[i]->GetXaxis()->SetTitleOffset(h[i]->GetXaxis()->GetTitleOffset());
+            fncf1[i]->GetYaxis()->SetTitleOffset(h[i]->GetYaxis()->GetTitleOffset());
+
+            fncf1[i]->GetXaxis()->CenterTitle(h[i]->GetXaxis()->GetCenterTitle());
+            fncf1[i]->GetYaxis()->CenterTitle(h[i]->GetYaxis()->GetCenterTitle());
+
+            fncf1[i]->GetXaxis()->SetLabelSize(h[i]->GetXaxis()->GetLabelSize());
+            fncf1[i]->GetYaxis()->SetLabelSize(h[i]->GetYaxis()->GetLabelSize());
+
+            fncf1[i]->GetXaxis()->SetLabelOffset(h[i]->GetXaxis()->GetLabelOffset());
+            fncf1[i]->GetYaxis()->SetLabelOffset(h[i]->GetYaxis()->GetLabelOffset());
+        }
     }
 
     TCanvas* c = 0;
@@ -1466,7 +1518,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
         else if (nDrawOptions == nHistos) drawOption = drawOptions.at(iHist).c_str();
 
-        bool isTH1 = !isGrAErr[i];
+        bool isTH1 = !isGrAErr[i] && !isTF1[i];
 
         if (isTH1 && !hDrawn[iHist]) {
              int indexPad = TH1_padIndices.at(iHist);
@@ -1488,7 +1540,7 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
         if (nDrawOptions == 1)  drawOption = drawOptions.at(0).c_str();
         else if (nDrawOptions == nHistos) drawOption = drawOptions.at(i).c_str();
 
-        bool isTH1 = !isGrAErr[i];
+        bool isTH1 = !isGrAErr[i] && !isTF1[i];
 
         if (!containsClassInstance(pads[indexPad], "TH1")) {
             hTmp = (TH1D*)h[i]->Clone();
@@ -1516,8 +1568,11 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (isTH1) {
                 h[i]->Draw(Form("%s same", drawOption.c_str()));
             }
-            else {
+            else if (isGrAErr[i]) {
                 grAErr[i]->Draw(Form("%s same", drawOption.c_str()));
+            }
+            else if (isTF1[i]) {
+                fncf1[i]->Draw(Form("%s same", drawOption.c_str()));
             }
             hDrawn[i] = true;
         }
@@ -1534,8 +1589,12 @@ void plotHistogram(const TString configFile, const TString inputFile, const TStr
             if (isTH1)  {
                 legs[legIndex]->AddEntry(h[i], label.c_str(), legendOption.c_str());
             }
-            else {
+            else if (isGrAErr[i]) {
                 legs[legIndex]->AddEntry(grAErr[i], label.c_str(), legendOption.c_str());
+            }
+            else if (isTF1[i]) {
+                legendOption = "lf";
+                legs[legIndex]->AddEntry(fncf1[i], label.c_str(), legendOption.c_str());
             }
         }
     }
