@@ -33,22 +33,30 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
 void tmvaReadXML(std::string fileXML, std::string methodName, std::string variablesStr, std::string outputFile)
 {
     std::cout << "##### Parameters #####" << std::endl;
-    std::cout << "running tmvaReadXML()" << std::endl;
     std::cout << "fileXML = " << fileXML.c_str() << std::endl;
     std::cout << "methodName = " << methodName.c_str() << std::endl;
     std::cout << "variables = " << variablesStr.c_str() << std::endl;
     std::cout << "outputFile = " << outputFile.c_str() << std::endl;
     std::cout << "##### Parameters - END #####" << std::endl;
 
+    std::string modeStr = (ArgumentParser::ParseOptionInputSingle("--mode", argOptions).size() > 0) ?
+            ArgumentParser::ParseOptionInputSingle("--mode", argOptions).c_str() : "";
     std::string spectatorsStr = (ArgumentParser::ParseOptionInputSingle("--spectators", argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle("--spectators", argOptions).c_str() : "";
+    std::string valuesStr = (ArgumentParser::ParseOptionInputSingle("--values", argOptions).size() > 0) ?
+            ArgumentParser::ParseOptionInputSingle("--values", argOptions).c_str() : "";
     std::string sigEffStr = (ArgumentParser::ParseOptionInputSingle("--signalEffs", argOptions).size() > 0) ?
             ArgumentParser::ParseOptionInputSingle("--signalEffs", argOptions).c_str() : "";
 
     std::cout << "##### Optional Arguments #####" << std::endl;
+    std::cout << "mode = " << modeStr.c_str() << std::endl;
     std::cout << "spectators = " << spectatorsStr.c_str() << std::endl;
+    std::cout << "values = " << valuesStr.c_str() << std::endl;
     std::cout << "signal efficiencies = " << sigEffStr.c_str() << std::endl;
     std::cout << "##### Optional Arguments - END #####" << std::endl;
+
+    bool modeEff = (modeStr == "sigeff") || (modeStr == "eff");
+    bool modeEval = (modeStr == "eval");
 
     std::vector<std::string> variables = split(variablesStr, ";", false, false);
     int nVariables = variables.size();
@@ -77,10 +85,15 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
         std::cout << Form("sigEffs[%d] = %.3f", i, sigEffs.at(i)) << std::endl;
     }
 
-    TFile* output = TFile::Open(outputFile.c_str(),"RECREATE");
-    output->cd();
+    TFile* output = 0;
+    bool writeOutput = modeEff;
+    if (writeOutput) {
+        output = TFile::Open(outputFile.c_str(),"RECREATE");
+        output->cd();
+    }
 
-    TMVA::Reader *reader = new TMVA::Reader("!Color");
+    TMVA::Reader *reader = new TMVA::Reader("!Color:Error");
+    //TMVA::Reader *reader = new TMVA::Reader("!Color");
 
     float varF[nVariables];
     for (int i = 0; i < nVariables; ++i) {
@@ -93,7 +106,42 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
     }
 
     reader->BookMVA(methodName.c_str(), fileXML.c_str());
-    TMVA::MethodCuts* mCuts = dynamic_cast<TMVA::MethodCuts*>(reader->FindCutsMVA(methodName.c_str()));
+
+    if (modeEval) {
+        // assume the numbers of values in a selection line is the same as number of input variables (i.e. number of variables to read)
+        std::vector<std::string> strInVals = split(valuesStr, ";");
+        int nVals = strInVals.size();
+
+        if (nVals != nVariables) {
+            std::cout << "Mismatch : " << nVals << " values are provided for " << nVariables << " variables. Exiting." << std::endl;
+            return;
+        }
+
+        for (int i = 0; i < nVariables; ++i) {
+            varF[i] = std::atof(strInVals[i].c_str());
+        }
+
+        double mva = reader->EvaluateMVA(methodName.c_str());
+        double mvaErr = reader->GetMVAError();
+        std::cout << "mva = " << mva << std::endl;
+        std::cout << "err = " << mvaErr << std::endl;
+
+        std::vector<float> targets_regr = reader->EvaluateRegression(methodName.c_str());
+        int nTarget = targets_regr.size();
+
+        for (int i = 0; i < nTarget; ++i) {
+            std::cout << "tgt[" << i << "] = " << targets_regr[i] << std::endl;
+        }
+
+        mvaErr = reader->GetMVAError();
+        std::cout << "err = " << mvaErr << std::endl;
+        return;
+    }
+
+    TMVA::MethodCuts* mCuts = 0;
+    if (modeEff) {
+        mCuts = dynamic_cast<TMVA::MethodCuts*>(reader->FindCutsMVA(methodName.c_str()));
+    }
 
     for (int i = 0; i < nSigEffs; ++i) {
         std::cout << Form("signal efficiency = %.3f", sigEffs.at(i)) << std::endl;
@@ -124,7 +172,9 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
         }
     }
 
-    output->cd();
+    if (output) {
+        output->cd();
+    }
 
     // plot variable minimum/maximum cut as function of signal efficiency
     std::vector<TH1D*> h_var_cutMin_vs_sigEff(nVariables, 0);
@@ -169,8 +219,6 @@ void tmvaReadXML(std::string fileXML, std::string methodName, std::string variab
     output->Write("",TObject::kOverwrite);
     std::cout<<"Closing the output file."<<std::endl;
     output->Close();
-
-    std::cout << "running tmvaReadXML() - END" << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -181,7 +229,9 @@ int main(int argc, char** argv)
     argOptions = ArgumentParser::ParseOptions(argc, argv);
 
     if (nArgStr == 5) {
+        std::cout << "running tmvaReadXML()" << std::endl;
         tmvaReadXML(argv[1], argv[2], argv[3], argv[4]);
+        std::cout << "running tmvaReadXML() - END" << std::endl;
         return 0;
     }
     else {
