@@ -10,6 +10,7 @@
 #include <TString.h>
 #include <TCanvas.h>
 #include <TTree.h>
+#include <TROOT.h>
 
 #include <string>
 #include <iostream>
@@ -69,6 +70,9 @@ void saveAllToPicture(std::string fileName, std::string directory)
     double ymax = (ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).size() > 0) ?
             std::atof(ArgumentParser::ParseOptionInputSingle("--ymax", argOptions).c_str()) : -999999;
 
+    int markerStyle = (ArgumentParser::ParseOptionInputSingle("--markerStyle", argOptions).size() > 0) ?
+            std::atoi(ArgumentParser::ParseOptionInputSingle("--markerStyle", argOptions).c_str()) : -1;
+
     int logx = (ArgumentParser::ParseOptionInputSingle("--logx", argOptions).size() > 0) ?
             std::atoi(ArgumentParser::ParseOptionInputSingle("--logx", argOptions).c_str()) : 0;
     int logy = (ArgumentParser::ParseOptionInputSingle("--logy", argOptions).size() > 0) ?
@@ -103,6 +107,8 @@ void saveAllToPicture(std::string fileName, std::string directory)
     std::cout << "ymin = " << ymin << std::endl;
     std::cout << "ymax = " << ymax << std::endl;
 
+    std::cout << "markerStyle = " << markerStyle << std::endl;
+
     std::cout << "logx = " << logx << std::endl;
     std::cout << "logy = " << logy << std::endl;
     std::cout << "logz = " << logz << std::endl;
@@ -111,6 +117,7 @@ void saveAllToPicture(std::string fileName, std::string directory)
     TH1D* h1D = new TH1D("h1D", "", 1, 0, 1);
     h1D->SetMinimum(ymin);
     h1D->SetMaximum(ymax);
+    h1D->SetMarkerStyle(markerStyle);
 
     // canvas to be used as template for pictures
     TCanvas* c = new TCanvas("c", "", ww, wh);
@@ -161,6 +168,7 @@ int main(int argc, char** argv)
         std::cout << "--lmargin=<left margin>, Similarly rmargin, bmargin, tmargin for right, bottom, and top margins" << std::endl;
         std::cout << "--logx=<log scale of x-axis>, Similarly for logy and logz" << std::endl;
         std::cout << "--ymin=<minimum value for y-axis>, Similarly for ymax" << std::endl;
+        std::cout << "--markerStyle=<numeric value for marker style>" << std::endl;
         std::cout << "--overwriteStoredCanvas is needed to modify a stored canvas" << std::endl;
         return 1;
     }
